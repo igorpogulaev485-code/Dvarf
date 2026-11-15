@@ -8,11 +8,13 @@ import {
   shouldRunLobbyTour,
   shouldRunSheetTour,
   shouldShowCreateHints,
+  shouldShowJoinIntro,
   shouldShowSceneIntros,
   toServerPayload,
 } from './storage'
 import {
   CREATE_HINT_VERSION,
+  type LobbyTourStepId,
   type OnboardingPanelId,
   type OnboardingSegment,
   type OnboardingState,
@@ -102,6 +104,8 @@ export function useOnboardingState(userId?: string | null) {
         welcomeDone: true,
         sheetTourDone: segment === 'skip' ? true : prev.sheetTourDone,
         lobbyTourDone: segment === 'skip' ? true : prev.lobbyTourDone,
+        joinIntroDone: segment === 'skip' ? true : prev.joinIntroDone,
+        lobbyTourSeenSteps: segment === 'skip' ? [] : prev.lobbyTourSeenSteps,
       }))
     },
     [commit],
@@ -179,6 +183,7 @@ export function useOnboardingState(userId?: string | null) {
       ...prev,
       lobbyTourDone: true,
       pendingLobbyTour: false,
+      lobbyTourSeenSteps: [],
     }))
   }, [commit])
 
@@ -187,7 +192,25 @@ export function useOnboardingState(userId?: string | null) {
       ...prev,
       lobbyTourDone: true,
       pendingLobbyTour: false,
+      lobbyTourSeenSteps: [],
     }))
+  }, [commit])
+
+  const markLobbyTourStep = useCallback(
+    (id: LobbyTourStepId) => {
+      commit(
+        (prev) =>
+          prev.lobbyTourSeenSteps.includes(id)
+            ? prev
+            : { ...prev, lobbyTourSeenSteps: [...prev.lobbyTourSeenSteps, id] },
+        { sync: false },
+      )
+    },
+    [commit],
+  )
+
+  const markJoinIntroDone = useCallback(() => {
+    commit((prev) => ({ ...prev, joinIntroDone: true }), { sync: false })
   }, [commit])
 
   /**
@@ -245,6 +268,8 @@ export function useOnboardingState(userId?: string | null) {
     skipSheetTour,
     completeLobbyTour,
     skipLobbyTour,
+    markLobbyTourStep,
+    markJoinIntroDone,
     dismissPanelHelp,
     markHelpOpened,
     restartTips,
@@ -254,6 +279,7 @@ export function useOnboardingState(userId?: string | null) {
     showReadyBridge: state.pendingReadyBridge && state.segment !== 'skip',
     showSheetTour: shouldRunSheetTour(state),
     showLobbyTour,
+    showJoinIntro: hydrated && shouldShowJoinIntro(state),
     showSceneIntros: hydrated && shouldShowSceneIntros(state),
   }
 }

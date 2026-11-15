@@ -52,7 +52,7 @@ import { normalizeCampaignRules } from '../features/lobby/campaignRules'
 import { targetsFromSession } from '../features/lobby/combatTargets'
 import { MoraleCheckDialog } from '../features/characters/O04MasterRulesDialogs'
 import { normalizeVisibilityProfile } from '../features/lobby/visibilityProfile'
-import { LobbyTour, useOnboardingState } from '../features/onboarding'
+import { HelpDrawer, LobbyTour, useOnboardingState } from '../features/onboarding'
 import { getMe } from '../shared/api/auth'
 import { getCharacter, listCharacters } from '../shared/api/characters'
 import {
@@ -146,6 +146,7 @@ function ToolbarMoreItem({
   onClick,
   className = '',
   variant = 'secondary',
+  dataOnboarding,
 }: {
   label: string
   disabled?: boolean
@@ -153,6 +154,7 @@ function ToolbarMoreItem({
   onClick?: () => void
   className?: string
   variant?: 'primary' | 'secondary' | 'ghost' | 'danger'
+  dataOnboarding?: string
 }) {
   const showWhy = Boolean(disabled && why)
   return (
@@ -165,6 +167,7 @@ function ToolbarMoreItem({
       title={showWhy ? why : undefined}
       aria-label={showWhy ? `${label}. ${why}` : label}
       onClick={onClick}
+      {...(dataOnboarding ? { 'data-onboarding': dataOnboarding } : {})}
     >
       <span className="session-toolbar-more__item-label">{label}</span>
       {showWhy ? <span className="session-toolbar-more__item-why">{why}</span> : null}
@@ -349,6 +352,7 @@ export function SessionDetailPage() {
   const [wikiCombatPickOpen, setWikiCombatPickOpen] = useState(false)
   const [wikiCombatListOpen, setWikiCombatListOpen] = useState(false)
   const [wikiCombatPickId, setWikiCombatPickId] = useState('')
+  const [helpOpen, setHelpOpen] = useState(false)
   const [combatStartOpen, setCombatStartOpen] = useState(false)
   const [combatEndOpen, setCombatEndOpen] = useState(false)
   const [endCombatThenClose, setEndCombatThenClose] = useState(false)
@@ -1217,6 +1221,19 @@ export function SessionDetailPage() {
           <Text as="h2" className="session-table-chrome__title">
             {session.name}
           </Text>
+          <Button
+            type="button"
+            variant="ghost"
+            size="lg"
+            className="session-table-chrome__help"
+            data-onboarding="lobby-help"
+            onClick={() => {
+              onboarding.markHelpOpened()
+              setHelpOpen(true)
+            }}
+          >
+            Справка
+          </Button>
           <DetailsMenu
             className="session-table-chrome__more"
             summary="⋯"
@@ -1319,7 +1336,10 @@ export function SessionDetailPage() {
                 className="session-live-desk__rail session-live-desk__desktop-only"
                 data-onboarding="lobby-initiative"
               >
-                <div className="session-live-desk__rail-head">
+                <div
+                  className="session-live-desk__rail-head"
+                  data-onboarding="lobby-live-tabs"
+                >
                   <Text as="h3">Инициатива и лента</Text>
                 </div>
                 {session.combat?.active ? (
@@ -1599,6 +1619,7 @@ export function SessionDetailPage() {
                       className="session-toolbar-group session-toolbar-group--primary"
                       aria-label="Бой"
                       data-sc05-primary
+                      data-onboarding="lobby-combat"
                     >
                       {!session.combat?.active ? (
                         <Button
@@ -1668,6 +1689,7 @@ export function SessionDetailPage() {
                       className="session-toolbar-more session-toolbar-rewards"
                       data-sc05-more
                       data-sc05-rewards
+                      data-onboarding="lobby-more"
                       summary="Ещё"
                       summaryClassName="session-toolbar-more__summary"
                       panelClassName="session-toolbar-more__body"
@@ -1749,6 +1771,7 @@ export function SessionDetailPage() {
                               <span className="session-toolbar-group__caption">Бой</span>
                               <ToolbarMoreItem
                                 label="+ Враги"
+                                dataOnboarding="lobby-combat-enemies"
                                 disabled={busy}
                                 onClick={() => setCombatantOpen(true)}
                               />
@@ -3723,10 +3746,27 @@ export function SessionDetailPage() {
       ) : null}
 
       <LobbyTour
-        open={Boolean(session) && onboarding.showLobbyTour && onboarding.hydrated}
+        open={Boolean(
+          session &&
+            onboarding.showLobbyTour &&
+            onboarding.hydrated &&
+            (sessionCanRun(session) ||
+              session.seats.some((s) => ownCharacterIds.has(s.character_id))),
+        )}
         isMaster={Boolean(session && sessionCanRun(session))}
+        surface="session"
+        seenSteps={onboarding.state.lobbyTourSeenSteps}
+        onStepSeen={(id) => onboarding.markLobbyTourStep(id)}
         onComplete={() => onboarding.completeLobbyTour()}
         onSkip={() => onboarding.skipLobbyTour()}
+      />
+      <HelpDrawer
+        open={helpOpen}
+        onClose={() => setHelpOpen(false)}
+        onRestartTips={() => {
+          onboarding.restartTips()
+          setHelpOpen(false)
+        }}
       />
     </main>
   )

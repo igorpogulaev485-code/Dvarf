@@ -1,0 +1,173 @@
+{
+  "generatedAt": "2026-11-15T18:00:49.160Z",
+  "frames": [
+    {
+      "file": "join-intro-1440.png",
+      "md5": "3f0abb6e5159aedb228a66d34212fd6c",
+      "name": "join-intro",
+      "w": 1440
+    },
+    {
+      "file": "join-intro-390.png",
+      "md5": "cc8f52a773e96e3460d910c9e9c618e2",
+      "name": "join-intro",
+      "w": 390
+    },
+    {
+      "file": "m-01-invite-1440.png",
+      "md5": "62b4dde43d81783d44846c06fd8d4f0a",
+      "name": "m-01-invite",
+      "w": 1440
+    },
+    {
+      "file": "m-01-invite-390.png",
+      "md5": "2c37adb5ec3467495f489c57e88aa63d",
+      "name": "m-01-invite",
+      "w": 390
+    },
+    {
+      "file": "m-02-roster-1440.png",
+      "md5": "ee7b9d1ba0947514e0eb1e5944bbda13",
+      "name": "m-02-roster",
+      "w": 1440
+    },
+    {
+      "file": "m-02-roster-390.png",
+      "md5": "a53eabf4c4fc0ad6914d18d198884eb3",
+      "name": "m-02-roster",
+      "w": 390
+    },
+    {
+      "file": "m-03-live-tabs-1440.png",
+      "md5": "f95d24b0346b3df0f42afb0963752c34",
+      "name": "m-03-live-tabs",
+      "w": 1440
+    },
+    {
+      "file": "m-03-live-tabs-390.png",
+      "md5": "b5b1665738aec38fcd4ddd2f67f9cdf8",
+      "name": "m-03-live-tabs",
+      "w": 390
+    },
+    {
+      "file": "m-04-combat-1440.png",
+      "md5": "8bc0e6f6b1bddbc825ae4be1dca9c787",
+      "name": "m-04-combat",
+      "w": 1440
+    },
+    {
+      "file": "m-04-combat-390.png",
+      "md5": "a0c7df06859b35e2b33afa83563900a3",
+      "name": "m-04-combat",
+      "w": 390
+    },
+    {
+      "file": "m-05-more-help-1440.png",
+      "md5": "f025014c55ec8a547bb874a727020044",
+      "name": "m-05-more-help",
+      "w": 1440
+    },
+    {
+      "file": "m-05-more-help-390.png",
+      "md5": "e5d9e6052d1f22d45246fe20c8f0ddfe",
+      "name": "m-05-more-help",
+      "w": 390
+    },
+    {
+      "file": "m-reentry-no-tour-1440.png",
+      "md5": "7404b668d49f9c3a33116f5881de17b4",
+      "name": "m-reentry-no-tour",
+      "w": 1440
+    },
+    {
+      "file": "m-reentry-no-tour-390.png",
+      "md5": "77c39645b04aa62686d03c65ac15566c",
+      "name": "m-reentry-no-tour",
+      "w": 390
+    },
+    {
+      "file": "m-after-restart-1440.png",
+      "md5": "09206aee9da3aad3f5c158b8530155d9",
+      "name": "m-after-restart",
+      "w": 1440
+    },
+    {
+      "file": "m-after-restart-390.png",
+      "md5": "e43b1b67ed0b536934f8761417978562",
+      "name": "m-after-restart",
+      "w": 390
+    },
+    {
+      "file": "m-skip-no-tour-390.png",
+      "md5": "094f47d93acc2c4ddf400eb23ccfc3a7",
+      "name": "m-skip-no-tour",
+      "w": 390
+    },
+    {
+      "file": "m-skip-no-tour-1440.png",
+      "md5": "c557b77360b3cb351500cbcb45ffdd1b",
+      "name": "m-skip-no-tour",
+      "w": 1440
+    },
+    {
+      "file": "p-01-table-1440.png",
+      "md5": "28f15d1cf8531c10a64fd529e7639553",
+      "name": "p-01-table",
+      "w": 1440
+    },
+    {
+      "file": "p-01-table-390.png",
+      "md5": "27bb2dff93baf105f7571db9753ddaab",
+      "name": "p-01-table",
+      "w": 390
+    },
+    {
+      "file": "p-02-your-turn-1440.png",
+      "md5": "5c0c2d656d9ff2e6355040759189ce38",
+      "name": "p-02-your-turn",
+      "w": 1440
+    },
+    {
+      "file": "p-02-your-turn-390.png",
+      "md5": "949a8839799b30327566c8c54a094eb5",
+      "name": "p-02-your-turn",
+      "w": 390
+    },
+    {
+      "file": "p-03-reaction-1440.png",
+      "md5": "e9a021aba879f783aaa37de69e58783a",
+      "name": "p-03-reaction",
+      "w": 1440
+    },
+    {
+      "file": "p-03-reaction-390.png",
+      "md5": "4a775d0f71a2919aef30412b11222cd1",
+      "name": "p-03-reaction",
+      "w": 390
+    },
+    {
+      "file": "p-04-rewards-1440.png",
+      "md5": "0d012f94c3bf385ea3d4c26bb80f42b3",
+      "name": "p-04-rewards",
+      "w": 1440
+    },
+    {
+      "file": "p-04-rewards-390.png",
+      "md5": "5d06860154c24f3b053009b35b2f2c9a",
+      "name": "p-04-rewards",
+      "w": 390
+    },
+    {
+      "file": "p-reentry-no-tour-1440.png",
+      "md5": "e9dfb78d5b93b058e9ef1fc495526276",
+      "name": "p-reentry-no-tour",
+      "w": 1440
+    },
+    {
+      "file": "p-reentry-no-tour-390.png",
+      "md5": "b2956a8d5e853b26bc12fe267a22f562",
+      "name": "p-reentry-no-tour",
+      "w": 390
+    }
+  ]
+}

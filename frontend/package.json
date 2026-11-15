@@ -72,6 +72,7 @@
     "selfcheck:onboarding-copy": "tsx --tsconfig tsconfig.app.json src/features/onboarding/onboardingCopy.selfcheck.ts",
     "selfcheck:onboarding-sync": "tsx --tsconfig tsconfig.app.json src/features/onboarding/onboardingSync.selfcheck.ts",
     "selfcheck:tour01": "tsx --tsconfig tsconfig.app.json src/features/onboarding/tour01.selfcheck.ts",
+    "selfcheck:lobby-tour": "tsx --tsconfig tsconfig.app.json src/features/onboarding/lobbyTour.selfcheck.ts",
     "selfcheck:social-scene": "tsx --tsconfig tsconfig.app.json src/features/characters/socialScene.selfcheck.ts",
     "selfcheck:fix01-mobile-target": "tsx --tsconfig tsconfig.app.json src/features/characters/fix01MobileTarget.selfcheck.ts",
     "selfcheck:dialog-backdrop": "tsx --tsconfig tsconfig.app.json src/ui/dialogBackdrop.selfcheck.ts",

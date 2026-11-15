@@ -7,12 +7,18 @@ import {
   EDITION_HINT,
   EMPTY_CHARACTERS,
   HELP_DRAWER,
+  JOIN_INTRO,
+  LOBBY_TOUR,
   READY_BRIDGE,
   SCENE_INTRO,
   TOUR_STEPS,
 } from './copy.ru.ts'
 import { SCENES_STRIP_TIP, TURN_TIPS, VITAL_TIPS } from './valueTips.ru.ts'
-import { shouldShowCreateHints, shouldShowSceneIntros } from './storage.ts'
+import {
+  shouldShowCreateHints,
+  shouldShowJoinIntro,
+  shouldShowSceneIntros,
+} from './storage.ts'
 import { defaultOnboardingState, CREATE_HINT_VERSION } from './types.ts'
 
 function assert(cond: unknown, msg: string): asserts cond {
@@ -92,6 +98,13 @@ assert(
   'help map mentions seating at table',
 )
 assert(/карточки сцен/i.test(HELP_DRAWER.restartTipsHint), 'restart hint mentions scene cards')
+assert(/тур лобби/i.test(HELP_DRAWER.restartTipsHint), 'restart hint mentions lobby tour')
+assert(/\/join/i.test(HELP_DRAWER.restartTipsHint), 'restart hint mentions join card')
+
+assert(LOBBY_TOUR.master.length === 5, 'lobby master 5 steps')
+assert(LOBBY_TOUR.player.length === 4, 'lobby player 4 steps')
+assert(JOIN_INTRO.title === 'Что здесь', 'join intro title')
+assert(/Сесть за стол/.test(JOIN_INTRO.body), 'join intro CTA')
 
 assert(VITAL_TIPS.coins.title.length > 0 && VITAL_TIPS.xp.title.length > 0, 'coins/xp tips exist')
 assert(TURN_TIPS.newTurn.title === 'Новый ход', 'new-turn tip present')
@@ -116,5 +129,8 @@ assert(
 assert(shouldShowSceneIntros(fresh), 'scene intros for dnd_new')
 assert(shouldShowSceneIntros({ ...fresh, segment: 'product_new' }), 'scene intros for product_new')
 assert(!shouldShowSceneIntros({ ...fresh, segment: 'skip' }), 'no scene intros for skip')
+assert(shouldShowJoinIntro(fresh), 'join intro for dnd_new')
+assert(!shouldShowJoinIntro({ ...fresh, joinIntroDone: true }), 'join intro once')
+assert(!shouldShowJoinIntro({ ...fresh, segment: 'skip' }), 'no join intro for skip')
 
 console.log('onboardingCopy.selfcheck ok')
