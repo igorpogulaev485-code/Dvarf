@@ -1,104 +1,215 @@
-import { canSpendSlot } from '../../shared/dnd/spells'
+import { canSpendSlot, clampSlot } from '../../shared/dnd/spells'
 import type { FeatureSlotSpendDef } from '../../shared/dnd/classFeatures'
-import type { SpellSlotState } from '../../shared/dnd/spells'
-import { divineSmiteDice, type DivineSmiteIntent } from './divineSmite'
+import type { PactSlotState, SpellSlotState } from '../../shared/dnd/spells'
+import { IconUndeadFiend } from './attackIcons'
+import {
+  divineSmiteDice,
+  divineSmitePactOffer,
+  divineSmitePresentLevels,
+  type DivineSmiteIntent,
+  type DivineSmiteSlotSource,
+} from './divineSmite'
 
 type OpenStrikeView = {
   name: string
   melee: boolean
   crit: boolean
   smiteApplied: boolean
+  /** Radiant chip label after a successful spend. */
+  radiantChip?: string | null
 } | null
 
 type DivineSmiteCombatBlockProps = {
   spend: FeatureSlotSpendDef
   slots: Record<string, SpellSlotState>
+  /** Warlock pact magic — offered as a separate circle when remaining > 0. */
+  pactSlots?: PactSlotState | null
   intent: DivineSmiteIntent
   openStrike: OpenStrikeView
+  /** Confirm mode = after a melee hit; arm mode = pick circle early. */
+  mode: 'arm' | 'confirm'
   onIntent: (next: DivineSmiteIntent) => void
-  onSlotClick: (slotLevel: number) => void
+  onSlotClick: (slotLevel: number, source?: DivineSmiteSlotSource) => void
   onMiss: () => void
+  onClose?: () => void
 }
 
-function slotLevels(spend: FeatureSlotSpendDef): number[] {
-  const levels: number[] = []
-  for (let level = spend.min_slot; level <= spend.max_slot; level += 1) {
-    levels.push(level)
-  }
-  return levels
-}
-
+/**
+ * CMB-02/04: compact circle strip under a melee weapon row.
+ * No permanent banner — only while the smite control is open.
+ */
 export function DivineSmiteCombatBlock({
   spend,
   slots,
+  pactSlots = null,
   intent,
   openStrike,
+  mode,
   onIntent,
   onSlotClick,
   onMiss,
+  onClose,
 }: DivineSmiteCombatBlockProps) {
-  const levels = slotLevels(spend)
-  const note = openStrike?.melee && openStrike.smiteApplied
-    ? `Кара уже добавлена к «${openStrike.name}».`
-    : openStrike?.melee
-      ? `«${openStrike.name}»${openStrike.crit ? ' · критическое попадание' : ''}. Попало — выбери круг, ячейка спишется. Промах — кнопка ниже.`
-      : openStrike && !openStrike.melee
-        ? `«${openStrike.name}» — дальняя атака, кара не добавляется.`
-        : intent.slotLevel != null
-          ? `Круг ${intent.slotLevel} выбран. Ячейка спишется, только если рукопашная атака попадёт.`
-          : 'После рукопашного попадания выбери круг. Ячейка спишется тогда. Промах её не тратит.'
+  const levels = divineSmitePresentLevels(spend, slots)
+  const pact = divineSmitePactOffer(pactSlots)
+  const confirm = mode === 'confirm' && Boolean(openStrike?.melee)
+  const applied = Boolean(openStrike?.melee && openStrike.smiteApplied)
+  const source: DivineSmiteSlotSource = intent.slotSource === 'pact' ? 'pact' : 'spell'
 
   return (
-    <section className="play-desk-smite" aria-label="Божественная кара">
-      <div className="play-desk-smite__head">
-        <h4 className="play-desk-smite__title">Кара</h4>
-      </div>
-      <div className="play-desk-smite__chips">
-        {levels.map((level) => {
-          const dice = divineSmiteDice({
-            spend,
-            slotLevel: level,
-            vsUndeadOrFiend: intent.vsUndeadOrFiend,
-          })
-          const available = canSpendSlot(slots, level)
-          const armed = intent.slotLevel === level
-          const title = intent.vsUndeadOrFiend
-            ? `Ячейка ${level}: ${dice.slotDice}к${dice.diceSize} от круга и +1к8 против нежити или исчадия`
-            : `Ячейка ${level}: ${dice.formulaRu} излучением`
-          return (
-            <button
-              key={level}
-              type="button"
-              className={`sheet-chip${armed ? ' is-on' : ''}`}
-              disabled={!available}
-              aria-pressed={armed}
-              title={available ? title : `Нет ячейки ${level} круга`}
-              onClick={() => onSlotClick(level)}
-            >
-              {level} · {dice.formulaRu}
-            </button>
-          )
-        })}
-        <button
-          type="button"
-          className={`sheet-chip${intent.vsUndeadOrFiend ? ' is-on' : ''}`}
-          aria-pressed={intent.vsUndeadOrFiend}
-          title="Ещё 1к8 излучением сверх потолка ячейки"
-          onClick={() =>
-            onIntent({
-              slotLevel: intent.slotLevel,
-              vsUndeadOrFiend: !intent.vsUndeadOrFiend,
+    <section
+      className={`play-desk-smite play-desk-smite--inline${confirm ? ' is-confirm' : ' is-arm'}`}
+      aria-label="Божественная кара"
+    >
+      <div className="play-desk-smite__row">
+        {confirm && !applied ? (
+          <span className="play-desk-smite__prompt">Попал? Выбери круг</span>
+        ) : null}
+        {!confirm ? (
+          <span className="play-desk-smite__prompt">Круг заранее</span>
+        ) : null}
+        {applied && openStrike?.radiantChip ? (
+          <span
+            className="sheet-chip is-on play-desk-smite__radiant"
+            title="Урон излучением (Божественная кара)"
+          >
+            {openStrike.radiantChip}
+          </span>
+        ) : null}
+        {!applied
+          ? levels.map((level) => {
+              const slot = clampSlot(slots[String(level)] ?? { max: 0, used: 0 })
+              const remaining = Math.max(0, slot.max - slot.used)
+              const dice = divineSmiteDice({
+                spend,
+                slotLevel: level,
+                vsUndeadOrFiend: intent.vsUndeadOrFiend,
+              })
+              const available = canSpendSlot(slots, level)
+              const armed = intent.slotLevel === level && source === 'spell'
+              const title = available
+                ? intent.vsUndeadOrFiend
+                  ? `Ячейка ${level}: ${dice.slotDice}к${dice.diceSize} от круга и +1к8 против нежити или исчадия · осталось ${remaining}`
+                  : `Ячейка ${level}: ${dice.formulaRu} излучением · осталось ${remaining}`
+                : `Нет ячейки ${level} круга`
+              return (
+                <button
+                  key={`spell-${level}`}
+                  type="button"
+                  className={`sheet-chip play-desk-smite__slot${armed ? ' is-on' : ''}`}
+                  disabled={!available || (confirm && Boolean(openStrike?.smiteApplied))}
+                  aria-pressed={armed}
+                  title={title}
+                  onClick={() => onSlotClick(level, 'spell')}
+                >
+                  <span className="play-desk-smite__slot-label">
+                    {level} · {dice.formulaRu}
+                  </span>
+                  <span
+                    className="play-desk-smite__pips"
+                    aria-hidden="true"
+                    title={`${remaining}/${slot.max}`}
+                  >
+                    {Array.from({ length: slot.max }, (_, index) => (
+                      <span
+                        key={index}
+                        className={`ui-resource-pip play-desk__pip play-desk-smite__pip${
+                          index < remaining ? ' is-on' : ''
+                        }`}
+                      />
+                    ))}
+                  </span>
+                </button>
+              )
             })
-          }
-        >
-          нежить / исчадие
-        </button>
+          : null}
+        {!applied && pact
+          ? (() => {
+              const dice = divineSmiteDice({
+                spend,
+                slotLevel: pact.level,
+                vsUndeadOrFiend: intent.vsUndeadOrFiend,
+              })
+              const armed = intent.slotLevel === pact.level && source === 'pact'
+              const title = intent.vsUndeadOrFiend
+                ? `Договор ${pact.level} круга: ${dice.slotDice}к${dice.diceSize} от круга и +1к8 против нежити или исчадия · осталось ${pact.remaining}`
+                : `Договор ${pact.level} круга: ${dice.formulaRu} излучением · осталось ${pact.remaining}`
+              return (
+                <button
+                  key="pact"
+                  type="button"
+                  className={`sheet-chip play-desk-smite__slot play-desk-smite__slot--pact${
+                    armed ? ' is-on' : ''
+                  }`}
+                  disabled={confirm && Boolean(openStrike?.smiteApplied)}
+                  aria-pressed={armed}
+                  title={title}
+                  onClick={() => onSlotClick(pact.level, 'pact')}
+                >
+                  <span className="play-desk-smite__slot-label">
+                    Договор {pact.level} круга · {dice.formulaRu}
+                  </span>
+                  <span
+                    className="play-desk-smite__pips"
+                    aria-hidden="true"
+                    title={`${pact.remaining}/${pact.max}`}
+                  >
+                    {Array.from({ length: pact.max }, (_, index) => (
+                      <span
+                        key={index}
+                        className={`ui-resource-pip play-desk__pip play-desk-smite__pip${
+                          index < pact.remaining ? ' is-on' : ''
+                        }`}
+                      />
+                    ))}
+                  </span>
+                </button>
+              )
+            })()
+          : null}
+        {!applied ? (
+          <button
+            type="button"
+            className={`sheet-chip play-desk-smite__undead${
+              intent.vsUndeadOrFiend ? ' is-on' : ''
+            }`}
+            aria-pressed={intent.vsUndeadOrFiend}
+            title="нежить / исчадие · ещё +1к8 излучением сверх потолка ячейки"
+            onClick={() =>
+              onIntent({
+                slotLevel: intent.slotLevel,
+                slotSource: intent.slotSource,
+                vsUndeadOrFiend: !intent.vsUndeadOrFiend,
+              })
+            }
+          >
+            <IconUndeadFiend className="play-desk-smite__undead-icon" />
+            <span>+1к8</span>
+          </button>
+        ) : null}
+        {confirm && !applied ? (
+          <button
+            type="button"
+            className="sheet-chip play-desk-smite__miss"
+            title="Промах — ячейка не списывается"
+            onClick={onMiss}
+          >
+            Промах
+          </button>
+        ) : null}
+        {onClose && !confirm ? (
+          <button
+            type="button"
+            className="sheet-chip play-desk-smite__collapse"
+            title="Свернуть"
+            onClick={onClose}
+          >
+            Свернуть
+          </button>
+        ) : null}
       </div>
-      <p className="play-desk-smite__note">{note}</p>
-      {openStrike ? (
-        <button type="button" className="play-desk-smite__miss" onClick={onMiss}>
-          Промах — не тратить ячейку
-        </button>
+      {levels.length === 0 && !pact ? (
+        <p className="play-desk-smite__note">Нет ячеек для кары</p>
       ) : null}
     </section>
   )

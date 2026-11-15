@@ -532,6 +532,32 @@
   display: inline-block;
 }
 
+/* CMB-02: три кнопки хода в одну строку; чипы переносятся без обрезки */
+.play-desk--mobile .play-desk-turn-actions__tabs {
+  flex-wrap: nowrap;
+  gap: 4px;
+}
+
+.play-desk--mobile .play-desk-turn-actions__tab {
+  min-height: 44px;
+  padding: 6px 8px;
+  font-size: 0.78rem;
+}
+
+.play-desk--mobile .play-desk-turn-actions__chips {
+  flex-wrap: wrap;
+}
+
+.play-desk--mobile .play-desk-smite__row {
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.play-desk--mobile .play-desk-smite__slot {
+  min-height: 36px;
+  padding: 4px 8px;
+}
+
 /* SC-06: плотный первый экран «Бой» — меньше вертикальных полей до оружия */
 .play-desk--mobile .play-desk__stage {
   gap: 6px;

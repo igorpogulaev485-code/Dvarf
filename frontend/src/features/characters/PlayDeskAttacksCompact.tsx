@@ -176,8 +176,14 @@ import {
   type ActiveEffect,
 } from '../../shared/dnd/activeEffects'
 import { resolveWeaponGrip } from './heldEquip'
-import { canSpendSlot, spendSpellSlot } from '../../shared/dnd/spells'
+import {
+  canSpendPactSlot,
+  canSpendSlot,
+  spendPactSlot,
+  spendSpellSlot,
+} from '../../shared/dnd/spells'
 import type { SpellsState } from './spells'
+import { resolveB04FeatureSpend } from './b04FeatureSpend'
 import {
   divineStrikeRider,
   improvedDivineSmiteRider,
@@ -198,9 +204,11 @@ import {
   decideSmiteSlotClick,
   divineSmiteDice,
   divineSmiteSpendOf,
-  formatDivineSmiteExtra,
   isMeleeWeaponAttackName,
+  resolveSmiteAfterAttack,
+  rollDivineSmiteExtra,
   type DivineSmiteIntent,
+  type DivineSmiteSlotSource,
 } from './divineSmite'
 import {
   effectiveMartialArtsDamage,
@@ -243,6 +251,7 @@ import { isCastableSpellScroll } from './spellScroll'
 import {
   IconAttackMods,
   IconConsumable,
+  IconDivineSmite,
   IconMelee,
   IconRanged,
   IconResource,
@@ -316,6 +325,15 @@ type PlayDeskAttacksCompactProps = {
   hpTemp?: number
   /** Fired when a combat feature chip is toggled (e.g. Reckless → advantage). */
   onCombatFeatureToggle?: (featureId: string, active: boolean) => void
+  /**
+   * CMB-04: same hook as ClassFeaturesPanel — Second Wind heal / Action Surge side effects.
+   */
+  onFeatureBuffApply?: (input: {
+    featureId: string
+    featureNameRu: string
+    classEntryId: string
+    classLevel: number
+  }) => void
   onToggleHeld?: (attack: WeaponAttack) => void
   onToggleActivation?: (attack: WeaponAttack) => void
   onSpendResource?: (id: string) => void
@@ -479,6 +497,7 @@ export function PlayDeskAttacksCompact({
   onDivineSmiteIntent,
   hpTemp = 0,
   onCombatFeatureToggle,
+  onFeatureBuffApply,
   onToggleHeld,
   onToggleActivation,
   onSpendResource,
@@ -866,11 +885,17 @@ export function PlayDeskAttacksCompact({
   }
   const [openStrike, setOpenStrike] = useState<{
     name: string
+    attackId: string
     melee: boolean
     crit: boolean
     text: string
     smiteApplied: boolean
+    radiantChip?: string | null
   } | null>(null)
+  /** CMB-02: arm-strip open under a melee row before the roll. */
+  const [smiteArmAttackId, setSmiteArmAttackId] = useState<string | null>(null)
+  /** CMB-04: muted «Промах (нат. 1)» mark under the weapon that rolled a natural 1. */
+  const [smiteNat1AttackId, setSmiteNat1AttackId] = useState<string | null>(null)
   const smiteApplyLock = useRef(false)
   const [pickerOpen, setPickerOpen] = useState(false)
   const [logOpen, setLogOpen] = useState(false)
@@ -907,8 +932,36 @@ export function PlayDeskAttacksCompact({
     if (row.track === 'stock') return true
     return row.used < row.max
   })
+  /** Features that live in Действие/Бонусное/Реакция — do not also show as a free chip-row. */
+  const turnGroupedFeatureIds = new Set([
+    'steady_aim',
+    'cunning_action',
+    'uncanny_dodge',
+    'ki_fueled_attack',
+    'second_wind',
+    'action_surge',
+  ])
+  const secondWindFeature = combatFeatures.find((f) => f.id === 'second_wind')
+  const actionSurgeFeature = combatFeatures.find((f) => f.id === 'action_surge')
+  const secondWindPool = resources.find(
+    (row) =>
+      row.id === 'feat:second_wind' ||
+      row.id.includes(':second_wind:') ||
+      /:second_wind$/i.test(row.id) ||
+      /второе дыхание/i.test(row.name),
+  )
+  const actionSurgePool = resources.find(
+    (row) =>
+      row.id === 'feat:action_surge' ||
+      row.id.includes(':action_surge:') ||
+      /:action_surge$/i.test(row.id) ||
+      /всплеск действий/i.test(row.name),
+  )
   const deskCombatFeatures = combatFeatures.filter(
-    (row) => row.desk === 'combat' && row.name_ru.trim(),
+    (row) =>
+      row.desk === 'combat' &&
+      row.name_ru.trim() &&
+      !turnGroupedFeatureIds.has(row.id),
   )
   /** CMB-01: ammo shown under a weapon must not auto-duplicate in «Расходники». */
   const ammoIdsUnderWeapons = useMemo(() => {
@@ -959,18 +1012,29 @@ export function PlayDeskAttacksCompact({
   }, [inventoryItems, favoriteConsumableIds])
   const restoreableLogCount = consumableSpendLog.filter((row) => !row.undone).length
 
-  const applySmiteSlot = (slotLevel: number) => {
+  const applySmiteSlot = (
+    slotLevel: number,
+    slotSource: DivineSmiteSlotSource = 'spell',
+  ) => {
     if (!smiteSpend) return
+    const slotAvailable =
+      slotSource === 'pact'
+        ? Boolean(spells && canSpendPactSlot(spells.pact_slots, slotLevel))
+        : Boolean(spells && canSpendSlot(spells.slots, slotLevel))
+    const armedSameSource =
+      (smiteIntent.slotSource ?? 'spell') === slotSource ? smiteIntent.slotLevel : null
     const decision = decideSmiteSlotClick({
       slotLevel,
-      armedSlot: smiteIntent.slotLevel,
+      armedSlot: armedSameSource,
       open: openStrike,
-      slotAvailable: spells ? canSpendSlot(spells.slots, slotLevel) : false,
+      slotAvailable,
     })
     if (decision.action === 'refuse') {
       const reason =
         decision.reason === 'no_slot'
-          ? `Нет ячейки ${slotLevel} ур. Ячейка не списана.`
+          ? slotSource === 'pact'
+            ? `Нет ячейки договора. Ячейка не списана.`
+            : `Нет ячейки ${slotLevel} ур. Ячейка не списана.`
           : decision.reason === 'ranged'
             ? 'Дальняя атака не получает кару. Ячейка не списана.'
             : 'На это попадание кара уже добавлена. Ячейка не списана.'
@@ -979,13 +1043,18 @@ export function PlayDeskAttacksCompact({
       return
     }
     if (decision.action === 'disarm') {
-      setSmiteIntent({ slotLevel: null, vsUndeadOrFiend: smiteIntent.vsUndeadOrFiend })
+      setSmiteIntent({
+        slotLevel: null,
+        slotSource: 'spell',
+        vsUndeadOrFiend: smiteIntent.vsUndeadOrFiend,
+      })
       onToast?.('Круг снят. Ячейка не списана.')
       return
     }
     if (decision.action === 'arm') {
       setSmiteIntent({
         slotLevel: decision.slotLevel,
+        slotSource,
         vsUndeadOrFiend: smiteIntent.vsUndeadOrFiend,
       })
       const dice = divineSmiteDice({
@@ -994,7 +1063,9 @@ export function PlayDeskAttacksCompact({
         vsUndeadOrFiend: smiteIntent.vsUndeadOrFiend,
       })
       onToast?.(
-        `Круг ${decision.slotLevel} выбран (${dice.formulaRu}). Ячейка не списана — спишется, если подтвердишь попадание.`,
+        slotSource === 'pact'
+          ? `Договор ${decision.slotLevel} круга выбран (${dice.formulaRu}). Ячейка не списана — спишется, если подтвердишь попадание.`
+          : `Круг ${decision.slotLevel} выбран (${dice.formulaRu}). Ячейка не списана — спишется, если подтвердишь попадание.`,
       )
       return
     }
@@ -1007,23 +1078,76 @@ export function PlayDeskAttacksCompact({
       return
     }
     smiteApplyLock.current = true
+    if (slotSource === 'pact') {
+      if (!spells.pact_slots) {
+        smiteApplyLock.current = false
+        onToast?.('Нет ячейки договора. Ячейка не списана.')
+        return
+      }
+      const spentPact = spendPactSlot(spells.pact_slots)
+      if (!spentPact.ok) {
+        smiteApplyLock.current = false
+        onToast?.('Нет ячейки договора. Ячейка не списана.')
+        return
+      }
+      const rolled = rollDivineSmiteExtra({
+        spend: smiteSpend,
+        slotLevel,
+        vsUndeadOrFiend: smiteIntent.vsUndeadOrFiend,
+        crit: openStrike.crit,
+      })
+      if (!rolled) {
+        smiteApplyLock.current = false
+        onToast?.('Не удалось бросить кару. Ячейка не списана.')
+        return
+      }
+      onSpellsChange({ ...spells, pact_slots: spentPact.pact })
+      const text = `${openStrike.text}${rolled.line}`
+      onToast?.(text)
+      setOpenStrike({
+        ...openStrike,
+        smiteApplied: true,
+        text,
+        radiantChip: rolled.chip,
+      })
+      setSmiteIntent({
+        slotLevel: null,
+        slotSource: 'spell',
+        vsUndeadOrFiend: smiteIntent.vsUndeadOrFiend,
+      })
+      return
+    }
     const spent = spendSpellSlot(spells.slots, decision.slotLevel)
     if (!spent.ok) {
       smiteApplyLock.current = false
       onToast?.(`Нет ячейки ${decision.slotLevel} ур. Ячейка не списана.`)
       return
     }
-    const line = formatDivineSmiteExtra({
+    const rolled = rollDivineSmiteExtra({
       spend: smiteSpend,
       slotLevel: decision.slotLevel,
       vsUndeadOrFiend: smiteIntent.vsUndeadOrFiend,
       crit: openStrike.crit,
     })
+    if (!rolled) {
+      smiteApplyLock.current = false
+      onToast?.('Не удалось бросить кару. Ячейка не списана.')
+      return
+    }
     onSpellsChange({ ...spells, slots: spent.slots })
-    const text = `${openStrike.text}${line}`
+    const text = `${openStrike.text}${rolled.line}`
     onToast?.(text)
-    setOpenStrike({ ...openStrike, smiteApplied: true, text })
-    setSmiteIntent({ slotLevel: null, vsUndeadOrFiend: smiteIntent.vsUndeadOrFiend })
+    setOpenStrike({
+      ...openStrike,
+      smiteApplied: true,
+      text,
+      radiantChip: rolled.chip,
+    })
+    setSmiteIntent({
+      slotLevel: null,
+      slotSource: 'spell',
+      vsUndeadOrFiend: smiteIntent.vsUndeadOrFiend,
+    })
   }
 
   const markSmiteMiss = () => {
@@ -1031,6 +1155,8 @@ export function PlayDeskAttacksCompact({
     smiteApplyLock.current = false
     onToast?.(`Промах${name}: ячейка не списана.`)
     setOpenStrike(null)
+    setSmiteArmAttackId(null)
+    setSmiteNat1AttackId(null)
   }
 
   const targetModifiersValue: TargetModifiersValue = {
@@ -1126,40 +1252,68 @@ export function PlayDeskAttacksCompact({
               className="chip-row play-desk-turn-marks"
             />
           ) : null}
-          <details className="play-desk-attacks-more">
-            <summary className="play-desk-attacks-more__summary">
-              <span className="play-desk-attacks-more__title">Действия хода</span>
-              <span className="play-desk-attacks-more__hint">
-                рывок, отход, укрытие, реакция…
-              </span>
-            </summary>
-            <div className="play-desk-attacks-more__body">
-          {hasGwm ? (
-            <div className="chip-row" style={{ marginBottom: 8 }}>
-              <button
-                type="button"
-                className="sheet-chip"
-                title="Отметить добивание рукопашным оружием в этот ход (хиты цели → 0)"
-                onClick={() => {
-                  turnEco?.patchTurnEconomy(markMeleeWeaponCritOrKill)
-                  onToast?.('Мастер большого оружия: добивание отмечено · бонусная атака доступна')
-                }}
-              >
-                Добивание (0 хитов)
-              </button>
-            </div>
-          ) : null}
+          {/* CMB-02: Действие · Бонусное · Реакция — без свёрнутого details. */}
+          <div className="play-desk-turn-actions-wrap">
           <TurnEconomyCombatActions
-            mode="more"
+            mode="all"
             hasCunningAction={
               hasCunningAction ||
               combatFeatures.some((f) => f.id === 'cunning_action')
             }
-            hasSteadyAim={
-              tceAllowed && combatFeatures.some((f) => f.id === 'steady_aim')
+            hasSteadyAim={combatFeatures.some((f) => f.id === 'steady_aim')}
+            hasKiFueledAttack={combatFeatures.some((f) => f.id === 'ki_fueled_attack')}
+            hasUncannyDodge={combatFeatures.some((f) => f.id === 'uncanny_dodge')}
+            secondWind={
+              secondWindPool && (secondWindFeature || secondWindPool)
+                ? {
+                    remaining: resourceShownCurrent(secondWindPool),
+                    max: secondWindPool.max,
+                    onSpend: () => {
+                      if (!turnEco || !secondWindPool) return
+                      if (resourceShownCurrent(secondWindPool) <= 0) return
+                      if (!turnEco.canFeature('bonus').ok) return
+                      onSpendResource?.(secondWindPool.id)
+                      turnEco.spendFeature('bonus')
+                      const feature = secondWindFeature
+                      if (feature && onFeatureBuffApply) {
+                        onFeatureBuffApply({
+                          featureId: feature.id,
+                          featureNameRu: feature.name_ru || 'Второе дыхание',
+                          classEntryId: feature.classEntryId,
+                          classLevel: feature.classLevel,
+                        })
+                      } else {
+                        const heal = resolveB04FeatureSpend({
+                          featureId: 'second_wind',
+                          featureNameRu: 'Второе дыхание',
+                          classEntryId: feature?.classEntryId || 'fighter',
+                          classLevel: feature?.classLevel || 1,
+                        })
+                        if (heal.kind === 'heal') onToast?.(heal.label)
+                        else onToast?.('Второе дыхание')
+                      }
+                    },
+                  }
+                : null
             }
-            hasKiFueledAttack={
-              tceAllowed && combatFeatures.some((f) => f.id === 'ki_fueled_attack')
+            actionSurge={
+              actionSurgePool && (actionSurgeFeature || actionSurgePool)
+                ? {
+                    remaining: resourceShownCurrent(actionSurgePool),
+                    max: actionSurgePool.max,
+                    onSpend: () => {
+                      if (!turnEco || !actionSurgePool) return
+                      if (resourceShownCurrent(actionSurgePool) <= 0) return
+                      onSpendResource?.(actionSurgePool.id)
+                      turnEco.grantActionSurge()
+                      onToast?.(
+                        actionSurgeFeature
+                          ? `${actionSurgeFeature.name_ru}: +1 дополнительное действие`
+                          : 'Всплеск действий: +1 дополнительное действие',
+                      )
+                    },
+                  }
+                : null
             }
             hasInterception={hasInterception}
             hasBlindFighting={hasBlindFighting}
@@ -1335,6 +1489,10 @@ export function PlayDeskAttacksCompact({
             }}
             onO05GwmBonus={() => {
               onToast?.('Сделай одну рукопашную атаку оружием (бонусное уже отмечено)')
+            }}
+            onO05GwmFinishing={() => {
+              turnEco?.patchTurnEconomy(markMeleeWeaponCritOrKill)
+              onToast?.('Мастер большого оружия: добивание отмечено · бонусная атака доступна')
             }}
             onO05ChargerAttack={() => {
               setChargerPlus5Next(true)
@@ -1545,8 +1703,7 @@ export function PlayDeskAttacksCompact({
               )
             }}
           />
-            </div>
-          </details>
+          </div>
           <OpportunityAttackDialog
             open={o07Dialog === 'oa'}
             onClose={() => setO07Dialog(null)}
@@ -2168,17 +2325,6 @@ export function PlayDeskAttacksCompact({
         </div>
       ) : null}
 
-      {smiteSpend ? (
-        <DivineSmiteCombatBlock
-          spend={smiteSpend}
-          slots={spells?.slots ?? {}}
-          intent={smiteIntent}
-          openStrike={openStrike}
-          onIntent={setSmiteIntent}
-          onSlotClick={applySmiteSlot}
-          onMiss={markSmiteMiss}
-        />
-      ) : null}
 
       {focusedAimOffer && hasFocusedAim ? (
         <div
@@ -2238,56 +2384,6 @@ export function PlayDeskAttacksCompact({
         </div>
       ) : null}
 
-      {/* SC-03: статус верхом/скакун — только сцена «Напарники» и модификаторы в окне атаки, не ряд на вкладке. */}
-
-      {turnEco ? (
-        <TurnEconomyCombatActions
-          mode="everyTurn"
-          className="chip-row play-desk-every-turn"
-          hasCunningAction={
-            hasCunningAction ||
-            combatFeatures.some((f) => f.id === 'cunning_action')
-          }
-          hasSteadyAim={
-            tceAllowed && combatFeatures.some((f) => f.id === 'steady_aim')
-          }
-          showTwoWeaponBonus={heldMelee.length >= 2}
-          twoWeaponBonusGate={
-            canTwoWeaponBonusAttack(turnEco.turnEconomy, {
-              hasDualWielder,
-              heldMelee,
-            })
-          }
-          onTwoWeaponBonus={() => {
-            const gate = canTwoWeaponBonusAttack(turnEco.turnEconomy, {
-              hasDualWielder,
-              heldMelee,
-            })
-            if (!gate.ok) return
-            turnEco.patchTurnEconomy(markTwoWeaponBonusUsed)
-            setTwfBonusArmed(true)
-            const modNote = hasTwoWeaponStyle
-              ? 'к урону добавляется модификатор характеристики (стиль)'
-              : 'к урону модификатор характеристики не добавляется (кроме отрицательного)'
-            onToast?.(
-              `Атака вторым оружием: бонусное · ${modNote}. Выбери оружие во второй руке.`,
-            )
-          }}
-          onOfferSkill={(key) => {
-            const labels: Record<string, string> = {
-              investigation: 'Анализ',
-              perception: 'Внимательность',
-              stealth: 'Скрытность',
-            }
-            onToast?.(
-              key === 'stealth'
-                ? `Засада · бросьте «${labels[key]}» из полосы навыков или введите число`
-                : `Поиск · бросьте «Анализ»/«Внимательность» из полосы навыков или введите число`,
-            )
-          }}
-          onToast={onToast}
-        />
-      ) : null}
 
       <div className="play-desk-compact__list play-desk-compact__list--dense">
         {named.length === 0 ? (
@@ -2691,9 +2787,25 @@ export function PlayDeskAttacksCompact({
               name: attack.name,
               ability: attackAbility,
             })
+            const smiteEligible =
+              Boolean(smiteSpend) && (meleeAttack || unarmed)
+            const smiteConfirmOpen =
+              Boolean(
+                openStrike &&
+                  openStrike.attackId === attack.id &&
+                  openStrike.melee &&
+                  !openStrike.smiteApplied,
+              ) ||
+              Boolean(
+                openStrike &&
+                  openStrike.attackId === attack.id &&
+                  openStrike.smiteApplied,
+              )
+            const smiteArmOpen = smiteArmAttackId === attack.id && !smiteConfirmOpen
+            const smiteStripOpen = smiteEligible && (smiteConfirmOpen || smiteArmOpen)
             return (
+              <div key={attack.id} className="play-desk-compact__attack-block">
               <div
-                key={attack.id}
                 className={`play-desk-compact__row is-dense is-attack${
                   kitComputed ? ' is-kit-attack' : ''
                 }`}
@@ -2904,6 +3016,8 @@ export function PlayDeskAttacksCompact({
                       formula?: string
                       breakdown?: string
                       crit?: boolean
+                      /** Kept d20 face when known (digital roll). */
+                      naturalDie?: number | null
                     }) => {
                       const asReaction = reactionAttackArmed
                       if (asReaction) {
@@ -3140,13 +3254,37 @@ export function PlayDeskAttacksCompact({
                         })
                       }
                       smiteApplyLock.current = false
-                      setOpenStrike({
-                        name: attack.name,
-                        melee: meleeAttack,
-                        crit: Boolean(opts?.crit),
-                        text: text || attack.name,
-                        smiteApplied: false,
+                      const smiteGate = resolveSmiteAfterAttack({
+                        naturalDie: opts?.naturalDie,
+                        critFlag: Boolean(opts?.crit),
+                        tableMiss: Boolean(opts?.tableMiss),
                       })
+                      if (smiteSpend && meleeAttack && smiteGate.autoMiss) {
+                        setOpenStrike(null)
+                        setSmiteArmAttackId(null)
+                        if (opts?.naturalDie === 1) {
+                          setSmiteNat1AttackId(attack.id)
+                          onToast?.(
+                            `Натуральная 1 · «${attack.name}»: промах · кара не предлагается · ячейка не списана`,
+                          )
+                        } else {
+                          setSmiteNat1AttackId(null)
+                        }
+                      } else if (smiteSpend && meleeAttack && smiteGate.offer) {
+                        setSmiteNat1AttackId(null)
+                        setOpenStrike({
+                          name: attack.name,
+                          attackId: attack.id,
+                          melee: true,
+                          crit: smiteGate.crit,
+                          text: text || attack.name,
+                          smiteApplied: false,
+                        })
+                        setSmiteArmAttackId(null)
+                      } else {
+                        setOpenStrike(null)
+                        setSmiteNat1AttackId(null)
+                      }
                     }
 
                     // FIX-01: «Кубики на столе» — не бросать цифрово.
@@ -3365,7 +3503,8 @@ export function PlayDeskAttacksCompact({
                       hitTotal: strike.hitRoll?.total,
                       formula,
                       breakdown,
-                      crit: strikeCrit,
+                      crit: strikeCrit || strike.die === 20,
+                      naturalDie: strike.die,
                     })
                     } // end runAttackWithPb
 
@@ -3443,6 +3582,32 @@ export function PlayDeskAttacksCompact({
                     role="group"
                     aria-label="Действия оружия"
                   >
+                    {smiteEligible ? (
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="secondary"
+                        className={`ui-button--icon play-desk-compact__tool play-desk-compact__tool--smite${
+                          smiteStripOpen || smiteIntent.slotLevel != null ? ' is-on' : ''
+                        }`}
+                        title={
+                          smiteIntent.slotLevel != null
+                            ? `Кара: круг ${smiteIntent.slotLevel} выбран · нажми, чтобы открыть`
+                            : 'Божественная кара — выбрать круг'
+                        }
+                        aria-label="Божественная кара"
+                        aria-pressed={smiteStripOpen}
+                        onClick={() => {
+                          if (smiteConfirmOpen) return
+                          setSmiteNat1AttackId(null)
+                          setSmiteArmAttackId((prev) =>
+                            prev === attack.id ? null : attack.id,
+                          )
+                        }}
+                      >
+                        <IconDivineSmite className="play-desk-compact__tool-icon" />
+                      </Button>
+                    ) : null}
                     {onModifiersChange && !kitComputed ? (
                       <Button
                         type="button"
@@ -3611,6 +3776,30 @@ export function PlayDeskAttacksCompact({
                     </div>
                   ) : null}
                 </div>
+              </div>
+              {smiteNat1AttackId === attack.id && smiteSpend && !smiteStripOpen ? (
+                <p className="play-desk-smite__nat1" title="Натуральная 1 — промах, ячейка не списана">
+                  Промах (нат. 1)
+                </p>
+              ) : null}
+              {smiteStripOpen && smiteSpend ? (
+                <DivineSmiteCombatBlock
+                  spend={smiteSpend}
+                  slots={spells?.slots ?? {}}
+                  pactSlots={spells?.pact_slots ?? null}
+                  intent={smiteIntent}
+                  openStrike={
+                    openStrike && openStrike.attackId === attack.id
+                      ? openStrike
+                      : null
+                  }
+                  mode={smiteConfirmOpen ? 'confirm' : 'arm'}
+                  onIntent={setSmiteIntent}
+                  onSlotClick={applySmiteSlot}
+                  onMiss={markSmiteMiss}
+                  onClose={() => setSmiteArmAttackId(null)}
+                />
+              ) : null}
               </div>
             )
           })

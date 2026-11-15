@@ -285,6 +285,26 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
             inventoryItems={model.draft.inventory.items}
             favoriteConsumableIds={model.draft.sheetUi.combatConsumableFavoriteIds}
             combatFeatures={model.playActiveFeatures}
+            onFeatureBuffApply={(input) => {
+              const b04 = resolveB04FeatureSpend({
+                featureId: input.featureId,
+                featureNameRu: input.featureNameRu,
+                classEntryId: input.classEntryId,
+                classLevel: input.classLevel,
+                featurePicks: model.draft.featurePicks,
+                abilities: model.draft.abilities,
+              })
+              if (b04.kind === 'heal') {
+                model.setDraft((prev) => ({
+                  ...prev,
+                  hpCurrent: Math.min(
+                    prev.hpMax ?? b04.amount,
+                    (prev.hpCurrent ?? 0) + b04.amount,
+                  ),
+                }))
+                model.onToast(b04.label)
+              }
+            }}
             hasCunningAction={(model.unlockedFeatures ?? []).some(
               (f: { id?: string }) => f.id === 'cunning_action',
             )}

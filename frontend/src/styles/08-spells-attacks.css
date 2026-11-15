@@ -750,18 +750,130 @@ button.spells-settings__derived-stat--btn:hover {
   padding: 4px 8px;
 }
 
-/* SC-01/SC-02 / CMB-01: слот «Действия хода» на панели атак. */
-.play-desk-attacks-more {
+/* CMB-02: Действие · Бонусное · Реакция на панели атак. */
+.play-desk-turn-actions-wrap {
   margin: 0 0 10px;
+  display: grid;
+  gap: 6px;
+}
+
+.play-desk-turn-actions {
+  display: grid;
+  gap: 6px;
+}
+
+.play-desk-turn-actions__tabs {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 6px;
+  width: 100%;
+}
+
+.play-desk-turn-actions__tab {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.play-desk-turn-actions__tab.is-spent:not(:disabled) {
+  opacity: 0.72;
+  background: color-mix(in srgb, var(--accent-soft) 70%, var(--card));
+  border-color: var(--line);
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.play-desk-turn-actions__tab.is-open {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+.play-desk-turn-actions__tab:disabled {
+  text-decoration: none;
+  opacity: 0.5;
+}
+
+/* CMB-03: spent/unavailable variants — dim + optional ✓, never strikethrough.
+ * Beat .sheet-chip:disabled from 06-companions-features.css (loaded earlier). */
+.play-desk-turn-actions .sheet-chip:disabled,
+.play-desk-turn-actions .sheet-chip.is-blocked,
+.play-desk-turn-actions .sheet-chip.is-spent,
+.play-desk-turn-actions__panel .sheet-chip:disabled,
+.play-desk-turn-actions__chips .sheet-chip:disabled {
+  text-decoration: none !important;
+}
+
+.play-desk-turn-actions .sheet-chip.is-spent {
+  opacity: 0.72;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.play-desk-turn-actions .sheet-chip:disabled:not(.is-spent) {
+  opacity: 0.5;
+}
+
+.play-desk-turn-actions.chip-row {
+  /* Root must not inherit global .chip-row margin — that left empty space under the panel. */
+  margin-bottom: 0;
+}
+
+.play-desk-turn-actions__panel {
+  display: grid;
+  gap: 4px;
+  padding: 6px 8px;
   border: 1px solid var(--desk-line, var(--line));
   border-radius: 10px;
   background: color-mix(in srgb, var(--desk-card, var(--card)) 88%, transparent);
+}
+
+/* Beat global .chip-row { margin-bottom: 8px } — no empty gap under chips. */
+.play-desk-turn-actions__chips,
+.play-desk-turn-actions__info {
+  flex-wrap: wrap;
+  margin-bottom: 0;
+}
+
+.play-desk-turn-actions__empty {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--desk-muted, var(--muted));
+}
+
+.play-desk-turn-actions__more {
+  margin: 0;
+}
+
+.play-desk-turn-actions__more-summary {
+  list-style: none;
+  cursor: pointer;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--desk-muted, var(--muted));
+  padding: 2px 0;
+}
+
+.play-desk-turn-actions__more-summary::-webkit-details-marker {
+  display: none;
+}
+
+.play-desk-turn-actions__info .sheet-chip.is-stub {
+  cursor: default;
+}
+
+.play-desk-turn-actions__charges {
+  margin-left: 2px;
+  font-size: 0.78em;
+  opacity: 0.85;
 }
 
 .play-desk-turn-marks {
   margin: 0 0 8px;
 }
 
+/* Legacy hooks kept so older selfchecks/docs still resolve class names. */
+.play-desk-attacks-more,
 .play-desk-every-turn {
   margin: 0 0 8px;
 }

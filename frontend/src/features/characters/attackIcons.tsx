@@ -122,6 +122,35 @@ export function IconWeaponMode(props: IconProps) {
   )
 }
 
+/** Divine Smite — radiant burst (kit stroke, same as desk icons). */
+export function IconDivineSmite(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <path {...stroke} d="M12 3.5v3.2" />
+      <path {...stroke} d="M12 17.3v3.2" />
+      <path {...stroke} d="M3.5 12h3.2" />
+      <path {...stroke} d="M17.3 12h3.2" />
+      <path {...stroke} d="M6.2 6.2 8.4 8.4" />
+      <path {...stroke} d="M15.6 15.6 17.8 17.8" />
+      <path {...stroke} d="M17.8 6.2 15.6 8.4" />
+      <path {...stroke} d="M8.4 15.6 6.2 17.8" />
+      <circle {...stroke} cx="12" cy="12" r="3.2" />
+    </Svg>
+  )
+}
+
+/** Undead/fiend smite rider — compact chip glyph. */
+export function IconUndeadFiend(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <circle {...stroke} cx="12" cy="10" r="5.2" />
+      <path {...stroke} d="M9.2 9.2h0.1M14.8 9.2h0.1" />
+      <path {...stroke} d="M9.4 12.4c1.2 1.2 4 1.2 5.2 0" />
+      <path {...stroke} d="M8.2 15.6c1.4 2.2 6.2 2.2 7.6 0" />
+    </Svg>
+  )
+}
+
 const RANGED_HINT =
   /лук|арбалет|метат|дротик|копье|копьё|пращ|выстрел|бросок|javelin|bow|crossbow|dart|sling/i
 
