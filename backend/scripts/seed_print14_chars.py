@@ -59,8 +59,16 @@ def _catalog_spells_2014() -> dict[str, dict]:
 _SPELL_CATALOG = _catalog_spells_2014()
 
 
+def _is_english_only(text: str) -> bool:
+    if not text or not text.strip():
+        return False
+    has_cyr = any("а" <= ch.lower() <= "я" or ch in "ёЁ" for ch in text)
+    has_lat = any("a" <= ch.lower() <= "z" for ch in text)
+    return has_lat and not has_cyr
+
+
 def _with_catalog(spell: dict) -> dict:
-    """Fill damage/description from SRD catalog when the seed left placeholders."""
+    """Fill damage/description/school from SRD catalog when the seed left placeholders."""
     slug = _SPELL_SLUG_BY_NAME.get(str(spell.get("name") or ""))
     data = _SPELL_CATALOG.get(slug or "", {})
     if not data:
@@ -69,16 +77,28 @@ def _with_catalog(spell: dict) -> dict:
     damage = data.get("damage")
     if damage and (not row.get("damage") or row.get("damage") in ("—", "-", "–")):
         row["damage"] = str(damage).replace("d", "к")
-    if data.get("description") and not row.get("description"):
-        row["description"] = data["description"]
-    if data.get("higher_levels") and not row.get("higher_levels"):
-        row["higher_levels"] = data["higher_levels"]
+    # Prefer Russian handbook text; do not copy English-only descriptions into the sheet.
+    catalog_desc = data.get("description") or ""
+    sheet_desc = row.get("description") or ""
+    if catalog_desc and not _is_english_only(str(catalog_desc)):
+        if not sheet_desc or _is_english_only(str(sheet_desc)):
+            row["description"] = catalog_desc
+    elif sheet_desc and _is_english_only(str(sheet_desc)):
+        row.pop("description", None)
+    higher = data.get("higher_levels") or ""
+    if higher and not _is_english_only(str(higher)):
+        if not row.get("higher_levels") or _is_english_only(str(row.get("higher_levels") or "")):
+            row["higher_levels"] = higher
     atk = data.get("attack_or_save")
     if atk and (not row.get("attack_or_save") or row.get("attack_or_save") in ("—", "-", "–")):
         row["attack_or_save"] = atk
     duration = data.get("duration")
     if duration and not row.get("duration"):
         row["duration"] = duration
+    # Always take catalog school (seeds historically stored «воплощение» for everything).
+    school = data.get("school")
+    if school:
+        row["school"] = school
     return row
 
 

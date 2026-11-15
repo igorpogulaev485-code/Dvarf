@@ -2352,12 +2352,41 @@
   align-items: stretch;
 }
 
-.classic-spell-cards-grid {
+.classic-spell-cards-body {
   flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.12in;
+  overflow: hidden;
+}
+
+.classic-spell-cards-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.08in;
+  flex: 0 0 auto;
+}
+
+.classic-spell-cards-group__title {
+  margin: 0;
+  padding: 0.06rem 0.12rem;
+  border-bottom: var(--c-frame);
+  font-family: var(--classic-ink-font);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--c-ink);
+  line-height: 1.2;
+}
+
+.classic-spell-cards-grid {
+  flex: 0 0 auto;
   display: grid;
   grid-template-columns: repeat(3, 2.5in);
   gap: 0.14in;
-  justify-content: center;
+  justify-content: start;
   align-content: start;
   min-height: 0;
 }

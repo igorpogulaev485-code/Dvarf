@@ -216,3 +216,12 @@
 - `backend`: `pytest` — 380 passed (incl. HP sheet-patch)
 - Alembic: одна голова
 - Кадры pass8…pass9d + final gallery: Vite + API, Chromium PDF + pdftoppm
+
+---
+
+## Прогон 12 → final3 (карточки)
+
+Галерея: `/opt/cursor/artifacts/print14/final3/` · `REPORT.md` · `md5s.json`.  
+Скрипт: `frontend/scripts/print14-final3-capture.mjs`.
+
+Карточки 2014/2024: группы по кругу (Заговоры / N-й круг), новая группа с новой строки; школа из каталога; Урон/Лечение/Хиты; EN-only описание не печатаем (Чудотворство — «на русском недоступно»).
