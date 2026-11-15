@@ -8,7 +8,7 @@ import {
 import { ClassicSheetUiProvider } from '../features/classicSheet/classicSheetUi'
 import { setClassicPencilBlanks } from '../features/classicSheet/classicPrintSettings'
 import type { CharacterDetail } from '../shared/api/characters'
-import { Button } from '../ui'
+import { Button, SegmentedControl } from '../ui'
 
 function blankCharacter(layout: ClassicSheetLayout): CharacterDetail {
   let character: CharacterDetail = {
@@ -90,19 +90,19 @@ export function ClassicBlankSheetPage() {
           </p>
         </div>
         <div className="classic-toolbar-actions">
-          <div className="classic-layout-switch" role="group" aria-label="Макет пустого бланка">
-            <span className="classic-layout-switch__label">Макет</span>
-            {(['2014', '2024'] as const).map((year) => (
-              <button
-                key={year}
-                type="button"
-                className={layout === year ? 'is-active' : undefined}
-                aria-pressed={layout === year}
-                onClick={() => setLayout(year)}
-              >
-                {year}
-              </button>
-            ))}
+          <div className="classic-toolbar-group">
+            <span className="classic-toolbar-group__label">Макет</span>
+            <SegmentedControl
+              aria-label="Макет пустого бланка"
+              size="sm"
+              className="classic-toolbar-segmented"
+              value={layout}
+              onChange={setLayout}
+              options={[
+                { id: '2014', label: '2014' },
+                { id: '2024', label: '2024' },
+              ]}
+            />
           </div>
           <div className="classic-print-cta">
             <Button variant="secondary" onClick={() => window.print()}>

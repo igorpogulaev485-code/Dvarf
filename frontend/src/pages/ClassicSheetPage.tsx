@@ -32,7 +32,14 @@ import {
   type CharacterDetail,
 } from '../shared/api/characters'
 import { ApiRequestError } from '../shared/api/client'
-import { Button, Text } from '../ui'
+import {
+  Button,
+  Field,
+  SegmentedControl,
+  Select,
+  Text,
+  ToggleChip,
+} from '../ui'
 
 export function ClassicSheetPage() {
   const { characterId = '' } = useParams()
@@ -133,6 +140,13 @@ export function ClassicSheetPage() {
     [handlePrintSettings],
   )
 
+  const statusLabel =
+    status === 'loading'
+      ? 'Загрузка…'
+      : status === 'saving'
+        ? 'Сохраняем настройки печати…'
+        : null
+
   return (
     <div
       className="classic-print-page"
@@ -149,19 +163,13 @@ export function ClassicSheetPage() {
       }
     >
       <header className="classic-print-toolbar no-print">
-        <div>
+        <div className="classic-toolbar-identity">
           <Link to={character ? `/characters/${character.id}` : '/characters'}>
             ← К основному листу
           </Link>
-          <div>
+          <div className="classic-toolbar-identity__title">
             {character?.name || 'Классический лист'}
-            <small>
-              {status === 'loading'
-                ? 'Загрузка…'
-                : status === 'saving'
-                  ? 'Сохраняем настройки печати…'
-                  : 'Только для печати'}
-            </small>
+            {statusLabel ? <small>{statusLabel}</small> : null}
           </div>
           <p className="classic-print-banner">
             Только для печати — правки делайте в{' '}
@@ -171,99 +179,112 @@ export function ClassicSheetPage() {
           </p>
         </div>
         <div className="classic-toolbar-actions">
-          <div className="classic-layout-switch" role="group" aria-label="Макет классического листа">
-            <span className="classic-layout-switch__label">Макет</span>
-            {(['2014', '2024'] as const).map((year) => (
-              <button
-                key={year}
-                type="button"
-                className={sheetLayout === year ? 'is-active' : undefined}
-                aria-pressed={sheetLayout === year}
-                disabled={!character}
-                onClick={() => handleLayoutChange(year)}
-              >
-                {year}
-              </button>
-            ))}
-            <span className="classic-layout-switch__hint">
+          <div className="classic-toolbar-group">
+            <span className="classic-toolbar-group__label">Макет</span>
+            <SegmentedControl
+              aria-label="Макет классического листа"
+              size="sm"
+              className="classic-toolbar-segmented"
+              value={sheetLayout}
+              onChange={(year) => {
+                if (!character) return
+                handleLayoutChange(year)
+              }}
+              options={[
+                { id: '2014', label: '2014' },
+                { id: '2024', label: '2024' },
+              ]}
+            />
+            <span className="classic-toolbar-group__hint">
               печатная форма · D&D 5e {sheetLayout}
             </span>
           </div>
-          <label
-            className="classic-pencil-toggle"
-            title="Пустые строки в атаках, заклинаниях, монетах и т.п."
-          >
-            <input
-              type="checkbox"
-              checked={pencilBlanks}
-              disabled={!character}
-              onChange={(e) => {
-                const current = latestRef.current
-                if (!current) return
-                handlePrintSettings(setClassicPencilBlanks(current, e.target.checked))
-              }}
-            />
-            Линии под карандаш
-          </label>
-          <div className="classic-extra-notes" role="group" aria-label="Доп. страницы заметок">
-            <button
-              type="button"
-              disabled={!character || extraNotePages <= 0}
-              onClick={() => {
-                const current = latestRef.current
-                if (!current) return
-                handlePrintSettings(setClassicExtraNotePages(current, extraNotePages - 1))
-              }}
-            >
-              −
-            </button>
-            <span>Доп. страницы заметок: {extraNotePages}</span>
-            <button
-              type="button"
-              disabled={!character || extraNotePages >= 12}
-              onClick={() => {
-                const current = latestRef.current
-                if (!current) return
-                handlePrintSettings(setClassicExtraNotePages(current, extraNotePages + 1))
-              }}
-            >
-              +
-            </button>
-          </div>
-          <div className="classic-color-switch" role="group" aria-label="Цвет печати">
-            {([
-              ['bw', 'Чёрно-белая'],
-              ['color', 'Цвет'],
-            ] as const).map(([mode, label]) => (
-              <button
-                key={mode}
-                type="button"
-                className={printColor === mode ? 'is-active' : undefined}
-                aria-pressed={printColor === mode}
-                disabled={!character}
+
+          <ToggleChip
+            className="classic-toolbar-chip"
+            main="Линии под карандаш"
+            rest="Пустые строки в атаках, заклинаниях…"
+            checked={pencilBlanks}
+            disabled={!character}
+            onChange={(next) => {
+              const current = latestRef.current
+              if (!current) return
+              handlePrintSettings(setClassicPencilBlanks(current, next))
+            }}
+          />
+
+          <div className="classic-toolbar-stepper" role="group" aria-label="Доп. страницы заметок">
+            <span className="classic-toolbar-group__label">Доп. страницы заметок</span>
+            <div className="classic-toolbar-stepper__controls">
+              <Button
+                variant="secondary"
+                size="sm"
+                disabled={!character || extraNotePages <= 0}
+                aria-label="Меньше страниц заметок"
                 onClick={() => {
                   const current = latestRef.current
                   if (!current) return
-                  handlePrintSettings(setClassicPrintColor(current, mode))
+                  handlePrintSettings(setClassicExtraNotePages(current, extraNotePages - 1))
                 }}
               >
-                {label}
-              </button>
-            ))}
+                −
+              </Button>
+              <span className="classic-toolbar-stepper__value" aria-live="polite">
+                {extraNotePages}
+              </span>
+              <Button
+                variant="secondary"
+                size="sm"
+                disabled={!character || extraNotePages >= 12}
+                aria-label="Больше страниц заметок"
+                onClick={() => {
+                  const current = latestRef.current
+                  if (!current) return
+                  handlePrintSettings(setClassicExtraNotePages(current, extraNotePages + 1))
+                }}
+              >
+                +
+              </Button>
+            </div>
           </div>
-          <button
-            type="button"
-            className={['classic-edit-toggle', editing ? 'is-active' : ''].filter(Boolean).join(' ')}
+
+          <SegmentedControl
+            aria-label="Цвет печати"
+            size="sm"
+            className="classic-toolbar-segmented"
+            value={printColor}
+            onChange={(mode) => {
+              const current = latestRef.current
+              if (!current) return
+              handlePrintSettings(setClassicPrintColor(current, mode))
+            }}
+            options={[
+              { id: 'bw', label: 'Чёрно-белая' },
+              { id: 'color', label: 'Цвет' },
+            ]}
+          />
+
+          <Button
+            variant={editing ? 'primary' : 'secondary'}
+            size="sm"
+            className="classic-edit-toggle"
             aria-pressed={editing}
             disabled={!character}
-            onClick={() => setEditing((v) => !v)}
             title="Размер шрифта блоков, гарнитура, интервал, высота полей"
+            onClick={() => setEditing((v) => !v)}
           >
             Правка печати
-          </button>
-          <Link className="classic-blank-link" to={`/classic/blank?layout=${sheetLayout}`}>
+          </Button>
+
+          <Button
+            variant="ghost"
+            size="sm"
+            className="classic-blank-btn"
+            onClick={() => navigate(`/classic/blank?layout=${sheetLayout}`)}
+          >
             Пустой бланк
-          </Link>
+          </Button>
+
           <div className="classic-print-cta">
             <Button variant="secondary" onClick={() => window.print()}>
               Печать / PDF
@@ -275,9 +296,9 @@ export function ClassicSheetPage() {
 
       {editing && character && textStyle ? (
         <div className="classic-print-typo no-print" aria-label="Настройки текста для печати">
-          <label>
-            Гарнитура
-            <select
+          <Field label="Гарнитура" className="classic-print-typo__field">
+            <Select
+              size="sm"
               value={textStyle.fontFamily}
               onChange={(e) =>
                 handlePrintSettings(
@@ -289,23 +310,22 @@ export function ClassicSheetPage() {
             >
               <option value="serif">Source Serif 4</option>
               <option value="sans">IBM Plex Sans</option>
-            </select>
-          </label>
-          <label>
-            <input
-              type="checkbox"
-              checked={textStyle.nameScript}
-              onChange={(e) =>
-                handlePrintSettings(
-                  setClassicTextStyle(character, { nameScript: e.target.checked }),
-                )
-              }
-            />
-            Имя рукописным
-          </label>
-          <label>
-            Интервал
-            <select
+            </Select>
+          </Field>
+
+          <ToggleChip
+            className="classic-print-typo__chip"
+            main="Имя рукописным"
+            rest="Marck Script"
+            checked={textStyle.nameScript}
+            onChange={(next) =>
+              handlePrintSettings(setClassicTextStyle(character, { nameScript: next }))
+            }
+          />
+
+          <Field label="Интервал" className="classic-print-typo__field">
+            <Select
+              size="sm"
               value={textStyle.lineHeight}
               onChange={(e) =>
                 handlePrintSettings(
@@ -318,11 +338,12 @@ export function ClassicSheetPage() {
               <option value="tight">Плотно</option>
               <option value="normal">Обычно</option>
               <option value="loose">Свободно</option>
-            </select>
-          </label>
-          <label>
-            Выравнивание
-            <select
+            </Select>
+          </Field>
+
+          <Field label="Выравнивание" className="classic-print-typo__field">
+            <Select
+              size="sm"
               value={textStyle.align}
               onChange={(e) =>
                 handlePrintSettings(
@@ -334,14 +355,17 @@ export function ClassicSheetPage() {
             >
               <option value="left">Слева</option>
               <option value="justify">По ширине</option>
-            </select>
-          </label>
-          <button
-            type="button"
+            </Select>
+          </Field>
+
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={() => handlePrintSettings(resetClassicPrintTextSettings(character))}
           >
             Сбросить настройки текста
-          </button>
+          </Button>
+
           <p className="classic-print-typo__hint">
             Гарнитура — на все вписанные значения; подписи бланка не меняются. Размер у блока
             7–14 pt, автоподгонка не ниже 7 pt. Высоту блока тяните за нижний край.

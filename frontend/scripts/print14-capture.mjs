@@ -235,25 +235,28 @@ async function main() {
 
   // Toolbar 2014/2024 switch (must match main; do not regress FIX-01).
   await openClassic(page, `/characters/${DARRACK}/classic`)
-  const switchEl = await page.$('.classic-layout-switch')
-  if (!switchEl) throw new Error('classic-layout-switch missing — 2014/2024 toolbar regress')
-  const years = await page.$$eval('.classic-layout-switch button', (btns) =>
-    btns.map((b) => (b.textContent || '').trim()),
+  const switchEl = await page.$('.classic-toolbar-segmented[aria-label="Макет классического листа"]')
+  if (!switchEl) throw new Error('layout SegmentedControl missing — 2014/2024 toolbar regress')
+  const years = await page.$$eval(
+    '.classic-toolbar-segmented[aria-label="Макет классического листа"] .ui-segmented__item',
+    (btns) => btns.map((b) => (b.textContent || '').trim()),
   )
   if (!years.includes('2014') || !years.includes('2024')) {
     throw new Error(`layout switch years=${JSON.stringify(years)}`)
   }
-  // Prefer dedicated toolbar frame; skip hashing duplicate char toolbars later if identical.
   report.shots.toolbar = await shotToolbar(page, 'toolbar-switch')
 
   // Switch to 2024 via toolbar (URL ?layout= is blank-only).
-  await page.click('.classic-layout-switch button:has-text("2024")')
+  await page.click(
+    '.classic-toolbar-segmented[aria-label="Макет классического листа"] .ui-segmented__item:has-text("2024")',
+  )
   await page.waitForSelector('.classic-lss', { timeout: 20_000 })
   await page.waitForTimeout(600)
   const { pdf: pdf2024, prints: prints2024 } = await shotPdfAndPages(page, 'darrack-2024')
   report.shots.darrack2024 = { pdf: pdf2024, prints: prints2024 }
-  // Back to 2014 for settings shots
-  await page.click('.classic-layout-switch button:has-text("2014")')
+  await page.click(
+    '.classic-toolbar-segmented[aria-label="Макет классического листа"] .ui-segmented__item:has-text("2014")',
+  )
   await page.waitForSelector('.classic-col--combat', { timeout: 20_000 })
 
   // ——— Settings panel + typography / color / notes ———
@@ -266,10 +269,9 @@ async function main() {
   }
   report.shots.settingsPanel = out('settings-panel.png')
 
-  // Reset typography first (prior capture may have left sans/script on the char).
   await page.click('.classic-print-typo button:has-text("Сбросить настройки текста")')
   await page.waitForTimeout(800)
-  await page.selectOption('.classic-print-typo label:has-text("Гарнитура") select', 'serif')
+  await page.selectOption('.classic-print-typo .classic-print-typo__field:has-text("Гарнитура") select', 'serif')
   await page.waitForTimeout(600)
   await page.waitForFunction(
     () => document.querySelector('.classic-print-page')?.getAttribute('data-classic-font') === 'serif',
@@ -281,8 +283,7 @@ async function main() {
     type: 'png',
   })
 
-  // Sans body font
-  await page.selectOption('.classic-print-typo label:has-text("Гарнитура") select', 'sans')
+  await page.selectOption('.classic-print-typo .classic-print-typo__field:has-text("Гарнитура") select', 'sans')
   await page.waitForFunction(
     () => document.querySelector('.classic-print-page')?.getAttribute('data-classic-font') === 'sans',
   )
@@ -296,12 +297,12 @@ async function main() {
   const { prints: torbinSans } = await shotPdfAndPages(page, 'settings-torbin-sans')
   report.shots.torbinSans = torbinSans
 
-  // Handwritten name (long)
-  await page.check('.classic-print-typo label:has-text("Имя рукописным") input')
+  // Handwritten name (long) via ToggleChip
+  await page.click('.classic-print-typo .ui-toggle-chip:has-text("Имя рукописным")')
   await page.waitForFunction(
     () => document.querySelector('.classic-print-page')?.getAttribute('data-classic-name-script') === '1',
   )
-  await page.waitForTimeout(400)
+  await page.waitForTimeout(500)
   nameFf = await page.$eval('.classic-name .classic-static', (el) => getComputedStyle(el).fontFamily)
   console.log('script long font', nameFf)
   await page.locator('.classic-name--banner, .classic-name').first().screenshot({
@@ -309,19 +310,24 @@ async function main() {
     type: 'png',
   })
 
-  // Short name script via Darrack — reset then enable script only
+  // Short name script via Darrack
   await openClassic(page, `/characters/${DARRACK}/classic`)
-  // Ensure 2014 layout for banner name field
-  const active2024 = await page.locator('.classic-layout-switch button.is-active:has-text("2024")').count()
+  const active2024 = await page
+    .locator(
+      '.classic-toolbar-segmented[aria-label="Макет классического листа"] .ui-segmented__item.is-on:has-text("2024")',
+    )
+    .count()
   if (active2024) {
-    await page.click('.classic-layout-switch button:has-text("2014")')
+    await page.click(
+      '.classic-toolbar-segmented[aria-label="Макет классического листа"] .ui-segmented__item:has-text("2014")',
+    )
     await page.waitForSelector('.classic-name', { timeout: 20_000 })
   }
   await page.click('.classic-edit-toggle')
   await page.waitForSelector('.classic-print-typo')
   await page.click('.classic-print-typo button:has-text("Сбросить настройки текста")')
   await page.waitForTimeout(600)
-  await page.check('.classic-print-typo label:has-text("Имя рукописным") input')
+  await page.click('.classic-print-typo .ui-toggle-chip:has-text("Имя рукописным")')
   await page.waitForFunction(
     () => document.querySelector('.classic-print-page')?.getAttribute('data-classic-name-script') === '1',
   )
@@ -332,43 +338,41 @@ async function main() {
     type: 'png',
   })
 
-  // Color mode cream
-  await page.click('.classic-color-switch button:has-text("Цвет")')
+  await page.click('.classic-toolbar-segmented[aria-label="Цвет печати"] .ui-segmented__item:has-text("Цвет")')
   await page.waitForTimeout(500)
   const { prints: colorPrints } = await shotPdfAndPages(page, 'settings-color')
   report.shots.color = colorPrints
 
-  // B&W
-  await page.click('.classic-color-switch button:has-text("Чёрно-белая")')
+  await page.click(
+    '.classic-toolbar-segmented[aria-label="Цвет печати"] .ui-segmented__item:has-text("Чёрно-белая")',
+  )
   await page.waitForTimeout(400)
   const { prints: bwPrints } = await shotPdfAndPages(page, 'settings-bw')
   report.shots.bw = bwPrints
 
-  // Pencil lines off/on + 2 extra note pages must appear in PDF
-  const pencil = await page.$('.classic-pencil-toggle input')
-  if (pencil) {
-    const on = await pencil.isChecked()
-    if (on) await pencil.uncheck()
+  const pencilChip = page.locator('.classic-toolbar-chip:has-text("Линии под карандаш")')
+  if (await pencilChip.count()) {
+    const on = await pencilChip.getAttribute('aria-checked')
+    if (on === 'true') await pencilChip.click()
     await page.waitForTimeout(300)
     await shotToolbar(page, 'settings-pencil-off')
-    await pencil.check()
+    await pencilChip.click()
     await page.waitForTimeout(300)
     await shotToolbar(page, 'settings-pencil-on')
   }
-  // bump extra notes to 2
   for (let i = 0; i < 2; i++) {
-    await page.click('.classic-extra-notes button:has-text("+")')
+    await page.click('.classic-toolbar-stepper button[aria-label="Больше страниц заметок"]')
     await page.waitForTimeout(200)
   }
   const { pdf: notesPdf, prints: notesPrints } = await shotPdfAndPages(page, 'settings-notes2')
   report.shots.notes2 = { pdf: notesPdf, prints: notesPrints }
-  const notesPdfPages = notesPrints.length
-  if (notesPdfPages < 2) {
-    console.warn('expected ≥2 PDF pages with 2 extra note pages, got', notesPdfPages)
+  if (notesPrints.length < 2) {
+    console.warn('expected ≥2 PDF pages with 2 extra note pages, got', notesPrints.length)
   }
 
-  // 2024 with same settings (color + notes already set on character)
-  await page.click('.classic-layout-switch button:has-text("2024")')
+  await page.click(
+    '.classic-toolbar-segmented[aria-label="Макет классического листа"] .ui-segmented__item:has-text("2024")',
+  )
   await page.waitForSelector('.classic-lss', { timeout: 20_000 })
   await page.waitForTimeout(500)
   const { prints: lssSettings } = await shotPdfAndPages(page, 'settings-2024')

@@ -61,6 +61,12 @@ export function ClassicStaticField({
           : parseFloat(computed.fontSize) || 18)
       let size = start
       el.style.fontSize = `${size}px`
+      // Long names: lock a 2-line box so autofit prefers wrap over tiny single-line type.
+      if (wrap) {
+        el.style.whiteSpace = 'normal'
+        el.style.height = '2.55rem'
+        el.style.maxHeight = '2.55rem'
+      }
       const overflows = () => {
         const w = el.scrollWidth > el.clientWidth + 1
         const h = wrap && el.scrollHeight > el.clientHeight + 1

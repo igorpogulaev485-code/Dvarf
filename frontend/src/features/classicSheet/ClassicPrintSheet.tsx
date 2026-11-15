@@ -81,6 +81,7 @@ import {
 } from './classicSheetLayout'
 import { ClassicTextBlock } from './ClassicTextBlock'
 import { ClassicFitViewport } from './ClassicFitViewport'
+import { ClassicFitCaption } from './ClassicFitCaption'
 import { ClassicFitInput } from './ClassicFitInput'
 import { ClassicStaticField } from './ClassicStaticField'
 import './classicPrint.css'
@@ -103,9 +104,9 @@ const COIN_LABELS = [
 const ABILITY_FRAME_PATH =
   'M14 3 H86 C94 3 97 8 97 14 V70 C97 78 94 84 88 88 L58 100 C54 102 46 102 42 100 L12 88 C6 84 3 78 3 70 V14 C3 8 6 3 14 3 Z'
 
-/** AC shield (viewBox 0 0 100 120) — strong side inset so grey column shows; white only in path. */
+/** AC shield (viewBox 0 0 100 120) — wide body so «16»/«30» keep ≥2pt inset from stroke. */
 const AC_SHIELD_PATH =
-  'M50 8 L78 20 C82 22 84 26 84 30 V52 C84 76 64 98 50 110 C36 98 16 76 16 52 V30 C16 26 18 22 22 20 Z'
+  'M50 4 L90 16 C94 18 96 22 96 26 V56 C96 84 70 104 50 118 C30 104 4 84 4 56 V26 C4 22 6 18 10 16 Z'
 
 function padWeaponRows<T extends { id: string; name: string; attackBonus: string; damageLine: string }>(
   rows: T[],
@@ -236,7 +237,7 @@ export function ClassicPrintSheet({ character: c, onPrintSettings, layout }: Pro
             <span>{brandYearLabel('2014')}</span>
           </div>
           <div className="classic-name classic-name--banner">
-            <ClassicFitInput value={c.name} aria-label="Имя персонажа" />
+            <ClassicFitInput value={c.name} wrap aria-label="Имя персонажа" />
             <span className="classic-field-label">Имя персонажа</span>
           </div>
           <div className="classic-meta classic-meta--plate">
@@ -311,7 +312,9 @@ export function ClassicPrintSheet({ character: c, onPrintSettings, layout }: Pro
                       >
                         <path d={ABILITY_FRAME_PATH} />
                       </svg>
-                      <div className="classic-ability__label">{ABILITY_NAMES[key]}</div>
+                      <ClassicFitCaption className="classic-ability__label" minPt={6} maxPt={7}>
+                        {ABILITY_NAMES[key]}
+                      </ClassicFitCaption>
                       <div className="classic-ability__mod" aria-label={`Модификатор ${ABILITY_NAMES[key]}`}>
                         {formatModifier(abilityModifier(scores[key]))}
                       </div>
@@ -403,7 +406,9 @@ export function ClassicPrintSheet({ character: c, onPrintSettings, layout }: Pro
                 printMaxHeight="12rem"
                 ariaLabel="Прочие владения и языки"
               />
-              <div className="classic-caption classic-caption--full">Прочие владения и языки</div>
+              <div className="classic-caption classic-caption--full classic-caption--wrap">
+                Прочие владения и языки
+              </div>
             </div>
           </div>
 
@@ -530,7 +535,9 @@ export function ClassicPrintSheet({ character: c, onPrintSettings, layout }: Pro
                     ))}
                   </span>
                 </div>
-                <div className="classic-caption classic-caption--full">Спасброски от смерти</div>
+                <div className="classic-caption classic-caption--full classic-caption--wrap">
+                  Спасброски от смерти
+                </div>
               </section>
             </div>
 
@@ -583,7 +590,9 @@ export function ClassicPrintSheet({ character: c, onPrintSettings, layout }: Pro
                 printMaxHeight="6rem"
                 ariaLabel="Заметки к атакам и заклинаниям"
               />
-              <div className="classic-caption classic-caption--full">Атаки и заклинания</div>
+              <div className="classic-caption classic-caption--full classic-caption--wrap">
+                Атаки и заклинания
+              </div>
             </div>
 
             <div className="classic-panel classic-equip classic-panel--grow classic-panel--grow-lg">
@@ -645,7 +654,13 @@ export function ClassicPrintSheet({ character: c, onPrintSettings, layout }: Pro
                   printMaxHeight={height}
                   ariaLabel={label}
                 />
-                <div className="classic-caption classic-caption--full">{label}</div>
+                <div
+                  className={`classic-caption classic-caption--full${
+                    label.length > 12 ? ' classic-caption--wrap' : ''
+                  }`}
+                >
+                  {label}
+                </div>
               </div>
             ))}
           </div>
@@ -659,7 +674,7 @@ export function ClassicPrintSheet({ character: c, onPrintSettings, layout }: Pro
             <span>{brandYearLabel('2014')}</span>
           </div>
           <div className="classic-name classic-name--banner">
-            <ClassicFitInput value={c.name} aria-label="Имя персонажа" />
+            <ClassicFitInput value={c.name} wrap aria-label="Имя персонажа" />
             <span className="classic-field-label">Имя персонажа</span>
           </div>
           <div className="classic-physique">
@@ -872,7 +887,7 @@ export function ClassicPrintSheet({ character: c, onPrintSettings, layout }: Pro
             <span>{brandYearLabel(sheetLayout)}</span>
           </div>
           <div className="classic-name">
-            <ClassicFitInput value={c.name} aria-label="Имя персонажа" />
+            <ClassicFitInput value={c.name} wrap aria-label="Имя персонажа" />
             <span className="classic-field-label">Имя персонажа</span>
           </div>
           <div className="classic-companions-banner">
@@ -976,7 +991,7 @@ export function ClassicPrintSheet({ character: c, onPrintSettings, layout }: Pro
               <span>{brandYearLabel(sheetLayout)}</span>
             </div>
             <div className="classic-name">
-              <ClassicFitInput value={c.name} aria-label="Имя персонажа" />
+              <ClassicFitInput value={c.name} wrap aria-label="Имя персонажа" />
               <span className="classic-field-label">Имя персонажа</span>
             </div>
             <div className="classic-companions-banner">
@@ -1052,7 +1067,7 @@ export function ClassicPrintSheet({ character: c, onPrintSettings, layout }: Pro
               <span>{brandYearLabel(sheetLayout)}</span>
             </div>
             <div className="classic-name">
-              <ClassicFitInput value={c.name} aria-label="Имя персонажа" />
+              <ClassicFitInput value={c.name} wrap aria-label="Имя персонажа" />
               <span className="classic-field-label">Имя персонажа</span>
             </div>
             <div className="classic-companions-banner">
@@ -1085,7 +1100,7 @@ export function ClassicPrintSheet({ character: c, onPrintSettings, layout }: Pro
               <span>{brandYearLabel(sheetLayout)}</span>
             </div>
             <div className="classic-name">
-              <ClassicFitInput value={c.name} aria-label="Имя персонажа" />
+              <ClassicFitInput value={c.name} wrap aria-label="Имя персонажа" />
               <span className="classic-field-label">Имя персонажа</span>
             </div>
             <div className="classic-companions-banner">

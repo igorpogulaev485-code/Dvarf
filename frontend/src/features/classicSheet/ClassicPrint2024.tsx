@@ -132,6 +132,7 @@ export function ClassicPrint2024({ character: c, onPrintSettings }: Props) {
             <label className="classic-lss-name">
               <ClassicFitInput
                 value={c.name}
+                wrap
                 aria-label="Имя персонажа"
               />
               <span>Имя персонажа</span>
