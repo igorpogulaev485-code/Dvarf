@@ -39,6 +39,12 @@ class Settings(BaseSettings):
     vk_service_token: str = ""
     uploads_dir: str = "uploads"
 
+    # W-API-06: провайдер извлечения из прозы. Без ключа/URL — только эвристики.
+    # Секреты в репозиторий не класть — только через окружение.
+    world_import_ai_provider: str = "auto"  # auto | stub | remote
+    world_import_ai_api_key: str = ""
+    world_import_ai_base_url: str = ""
+
     @property
     def cors_origin_list(self) -> list[str]:
         return [origin.strip() for origin in self.cors_origins.split(",") if origin.strip()]
