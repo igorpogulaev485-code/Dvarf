@@ -5,10 +5,15 @@ import {
   setClassicPencilBlanks,
   setClassicExtraNotePages,
   setClassicTextStyle,
+  setClassicPrintColor,
+  readClassicTextStyle,
+  readClassicPrintColor,
+  readClassicGlobalFontScale,
   CLASSIC_FIT_MIN_PT,
   classicPrintFontFamilyCss,
 } from './classicPrintSettings.ts'
 import { setClassicSheetLayout } from './classicSheetLayout.ts'
+import { asRecord } from '../characters/sheetTypes.ts'
 
 function assert(cond: unknown, msg: string): asserts cond {
   if (!cond) throw new Error(msg)
@@ -47,8 +52,30 @@ assert(isClassicPrintSettingsOnlyPatch(base, pencil), 'pencil-only ok')
 const notes = setClassicExtraNotePages(base, 2)
 assert(isClassicPrintSettingsOnlyPatch(base, notes), 'extra notes ok')
 
-const style = setClassicTextStyle(base, { fontFamily: 'sans', lineHeight: 'tight' })
+const style = setClassicTextStyle(base, { fontFamily: 'sans', lineHeight: 'tight', nameScript: true })
 assert(isClassicPrintSettingsOnlyPatch(base, style), 'text style ok')
+const styleChar = { ...base, sheet: style.sheet! }
+assert(readClassicTextStyle(styleChar).fontFamily === 'sans', 'sans family')
+assert(readClassicTextStyle(styleChar).nameScript === true, 'name script')
+assert(!('headingBold' in asRecord(asRecord(style.sheet).ui).classic_text_style), 'no headingBold')
+
+const color = setClassicPrintColor(base, 'color')
+assert(isClassicPrintSettingsOnlyPatch(base, color), 'color-only ok')
+assert(readClassicPrintColor({ ...base, sheet: color.sheet! }) === 'color', 'color mode')
+assert(readClassicPrintColor(base) === 'bw', 'default bw')
+
+assert(readClassicGlobalFontScale(base) === 1, 'global scale always 1')
+
+// Legacy script family → nameScript
+const legacy: CharacterDetail = {
+  ...base,
+  sheet: {
+    ...base.sheet,
+    ui: { classic_text_style: { fontFamily: 'script', lineHeight: 'normal', align: 'left' } },
+  },
+}
+assert(readClassicTextStyle(legacy).fontFamily === 'serif', 'legacy script → serif')
+assert(readClassicTextStyle(legacy).nameScript === true, 'legacy script → nameScript')
 
 const dirty = {
   name: 'Хак',

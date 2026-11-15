@@ -8,14 +8,15 @@ import {
 import { ClassicSheetUiProvider } from '../features/classicSheet/classicSheetUi'
 import { setClassicPencilBlanks } from '../features/classicSheet/classicPrintSettings'
 import type { CharacterDetail } from '../shared/api/characters'
-import { Button } from '../ui'
+import { Button, SegmentedControl } from '../ui'
 
 function blankCharacter(layout: ClassicSheetLayout): CharacterDetail {
   let character: CharacterDetail = {
     id: 'classic-blank',
     name: '',
     avatar_url: null,
-    level: 1,
+    // level 0 → no «ур. 1» / derived PB / hit-die labels on the blank.
+    level: 0,
     class_name: null,
     race_name: null,
     hp_current: null,
@@ -27,20 +28,15 @@ function blankCharacter(layout: ClassicSheetLayout): CharacterDetail {
     updated_at: '1970-01-01T00:00:00Z',
     sheet: {
       ui: {},
-      abilities: {
-        str: { score: 10 },
-        dex: { score: 10 },
-        con: { score: 10 },
-        int: { score: 10 },
-        wis: { score: 10 },
-        cha: { score: 10 },
-      },
+      // No ability scores — blank must not print 10 / +0 placeholders.
+      abilities: {},
       combat: {},
       identity: {},
       inventory: { items: [], coins: {}, notes: '' },
       spells: { known: [], slots: {}, casting_ability: null },
       companions: [],
       text_blocks: [],
+      proficiency: {},
     },
   }
   const withLayout = setClassicSheetLayout(character, layout)
@@ -70,7 +66,13 @@ export function ClassicBlankSheetPage() {
   }
 
   return (
-    <div className="classic-print-page" data-testid="classic-blank-sheet">
+    <div
+      className="classic-print-page"
+      data-testid="classic-blank-sheet"
+      data-classic-color="bw"
+      data-classic-font="serif"
+      data-classic-name-script="0"
+    >
       <header className="classic-print-toolbar no-print">
         <div>
           <Link to="/characters">← К персонажам</Link>
@@ -84,19 +86,19 @@ export function ClassicBlankSheetPage() {
           </p>
         </div>
         <div className="classic-toolbar-actions">
-          <div className="classic-layout-switch" role="group" aria-label="Макет пустого бланка">
-            <span className="classic-layout-switch__label">Макет</span>
-            {(['2014', '2024'] as const).map((year) => (
-              <button
-                key={year}
-                type="button"
-                className={layout === year ? 'is-active' : undefined}
-                aria-pressed={layout === year}
-                onClick={() => setLayout(year)}
-              >
-                {year}
-              </button>
-            ))}
+          <div className="classic-toolbar-group">
+            <span className="classic-toolbar-group__label">Макет</span>
+            <SegmentedControl
+              aria-label="Макет пустого бланка"
+              size="sm"
+              className="classic-toolbar-segmented"
+              value={layout}
+              onChange={setLayout}
+              options={[
+                { id: '2014', label: '2014' },
+                { id: '2024', label: '2024' },
+              ]}
+            />
           </div>
           <div className="classic-print-cta">
             <Button variant="secondary" onClick={() => window.print()}>

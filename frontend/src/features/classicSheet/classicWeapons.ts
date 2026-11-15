@@ -105,7 +105,10 @@ function readWeaponAttacks(sheet: Record<string, unknown>): WeaponAttack[] {
 }
 
 function joinDamageLine(damage: string, damageType: string): string {
-  return [damage.trim(), damageType.trim()].filter(Boolean).join(' ')
+  const dice = damage.trim()
+  const dtype = damageType.trim()
+  // Keep on one line; print CSS uses a fixed ≤6.5pt so A4 column fits.
+  return [dice, dtype].filter(Boolean).join(' ')
 }
 
 /** Split «1к8+3 рубящий» → damage / type (last non-numeric token = type). */
@@ -151,6 +154,15 @@ function computedDamageLine(
   if (!attack.damage.trim()) return joinDamageLine('', attack.damage_type)
   // Respect a full line typed into the classic blank («1к12+5»).
   if (damageAlreadyHasModifier(attack.damage)) {
+    return joinDamageLine(attack.damage, attack.damage_type)
+  }
+  const storedBonus =
+    typeof (attack as { attack_bonus?: string }).attack_bonus === 'string'
+      ? (attack as { attack_bonus?: string }).attack_bonus!.trim()
+      : ''
+  // Save-based spell rows («Сл 13») — dice only, no ability damage mod.
+  // Note: JS \b is ASCII-only; use whitespace after «Сл».
+  if (/^сл(\s|$)/i.test(storedBonus)) {
     return joinDamageLine(attack.damage, attack.damage_type)
   }
   const abilityDmg = abilityModifier(scores[attack.ability] ?? abilityScore(character, attack.ability))
@@ -200,7 +212,11 @@ export function classicWeaponRows(character: CharacterDetail): ClassicWeaponRow[
         : undefined
     const magicAtk = gearRow?.attackBonus ?? 0
     const magicDmg = gearRow?.damageBonus ?? 0
-    const faced = { ...attack, damage: face.damage, damage_type: face.damageType }
+    const faced = {
+      ...withBonus,
+      damage: face.damage,
+      damage_type: face.damageType,
+    }
     return {
       id: attack.id,
       name: attack.name,

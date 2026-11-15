@@ -85,6 +85,9 @@ def _spell(
     spellbook_acquisition: str | None = None,
     in_spellbook: bool | None = None,
     school: str | None = None,
+    description: str | None = None,
+    higher_levels: str | None = None,
+    duration: str | None = None,
 ) -> dict:
     row = {
         "id": sid,
@@ -102,6 +105,12 @@ def _spell(
         "school": school or "воплощение",
         "components": components or {"v": True, "s": True, "m": None},
     }
+    if description:
+        row["description"] = description
+    if higher_levels:
+        row["higher_levels"] = higher_levels
+    if duration:
+        row["duration"] = duration
     if class_slug:
         row["class_slug"] = class_slug
     if source_kind:

@@ -81,7 +81,7 @@ export const sampleClassic2014Character: CharacterDetail = {
         { name: 'Книга заклинаний' },
         { name: 'Компонентная сумка' },
         { name: 'Рюкзак исследователя' },
-        { name: 'Зелье лечения ×2' },
+        { name: 'Зелье лечения', qty: 2 },
       ],
       notes: '',
     },
