@@ -1,5 +1,9 @@
 /**
  * DICE-01 screenshots → /opt/cursor/artifacts/dice-v1/
+ *
+ * sheet-2014-before-* must come from origin/main (see scripts/dice-before-from-main.sh).
+ * This file shoots after / feature / scrolled shots from the feature branch.
+ *
  * Run: DICE_SHOT_DIR=/opt/cursor/artifacts/dice-v1 npm run test:e2e:dice -- e2e/dice-roller-screenshots.spec.ts
  */
 import { expect, test, type Page } from '@playwright/test'
@@ -30,17 +34,114 @@ async function openPreview(
   if (opts?.log) q.set('log', '1')
   await page.goto(`/dev/dice-roller-preview?${q.toString()}`)
   await expect(page.getByTestId('dice-fab')).toBeVisible()
-  // Let Play Desk settle.
-  await page.waitForTimeout(400)
+  await page.waitForTimeout(500)
 }
 
-test.describe('DICE-01 screenshots', () => {
-  test('closed / open / pool / formula / error / advantage / log / 2014 before-after', async ({
+/** Last control fully above the FAB (usable, not under/beside it). */
+function fullyAboveFab(
+  box: { y: number; height: number },
+  fabBox: { y: number },
+) {
+  return box.y + box.height <= fabBox.y + 2
+}
+
+/** Scroll last CAST (desktop) or last attack control (mobile) fully above FAB. */
+async function scrollTailClearOfFab(page: Page) {
+  const w = page.viewportSize()?.width ?? 1440
+  const fab = page.getByTestId('dice-fab')
+  await expect(fab).toBeVisible()
+  if (w <= 500) {
+    await page.evaluate(() => {
+      for (const el of document.querySelectorAll(
+        '.play-desk__stage, .play-desk-compact__list',
+      )) {
+        ;(el as HTMLElement).scrollTop = (el as HTMLElement).scrollHeight
+      }
+      window.scrollTo(0, document.documentElement.scrollHeight)
+    })
+    await page.waitForTimeout(250)
+    await expect
+      .poll(async () => {
+        return page.evaluate(() => {
+          const fabEl = document.querySelector('[data-testid="dice-fab"]')
+          if (!fabEl) return false
+          const fabR = fabEl.getBoundingClientRect()
+          const btns = [...document.querySelectorAll('.play-desk-compact__list button')].filter(
+            (b) => {
+              const r = b.getBoundingClientRect()
+              return r.width > 0 && r.height > 0 && r.bottom > 0 && r.top < window.innerHeight
+            },
+          )
+          const last = btns.at(-1)
+          if (!last) return true
+          return last.getBoundingClientRect().bottom <= fabR.top + 2
+        })
+      }, { timeout: 5_000 })
+      .toBe(true)
+  } else {
+    const spellList = page.locator('.play-desk-compact--spells .play-desk-compact__list--scroll')
+    if (await spellList.count()) {
+      await spellList.evaluate((el) => {
+        el.scrollTop = el.scrollHeight
+      })
+    }
+    await page.evaluate(async () => {
+      const fabEl = document.querySelector('[data-testid="dice-fab"]')
+      if (!fabEl) return
+      for (let i = 0; i < 48; i += 1) {
+        const fabR = fabEl.getBoundingClientRect()
+        const casts = [...document.querySelectorAll('button')].filter((b) =>
+          /КАСТ/i.test(b.textContent || ''),
+        )
+        const visible = casts.filter((b) => {
+          const r = b.getBoundingClientRect()
+          return r.width > 0 && r.top < window.innerHeight && r.bottom > 0
+        })
+        const last = visible.at(-1)
+        if (!last) break
+        if (last.getBoundingClientRect().bottom <= fabR.top + 2) break
+        const maxY = document.documentElement.scrollHeight - window.innerHeight
+        if (window.scrollY >= maxY - 1) break
+        window.scrollBy(0, 48)
+        await new Promise((res) => setTimeout(res, 16))
+      }
+    })
+    await page.waitForTimeout(200)
+    await expect
+      .poll(async () => {
+        const fabBox = await fab.boundingBox()
+        if (!fabBox) return false
+        const casts = page.getByRole('button', { name: /КАСТ/i })
+        const n = await casts.count()
+        for (let i = n - 1; i >= 0; i -= 1) {
+          const box = await casts.nth(i).boundingBox()
+          if (!box || box.height <= 0) continue
+          if (box.y >= w || box.y + box.height <= 0) continue
+          return fullyAboveFab(box, fabBox)
+        }
+        return false
+      }, { timeout: 8_000 })
+      .toBe(true)
+  }
+}
+
+test.describe('DICE-01 screenshots (branch)', () => {
+  test('closed / open / pool / formula / error / advantage / log / after / scrolled', async ({
     page,
   }) => {
     await openPreview(page, { edition: '2014' })
-    await shot(page, 'sheet-2014-before')
+    const w = page.viewportSize()?.width ?? 1440
+    if (w > 500) {
+      // Desktop left rail: all 6 abilities, Харизма fully visible (kit LOCK, no rail padding).
+      await expect(page.getByText('Харизма', { exact: false }).first()).toBeVisible()
+    } else {
+      await expect(page.getByTestId('dice-fab')).toBeVisible()
+    }
     await shot(page, 'closed')
+    await shot(page, 'sheet-2014-after')
+
+    await scrollTailClearOfFab(page)
+    await shot(page, 'sheet-2014-scrolled')
 
     await page.getByTestId('dice-fab').click()
     await expect(page.getByRole('dialog', { name: 'Бросок кубиков' })).toBeVisible()
@@ -72,7 +173,6 @@ test.describe('DICE-01 screenshots', () => {
     await dropped.scrollIntoViewIfNeeded()
     await shot(page, 'advantage')
 
-    // Seeded multi-entry log — first 3 rows open with «Повторить»
     await page.goto('/dev/dice-roller-preview?edition=2014&clean=1&open=1&log=1')
     const logDialog = page.getByRole('dialog', { name: 'Бросок кубиков' })
     await expect(logDialog).toBeVisible()
@@ -81,11 +181,6 @@ test.describe('DICE-01 screenshots', () => {
     await logDialog.getByRole('button', { name: 'Повторить' }).nth(1).scrollIntoViewIfNeeded()
     await shot(page, 'log')
 
-    await page.keyboard.press('Escape')
-    await expect(page.getByRole('dialog', { name: 'Бросок кубиков' })).toHaveCount(0)
-    await shot(page, 'sheet-2014-after')
-
-    // 2024 closed for parity note in report (optional visual)
     await openPreview(page, { edition: '2024' })
     await shot(page, 'sheet-2024-closed')
   })

@@ -15,7 +15,7 @@ type Props = {
 
 /**
  * FAB + panel host for a finished character sheet.
- * Desktop (≥960): floating panel near the button.
+ * Desktop (≥960): floating panel above the bottom-right FAB.
  * Phone: bottom sheet (partial height).
  */
 export function DiceRollerHost({
@@ -29,8 +29,7 @@ export function DiceRollerHost({
   )
   const [coords, setCoords] = useState<{
     bottom: number
-    left?: number
-    right?: number
+    right: number
     width: number
     maxHeight: number
   } | null>(null)
@@ -50,25 +49,14 @@ export function DiceRollerHost({
     const r = fab.getBoundingClientRect()
     const pad = 12
     const width = Math.min(400, window.innerWidth - pad * 2)
-    // Grow up from the FAB: height = min(content, viewport − pads − gap to FAB).
+    // Grow up from the FAB (bottom-right): height = min(content, space above FAB).
     const gap = 10
     const bottom = Math.max(pad, window.innerHeight - r.top + gap)
     const available = Math.max(280, r.top - pad - gap)
-    const spaceRight = window.innerWidth - r.left - pad
-    // FAB is bottom-left — open panel to the right of it when it fits.
-    if (spaceRight >= width) {
-      setCoords({
-        bottom,
-        left: Math.max(pad, Math.round(r.left)),
-        width,
-        maxHeight: available,
-      })
-      return
-    }
     setCoords({
       bottom,
-      right: pad,
-      width: Math.min(width, window.innerWidth - pad * 2),
+      right: Math.max(pad, window.innerWidth - r.right),
+      width,
       maxHeight: available,
     })
   }, [])
@@ -113,12 +101,11 @@ export function DiceRollerHost({
             coords
               ? {
                   bottom: coords.bottom,
-                  left: coords.left,
                   right: coords.right,
                   width: coords.width,
                   maxHeight: coords.maxHeight,
                 }
-              : { bottom: 88, left: 16, width: 360, maxHeight: 520 }
+              : { bottom: 88, right: 16, width: 360, maxHeight: 520 }
           }
           panelClassName="no-print"
           className="no-print"

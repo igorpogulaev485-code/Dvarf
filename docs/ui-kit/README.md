@@ -154,9 +154,10 @@ Selfcheck: `npm run selfcheck:abilities-rail-cap` (рядом `selfcheck:abiliti
 | `Stepper` | `ui/Stepper.tsx` | компактный − / число / + в одну высоту контроля; ширина по содержимому |
 
 Стили `.ui-dice-fab*` / `.ui-floating-*` / `.ui-bottom-sheet*` / `.ui-stepper*` /
-`.dice-roller-panel*` в `01-tokens-base.css`. Отступ листа под FAB:
-`body:has(.ui-dice-fab-slot) .play-desk`. Фича: `frontend/src/features/diceRoller/`.
-Без page-level CSS и без правок `index.css`.
+`.dice-roller-panel*` в `01-tokens-base.css`. FAB справа внизу; «хвост» только у
+прокручиваемых списков заклинаний/атак и `::after` у `.play-desk__stage` (не у
+`.play-desk__left` / рельса — LOCK §2a). Before-скрины 2014: `scripts/dice-before-from-main.sh`.
+Фича: `frontend/src/features/diceRoller/`. Без page-level CSS и без правок `index.css`.
 
 ### Эталон 14.11.2026 — kit atoms (не менять вид без ok)
 

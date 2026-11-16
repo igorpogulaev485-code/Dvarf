@@ -2009,42 +2009,55 @@ a.ui-button--primary {
   }
 }
 
-/* Clearance so last CAST / attack row sits/scrolls above the FAB */
-body:has(.ui-dice-fab-slot) .play-desk {
-  --dice-fab-clearance: 88px;
-  padding-bottom: calc(var(--dice-fab-clearance) + env(safe-area-inset-bottom, 0px));
+/*
+ * FAB clearance — ONLY scroll tails on right spells / center attacks (and mobile stage).
+ * Do NOT pad .play-desk__left / .abil-column — rail height LOCK stays pixel-identical to main.
+ */
+body:has(.ui-dice-fab-slot) {
+  /* FAB 52 + gap under last row inside scrollports */
+  --dice-fab-clearance: 80px;
 }
 
-/* Pad stage / rail / lists so last controls clear the bottom-left FAB */
-body:has(.ui-dice-fab-slot) .play-desk-compact--spells,
-body:has(.ui-dice-fab-slot) .play-desk-compact--attacks,
-body:has(.ui-dice-fab-slot) .play-desk-compact__list--scroll,
-body:has(.ui-dice-fab-slot) .play-desk__left,
-body:has(.ui-dice-fab-slot) .abil-column {
+/*
+ * Scroll tails — ONLY stage (center attacks + right spells). Never .play-desk__left / .abil-column.
+ * List padding helps when the scrollport ends above the FAB; stage ::after gives window-scroll
+ * room when the list box itself extends below the fold (padding would sit off-screen).
+ */
+body:has(.ui-dice-fab-slot) .play-desk__stage .play-desk-compact__list {
   padding-bottom: calc(var(--dice-fab-clearance) + 8px);
   box-sizing: border-box;
 }
 
-@media (max-width: 959px) {
-  /* Scene nav (~72) + FAB (~56) + gap */
-  body:has(.ui-dice-fab-slot) .play-desk--mobile {
-    padding-bottom: calc(72px + 72px + env(safe-area-inset-bottom, 0px));
+@media (min-width: 960px) {
+  /* Extra stage tail — room to window-scroll last КАСТ fully above fixed FAB. */
+  body:has(.ui-dice-fab-slot) .play-desk__stage::after {
+    content: '';
+    display: block;
+    height: calc(var(--dice-fab-clearance) + 96px);
+    flex: 0 0 auto;
+    pointer-events: none;
   }
+}
 
-  body:has(.ui-dice-fab-slot) .play-desk--mobile .play-desk__stage,
-  body:has(.ui-dice-fab-slot) .play-desk--mobile .play-desk-compact--attacks,
-  body:has(.ui-dice-fab-slot) .play-desk--mobile .play-desk-compact--spells,
-  body:has(.ui-dice-fab-slot) .play-desk--mobile .play-desk-compact__list {
-    padding-bottom: calc(72px + 8px);
+@media (max-width: 959px) {
+  /* Mobile: FAB above Bottom Scene Nav — tail at end of scene. */
+  body:has(.ui-dice-fab-slot) {
+    --dice-fab-clearance: 88px;
+  }
+  body:has(.ui-dice-fab-slot) .play-desk--mobile .play-desk__stage {
+    padding-bottom: calc(var(--dice-fab-clearance) + 8px);
     box-sizing: border-box;
+  }
+  body:has(.ui-dice-fab-slot) .play-desk--mobile .play-desk__stage .play-desk-compact__list {
+    padding-bottom: calc(var(--dice-fab-clearance) + 8px);
   }
 }
 
 .ui-dice-fab-slot {
   position: fixed;
-  /* Bottom-left: never sits on pinned-spell CAST / attack actions. */
-  left: 16px;
-  right: auto;
+  /* Bottom-right — LSS / DICE-01 TZ. */
+  right: 16px;
+  left: auto;
   bottom: 16px;
   z-index: 48;
   pointer-events: none;
@@ -2078,10 +2091,9 @@ body:has(.ui-dice-fab-slot) .abil-column {
 }
 
 @media (max-width: 959px) {
-  /* Phone: above Bottom Scene Nav, still left — clears attack card actions. */
   .ui-dice-fab-slot {
-    left: 12px;
-    right: auto;
+    right: 12px;
+    left: auto;
     bottom: calc(72px + env(safe-area-inset-bottom, 0px));
   }
 }
