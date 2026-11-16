@@ -5,16 +5,31 @@
       "kind": "race",
       "slug": "human",
       "name_ru": "Человек",
-      "name_en": "human",
+      "name_en": "Human",
       "rules_edition": "2014",
       "parent_id": null,
       "source": "phb",
       "external_ref": null,
       "data": {
         "speed": 30,
-        "size": "medium"
+        "size": "medium",
+        "darkvision": 0,
+        "ability_bonuses": {
+          "str": 1,
+          "dex": 1,
+          "con": 1,
+          "int": 1,
+          "wis": 1,
+          "cha": 1
+        },
+        "languages": [
+          "Общий"
+        ],
+        "languages_choose": 1,
+        "traits_text": "Человек (2014): +1 ко всем характеристикам. Дополнительный язык. Скорость 30 фт. Вариант PHB и метки дракона ERLW — опционально в попапе.",
+        "subrace_required": false
       },
-      "sort_order": 0,
+      "sort_order": 40,
       "is_active": true,
       "created_at": "2024-01-01T00:00:00Z",
       "updated_at": "2024-01-01T00:00:00Z"
@@ -24,7 +39,7 @@
       "kind": "race",
       "slug": "dwarf",
       "name_ru": "Дварф",
-      "name_en": "dwarf",
+      "name_en": "Dwarf",
       "rules_edition": "2014",
       "parent_id": null,
       "source": "phb",
@@ -32,9 +47,36 @@
       "data": {
         "speed": 25,
         "size": "medium",
-        "darkvision": 60
+        "darkvision": 60,
+        "ability_bonuses": {
+          "con": 2
+        },
+        "languages": [
+          "Общий",
+          "Дварфийский"
+        ],
+        "languages_choose": 0,
+        "tool_choices": {
+          "count": 1,
+          "from": [
+            "Инструменты кузнеца",
+            "Инструменты каменщика",
+            "Инструменты пивовара"
+          ]
+        },
+        "weapon_proficiencies": [
+          "Боевой топор",
+          "Ручной топор",
+          "Лёгкий молот",
+          "Боевой молот"
+        ],
+        "traits_text": "Дварф (2014): +2 Тел. Скорость 25 фт (не снижается тяжёлым доспехом). Тёмное зрение 60 фт. Устойчивость к яду. Владение топорами и молотами. Инструменты камнетёса/кузнеца/пивовара — на выбор.",
+        "subrace_required": true,
+        "damage_resistances": [
+          "яд"
+        ]
       },
-      "sort_order": 0,
+      "sort_order": 10,
       "is_active": true,
       "created_at": "2024-01-01T00:00:00Z",
       "updated_at": "2024-01-01T00:00:00Z"
@@ -44,7 +86,7 @@
       "kind": "race",
       "slug": "elf",
       "name_ru": "Эльф",
-      "name_en": "elf",
+      "name_en": "Elf",
       "rules_edition": "2014",
       "parent_id": null,
       "source": "phb",
@@ -52,9 +94,120 @@
       "data": {
         "speed": 30,
         "size": "medium",
-        "darkvision": 60
+        "darkvision": 60,
+        "ability_bonuses": {
+          "dex": 2
+        },
+        "languages": [
+          "Общий",
+          "Эльфийский"
+        ],
+        "languages_choose": 0,
+        "skill_proficiencies": [
+          "perception"
+        ],
+        "traits_text": "Эльф (2014): +2 Лов. Тёмное зрение 60 фт. Наследие фей. Транс. Острое чутьё (Внимательность).",
+        "subrace_required": true
       },
-      "sort_order": 0,
+      "sort_order": 20,
+      "is_active": true,
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z"
+    },
+    {
+      "id": "seed-race-hill_dwarf",
+      "kind": "race",
+      "slug": "hill_dwarf",
+      "name_ru": "Дварф (холмовой)",
+      "name_en": "Hill Dwarf",
+      "rules_edition": "2014",
+      "parent_id": "seed-race-dwarf",
+      "source": "phb",
+      "external_ref": null,
+      "data": {
+        "speed": 25,
+        "size": "medium",
+        "darkvision": 60,
+        "ability_bonuses": {
+          "con": 2,
+          "wis": 1
+        },
+        "languages": [
+          "Общий",
+          "Дварфийский"
+        ],
+        "languages_choose": 0,
+        "tool_choices": {
+          "count": 1,
+          "from": [
+            "Инструменты кузнеца",
+            "Инструменты каменщика",
+            "Инструменты пивовара"
+          ]
+        },
+        "weapon_proficiencies": [
+          "Боевой топор",
+          "Ручной топор",
+          "Лёгкий молот",
+          "Боевой молот"
+        ],
+        "traits_text": "Холмовой дварф (2014): +2 Тел, +1 Муд. Дварфские черты + Каменная стойкость (+1 хитов за уровень).",
+        "damage_resistances": [
+          "яд"
+        ]
+      },
+      "sort_order": 12,
+      "is_active": true,
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z"
+    },
+    {
+      "id": "seed-race-mountain_dwarf",
+      "kind": "race",
+      "slug": "mountain_dwarf",
+      "name_ru": "Дварф (горный)",
+      "name_en": "Mountain Dwarf",
+      "rules_edition": "2014",
+      "parent_id": "seed-race-dwarf",
+      "source": "phb",
+      "external_ref": null,
+      "data": {
+        "speed": 25,
+        "size": "medium",
+        "darkvision": 60,
+        "ability_bonuses": {
+          "con": 2,
+          "str": 2
+        },
+        "languages": [
+          "Общий",
+          "Дварфийский"
+        ],
+        "languages_choose": 0,
+        "tool_choices": {
+          "count": 1,
+          "from": [
+            "Инструменты кузнеца",
+            "Инструменты каменщика",
+            "Инструменты пивовара"
+          ]
+        },
+        "weapon_proficiencies": [
+          "Боевой топор",
+          "Ручной топор",
+          "Лёгкий молот",
+          "Боевой молот"
+        ],
+        "armor_proficiencies": [
+          "light",
+          "medium"
+        ],
+        "traits_text": "Горный дварф (2014): +2 Тел, +2 Сил. Дварфские черты + владение лёгкими и средними доспехами.",
+        "damage_resistances": [
+          "яд"
+        ]
+      },
+      "sort_order": 11,
       "is_active": true,
       "created_at": "2024-01-01T00:00:00Z",
       "updated_at": "2024-01-01T00:00:00Z"
@@ -75,7 +228,13 @@
         "skill_proficiencies": [
           "athletics",
           "intimidation"
-        ]
+        ],
+        "tool_proficiencies": [
+          "dice-set"
+        ],
+        "feature_name_ru": "Военное звание",
+        "feature_text_ru": "Ты можешь пользоваться военным званием.",
+        "languages_choose": 0
       },
       "sort_order": 0,
       "is_active": true,
@@ -96,7 +255,10 @@
         "skill_proficiencies": [
           "arcana",
           "history"
-        ]
+        ],
+        "languages_choose": 2,
+        "feature_name_ru": "Исследователь",
+        "feature_text_ru": "Ты знаешь, где искать знания."
       },
       "sort_order": 0,
       "is_active": true,
@@ -110,45 +272,148 @@
       "kind": "class",
       "slug": "fighter",
       "name_ru": "Воин",
-      "name_en": "fighter",
+      "name_en": "Fighter",
       "rules_edition": "2014",
       "parent_id": null,
       "source": "phb",
       "external_ref": null,
       "data": {
         "hit_die": 10,
+        "primary_abilities": [
+          "str",
+          "dex"
+        ],
         "saving_throws": [
           "str",
           "con"
         ],
-        "primary_abilities": [
-          "str",
-          "dex"
-        ]
-      },
-      "sort_order": 0,
-      "is_active": true,
-      "created_at": "2024-01-01T00:00:00Z",
-      "updated_at": "2024-01-01T00:00:00Z"
-    },
-    {
-      "id": "seed-class-wizard",
-      "kind": "class",
-      "slug": "wizard",
-      "name_ru": "Волшебник",
-      "name_en": "wizard",
-      "rules_edition": "2014",
-      "parent_id": null,
-      "source": "phb",
-      "external_ref": null,
-      "data": {
-        "hit_die": 6,
-        "saving_throws": [
-          "int",
-          "wis"
+        "armor": [
+          "light",
+          "medium",
+          "heavy",
+          "shields"
         ],
-        "primary_abilities": [
-          "int"
+        "weapons": {
+          "simple": true,
+          "martial": true,
+          "extras": []
+        },
+        "tools_fixed": [],
+        "tool_choices": null,
+        "skill_choices": {
+          "count": 2,
+          "from": [
+            "acrobatics",
+            "animal_handling",
+            "athletics",
+            "history",
+            "insight",
+            "intimidation",
+            "perception",
+            "survival"
+          ]
+        },
+        "multiclass_prerequisites": {
+          "any": [
+            "str",
+            "dex"
+          ],
+          "min": 13
+        },
+        "multiclass_proficiencies": {
+          "armor": [
+            "light",
+            "medium",
+            "shields"
+          ],
+          "weapons": {
+            "simple": true,
+            "martial": true,
+            "extras": []
+          },
+          "tools_fixed": [],
+          "tool_choices": null,
+          "skill_choices": null
+        },
+        "caster": {
+          "progression": "none",
+          "ability": null,
+          "prepare": null,
+          "note": "⅓ только у подклассов Eldritch Knight / Psi Warrior — отдельно по subclass"
+        },
+        "starting_equipment_notes_ru": "PHB: (a) кольчуга или (b) кожаный+длинный лук; (a) воинское ближнее или (b) два боевых; (a) лёгкий арбалет или (b) два ручных топора; набор исследователя/данжеонера.",
+        "starting_equipment": [
+          {
+            "id": "a",
+            "label_ru": "Вариант A",
+            "summary_ru": "Кольчуга + длинный меч + щит + лёгкий арбалет + набор исследователя",
+            "items": [
+              {
+                "name": "Кольчуга",
+                "qty": 1,
+                "armor_kind": "heavy",
+                "base_ac": 16
+              },
+              {
+                "name": "Длинный меч",
+                "qty": 1
+              },
+              {
+                "name": "Щит",
+                "qty": 1,
+                "armor_kind": "shield",
+                "base_ac": 2
+              },
+              {
+                "name": "Лёгкий арбалет",
+                "qty": 1
+              },
+              {
+                "name": "Болты арбалета",
+                "qty": 20
+              },
+              {
+                "name": "Набор исследователя",
+                "qty": 1
+              }
+            ]
+          },
+          {
+            "id": "b",
+            "label_ru": "Вариант B",
+            "summary_ru": "Кожаный + длинный лук + два длинных меча + набор исследователя",
+            "items": [
+              {
+                "name": "Кожаный доспех",
+                "qty": 1,
+                "armor_kind": "light",
+                "base_ac": 11
+              },
+              {
+                "name": "Длинный лук",
+                "qty": 1
+              },
+              {
+                "name": "Стрелы",
+                "qty": 20
+              },
+              {
+                "name": "Длинный меч",
+                "qty": 2
+              },
+              {
+                "name": "Набор исследователя",
+                "qty": 1
+              }
+            ]
+          },
+          {
+            "id": "gold",
+            "label_ru": "Золото",
+            "summary_ru": "5к4×10 зм (ориентир 125 зм)",
+            "items": [],
+            "coins_gp": 125
+          }
         ]
       },
       "sort_order": 0,
@@ -161,19 +426,263 @@
       "kind": "class",
       "slug": "cleric",
       "name_ru": "Жрец",
-      "name_en": "cleric",
+      "name_en": "Cleric",
       "rules_edition": "2014",
       "parent_id": null,
       "source": "phb",
       "external_ref": null,
       "data": {
         "hit_die": 8,
+        "primary_abilities": [
+          "wis"
+        ],
         "saving_throws": [
           "wis",
           "cha"
         ],
+        "armor": [
+          "light",
+          "medium",
+          "shields"
+        ],
+        "weapons": {
+          "simple": true,
+          "martial": false,
+          "extras": []
+        },
+        "tools_fixed": [],
+        "tool_choices": null,
+        "skill_choices": {
+          "count": 2,
+          "from": [
+            "history",
+            "insight",
+            "medicine",
+            "persuasion",
+            "religion"
+          ]
+        },
+        "multiclass_prerequisites": {
+          "all": [
+            "wis"
+          ],
+          "min": 13
+        },
+        "multiclass_proficiencies": {
+          "armor": [
+            "light",
+            "medium",
+            "shields"
+          ],
+          "weapons": {
+            "simple": false,
+            "martial": false,
+            "extras": []
+          },
+          "tools_fixed": [],
+          "tool_choices": null,
+          "skill_choices": null
+        },
+        "caster": {
+          "progression": "full",
+          "ability": "wis",
+          "prepare": "mod+level"
+        },
+        "notes_ru": "Домен может добавить тяжёлые доспехи / воинское оружие — через subclass data.",
+        "starting_equipment": [
+          {
+            "id": "a",
+            "label_ru": "Вариант A",
+            "summary_ru": "Булава + чешуйчатый + лёгкий арбалет + священный символ + набор жреца",
+            "items": [
+              {
+                "name": "Булава",
+                "qty": 1
+              },
+              {
+                "name": "Чешуйчатый доспех",
+                "qty": 1,
+                "armor_kind": "medium",
+                "base_ac": 14
+              },
+              {
+                "name": "Лёгкий арбалет",
+                "qty": 1
+              },
+              {
+                "name": "Болты арбалета",
+                "qty": 20
+              },
+              {
+                "name": "Священный символ",
+                "qty": 1
+              },
+              {
+                "name": "Набор жреца",
+                "qty": 1
+              }
+            ]
+          },
+          {
+            "id": "b",
+            "label_ru": "Вариант B",
+            "summary_ru": "Боевой молот + кольчуга + щит + священный символ + набор жреца",
+            "items": [
+              {
+                "name": "Боевой молот",
+                "qty": 1
+              },
+              {
+                "name": "Кольчуга",
+                "qty": 1,
+                "armor_kind": "heavy",
+                "base_ac": 16
+              },
+              {
+                "name": "Щит",
+                "qty": 1,
+                "armor_kind": "shield",
+                "base_ac": 2
+              },
+              {
+                "name": "Священный символ",
+                "qty": 1
+              },
+              {
+                "name": "Набор жреца",
+                "qty": 1
+              }
+            ]
+          },
+          {
+            "id": "gold",
+            "label_ru": "Золото",
+            "summary_ru": "5к4×10 зм (ориентир 125 зм)",
+            "items": [],
+            "coins_gp": 125
+          }
+        ]
+      },
+      "sort_order": 0,
+      "is_active": true,
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z"
+    },
+    {
+      "id": "seed-class-wizard",
+      "kind": "class",
+      "slug": "wizard",
+      "name_ru": "Волшебник",
+      "name_en": "Wizard",
+      "rules_edition": "2014",
+      "parent_id": null,
+      "source": "phb",
+      "external_ref": null,
+      "data": {
+        "hit_die": 6,
         "primary_abilities": [
+          "int"
+        ],
+        "saving_throws": [
+          "int",
           "wis"
+        ],
+        "armor": [],
+        "weapons": {
+          "simple": true,
+          "martial": false,
+          "extras": [],
+          "note": "PHB: кинжалы, дротики, пращи, посохи, лёгкий арбалет"
+        },
+        "tools_fixed": [],
+        "tool_choices": null,
+        "skill_choices": {
+          "count": 2,
+          "from": [
+            "arcana",
+            "history",
+            "insight",
+            "investigation",
+            "medicine",
+            "religion"
+          ]
+        },
+        "multiclass_prerequisites": {
+          "all": [
+            "int"
+          ],
+          "min": 13
+        },
+        "multiclass_proficiencies": {
+          "armor": [],
+          "weapons": {
+            "simple": false,
+            "martial": false,
+            "extras": []
+          },
+          "tools_fixed": [],
+          "tool_choices": null,
+          "skill_choices": null
+        },
+        "caster": {
+          "progression": "full",
+          "ability": "int",
+          "prepare": "mod+level"
+        },
+        "starting_equipment": [
+          {
+            "id": "a",
+            "label_ru": "Вариант A",
+            "summary_ru": "Посох + компонентская сумка + набор учёного + книга заклинаний",
+            "items": [
+              {
+                "name": "Боевой посох",
+                "qty": 1
+              },
+              {
+                "name": "Сумка с компонентами",
+                "qty": 1
+              },
+              {
+                "name": "Набор учёного",
+                "qty": 1
+              },
+              {
+                "name": "Книга заклинаний",
+                "qty": 1
+              }
+            ]
+          },
+          {
+            "id": "b",
+            "label_ru": "Вариант B",
+            "summary_ru": "Кинжал + фокус + набор исследователя + книга заклинаний",
+            "items": [
+              {
+                "name": "Кинжал",
+                "qty": 1
+              },
+              {
+                "name": "Магический фокус",
+                "qty": 1
+              },
+              {
+                "name": "Набор исследователя",
+                "qty": 1
+              },
+              {
+                "name": "Книга заклинаний",
+                "qty": 1
+              }
+            ]
+          },
+          {
+            "id": "gold",
+            "label_ru": "Золото",
+            "summary_ru": "4к4×10 зм (ориентир 100 зм)",
+            "items": [],
+            "coins_gp": 100
+          }
         ]
       },
       "sort_order": 0,
@@ -182,10 +691,80 @@
       "updated_at": "2024-01-01T00:00:00Z"
     }
   ],
-  "feat": [],
+  "feat": [
+    {
+      "id": "seed-feat-alert",
+      "kind": "feat",
+      "slug": "alert",
+      "name_ru": "Бдительный",
+      "name_en": "alert",
+      "rules_edition": "2014",
+      "parent_id": null,
+      "source": "phb",
+      "external_ref": null,
+      "data": {
+        "description_ru": "Бдительность"
+      },
+      "sort_order": 0,
+      "is_active": true,
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z"
+    },
+    {
+      "id": "seed-feat-tough",
+      "kind": "feat",
+      "slug": "tough",
+      "name_ru": "Крепкий",
+      "name_en": "tough",
+      "rules_edition": "2014",
+      "parent_id": null,
+      "source": "phb",
+      "external_ref": null,
+      "data": {
+        "description_ru": "Хиты"
+      },
+      "sort_order": 0,
+      "is_active": true,
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z"
+    }
+  ],
   "subclass": [],
   "spell": [],
   "weapon": [],
   "armor": [],
-  "item": []
+  "item": [
+    {
+      "id": "seed-item-dice-set",
+      "kind": "item",
+      "slug": "dice-set",
+      "name_ru": "Игровой набор",
+      "name_en": "dice-set",
+      "rules_edition": "2014",
+      "parent_id": null,
+      "source": "phb",
+      "external_ref": null,
+      "data": {},
+      "sort_order": 0,
+      "is_active": true,
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z"
+    },
+    {
+      "id": "seed-item-smiths-tools",
+      "kind": "item",
+      "slug": "smiths-tools",
+      "name_ru": "Инструменты кузнеца",
+      "name_en": "smiths-tools",
+      "rules_edition": "2014",
+      "parent_id": null,
+      "source": "phb",
+      "external_ref": null,
+      "data": {},
+      "sort_order": 0,
+      "is_active": true,
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z"
+    }
+  ]
 }

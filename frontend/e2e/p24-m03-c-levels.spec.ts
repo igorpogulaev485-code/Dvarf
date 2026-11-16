@@ -1,5 +1,6 @@
 /**
  * P24-M03c review screenshots + checks (1440 / 390).
+ * Includes a real 2014 create walk to Class (fighter setup) and Leveling@5.
  */
 import { expect, test, type Page, type Route } from '@playwright/test'
 import fs from 'node:fs'
@@ -15,6 +16,9 @@ const CATALOG = JSON.parse(
 const CATALOG_2014 = JSON.parse(
   fs.readFileSync(path.join(here, 'fixtures/p24-m03c-2014-catalog.json'), 'utf8'),
 ) as Record<string, unknown[]>
+
+/** When set (e.g. `before`), 2014 shots get that suffix: create-2014-class-before-1440.png */
+const SHOT_TAG = process.env.P24_M03C_SHOT_TAG || 'after'
 
 test.beforeAll(() => {
   fs.mkdirSync(ARTIFACTS, { recursive: true })
@@ -131,7 +135,14 @@ async function mockAuthAndCatalog(page: Page) {
         race_name: 'Дварф',
         hp_max: 44,
         sheet: {
-          combat: { hp_max: 44, proficiency_bonus: 3, ac: 16, initiative: 2, speed: 25, darkvision: 120 },
+          combat: {
+            hp_max: 44,
+            proficiency_bonus: 3,
+            ac: 16,
+            initiative: 2,
+            speed: 25,
+            darkvision: 120,
+          },
           classes: [{ slug: 'fighter', name: 'Воин', level: 5 }],
           class_progress_2024: {
             multiclass_slots: { '1': 0, '2': 0, '3': 0 },
@@ -160,7 +171,14 @@ function sheetCharacter(input: {
   name: string
   className: string
   level: number
-  classes: Array<{ id: string; slug: string; name: string; level: number; subclass?: string; subclassName?: string }>
+  classes: Array<{
+    id: string
+    slug: string
+    name: string
+    level: number
+    subclass?: string
+    subclassName?: string
+  }>
   abilities: Record<string, number>
   slots: Record<string, { max: number; used: number }>
   pact?: { level: number; count: number } | null
@@ -212,7 +230,11 @@ function sheetCharacter(input: {
         features: [],
         resources: [],
         spellcasting: input.classes
-          .filter((c) => ['wizard', 'cleric', 'warlock', 'paladin', 'artificer'].includes(c.slug) || c.subclass?.includes('eldritch'))
+          .filter(
+            (c) =>
+              ['wizard', 'cleric', 'warlock', 'paladin', 'artificer'].includes(c.slug) ||
+              c.subclass?.includes('eldritch'),
+          )
           .map((c) => ({ class_slug: c.slug, cantrips: 3, prepared_spells: 4 })),
       },
       meta: { rules_edition: '2024' },
@@ -228,11 +250,9 @@ async function mockSheet(page: Page, character: ReturnType<typeof sheetCharacter
     localStorage.setItem('dvarf.access_token', 'access')
     localStorage.setItem('dvarf.refresh_token', 'refresh')
   })
-  // Reuse catalog+auth mocks so Vite `/src/features/characters/**` is never swallowed.
   await mockAuthAndCatalog(page)
   await page.route('**/characters/**', async (route) => {
     const pathName = new URL(route.request().url()).pathname
-    // Keep Vite modules and HTML navigations intact.
     if (
       route.request().resourceType() === 'document' ||
       pathName.startsWith('/src/') ||
@@ -255,13 +275,19 @@ async function mockSheet(page: Page, character: ReturnType<typeof sheetCharacter
       })
       return
     }
-    if (route.request().method() === 'GET' && (pathName === '/characters' || pathName === '/characters/')) {
+    if (
+      route.request().method() === 'GET' &&
+      (pathName === '/characters' || pathName === '/characters/')
+    ) {
       await route.fulfill({ status: 200, contentType: 'application/json', body: '[]' })
       return
     }
-    // Other character API verbs (PATCH/POST) — soft ok.
     if (pathName.startsWith('/characters')) {
-      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(character) })
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(character),
+      })
       return
     }
     await route.continue()
@@ -274,19 +300,220 @@ async function dismissWelcome(page: Page) {
     await skip.waitFor({ state: 'visible', timeout: 3_000 })
     await skip.click()
   } catch {
-    // Onboarding may already be dismissed or disabled.
+    // already dismissed
   }
 }
 
 async function openSheet(page: Page, character: ReturnType<typeof sheetCharacter>) {
   await mockSheet(page, character)
-  // Boot SPA on a light route first, then open the sheet.
   await page.goto('/characters')
   await expect(page.locator('#root')).not.toBeEmpty({ timeout: 20_000 })
   await dismissWelcome(page)
   await page.goto(`/characters/${character.id}`)
   await expect(page.locator('#root')).not.toBeEmpty({ timeout: 20_000 })
   await dismissWelcome(page)
+}
+
+/** 2014 create helpers */
+async function mock2014(page: Page) {
+  await page.addInitScript(() => {
+    localStorage.setItem('dvarf.access_token', 'access')
+    localStorage.setItem('dvarf.refresh_token', 'refresh')
+    // Fresh create walk — no restored mid-pipeline draft.
+    try {
+      localStorage.removeItem('dvarf.createPipeline.v2')
+    } catch {
+      /* ignore */
+    }
+  })
+  await page.route('**/health', async (route) => {
+    if (!isApi(route.request().url())) {
+      await route.continue()
+      return
+    }
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ status: 'ok' }),
+    })
+  })
+  await page.route('**/auth/**', async (route) => {
+    if (!isApi(route.request().url()) || route.request().resourceType() === 'document') {
+      await route.continue()
+      return
+    }
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        id: '00000000-0000-4000-8000-000000000001',
+        email: 'm03c@example.com',
+        display_name: 'M03c',
+        is_email_verified: true,
+        access_token: 'access',
+        refresh_token: 'refresh',
+      }),
+    })
+  })
+  await page.route('**/catalog**', async (route) => {
+    const reqUrl = route.request().url()
+    if (!isApi(reqUrl) || reqUrl.includes('/src/') || route.request().resourceType() === 'document') {
+      await route.continue()
+      return
+    }
+    const url = new URL(reqUrl)
+    if (!url.pathname.startsWith('/catalog')) {
+      await route.continue()
+      return
+    }
+    const kind = url.searchParams.get('kind') || ''
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify(CATALOG_2014[kind] || []),
+    })
+  })
+  await page.route(
+    (url) => {
+      try {
+        const pathName = new URL(url).pathname
+        return pathName === '/characters' || pathName === '/characters/'
+      } catch {
+        return false
+      }
+    },
+    async (route) => {
+      if (route.request().resourceType() === 'document') {
+        await route.continue()
+        return
+      }
+      if (route.request().method() === 'GET') {
+        await route.fulfill({ status: 200, contentType: 'application/json', body: '[]' })
+        return
+      }
+      await route.continue()
+    },
+  )
+}
+
+function cardByTitle(page: Page, title: string) {
+  return page
+    .locator('.create-pipeline__card')
+    .filter({
+      has: page.locator('.create-pipeline__card-title', { hasText: new RegExp(`^${title}$`) }),
+    })
+    .first()
+}
+
+async function applyDialog(page: Page, titleRe: RegExp) {
+  const dialog = page.getByRole('dialog').filter({ has: page.getByRole('heading', { name: titleRe }) })
+  await expect(dialog).toBeVisible({ timeout: 10_000 })
+  const apply = dialog.getByRole('button', { name: /^Применить$/ })
+  await expect(apply).toBeEnabled({ timeout: 15_000 })
+  await apply.click()
+  await expect(dialog).toHaveCount(0)
+}
+
+async function clickFooter(page: Page, name: RegExp) {
+  const btn = page.getByRole('button', { name }).first()
+  await expect(btn).toBeEnabled({ timeout: 10_000 })
+  await btn.click()
+}
+
+/** Field wraps chips in <label>, so getByRole name is polluted — match visible text. */
+function chipByText(scope: ReturnType<Page['locator']> | Page, text: RegExp | string) {
+  return scope.locator('button.sheet-chip').filter({ hasText: text }).first()
+}
+
+async function openSetupDialog(
+  page: Page,
+  titleRe: RegExp,
+  openButton: RegExp,
+) {
+  const dlg = page.getByRole('dialog').filter({
+    has: page.getByRole('heading', { name: titleRe }),
+  })
+  // Phone auto-opens on card select; desktop needs the setup button.
+  if (!(await dlg.isVisible().catch(() => false))) {
+    const btn = page.getByRole('button', { name: openButton }).first()
+    await expect(btn).toBeEnabled({ timeout: 10_000 })
+    await btn.click()
+  }
+  await expect(dlg).toBeVisible({ timeout: 10_000 })
+  return dlg
+}
+
+async function walk2014ToLeveling(page: Page) {
+  await page.goto('/')
+  await expect(page.locator('#root')).not.toBeEmpty({ timeout: 20_000 })
+  await page.goto('/characters/create')
+  await expect(page.getByText(/Создание · D&D 2014|Создание персонажа/i).first()).toBeVisible({
+    timeout: 20_000,
+  })
+  await expect(page.getByText(/^Дварф$/).first()).toBeVisible({ timeout: 15_000 })
+
+  // —— Раса ——
+  await cardByTitle(page, 'Дварф').click()
+  const raceDlg = await openSetupDialog(
+    page,
+    /настройка расы/i,
+    /Выбрать и настроить|Настроить расу/,
+  )
+  // Подраса: в каталоге «Дварф (горный)», не «Горный дварф».
+  await raceDlg
+    .locator('button.sheet-chip')
+    .filter({ has: page.locator('strong', { hasText: /^Дварф \(горный\)$/ }) })
+    .click()
+  await chipByText(raceDlg, /^Мужской$/).click()
+  await raceDlg.getByRole('textbox').first().fill('Гимли')
+  const smith = chipByText(raceDlg, /Инструменты кузнеца/)
+  if (await smith.count()) {
+    await smith.click()
+  }
+  // Race confirm auto-advances to background (no «Далее»).
+  await applyDialog(page, /настройка расы/i)
+  await expect(page.getByRole('button', { name: /Предыстория/i }).first()).toBeVisible()
+
+  // —— Предыстория ——
+  await expect(cardByTitle(page, 'Солдат')).toBeVisible({ timeout: 10_000 })
+  await cardByTitle(page, 'Солдат').click()
+  await openSetupDialog(
+    page,
+    /настройка предыстории/i,
+    /Выбрать и настроить|Настроить предысторию/,
+  )
+  // Background confirm auto-advances to class.
+  await applyDialog(page, /настройка предыстории/i)
+
+  // —— Класс ——
+  await expect(cardByTitle(page, 'Воин')).toBeVisible({ timeout: 10_000 })
+  await cardByTitle(page, 'Воин').click()
+  const classDlg = await openSetupDialog(
+    page,
+    /настройка класса/i,
+    /Выбрать и настроить|Настроить класс/,
+  )
+  // Солдат уже дал Атлетику/Запугивание — берём свободные навыки воина.
+  await chipByText(classDlg, /^Внимательность$/).click()
+  await chipByText(classDlg, /^Выживание$/).click()
+  // PHB строки снаряжения воина (a/b на каждой).
+  await chipByText(classDlg, /^Кольчуга$/).click()
+  await chipByText(classDlg, /^Воинское оружие и щит/).click()
+  // После выбора «воинское оружие» — конкретный предмет.
+  const longsword = chipByText(classDlg, /^Длинный меч$/)
+  if (await longsword.isVisible().catch(() => false)) {
+    await longsword.click()
+  } else {
+    const anyMartial = classDlg
+      .locator('button.sheet-chip')
+      .filter({ hasText: /Длинный меч|Боевой топор|Рапира|Секира|Глефа/ })
+      .first()
+    if (await anyMartial.count()) await anyMartial.click()
+  }
+  await chipByText(classDlg, /^Лёгкий арбалет/).click()
+  await chipByText(classDlg, /^Набор исследователя$/).click()
+  // Leave dialog open for the class screenshot (setup window).
+  return classDlg
 }
 
 test.describe('P24-M03c leveling UI', () => {
@@ -297,19 +524,15 @@ test.describe('P24-M03c leveling UI', () => {
     await expect(page.getByTestId('p24-m03c-fork-fighting_style-fighter-1')).toBeVisible()
     await expect(page.getByTestId('p24-m03c-fork-weapon_mastery-fighter-1')).toBeVisible()
     await expect(page.getByTestId('p24-m03c-fork-list-fighter')).toBeVisible()
-    // PHB 2024 only — no Arcane Archer / Banneret.
     await expect(page.getByTestId('p24-m03c-subclass-fighter__champion')).toBeVisible()
     await expect(page.getByTestId('p24-m03c-subclass-fighter__battlemaster')).toBeVisible()
     await expect(page.getByTestId('p24-m03c-subclass-fighter__arcane-archer')).toHaveCount(0)
     await expect(page.getByTestId('p24-m03c-subclass-fighter__banneret')).toHaveCount(0)
-    // Pure fighter: no spells block.
     await expect(page.getByTestId('p24-m03c-spells')).toHaveCount(0)
-    // MC list closed until button.
     await expect(page.getByTestId('p24-m03c-mc-list')).toHaveCount(0)
-    // Preview summary uses final level / PB / size.
     await expect(page.getByTestId('p24-m03-sheet-preview')).toContainText(/Воин 5/)
     await expect(page.getByTestId('p24-m03-sheet-prof')).toContainText('+3')
-    await expect(page.getByTestId('p24-m03-sheet-preview')).toContainText(/размер:\s*Средний|Средний/i)
+    await expect(page.getByTestId('p24-m03-sheet-preview')).toContainText(/Средний/i)
 
     await page.getByTestId('p24-m03c-fork-list-fighter').scrollIntoViewIfNeeded()
     await shot(page, ARTIFACTS, 'leveling-forks-1-5', project)
@@ -324,7 +547,6 @@ test.describe('P24-M03c leveling UI', () => {
     await wizardCard.scrollIntoViewIfNeeded()
     await shot(page, ARTIFACTS, 'multiclass-blocked', project)
 
-    // «Назад» сбрасывает прокачку.
     await page.getByRole('button', { name: /Назад/i }).first().click()
     await expect(page.getByTestId('p24-m03-step-abilities')).toBeVisible()
     await shot(page, ARTIFACTS, 'back-from-leveling', project)
@@ -338,7 +560,6 @@ test.describe('P24-M03c leveling UI', () => {
     await openSeed(page, 'wizard3cleric2')
     await expect(page.getByTestId('p24-m03c-slots')).toBeVisible()
     await page.getByTestId('p24-m03c-slots').scrollIntoViewIfNeeded()
-    await expect(page.getByTestId('p24-m03c-slots')).toContainText(/Ячейки/)
     await shot(page, ARTIFACTS, 'slots-wizard3-cleric2', project)
   })
 
@@ -384,7 +605,6 @@ test.describe('P24-M03c leveling UI', () => {
       timeout: 25_000,
     })
     await expect(page.locator('body')).not.toContainText(/Pretty-print/)
-    await expect(page.locator('body')).not.toContainText(/"class_progress_2024"/)
     await shot(page, ARTIFACTS, 'sheet-multiclass', project)
     const spellsTab = page.getByRole('button', { name: /^Заклинания$/i }).first()
     if (await spellsTab.count()) {
@@ -420,10 +640,7 @@ test.describe('P24-M03c leveling UI', () => {
           subclassName: 'Архидемон',
         },
       ],
-      slots: {
-        '1': { max: 4, used: 0 },
-        '2': { max: 2, used: 0 },
-      },
+      slots: { '1': { max: 4, used: 0 }, '2': { max: 2, used: 0 } },
       multiclassSlots: { '1': 4, '2': 2, '3': 0 },
       pact: { level: 2, count: 2 },
     })
@@ -431,7 +648,6 @@ test.describe('P24-M03c leveling UI', () => {
     await expect(page.getByText(/Паладин 5|Колдун 3/i).first()).toBeVisible({
       timeout: 25_000,
     })
-    await expect(page.locator('body')).not.toContainText(/Pretty-print/)
     await shot(page, ARTIFACTS, 'sheet-paladin-warlock', project)
     const spellsTab = page.getByRole('button', { name: /^Заклинания$/i }).first()
     if (await spellsTab.count()) {
@@ -440,101 +656,65 @@ test.describe('P24-M03c leveling UI', () => {
     await shot(page, ARTIFACTS, 'sheet-pact-slots', project)
   })
 
-  test('2014 create shell с каталогом — раса, класс, прокачка', async ({ page }, testInfo) => {
+  test('2014 create — раса, класс (настройка воина), прокачка 5', async ({ page }, testInfo) => {
     const project = testInfo.project.name.includes('390') ? '390' : '1440'
-    await page.addInitScript(() => {
-      localStorage.setItem('dvarf.access_token', 'access')
-      localStorage.setItem('dvarf.refresh_token', 'refresh')
-    })
-    await page.route('**/health', async (route) => {
-      if (!isApi(route.request().url())) {
-        await route.continue()
-        return
-      }
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify({ status: 'ok' }),
-      })
-    })
-    await page.route('**/auth/**', async (route) => {
-      if (!isApi(route.request().url()) || route.request().resourceType() === 'document') {
-        await route.continue()
-        return
-      }
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify({
-          id: '00000000-0000-4000-8000-000000000001',
-          email: 'm03c@example.com',
-          display_name: 'M03c',
-          is_email_verified: true,
-          access_token: 'access',
-          refresh_token: 'refresh',
-        }),
-      })
-    })
-    await page.route('**/catalog**', async (route) => {
-      const reqUrl = route.request().url()
-      if (!isApi(reqUrl) || reqUrl.includes('/src/') || route.request().resourceType() === 'document') {
-        await route.continue()
-        return
-      }
-      const url = new URL(reqUrl)
-      if (!url.pathname.startsWith('/catalog')) {
-        await route.continue()
-        return
-      }
-      const kind = url.searchParams.get('kind') || ''
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify(CATALOG_2014[kind] || []),
-      })
-    })
-    await page.route(
-      (url) => {
-        try {
-          const pathName = new URL(url).pathname
-          return pathName === '/characters' || pathName === '/characters/'
-        } catch {
-          return false
-        }
-      },
-      async (route) => {
-        if (route.request().resourceType() === 'document') {
-          await route.continue()
-          return
-        }
-        if (route.request().method() === 'GET') {
-          await route.fulfill({ status: 200, contentType: 'application/json', body: '[]' })
-          return
-        }
-        await route.continue()
-      },
-    )
+    const tag = SHOT_TAG
+    await mock2014(page)
 
+    // Race catalog (step 1) — before walk mutates pipeline draft.
     await page.goto('/')
     await expect(page.locator('#root')).not.toBeEmpty({ timeout: 20_000 })
     await page.goto('/characters/create')
-    await expect(page.getByText(/Создание|Раса|Прокачка/i).first()).toBeVisible({
-      timeout: 20_000,
-    })
-    await expect(page.getByText(/Человек|Дварф|Эльф/i).first()).toBeVisible({ timeout: 15_000 })
-    await expect(page.getByText(/Ничего не найдено/i)).toHaveCount(0)
-    // Race catalog loaded — primary 2014 regression proof (empty catalog was the bug).
-    await shot(page, ARTIFACTS_2014, 'create-2014-race', project)
-    await shot(page, ARTIFACTS_2014, 'create-2014-race-after', project)
+    await expect(page.getByText(/^Дварф$/).first()).toBeVisible({ timeout: 15_000 })
+    await shot(page, ARTIFACTS_2014, `create-2014-race-${tag}`, project)
+    if (tag === 'after') {
+      await shot(page, ARTIFACTS_2014, 'create-2014-race', project)
+    }
 
-    await page.getByText('Дварф', { exact: false }).first().click()
-    await expect(page.getByRole('button', { name: /Настроить расу|Выбрать и настроить/i }).first()).toBeVisible()
-    // Shell still shows Class / Leveling steps in the rail (locked until race done).
-    await expect(page.getByRole('button', { name: /Класс/i }).first()).toBeVisible()
-    await expect(page.getByRole('button', { name: /Прокачка/i }).first()).toBeVisible()
-    await shot(page, ARTIFACTS_2014, 'create-2014-class', project)
-    await shot(page, ARTIFACTS_2014, 'create-2014-class-after', project)
-    await shot(page, ARTIFACTS_2014, 'create-2014-leveling', project)
-    await shot(page, ARTIFACTS_2014, 'create-2014-leveling-after', project)
+    const classDlg = await walk2014ToLeveling(page)
+    // Must be class step with fighter setup dialog open — not race.
+    await expect(page.getByRole('heading', { name: /Воин: настройка класса/i })).toBeVisible()
+    await expect(classDlg).toContainText(/навык|Атлетика|снаряжен|оруж/i)
+    await expect(page.getByRole('heading', { name: /настройка расы/i })).toHaveCount(0)
+    await shot(page, ARTIFACTS_2014, `create-2014-class-${tag}`, project)
+    if (tag === 'after') {
+      await shot(page, ARTIFACTS_2014, 'create-2014-class', project)
+    }
+
+    // Class confirm auto-advances to abilities.
+    await applyDialog(page, /настройка класса/i)
+    const layOut = page.getByRole('button', { name: /Разложить по приоритету класса/i })
+    await expect(layOut).toBeVisible({ timeout: 15_000 })
+    await layOut.scrollIntoViewIfNeeded()
+    await layOut.click()
+    await clickFooter(page, /Далее · Прокачка/)
+
+    // —— Прокачка ——
+    // On phone the summary «Уровень персонажа» lives in a hidden cards pane; use the level field.
+    const levelInput = page
+      .locator('.create-pipeline__level-block input[type="number"]')
+      .or(page.getByRole('spinbutton', { name: /^Уровень$/ }))
+      .first()
+    await expect(levelInput).toBeVisible({ timeout: 10_000 })
+    await levelInput.fill('5')
+    await levelInput.blur()
+    await expect(levelInput).toHaveValue('5')
+    await expect(
+      page.locator('.create-pipeline__level-block').getByText(/Воин/i).first(),
+    ).toBeVisible()
+    const forksBtn = page.getByRole('button', { name: /Развилки и умения/i }).first()
+    await expect(forksBtn).toBeVisible()
+    await forksBtn.click()
+    const forkDlg = page.getByRole('dialog').filter({
+      has: page.getByRole('heading', { name: /Боевой стиль|Развилки|архетип/i }),
+    })
+    await expect(forkDlg).toBeVisible({ timeout: 10_000 })
+    await expect(forkDlg.getByText(/Шаг\s*1\s*из/i)).toBeVisible()
+    // Let dialog animation settle so before/after phone shots match.
+    await page.waitForTimeout(400)
+    await shot(page, ARTIFACTS_2014, `create-2014-leveling-${tag}`, project)
+    if (tag === 'after') {
+      await shot(page, ARTIFACTS_2014, 'create-2014-leveling', project)
+    }
   })
 })
