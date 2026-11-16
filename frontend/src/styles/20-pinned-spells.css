@@ -500,9 +500,16 @@
   gap: 8px;
 }
 
-/* LP-01: одинаковый ритм между блоками характеристик */
+/* LP-01: одинаковый ритм между блоками характеристик.
+   On desktop (≥960) also gets play-desk-compact__list--scroll (flex+overflow);
+   align-content:start packs collapsed cards (same as spell circles).
+   grid-auto-rows:max-content — .abil-block has overflow:hidden; without this,
+   a fixed-height scroll grid shrinks rows and clips skills instead of scrolling. */
 .abil-column__list {
   display: grid;
   gap: 8px;
+  align-content: start;
+  align-items: start;
+  grid-auto-rows: max-content;
 }
 

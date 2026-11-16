@@ -52,12 +52,14 @@ assert.doesNotMatch(
   /play-desk-compact__list--scroll/,
   'TextBlocksPanel does not use the spells scroll-grid stretch pattern',
 )
+// Ability rail now shares the spells scroll + align-content:start pattern.
 assert.match(abilities, /abil-column__list/)
+assert.match(abilities, /play-desk-compact__list--scroll/)
 assert.match(pinnedCss, /\.abil-column__list\s*\{[^}]*display:\s*grid[^}]*\}/)
-assert.doesNotMatch(
+assert.match(
   pinnedCss,
-  /\.abil-column__list\s*\{[^}]*flex:\s*1/,
-  'AbilitySkillsColumn list is content-sized (no fixed flex height stretch)',
+  /\.abil-column__list\s*\{[\s\S]*?align-content:\s*start/,
+  'AbilitySkillsColumn packs collapsed cards like spell circles',
 )
 
 console.log('spellsCollapseAlign.selfcheck: ok')
