@@ -43,12 +43,18 @@ import {
 import { syncMonkUnarmedAttack } from '../../../shared/dnd/martialArts'
 import { darkvisionFtFromFeatures, initiativeBonusFromFeatures, initiativeBonusFromRace } from '../featureCombatBonuses'
 import { raceDarkvisionFallbackFt } from '../../../shared/dnd/race'
-import { createSheetSpell } from '../spells'
+import { createSheetSpell, sheetSpellFromCatalog } from '../spells'
+import {
+  syncWizardSubclassSpells2024,
+  wizard2024Context,
+  wizardSubclassSpellSlugs2024,
+} from '../../../shared/dnd/wizard2024Features'
 import {
   bladesongBonuses,
   syncWizardCapstoneSpells,
   syncWizardSchoolSpellbook,
   thirdEyeDarkvisionBonus,
+  thirdEyeDarkvisionFloor2024,
 } from '../../../shared/dnd/wizardTradition'
 import { saveBonusFromFeatures } from '../ClassFeaturesPanel'
 import { ensureRaceNaturalWeaponAttacks, raceNaturalWeaponAttacksMatch, syncRaceSpellsForSheetState } from '../raceEffects'
@@ -630,6 +636,7 @@ export function useSheetEditorPart2(model: SheetModel) {
           known,
           featurePicks: prev.featurePicks,
           classEntryId: row.id,
+          edition: model.rulesEdition,
         })
         if (cap.changed) {
           known = cap.known
@@ -640,6 +647,48 @@ export function useSheetEditorPart2(model: SheetModel) {
       return { ...prev, spells: { ...prev.spells, known } }
     })
   }, [model.draft.subclassGrants, model.draft.classes, model.draft.featurePicks])
+
+  useEffect(() => {
+    if (model.rulesEdition !== '2024') return
+    const contextFor = (classes: typeof model.draft.classes) =>
+      wizard2024Context({
+        rulesEdition: model.rulesEdition,
+        classes,
+        subclassSlugByEntryId: model.subclassSlugByEntryId,
+      })
+    const run = (resolve: (slug: string) => ReturnType<typeof sheetSpellFromCatalog> | null) => {
+      model.setDraft((prev) => {
+        const synced = syncWizardSubclassSpells2024({
+          known: prev.spells.known,
+          ctx: contextFor(prev.classes),
+          resolve,
+        })
+        if (!synced.changed) return prev
+        return { ...prev, spells: { ...prev.spells, known: synced.known } }
+      })
+    }
+    const ctx = contextFor(model.draft.classes)
+    const slugs = wizardSubclassSpellSlugs2024(ctx?.subclassSlug, ctx?.level ?? 0)
+    if (slugs.length === 0) {
+      run(() => null)
+      return
+    }
+    let active = true
+    listCatalogEntries({ kind: 'spell', edition: '2024' })
+      .then((entries) => {
+        if (!active) return
+        const bySlug = new Map((entries ?? []).map((entry) => [entry.slug, entry]))
+        run((slug) => {
+          const entry = bySlug.get(slug)
+          return entry ? sheetSpellFromCatalog(entry) : null
+        })
+      })
+      .catch(() => undefined)
+    return () => {
+      active = false
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- classes + subclass drive the sync
+  }, [model.rulesEdition, model.draft.classes, model.subclassSlugByEntryId])
 
   // QA 22.10: backfill always-prepared mechanics (Bless concentration) + Artillerist lists.
   useEffect(() => {
@@ -759,9 +808,11 @@ export function useSheetEditorPart2(model: SheetModel) {
       parentSlug: model.draft.raceGrant?.parentSlug,
       raceName: model.draft.raceName,
     })
-    const baseDarkvision =
+    const baseDarkvision = Math.max(
       Math.max(model.draft.identity.darkvision, raceDv) +
-      thirdEyeDarkvisionBonus(model.draft.play.resources)
+        thirdEyeDarkvisionBonus(model.draft.play.resources),
+      thirdEyeDarkvisionFloor2024(model.draft.play.resources),
+    )
     return darkvisionFtFromFeatures({
       features: model.unlockedFeatures,
       baseDarkvision,

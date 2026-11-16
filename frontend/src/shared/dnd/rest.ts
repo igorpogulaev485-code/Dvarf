@@ -35,6 +35,8 @@ export type SheetResource = {
   activeLabel?: string
   /** Arcane Ward has been created since the last long rest. */
   wardCreated?: boolean
+  /** Times used since the last long rest (2024 Overchannel: later uses hurt). */
+  useCount?: number
   /** Does not deplete (PHB barbarian rage at 20). */
   unlimited?: boolean
   /**
@@ -88,6 +90,9 @@ export function clampResource(resource: SheetResource): SheetResource {
       ? { activeLabel: resource.activeLabel.trim() }
       : { activeLabel: undefined }),
     ...(resource.wardCreated ? { wardCreated: true } : { wardCreated: undefined }),
+    ...(typeof resource.useCount === 'number' && resource.useCount > 0
+      ? { useCount: Math.floor(resource.useCount) }
+      : { useCount: undefined }),
     ...(resource.unlimited ? { unlimited: true, used: 0 } : { unlimited: undefined }),
     ...(rechargeDice ? { rechargeDice } : { rechargeDice: undefined }),
     ...(depleteHint ? { depleteHint } : { depleteHint: undefined }),

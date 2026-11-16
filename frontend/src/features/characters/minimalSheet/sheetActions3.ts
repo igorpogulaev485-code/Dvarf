@@ -419,6 +419,8 @@ export function installSheetActions3(model: SheetModel) {
           classLevel: leveledRow.level,
           hasSubclass: Boolean(leveledRow.subclass_catalog_id || leveledRow.subclass_name.trim()),
           classAsi: model.draft.classAsi,
+          subclassSlug: model.subclassSlugByEntryId[leveledRow.id] || leveledRow.subclass_catalog_id,
+          featurePicks: model.draft.featurePicks,
         })
         if (steps.length > 0) {
           model.openGuidedWizard({ steps, index: 0 })

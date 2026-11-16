@@ -70,6 +70,7 @@ import {
   spellAvailableOnClassList,
 } from '../../shared/dnd/spellCatalog'
 import { levelLabel } from '../../shared/dnd/spells'
+import { schoolMatchesSavant } from '../../shared/dnd/wizardSpellbook'
 import { CatalogCombobox } from '../catalog'
 import { AsiChoiceBody } from './AsiChoiceBody'
 import { SKILL_DEFS } from './sheetTypes'
@@ -158,6 +159,8 @@ type GuidedWizardDialogProps = {
     classListSlugs?: string[]
     /** Wizard tradition (etc.) for subclass-gated lists (EGW dunamancy). */
     subclassSlug?: string | null
+    /** 2024 Savant school key (`evocation`, …) for savant book picks; null if none. */
+    savantSchool?: string | null
   } | null
   /** Persist free research picks into the spellbook, then parent advances. */
   onConfirmSpellbookPicks?: (entries: CatalogEntry[]) => void
@@ -401,10 +404,13 @@ function FeatureChoiceStepBody({
         expertiseKeys,
         except: { classEntryId: step.classEntryId, featureId: step.featureId },
       })
-      return listExpertiseOptions({ skills, tools, excludeOptionIds: excluded }).map((row) => ({
-        id: row.id,
-        label: row.kind === 'tool' ? row.labelRu : skillLabel(row.id),
-      }))
+      const allowed = choice.options?.length ? new Set(choice.options) : null
+      return listExpertiseOptions({ skills, tools, excludeOptionIds: excluded })
+        .filter((row) => !allowed || allowed.has(row.id))
+        .map((row) => ({
+          id: row.id,
+          label: row.kind === 'tool' ? row.labelRu : skillLabel(row.id),
+        }))
     }
     const takenStyles = fightingStylesTakenElsewhere(featurePicks, {
       classEntryId: step.classEntryId,
@@ -612,6 +618,7 @@ function SpellbookPicksStepBody({
   hasBook,
   classListSlugs,
   subclassSlug,
+  savantSchool,
 }: {
   picksNeeded: number
   classLevel: number
@@ -623,6 +630,8 @@ function SpellbookPicksStepBody({
   hasBook: boolean
   classListSlugs: string[]
   subclassSlug?: string | null
+  /** Set for 2024 Savant picks: string = school filter, null = no school grant. */
+  savantSchool?: string | null
 }) {
   const [query, setQuery] = useState('')
   const [entries, setEntries] = useState<CatalogEntry[]>([])
@@ -656,6 +665,7 @@ function SpellbookPicksStepBody({
         if (blocked.has(entry.id) || selectedIds.has(entry.id)) return false
         const parsed = parseSpellCatalogData(entry.data ?? {})
         if (parsed.level < 1 || parsed.level > maxSpellLevel) return false
+        if (savantSchool && !schoolMatchesSavant(parsed.school, savantSchool)) return false
         if (
           slugs.length > 0 &&
           !slugs.some((slug) =>
@@ -685,6 +695,7 @@ function SpellbookPicksStepBody({
     selectedIds,
     classListSlugs,
     subclassSlug,
+    savantSchool,
   ])
 
   function toggle(entry: CatalogEntry) {
@@ -699,9 +710,13 @@ function SpellbookPicksStepBody({
   return (
     <Stack gap={12}>
       <Text>
-        {classLevel <= 1
-          ? `Стартовая книга: выбери ${picksNeeded} заклинания 1 ур. бесплатно.`
-          : `Повышение уровня: +${picksNeeded} бесплатно в книгу (ур. ≤ ${maxSpellLevel}).`}
+        {savantSchool === null
+          ? 'У подкласса нет школьного знатока — выбирать нечего.'
+          : savantSchool
+            ? `Знаток школы: ${picksNeeded} закл. школы бесплатно в книгу (ур. ≤ ${maxSpellLevel}).`
+            : classLevel <= 1
+              ? `Стартовая книга: выбери ${picksNeeded} заклинания 1 ур. бесплатно.`
+              : `Повышение уровня: +${picksNeeded} бесплатно в книгу (ур. ≤ ${maxSpellLevel}).`}
       </Text>
       {!hasBook ? (
         <Text tone="danger">
@@ -908,10 +923,17 @@ export function GuidedWizardDialog({
       ? subclassParentCatalogIdByEntryId?.[step.classEntryId] ?? null
       : null
 
+  const spellbookPicksNeeded =
+    step?.kind === 'spellbook_picks'
+      ? step.savant && !spellbookPicksContext?.savantSchool
+        ? 0
+        : step.picksNeeded
+      : 0
   const spellbookReady =
     step?.kind === 'spellbook_picks' &&
-    Boolean(spellbookPicksContext?.hasBook) &&
-    spellbookDraft.length === step.picksNeeded
+    (spellbookPicksNeeded === 0 ||
+      (Boolean(spellbookPicksContext?.hasBook) &&
+        spellbookDraft.length === spellbookPicksNeeded))
 
   const pactTomeReady =
     step?.kind === 'pact_tome_cantrips' &&
@@ -1039,12 +1061,16 @@ export function GuidedWizardDialog({
     }
 
     if (step.kind === 'spellbook_picks') {
+      if (spellbookPicksNeeded === 0) {
+        onAdvance(index + 1)
+        return
+      }
       if (!spellbookPicksContext?.hasBook) {
         onToast?.('Нужна книга заклинаний в инвентаре — иначе нельзя внести бесплатные')
         return
       }
-      if (spellbookDraft.length !== step.picksNeeded) {
-        onToast?.(`Выбери ${step.picksNeeded} заклинания в книгу`)
+      if (spellbookDraft.length !== spellbookPicksNeeded) {
+        onToast?.(`Выбери ${spellbookPicksNeeded} заклинания в книгу`)
         return
       }
       onConfirmSpellbookPicks?.(spellbookDraft)
@@ -1252,12 +1278,13 @@ export function GuidedWizardDialog({
         ) : null}
         {step.kind === 'spellbook_picks' ? (
           <SpellbookPicksStepBody
-            picksNeeded={step.picksNeeded}
+            picksNeeded={spellbookPicksNeeded}
             classLevel={step.classLevel}
             edition={edition}
             selected={spellbookDraft}
             onChange={setSpellbookDraft}
-            maxSpellLevel={spellbookPicksContext?.maxSpellLevel ?? 1}
+            maxSpellLevel={step.savant?.maxSpellLevel ?? spellbookPicksContext?.maxSpellLevel ?? 1}
+            savantSchool={step.savant ? spellbookPicksContext?.savantSchool ?? null : undefined}
             blockedCatalogIds={spellbookPicksContext?.blockedCatalogIds ?? []}
             hasBook={Boolean(spellbookPicksContext?.hasBook)}
             classListSlugs={spellbookPicksContext?.classListSlugs ?? ['wizard']}

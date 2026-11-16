@@ -8,15 +8,26 @@ import type { ClassLevelEntry } from './classLevels'
 import {
   classCatalog2024,
   normalizeClassSlug2024,
+  SCHOLAR_CHOICE_2024,
 } from './edition2024Classes'
 import {
   metamagicKnownLimit2024,
   warlockInvocationLimit2024,
   type ClassOptions2024State,
 } from './edition2024ClassOptions'
-import type { FeaturePicksState } from './featurePicks'
-import { withWizardSpellbookPicksStep, type GuidedWizardStep } from './pendingFeatureChoices'
+import { getFeatureChoicePick, type FeaturePicksState } from './featurePicks'
+import {
+  withWizardSpellbookPicksStep,
+  type GuidedWizardStep,
+} from './pendingFeatureChoices'
 import { freeBookSlotsAtLevel } from './wizardSpellbook'
+import {
+  SAVANT_SUBCLASS_PICK_MAX_SPELL_LEVEL,
+  savantFreePicksAtWizardLevel,
+  savantFreeBookSlotsOnSubclass,
+  wizardSavantSchool,
+  WIZARD_SUBCLASS_LEVEL_2024,
+} from './wizardSpellbook2024'
 import {
   masteryLimitForClass,
   WEAPON_MASTERY_CLASS_RULES,
@@ -69,6 +80,25 @@ export type PendingWizardInput2024 = {
   classLevel: number
   hasSubclass: boolean
   classAsi: AppliedClassAsi[]
+  /** 2024 subclass slug when already chosen (`wizard__evoker`); enables Savant picks. */
+  subclassSlug?: string | null
+  /** Used to skip a Scholar step that already has its Expertise pick. */
+  featurePicks?: FeaturePicksState
+}
+
+export const SCHOLAR_FEATURE_ID_2024 = 'scholar'
+export const SCHOLAR_LEVEL_2024 = 2
+
+export function scholarStepId2024(classEntryId: string): string {
+  return `feature_choice:${classEntryId}:${SCHOLAR_FEATURE_ID_2024}`
+}
+
+export function savantBookPicksStepId2024(
+  classEntryId: string,
+  classLevel: number,
+  picks: number,
+): string {
+  return `savant-book-picks:${classEntryId}:${Math.max(1, Math.floor(classLevel) || 1)}:${picks}`
 }
 
 export function epicBoonStepId2024(classEntryId: string): string {
@@ -129,15 +159,82 @@ export function buildPendingWizardSteps2024(input: PendingWizardInput2024): Guid
 
   // Level 1 book (6 spells) is filled by create; every later wizard level adds 2.
   if (slug === 'wizard' && level >= 2) {
-    return withWizardSpellbookPicksStep(steps, {
+    let scholarStep: GuidedWizardStep | null = null
+    if (level === SCHOLAR_LEVEL_2024) {
+      const picked = input.featurePicks
+        ? Boolean(
+            getFeatureChoicePick(
+              input.featurePicks,
+              input.classEntryId,
+              SCHOLAR_FEATURE_ID_2024,
+              SCHOLAR_CHOICE_2024.id,
+            ),
+          )
+        : false
+      if (!picked) {
+        scholarStep = {
+          id: scholarStepId2024(input.classEntryId),
+          kind: 'feature_choice',
+          classEntryId: input.classEntryId,
+          className: input.className,
+          classLevel: level,
+          featureId: SCHOLAR_FEATURE_ID_2024,
+          featureNameRu: SCHOLAR_CHOICE_2024.label_ru,
+          featureLevel: SCHOLAR_LEVEL_2024,
+          choice: SCHOLAR_CHOICE_2024,
+        }
+      }
+    }
+    const withBook = withWizardSpellbookPicksStep(steps, {
       classEntryId: input.classEntryId,
       className: input.className,
       classLevel: level,
       picksNeeded: freeBookSlotsAtLevel(level),
     })
+    const savant = savantBookPicksStep2024(input, level)
+    const ordered = scholarStep ? [scholarStep, ...withBook] : withBook
+    if (!savant) return ordered
+    const bookIdx = ordered.findIndex(
+      (row) => row.kind === 'spellbook_picks' && row.classEntryId === input.classEntryId,
+    )
+    return bookIdx >= 0
+      ? [...ordered.slice(0, bookIdx + 1), savant, ...ordered.slice(bookIdx + 1)]
+      : [...ordered, savant]
   }
 
   return steps
+}
+
+/**
+ * 2024 school Savant: free school spells in the book. Two picks (≤ 2nd) when the
+ * subclass is taken, then one per new slot tier. While the subclass is not chosen yet
+ * (level 3), the step is queued after the subclass step; the school is resolved at run time.
+ */
+function savantBookPicksStep2024(
+  input: PendingWizardInput2024,
+  level: number,
+): Extract<GuidedWizardStep, { kind: 'spellbook_picks' }> | null {
+  let picks = 0
+  let maxSpellLevel = 0
+  if (!input.hasSubclass && level === WIZARD_SUBCLASS_LEVEL_2024) {
+    picks = savantFreeBookSlotsOnSubclass()
+    maxSpellLevel = SAVANT_SUBCLASS_PICK_MAX_SPELL_LEVEL
+  } else if (input.hasSubclass && wizardSavantSchool(input.subclassSlug)) {
+    ;({ picks, maxSpellLevel } = savantFreePicksAtWizardLevel({
+      wizardLevel: level,
+      subclassSlug: input.subclassSlug,
+    }))
+  }
+  if (picks <= 0) return null
+  return {
+    id: savantBookPicksStepId2024(input.classEntryId, level, picks),
+    kind: 'spellbook_picks',
+    classEntryId: input.classEntryId,
+    className: input.className.trim() || 'Волшебник',
+    classLevel: level,
+    picksNeeded: picks,
+    savant: { maxSpellLevel },
+  }
 }
 
 export type LevelDownClearInput2024 = {

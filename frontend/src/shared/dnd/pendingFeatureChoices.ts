@@ -73,6 +73,8 @@ export type GuidedWizardStep =
       classLevel: number
       /** How many free research fills to pick in this step (6 at L1, +2 per level). */
       picksNeeded: number
+      /** 2024 school Savant: free school spells (feature rows, not level-up research). */
+      savant?: { maxSpellLevel: number }
     }
   | {
       id: string

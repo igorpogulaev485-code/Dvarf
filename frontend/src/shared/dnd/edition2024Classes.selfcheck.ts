@@ -53,6 +53,24 @@ const wiz = computeProgression2024({
 })
 assert.equal(wiz.spellcasting[0]?.prepared_spells, 9)
 assert.ok(wiz.desiredResources.some((r) => r.id.includes('arcane_recovery')))
+const scholar = wiz.features.find((f) => f.id === 'scholar')
+assert.equal(scholar?.name_ru, 'Академические знания')
+assert.equal(scholar?.choice?.options_from, 'expertise_skills_tools')
+assert.equal(scholar?.choice?.max_picks, 1)
+assert.deepEqual(scholar?.choice?.options, [
+  'history',
+  'medicine',
+  'nature',
+  'investigation',
+  'religion',
+  'arcana',
+])
+assert.equal(wiz.features.find((f) => f.id === 'spellcasting')?.name_ru, 'Сотворение заклинаний')
+assert.equal(
+  wiz.features.find((f) => f.id.includes('arcane_recovery'))?.name_ru ??
+    wiz.desiredResources.find((r) => r.id.includes('arcane_recovery'))?.pool_name_ru,
+  'Магическое восстановление',
+)
 
 const bard = computeProgression2024({
   classes: [createClassLevel({ name: 'Бард', level: 5, catalog_id: 'bard' })],

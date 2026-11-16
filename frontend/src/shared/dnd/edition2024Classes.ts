@@ -7,6 +7,7 @@ import classesSrd from './data/edition2024/classes_srd.json'
 import classesEfa from './data/edition2024/classes_efa.json'
 import type {
   ClassFeatureDef,
+  FeatureChoiceDef,
   FeatureKind,
   FeatureResource,
   UnlockedFeature,
@@ -276,7 +277,7 @@ const RESOURCE_META: Record<string, ResourceMeta> = {
     kind: 'resource',
   },
   arcane_recovery: {
-    name_ru: 'Арканное восстановление',
+    name_ru: 'Магическое восстановление',
     reset: 'long',
     feature_id: 'arcane-recovery',
     fixed_uses: 1,
@@ -377,6 +378,19 @@ function classLevelRow(slug: string, level: number): Record<string, unknown> | n
   const lv = Math.min(20, Math.max(1, Math.floor(level) || 1))
   const levels = (catalog.data.levels as Array<Record<string, unknown>>) || []
   return levels.find((row) => Number(row.level) === lv) || null
+}
+
+function stockLabels2024(poolId: string): {
+  stock_gain_label_ru?: string
+  stock_spend_label_ru?: string
+} {
+  if (poolId === 'arcane_ward') {
+    return { stock_gain_label_ru: 'Ручная поправка +1', stock_spend_label_ru: 'Урон по щиту' }
+  }
+  if (poolId === 'portent') {
+    return { stock_gain_label_ru: 'Записать кость', stock_spend_label_ru: 'Потратить знамение' }
+  }
+  return {}
 }
 
 function featureKindFor(id: string, meta?: ResourceMeta): FeatureKind {
@@ -571,6 +585,24 @@ function buildResourceFeature(
   return { def, desired }
 }
 
+/** Wizard Scholar (2024): Expertise in one of six lore skills the wizard already knows. */
+export const SCHOLAR_SKILL_KEYS_2024 = [
+  'history',
+  'medicine',
+  'nature',
+  'investigation',
+  'religion',
+  'arcana',
+] as const
+
+export const SCHOLAR_CHOICE_2024: FeatureChoiceDef = {
+  id: 'scholar',
+  label_ru: 'Академические знания',
+  options_from: 'expertise_skills_tools',
+  max_picks: 1,
+  options: [...SCHOLAR_SKILL_KEYS_2024],
+}
+
 export function computeProgression2024(input: {
   classes: ClassLevelEntry[]
   subclassSlugByEntryId?: Record<string, string | null | undefined>
@@ -636,6 +668,7 @@ export function computeProgression2024(input: {
           subclassName: null,
           scaleValue: null,
           resourceUses: null,
+          ...(fid === 'scholar' ? { choice: SCHOLAR_CHOICE_2024 } : {}),
         })
       }
     }
@@ -721,7 +754,8 @@ export function computeProgression2024(input: {
               source: 'subclass',
               subclassSlug: cls.subclassSlug,
               subclassName: cls.subclassName || sub.name_ru,
-              scaleValue: mode === 'text' ? null : mode,
+              scaleValue: null,
+              automationMode: mode === 'text' ? null : mode,
               resourceUses: null,
             })
           }
@@ -852,7 +886,8 @@ export function computeProgression2024(input: {
           recharge: pool.reset === 'short' ? 'short_rest' : 'long_rest',
           pool_id: pool.pool_id,
           pool_name_ru: pool.name,
-          track: 'spend',
+          track: pool.track ?? 'spend',
+          ...(pool.track === 'stock' ? stockLabels2024(pool.pool_id) : {}),
         },
         classEntryId: cls.entryId,
         className: cls.name,
@@ -860,7 +895,8 @@ export function computeProgression2024(input: {
         source: 'subclass',
         subclassSlug: cls.subclassSlug,
         subclassName: cls.subclassName,
-        scaleValue: pool.die || 'resource',
+        scaleValue: pool.die || null,
+        automationMode: 'resource',
         resourceUses: pool.max,
       })
       const desired: DesiredFeatureResource = {
@@ -868,7 +904,7 @@ export function computeProgression2024(input: {
         name: pool.name,
         max: pool.max,
         reset: pool.reset,
-        track: 'spend',
+        track: pool.track ?? 'spend',
         classSlug: pool.class_slug,
         classLabelRu: CLASS_CATALOG[pool.class_slug]?.name_ru,
       }

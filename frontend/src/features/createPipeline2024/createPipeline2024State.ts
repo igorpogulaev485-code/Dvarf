@@ -504,7 +504,7 @@ function levelingIssues(state: Create2024State, ctx: StepIssueCtx): string[] {
         new Set(state.preparedSpellIds).size !== state.preparedSpellIds.length
       ) {
         issues.push(
-          `Подготовка: нужно минимум ${sc.prepared_spells} ${ruPlural(sc.prepared_spells, 'заклинание', 'заклинания', 'заклинаний')} (выбрано ${state.preparedSpellIds.length})`,
+          `Подготовка: нужно минимум ${sc.prepared_spells} ${ruPlural(sc.prepared_spells, 'подготовленное заклинание', 'подготовленных заклинания', 'подготовленных заклинаний')} (выбрано ${state.preparedSpellIds.length})`,
         )
       }
     } else if (

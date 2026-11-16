@@ -1277,6 +1277,9 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
         abilities={model.draft.abilities}
         subclassSlugByEntryId={model.subclassSlugByEntryId}
         subclassTransitionByEntryId={model.subclassTransitionByEntryId}
+        unlockedFeatures={
+          model.baseCharacter.rules_edition === '2024' ? model.unlockedFeatures : undefined
+        }
         requestedFilter={model.featuresFilterRequest}
         onRequestedFilterConsumed={() => model.setFeaturesFilterRequest(null)}
         tceAllowed={

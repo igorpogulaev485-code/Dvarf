@@ -39,6 +39,13 @@ import {
 } from '../../../shared/dnd/activeEffects'
 import { formatSaveAdvantageNote } from '../gearEffects'
 import { isMantleCommandSpell, MANTLE_CONCENTRATION_ID, silverTongueApplies } from '../../../shared/dnd/bardCollege'
+import {
+  applyExpertDivination2024,
+  castTimingOverride2024,
+  wizard2024CastFollowUp,
+  wizard2024Context,
+  wizard2024Flags,
+} from '../../../shared/dnd/wizard2024Features'
 import { exhaustionRollFlagsForEdition } from '../../../shared/dnd/exhaustionRules'
 import { usesHeroicInspiration } from '../../../shared/dnd/heroicInspiration'
 import {
@@ -365,11 +372,59 @@ export function installSheetActions4(model: SheetModel) {
     model.setPendingCreaturePick(null)
   }
 
+  function wizard2024FlagsNow() {
+    return wizard2024Flags(
+      wizard2024Context({
+        rulesEdition: model.rulesEdition,
+        classes: model.draft.classes,
+        subclassSlugByEntryId: model.subclassSlugByEntryId,
+      }),
+    )
+  }
+
+  function wizard2024CastNotes(spell: SheetSpell, slotLevel: number, viaSlot: boolean): string {
+    const flags = wizard2024FlagsNow()
+    let resources = model.draft.play.resources
+    const notes: string[] = []
+    if (spell.level > 0 && viaSlot && flags.ward && isAbjurationSchool(spell.school)) {
+      const repaired = applyAbjurationToWard(resources, slotLevel)
+      resources = repaired.resources
+      if (repaired.note) notes.push(repaired.note)
+    }
+    const follow = wizard2024CastFollowUp({
+      flags,
+      slots: model.draft.spells.slots,
+      spell,
+      slotLevel,
+      viaSlot,
+    })
+    notes.push(...follow.notes)
+    const restoreSlots = follow.slots !== model.draft.spells.slots
+    if (resources !== model.draft.play.resources || restoreSlots) {
+      const nextResources = resources
+      model.setDraft((prev) => ({
+        ...prev,
+        ...(restoreSlots
+          ? {
+              spells: {
+                ...prev.spells,
+                slots: applyExpertDivination2024(prev.spells.slots, slotLevel).slots,
+              },
+            }
+          : {}),
+        play: { ...prev.play, resources: nextResources },
+      }))
+    }
+    return notes.length ? ` · ${notes.join(' · ')}` : ''
+  }
+
   function wizardCastFollowUp(
     spell: SheetSpell,
     slotLevel: number,
     choice: CastChoice,
+    viaSlot = true,
   ): string {
+    if (model.rulesEdition === '2024') return wizard2024CastNotes(spell, slotLevel, viaSlot)
     if (spell.level <= 0) return ''
     let resources = model.draft.play.resources
     const notes: string[] = []
@@ -424,6 +479,9 @@ export function installSheetActions4(model: SheetModel) {
       Boolean(choice.quickened) &&
       (castTiming === 'action' || castTiming == null)
     if (quickened) castTiming = 'bonus'
+    if (model.rulesEdition === '2024' && castTiming === 'action') {
+      castTiming = castTimingOverride2024(spell, wizard2024FlagsNow()) ?? castTiming
+    }
     if (ritualCastEarly) castTiming = null
     if (teApi) {
       const gate = teApi.canCast(castTiming, spell.level)
@@ -938,10 +996,12 @@ export function installSheetActions4(model: SheetModel) {
         wantsForm || wantsFamiliar || wantsCreaturePick
           ? ''
           : model.applyDeskNaparnikFromCast(spell, naparnikSlot)
+      const cantripNote =
+        model.rulesEdition === '2024' ? wizard2024CastNotes(spell, 0, false) : ''
       model.onToast(
         spell.concentration
-          ? `Каст: ${name}${effectNote}${consumeNote}${allyNote} (концентрация)${naparnikNote}${formNote}`
-          : `Каст: ${name}${effectNote}${consumeNote}${allyNote}${naparnikNote}${formNote}`,
+          ? `Каст: ${name}${effectNote}${consumeNote}${allyNote} (концентрация)${naparnikNote}${formNote}${cantripNote}`
+          : `Каст: ${name}${effectNote}${consumeNote}${allyNote}${naparnikNote}${formNote}${cantripNote}`,
       )
       return true
     }
@@ -976,7 +1036,7 @@ export function installSheetActions4(model: SheetModel) {
         wantsForm || wantsFamiliar || wantsCreaturePick
           ? ''
           : model.applyDeskNaparnikFromCast(spell, naparnikSlot)
-      const wardNote = wizardCastFollowUp(spell, spell.level, choice)
+      const wardNote = wizardCastFollowUp(spell, spell.level, choice, false)
       successToast(
         `Каст: ${name} (−1 ${label})${effectNote}${consumeNote}${allyNote}${
           spell.concentration ? ' · концентрация' : ''
@@ -991,7 +1051,7 @@ export function installSheetActions4(model: SheetModel) {
         return false
       }
       if (spell.concentration) model.applyDeskConcentration(spell)
-      const wardNote = wizardCastFollowUp(spell, spell.level, choice)
+      const wardNote = wizardCastFollowUp(spell, spell.level, choice, false)
       successToast(
         `Каст: ${name} (мастерство, без ячейки)${effectNote}${consumeNote}${allyNote}${
           spell.concentration ? ' · концентрация' : ''
@@ -1016,7 +1076,7 @@ export function installSheetActions4(model: SheetModel) {
         wantsForm || wantsFamiliar || wantsCreaturePick
           ? ''
           : model.applyDeskNaparnikFromCast(spell, naparnikSlot)
-      const wardNote = wizardCastFollowUp(spell, spell.level, choice)
+      const wardNote = wizardCastFollowUp(spell, spell.level, choice, false)
       successToast(
         `Ритуал: ${name} (без ячейки)${effectNote}${consumeNote}${allyNote}${
           spell.concentration ? ' · концентрация' : ''

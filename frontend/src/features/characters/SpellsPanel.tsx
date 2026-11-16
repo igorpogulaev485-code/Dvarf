@@ -1455,6 +1455,8 @@ export function SpellsPanel({
             if (!raw) return null
             return resolveSubclassFeatureSlug(raw) ?? raw.toLowerCase().replace(/\s+/g, '_')
           })()}
+          edition={edition}
+          subclassCatalogId={classes?.find((row) => /волшебник|wizard|маг/i.test(row.name))?.subclass_catalog_id ?? null}
           onChangeSpells={onChange}
           onChangeCoins={(coins) => onInventoryChange({ ...inventory, coins })}
           onChangeInventoryItems={(items) =>

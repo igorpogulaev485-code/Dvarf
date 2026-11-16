@@ -903,6 +903,8 @@ export function SpellsSettingsDialog({
             if (!raw) return null
             return resolveSubclassFeatureSlug(raw) ?? raw.toLowerCase().replace(/\s+/g, '_')
           })()}
+          edition={edition}
+          subclassCatalogId={classRows.find((row) => /волшебник|wizard|маг/i.test(row.name))?.subclass_catalog_id ?? null}
           onChangeSpells={onChange}
           onChangeCoins={onCoinsChange}
           onChangeInventoryItems={onInventoryItemsChange}

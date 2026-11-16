@@ -161,6 +161,9 @@ function readResource(raw: unknown, index: number): SheetResource {
     ...(dice?.length ? { dice } : {}),
     ...(typeof row.activeLabel === 'string' ? { activeLabel: row.activeLabel } : {}),
     ...(row.wardCreated === true ? { wardCreated: true } : {}),
+    ...(typeof row.useCount === 'number' && row.useCount > 0
+      ? { useCount: Math.floor(row.useCount) }
+      : {}),
     ...(typeof row.rechargeDice === 'string'
       ? { rechargeDice: row.rechargeDice }
       : typeof row.recharge_dice === 'string'

@@ -167,6 +167,7 @@ export type SubclassResource2024 = {
   shortRestRegain?: number
   die?: string
   feature_id: string
+  track?: 'spend' | 'stock'
 }
 
 export type SharedPoolOption2024 = {
@@ -335,17 +336,125 @@ export function buildPermanentBonuses2024(input: {
     })
     add('draconic-resilience', 'Драконья устойчивость (хиты)', 'hp_per_level', 1)
   }
-  if (subclassSlug === 'wizard__evoker' && classLevel >= 10) {
-    add('empowered-evocation', 'Усиленное воплощение', 'damage_rider', { add_ability: 'int', school: 'evocation' }, 10)
+  if (subclassSlug === 'wizard__evoker') {
+    add(
+      'potent-cantrip',
+      'Мощные заговоры',
+      'other_calc',
+      { half_damage_on_miss_or_save: true, cantrips_only: true },
+      3,
+      'Промах или успех спасброска по заговору: цель получает половину урона, без доп. эффектов',
+    )
+    add(
+      'sculpt-spells',
+      'Построение заклинаний',
+      'other_calc',
+      { school: 'evocation', protected_creatures: '1+spell_level', auto_save: true },
+      6,
+      'Воплощение: 1 + круг существ автоматически преуспевают в спасброске и не получают урона',
+    )
+    add(
+      'empowered-evocation',
+      'Усиленное воплощение',
+      'damage_rider',
+      { add_ability: 'int', school: 'evocation', once_per_spell: true },
+      10,
+      '+мод. Инт к одному броску урона воплощения',
+    )
   }
   if (subclassSlug === 'wizard__abjurer') {
     const intM = abilityMod(ab.int ?? 10)
-    add('arcane-ward', 'Волшебный щит (формула)', 'other_calc', {
-      ward_max: classLevel * 2 + intM,
-      ward_formula: 'int + 2*level',
-      create_on: 'abjuration_spell_with_slot',
-      restore_on_abjuration_slot: '2*slot_level',
-    })
+    add(
+      'arcane-ward',
+      'Волшебный щит (формула)',
+      'other_calc',
+      {
+        ward_max: classLevel * 2 + intM,
+        ward_formula: 'int + 2*level',
+        create_on: 'abjuration_spell_with_slot',
+        restore_on_abjuration_slot: '2*slot_level',
+      },
+      3,
+      'Макс. хитов щита = 2×ур.+мод. Инт',
+    )
+    add(
+      'projected-ward',
+      'Проецированный щит',
+      'other_calc',
+      { reaction: true, range_ft: 30, needs_active_ward: true },
+      6,
+      'Реакция: щит поглощает урон существа в 30 фт',
+    )
+    add(
+      'spell-breaker',
+      'Разрушитель заклинаний',
+      'other_calc',
+      {
+        always_prepared: ['counterspell', 'dispel-magic'],
+        dispel_bonus_action: true,
+        add_proficiency_to_check: true,
+        refund_slot_if_not_stopped: true,
+      },
+      10,
+      'Рассеивание — бонусным; +Бонус мастерства к проверке; не остановили — ячейка не тратится',
+    )
+    add(
+      'spell-resistance',
+      'Сопротивление заклинаниям',
+      'other_calc',
+      { save_advantage_vs_spells: true, damage_resistance_from_spells: true },
+      14,
+      'Преимущество на спасброски от заклинаний и сопротивление их урону',
+    )
+  }
+  if (subclassSlug === 'wizard__diviner') {
+    add(
+      'expert-divination',
+      'Эксперт прорицания',
+      'other_calc',
+      { school: 'divination', min_slot: 2, restore_below_slot: true, restore_max_level: 5 },
+      6,
+      'Прорицание 2+ круга: вернуть ячейку ниже (не выше 5 круга)',
+    )
+    add('greater-portent', 'Великое знамение', 'other_calc', { portent_dice: 3 }, 14, 'Три кости Знамения')
+  }
+  if (subclassSlug === 'wizard__illusionist') {
+    add(
+      'improved-illusions',
+      'Улучшенные иллюзии',
+      'other_calc',
+      {
+        school: 'illusion',
+        no_verbal: true,
+        range_bonus_ft: 60,
+        range_min_ft: 10,
+        grant_cantrip: 'minor-illusion',
+        minor_illusion_bonus_action: true,
+        minor_illusion_sound_and_image: true,
+      },
+      3,
+      'Иллюзии без Вербального; дальность +60 фт (от 10 фт); Малая иллюзия бонусным, звук и образ вместе',
+    )
+    add(
+      'phantasmal-creatures',
+      'Призрачные существа',
+      'other_calc',
+      {
+        always_prepared: ['summon-beast', 'summon-fey'],
+        free_illusion_cast_each: 'long',
+        creature_hp_factor: 0.5,
+      },
+      6,
+      'Вызов зверя и Вызов феи: по разу без ячейки (версия иллюзии), хиты существа вдвое меньше',
+    )
+    add(
+      'illusory-reality',
+      'Иллюзорная реальность',
+      'other_calc',
+      { bonus_action: true, duration_min: 1, requires: 'illusion_spell_with_slot' },
+      14,
+      'Бонусным: неживой предмет иллюзии становится реальным на 1 мин',
+    )
   }
   if (subclassSlug === 'ranger__gloom-stalker') {
     add('dread-ambusher', 'Угроза из засады (инициатива)', 'initiative_mod', 'wis')
@@ -441,6 +550,7 @@ export function buildSubclassResources2024(input: {
       shortRestRegain: extra?.shortRestRegain,
       die: extra?.die,
       feature_id,
+      ...(extra?.track ? { track: extra.track } : {}),
     })
   }
 
@@ -483,9 +593,10 @@ export function buildSubclassResources2024(input: {
   } else if (subclassSlug === 'warlock__vestige-patron') {
     push('vestige_companion', 'Спутник-отголосок', 1, 'long', 'vestige-companion')
   } else if (subclassSlug === 'wizard__abjurer') {
-    push('arcane_ward', 'Волшебный щит', classLevel * 2 + intMod, 'long', 'arcane-ward')
+    push('arcane_ward', 'Волшебный щит', classLevel * 2 + intMod, 'long', 'arcane-ward', { track: 'stock' })
   } else if (subclassSlug === 'wizard__diviner') {
-    push('portent', 'Знамение', classLevel >= 14 ? 3 : 2, 'long', 'portent', { die: 'd20' })
+    push('portent', 'Знамение', classLevel >= 14 ? 3 : 2, 'long', 'portent', { die: 'd20', track: 'stock' })
+    if (classLevel >= 10) push('the_third_eye', 'Третий глаз', 1, 'short', 'the-third-eye')
   } else if (subclassSlug === 'wizard__evoker' && classLevel >= 14) {
     push('overchannel', 'Перегрузка', 1, 'long', 'overchannel')
   } else if (subclassSlug === 'wizard__illusionist' && classLevel >= 10) {
@@ -582,6 +693,9 @@ export function thirdCasterBlock2024(subclassSlug: string, classLevel: number) {
   }
 }
 
+/** Ids ending in `-spells` that are not an always-prepared list. */
+const NOT_ALWAYS_PREPARED_FEATURE_IDS_2024 = new Set(['sculpt-spells'])
+
 export function featureAutomationMode2024(input: {
   featureId: string
   subclassSlug: string | null
@@ -593,6 +707,7 @@ export function featureAutomationMode2024(input: {
   if (input.hasResource) return 'resource'
   if (input.hasSharedOption) return 'shared_option'
   if (input.hasCalc) return 'calc'
+  if (NOT_ALWAYS_PREPARED_FEATURE_IDS_2024.has(fid)) return 'text'
   if (fid.endsWith('-spells') || fid.endsWith('-domain-spells')) return 'always_prepared'
   if (
     input.subclassSlug &&

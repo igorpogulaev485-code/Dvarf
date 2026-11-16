@@ -186,7 +186,7 @@ const mc = checkMulticlassPrerequisites2024({
   abilities: { ...base, str: 13, int: 12 },
 })
 assert.equal(mc.ok, false)
-assert.match(mc.reasonRu, /≥13/)
+assert.match(mc.reasonRu, /13\+/)
 
 // wizard: +2 book spells on every level from 2, none at 1 (create fills the 6)
 const wizardRow = createClassLevel({ id: 'w1', name: 'Волшебник', catalog_id: 'wizard', level: 1 })
@@ -202,14 +202,62 @@ function wizardSteps(level: number, hasSubclass = true) {
 }
 assert.equal(wizardSteps(1).length, 0, 'wizard L1: create handles the book')
 const w2 = wizardSteps(2)
-assert.deepEqual(w2.map((s) => s.kind), ['spellbook_picks'])
-const w2step = w2[0]
-assert.ok(w2step.kind === 'spellbook_picks' && w2step.picksNeeded === 2 && w2step.classLevel === 2)
-assert.deepEqual(
-  wizardSteps(3, false).map((s) => s.kind),
-  ['subclass', 'spellbook_picks'],
-  'book picks follow the subclass step',
+assert.deepEqual(w2.map((s) => s.kind), ['feature_choice', 'spellbook_picks'], 'L2: Scholar then book')
+const w2scholar = w2[0]
+assert.ok(
+  w2scholar.kind === 'feature_choice' &&
+    w2scholar.featureId === 'scholar' &&
+    w2scholar.choice.options_from === 'expertise_skills_tools' &&
+    w2scholar.choice.max_picks === 1 &&
+    w2scholar.choice.options?.join(',') ===
+      'history,medicine,nature,investigation,religion,arcana',
 )
+const w2step = w2[1]
+assert.ok(w2step.kind === 'spellbook_picks' && w2step.picksNeeded === 2 && w2step.classLevel === 2)
+const scholarDone = buildPendingWizardSteps2024({
+  classEntryId: wizardRow.id,
+  className: wizardRow.name,
+  classSlug: 'wizard',
+  classLevel: 2,
+  hasSubclass: false,
+  classAsi: [],
+  featurePicks: { values: { [`${wizardRow.id}:scholar`]: 'history' } },
+})
+assert.deepEqual(scholarDone.map((s) => s.kind), ['spellbook_picks'], 'Scholar pick silences the step')
+
+// L3 without a subclass: subclass → book → savant picks (school resolved at run time)
+const w3 = wizardSteps(3, false)
+assert.deepEqual(w3.map((s) => s.kind), ['subclass', 'spellbook_picks', 'spellbook_picks'])
+const w3savant = w3[2]
+assert.ok(
+  w3savant.kind === 'spellbook_picks' &&
+    w3savant.id.startsWith('savant-book-picks:') &&
+    w3savant.picksNeeded === 2 &&
+    w3savant.savant?.maxSpellLevel === 2,
+)
+assert.ok(w3[1].kind === 'spellbook_picks' && !w3[1].savant, 'regular research step is not savant')
+
+// subclass already known: two picks at L3, one per new slot tier, none in between
+function wizardSavantSteps(level: number, subclassSlug: string | null) {
+  return buildPendingWizardSteps2024({
+    classEntryId: wizardRow.id,
+    className: wizardRow.name,
+    classSlug: 'wizard',
+    classLevel: level,
+    hasSubclass: true,
+    classAsi: [],
+    subclassSlug,
+  }).filter((s) => s.kind === 'spellbook_picks' && s.savant)
+}
+assert.equal(wizardSavantSteps(3, 'wizard__evoker').length, 1)
+for (const lv of [5, 7, 9, 11, 13, 15, 17]) {
+  const savant = wizardSavantSteps(lv, 'wizard__evoker')
+  assert.equal(savant.length, 1, `L${lv} savant pick`)
+  assert.ok(savant[0].kind === 'spellbook_picks' && savant[0].picksNeeded === 1)
+}
+for (const lv of [4, 6, 8, 10, 12]) assert.equal(wizardSavantSteps(lv, 'wizard__evoker').length, 0, `L${lv}`)
+assert.equal(wizardSavantSteps(5, null).length, 0, 'no slug no savant')
+assert.equal(wizardSavantSteps(5, 'wizard__bladesinger').length, 0, 'non-school subclass')
 assert.equal(steps(2).length, 0, 'non-wizard gets no book picks')
 
 // wizard level-down: newest level_up research goes first

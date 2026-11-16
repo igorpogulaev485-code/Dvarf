@@ -42,6 +42,7 @@ import { clearFeaturePicksAboveClassLevel, listUnlockedExpertiseKeys } from '../
 import { revokeFeatGrantFromDraft, revokeFeatGrantsForAsi, revokeFeatGrantsForBackground, syncFeatProficiencyResources } from '../featEffects'
 import { syncHitDicePools } from '../../../shared/dnd/classHitDice'
 import { trimLevelUpSpellbookRows } from '../../../shared/dnd/wizardSpellbook'
+import { trimSavantSpellsOnLevelDown2024 } from '../../../shared/dnd/wizard2024Features'
 import { averageHpGain, hitDieForClass } from '../../../shared/dnd/multiclassRules'
 import { withSyncedHitDiceSummary } from '../play'
 import { unlockFeaturesForClasses } from '../../../shared/dnd/classFeatures'
@@ -93,7 +94,10 @@ function levelDownClassState2024(
     weaponMastery: trimmed.weaponMastery,
   }
   if (slug === 'wizard') {
-    const known = trimLevelUpSpellbookRows(next.spells.known, newLevel)
+    const known = trimSavantSpellsOnLevelDown2024(
+      trimLevelUpSpellbookRows(next.spells.known, newLevel),
+      newLevel,
+    )
     if (known !== next.spells.known) next = { ...next, spells: { ...next.spells, known } }
   }
   const hasSubclass = Boolean(row.subclass_catalog_id || row.subclass_name.trim())

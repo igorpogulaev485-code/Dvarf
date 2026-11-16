@@ -48,6 +48,12 @@ import {
   restDurationVariant,
 } from '../../shared/dnd/o04DmgAdvanced'
 import type { RestResult } from '../../shared/dnd/rest'
+import {
+  WIZARD_2024_REST_DONE_EMPTY,
+  Wizard2024RestSwaps,
+  type Wizard2024RestDone,
+  type Wizard2024RestProps,
+} from './Wizard2024RestSwaps'
 
 type RestKind = 'short' | 'long'
 
@@ -104,6 +110,8 @@ type RestDialogProps = {
     catalog: Array<{ id: string; name: string }>
     onSwap: (fromId: string, toCatalogId: string, toName: string) => void
   } | null
+  /** 2024 Wizard: Memorize Spell (short), cantrip and Spell Mastery swaps (long). */
+  wizard2024Rest?: Wizard2024RestProps | null
   onPlayChange: (play: PlayState) => void
   onSpellsChange: (spells: SpellsState) => void
   onCombatChange: (patch: { hpCurrent?: number | null }) => void
@@ -131,6 +139,7 @@ export function RestDialog({
   rulesEdition = '2014',
   preferKind = null,
   cantripFormulas = null,
+  wizard2024Rest = null,
   onPlayChange,
   onSpellsChange,
   onCombatChange,
@@ -147,6 +156,9 @@ export function RestDialog({
   const [cantripFromId, setCantripFromId] = useState('')
   const [cantripToId, setCantripToId] = useState('')
   const [cantripSwapped, setCantripSwapped] = useState(false)
+  const [wizardSwapDone, setWizardSwapDone] = useState<Wizard2024RestDone>(
+    WIZARD_2024_REST_DONE_EMPTY,
+  )
   const activePool =
     pools.find((row) => row.classEntryId === spendPoolId) ??
     pools.find((row) => row.current > 0) ??
@@ -175,6 +187,7 @@ export function RestDialog({
     setConfirm(null)
     setTab(preferKind === 'long' ? 'long' : 'short')
     setCantripSwapped(false)
+    setWizardSwapDone(WIZARD_2024_REST_DONE_EMPTY)
     setCantripFromId(cantripFormulas?.known[0]?.id ?? '')
     setCantripToId(cantripFormulas?.catalog[0]?.id ?? '')
   }, [open, preferKind, cantripFormulas])
@@ -617,6 +630,14 @@ export function RestDialog({
                     </Button>
                   </div>
                 ) : null}
+                {wizard2024Rest ? (
+                  <Wizard2024RestSwaps
+                    kind="short"
+                    swaps={wizard2024Rest}
+                    done={wizardSwapDone}
+                    onDone={(key) => setWizardSwapDone((prev) => ({ ...prev, [key]: true }))}
+                  />
+                ) : null}
                 {pools.length > 0 ? (
                   <div className="play-hit-dice">
                     {pools.map((pool) => (
@@ -741,6 +762,14 @@ export function RestDialog({
                       : ''}
                   . Перед применением — сводка изменений.
                 </Text>
+                {wizard2024Rest ? (
+                  <Wizard2024RestSwaps
+                    kind="long"
+                    swaps={wizard2024Rest}
+                    done={wizardSwapDone}
+                    onDone={(key) => setWizardSwapDone((prev) => ({ ...prev, [key]: true }))}
+                  />
+                ) : null}
                 <div className="play-rest-actions">
                   <Button type="button" onClick={requestLongRest}>
                     Сводка и применение…

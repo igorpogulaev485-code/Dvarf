@@ -93,6 +93,8 @@
     "selfcheck:p24-m02b-subclasses": "tsx src/shared/dnd/edition2024Subclasses.selfcheck.ts",
     "selfcheck:p24-m03-create": "tsx --tsconfig tsconfig.app.json src/shared/dnd/create2024.selfcheck.ts && tsx --tsconfig tsconfig.app.json src/shared/dnd/catalogSourceLabelRu.selfcheck.ts && tsx --tsconfig tsconfig.app.json src/features/createPipeline2024/create2024Labels.selfcheck.ts",
     "selfcheck:p24-m03-levelup": "tsx --tsconfig tsconfig.app.json src/shared/dnd/pendingFeatureChoices2024.selfcheck.ts",
+    "selfcheck:p24-m02-wizard": "tsx --tsconfig tsconfig.app.json src/shared/dnd/wizardSpellbook2024.selfcheck.ts",
+    "selfcheck:wizard-2024-features": "tsx --tsconfig tsconfig.app.json src/shared/dnd/wizard2024Features.selfcheck.ts",
     "selfcheck:p24-02-exhaustion": "tsx src/shared/dnd/exhaustion2024.selfcheck.ts",
     "selfcheck:p24-02-heroic": "tsx src/shared/dnd/heroicInspiration.selfcheck.ts",
     "selfcheck:p24-02-rest": "tsx src/shared/dnd/rest2024.selfcheck.ts",

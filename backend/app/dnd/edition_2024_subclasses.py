@@ -118,6 +118,10 @@ ALWAYS_PREPARED_FEATURE_IDS: frozenset[str] = frozenset(
 )
 
 
+# Features whose id ends with "-spells" but are not an always-prepared list.
+NOT_ALWAYS_PREPARED_FEATURE_IDS: frozenset[str] = frozenset({"sculpt-spells"})
+
+
 def _live_dir() -> Path:
     return Path(__file__).resolve().parents[2] / "data" / "srd" / "2024" / "live"
 
@@ -491,8 +495,24 @@ def build_permanent_bonuses(
             note_ru="+1 хит за уровень чародея (на 3 ур. уже +3)",
         )
 
-    # Wizard Evoker
-    if subclass_slug == "wizard__evoker" and class_level >= 10:
+    # Wizard subclasses (PHB 2024)
+    if subclass_slug == "wizard__evoker":
+        add(
+            "potent-cantrip",
+            "Мощные заговоры",
+            "other_calc",
+            {"half_damage_on_miss_or_save": True, "cantrips_only": True},
+            min_level=3,
+            note_ru="Промах или успех спасброска по заговору: цель получает половину урона, без доп. эффектов",
+        )
+        add(
+            "sculpt-spells",
+            "Построение заклинаний",
+            "other_calc",
+            {"school": "evocation", "protected_creatures": "1+spell_level", "auto_save": True},
+            min_level=6,
+            note_ru="Воплощение: 1 + круг существ автоматически преуспевают в спасброске и не получают урона",
+        )
         add(
             "empowered-evocation",
             "Усиленное воплощение",
@@ -501,8 +521,6 @@ def build_permanent_bonuses(
             min_level=10,
             note_ru="+мод. Инт к одному броску урона воплощения",
         )
-
-    # Wizard Abjurer — ward max is a stock pool, also listed as calc for display
     if subclass_slug == "wizard__abjurer":
         int_m = ability_mod(int(abilities.get("int") or 10))
         add(
@@ -511,6 +529,89 @@ def build_permanent_bonuses(
             "other_calc",
             {"ward_max": class_level * 2 + int_m},
             note_ru="Макс. хитов щита = 2×ур.+мод. Инт",
+        )
+        add(
+            "projected-ward",
+            "Проецированный щит",
+            "other_calc",
+            {"reaction": True, "range_ft": 30, "needs_active_ward": True},
+            min_level=6,
+            note_ru="Реакция: щит поглощает урон существа в 30 фт",
+        )
+        add(
+            "spell-breaker",
+            "Разрушитель заклинаний",
+            "other_calc",
+            {
+                "always_prepared": ["counterspell", "dispel-magic"],
+                "dispel_bonus_action": True,
+                "add_proficiency_to_check": True,
+                "refund_slot_if_not_stopped": True,
+            },
+            min_level=10,
+            note_ru="Рассеивание — бонусным; +Бонус мастерства к проверке; не остановили — ячейка не тратится",
+        )
+        add(
+            "spell-resistance",
+            "Сопротивление заклинаниям",
+            "other_calc",
+            {"save_advantage_vs_spells": True, "damage_resistance_from_spells": True},
+            min_level=14,
+            note_ru="Преимущество на спасброски от заклинаний и сопротивление их урону",
+        )
+    if subclass_slug == "wizard__diviner":
+        add(
+            "expert-divination",
+            "Эксперт прорицания",
+            "other_calc",
+            {"school": "divination", "min_slot": 2, "restore_below_slot": True, "restore_max_level": 5},
+            min_level=6,
+            note_ru="Прорицание 2+ круга: вернуть ячейку ниже (не выше 5 круга)",
+        )
+        add(
+            "greater-portent",
+            "Великое знамение",
+            "other_calc",
+            {"portent_dice": 3},
+            min_level=14,
+            note_ru="Три кости Знамения",
+        )
+    if subclass_slug == "wizard__illusionist":
+        add(
+            "improved-illusions",
+            "Улучшенные иллюзии",
+            "other_calc",
+            {
+                "school": "illusion",
+                "no_verbal": True,
+                "range_bonus_ft": 60,
+                "range_min_ft": 10,
+                "grant_cantrip": "minor-illusion",
+                "minor_illusion_bonus_action": True,
+                "minor_illusion_sound_and_image": True,
+            },
+            min_level=3,
+            note_ru="Иллюзии без Вербального; дальность +60 фт (от 10 фт); Малая иллюзия бонусным, звук и образ вместе",
+        )
+        add(
+            "phantasmal-creatures",
+            "Призрачные существа",
+            "other_calc",
+            {
+                "always_prepared": ["summon-beast", "summon-fey"],
+                "free_illusion_cast_each": "long",
+                "creature_hp_factor": 0.5,
+            },
+            min_level=6,
+            note_ru="Вызов зверя и Вызов феи: по разу без ячейки (версия иллюзии), хиты существа вдвое меньше",
+        )
+        add(
+            "illusory-reality",
+            "Иллюзорная реальность",
+            "other_calc",
+            {"bonus_action": True, "duration_min": 1, "requires": "illusion_spell_with_slot"},
+            min_level=14,
+            note_ru="Бонусным: неживой предмет иллюзии становится реальным на 1 мин",
         )
 
     # Ranger Gloom Stalker
@@ -983,6 +1084,7 @@ def build_subclass_resources(
                 "restore_on_abjuration_slot": "2*slot_level",
                 "ends_on": "long_rest",
                 "starts_uncreated": True,
+                "repair_bonus_action_slot": "2*slot_level",
             },
         )
     elif subclass_slug == "wizard__diviner":
@@ -992,7 +1094,17 @@ def build_subclass_resources(
             max_uses=3 if class_level >= 14 else 2,
             reset="long",
             feature_id="portent",
-            extra_meta={"die": "d20"},
+            track="stock",
+            extra_meta={"die": "d20", "decide_before_roll": True, "once_per_turn": True},
+        )
+        add(
+            "the_third_eye",
+            name_ru="Третий глаз",
+            max_uses=1,
+            reset="short",
+            feature_id="the-third-eye",
+            min_level=10,
+            extra_meta={"modes": ["darkvision_120", "greater_comprehension", "see_invisibility"]},
         )
     elif subclass_slug == "wizard__evoker" and class_level >= 14:
         add(
@@ -1003,7 +1115,13 @@ def build_subclass_resources(
             feature_id="overchannel",
             min_level=14,
             on_hot=False,
-            extra_meta={"repeat_costs_hp": True},
+            extra_meta={
+                "first_use_free": True,
+                "repeat_necrotic_die": "d12",
+                "repeat_dice_per_slot_level_start": 2,
+                "repeat_dice_step": 1,
+                "max_slot_level": 5,
+            },
         )
     elif subclass_slug == "wizard__illusionist" and class_level >= 10:
         add(
@@ -1332,6 +1450,8 @@ def feature_automation_mode(
         return "shared_option"
     if has_calc:
         return "calc"
+    if fid in NOT_ALWAYS_PREPARED_FEATURE_IDS:
+        return "text"
     if fid in ALWAYS_PREPARED_FEATURE_IDS or fid.endswith("-spells") or fid.endswith("-domain-spells"):
         return "always_prepared"
     if subclass_slug in THIRD_CASTER_SUBCLASSES and fid in {

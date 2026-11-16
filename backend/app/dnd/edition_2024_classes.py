@@ -232,7 +232,7 @@ RESOURCE_META: dict[str, dict[str, Any]] = {
         "note_ru": "Бесплатные применения «Метки охотника».",
     },
     "arcane_recovery": {
-        "name_ru": "Арканное восстановление",
+        "name_ru": "Магическое восстановление",
         "reset": "long",
         "track": "spend",
         "on_hot": False,

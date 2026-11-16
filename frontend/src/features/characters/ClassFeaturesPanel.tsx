@@ -57,6 +57,10 @@ import { kenseiPairError } from '../../shared/dnd/kenseiWeapons'
 import { featureChoiceOptionLabel } from '../../shared/dnd/featureChoiceOptionLabel'
 import { createArcaneWard, wizardResolvedFeatureId } from '../../shared/dnd/wizardTradition'
 import { WizardCapstonePicks } from './WizardCapstonePicks'
+import {
+  WIZARD_2024_CARD_BUTTONS,
+  wizard2024UseFeatureId,
+} from '../../shared/dnd/wizard2024Features'
 import type { WizardFeatureRequest } from './WizardFeatureUseDialog'
 import {
   FLEXIBLE_CASTING_SLOT_COST,
@@ -173,6 +177,8 @@ type ClassFeaturesPanelProps = {
   characterLevel: number
   abilities?: Partial<Record<AbilityScoreKey, number>>
   subclassSlugByEntryId?: Record<string, string | null | undefined>
+  /** Precomputed unlocked list (2024 progression); skips the 2014 unlock pass. */
+  unlockedFeatures?: UnlockedFeature[]
   subclassTransitionByEntryId?: Record<
     string,
     | {
@@ -546,6 +552,15 @@ function FeatureResourceControls({
               Создать щит
             </Button>
           ) : null}
+          {resource.pool_id === 'arcane_ward' && edition === '2024' ? (
+            <Button
+              type="button"
+              disabled={!pool.wardCreated || current >= pool.max}
+              onClick={openResolved}
+            >
+              Починить ячейкой…
+            </Button>
+          ) : null}
           <Button
             type="button"
             disabled={current >= pool.max}
@@ -821,13 +836,18 @@ function FeatureResourceControls({
         ) : isPack03CustomSpend(feature.id) ||
           pack04CustomSpendFeature(feature.id) ||
           pack05CustomSpendFeature(feature.id) ||
-          pack07CustomSpendFeature(feature.id) ? null : onWizardFeatureUse && wizardResolvedFeatureId(feature.id) ? (
+          pack07CustomSpendFeature(feature.id) ? null : onWizardFeatureUse &&
+          (wizardResolvedFeatureId(feature.id) ||
+            (edition === '2024' && wizard2024UseFeatureId(feature.id))) ? (
           <Button
             type="button"
             disabled={
               feature.id === 'bladesong'
                 ? !pool.activeLabel && remaining <= 0
-                : remaining <= 0
+                : edition === '2024' &&
+                    (feature.id === 'overchannel' || feature.id === 'illusory_self')
+                  ? false
+                  : remaining <= 0
             }
             onClick={() =>
               onWizardFeatureUse({
@@ -841,7 +861,9 @@ function FeatureResourceControls({
           >
             {feature.id === 'bladesong' && pool.activeLabel
               ? 'Завершить песнь'
-              : 'Использовать…'}
+              : edition === '2024' && feature.id === 'overchannel'
+                ? 'Перегрузка…'
+                : 'Использовать…'}
           </Button>
         ) : opensFeatureSelfForm ? (
           <Button
@@ -1127,7 +1149,9 @@ function FeatureChoiceControls({
               expertiseKeys,
               except: { classEntryId: feature.classEntryId, featureId: feature.id },
             }),
-          }).map((row) => row.id)
+          })
+            .filter((row) => !choice.options?.length || choice.options.includes(row.id))
+            .map((row) => row.id)
         : choice.options_from === 'artificer_infusions'
           ? infusionOptionIdsAtLevel(feature.classLevel)
           : choiceOptionsAtLevel(choice, feature.classLevel)
@@ -2344,7 +2368,29 @@ function FeatureRow({
           featurePicks={featurePicks}
           onFeaturePicksChange={onFeaturePicksChange}
           onToast={onToast}
+          edition={edition}
         />
+      ) : null}
+      {replacementStatus === 'active' &&
+      edition === '2024' &&
+      onWizardFeatureUse &&
+      WIZARD_2024_CARD_BUTTONS[feature.id] ? (
+        <div className="feature-resource__actions">
+          <Button
+            type="button"
+            onClick={() =>
+              onWizardFeatureUse({
+                featureId: feature.id,
+                resourceId: null,
+                classSlug,
+                classEntryId: feature.classEntryId,
+                name: feature.name_ru,
+              })
+            }
+          >
+            {WIZARD_2024_CARD_BUTTONS[feature.id]}
+          </Button>
+        </div>
       ) : null}
       {replacementStatus === 'active' &&
       onWizardFeatureUse &&
@@ -2670,6 +2716,7 @@ export function ClassFeaturesPanel({
   abilities,
   subclassSlugByEntryId,
   subclassTransitionByEntryId,
+  unlockedFeatures: unlockedFeaturesProp,
   resources,
   onResourcesChange,
   featurePicks,
@@ -2746,6 +2793,7 @@ export function ClassFeaturesPanel({
 
   const features = useMemo(
     () =>
+      unlockedFeaturesProp ??
       unlockFeaturesForClasses({
         classes,
         characterLevel,
@@ -2754,6 +2802,7 @@ export function ClassFeaturesPanel({
         subclassTransitionByEntryId,
       }),
     [
+      unlockedFeaturesProp,
       classes,
       characterLevel,
       abilities,

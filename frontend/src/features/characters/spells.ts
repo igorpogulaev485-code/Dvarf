@@ -134,6 +134,8 @@ export type SheetSpell = {
    * Cleared on lose/destroy; prepared flags stay for casting from memory.
    */
   in_spellbook?: boolean
+  /** 2024 Savant: free book spell granted at this wizard level (dropped on level-down). */
+  savant_level?: number
   /** При касте — опциональные select’ы себя/союзников (если персонаж в лобби). */
   applies_to_allies?: boolean
   /** Сколько слотов целей (Благословение = 3); заполнение необязательно. */
@@ -619,6 +621,9 @@ function readSpell(raw: unknown, index: number): SheetSpell {
     ...(row.pact_only === true || row.pactOnly === true ? { pact_only: true } : {}),
     ...(acquisition ? { spellbook_acquisition: acquisition } : {}),
     ...(inSpellbook !== undefined ? { in_spellbook: inSpellbook } : {}),
+    ...(typeof row.savant_level === 'number' && row.savant_level > 0
+      ? { savant_level: Math.floor(row.savant_level) }
+      : {}),
   }
 }
 

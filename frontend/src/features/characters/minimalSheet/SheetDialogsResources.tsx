@@ -1,5 +1,5 @@
 /** Диалоги отдыха и классовых ресурсов. */
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { SheetModel } from './sheetModel'
 import { dismissSelfFormsOnRest } from '../companions'
 import { healCompanionsOnRest } from '../companionCombat'
@@ -25,6 +25,33 @@ import { LayOnHandsSpendDialog } from '../LayOnHandsSpendDialog'
 import { SuperiorityDiceSpendDialog } from '../SuperiorityDiceSpendDialog'
 import { ArcaneRecoverySpendDialog } from '../ArcaneRecoverySpendDialog'
 import { WizardFeatureUseDialog } from '../WizardFeatureUseDialog'
+import { Wizard2024UseDialog } from '../Wizard2024UseDialog'
+import type { WizardFeatureUseResult } from '../../../shared/dnd/wizardTradition'
+import {
+  applySelfDamage2024,
+  cantripSwapFromCandidates2024,
+  canMemorizeSpell2024,
+  capstoneLockedIds,
+  masteryCandidates2024,
+  masteryPickForTier,
+  memorizeFromCandidates2024,
+  memorizeToCandidates2024,
+  restoreSlot2024,
+  swapMemorizeSpell,
+  swapSpellcastingCantrip2024,
+  swapSpellMastery2024,
+  wizard2024Context,
+  wizard2024UseFeatureId,
+  WIZARD_SPELL_MASTERY_LEVEL_2024,
+  type W24Result,
+} from '../../../shared/dnd/wizard2024Features'
+import type { Wizard2024RestProps } from '../Wizard2024RestSwaps'
+import { listCatalogEntries } from '../../../shared/api/catalog'
+import { parseSpellCatalogData, spellAvailableOnClassList } from '../../../shared/dnd/spellCatalog'
+import { maxSpellLevelForClassAlone } from '../../../shared/dnd/casterProgression'
+import { getFeaturePickList } from '../../../shared/dnd/featurePicks'
+import { SPELL_MASTERY_FEATURE_ID } from '../../../shared/dnd/wizardTradition'
+import { sheetSpellFromCatalog, type SheetSpell } from '../spells'
 import { createCompanion } from '../companions'
 import { setConcentration } from '../../../shared/dnd/concentration'
 import { InfusionsActiveDialog } from '../InfusionsActiveDialog'
@@ -60,6 +87,236 @@ export function SheetDialogsResources({ model }: { model: SheetModel }) {
     auraAllyDefaultOff?: boolean
   } | null>(null)
 
+  const onWizardUseConfirm = (result: WizardFeatureUseResult) => {
+    if (!result.ok) {
+      model.onToast(result.message)
+      return
+    }
+    model.setDraft((prev) => {
+      let companions = prev.companions
+      if (result.companion) {
+        const next = createCompanion({
+          id: result.companion.id,
+          name: result.companion.name,
+          notes: result.companion.notes,
+          kind: 'familiar',
+          role: 'ally',
+          nature: 'summoned',
+          control: 'with_master',
+          active: true,
+          source: {
+            kind: 'feature',
+            labelRu: 'Проявить разум',
+            feature: 'manifest_mind',
+            classEntryId: model.wizardFeatureUse?.classEntryId,
+          },
+        })
+        companions = [
+          ...companions.filter((row) => row.id !== next.id),
+          next,
+        ]
+      }
+      const exhaustion = Math.min(
+        6,
+        Math.max(0, (prev.play.exhaustion ?? 0) + result.exhaustionDelta),
+      )
+      let slots = prev.spells.slots
+      if (result.spendSlotLevel) {
+        const key = String(result.spendSlotLevel)
+        const row = slots[key]
+        if (row) slots = { ...slots, [key]: { ...row, used: Math.min(row.max, row.used + 1) } }
+      }
+      if (result.restoreSlotLevel) {
+        slots = restoreSlot2024(slots, result.restoreSlotLevel) ?? slots
+      }
+      const damaged = result.selfDamage
+        ? applySelfDamage2024({
+            hpCurrent: prev.hpCurrent ?? null,
+            hpTemp: prev.play.hpTemp ?? 0,
+            amount: result.selfDamage,
+          })
+        : null
+      return {
+        ...prev,
+        ...(damaged ? { hpCurrent: damaged.hpCurrent } : {}),
+        spells: slots === prev.spells.slots ? prev.spells : { ...prev.spells, slots },
+        companions,
+        play: {
+          ...prev.play,
+          ...(damaged ? { hpTemp: damaged.hpTemp } : {}),
+          resources: result.resources,
+          exhaustion,
+          concentration: result.concentrationName
+            ? setConcentration({
+                spellId: `feature:${model.wizardFeatureUse?.featureId ?? 'wizard'}`,
+                name: result.concentrationName,
+              })
+            : prev.play.concentration,
+        },
+      }
+    })
+    model.onToast(result.message)
+    model.setWizardFeatureUse(null)
+  }
+  const [wizardCantripCatalog, setWizardCantripCatalog] = useState<SheetSpell[]>([])
+  useEffect(() => {
+    if (!model.restOpen || model.rulesEdition !== '2024') return
+    let active = true
+    listCatalogEntries({ kind: 'spell', edition: '2024' })
+      .then((entries) => {
+        if (!active) return
+        const rows: SheetSpell[] = []
+        for (const entry of entries ?? []) {
+          const parsed = parseSpellCatalogData(entry.data)
+          if (
+            !spellAvailableOnClassList({
+              classes: parsed.classes,
+              subclasses: parsed.subclasses,
+              classSlug: 'wizard',
+            })
+          ) {
+            continue
+          }
+          const spell = sheetSpellFromCatalog(entry)
+          if (spell.level === 0) rows.push({ ...spell, class_slug: 'wizard' })
+        }
+        rows.sort((a, b) => a.name.localeCompare(b.name, 'ru'))
+        setWizardCantripCatalog(rows)
+      })
+      .catch(() => undefined)
+    return () => {
+      active = false
+    }
+  }, [model.restOpen, model.rulesEdition])
+
+  const wizard2024Rest: Wizard2024RestProps | null = (() => {
+    const ctx = wizard2024Context({
+      rulesEdition: model.rulesEdition,
+      classes: model.draft.classes,
+      subclassSlugByEntryId: model.subclassSlugByEntryId,
+    })
+    if (!ctx) return null
+    const known = model.draft.spells.known
+    const locked = capstoneLockedIds(model.draft.featurePicks, ctx.classEntryId)
+    const maxSpellLevel = maxSpellLevelForClassAlone('full', ctx.level)
+    const applyKnown = (run: (rows: SheetSpell[]) => W24Result<SheetSpell>): boolean => {
+      const first = run(known)
+      if (!first.ok) {
+        model.onToast(first.message)
+        return false
+      }
+      model.setDraft((prev) => {
+        const next = run(prev.spells.known)
+        return next.ok ? { ...prev, spells: { ...prev.spells, known: next.known } } : prev
+      })
+      model.onToast(first.message)
+      return true
+    }
+    const memorize = canMemorizeSpell2024({ rulesEdition: model.rulesEdition, wizardLevel: ctx.level })
+      ? {
+          from: memorizeFromCandidates2024(known, locked).map((row) => ({
+            id: row.id,
+            name: row.name,
+            hint: `${row.level} круг`,
+          })),
+          to: memorizeToCandidates2024(known, { lockedIds: locked, maxSpellLevel }).map((row) => ({
+            id: row.id,
+            name: row.name,
+            hint: `${row.level} круг`,
+          })),
+        }
+      : null
+    const knownCantrips = cantripSwapFromCandidates2024(known)
+    const knownNames = new Set(known.filter((row) => row.level === 0).map((row) => row.name.toLowerCase()))
+    const cantrip = {
+      from: knownCantrips.map((row) => ({ id: row.id, name: row.name })),
+      catalog: wizardCantripCatalog
+        .filter((row) => !knownNames.has(row.name.toLowerCase()))
+        .map((row) => ({ id: row.catalog_id ?? row.id, name: row.name })),
+    }
+    const masteryIds = getFeaturePickList(
+      model.draft.featurePicks,
+      ctx.classEntryId,
+      SPELL_MASTERY_FEATURE_ID,
+    )
+    const mastery =
+      ctx.level >= WIZARD_SPELL_MASTERY_LEVEL_2024
+        ? [1, 2].flatMap((tier) => {
+            const current = masteryPickForTier(known, masteryIds, tier)
+            if (!current) return []
+            return [
+              {
+                tier,
+                currentName: current.name,
+                options: masteryCandidates2024(known, tier, masteryIds).map((row) => ({
+                  id: row.id,
+                  name: row.name,
+                })),
+              },
+            ]
+          })
+        : null
+    return {
+      memorize,
+      cantrip,
+      mastery: mastery && mastery.length > 0 ? mastery : null,
+      onMemorize: (fromId, toId) =>
+        applyKnown((rows) =>
+          swapMemorizeSpell({
+            known: rows,
+            fromId,
+            toId,
+            wizardLevel: ctx.level,
+            rulesEdition: model.rulesEdition,
+            lockedIds: locked,
+            maxSpellLevel,
+          }),
+        ),
+      onCantrip: (fromId, catalogId) => {
+        const replacement = wizardCantripCatalog.find(
+          (row) => (row.catalog_id ?? row.id) === catalogId,
+        )
+        if (!replacement) return false
+        return applyKnown((rows) =>
+          swapSpellcastingCantrip2024({
+            known: rows,
+            fromId,
+            replacement,
+            rulesEdition: model.rulesEdition,
+          }),
+        )
+      },
+      onMastery: (tier, toId) => {
+        const run = (picks: typeof model.draft.featurePicks, rows: SheetSpell[]) =>
+          swapSpellMastery2024({
+            known: rows,
+            picks,
+            classEntryId: ctx.classEntryId,
+            tier,
+            toId,
+            wizardLevel: ctx.level,
+            rulesEdition: model.rulesEdition,
+          })
+        const first = run(model.draft.featurePicks, known)
+        if (!first.ok) {
+          model.onToast(first.message)
+          return false
+        }
+        model.setDraft((prev) => {
+          const next = run(prev.featurePicks, prev.spells.known)
+          return next.ok ? { ...prev, featurePicks: next.picks } : prev
+        })
+        model.onToast(first.message)
+        return true
+      },
+    }
+  })()
+
+  const wizard2024Use =
+    model.rulesEdition === '2024' &&
+    model.wizardFeatureUse != null &&
+    wizard2024UseFeatureId(model.wizardFeatureUse.featureId)
+
   return (
     <>
       <RestDialog
@@ -85,6 +342,7 @@ export function SheetDialogsResources({ model }: { model: SheetModel }) {
           model.baseCharacter?.rules_edition ?? model.rulesEdition ?? '2014'
         }
         preferKind={model.restPreferKind ?? null}
+        wizard2024Rest={wizard2024Rest}
         cantripFormulas={(() => {
           const tceOn =
             model.campaignRulesRaw != null &&
@@ -393,66 +651,26 @@ export function SheetDialogsResources({ model }: { model: SheetModel }) {
       ) : null}
 
       <WizardFeatureUseDialog
-        open={model.wizardFeatureUse != null}
-        request={model.wizardFeatureUse}
+        open={model.wizardFeatureUse != null && !wizard2024Use}
+        request={wizard2024Use ? null : model.wizardFeatureUse}
         resources={model.draft.play.resources}
         featurePicks={model.draft.featurePicks}
         classes={model.draft.classes}
         intelligenceScore={model.draft.abilities.int ?? 10}
         onClose={() => model.setWizardFeatureUse(null)}
-        onConfirm={(result) => {
-          if (!result.ok) {
-            model.onToast(result.message)
-            return
-          }
-          model.setDraft((prev) => {
-            let companions = prev.companions
-            if (result.companion) {
-              const next = createCompanion({
-                id: result.companion.id,
-                name: result.companion.name,
-                notes: result.companion.notes,
-                kind: 'familiar',
-                role: 'ally',
-                nature: 'summoned',
-                control: 'with_master',
-                active: true,
-                source: {
-                  kind: 'feature',
-                  labelRu: 'Проявить разум',
-                  feature: 'manifest_mind',
-                  classEntryId: model.wizardFeatureUse?.classEntryId,
-                },
-              })
-              companions = [
-                ...companions.filter((row) => row.id !== next.id),
-                next,
-              ]
-            }
-            const exhaustion = Math.min(
-              6,
-              Math.max(0, (prev.play.exhaustion ?? 0) + result.exhaustionDelta),
-            )
-            return {
-              ...prev,
-              companions,
-              play: {
-                ...prev.play,
-                resources: result.resources,
-                exhaustion,
-                concentration: result.concentrationName
-                  ? setConcentration({
-                      spellId: `feature:${model.wizardFeatureUse?.featureId ?? 'wizard'}`,
-                      name: result.concentrationName,
-                    })
-                  : prev.play.concentration,
-              },
-            }
-          })
-          model.onToast(result.message)
-          model.setWizardFeatureUse(null)
-        }}
+        onConfirm={onWizardUseConfirm}
       />
+      {wizard2024Use ? (
+        <Wizard2024UseDialog
+          key={`${model.wizardFeatureUse?.featureId}:${model.wizardFeatureUse?.classEntryId}`}
+          open
+          request={model.wizardFeatureUse}
+          resources={model.draft.play.resources}
+          slots={model.draft.spells.slots}
+          onClose={() => model.setWizardFeatureUse(null)}
+          onConfirm={onWizardUseConfirm}
+        />
+      ) : null}
 
       {model.featureSelfForm ? (
         <FeatureSelfFormDialog

@@ -12,6 +12,12 @@ import {
 } from '../../shared/dnd/wizardTradition'
 import { getFeaturePickList } from '../../shared/dnd/featurePicks'
 import type { SheetSpell } from './spells'
+import {
+  SPELL_MASTERY_NAME_RU,
+  masteryCandidates2024,
+  masteryPickForTier,
+  validateSpellMasteryPicks2024,
+} from '../../shared/dnd/wizard2024Features'
 
 type WizardCapstonePicksProps = {
   featureId: string
@@ -20,6 +26,8 @@ type WizardCapstonePicksProps = {
   featurePicks: FeaturePicksState
   onFeaturePicksChange: (picks: FeaturePicksState) => void
   onToast?: (message: string) => void
+  /** `'2024'`: Spell Mastery needs Action spells; swaps happen after a long rest. */
+  edition?: string | null
 }
 
 export function WizardCapstonePicks({
@@ -29,10 +37,22 @@ export function WizardCapstonePicks({
   featurePicks,
   onFeaturePicksChange,
   onToast,
+  edition = '2014',
 }: WizardCapstonePicksProps) {
   const mastery = featureId === SPELL_MASTERY_FEATURE_ID
   const signature = featureId === SIGNATURE_SPELLS_FEATURE_ID
   if (!mastery && !signature) return null
+  if (edition === '2024' && mastery) {
+    return (
+      <SpellMastery2024Picks
+        classEntryId={classEntryId}
+        spells={spells}
+        featurePicks={featurePicks}
+        onFeaturePicksChange={onFeaturePicksChange}
+        onToast={onToast}
+      />
+    )
+  }
   const book = spells.filter(
     (spell) => spell.level > 0 && spell.in_spellbook !== false && spell.name.trim(),
   )
@@ -60,7 +80,9 @@ export function WizardCapstonePicks({
       <Text tone="muted">
         {mastery
           ? 'Из книги. Бесплатный базовый каст только пока заклинание подготовлено. Замена — 8 часов изучения.'
-          : 'Из книги. Всегда подготовлены вне лимита. У каждого свой бесплатный каст, не общий запас на двоих.'}
+          : edition === '2024'
+            ? 'Из книги. Всегда подготовлены вне лимита. Каждое — раз на 3 круге без ячейки (сброс: короткий или долгий отдых); выше — ячейкой.'
+            : 'Из книги. Всегда подготовлены вне лимита. У каждого свой бесплатный каст, не общий запас на двоих.'}
       </Text>
       <Stack gap={8}>
         {slots.map((slot, index) => {
@@ -103,6 +125,80 @@ export function WizardCapstonePicks({
             {mastery ? 'Сбросить (8 часов изучения)' : 'Сбросить выбор'}
           </Button>
         ) : null}
+      </Stack>
+    </div>
+  )
+}
+
+function SpellMastery2024Picks({
+  classEntryId,
+  spells,
+  featurePicks,
+  onFeaturePicksChange,
+  onToast,
+}: {
+  classEntryId: string
+  spells: SheetSpell[]
+  featurePicks: FeaturePicksState
+  onFeaturePicksChange: (picks: FeaturePicksState) => void
+  onToast?: (message: string) => void
+}) {
+  const selected = masterySpellIds(featurePicks, classEntryId)
+  const tiers = [
+    { level: 1, label: '1 круг, время «Действие»' },
+    { level: 2, label: '2 круг, время «Действие»' },
+  ]
+  return (
+    <div className="feature-resource">
+      <Text tone="muted">
+        {SPELL_MASTERY_NAME_RU}: из книги, время сотворения — Действие. Всегда подготовлены; на
+        минимальном круге — без ячейки и без лимита. Выше — ячейкой. Замена одного (того же круга) —
+        после долгого отдыха, в окне отдыха.
+      </Text>
+      <Stack gap={8}>
+        {tiers.map((tier) => {
+          const current = masteryPickForTier(spells, selected, tier.level)
+          const options = masteryCandidates2024(spells, tier.level, selected)
+          return (
+            <Field key={tier.level} label={tier.label}>
+              {current ? (
+                <Text>
+                  <strong>{current.name}</strong>
+                  <span className="muted"> · замена после долгого отдыха</span>
+                </Text>
+              ) : (
+                <select
+                  className="play-select"
+                  value=""
+                  onChange={(event) => {
+                    const id = event.target.value
+                    if (!id) return
+                    const next = [...selected, id]
+                    const check = validateSpellMasteryPicks2024(spells, next)
+                    if (!check.ok) {
+                      onToast?.(check.message)
+                      return
+                    }
+                    onFeaturePicksChange(
+                      setWizardCapstonePick(featurePicks, classEntryId, SPELL_MASTERY_FEATURE_ID, next),
+                    )
+                    onToast?.(`${SPELL_MASTERY_NAME_RU}: записано`)
+                  }}
+                >
+                  <option value="">Не выбрано</option>
+                  {options.map((spell) => (
+                    <option key={spell.id} value={spell.id}>
+                      {spell.name}
+                    </option>
+                  ))}
+                </select>
+              )}
+              {!current && options.length === 0 ? (
+                <Text tone="muted">В книге нет подходящих заклинаний с временем «Действие».</Text>
+              ) : null}
+            </Field>
+          )
+        })}
       </Stack>
     </div>
   )

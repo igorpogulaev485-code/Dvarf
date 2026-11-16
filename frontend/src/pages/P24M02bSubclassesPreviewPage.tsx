@@ -104,7 +104,7 @@ function SubclassCard({
             <li key={`${f.id}-${f.level}`}>
               {f.name_ru}
               {f.resource?.pool_id ? ` · кнопка→${f.resource.pool_id}` : ''}
-              {f.scaleValue ? ` · ${f.scaleValue}` : ' · текст'}
+              {f.automationMode || f.scaleValue ? ` · ${f.automationMode ?? f.scaleValue}` : ' · текст'}
             </li>
           ))}
         </ul>

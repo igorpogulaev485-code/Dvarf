@@ -491,6 +491,22 @@ def test_ru_plural_forms():
     ]
 
 
+def test_ru_plural_prepared_phrase_forms():
+    plural = create24._ru_plural
+    forms = ("подготовленное заклинание", "подготовленных заклинания", "подготовленных заклинаний")
+    assert [f"{n} {plural(n, *forms)}" for n in (1, 2, 4, 5, 6, 11, 21, 22, 25)] == [
+        "1 подготовленное заклинание",
+        "2 подготовленных заклинания",
+        "4 подготовленных заклинания",
+        "5 подготовленных заклинаний",
+        "6 подготовленных заклинаний",
+        "11 подготовленных заклинаний",
+        "21 подготовленное заклинание",
+        "22 подготовленных заклинания",
+        "25 подготовленных заклинаний",
+    ]
+
+
 def test_spell_count_errors_use_russian_declension():
     payload = build_valid_payload("cleric")
     payload["prepared_spell_ids"] = payload["prepared_spell_ids"][:-1]

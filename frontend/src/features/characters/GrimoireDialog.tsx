@@ -52,6 +52,10 @@ import {
   resolveSpellbookAddPayment,
   resolveWizardCopyMods,
 } from '../../shared/dnd/wizardSpellbook'
+import {
+  pickWizardSavantSlug,
+  resolveWizardCopyMods2024,
+} from '../../shared/dnd/wizardSpellbook2024'
 import { resolveSubclassFeatureSlug } from '../../shared/dnd/classFeatures'
 import { pack04ExtraClassList } from '../../shared/dnd/pack04SorcererWarlock'
 import { Dialog, Field, Input, Stack, Text } from '../../ui'
@@ -317,13 +321,22 @@ export function GrimoireDialog({
     if (!raw) return null
     return resolveSubclassFeatureSlug(raw) ?? raw.toLowerCase().replace(/\s+/g, '_')
   }, [wizardRow?.subclass_name])
+  const wizardSubclassSlug2024 = useMemo(() => {
+    if (edition !== '2024') return null
+    return pickWizardSavantSlug(wizardRow?.subclass_catalog_id, wizardSubclassSlug)
+  }, [edition, wizardRow?.subclass_catalog_id, wizardSubclassSlug])
   const copyMods = useMemo(
     () =>
-      resolveWizardCopyMods({
-        subclassSlug: wizardSubclassSlug,
-        wizardLevel,
-      }),
-    [wizardSubclassSlug, wizardLevel],
+      edition === '2024'
+        ? resolveWizardCopyMods2024({
+            subclassSlug: wizardSubclassSlug2024,
+            wizardLevel,
+          })
+        : resolveWizardCopyMods({
+            subclassSlug: wizardSubclassSlug,
+            wizardLevel,
+          }),
+    [edition, wizardSubclassSlug, wizardSubclassSlug2024, wizardLevel],
   )
   const thirdCasterLevel = useMemo(() => {
     if (!access.schoolGate) return 0
@@ -1306,9 +1319,15 @@ export function GrimoireDialog({
             {copyMods.savantLabelRu ? (
               <span
                 className="sheet-chip is-on"
-                title="Знаток школы — копии этой школы за полцены"
+                title={
+                  edition === '2024'
+                    ? 'Знаток школы — бесплатные заклинания школы в книгу (цена копий не меняется)'
+                    : 'Знаток школы — копии этой школы за полцены'
+                }
               >
-                Знаток: {copyMods.savantLabelRu} ×½
+                {edition === '2024'
+                  ? `Знаток: ${copyMods.savantLabelRu}`
+                  : `Знаток: ${copyMods.savantLabelRu} ×½`}
               </span>
             ) : null}
             {copyMods.wizardlyQuill ? (

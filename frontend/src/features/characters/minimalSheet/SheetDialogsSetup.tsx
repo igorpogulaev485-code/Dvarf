@@ -20,6 +20,7 @@ import { resolveSubclassFeatureSlug, unlockFeaturesForClasses } from '../../../s
 import { withPactTomeCantripsStep } from '../pactTomeEffects'
 import { characterHasCasterClass, maxSpellLevelForClassAlone } from '../../../shared/dnd/casterProgression'
 import { freeBookSlotsAtLevel, remainingFreeSpellbookSlots } from '../../../shared/dnd/wizardSpellbook'
+import { wizardSavantSchool } from '../../../shared/dnd/wizardSpellbook2024'
 import { wizardHasUsableSpellbook } from '../wizardSpellbookInventory'
 import { addCatalogSpellToKnown } from '../spells'
 import { abilityModifier } from '../sheetTypes'
@@ -270,14 +271,23 @@ export function SheetDialogsSetup({ model }: { model: SheetModel }) {
                 raw.toLowerCase().replace(/\s+/g, '_')
               )
             })(),
+            savantSchool:
+              model.baseCharacter.rules_edition === '2024' && wizard
+                ? (wizardSavantSchool(model.subclassSlugByEntryId[wizard.id]) ??
+                  wizardSavantSchool(wizard.subclass_catalog_id))
+                : null,
           }
         })()}
         onConfirmSpellbookPicks={(entries) => {
           const step = model.guidedWizard?.steps[model.guidedWizard.index]
           const acquisition =
-            step?.kind === 'spellbook_picks' && step.classLevel <= 1
-              ? 'starting'
-              : 'level_up'
+            step?.kind === 'spellbook_picks' && step.savant
+              ? 'feature'
+              : step?.kind === 'spellbook_picks' && step.classLevel <= 1
+                ? 'starting'
+                : 'level_up'
+          const savantLevel =
+            step?.kind === 'spellbook_picks' && step.savant ? step.classLevel : null
           const wizardRow = model.draft.classes.find((row) => {
             const n = row.name.trim().toLowerCase()
             return n === 'волшебник' || n === 'wizard' || n === 'маг'
@@ -292,6 +302,14 @@ export function SheetDialogsSetup({ model }: { model: SheetModel }) {
                 class_slug: 'wizard',
                 class_entry_id: wizardRow?.id ?? null,
               })
+            }
+            if (savantLevel != null) {
+              const added = new Set(entries.map((entry) => entry.id))
+              known = known.map((row) =>
+                row.catalog_id && added.has(row.catalog_id) && row.savant_level == null
+                  ? { ...row, savant_level: savantLevel }
+                  : row,
+              )
             }
             return {
               ...prev,

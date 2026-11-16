@@ -277,6 +277,8 @@ export type UnlockedFeature = ClassFeatureDef & {
   scaleValue: string | null
   /** Resolved resource uses for current class level. */
   resourceUses: number | null
+  /** 2024 subclass automation kind (resource / calc / …); never shown as a scale. */
+  automationMode?: string | null
 }
 
 type FeaturePack = {
