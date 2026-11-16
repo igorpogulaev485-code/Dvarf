@@ -2,13 +2,17 @@
  * Run: npx --yes tsx src/features/characters/featureCombatBonuses.selfcheck.ts
  */
 import {
+  assassinate2024ExtraDamage,
+  assassinateGrantsCritVsSurprised,
   critThresholdFromFeatures,
   darkvisionFtFromFeatures,
+  frenzy2024Rider,
   hasDraconicResilienceFeature,
   improvedDivineSmiteRider,
   initiativeAdvantageFromFeatures,
   initiativeBonusFromFeatures,
   initiativeBonusFromRace,
+  rageDamageBonusFromLevel,
 } from './featureCombatBonuses.ts'
 import { computeArmorClass } from '../../shared/dnd/armor.ts'
 import { resolveAttackRoll } from './deskRolls.ts'
@@ -97,6 +101,108 @@ assert(
   '2024 remarkable athlete → init advantage flag',
 )
 assert(!initiativeAdvantageFromFeatures([], '2024'), 'no remarkable = false')
+assert(
+  initiativeAdvantageFromFeatures([{ id: 'assassinate' }], '2024'),
+  '2024 Assassinate → init advantage',
+)
+assert(
+  !initiativeAdvantageFromFeatures([{ id: 'assassinate' }], '2014'),
+  '2014 Assassinate does not auto-wire init advantage here',
+)
+assert(
+  !assassinateGrantsCritVsSurprised([{ id: 'assassinate' }], '2024'),
+  '2024 Assassinate is NOT auto-crit vs surprised',
+)
+
+assert(rageDamageBonusFromLevel(3) === 2, 'rage dmg L3=2')
+assert(rageDamageBonusFromLevel(9) === 3, 'rage dmg L9=3')
+assert(rageDamageBonusFromLevel(16) === 4, 'rage dmg L16=4')
+
+const frenzyL3 = frenzy2024Rider({
+  features: [{ id: 'frenzy', classLevel: 3 }],
+  rulesEdition: '2024',
+  raging: true,
+  recklessAttack: true,
+  strengthBased: true,
+})
+assert(frenzyL3?.dice === '2d6', `Frenzy L3 = 2d6 (rage dmg), got ${frenzyL3?.dice}`)
+const frenzyL9 = frenzy2024Rider({
+  features: [{ id: 'frenzy', classLevel: 9 }],
+  rulesEdition: '2024',
+  raging: true,
+  recklessAttack: true,
+  strengthBased: true,
+})
+assert(frenzyL9?.dice === '3d6', 'Frenzy L9 = 3d6 from rage damage, not PB')
+assert(
+  frenzy2024Rider({
+    features: [{ id: 'frenzy', classLevel: 9 }],
+    rulesEdition: '2024',
+    raging: true,
+    recklessAttack: true,
+    strengthBased: true,
+    alreadyUsedThisTurn: true,
+  }) == null,
+  'Frenzy once per turn',
+)
+assert(
+  frenzy2024Rider({
+    features: [{ id: 'frenzy', classLevel: 5 }],
+    rulesEdition: '2014',
+    raging: true,
+    recklessAttack: true,
+    strengthBased: true,
+  }) == null,
+  'Frenzy 2024 rider gated off 2014 sheets',
+)
+assert(
+  frenzy2024Rider({
+    features: [{ id: 'frenzy', classLevel: 5 }],
+    rulesEdition: '2024',
+    raging: true,
+    recklessAttack: false,
+    strengthBased: true,
+  }) == null,
+  'Frenzy needs Reckless Attack',
+)
+
+const assassinExtra = assassinate2024ExtraDamage({
+  features: [{ id: 'assassinate', classLevel: 11 }],
+  rulesEdition: '2024',
+  applyRound1Bonus: true,
+})
+assert(assassinExtra?.amount === 11, 'Assassinate SA extra = rogue level')
+assert(
+  assassinate2024ExtraDamage({
+    features: [{ id: 'assassinate', classLevel: 11 }],
+    rulesEdition: '2024',
+    applyRound1Bonus: false,
+  }) == null,
+  'Assassinate extra off when chip off',
+)
+
+const frenzyInRoll = resolveAttackRoll({
+  name: 'Секира',
+  attackBonus: 5,
+  damageExpr: '1d12+3',
+  extraDamages: [{ expression: frenzyL3!.dice, type: null, label: frenzyL3!.rollLabel! }],
+  rng: seq([0.5, 0, 0.5, 0.75]), // hit 11, d12=1, 2d6=4+5
+})
+assert(
+  frenzyInRoll.text.includes('Бешенство') && frenzyInRoll.text.includes('2d6'),
+  `Frenzy dice used in strike: ${frenzyInRoll.text}`,
+)
+
+const assassinInRoll = resolveAttackRoll({
+  name: 'Кинжал',
+  attackBonus: 7,
+  damageExpr: `1d4+4+${assassinExtra!.amount}`,
+  rng: seq([0.5, 0.5]),
+})
+assert(
+  assassinInRoll.damageTotal != null && assassinInRoll.damageTotal >= 4 + 11,
+  `Assassinate flat level used in damageExpr, got ${assassinInRoll.damageTotal}`,
+)
 
 // Attack roll: 2014 path ignores Champion features (threshold 20).
 const roll2014 = resolveAttackRoll({

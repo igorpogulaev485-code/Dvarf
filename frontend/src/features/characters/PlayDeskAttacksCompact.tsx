@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 
 /** Features with bespoke turn chips — skip generic personal wiring. */
 const TURN_SPECIAL_FEATURE_IDS = new Set([
@@ -207,8 +207,10 @@ import {
 import type { SpellsState } from './spells'
 import { resolveB04FeatureSpend } from './b04FeatureSpend'
 import {
+  assassinate2024ExtraDamage,
   critThresholdFromFeatures,
   divineStrikeRider,
+  frenzy2024Rider,
   improvedDivineSmiteRider,
   symbioticNecroticRider,
 } from './featureCombatBonuses'
@@ -898,6 +900,23 @@ export function PlayDeskAttacksCompact({
       }),
     [combatFeatures, resources, hpTemp, activeEffects],
   )
+  const isRaging = (activeEffects ?? []).some(
+    (e) => e.slug === 'rage' && !e.inactive,
+  )
+  const isReckless = (activeEffects ?? []).some(
+    (e) => e.slug === 'reckless_attack' && !e.inactive,
+  )
+  const hasAssassinate2024 =
+    String(rulesEdition ?? '2014').trim() === '2024' &&
+    combatFeatures.some((f) => {
+      const id = String(f.id || '').replace(/-/g, '_')
+      return id === 'assassinate'
+    })
+  const [frenzyUsedThisTurn, setFrenzyUsedThisTurn] = useState(false)
+  const [assassinateRound1On, setAssassinateRound1On] = useState(false)
+  useEffect(() => {
+    if (!isRaging || !isReckless) setFrenzyUsedThisTurn(false)
+  }, [isRaging, isReckless])
   const smiteSpend = useMemo(() => divineSmiteSpendOf(combatFeatures), [combatFeatures])
   const [riderOn, setRiderOn] = useState<Record<string, boolean>>({})
   const riderEnabled = (row: { effectId: string; optional?: boolean; defaultChecked?: boolean }) => {
@@ -2496,6 +2515,21 @@ export function PlayDeskAttacksCompact({
         </div>
       ) : null}
 
+      {hasAssassinate2024 ? (
+        <div className="chip-row" style={{ marginBottom: 8 }} role="group" aria-label="Ликвидация 2024">
+          <button
+            type="button"
+            className={`sheet-chip${assassinateRound1On ? ' is-on' : ''}`}
+            aria-pressed={assassinateRound1On}
+            data-testid="assassinate-round1-chip"
+            title="1-й раунд · цель ещё не ходила · доп. урон Коварной = ур. плута (без авто-крита)"
+            onClick={() => setAssassinateRound1On((v) => !v)}
+          >
+            Ликвидация · ещё не ходила
+          </button>
+        </div>
+      ) : null}
+
 
       {focusedAimOffer && hasFocusedAim ? (
         <div
@@ -2768,12 +2802,26 @@ export function PlayDeskAttacksCompact({
                     hasTwoWeaponFightingStyle: hasTwoWeaponStyle,
                   })
                 : mod
+            const assassinateExtra = assassinate2024ExtraDamage({
+              features: combatFeatures,
+              rulesEdition,
+              applyRound1Bonus: assassinateRound1On,
+            })
+            const frenzyRider = frenzy2024Rider({
+              features: combatFeatures,
+              rulesEdition,
+              raging: isRaging,
+              recklessAttack: isReckless,
+              strengthBased: attackAbility === 'str',
+              alreadyUsedThisTurn: frenzyUsedThisTurn,
+            })
             const baseDamageBonusBeforeManual =
               abilityDmgMod +
               (gear?.damageBonus ?? 0) +
               infusionDmg +
               flatFxDamage +
-              chargerFlat
+              chargerFlat +
+              (assassinateExtra?.amount ?? 0)
             const dmgBonus =
               baseDamageBonusBeforeManual +
               manualDmg +
@@ -2963,6 +3011,8 @@ export function PlayDeskAttacksCompact({
               divineStrike ? ` + ${divineStrike.label}` : ''
             }${meleeAttack && improvedSmite ? ` + ${improvedSmite.label}` : ''}${
               meleeAttack && symbioticRider ? ` + ${symbioticRider.label}` : ''
+            }${frenzyRider ? ` + ${frenzyRider.label}` : ''}${
+              assassinateExtra ? ` · ${assassinateExtra.label}` : ''
             }${powerKind ? ' · −5/+10' : ''}${chargerFlat ? ' · +5 Налётчик' : ''}${
               twfBonusArmed && meleeAttack ? ' · 2-е оружие' : ''
             }${gwfApplies ? ' · GWF' : ''}${coverBonusNote}${fireResistNote}${mountAimNote}${
@@ -3675,6 +3725,15 @@ export function PlayDeskAttacksCompact({
                               },
                             ]
                           : []),
+                        ...(frenzyRider
+                          ? [
+                              {
+                                expression: frenzyRider.dice,
+                                type: frenzyRider.type ?? attack.damage_type,
+                                label: frenzyRider.rollLabel ?? frenzyRider.label,
+                              },
+                            ]
+                          : []),
                         ...activeRiders.map((row) => ({
                           expression: row.dice,
                           type: row.damageType ?? null,
@@ -3685,6 +3744,9 @@ export function PlayDeskAttacksCompact({
                       ],
                       mode: attackMode,
                     })
+                    if (frenzyRider) {
+                      setFrenzyUsedThisTurn(true)
+                    }
                     const boundItem = attack.inventory_item_id
                       ? inventoryItems.find((row) => row.id === attack.inventory_item_id)
                       : undefined

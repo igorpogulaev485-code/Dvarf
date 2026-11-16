@@ -548,14 +548,21 @@ def build_permanent_bonuses(
             note_ru="+мод. Мудр к проверкам Харизмы",
         )
 
-    # Barbarian Berserker
+    # Barbarian Berserker — 2024: dice count = Rage Damage bonus (not PB).
     if subclass_slug == "barbarian__berserker":
         add(
             "frenzy",
             "Бешенство",
             "damage_rider",
-            {"while_raging": True, "dice_count_from": "rage_damage", "die": "d6", "first_str_hit": True},
-            note_ru="В ярости: к6 × бонус урона ярости к первой силовой атаке хода при Безрассудной атаке",
+            {
+                "while_raging": True,
+                "requires_reckless_attack": True,
+                "dice_count_from": "rage_damage",
+                "die": "d6",
+                "first_str_hit": True,
+                "not_proficiency_bonus": True,
+            },
+            note_ru="В ярости + Безрассудная атака: число к6 = бонус Урона ярости (не БМ)",
         )
 
     # Barbarian Zealot
@@ -586,14 +593,19 @@ def build_permanent_bonuses(
             note_ru="Временные хиты при входе в ярость",
         )
 
-    # Rogue Assassin
+    # Rogue Assassin — 2024 Assassinate (NOT 2014 auto-crit on surprised).
     if subclass_slug == "rogue__assassin":
         add(
             "assassinate",
-            "Убийство",
+            "Ликвидация",
             "other_calc",
-            {"advantage_vs_surprised": True, "crit_vs_surprised": True},
-            note_ru="Преимущество и крит по застигнутым врасплох",
+            {
+                "initiative_advantage": True,
+                "advantage_vs_not_yet_acted_round_1": True,
+                "sneak_attack_extra_damage_equals_rogue_level_round_1": True,
+                "crit_vs_surprised": False,
+            },
+            note_ru="2024: преим. к инициативе; преим. vs ещё не ходивших в 1-м раунде; доп. урон Коварной = ур. плута. Без авто-крита по surprised (это 2014).",
         )
 
     # Rogue Thief
@@ -964,7 +976,14 @@ def build_subclass_resources(
             feature_id="arcane-ward",
             track="stock",
             on_hot=True,
-            extra_meta={"ward_formula": "2*level+int"},
+            extra_meta={
+                # 2024: max = Int mod + (wizard level × 2); create/restore on Abjuration slot cast.
+                "ward_formula": "int + 2*level",
+                "create_on": "abjuration_spell_with_slot",
+                "restore_on_abjuration_slot": "2*slot_level",
+                "ends_on": "long_rest",
+                "starts_uncreated": True,
+            },
         )
     elif subclass_slug == "wizard__diviner":
         add(

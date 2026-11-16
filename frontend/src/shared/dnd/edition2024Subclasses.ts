@@ -327,7 +327,12 @@ export function buildPermanentBonuses2024(input: {
   }
   if (subclassSlug === 'wizard__abjurer') {
     const intM = abilityMod(ab.int ?? 10)
-    add('arcane-ward', 'Волшебный щит (формула)', 'other_calc', { ward_max: classLevel * 2 + intM })
+    add('arcane-ward', 'Волшебный щит (формула)', 'other_calc', {
+      ward_max: classLevel * 2 + intM,
+      ward_formula: 'int + 2*level',
+      create_on: 'abjuration_spell_with_slot',
+      restore_on_abjuration_slot: '2*slot_level',
+    })
   }
   if (subclassSlug === 'ranger__gloom-stalker') {
     add('dread-ambusher', 'Угроза из засады (инициатива)', 'initiative_mod', 'wis')
@@ -337,13 +342,27 @@ export function buildPermanentBonuses2024(input: {
     add('dreadful-strikes', 'Ужасающие удары', 'damage_rider', { dice: `1${die}`, type: 'psychic' })
   }
   if (subclassSlug === 'barbarian__berserker') {
-    add('frenzy', 'Бешенство', 'damage_rider', { while_raging: true, dice_count_from: 'rage_damage', die: 'd6' })
+    // 2024: dice count = Rage Damage bonus (not PB).
+    add('frenzy', 'Бешенство', 'damage_rider', {
+      while_raging: true,
+      requires_reckless_attack: true,
+      dice_count_from: 'rage_damage',
+      die: 'd6',
+      first_str_hit: true,
+      not_proficiency_bonus: true,
+    })
   }
   if (subclassSlug === 'barbarian__zealot') {
     add('divine-fury', 'Божественная ярость', 'damage_rider', { while_raging: true, dice: '1d6', plus_half_level: true })
   }
   if (subclassSlug === 'rogue__assassin') {
-    add('assassinate', 'Убийство', 'other_calc', { advantage_vs_surprised: true, crit_vs_surprised: true })
+    // 2024 Assassinate — NOT 2014 auto-crit on surprised.
+    add('assassinate', 'Ликвидация', 'other_calc', {
+      initiative_advantage: true,
+      advantage_vs_not_yet_acted_round_1: true,
+      sneak_attack_extra_damage_equals_rogue_level_round_1: true,
+      crit_vs_surprised: false,
+    })
   }
   if (subclassSlug === 'rogue__thief') {
     add('fast-hands', 'Быстрые руки', 'other_calc', { bonus_action_use_object: true })

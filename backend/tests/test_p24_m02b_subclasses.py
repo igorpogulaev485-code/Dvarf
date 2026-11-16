@@ -400,3 +400,113 @@ def test_write_automation_report_artifact(tmp_path):
     out = tmp_path / "report.md"
     out.write_text(md, encoding="utf-8")
     assert out.stat().st_size > 1000
+
+
+def test_berserker_frenzy_uses_rage_damage_not_pb():
+    """2024 Frenzy: Nк6 where N = Rage Damage bonus — not proficiency bonus."""
+    for level, expected_rage_dmg in ((3, 2), (9, 3), (16, 4)):
+        snap = e24.compute_progression(
+            [{"slug": "barbarian", "level": level, "subclass_slug": "barbarian__berserker"}],
+            abilities={"str": 16, "dex": 14, "con": 14, "int": 10, "wis": 10, "cha": 10},
+        )
+        assert snap.scales["barbarian:rage_damage"] == expected_rage_dmg
+        bonuses = e24sub.build_permanent_bonuses("barbarian__berserker", level)
+        frenzy = next(b for b in bonuses if b.feature_id == "frenzy")
+        assert frenzy.kind == "damage_rider"
+        assert frenzy.value["dice_count_from"] == "rage_damage"
+        assert frenzy.value["die"] == "d6"
+        assert frenzy.value.get("not_proficiency_bonus") is True
+        assert frenzy.value.get("requires_reckless_attack") is True
+        # PB at these levels would be 2/4/5 — must NOT be the dice source.
+        pb = 2 if level < 5 else 3 if level < 9 else 4 if level < 13 else 5 if level < 17 else 6
+        assert expected_rage_dmg != pb or level < 5
+
+
+def test_assassin_2024_no_surprised_autocrit():
+    bonuses = e24sub.build_permanent_bonuses("rogue__assassin", 3)
+    row = next(b for b in bonuses if b.feature_id == "assassinate")
+    assert row.value.get("crit_vs_surprised") is False
+    assert row.value.get("initiative_advantage") is True
+    assert row.value.get("advantage_vs_not_yet_acted_round_1") is True
+    assert row.value.get("sneak_attack_extra_damage_equals_rogue_level_round_1") is True
+    assert "surprised" not in (row.note_ru or "").lower() or "без" in (row.note_ru or "").lower()
+
+
+def test_light_warding_flare_uses_wisdom_not_pb():
+    """2024 Warding Flare uses: Wisdom mod (min 1), long rest; L6+ short or long."""
+    snap3 = e24.compute_progression(
+        [{"slug": "cleric", "level": 3, "subclass_slug": "cleric__light-domain"}],
+        abilities={"wis": 18},  # +4; PB at L3 is 2
+    )
+    flare = next(r for r in snap3.resources if r.pool_id == "warding_flare")
+    assert flare.max == 4  # Wis mod, not PB=2
+    assert flare.reset == "long"
+    snap6 = e24.compute_progression(
+        [{"slug": "cleric", "level": 6, "subclass_slug": "cleric__light-domain"}],
+        abilities={"wis": 12},  # +1
+    )
+    flare6 = next(r for r in snap6.resources if r.pool_id == "warding_flare")
+    assert flare6.max == 1
+    assert flare6.reset == "short"
+
+
+def test_fiend_dark_ones_blessing_not_great_old_one():
+    """Dark One's Blessing belongs to Fiend, not Great Old One / «Бездонный»."""
+    fiend = e24sub.build_permanent_bonuses(
+        "warlock__fiend-patron", 5, abilities={"cha": 16}
+    )
+    blessing = next(b for b in fiend if b.feature_id == "dark-ones-blessing")
+    assert blessing.value["temp_hp"] == 3 + 5  # Cha + warlock level
+    goo = e24sub.build_permanent_bonuses(
+        "warlock__greate-old-one-patron", 5, abilities={"cha": 16}
+    )
+    assert not any(b.feature_id == "dark-ones-blessing" for b in goo)
+    snap = e24.compute_progression(
+        [{"slug": "warlock", "level": 3, "subclass_slug": "warlock__fiend-patron"}],
+        abilities={"cha": 16},
+    )
+    assert any(f.id == "dark_ones_blessing" for f in snap.features)
+
+
+def test_abjurer_arcane_ward_2024_create_restore_meta():
+    snap = e24.compute_progression(
+        [{"slug": "wizard", "level": 6, "subclass_slug": "wizard__abjurer"}],
+        abilities={"int": 16},
+    )
+    ward = next(r for r in snap.resources if r.pool_id == "arcane_ward")
+    assert ward.max == 15  # Int(+3) + 2*6
+    assert ward.meta.get("ward_formula") == "int + 2*level"
+    assert ward.meta.get("create_on") == "abjuration_spell_with_slot"
+    assert ward.meta.get("restore_on_abjuration_slot") == "2*slot_level"
+    assert ward.meta.get("starts_uncreated") is True
+    assert ward.track == "stock"
+
+
+def test_live_card_summaries_match_2024_not_mixed_examples():
+    """Card text must not repeat mixed-edition example mistakes."""
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parents[1] / "data" / "srd" / "2024" / "live"
+
+    def feature_window(path: Path, feature_id: str) -> str:
+        blob = path.read_text(encoding="utf-8")
+        marker = f'"id": "{feature_id}"'
+        idx = blob.find(marker)
+        assert idx >= 0, feature_id
+        return blob[idx : idx + 500]
+
+    assassinate = feature_window(root / "subclasses_ph24.json", "assassinate")
+    assert "без авто-крита" in assassinate
+    assert "крит по захваченным врасплох" not in assassinate
+
+    flare = feature_window(root / "subclasses_ph24.json", "warding-flare")
+    assert "ПБ/" not in flare
+    assert "Мудр" in flare
+
+    frenzy = feature_window(root / "subclasses_srd.json", "frenzy")
+    assert "Урона ярости" in frenzy
+    assert "не БМ" in frenzy
+
+    ward = feature_window(root / "subclasses_ph24.json", "arcane-ward")
+    assert "Инт" in ward
+    assert "2×ур" in ward

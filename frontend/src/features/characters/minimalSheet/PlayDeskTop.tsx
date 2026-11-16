@@ -44,13 +44,21 @@ import {
   type NeedsSetupItem,
 } from '../needsSetup'
 import { normalizeCampaignRules } from '../../lobby/campaignRules'
-import { hasDraconicResilienceFeature } from '../featureCombatBonuses'
+import {
+  hasDraconicResilienceFeature,
+  initiativeAdvantageFromFeatures,
+} from '../featureCombatBonuses'
 
 function initiativeAdvantageFromSheet(model: SheetModel): 'advantage' | 'disadvantage' | 'normal' {
   const fromFx = resolveAdvantageFromEffects(model.draft.play.effects, {
     rollKind: 'initiative',
   })
-  if (model.infusionBonuses?.initiativeAdvantage) {
+  const edition = model.baseCharacter.rules_edition ?? model.rulesEdition
+  const fromFeatures = initiativeAdvantageFromFeatures(
+    model.unlockedFeatures ?? model.playActiveFeatures ?? [],
+    edition,
+  )
+  if (model.infusionBonuses?.initiativeAdvantage || fromFeatures) {
     if (fromFx === 'disadvantage') return 'normal'
     return 'advantage'
   }
