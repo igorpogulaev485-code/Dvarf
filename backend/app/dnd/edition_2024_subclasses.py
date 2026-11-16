@@ -873,8 +873,15 @@ def build_permanent_bonuses(
             "dark-ones-blessing",
             "Благословение темнейшего",
             "other_calc",
-            {"temp_hp": max(1, cha_m + class_level), "on_reduce_enemy_to_0": True},
-            note_ru="Врем. хиты = Хар + ур. колдуна при убийстве",
+            {
+                "temp_hp": max(1, cha_m + class_level),
+                "on_reduce_enemy_to_0": True,
+                "ally_kill_within_ft": 10,
+            },
+            note_ru=(
+                "Врем. хиты = Хар + ур. колдуна (мин. 1), когда ты или союзник "
+                "в пределах 10 фт. опускаете врага до 0 хитов"
+            ),
         )
 
     # Light domain improved flare is a calc rider on the warding_flare pool
@@ -1100,6 +1107,15 @@ def build_subclass_resources(
                 "per_use_cap_min": 1,
             },
         )
+        if class_level >= 14:
+            add(
+                "searing_vengeance",
+                name_ru="Опаляющее возмездие",
+                max_uses=1,
+                reset="long",
+                feature_id="searing-vengeance",
+                min_level=14,
+            )
     elif subclass_slug == "warlock__archfey":
         add(
             "steps_of_the_fey",
@@ -1108,6 +1124,15 @@ def build_subclass_resources(
             reset="long",
             feature_id="steps-of-the-fey",
         )
+        if class_level >= 10:
+            add(
+                "beguiling_defenses",
+                name_ru="Чарующая защита",
+                max_uses=1,
+                reset="long",
+                feature_id="beguiling-defenses",
+                min_level=10,
+            )
     elif subclass_slug == "warlock__fiend-patron":
         if class_level >= 6:
             add(
@@ -1117,6 +1142,15 @@ def build_subclass_resources(
                 reset="long",
                 feature_id="dark-ones-own-luck",
                 min_level=6,
+            )
+        if class_level >= 14:
+            add(
+                "hurl_through_hell",
+                name_ru="Бросок через преисподнюю",
+                max_uses=1,
+                reset="long",
+                feature_id="hurl-through-hell",
+                min_level=14,
             )
     elif subclass_slug == "warlock__greate-old-one-patron":
         if class_level >= 6:

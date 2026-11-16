@@ -239,6 +239,54 @@ RESOURCE_META: dict[str, dict[str, Any]] = {
         "feature_id": "sorcerous-restoration",
         "fixed_uses": 1,
     },
+    "magical_cunning": {
+        "name_ru": "Магическая искусность",
+        "reset": "long",
+        "track": "spend",
+        "on_hot": False,
+        "feature_id": "magical-cunning",
+        "fixed_uses": 1,
+    },
+    "contact_patron": {
+        "name_ru": "Связь с покровителем",
+        "reset": "long",
+        "track": "spend",
+        "on_hot": False,
+        "feature_id": "contact-patron",
+        "fixed_uses": 1,
+    },
+    "mystic_arcanum_6": {
+        "name_ru": "Таинственный арканум (6 круг)",
+        "reset": "long",
+        "track": "spend",
+        "on_hot": False,
+        "feature_id": "mystic-arcanum-6",
+        "fixed_uses": 1,
+    },
+    "mystic_arcanum_7": {
+        "name_ru": "Таинственный арканум (7 круг)",
+        "reset": "long",
+        "track": "spend",
+        "on_hot": False,
+        "feature_id": "mystic-arcanum-7",
+        "fixed_uses": 1,
+    },
+    "mystic_arcanum_8": {
+        "name_ru": "Таинственный арканум (8 круг)",
+        "reset": "long",
+        "track": "spend",
+        "on_hot": False,
+        "feature_id": "mystic-arcanum-8",
+        "fixed_uses": 1,
+    },
+    "mystic_arcanum_9": {
+        "name_ru": "Таинственный арканум (9 круг)",
+        "reset": "long",
+        "track": "spend",
+        "on_hot": False,
+        "feature_id": "mystic-arcanum-9",
+        "fixed_uses": 1,
+    },
     "favored_enemy_uses": {
         "name_ru": "Заклятый враг",
         "reset": "long",
@@ -657,6 +705,21 @@ def _build_resources_for_class(
                     has_sorcerous_restoration = True
     if has_sorcerous_restoration and slug == "sorcerer":
         raw.setdefault("sorcerous_restoration", 1)
+
+    if slug == "warlock" and catalog:
+        warlock_features: set[str] = set()
+        for lr in catalog["data"].get("levels") or []:
+            if int(lr.get("level") or 0) > level:
+                continue
+            for f in lr.get("features") or []:
+                warlock_features.add(str(f.get("id")))
+        if "magical-cunning" in warlock_features:
+            raw.setdefault("magical_cunning", 1)
+        if "contact-patron" in warlock_features:
+            raw.setdefault("contact_patron", 1)
+        for circle, min_level in ((6, 11), (7, 13), (8, 15), (9, 17)):
+            if level >= min_level:
+                raw.setdefault(f"mystic_arcanum_{circle}", 1)
 
     has_uncanny_metabolism = False
     if catalog:

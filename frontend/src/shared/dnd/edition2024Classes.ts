@@ -290,6 +290,60 @@ const RESOURCE_META: Record<string, ResourceMeta> = {
     on_hot: false,
     unlock_level: 5,
   },
+  magical_cunning: {
+    name_ru: 'Магическая искусность',
+    reset: 'long',
+    feature_id: 'magical-cunning',
+    fixed_uses: 1,
+    kind: 'resource',
+    on_hot: false,
+    unlock_level: 2,
+  },
+  contact_patron: {
+    name_ru: 'Связь с покровителем',
+    reset: 'long',
+    feature_id: 'contact-patron',
+    fixed_uses: 1,
+    kind: 'resource',
+    on_hot: false,
+    unlock_level: 9,
+  },
+  mystic_arcanum_6: {
+    name_ru: 'Таинственный арканум (6 круг)',
+    reset: 'long',
+    feature_id: 'mystic-arcanum-6',
+    fixed_uses: 1,
+    kind: 'resource',
+    on_hot: false,
+    unlock_level: 11,
+  },
+  mystic_arcanum_7: {
+    name_ru: 'Таинственный арканум (7 круг)',
+    reset: 'long',
+    feature_id: 'mystic-arcanum-7',
+    fixed_uses: 1,
+    kind: 'resource',
+    on_hot: false,
+    unlock_level: 13,
+  },
+  mystic_arcanum_8: {
+    name_ru: 'Таинственный арканум (8 круг)',
+    reset: 'long',
+    feature_id: 'mystic-arcanum-8',
+    fixed_uses: 1,
+    kind: 'resource',
+    on_hot: false,
+    unlock_level: 15,
+  },
+  mystic_arcanum_9: {
+    name_ru: 'Таинственный арканум (9 круг)',
+    reset: 'long',
+    feature_id: 'mystic-arcanum-9',
+    fixed_uses: 1,
+    kind: 'resource',
+    on_hot: false,
+    unlock_level: 17,
+  },
   favored_enemy_uses: {
     name_ru: 'Заклятый враг',
     reset: 'long',
@@ -819,6 +873,23 @@ export function computeProgression2024(input: {
     if (hasSorcerousRestoration && cls.slug === 'sorcerer') rawRes.sorcerous_restoration = 1
     if (hasUncannyMetabolism && cls.slug === 'monk') rawRes.uncanny_metabolism = 1
     if (cls.slug === 'artificer' && cls.level >= 1) rawRes.magic_of_making = true
+    if (cls.slug === 'warlock') {
+      let hasMagicalCunning = false
+      let hasContactPatron = false
+      for (const lr of levels) {
+        if (Number(lr.level || 0) > cls.level) continue
+        for (const f of (lr.features as Array<Record<string, unknown>>) || []) {
+          if (f.id === 'magical-cunning') hasMagicalCunning = true
+          if (f.id === 'contact-patron') hasContactPatron = true
+        }
+      }
+      if (hasMagicalCunning) rawRes.magical_cunning = 1
+      if (hasContactPatron) rawRes.contact_patron = 1
+      if (cls.level >= 11) rawRes.mystic_arcanum_6 = 1
+      if (cls.level >= 13) rawRes.mystic_arcanum_7 = 1
+      if (cls.level >= 15) rawRes.mystic_arcanum_8 = 1
+      if (cls.level >= 17) rawRes.mystic_arcanum_9 = 1
+    }
 
     for (const [key, value] of Object.entries(rawRes)) {
       if (SCALE_KEYS.has(key) || key === 'bardic_inspiration_die') {

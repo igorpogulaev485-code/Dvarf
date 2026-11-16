@@ -556,7 +556,9 @@ export function buildPermanentBonuses2024(input: {
     const chaM = abilityMod(ab.cha ?? 10)
     add('dark-ones-blessing', 'Благословение темнейшего', 'other_calc', {
       temp_hp: Math.max(1, chaM + classLevel),
-    })
+      on_reduce_enemy_to_0: true,
+      ally_kill_within_ft: 10,
+    }, 3, 'Врем. хиты = Хар + ур. колдуна (мин. 1), когда ты или союзник в пределах 10 фт. опускаете врага до 0 хитов')
   }
   if (subclassSlug === 'cleric__light-domain' && classLevel >= 6) {
     add('improved-warding-flare', 'Улучшенная ограждающая вспышка', 'other_calc', { reset_short: true }, 6)
@@ -632,10 +634,15 @@ export function buildSubclassResources2024(input: {
     push('war_priest', 'Боевой священник', Math.max(1, wisMod), 'short', 'war-priest')
   } else if (subclassSlug === 'warlock__celestial-patron') {
     push('healing_light', 'Лечащий свет', 1 + classLevel, 'long', 'healing-light', { die: 'd6' })
+    if (classLevel >= 14) push('searing_vengeance', 'Опаляющее возмездие', 1, 'long', 'searing-vengeance')
   } else if (subclassSlug === 'warlock__archfey') {
     push('steps_of_the_fey', 'Шаг феи', Math.max(1, chaMod), 'long', 'steps-of-the-fey')
-  } else if (subclassSlug === 'warlock__fiend-patron' && classLevel >= 6) {
-    push('dark_ones_own_luck', 'Удача темнейшего', Math.max(1, chaMod), 'long', 'dark-ones-own-luck')
+    if (classLevel >= 10) push('beguiling_defenses', 'Чарующая защита', 1, 'long', 'beguiling-defenses')
+  } else if (subclassSlug === 'warlock__fiend-patron') {
+    if (classLevel >= 6) {
+      push('dark_ones_own_luck', 'Удача темнейшего', Math.max(1, chaMod), 'long', 'dark-ones-own-luck')
+    }
+    if (classLevel >= 14) push('hurl_through_hell', 'Бросок через преисподнюю', 1, 'long', 'hurl-through-hell')
   } else if (subclassSlug === 'warlock__greate-old-one-patron' && classLevel >= 6) {
     push('clairvoyant_combatant', 'Провидящий боец', 1, 'short', 'clairvoyant-combatant')
   } else if (subclassSlug === 'warlock__undead') {
