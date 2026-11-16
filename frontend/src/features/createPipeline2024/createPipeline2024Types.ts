@@ -1,6 +1,7 @@
 /** P24-M03: state for the 2024 create wizard (level 1 only). */
 
 import type { AbilityScores } from '../../shared/dnd/multiclassRules'
+import { freeBookSlotsAtLevel } from '../../shared/dnd/wizardSpellbook'
 import type { AbilityMethod } from '../../shared/dnd/pointBuy'
 import { applyStandardArrayByPriority } from '../../shared/dnd/pointBuy'
 import type { CatalogEntry } from '../../shared/api/catalog'
@@ -81,6 +82,8 @@ export type Create2024State = {
   multiclassLevel: number
 
   cantripIds: string[]
+  /** Wizard only: first-level spells written into the spellbook (6 at level 1). */
+  spellbookSpellIds: string[]
   preparedSpellIds: string[]
 }
 
@@ -117,6 +120,7 @@ export function createEmptyCreate2024State(): Create2024State {
     multiclassSlug: null,
     multiclassLevel: 1,
     cantripIds: [],
+    spellbookSpellIds: [],
     preparedSpellIds: [],
   }
 }
@@ -163,6 +167,16 @@ export function classL1Spellcasting(
     cantrips: Number(sc.cantrips || 0),
     prepared_spells: Number(sc.prepared_spells || 0),
   }
+}
+
+export const WIZARD_CLASS_SLUG = 'wizard'
+
+/** 6 free first-level spells at wizard level 1 (same table as 2014). */
+export const WIZARD_BOOK_SPELLS_AT_L1 = freeBookSlotsAtLevel(1)
+
+/** Wizards write spells into a spellbook first, then prepare from it. */
+export function usesSpellbook(classSlug: string | null | undefined): boolean {
+  return classSlug === WIZARD_CLASS_SLUG
 }
 
 export function isCasterAtLevel1(classEntry: CatalogEntry | null | undefined): boolean {
@@ -218,6 +232,7 @@ export function toCreate2024Request(
     origin_feat_skilled: [...(state.originFeatPicks.skilled ?? [])],
     cantrip_ids: [...state.cantripIds],
     prepared_spell_ids: [...state.preparedSpellIds],
+    spellbook_spell_ids: [...state.spellbookSpellIds],
     class_option_picks: {
       ...state.classOptionPicks,
       client_picks: clientPicks(state),

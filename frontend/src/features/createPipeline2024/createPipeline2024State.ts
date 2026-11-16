@@ -31,6 +31,8 @@ import {
   classL1Spellcasting,
   entryData,
   speciesGrantsOriginFeat,
+  usesSpellbook,
+  WIZARD_BOOK_SPELLS_AT_L1,
   type Create2024CatalogBundle,
   type Create2024State,
   type Create2024StepId,
@@ -471,7 +473,29 @@ function levelingIssues(state: Create2024State, ctx: StepIssueCtx): string[] {
     if (!uniqueCount(state.cantripIds, sc.cantrips)) {
       issues.push(`Заговоры: выбрано ${state.cantripIds.length} из ${sc.cantrips}`)
     }
-    if (!uniqueCount(state.preparedSpellIds, sc.prepared_spells)) {
+    if (usesSpellbook(state.classSlug)) {
+      if (!uniqueCount(state.spellbookSpellIds, WIZARD_BOOK_SPELLS_AT_L1)) {
+        issues.push(
+          `Книга заклинаний: выбрано ${state.spellbookSpellIds.length} из ${WIZARD_BOOK_SPELLS_AT_L1}`,
+        )
+      }
+      const book = new Set(state.spellbookSpellIds)
+      if (state.preparedSpellIds.some((id) => !book.has(id))) {
+        issues.push('Подготовить можно только заклинания из книги')
+      }
+      if (
+        state.preparedSpellIds.length > sc.prepared_spells ||
+        new Set(state.preparedSpellIds).size !== state.preparedSpellIds.length
+      ) {
+        issues.push(
+          `Подготовка: не больше ${sc.prepared_spells} заклинаний (выбрано ${state.preparedSpellIds.length})`,
+        )
+      } else if (state.preparedSpellIds.length < sc.prepared_spells) {
+        issues.push(
+          `Подготовка: выбрано ${state.preparedSpellIds.length} из ${sc.prepared_spells}`,
+        )
+      }
+    } else if (!uniqueCount(state.preparedSpellIds, sc.prepared_spells)) {
       issues.push(
         `Заклинания 1 круга: выбрано ${state.preparedSpellIds.length} из ${sc.prepared_spells}`,
       )
@@ -529,6 +553,20 @@ export function prevCreate2024Step(
   const idx = steps.indexOf(step)
   if (idx <= 0) return null
   return steps[idx - 1] ?? null
+}
+
+/** Wizard book pick; dropping a spell from the book also unprepares it. */
+export function toggleSpellbookPick(
+  book: string[],
+  prepared: string[],
+  id: string,
+): { spellbookSpellIds: string[]; preparedSpellIds: string[] } {
+  const spellbookSpellIds = toggleUniquePick(book, id, WIZARD_BOOK_SPELLS_AT_L1)
+  const inBook = new Set(spellbookSpellIds)
+  return {
+    spellbookSpellIds,
+    preparedSpellIds: prepared.filter((x) => inBook.has(x)),
+  }
 }
 
 export function toggleUniquePick(list: string[], id: string, max: number): string[] {

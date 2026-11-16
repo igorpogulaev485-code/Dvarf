@@ -262,6 +262,23 @@ export function freeBookCap(wizardLevel: number): number {
   return 6 + 2 * (lv - 1)
 }
 
+/**
+ * Level-down: keep at most 2 × (level − 1) `level_up` book spells (first added stay,
+ * the newest research is dropped). Starting / copied / feature rows are untouched.
+ */
+export function trimLevelUpSpellbookRows<
+  T extends { level: number; spellbook_acquisition?: SpellbookAcquisition | null },
+>(known: T[], newWizardLevel: number): T[] {
+  const allowed = Math.max(0, freeBookCap(newWizardLevel) - freeBookCap(1))
+  let seen = 0
+  const next = known.filter((row) => {
+    if (row.level < 1 || row.spellbook_acquisition !== 'level_up') return true
+    seen += 1
+    return seen <= allowed
+  })
+  return next.length === known.length ? known : next
+}
+
 export function isFreeAcquisition(acq: SpellbookAcquisition | null | undefined): boolean {
   return acq === 'starting' || acq === 'level_up'
 }

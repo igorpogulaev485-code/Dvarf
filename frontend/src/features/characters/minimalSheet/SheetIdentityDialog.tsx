@@ -41,6 +41,7 @@ import { featureLockedExpertiseSkillIds } from '../../../shared/dnd/fighterArche
 import { clearFeaturePicksAboveClassLevel, listUnlockedExpertiseKeys } from '../../../shared/dnd/pendingFeatureChoices'
 import { revokeFeatGrantFromDraft, revokeFeatGrantsForAsi, revokeFeatGrantsForBackground, syncFeatProficiencyResources } from '../featEffects'
 import { syncHitDicePools } from '../../../shared/dnd/classHitDice'
+import { trimLevelUpSpellbookRows } from '../../../shared/dnd/wizardSpellbook'
 import { averageHpGain, hitDieForClass } from '../../../shared/dnd/multiclassRules'
 import { withSyncedHitDiceSummary } from '../play'
 import { unlockFeaturesForClasses } from '../../../shared/dnd/classFeatures'
@@ -90,6 +91,10 @@ function levelDownClassState2024(
     ...draft,
     classOptions2024: trimmed.classOptions,
     weaponMastery: trimmed.weaponMastery,
+  }
+  if (slug === 'wizard') {
+    const known = trimLevelUpSpellbookRows(next.spells.known, newLevel)
+    if (known !== next.spells.known) next = { ...next, spells: { ...next.spells, known } }
   }
   const hasSubclass = Boolean(row.subclass_catalog_id || row.subclass_name.trim())
   if (hasSubclass && subclassDropsOnLevelDown2024(slug, beforeLevel)) {

@@ -91,6 +91,7 @@ export type CharacterCreate2024Request = {
   origin_feat_skilled?: string[]
   cantrip_ids?: string[]
   prepared_spell_ids?: string[]
+  spellbook_spell_ids?: string[]
   class_option_picks?: Record<string, unknown>
   subclass_slug?: string | null
 }

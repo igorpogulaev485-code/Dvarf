@@ -7,6 +7,25 @@ const LANGUAGE_ALIASES: Record<string, string> = {
   'водяной язык': 'Акван',
   druidic: 'Друидический',
   друидический: 'Друидический',
+  // 2024 create used to store raw ids on the sheet.
+  common: 'Общий',
+  'common-sign-language': 'Язык жестов',
+  dwarvish: 'Дварфийский',
+  elvish: 'Эльфийский',
+  giant: 'Великаний',
+  gnomish: 'Гномий',
+  goblin: 'Гоблинский',
+  halfling: 'Язык полуросликов',
+  orc: 'Орочий',
+  abyssal: 'Бездны',
+  celestial: 'Небесный',
+  'deep-speech': 'Глубинная речь',
+  draconic: 'Драконий',
+  infernal: 'Инфернальный',
+  primordial: 'Первичный',
+  sylvan: 'Сильван',
+  undercommon: 'Подземный',
+  'thieves-cant': 'Воровской жаргон',
 }
 
 function normalizeName(value: string): string {
@@ -17,7 +36,8 @@ function normalizeName(value: string): string {
 export function canonicalLanguageName(name: string): string {
   const normalized = normalizeName(name)
   if (!normalized) return ''
-  return LANGUAGE_ALIASES[normalized.toLowerCase()] ?? normalized
+  const key = normalized.toLowerCase()
+  return LANGUAGE_ALIASES[key] ?? LANGUAGE_ALIASES[key.replace(/[_\s]+/g, '-')] ?? normalized
 }
 
 export function canonicalLanguageList(names: readonly string[]): string[] {

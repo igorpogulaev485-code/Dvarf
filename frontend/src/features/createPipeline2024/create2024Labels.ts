@@ -1,6 +1,7 @@
 /** P24-M03: Russian labels for the 2024 create wizard (no service ids in UI). */
 
 import type { CatalogEntry } from '../../shared/api/catalog'
+import { TOOL_NAME_RU_BY_SLUG } from '../../shared/dnd/toolNames'
 
 export const SIZE_LABEL_RU: Record<string, string> = {
   tiny: 'Крошечный',
@@ -85,13 +86,7 @@ export const PRIMAL_ORDER_OPTIONS = [
 export const GENDER_NONE_RU = 'Не указан'
 
 /** Fallback RU names for tool ids the backend accepts but the item catalog lacks. */
-const TOOL_NAME_FALLBACK_RU: Record<string, string> = {
-  'dice-set': 'Набор игральных костей',
-  'dragonchess-set': 'Набор драконьих шахмат',
-  'playing-card-set': 'Набор игральных карт',
-  'three-dragon-ante-set': 'Набор «Ставка трёх драконов»',
-  'gaming-set': 'Игровой набор',
-}
+const TOOL_NAME_FALLBACK_RU = TOOL_NAME_RU_BY_SLUG
 
 export const ARTISAN_TOOL_IDS: readonly string[] = [
   'alchemists-supplies',

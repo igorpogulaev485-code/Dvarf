@@ -146,13 +146,19 @@ export function Create2024SheetPreview({ model }: Create2024SheetPreviewProps) {
           <Text tone="muted">Монеты: {model.coinsGp} зм</Text>
         </Section>
 
-        {model.cantrips.length || model.preparedSpells.length || model.featSpells.length ? (
+        {model.cantrips.length ||
+        model.spellbook.length ||
+        model.preparedSpells.length ||
+        model.featSpells.length ? (
           <Section title="Заклинания">
             <ul className="create-2024__list">
               {model.castingAbility ? (
                 <li>Заклинательная характеристика: {model.castingAbility}</li>
               ) : null}
               {model.cantrips.length ? <li>Заговоры: {model.cantrips.join(', ')}</li> : null}
+              {model.spellbook.length ? (
+                <li data-testid="p24-m03-sheet-spellbook">В книге: {model.spellbook.join(', ')}</li>
+              ) : null}
               {model.preparedSpells.length ? (
                 <li>Подготовлено: {model.preparedSpells.join(', ')}</li>
               ) : null}

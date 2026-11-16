@@ -283,6 +283,9 @@ export function CharacterDetailPage() {
     }
   }
 
+  const classicSheetLabel =
+    character?.rules_edition === '2024' ? 'Классический лист 2024' : 'Классический лист 2014'
+
   return (
     <main className="page page--app">
       <Stack gap={4} className="sheet-play-stack">
@@ -311,7 +314,7 @@ export function CharacterDetailPage() {
                   data-onboarding="classic"
                   onClick={() => navigate(`/characters/${character.id}/classic`)}
                 >
-                  <span className="sheet-topbar__classic-full">Классический лист 2014</span>
+                  <span className="sheet-topbar__classic-full">{classicSheetLabel}</span>
                   <span className="sheet-topbar__classic-short">Классический</span>
                 </button>
                 <Button variant="ghost" onClick={() => setLobbyOpen(true)}>
@@ -340,7 +343,7 @@ export function CharacterDetailPage() {
                         navigate(classicPath)
                       }}
                     >
-                      Классический лист 2014
+                      {classicSheetLabel}
                     </button>
                     <button
                       type="button"

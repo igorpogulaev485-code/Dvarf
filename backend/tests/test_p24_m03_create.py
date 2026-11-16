@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from types import SimpleNamespace
 from uuid import uuid4
 
@@ -338,10 +339,18 @@ def build_valid_payload(class_slug: str, **overrides) -> dict:
             if len(filled) >= int(block.prepared_spells or 0):
                 break
         payload["prepared_spell_ids"] = filled
+        if class_slug == "wizard":
+            book = _spell_pick("wizard", 1, 6)
+            payload["spellbook_spell_ids"] = book
+            payload["prepared_spell_ids"] = book[: int(block.prepared_spells or 0)]
 
     payload.update(overrides)
     # Drop None optional fields
     return {k: v for k, v in payload.items() if v is not None}
+
+
+def _is_cyrillic(value: str) -> bool:
+    return bool(re.search(r"[А-Яа-яЁё]", value))
 
 
 def test_rules_edition_2024_still_closed():
@@ -368,8 +377,13 @@ def test_create_2024_each_class(class_slug: str):
     assert sheet["classes"][0]["level"] == 1
     assert sheet["classes"][0]["subclass_slug"] is None
     assert "class_progress_2024" in sheet
-    assert sheet["proficiency"]["languages"][0] == COMMON_LANGUAGE_ID
+    assert sheet["proficiency"]["languages"][0] == "Общий"
     assert len(sheet["create_2024"]["languages_chosen"]) == 2
+    for name in [*sheet["proficiency"]["languages"], *sheet["proficiency"]["tools"]]:
+        assert _is_cyrillic(name), f"English-looking proficiency name: {name!r}"
+    for row in sheet["spells"]["known"]:
+        assert isinstance(row, dict)
+        assert _is_cyrillic(row["name"])
     # No racial ASI: final scores = base + background only
     for key, base in payload["base_abilities"].items():
         bonus = int(payload["background_asi"].get(key, 0))
@@ -378,6 +392,103 @@ def test_create_2024_each_class(class_slug: str):
         assert sheet.get("weapon_mastery")
     if class_slug == "fighter":
         assert sheet["create_2024"]["fighting_style"] == "defense"
+
+
+def test_languages_and_tools_are_russian_on_sheet():
+    payload = build_valid_payload(
+        "fighter",
+        language_ids=["elvish", "dwarvish"],
+        background_tool_id="dice-set",
+    )
+    sheet = create24.validate_create_2024(create24.payload_from_dict(payload)).sheet
+    langs = sheet["proficiency"]["languages"]
+    assert langs[:3] == ["Общий", "Эльфийский", "Дварфийский"]
+    rogue = build_valid_payload("rogue", language_ids=["elvish", "dwarvish"])
+    rogue_sheet = create24.validate_create_2024(create24.payload_from_dict(rogue)).sheet
+    assert "Воровской жаргон" in rogue_sheet["proficiency"]["languages"]
+    assert "Набор игральных костей" in sheet["proficiency"]["tools"]
+    assert "dice-set" not in sheet["proficiency"]["tools"]
+    assert sheet["create_2024"]["languages_chosen"] == ["elvish", "dwarvish"]
+
+
+def test_druid_gets_druidic_in_russian():
+    payload = build_valid_payload("druid")
+    sheet = create24.validate_create_2024(create24.payload_from_dict(payload)).sheet
+    assert "Друидический" in sheet["proficiency"]["languages"]
+
+
+def test_tool_name_ru_never_latin():
+    assert create24.tool_name_ru("dice-set") == "Набор игральных костей"
+    assert create24.tool_name_ru("thieves_tools") == "Воровские инструменты"
+    assert create24.tool_name_ru("glassblower s tools") == "Инструменты стеклодува"
+    assert create24.tool_name_ru("Набор травника") == "Набор травника"
+    assert _is_cyrillic(create24.tool_name_ru("totally-unknown-tool"))
+
+
+def test_wizard_create_materializes_spellbook():
+    payload = build_valid_payload("wizard")
+    book = payload["spellbook_spell_ids"]
+    assert len(book) == 6
+    sheet = create24.validate_create_2024(create24.payload_from_dict(payload)).sheet
+    known = sheet["spells"]["known"]
+    leveled = [row for row in known if row["level"] >= 1]
+    in_book = [row for row in leveled if row.get("in_spellbook")]
+    assert len(in_book) >= 6
+    assert all(row["spellbook_acquisition"] == "starting" for row in in_book)
+    prepared_names = {row["name"] for row in leveled if row["prepared"]}
+    assert len(prepared_names) >= len(payload["prepared_spell_ids"])
+    assert all(row["name"] and _is_cyrillic(row["name"]) for row in known)
+    assert any(row["level"] == 0 for row in known)
+    item = next(
+        i
+        for i in sheet["inventory"]["items"]
+        if i["id"] == sheet["spells"]["wizard_spellbook"]["primaryBookItemId"]
+    )
+    assert item["catalog_slug"] == "spellbook"
+    assert sheet["create_2024"]["spellbook_spell_ids"] == book
+
+
+def test_wizard_gold_route_still_gets_spellbook_item():
+    payload = build_valid_payload("wizard", class_equipment="gold")
+    sheet = create24.validate_create_2024(create24.payload_from_dict(payload)).sheet
+    ids = [i["id"] for i in sheet["inventory"]["items"]]
+    assert sheet["spells"]["wizard_spellbook"]["primaryBookItemId"] in ids
+
+
+def test_wizard_requires_six_book_spells():
+    payload = build_valid_payload("wizard")
+    payload["spellbook_spell_ids"] = payload["spellbook_spell_ids"][:5]
+    with pytest.raises(create24.Create2024Error) as exc:
+        create24.validate_create_2024(create24.payload_from_dict(payload))
+    assert exc.value.code == "create_2024_spells"
+
+
+def test_wizard_prepared_must_be_subset_of_book():
+    payload = build_valid_payload("wizard")
+    outsider = next(
+        s for s in _spell_pick("wizard", 1, 12) if s not in payload["spellbook_spell_ids"]
+    )
+    payload["prepared_spell_ids"] = [outsider, *payload["prepared_spell_ids"][1:]]
+    with pytest.raises(create24.Create2024Error) as exc:
+        create24.validate_create_2024(create24.payload_from_dict(payload))
+    assert exc.value.code == "create_2024_spells"
+
+
+def test_non_wizard_rejects_spellbook_ids():
+    payload = build_valid_payload("cleric")
+    payload["spellbook_spell_ids"] = _spell_pick("wizard", 1, 6)
+    with pytest.raises(create24.Create2024Error) as exc:
+        create24.validate_create_2024(create24.payload_from_dict(payload))
+    assert exc.value.code == "create_2024_spells"
+
+
+def test_cleric_known_spells_are_sheet_objects():
+    payload = build_valid_payload("cleric")
+    sheet = create24.validate_create_2024(create24.payload_from_dict(payload)).sheet
+    known = sheet["spells"]["known"]
+    assert known and all(isinstance(row, dict) and row["name"] for row in known)
+    assert not any("in_spellbook" in row for row in known)
+    assert sheet["spells"].get("wizard_spellbook") is None
 
 
 def test_reject_subclass_at_level_1():

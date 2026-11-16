@@ -45,6 +45,8 @@ class CharacterCreate2024Request(BaseModel):
 
     cantrip_ids: list[str] = Field(default_factory=list)
     prepared_spell_ids: list[str] = Field(default_factory=list)
+    # Wizard only: 6 first-level spells written into the spellbook at level 1.
+    spellbook_spell_ids: list[str] = Field(default_factory=list)
     class_option_picks: dict[str, Any] = Field(default_factory=dict)
 
     # Must stay empty at level 1.

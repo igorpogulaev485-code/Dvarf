@@ -18,6 +18,7 @@ import {
 } from './pendingFeatureChoices2024'
 import { emptyClassOptions2024 } from './edition2024ClassOptions'
 import { emptyWeaponMasteryState } from './weaponMastery'
+import { trimLevelUpSpellbookRows } from './wizardSpellbook'
 
 const fighter = createClassLevel({ id: 'f1', name: 'Воин', catalog_id: 'fighter', level: 1 })
 
@@ -186,5 +187,46 @@ const mc = checkMulticlassPrerequisites2024({
 })
 assert.equal(mc.ok, false)
 assert.match(mc.reasonRu, /≥13/)
+
+// wizard: +2 book spells on every level from 2, none at 1 (create fills the 6)
+const wizardRow = createClassLevel({ id: 'w1', name: 'Волшебник', catalog_id: 'wizard', level: 1 })
+function wizardSteps(level: number, hasSubclass = true) {
+  return buildPendingWizardSteps2024({
+    classEntryId: wizardRow.id,
+    className: wizardRow.name,
+    classSlug: 'wizard',
+    classLevel: level,
+    hasSubclass,
+    classAsi: [],
+  })
+}
+assert.equal(wizardSteps(1).length, 0, 'wizard L1: create handles the book')
+const w2 = wizardSteps(2)
+assert.deepEqual(w2.map((s) => s.kind), ['spellbook_picks'])
+const w2step = w2[0]
+assert.ok(w2step.kind === 'spellbook_picks' && w2step.picksNeeded === 2 && w2step.classLevel === 2)
+assert.deepEqual(
+  wizardSteps(3, false).map((s) => s.kind),
+  ['subclass', 'spellbook_picks'],
+  'book picks follow the subclass step',
+)
+assert.equal(steps(2).length, 0, 'non-wizard gets no book picks')
+
+// wizard level-down: newest level_up research goes first
+const starting = Array.from({ length: 6 }, (_, i) => ({
+  level: 1,
+  name: `s${i}`,
+  spellbook_acquisition: 'starting' as const,
+}))
+const l2 = ['a', 'b'].map((name) => ({ level: 1, name, spellbook_acquisition: 'level_up' as const }))
+const l3 = ['c', 'd'].map((name) => ({ level: 2, name, spellbook_acquisition: 'level_up' as const }))
+const bookAtL3 = [...starting, ...l2, ...l3]
+assert.deepEqual(
+  trimLevelUpSpellbookRows(bookAtL3, 2).map((s) => s.name),
+  [...starting, ...l2].map((s) => s.name),
+  'L3 → L2 drops the level 3 picks',
+)
+assert.equal(trimLevelUpSpellbookRows(bookAtL3, 3), bookAtL3, 'no change at the same level')
+assert.equal(trimLevelUpSpellbookRows(bookAtL3, 1).length, 6, 'L1 keeps only the starting six')
 
 console.log('pendingFeatureChoices2024.selfcheck ok')

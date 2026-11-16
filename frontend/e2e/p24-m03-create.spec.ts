@@ -131,7 +131,7 @@ type ClassWalk = {
   equipment: 'a' | 'b' | 'gold'
 }
 
-type SpellWalk = { cantrips: string[]; prepared: string[] }
+type SpellWalk = { cantrips: string[]; book?: string[]; prepared: string[] }
 
 type Walk = {
   key: string
@@ -184,10 +184,26 @@ async function walkClass(page: Page, walk: Walk) {
   await pickPrefixed(page, 'p24-m03-pick-class-equipment', [cls.equipment])
 }
 
-async function walkSpells(page: Page, spells: SpellWalk) {
+async function walkSpells(page: Page, spells: SpellWalk, project: string) {
   await expect(page.getByTestId('p24-m03-step-spells')).toBeVisible()
   for (const id of spells.cantrips) {
     await page.getByTestId(`p24-m03-card-${id}`).click()
+  }
+  if (spells.book) {
+    // Wizard: write 6 spells into the book first, then prepare only from the book.
+    await page.getByTestId('p24-m03-spell-tab-book').click()
+    for (const id of spells.book) {
+      await page.getByTestId(`p24-m03-card-${id}`).click()
+    }
+    await shot(page, 'wizard-spells-book-tab', project)
+    await expect(page.getByTestId('p24-m03-spell-tab-book')).toContainText(
+      `${spells.book.length}/${spells.book.length}`,
+    )
+    await page.getByTestId('p24-m03-spell-tab-level1').click()
+    for (const id of spells.prepared) {
+      await expect(page.getByTestId(`p24-m03-card-${id}`)).toBeVisible()
+    }
+    await shot(page, 'wizard-spells-prepare-tab', project)
   }
   await page.getByTestId('p24-m03-spell-tab-level1').click()
   for (const id of spells.prepared) {
@@ -252,6 +268,25 @@ async function loginViaApi(page: Page) {
   return { email, password }
 }
 
+/** Sheet header link follows the edition; no English slugs for languages / tools on the desk. */
+async function assertSheetRussian(page: Page, walk: Walk, project: string) {
+  const main = page.locator('main')
+  await expect(main).toBeVisible()
+  const body = await main.innerText()
+  for (const slug of ['elvish', 'dwarvish', 'draconic', 'goblin', 'dice-set', 'smiths-tools']) {
+    expect(body, `English slug «${slug}» on the sheet`).not.toContain(slug)
+  }
+  const classic = page.locator('.sheet-topbar__classic-full')
+  if (project.startsWith('desktop') && (await classic.count())) {
+    await expect(classic).toHaveText('Классический лист 2024')
+  }
+  if (walk.key === 'wizard') {
+    await expect(page.getByText('Огненные ладони', { exact: false }).first()).toBeAttached({
+      timeout: 15_000,
+    })
+  }
+}
+
 const WALKS: Walk[] = [
   {
     key: 'fighter',
@@ -298,6 +333,7 @@ const WALKS: Walk[] = [
     },
     spells: {
       cantrips: ['fire-bolt', 'light', 'prestidigitation'],
+      book: ['shield', 'magic-missile', 'detect-magic', 'mage-armor', 'sleep', 'burning-hands'],
       prepared: ['shield', 'magic-missile', 'detect-magic', 'mage-armor'],
     },
   },
@@ -437,14 +473,21 @@ test.describe('P24-M03 create 2024 wizard v2', () => {
 
       await expect(page.getByTestId('p24-m03-step-leveling')).toBeVisible()
       await expect(page.getByTestId('p24-m03-name')).toHaveValue(walk.name)
-      if (walk.spells) await walkSpells(page, walk.spells)
+      if (walk.spells) await walkSpells(page, walk.spells, project)
       await expect(page.getByTestId('p24-m03-finish')).toBeEnabled()
       await shot(page, `${walk.key}-leveling`, project)
       await assertNoServiceLatin(page)
 
       await page.getByTestId('p24-m03-finish').click()
       await expect(page).toHaveURL(/\/characters\/[0-9a-f-]{36}/i, { timeout: 45_000 })
+      await expect(page.locator('.sheet-topbar--play .sheet-topbar__actions')).toBeVisible({
+        timeout: 45_000,
+      })
+      await page.waitForLoadState('networkidle')
+      const skipTips = page.getByRole('button', { name: 'Пропустить подсказки' })
+      if (await skipTips.isVisible().catch(() => false)) await skipTips.click()
       await shot(page, `${walk.key}-sheet-open`, project)
+      await assertSheetRussian(page, walk, project)
     })
   }
 })

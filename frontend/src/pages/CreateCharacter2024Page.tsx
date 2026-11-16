@@ -51,6 +51,7 @@ import {
   speciesNeedsAncestry,
   speciesNeedsLineage,
   speciesSizeOptions,
+  toggleSpellbookPick,
   toggleUniquePick,
 } from '../features/createPipeline2024/createPipeline2024State'
 import {
@@ -59,7 +60,9 @@ import {
   createEmptyCreate2024State,
   entryData,
   toCreate2024Request,
+  usesSpellbook,
   visibleCreate2024Steps,
+  WIZARD_BOOK_SPELLS_AT_L1,
   type Create2024CatalogBundle,
   type Create2024State,
   type Create2024StepId,
@@ -191,7 +194,7 @@ export function CreateCharacter2024Page({
   const [error, setError] = useState<string | null>(null)
   const [validated, setValidated] = useState<CharacterCreate2024ValidateResponse | null>(null)
   const [setupOpen, setSetupOpen] = useState(false)
-  const [spellTab, setSpellTab] = useState<'cantrips' | 'level1'>('cantrips')
+  const [spellTab, setSpellTab] = useState<'cantrips' | 'book' | 'level1'>('cantrips')
   const [focusSpellSlug, setFocusSpellSlug] = useState<string | null>(null)
   const [harnessDone, setHarnessDone] = useState(false)
 
@@ -671,6 +674,7 @@ export function CreateCharacter2024Page({
               classToolIds: [],
               classEquipment: packs[0]?.id || 'a',
               cantripIds: [],
+              spellbookSpellIds: [],
               preparedSpellIds: [],
               subclassSlug: null,
             })
@@ -730,11 +734,29 @@ export function CreateCharacter2024Page({
     const classSlug = state.classSlug || ''
     const cantrips = spellsByLevelForClass(catalogData.spells, 0, [classSlug])
     const level1 = spellsByLevelForClass(catalogData.spells, 1, [classSlug])
-    const tab: 'cantrips' | 'level1' =
-      spellTab === 'cantrips' && (sc?.cantrips ?? 0) === 0 ? 'level1' : spellTab
-    const spellList = tab === 'cantrips' ? cantrips : level1
-    const selected = tab === 'cantrips' ? state.cantripIds : state.preparedSpellIds
-    const max = tab === 'cantrips' ? (sc?.cantrips ?? 0) : (sc?.prepared_spells ?? 0)
+    const wizardBook = usesSpellbook(classSlug)
+    const bookSlugs = new Set(state.spellbookSpellIds)
+    let tab: 'cantrips' | 'book' | 'level1' = spellTab
+    if (!wizardBook && tab === 'book') tab = 'level1'
+    if (tab === 'cantrips' && (sc?.cantrips ?? 0) === 0) tab = wizardBook ? 'book' : 'level1'
+    const spellList =
+      tab === 'cantrips'
+        ? cantrips
+        : tab === 'book' || !wizardBook
+          ? level1
+          : level1.filter((row) => bookSlugs.has(row.slug))
+    const selected =
+      tab === 'cantrips'
+        ? state.cantripIds
+        : tab === 'book'
+          ? state.spellbookSpellIds
+          : state.preparedSpellIds
+    const max =
+      tab === 'cantrips'
+        ? (sc?.cantrips ?? 0)
+        : tab === 'book'
+          ? WIZARD_BOOK_SPELLS_AT_L1
+          : (sc?.prepared_spells ?? 0)
     const focus =
       catalogData.spells.find((row) => row.slug === focusSpellSlug) ??
       spellList.find((row) => row.slug === selected[selected.length - 1]) ??
@@ -849,6 +871,18 @@ export function CreateCharacter2024Page({
                           Заговоры {state.cantripIds.length}/{sc.cantrips}
                         </button>
                       ) : null}
+                      {wizardBook ? (
+                        <button
+                          type="button"
+                          role="tab"
+                          aria-selected={tab === 'book'}
+                          className={`create-pipeline__chip${tab === 'book' ? ' create-pipeline__chip--active' : ''}`}
+                          onClick={() => setSpellTab('book')}
+                          data-testid="p24-m03-spell-tab-book"
+                        >
+                          В книгу {state.spellbookSpellIds.length}/{WIZARD_BOOK_SPELLS_AT_L1}
+                        </button>
+                      ) : null}
                       {sc.prepared_spells > 0 ? (
                         <button
                           type="button"
@@ -858,17 +892,28 @@ export function CreateCharacter2024Page({
                           onClick={() => setSpellTab('level1')}
                           data-testid="p24-m03-spell-tab-level1"
                         >
-                          1 круг {state.preparedSpellIds.length}/{sc.prepared_spells}
+                          {wizardBook ? 'Подготовка' : '1 круг'} {state.preparedSpellIds.length}/
+                          {sc.prepared_spells}
                         </button>
                       ) : null}
                     </div>
                     <Text tone="muted">
                       Выбрано {selected.length} из {max}
+                      {wizardBook && tab === 'book'
+                        ? '. Волшебник вписывает заклинания 1 круга в книгу, затем готовит их из неё.'
+                        : null}
+                      {wizardBook && tab === 'level1' && state.spellbookSpellIds.length === 0
+                        ? '. Сначала выберите заклинания во вкладке «В книгу».'
+                        : null}
                     </Text>
                   </Stack>
                 }
                 onSelect={(slug) => {
                   setFocusSpellSlug(slug)
+                  if (tab === 'book') {
+                    patch(toggleSpellbookPick(state.spellbookSpellIds, state.preparedSpellIds, slug))
+                    return
+                  }
                   const nextList = toggleUniquePick(selected, slug, max)
                   if (tab === 'cantrips') patch({ cantripIds: nextList })
                   else patch({ preparedSpellIds: nextList })

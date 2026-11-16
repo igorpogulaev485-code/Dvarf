@@ -9,9 +9,12 @@ import {
   CREATE_2024_STEP_LABELS,
   createEmptyCreate2024State,
   classL1Spellcasting,
+  entryData,
   isCasterAtLevel1,
   toCreate2024Request,
+  usesSpellbook,
   visibleCreate2024Steps,
+  WIZARD_BOOK_SPELLS_AT_L1,
   type Create2024StepId,
 } from '../../features/createPipeline2024/createPipeline2024Types'
 import {
@@ -34,6 +37,7 @@ import {
   speciesNeedsFeatStep,
   speciesNeedsOriginFeat,
   speciesSizeOptions,
+  toggleSpellbookPick,
   toolChoicePool,
   weaponMasteryLimit,
 } from '../../features/createPipeline2024/createPipeline2024State'
@@ -395,6 +399,11 @@ function autoState(classEntry: CatalogEntry, bg: CatalogEntry, species: CatalogE
     cantripIds: sc
       ? spellsByLevelForClass(catalog.spells, 0, [spells]).slice(0, sc.cantrips).map((s) => s.slug)
       : [],
+    spellbookSpellIds: usesSpellbook(classEntry.slug)
+      ? spellsByLevelForClass(catalog.spells, 1, [spells])
+          .slice(0, WIZARD_BOOK_SPELLS_AT_L1)
+          .map((s) => s.slug)
+      : [],
     preparedSpellIds: sc
       ? spellsByLevelForClass(catalog.spells, 1, [spells])
           .slice(0, sc.prepared_spells)
@@ -459,6 +468,54 @@ for (const [classEntry, bg, species] of combos) {
   const bad = collectStrings(model).filter((x) => LATIN_WORD.test(x))
   assert.deepEqual(bad, [], `${label}: Latin in sheet preview`)
   assert.equal(toCreate2024Request(st).class_slug, classEntry.slug)
+}
+
+{
+  const wizardEntry = catalog.classes.find((c) => c.slug === 'wizard')!
+  const base = autoState(wizardEntry, catalog.backgrounds[0]!, creatable[0]!)
+  const ctx = {
+    classEntry: wizardEntry,
+    backgroundEntry: catalog.backgrounds[0]!,
+    speciesEntry: creatable[0]!,
+    languageChoiceCount: FIXTURE_LANGUAGES.choice_count,
+    catalog,
+    items,
+  }
+  assert.equal(base.spellbookSpellIds.length, 6, 'wizard book = 6')
+  assert.deepEqual(create2024StepIssues('leveling', base, ctx), [], 'wizard auto state is valid')
+  const shortBook = { ...base, spellbookSpellIds: base.spellbookSpellIds.slice(0, 5) }
+  assert.ok(create2024StepIssues('leveling', shortBook, ctx).length > 0, 'wizard needs 6 in book')
+  const outside = catalog.spells.find(
+    (s) => entryData(s).level === 1 && !base.spellbookSpellIds.includes(s.slug),
+  )!
+  const badPrep = { ...base, preparedSpellIds: [outside.slug, ...base.preparedSpellIds.slice(1)] }
+  assert.ok(
+    create2024StepIssues('leveling', badPrep, ctx).some((x) => x.includes('из книги')),
+    'prepared must come from the book',
+  )
+  const dropped = toggleSpellbookPick(
+    base.spellbookSpellIds,
+    base.preparedSpellIds,
+    base.preparedSpellIds[0]!,
+  )
+  assert.equal(dropped.spellbookSpellIds.length, 5)
+  assert.ok(!dropped.preparedSpellIds.includes(base.preparedSpellIds[0]!), 'unbooked → unprepared')
+  const req = toCreate2024Request(base)
+  assert.deepEqual(req.spellbook_spell_ids, base.spellbookSpellIds)
+  const wizardModel = buildCreate2024SheetPreview({
+    state: base,
+    catalog,
+    languages: FIXTURE_LANGUAGES,
+    classEntry: wizardEntry,
+    backgroundEntry: catalog.backgrounds[0]!,
+    speciesEntry: creatable[0]!,
+    items,
+  })
+  assert.equal(wizardModel.spellbook.length, 6)
+  assert.ok(wizardModel.spellbook.every((n) => /[А-Яа-яЁё]/.test(n)), 'RU book spell names')
+  const cleric = catalog.classes.find((c) => c.slug === 'cleric')!
+  const clericState = autoState(cleric, catalog.backgrounds[0]!, creatable[0]!)
+  assert.deepEqual(clericState.spellbookSpellIds, [], 'non-wizard has no book')
 }
 
 console.log('create2024.selfcheck: ok')

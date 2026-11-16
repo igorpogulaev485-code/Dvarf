@@ -4,6 +4,7 @@ import {
   type CharacterGender,
 } from '../../shared/dnd/characterGender'
 import { canonicalLanguageList } from '../../shared/dnd/languages'
+import { canonicalToolName } from '../../shared/dnd/toolNames'
 import { readNameList } from './languagesTools'
 import { asRecord, readNumber } from './sheetTypes'
 
@@ -136,7 +137,7 @@ export function readIdentityExtras(sheet: Record<string, unknown>): IdentityExtr
       extras: readNameList(weapons.extras),
     },
     languages: canonicalLanguageList(readNameList(proficiency.languages)),
-    tools: readNameList(proficiency.tools),
+    tools: readNameList(readNameList(proficiency.tools).map(canonicalToolName)),
     raceAppliedLanguages: canonicalLanguageList(readNameList(identity.race_applied_languages)),
     physique: {
       age: readPhysiqueString(identity.age),

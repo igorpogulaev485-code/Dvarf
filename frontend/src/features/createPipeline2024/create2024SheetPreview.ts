@@ -38,6 +38,7 @@ import {
 import {
   classL1Spellcasting,
   entryData,
+  usesSpellbook,
   type Create2024CatalogBundle,
   type Create2024State,
   type LanguagesBundle,
@@ -112,6 +113,8 @@ export type SheetPreviewModel = {
   inventory: SheetPreviewItem[]
   coinsGp: number
   cantrips: string[]
+  /** Wizard spellbook contents (empty for other classes). */
+  spellbook: string[]
   preparedSpells: string[]
   featSpells: string[]
   castingAbility: string | null
@@ -390,6 +393,9 @@ export function buildCreate2024SheetPreview(input: SheetPreviewInput): SheetPrev
     inventory,
     coinsGp,
     cantrips: state.cantripIds.map((id) => spellName(catalog.spells, id)),
+    spellbook: usesSpellbook(state.classSlug)
+      ? state.spellbookSpellIds.map((id) => spellName(catalog.spells, id))
+      : [],
     preparedSpells: state.preparedSpellIds.map((id) => spellName(catalog.spells, id)),
     featSpells,
     castingAbility: sc && primary ? ABILITY_LABEL_RU[primary as AbilityKey] ?? null : null,

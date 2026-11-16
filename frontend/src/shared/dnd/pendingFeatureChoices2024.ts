@@ -15,7 +15,8 @@ import {
   type ClassOptions2024State,
 } from './edition2024ClassOptions'
 import type { FeaturePicksState } from './featurePicks'
-import type { GuidedWizardStep } from './pendingFeatureChoices'
+import { withWizardSpellbookPicksStep, type GuidedWizardStep } from './pendingFeatureChoices'
+import { freeBookSlotsAtLevel } from './wizardSpellbook'
 import {
   masteryLimitForClass,
   WEAPON_MASTERY_CLASS_RULES,
@@ -123,6 +124,16 @@ export function buildPendingWizardSteps2024(input: PendingWizardInput2024): Guid
       kind: 'feat',
       promptRu: `Эпический дар: на ${level} уровне «${input.className}» открывает эпический дар вместо обычной черты. Выбери его из каталога.`,
       noteRu: 'Эпический дар (2024) — черта категории «Эпический дар»; гранты лягут на лист.',
+    })
+  }
+
+  // Level 1 book (6 spells) is filled by create; every later wizard level adds 2.
+  if (slug === 'wizard' && level >= 2) {
+    return withWizardSpellbookPicksStep(steps, {
+      classEntryId: input.classEntryId,
+      className: input.className,
+      classLevel: level,
+      picksNeeded: freeBookSlotsAtLevel(level),
     })
   }
 

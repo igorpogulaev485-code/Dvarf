@@ -2,6 +2,15 @@
 
 2014 create path is untouched. This module is the server source of truth for the
 2024 wizard finalize payload.
+
+NOTES (wizard spellbook, for the M02 sheet UI):
+- Create persists 2014-shaped data: ``sheet.spells.known`` rows are SheetSpell objects
+  (``in_spellbook``, ``spellbook_acquisition='starting'``, ``prepared``) and
+  ``sheet.spells.wizard_spellbook`` binds the pack's «Книга заклинаний» inventory item.
+- Level-up (+2 book spells per wizard level) is queued on the client from
+  ``freeBookSlotsAtLevel``; the server does not validate it here.
+- Gap: the 2024 Play Desk has no dedicated book-editing surface yet — it reuses the 2014
+  grimoire / prepare dialogs, which read the shape above.
 """
 
 from __future__ import annotations
@@ -18,6 +27,7 @@ from app.dnd import weapon_mastery as wm
 from app.dnd.edition_2024_languages import (
     COMMON_LANGUAGE_ID,
     CLASS_SPECIAL_LANGUAGES,
+    language_name_ru,
     list_selectable_languages,
     validate_language_picks,
 )
@@ -81,6 +91,20 @@ MUSICAL_INSTRUMENT_IDS = (
     "viol",
 )
 
+# Mirrors frontend TOOL_NAME_FALLBACK_RU (create2024Labels.ts) for ids the item catalog lacks.
+TOOL_NAME_FALLBACK_RU: dict[str, str] = {
+    "dice-set": "Набор игральных костей",
+    "dragonchess-set": "Набор драконьих шахмат",
+    "playing-card-set": "Набор игральных карт",
+    "three-dragon-ante-set": "Набор «Ставка трёх драконов»",
+    "gaming-set": "Игровой набор",
+    "musical-instrument": "Музыкальный инструмент",
+}
+
+WIZARD_CLASS_SLUG = "wizard"
+WIZARD_BOOK_SPELLS_AT_L1 = 6
+SPELLBOOK_ITEM_NAME_RU = "Книга заклинаний"
+
 SKILL_IDS = frozenset(
     {
         "acrobatics",
@@ -140,6 +164,7 @@ class Create2024Payload:
     origin_feat_skilled: list[str] = field(default_factory=list)
     cantrip_ids: list[str] = field(default_factory=list)
     prepared_spell_ids: list[str] = field(default_factory=list)
+    spellbook_spell_ids: list[str] = field(default_factory=list)
     class_option_picks: dict[str, Any] = field(default_factory=dict)
     gender: str | None = None
     is_draft: bool = False
@@ -296,6 +321,7 @@ def payload_from_dict(raw: Mapping[str, Any]) -> Create2024Payload:
         origin_feat_skilled=[str(x) for x in (raw.get("origin_feat_skilled") or [])],
         cantrip_ids=[str(x) for x in (raw.get("cantrip_ids") or [])],
         prepared_spell_ids=[str(x) for x in (raw.get("prepared_spell_ids") or [])],
+        spellbook_spell_ids=[str(x) for x in (raw.get("spellbook_spell_ids") or [])],
         class_option_picks=dict(raw.get("class_option_picks") or {}),
         gender=str(raw.get("gender")).strip() if raw.get("gender") else None,
         is_draft=bool(raw.get("is_draft") or False),
@@ -758,18 +784,32 @@ def _validate_spells(payload: Create2024Payload) -> dict[str, Any]:
     )
     blocks = list(snap.spellcasting or [])
     if not blocks:
-        if payload.cantrip_ids or payload.prepared_spell_ids:
+        if payload.cantrip_ids or payload.prepared_spell_ids or payload.spellbook_spell_ids:
             raise Create2024Error(
                 "Этот класс не выбирает заклинания на 1 уровне",
                 code="create_2024_spells",
             )
-        return {"cantrips": [], "prepared": [], "slots": {}, "pact_slots": None, "ability": None}
+        return {
+            "cantrips": [],
+            "prepared": [],
+            "spellbook": [],
+            "slots": {},
+            "pact_slots": None,
+            "ability": None,
+        }
 
     block = blocks[0]
     cantrip_need = int(block.cantrips or 0)
     prep_need = int(block.prepared_spells or 0)
     cantrips = [_normalize_slug(x) for x in payload.cantrip_ids]
     prepared = [_normalize_slug(x) for x in payload.prepared_spell_ids]
+    spellbook = [_normalize_slug(x) for x in payload.spellbook_spell_ids]
+    is_wizard = payload.class_slug == WIZARD_CLASS_SLUG
+    if spellbook and not is_wizard:
+        raise Create2024Error(
+            "Книга заклинаний есть только у волшебника",
+            code="create_2024_spells",
+        )
     if len(cantrips) != cantrip_need or len(set(cantrips)) != len(cantrips):
         raise Create2024Error(
             f"Нужно {cantrip_need} заговора(ов), выбрано {len(cantrips)}",
@@ -784,8 +824,36 @@ def _validate_spells(payload: Create2024Payload) -> dict[str, Any]:
             code="create_2024_spells",
         )
 
+    if is_wizard:
+        if len(spellbook) != WIZARD_BOOK_SPELLS_AT_L1 or len(set(spellbook)) != len(spellbook):
+            raise Create2024Error(
+                f"Волшебник вписывает в книгу ровно {WIZARD_BOOK_SPELLS_AT_L1} заклинаний 1 круга "
+                f"(выбрано {len(spellbook)})",
+                code="create_2024_spells",
+            )
+        outside_book = [p for p in prepared_budget if p not in set(spellbook)]
+        if outside_book:
+            raise Create2024Error(
+                "Подготовить можно только заклинания из книги",
+                code="create_2024_spells",
+            )
+
     spell_list = _class_spell_list_slugs(payload.class_slug)
     spells = load_spell_catalog()
+    for bid in spellbook:
+        row = spells.get(bid)
+        if row is None:
+            raise Create2024Error(f"Неизвестное заклинание: {bid}", code="create_2024_spells")
+        if _spell_level(row) != 1:
+            raise Create2024Error(
+                f"{bid} должно быть 1 круга",
+                code="create_2024_spells",
+            )
+        if spell_list and bid not in spell_list:
+            raise Create2024Error(
+                f"Заклинание {bid} не из списка класса",
+                code="create_2024_spells",
+            )
     for cid in cantrips:
         row = spells.get(cid)
         if row is None:
@@ -822,6 +890,7 @@ def _validate_spells(payload: Create2024Payload) -> dict[str, Any]:
     return {
         "cantrips": cantrips,
         "prepared": prepared + sorted(always - set(prepared)),
+        "spellbook": spellbook,
         "always_prepared": sorted(always),
         "slots": dict(block.slots or {}),
         "pact_slots": dict(block.pact_slots) if block.pact_slots else None,
@@ -956,6 +1025,218 @@ def validate_create_2024(payload: Create2024Payload) -> Create2024Result:
         hp_max=hp_max,
         hp_current=hp_max,
     )
+
+
+def _normalize_tool_key(value: str) -> str:
+    key = value.strip().lower().replace("_", "-").replace(" ", "-")
+    return key.replace("-s-", "s-")
+
+
+def tool_name_ru(tool_id: str) -> str:
+    """Russian tool name: item catalog first, then the fallback map; never a Latin id."""
+    raw = (tool_id or "").strip()
+    if not raw:
+        return ""
+    if any("а" <= ch.lower() <= "я" or ch.lower() == "ё" for ch in raw):
+        return raw
+    key = _normalize_tool_key(raw)
+    catalog = load_item_catalog()
+    for candidate in (key, key.replace("-s-", "s-")):
+        row = catalog.get(candidate)
+        if row and row.get("name_ru"):
+            return str(row["name_ru"])
+        if candidate in TOOL_NAME_FALLBACK_RU:
+            return TOOL_NAME_FALLBACK_RU[candidate]
+    return "Инструмент"
+
+
+_CASTING_UNIT_LABEL_RU = {
+    "action": "действие",
+    "bonus_action": "бонусное действие",
+    "bonus": "бонусное действие",
+    "reaction": "реакция",
+    "magic": "действие «Магия»",
+}
+
+
+def _casting_time_label_ru(raw: Any) -> str:
+    if not isinstance(raw, Mapping):
+        return ""
+    unit = str(raw.get("unit") or "")
+    amount = int(raw.get("amount") or 1)
+    if unit == "minute":
+        return f"{amount} мин."
+    if unit == "hour":
+        return f"{amount} ч."
+    label = _CASTING_UNIT_LABEL_RU.get(unit)
+    if label is None:
+        return "особое"
+    return f"{amount} {label}" if amount > 1 else f"1 {label}"
+
+
+def _spell_sheet_row(
+    slug: str,
+    *,
+    prepared: bool,
+    class_slug: str | None = None,
+    in_spellbook: bool | None = None,
+    spellbook_acquisition: str | None = None,
+    locked_label: str | None = None,
+    source_kind: str | None = None,
+    id_prefix: str = "spell",
+) -> dict[str, Any]:
+    """SheetSpell-shaped row (same shape the 2014 sheet editor reads), Russian names only."""
+    from app.services.edition_2024_catalog_seed import entry_id
+
+    cat = load_spell_catalog().get(slug) or {}
+    data = cat.get("data") if isinstance(cat.get("data"), dict) else {}
+    level = max(0, _spell_level(cat))
+    comps = data.get("components") if isinstance(data.get("components"), dict) else {}
+    components: dict[str, Any] = {"v": bool(comps.get("v")), "s": bool(comps.get("s"))}
+    if comps.get("m"):
+        components["m"] = comps["m"] if isinstance(comps["m"], str) else "Материальный компонент"
+    row: dict[str, Any] = {
+        "id": f"{id_prefix}:{slug}",
+        "name": str(cat.get("name_ru") or "Заклинание"),
+        "catalog_id": entry_id(kind="spell", slug=slug),
+        "level": level,
+        "prepared": True if level == 0 else bool(prepared),
+        "notes": "",
+        "casting_time": _casting_time_label_ru(data.get("casting_time")),
+        "range": str(data.get("range") or ""),
+        "attack_or_save": str(data.get("attack_or_save") or ""),
+        "damage": str(data.get("damage") or ""),
+        "concentration": bool(data.get("concentration")),
+        "components": components,
+    }
+    if data.get("duration"):
+        row["duration"] = str(data["duration"])
+    if data.get("ritual"):
+        row["ritual"] = True
+    if data.get("school"):
+        row["school"] = str(data["school"])
+    if data.get("source_book"):
+        row["source_book"] = str(data["source_book"])
+    if data.get("higher_levels"):
+        row["higher_levels"] = str(data["higher_levels"])
+    if data.get("description"):
+        row["description"] = str(data["description"])
+    if isinstance(data.get("damage_at_character_level"), dict):
+        row["damage_at_character_level"] = dict(data["damage_at_character_level"])
+    if class_slug:
+        row["class_slug"] = class_slug
+    if level > 0 and in_spellbook is not None:
+        row["in_spellbook"] = in_spellbook
+    if level > 0 and spellbook_acquisition:
+        row["spellbook_acquisition"] = spellbook_acquisition
+    if source_kind:
+        row["source_kind"] = source_kind
+    if locked_label:
+        row["prepared"] = True
+        row["prepared_locked"] = True
+        row["prepare_source_label"] = locked_label
+        row["notes"] = f"Всегда подготовлено · {locked_label}"
+    return row
+
+
+def _build_known_spells(
+    *,
+    class_slug: str,
+    spell_info: Mapping[str, Any],
+    origin_picks: Mapping[str, Any],
+    species_feat: Mapping[str, Any],
+) -> list[dict[str, Any]]:
+    """Class spells (wizard book first) then always-prepared and feat grants, de-duplicated."""
+    rows: list[dict[str, Any]] = []
+    seen: set[str] = set()
+
+    def push(row: dict[str, Any], slug: str) -> None:
+        if slug in seen:
+            return
+        seen.add(slug)
+        rows.append(row)
+
+    for slug in spell_info.get("cantrips") or []:
+        push(_spell_sheet_row(slug, prepared=True, class_slug=class_slug), slug)
+
+    prepared = set(spell_info.get("prepared") or [])
+    always = set(spell_info.get("always_prepared") or [])
+    book = list(spell_info.get("spellbook") or [])
+    if book:
+        for slug in book:
+            push(
+                _spell_sheet_row(
+                    slug,
+                    prepared=slug in prepared,
+                    class_slug=class_slug,
+                    in_spellbook=True,
+                    spellbook_acquisition="starting",
+                ),
+                slug,
+            )
+    for slug in spell_info.get("prepared") or []:
+        if slug in always:
+            continue
+        push(_spell_sheet_row(slug, prepared=True, class_slug=class_slug), slug)
+    for slug in sorted(always):
+        push(
+            _spell_sheet_row(
+                slug,
+                prepared=True,
+                class_slug=class_slug,
+                locked_label="Особенность класса",
+                source_kind="feature",
+                id_prefix="feature-spell",
+            ),
+            slug,
+        )
+
+    for feat_picks in (origin_picks, species_feat):
+        if not isinstance(feat_picks, Mapping):
+            continue
+        feat_slug = _normalize_slug(str(feat_picks.get("slug") or "")) or "origin"
+        feat_spells: list[str] = []
+        feat_spells.extend(str(x) for x in (feat_picks.get("cantrips") or []))
+        if feat_picks.get("cantrip"):
+            feat_spells.append(str(feat_picks["cantrip"]))
+        if feat_picks.get("spell_id"):
+            feat_spells.append(str(feat_picks["spell_id"]))
+        for slug in feat_spells:
+            push(
+                _spell_sheet_row(
+                    slug,
+                    prepared=True,
+                    locked_label="Черта",
+                    source_kind="feat",
+                    id_prefix=f"feat-spell:{feat_slug}",
+                ),
+                slug,
+            )
+    return rows
+
+
+def _ensure_wizard_spellbook_item(items: list[dict[str, Any]]) -> str:
+    """Tag the pack's «Книга заклинаний» (or add a blank one) and return its inventory id."""
+    for item in items:
+        name = str(item.get("name_ru") or item.get("name") or "").strip().lower().replace("ё", "е")
+        if str(item.get("catalog_slug") or "") == "spellbook" or "книга заклинаний" in name:
+            item["catalog_slug"] = "spellbook"
+            return str(item["id"])
+    item_id = f"start-spellbook-{len(items)}"
+    items.append(
+        {
+            "id": item_id,
+            "slug": None,
+            "catalog_slug": "spellbook",
+            "name": SPELLBOOK_ITEM_NAME_RU,
+            "name_ru": SPELLBOOK_ITEM_NAME_RU,
+            "qty": 1,
+            "weight_lb": 3.0,
+            "notes": "Книга заклинаний волшебника (создана при сборке персонажа)",
+            "equipped": False,
+        }
+    )
+    return item_id
 
 
 def _build_sheet(
@@ -1093,26 +1374,29 @@ def _build_sheet(
                 if x
             ],
         ],
-        "languages": [COMMON_LANGUAGE_ID, *language_picks],
+        "languages": [
+            language_name_ru(COMMON_LANGUAGE_ID),
+            *[language_name_ru(x) for x in language_picks],
+        ],
         "skills": sorted(proficient),
     }
-    # Deduplicate tools while preserving order.
+    # Russian names only; deduplicate while preserving order.
+    raw_tools = [str(t) for t in sheet["proficiency"]["tools"] if t]
+    if skill_or_tool and skill_or_tool not in SKILL_IDS:
+        raw_tools.append(skill_or_tool)
     seen_tools: set[str] = set()
     deduped_tools: list[str] = []
-    for t in sheet["proficiency"]["tools"]:
-        key = str(t)
-        if key and key not in seen_tools:
-            seen_tools.add(key)
-            deduped_tools.append(key)
-    if skill_or_tool and skill_or_tool not in SKILL_IDS and skill_or_tool not in seen_tools:
-        deduped_tools.append(skill_or_tool)
-        seen_tools.add(skill_or_tool)
+    for raw_tool in raw_tools:
+        name = tool_name_ru(raw_tool)
+        if name and name not in seen_tools:
+            seen_tools.add(name)
+            deduped_tools.append(name)
     sheet["proficiency"]["tools"] = deduped_tools
     sheet["proficiency"]["skills"] = sorted(proficient)
     if payload.class_slug == "druid":
-        sheet["proficiency"]["languages"].append("druidic")
+        sheet["proficiency"]["languages"].append(language_name_ru("druidic"))
     if payload.class_slug == "rogue":
-        sheet["proficiency"]["languages"].append("thieves-cant")
+        sheet["proficiency"]["languages"].append(language_name_ru("thieves-cant"))
 
     # Classes
     sheet["classes"] = [
@@ -1271,27 +1555,25 @@ def _build_sheet(
         ac = 10 + dex_mod + _ability_mod(int(final_abilities["wis"]))
     sheet["combat"]["ac"] = ac
 
-    # Spells
-    known = list(spell_info.get("cantrips") or []) + list(spell_info.get("prepared") or [])
-    # Origin / species feat spell extras
-    for feat_picks in (origin_picks, species_feat):
-        if not isinstance(feat_picks, dict):
-            continue
-        if feat_picks.get("cantrips"):
-            known.extend(feat_picks["cantrips"])
-        if feat_picks.get("cantrip"):
-            known.append(feat_picks["cantrip"])
-        if feat_picks.get("spell_id"):
-            known.append(feat_picks["spell_id"])
+    # Spells: SheetSpell-shaped rows (same shape as 2014) with Russian names from the catalog.
+    known = _build_known_spells(
+        class_slug=payload.class_slug,
+        spell_info=spell_info,
+        origin_picks=origin_picks,
+        species_feat=species_feat,
+    )
     sheet["spells"] = {
         "casting_ability": spell_info.get("ability"),
         "slots": spell_info.get("slots") or {},
         "pact_slots": spell_info.get("pact_slots") or {},
-        "known": sorted(set(known)),
-        "prepared": list(spell_info.get("prepared") or []),
-        "cantrips": list(spell_info.get("cantrips") or []),
-        "always_prepared": list(spell_info.get("always_prepared") or []),
+        "known": known,
     }
+    if payload.class_slug == WIZARD_CLASS_SLUG:
+        book_item_id = _ensure_wizard_spellbook_item(items)
+        sheet["spells"]["wizard_spellbook"] = {
+            "primaryBookItemId": book_item_id,
+            "bookLost": False,
+        }
 
     # Features text
     traits = str(species_info.get("traits_text") or "")
@@ -1358,6 +1640,9 @@ def _build_sheet(
             "species_feat": species_feat or None,
         },
         "class_skills": list(class_skills),
+        "cantrip_ids": list(spell_info.get("cantrips") or []),
+        "prepared_spell_ids": list(spell_info.get("prepared") or []),
+        "spellbook_spell_ids": list(spell_info.get("spellbook") or []),
         "weapon_mastery": list(mastery),
         "background_tool_id": tool_id,
         "class_tools": list((_client_picks(payload).get("class_tools") or [])),

@@ -48,12 +48,21 @@ CLASS_SPECIAL_LANGUAGES: tuple[Language2024, ...] = (
 COMMON_LANGUAGE_ID = "common"
 LANGUAGE_CHOICE_COUNT = 2
 
-_BY_ID = {row.id: row for row in LANGUAGES_2024}
+_BY_ID = {row.id: row for row in (*LANGUAGES_2024, *CLASS_SPECIAL_LANGUAGES)}
 _CHOICE_IDS = frozenset(row.id for row in LANGUAGES_2024 if row.id != COMMON_LANGUAGE_ID)
 
 
 def language_by_id(language_id: str) -> Language2024 | None:
     return _BY_ID.get((language_id or "").strip().lower())
+
+
+def language_name_ru(language_id: str) -> str:
+    """Russian display name for a 2024 language id; never returns a Latin slug."""
+    raw = (language_id or "").strip()
+    if any("а" <= ch.lower() <= "я" or ch.lower() == "ё" for ch in raw):
+        return raw
+    row = _BY_ID.get(raw.lower().replace("_", "-"))
+    return row.name_ru if row else "Язык"
 
 
 def selectable_language_ids() -> frozenset[str]:
