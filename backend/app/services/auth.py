@@ -820,36 +820,61 @@ class AuthService:
             f"{settings.app_public_url.rstrip('/')}/confirm-email?token={raw_token}"
         )
         current_email = user.email
+        # ADM-QF: смена на bootstrap-адрес — письмо на НОВЫЙ ящик (как в админке).
+        bootstrap = (settings.admin_bootstrap_email or "").strip().lower()
+        confirm_to_new = bool(bootstrap and normalized == bootstrap)
+        mail_to = normalized if confirm_to_new else current_email
 
         if settings.auth_email_stub or not smtp_configured():
             logger.info(
-                "Email change stub for %s → %s: %s",
+                "Email change stub for %s → %s (to=%s): %s",
                 current_email,
                 normalized,
+                mail_to,
                 confirm_url,
             )
-            message = (
-                f"Ссылка подтверждения для смены email готова "
-                f"(режим разработки — письмо на {current_email} не отправлялось)."
-            )
+            if confirm_to_new:
+                message = (
+                    f"Ссылка подтверждения для новой почты готова "
+                    f"(режим разработки — письмо на {normalized} не отправлялось)."
+                )
+            else:
+                message = (
+                    f"Ссылка подтверждения для смены email готова "
+                    f"(режим разработки — письмо на {current_email} не отправлялось)."
+                )
             debug_url = confirm_url if settings.auth_email_stub else None
         else:
             try:
-                send_email_change_confirm(
-                    to=current_email,
-                    new_email=normalized,
-                    confirm_url=confirm_url,
-                )
+                if confirm_to_new:
+                    from app.services.mail import send_admin_email_change_confirm
+
+                    send_admin_email_change_confirm(
+                        to=normalized,
+                        confirm_url=confirm_url,
+                    )
+                else:
+                    send_email_change_confirm(
+                        to=current_email,
+                        new_email=normalized,
+                        confirm_url=confirm_url,
+                    )
             except MailError as exc:
                 raise AppError(
                     "Не удалось отправить письмо. Попробуйте позже.",
                     code="mail_send_failed",
                     status_code=502,
                 ) from exc
-            message = (
-                f"Мы отправили ссылку подтверждения на текущую почту {current_email}. "
-                "Смена email произойдёт только после перехода по ссылке."
-            )
+            if confirm_to_new:
+                message = (
+                    f"Мы отправили ссылку подтверждения на новый адрес {normalized}. "
+                    "Смена email произойдёт только после перехода по ссылке."
+                )
+            else:
+                message = (
+                    f"Мы отправили ссылку подтверждения на текущую почту {current_email}. "
+                    "Смена email произойдёт только после перехода по ссылке."
+                )
             debug_url = None
 
         return EmailChangeRequestResponse(

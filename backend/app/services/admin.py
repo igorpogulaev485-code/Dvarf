@@ -74,6 +74,10 @@ ACTION_OAUTH_UNLINKED = "admin_oauth_unlinked"
 ACTION_USER_BLOCKED = "admin_user_blocked"
 ACTION_USER_UNBLOCKED = "admin_user_unblocked"
 ACTION_USER_DELETED = "admin_user_deleted"
+ACTION_PASSWORD_CLI_RESET = "admin_password_cli_reset"
+
+# Источник роли: авто-выдача по ADMIN_BOOTSTRAP_EMAIL vs ручная.
+ROLE_SOURCE_BOOTSTRAP = "bootstrap"
 
 
 def raise_if_blocked(user: User) -> None:
@@ -106,29 +110,126 @@ class AdminService:
         self.db = db
 
     def ensure_bootstrap_role(self, user: User) -> None:
-        """Если почта совпадает с ADMIN_BOOTSTRAP_EMAIL — выдать полного админа."""
-        email = (settings.admin_bootstrap_email or "").strip().lower()
-        if not email or not user.email:
+        """Синхронизация bootstrap-роли с ADMIN_BOOTSTRAP_EMAIL.
+
+        - full_admin по bootstrap только при подтверждённой почте;
+        - source=bootstrap — снимается, если почта больше не совпадает;
+        - ручные роли (source IS NULL / не bootstrap) не трогаем;
+        - не выдаём, если bootstrap-роль уже у другого аккаунта.
+        """
+        bootstrap = (settings.admin_bootstrap_email or "").strip().lower()
+        user_email = (user.email or "").strip().lower()
+        verified = getattr(user, "email_verified_at", None) is not None
+        email_matches = bool(bootstrap and user_email and user_email == bootstrap)
+
+        revoked = self._revoke_stale_bootstrap_roles(
+            user_id=user.id,
+            keep=email_matches and verified,
+        )
+
+        if not email_matches or not verified:
+            if revoked:
+                self.db.commit()
             return
-        if user.email.strip().lower() != email:
-            return
-        existing = self.db.scalar(
+
+        existing_own = self.db.scalar(
             select(AdminRole.id).where(
                 AdminRole.user_id == user.id,
                 AdminRole.role == AdminRoleName.full_admin.value,
             )
         )
-        if existing is not None:
+        if existing_own is not None:
+            if revoked:
+                self.db.commit()
             return
+
+        other_bootstrap = self.db.scalar(
+            select(AdminRole.id).where(
+                AdminRole.role == AdminRoleName.full_admin.value,
+                AdminRole.source == ROLE_SOURCE_BOOTSTRAP,
+                AdminRole.user_id != user.id,
+            )
+        )
+        if other_bootstrap is not None:
+            if revoked:
+                self.db.commit()
+            return
+
         self.db.add(
             AdminRole(
                 id=uuid.uuid4(),
                 user_id=user.id,
                 role=AdminRoleName.full_admin.value,
                 granted_by=None,
+                source=ROLE_SOURCE_BOOTSTRAP,
             )
         )
         self.db.commit()
+
+    def _revoke_stale_bootstrap_roles(self, *, user_id: UUID, keep: bool) -> bool:
+        """Снять bootstrap-роли пользователя, если keep=False. Ручные не трогаем."""
+        if keep:
+            return False
+        rows = list(
+            self.db.scalars(
+                select(AdminRole).where(
+                    AdminRole.user_id == user_id,
+                    AdminRole.source == ROLE_SOURCE_BOOTSTRAP,
+                )
+            ).all()
+        )
+        if not rows:
+            return False
+        for row in rows:
+            self.db.delete(row)
+        return True
+
+    def reset_admin_password_cli(
+        self,
+        *,
+        email: str | None = None,
+        user_id: UUID | None = None,
+        actor_note: str | None = None,
+    ) -> dict[str, Any]:
+        """CLI: удалить хеш пароля админки и сбросить lockout. Пароль не задаёт."""
+        require_panel_enabled()
+        user: User | None = None
+        if user_id is not None:
+            user = self.db.get(User, user_id)
+        elif email:
+            normalized = email.strip().lower()
+            user = self.db.scalar(select(User).where(User.email == normalized))
+        if user is None:
+            raise NotFoundError("Пользователь не найден")
+
+        secret = self.db.get(AdminSecret, user.id)
+        had_secret = secret is not None
+        if secret is not None:
+            self.db.delete(secret)
+            self.db.commit()
+
+        self.write_audit(
+            actor_id=None,
+            action=ACTION_PASSWORD_CLI_RESET,
+            target_type="user",
+            target_id=str(user.id),
+            meta={
+                "source": "cli",
+                "had_secret": had_secret,
+                "email": user.email,
+                "note": (actor_note or "")[:200] or None,
+            },
+        )
+        return {
+            "user_id": str(user.id),
+            "email": user.email,
+            "had_secret": had_secret,
+            "message": (
+                "Пароль админки сброшен. Владелец задаст новый в /admin."
+                if had_secret
+                else "Секрета админки не было — lockout сброшен, если был."
+            ),
+        }
 
     def has_role(self, user_id: UUID, role: str) -> bool:
         row = self.db.scalar(

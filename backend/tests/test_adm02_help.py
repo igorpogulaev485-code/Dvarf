@@ -132,6 +132,22 @@ class MemoryAdminDB:
         return None
 
     def scalars(self, stmt):  # noqa: ANN001
+        sql = str(stmt).lower()
+        try:
+            params = stmt.compile().params
+        except Exception:
+            params = {}
+        if "admin_roles" in sql:
+            user_id = params.get("user_id_1") or params.get("user_id")
+            source = params.get("source_1") or params.get("source")
+            rows = []
+            for row in self.roles:
+                if user_id is not None and row.user_id != user_id:
+                    continue
+                if source is not None and getattr(row, "source", None) != source:
+                    continue
+                rows.append(row)
+            return SimpleNamespace(all=lambda: rows)
         return SimpleNamespace(unique=lambda: SimpleNamespace(all=lambda: list(self.users)))
 
     def execute(self, stmt):  # noqa: ANN001
@@ -139,6 +155,11 @@ class MemoryAdminDB:
 
     def delete(self, obj) -> None:  # noqa: ANN001
         self._deleted.append(obj)
+        name = type(obj).__name__
+        if name == "AdminRole" or getattr(obj, "role", None) is not None:
+            oid = getattr(obj, "id", None)
+            self.roles = [r for r in self.roles if getattr(r, "id", None) != oid]
+            return
         if obj in self.users:
             self.users.remove(obj)
 

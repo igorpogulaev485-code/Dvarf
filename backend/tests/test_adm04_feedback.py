@@ -21,6 +21,7 @@ from app.services.feedback import (
     ACTION_FEEDBACK_STATUS,
     FeedbackService,
     RATE_LIMIT_BURST,
+    RATE_LIMIT_DAY,
 )
 
 
@@ -215,6 +216,15 @@ class FeedbackMemoryDB:
             self.messages.append(obj)
             return
 
+    def delete(self, obj) -> None:  # noqa: ANN001
+        name = type(obj).__name__
+        if name == "AdminRole" or getattr(obj, "role", None) is not None:
+            oid = getattr(obj, "id", None)
+            self.roles = [r for r in self.roles if getattr(r, "id", None) != oid]
+            return
+        if name == "FeedbackMessage" or isinstance(obj, FeedbackMessage):
+            self.messages = [m for m in self.messages if m.id != getattr(obj, "id", None)]
+
     def commit(self) -> None:
         self.committed += 1
 
@@ -230,6 +240,17 @@ class FeedbackMemoryDB:
             params = dict(stmt.compile().params)
         except Exception:
             params = {}
+        if "admin_roles" in sql:
+            user_id = params.get("user_id_1") or params.get("user_id")
+            source = params.get("source_1") or params.get("source")
+            rows = []
+            for row in self.roles:
+                if user_id is not None and row.user_id != user_id:
+                    continue
+                if source is not None and getattr(row, "source", None) != source:
+                    continue
+                rows.append(row)
+            return SimpleNamespace(all=lambda: rows)
         rows = list(self.messages)
         # Фильтры из where: точные значения topic/status (не путать с limit/offset).
         for key, val in list(params.items()):
@@ -361,6 +382,24 @@ def test_rate_limit_429(db):
         svc.create(user, topic=FeedbackTopic.bug, body="Лишнее")
     assert exc.value.status_code == 429
     assert "много" in exc.value.message.lower() or "лимит" in exc.value.message.lower()
+
+
+def test_rate_limit_day_30(db):
+    """ADM-QF: дневной лимит 30 — отдельно от burst 5/10 мин."""
+    user = _user()
+    db.users.append(user)
+    svc = FeedbackService(db)
+    now = datetime.now(timezone.utc)
+    for i in range(RATE_LIMIT_DAY):
+        svc.create(user, topic=FeedbackTopic.idea, body=f"День {i + 1}")
+        # Старые сообщения вне окна burst, но внутри суток.
+        if i < RATE_LIMIT_DAY - (RATE_LIMIT_BURST - 1):
+            db.messages[-1].created_at = now - timedelta(hours=1)
+
+    with pytest.raises(AppError) as exc:
+        svc.create(user, topic=FeedbackTopic.idea, body="Лишнее за сутки")
+    assert exc.value.status_code == 429
+    assert exc.value.code == "feedback_rate_limited"
 
 
 def test_blocked_account_cannot_write(db):

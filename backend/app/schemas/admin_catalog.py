@@ -9,10 +9,10 @@ from pydantic import BaseModel, Field, field_validator
 
 
 LAYER_LABELS: dict[str, str] = {
-    "srd": "SRD",
-    "community_ref": "книга вне SRD",
+    "srd": "Базовые правила",
+    "community_ref": "книга вне базовых правил",
     "user_import": "импорт игрока",
-    "homebrew": "хомбрю",
+    "homebrew": "Свой контент",
 }
 
 STATUS_LABELS: dict[str, str] = {
@@ -23,19 +23,19 @@ STATUS_LABELS: dict[str, str] = {
 }
 
 KIND_LABELS: dict[str, str] = {
-    "race": "раса",
-    "class": "класс",
-    "subclass": "подкласс",
-    "background": "предыстория",
-    "alignment": "мировоззрение",
-    "skill": "навык",
-    "feat": "черта",
-    "spell": "заклинание",
-    "weapon": "оружие",
-    "armor": "доспех",
-    "item": "предмет",
-    "condition": "состояние",
-    "bestiary": "бестиарий",
+    "race": "Раса",
+    "class": "Класс",
+    "subclass": "Подкласс",
+    "background": "Предыстория",
+    "alignment": "Мировоззрение",
+    "skill": "Навык",
+    "feat": "Черта",
+    "spell": "Заклинание",
+    "weapon": "Оружие",
+    "armor": "Доспех",
+    "item": "Предмет",
+    "condition": "Состояние",
+    "bestiary": "Бестиарий",
 }
 
 

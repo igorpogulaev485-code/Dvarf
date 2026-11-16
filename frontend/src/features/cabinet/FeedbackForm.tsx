@@ -21,7 +21,7 @@ const TOPIC_OPTIONS: { id: FeedbackTopic; label: string }[] = [
   { id: 'bug', label: 'Ошибка' },
   { id: 'question', label: 'Вопрос' },
   { id: 'idea', label: 'Идея' },
-  { id: 'name', label: 'Название' },
+  { id: 'name', label: 'Название в справочнике' },
 ]
 
 type Props = {

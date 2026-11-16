@@ -249,6 +249,14 @@ export default function App() {
           }
         />
         <Route
+          path="/admin/:section"
+          element={
+            <AuthLazy>
+              <LazyAdminPage />
+            </AuthLazy>
+          }
+        />
+        <Route
           path="/help/world-import"
           element={
             <RequireAuth>
