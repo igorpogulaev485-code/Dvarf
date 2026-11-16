@@ -65,6 +65,16 @@ class AdminAccountLobbyStats(BaseModel):
     as_player: int = 0
 
 
+class AdminRoleItem(BaseModel):
+    """Роль в карточке аккаунта. Без внутренних кодов в подписях для UI."""
+
+    role: str
+    label: str
+    source: str | None = None
+    source_label: str | None = None
+    can_revoke: bool = True
+
+
 class AdminAccountItem(BaseModel):
     id: UUID
     email: str | None = None
@@ -76,6 +86,7 @@ class AdminAccountItem(BaseModel):
     login_methods: AdminAccountLoginMethods
     characters: AdminAccountCharacterStats
     lobbies: AdminAccountLobbyStats
+    roles: list[AdminRoleItem] = Field(default_factory=list)
 
 
 class AdminAccountsPage(BaseModel):
@@ -88,6 +99,13 @@ class AdminAccountsPage(BaseModel):
 class AdminDangerPasswordRequest(BaseModel):
     """Опасное действие: в теле — пароль админки."""
 
+    admin_password: str = Field(min_length=1, max_length=128)
+
+
+class AdminRoleMutationRequest(BaseModel):
+    """Выдача или снятие роли: роль + пароль админки."""
+
+    role: str = Field(min_length=1, max_length=64)
     admin_password: str = Field(min_length=1, max_length=128)
 
 

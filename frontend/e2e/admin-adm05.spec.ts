@@ -241,7 +241,7 @@ test.describe('ADM-05 catalog admin', () => {
     await page.getByRole('tab', { name: 'Справочники' }).click()
     await expect(page.getByRole('heading', { name: 'Справочники' })).toBeVisible()
     await expect(page.getByText('Огненный шар').first()).toBeVisible()
-    await expect(page.getByText('черновик').first()).toBeVisible()
+    await expect(page.getByText('Черновик', { exact: true }).first()).toBeVisible()
 
     await page.getByRole('button', { name: 'Открыть' }).first().click()
     await expect(page.getByText('Код записи (только чтение): fireball')).toBeVisible()

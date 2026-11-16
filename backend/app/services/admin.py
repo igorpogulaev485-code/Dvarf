@@ -39,6 +39,7 @@ from app.schemas.admin import (
     AdminMetricsResponse,
     AdminMetricsSessions,
     AdminPasswordOkResponse,
+    AdminRoleItem,
     AdminSessionItem,
     AdminSessionsResponse,
     AdminStatusResponse,
@@ -75,9 +76,21 @@ ACTION_USER_BLOCKED = "admin_user_blocked"
 ACTION_USER_UNBLOCKED = "admin_user_unblocked"
 ACTION_USER_DELETED = "admin_user_deleted"
 ACTION_PASSWORD_CLI_RESET = "admin_password_cli_reset"
+ACTION_ROLE_GRANTED = "admin_role_granted"
+ACTION_ROLE_REVOKED = "admin_role_revoked"
 
 # Источник роли: авто-выдача по ADMIN_BOOTSTRAP_EMAIL vs ручная.
 ROLE_SOURCE_BOOTSTRAP = "bootstrap"
+
+ROLE_LABELS: dict[str, str] = {
+    AdminRoleName.full_admin.value: "Полный админ",
+    AdminRoleName.catalog_moderator.value: "Модератор справочников",
+}
+BOOTSTRAP_SOURCE_LABEL = "из настроек сервера"
+BOOTSTRAP_REVOKE_HINT = (
+    "Выдана из настроек сервера, меняется через секрет деплоя"
+)
+GRANTABLE_ROLES = frozenset(ROLE_LABELS.keys())
 
 
 def raise_if_blocked(user: User) -> None:
@@ -655,6 +668,173 @@ class AdminService:
                 drafts=drafts,
             ),
             lobbies=AdminAccountLobbyStats(owned=int(owned), as_player=int(as_player)),
+            roles=self._serialize_roles(account.id),
+        )
+
+    def _serialize_roles(self, user_id: UUID) -> list[AdminRoleItem]:
+        rows = list(
+            self.db.scalars(select(AdminRole).where(AdminRole.user_id == user_id)).all()
+        )
+        items: list[AdminRoleItem] = []
+        for row in rows:
+            role = getattr(row, "role", None)
+            if not role:
+                continue
+            source = getattr(row, "source", None)
+            is_bootstrap = source == ROLE_SOURCE_BOOTSTRAP
+            items.append(
+                AdminRoleItem(
+                    role=role,
+                    label=ROLE_LABELS.get(role, role),
+                    source=source,
+                    source_label=BOOTSTRAP_SOURCE_LABEL if is_bootstrap else None,
+                    can_revoke=not is_bootstrap,
+                )
+            )
+        items.sort(key=lambda item: (0 if item.role == AdminRoleName.full_admin.value else 1, item.label))
+        return items
+
+    def _normalize_role_name(self, role: str) -> str:
+        normalized = (role or "").strip()
+        if normalized not in GRANTABLE_ROLES:
+            raise AppError(
+                "Неизвестная роль",
+                code="admin_role_unknown",
+                status_code=400,
+            )
+        return normalized
+
+    def _clear_admin_secret_if_no_access(self, user_id: UUID) -> bool:
+        """Удалить пароль админки, если у человека больше нет доступа к /admin."""
+        has_access = self.has_role(user_id, AdminRoleName.full_admin.value) or self.has_role(
+            user_id, AdminRoleName.catalog_moderator.value
+        )
+        if has_access:
+            return False
+        secret = self._get_secret(user_id)
+        if secret is None:
+            return False
+        self.db.delete(secret)
+        self.db.commit()
+        return True
+
+    def grant_role(
+        self,
+        actor: User,
+        user_id: UUID,
+        *,
+        role: str,
+        admin_password: str,
+    ) -> AdminMessageResponse:
+        self.require_admin_password(actor, admin_password)
+        role_name = self._normalize_role_name(role)
+        target = self._get_target_user(user_id)
+
+        if getattr(target, "email_verified_at", None) is None:
+            raise AppError(
+                "Роль можно выдать только аккаунту с подтверждённой почтой",
+                code="admin_role_email_unverified",
+                status_code=400,
+            )
+        if getattr(target, "blocked_at", None) is not None:
+            raise AppError(
+                "Нельзя выдать роль заблокированному аккаунту",
+                code="admin_role_target_blocked",
+                status_code=400,
+            )
+        if self.has_role(target.id, role_name):
+            raise AppError(
+                "У аккаунта уже есть эта роль",
+                code="admin_role_already_granted",
+                status_code=409,
+            )
+
+        self.db.add(
+            AdminRole(
+                id=uuid.uuid4(),
+                user_id=target.id,
+                role=role_name,
+                granted_by=actor.id,
+                source=None,
+            )
+        )
+        self.db.commit()
+        self.write_audit(
+            actor_id=actor.id,
+            action=ACTION_ROLE_GRANTED,
+            target_type="user",
+            target_id=str(target.id),
+            meta={"role": role_name, "label": ROLE_LABELS.get(role_name)},
+        )
+        return AdminMessageResponse(
+            message=f"Роль «{ROLE_LABELS[role_name]}» выдана",
+        )
+
+    def revoke_role(
+        self,
+        actor: User,
+        user_id: UUID,
+        *,
+        role: str,
+        admin_password: str,
+    ) -> AdminMessageResponse:
+        self.require_admin_password(actor, admin_password)
+        role_name = self._normalize_role_name(role)
+        target = self._get_target_user(user_id)
+
+        rows = list(
+            self.db.scalars(
+                select(AdminRole).where(
+                    AdminRole.user_id == target.id,
+                    AdminRole.role == role_name,
+                )
+            ).all()
+        )
+        row = rows[0] if rows else None
+        if row is None:
+            raise AppError(
+                "У аккаунта нет этой роли",
+                code="admin_role_missing",
+                status_code=404,
+            )
+
+        if getattr(row, "source", None) == ROLE_SOURCE_BOOTSTRAP:
+            raise AppError(
+                BOOTSTRAP_REVOKE_HINT,
+                code="admin_role_bootstrap_locked",
+                status_code=400,
+            )
+
+        if role_name == AdminRoleName.full_admin.value:
+            if target.id == actor.id:
+                raise AppError(
+                    "Нельзя снять себе роль полного админа",
+                    code="admin_role_self_revoke_forbidden",
+                    status_code=400,
+                )
+            if self._count_full_admins() <= 1:
+                raise AppError(
+                    "Нельзя снять последнего полного админа",
+                    code="admin_last_admin_forbidden",
+                    status_code=400,
+                )
+
+        self.db.delete(row)
+        self.db.commit()
+        secret_cleared = self._clear_admin_secret_if_no_access(target.id)
+        self.write_audit(
+            actor_id=actor.id,
+            action=ACTION_ROLE_REVOKED,
+            target_type="user",
+            target_id=str(target.id),
+            meta={
+                "role": role_name,
+                "label": ROLE_LABELS.get(role_name),
+                "admin_password_cleared": secret_cleared,
+            },
+        )
+        return AdminMessageResponse(
+            message=f"Роль «{ROLE_LABELS[role_name]}» снята",
         )
 
     def _get_target_user(self, user_id: UUID) -> User:

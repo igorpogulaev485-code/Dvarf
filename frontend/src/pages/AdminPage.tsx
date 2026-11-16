@@ -125,6 +125,7 @@ export function AdminPage() {
   const [pwdNew, setPwdNew] = useState('')
   const [pwdConfirm, setPwdConfirm] = useState('')
   const [pwdBusy, setPwdBusy] = useState(false)
+  const [pwdTried, setPwdTried] = useState(false)
 
   const closeToast = useCallback(() => setToast(null), [])
   const showToast = useCallback((message: string) => setToast(message), [])
@@ -254,7 +255,17 @@ export function AdminPage() {
     visibleSections.find((item) => item.id === section)?.label || 'Раздел'
   const isFullAdmin = Boolean(status.is_full_admin)
 
+  const pwdTooShort = pwdNew.length > 0 && pwdNew.length < 8
+  const pwdMismatch = pwdConfirm.length > 0 && pwdNew !== pwdConfirm
+  const showPwdShortError = pwdTooShort || (pwdTried && pwdNew.length < 8)
+  const showPwdMismatchError =
+    pwdMismatch || (pwdTried && pwdConfirm.length > 0 && pwdNew !== pwdConfirm)
+
   async function submitPassword() {
+    setPwdTried(true)
+    if (pwdNew.length < 8 || pwdNew !== pwdConfirm || (pwdMode === 'change' && !pwdCurrent)) {
+      return
+    }
     setPwdBusy(true)
     try {
       if (pwdMode === 'setup') {
@@ -269,6 +280,7 @@ export function AdminPage() {
       setPwdCurrent('')
       setPwdNew('')
       setPwdConfirm('')
+      setPwdTried(false)
     } catch (err: unknown) {
       setToast(err instanceof ApiRequestError ? err.message : 'Не удалось сохранить пароль')
     } finally {
@@ -313,6 +325,7 @@ export function AdminPage() {
                   variant="primary"
                   onClick={() => {
                     setPwdMode('setup')
+                    setPwdTried(false)
                     setPwdOpen(true)
                   }}
                 >
@@ -331,6 +344,7 @@ export function AdminPage() {
                 variant="ghost"
                 onClick={() => {
                   setPwdMode('change')
+                  setPwdTried(false)
                   setPwdOpen(true)
                 }}
               >
@@ -507,6 +521,7 @@ export function AdminPage() {
             onToast={showToast}
             onOpenPasswordSetup={() => {
               setPwdMode('setup')
+              setPwdTried(false)
               setPwdOpen(true)
             }}
           />
@@ -547,10 +562,7 @@ export function AdminPage() {
         secondaryLabel="Отмена"
         busy={pwdBusy}
         primaryDisabled={
-          pwdBusy ||
-          pwdNew.length < 8 ||
-          pwdNew !== pwdConfirm ||
-          (pwdMode === 'change' && !pwdCurrent)
+          pwdBusy || !pwdNew || !pwdConfirm || (pwdMode === 'change' && !pwdCurrent)
         }
         onPrimary={() => {
           void submitPassword()
@@ -561,6 +573,7 @@ export function AdminPage() {
           setPwdCurrent('')
           setPwdNew('')
           setPwdConfirm('')
+          setPwdTried(false)
         }}
       >
         <Stack gap={12}>
@@ -576,13 +589,16 @@ export function AdminPage() {
               />
             </Field>
           ) : null}
-          <Field label="Новый пароль админки">
+          <Field label="Новый пароль админки" hint="Минимум 8 символов">
             <PasswordInput
               value={pwdNew}
               onChange={(e) => setPwdNew(e.target.value)}
               autoComplete="new-password"
             />
           </Field>
+          {showPwdShortError ? (
+            <Text tone="danger">Пароль слишком короткий — нужно минимум 8 символов</Text>
+          ) : null}
           <Field label="Повтор пароля">
             <PasswordInput
               value={pwdConfirm}
@@ -590,6 +606,7 @@ export function AdminPage() {
               autoComplete="new-password"
             />
           </Field>
+          {showPwdMismatchError ? <Text tone="danger">Пароли не совпадают</Text> : null}
         </Stack>
       </Dialog>
 

@@ -21,6 +21,7 @@ from app.schemas.admin import (
     AdminPasswordConfirmRequest,
     AdminPasswordOkResponse,
     AdminPasswordSetupRequest,
+    AdminRoleMutationRequest,
     AdminSessionsResponse,
     AdminStatusResponse,
 )
@@ -361,6 +362,38 @@ def admin_unlink_oauth(
         current_user,
         user_id,
         provider=payload.provider,
+        admin_password=payload.admin_password,
+    )
+
+
+@router.post("/accounts/{user_id}/roles/grant", response_model=AdminMessageResponse)
+def admin_grant_role(
+    user_id: UUID,
+    payload: AdminRoleMutationRequest,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> AdminMessageResponse:
+    require_panel_enabled()
+    return AdminService(db).grant_role(
+        current_user,
+        user_id,
+        role=payload.role,
+        admin_password=payload.admin_password,
+    )
+
+
+@router.post("/accounts/{user_id}/roles/revoke", response_model=AdminMessageResponse)
+def admin_revoke_role(
+    user_id: UUID,
+    payload: AdminRoleMutationRequest,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> AdminMessageResponse:
+    require_panel_enabled()
+    return AdminService(db).revoke_role(
+        current_user,
+        user_id,
+        role=payload.role,
         admin_password=payload.admin_password,
     )
 

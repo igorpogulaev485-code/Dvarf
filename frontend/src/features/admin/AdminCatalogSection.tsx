@@ -448,7 +448,7 @@ export function AdminCatalogSection({ isFullAdmin, onToast }: Props) {
                     </Text>
                     <ScrollRow>
                       <Chip inactive>{item.content_layer_label}</Chip>
-                      {item.has_pending ? <Chip inactive>черновик</Chip> : null}
+                      {item.has_pending ? <Chip inactive>Черновик</Chip> : null}
                       {item.names_differ ? (
                         <Chip inactive>имя отличается от исходного</Chip>
                       ) : null}

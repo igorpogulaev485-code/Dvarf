@@ -4,7 +4,9 @@
 # Сиды backend/data/ — это код каталога, их обновляем. Живая БД в томе Docker.
 
 protect .env
+protect .env.bak
 exclude .env
+exclude .env.bak
 
 protect backups/***
 protect pgdata/***

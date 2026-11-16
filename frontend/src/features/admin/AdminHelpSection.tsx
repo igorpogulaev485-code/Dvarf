@@ -3,9 +3,11 @@ import {
   adminBlockUser,
   adminChangeEmail,
   adminDeleteUser,
+  adminGrantRole,
   adminMarkEmailVerified,
   adminResendVerification,
   adminRevokeAllSessions,
+  adminRevokeRole,
   adminRevokeSession,
   adminSendPasswordReset,
   adminUnblockUser,
@@ -14,6 +16,7 @@ import {
   listAdminAccountSessions,
   listAdminAccounts,
   type AdminAccountItem,
+  type AdminRoleItem,
   type AdminSessionItem,
 } from '../../shared/api/admin'
 import { ApiRequestError } from '../../shared/api/client'
@@ -63,6 +66,12 @@ type DangerKind =
   | 'block'
   | 'unblock'
   | 'delete'
+  | 'grantModerator'
+  | 'grantFullAdmin'
+  | 'revokeRole'
+
+const ROLE_FULL_ADMIN = 'full_admin'
+const ROLE_CATALOG_MODERATOR = 'catalog_moderator'
 
 type Props = {
   initialUserId?: string | null
@@ -91,6 +100,7 @@ export function AdminHelpSection({
   const [newEmailConfirm, setNewEmailConfirm] = useState('')
   const [deleteConfirm, setDeleteConfirm] = useState('')
   const [sessionToRevoke, setSessionToRevoke] = useState<string | null>(null)
+  const [roleToRevoke, setRoleToRevoke] = useState<AdminRoleItem | null>(null)
   const [busy, setBusy] = useState(false)
 
   const loadAccount = useCallback(
@@ -150,9 +160,10 @@ export function AdminHelpSection({
     setNewEmailConfirm('')
     setDeleteConfirm('')
     setSessionToRevoke(null)
+    setRoleToRevoke(null)
   }
 
-  function openDanger(kind: DangerKind, sessionId?: string) {
+  function openDanger(kind: DangerKind, sessionId?: string, role?: AdminRoleItem) {
     if (!passwordSet) {
       onToast('Сначала задайте пароль админки')
       onOpenPasswordSetup()
@@ -163,6 +174,7 @@ export function AdminHelpSection({
     setNewEmailConfirm('')
     setDeleteConfirm('')
     setSessionToRevoke(sessionId || null)
+    setRoleToRevoke(role || null)
     setDanger(kind)
   }
 
@@ -214,6 +226,18 @@ export function AdminHelpSection({
           closeDanger()
           setBusy(false)
           return
+        case 'grantModerator':
+          message = (
+            await adminGrantRole(account.id, ROLE_CATALOG_MODERATOR, adminPassword)
+          ).message
+          break
+        case 'grantFullAdmin':
+          message = (await adminGrantRole(account.id, ROLE_FULL_ADMIN, adminPassword)).message
+          break
+        case 'revokeRole':
+          if (!roleToRevoke) throw new Error('role')
+          message = (await adminRevokeRole(account.id, roleToRevoke.role, adminPassword)).message
+          break
         default:
           break
       }
@@ -239,7 +263,18 @@ export function AdminHelpSection({
     block: 'Заблокировать аккаунт',
     unblock: 'Разблокировать аккаунт',
     delete: 'Удалить аккаунт',
+    grantModerator: 'Сделать модератором справочников',
+    grantFullAdmin: 'Сделать полным админом',
+    revokeRole: roleToRevoke
+      ? `Снять роль «${roleToRevoke.label}»`
+      : 'Снять роль',
   }
+
+  const roles = account?.roles ?? []
+  const hasFullAdmin = roles.some((r) => r.role === ROLE_FULL_ADMIN)
+  const hasModerator = roles.some((r) => r.role === ROLE_CATALOG_MODERATOR)
+  const isRoleDanger =
+    danger === 'grantFullAdmin' || danger === 'revokeRole' || danger === 'delete' || danger === 'block'
 
   const primaryDisabled =
     busy ||
@@ -423,6 +458,51 @@ export function AdminHelpSection({
               </Stack>
             </Panel>
 
+            <Panel title="Роли">
+              <Stack gap={12}>
+                {roles.length === 0 ? (
+                  <Text tone="muted">Ролей админки нет</Text>
+                ) : (
+                  <ChipStack>
+                    {roles.map((role) => (
+                      <Chip key={role.role} inactive>
+                        {role.label}
+                        {role.source_label ? ` · ${role.source_label}` : ''}
+                      </Chip>
+                    ))}
+                  </ChipStack>
+                )}
+                {roles.map((role) =>
+                  role.can_revoke ? (
+                    <div key={`revoke-${role.role}`}>
+                      <Button
+                        variant="danger"
+                        onClick={() => openDanger('revokeRole', undefined, role)}
+                      >
+                        Снять роль «{role.label}»
+                      </Button>
+                    </div>
+                  ) : (
+                    <Text key={`locked-${role.role}`} tone="muted">
+                      «{role.label}»: выдана из настроек сервера, меняется через секрет деплоя
+                    </Text>
+                  ),
+                )}
+                <ChipStack>
+                  {!hasModerator ? (
+                    <Button variant="secondary" onClick={() => openDanger('grantModerator')}>
+                      Сделать модератором справочников
+                    </Button>
+                  ) : null}
+                  {!hasFullAdmin ? (
+                    <Button variant="danger" onClick={() => openDanger('grantFullAdmin')}>
+                      Сделать полным админом
+                    </Button>
+                  ) : null}
+                </ChipStack>
+              </Stack>
+            </Panel>
+
             <Panel title="Блокировка и удаление">
               <Stack gap={8}>
                 <ChipStack>
@@ -453,11 +533,15 @@ export function AdminHelpSection({
             ? 'Удалить навсегда'
             : danger === 'block'
               ? 'Заблокировать'
-              : 'Подтвердить'
+              : danger === 'grantModerator'
+                ? 'Выдать роль'
+                : danger === 'grantFullAdmin'
+                  ? 'Сделать полным админом'
+                  : danger === 'revokeRole'
+                    ? 'Снять роль'
+                    : 'Подтвердить'
         }
-        primaryVariant={
-          danger === 'delete' || danger === 'block' ? 'danger' : 'primary'
-        }
+        primaryVariant={isRoleDanger ? 'danger' : 'primary'}
         secondaryLabel="Отмена"
         busy={busy}
         primaryDisabled={primaryDisabled}
@@ -493,6 +577,26 @@ export function AdminHelpSection({
           {danger === 'block' ? (
             <Text>
               Вход будет закрыт, персонажи и лобби останутся. Все сессии завершатся сразу.
+            </Text>
+          ) : null}
+
+          {danger === 'grantModerator' ? (
+            <Text>
+              Человек получит доступ только к разделу «Справочники». Пароль админки ему не нужен.
+            </Text>
+          ) : null}
+
+          {danger === 'grantFullAdmin' ? (
+            <Text>
+              Человек получит полный доступ к админке. Пароль админки он задаст сам при первом
+              входе в /admin.
+            </Text>
+          ) : null}
+
+          {danger === 'revokeRole' && roleToRevoke ? (
+            <Text>
+              После снятия роли «{roleToRevoke.label}» доступ к соответствующим разделам пропадёт
+              сразу. Если ролей админки не останется, пароль админки этого человека будет удалён.
             </Text>
           ) : null}
 
