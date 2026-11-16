@@ -2,7 +2,13 @@
 import type { SheetModel } from './sheetModel'
 import { CatalogCombobox } from '../../catalog'
 import { type RulesEdition } from '../../../shared/api/characters'
-import { reduceClassLevel, totalCharacterLevel } from '../../../shared/dnd/classLevels'
+import { reduceClassLevel, totalCharacterLevel, type ClassLevelEntry } from '../../../shared/dnd/classLevels'
+import { computeProgression2024 } from '../../../shared/dnd/edition2024Classes'
+import {
+  resolveClassSlug2024,
+  subclassDropsOnLevelDown2024,
+  trimClassOptionsForLevel2024,
+} from '../../../shared/dnd/pendingFeatureChoices2024'
 import { XpProgressField } from '../XpProgressField'
 import { revokeClassGrant } from '../classEffects'
 import { revokeBackgroundGrant } from '../backgroundEffects'
@@ -65,7 +71,66 @@ function withLevelSpellcasting(model: SheetModel, draft: Draft): {
   }
 }
 
+/** 2024 −1: drop the subclass below its level and trim invocations / metamagic / masteries. */
+function levelDownClassState2024(
+  model: SheetModel,
+  draft: Draft,
+  row: ClassLevelEntry,
+  beforeLevel: number,
+  newLevel: number,
+): Draft {
+  const slug = resolveClassSlug2024(row)
+  const trimmed = trimClassOptionsForLevel2024({
+    slug,
+    newLevel,
+    classOptions: draft.classOptions2024,
+    weaponMastery: draft.weaponMastery,
+  })
+  let next: Draft = {
+    ...draft,
+    classOptions2024: trimmed.classOptions,
+    weaponMastery: trimmed.weaponMastery,
+  }
+  const hasSubclass = Boolean(row.subclass_catalog_id || row.subclass_name.trim())
+  if (hasSubclass && subclassDropsOnLevelDown2024(slug, beforeLevel)) {
+    next = model.mergeSubclassSlice(
+      next,
+      revokeSubclassGrant(model.subclassSliceFrom(next), row.id, { copyTextToNotes: true }),
+    )
+    next = {
+      ...next,
+      classes: next.classes.map((item) =>
+        item.id === row.id ? { ...item, subclass_catalog_id: null, subclass_name: '' } : item,
+      ),
+    }
+  }
+  return next
+}
+
+function unlockedForLevelDown(
+  model: SheetModel,
+  edition2024: boolean,
+  classes: ClassLevelEntry[],
+  abilities: Draft['abilities'],
+) {
+  if (edition2024) {
+    return computeProgression2024({
+      classes,
+      subclassSlugByEntryId: model.subclassSlugByEntryId,
+      abilities,
+    }).features
+  }
+  return unlockFeaturesForClasses({
+    classes,
+    characterLevel: totalCharacterLevel(classes),
+    abilities,
+    subclassSlugByEntryId: model.subclassSlugByEntryId,
+    subclassTransitionByEntryId: model.subclassTransitionByEntryId,
+  })
+}
+
 export function SheetIdentityDialog({ model }: { model: SheetModel }) {
+  const edition2024 = model.baseCharacter.rules_edition === '2024'
   return (
     <>
       <IdentityDialog
@@ -283,13 +348,12 @@ export function SheetIdentityDialog({ model }: { model: SheetModel }) {
 
                               if (!removed) {
                                 const newLevel = beforeLevel - 1
-                                const packFeatures = unlockFeaturesForClasses({
-                                  classes: prev.classes,
-                                  characterLevel: totalCharacterLevel(prev.classes),
-                                  abilities: prev.abilities,
-                                  subclassSlugByEntryId: model.subclassSlugByEntryId,
-                                  subclassTransitionByEntryId: model.subclassTransitionByEntryId,
-                                })
+                                const packFeatures = unlockedForLevelDown(
+                                  model,
+                                  edition2024,
+                                  prev.classes,
+                                  prev.abilities,
+                                )
                                   .filter((feature) => feature.classEntryId === row.id)
                                   .map((feature) => ({ id: feature.id, level: feature.level }))
                                 const nextPicks = clearFeaturePicksAboveClassLevel({
@@ -298,13 +362,12 @@ export function SheetIdentityDialog({ model }: { model: SheetModel }) {
                                   features: packFeatures,
                                   newClassLevel: newLevel,
                                 })
-                                const nextUnlocked = unlockFeaturesForClasses({
-                                  classes: nextClasses,
-                                  characterLevel: totalCharacterLevel(nextClasses),
+                                const nextUnlocked = unlockedForLevelDown(
+                                  model,
+                                  edition2024,
+                                  nextClasses,
                                   abilities,
-                                  subclassSlugByEntryId: model.subclassSlugByEntryId,
-                                  subclassTransitionByEntryId: model.subclassTransitionByEntryId,
-                                })
+                                )
                                 const nextSkills = syncSkillsExpertiseFromPicks({
                                   skills: featBase.skills,
                                   featurePicks: nextPicks,
@@ -333,7 +396,10 @@ export function SheetIdentityDialog({ model }: { model: SheetModel }) {
                                     }),
                                   ),
                                 )
-                                const raced = model.withRaceSpellsSynced(synced, nextClasses)
+                                const leveled = edition2024
+                                  ? levelDownClassState2024(model, synced, row, beforeLevel, newLevel)
+                                  : synced
+                                const raced = model.withRaceSpellsSynced(leveled, nextClasses)
                                 const finished = withLevelSpellcasting(model, raced)
                                 tableChanged = finished.tableChanged
                                 return finished.draft
@@ -383,7 +449,11 @@ export function SheetIdentityDialog({ model }: { model: SheetModel }) {
                               return finished.draft
                             })
                             if (tableChanged) {
-                              model.onToast('Ячейки обновлены по таблице 2014')
+                              model.onToast(
+                                edition2024
+                                  ? 'Ячейки обновлены (редакция 2024)'
+                                  : 'Ячейки обновлены по таблице 2014',
+                              )
                             }
                           }}
                         >

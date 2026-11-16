@@ -25,6 +25,12 @@ import { addCatalogSpellToKnown } from '../spells'
 import { abilityModifier } from '../sheetTypes'
 import { subclassSlugMapFromLedger, subclassTransitionMapFromLedger } from './draft'
 import { hasDraconicResilienceFeature } from '../featureCombatBonuses'
+import {
+  EPIC_BOON_FEATURE_ID_2024,
+  epicBoonLevelForClassSlug,
+  parseEpicBoonStepId2024,
+  resolveClassSlug2024,
+} from '../../../shared/dnd/pendingFeatureChoices2024'
 
 export function SheetDialogsSetup({ model }: { model: SheetModel }) {
   const campaignRules = normalizeCampaignRules(model.campaignRulesRaw)
@@ -184,6 +190,43 @@ export function SheetDialogsSetup({ model }: { model: SheetModel }) {
           void model.requestOrApplyBackgroundGrant(entry)
         }}
         onConfirmAsi={model.confirmClassAsi}
+        onConfirmFeat={(result) => {
+          const current = model.guidedWizard?.steps[model.guidedWizard.index]
+          const epic = parseEpicBoonStepId2024(current?.id)
+          if (!epic) return
+          const row = model.draft.classes.find((item) => item.id === epic.classEntryId)
+          if (!row) return
+          const grantId = newFeatGrantId()
+          const atClassLevel = epicBoonLevelForClassSlug(resolveClassSlug2024(row))
+          model.confirmClassAsi(
+            {
+              classEntryId: row.id,
+              featureId: EPIC_BOON_FEATURE_ID_2024,
+              atClassLevel,
+              resolution: {
+                kind: 'feat',
+                featCatalogId: result.entry.id,
+                featSlug: result.entry.slug,
+                featGrantId: grantId,
+              },
+              bonuses: {},
+            },
+            {
+              id: grantId,
+              featCatalogId: result.entry.id,
+              slug: result.entry.slug,
+              nameRu: result.entry.name_ru,
+              source: {
+                kind: 'asi',
+                classEntryId: row.id,
+                featureId: EPIC_BOON_FEATURE_ID_2024,
+                atClassLevel,
+              },
+              applied: result.applied,
+              picks: result.picks,
+            },
+          )
+        }}
         onAdvance={model.advanceGuidedWizard}
         onSkipStep={model.skipGuidedWizardStep}
         onClose={() => model.setGuidedWizard(null)}

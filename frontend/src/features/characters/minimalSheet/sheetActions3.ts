@@ -36,6 +36,11 @@ import { type IdentityExtras } from '../identity'
 import { revokeRaceGrant, syncRaceSpellsForSheetState } from '../raceEffects'
 import { characterHasCasterClass } from '../../../shared/dnd/casterProgression'
 import { freeBookSlotsAtLevel } from '../../../shared/dnd/wizardSpellbook'
+import {
+  buildPendingWizardSteps2024,
+  resolveClassSlug2024,
+  weaponMasteryGain2024,
+} from '../../../shared/dnd/pendingFeatureChoices2024'
 import { ABILITY_LABELS, type AbilityKey } from '../sheetTypes'
 import { buildDraft, grantedFeatSlugFromCatalog, subclassSlugMapFromLedger, subclassTransitionMapFromLedger, type Draft } from './draft'
 
@@ -376,6 +381,51 @@ export function installSheetActions3(model: SheetModel) {
       return model.mergeSubclassSlice(withRaceSpells, reconciled.slice)
     })
     model.setLevelUpOpen(false)
+    const sheetEdition = model.baseCharacter?.rules_edition ?? model.rulesEdition ?? '2014'
+    if (sheetEdition === '2024') {
+      const hpNote2024 = ` · хиты +${Math.max(0, Math.floor(choice.hpGain))}`
+      const slotNote2024 = tableChanged ? ' · ячейки 2024 обновлены' : ''
+      const masterySlug = resolveClassSlug2024(leveledRow)
+      const masteryGain = leveledRow
+        ? weaponMasteryGain2024(masterySlug, leveledRow.level)
+        : 0
+      const masteryNote =
+        masteryGain > 0
+          ? ` · мастерство оружия +${masteryGain}: выбери виды на листе`
+          : ''
+      model.onToast(
+        choice.type === 'same'
+          ? `Уровень класса +1${hpNote2024}${slotNote2024}${masteryNote}`
+          : `Мультикласс: ${choice.name.trim()} 1${hpNote2024}${slotNote2024}${masteryNote}`,
+      )
+
+      if (newMulticlassRow) {
+        model.requestOrApplyClassGrant({
+          classEntryId: newMulticlassRow.id,
+          className: newMulticlassRow.name,
+          mode: 'multiclass',
+          catalogSlug: choice.type === 'multiclass' ? choice.catalog_slug : null,
+          catalogData: choice.type === 'multiclass' ? choice.catalog_data : null,
+          classesOverride: nextClasses,
+        })
+        return
+      }
+
+      if (leveledRow && choice.type === 'same') {
+        const steps = buildPendingWizardSteps2024({
+          classEntryId: leveledRow.id,
+          className: leveledRow.name,
+          classSlug: masterySlug,
+          classLevel: leveledRow.level,
+          hasSubclass: Boolean(leveledRow.subclass_catalog_id || leveledRow.subclass_name.trim()),
+          classAsi: model.draft.classAsi,
+        })
+        if (steps.length > 0) {
+          model.openGuidedWizard({ steps, index: 0 })
+        }
+      }
+      return
+    }
     const hpNote = ` · хиты +${Math.max(0, Math.floor(choice.hpGain))}`
     const slotNote = tableChanged ? ' · ячейки по таблице 2014' : ''
     model.onToast(

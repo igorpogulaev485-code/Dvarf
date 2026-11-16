@@ -10,6 +10,7 @@ import {
   type AbilityScores,
 } from '../../shared/dnd/multiclassRules'
 import type { HitDie } from '../../shared/dnd/hitDice'
+import { checkMulticlassPrerequisites2024 } from '../../shared/dnd/edition2024Classes'
 import { CatalogCombobox } from '../catalog'
 import { Dialog, Field, NumberInput, Stack, Text } from '../../ui'
 
@@ -124,12 +125,22 @@ export function LevelUpDialog({
   const multiclassGate = useMemo(() => {
     if (mode !== 'multiclass') return null
     if (!newClassName.trim()) return null
+    if (edition === '2024') {
+      const check = checkMulticlassPrerequisites2024({
+        currentClasses: currentClassNames,
+        newClass: newCatalogSlug || newClassName,
+        abilities,
+      })
+      return check.ok
+        ? { ok: true as const, slug: newCatalogSlug ?? '' }
+        : { ok: false as const, reason: check.reasonRu, slug: null }
+    }
     return canTakeMulticlassLevel({
       newClassName,
       currentClassNames,
       abilities,
     })
-  }, [mode, newClassName, currentClassNames, abilities])
+  }, [edition, mode, newClassName, newCatalogSlug, currentClassNames, abilities])
 
   const hpGain =
     hpMode === 'average'
@@ -149,12 +160,18 @@ export function LevelUpDialog({
 
   const filterEligibleClassStable = useCallback(
     (entry: CatalogEntry) =>
-      isClassEligibleForMulticlass({
-        className: entry.name_ru,
-        currentClassNames,
-        abilities,
-      }),
-    [currentClassNames, abilities],
+      edition === '2024'
+        ? checkMulticlassPrerequisites2024({
+            currentClasses: currentClassNames,
+            newClass: entry.slug || entry.name_ru,
+            abilities,
+          }).ok
+        : isClassEligibleForMulticlass({
+            className: entry.name_ru,
+            currentClassNames,
+            abilities,
+          }),
+    [edition, currentClassNames, abilities],
   )
 
   return (
@@ -184,7 +201,10 @@ export function LevelUpDialog({
       <Stack gap={12}>
         <Text tone="muted">
           Куда идёт новый уровень персонажа? Можно прокачать уже взятый класс или взять 1 уровень
-          другого (мультикласс). Характеристики должны удовлетворять требованиям PHB 2014.
+          другого (мультикласс).{' '}
+          {edition === '2024'
+            ? 'Характеристики должны удовлетворять требованиям мультикласса 2024 (редакция 2024).'
+            : 'Характеристики должны удовлетворять требованиям PHB 2014.'}
         </Text>
 
         <div className="chip-row">
@@ -247,8 +267,9 @@ export function LevelUpDialog({
               <Text tone="danger">{multiclassGate.reason}</Text>
             ) : null}
             <Text tone="muted">
-              Как на create: пороги PHB на новый класс и на уже взятые. Не хватает характеристик —
-              класс не выбрать, пока не поднимешь Увеличение характеристик / не перераспределишь.
+              {edition === '2024'
+                ? 'Как на create: основные характеристики 13+ у нового класса и у уже взятых (у части классов достаточно одной из двух). Не хватает — класс не выбрать, пока не поднимешь характеристики.'
+                : 'Как на create: пороги PHB на новый класс и на уже взятые. Не хватает характеристик — класс не выбрать, пока не поднимешь Увеличение характеристик / не перераспределишь.'}
             </Text>
           </Stack>
         )}

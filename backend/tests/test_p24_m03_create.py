@@ -517,6 +517,9 @@ def test_create_2024_api_preview_allows_when_flag_closed(monkeypatch):
     assert created["rules_edition"] == RulesEdition.edition_2024
     assert out.rules_edition == RulesEdition.edition_2024
     assert created["sheet"]["weapon_mastery"]["known"]
+    from app.services.edition_2024_catalog_seed import entry_id
+
+    assert created["sheet"]["classes"][0]["catalog_id"] == entry_id(kind="class", slug="fighter")
 
 
 def test_create_2024_api_refuses_without_preview_when_closed(monkeypatch):

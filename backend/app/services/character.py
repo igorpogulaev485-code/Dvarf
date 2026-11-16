@@ -165,6 +165,16 @@ def to_detail(
     return data.model_copy(update=updates)
 
 
+def _link_class_catalog_ids_2024(sheet: dict) -> None:
+    """Sheet class rows need the catalog id so level-up can filter subclasses by parent."""
+    from app.services.edition_2024_catalog_seed import entry_id
+
+    for row in sheet.get("classes") or []:
+        slug = str(row.get("slug") or "").strip()
+        if slug and not row.get("catalog_id"):
+            row["catalog_id"] = entry_id(kind="class", slug=slug)
+
+
 class CharacterService:
     def __init__(self, db: Session) -> None:
         self.db = db
@@ -248,6 +258,7 @@ class CharacterService:
         except Create2024Error as exc:
             raise AppError(exc.message, code=exc.code, status_code=400) from exc
 
+        _link_class_catalog_ids_2024(result.sheet)
         character = self.characters.create(
             user_id=user.id,
             rules_edition=RulesEdition.edition_2024,
