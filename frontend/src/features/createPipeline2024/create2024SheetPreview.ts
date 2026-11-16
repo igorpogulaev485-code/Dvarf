@@ -34,6 +34,7 @@ import {
   classToolChoice,
   findFeat,
   speciesLineages,
+  speciesSizeOptions,
 } from './createPipeline2024State'
 import {
   classL1Spellcasting,
@@ -43,6 +44,9 @@ import {
   type Create2024State,
   type LanguagesBundle,
 } from './createPipeline2024Types'
+import { proficiencyBonusForLevel2024 } from '../../shared/dnd/edition2024Classes'
+import { totalCharacterLevel } from '../../shared/dnd/classLevels'
+import { hitDieSides, type HitDie } from '../../shared/dnd/hitDice'
 
 const ARMOR_BASE: Record<string, number> = {
   padded: 11,
@@ -189,6 +193,20 @@ export function buildCreate2024SheetPreview(input: SheetPreviewInput): SheetPrev
 
   const overlay = backgroundAsiOverlay(state)
   const saveProf = new Set(stringList(classData.saving_throws).map((x) => x.toLowerCase()))
+  const totalLevel = Math.max(
+    1,
+    totalCharacterLevel(state.classes) || state.characterLevel || 1,
+  )
+  const proficiencyBonus = proficiencyBonusForLevel2024(totalLevel)
+  const classSummary =
+    state.classes
+      .filter((row) => row.level > 0)
+      .map((row) => `${row.name || classEntry.name_ru} ${row.level}`)
+      .join(' / ') || `${classEntry.name_ru} ${totalLevel}`
+  const sizeId =
+    state.speciesSize ||
+    speciesSizeOptions(speciesEntry)[0] ||
+    String(speciesData.size || 'medium')
   const abilities: SheetPreviewAbility[] = ABILITY_ORDER.map((key) => {
     const base = state.baseAbilities[key]
     const bonus = overlay[key] ?? 0
@@ -203,13 +221,30 @@ export function buildCreate2024SheetPreview(input: SheetPreviewInput): SheetPrev
       base,
       bonus,
       saveProficient,
-      saveMod: mod + (saveProficient ? 2 : 0),
+      saveMod: mod + (saveProficient ? proficiencyBonus : 0),
     }
   })
   const score = (key: AbilityKey) => abilities.find((a) => a.key === key)!.score
   const dexMod = abilityModifier(score('dex'))
   const conMod = abilityModifier(score('con'))
   const hitDieN = Number(classData.hit_die || 8)
+  const die = (`d${hitDieN}` as HitDie)
+  const avgFace = Math.floor(hitDieSides(die) / 2) + 1
+  let hpMax = 0
+  if (state.hpChoices.length) {
+    for (const choice of state.hpChoices) {
+      const isOrigin =
+        choice.classLevel === 1 &&
+        (choice.classEntryId === state.primaryClassEntryId ||
+          choice.classEntryId === state.classes[0]?.id)
+      if (isOrigin) hpMax += hitDieN + conMod
+      else if (choice.mode === 'roll' && choice.rolled != null) hpMax += choice.rolled + conMod
+      else hpMax += avgFace + conMod
+    }
+  } else {
+    hpMax = hitDieN + conMod
+    for (let lv = 2; lv <= totalLevel; lv += 1) hpMax += avgFace + conMod
+  }
 
   // Feats + their picks.
   const bgFeatSlug = originFeatSlugOf(backgroundEntry)
@@ -251,7 +286,9 @@ export function buildCreate2024SheetPreview(input: SheetPreviewInput): SheetPrev
     const isProf = proficient.has(def.key)
     const isExp = expertise.has(def.key)
     const mod =
-      abilityModifier(score(def.base)) + (isProf ? 2 : 0) + (isProf && isExp ? 2 : 0)
+      abilityModifier(score(def.base)) +
+      (isProf ? proficiencyBonus : 0) +
+      (isProf && isExp ? proficiencyBonus : 0)
     return { key: def.key, label: def.label, mod, proficient: isProf, expertise: isExp }
   })
 
@@ -368,18 +405,18 @@ export function buildCreate2024SheetPreview(input: SheetPreviewInput): SheetPrev
 
   return {
     name: state.characterName.trim() || 'Новый персонаж',
-    className: classEntry.name_ru,
+    className: classSummary,
     speciesName: speciesEntry.name_ru,
     backgroundName: backgroundEntry.name_ru,
-    level: 1,
+    level: totalLevel,
     hitDie: hitDieLabel(hitDieN),
-    hpMax: hitDieN + conMod,
+    hpMax,
     ac,
     initiative: dexMod,
     speed,
     darkvision,
-    proficiencyBonus: 2,
-    size: sizeLabelRu(state.speciesSize),
+    proficiencyBonus,
+    size: sizeLabelRu(sizeId),
     abilities,
     skills,
     feats,

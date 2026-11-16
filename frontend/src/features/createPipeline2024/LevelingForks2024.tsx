@@ -20,6 +20,7 @@ import {
   MULTICLASS_PROFICIENCIES_2024,
   normalizeClassSlug2024,
 } from '../../shared/dnd/edition2024Classes'
+import { isPhb2024CreateSubclass } from '../../shared/dnd/edition2024Subclasses'
 import {
   epicBoonLevelForClassSlug,
   featLevelsForClassSlug,
@@ -27,8 +28,25 @@ import {
 } from '../../shared/dnd/pendingFeatureChoices2024'
 import { hitDieForClass, type AbilityScores } from '../../shared/dnd/multiclassRules'
 import { hitDieSides, type HitDie } from '../../shared/dnd/hitDice'
+import { WEAPON_MASTERY_CLASS_RULES } from '../../shared/dnd/weaponMastery'
 import type { HpLevelChoice } from '../createPipeline/createPipelineTypes'
 import { ensureHpChoices } from '../createPipeline/LevelingStep'
+
+const CASTER_SLUGS = new Set([
+  'bard',
+  'cleric',
+  'druid',
+  'sorcerer',
+  'wizard',
+  'paladin',
+  'ranger',
+  'artificer',
+  'warlock',
+])
+const THIRD_CASTER_SUBS = new Set([
+  'fighter__eldritch-knight',
+  'rogue__arcane-trickster',
+])
 
 export type AsiChoice2024 = {
   classSlug: string
@@ -47,6 +65,8 @@ export type LevelingForks2024Props = {
   primaryClassEntryId: string
   subclassByEntryId: Record<string, string | null>
   asiChoices: AsiChoice2024[]
+  fightingStyleNameRu?: string | null
+  weaponMasteryNamesRu?: string[]
   onClassesChange: (classes: ClassLevelEntry[]) => void
   onHpChoicesChange: (choices: HpLevelChoice[]) => void
   onSubclassChange: (classEntryId: string, subclassSlug: string | null) => void
@@ -76,6 +96,8 @@ export function LevelingForks2024({
   primaryClassEntryId,
   subclassByEntryId,
   asiChoices,
+  fightingStyleNameRu = null,
+  weaponMasteryNamesRu = [],
   onClassesChange,
   onHpChoicesChange,
   onSubclassChange,
@@ -218,19 +240,46 @@ export function LevelingForks2024({
     return 1 + Math.floor(Math.random() * hitDieSides(die))
   }
 
-  function forksFor(row: ClassLevelEntry) {
+  function forksFor(row: ClassLevelEntry, isPrimary: boolean) {
     const slug = normalizeClassSlug2024(row.catalog_id) || normalizeClassSlug2024(row.name)
-    if (!slug) return [] as Array<{ level: number; kind: string; label: string; stub?: boolean }>
-    const out: Array<{ level: number; kind: string; label: string; stub?: boolean }> = []
+    if (!slug) return [] as Array<{ level: number; kind: string; label: string; stub?: boolean; detail?: string }>
+    const out: Array<{
+      level: number
+      kind: string
+      label: string
+      stub?: boolean
+      detail?: string
+    }> = []
     const subGate = subclassLevelForClassSlug(slug)
+    const masteryRule = WEAPON_MASTERY_CLASS_RULES[slug]
     for (let lv = 1; lv <= row.level; lv += 1) {
+      if (lv === 1 && isPrimary) {
+        if (slug === 'fighter' || slug === 'paladin' || slug === 'ranger') {
+          out.push({
+            level: 1,
+            kind: 'fighting_style',
+            label: 'Боевой стиль',
+            detail: fightingStyleNameRu || 'Выбран на шаге «Класс»',
+          })
+        }
+        if (masteryRule?.enabled) {
+          const need = masteryRule.byLevel[1] ?? 0
+          const names = weaponMasteryNamesRu.length
+            ? weaponMasteryNamesRu.join(', ')
+            : `выбрано на шаге «Класс» (${need})`
+          out.push({
+            level: 1,
+            kind: 'weapon_mastery',
+            label: `Мастерство оружия (${need})`,
+            detail: names,
+          })
+        }
+      }
       if (lv === subGate) {
         out.push({
           level: lv,
           kind: 'subclass',
-          label: subclassByEntryId[row.id]
-            ? `Подкласс выбран`
-            : `Подкласс (с ${subGate} ур.)`,
+          label: subclassByEntryId[row.id] ? 'Подкласс выбран' : `Подкласс (с ${subGate} ур.)`,
         })
       }
       if (featLevelsForClassSlug(slug).includes(lv)) {
@@ -240,32 +289,35 @@ export function LevelingForks2024({
           kind: 'asi',
           label: picked
             ? picked.kind === 'asi_plus2'
-              ? 'УХ +2'
+              ? 'Увеличение характеристик: +2 к одной'
               : picked.kind === 'asi_plus1_plus1'
-                ? 'УХ +1/+1'
+                ? 'Увеличение характеристик: +1 к двум'
                 : picked.kind === 'feat'
                   ? 'Черта'
-                  : 'УХ / черта'
-            : `УХ или черта (${lv} ур.)`,
+                  : 'Увеличение характеристик / черта'
+            : `Увеличение характеристик или черта (${lv} ур.)`,
         })
       }
       if (lv === epicBoonLevelForClassSlug(slug)) {
         out.push({ level: lv, kind: 'epic_boon', label: 'Эпический дар' })
       }
-      // Class option stubs when catalog feature picks are thin.
       const cat = classCatalog2024()[slug]
       const features = Array.isArray(cat?.data?.features) ? (cat!.data.features as unknown[]) : []
       const levelFeatures = features.filter((f) => {
         if (!f || typeof f !== 'object') return false
         return Number((f as { level?: number }).level) === lv
       })
-      if (lv > 1 && levelFeatures.length === 0 && !featLevelsForClassSlug(slug).includes(lv) && lv !== subGate) {
-        // No structured data yet — show honest stub for M02 packs.
+      if (
+        lv > 1 &&
+        levelFeatures.length === 0 &&
+        !featLevelsForClassSlug(slug).includes(lv) &&
+        lv !== subGate
+      ) {
         if ([2, 5, 6, 7, 9, 10, 11, 13, 14, 15, 17, 18].includes(lv)) {
           out.push({
             level: lv,
             kind: 'class_option',
-            label: `Умения ${lv} ур. — данные класса ещё дополняются`,
+            label: `Умения ${lv} уровня появятся с пакетом класса`,
             stub: true,
           })
         }
@@ -278,6 +330,7 @@ export function LevelingForks2024({
     if (!slug) return [] as CatalogEntry[]
     return classCatalog.filter((entry) => {
       const entrySlug = String(entry.slug || '')
+      if (!isPhb2024CreateSubclass(entrySlug, entry.source)) return false
       const parent =
         String(entry.data?.parent_class || entry.data?.parent_slug || entry.data?.parent || '') ||
         (entrySlug.includes('__') ? entrySlug.split('__')[0] : '')
@@ -289,24 +342,35 @@ export function LevelingForks2024({
     })
   }
 
+  const hasSpellcasting = useMemo(() => {
+    return classes.some((row) => {
+      const slug = normalizeClassSlug2024(row.catalog_id) || normalizeClassSlug2024(row.name)
+      if (slug && CASTER_SLUGS.has(slug)) return true
+      const sub = subclassByEntryId[row.id]
+      return Boolean(sub && THIRD_CASTER_SUBS.has(sub))
+    })
+  }, [classes, subclassByEntryId])
+
   return (
     <div data-testid="p24-m03c-leveling">
     <Stack gap={16}>
       <div>
         <Text as="h2">Прокачка</Text>
         <Text tone="muted">
-          Уровни 1–20, хиты (среднее/бросок), развилки по уровням (подкласс, УХ/черта, эпический дар,
-          умения класса), мультикласс по требованиям 2024 и заклинания. Стартовые навыки и снаряжение
-          основного класса уже выбраны на шаге «Класс».
+          Уровни 1–20, хиты (среднее/бросок), развилки по уровням (подкласс, увеличение характеристик
+          или черта, эпический дар, умения класса), мультикласс по требованиям 2024 и заклинания.
+          Стартовые навыки и снаряжение основного класса уже выбраны на шаге «Класс».
         </Text>
-        <Text tone="muted">Общий уровень: {totalLevel} · бонус мастерства по таблице персонажа</Text>
+        <Text tone="muted">
+          Общий уровень: {totalLevel} · бонус мастерства +{Math.floor((Math.max(1, totalLevel) - 1) / 4) + 2}
+        </Text>
       </div>
 
       {classes.map((row, index) => {
         const die = hitDieForClass({ className: row.name }) ?? 'd8'
         const isPrimary = row.id === primaryClassEntryId || index === 0
         const slug = normalizeClassSlug2024(row.catalog_id) || normalizeClassSlug2024(row.name)
-        const forks = forksFor(row)
+        const forks = forksFor(row, isPrimary)
         const subclassList = subclassesFor(slug)
         return (
           <div key={row.id} className="create-pipeline__level-block" data-testid={`p24-m03c-class-${slug || row.id}`}>
@@ -417,11 +481,19 @@ export function LevelingForks2024({
                   Развилки по уровням
                 </Text>
                 {forks.map((fork) => (
-                  <div key={`${fork.kind}-${fork.level}`} className="create-pipeline__hp-row">
-                    <Text>
-                      {fork.level} ур. · {fork.label}
-                      {fork.stub ? ' (заглушка)' : ''}
-                    </Text>
+                  <div
+                    key={`${fork.kind}-${fork.level}`}
+                    className="create-pipeline__hp-row"
+                    data-testid={`p24-m03c-fork-${fork.kind}-${slug}-${fork.level}`}
+                  >
+                    <div>
+                      <Text>
+                        {fork.level} ур. · {fork.label}
+                      </Text>
+                      {fork.detail ? (
+                        <Text tone="muted">{fork.detail}</Text>
+                      ) : null}
+                    </div>
                     {fork.kind === 'subclass' ? (
                       <div className="create-pipeline__method-row">
                         {subclassList.length ? (
@@ -438,7 +510,7 @@ export function LevelingForks2024({
                             </Button>
                           ))
                         ) : (
-                          <Text tone="muted">Подклассы появятся с пачками M02 — заглушка безопасна.</Text>
+                          <Text tone="muted">Подклассы появятся с пакетом класса.</Text>
                         )}
                       </div>
                     ) : fork.kind === 'asi' ? (
@@ -450,7 +522,20 @@ export function LevelingForks2024({
                               classSlug: slug || '',
                               classLevel: fork.level,
                               kind: 'asi_plus2',
-                              abilities: { [(slug === 'monk' || slug === 'rogue' || slug === 'ranger' ? 'dex' : slug === 'wizard' || slug === 'artificer' ? 'int' : slug === 'cleric' || slug === 'druid' ? 'wis' : slug === 'bard' || slug === 'sorcerer' || slug === 'warlock' || slug === 'paladin' ? 'cha' : 'str') as keyof AbilityScores]: 2 },
+                              abilities: {
+                                [(slug === 'monk' || slug === 'rogue' || slug === 'ranger'
+                                  ? 'dex'
+                                  : slug === 'wizard' || slug === 'artificer'
+                                    ? 'int'
+                                    : slug === 'cleric' || slug === 'druid'
+                                      ? 'wis'
+                                      : slug === 'bard' ||
+                                          slug === 'sorcerer' ||
+                                          slug === 'warlock' ||
+                                          slug === 'paladin'
+                                        ? 'cha'
+                                        : 'str') as keyof AbilityScores]: 2,
+                              },
                             }
                             onAsiChoicesChange([
                               ...asiChoices.filter(
@@ -461,7 +546,7 @@ export function LevelingForks2024({
                           }}
                           data-testid={`p24-m03c-asi-plus2-${slug}-${fork.level}`}
                         >
-                          +2
+                          +2 к одной или +1 к двум
                         </Button>
                         <Button
                           variant="secondary"
@@ -473,8 +558,8 @@ export function LevelingForks2024({
                               {
                                 classSlug: slug || '',
                                 classLevel: fork.level,
-                                kind: 'stub',
-                                noteRu: 'Черта общего вида — каталог дополнится пачками M02',
+                                kind: 'feat',
+                                noteRu: 'Черта общего вида — каталог дополнится пакетом класса',
                               },
                             ])
                           }
@@ -483,12 +568,21 @@ export function LevelingForks2024({
                           Черта
                         </Button>
                       </div>
+                    ) : fork.stub ? (
+                      <Text tone="muted">Не блокирует создание</Text>
+                    ) : fork.kind === 'fighting_style' || fork.kind === 'weapon_mastery' ? (
+                      <Button
+                        variant="ghost"
+                        onClick={() => onOpenFork(row.id, fork.level, fork.kind)}
+                      >
+                        Изменить на шаге «Класс»
+                      </Button>
                     ) : (
                       <Button
                         variant="ghost"
                         onClick={() => onOpenFork(row.id, fork.level, fork.kind)}
                       >
-                        {fork.stub ? 'Понятная заглушка' : 'Открыть'}
+                        Открыть
                       </Button>
                     )}
                   </div>
@@ -501,8 +595,12 @@ export function LevelingForks2024({
       })}
 
       <div className="create-pipeline__mc" data-testid="p24-m03c-multiclass">
-        <Button onClick={() => setMcOpen((open) => !open)} data-testid="p24-m03c-mc-open">
-          Добавить мультикласс
+        <Button
+          onClick={() => setMcOpen((open) => !open)}
+          data-testid="p24-m03c-mc-open"
+          variant={mcOpen ? 'primary' : 'secondary'}
+        >
+          {mcOpen ? 'Скрыть мультикласс' : 'Добавить мультикласс'}
         </Button>
         {mcOpen ? (
           <ul className="create-pipeline__card-list" data-testid="p24-m03c-mc-list">
@@ -521,7 +619,7 @@ export function LevelingForks2024({
                 >
                   <span className="create-pipeline__card-title">{entry.name_ru}</span>
                   <span className="create-pipeline__card-sub">
-                    {ok ? 'Доступен · требования ≥13 выполнены' : detail || 'недоступно'}
+                    {ok ? 'Доступен · требования 13+ выполнены' : detail || 'недоступно'}
                   </span>
                 </button>
               </li>
@@ -530,24 +628,26 @@ export function LevelingForks2024({
         ) : null}
       </div>
 
-      <div className="create-pipeline__spells-block" data-testid="p24-m03c-slots">
-        <div className="create-pipeline__method-row">
-          <Button variant="secondary" onClick={onOpenSpells} data-testid="p24-m03c-spells">
-            Заклинания
-          </Button>
+      {hasSpellcasting ? (
+        <div className="create-pipeline__spells-block" data-testid="p24-m03c-slots">
+          <div className="create-pipeline__method-row">
+            <Button variant="secondary" onClick={onOpenSpells} data-testid="p24-m03c-spells">
+              Заклинания
+            </Button>
+          </div>
+          <Text>
+            Ячейки (общая таблица мультикласса):{' '}
+            {formatSlots(progression.multiclass_slots || {})}
+            {progression.multiclass_pact
+              ? ` · Магия договора ${progression.multiclass_pact.count}×${progression.multiclass_pact.level}`
+              : ''}
+          </Text>
+          <Text tone="muted">
+            Подготовленные и известные считаются по каждому классу отдельно; ячейки колдуна —
+            отдельно (Магия договора). Бонус мастерства — по общему уровню {totalLevel}.
+          </Text>
         </div>
-        <Text>
-          Ячейки (общая таблица мультикласса):{' '}
-          {formatSlots(progression.multiclass_slots || {})}
-          {progression.multiclass_pact
-            ? ` · Магия договора ${progression.multiclass_pact.count}×${progression.multiclass_pact.level}`
-            : ''}
-        </Text>
-        <Text tone="muted">
-          Подготовленные и известные считаются по каждому классу отдельно; ячейки колдуна — отдельно
-          (Магия договора). Бонус мастерства — по общему уровню {totalLevel}.
-        </Text>
-      </div>
+      ) : null}
 
       {cascadeWarn ? (
         <div className="create-pipeline__modal" data-testid="p24-m03c-cascade">

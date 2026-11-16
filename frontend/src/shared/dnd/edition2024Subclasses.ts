@@ -134,6 +134,19 @@ function buildCatalog(): Record<string, SubclassCatalogRow> {
 
 export const SUBCLASS_CATALOG_2024 = buildCatalog()
 
+/** PHB 2024 create wizard: core PHB/SRD subclasses only (no XGE/SCAG/FRHoF/AU). */
+const CREATE_SUBCLASS_SOURCES_2024 = new Set(['ph24', 'srd-5.2', 'srd'])
+
+export function isPhb2024CreateSubclass(slug: string, source?: string | null): boolean {
+  const row = SUBCLASS_CATALOG_2024[slug]
+  const src = String(source || row?.source || '')
+    .trim()
+    .toLowerCase()
+  if (CREATE_SUBCLASS_SOURCES_2024.has(src)) return true
+  // Catalog API may omit source; fall back to known PHB table rows.
+  return Boolean(row && CREATE_SUBCLASS_SOURCES_2024.has(String(row.source || '').toLowerCase()))
+}
+
 export function listSubclassSlugs2024(): string[] {
   return Object.keys(SUBCLASS_CATALOG_2024).sort()
 }

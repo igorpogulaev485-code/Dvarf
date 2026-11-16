@@ -1,0 +1,191 @@
+{
+  "race": [
+    {
+      "id": "seed-race-human",
+      "kind": "race",
+      "slug": "human",
+      "name_ru": "Человек",
+      "name_en": "human",
+      "rules_edition": "2014",
+      "parent_id": null,
+      "source": "phb",
+      "external_ref": null,
+      "data": {
+        "speed": 30,
+        "size": "medium"
+      },
+      "sort_order": 0,
+      "is_active": true,
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z"
+    },
+    {
+      "id": "seed-race-dwarf",
+      "kind": "race",
+      "slug": "dwarf",
+      "name_ru": "Дварф",
+      "name_en": "dwarf",
+      "rules_edition": "2014",
+      "parent_id": null,
+      "source": "phb",
+      "external_ref": null,
+      "data": {
+        "speed": 25,
+        "size": "medium",
+        "darkvision": 60
+      },
+      "sort_order": 0,
+      "is_active": true,
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z"
+    },
+    {
+      "id": "seed-race-elf",
+      "kind": "race",
+      "slug": "elf",
+      "name_ru": "Эльф",
+      "name_en": "elf",
+      "rules_edition": "2014",
+      "parent_id": null,
+      "source": "phb",
+      "external_ref": null,
+      "data": {
+        "speed": 30,
+        "size": "medium",
+        "darkvision": 60
+      },
+      "sort_order": 0,
+      "is_active": true,
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z"
+    }
+  ],
+  "background": [
+    {
+      "id": "seed-background-soldier",
+      "kind": "background",
+      "slug": "soldier",
+      "name_ru": "Солдат",
+      "name_en": "soldier",
+      "rules_edition": "2014",
+      "parent_id": null,
+      "source": "phb",
+      "external_ref": null,
+      "data": {
+        "skill_proficiencies": [
+          "athletics",
+          "intimidation"
+        ]
+      },
+      "sort_order": 0,
+      "is_active": true,
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z"
+    },
+    {
+      "id": "seed-background-sage",
+      "kind": "background",
+      "slug": "sage",
+      "name_ru": "Мудрец",
+      "name_en": "sage",
+      "rules_edition": "2014",
+      "parent_id": null,
+      "source": "phb",
+      "external_ref": null,
+      "data": {
+        "skill_proficiencies": [
+          "arcana",
+          "history"
+        ]
+      },
+      "sort_order": 0,
+      "is_active": true,
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z"
+    }
+  ],
+  "class": [
+    {
+      "id": "seed-class-fighter",
+      "kind": "class",
+      "slug": "fighter",
+      "name_ru": "Воин",
+      "name_en": "fighter",
+      "rules_edition": "2014",
+      "parent_id": null,
+      "source": "phb",
+      "external_ref": null,
+      "data": {
+        "hit_die": 10,
+        "saving_throws": [
+          "str",
+          "con"
+        ],
+        "primary_abilities": [
+          "str",
+          "dex"
+        ]
+      },
+      "sort_order": 0,
+      "is_active": true,
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z"
+    },
+    {
+      "id": "seed-class-wizard",
+      "kind": "class",
+      "slug": "wizard",
+      "name_ru": "Волшебник",
+      "name_en": "wizard",
+      "rules_edition": "2014",
+      "parent_id": null,
+      "source": "phb",
+      "external_ref": null,
+      "data": {
+        "hit_die": 6,
+        "saving_throws": [
+          "int",
+          "wis"
+        ],
+        "primary_abilities": [
+          "int"
+        ]
+      },
+      "sort_order": 0,
+      "is_active": true,
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z"
+    },
+    {
+      "id": "seed-class-cleric",
+      "kind": "class",
+      "slug": "cleric",
+      "name_ru": "Жрец",
+      "name_en": "cleric",
+      "rules_edition": "2014",
+      "parent_id": null,
+      "source": "phb",
+      "external_ref": null,
+      "data": {
+        "hit_die": 8,
+        "saving_throws": [
+          "wis",
+          "cha"
+        ],
+        "primary_abilities": [
+          "wis"
+        ]
+      },
+      "sort_order": 0,
+      "is_active": true,
+      "created_at": "2024-01-01T00:00:00Z",
+      "updated_at": "2024-01-01T00:00:00Z"
+    }
+  ],
+  "feat": [],
+  "subclass": [],
+  "spell": [],
+  "weapon": [],
+  "armor": [],
+  "item": []
+}

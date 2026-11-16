@@ -97,7 +97,8 @@ def test_multiclass_requirements_ge_13():
         abilities={"str": 15, "dex": 10, "con": 12, "int": 10, "wis": 10, "cha": 10},
     )
     assert ok2 is False
-    assert "13" in reason
+    assert "Интеллект" in reason
+    assert "INT" not in reason
 
     # Both old and new primaries required
     ok3, reason3 = e24.check_multiclass_prerequisites(
@@ -106,7 +107,8 @@ def test_multiclass_requirements_ge_13():
         abilities={"str": 10, "dex": 10, "con": 12, "int": 15, "wis": 10, "cha": 10},
     )
     assert ok3 is False
-    assert "13" in reason3
+    assert "Сила" in reason3 or "Ловкость" in reason3
+    assert "STR" not in reason3 and "INT" not in reason3
 
 
 def test_create_wizard_5_equivalence():

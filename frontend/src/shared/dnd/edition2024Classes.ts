@@ -416,6 +416,25 @@ export function slotsForCasterLevel2024(casterLevel: number): Record<string, num
   return Object.fromEntries(row.map((n, i) => [String(i + 1), n]))
 }
 
+const ABILITY_NAME_RU: Record<string, string> = {
+  str: 'Сила',
+  dex: 'Ловкость',
+  con: 'Телосложение',
+  int: 'Интеллект',
+  wis: 'Мудрость',
+  cha: 'Харизма',
+}
+
+function primaryNeedRu(primaries: string[], mode: string): string {
+  const names = primaries.map((a) => ABILITY_NAME_RU[a] || a)
+  if (mode === 'any') {
+    if (names.length === 1) return `Нужен ${names[0]} 13+`
+    return `Нужен ${names.join(' или ')} 13+`
+  }
+  if (names.length === 1) return `Нужен ${names[0]} 13+`
+  return `Нужны ${names.join(' и ')} 13+`
+}
+
 export function checkMulticlassPrerequisites2024(input: {
   currentClasses: string[]
   newClass: string
@@ -441,13 +460,13 @@ export function checkMulticlassPrerequisites2024(input: {
       if (!scores.some((s) => s >= 13)) {
         return {
           ok: false,
-          reasonRu: `${catalog.name_ru}: нужна характеристика ≥13 (${primaries.join('/').toUpperCase()})`,
+          reasonRu: `${catalog.name_ru}: ${primaryNeedRu(primaries, 'any')}`,
         }
       }
     } else if (!scores.every((s) => s >= 13)) {
       return {
         ok: false,
-        reasonRu: `${catalog.name_ru}: нужны ${primaries.map((a) => a.toUpperCase()).join(' и ')} ≥13`,
+        reasonRu: `${catalog.name_ru}: ${primaryNeedRu(primaries, 'all')}`,
       }
     }
   }

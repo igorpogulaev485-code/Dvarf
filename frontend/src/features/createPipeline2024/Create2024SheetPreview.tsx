@@ -37,7 +37,7 @@ export function Create2024SheetPreview({ model }: Create2024SheetPreviewProps) {
         <header className="create-2024__sheet-head">
           <Text as="h2">{model.name}</Text>
           <Text tone="muted">
-            {model.speciesName} · {model.className} {model.level} · {model.backgroundName}
+            {model.speciesName} · {model.className.includes(' ') ? model.className : `${model.className} ${model.level}`} · {model.backgroundName}
           </Text>
         </header>
 

@@ -198,8 +198,9 @@ export function CreateCharacter2024Page({
   const [params] = useSearchParams()
   const phone = useIsPhone()
   const previewQuery = params.get('preview') === '1'
-  // Internal e2e: jump to leveling with a seeded fighter (screenshots / forks).
+  // Internal e2e: jump to leveling with seeded builds (screenshots / forks).
   const e2eLeveling = params.get('e2eLeveling') === '1'
+  const e2eSeed = params.get('e2eSeed') || 'fighter5'
   // Even when embedded in `/characters/create`, keep the M06 gate (preview or flag).
   const blocked = !harness && !previewQuery && !RULES_EDITION_2024_OPEN
 
@@ -258,42 +259,149 @@ export function CreateCharacter2024Page({
 
   useEffect(() => {
     if (!e2eLeveling || !catalog || e2eLevelingSeeded.current) return
-    const fighter = catalog.classes.find((e) => e.slug === 'fighter')
-    const soldier = catalog.backgrounds.find((e) => e.slug === 'soldier')
-    const dwarf = catalog.species.find((e) => e.slug === 'dwarf')
-    if (!fighter || !soldier || !dwarf) return
+    const bySlug = (list: typeof catalog.classes, slug: string) =>
+      list.find((e) => e.slug === slug)
+    const soldier = bySlug(catalog.backgrounds, 'soldier') || catalog.backgrounds[0]
+    const dwarf = bySlug(catalog.species, 'dwarf') || catalog.species[0]
+    if (!soldier || !dwarf) return
+
+    const make = (
+      slug: string,
+      level: number,
+      subclass?: string | null,
+    ): ReturnType<typeof createClassLevel> | null => {
+      const entry = bySlug(catalog.classes, slug)
+      if (!entry) return null
+      const sub = subclass ? catalog.subclasses.find((s) => s.slug === subclass) : null
+      return createClassLevel({
+        name: entry.name_ru,
+        catalog_id: entry.slug || entry.id,
+        level,
+        subclass_catalog_id: subclass || null,
+        subclass_name: sub?.name_ru || '',
+      })
+    }
+
+    type Seed = {
+      name: string
+      classSlug: string
+      abilities: Create2024State['baseAbilities']
+      rows: Array<{ slug: string; level: number; subclass?: string }>
+      fighting?: string
+      mastery?: number
+      asi?: Create2024State['asiChoices']
+    }
+    const seeds: Record<string, Seed> = {
+      fighter5: {
+        name: 'Тестовый воин',
+        classSlug: 'fighter',
+        abilities: { str: 15, dex: 14, con: 13, int: 8, wis: 12, cha: 10 },
+        rows: [{ slug: 'fighter', level: 5 }],
+        fighting: 'defense',
+        mastery: 3,
+      },
+      fighter4wizard1: {
+        name: 'Воин 4 / Волшебник 1',
+        classSlug: 'fighter',
+        abilities: { str: 15, dex: 13, con: 14, int: 14, wis: 10, cha: 8 },
+        rows: [
+          { slug: 'fighter', level: 4, subclass: 'fighter__champion' },
+          { slug: 'wizard', level: 1 },
+        ],
+        fighting: 'defense',
+        mastery: 3,
+        asi: [{ classSlug: 'fighter', classLevel: 4, kind: 'asi_plus2', abilities: { str: 2 } }],
+      },
+      wizard3cleric2: {
+        name: 'Волшебник 3 / Жрец 2',
+        classSlug: 'wizard',
+        abilities: { str: 8, dex: 14, con: 13, int: 15, wis: 14, cha: 10 },
+        rows: [
+          { slug: 'wizard', level: 3, subclass: 'wizard__evoker' },
+          { slug: 'cleric', level: 2 },
+        ],
+      },
+      artificer3wizard1: {
+        name: 'Артефактор 3 / Волшебник 1',
+        classSlug: 'artificer',
+        abilities: { str: 8, dex: 14, con: 13, int: 15, wis: 12, cha: 10 },
+        rows: [
+          { slug: 'artificer', level: 3 },
+          { slug: 'wizard', level: 1 },
+        ],
+      },
+      fighter3ekwizard2: {
+        name: 'Воин 3 ЭК / Волшебник 2',
+        classSlug: 'fighter',
+        abilities: { str: 13, dex: 14, con: 14, int: 15, wis: 10, cha: 8 },
+        rows: [
+          { slug: 'fighter', level: 3, subclass: 'fighter__eldritch-knight' },
+          { slug: 'wizard', level: 2 },
+        ],
+        fighting: 'defense',
+        mastery: 3,
+      },
+      paladin2warlock3: {
+        name: 'Паладин 2 / Колдун 3',
+        classSlug: 'paladin',
+        abilities: { str: 15, dex: 10, con: 13, int: 8, wis: 12, cha: 14 },
+        rows: [
+          { slug: 'paladin', level: 2 },
+          { slug: 'warlock', level: 3, subclass: 'warlock__fiend-patron' },
+        ],
+        fighting: 'defense',
+        mastery: 2,
+      },
+      paladin5warlock3: {
+        name: 'Паладин 5 / Колдун 3',
+        classSlug: 'paladin',
+        abilities: { str: 15, dex: 10, con: 13, int: 8, wis: 12, cha: 14 },
+        rows: [
+          { slug: 'paladin', level: 5, subclass: 'paladin__oath-of-devotion' },
+          { slug: 'warlock', level: 3, subclass: 'warlock__fiend-patron' },
+        ],
+        fighting: 'defense',
+        mastery: 2,
+      },
+    }
+    const seed = seeds[e2eSeed] || seeds.fighter5
+    const classes = seed.rows
+      .map((row) => make(row.slug, row.level, row.subclass))
+      .filter((row): row is NonNullable<typeof row> => Boolean(row))
+    if (!classes.length) return
     e2eLevelingSeeded.current = true
-    const primary = createClassLevel({
-      name: fighter.name_ru,
-      catalog_id: fighter.slug || fighter.id,
-      level: 5,
-    })
-    // Низкий Int — волшебник в MC недоступен (скрин multiclass-blocked).
+    const subclassByEntryId: Record<string, string | null> = {}
+    for (let i = 0; i < classes.length; i += 1) {
+      const sub = seed.rows[i]?.subclass
+      if (sub) subclassByEntryId[classes[i]!.id] = sub
+    }
     setState((prev) => ({
       ...prev,
       step: 'leveling',
-      characterName: 'Тестовый воин',
+      characterName: seed.name,
       gender: 'male',
-      classSlug: 'fighter',
-      backgroundSlug: 'soldier',
-      speciesSlug: 'dwarf',
+      classSlug: seed.classSlug,
+      backgroundSlug: soldier.slug,
+      speciesSlug: dwarf.slug,
+      speciesSize: 'medium',
       languageIds: ['elvish', 'dwarvish'],
       classSkillIds: ['athletics', 'perception'],
-      weaponMasteryIds: (catalog.weapons || []).slice(0, 3).map((w) => w.slug),
-      fightingStyleSlug: 'defense',
+      weaponMasteryIds: (catalog.weapons || []).slice(0, seed.mastery || 0).map((w) => w.slug),
+      fightingStyleSlug: seed.fighting || null,
       backgroundAsiMode: '+2/+1',
       backgroundAsi: { str: 2, con: 1 },
       backgroundEquipment: 'pack',
       classEquipment: 'a',
-      baseAbilities: { str: 15, dex: 14, con: 13, int: 8, wis: 12, cha: 10 },
-      classes: [primary],
-      primaryClassEntryId: primary.id,
-      hpChoices: ensureHpChoices([primary], []),
-      characterLevel: 5,
-      subclassByEntryId: {},
-      asiChoices: [],
+      baseAbilities: seed.abilities,
+      classes,
+      primaryClassEntryId: classes[0]!.id,
+      hpChoices: ensureHpChoices(classes, []),
+      characterLevel: totalCharacterLevel(classes),
+      subclassByEntryId,
+      subclassSlug: seed.rows[0]?.subclass || null,
+      asiChoices: seed.asi || [],
     }))
-  }, [e2eLeveling, catalog])
+  }, [e2eLeveling, e2eSeed, catalog])
 
   const issues = catalog
     ? create2024StepIssues(step, state, {
@@ -946,6 +1054,15 @@ export function CreateCharacter2024Page({
             primaryClassEntryId={state.primaryClassEntryId}
             subclassByEntryId={state.subclassByEntryId}
             asiChoices={state.asiChoices}
+            fightingStyleNameRu={
+              state.fightingStyleSlug
+                ? findFeat(catalogData.feats, state.fightingStyleSlug)?.name_ru || 'Боевой стиль'
+                : null
+            }
+            weaponMasteryNamesRu={state.weaponMasteryIds.map((slug) => {
+              const weapon = catalogData.weapons.find((w) => w.slug === slug)
+              return weapon?.name_ru || slug
+            })}
             onClassesChange={(classes) =>
               patch({
                 classes,

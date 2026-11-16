@@ -804,6 +804,27 @@ def slots_for_caster_level(caster_level: int) -> dict[str, int]:
     return {str(i + 1): int(row[i]) for i in range(9)}
 
 
+_ABILITY_NAME_RU = {
+    "str": "Сила",
+    "dex": "Ловкость",
+    "con": "Телосложение",
+    "int": "Интеллект",
+    "wis": "Мудрость",
+    "cha": "Харизма",
+}
+
+
+def _primary_need_ru(primaries: Sequence[str], mode: str) -> str:
+    names = [_ABILITY_NAME_RU.get(a, a) for a in primaries]
+    if mode == "any":
+        if len(names) == 1:
+            return f"Нужен {names[0]} 13+"
+        return f"Нужен {' или '.join(names)} 13+"
+    if len(names) == 1:
+        return f"Нужен {names[0]} 13+"
+    return f"Нужны {' и '.join(names)} 13+"
+
+
 def check_multiclass_prerequisites(
     *,
     current_classes: Sequence[str],
@@ -834,15 +855,13 @@ def check_multiclass_prerequisites(
             if not any(s >= 13 for s in scores):
                 return (
                     False,
-                    f"{catalog['name_ru']}: нужна характеристика ≥13 "
-                    f"({'/'.join(a.upper() for a in primaries)})",
+                    f"{catalog['name_ru']}: {_primary_need_ru(primaries, 'any')}",
                 )
         else:
             if not all(s >= 13 for s in scores):
                 return (
                     False,
-                    f"{catalog['name_ru']}: нужны "
-                    f"{' и '.join(a.upper() for a in primaries)} ≥13",
+                    f"{catalog['name_ru']}: {_primary_need_ru(primaries, 'all')}",
                 )
     return True, ""
 
