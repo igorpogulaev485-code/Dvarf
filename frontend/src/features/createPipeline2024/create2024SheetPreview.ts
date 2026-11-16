@@ -7,6 +7,7 @@ import type { CatalogEntry } from '../../shared/api/catalog'
 import { ABILITY_LABEL_RU, ABILITY_ORDER, type AbilityKey } from '../../shared/dnd/pointBuy'
 import { masteryPropertyNameRu } from '../../shared/dnd/weaponMastery'
 import { abilityModifier, SKILL_DEFS } from '../characters/sheetTypes'
+import { classWalkSpeedBonusFt } from '../../shared/dnd/classMovement'
 import { draconicResilienceHpTotal2024 } from '../../shared/dnd/sorcerer2024Features'
 import { dwarvenToughnessHpTotal2024 } from '../../shared/dnd/speciesHpBonus2024'
 import {
@@ -344,6 +345,16 @@ export function buildCreate2024SheetPreview(input: SheetPreviewInput): SheetPrev
   ) as { speed?: number; darkvision?: number } | undefined
   if (lineageRaw?.speed) speed = Number(lineageRaw.speed)
   if (lineageRaw?.darkvision) darkvision = Number(lineageRaw.darkvision)
+  // Monk Unarmored Movement (and barbarian Fast Movement) — live class bonus on preview.
+  // Assumes no armor/shield in the preview pack for monk (starting gear has none).
+  speed += classWalkSpeedBonusFt({
+    classes: state.classes.map((row) => ({
+      name: row.name || row.catalog_id || classEntry.name_ru,
+      level: row.level,
+    })),
+    wearingArmorOrShield: false,
+    wearingHeavyArmor: false,
+  })
   const traits: string[] = []
   if (lineage) traits.push(`Родословная: ${lineage.name_ru}`)
   if (state.speciesAncestryId) {

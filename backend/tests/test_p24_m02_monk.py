@@ -287,6 +287,24 @@ def test_create_monk_at_5_and_11():
         # Unarmored defense AC uses DEX+WIS
         combat = result.sheet.get("combat") or {}
         assert int(combat.get("ac") or 0) >= 10
+        # Weapons: simple + light martial melee — never full martial.
+        weapons = (result.sheet.get("proficiency") or {}).get("weapons") or {}
+        assert weapons.get("simple") is True
+        assert weapons.get("martial") is False
+        extras = weapons.get("extras") or []
+        assert any("лёгк" in str(x).lower() or "легк" in str(x).lower() for x in extras)
+        # Race grant baseline so desk adds Unarmored Movement live.
+        grant = result.sheet.get("race_grant") or {}
+        assert int(grant.get("speed") or 0) == int(combat.get("speed") or 0)
+        assert int(grant.get("speed") or 0) > 0
+
+
+def test_monk_unarmored_movement_thresholds_match_desk():
+    """2/6/10/14/18 breakpoints — same numbers the sheet adds to race speed."""
+    expected = {2: 10, 6: 15, 10: 20, 14: 25, 18: 30}
+    for level, bonus in expected.items():
+        snap = e24.compute_progression([{"slug": "monk", "level": level}])
+        assert snap.scales.get("monk:unarmored_movement_ft") == bonus
 
 
 @pytest.mark.parametrize(

@@ -1495,6 +1495,8 @@ function parseWeaponExtras(raw: unknown): string[] {
     net: 'Сеть',
     battleaxe: 'Боевой топор',
     light_hammer: 'Лёгкий молот',
+    light_martial_melee: LIGHT_MARTIAL_MELEE_RU,
+    light_martial: LIGHT_MARTIAL_MELEE_RU,
   }
   const out: string[] = []
   const seen = new Set<string>()

@@ -603,11 +603,22 @@ def _grant_multiclass_proficiencies(
     weapons = prof.get("weapons")
     if not isinstance(weapons, dict):
         weapons = {}
+    extras = list(weapons.get("extras") or []) if isinstance(weapons.get("extras"), list) else []
     for w in grants.get("weapons") or []:
-        if w == "simple":
+        token = str(w).strip().lower().replace("-", "_").replace(" ", "_")
+        if token == "simple":
             weapons["simple"] = True
-        elif w == "martial":
+        elif token == "martial":
             weapons["martial"] = True
+        elif token in {"light_martial_melee", "light_martial"}:
+            label = create24.LIGHT_MARTIAL_MELEE_RU
+            if label not in extras:
+                extras.append(label)
+    if extras:
+        weapons["extras"] = extras
+    # Never infer martial=True from a dict key that merely exists.
+    weapons.setdefault("simple", False)
+    weapons.setdefault("martial", False)
     prof["weapons"] = weapons
 
     tools = list(prof.get("tools") or [])

@@ -110,9 +110,13 @@ function ClassDetail({
   if (weaponRow.simple) weapons.push('простое')
   if (weaponRow.martial) weapons.push('воинское')
   const extras = Array.isArray(weaponRow.extras) ? weaponRow.extras.map((x) => String(x)) : []
-  const extraNames = extras
-    .filter((x) => x !== 'light_martial_melee')
-    .map((id) => itemNameRu(id, items))
+  const extraNames = extras.map((id) => {
+    const key = id.trim().toLowerCase().replace(/[\s-]+/g, '_')
+    if (key === 'light_martial_melee' || key === 'light_martial') {
+      return 'воинское рукопашное со свойством «лёгкое»'
+    }
+    return itemNameRu(id, items)
+  })
   const weaponNote = typeof weaponRow.note_ru === 'string' ? weaponRow.note_ru : null
   const skills = classSkillNeed(entry)
   const sc = classL1Spellcasting(entry)

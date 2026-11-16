@@ -344,7 +344,46 @@ export function buildDraft(character: CharacterDetail): Draft {
           legacyCurrent: play.hitDiceCurrent,
         })
 
-  const raceGrant = readAppliedRaceGrant(sheet.race_grant)
+  let raceGrant = readAppliedRaceGrant(sheet.race_grant)
+  // 2024 create must persist race_grant.speed (species baseline). Older 2024
+  // sheets without it still need a baseline so Unarmored Movement is not dropped.
+  if (
+    !raceGrant &&
+    String(character.rules_edition || sheet.rules_edition || '') === '2024'
+  ) {
+    const speciesSlug =
+      (typeof identity.species_slug === 'string' && identity.species_slug.trim()) ||
+      (typeof identityExtras.speciesSlug === 'string' && identityExtras.speciesSlug.trim()) ||
+      ''
+    const baseline = readNullableNumber(combat.speed)
+    if (speciesSlug && baseline != null) {
+      raceGrant = {
+        raceCatalogId: speciesSlug,
+        slug: speciesSlug,
+        parentSlug: null,
+        speed: baseline,
+        size: identityExtras.size || 'medium',
+        darkvision: identityExtras.darkvision || 0,
+        abilityBonuses: {},
+        languages: [],
+        skills: [],
+        tools: [],
+        armorKeys: [],
+        weaponNames: [],
+        traitsText: '',
+        traitCards: [],
+        ancestryId: null,
+        featNoteRu: null,
+        naturalArmor: null,
+        naturalWeapons: [],
+        movement: { climb: null, swim: null, fly: null },
+        activatedMovement: [],
+        damageResistances: [],
+        combatBonuses: { initiative: null },
+        racialSpells: [],
+      }
+    }
+  }
   // Un-bake Fast Movement / Unarmored Movement (+ optional Mobile) that create
   // wrote into combat.speed so armor-aware display can add the bonus live.
   let speed = readNullableNumber(combat.speed)

@@ -241,6 +241,49 @@ def fighting_style_feat_slugs() -> frozenset[str]:
     return frozenset(out)
 
 
+LIGHT_MARTIAL_MELEE_RU = "Воинское рукопашное оружие со свойством «лёгкое»"
+
+
+def _weapons_proficiency_from_class_data(weapons_raw: Any) -> dict[str, Any]:
+    """Parse class ``weapons`` (dict with simple/martial/extras or legacy list).
+
+    Important: for dict catalogs, ``\"martial\" in weapons`` is True even when
+    ``martial: false`` — never use bare ``in`` on the dict keys.
+    """
+    simple = False
+    martial = False
+    extras: list[str] = []
+
+    def _push_extra(token: str) -> None:
+        key = token.strip().lower().replace("-", "_").replace(" ", "_")
+        if not key:
+            return
+        if key in {"light_martial_melee", "light_martial"}:
+            label = LIGHT_MARTIAL_MELEE_RU
+        else:
+            label = token.strip()
+        if label and label not in extras:
+            extras.append(label)
+
+    if isinstance(weapons_raw, Mapping):
+        simple = bool(weapons_raw.get("simple"))
+        martial = bool(weapons_raw.get("martial"))
+        raw_extras = weapons_raw.get("extras") or []
+        if isinstance(raw_extras, (list, tuple)):
+            for item in raw_extras:
+                _push_extra(str(item))
+    elif isinstance(weapons_raw, (list, tuple)):
+        for item in weapons_raw:
+            token = str(item).strip().lower().replace("-", "_").replace(" ", "_")
+            if token in {"simple", "all"}:
+                simple = True
+            elif token == "martial":
+                martial = True
+            elif token:
+                _push_extra(token)
+    return {"simple": simple, "martial": martial, "extras": extras}
+
+
 def _ability_mod(score: int) -> int:
     return (int(score) - 10) // 2
 
@@ -1561,6 +1604,34 @@ def _build_sheet(
         "experience": 0,
     }
 
+    # Race grant baseline (speed) so the desk can add Unarmored Movement live
+    # without double-counting. combat.speed stays species-only.
+    sheet["race_grant"] = {
+        "raceCatalogId": str(payload.species_slug),
+        "slug": str(payload.species_slug),
+        "parentSlug": None,
+        "speed": speed,
+        "size": species_info.get("size") or "medium",
+        "darkvision": int(species_info.get("darkvision") or 0),
+        "abilityBonuses": {},
+        "languages": [],
+        "skills": [],
+        "tools": [],
+        "armorKeys": [],
+        "weaponNames": [],
+        "traitsText": "",
+        "traitCards": [],
+        "ancestryId": species_info.get("ancestry_id"),
+        "featNoteRu": None,
+        "naturalArmor": None,
+        "naturalWeapons": [],
+        "movement": {"walk": speed},
+        "activatedMovement": [],
+        "damageResistances": [],
+        "combatBonuses": {},
+        "racialSpells": [],
+    }
+
     dex_mod = _ability_mod(int(final_abilities["dex"]))
     sheet["combat"] = {
         **sheet.get("combat", {}),
@@ -1583,7 +1654,7 @@ def _build_sheet(
 
     # Proficiencies
     armor = class_data.get("armor") or []
-    weapons = class_data.get("weapons") or []
+    weapons_prof = _weapons_proficiency_from_class_data(class_data.get("weapons"))
     sheet["proficiency"] = {
         "bonus": 2,
         "armor": {
@@ -1592,10 +1663,7 @@ def _build_sheet(
             "heavy": "heavy" in armor or "all" in armor,
             "shields": "shields" in armor or "shield" in armor,
         },
-        "weapons": {
-            "simple": "simple" in weapons or "all" in weapons,
-            "martial": "martial" in weapons or "all" in weapons,
-        },
+        "weapons": weapons_prof,
         "tools": [
             *( [tool_id] if tool_id else list(class_data.get("tools_fixed") or []) ),
             *[
