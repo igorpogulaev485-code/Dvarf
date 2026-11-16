@@ -80,7 +80,7 @@
         "origin_feat": {
           "id": "skilled",
           "slug": "skilled",
-          "name_ru": "Одарённый",
+          "name_ru": "Умелый",
           "name_en": "Skilled"
         },
         "skill_proficiencies": [
@@ -126,7 +126,7 @@
         "origin_feat": {
           "id": "healer",
           "slug": "healer",
-          "name_ru": "Лекарь",
+          "name_ru": "Целитель",
           "name_en": "Healer"
         },
         "skill_proficiencies": [

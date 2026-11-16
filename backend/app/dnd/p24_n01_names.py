@@ -520,3 +520,192 @@ def update_source_csvs(decisions: Mapping[str, NameDecision]) -> dict[str, int]:
                 writer.writerows(rows)
             changed_files[path.name] = n
     return changed_files
+
+
+def build_live_name_indexes(
+    live_dir: Path | None = None,
+) -> tuple[dict[tuple[str, str], str], dict[str, list[tuple[str, str]]]]:
+    """Map (kind, slug) → name_ru and slug → [(kind, name_ru), ...]."""
+    by_kind_slug: dict[tuple[str, str], str] = {}
+    by_slug: dict[str, list[tuple[str, str]]] = defaultdict(list)
+    for path, _payload, entry in iter_live_entries(live_dir):
+        if path.name.startswith("spell_"):
+            continue
+        slug = entry.get("slug")
+        if not slug:
+            continue
+        kind = str(entry.get("kind") or "")
+        name_ru = str(entry.get("name_ru") or "")
+        if not name_ru:
+            continue
+        by_kind_slug[(kind, slug)] = name_ru
+        by_slug[slug].append((kind, name_ru))
+    return by_kind_slug, by_slug
+
+
+def infer_ref_kind(path_parts: list[str], obj: Mapping[str, Any]) -> str | None:
+    """Guess target kind for an embedded {slug/id, name_ru} ref from path/context."""
+    raw_kind = obj.get("kind")
+    if isinstance(raw_kind, str) and raw_kind:
+        return KIND_TO_2014.get(raw_kind, raw_kind)
+    joined = ".".join(path_parts).lower()
+    if "origin_feat" in joined or "feat_ref" in joined or joined.endswith(".feat"):
+        return "feat"
+    if "spell" in joined:
+        return "spell"
+    if "weapon" in joined:
+        return "weapon"
+    if "armor" in joined:
+        return "armor"
+    if "gear" in joined or "equipment" in joined or joined.endswith(".item"):
+        return "item"
+    if "creature" in joined or "bestiary" in joined or "monster" in joined:
+        return "bestiary"
+    if "background" in joined:
+        return "background"
+    if "subclass" in joined:
+        return "subclass"
+    if re.search(r"(^|\.)class($|\.)", joined) and "subclass" not in joined:
+        return "class"
+    if "species" in joined or "race" in joined:
+        return "race"
+    return None
+
+
+def resolve_live_name_ru(
+    slug: str,
+    *,
+    kind_hint: str | None,
+    by_kind_slug: Mapping[tuple[str, str], str],
+    by_slug: Mapping[str, list[tuple[str, str]]],
+) -> str | None:
+    if kind_hint:
+        mapped = KIND_TO_2014.get(kind_hint, kind_hint)
+        for key in (kind_hint, mapped):
+            if (key, slug) in by_kind_slug:
+                return by_kind_slug[(key, slug)]
+        if mapped in {"item", "weapon", "armor"}:
+            for key in ("item", "weapon", "armor"):
+                if (key, slug) in by_kind_slug:
+                    return by_kind_slug[(key, slug)]
+        if mapped == "bestiary":
+            for key in ("bestiary", "creature", "animal"):
+                if (key, slug) in by_kind_slug:
+                    return by_kind_slug[(key, slug)]
+        if mapped == "race":
+            for key in ("race", "species"):
+                if (key, slug) in by_kind_slug:
+                    return by_kind_slug[(key, slug)]
+    opts = by_slug.get(slug) or []
+    if len(opts) == 1:
+        return opts[0][1]
+    return None
+
+
+@dataclass(frozen=True)
+class EmbeddedNameMismatch:
+    file: str
+    owner_slug: str
+    path: str
+    ref_slug: str
+    got: str
+    want: str
+    kind_hint: str | None
+
+
+def find_embedded_name_mismatches(
+    live_dir: Path | None = None,
+) -> list[EmbeddedNameMismatch]:
+    """Find nested {slug|id, name_ru} refs whose name_ru ≠ target card name_ru."""
+    by_kind_slug, by_slug = build_live_name_indexes(live_dir)
+    found: list[EmbeddedNameMismatch] = []
+
+    def walk(obj: Any, path_parts: list[str], owner: Mapping[str, Any], file_name: str) -> None:
+        if isinstance(obj, list):
+            for i, item in enumerate(obj):
+                walk(item, path_parts + [str(i)], owner, file_name)
+            return
+        if not isinstance(obj, dict):
+            return
+        slug = obj.get("slug") or obj.get("id")
+        name_ru = obj.get("name_ru")
+        is_root = obj is owner
+        if (
+            not is_root
+            and isinstance(slug, str)
+            and slug
+            and isinstance(name_ru, str)
+            and name_ru
+        ):
+            hint = infer_ref_kind(path_parts, obj)
+            want = resolve_live_name_ru(
+                slug, kind_hint=hint, by_kind_slug=by_kind_slug, by_slug=by_slug
+            )
+            if want is not None and want != name_ru:
+                found.append(
+                    EmbeddedNameMismatch(
+                        file=file_name,
+                        owner_slug=str(owner.get("slug") or ""),
+                        path=".".join(path_parts),
+                        ref_slug=slug,
+                        got=name_ru,
+                        want=want,
+                        kind_hint=hint,
+                    )
+                )
+        for key, value in obj.items():
+            walk(value, path_parts + [key], owner, file_name)
+
+    for path, _payload, entry in iter_live_entries(live_dir):
+        if path.name.startswith("spell_") or not entry.get("slug"):
+            continue
+        walk(entry, [], entry, path.name)
+    return found
+
+
+def sync_embedded_name_ru(live_dir: Path | None = None) -> list[EmbeddedNameMismatch]:
+    """Rewrite nested ref name_ru to match the target live card. Returns fixed rows."""
+    mismatches = find_embedded_name_mismatches(live_dir)
+    if not mismatches:
+        return []
+
+    by_file: dict[str, list[EmbeddedNameMismatch]] = defaultdict(list)
+    for row in mismatches:
+        by_file[row.file].append(row)
+
+    root = live_dir or LIVE_DIR
+    for file_name, rows in by_file.items():
+        path = root / file_name
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        entries = payload.get("entries") or []
+        # Build owner_slug → list of (path, want)
+        fixes_by_owner: dict[str, list[EmbeddedNameMismatch]] = defaultdict(list)
+        for row in rows:
+            fixes_by_owner[row.owner_slug].append(row)
+
+        def apply_walk(obj: Any, path_parts: list[str], owner_slug: str) -> Any:
+            if isinstance(obj, list):
+                return [apply_walk(x, path_parts + [str(i)], owner_slug) for i, x in enumerate(obj)]
+            if not isinstance(obj, dict):
+                return obj
+            out = dict(obj)
+            cur = ".".join(path_parts)
+            for fix in fixes_by_owner.get(owner_slug, []):
+                if fix.path == cur:
+                    out["name_ru"] = fix.want
+            for key, value in list(out.items()):
+                out[key] = apply_walk(value, path_parts + [key], owner_slug)
+            return out
+
+        new_entries = []
+        for entry in entries:
+            if not isinstance(entry, dict) or not entry.get("slug"):
+                new_entries.append(entry)
+                continue
+            new_entries.append(apply_walk(entry, [], str(entry["slug"])))
+        payload["entries"] = new_entries
+        path.write_text(
+            json.dumps(payload, ensure_ascii=False, indent=2) + "\n",
+            encoding="utf-8",
+        )
+    return mismatches

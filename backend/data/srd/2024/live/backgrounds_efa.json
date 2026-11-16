@@ -34,7 +34,7 @@
         "origin_feat": {
           "id": "aberrant-dragonmark",
           "slug": "aberrant-dragonmark",
-          "name_ru": "Аберрантная метка",
+          "name_ru": "Аберрантный драконий знак",
           "name_en": "Aberrant Dragonmark"
         },
         "skill_proficiencies": [
@@ -80,7 +80,7 @@
         "origin_feat": {
           "id": "skilled",
           "slug": "skilled",
-          "name_ru": "Одарённый",
+          "name_ru": "Умелый",
           "name_en": "Skilled"
         },
         "skill_proficiencies": [

@@ -9,6 +9,7 @@ from app.dnd.p24_n01_names import (
     decide_name,
     decision_key,
     find_2014_pair,
+    find_embedded_name_mismatches,
     is_pending,
     iter_live_entries,
     load_2014_name_index,
@@ -178,6 +179,17 @@ def test_pending_bastions_untouched_flag():
     )
 
 
+def test_embedded_slug_name_ru_matches_target_card():
+    """Nested refs like origin_feat must echo the target card's current name_ru."""
+    mismatches = find_embedded_name_mismatches()
+    assert mismatches == [], (
+        "; ".join(
+            f"{m.file}:{m.owner_slug} {m.path} {m.ref_slug}={m.got!r} want={m.want!r}"
+            for m in mismatches[:20]
+        )
+    )
+
+
 def test_alembic_single_head_is_p24_n01():
     from alembic.config import Config
     from alembic.script import ScriptDirectory
@@ -188,9 +200,10 @@ def test_alembic_single_head_is_p24_n01():
     script = ScriptDirectory.from_config(cfg)
     heads = script.get_heads()
     assert len(heads) == 1, f"expected one alembic head, got {heads}"
-    assert heads[0] == "p24n01names01"
+    assert heads[0] == "p24n01r01"
     ancestor_ids = {
         rev.revision for rev in script.walk_revisions(base="base", head=heads[0])
     }
+    assert "p24n01names01" in ancestor_ids
     assert "p24c21rau01" in ancestor_ids
     assert "p24c21au01" in ancestor_ids
