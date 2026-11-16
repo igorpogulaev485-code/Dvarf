@@ -220,7 +220,7 @@ const RESOURCE_META: Record<string, ResourceMeta> = {
     kind: 'bonus',
   },
   focus_points: {
-    name_ru: 'Очки фокуса',
+    name_ru: 'Очки сосредоточенности',
     reset: 'short',
     feature_id: 'monks-focus',
     kind: 'resource',

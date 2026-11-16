@@ -27,6 +27,7 @@ import { ArcaneRecoverySpendDialog } from '../ArcaneRecoverySpendDialog'
 import { WizardFeatureUseDialog } from '../WizardFeatureUseDialog'
 import { Wizard2024UseDialog } from '../Wizard2024UseDialog'
 import { Sorcerer2024UseDialog } from '../Sorcerer2024UseDialog'
+import { Monk2024UseDialog } from '../Monk2024UseDialog'
 import type { WizardFeatureUseResult } from '../../../shared/dnd/wizardTradition'
 import {
   applySelfDamage2024,
@@ -50,6 +51,10 @@ import {
   sorcerer2024UseFeatureId,
   type SorcererFeatureUseResult,
 } from '../../../shared/dnd/sorcerer2024Features'
+import {
+  monk2024UseFeatureId,
+  type MonkFeatureUseResult,
+} from '../../../shared/dnd/monk2024Features'
 import { resolveClassCasterSlug } from '../../../shared/dnd/casterProgression'
 import type { Wizard2024RestProps } from '../Wizard2024RestSwaps'
 import { listCatalogEntries } from '../../../shared/api/catalog'
@@ -187,6 +192,29 @@ export function SheetDialogsResources({ model }: { model: SheetModel }) {
     })
     model.onToast(result.message)
     model.setSorcererFeatureUse(null)
+  }
+
+  const onMonkUseConfirm = (result: MonkFeatureUseResult) => {
+    if (!result.ok) {
+      model.onToast(result.message)
+      return
+    }
+    model.setDraft((prev) => ({
+      ...prev,
+      ...(result.featurePicks ? { featurePicks: result.featurePicks } : {}),
+      play: {
+        ...prev.play,
+        resources: result.resources,
+        concentration: result.concentrationName
+          ? setConcentration({
+              spellId: `feature:${model.monkFeatureUse?.featureId ?? 'monk'}`,
+              name: result.concentrationName,
+            })
+          : prev.play.concentration,
+      },
+    }))
+    model.onToast(result.message)
+    model.setMonkFeatureUse(null)
   }
 
   const [wizardCantripCatalog, setWizardCantripCatalog] = useState<SheetSpell[]>([])
@@ -353,10 +381,25 @@ export function SheetDialogsResources({ model }: { model: SheetModel }) {
     model.sorcererFeatureUse != null &&
     sorcerer2024UseFeatureId(model.sorcererFeatureUse.featureId)
 
+  const monk2024Use =
+    model.rulesEdition === '2024' &&
+    model.monkFeatureUse != null &&
+    monk2024UseFeatureId(model.monkFeatureUse.featureId)
+
   const sorcererLevel = (() => {
     let level = 0
     for (const row of model.draft.classes) {
       if (resolveClassCasterSlug(row.name) === 'sorcerer') {
+        level += Math.max(0, row.level || 0)
+      }
+    }
+    return level
+  })()
+
+  const monkLevel = (() => {
+    let level = 0
+    for (const row of model.draft.classes) {
+      if (resolveClassCasterSlug(row.name) === 'monk' || /монах/i.test(row.name)) {
         level += Math.max(0, row.level || 0)
       }
     }
@@ -744,6 +787,20 @@ export function SheetDialogsResources({ model }: { model: SheetModel }) {
           hasControlledChaos={hasControlledChaos}
           onClose={() => model.setSorcererFeatureUse(null)}
           onConfirm={onSorcererUseConfirm}
+        />
+      ) : null}
+
+      {monk2024Use ? (
+        <Monk2024UseDialog
+          key={`${model.monkFeatureUse?.featureId}:${model.monkFeatureUse?.classEntryId}`}
+          open
+          request={model.monkFeatureUse}
+          resources={model.draft.play.resources}
+          featurePicks={model.draft.featurePicks}
+          monkLevel={monkLevel}
+          wisMod={abilityModifier(model.draft.abilities.wis)}
+          onClose={() => model.setMonkFeatureUse(null)}
+          onConfirm={onMonkUseConfirm}
         />
       ) : null}
 

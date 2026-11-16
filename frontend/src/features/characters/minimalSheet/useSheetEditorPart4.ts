@@ -11,6 +11,7 @@ import { formatConditionLabel } from '../../../shared/dnd/conditions'
 import { type SpellSelfFormSlug } from '../spellForms'
 import type { WizardFeatureRequest } from '../WizardFeatureUseDialog'
 import type { SorcererFeatureRequest } from '../SorcererFeatureUseDialog'
+import type { MonkFeatureRequest } from '../Monk2024UseDialog'
 import { type FamiliarCastMode } from '../familiarForms'
 import { withInitiativeBonus } from '../modifiers'
 import { type ToastInput } from '../../../ui'
@@ -211,6 +212,9 @@ export function useSheetEditorPart4(model: SheetModel) {
     useState<SorcererFeatureRequest | null>(null)
   model.sorcererFeatureUse = sorcererFeatureUse
   model.setSorcererFeatureUse = setSorcererFeatureUse
+  const [monkFeatureUse, setMonkFeatureUse] = useState<MonkFeatureRequest | null>(null)
+  model.monkFeatureUse = monkFeatureUse
+  model.setMonkFeatureUse = setMonkFeatureUse
   const [infusionsSpendId, setInfusionsSpendId] = useState<string | null>(null)
   model.infusionsSpendId = infusionsSpendId
   model.setInfusionsSpendId = setInfusionsSpendId

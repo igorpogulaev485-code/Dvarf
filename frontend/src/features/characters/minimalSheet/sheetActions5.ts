@@ -2,6 +2,7 @@
 import type { SheetModel } from './sheetModel'
 import { parseFeatureResourceId } from '../../../shared/dnd/featureResources'
 import { sorcerer2024UseFeatureId } from '../../../shared/dnd/sorcerer2024Features'
+import { monk2024UseFeatureId } from '../../../shared/dnd/monk2024Features'
 import { wizardResolvedFeatureId } from '../../../shared/dnd/wizardTradition'
 
 export function installSheetActions5(model: SheetModel) {
@@ -127,6 +128,20 @@ export function installSheetActions5(model: SheetModel) {
       sorcerer2024UseFeatureId(parsed.poolId)
     ) {
       model.setSorcererFeatureUse({
+        featureId: parsed.poolId,
+        resourceId: row.id,
+        classSlug: parsed.classSlug,
+        classEntryId: parsed.classEntryId,
+        name: row.name,
+      })
+      return true
+    }
+    if (
+      model.rulesEdition === '2024' &&
+      parsed &&
+      monk2024UseFeatureId(parsed.poolId)
+    ) {
+      model.setMonkFeatureUse({
         featureId: parsed.poolId,
         resourceId: row.id,
         classSlug: parsed.classSlug,
