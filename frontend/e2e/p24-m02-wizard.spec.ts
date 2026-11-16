@@ -1076,9 +1076,17 @@ test.describe('P24-M02 2014 regression', () => {
       for (const abil of ['str', 'dex', 'con', 'int', 'wis', 'cha']) {
         await expect(page.locator(`.abil-block[data-abil="${abil}"]`).first()).toBeVisible()
       }
-      await expect(
-        page.getByText(/Огненный снаряд|Заговоры|подготовлено|ячейк/i).first(),
-      ).toBeVisible({ timeout: 10_000 })
+      // 2014 quota keeps named form (M02 plain «подготовлено…» is 2024-only).
+      await expect(page.getByText(/подг\.\s*7\/9.*в книге 8|Волшебник подг\./i).first()).toBeVisible({
+        timeout: 10_000,
+      })
+      await expect(page.getByText(/подготовлено 7 из 9/)).toHaveCount(0)
+      // Fixture order: Fire Bolt, Light, Prestidigitation, Mage Hand — none dropped.
+      for (const name of ['Огненный снаряд', 'Свет', 'Фокусы', 'Волшебная рука']) {
+        const row = page.getByText(name, { exact: true }).first()
+        await row.scrollIntoViewIfNeeded()
+        await expect(row).toBeVisible()
+      }
     }
 
     await shot(page, ARTIFACTS_2014, `sheet-2014-wizard-${tag}`, project)

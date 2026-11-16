@@ -291,7 +291,14 @@ export function PlayDeskSpellsCompact({
 
   const quotaLabel = (() => {
     // MAG-01: never show a false global «изв. 17/5» on multiclass.
-    if (learnBudgets && learnBudgets.length === 1 && learnBudgets[0]!.mode === 'spellbook') {
+    // 2024 single-wizard: plain «подготовлено X из Y · в книге Z».
+    // 2014 keeps the named «Волшебник подг. X/Y, в книге Z» form.
+    if (
+      edition === '2024' &&
+      learnBudgets &&
+      learnBudgets.length === 1 &&
+      learnBudgets[0]!.mode === 'spellbook'
+    ) {
       const only = learnBudgets[0]!
       return formatSpellbookQuotaRu({
         prepared: preparedBySlug[only.slug] ?? preparedCount,
@@ -322,7 +329,7 @@ export function PlayDeskSpellsCompact({
       return null
     }
     const prepCap = learnBudget.maxPrepared ?? spells.max_prepared
-    if (learnBudget.mode === 'spellbook') {
+    if (edition === '2024' && learnBudget.mode === 'spellbook') {
       return formatSpellbookQuotaRu({
         prepared: preparedCount,
         maxPrepared: prepCap,
@@ -344,7 +351,9 @@ export function PlayDeskSpellsCompact({
         countLearnedCantripsBySlug(spells.known),
         { tomeExtra },
       )
-      return named ? `заговоры: ${named}` : null
+      if (!named) return null
+      // 2024 prefix clarifies the chip; 2014 keeps bare «Волшебник 4/4».
+      return edition === '2024' ? `заговоры: ${named}` : named
     }
     if (learnBudget?.cantrips != null && learnBudget.cantrips > 0) {
       return `заг. ${learnedCantrips}/${learnBudget.cantrips}`
