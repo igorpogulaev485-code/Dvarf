@@ -20,6 +20,7 @@ import { P24CoreRulesPreviewPage } from './pages/P24CoreRulesPreviewPage'
 import { P24WeaponMasteryPreviewPage } from './pages/P24WeaponMasteryPreviewPage'
 import { P24M02aClassesPreviewPage } from './pages/P24M02aClassesPreviewPage'
 import { P24M02bSubclassesPreviewPage } from './pages/P24M02bSubclassesPreviewPage'
+import { P24M02WizardPreviewPage } from './pages/P24M02WizardPreviewPage'
 import { WorldImportHelpPage } from './pages/WorldImportHelpPage'
 import { RequireAuth } from './shared/auth/RequireAuth'
 import { getAccessToken } from './shared/api/client'
@@ -116,6 +117,7 @@ export default function App() {
             <Route path="/dev/p24-m01-preview" element={<P24WeaponMasteryPreviewPage />} />
             <Route path="/dev/p24-m02a-preview" element={<P24M02aClassesPreviewPage />} />
             <Route path="/dev/p24-m02b-preview" element={<P24M02bSubclassesPreviewPage />} />
+            <Route path="/dev/p24-m02-wizard-preview" element={<P24M02WizardPreviewPage />} />
             <Route
               path="/dev/consumables-tap-guard"
               element={
