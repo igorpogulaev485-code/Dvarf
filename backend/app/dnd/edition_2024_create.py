@@ -1868,7 +1868,15 @@ def _build_sheet(
     sheet["spells"] = {
         "casting_ability": spell_info.get("ability"),
         "slots": spell_info.get("slots") or {},
-        "pact_slots": spell_info.get("pact_slots") or {},
+        "pact_slots": (
+            {
+                **dict(spell_info["pact_slots"]),
+                "max": int(spell_info["pact_slots"].get("count") or 0),
+                "used": 0,
+            }
+            if spell_info.get("pact_slots")
+            else {}
+        ),
         "known": known,
     }
     if payload.class_slug == WIZARD_CLASS_SLUG:

@@ -752,7 +752,14 @@ def _refresh_progress(sheet: dict[str, Any]) -> None:
             slots[str(k)] = {"max": int(mx), "used": min(used, int(mx))}
         spells["slots"] = slots
     if snap.multiclass_pact:
-        spells["pact_slots"] = dict(snap.multiclass_pact)
+        prev_pact = spells.get("pact_slots") if isinstance(spells.get("pact_slots"), Mapping) else {}
+        count = int(snap.multiclass_pact.get("count") or 0)
+        # Sheet reader (`spells.ts`) wants max/used; keep `count` for backend readers.
+        spells["pact_slots"] = {
+            **dict(snap.multiclass_pact),
+            "max": count,
+            "used": min(int((prev_pact or {}).get("used") or 0), count),
+        }
 
 
 def apply_level_gain_2024(

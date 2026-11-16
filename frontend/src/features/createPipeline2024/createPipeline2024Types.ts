@@ -176,6 +176,7 @@ type ClassLevelSpellcastingRow = {
     cantrips?: number
     prepared_spells?: number
     slots?: Record<string, number> | null
+    pact_slots?: { slot_level?: number; count?: number } | null
   } | null
 }
 
@@ -213,6 +214,10 @@ export function classSpellcastingAtLevel(
     if (Number.isFinite(circle) && circle >= 1 && Number.isFinite(n) && n > 0) {
       maxSlotLevel = Math.max(maxSlotLevel, circle)
     }
+  }
+  const pact = sc.pact_slots
+  if (pact && Number(pact.count) > 0 && Number(pact.slot_level) >= 1) {
+    maxSlotLevel = Math.max(maxSlotLevel, Number(pact.slot_level))
   }
   return {
     cantrips: Number(sc.cantrips || 0),

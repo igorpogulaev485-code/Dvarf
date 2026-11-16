@@ -24,7 +24,7 @@ export type ClassOptions2024PanelProps = {
 
 function classLevel(classes: ClassLevelEntry[], slug: string): number {
   return classes.reduce((sum, row) => {
-    const s = normalizeClassSlug2024(row.catalog_id || row.name)
+    const s = normalizeClassSlug2024(row.catalog_id) || normalizeClassSlug2024(row.name)
     return s === slug ? sum + Math.max(0, row.level || 0) : sum
   }, 0)
 }

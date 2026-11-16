@@ -274,7 +274,11 @@ export function useSheetEditorPart1(model: SheetModel, props: MinimalSheetEditor
       const catalogKey = (row.subclass_catalog_id ?? '').trim()
       const fromName = resolveSubclassFeatureSlug(row.subclass_name)
       const fromCatalog = catalogKey ? resolveSubclassFeatureSlug(catalogKey) : null
+      // 2024 catalog slugs (`warlock__fiend-patron`) win over 2014 name matches
+      // («Исчадие» → 2014 `fiend`), otherwise the PHB 2024 pack never unlocks.
+      const catalog2024 = /^[a-z][a-z0-9-]*__[a-z0-9-]+$/i.test(catalogKey) ? catalogKey : ''
       const raw =
+        catalog2024 ||
         fromName ||
         fromCatalog ||
         (/^[a-z][a-z0-9_]*$/i.test(catalogKey) ? catalogKey : '')
