@@ -335,7 +335,14 @@ export function buildPermanentBonuses2024(input: {
       allows_shield: true,
       requires_no_armor: true,
     })
-    add('draconic-resilience', 'Драконья устойчивость (хиты)', 'hp_per_level', 1)
+    add(
+      'draconic-resilience',
+      'Драконья устойчивость (хиты)',
+      'hp_per_level',
+      1,
+      3,
+      '+3 на 3 ур. чародея, затем +1 за уровень (на N сумма +N)',
+    )
   }
   if (subclassSlug === 'wizard__evoker') {
     add(

@@ -5,6 +5,8 @@ import {
   applySorcerousRestoration2024,
   convertSlotToPoints2024,
   createSlotFromPoints2024,
+  draconicResilienceHpDelta2024,
+  draconicResilienceHpTotal2024,
   metamagicKnownLimitOrZero,
   metamagicPickGainAtLevel2024,
   resolveMetamagicOnCast2024,
@@ -131,5 +133,46 @@ assert.equal(wings.ok, true)
 if (wings.ok) assert.equal(wings.cost, 3)
 
 assert.equal(sorcerer2024Context({ rulesEdition: '2014', sorcererLevel: 5 }), null)
+
+assert.equal(
+  draconicResilienceHpTotal2024({ sorcererLevel: 2, subclassSlug: 'sorcerer__draconic-sorcery' }),
+  0,
+)
+assert.equal(
+  draconicResilienceHpTotal2024({ sorcererLevel: 3, subclassSlug: 'sorcerer__draconic-sorcery' }),
+  3,
+)
+assert.equal(
+  draconicResilienceHpTotal2024({ sorcererLevel: 8, subclassSlug: 'sorcerer__draconic-sorcery' }),
+  8,
+)
+assert.equal(
+  draconicResilienceHpTotal2024({ sorcererLevel: 8, subclassSlug: 'sorcerer__clockwork-sorcery' }),
+  0,
+)
+assert.equal(
+  draconicResilienceHpDelta2024({
+    oldLevel: 2,
+    newLevel: 3,
+    subclassSlug: 'sorcerer__draconic-sorcery',
+  }),
+  3,
+)
+assert.equal(
+  draconicResilienceHpDelta2024({
+    oldLevel: 7,
+    newLevel: 8,
+    subclassSlug: 'sorcerer__draconic-sorcery',
+  }),
+  1,
+)
+assert.equal(
+  draconicResilienceHpDelta2024({
+    oldLevel: 3,
+    newLevel: 2,
+    subclassSlug: 'sorcerer__draconic-sorcery',
+  }),
+  -3,
+)
 
 console.log('sorcerer2024Features selfcheck: ok')

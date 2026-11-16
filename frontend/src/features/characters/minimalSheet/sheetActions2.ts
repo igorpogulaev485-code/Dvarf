@@ -30,6 +30,7 @@ import { newFeatGrantId, type AppliedFeatGrant } from '../../../shared/dnd/featG
 import { applyFeatGrantToDraft, revokeFeatGrantsForRace } from '../featEffects'
 import { syncHitDicePools } from '../../../shared/dnd/classHitDice'
 import { buildMaxHpByLevels } from '../../../shared/dnd/multiclassRules'
+import { draconicResilienceHpTotal2024 } from '../../../shared/dnd/sorcerer2024Features'
 import { clampCharacterLevel, xpToReachLevel } from '../../../shared/dnd/experience'
 import { withSyncedHitDiceSummary } from '../play'
 import { proficiencyBonusForTotalLevel, unlockFeaturesForClasses } from '../../../shared/dnd/classFeatures'
@@ -222,14 +223,27 @@ export function installSheetActions2(model: SheetModel) {
       },
     })
     const conMod = abilityModifier(scores.con)
-    const draconicResilience = nextClasses.some((row) =>
-      /дракон|draconic/i.test(row.subclass_name || ''),
-    )
+    const edition = model.baseCharacter?.rules_edition ?? model.rulesEdition ?? '2014'
+    // 2014: +1 HP per sorcerer level when Draconic Resilience is on (unchanged).
+    // 2024: rebuild without the 2014 flag, then add PHB 2024 total (= sorcerer level at ≥3).
+    const draconicResilience2014 =
+      edition !== '2024' &&
+      nextClasses.some((row) => /дракон|draconic/i.test(row.subclass_name || ''))
     const hpBuilt = buildMaxHpByLevels({
       classes: nextClasses.map((row) => ({ name: row.name, level: row.level })),
       constitutionMod: conMod,
-      draconicResilience,
+      draconicResilience: draconicResilience2014,
     })
+    let hpTotal = hpBuilt?.total ?? null
+    if (edition === '2024' && hpTotal != null) {
+      for (const row of nextClasses) {
+        if (!/чародей|sorcerer/i.test(row.name)) continue
+        hpTotal += draconicResilienceHpTotal2024({
+          sorcererLevel: row.level,
+          subclassSlug: row.subclass_catalog_id || row.subclass_name || null,
+        })
+      }
+    }
     const hitDiceByClass = syncHitDicePools({
       classes: nextClasses,
       previous: prev.play.hitDiceByClass,
@@ -238,8 +252,8 @@ export function installSheetActions2(model: SheetModel) {
     return {
       ...prev,
       classes: nextClasses,
-      hpMax: hpBuilt?.total ?? prev.hpMax,
-      hpCurrent: hpBuilt?.total ?? prev.hpCurrent,
+      hpMax: hpTotal ?? prev.hpMax,
+      hpCurrent: hpTotal ?? prev.hpCurrent,
       identity: {
         ...prev.identity,
         experience: xpToReachLevel(totalLevel),

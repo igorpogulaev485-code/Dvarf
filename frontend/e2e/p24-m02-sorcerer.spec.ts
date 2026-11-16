@@ -474,6 +474,36 @@ test.describe('P24-M02 sorcerer — real create pipeline', () => {
     await shot(page, ARTIFACTS, 'subclass-draconic-resilience', project)
   })
 
+  test('draconic-resilience-hp-l8', async ({ page }, testInfo) => {
+    // PHB 2024 / next.dnd.su: +3 at 3, +1 thereafter → +8 total at sorcerer 8.
+    const project = projectOf(testInfo)
+    const store = createStore()
+    await createSorcererViaPipeline(page, store, 'sorcerer8draconic')
+    const char = [...store.characters.values()][0]
+    expect(char?.level).toBe(8)
+    const sheet = storedSheet(store)
+    const hist = (sheet.create_2024?.level_gains ?? []) as Array<{
+      class_level: number
+      hp_gain: number
+      subclass_slug?: string | null
+    }>
+    const byLv = Object.fromEntries(hist.map((h) => [h.class_level, h.hp_gain]))
+    expect(byLv[3] - byLv[2]).toBe(3)
+    expect(byLv[8] - byLv[2]).toBe(1)
+    expect(hist.filter((h) => h.class_level >= 3).every((h) => /draconic/i.test(String(h.subclass_slug)))).toBe(
+      true,
+    )
+    const hpMax = char?.hp_max ?? sheet.combat?.hp_max
+    expect(hpMax).toBeGreaterThan(40)
+    expect(sheet.combat?.hp_max).toBe(hpMax)
+
+    if (isPhone(project)) await ensureMobileVitalsExpanded(page)
+    await expect(page.getByText(new RegExp(`${hpMax}\\s*/\\s*${hpMax}|${hpMax}`)).first()).toBeVisible({
+      timeout: 10_000,
+    })
+    await shot(page, ARTIFACTS, 'sheet-sorcerer-l8-draconic-hp', project)
+  })
+
   test('subclass-clockwork-restore-balance', async ({ page }, testInfo) => {
     const project = projectOf(testInfo)
     const store = createStore()

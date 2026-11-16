@@ -501,7 +501,7 @@ def build_permanent_bonuses(
             "Драконья устойчивость (хиты)",
             "hp_per_level",
             1,
-            note_ru="+1 хит за каждый уровень чародея (на уровне N сумма +N)",
+            note_ru="+3 на 3 ур. чародея, затем +1 за уровень (на N сумма +N; next.dnd.su)",
         )
         add(
             "elemental-affinity",

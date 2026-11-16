@@ -87,6 +87,36 @@ def average_hp_face(class_slug: str) -> int:
     return _hit_die_sides(class_slug) // 2 + 1
 
 
+def is_draconic_sorcery_subclass(subclass_slug: str | None) -> bool:
+    key = (subclass_slug or "").strip().lower().replace("_", "-")
+    return "draconic" in key
+
+
+def draconic_resilience_hp_total_2024(
+    sorcerer_level: int,
+    subclass_slug: str | None,
+) -> int:
+    """PHB 2024 / next.dnd.su: +3 at sorcerer 3, +1 per later sorcerer level → total = level."""
+    if not is_draconic_sorcery_subclass(subclass_slug):
+        return 0
+    lv = max(0, int(sorcerer_level or 0))
+    if lv < 3:
+        return 0
+    return lv
+
+
+def draconic_resilience_hp_delta_2024(
+    *,
+    new_level: int,
+    old_level: int,
+    subclass_slug: str | None,
+) -> int:
+    """Incremental HP from Draconic Resilience when sorcerer level changes (2024 only)."""
+    return draconic_resilience_hp_total_2024(
+        new_level, subclass_slug
+    ) - draconic_resilience_hp_total_2024(old_level, subclass_slug)
+
+
 def hp_gain_for_level(
     *,
     class_slug: str,
@@ -95,8 +125,14 @@ def hp_gain_for_level(
     con_mod: int,
     mode: str,
     rolled: int | None,
+    subclass_slug: str | None = None,
+    previous_class_level: int | None = None,
 ) -> int:
-    """Primary class level 1 = max die; later levels average or roll. Never max on MC entry."""
+    """Primary class level 1 = max die; later levels average or roll. Never max on MC entry.
+
+    2024 Draconic Resilience: +3 when sorcerer reaches 3 with draconic subclass,
+    then +1 per subsequent sorcerer level (not applied on 2014 paths — this module is 2024-only).
+    """
     sides = _hit_die_sides(class_slug)
     if is_primary_origin and class_level == 1:
         face = sides
@@ -104,7 +140,19 @@ def hp_gain_for_level(
         face = max(1, min(sides, int(rolled)))
     else:
         face = average_hp_face(class_slug)
-    return max(1, face + con_mod)
+    base = max(1, face + con_mod)
+    if class_slug == "sorcerer":
+        old_lv = (
+            int(previous_class_level)
+            if previous_class_level is not None
+            else max(0, int(class_level) - 1)
+        )
+        base += draconic_resilience_hp_delta_2024(
+            new_level=int(class_level),
+            old_level=old_lv,
+            subclass_slug=subclass_slug,
+        )
+    return base
 
 
 def parse_class_levels(raw: Any) -> list[ClassLevelPlan]:
@@ -704,6 +752,11 @@ def apply_level_gain_2024(
             )
             sheet["create_2024_level_stubs"] = stubs
 
+    # Subclass on the row after this step (may have just been set at the gate).
+    subclass_now = (
+        str(row.get("subclass_slug") or row.get("subclass_catalog_id") or step.subclass_slug or "")
+        or None
+    )
     gain = hp_gain_for_level(
         class_slug=step.class_slug,
         class_level=class_level,
@@ -711,6 +764,8 @@ def apply_level_gain_2024(
         con_mod=con_mod,
         mode=step.hp_mode,
         rolled=step.rolled,
+        subclass_slug=subclass_now,
+        previous_class_level=0 if entering_new else class_level - 1,
     )
     combat = sheet.setdefault("combat", {})
     prev_max = int(combat.get("hp_max") or 0)

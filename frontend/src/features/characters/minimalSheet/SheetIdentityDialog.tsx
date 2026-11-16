@@ -44,6 +44,7 @@ import { syncHitDicePools } from '../../../shared/dnd/classHitDice'
 import { trimLevelUpSpellbookRows } from '../../../shared/dnd/wizardSpellbook'
 import { trimSavantSpellsOnLevelDown2024 } from '../../../shared/dnd/wizard2024Features'
 import { averageHpGain, hitDieForClass } from '../../../shared/dnd/multiclassRules'
+import { draconicResilienceHpDelta2024 } from '../../../shared/dnd/sorcerer2024Features'
 import { withSyncedHitDiceSummary } from '../play'
 import { unlockFeaturesForClasses } from '../../../shared/dnd/classFeatures'
 import { clearFeaturePicksForClass } from '../../../shared/dnd/featurePicks'
@@ -309,7 +310,20 @@ export function SheetIdentityDialog({ model }: { model: SheetModel }) {
                                 hitDieForClass({ className: row.name, catalogData: null }) ??
                                 'd8'
                               const conMod = abilityModifier(prev.abilities.con)
-                              const hpLoss = averageHpGain(die, conMod)
+                              const newLevelAfter = Math.max(0, beforeLevel - 1)
+                              const dragonLoss =
+                                edition2024 && /чародей|sorcerer/i.test(row.name)
+                                  ? Math.max(
+                                      0,
+                                      -draconicResilienceHpDelta2024({
+                                        oldLevel: beforeLevel,
+                                        newLevel: newLevelAfter,
+                                        subclassSlug:
+                                          row.subclass_catalog_id || row.subclass_name || null,
+                                      }),
+                                    )
+                                  : 0
+                              const hpLoss = averageHpGain(die, conMod) + dragonLoss
                               const nextClasses = reduceClassLevel(prev.classes, row.id)
                               const removed = !nextClasses.some((item) => item.id === row.id)
                               const hitDiceByClass = syncHitDicePools({

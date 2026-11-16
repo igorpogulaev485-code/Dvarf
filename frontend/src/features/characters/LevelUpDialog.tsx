@@ -11,6 +11,7 @@ import {
 } from '../../shared/dnd/multiclassRules'
 import type { HitDie } from '../../shared/dnd/hitDice'
 import { checkMulticlassPrerequisites2024 } from '../../shared/dnd/edition2024Classes'
+import { draconicResilienceHpDelta2024 } from '../../shared/dnd/sorcerer2024Features'
 import { CatalogCombobox } from '../catalog'
 import { Dialog, Field, NumberInput, Stack, Text } from '../../ui'
 
@@ -115,11 +116,33 @@ export function LevelUpDialog({
   )
 
   const averageGain = hitDie
-    ? averageHpGain(hitDie, constitutionMod, {
-        draconicResilience:
-          draconicResilience &&
-          /чародей|sorcerer/i.test(targetClass.name),
-      })
+    ? (() => {
+        const isSorcerer = /чародей|sorcerer/i.test(targetClass.name)
+        // 2014 path unchanged: +1 per sorcerer level when Draconic Resilience is on.
+        if (edition !== '2024') {
+          return averageHpGain(hitDie, constitutionMod, {
+            draconicResilience: draconicResilience && isSorcerer,
+          })
+        }
+        // 2024: +3 at sorcerer 3 (when subclass is already/will be draconic), then +1.
+        const base = averageHpGain(hitDie, constitutionMod)
+        if (!isSorcerer) return base
+        const row = mode === 'same' ? classes.find((c) => c.id === classId) : null
+        const oldLv = row?.level ?? 0
+        const newLv = oldLv + 1
+        const subclassSlug =
+          row?.subclass_catalog_id ||
+          row?.subclass_name ||
+          (draconicResilience ? 'draconic' : null)
+        return (
+          base +
+          draconicResilienceHpDelta2024({
+            oldLevel: oldLv,
+            newLevel: newLv,
+            subclassSlug,
+          })
+        )
+      })()
     : null
 
   const multiclassGate = useMemo(() => {

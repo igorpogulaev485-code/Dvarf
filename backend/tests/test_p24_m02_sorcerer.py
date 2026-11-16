@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from copy import deepcopy
 from pathlib import Path
 
 import pytest
@@ -10,7 +11,10 @@ import pytest
 from app.core.config import settings
 from app.dnd import edition_2024_class_options as opt
 from app.dnd import edition_2024_classes as e24
+from app.dnd import edition_2024_create as create24
+from app.dnd import edition_2024_create_levels as levels
 from app.dnd import edition_2024_subclasses as sub24
+from tests.test_p24_m03_create import build_valid_payload
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 BACKEND_LIVE = REPO_ROOT / "backend" / "data" / "srd" / "2024" / "live"
@@ -192,6 +196,118 @@ def test_draconic_resilience_and_affinity():
     assert "dragon_wings" in pools
     pools18 = _pools("sorcerer__draconic-sorcery", 18)
     assert "dragon_companion" in pools18
+
+
+def test_draconic_resilience_hp_helpers_2024():
+    """next.dnd.su: +3 at sorcerer 3, +1 each later level → total bonus = sorcerer level."""
+    sub = "sorcerer__draconic-sorcery"
+    assert levels.draconic_resilience_hp_total_2024(2, sub) == 0
+    assert levels.draconic_resilience_hp_total_2024(3, sub) == 3
+    assert levels.draconic_resilience_hp_total_2024(8, sub) == 8
+    assert levels.draconic_resilience_hp_total_2024(8, "sorcerer__clockwork-sorcery") == 0
+    assert (
+        levels.draconic_resilience_hp_delta_2024(
+            new_level=3, old_level=2, subclass_slug=sub
+        )
+        == 3
+    )
+    assert (
+        levels.draconic_resilience_hp_delta_2024(
+            new_level=8, old_level=7, subclass_slug=sub
+        )
+        == 1
+    )
+    assert (
+        levels.hp_gain_for_level(
+            class_slug="sorcerer",
+            class_level=3,
+            is_primary_origin=False,
+            con_mod=2,
+            mode="average",
+            rolled=None,
+            subclass_slug=sub,
+            previous_class_level=2,
+        )
+        == 4 + 2 + 3
+    )
+
+
+def test_draconic_resilience_create_at_8_vs_clockwork():
+    def _make(sub: str):
+        payload = build_valid_payload(
+            "sorcerer",
+            ability_method="manual",
+            base_abilities={
+                "str": 8,
+                "dex": 14,
+                "con": 14,
+                "int": 10,
+                "wis": 10,
+                "cha": 15,
+            },
+            class_levels=[{"slug": "sorcerer", "level": 8, "subclass_slug": sub}],
+        )
+        return create24.validate_create_2024(create24.payload_from_dict(payload))
+
+    draconic = _make("sorcerer__draconic-sorcery")
+    clockwork = _make("sorcerer__clockwork-sorcery")
+    assert draconic.sheet["combat"]["hp_max"] - clockwork.sheet["combat"]["hp_max"] == 8
+    hist = (draconic.sheet.get("create_2024") or {}).get("level_gains") or []
+    by_lv = {int(h["class_level"]): h for h in hist}
+    assert by_lv[3]["hp_gain"] - by_lv[2]["hp_gain"] == 3  # +3 dragon at gate
+    assert by_lv[8]["hp_gain"] - by_lv[2]["hp_gain"] == 1  # later levels +1
+
+
+def test_draconic_resilience_rollback_removes_bonus():
+    payload = build_valid_payload(
+        "sorcerer",
+        ability_method="manual",
+        base_abilities={"str": 8, "dex": 14, "con": 14, "int": 10, "wis": 10, "cha": 15},
+        class_levels=[
+            {
+                "slug": "sorcerer",
+                "level": 3,
+                "subclass_slug": "sorcerer__draconic-sorcery",
+            }
+        ],
+    )
+    sheet = deepcopy(
+        create24.validate_create_2024(create24.payload_from_dict(payload)).sheet
+    )
+    hp3 = int(sheet["combat"]["hp_max"])
+    hist = (sheet.get("create_2024") or {}).get("level_gains") or []
+    assert hist and int(hist[-1]["class_level"]) == 3
+    expected_loss = int(hist[-1]["hp_gain"])
+    # L3 gain must include the +3 Draconic Resilience bump vs L2 average.
+    assert expected_loss == int(hist[-2]["hp_gain"]) + 3
+    levels.rollback_last_level_gain(sheet)
+    assert sum(int(r["level"]) for r in sheet["classes"]) == 2
+    assert hp3 - int(sheet["combat"]["hp_max"]) == expected_loss
+    assert not sheet["classes"][0].get("subclass_slug")
+
+
+def test_draconic_resilience_multiclass_sorcerer3():
+    payload = build_valid_payload(
+        "fighter",
+        ability_method="manual",
+        base_abilities={"str": 15, "dex": 14, "con": 14, "int": 10, "wis": 10, "cha": 13},
+        class_levels=[
+            {"slug": "fighter", "level": 2},
+            {
+                "slug": "sorcerer",
+                "level": 3,
+                "subclass_slug": "sorcerer__draconic-sorcery",
+            },
+        ],
+    )
+    result = create24.validate_create_2024(create24.payload_from_dict(payload))
+    hist = (result.sheet.get("create_2024") or {}).get("level_gains") or []
+    sorc = [h for h in hist if h.get("class_slug") == "sorcerer"]
+    assert len(sorc) == 3
+    # MC entry L1/L2: average only; L3: average +3 dragon.
+    assert sorc[0]["hp_gain"] == sorc[1]["hp_gain"]
+    assert sorc[2]["hp_gain"] == sorc[1]["hp_gain"] + 3
+    assert sorc[2]["subclass_slug"] == "sorcerer__draconic-sorcery"
 
 
 def test_aberrant_pools_and_psychic_defenses():

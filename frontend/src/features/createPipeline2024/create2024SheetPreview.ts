@@ -7,6 +7,7 @@ import type { CatalogEntry } from '../../shared/api/catalog'
 import { ABILITY_LABEL_RU, ABILITY_ORDER, type AbilityKey } from '../../shared/dnd/pointBuy'
 import { masteryPropertyNameRu } from '../../shared/dnd/weaponMastery'
 import { abilityModifier, SKILL_DEFS } from '../characters/sheetTypes'
+import { draconicResilienceHpTotal2024 } from '../../shared/dnd/sorcerer2024Features'
 import {
   abilityLabelRuById,
   buildItemNameIndex,
@@ -244,6 +245,23 @@ export function buildCreate2024SheetPreview(input: SheetPreviewInput): SheetPrev
   } else {
     hpMax = hitDieN + conMod
     for (let lv = 2; lv <= totalLevel; lv += 1) hpMax += avgFace + conMod
+  }
+  // 2024 Draconic Resilience: +3 at 3, +1 thereafter (total = sorcerer level).
+  for (const row of state.classes) {
+    const classKey = `${row.catalog_id || ''} ${row.name || ''}`.toLowerCase()
+    if (!classKey.includes('sorcerer') && !/чародей/i.test(row.name || '')) {
+      continue
+    }
+    const subclassSlug =
+      state.subclassByEntryId[row.id] ||
+      row.subclass_catalog_id ||
+      row.subclass_name ||
+      state.subclassSlug ||
+      null
+    hpMax += draconicResilienceHpTotal2024({
+      sorcererLevel: row.level,
+      subclassSlug,
+    })
   }
 
   // Feats + their picks.

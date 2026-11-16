@@ -142,6 +142,46 @@ export function sorceryPointsMax2024(sorcererLevel: number): number {
   return lv >= 2 ? lv : 0
 }
 
+/** True for PHB 2024 Draconic Sorcery subclass slugs / names. */
+export function isDraconicSorcerySubclass2024(
+  subclassSlug: string | null | undefined,
+): boolean {
+  const key = (subclassSlug ?? '').trim().toLowerCase().replace(/_/g, '-')
+  return key.includes('draconic')
+}
+
+/**
+ * PHB 2024 / next.dnd.su Draconic Resilience HP:
+ * +3 at sorcerer 3, then +1 per later sorcerer level → total bonus = sorcerer level.
+ */
+export function draconicResilienceHpTotal2024(input: {
+  sorcererLevel: number
+  subclassSlug: string | null | undefined
+}): number {
+  if (!isDraconicSorcerySubclass2024(input.subclassSlug)) return 0
+  const lv = Math.max(0, Math.floor(input.sorcererLevel || 0))
+  if (lv < 3) return 0
+  return lv
+}
+
+/** Incremental HP when sorcerer class level changes (2024 only). */
+export function draconicResilienceHpDelta2024(input: {
+  newLevel: number
+  oldLevel: number
+  subclassSlug: string | null | undefined
+}): number {
+  return (
+    draconicResilienceHpTotal2024({
+      sorcererLevel: input.newLevel,
+      subclassSlug: input.subclassSlug,
+    }) -
+    draconicResilienceHpTotal2024({
+      sorcererLevel: input.oldLevel,
+      subclassSlug: input.subclassSlug,
+    })
+  )
+}
+
 export function sorcerousRestorationMaxPoints2024(sorcererLevel: number): number {
   return Math.floor(Math.max(0, sorcererLevel) / 2)
 }
