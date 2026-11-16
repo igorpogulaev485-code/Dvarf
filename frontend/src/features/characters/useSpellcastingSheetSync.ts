@@ -205,7 +205,7 @@ export function useSpellcastingSheetSync({
     const next = applySpellcastingSuggestion(spells, suggestion)
     if (!spellcastingTableChanged(spells, next)) return
     onChange({ ...spells, ...next })
-    onToast?.(`${suggestion.labelRu}: ячейки обновлены по таблице 2014`)
+    onToast?.(`${suggestion.labelRu}: ячейки обновлены по таблице ${is2024 ? 'класса' : '2014'}`)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [enabled, classLevelKey])
 

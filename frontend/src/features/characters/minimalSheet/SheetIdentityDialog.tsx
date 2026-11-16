@@ -111,6 +111,8 @@ function levelDownClassState2024(
       classes: next.classes.map((item) =>
         item.id === row.id ? { ...item, subclass_catalog_id: null, subclass_name: '' } : item,
       ),
+      identity:
+        next.classes[0]?.id === row.id ? { ...next.identity, subclassName: '' } : next.identity,
     }
   }
   return next
@@ -408,7 +410,7 @@ export function SheetIdentityDialog({ model }: { model: SheetModel }) {
                                 const leveled = edition2024
                                   ? levelDownClassState2024(model, synced, row, beforeLevel, newLevel)
                                   : synced
-                                const raced = model.withRaceSpellsSynced(leveled, nextClasses)
+                                const raced = model.withRaceSpellsSynced(leveled, leveled.classes)
                                 const finished = withLevelSpellcasting(model, raced)
                                 tableChanged = finished.tableChanged
                                 return finished.draft

@@ -298,3 +298,25 @@ def test_level1_path_unchanged():
     assert result.level == 1
     assert len(result.sheet["classes"]) == 1
     assert result.sheet["classes"][0]["level"] == 1
+
+
+def test_create_at_n_hit_dice_and_no_duplicate_spell_rows():
+    cantrips = ["fire-bolt", "mage-hand", "prestidigitation"]
+    book = ["shield", "magic-missile", "mage-armor", "detect-magic", "sleep", "identify"]
+    result = create24.validate_create_2024(
+        create24.payload_from_dict(
+            _base_wizard(
+                class_levels=[{"slug": "wizard", "level": 3, "subclass_slug": "wizard__evoker"}],
+                subclass_slug="wizard__evoker",
+                cantrip_ids=cantrips,
+                spellbook_spell_ids=book,
+                prepared_spell_ids=book[:4],
+            )
+        )
+    )
+    assert result.sheet["combat"]["hp_dice_current"] == 3
+    keys = [
+        (row.get("catalog_id") or row.get("slug") or row.get("name"))
+        for row in result.sheet["spells"]["known"]
+    ]
+    assert len(keys) == len(set(keys))

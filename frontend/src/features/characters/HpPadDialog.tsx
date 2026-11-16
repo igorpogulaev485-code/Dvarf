@@ -669,7 +669,7 @@ export function HpPadDialog({
                     title={`Потратить кость ${pool.className} (среднее + ТЕЛ)`}
                     onClick={() => spendPool(pool)}
                   >
-                    {pool.className} · {pool.die} · {pool.current}/{pool.max}
+                    Кости хитов · {pool.className} {pool.die}: {pool.current} из {pool.max}
                   </button>
                   <SlotPips
                     max={Math.max(1, pool.max)}

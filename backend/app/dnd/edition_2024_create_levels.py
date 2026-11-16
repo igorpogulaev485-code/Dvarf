@@ -879,6 +879,8 @@ def materialize_levels_on_sheet(
             f"Итоговый уровень {total} не совпал с планом {expected_total}",
             code="create_2024_levels",
         )
+    combat = sheet.setdefault("combat", {})
+    combat["hp_dice_current"] = total
 
     # Weapon mastery budget for final levels (one granting class — highest budget).
     class_levels = [

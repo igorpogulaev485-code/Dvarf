@@ -520,7 +520,7 @@ export function RestDialog({
               >
                 {pools.map((pool) => (
                   <option key={pool.classEntryId} value={pool.classEntryId}>
-                    {pool.className} · {pool.die} · {pool.current}/{pool.max}
+                    {pool.className} {pool.die} · {pool.current} из {pool.max}
                   </option>
                 ))}
               </select>
@@ -664,9 +664,10 @@ export function RestDialog({
                       <div key={pool.classEntryId} className="play-hit-dice__pool">
                         <Text>
                           <strong>
-                            {pool.className} · {pool.die}
-                          </strong>{' '}
-                          {pool.current}/{pool.max}
+                            Кости хитов · {pool.className} {pool.die}
+                          </strong>
+                          {': '}
+                          {pool.current} из {pool.max}
                         </Text>
                         <SlotPips
                           max={Math.max(1, pool.max)}

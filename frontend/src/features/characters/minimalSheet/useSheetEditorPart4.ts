@@ -51,6 +51,7 @@ import { resolveClassCasterSlug, resolveSpellLearnBudget } from '../../../shared
 import { equippedArmorPieces } from '../inventory'
 import { type CastChoice } from '../CastSpellDialog'
 import { isCastableSpellScroll } from '../spellScroll'
+import { normalizeClassSlug2024 } from '../../../shared/dnd/edition2024Classes'
 import { applyInstantDice, instantDice } from '../gearCharges'
 import { type SheetSpell } from '../spells'
 import { abilityModifier, formatModifier, type AbilityKey } from '../sheetTypes'
@@ -1072,9 +1073,16 @@ export function useSheetEditorPart4(model: SheetModel) {
   const arcaneRecoveryWizardLevel = useMemo(() => {
     if (!arcaneRecoverySpendId) return 1
     // feat:wizard:arcane_recovery:{classEntryId}
+    // 2024 progression ids end with the feature id, not the class row id: feat:wizard:arcane_recovery:arcane_recovery
     const parts = arcaneRecoverySpendId.split(':')
     const classEntryId = parts[parts.length - 1]
-    const row = model.draft.classes.find((c) => c.id === classEntryId)
+    const row =
+      model.draft.classes.find((c) => c.id === classEntryId) ??
+      model.draft.classes.find(
+        (c) =>
+          normalizeClassSlug2024(c.catalog_id || undefined) === parts[1] ||
+          normalizeClassSlug2024(c.name) === parts[1],
+      )
     return Math.max(1, Math.floor(row?.level ?? 1))
   }, [arcaneRecoverySpendId, model.draft.classes])
   model.arcaneRecoveryWizardLevel = arcaneRecoveryWizardLevel

@@ -1054,7 +1054,9 @@ export function SpellsPanel({
                       ? ` · договор ${suggestion.pact_slots?.level ?? '—'} / ${suggestion.pact_slots?.max ?? 0}`
                       : suggestion.progression === 'none'
                         ? ' · не заклинатель'
-                        : ' · слоты PHB 2014'}
+                        : edition === '2024'
+                          ? ' · слоты по таблице класса'
+                          : ' · слоты PHB 2014'}
                     . При смене класса/уровня подставляется само; spent не сбрасываем.
                   </Text>
                 ) : (

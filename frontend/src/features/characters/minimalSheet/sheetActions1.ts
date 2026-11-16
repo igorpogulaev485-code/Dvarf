@@ -563,9 +563,15 @@ export function installSheetActions1(model: SheetModel) {
       catalogData: input.selected.data,
     })
     if (!def) {
+      // 2024 catalog rows carry no grant package; sheet progression keys on the slug
+      // (`wizard__abjurer`), the same value create-at-N writes into subclass_catalog_id.
+      const slugKey =
+        input.selected.rules_edition === '2024' && input.selected.slug.includes('__')
+          ? input.selected.slug
+          : input.selected.id
       model.patchClass(input.classEntryId, {
         subclass_name: input.selected.name_ru,
-        subclass_catalog_id: input.selected.id,
+        subclass_catalog_id: slugKey,
       })
       model.onToast(`Архетип «${input.selected.name_ru}» без пакета грантов — только имя`)
       if (input.advanceWizardAfter) model.advanceGuidedWizardAfterSubclass()
@@ -620,7 +626,7 @@ export function installSheetActions1(model: SheetModel) {
       transition?.activeCatalogId ||
       existing?.catalogId ||
       null
-    if (currentCatalogId && currentCatalogId !== selected.id) {
+    if (currentCatalogId && currentCatalogId !== selected.id && currentCatalogId !== selected.slug) {
       const previousSlug =
         transition?.mode === 'future_only'
           ? transition.previousSlug || existing?.slug || ''

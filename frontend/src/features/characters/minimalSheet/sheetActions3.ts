@@ -429,7 +429,9 @@ export function installSheetActions3(model: SheetModel) {
       return
     }
     const hpNote = ` · хиты +${Math.max(0, Math.floor(choice.hpGain))}`
-    const slotNote = tableChanged ? ' · ячейки по таблице 2014' : ''
+    const slotNote = tableChanged
+      ? ` · ячейки по таблице ${model.baseCharacter.rules_edition === '2024' ? 'класса' : '2014'}`
+      : ''
     model.onToast(
       choice.type === 'same'
         ? `Уровень класса +1${hpNote}${slotNote}`

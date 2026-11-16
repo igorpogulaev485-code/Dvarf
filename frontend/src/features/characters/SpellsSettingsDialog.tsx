@@ -252,7 +252,7 @@ export function SpellsSettingsDialog({
           ? ''
           : ' · без лимита подготовки'
         : ` · подготовка ${suggestion.max_prepared}`
-    onToast?.(`${suggestion.labelRu}: подставлено по таблице 2014${prep}`)
+    onToast?.(`${suggestion.labelRu}: подставлено по таблице ${edition === '2024' ? 'класса' : '2014'}${prep}`)
   }
 
   function setSlotMax(slotLevel: number, max: number) {
@@ -549,7 +549,9 @@ export function SpellsSettingsDialog({
                           ? ` · договор ${suggestion.pact_slots?.level ?? '—'} / ${suggestion.pact_slots?.max ?? 0}`
                           : suggestion.progression === 'none'
                             ? ' · не заклинатель'
-                            : ' · слоты PHB 2014'
+                            : edition === '2024'
+                              ? ' · слоты по таблице класса'
+                              : ' · слоты PHB 2014'
                       }`
                     : 'Класс не распознан — задай ячейки вручную'}
                 </Text>
