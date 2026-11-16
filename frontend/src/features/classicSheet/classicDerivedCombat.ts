@@ -188,12 +188,16 @@ export function classicAutoArmorClass(character: CharacterDetail): number {
   const mageFormula = mageArmor ? { ...mageArmor, key: 'mage_armor' } : null
   const combatEffects = asRecord(sheet.combat).effects
   const effectFormulas = pieces.armor ? [] : acFormulasFromActiveEffects(combatEffects)
-  const hasDraconic = unlocked.some((feature) => feature.id === 'draconic_resilience')
+  const hasDraconic = unlocked.some(
+    (feature) =>
+      feature.id === 'draconic_resilience' || feature.id === 'draconic-resilience',
+  )
+  const rulesEdition = String(character.rules_edition ?? '2014').trim()
   const draconic = !pieces.armor && hasDraconic
     ? {
         key: 'draconic_resilience',
         label: 'Драконья устойчивость',
-        base: 13,
+        base: rulesEdition === '2024' ? 10 + mods.cha : 13,
         dexCap: null as number | null,
         allowsShield: true,
       }

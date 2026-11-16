@@ -368,9 +368,12 @@ export function resolveAttackRoll(input: {
    * (not smite / hunters mark extras).
    */
   greatWeaponFighting?: boolean
+  /** Champion etc.: crit when kept d20 ≥ threshold (still always crit on 20). */
+  critThreshold?: number
 }): AttackStrike {
   const rng = input.rng ?? Math.random
   const mode = input.mode ?? 'normal'
+  const critThreshold = Math.min(20, Math.max(1, Math.floor(input.critThreshold ?? 20)))
   let hit: CheckRoll
   if (input.lucky) {
     hit = rollCheckWithLucky(input.attackBonus, mode, rng)
@@ -381,7 +384,7 @@ export function resolveAttackRoll(input: {
   }
   const bonus = rollBonusDiceParts(input.bonusDice, rng)
   // The kept d20 is the attack roll. Advantage can crit; disadvantage uses the lower die.
-  const crit = hit.die === 20
+  const crit = hit.die === 20 || hit.die >= critThreshold
   let dmg = rollDamage(input.damageExpr, rng, { crit })
   const damageNotes: string[] = []
   if (dmg && input.greatWeaponFighting && dmg.parts.length > 0) {

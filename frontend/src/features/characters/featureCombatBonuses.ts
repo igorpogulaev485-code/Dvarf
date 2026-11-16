@@ -10,6 +10,26 @@ type FeatureLike = { id: string }
 
 type AbilitiesLike = Partial<Record<AbilityKey, number>>
 
+function normalizeFeatureId(id: string): string {
+  return id.trim().replace(/-/g, '_')
+}
+
+/** Champion (2014/2024): improved 19–20, superior 18–20; lowest threshold wins. */
+export function critThresholdFromFeatures(features: FeatureLike[]): number {
+  let threshold = 20
+  for (const feature of features) {
+    const id = normalizeFeatureId(feature.id)
+    if (id === 'superior_critical') threshold = Math.min(threshold, 18)
+    else if (id === 'improved_critical') threshold = Math.min(threshold, 19)
+  }
+  return threshold
+}
+
+/** 2024 Remarkable Athlete: narrative advantage on initiative (Dexterity check). */
+export function initiativeAdvantageFromFeatures(features: FeatureLike[]): boolean {
+  return features.some((feature) => normalizeFeatureId(feature.id) === 'remarkable_athlete')
+}
+
 /**
  * Class/subclass initiative add-ons (stack with race/feat bonuses elsewhere).
  * - Dread Ambusher (Gloom Stalker): +Wisdom modifier

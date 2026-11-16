@@ -374,7 +374,8 @@ export function PlayDeskTop({ model }: { model: SheetModel }) {
             {...o07HpPad}
             {...o10HpPad}
             draconicResilience={(model.unlockedFeatures ?? []).some(
-              (f: { id?: string }) => f.id === 'draconic_resilience',
+              (f: { id?: string }) =>
+                f.id === 'draconic_resilience' || f.id === 'draconic-resilience',
             )}
             play={model.draft.play}
             autoAc={model.armorClass.ac}
@@ -583,7 +584,8 @@ export function PlayDeskTop({ model }: { model: SheetModel }) {
           {...o07HpPad}
           {...o10HpPad}
           draconicResilience={(model.unlockedFeatures ?? []).some(
-            (f: { id?: string }) => f.id === 'draconic_resilience',
+            (f: { id?: string }) =>
+              f.id === 'draconic_resilience' || f.id === 'draconic-resilience',
           )}
           play={model.draft.play}
           autoAc={model.armorClass.ac}

@@ -2,8 +2,10 @@
  * Run: npx --yes tsx src/features/characters/featureCombatBonuses.selfcheck.ts
  */
 import {
+  critThresholdFromFeatures,
   darkvisionFtFromFeatures,
   improvedDivineSmiteRider,
+  initiativeAdvantageFromFeatures,
   initiativeBonusFromFeatures,
   initiativeBonusFromRace,
 } from './featureCombatBonuses.ts'
@@ -40,6 +42,28 @@ assert(
   }) === 0,
   'no matching feature = 0',
 )
+
+assert(critThresholdFromFeatures([]) === 20, 'default crit 20')
+assert(
+  critThresholdFromFeatures([{ id: 'improved_critical' }]) === 19,
+  'improved critical 19',
+)
+assert(
+  critThresholdFromFeatures([{ id: 'improved-critical' }]) === 19,
+  'improved-critical hyphen',
+)
+assert(
+  critThresholdFromFeatures([
+    { id: 'improved_critical' },
+    { id: 'superior_critical' },
+  ]) === 18,
+  'superior wins lowest',
+)
+assert(
+  initiativeAdvantageFromFeatures([{ id: 'remarkable-athlete' }]),
+  'remarkable athlete init advantage flag',
+)
+assert(!initiativeAdvantageFromFeatures([]), 'no remarkable = false')
 
 assert(
   darkvisionFtFromFeatures({ features: [{ id: 'umbral_sight' }], baseDarkvision: 0 }) === 60,

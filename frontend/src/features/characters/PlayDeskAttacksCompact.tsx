@@ -207,6 +207,7 @@ import {
 import type { SpellsState } from './spells'
 import { resolveB04FeatureSpend } from './b04FeatureSpend'
 import {
+  critThresholdFromFeatures,
   divineStrikeRider,
   improvedDivineSmiteRider,
   symbioticNecroticRider,
@@ -859,6 +860,10 @@ export function PlayDeskAttacksCompact({
   } | null>(null)
   const isMobile =
     typeof window !== 'undefined' && window.matchMedia('(max-width: 959px)').matches
+  const attackCritThreshold = useMemo(
+    () => critThresholdFromFeatures(combatFeatures),
+    [combatFeatures],
+  )
   const divineStrike = useMemo(() => divineStrikeRider(combatFeatures), [combatFeatures])
   const blessedStrikes = useMemo(
     () =>
@@ -3221,9 +3226,16 @@ export function PlayDeskAttacksCompact({
                       const naturalDie =
                         opts?.naturalDie ??
                         (opts?.crit ? 20 : null)
+                      const rollCrit = (die: number | null | undefined, flagged?: boolean) =>
+                        Boolean(
+                          flagged ||
+                            (die != null &&
+                              Number.isFinite(die) &&
+                              (die === 20 || die >= attackCritThreshold)),
+                        )
                       const resolved =
                         opts?.tableHit
-                          ? { hit: true, crit: Boolean(opts?.crit || naturalDie === 20) }
+                          ? { hit: true, crit: rollCrit(naturalDie, opts?.crit) }
                           : opts?.tableMiss
                             ? { hit: false, crit: false }
                             : target
@@ -3231,9 +3243,10 @@ export function PlayDeskAttacksCompact({
                                   attackTotal: opts?.manualTotal ?? opts?.hitTotal,
                                   natural: naturalDie,
                                   ac: target.ac,
+                                  critThreshold: attackCritThreshold,
                                 })
                               : opts?.hitTotal != null || opts?.manualTotal != null
-                                ? { hit: true, crit: Boolean(opts?.crit || naturalDie === 20) }
+                                ? { hit: true, crit: rollCrit(naturalDie, opts?.crit) }
                                 : null
                       const knownOutcome = resolved != null
                       const hitOk = resolved?.hit === true
@@ -3610,6 +3623,7 @@ export function PlayDeskAttacksCompact({
                         flamesOfPhlegethos &&
                         /огн|fire/i.test(String(attack.damage_type || shownType || '')),
                       greatWeaponFighting: gwfApplies,
+                      critThreshold: attackCritThreshold,
                       extraDamages: [
                         ...(divineStrike
                           ? [

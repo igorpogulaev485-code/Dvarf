@@ -36,7 +36,8 @@ export function SheetDialogsSetup({ model }: { model: SheetModel }) {
         abilities={model.draft.abilities}
         constitutionMod={abilityModifier(model.draft.abilities.con)}
         draconicResilience={(model.unlockedFeatures ?? []).some(
-          (f: { id?: string }) => f.id === 'draconic_resilience',
+          (f: { id?: string }) =>
+            f.id === 'draconic_resilience' || f.id === 'draconic-resilience',
         )}
         allowMulticlass={campaignRules.edition_2014.multiclass}
         defaultHpMode={campaignRules.edition_2014.hp_on_level_up}

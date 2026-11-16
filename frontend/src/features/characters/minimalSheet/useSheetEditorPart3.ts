@@ -803,13 +803,18 @@ export function useSheetEditorPart3(model: SheetModel) {
     const draconic = (() => {
       if (pieces.armor) return null
       const has = model.unlockedFeatures.some(
-        (feature: { id: string }) => feature.id === 'draconic_resilience',
+        (feature: { id: string }) =>
+          feature.id === 'draconic_resilience' || feature.id === 'draconic-resilience',
       )
       if (!has) return null
+      const is2024 =
+        String(model.rulesEdition ?? model.baseCharacter?.rules_edition ?? '2014').trim() ===
+        '2024'
+      const chaMod = mods.cha
       return {
         key: 'draconic_resilience',
         label: 'Драконья устойчивость',
-        base: 13,
+        base: is2024 ? 10 + chaMod : 13,
         dexCap: null as number | null,
         allowsShield: true,
       }

@@ -123,6 +123,15 @@ const stackedCrit = resolveAttackRoll({
   rng: seq([0.999, 0, 0.5, 0, 0.25, 0, 0.25, 0.5, 0.75]),
 })
 assert(stackedCrit.crit, 'natural 20 is a crit')
+
+const champ19 = resolveAttackRoll({
+  name: 'Меч',
+  attackBonus: 5,
+  damageExpr: '1d8+3',
+  critThreshold: 19,
+  rng: seq([0.9, 0.5]), // d20 → 19
+})
+assert(champ19.crit, 'Champion 19 crits on kept 19')
 assert(
   stackedCrit.text.includes('Улучшенная божественная кара, 1к8, 2d8: 1+3') &&
     stackedCrit.text.includes('Божественная кара, 2к8, 4d8: 1+3+5+7'),
