@@ -364,7 +364,15 @@ test.describe('P24-M03 create 2024 wizard', () => {
       }
 
       await expect(page.getByTestId('p24-m03-step-summary')).toBeVisible()
-      await page.getByTestId('p24-m03-name').fill(`Герой ${walk.key}`)
+      const nameRu =
+        walk.key === 'fighter'
+          ? 'Герой воин'
+          : walk.key === 'wizard'
+            ? 'Герой волшебник'
+            : walk.key === 'cleric'
+              ? 'Герой жрец'
+              : 'Герой кованый'
+      await page.getByTestId('p24-m03-name').fill(nameRu)
       await page.getByTestId('p24-m03-gender-male').click()
       await expect(page.getByTestId('p24-m03-sheet-preview')).toBeVisible()
       await expect(page.getByTestId('p24-m03-sheet-hp')).toBeVisible()
