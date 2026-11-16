@@ -51,7 +51,21 @@ const SPECIES_SKILL_RULES: Record<string, { count: number; from: readonly string
   },
   shifter: { count: 1, from: ['acrobatics', 'athletics', 'intimidation', 'survival'] },
   lupin: { count: 1, from: ['perception', 'stealth', 'survival'] },
+  warforged: { count: 1, from: 'any' },
+  reborn: { count: 1, from: 'any' },
 }
+
+const SPECIES_TOOL_SLUGS = new Set(['warforged'])
+const SPECIES_SKILL_OR_TOOL_SLUGS = new Set(['khoravar'])
+const SPECIES_DAMAGE_RULES: Record<string, readonly string[]> = {
+  reborn: ['cold', 'necrotic', 'poison'],
+}
+const SHIFTER_FORM_OPTIONS: ReadonlyArray<{ id: string; label: string; rest: string }> = [
+  { id: 'beasthide', label: 'Зверошкур', rest: 'Временные хиты и бонус к КД' },
+  { id: 'longtooth', label: 'Длинноклык', rest: 'Укус как бонусное действие' },
+  { id: 'swiftstride', label: 'Быстроног', rest: 'Скорость и отход без провокации' },
+  { id: 'wildhunt', label: 'Дикая охота', rest: 'Преимущество на проверки Мудрости' },
+]
 
 export function skillLabelRu(id: string): string {
   return SKILL_DEFS.find((row) => row.key === id)?.label ?? 'Навык'
@@ -247,11 +261,26 @@ export function featPickFields(
 export function speciesPickFields(
   speciesSlug: string | null | undefined,
   speciesEntry: CatalogEntry | null | undefined,
+  ctx?: FeatPickContext,
 ): PickField[] {
   const slug = normalizeSlug(speciesSlug || '')
   const slugRaw = (speciesSlug || '').trim().toLowerCase()
   if (!slug) return []
   const fields: PickField[] = []
+  const traits = new Set(
+    (Array.isArray(speciesEntry?.data?.traits) ? speciesEntry!.data!.traits : []).map((x) =>
+      String(x).toLowerCase(),
+    ),
+  )
+  if (slug === 'shifter' || SHIFTER_FORM_OPTIONS.some((o) => traits.has(o.id))) {
+    fields.push({
+      id: 'form',
+      label: 'Облик смещения',
+      hint: 'Выберите один облик шифтера.',
+      count: 1,
+      options: SHIFTER_FORM_OPTIONS.map((row) => ({ ...row })),
+    })
+  }
   const skillRule = SPECIES_SKILL_RULES[slugRaw] ?? SPECIES_SKILL_RULES[slug]
   if (skillRule) {
     fields.push({
@@ -259,6 +288,43 @@ export function speciesPickFields(
       label: skillRule.count > 1 ? 'Навыки вида' : 'Навык вида',
       count: skillRule.count,
       options: skillOptions(skillRule.from),
+    })
+  }
+  const emptyItems: ItemNameIndex = new Map()
+  if (SPECIES_TOOL_SLUGS.has(slugRaw) || SPECIES_TOOL_SLUGS.has(slug)) {
+    fields.push({
+      id: 'tools',
+      label: 'Инструмент вида',
+      hint: 'Специализированная конструкция: один инструмент на выбор.',
+      count: 1,
+      options: toolOptions(
+        [...ARTISAN_TOOL_IDS, ...SKILLED_EXTRA_TOOL_IDS, ...MUSICAL_INSTRUMENT_IDS],
+        ctx?.items ?? emptyItems,
+      ),
+    })
+  }
+  if (SPECIES_SKILL_OR_TOOL_SLUGS.has(slugRaw) || SPECIES_SKILL_OR_TOOL_SLUGS.has(slug)) {
+    fields.push({
+      id: 'skill_or_tool',
+      label: 'Навык или инструмент',
+      hint: 'Гибкость навыков: одно владение на выбор.',
+      count: 1,
+      options: [
+        ...skillOptions('any').map((o) => ({ ...o, rest: 'навык' })),
+        ...toolOptions(
+          [...ARTISAN_TOOL_IDS, ...SKILLED_EXTRA_TOOL_IDS, ...MUSICAL_INSTRUMENT_IDS],
+          ctx?.items ?? emptyItems,
+        ).map((o) => ({ ...o, rest: 'инструмент' })),
+      ],
+    })
+  }
+  const damageRule = SPECIES_DAMAGE_RULES[slugRaw] ?? SPECIES_DAMAGE_RULES[slug]
+  if (damageRule) {
+    fields.push({
+      id: 'damage',
+      label: 'Сопротивление урону',
+      count: 1,
+      options: damageRule.map((id) => ({ id, label: DAMAGE_TYPE_RU[id] ?? id })),
     })
   }
   const text = String((speciesEntry?.data ?? {}).traits_text || '')

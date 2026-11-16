@@ -129,18 +129,88 @@ def _background_tool(bg_slug: str) -> str | None:
     return "dice-set"
 
 
+def _origin_feat_nested(feat_slug: str) -> dict:
+    slug = str(feat_slug or "")
+    if slug == "magic-initiate":
+        return {
+            "list": ["wizard"],
+            "cantrips": _spell_pick("wizard", 0, 2),
+            "spell": _spell_pick("wizard", 1, 1),
+            "ability": ["int"],
+        }
+    if slug == "skilled":
+        return {"skilled": ["athletics", "stealth", "persuasion"]}
+    if slug == "crafter":
+        return {
+            "tools": [
+                "alchemists-supplies",
+                "smiths-tools",
+                "tinkers-tools",
+            ]
+        }
+    if slug == "musician":
+        return {"instruments": ["lute", "flute", "drum"]}
+    if slug == "harper-agent":
+        return {"instruments": ["lute"]}
+    if slug == "portal-jumper":
+        return {"damage": ["psychic"]}
+    if slug == "purple-dragon-rook":
+        return {"skill": ["insight"]}
+    return {}
+
+
 def _origin_feat_fields(bg_slug: str) -> dict:
     bg = create24.load_background_catalog()[bg_slug]
     feat = (bg.get("data") or {}).get("origin_feat") or {}
     slug = str(feat.get("slug") or feat.get("id") or "")
     out: dict = {}
+    nested = _origin_feat_nested(slug)
     if slug == "magic-initiate":
         out["origin_feat_list"] = "wizard"
-        out["origin_feat_cantrips"] = _spell_pick("wizard", 0, 2)
-        out["origin_feat_spell_id"] = _spell_pick("wizard", 1, 1)[0]
+        out["origin_feat_cantrips"] = nested["cantrips"]
+        out["origin_feat_spell_id"] = nested["spell"][0]
     elif slug == "skilled":
-        out["origin_feat_skilled"] = ["athletics", "stealth", "persuasion"]
+        out["origin_feat_skilled"] = nested["skilled"]
+    out["_origin_feat_picks"] = nested
+    out["_origin_feat_slug"] = slug
     return out
+
+
+def _species_client_picks(species_slug: str) -> dict:
+    from app.dnd import edition_2024_origin_feats as ofeats
+
+    out: dict = {}
+    rule = ofeats.SPECIES_SKILL_RULES.get(species_slug)
+    if rule:
+        allowed = (
+            sorted(create24.SKILL_IDS)
+            if rule["from"] == "any"
+            else list(rule["from"])
+        )
+        out["skills"] = allowed[: int(rule["count"])]
+    if species_slug in ofeats.SPECIES_TOOL_RULES:
+        out["tools"] = ["smiths-tools"]
+    if species_slug in ofeats.SPECIES_SKILL_OR_TOOL:
+        out["skill_or_tool"] = ["athletics"]
+    damage_rule = ofeats.SPECIES_DAMAGE_RULES.get(species_slug)
+    if damage_rule:
+        out["damage"] = [sorted(damage_rule)[0]]
+    if species_slug == "shifter":
+        out["form"] = ["beasthide"]
+    if species_slug in ofeats.SPECIES_CASTING_ABILITY:
+        out["ability"] = ["int"]
+    species = create24.load_species_catalog().get(species_slug) or {}
+    data = species.get("data") or {}
+    text = str(data.get("traits_text") or "")
+    if "Интеллект, Мудрость или Харизма" in text and "ability" not in out:
+        out["ability"] = ["int"]
+    result: dict = {"species_picks": {k: v for k, v in out.items() if v}}
+    if data.get("origin_feat_choice"):
+        result["species_feat"] = {
+            "slug": "skilled",
+            "picks": {"skilled": ["athletics", "stealth", "persuasion"]},
+        }
+    return result
 
 
 def _class_option_picks(class_slug: str, class_skills: list[str]) -> dict:
@@ -240,7 +310,16 @@ def build_valid_payload(class_slug: str, **overrides) -> dict:
         "is_preview": True,
         "is_draft": False,
         **_species_picks(species_slug),
-        **_origin_feat_fields(bg_slug),
+        **{k: v for k, v in _origin_feat_fields(bg_slug).items() if not k.startswith("_")},
+    }
+    origin_meta = _origin_feat_fields(bg_slug)
+    client = {
+        "origin_feat_picks": origin_meta.get("_origin_feat_picks") or {},
+        **_species_client_picks(species_slug),
+    }
+    payload["class_option_picks"] = {
+        **payload["class_option_picks"],
+        "client_picks": client,
     }
 
     # Spells for L1 casters
@@ -318,27 +397,37 @@ def test_reject_asi_outside_background_trio():
 
 
 def test_reject_extra_languages():
-    payload = build_valid_payload("wizard", language_ids=["elvish", "dwarvish", "draconic"])
+    payload = build_valid_payload(
+        "fighter",
+        language_ids=["elvish", "dwarvish", "draconic"],
+    )
     with pytest.raises(create24.Create2024Error) as exc:
         create24.validate_create_2024(create24.payload_from_dict(payload))
     assert exc.value.code == "create_2024_languages"
 
 
 def test_reject_common_as_choice():
-    payload = build_valid_payload("wizard", language_ids=["common", "elvish"])
+    payload = build_valid_payload("fighter", language_ids=["common", "elvish"])
     with pytest.raises(create24.Create2024Error) as exc:
         create24.validate_create_2024(create24.payload_from_dict(payload))
     assert exc.value.code == "create_2024_languages"
 
 
 def test_reject_wrong_origin_feat_picks():
-    payload = build_valid_payload("wizard")  # sage may not be magic-initiate
-    # Force acolyte path
     payload = build_valid_payload("cleric", background_slug="acolyte")
-    payload.pop("origin_feat_cantrips", None)
-    payload["origin_feat_cantrips"] = ["fire-bolt"]  # only one
     payload["origin_feat_list"] = "wizard"
+    payload["origin_feat_cantrips"] = ["fire-bolt"]  # only one — invalid
     payload["origin_feat_spell_id"] = _spell_pick("wizard", 1, 1)[0]
+    picks = dict(payload.get("class_option_picks") or {})
+    client = dict(picks.get("client_picks") or {})
+    client["origin_feat_picks"] = {
+        "list": ["wizard"],
+        "cantrips": ["fire-bolt"],
+        "spell": [_spell_pick("wizard", 1, 1)[0]],
+        "ability": ["int"],
+    }
+    picks["client_picks"] = client
+    payload["class_option_picks"] = picks
     with pytest.raises(create24.Create2024Error) as exc:
         create24.validate_create_2024(create24.payload_from_dict(payload))
     assert exc.value.code == "create_2024_origin_feat"

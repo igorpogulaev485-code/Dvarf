@@ -312,7 +312,7 @@ function autoState(classEntry: CatalogEntry, bg: CatalogEntry, species: CatalogE
     speciesSize: sizes.length === 1 ? sizes[0]! : sizes[0]!,
     speciesLineageId: lineages[0]?.id ?? null,
     speciesAncestryId: speciesNeedsAncestry(species) ? 'fire' : null,
-    speciesPicks: fillFields(() => speciesPickFields(species.slug, species)),
+    speciesPicks: fillFields(() => speciesPickFields(species.slug, species, ctx)),
     speciesFeatSlug: humanFeat?.slug ?? null,
     speciesFeatPicks: humanFeat
       ? fillFields((picks) => featPickFields(humanFeat.slug, humanFeat, picks, ctx))

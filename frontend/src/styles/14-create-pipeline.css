@@ -713,6 +713,9 @@
   border: 1px solid var(--line);
   border-radius: 12px;
   background: var(--card, #fff);
+  position: sticky;
+  bottom: calc(72px + env(safe-area-inset-bottom, 0px));
+  z-index: 5;
 }
 
 .create-2024__issues {
@@ -840,15 +843,37 @@
 }
 
 @media (max-width: 860px) {
-  /* Solid rail: the translucent gradient let cards bleed through the step strip. */
+  /*
+   * Phone create-2024: pin the step rail in a flex column and scroll the body under it.
+   * Sticky-on-page-scroll previously floated the tall rail over mid-list content.
+   */
   .page--create-2024 {
+    display: flex;
+    flex-direction: column;
+    min-height: 100dvh;
     padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px));
+    overflow: hidden;
+  }
+
+  .page--create-2024 .create-pipeline__topbar {
+    flex-shrink: 0;
+  }
+
+  .page--create-2024 .create-pipeline {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
   }
 
   .page--create-2024 .create-pipeline__steprrail {
+    position: relative;
+    top: auto;
+    flex-shrink: 0;
     background: var(--panel, #fffdf8);
-    padding-top: 6px;
-    padding-bottom: 8px;
+    padding-top: 4px;
+    padding-bottom: 6px;
     box-shadow: 0 6px 10px -8px rgba(45, 45, 42, 0.35);
   }
 
@@ -856,16 +881,38 @@
     display: none;
   }
 
+  .page--create-2024 .create-pipeline__progress-meta {
+    font-size: 0.75rem;
+  }
+
   .page--create-2024 .create-pipeline__body {
+    flex: 1;
+    min-height: 0;
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
     padding-top: 4px;
   }
 
-  .page--create-2024 .create-pipeline__card {
-    scroll-margin-top: 120px;
+  .page--create-2024 .create-pipeline__cards,
+  .page--create-2024 .create-pipeline__detail {
+    max-height: none;
+    overflow: visible;
   }
 
+  .page--create-2024 .create-pipeline__card {
+    scroll-margin-top: 8px;
+  }
+
+  .create-2024__setup {
+    max-height: min(60dvh, 520px);
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .create-2024__pick-grid,
   .create-2024__pick-grid--dense {
-    max-height: 240px;
+    max-height: min(40dvh, 320px);
+    overflow: auto;
   }
 
   .create-2024__list--cols {

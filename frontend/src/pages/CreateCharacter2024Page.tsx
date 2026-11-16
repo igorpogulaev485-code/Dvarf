@@ -198,6 +198,8 @@ export function CreateCharacter2024Page({ harness = null, rootTestId }: CreateCh
       })
       .catch((err: unknown) => {
         if (ac.signal.aborted) return
+        const name = err instanceof Error ? err.name : ''
+        if (name === 'AbortError') return
         setLoadError(
           err instanceof Error && err.message
             ? err.message
@@ -704,6 +706,18 @@ export function CreateCharacter2024Page({ harness = null, rootTestId }: CreateCh
       | undefined
     const bgGold = bgGear?.gold_alternative_gp ?? 50
     const selectedPack = packs.find((p) => p.id === state.classEquipment) ?? null
+    const packItemsList =
+      selectedPack && !selectedPack.isGold ? (
+        <ul className="create-pipeline__detail-list" data-testid="p24-m03-equipment-items">
+          {selectedPack.items.map((it, index) => (
+            <li key={`${it.id ?? it.nameRu ?? 'item'}-${index}`}>
+              {it.id ? itemNameRu(it.id, items) : (it.nameRu ?? 'Предмет на выбор')}
+              {it.qty > 1 ? ` ×${it.qty}` : ''}
+            </li>
+          ))}
+          {selectedPack.coinsGp > 0 ? <li>Монеты: {selectedPack.coinsGp} зм</li> : null}
+        </ul>
+      ) : null
     cards = (
       <div data-testid="p24-m03-step-equipment">
         <Stack gap={14}>
@@ -746,6 +760,20 @@ export function CreateCharacter2024Page({ harness = null, rootTestId }: CreateCh
               patch({ backgroundEquipment: id === 'gold' ? 'gold' : 'pack' })
             }
           />
+          {/* Phone hides the detail column — keep the inventory breakdown on stage. */}
+          {selectedPack ? (
+            <div className="create-pipeline__detail-section">
+              <Text className="create-pipeline__detail-section-title">
+                {classEntry?.name_ru}: {selectedPack.labelRu}
+              </Text>
+              {selectedPack.isGold ? (
+                <Text>Вместо предметов вы получаете {selectedPack.coinsGp} зм.</Text>
+              ) : (
+                packItemsList
+              )}
+            </div>
+          ) : null}
+          {issueNode}
         </Stack>
       </div>
     )
@@ -760,12 +788,10 @@ export function CreateCharacter2024Page({ harness = null, rootTestId }: CreateCh
             {selectedPack.isGold ? (
               <Text>Вместо предметов вы получаете {selectedPack.coinsGp} зм.</Text>
             ) : (
-              <ul className="create-pipeline__detail-list" data-testid="p24-m03-equipment-items">
+              <ul className="create-pipeline__detail-list">
                 {selectedPack.items.map((it, index) => (
                   <li key={`${it.id ?? it.nameRu ?? 'item'}-${index}`}>
-                    {it.id
-                      ? itemNameRu(it.id, items)
-                      : (it.nameRu ?? 'Предмет на выбор')}
+                    {it.id ? itemNameRu(it.id, items) : (it.nameRu ?? 'Предмет на выбор')}
                     {it.qty > 1 ? ` ×${it.qty}` : ''}
                   </li>
                 ))}

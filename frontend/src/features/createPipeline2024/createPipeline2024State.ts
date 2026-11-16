@@ -399,7 +399,7 @@ export function create2024StepIssues(
       if (speciesNeedsAncestry(speciesEntry) && !state.speciesAncestryId) {
         issues.push('Выберите наследие дракона')
       }
-      const fields = speciesPickFields(state.speciesSlug, speciesEntry)
+      const fields = speciesPickFields(state.speciesSlug, speciesEntry, pickCtx(ctx))
       for (const field of pickFieldsMissing(fields, state.speciesPicks)) {
         issues.push(`Вид — ${field.label.toLowerCase()}`)
       }

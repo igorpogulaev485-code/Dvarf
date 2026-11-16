@@ -341,7 +341,7 @@ export function SpeciesPicks({
     ? humanOriginFeatOptions(catalog.feats, originFeatSlugOf(backgroundEntry))
     : []
   const humanFeat = findFeat(catalog.feats, state.speciesFeatSlug)
-  const speciesFields = speciesPickFields(speciesEntry.slug, speciesEntry)
+  const speciesFields = speciesPickFields(speciesEntry.slug, speciesEntry, pickContext(catalog, items))
 
   return (
     <Stack gap={14}>

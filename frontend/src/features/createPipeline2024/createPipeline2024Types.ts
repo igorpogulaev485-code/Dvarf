@@ -206,11 +206,7 @@ export function toCreate2024Request(
   }
 }
 
-/**
- * Choices the server does not validate yet (nested origin-feat picks, species traits,
- * class tools). Sent under `class_option_picks.client_picks` so a later server slice can
- * persist them without another wizard change.
- */
+/** Nested origin/species/class tool picks validated by the 2024 create endpoint. */
 function clientPicks(state: Create2024State): Record<string, unknown> {
   return {
     class_tools: [...state.classToolIds],

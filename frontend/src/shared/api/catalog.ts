@@ -65,6 +65,33 @@ export function clearCatalogCache(): void {
 }
 
 /**
+ * Await `promise` but reject if `signal` aborts — without cancelling the shared fetch.
+ * (React StrictMode remount must not poison the catalog cache with an aborted in-flight.)
+ */
+function raceWithSignal<T>(promise: Promise<T>, signal?: AbortSignal): Promise<T> {
+  if (!signal) return promise
+  if (signal.aborted) {
+    return Promise.reject(signal.reason ?? new DOMException('Aborted', 'AbortError'))
+  }
+  return new Promise<T>((resolve, reject) => {
+    const onAbort = () => {
+      reject(signal.reason ?? new DOMException('Aborted', 'AbortError'))
+    }
+    signal.addEventListener('abort', onAbort, { once: true })
+    promise.then(
+      (value) => {
+        signal.removeEventListener('abort', onAbort)
+        resolve(value)
+      },
+      (err: unknown) => {
+        signal.removeEventListener('abort', onAbort)
+        reject(err)
+      },
+    )
+  })
+}
+
+/**
  * List catalog rows. Concurrent callers with the same filter share one request;
  * successful results are reused for a few minutes (sheet + create both need race/bg).
  */
@@ -75,8 +102,8 @@ export async function listCatalogEntries(
   const key = cacheKey(params)
   const now = Date.now()
   const hit = listCache.get(key)
-  if (hit && now - hit.at < CACHE_TTL_MS && !signal?.aborted) {
-    return hit.promise
+  if (hit && now - hit.at < CACHE_TTL_MS) {
+    return raceWithSignal(hit.promise, signal)
   }
 
   const search = new URLSearchParams()
@@ -86,9 +113,9 @@ export async function listCatalogEntries(
   if (params.parentId) search.set('parent_id', params.parentId)
   const query = search.toString()
 
-  const promise = apiRequest<CatalogEntry[]>(`/catalog${query ? `?${query}` : ''}`, {
-    signal,
-  }).catch(
+  // Shared in-flight must not take a caller AbortSignal — StrictMode abort of the first
+  // mount would otherwise cancel the cached promise for every later subscriber.
+  const promise = apiRequest<CatalogEntry[]>(`/catalog${query ? `?${query}` : ''}`).catch(
     (err: unknown) => {
       const current = listCache.get(key)
       if (current?.promise === promise) listCache.delete(key)
@@ -97,5 +124,5 @@ export async function listCatalogEntries(
   )
 
   listCache.set(key, { at: now, promise })
-  return promise
+  return raceWithSignal(promise, signal)
 }

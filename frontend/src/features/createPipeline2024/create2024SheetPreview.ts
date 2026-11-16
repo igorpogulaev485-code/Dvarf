@@ -229,7 +229,7 @@ export function buildCreate2024SheetPreview(input: SheetPreviewInput): SheetPrev
     feats.push({ name: style?.name_ru ?? 'Боевой стиль', source: 'Класс', details: [] })
   }
 
-  const speciesFields = speciesPickFields(state.speciesSlug, speciesEntry)
+  const speciesFields = speciesPickFields(state.speciesSlug, speciesEntry, pickCtx)
 
   // Skills.
   const proficient = new Set<string>([

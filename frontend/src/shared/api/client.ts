@@ -184,7 +184,11 @@ export async function apiRequest<T>(
       cache: 'no-store',
     })
   } catch (err) {
-    const timedOut = controller.signal.aborted && !externalSignal?.aborted
+    // Caller cancelled (React effect cleanup / navigation) — do not remap to network_error.
+    if (externalSignal?.aborted) {
+      throw err instanceof Error ? err : new DOMException('Aborted', 'AbortError')
+    }
+    const timedOut = controller.signal.aborted
     if (timedOut) {
       // P0: timeout ≠ «сервер мёртв» — /health may still be 200. Retry once, then honest copy.
       if (!retried) {

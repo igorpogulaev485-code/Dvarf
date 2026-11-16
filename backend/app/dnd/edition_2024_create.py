@@ -221,7 +221,8 @@ def _require_mapping(value: Mapping[str, Any] | None, label: str) -> dict[str, A
 
 
 def _normalize_slug(value: str | None) -> str:
-    return (value or "").strip().lower().replace("_", "-")
+    # Keep underscores (e.g. species elf__lfl, skill animal_handling).
+    return (value or "").strip().lower()
 
 
 def _spell_level(row: Mapping[str, Any] | None) -> int:
@@ -567,10 +568,18 @@ def _validate_background_tool(
     return fixed[0] if fixed else None
 
 
+def _client_picks(payload: Create2024Payload) -> dict[str, Any]:
+    raw = payload.class_option_picks if isinstance(payload.class_option_picks, dict) else {}
+    nested = raw.get("client_picks") if isinstance(raw.get("client_picks"), dict) else {}
+    return dict(nested or {})
+
+
 def _validate_origin_feat(
     payload: Create2024Payload,
     bg_data: Mapping[str, Any],
 ) -> dict[str, Any]:
+    from app.dnd.edition_2024_origin_feats import OriginFeatError, validate_origin_feat_picks
+
     origin = bg_data.get("origin_feat") if isinstance(bg_data.get("origin_feat"), dict) else {}
     feat_slug = _normalize_slug(str(origin.get("slug") or origin.get("id") or ""))
     if not feat_slug:
@@ -578,76 +587,25 @@ def _validate_origin_feat(
             "У предыстории нет черты происхождения",
             code="create_2024_origin_feat",
         )
-    feat = load_feat_catalog().get(feat_slug)
-    if feat is None:
-        raise Create2024Error(
-            f"Черта происхождения не найдена в каталоге: {feat_slug}",
-            code="create_2024_origin_feat",
-        )
-    feat_data = feat.get("data") if isinstance(feat.get("data"), dict) else {}
-    if feat_data.get("category") and feat_data.get("category") != "origin":
-        raise Create2024Error(
-            f"Черта {feat_slug} не является чертой происхождения",
-            code="create_2024_origin_feat",
-        )
-    picks: dict[str, Any] = {"slug": feat_slug, "name_ru": feat.get("name_ru")}
-    if feat_slug in ORIGIN_FEATS_WITH_SPELL_LIST:
-        spell_list = payload.origin_feat_list
-        if spell_list not in MAGIC_INITIATE_LISTS:
-            raise Create2024Error(
-                "Magic Initiate: выберите список жреца, друида или волшебника",
-                code="create_2024_origin_feat",
-            )
-        # Prefer background variant hint when present, but allow any of the three.
-        cantrips = [_normalize_slug(x) for x in payload.origin_feat_cantrips]
-        if len(cantrips) != 2 or len(set(cantrips)) != 2:
-            raise Create2024Error(
-                "Magic Initiate: нужно ровно два разных заговора",
-                code="create_2024_origin_feat",
-            )
-        spell_id = _normalize_slug(payload.origin_feat_spell_id)
-        if not spell_id:
-            raise Create2024Error(
-                "Magic Initiate: нужно заклинание 1 круга",
-                code="create_2024_origin_feat",
-            )
-        spells = load_spell_catalog()
-        for cid in cantrips:
-            row = spells.get(cid)
-            if row is None:
-                raise Create2024Error(f"Неизвестный заговор: {cid}", code="create_2024_origin_feat")
-            if _spell_level(row) != 0:
-                raise Create2024Error(
-                    f"{cid} не заговор",
-                    code="create_2024_origin_feat",
-                )
-        spell_row = spells.get(spell_id)
-        if spell_row is None:
-            raise Create2024Error(
-                f"Неизвестное заклинание: {spell_id}",
-                code="create_2024_origin_feat",
-            )
-        if _spell_level(spell_row) != 1:
-            raise Create2024Error(
-                "Magic Initiate: заклинание должно быть 1 круга",
-                code="create_2024_origin_feat",
-            )
-        picks.update(
-            {
-                "list": spell_list,
-                "cantrips": cantrips,
-                "spell_id": spell_id,
-            }
-        )
-    if feat_slug in ORIGIN_FEATS_SKILLED:
-        skilled = [str(x) for x in payload.origin_feat_skilled]
-        if len(skilled) != 3 or len(set(skilled)) != 3:
-            raise Create2024Error(
-                "Умелый: выберите ровно три разных навыка или инструмента",
-                code="create_2024_origin_feat",
-            )
-        picks["skilled"] = skilled
-    return picks
+    client = _client_picks(payload)
+    nested = client.get("origin_feat_picks") if isinstance(client.get("origin_feat_picks"), dict) else {}
+    # Merge legacy top-level magic-initiate / skilled fields for older clients/tests.
+    picks_in: dict[str, Any] = dict(nested)
+    if payload.origin_feat_list and "list" not in picks_in:
+        picks_in["list"] = [payload.origin_feat_list]
+    if payload.origin_feat_cantrips and "cantrips" not in picks_in:
+        picks_in["cantrips"] = list(payload.origin_feat_cantrips)
+    if payload.origin_feat_spell_id and "spell" not in picks_in:
+        picks_in["spell"] = [payload.origin_feat_spell_id]
+    if payload.origin_feat_skilled and "skilled" not in picks_in:
+        picks_in["skilled"] = list(payload.origin_feat_skilled)
+    # Default casting ability for magic-initiate when tests omit it.
+    if feat_slug == "magic-initiate" and "ability" not in picks_in:
+        picks_in["ability"] = ["int"]
+    try:
+        return validate_origin_feat_picks(feat_slug, picks_in, context="background")
+    except OriginFeatError as exc:
+        raise Create2024Error(exc.message, code=exc.code) from exc
 
 
 def _validate_species(payload: Create2024Payload) -> dict[str, Any]:
@@ -692,7 +650,6 @@ def _validate_species(payload: Create2024Payload) -> dict[str, Any]:
         )
     ancestry_id = payload.species_ancestry_id
     if data.get("draconic_ancestry"):
-        # Damage types for dragonborn breath.
         allowed_damage = {
             "acid",
             "cold",
@@ -705,6 +662,43 @@ def _validate_species(payload: Create2024Payload) -> dict[str, Any]:
                 "Драконорождённый: выберите тип урона наследия",
                 code="create_2024_species",
             )
+
+    from app.dnd.edition_2024_origin_feats import (
+        OriginFeatError,
+        validate_origin_feat_picks,
+        validate_species_trait_picks,
+    )
+
+    client = _client_picks(payload)
+    species_picks_raw = (
+        client.get("species_picks") if isinstance(client.get("species_picks"), dict) else {}
+    )
+    try:
+        species_picks = validate_species_trait_picks(
+            payload.species_slug, data, species_picks_raw
+        )
+    except OriginFeatError as exc:
+        raise Create2024Error(exc.message, code=exc.code) from exc
+
+    species_feat: dict[str, Any] | None = None
+    if data.get("origin_feat_choice"):
+        feat_blob = client.get("species_feat") if isinstance(client.get("species_feat"), dict) else {}
+        feat_slug = _normalize_slug(str(feat_blob.get("slug") or ""))
+        if not feat_slug:
+            raise Create2024Error(
+                "Человек: выберите черту происхождения (Гибкий)",
+                code="create_2024_species",
+            )
+        feat_picks = feat_blob.get("picks") if isinstance(feat_blob.get("picks"), dict) else {}
+        if feat_slug == "magic-initiate" and "ability" not in feat_picks:
+            feat_picks = {**feat_picks, "ability": ["int"]}
+        try:
+            species_feat = validate_origin_feat_picks(
+                feat_slug, feat_picks, context="species"
+            )
+        except OriginFeatError as exc:
+            raise Create2024Error(exc.message, code=exc.code) from exc
+
     return {
         "slug": payload.species_slug,
         "name_ru": species.get("name_ru"),
@@ -715,6 +709,8 @@ def _validate_species(payload: Create2024Payload) -> dict[str, Any]:
         "ancestry_id": ancestry_id,
         "traits_text": data.get("traits_text") or "",
         "data": data,
+        "picks": species_picks,
+        "species_feat": species_feat,
     }
 
 
@@ -996,10 +992,28 @@ def _build_sheet(
         k: {"is_proficient": k in save_prof} for k in ABILITY_KEYS
     }
 
-    # Skills: background fixed + class picks + skilled feat
+    # Skills: background fixed + class picks + skilled feat + species picks
     bg_skills = {str(x) for x in (bg_data.get("skill_proficiencies") or [])}
     skilled = {str(x) for x in (origin_picks.get("skilled") or []) if x in SKILL_IDS}
-    proficient = set(bg_skills) | set(class_skills) | skilled
+    species_skills = {
+        str(x)
+        for x in ((species_info.get("picks") or {}).get("skills") or [])
+        if x in SKILL_IDS
+    }
+    species_feat = species_info.get("species_feat") if isinstance(species_info.get("species_feat"), dict) else {}
+    species_feat_skilled = {
+        str(x) for x in (species_feat.get("skilled") or []) if x in SKILL_IDS
+    }
+    if species_feat.get("skill") in SKILL_IDS:
+        species_feat_skilled.add(str(species_feat.get("skill")))
+    skill_or_tool_raw = (species_info.get("picks") or {}).get("skill_or_tool")
+    if isinstance(skill_or_tool_raw, (list, tuple)):
+        skill_or_tool = str(skill_or_tool_raw[0]) if skill_or_tool_raw else ""
+    else:
+        skill_or_tool = str(skill_or_tool_raw or "")
+    if skill_or_tool in SKILL_IDS:
+        species_skills.add(skill_or_tool)
+    proficient = set(bg_skills) | set(class_skills) | skilled | species_skills | species_feat_skilled
     expertise = {str(x) for x in (class_options.get("expertise") or []) if x in SKILL_IDS}
     for skill, meta in sheet["skills"].items():
         meta["is_proficient"] = skill in proficient
@@ -1066,10 +1080,35 @@ def _build_sheet(
             "simple": "simple" in weapons or "all" in weapons,
             "martial": "martial" in weapons or "all" in weapons,
         },
-        "tools": [tool_id] if tool_id else list(class_data.get("tools_fixed") or []),
+        "tools": [
+            *( [tool_id] if tool_id else list(class_data.get("tools_fixed") or []) ),
+            *[
+                str(x)
+                for x in ((species_info.get("picks") or {}).get("tools") or [])
+                if x
+            ],
+            *[
+                str(x)
+                for x in ((_client_picks(payload).get("class_tools") or []))
+                if x
+            ],
+        ],
         "languages": [COMMON_LANGUAGE_ID, *language_picks],
         "skills": sorted(proficient),
     }
+    # Deduplicate tools while preserving order.
+    seen_tools: set[str] = set()
+    deduped_tools: list[str] = []
+    for t in sheet["proficiency"]["tools"]:
+        key = str(t)
+        if key and key not in seen_tools:
+            seen_tools.add(key)
+            deduped_tools.append(key)
+    if skill_or_tool and skill_or_tool not in SKILL_IDS and skill_or_tool not in seen_tools:
+        deduped_tools.append(skill_or_tool)
+        seen_tools.add(skill_or_tool)
+    sheet["proficiency"]["tools"] = deduped_tools
+    sheet["proficiency"]["skills"] = sorted(proficient)
     if payload.class_slug == "druid":
         sheet["proficiency"]["languages"].append("druidic")
     if payload.class_slug == "rogue":
@@ -1088,45 +1127,101 @@ def _build_sheet(
         }
     ]
 
-    # Inventory from packs
+    # Inventory from packs — Russian names + weight from catalog.
     items: list[dict[str, Any]] = []
     coins_gp = 0
+    item_catalog = load_item_catalog()
+
+    def _push_item(item_id: str, qty: int, *, notes: str | None = None) -> None:
+        cat = item_catalog.get(item_id) or {}
+        cat_data = cat.get("data") if isinstance(cat.get("data"), dict) else {}
+        name_ru = str(cat.get("name_ru") or item_id or "Предмет")
+        weight = cat_data.get("weight_lb")
+        items.append(
+            {
+                "id": f"start-{item_id or 'item'}-{len(items)}",
+                "slug": item_id or None,
+                "name": name_ru,
+                "name_ru": name_ru,
+                "qty": max(1, int(qty or 1)),
+                "weight_lb": float(weight) if weight is not None else None,
+                "notes": notes,
+                "equipped": False,
+            }
+        )
+
     class_pack = gear["class_pack"]
     for entry in class_pack.get("items") or []:
         if not isinstance(entry, dict):
             continue
         item_id = str(entry.get("id") or entry.get("slug") or "")
         qty = int(entry.get("qty") or 1)
-        cat = load_item_catalog().get(item_id) or {}
-        items.append(
-            {
-                "id": f"start-{item_id}-{len(items)}",
-                "slug": item_id,
-                "name": cat.get("name_ru") or item_id,
-                "name_ru": cat.get("name_ru") or item_id,
-                "qty": qty,
-                "equipped": False,
-            }
-        )
+        if not item_id:
+            label = str(entry.get("label_ru") or entry.get("name_ru") or "Предмет на выбор")
+            _push_item("", qty, notes=label)
+            items[-1]["name"] = label
+            items[-1]["name_ru"] = label
+            continue
+        _push_item(item_id, qty)
     coins_gp += int(class_pack.get("coins_gp") or 0)
 
     if gear["background_mode"] == "gold":
         coins_gp += BACKGROUND_GOLD_GP
     else:
-        # Pack is summarized; store a note item when structured items absent.
-        pack_summary = (bg_data.get("equipment_or_gold") or {}).get("pack_summary_ru")
-        if pack_summary:
-            items.append(
-                {
-                    "id": "bg-pack",
-                    "slug": "background-pack",
-                    "name": "Пакет предыстории",
-                    "name_ru": "Пакет предыстории",
-                    "qty": 1,
-                    "notes": pack_summary,
-                    "equipped": False,
+        eq = bg_data.get("equipment_or_gold") if isinstance(bg_data.get("equipment_or_gold"), dict) else {}
+        structured = eq.get("items") if isinstance(eq.get("items"), list) else []
+        if structured:
+            for entry in structured:
+                if not isinstance(entry, dict):
+                    continue
+                _push_item(
+                    str(entry.get("id") or entry.get("slug") or ""),
+                    int(entry.get("qty") or 1),
+                    notes=str(entry.get("label_ru") or "") or None,
+                )
+        else:
+            # Expand pack_summary_ru into individual named lines; match catalog by name when possible.
+            pack_summary = str(eq.get("pack_summary_ru") or "").strip()
+            if pack_summary:
+                by_name = {
+                    str(row.get("name_ru") or "").strip().lower(): slug
+                    for slug, row in item_catalog.items()
+                    if row.get("name_ru")
                 }
-            )
+                chunks = [c.strip() for c in pack_summary.replace(";", ",").split(",") if c.strip()]
+                for chunk in chunks:
+                    # "пергамент ×10" / "стрелы ×20"
+                    qty = 1
+                    name = chunk
+                    for sep in ("×", "x", "х"):
+                        if sep in chunk.lower() if sep != "×" else sep in chunk:
+                            left, _, right = chunk.partition(sep) if sep == "×" else chunk.lower().partition(sep)
+                            if sep != "×":
+                                # rebuild with original casing roughly
+                                idx = chunk.lower().find(sep)
+                                left, right = chunk[:idx], chunk[idx + len(sep) :]
+                            try:
+                                qty = int("".join(ch for ch in right if ch.isdigit()) or "1")
+                                name = left.strip()
+                            except ValueError:
+                                qty = 1
+                            break
+                    slug = by_name.get(name.lower())
+                    if slug:
+                        _push_item(slug, qty)
+                    else:
+                        items.append(
+                            {
+                                "id": f"bg-{len(items)}",
+                                "slug": None,
+                                "name": name,
+                                "name_ru": name,
+                                "qty": qty,
+                                "weight_lb": None,
+                                "notes": "Пакет предыстории",
+                                "equipped": False,
+                            }
+                        )
 
     sheet["inventory"] = {
         "coins": {"cp": 0, "sp": 0, "ep": 0, "gp": coins_gp, "pp": 0},
@@ -1178,11 +1273,16 @@ def _build_sheet(
 
     # Spells
     known = list(spell_info.get("cantrips") or []) + list(spell_info.get("prepared") or [])
-    # Magic initiate extras
-    if origin_picks.get("cantrips"):
-        known.extend(origin_picks["cantrips"])
-    if origin_picks.get("spell_id"):
-        known.append(origin_picks["spell_id"])
+    # Origin / species feat spell extras
+    for feat_picks in (origin_picks, species_feat):
+        if not isinstance(feat_picks, dict):
+            continue
+        if feat_picks.get("cantrips"):
+            known.extend(feat_picks["cantrips"])
+        if feat_picks.get("cantrip"):
+            known.append(feat_picks["cantrip"])
+        if feat_picks.get("spell_id"):
+            known.append(feat_picks["spell_id"])
     sheet["spells"] = {
         "casting_ability": spell_info.get("ability"),
         "slots": spell_info.get("slots") or {},
@@ -1254,10 +1354,13 @@ def _build_sheet(
             "size": species_info.get("size"),
             "lineage_id": species_info.get("lineage_id"),
             "ancestry_id": species_info.get("ancestry_id"),
+            "picks": dict(species_info.get("picks") or {}),
+            "species_feat": species_feat or None,
         },
         "class_skills": list(class_skills),
         "weapon_mastery": list(mastery),
         "background_tool_id": tool_id,
+        "class_tools": list((_client_picks(payload).get("class_tools") or [])),
     }
     sheet["meta"] = {
         **sheet.get("meta", {}),
