@@ -44,7 +44,7 @@ export const CELESTIAL_RESILIENCE_NAME_RU = 'Небесная стойкость
 export const SEARING_VENGEANCE_NAME_RU = 'Опаляющее возмездие'
 
 export const CONTACT_OTHER_PLANE_ID = 'contact-other-plane'
-export const CONTACT_OTHER_PLANE_NAME_RU = 'Связь с иным миром'
+export const CONTACT_OTHER_PLANE_NAME_RU = 'Связь с иным планом'
 
 export const MAGICAL_CUNNING_FEATURE_ID = 'magical-cunning'
 export const CONTACT_PATRON_FEATURE_ID = 'contact-patron'
@@ -76,7 +76,7 @@ export const STEPS_OF_THE_FEY_MODES_2024 = [
   { id: 'refreshing', nameRu: 'Освежающий шаг', minLevel: 3, summaryRu: '1к10 врем. хитов себе или существу в 10 фт.' },
   { id: 'taunting', nameRu: 'Провоцирующий шаг', minLevel: 3, summaryRu: 'Существа в 5 фт. от точки: спас Мдр или помеха атак по другим.' },
   { id: 'concealing', nameRu: 'Скрывающий шаг', minLevel: 6, summaryRu: 'Невидимость до начала следующего хода.' },
-  { id: 'terrifying', nameRu: 'Пугающий шаг', minLevel: 6, summaryRu: 'Спас Мдр или 2к10 психического урона.' },
+  { id: 'terrifying', nameRu: 'Ужасающий шаг', minLevel: 6, summaryRu: 'Спас Мдр или 2к10 психического урона.' },
 ] as const
 
 export type StepsOfTheFeyMode2024 = (typeof STEPS_OF_THE_FEY_MODES_2024)[number]['id']
@@ -703,7 +703,7 @@ export function applyWarlock2024FeatureUse(input: Warlock2024UseInput): WarlockF
       if (!spent.ok) return spent.result
       return done(
         input,
-        'Связь с покровителем: «Связь с иным миром» без ячейки и компонентов; спасбросок автоматически успешен.',
+        'Связь с покровителем: «Связь с иным планом» без ячейки и компонентов; спасбросок автоматически успешен.',
         { resources: spent.resources },
       )
     }
