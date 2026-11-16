@@ -107,12 +107,21 @@ def fix_dice_ru(text: str) -> str:
 
 
 def polish_ru(text: str, *, limit: int | None = None) -> str:
-    t = c17._compress_ru(fix_dice_ru(text))
+    """Clean RU text. Truncate only when ``limit`` is set — on a word/sentence
+    boundary, never via the default 140-char ``_compress_ru`` axe.
+    """
+    t = fix_dice_ru(text)
     t = mm.clean_ru_text(t)
     t = re.sub(r";\.", ";", t)
     t = re.sub(r"\.;", ".", t)
+    t = re.sub(r"\s+", " ", t).strip()
     if limit and len(t) > limit:
-        return t[: limit - 1].rstrip() + "…"
+        window = t[:limit]
+        ends = [m.end() for m in re.finditer(r"[.!?…](?=\s|$)", window)]
+        if ends and ends[-1] >= max(40, limit // 3):
+            return window[: ends[-1]].rstrip()
+        cut = window.rsplit(" ", 1)[0].rstrip(".,;:…")
+        return cut if len(cut) >= 20 else window.rstrip(".,;:…")
     return t
 
 
@@ -698,13 +707,23 @@ def build_magic_items(book: str) -> dict[str, Any]:
     }
 
 
-def _walk_polish(obj: Any) -> Any:
+def _walk_polish(obj: Any, *, skip_keys: frozenset[str] | None = None) -> Any:
+    """Polish strings; never truncate full rule fields (text_ru / traits_text / text)."""
+    skip = skip_keys or frozenset({"text_ru", "traits_text", "text", "name_en", "slug", "id"})
     if isinstance(obj, str):
         return polish_ru(obj)
     if isinstance(obj, list):
-        return [_walk_polish(x) for x in obj]
+        return [_walk_polish(x, skip_keys=skip) for x in obj]
     if isinstance(obj, dict):
-        return {k: _walk_polish(v) for k, v in obj.items()}
+        out = {}
+        for k, v in obj.items():
+            if k in skip and isinstance(v, str):
+                out[k] = polish_ru(v)  # no limit
+            elif k == "summary_ru" and isinstance(v, str):
+                out[k] = polish_ru(v, limit=280)
+            else:
+                out[k] = _walk_polish(v, skip_keys=skip)
+        return out
     return obj
 
 

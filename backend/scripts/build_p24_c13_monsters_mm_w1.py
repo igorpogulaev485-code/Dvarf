@@ -453,7 +453,8 @@ def norm_skills(skills: dict[str, int]) -> dict[str, int]:
     return out
 
 
-def feature_entries(raw_list: list[dict], *, shorten: bool = True) -> list[dict]:
+def feature_entries(raw_list: list[dict], *, shorten: bool = False) -> list[dict]:
+    """Build feature cards. Default: full cleaned text (no mid-word «…»)."""
     out: list[dict] = []
     for feat in raw_list or []:
         name_ru = clean_ru_text(feat.get("name_ru") or "").strip()
@@ -461,7 +462,7 @@ def feature_entries(raw_list: list[dict], *, shorten: bool = True) -> list[dict]
             continue
         text = feat.get("text_ru") or ""
         if shorten:
-            # Rays / recharge options: keep full short mechanics (already compact).
+            # Legacy short path — prefer sentence/word boundary.
             en = str(feat.get("name_en") or "")
             is_rayish = (
                 "луч" in name_ru.lower()

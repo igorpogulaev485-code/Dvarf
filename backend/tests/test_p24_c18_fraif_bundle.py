@@ -368,11 +368,12 @@ def test_alembic_single_head_includes_p24_c18():
     script = ScriptDirectory.from_config(cfg)
     heads = script.get_heads()
     assert len(heads) == 1, f"expected one alembic head, got {heads}"
-    assert heads[0] in {"p24c18fraif01", "p24c20rtw01"}
+    assert heads[0] in {"p24c18fraif01", "p24c20rtw01", "p24c20rfull01"}
     ancestor_ids = {
         rev.revision for rev in script.walk_revisions(base="base", head=heads[0])
     }
     assert "p24c18fraif01" in ancestor_ids
     assert "p24c12bast01" in ancestor_ids
     assert "p24c17frh01" in ancestor_ids
-    assert "p24c20rtw01" in ancestor_ids or heads[0] == "p24c18fraif01"
+    assert "p24c20rtw01" in ancestor_ids
+    assert "p24c20rfull01" in ancestor_ids or heads[0] == "p24c18fraif01"

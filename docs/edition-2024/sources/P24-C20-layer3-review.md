@@ -43,3 +43,11 @@
 | `ebonbane` | item + bestiary | next.dnd.su items/bestiary · ttg ebonbane-rhw |
 | `strahd-von-zarovich` | bestiary | next.dnd.su · ttg strahd-von-zarovich-rhw |
 | `cthulhu` | bestiary | next.dnd.su · ttg cthulhu-rhw |
+
+## Доправка C20R (полные тексты)
+
+- Восстановлены полные `text_ru` / `traits_text` во всех `backend/data/srd/2024/live/*.json` (без обрезки «…» посреди слова).
+- `summary_ru` может быть кратким, но только по границе предложения/слова.
+- Ebonbane: `rarity=artifact`, `rarity_ru=артефакт`, `sentient=true`.
+- Тест: `backend/tests/test_p24_full_texts_no_ellipsis.py`.
+- Миграция: `p24c20rfull01` поверх `p24c20rtw01`.

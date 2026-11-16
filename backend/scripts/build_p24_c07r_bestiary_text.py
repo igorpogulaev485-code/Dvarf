@@ -83,34 +83,15 @@ def compute_beast_tags(
 
 
 def feature_entries_full(raw_list: list[dict]) -> list[dict]:
-    """Keep attack / spellcasting mechanics; shorten only long lore traits."""
+    """Full cleaned feature texts (no mid-word «…» truncation)."""
     out: list[dict] = []
     for feat in raw_list or []:
         name_ru = _c13.clean_ru_text(feat.get("name_ru") or "").strip()
         if not name_ru:
             continue
         text = feat.get("text_ru") or ""
-        text_l = text.lower()
-        name_l = name_ru.lower()
-        en = str(feat.get("name_en") or "")
-        is_mech = bool(
-            re.search(r"[+\-−–—]\d+", text)
-            or re.search(r"\bсл\s*\d+", text_l)
-            or "мультиатака" in name_l
-            or "сотворение заклинаний" in name_l
-            or "колдовство" in name_l
-            or "spellcasting" in en.lower()
-            or "бросок" in text_l
-            or "попадание:" in text_l
-            or "провал:" in text_l
-        )
-        if is_mech:
-            text = _c13.clean_ru_text(text)
-            # Cap very long spell lists but keep frequency lines.
-            if len(text) > 900:
-                text = _c13.short_text(text, limit=900)
-        else:
-            text = _c13.short_text(text, limit=280)
+        # Full cleaned text — do not truncate mid-word with «…».
+        text = _c13.clean_ru_text(text)
         # Drop English leftovers sometimes left in fan translations.
         text = text.replace(" or ", " или ")
         text = re.sub(r"\bThe\b", "Цель", text)

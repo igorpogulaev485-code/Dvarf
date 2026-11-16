@@ -108,3 +108,5 @@ SRD 5.2.1 PDF: [SRD_CC_v5.2.1.pdf](https://media.dndbeyond.com/compendium-images
 - **P24-C18 (2026-11-16):** FRAiF+ABH+LFL+NsF live waves — **111** карточек (цель 111). `source` fraif/abh/lfl/nsf → community_ref. Пропусков: 0.
 
 - **P24-C20 (2026-11-16):** Ravenloft RTW live waves — **95** карточек (цель 95). `source=rtw` → community_ref. Пропусков: 0.
+
+- **P24-C20R (2026-11-16):** восстановлены полные text_ru/traits_text во всех live 2024 JSON; ebonbane artifact/sentient; остаток «…» в text fields = 0.

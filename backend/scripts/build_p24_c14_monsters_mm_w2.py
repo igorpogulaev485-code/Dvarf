@@ -457,7 +457,7 @@ def norm_skills(skills: dict[str, int]) -> dict[str, int]:
     return out
 
 
-def feature_entries(raw_list: list[dict], *, shorten: bool = True) -> list[dict]:
+def feature_entries(raw_list: list[dict], *, shorten: bool = False) -> list[dict]:
     out: list[dict] = []
     for feat in raw_list or []:
         name_ru = clean_ru_text(feat.get("name_ru") or "").strip()
