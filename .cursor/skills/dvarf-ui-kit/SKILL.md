@@ -23,6 +23,7 @@ description: Canonical Dvarf frontend UI kit contract — tokens, 6 account them
 | Дефолт темы | **Листва** `#5a6b3d` / soft `#e5ecd4` |
 | 6 тем = identity | медь / хвоя / охра / чернила / листва / слива |
 | Характеристики | **всегда вариант A** — свои цвета, не тема |
+| Рельс · высота (≥960) | LOCK §2a: `min(контент, высота stage)`; короткая — без пустоты/скролла; длинная — кап по низу центра, скролл только списка abilities; foot (пассивы/владения/«Можно позже») виден; [#483](https://github.com/igorpogulaev485-code/Dvarf/pull/483) / `usePlayDeskRailCap`; ok Игоря 16.11.2026 — не менять без нового ok |
 | Нейтрали | `--panel #fbf7ec`, ink/muted/line/card общие |
 | Danger | `#b42318`, не из темы |
 | Type | Display `Source Serif 4`, UI `IBM Plex Sans` |
@@ -36,7 +37,8 @@ Live-эталоны уже в продукте: **Inventory / Attacks / Texts** 
 **Play Desk / лист персонажа LOCK** ([`docs/PLAY_DESK_SOURCE_OF_TRUTH.md`](../../../docs/PLAY_DESK_SOURCE_OF_TRUTH.md), ui-kit §2r):  
 единственный вид = **прод** + доски `desk-header-lock` / `desk-chrome` / спеллы·атаки + `MinimalSheetEditor`.  
 **Запрещено** рисовать второй лист, `/dev` fake-стол с самодельной шапкой, скрины фейка как «путь на проде».  
-Скрины: только `prod` | полный tip Play Desk | `dialog-only` | ui-kit board.
+Скрины: только `prod` | полный tip Play Desk | `dialog-only` | ui-kit board.  
+**Рельс высоты** — ui-kit §2a (не откатывать к `calc(100dvh…)` / пустоте под foot).
 
 **Lobby Hub A1 LOCK** (`docs/ui-kit/README.md` §2q): сетка `.lobby-member-grid`, pill-табы `.lobby-hub-tab.is-active`, карточки `.lobby-member-card`.  
 CSS-хвост в `frontend/src/styles/26-lobby-hub-lock.css` помечен `UI KIT LOCK — Lobby Hub` (A1→D1). `frontend/src/index.css` только держит порядок `@import`. **Запрещено** подменять набор `styles/` с другой ветки — только merge классов. Preflight падает без этих маркеров.
