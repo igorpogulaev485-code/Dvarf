@@ -21,7 +21,7 @@ import {
   unlockFeaturesForClasses,
 } from '../../../shared/dnd/classFeatures'
 import { computeProgression2024 } from '../../../shared/dnd/edition2024Classes'
-import { martialArtsDieFromFeatures } from '../../../shared/dnd/martialArts'
+import { resolveMartialArtsDie } from '../../../shared/dnd/martialArts'
 import { type FeatureSelfFormRequest, type WildShapeForkRequest } from '../ClassFeaturesPanel'
 import { characterHasMagicSources } from '../magicSources'
 import { blockPlainText, withBlockPlainText } from '../textBlocks'
@@ -458,8 +458,13 @@ export function useSheetEditorPart1(model: SheetModel, props: MinimalSheetEditor
   ])
   model.resolvedBackgroundFeature = resolvedBackgroundFeature
   const martialArtsDie = useMemo(
-    () => martialArtsDieFromFeatures(unlockedFeatures),
-    [unlockedFeatures],
+    () =>
+      resolveMartialArtsDie({
+        features: unlockedFeatures,
+        rulesEdition: sheetRulesEdition,
+        scales: progression2024?.scales ?? null,
+      }),
+    [unlockedFeatures, sheetRulesEdition, progression2024?.scales],
   )
   model.martialArtsDie = martialArtsDie
   const featSpeedBonusFt = useMemo(

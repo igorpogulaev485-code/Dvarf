@@ -20,7 +20,10 @@ import {
   MULTICLASS_PROFICIENCIES_2024,
   normalizeClassSlug2024,
 } from '../../shared/dnd/edition2024Classes'
-import { isPhb2024CreateSubclass } from '../../shared/dnd/edition2024Subclasses'
+import {
+  isPhb2024CreateSubclass,
+  SUBCLASS_CATALOG_2024,
+} from '../../shared/dnd/edition2024Subclasses'
 import {
   epicBoonLevelForClassSlug,
   featLevelsForClassSlug,
@@ -334,12 +337,35 @@ export function LevelingForks2024({
         if (!id || coveredIds.has(id) || id.endsWith('-subclass')) continue
         if (lv === 1 && isPrimary) continue // L1 class features already on the Class step
         if (id === 'subclass-feature') {
+          const subSlug = subclassByEntryId[row.id]
+          if (subSlug) {
+            const sub = SUBCLASS_CATALOG_2024[subSlug]
+            const blocks =
+              (sub?.data?.features as Array<{
+                level?: number
+                features?: Array<{ id?: string; name_ru?: string }>
+              }>) || []
+            const block = blocks.find((b) => Number(b?.level) === lv)
+            const subFeats = Array.isArray(block?.features) ? block!.features! : []
+            if (subFeats.length) {
+              for (const sf of subFeats) {
+                const name = String(sf?.name_ru || sf?.id || '').trim()
+                if (!name) continue
+                out.push({ level: lv, kind: 'subclass', label: name })
+              }
+              continue
+            }
+            out.push({
+              level: lv,
+              kind: 'subclass',
+              label: `Умение подкласса (${lv} ур.)`,
+            })
+            continue
+          }
           out.push({
             level: lv,
             kind: 'subclass',
-            label: subclassByEntryId[row.id]
-              ? `Умение подкласса (${lv} ур.)`
-              : `Умение подкласса (${lv} ур.) — выберите подкласс`,
+            label: `Умение подкласса (${lv} ур.) — выберите подкласс`,
           })
           continue
         }

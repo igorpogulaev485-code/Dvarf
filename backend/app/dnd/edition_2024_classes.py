@@ -159,12 +159,20 @@ RESOURCE_META: dict[str, dict[str, Any]] = {
         "unlimited_from_level": None,
     },
     "focus_points": {
-        "name_ru": "Очки фокуса",
+        "name_ru": "Очки сосредоточенности",
         "reset": "short",
         "track": "spend",
         "on_hot": True,
         "feature_id": "monks-focus",
         "pool_alias": "ki",  # desk chips still look for :ki: in some paths
+    },
+    "uncanny_metabolism": {
+        "name_ru": "Феноменальный метаболизм",
+        "reset": "long",
+        "track": "spend",
+        "on_hot": False,
+        "feature_id": "uncanny-metabolism",
+        "fixed_uses": 1,
     },
     "bardic_inspiration": {
         "name_ru": "Бардовское вдохновение",
@@ -650,6 +658,17 @@ def _build_resources_for_class(
     if has_sorcerous_restoration and slug == "sorcerer":
         raw.setdefault("sorcerous_restoration", 1)
 
+    has_uncanny_metabolism = False
+    if catalog:
+        for lr in catalog["data"].get("levels") or []:
+            if int(lr.get("level") or 0) > level:
+                continue
+            for f in lr.get("features") or []:
+                if f.get("id") == "uncanny-metabolism":
+                    has_uncanny_metabolism = True
+    if has_uncanny_metabolism and slug == "monk":
+        raw.setdefault("uncanny_metabolism", 1)
+
     # Artificer Magic of Making — INT mod uses / long rest (not in resources table).
     if slug == "artificer" and level >= 1:
         raw.setdefault("magic_of_making", True)
@@ -1031,7 +1050,10 @@ def compute_progression(
             if sp.meta.get("die"):
                 scales[f"{slug}:{sp.pool_id}:die"] = sp.meta["die"]
         for k, v in sc.items():
-            scales[f"{slug}:{k}"] = v
+            if k == "martial_arts_die" and isinstance(v, str):
+                scales[f"{slug}:{k}"] = v.replace("d", "к").replace("D", "к")
+            else:
+                scales[f"{slug}:{k}"] = v
         if shared_opts:
             scales[f"{slug}:subclass_shared_options"] = e24sub.shared_options_to_sheet(
                 shared_opts
@@ -1058,6 +1080,19 @@ def compute_progression(
                 scales[f"{slug}:aura_radius_ft"] = (
                     aura.value.get("ft") if isinstance(aura.value, dict) else aura.value
                 )
+        # Body and Mind (monk 20): permanent DEX/WIS +4, cap 25.
+        if slug == "monk" and level >= 20:
+            body_mind = {
+                "feature_id": "body-and-mind",
+                "name_ru": "Тело и разум",
+                "kind": "ability_scores",
+                "value": {"dex": 4, "wis": 4, "cap": 25},
+                "min_level": 20,
+            }
+            existing = list(scales.get(f"{slug}:subclass_permanent_bonuses") or [])
+            existing.append(body_mind)
+            scales[f"{slug}:subclass_permanent_bonuses"] = existing
+            scales[f"{slug}:body_and_mind"] = {"dex": 4, "wis": 4, "cap": 25}
         block = _spellcasting_for_class(
             slug,
             level,

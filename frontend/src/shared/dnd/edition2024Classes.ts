@@ -225,6 +225,15 @@ const RESOURCE_META: Record<string, ResourceMeta> = {
     feature_id: 'monks-focus',
     kind: 'resource',
   },
+  uncanny_metabolism: {
+    name_ru: 'Феноменальный метаболизм',
+    reset: 'long',
+    feature_id: 'uncanny-metabolism',
+    fixed_uses: 1,
+    kind: 'resource',
+    on_hot: false,
+    unlock_level: 2,
+  },
   bardic_inspiration: {
     name_ru: 'Бардовское вдохновение',
     reset: 'long',
@@ -792,18 +801,21 @@ export function computeProgression2024(input: {
       scales[`${cls.slug}:bardic_inspiration_die`] = rawRes.bardic_inspiration_die
       rawRes.bardic_inspiration = true
     }
-    // Arcane recovery / Sorcerous Restoration (not in raw resources table)
+    // Arcane recovery / Sorcerous Restoration / Uncanny Metabolism (not always in raw table)
     let hasArcane = false
     let hasSorcerousRestoration = false
+    let hasUncannyMetabolism = false
     for (const lr of levels) {
       if (Number(lr.level || 0) > cls.level) continue
       for (const f of (lr.features as Array<Record<string, unknown>>) || []) {
         if (f.id === 'arcane-recovery') hasArcane = true
         if (f.id === 'sorcerous-restoration') hasSorcerousRestoration = true
+        if (f.id === 'uncanny-metabolism') hasUncannyMetabolism = true
       }
     }
     if (hasArcane && cls.slug === 'wizard') rawRes.arcane_recovery = 1
     if (hasSorcerousRestoration && cls.slug === 'sorcerer') rawRes.sorcerous_restoration = 1
+    if (hasUncannyMetabolism && cls.slug === 'monk') rawRes.uncanny_metabolism = 1
     if (cls.slug === 'artificer' && cls.level >= 1) rawRes.magic_of_making = true
 
     for (const [key, value] of Object.entries(rawRes)) {
@@ -852,6 +864,56 @@ export function computeProgression2024(input: {
         desired.shortRestRegain = meta.short_rest_regain
       }
       desiredResources.push(desired)
+
+      // Monk's Focus techniques — synthetic unlocked bonus actions (2024 only).
+      if (key === 'focus_points' && cls.slug === 'monk' && cls.level >= 2) {
+        const focusResource: FeatureResource = {
+          uses: 1,
+          recharge: 'short_rest',
+          pool_id: 'focus_points',
+          pool_name_ru: 'Очки сосредоточенности',
+          track: 'spend',
+          spend_cost: 1,
+        }
+        const techniques: Array<{ id: string; name_ru: string; name_en: string }> = [
+          { id: 'flurry_of_blows', name_ru: 'Шквал ударов', name_en: 'Flurry of Blows' },
+          { id: 'patient_defense', name_ru: 'Терпеливая защита', name_en: 'Patient Defense' },
+          { id: 'step_of_the_wind', name_ru: 'Поступь ветра', name_en: 'Step of the Wind' },
+        ]
+        for (const tech of techniques) {
+          features.push({
+            id: tech.id,
+            level: 2,
+            name_ru: tech.name_ru,
+            name_en: tech.name_en,
+            summary_ru: tech.name_ru,
+            kind: 'bonus',
+            resource: focusResource,
+            classEntryId: cls.entryId,
+            className: cls.name,
+            classLevel: cls.level,
+            source: 'class',
+            subclassSlug: null,
+            subclassName: null,
+            scaleValue: null,
+            resourceUses: null,
+          })
+        }
+      }
+    }
+
+    // Patch Martial Arts die / Unarmored Movement scale labels from resources table.
+    const maDieRaw = scales[`${cls.slug}:martial_arts_die`]
+    const maDie =
+      maDieRaw != null ? String(maDieRaw).replace(/d/gi, 'к') : null
+    if (maDie) scales[`${cls.slug}:martial_arts_die`] = maDie
+    const umFtRaw = scales[`${cls.slug}:unarmored_movement_ft`]
+    const umFt =
+      umFtRaw != null && Number(umFtRaw) > 0 ? `+${Number(umFtRaw)} фт.` : null
+    for (const feat of features) {
+      if (feat.classEntryId !== cls.entryId) continue
+      if (feat.id === 'martial_arts' && maDie) feat.scaleValue = maDie
+      if (feat.id === 'unarmored_movement' && umFt) feat.scaleValue = umFt
     }
 
     const prog = CASTER_PROGRESSION[cls.slug] || 'none'
@@ -963,6 +1025,22 @@ export function computeProgression2024(input: {
         scales[`${cls.slug}:aura_radius_ft`] =
           typeof val === 'object' && val ? val.ft : val
       }
+    }
+
+    // Body and Mind (monk 20): permanent DEX/WIS +4, cap 25.
+    if (cls.slug === 'monk' && cls.level >= 20) {
+      const bodyMind = {
+        feature_id: 'body-and-mind',
+        name_ru: 'Тело и разум',
+        kind: 'ability_scores',
+        value: { dex: 4, wis: 4, cap: 25 },
+        min_level: 20,
+      }
+      const existing = Array.isArray(scales[`${cls.slug}:subclass_permanent_bonuses`])
+        ? (scales[`${cls.slug}:subclass_permanent_bonuses`] as unknown[])
+        : []
+      scales[`${cls.slug}:subclass_permanent_bonuses`] = [...existing, bodyMind]
+      scales[`${cls.slug}:body_and_mind`] = { dex: 4, wis: 4, cap: 25 }
     }
 
     if (cls.subclassSlug && THIRD_CASTER_SUBCLASSES[cls.subclassSlug]) {

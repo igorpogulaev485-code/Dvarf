@@ -864,6 +864,7 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
             weaponProficiency={model.draft.identity.weapons}
             gearBonusesByItem={model.gearEffects.byItem}
             martialArtsDie={model.martialArtsDie}
+            rulesEdition={model.rulesEdition}
             formulaVars={model.formulaVarsBase}
             onChange={(weapons) => model.setDraft((prev) => ({ ...prev, weapons }))}
             onClose={() => model.setAttacksSettingsOpen(false)}

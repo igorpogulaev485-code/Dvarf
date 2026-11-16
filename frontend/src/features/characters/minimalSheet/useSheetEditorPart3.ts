@@ -189,8 +189,37 @@ export function useSheetEditorPart3(model: SheetModel) {
         }
       }
     }
+    // Monk 2024 Body and Mind: DEX/WIS cap 25.
+    const bodyMind = model.progression2024?.scales?.['monk:body_and_mind'] as
+      | { dex?: number; wis?: number; cap?: number }
+      | undefined
+    if (
+      (model.rulesEdition ?? model.baseCharacter?.rules_edition) === '2024' &&
+      bodyMind &&
+      typeof bodyMind.cap === 'number' &&
+      bodyMind.cap > 0
+    ) {
+      for (const key of ['dex', 'wis'] as const) {
+        if ((bodyMind[key] ?? 0) <= 0) continue
+        if (bodyMind.cap > resolved[key].max) {
+          resolved[key] = {
+            max: bodyMind.cap,
+            sources: ['Тело и разум'],
+            raised: bodyMind.cap > DEFAULT_ABILITY_SCORE_MAX,
+          }
+        }
+      }
+    }
     return resolved
-  }, [model.draft.classes, model.draft.inventory.items, attunedItemIds, model.draft.piety])
+  }, [
+    model.draft.classes,
+    model.draft.inventory.items,
+    attunedItemIds,
+    model.draft.piety,
+    model.progression2024?.scales,
+    model.rulesEdition,
+    model.baseCharacter?.rules_edition,
+  ])
   model.abilityCeilings = abilityCeilings
 
   // W-04: пересчёт бонусов сета при смене экипировки / аттюна
@@ -621,7 +650,26 @@ export function useSheetEditorPart3(model: SheetModel) {
       const best = Math.max(a, b)
       if (best > 0) mergedFloors[key] = best
     }
-    return applyGearAbilityScores(boosted, model.gearEffects, mergedFloors)
+    const withGear = applyGearAbilityScores(boosted, model.gearEffects, mergedFloors)
+    // Monk 2024 Body and Mind: +4 DEX/WIS (cap 25) on effective scores.
+    const bodyMind = model.progression2024?.scales?.['monk:body_and_mind'] as
+      | { dex?: number; wis?: number; cap?: number }
+      | undefined
+    if (
+      (model.rulesEdition ?? model.baseCharacter?.rules_edition) !== '2024' ||
+      !bodyMind
+    ) {
+      return withGear
+    }
+    const cap = typeof bodyMind.cap === 'number' && bodyMind.cap > 0 ? bodyMind.cap : 25
+    const next = { ...withGear }
+    if ((bodyMind.dex ?? 0) > 0) {
+      next.dex = Math.min(cap, withGear.dex + Math.floor(bodyMind.dex!))
+    }
+    if ((bodyMind.wis ?? 0) > 0) {
+      next.wis = Math.min(cap, withGear.wis + Math.floor(bodyMind.wis!))
+    }
+    return next
   }, [
     model.draft.abilities,
     model.draft.modifiers,
@@ -629,6 +677,9 @@ export function useSheetEditorPart3(model: SheetModel) {
     model.gearEffects,
     infusionBonuses.abilityFloor,
     model.draft.play.effects,
+    model.progression2024?.scales,
+    model.rulesEdition,
+    model.baseCharacter?.rules_edition,
   ])
   model.gearAbilities = gearAbilities
 
@@ -779,9 +830,13 @@ export function useSheetEditorPart3(model: SheetModel) {
           allowsShield: true,
         }
       }
-      const hasMonk = model.unlockedFeatures.some(
-        (feature: { id: string }) => feature.id === 'unarmored_defense_monk',
-      )
+      const rulesEdition =
+        model.rulesEdition ?? model.baseCharacter?.rules_edition ?? '2014'
+      const hasMonk = model.unlockedFeatures.some((feature: { id: string }) => {
+        if (feature.id === 'unarmored_defense_monk') return true
+        // 2024 catalog id is unarmored_defense (hyphen → underscore).
+        return rulesEdition === '2024' && feature.id === 'unarmored_defense'
+      })
       if (hasMonk) {
         return {
           labelRu: 'Защита без доспехов',

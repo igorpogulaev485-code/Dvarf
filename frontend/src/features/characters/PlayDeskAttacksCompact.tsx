@@ -2638,7 +2638,8 @@ export function PlayDeskAttacksCompact({
             const kitComputed = isKitComputedAttack(attack)
             const monkWeapon =
               Boolean(martialArtsDie) &&
-              (isMonkUnarmedAttack(attack) || isMonkWeaponName(attack.name))
+              (isMonkUnarmedAttack(attack) ||
+                isMonkWeaponName(attack.name, rulesEdition))
             const shillelaghOn =
               shillelagh != null &&
               shillelagh.attackId === attack.id &&
