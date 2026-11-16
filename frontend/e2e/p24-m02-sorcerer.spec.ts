@@ -652,8 +652,17 @@ function sorcerer2014SheetCharacter() {
     },
   ]
   const abilities = (sheet.abilities ?? {}) as Record<string, { score: number }>
-  abilities.cha = { score: 18 }
+  abilities.str = { score: 8 }
+  abilities.dex = { score: 14 }
+  abilities.con = { score: 16 }
   abilities.int = { score: 10 }
+  abilities.wis = { score: 12 }
+  abilities.cha = { score: 18 }
+  // Sorcerer 2014 save proficiencies: Constitution + Charisma (not wizard Int/Wis).
+  sheet.saves = {
+    con: { is_proficient: true },
+    cha: { is_proficient: true },
+  }
   const spells = (sheet.spells ?? {}) as Record<string, unknown>
   spells.casting_ability = 'cha'
   spells.max_prepared = null
@@ -772,6 +781,8 @@ test.describe('P24-M02 2014 regression', () => {
       for (const abil of ['str', 'dex', 'con', 'int', 'wis', 'cha']) {
         await expect(abilPage.locator(`.abil-block[data-abil="${abil}"]`).first()).toBeVisible()
       }
+      // Charisma is below the fold on 390 — scroll it into view for the shot.
+      await abilPage.locator('.abil-block[data-abil="cha"]').first().scrollIntoViewIfNeeded()
     } else {
       for (const abil of ['str', 'dex', 'con', 'int', 'wis', 'cha']) {
         await expect(page.locator(`.abil-block[data-abil="${abil}"]`).first()).toBeVisible()
