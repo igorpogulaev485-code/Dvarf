@@ -325,11 +325,13 @@ async function walkLiveClericCreate(page: Page, store: HarnessStore, opts: LiveC
 
   await pickSpellsToQuota(page, 'cantrips', CANTRIPS)
   await pickSpellsToQuota(page, 'level1', PREPARED)
-  await page.getByTestId('p24-m03-spell-tab-level1').scrollIntoViewIfNeeded()
-  await tallShot(page, opts.shotDir, `${prefix}step5-leveling-spells-picked`, opts.project)
-  await page.getByTestId('p24-m03c-forks-cleric').scrollIntoViewIfNeeded()
-  await unclipForks(page)
-  await tallShot(page, opts.shotDir, `${prefix}step5-leveling-forks`, opts.project)
+  if (opts.stepShots) {
+    await page.getByTestId('p24-m03-spell-tab-level1').scrollIntoViewIfNeeded()
+    await tallShot(page, opts.shotDir, `${prefix}step5-leveling-spells-picked`, opts.project)
+    await page.getByTestId('p24-m03c-forks-cleric').scrollIntoViewIfNeeded()
+    await unclipForks(page)
+    await tallShot(page, opts.shotDir, `${prefix}step5-leveling-forks`, opts.project)
+  }
 
   await expect(page.getByTestId('p24-m03-finish')).toBeEnabled({ timeout: 20_000 })
   await page.getByTestId('p24-m03-finish').click()
