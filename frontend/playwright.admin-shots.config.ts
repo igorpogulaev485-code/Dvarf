@@ -11,6 +11,7 @@ export default defineConfig({
     '**/admin-adm03-screenshots.spec.ts',
     '**/admin-adm04-screenshots.spec.ts',
     '**/admin-adm05-screenshots.spec.ts',
+    '**/admin-adm07-screenshots.spec.ts',
   ],
   fullyParallel: false,
   retries: 0,

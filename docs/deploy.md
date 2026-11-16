@@ -17,7 +17,7 @@ Workflow из этого репозитория агенты не запуска
 1. **verify** (без environment): отказ, если ref не `refs/heads/main`; `npm ci` и `npm run build` во `frontend`; `pytest` в `backend`; ровно одна голова `alembic heads`.
 2. **deploy** (environment `production`, ждёт required reviewer, когда правило включено):
    - забирает уже собранный `frontend/dist`;
-   - `rsync --delete` на VPS по фильтру [`deploy/rsync-filter.txt`](../deploy/rsync-filter.txt). Не присылает и не удаляет `.env`. Не удаляет `backups/`, `pgdata/`, `postgres-data/`, `uploads/`, `backend/uploads/`, дампы `*.sql` / `*.dump` / `*.sql.gz`. Каталог целиком не стирает;
+   - `rsync --delete` на VPS по фильтру [`deploy/rsync-filter.txt`](../deploy/rsync-filter.txt). Не присылает и не удаляет `.env` и `.env.bak` (копия перед правкой bootstrap). Не удаляет `backups/`, `pgdata/`, `postgres-data/`, `uploads/`, `backend/uploads/`, дампы `*.sql` / `*.dump` / `*.sql.gz`. Каталог целиком не стирает;
    - при заданном `ADMIN_BOOTSTRAP_EMAIL` — upsert в живой `.env` на VPS (`ADMIN_BOOTSTRAP_EMAIL`, `ADMIN_PANEL_ENABLED=true`) **до** перезапуска; см. ниже «Первый админ»;
    - на VPS [`deploy/remote-release.sh`](../deploy/remote-release.sh): сборка образов (`remote-up` с `DVARF_BUILD_ONLY=1`, старые контейнеры ещё отвечают), `alembic upgrade head` отдельным контейнером, затем перезапуск [`deploy/remote-up.sh`](../deploy/remote-up.sh). Порядок тот же. Запускает его [`deploy/remote-release-ctl.sh`](../deploy/remote-release-ctl.sh) в отдельной сессии (`setsid`), с lock-файлом против второй сборки. Job не держит один длинный ssh на всю сборку: он опрашивает статус и журнал короткими вызовами;
    - с раннера `curl https://creed20.tech/health`.

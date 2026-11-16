@@ -16,7 +16,7 @@ LAYER_LABELS: dict[str, str] = {
 }
 
 STATUS_LABELS: dict[str, str] = {
-    "pending": "на проверку",
+    "pending": "На проверку",
     "accepted": "принято",
     "rejected": "отклонено",
     "rolled_back": "откатили",

@@ -115,6 +115,14 @@ export type AdminAccountLobbyStats = {
   as_player: number
 }
 
+export type AdminRoleItem = {
+  role: string
+  label: string
+  source: string | null
+  source_label: string | null
+  can_revoke: boolean
+}
+
 export type AdminAccountItem = {
   id: string
   email: string | null
@@ -126,6 +134,7 @@ export type AdminAccountItem = {
   login_methods: AdminAccountLoginMethods
   characters: AdminAccountCharacterStats
   lobbies: AdminAccountLobbyStats
+  roles?: AdminRoleItem[]
 }
 
 export type AdminAccountsPage = {
@@ -362,6 +371,28 @@ export async function adminDeleteUser(
   return apiRequest(`/admin/accounts/${userId}/delete`, {
     method: 'POST',
     body: JSON.stringify({ confirm, admin_password: adminPassword }),
+  })
+}
+
+export async function adminGrantRole(
+  userId: string,
+  role: string,
+  adminPassword: string,
+): Promise<AdminMessageResult> {
+  return apiRequest(`/admin/accounts/${userId}/roles/grant`, {
+    method: 'POST',
+    body: JSON.stringify({ role, admin_password: adminPassword }),
+  })
+}
+
+export async function adminRevokeRole(
+  userId: string,
+  role: string,
+  adminPassword: string,
+): Promise<AdminMessageResult> {
+  return apiRequest(`/admin/accounts/${userId}/roles/revoke`, {
+    method: 'POST',
+    body: JSON.stringify({ role, admin_password: adminPassword }),
   })
 }
 
