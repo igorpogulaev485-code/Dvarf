@@ -21,8 +21,11 @@ import { SheetDialogsSetup } from './SheetDialogsSetup'
 import { TurnEconomyDeskHost } from '../TurnEconomyDeskHost'
 import { TurnEconomyStrip } from '../TurnEconomyStrip'
 import { SceneTurnControls } from '../SceneTurnControls'
+import { usePlayDeskRailCap } from './usePlayDeskRailCap'
 
 export function PlayDeskLayout({ model }: { model: SheetModel }) {
+  const { leftRef, stageRef } = usePlayDeskRailCap(Boolean(model.isPlayDesk))
+
   return (
     <div
       className={[
@@ -36,7 +39,12 @@ export function PlayDeskLayout({ model }: { model: SheetModel }) {
       <PlayDeskTop model={model} />
 
       <div className="play-desk__body">
-        <aside className="play-desk__left">
+        <aside
+          className="play-desk__left"
+          ref={(node) => {
+            leftRef.current = node
+          }}
+        >
           {model.abilityColumn}
           <div className="play-desk__rail-foot">
             {model.passivesCompact}
@@ -51,7 +59,12 @@ export function PlayDeskLayout({ model }: { model: SheetModel }) {
           </div>
         </aside>
 
-        <div className="play-desk__stage">
+        <div
+          className="play-desk__stage"
+          ref={(node) => {
+            stageRef.current = node
+          }}
+        >
           {/*
             SCN-01: TurnEconomy wraps modes so SceneTurnControls (Новый ход / кубики)
             live in the scene toolbar — no separate card row under tabs.

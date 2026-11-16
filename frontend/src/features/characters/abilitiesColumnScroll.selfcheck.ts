@@ -50,8 +50,8 @@ assert.match(
 )
 assert.match(
   railCss,
-  /\.play-desk--wide\s+\.abil-column\s*\{[\s\S]*?max-height:\s*calc\(100dvh\s*-\s*27\.5rem\)/,
-  'desktop ability column uses same viewport budget as pinned spells',
+  /max-height:\s*var\(--play-desk-stage-h/,
+  'desktop rail capped to stage height (not viewport calc)',
 )
 assert.match(
   railCss,
