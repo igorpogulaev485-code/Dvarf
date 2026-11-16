@@ -399,4 +399,9 @@ def test_alembic_single_head_includes_p24_c14():
     assert "p24c14mmw201" in ancestor_ids
     assert "p24c13mmw101" in ancestor_ids
     # Head advances with later packs (C07R+); C14 stays on the single lineage.
-    assert heads[0] in {"p24c14mmw201", "p24c07rbest01", "p24c21au01"} or "p24c14mmw201" in ancestor_ids
+    assert heads[0] in {
+        "p24c14mmw201",
+        "p24c07rbest01",
+        "p24c21au01",
+        "p24c21rau01",
+    } or "p24c14mmw201" in ancestor_ids

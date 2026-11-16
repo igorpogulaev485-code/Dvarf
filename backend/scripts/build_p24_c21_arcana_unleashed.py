@@ -121,9 +121,10 @@ RARITY_MAP = {
     "легендарный": ("legendary", "легендарный"),
     "легендарное": ("legendary", "легендарный"),
     "артефакт": ("artifact", "артефакт"),
-    "редкость различается": ("varies", "редкость различается"),
-    "редкость варьируется": ("varies", "редкость различается"),
-    "варьируется": ("varies", "редкость различается"),
+    "редкость различается": ("varies", "редкость варьируется"),
+    "редкость варьируется": ("varies", "редкость варьируется"),
+    "варьируется": ("varies", "редкость варьируется"),
+    "различается": ("varies", "редкость варьируется"),
 }
 TYPE_MAP = {
     "кольцо": ("ring", "кольцо"),
@@ -1058,13 +1059,14 @@ def build_magic_items(book: str) -> dict[str, Any]:
                     data["magic_item_type_ru"] = type_ru
         # Final rarity dictionary guard
         rr = (data.get("rarity_ru") or "").lower()
-        if "варир" in rr or rr not in {
+        if "варир" in rr or "различ" in rr or rr not in {
             "обычный",
             "необычный",
             "редкий",
             "очень редкий",
             "легендарный",
             "артефакт",
+            "редкость варьируется",
             "редкость различается",
         }:
             rarity_en, rarity_ru, _, _ = _parse_rarity_type(
@@ -1283,15 +1285,30 @@ def build_subclasses() -> dict[str, Any]:
             )
             if zero:
                 summary = polish_ru(c17._strip_tags(zero.group(1)))
-        note = (
-            "Расширенный список — ссылками в spell_list, если извлечён; "
-            "иначе умения подкласса про заклинания."
-            if spell_list
-            else (
-                "Расширенный список (если есть) — в умениях подкласса "
-                "про заклинания; отдельного списка в этой карточке нет."
+        if spell_list:
+            note_parts = []
+            for bucket in spell_list:
+                if not isinstance(bucket, dict):
+                    continue
+                level = bucket.get("level")
+                spells = bucket.get("spells") or []
+                if level is None or not spells:
+                    continue
+                note_parts.append(
+                    f"{level} ур. — {', '.join(str(s) for s in spells)}"
+                )
+            note = (
+                "Всегда подготовленные заклинания подкласса: "
+                + "; ".join(note_parts)
+                + "."
+                if note_parts
+                else "Всегда подготовленные заклинания подкласса по таблице уровней."
             )
-        )
+        else:
+            note = (
+                "Отдельного расширенного списка заклинаний у этого подкласса нет; "
+                "заклинания (если есть) описаны в умениях."
+            )
         entries.append(
             {
                 "kind": "subclass",

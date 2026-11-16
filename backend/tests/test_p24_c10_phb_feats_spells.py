@@ -321,4 +321,9 @@ def test_alembic_single_head_includes_p24_c10():
     assert "p24c09phb01" in ancestor_ids
     assert "p24c10phb01" in ancestor_ids
     # Head advances with later catalog packs (C11+); C10 must remain an ancestor.
-    assert heads[0] in {"p24c10phb01", "p24c11dmg01", "p24c21au01"} or "p24c10phb01" in ancestor_ids
+    assert heads[0] in {
+        "p24c10phb01",
+        "p24c11dmg01",
+        "p24c21au01",
+        "p24c21rau01",
+    } or "p24c10phb01" in ancestor_ids
