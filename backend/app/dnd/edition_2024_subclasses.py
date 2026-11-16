@@ -265,11 +265,11 @@ SHARED_OPTIONS: dict[str, list[SharedPoolOption]] = {
     "cleric__war-domain": [
         SharedPoolOption("guided-strike", "Направленный удар", "channel_divinity", kind="reaction"),
         SharedPoolOption(
-            "war-gods-blessing", "Благословение бога войны", "channel_divinity", kind="reaction", min_level=6
+            "war-gods-blessing", "Благословение бога войны", "channel_divinity", kind="action", min_level=6
         ),
     ],
     "cleric__trickery-domain": [
-        SharedPoolOption("invoke-duplicity", "Двуличность", "channel_divinity", kind="action"),
+        SharedPoolOption("invoke-duplicity", "Двуличность", "channel_divinity", kind="bonus"),
     ],
     "cleric__knowledge-domain": [
         SharedPoolOption("mind-magic", "Магия разума", "channel_divinity", kind="action"),
@@ -1084,6 +1084,15 @@ def build_subclass_resources(
             feature_id="warding-flare",
             extra_meta={"improved_from_level": 6, "temp_hp_on_use_from_level": 6},
         )
+        if class_level >= 17:
+            add(
+                "corona_of_light",
+                name_ru="Корона света",
+                max_uses=max(1, wis_m),
+                reset="long",
+                feature_id="corona-of-light",
+                min_level=17,
+            )
     elif subclass_slug == "cleric__war-domain":
         add(
             "war_priest",

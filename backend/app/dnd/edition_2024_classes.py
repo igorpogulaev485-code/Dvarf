@@ -239,6 +239,14 @@ RESOURCE_META: dict[str, dict[str, Any]] = {
         "feature_id": "sorcerous-restoration",
         "fixed_uses": 1,
     },
+    "divine_intervention": {
+        "name_ru": "Божественное вмешательство",
+        "reset": "long",
+        "track": "spend",
+        "on_hot": False,
+        "feature_id": "divine-intervention",
+        "fixed_uses": 1,
+    },
     "magical_cunning": {
         "name_ru": "Магическая искусность",
         "reset": "long",
@@ -732,6 +740,17 @@ def _build_resources_for_class(
     if has_uncanny_metabolism and slug == "monk":
         raw.setdefault("uncanny_metabolism", 1)
 
+    if slug == "cleric" and catalog and level >= 10:
+        has_divine_intervention = False
+        for lr in catalog["data"].get("levels") or []:
+            if int(lr.get("level") or 0) > level:
+                continue
+            for f in lr.get("features") or []:
+                if f.get("id") in {"divine-intervention", "greater-divine-intervention"}:
+                    has_divine_intervention = True
+        if has_divine_intervention:
+            raw.setdefault("divine_intervention", 1)
+
     # Artificer Magic of Making — INT mod uses / long rest (not in resources table).
     if slug == "artificer" and level >= 1:
         raw.setdefault("magic_of_making", True)
@@ -800,7 +819,11 @@ def _build_resources_for_class(
                     "channel_options": (
                         ["divine_sense"]
                         if key == "channel_divinity" and slug == "paladin"
-                        else None
+                        else (
+                            ["divine-spark", "turn-undead"]
+                            if key == "channel_divinity" and slug == "cleric"
+                            else None
+                        )
                     ),
                 },
             )
@@ -1078,6 +1101,10 @@ def compute_progression(
                         existing.append(opt)
                 if slug == "paladin" and "divine_sense" not in existing:
                     existing.insert(0, "divine_sense")
+                if slug == "cleric":
+                    for base_opt in ("divine-spark", "turn-undead"):
+                        if base_opt not in existing:
+                            existing.insert(0 if base_opt == "divine-spark" else 1, base_opt)
                 pool.meta["channel_options"] = existing
             # Bard college / monk / etc. shared options listed on the spend pool.
             matching = [

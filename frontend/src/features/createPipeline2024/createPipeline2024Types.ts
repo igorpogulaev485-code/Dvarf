@@ -201,6 +201,7 @@ export function classL1Spellcasting(
 export function classSpellcastingAtLevel(
   classEntry: CatalogEntry | null | undefined,
   level: number,
+  opts?: { divineOrder?: string | null },
 ): ClassSpellcastingBudget | null {
   const lv = Math.max(1, Math.min(20, Math.floor(level) || 1))
   const row = classLevelRows(classEntry).find((item) => item?.level === lv)
@@ -219,8 +220,16 @@ export function classSpellcastingAtLevel(
   if (pact && Number(pact.count) > 0 && Number(pact.slot_level) >= 1) {
     maxSlotLevel = Math.max(maxSlotLevel, Number(pact.slot_level))
   }
+  let cantrips = Number(sc.cantrips || 0)
+  // Cleric 2024 Thaumaturge: +1 cantrip beyond the table column (not counted in table).
+  if (
+    classEntry?.slug === 'cleric' &&
+    String(opts?.divineOrder || '').toLowerCase() === 'thaumaturge'
+  ) {
+    cantrips += 1
+  }
   return {
-    cantrips: Number(sc.cantrips || 0),
+    cantrips,
     prepared_spells: Number(sc.prepared_spells || 0),
     maxSlotLevel,
   }

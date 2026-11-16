@@ -57,6 +57,11 @@ import { featurePicksToSheet } from '../../../shared/dnd/featurePicks'
 import { weaponMasteryToSheet } from '../../../shared/dnd/weaponMastery'
 import { classOptions2024ToSheet } from '../../../shared/dnd/edition2024ClassOptions'
 import {
+  DIVINE_ORDER_THAUMATURGE,
+  readDivineOrder2024,
+  thaumaturgeSkillBonus2024,
+} from '../../../shared/dnd/cleric2024Features'
+import {
   computeProgression2024,
   snapshotToSheetFragment2024,
 } from '../../../shared/dnd/edition2024Classes'
@@ -759,6 +764,17 @@ export function useSheetEditorPart3(model: SheetModel) {
 
   const featureSkillBonuses = useMemo(() => {
     const out: Record<string, number> = {}
+    const thaumaturgeBonus =
+      model.rulesEdition === '2024'
+        ? (() => {
+            const order =
+              readDivineOrder2024(model.draft.classOptions2024) ??
+              readDivineOrder2024(model.draft.featurePicks)
+            if (order !== DIVINE_ORDER_THAUMATURGE) return null
+            const wisMod = Math.floor(((effectiveAbilities.wis ?? 10) - 10) / 2)
+            return thaumaturgeSkillBonus2024(wisMod)
+          })()
+        : null
     for (const skill of SKILL_DEFS) {
       const state = model.draft.skills[skill.key]
       const proficient = Boolean(state?.is_proficient || state?.is_expertise)
@@ -773,7 +789,12 @@ export function useSheetEditorPart3(model: SheetModel) {
         wisdomScore: effectiveAbilities.wis,
         skillKey: skill.key,
       })
-      const total = athlete + courtier
+      let thaum = 0
+      if (thaumaturgeBonus) {
+        if (skill.key === 'arcana') thaum = thaumaturgeBonus.arcana
+        if (skill.key === 'religion') thaum = thaumaturgeBonus.religion
+      }
+      const total = athlete + courtier + thaum
       if (total) out[skill.key] = total
     }
     return out
@@ -782,6 +803,9 @@ export function useSheetEditorPart3(model: SheetModel) {
     effectiveAbilities.wis,
     model.unlockedFeatures,
     model.proficiencyBonus,
+    model.rulesEdition,
+    model.draft.classOptions2024,
+    model.draft.featurePicks,
   ])
   model.featureSkillBonuses = featureSkillBonuses
 

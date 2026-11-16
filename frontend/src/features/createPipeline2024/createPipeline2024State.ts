@@ -485,8 +485,13 @@ function levelingIssues(state: Create2024State, ctx: StepIssueCtx): string[] {
     1,
     state.classes.find((row) => row.level > 0)?.level ?? state.characterLevel ?? 1,
   )
+  const divineOrder =
+    ctx.classEntry?.slug === 'cleric'
+      ? String(state.classOptionPicks.divine_order || '')
+      : null
   const sc =
-    classSpellcastingAtLevel(ctx.classEntry, classLevel) ?? classL1Spellcasting(ctx.classEntry)
+    classSpellcastingAtLevel(ctx.classEntry, classLevel, { divineOrder }) ??
+    classL1Spellcasting(ctx.classEntry)
   const bookNeed = WIZARD_BOOK_SPELLS_AT_L1 + Math.max(0, wizardLevel - 1) * 2
   if (sc) {
     if (state.cantripIds.length < sc.cantrips || new Set(state.cantripIds).size !== state.cantripIds.length) {

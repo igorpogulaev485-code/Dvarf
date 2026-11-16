@@ -887,6 +887,11 @@ def _validate_spells(payload: Create2024Payload) -> dict[str, Any]:
 
     block = blocks[0]
     cantrip_need = int(block.cantrips or 0)
+    # Thaumaturge Divine Order: +1 Cleric cantrip beyond the table column.
+    if payload.class_slug == "cleric":
+        order_raw = (payload.class_option_picks or {}).get("divine_order")
+        if str(order_raw or "").lower() == "thaumaturge":
+            cantrip_need += 1
     prep_need = int(block.prepared_spells or 0)
     cantrips = [_normalize_slug(x) for x in payload.cantrip_ids]
     prepared = [_normalize_slug(x) for x in payload.prepared_spell_ids]
@@ -1655,6 +1660,12 @@ def _build_sheet(
     # Proficiencies
     armor = class_data.get("armor") or []
     weapons_prof = _weapons_proficiency_from_class_data(class_data.get("weapons"))
+    # Divine Order (Cleric 2024): Protector adds martial weapons + heavy armor.
+    # Never grant weapon mastery from this order.
+    divine_order = str((class_options or {}).get("divine_order") or "").lower()
+    if payload.class_slug == "cleric" and divine_order == "protector":
+        weapons_prof = {**weapons_prof, "martial": True}
+        armor = list(armor) + (["heavy"] if "heavy" not in armor and "all" not in armor else [])
     sheet["proficiency"] = {
         "bonus": 2,
         "armor": {

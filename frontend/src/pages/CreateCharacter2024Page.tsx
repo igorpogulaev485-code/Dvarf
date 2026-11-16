@@ -1024,7 +1024,10 @@ export function CreateCharacter2024Page({
         (classSlug === 'wizard' ? state.characterLevel : 1),
     )
     const sc =
-      classSpellcastingAtLevel(classEntry, wizardLevel) ?? classL1Spellcasting(classEntry)
+      classSpellcastingAtLevel(classEntry, wizardLevel, {
+        divineOrder:
+          classSlug === 'cleric' ? String(state.classOptionPicks.divine_order || '') : null,
+      }) ?? classL1Spellcasting(classEntry)
     const maxBookCircle = Math.max(
       1,
       sc && sc.maxSlotLevel > 0
