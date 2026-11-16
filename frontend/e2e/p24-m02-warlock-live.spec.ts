@@ -749,17 +749,32 @@ const SUBCLASS_CASES = [
   {
     key: 'archfey',
     slug: SUBCLASS.archfey,
-    features: { 3: [/Заклинания Архифеи/, /Шаг феи/], 6: [/Туманное исчезновение/] },
+    features: {
+      3: [/Заклинания Архифеи/, /Шаг феи/],
+      6: [/Туманное исчезновение/],
+      10: [/Чарующая защита/],
+      14: [/Завораживающая магия/],
+    },
   },
   {
     key: 'fiend',
     slug: SUBCLASS.fiend,
-    features: { 3: [/Благословение темнейшего/, /Заклинания исчадия/], 6: [/Удача темнейшего/] },
+    features: {
+      3: [/Благословение темнейшего/, /Заклинания исчадия/],
+      6: [/Удача темнейшего/],
+      10: [/Устойчивость исчадия/],
+      14: [/Бросок через преисподнюю/],
+    },
   },
   {
     key: 'celestial',
     slug: SUBCLASS.celestial,
-    features: { 3: [/Заклинания Небожителя/, /Лечащий свет/], 6: [/Сияющая душа/] },
+    features: {
+      3: [/Заклинания Небожителя/, /Лечащий свет/],
+      6: [/Сияющая душа/],
+      10: [/Небесная стойкость/],
+      14: [/Опаляющее возмездие/],
+    },
   },
   {
     key: 'goo',
@@ -767,9 +782,56 @@ const SUBCLASS_CASES = [
     features: {
       3: [/Заклинания Великого древнего/, /Пробуждённый разум/, /Психические заклинания/],
       6: [/Провидящий боец/],
+      10: [/Мистический сглаз/, /Ментальный щит/],
+      14: [/Порабощение/],
     },
   },
 ] as const
+
+async function shotSubclassLevel(
+  page: Page,
+  store: HarnessStore,
+  sub: (typeof SUBCLASS_CASES)[number],
+  level: 3 | 6 | 10 | 14,
+  project: string,
+) {
+  await walkLiveWarlockCreate(page, store, {
+    name: `${sub.key} L${level}`,
+    level,
+    subclassSlug: sub.slug,
+    shotDir: ARTIFACTS,
+    project,
+  })
+  await openFeaturesScene(page, project)
+  const expected = [
+    ...sub.features[3],
+    ...(level >= 6 ? sub.features[6] : []),
+    ...(level >= 10 ? sub.features[10] : []),
+    ...(level >= 14 ? sub.features[14] : []),
+  ]
+  await expectFeatureNames(page, expected)
+  const highlight =
+    level >= 14
+      ? sub.features[14][0]
+      : level >= 10
+        ? sub.features[10][0]
+        : level >= 6
+          ? sub.features[6][0]
+          : sub.features[3][0]
+  const card = await featureCard(page, highlight)
+  const useBtn = card.locator('button').filter({ hasText: /…|Защита|Сглаз|Порабощение|Бросок|Возмездие|Стойкость|Устойчивость|Завораживающая|Ментальн/ }).first()
+  if (await useBtn.isVisible().catch(() => false)) {
+    await useBtn.scrollIntoViewIfNeeded()
+  } else {
+    const glance = card.locator('button.feature-card__glance, button[aria-label="Подробнее"]')
+    if (await glance.count()) {
+      await glance.first().click()
+      await page.waitForTimeout(300)
+    }
+  }
+  await tallShot(page, ARTIFACTS, `${SHOT}-${sub.key}-${String(level).padStart(2, '0')}`, project)
+  expect(store.unmatched).toEqual([])
+}
 
 test.describe('P24-M02 warlock — subclasses via LIVE create (L3 + L6)', () => {
   test.setTimeout(240_000)
@@ -780,32 +842,144 @@ test.describe('P24-M02 warlock — subclasses via LIVE create (L3 + L6)', () => 
       test(`2024-warlock-${sub.key}-${String(level).padStart(2, '0')}`, async ({ page }, testInfo) => {
         const project = projectOf(testInfo)
         const store = createStore()
-        await walkLiveWarlockCreate(page, store, {
-          name: `${sub.key} L${level}`,
-          level,
-          subclassSlug: sub.slug,
-          shotDir: ARTIFACTS,
-          project,
-        })
-        await openFeaturesScene(page, project)
-        await expectFeatureNames(page, [...sub.features[3], ...(level >= 6 ? sub.features[6] : [])])
-        const first = level >= 6 ? sub.features[6][0] : sub.features[3][0]
-        const card = await featureCard(page, first)
-        const glance = card.locator('button.feature-card__glance, button[aria-label="Подробнее"]')
-        if (await glance.count()) {
-          await glance.first().click()
-          await page.waitForTimeout(300)
-        }
-        await tallShot(
-          page,
-          ARTIFACTS,
-          `${SHOT}-${sub.key}-${String(level).padStart(2, '0')}`,
-          project,
-        )
-        expect(store.unmatched).toEqual([])
+        await shotSubclassLevel(page, store, sub, level, project)
       })
     }
   }
+})
+
+test.describe('P24-M02 warlock — subclasses L10 + L14 (Доправка 1)', () => {
+  test.setTimeout(300_000)
+  test.use({ actionTimeout: 15_000 })
+
+  for (const sub of SUBCLASS_CASES) {
+    for (const level of [10, 14] as const) {
+      test(`2024-warlock-${sub.key}-${String(level).padStart(2, '0')}`, async ({ page }, testInfo) => {
+        const project = projectOf(testInfo)
+        const store = createStore()
+        await shotSubclassLevel(page, store, sub, level, project)
+      })
+    }
+  }
+})
+
+test.describe('P24-M02 warlock — Доправка 1: EB / tome rest / fiend resilience', () => {
+  test.setTimeout(300_000)
+  test.use({ actionTimeout: 15_000 })
+
+  test('eldritch-blast L11 CHA17: 3 beams 1к10+CHA, spear, repelling', async ({ page }, testInfo) => {
+    const project = projectOf(testInfo)
+    const store = createStore()
+    await walkLiveWarlockCreate(page, store, {
+      name: 'Заряд L11',
+      level: 11,
+      subclassSlug: SUBCLASS.fiend,
+      shotDir: ARTIFACTS,
+      project,
+    })
+    await dismissGuided(page)
+
+    const box = await openInvocationPicker(page, project)
+    await pickSheetInvocations(box, [
+      'agonizing-blast',
+      'eldritch-spear',
+      'repelling-blast',
+      'eldritch-mind',
+      'fiendish-vigor',
+      'devils-sight',
+    ])
+    await waitForSavedInvocations(store, 7)
+
+    const cha = page.locator('.abil-block[data-abil="cha"]').first()
+    if (isPhone(project)) {
+      await page.getByText('Бой', { exact: true }).last().click()
+      await ensureMobileVitalsExpanded(page)
+      await page.locator('button.mobile-vitals__abil').click()
+      const abilPage = page.getByRole('dialog', { name: /Характеристики/ })
+      await expect(abilPage).toBeVisible()
+      await expect(abilPage.locator('.abil-block[data-abil="cha"]')).toContainText(/17|16/)
+      await abilPage.locator('button.mobile-abil-page__back').click()
+    } else {
+      await expect(cha).toBeVisible()
+      // ASI +2 CHA on L4 → 17 with standard array CHA 15
+      await expect(cha).toContainText('17')
+    }
+
+    await openCombatScene(page, project)
+    if (isPhone(project)) {
+      const spellsTab = page
+        .locator(':is(button,[role=tab],[role=button]):visible', { hasText: /^Заклинания$/ })
+        .first()
+      if (await spellsTab.isVisible().catch(() => false)) await spellsTab.click()
+    }
+    const ebRow = page.locator('.play-desk-compact__row.is-spell').filter({ hasText: /Мистический заряд/ }).first()
+    await expect(ebRow).toBeVisible({ timeout: 15_000 })
+    await ebRow.scrollIntoViewIfNeeded()
+    await expect(ebRow.locator('.play-desk-compact__spell-dmg')).toContainText(/1к10\+[34]/)
+    await expect(ebRow.locator('.play-desk-compact__spell-dmg')).toContainText(/×3/)
+    await shot(page, ARTIFACTS, `${SHOT}-fixup1-eb-attack-card`, project)
+
+    const castBtn = ebRow.locator('button.play-desk-compact__spell-cast').first()
+    await expect(castBtn).toBeVisible()
+    await castBtn.click()
+    const castDlg = page.getByRole('dialog').filter({ hasText: /Мистический заряд/ }).first()
+    await expect(castDlg).toBeVisible({ timeout: 15_000 })
+    await expect(castDlg).toContainText(/3 луч/)
+    await expect(castDlg).toContainText(/1к10\+/)
+    await expect(castDlg).toContainText(/Мистическое копьё|фт/)
+    await expect(castDlg).toContainText(/Отталкивающий заряд|оттолкнуть/)
+    await shot(page, ARTIFACTS, `${SHOT}-fixup1-eb-cast-dialog`, project)
+  })
+
+  test('pact-of-the-tome rest re-pick Book of Shadows', async ({ page }, testInfo) => {
+    const project = projectOf(testInfo)
+    const store = createStore()
+    await walkLiveWarlockCreate(page, store, {
+      name: 'Гримуар L5',
+      level: 5,
+      subclassSlug: SUBCLASS.archfey,
+      shotDir: ARTIFACTS,
+      project,
+    })
+    await dismissGuided(page)
+    const box = await openInvocationPicker(page, project)
+    // replace one free slot / add tome (armor-of-shadows already on from create)
+    await pickSheetInvocations(box, ['pact-of-the-tome', 'eldritch-mind', 'fiendish-vigor', 'devils-sight'])
+    await waitForSavedInvocations(store, 5)
+
+    await openRest(page, project)
+    const rest = page.getByRole('dialog').filter({ hasText: /Короткий|Долгий|кости хитов/i }).first()
+    const tome = rest.getByTestId('warlock-2024-rest-tome')
+    await expect(tome).toBeVisible({ timeout: 15_000 })
+    await tome.scrollIntoViewIfNeeded()
+    await expect(tome).toContainText(/Книга теней|Заговоры|Ритуалы/)
+    await expect(tome.getByRole('button', { name: /Пропустить/ })).toBeVisible()
+    await shot(page, ARTIFACTS, `${SHOT}-fixup1-tome-rest-repick`, project)
+  })
+
+  test('fiendish-resilience type pick after rest L10', async ({ page }, testInfo) => {
+    const project = projectOf(testInfo)
+    const store = createStore()
+    await walkLiveWarlockCreate(page, store, {
+      name: 'Устойчивость L10',
+      level: 10,
+      subclassSlug: SUBCLASS.fiend,
+      shotDir: ARTIFACTS,
+      project,
+    })
+    await dismissGuided(page)
+    await openFeaturesScene(page, project)
+    await expectFeatureNames(page, [/Устойчивость исчадия/])
+
+    await openRest(page, project)
+    const rest = page.getByRole('dialog').filter({ hasText: /Короткий|Долгий|кости хитов/i }).first()
+    const fiend = rest.getByTestId('warlock-2024-rest-fiend')
+    await expect(fiend).toBeVisible({ timeout: 15_000 })
+    await fiend.scrollIntoViewIfNeeded()
+    await expect(fiend).toContainText(/Устойчивость исчадия/)
+    await expect(fiend.locator('select, [role="listbox"], .ui-select')).toBeVisible()
+    await shot(page, ARTIFACTS, `${SHOT}-fixup1-fiendish-resilience-rest`, project)
+  })
 })
 
 test.describe('P24-M02 warlock — level down in create wizard (rollback UI)', () => {

@@ -489,6 +489,12 @@ export const WARLOCK_2024_CARD_BUTTONS: Record<string, string> = {
   bewitching_magic: 'Завораживающая магия',
   'awakened-mind': 'Телепатия',
   awakened_mind: 'Телепатия',
+  'eldritch-hex': 'Сглаз…',
+  eldritch_hex: 'Сглаз…',
+  'thought-shield': 'Ментальный щит',
+  thought_shield: 'Ментальный щит',
+  'create-thrall': 'Порабощение…',
+  create_thrall: 'Порабощение…',
   'clairvoyant-combatant': 'Провидеть…',
   clairvoyant_combatant: 'Провидеть…',
   'healing-light': 'Лечить…',
@@ -554,6 +560,9 @@ export function warlock2024UseFeatureId(featureId: string | null | undefined): s
     'beguiling-defenses',
     'bewitching-magic',
     'awakened-mind',
+    'eldritch-hex',
+    'thought-shield',
+    'create-thrall',
     'clairvoyant-combatant',
     'healing-light',
     'dark-ones-own-luck',
@@ -863,7 +872,7 @@ export function applyWarlock2024FeatureUse(input: Warlock2024UseInput): WarlockF
     }
 
     case 'bewitching-magic':
-      if (level < 10) return refuse(input, 'Завораживающая магия с 10 уровня колдуна')
+      if (level < 14) return refuse(input, 'Завораживающая магия с 14 уровня колдуна')
       return done(
         input,
         'Завораживающая магия: после заклинания Очарования или Иллюзии (ячейкой) сотвори «Туманный шаг» без ячейки в рамках того же действия.',
@@ -873,6 +882,27 @@ export function applyWarlock2024FeatureUse(input: Warlock2024UseInput): WarlockF
       return done(
         input,
         'Пробуждённый разум: телепатия с существом в 30 фт. (язык не нужен, вы должны видеть друг друга).',
+      )
+
+    case 'eldritch-hex':
+      if (level < 10) return refuse(input, 'Мистический сглаз с 10 уровня колдуна')
+      return done(
+        input,
+        'Мистический сглаз: «Сглаз» всегда подготовлен; пока цель под «Сглазом», у неё помеха на спасброски выбранной характеристики.',
+      )
+
+    case 'thought-shield':
+      if (level < 10) return refuse(input, 'Ментальный щит с 10 уровня колдуна')
+      return done(
+        input,
+        'Ментальный щит: мысли закрыты от телепатии/чтения; сопротивление психическому; при получении психического урона атакующий получает столько же.',
+      )
+
+    case 'create-thrall':
+      if (level < 14) return refuse(input, 'Порабощение с 14 уровня колдуна')
+      return done(
+        input,
+        'Порабощение: «Вызов аберрации» без концентрации на 1 минуту + временные хиты аберрации; доп. психический урон по цели под «Сглазом».',
       )
 
     case 'clairvoyant-combatant': {
@@ -941,7 +971,7 @@ export function applyWarlock2024FeatureUse(input: Warlock2024UseInput): WarlockF
     }
 
     case 'fiendish-resilience': {
-      if (level < 6) return refuse(input, 'Устойчивость исчадия с 6 уровня колдуна')
+      if (level < 10) return refuse(input, 'Устойчивость исчадия с 10 уровня колдуна')
       const type = (input.choice ?? '').trim()
       const row = FIENDISH_RESILIENCE_TYPES_2024.find((item) => item.id === type)
       if (!row) return refuse(input, 'Выбери тип урона (кроме силового)')
@@ -992,7 +1022,7 @@ export function applyWarlock2024FeatureUse(input: Warlock2024UseInput): WarlockF
     }
 
     case 'celestial-resilience': {
-      if (level < 6) return refuse(input, 'Небесная стойкость с 6 уровня колдуна')
+      if (level < 10) return refuse(input, 'Небесная стойкость с 10 уровня колдуна')
       const temp = celestialResilienceTempHp2024({ chaMod, warlockLevel: level })
       return done(
         input,
