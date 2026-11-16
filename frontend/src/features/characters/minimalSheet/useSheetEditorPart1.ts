@@ -20,6 +20,7 @@ import {
   resolveSubclassFeatureSlug,
   unlockFeaturesForClasses,
 } from '../../../shared/dnd/classFeatures'
+import { computeProgression2024 } from '../../../shared/dnd/edition2024Classes'
 import { martialArtsDieFromFeatures } from '../../../shared/dnd/martialArts'
 import { type FeatureSelfFormRequest, type WildShapeForkRequest } from '../ClassFeaturesPanel'
 import { characterHasMagicSources } from '../magicSources'
@@ -304,16 +305,30 @@ export function useSheetEditorPart1(model: SheetModel, props: MinimalSheetEditor
     return map
   }, [draft.subclassTransitions])
   model.subclassTransitionByEntryId = subclassTransitionByEntryId
+  const sheetRulesEdition = (baseCharacter.rules_edition || '2014') as RulesEdition
+  const progression2024 = useMemo(() => {
+    if (sheetRulesEdition !== '2024') return null
+    return computeProgression2024({
+      classes: draft.classes,
+      subclassSlugByEntryId,
+      abilities: draft.abilities,
+    })
+  }, [sheetRulesEdition, draft.classes, subclassSlugByEntryId, draft.abilities])
+  model.progression2024 = progression2024
   const unlockedFeatures = useMemo(
     () =>
-      unlockFeaturesForClasses({
-        classes: draft.classes,
-        characterLevel,
-        abilities: draft.abilities,
-        subclassSlugByEntryId,
-        subclassTransitionByEntryId,
-      }),
+      sheetRulesEdition === '2024' && progression2024
+        ? progression2024.features
+        : unlockFeaturesForClasses({
+            classes: draft.classes,
+            characterLevel,
+            abilities: draft.abilities,
+            subclassSlugByEntryId,
+            subclassTransitionByEntryId,
+          }),
     [
+      sheetRulesEdition,
+      progression2024,
       draft.classes,
       characterLevel,
       draft.abilities,
@@ -341,13 +356,17 @@ export function useSheetEditorPart1(model: SheetModel, props: MinimalSheetEditor
   )
   model.playActiveFeatures = playActiveFeatures
   const featureDesiredResources = useMemo(() => {
+    const baseDesired =
+      sheetRulesEdition === '2024' && progression2024
+        ? progression2024.desiredResources
+        : desiredResourcesFromFeatures({
+            features: playActiveFeatures,
+            characterLevel,
+            abilities: draft.abilities,
+            featurePicks: draft.featurePicks,
+          })
     const withStyle = appendSuperiorTechniqueResources({
-      desired: desiredResourcesFromFeatures({
-        features: playActiveFeatures,
-        characterLevel,
-        abilities: draft.abilities,
-        featurePicks: draft.featurePicks,
-      }),
+      desired: baseDesired,
       featurePicks: draft.featurePicks,
       classes: draft.classes,
     })
@@ -372,6 +391,8 @@ export function useSheetEditorPart1(model: SheetModel, props: MinimalSheetEditor
       ftdAllowed,
     })
   }, [
+    sheetRulesEdition,
+    progression2024,
     playActiveFeatures,
     characterLevel,
     draft.abilities,

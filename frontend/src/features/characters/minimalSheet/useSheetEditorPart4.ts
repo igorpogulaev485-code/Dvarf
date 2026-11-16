@@ -1003,6 +1003,7 @@ export function useSheetEditorPart4(model: SheetModel) {
     proficiencyBonus: model.proficiencyBonus,
     onChange: (spells) => model.setDraft((prev) => ({ ...prev, spells })),
     onToast: model.onToast,
+    rulesEdition: model.rulesEdition ?? model.baseCharacter?.rules_edition ?? '2014',
   })
   model.spellcastingSync = spellcastingSync
 

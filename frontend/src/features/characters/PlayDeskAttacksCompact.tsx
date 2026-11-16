@@ -1466,10 +1466,15 @@ export function PlayDeskAttacksCompact({
                       if (!turnEco || !actionSurgePool) return
                       if (resourceShownCurrent(actionSurgePool) <= 0) return
                       onSpendResource?.(actionSurgePool.id)
-                      turnEco.grantActionSurge()
+                      turnEco.grantActionSurge({
+                        blocksMagic:
+                          String(rulesEdition ?? '2014').trim() === '2024',
+                      })
                       onToast?.(
                         actionSurgeFeature
-                          ? `${actionSurgeFeature.name_ru}: +1 дополнительное действие`
+                          ? String(rulesEdition ?? '2014').trim() === '2024'
+                            ? `${actionSurgeFeature.name_ru}: +1 действие (не «Магия»)`
+                            : `${actionSurgeFeature.name_ru}: +1 дополнительное действие`
                           : 'Всплеск действий: +1 дополнительное действие',
                       )
                     },

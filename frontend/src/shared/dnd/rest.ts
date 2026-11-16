@@ -45,6 +45,8 @@ export type SheetResource = {
   rechargeDice?: string
   /** Shown when the last charge is spent. The sheet does not destroy the item. */
   depleteHint?: string
+  /** P24-M02a: on short rest regain N uses while reset remains long (Second Wind). */
+  shortRestRegain?: number
 }
 
 export function clampExhaustion(value: number): number {
@@ -71,6 +73,10 @@ export function clampResource(resource: SheetResource): SheetResource {
         .filter((value) => Number.isFinite(value))
         .map((value) => Math.min(20, Math.max(1, Math.floor(value))))
     : undefined
+  const shortRestRegain =
+    typeof resource.shortRestRegain === 'number' && Number.isFinite(resource.shortRestRegain)
+      ? Math.max(0, Math.floor(resource.shortRestRegain))
+      : undefined
   return {
     ...resource,
     max,
@@ -85,6 +91,9 @@ export function clampResource(resource: SheetResource): SheetResource {
     ...(resource.unlimited ? { unlimited: true, used: 0 } : { unlimited: undefined }),
     ...(rechargeDice ? { rechargeDice } : { rechargeDice: undefined }),
     ...(depleteHint ? { depleteHint } : { depleteHint: undefined }),
+    ...(shortRestRegain != null && shortRestRegain > 0
+      ? { shortRestRegain }
+      : { shortRestRegain: undefined }),
   }
 }
 
@@ -140,7 +149,20 @@ export function resetResourcesOnRest(
     if (resource.reset === 'manual') return resource
     // Dawn and midnight roll (or refill) in rechargeFormulaResources, not here.
     if (resource.reset === 'dawn' || resource.reset === 'midnight') return resource
-    if (kind === 'short' && resource.reset !== 'short') return resource
+    if (kind === 'short') {
+      if (resource.reset === 'short') {
+        return clearExpiredPack07Label({ ...resource, used: 0 })
+      }
+      // P24-M02a Second Wind: long-reset pool that regains N on short rest.
+      const regain = resource.shortRestRegain
+      if (typeof regain === 'number' && regain > 0 && resource.used > 0) {
+        return clearExpiredPack07Label({
+          ...resource,
+          used: Math.max(0, resource.used - regain),
+        })
+      }
+      return resource
+    }
     // long rest clears short- and long-reset resources
     return clearExpiredPack07Label({ ...resource, used: 0 })
   })

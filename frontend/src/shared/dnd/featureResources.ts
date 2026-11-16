@@ -39,6 +39,8 @@ export type DesiredFeatureResource = {
   classLabelRu?: string
   /** PHB rage at 20: the pool does not run out. */
   unlimited?: boolean
+  /** P24-M02a: regain N uses on short rest while reset stays long (Second Wind). */
+  shortRestRegain?: number
 }
 
 export function isFeatureManagedResourceId(id: string): boolean {
@@ -415,6 +417,7 @@ export function syncFeatureResources(
         reset: preserveManualLock ? 'manual' : want.reset,
         track: want.track,
         unlimited: want.unlimited || undefined,
+        shortRestRegain: want.shortRestRegain,
       }),
     )
   }
@@ -436,6 +439,7 @@ export function syncFeatureResources(
         reset: want.reset,
         track: want.track,
         unlimited: want.unlimited || undefined,
+        shortRestRegain: want.shortRestRegain,
       }),
     )
   }
