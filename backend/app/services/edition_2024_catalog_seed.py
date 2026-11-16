@@ -44,6 +44,12 @@ Schema contract for later packs (P24-00 lists → data packs):
 - Bastions (C12): ``bastions_dmg24``; ``kind=bastion``, ``source`` ``dmg24``
   → ``community_ref``; basic/special facilities, orders, rules card.
   Own short RU; ``name_ru_pending`` on facility/order names.
+- FRAiF/ABH/LFL/NsF (C18): ``creatures_fraif`` / ``magic_items_fraif`` /
+  ``backgrounds_abh`` / ``feats_abh`` / ``creatures_abh`` /
+  ``species_lfl`` / ``backgrounds_lfl`` / ``feats_lfl`` /
+  ``creatures_lfl`` / ``magic_items_nsf`` / ``creatures_nsf``;
+  sources ``fraif`` / ``abh`` / ``lfl`` / ``nsf`` → ``community_ref``.
+  Adventure prose/maps not seeded — catalog cards only.
 - ``source`` ``srd-5.2`` / ``srd-5.2.1`` stamps ``content_layer=srd``
 """
 
@@ -121,6 +127,18 @@ EDITION_2024_CATALOG_WAVES: tuple[WaveSpec, ...] = (
     WaveSpec("magic_items_frhof.json"),
     # P24-C12 — DMG 2024 Bastions (community_ref; own short RU)
     WaveSpec("bastions_dmg24.json"),
+    # P24-C18 — FRAiF / ABH / LFL / NsF catalog bundle (community_ref)
+    WaveSpec("creatures_fraif.json"),
+    WaveSpec("magic_items_fraif.json"),
+    WaveSpec("backgrounds_abh.json"),
+    WaveSpec("feats_abh.json"),
+    WaveSpec("creatures_abh.json"),
+    WaveSpec("species_lfl.json"),
+    WaveSpec("backgrounds_lfl.json"),
+    WaveSpec("feats_lfl.json"),
+    WaveSpec("creatures_lfl.json"),
+    WaveSpec("magic_items_nsf.json"),
+    WaveSpec("creatures_nsf.json"),
 )
 
 WEAPON_MASTERY_FILENAME = "weapon_mastery_srd.json"

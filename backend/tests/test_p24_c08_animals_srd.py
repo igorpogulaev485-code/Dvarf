@@ -21,7 +21,7 @@ LIVE = REPO_ROOT / "backend" / "data" / "srd" / "2024" / "live"
 
 SRD_MONSTER_COUNT = 235
 SRD_ANIMAL_COUNT = 95
-PLANNED_TOTAL = 863 + SRD_MONSTER_COUNT + SRD_ANIMAL_COUNT + 1 + 12 + 36 + 58 + 69 + 196 + 86 + 87 + 66 + 93 + 43  # C11 DMG items + C13 MM24 w1 + C14 MM24 w2 +C15 EFA +C17 FRHoF +C12 bastions
+PLANNED_TOTAL = 863 + SRD_MONSTER_COUNT + SRD_ANIMAL_COUNT + 1 + 12 + 36 + 58 + 69 + 196 + 86 + 87 + 66 + 93 + 43 + 111  # C11 DMG items + C13 MM24 w1 + C14 MM24 w2 +C15 EFA +C17 FRHoF +C12 bastions +C18
 
 ABILITIES = ("str", "dex", "con", "int", "wis", "cha")
 

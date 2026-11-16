@@ -45,6 +45,12 @@ SOURCE_BY_BOOK = {
     "LFL": "lfl",
     "NsF": "nsf",
 }
+BOOK_RU = {
+    "FRAiF": "Приключения в Фаэруне",
+    "ABH": "Книга голода Астариона",
+    "LFL": "Первый свет Лорвина",
+    "NsF": "Падение Нетерила",
+}
 EXPECTED = {
     "creatures_fraif.json": ("FRAiF", "creatures", 40),
     "magic_items_fraif.json": ("FRAiF", "magic_items", 12),
@@ -104,6 +110,7 @@ def polish_ru(text: str, *, limit: int | None = None) -> str:
     t = c17._compress_ru(fix_dice_ru(text))
     t = mm.clean_ru_text(t)
     t = re.sub(r";\.", ";", t)
+    t = re.sub(r"\.;", ".", t)
     if limit and len(t) > limit:
         return t[: limit - 1].rstrip() + "…"
     return t
@@ -156,7 +163,24 @@ def load_ttg_json(row: dict[str, str], category: str) -> dict | None:
 
 
 def strip_ttg_markup(text: str) -> str:
-    t = re.sub(r"\{@[^}]+\}", "", text or "")
+    """Keep visible label from {@tag Label|…} / {@tag Label}; drop tag chrome."""
+
+    def _tag_label(m: re.Match[str]) -> str:
+        inner = m.group(1)
+        # {@spell Огонь фей [Faerie Fire]|url:…} → Огонь фей
+        if "|" in inner:
+            inner = inner.split("|", 1)[0]
+        # drop leading tag name
+        parts = inner.split(None, 1)
+        if len(parts) == 2 and parts[0].isalpha() and parts[0].islower():
+            label = parts[1]
+        else:
+            label = inner
+        label = re.sub(r"\[[^\]]*\]", "", label).strip()
+        return label
+
+    t = text or ""
+    t = re.sub(r"\{@([^}]+)\}", _tag_label, t)
     t = re.sub(r"\{[^{}]*\}", "", t)
     t = unescape(t)
     t = re.sub(r"\s+", " ", t).strip()
@@ -217,7 +241,7 @@ def build_backgrounds(book: str) -> dict[str, Any]:
             c17.SKILL_EN_TO_RU.get(s, s) for s in skill_list
         )
         traits = (
-            f"{row['name_ru']} ({book}): {abi_ru} (+2/+1 или +1/+1/+1). "
+            f"{row['name_ru']} ({BOOK_RU[book]}): {abi_ru} (+2/+1 или +1/+1/+1). "
             f"Черта: {origin['name_ru']}. Навыки: {skills_ru}. "
             f"Инструмент: {tool_raw}. Пакет или 50 зм."
         )
@@ -281,16 +305,17 @@ def build_feats(book: str) -> dict[str, Any]:
         for key in ("summary_ru", "traits_text", "prerequisites_ru"):
             if data.get(key):
                 data[key] = polish_ru(data[key], limit=320 if key == "summary_ru" else 360)
-        # Book tag in traits_text
+        book_ru = BOOK_RU[book]
+        # Book tag in traits_text (C17 parse stamps «Герои Фаэруна»)
         data["traits_text"] = re.sub(
             r"\(Герои Фаэруна\)",
-            f"({book})",
+            f"({book_ru})",
             data.get("traits_text") or "",
         )
-        if f"({book})" not in (data.get("traits_text") or ""):
+        if f"({book_ru})" not in (data.get("traits_text") or ""):
             label = c17.CAT_LABEL.get(data["category"], "Черта")
             data["traits_text"] = polish_ru(
-                f"{label} ({book}): {data.get('summary_ru', row['name_ru'])}",
+                f"{label} ({book_ru}): {data.get('summary_ru', row['name_ru'])}",
                 limit=360,
             )
         ext: dict[str, Any] = {"book": book}
@@ -413,11 +438,112 @@ def parse_species_dndsu(html: str, row: dict[str, str]) -> dict[str, Any]:
     }
 
 
+TRAIT_SLUG_RU = {
+    "тип существа": "creature-type",
+    "тёмное зрение": "darkvision",
+    "темное зрение": "darkvision",
+    "наследие фей": "fey-ancestry",
+    "ярость маленьких": "fury-of-the-small",
+    "мелкая ярость": "fury-of-the-small",
+    "ловкий побег": "nimble-escape",
+    "шустрый побег": "nimble-escape",
+    "эльфийское происхождение": "elven-lineage",
+    "обострённые чувства": "keen-senses",
+    "обостренные чувства": "keen-senses",
+    "транс": "trance",
+    "магия фей": "fey-magic",
+    "полёт": "flight",
+    "полет": "flight",
+    "сопротивление к огню": "fire-resistance",
+    "сопротивление огню": "fire-resistance",
+    "прикосновение к пламени": "reach-to-the-blaze",
+    "храбрый": "brave",
+    "проворство полурослика": "halfling-nimbleness",
+    "удачливый": "luck",
+    "природная скрытность": "naturally-stealthy",
+    "происхождение киткинов": "kithkin-lineage",
+    "изменить себя": "shape-self",
+    "формование": "shape-self",
+    "очаровательный имитатор": "delightful-imitator",
+    "непредсказуемое движение": "unpredictable-movement",
+    "магия холодного пламени": "cold-fire-magic",
+    "магия ледяного огня": "cold-fire-magic",
+    "сопротивление холоду": "cold-resistance",
+    "происхождение феери": "faerie-lineage",
+    "происхождение фейри": "faerie-lineage",
+    "происхождение фэйри": "faerie-lineage",
+}
+TYPE_RU_LABEL = {
+    "humanoid": "гуманоид",
+    "fey": "фея",
+    "aberration": "аберрация",
+    "elemental": "элементаль",
+    "beast": "зверь",
+    "celestial": "небожитель",
+    "construct": "конструкт",
+    "fiend": "исчадие",
+}
+SIZE_RU_LABEL = {
+    "tiny": "крошечный",
+    "small": "маленький",
+    "medium": "средний",
+    "large": "большой",
+    "huge": "огромный",
+    "gargantuan": "гигантский",
+}
+
+
+def _trait_slug(name_ru: str) -> str:
+    key = _norm(name_ru)
+    if key in TRAIT_SLUG_RU:
+        return TRAIT_SLUG_RU[key]
+    # Cyrillic → latin transliteration for stable machine ids
+    table = str.maketrans(
+        {
+            "а": "a",
+            "б": "b",
+            "в": "v",
+            "г": "g",
+            "д": "d",
+            "е": "e",
+            "ё": "e",
+            "ж": "zh",
+            "з": "z",
+            "и": "i",
+            "й": "y",
+            "к": "k",
+            "л": "l",
+            "м": "m",
+            "н": "n",
+            "о": "o",
+            "п": "p",
+            "р": "r",
+            "с": "s",
+            "т": "t",
+            "у": "u",
+            "ф": "f",
+            "х": "h",
+            "ц": "ts",
+            "ч": "ch",
+            "ш": "sh",
+            "щ": "sch",
+            "ъ": "",
+            "ы": "y",
+            "ь": "",
+            "э": "e",
+            "ю": "yu",
+            "я": "ya",
+        }
+    )
+    slug = key.translate(table)
+    slug = re.sub(r"[^a-z0-9]+", "-", slug).strip("-")
+    return slug or "trait"
+
+
 def parse_species_ttg(payload: dict, row: dict[str, str]) -> dict[str, Any]:
     props = payload.get("properties") or {}
     type_ru = (props.get("type") or "Гуманоид").lower()
     creature_type = SPECIES_TYPE_RU.get(_norm(type_ru.split()[0]), "humanoid")
-    size = "medium"
     size_options: list[str] = []
     for s in props.get("sizes") or []:
         st = (s.get("type") or "").upper()
@@ -425,20 +551,47 @@ def parse_species_ttg(payload: dict, row: dict[str, str]) -> dict[str, Any]:
             size_options.append("medium")
         elif st == "SMALL":
             size_options.append("small")
+        elif st == "TINY":
+            size_options.append("tiny")
     if not size_options:
-        size_options = ["medium"]
-    size = size_options[0]
+        # fallback from free-text size
+        raw = _norm(str(props.get("size") or ""))
+        for stem, key in SIZE_RU_MAP.items():
+            if stem in raw:
+                size_options.append(key)
+        if not size_options:
+            size_options = ["medium"]
+    # Prefer medium as primary when both small/medium offered (EFA pattern),
+    # else first listed.
+    size = "medium" if "medium" in size_options else size_options[0]
+    size_options = list(dict.fromkeys(size_options))
     speed = int((props.get("movement") or {}).get("base") or 30)
-    darkvision = props.get("darkVision") or props.get("darkvision")
+    darkvision = props.get("darkVision")
+    if darkvision is None:
+        darkvision = props.get("darkvision")
     if darkvision is not None:
-        darkvision = int(darkvision)
+        try:
+            darkvision = int(darkvision)
+        except (TypeError, ValueError):
+            darkvision = None
+        if darkvision is not None and darkvision <= 0:
+            darkvision = None
     traits: list[str] = []
     trait_bits: list[str] = []
     for feat in payload.get("features") or []:
-        name = (feat.get("name") or {}).get("rus") or feat.get("url") or ""
-        name = str(name).strip()
-        slug = re.sub(r"[^a-z0-9]+", "-", (feat.get("url") or name).lower()).strip("-")
-        traits.append(slug or "trait")
+        name_obj = feat.get("name")
+        if isinstance(name_obj, dict):
+            name = (name_obj.get("rus") or name_obj.get("eng") or "").strip()
+        else:
+            name = str(name_obj or feat.get("url") or "").strip()
+        if not name:
+            continue
+        # Skip duplicate «Тип существа» header that only restates creature type
+        # when already captured in creature_type — keep it if it adds goblinoid etc.
+        slug = _trait_slug(name)
+        if slug in traits:
+            continue
+        traits.append(slug)
         desc = feat.get("description")
         if isinstance(desc, list):
             desc_text = " ".join(
@@ -448,9 +601,11 @@ def parse_species_ttg(payload: dict, row: dict[str, str]) -> dict[str, Any]:
             desc_text = strip_ttg_markup(str(desc or ""))
         first = re.split(r"(?<=[.!?])\s+", desc_text)[0] if desc_text else ""
         trait_bits.append(polish_ru(f"{name}: {first}", limit=140) if first else name)
+    type_label = TYPE_RU_LABEL.get(creature_type, creature_type)
+    size_label = "/".join(SIZE_RU_LABEL.get(s, s) for s in size_options)
     traits_text = (
-        f"{row['name_ru']} (LFL): {creature_type}, "
-        f"{'/'.join(size_options)}, {speed} фт. " + " ".join(trait_bits[:5])
+        f"{row['name_ru']} ({BOOK_RU['LFL']}): {type_label}, {size_label}, {speed} фт. "
+        + " ".join(trait_bits[:5])
     )
     return {
         "creature_type": creature_type,
@@ -467,29 +622,19 @@ def parse_species_ttg(payload: dict, row: dict[str, str]) -> dict[str, Any]:
 
 
 def build_species() -> dict[str, Any]:
+    """Prefer TTG JSON for all LFL species (stable darkvision / feature names)."""
     rows = _book_rows("species.csv", "LFL")
     entries = []
     for i, row in enumerate(rows):
-        if row["id"] == "elf__lfl":
-            payload = load_ttg_json(row, "species")
-            if not payload:
-                raise RuntimeError("elf__lfl: missing ttg cache")
-            data = parse_species_ttg(payload, row)
-            ext = {
-                "url_dndsu": None,
-                "url_ttg": row.get("url_ttg"),
-                "book": "LFL",
-            }
-        else:
-            html = load_dndsu_html(row, "species")
-            if not html:
-                raise RuntimeError(f"species missing html: {row['id']}")
-            data = parse_species_dndsu(html, row)
-            ext = {
-                "url_dndsu": (row.get("url_dndsu") or "").rstrip("/") or None,
-                "url_ttg": row.get("url_ttg") or None,
-                "book": "LFL",
-            }
+        payload = load_ttg_json(row, "species")
+        if not payload:
+            raise RuntimeError(f"species missing ttg: {row['id']}")
+        data = parse_species_ttg(payload, row)
+        ext = {
+            "url_dndsu": (row.get("url_dndsu") or "").rstrip("/") or None,
+            "url_ttg": row.get("url_ttg") or None,
+            "book": "LFL",
+        }
         entries.append(
             {
                 "kind": "race",
@@ -507,7 +652,7 @@ def build_species() -> dict[str, Any]:
             "pack": PACK,
             "rules_edition": "2024",
             "source": "lfl",
-            "notes_ru": "7 видов LFL. elf__lfl с ttg; остальные — next.dnd.su.",
+            "notes_ru": "7 видов LFL по TTG API v2 (darkvision/traits); RU-имена из species.csv.",
         },
         "entries": entries,
     }

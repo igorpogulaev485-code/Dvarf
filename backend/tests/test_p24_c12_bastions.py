@@ -25,7 +25,21 @@ BASTION_RULES = 1
 BASTION_TOTAL = BASTION_BASIC + BASTION_SPECIAL + BASTION_ORDERS + BASTION_RULES  # 43
 FRHOF_TOTAL = 93
 PLANNED_TOTAL = (
-    863 + 235 + 95 + 1 + 12 + 36 + 58 + 69 + 196 + 86 + 87 + 66 + FRHOF_TOTAL + BASTION_TOTAL
+    863
+    + 235
+    + 95
+    + 1
+    + 12
+    + 36
+    + 58
+    + 69
+    + 196
+    + 86
+    + 87
+    + 66
+    + FRHOF_TOTAL
+    + BASTION_TOTAL
+    + 111  # +C18 FRAiF/ABH/LFL/NsF
 )
 
 SPECIAL_TOTALS = {5: 2, 9: 4, 13: 5, 17: 6}
@@ -250,10 +264,11 @@ def test_alembic_single_head_includes_p24_c12():
     script = ScriptDirectory.from_config(cfg)
     heads = script.get_heads()
     assert len(heads) == 1, f"expected one alembic head, got {heads}"
-    assert heads[0] == "p24c12bast01"
+    assert heads[0] in {"p24c12bast01", "p24c18fraif01"}
     ancestor_ids = {
         rev.revision for rev in script.walk_revisions(base="base", head=heads[0])
     }
     assert "p24c12bast01" in ancestor_ids
+    assert "p24c18fraif01" in ancestor_ids
     assert "p24c17frh01" in ancestor_ids
     assert "p24c15efa01" in ancestor_ids

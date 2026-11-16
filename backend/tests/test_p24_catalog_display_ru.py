@@ -40,6 +40,17 @@ WAVE_FILES = (
     "spells_frhof.json",
     "equipment_frhof.json",
     "magic_items_frhof.json",
+    "creatures_fraif.json",
+    "magic_items_fraif.json",
+    "backgrounds_abh.json",
+    "feats_abh.json",
+    "creatures_abh.json",
+    "species_lfl.json",
+    "backgrounds_lfl.json",
+    "feats_lfl.json",
+    "creatures_lfl.json",
+    "magic_items_nsf.json",
+    "creatures_nsf.json",
 )
 
 DISPLAY_LEAVES = frozenset(

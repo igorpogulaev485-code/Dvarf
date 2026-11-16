@@ -3,7 +3,7 @@
     "pack": "P24-C18",
     "rules_edition": "2024",
     "source": "lfl",
-    "notes_ru": "7 видов LFL. elf__lfl с ttg; остальные — next.dnd.su."
+    "notes_ru": "7 видов LFL по TTG API v2 (darkvision/traits); RU-имена из species.csv."
   },
   "entries": [
     {
@@ -25,18 +25,18 @@
           "small"
         ],
         "speed": 30,
-        "darkvision": 4,
+        "darkvision": 60,
         "ability_bonuses": {},
         "languages": [],
         "languages_choose": 0,
         "traits": [
-          "creatute-type",
+          "creature-type",
           "darkvision",
           "fey-ancestry",
           "fury-of-the-small",
           "nimble-escape"
         ],
-        "traits_text": "Боггарт (LFL): humanoid, small, 30 фт. Тип существа: Помимо того, что вы Гуманоид, вы также считаетесь гоблиноидом для условий и эффектов,…"
+        "traits_text": "Боггарт (Первый свет Лорвина): гуманоид, маленький, 30 фт. Тип существа: Вы являетесь гуманоидом. Тёмное зрение: Вы обладаете тёмным зрение…"
       }
     },
     {
@@ -63,13 +63,13 @@
         "languages": [],
         "languages_choose": 0,
         "traits": [
-          "trait",
-          "trait",
-          "trait",
-          "trait",
-          "trait"
+          "darkvision",
+          "elven-lineage",
+          "fey-ancestry",
+          "keen-senses",
+          "trance"
         ],
-        "traits_text": "Эльф (LFL): humanoid, medium, 30 фт. Тёмное зрение: Вы обладаете с дистанцией 60 фт. Эльфийское происхождение: Вы принадлежите к родословно…"
+        "traits_text": "Эльф (Первый свет Лорвина): гуманоид, средний, 30 фт. Тёмное зрение: Вы обладаете тёмным зрением с дистанцией 60 фт. Эльфийское происхожден…"
       }
     },
     {
@@ -97,9 +97,10 @@
         "languages_choose": 0,
         "traits": [
           "fey-magic",
-          "flight"
+          "flight",
+          "faerie-lineage"
         ],
-        "traits_text": "Феери (LFL): fey, small, 30 фт. Магия фей: Вы знаете заговор Искусство друидов. Когда вы достигаете 3-го уровня персонажа, вы изучаете закл…"
+        "traits_text": "Феери (Первый свет Лорвина): фея, маленький, 30 фт. Магия фей: Вы знаете заговор Искусство друидов. Полёт: Благодаря своим крыльям вы облад…"
       }
     },
     {
@@ -122,7 +123,7 @@
           "medium"
         ],
         "speed": 30,
-        "darkvision": 30,
+        "darkvision": 60,
         "ability_bonuses": {},
         "languages": [],
         "languages_choose": 0,
@@ -131,7 +132,7 @@
           "fire-resistance",
           "reach-to-the-blaze"
         ],
-        "traits_text": "Огневик (LFL): humanoid, small/medium, 30 фт. Тёмное зрение: Вы обладаете Тёмным зрением дальностью 60 футов. Сопротивление огню: Вы облада…"
+        "traits_text": "Огневик (Первый свет Лорвина): гуманоид, маленький/средний, 30 фт. Тёмное зрение: Вы обладаете тёмным зрением с дистанцией 60 фт. Сопротивл…"
       }
     },
     {
@@ -148,13 +149,12 @@
       },
       "data": {
         "creature_type": "humanoid",
-        "size": "medium",
+        "size": "small",
         "size_options": [
-          "small",
-          "medium"
+          "small"
         ],
         "speed": 30,
-        "darkvision": 30,
+        "darkvision": null,
         "ability_bonuses": {},
         "languages": [],
         "languages_choose": 0,
@@ -163,13 +163,9 @@
           "halfling-nimbleness",
           "luck",
           "naturally-stealthy",
-          "darkvision",
-          "brave",
-          "halfling-nimbleness",
-          "luck",
-          "naturally-stealthy"
+          "kithkin-lineage"
         ],
-        "traits_text": "Свояк (LFL): humanoid, small/medium, 30 фт. Храбрый: Вы совершаете с Преимуществом спасброски на избежание или окончание состояния Испуганн…"
+        "traits_text": "Свояк (Первый свет Лорвина): гуманоид, маленький, 30 фт. Храбрый: Вы совершаете с преимуществом спасброски для избежания или прекращения со…"
       }
     },
     {
@@ -185,24 +181,24 @@
         "book": "LFL"
       },
       "data": {
-        "creature_type": "humanoid",
+        "creature_type": "fey",
         "size": "medium",
         "size_options": [
           "small",
           "medium"
         ],
         "speed": 30,
-        "darkvision": 7,
+        "darkvision": 120,
         "ability_bonuses": {},
         "languages": [],
         "languages_choose": 0,
         "traits": [
-          "darkvision",
           "shape-self",
+          "darkvision",
           "delightful-imitator",
           "unpredictable-movement"
         ],
-        "traits_text": "Пересад Лорвина (LFL): humanoid, small/medium, 30 фт. Тёмное зрение: Вы обладаете Тёмным зрением дальностью 120 футов. Формование: Вы может…"
+        "traits_text": "Пересад Лорвина (Первый свет Лорвина): фея, маленький/средний, 30 фт. Изменить себя: Действием вы можете изменить форму своего тела, приним…"
       }
     },
     {
@@ -225,16 +221,16 @@
           "medium"
         ],
         "speed": 30,
-        "darkvision": 7,
+        "darkvision": 60,
         "ability_bonuses": {},
         "languages": [],
         "languages_choose": 0,
         "traits": [
-          "darkvision",
           "cold-fire-magic",
-          "cold-resistance"
+          "cold-resistance",
+          "darkvision"
         ],
-        "traits_text": "Измороз (LFL): humanoid, small/medium, 30 фт. Тёмное зрение: У вас есть Тёмное зрение дальностью 60 футов. Магия ледяного огня: Вы также зн…"
+        "traits_text": "Измороз (Первый свет Лорвина): гуманоид, маленький/средний, 30 фт. Магия холодного пламени: Вы знаете заговор Луч холода. Сопротивление хол…"
       }
     }
   ]

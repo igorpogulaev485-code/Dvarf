@@ -213,7 +213,17 @@ def test_seed_rows_are_edition_2024_only():
             "bastion",
         }
         src = str(row["source"])
-        assert src.startswith("srd") or src in {"ph24", "dmg24", "mm24", "efa", "frhof"}
+        assert src.startswith("srd") or src in {
+            "ph24",
+            "dmg24",
+            "mm24",
+            "efa",
+            "frhof",
+            "fraif",
+            "abh",
+            "lfl",
+            "nsf",
+        }
 
 
 def test_apply_seed_idempotent_with_fake_conn():
