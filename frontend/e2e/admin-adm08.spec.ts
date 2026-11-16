@@ -1,28 +1,15 @@
 import { expect, test } from '@playwright/test'
+import {
+  buildLast30Daily,
+  formatDayLabel,
+  shiftIsoDate,
+  yekaterinburgTodayIso,
+} from './adminMetricsDaily'
 
-function buildDaily() {
-  const days: Array<{
-    date: string
-    signups: number
-    logins_unique: number
-    characters_created: number
-    lobbies_created: number
-    play_started: number
-  }> = []
-  for (let i = 0; i < 30; i += 1) {
-    const d = new Date(Date.UTC(2026, 10, 1 + i))
-    const iso = d.toISOString().slice(0, 10)
-    days.push({
-      date: iso,
-      signups: i === 15 ? 3 : i === 29 ? 2 : 0,
-      logins_unique: i === 29 ? 4 : 0,
-      characters_created: i === 20 ? 5 : 0,
-      lobbies_created: i === 10 ? 1 : 0,
-      play_started: i === 12 ? 2 : 0,
-    })
-  }
-  return days
-}
+const DAILY = buildLast30Daily()
+const TODAY_ISO = DAILY[DAILY.length - 1].date
+const TODAY_LABEL = formatDayLabel(TODAY_ISO)
+const START_ISO = DAILY[0].date
 
 const METRICS = {
   period_days: 7,
@@ -47,7 +34,7 @@ const METRICS = {
   lobbies: { total: 6, new_in_period: 1 },
   sessions: { started_in_period: 2, closed_in_period: 1 },
   feedback_new: 0,
-  daily: buildDaily(),
+  daily: DAILY,
 }
 
 function catalogPage(page: number, pageSize: number, total = 5618) {
@@ -201,13 +188,19 @@ async function openSection(
 }
 
 test('ADM-08: графики с данными — ненулевая высота столбцов и подсказка', async ({ page }) => {
+  expect(TODAY_ISO).toBe(yekaterinburgTodayIso())
+  expect(START_ISO).toBe(shiftIsoDate(TODAY_ISO, -29))
+  expect(DAILY.every((d) => d.date <= TODAY_ISO)).toBe(true)
+  expect(DAILY.some((d) => d.date > TODAY_ISO)).toBe(false)
+
   await mockAdminShell(page)
   await openSection(page, 'Метрики', 'metrics')
   await expect(page.getByText('По дням (30 дней)')).toBeVisible()
   await expect(page.getByText('Итого за 30 дней: 5').first()).toBeVisible()
 
-  await page.locator('.ui-bar-chart').first().scrollIntoViewIfNeeded()
-  const tallHeight = await page.locator('.ui-bar-chart__bar').evaluateAll((nodes) => {
+  const chart = page.locator('.ui-bar-chart').first()
+  await chart.scrollIntoViewIfNeeded()
+  const tallHeight = await chart.locator('.ui-bar-chart__bar').evaluateAll((nodes) => {
     let max = 0
     for (const node of nodes) {
       const h = Number.parseFloat((node as HTMLElement).style.height || '0')
@@ -217,10 +210,18 @@ test('ADM-08: графики с данными — ненулевая высот
   })
   expect(tallHeight).toBeGreaterThan(0)
 
-  const col = page.locator('.ui-bar-chart__col').filter({ hasText: '16.11' }).first()
-  await col.scrollIntoViewIfNeeded()
-  await col.click()
-  await expect(page.getByText(/16\.11 — 3 регистрации/)).toBeVisible()
+  const labels = (await chart.locator('.ui-bar-chart__label').allTextContents())
+    .map((s) => s.trim())
+    .filter(Boolean)
+  expect(labels.at(-1)).toBe(TODAY_LABEL)
+  expect(labels[0]).toBe(formatDayLabel(START_ISO))
+
+  const cols = chart.locator('.ui-bar-chart__col')
+  await expect(cols).toHaveCount(30)
+  await cols.last().click()
+  await expect(
+    page.getByText(new RegExp(`${TODAY_LABEL.replace('.', '\\.')} — 3 регистрации`)),
+  ).toBeVisible()
 })
 
 test('ADM-08: пагинатор — номера, переход, размер, адрес', async ({ page }) => {

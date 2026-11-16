@@ -1,6 +1,5 @@
 import { useState, type FormEvent } from 'react'
 import { Button } from './Button'
-import { Field } from './Field'
 import { Input } from './Input'
 import { Select } from './Select'
 import { Text } from './Text'
@@ -177,31 +176,41 @@ export function Pagination({
 
       <div className="ui-pagination__tools">
         <form className="ui-pagination__jump" onSubmit={submitJump}>
-          <Field label="Перейти к странице" htmlFor="ui-pagination-jump">
-            <Input
-              id="ui-pagination-jump"
-              type="number"
-              inputMode="numeric"
-              min={1}
-              max={safeTotalPages}
-              className="ui-input--sm"
-              narrow
-              value={jumpDraft}
-              onChange={(e) => setJumpDraft(e.target.value)}
-              aria-label="Номер страницы"
-            />
-          </Field>
+          <Text as="span" tone="muted" className="ui-pagination__tools-label">
+            Перейти к
+          </Text>
+          <Input
+            id="ui-pagination-jump"
+            type="number"
+            inputMode="numeric"
+            min={1}
+            max={safeTotalPages}
+            size="sm"
+            narrow
+            placeholder="№"
+            value={jumpDraft}
+            onChange={(e) => setJumpDraft(e.target.value)}
+            aria-label="Номер страницы"
+            className="ui-pagination__jump-input"
+          />
           <Button type="submit" variant="secondary" size="sm">
             Перейти
           </Button>
         </form>
-        <Field label="На странице" htmlFor="ui-pagination-size">
+        <Text as="span" tone="muted" className="ui-pagination__tools-sep" aria-hidden>
+          ·
+        </Text>
+        <label className="ui-pagination__size" htmlFor="ui-pagination-size">
+          <Text as="span" tone="muted" className="ui-pagination__tools-label">
+            На странице
+          </Text>
           <Select
             id="ui-pagination-size"
             size="sm"
             value={String(pageSize)}
             onChange={(e) => onPageSizeChange(Number(e.target.value))}
             aria-label="Размер страницы"
+            className="ui-pagination__size-select"
           >
             {pageSizeOptions.map((size) => (
               <option key={size} value={size}>
@@ -209,7 +218,7 @@ export function Pagination({
               </option>
             ))}
           </Select>
-        </Field>
+        </label>
       </div>
     </nav>
   )

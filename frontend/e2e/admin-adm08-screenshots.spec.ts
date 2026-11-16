@@ -1,32 +1,12 @@
 import { expect, test } from '@playwright/test'
 import { mkdirSync } from 'node:fs'
 import { join } from 'node:path'
+import { buildLast30DailyDense, formatDayLabel } from './adminMetricsDaily'
 
 const OUT = process.env.ADM_SHOT_DIR || '/opt/cursor/artifacts/adm-08'
 
-function buildDaily() {
-  const days: Array<{
-    date: string
-    signups: number
-    logins_unique: number
-    characters_created: number
-    lobbies_created: number
-    play_started: number
-  }> = []
-  for (let i = 0; i < 30; i += 1) {
-    const d = new Date(Date.UTC(2026, 10, 1 + i))
-    const iso = d.toISOString().slice(0, 10)
-    days.push({
-      date: iso,
-      signups: i === 15 ? 3 : i % 5 === 0 ? 2 : 0,
-      logins_unique: i % 3 === 0 ? 4 : 1,
-      characters_created: i % 4 === 0 ? 3 : 0,
-      lobbies_created: i % 7 === 0 ? 1 : 0,
-      play_started: i % 6 === 0 ? 2 : 0,
-    })
-  }
-  return days
-}
+const DAILY = buildLast30DailyDense()
+const TODAY_LABEL = formatDayLabel(DAILY[DAILY.length - 1].date)
 
 const METRICS = {
   period_days: 7,
@@ -51,7 +31,7 @@ const METRICS = {
   lobbies: { total: 6, new_in_period: 1 },
   sessions: { started_in_period: 2, closed_in_period: 1 },
   feedback_new: 1,
-  daily: buildDaily(),
+  daily: DAILY,
 }
 
 function catalogPage(page: number, pageSize: number, total = 5618) {
@@ -213,10 +193,12 @@ test('ADM-08 screenshots', async ({ page }) => {
 
   await page.setViewportSize({ width: 1440, height: 900 })
   await openSection(page, 'Метрики', 'metrics')
-  await page.locator('.ui-bar-chart').first().scrollIntoViewIfNeeded()
-  const tipCol = page.locator('.ui-bar-chart__col').filter({ hasText: '16.11' }).first()
-  await tipCol.click()
-  await expect(page.getByText(/16\.11 — 3 регистрации/)).toBeVisible()
+  const chart = page.locator('.ui-bar-chart').first()
+  await chart.scrollIntoViewIfNeeded()
+  await chart.locator('.ui-bar-chart__col').last().click()
+  await expect(
+    page.getByText(new RegExp(`${TODAY_LABEL.replace('.', '\\.')} — 3 регистрации`)),
+  ).toBeVisible()
   await page.screenshot({
     path: join(OUT, 'a1440-metrics-charts.png'),
     fullPage: false,

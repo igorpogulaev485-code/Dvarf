@@ -2,7 +2,7 @@ import type { InputHTMLAttributes } from 'react'
 
 export type InputSize = 'sm' | 'md' | 'lg'
 
-type InputProps = InputHTMLAttributes<HTMLInputElement> & {
+type InputProps = Omit<InputHTMLAttributes<HTMLInputElement>, 'size'> & {
   /** Kit control rhythm; default matches legacy field padding. */
   size?: InputSize
   /** Compact width for amount / «Число» fields — placeholder stays readable. */

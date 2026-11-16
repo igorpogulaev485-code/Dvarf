@@ -18,13 +18,32 @@ type BarChartProps = {
   caption?: ReactNode
   /** Подпись итога (по умолчанию «Итого за 30 дней»). */
   totalLabel?: string
+  /**
+   * Как часто показывать подпись даты: `auto` — все при ≤14, иначе первая/последняя/каждая 5-я.
+   * Число — шаг (1 = все).
+   */
+  labelEvery?: number | 'auto'
   className?: string
+}
+
+function shouldShowLabel(
+  index: number,
+  total: number,
+  labelEvery: number | 'auto',
+): boolean {
+  if (total <= 0) return false
+  if (labelEvery === 'auto') {
+    if (total <= 14) return true
+    return index === 0 || index === total - 1 || index % 5 === 0
+  }
+  const step = Math.max(1, Math.floor(labelEvery))
+  return index === 0 || index === total - 1 || index % step === 0
 }
 
 /**
  * Столбцы UI-кита (ADM-03 / ADM-08).
  * Итог и максимум над рядом; подсказка по наведению / тапу.
- * Горизонтальная прокрутка внутри рамки — страница не уезжает вбок на 390.
+ * 30 дней умещаются в ширину рамки (подписи разрежены); без горизонтального обрезания.
  */
 export function BarChart({
   items,
@@ -32,6 +51,7 @@ export function BarChart({
   emptyLabel = 'Пока нет данных',
   caption,
   totalLabel = 'Итого за 30 дней',
+  labelEvery = 'auto',
   className = '',
 }: BarChartProps) {
   const tipId = useId()
@@ -78,7 +98,7 @@ export function BarChart({
         <Text tone="muted">{emptyLabel}</Text>
       ) : (
         <div
-          className="ui-bar-chart__scroll"
+          className="ui-bar-chart__frame"
           role="img"
           aria-label="Столбцы по дням"
           aria-describedby={tipText ? tipId : undefined}
@@ -92,6 +112,7 @@ export function BarChart({
               const ratio = Math.max(0, Math.min(1, item.value / safeMax))
               const barH = Math.round(ratio * (height - 28))
               const tip = item.title ?? `${item.label}: ${item.value}`
+              const showLabel = shouldShowLabel(index, items.length, labelEvery)
               return (
                 <button
                   key={`${item.label}-${index}`}
@@ -113,7 +134,9 @@ export function BarChart({
                     style={{ height: `${Math.max(item.value > 0 ? 4 : 0, barH)}px` }}
                     aria-hidden
                   />
-                  <span className="ui-bar-chart__label">{item.label}</span>
+                  <span className="ui-bar-chart__label" aria-hidden={!showLabel}>
+                    {showLabel ? item.label : ''}
+                  </span>
                 </button>
               )
             })}

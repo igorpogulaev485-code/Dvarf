@@ -1436,23 +1436,21 @@ a.ui-button--primary {
   min-width: 0;
 }
 
-.ui-bar-chart__scroll {
+.ui-bar-chart__frame {
   position: relative;
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
   grid-template-rows: auto auto;
-  column-gap: 8px;
+  column-gap: 6px;
   row-gap: 6px;
   width: 100%;
   max-width: 100%;
-  overflow-x: auto;
-  overflow-y: hidden;
+  overflow: hidden;
   border: 1px solid var(--line);
   border-radius: 12px;
   background: var(--card);
-  padding: 10px 12px 8px;
+  padding: 10px 10px 8px;
   box-sizing: border-box;
-  -webkit-overflow-scrolling: touch;
 }
 
 .ui-bar-chart__axis {
@@ -1467,7 +1465,7 @@ a.ui-button--primary {
   color: var(--muted);
   font-variant-numeric: tabular-nums;
   padding-bottom: 1.2rem;
-  min-width: 1.5rem;
+  min-width: 1.25rem;
 }
 
 .ui-bar-chart__row {
@@ -1475,9 +1473,10 @@ a.ui-button--primary {
   grid-row: 1;
   display: flex;
   align-items: flex-end;
-  gap: 4px;
+  gap: 2px;
   width: 100%;
-  min-width: 100%;
+  min-width: 0;
+  max-width: 100%;
   box-sizing: border-box;
 }
 
@@ -1486,9 +1485,9 @@ a.ui-button--primary {
   flex-direction: column;
   align-items: center;
   justify-content: flex-end;
-  gap: 4px;
-  flex: 1 1 28px;
-  min-width: 28px;
+  gap: 2px;
+  flex: 1 1 0;
+  min-width: 0;
   width: auto;
   box-sizing: border-box;
   margin: 0;
@@ -1506,31 +1505,38 @@ a.ui-button--primary {
 }
 
 .ui-bar-chart__value {
-  font-size: 0.7rem;
+  font-size: 0.62rem;
   line-height: 1;
   color: var(--muted);
   font-variant-numeric: tabular-nums;
-  min-height: 0.7rem;
+  min-height: 0.62rem;
+  max-width: 100%;
+  overflow: hidden;
 }
 
 .ui-bar-chart__bar {
   display: block;
   width: 70%;
   max-width: 100%;
-  border-radius: 6px 6px 2px 2px;
+  border-radius: 4px 4px 1px 1px;
   background: var(--accent);
   min-height: 0;
 }
 
 .ui-bar-chart__label {
-  font-size: 0.65rem;
+  font-size: 0.58rem;
   line-height: 1.1;
   color: var(--muted);
   text-align: center;
   white-space: nowrap;
-  max-width: 100%;
-  overflow: hidden;
-  text-overflow: clip;
+  min-height: 1.1em;
+  /* Разреженные подписи могут чуть выходить за столбец — иначе на 390 видно только «18». */
+  max-width: none;
+  width: max-content;
+  overflow: visible;
+  position: relative;
+  left: 50%;
+  transform: translateX(-50%);
 }
 
 .ui-bar-chart__tip {
@@ -1587,16 +1593,61 @@ a.ui-button--primary {
 .ui-pagination__tools {
   display: flex;
   flex-wrap: wrap;
-  align-items: flex-end;
-  gap: 12px;
+  align-items: center;
+  gap: 8px 10px;
   min-width: 0;
 }
 
 .ui-pagination__jump {
   display: inline-flex;
-  flex-wrap: wrap;
-  align-items: flex-end;
-  gap: 8px;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.ui-pagination__tools-label {
+  margin: 0;
+  white-space: nowrap;
+}
+
+.ui-pagination__tools-sep {
+  margin: 0;
+}
+
+.ui-pagination__jump-input.ui-input,
+.ui-pagination__jump-input {
+  width: 3.5rem;
+  min-width: 3.25rem;
+  max-width: 3.75rem;
+  flex: 0 0 3.5rem;
+  padding-left: 6px;
+  padding-right: 6px;
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+
+.ui-pagination__jump-input::-webkit-outer-spin-button,
+.ui-pagination__jump-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.ui-pagination__size {
+  display: inline-flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  min-width: 0;
+}
+
+.ui-pagination__size-select.ui-input,
+.ui-pagination__size-select {
+  width: auto;
+  min-width: 4.5rem;
+  max-width: 6rem;
+  flex: 0 0 auto;
 }
 
 .ui-pagination__compact-label {
@@ -1621,7 +1672,11 @@ a.ui-button--primary {
   }
 
   .ui-pagination__tools {
-    gap: 8px;
+    gap: 6px 8px;
+  }
+
+  .ui-pagination__tools-sep {
+    display: none;
   }
 }
 
