@@ -41,8 +41,40 @@ const snap = computeProgression2024({
 assert.ok(snap.desiredResources.some((r) => r.id.includes('superiority_dice')))
 assert.ok(snap.features.some((f) => f.source === 'subclass'))
 
+const light = buildSubclassResources2024({
+  subclassSlug: 'cleric__light-domain',
+  classLevel: 6,
+  abilities: { wis: 16 },
+})
+assert.equal(light[0]?.pool_id, 'warding_flare')
+assert.equal(light[0]?.max, 3)
+assert.equal(light[0]?.reset, 'short')
+
+const champ = computeProgression2024({
+  classes: [
+    createClassLevel({
+      name: 'Воин',
+      level: 15,
+      catalog_id: 'fighter',
+      subclass_catalog_id: 'fighter__champion',
+      subclass_name: 'Чемпион',
+    }),
+  ],
+})
+assert.equal(champ.scales['fighter:crit_threshold'], 18)
+
+const cel = buildSubclassResources2024({
+  subclassSlug: 'warlock__celestial-patron',
+  classLevel: 5,
+  abilities: { cha: 16 },
+})
+assert.equal(cel[0]?.pool_id, 'healing_light')
+assert.equal(cel[0]?.max, 6)
+
 console.log('edition2024Subclasses.selfcheck: ok', {
   subclasses: slugs.length,
   bmDice: bm[0]?.max,
   alchSpells: alch.length,
+  lightFlare: light[0]?.max,
+  champCrit: champ.scales['fighter:crit_threshold'],
 })

@@ -156,6 +156,226 @@ export type SubclassResource2024 = {
   feature_id: string
 }
 
+export type SharedPoolOption2024 = {
+  feature_id: string
+  name_ru: string
+  spend_pool: string
+  cost: number
+  cost_max?: number
+  kind: string
+  min_level: number
+}
+
+export type PermanentBonus2024 = {
+  feature_id: string
+  name_ru: string
+  kind: string
+  value: unknown
+  min_level: number
+  note_ru?: string
+}
+
+const SHARED_OPTIONS_2024: Record<string, SharedPoolOption2024[]> = {
+  'cleric__light-domain': [
+    { feature_id: 'radiance-of-the-dawn', name_ru: 'Сияние рассвета', spend_pool: 'channel_divinity', cost: 1, kind: 'action', min_level: 3 },
+  ],
+  'cleric__life-domain': [
+    { feature_id: 'preserve-life', name_ru: 'Сохранение жизни', spend_pool: 'channel_divinity', cost: 1, kind: 'action', min_level: 3 },
+  ],
+  'cleric__war-domain': [
+    { feature_id: 'guided-strike', name_ru: 'Направленный удар', spend_pool: 'channel_divinity', cost: 1, kind: 'reaction', min_level: 3 },
+    { feature_id: 'war-gods-blessing', name_ru: 'Благословение бога войны', spend_pool: 'channel_divinity', cost: 1, kind: 'reaction', min_level: 6 },
+  ],
+  'cleric__trickery-domain': [
+    { feature_id: 'invoke-duplicity', name_ru: 'Двуличность', spend_pool: 'channel_divinity', cost: 1, kind: 'action', min_level: 3 },
+  ],
+  'cleric__knowledge-domain': [
+    { feature_id: 'mind-magic', name_ru: 'Магия разума', spend_pool: 'channel_divinity', cost: 1, kind: 'action', min_level: 3 },
+  ],
+  'cleric__arcana-domain': [
+    { feature_id: 'modify-magic', name_ru: 'Изменение магии', spend_pool: 'channel_divinity', cost: 1, kind: 'action', min_level: 3 },
+  ],
+  'cleric__grave-domain': [
+    { feature_id: 'path-to-the-grave', name_ru: 'Путь в могилу', spend_pool: 'channel_divinity', cost: 1, kind: 'action', min_level: 3 },
+  ],
+  'paladin__oath-of-devotion': [
+    { feature_id: 'sacred-weapon', name_ru: 'Священное оружие', spend_pool: 'channel_divinity', cost: 1, kind: 'bonus', min_level: 3 },
+  ],
+  'paladin__oath-of-the-ancients': [
+    { feature_id: 'natures-wrath', name_ru: 'Гнев природы', spend_pool: 'channel_divinity', cost: 1, kind: 'action', min_level: 3 },
+  ],
+  'paladin__oath-of-vengeance': [
+    { feature_id: 'vow-of-enmity', name_ru: 'Обет вражды', spend_pool: 'channel_divinity', cost: 1, kind: 'bonus', min_level: 3 },
+  ],
+  'paladin__oath-of-glory': [
+    { feature_id: 'inspiring-smite', name_ru: 'Вдохновляющая кара', spend_pool: 'channel_divinity', cost: 1, kind: 'bonus', min_level: 3 },
+    { feature_id: 'peerless-athlete', name_ru: 'Несравненный атлет', spend_pool: 'channel_divinity', cost: 1, kind: 'bonus', min_level: 3 },
+  ],
+  'paladin__oath-of-the-noble-genies': [
+    { feature_id: 'elemental-smite', name_ru: 'Стихийная кара', spend_pool: 'channel_divinity', cost: 1, kind: 'bonus', min_level: 3 },
+  ],
+  'bard__lore': [
+    { feature_id: 'cutting-words', name_ru: 'Острое словцо', spend_pool: 'bardic_inspiration', cost: 1, kind: 'reaction', min_level: 3 },
+  ],
+  'bard__glamour': [
+    { feature_id: 'mantle-of-inspiration', name_ru: 'Ореол вдохновения', spend_pool: 'bardic_inspiration', cost: 1, kind: 'bonus', min_level: 3 },
+  ],
+  'bard__valor': [
+    { feature_id: 'combat-inspiration', name_ru: 'Боевое вдохновение', spend_pool: 'bardic_inspiration', cost: 1, kind: 'passive', min_level: 3 },
+  ],
+  'bard__dance': [
+    { feature_id: 'inspiring-movement', name_ru: 'Вдохновляющие движения', spend_pool: 'bardic_inspiration', cost: 1, kind: 'reaction', min_level: 6 },
+    { feature_id: 'tandem-footwork', name_ru: 'Совместный танец', spend_pool: 'bardic_inspiration', cost: 1, kind: 'reaction', min_level: 6 },
+  ],
+  'bard__college-of-the-moon': [
+    { feature_id: 'moons-inspiration', name_ru: 'Вдохновение луны', spend_pool: 'bardic_inspiration', cost: 1, kind: 'bonus', min_level: 3 },
+  ],
+  'bard__college-of-the-spirits': [
+    { feature_id: 'spirits-from-beyond', name_ru: 'Духи извне', spend_pool: 'bardic_inspiration', cost: 1, kind: 'bonus', min_level: 3 },
+  ],
+  'monk__warrior-of-the-hand': [
+    { feature_id: 'open-hand-technique', name_ru: 'Техники открытой ладони', spend_pool: 'focus_points', cost: 1, kind: 'passive', min_level: 3 },
+  ],
+  'monk__warrior-of-mercy': [
+    { feature_id: 'hand-of-healing', name_ru: 'Исцеляющая рука', spend_pool: 'focus_points', cost: 1, kind: 'action', min_level: 3 },
+    { feature_id: 'hand-of-harm', name_ru: 'Повреждающая рука', spend_pool: 'focus_points', cost: 1, kind: 'passive', min_level: 3 },
+  ],
+  'monk__warrior-of-shadow': [
+    { feature_id: 'shadow-arts', name_ru: 'Тёмные искусства', spend_pool: 'focus_points', cost: 1, kind: 'action', min_level: 3 },
+    { feature_id: 'shadow-step', name_ru: 'Шаг в тень', spend_pool: 'focus_points', cost: 0, kind: 'bonus', min_level: 6 },
+  ],
+  'monk__warrior-of-the-elements': [
+    { feature_id: 'elemental-attunement', name_ru: 'Сродство со стихиями', spend_pool: 'focus_points', cost: 1, kind: 'bonus', min_level: 3 },
+    { feature_id: 'elemental-burst', name_ru: 'Стихийный выброс', spend_pool: 'focus_points', cost: 1, kind: 'action', min_level: 6 },
+  ],
+  'monk__warrior-of-the-mystic-arts': [
+    { feature_id: 'mystic-focus', name_ru: 'Мистический фокус', spend_pool: 'focus_points', cost: 1, kind: 'bonus', min_level: 6 },
+    { feature_id: 'focused-strike', name_ru: 'Сосредоточенный удар', spend_pool: 'focus_points', cost: 1, kind: 'passive', min_level: 11 },
+  ],
+  'druid__land': [
+    { feature_id: 'lands-aid', name_ru: 'Помощь земли', spend_pool: 'wild_shape', cost: 1, kind: 'action', min_level: 3 },
+    { feature_id: 'natures-sanctuary', name_ru: 'Природное убежище', spend_pool: 'wild_shape', cost: 1, kind: 'action', min_level: 14 },
+  ],
+  'druid__stars': [
+    { feature_id: 'starry-form', name_ru: 'Звёздный облик', spend_pool: 'wild_shape', cost: 1, kind: 'bonus', min_level: 3 },
+  ],
+  'druid__sea': [
+    { feature_id: 'wrath-of-the-sea', name_ru: 'Гнев моря', spend_pool: 'wild_shape', cost: 1, kind: 'bonus', min_level: 3 },
+  ],
+  'sorcerer__wild-magic-sorcery': [
+    { feature_id: 'bend-luck', name_ru: 'Искривление удачи', spend_pool: 'sorcery_points', cost: 1, kind: 'reaction', min_level: 6 },
+  ],
+  'sorcerer__clockwork-sorcery': [
+    { feature_id: 'bastion-of-law', name_ru: 'Бастион закона', spend_pool: 'sorcery_points', cost: 1, cost_max: 5, kind: 'action', min_level: 6 },
+  ],
+  'sorcerer__aberrant-sorcery': [
+    { feature_id: 'psionic-sorcery', name_ru: 'Псионическое колдовство', spend_pool: 'sorcery_points', cost: 1, kind: 'passive', min_level: 6 },
+  ],
+  'sorcerer__spellfire-sorcery': [
+    { feature_id: 'spellfire-burst', name_ru: 'Вспышка огня заклинаний', spend_pool: 'sorcery_points', cost: 1, kind: 'bonus', min_level: 3 },
+  ],
+  'sorcerer__shadow-sorcery': [
+    { feature_id: 'beasts-of-ill-omen', name_ru: 'Звери дурного знамения', spend_pool: 'sorcery_points', cost: 1, kind: 'action', min_level: 6 },
+  ],
+  'fighter__banneret': [
+    { feature_id: 'group-recovery', name_ru: 'Групповое оздоровление', spend_pool: 'second_wind', cost: 1, kind: 'passive', min_level: 3 },
+  ],
+}
+
+export function sharedOptionsForSubclass2024(
+  subclassSlug: string,
+  classLevel: number,
+): SharedPoolOption2024[] {
+  return (SHARED_OPTIONS_2024[subclassSlug] || []).filter((o) => classLevel >= o.min_level)
+}
+
+export function buildPermanentBonuses2024(input: {
+  subclassSlug: string
+  classLevel: number
+  abilities?: Partial<Record<'str' | 'dex' | 'con' | 'int' | 'wis' | 'cha', number>>
+}): PermanentBonus2024[] {
+  const { subclassSlug, classLevel } = input
+  const ab = input.abilities || {}
+  const out: PermanentBonus2024[] = []
+  const add = (
+    feature_id: string,
+    name_ru: string,
+    kind: string,
+    value: unknown,
+    min_level = 3,
+    note_ru = '',
+  ) => {
+    if (classLevel < min_level) return
+    out.push({ feature_id, name_ru, kind, value, min_level, note_ru })
+  }
+  if (subclassSlug === 'fighter__champion') {
+    add('improved-critical', 'Улучшенные критические попадания', 'crit_threshold', 19)
+    if (classLevel >= 15) add('superior-critical', 'Превосходные критические попадания', 'crit_threshold', 18, 15)
+    add('remarkable-athlete', 'Выдающийся атлет', 'initiative_advantage', true)
+  }
+  if (subclassSlug === 'sorcerer__draconic-sorcery') {
+    add('draconic-resilience', 'Драконья устойчивость', 'ac_formula', {
+      base: 10,
+      mods: ['dex', 'cha'],
+      allows_shield: true,
+      requires_no_armor: true,
+    })
+    add('draconic-resilience', 'Драконья устойчивость (хиты)', 'hp_per_level', 1)
+  }
+  if (subclassSlug === 'wizard__evoker' && classLevel >= 10) {
+    add('empowered-evocation', 'Усиленное воплощение', 'damage_rider', { add_ability: 'int', school: 'evocation' }, 10)
+  }
+  if (subclassSlug === 'wizard__abjurer') {
+    const intM = abilityMod(ab.int ?? 10)
+    add('arcane-ward', 'Волшебный щит (формула)', 'other_calc', { ward_max: classLevel * 2 + intM })
+  }
+  if (subclassSlug === 'ranger__gloom-stalker') {
+    add('dread-ambusher', 'Угроза из засады (инициатива)', 'initiative_mod', 'wis')
+  }
+  if (subclassSlug === 'ranger__fey-wanderer') {
+    const die = classLevel >= 11 ? 'd6' : 'd4'
+    add('dreadful-strikes', 'Ужасающие удары', 'damage_rider', { dice: `1${die}`, type: 'psychic' })
+  }
+  if (subclassSlug === 'barbarian__berserker') {
+    add('frenzy', 'Бешенство', 'damage_rider', { while_raging: true, dice_count_from: 'rage_damage', die: 'd6' })
+  }
+  if (subclassSlug === 'barbarian__zealot') {
+    add('divine-fury', 'Божественная ярость', 'damage_rider', { while_raging: true, dice: '1d6', plus_half_level: true })
+  }
+  if (subclassSlug === 'rogue__assassin') {
+    add('assassinate', 'Убийство', 'other_calc', { advantage_vs_surprised: true, crit_vs_surprised: true })
+  }
+  if (subclassSlug === 'rogue__thief') {
+    add('fast-hands', 'Быстрые руки', 'other_calc', { bonus_action_use_object: true })
+  }
+  if (subclassSlug === 'druid__moon') {
+    add('circle-forms', 'Облики Круга', 'other_calc', { wild_shape_cr_div: 3, ac: { base: 13, mods: ['wis'] } })
+  }
+  if (subclassSlug === 'ranger__beastmaster') {
+    add('primal-companion', 'Первичный спутник', 'other_calc', { companion_scales_with_level: true })
+  }
+  if (subclassSlug === 'ranger__hunter-ranger') {
+    add('hunters-prey', 'Добыча охотника', 'other_calc', { choice: true })
+  }
+  if (subclassSlug.startsWith('paladin__')) {
+    if (classLevel >= 18) add('aura-expansion', 'Расширение ауры', 'aura_radius', { ft: 30 }, 18)
+    else if (classLevel >= 7) add('aura', 'Аура клятвы', 'aura_radius', { ft: 10 }, 7)
+  }
+  if (subclassSlug === 'warlock__fiend-patron') {
+    const chaM = abilityMod(ab.cha ?? 10)
+    add('dark-ones-blessing', 'Благословение темнейшего', 'other_calc', {
+      temp_hp: Math.max(1, chaM + classLevel),
+    })
+  }
+  if (subclassSlug === 'cleric__light-domain' && classLevel >= 6) {
+    add('improved-warding-flare', 'Улучшенная ограждающая вспышка', 'other_calc', { reset_short: true }, 6)
+  }
+  if (subclassSlug === 'wizard__necromancer' && classLevel >= 6) {
+    add('undead-thralls', 'Неживые слуги', 'other_calc', { thrall_bonus_hp_per_wizard_level: true }, 6)
+  }
+  return out
+}
+
 export function buildSubclassResources2024(input: {
   subclassSlug: string
   classLevel: number
@@ -165,6 +385,8 @@ export function buildSubclassResources2024(input: {
   if (classLevel < 3) return []
   const parent = subclassParent2024(subclassSlug) || 'class'
   const intMod = abilityMod(input.abilities?.int ?? 10)
+  const wisMod = abilityMod(input.abilities?.wis ?? 10)
+  const chaMod = abilityMod(input.abilities?.cha ?? 10)
   const out: SubclassResource2024[] = []
 
   const push = (
@@ -173,7 +395,7 @@ export function buildSubclassResources2024(input: {
     max: number,
     reset: 'short' | 'long',
     feature_id: string,
-    extra?: { shortRestRegain?: number; die?: string },
+    extra?: { shortRestRegain?: number; die?: string; track?: 'spend' | 'stock' },
   ) => {
     if (max <= 0) return
     out.push({
@@ -191,47 +413,93 @@ export function buildSubclassResources2024(input: {
   }
 
   if (subclassSlug === 'fighter__battlemaster') {
-    push(
-      'superiority_dice',
-      'Кости превосходства',
-      scaleUses(classLevel, { 3: 4, 7: 5, 15: 6 }),
-      'short',
-      'combat-superiority',
-      { die: superiorityDie(classLevel) },
-    )
-  } else if (
-    subclassSlug === 'fighter__psi-warrior' ||
-    subclassSlug === 'rogue__soulknife'
-  ) {
+    push('superiority_dice', 'Кости превосходства', scaleUses(classLevel, { 3: 4, 7: 5, 15: 6 }), 'short', 'combat-superiority', { die: superiorityDie(classLevel) })
+  } else if (subclassSlug === 'fighter__psi-warrior' || subclassSlug === 'rogue__soulknife') {
     const { count, die } = psiTable(classLevel)
-    push('psionic_energy_dice', 'Кости пси-энергии', count, 'long', 'psionic-power', {
-      shortRestRegain: 1,
-      die,
-    })
+    push('psionic_energy_dice', 'Кости пси-энергии', count, 'long', 'psionic-power', { shortRestRegain: 1, die })
     if (subclassSlug === 'rogue__soulknife' && classLevel >= 13) {
       push('psychic_veil', 'Психическая завеса', 1, 'long', 'psychic-veil')
     }
   } else if (subclassSlug === 'fighter__arcane-archer') {
     push('arcane_shot', 'Чародейный выстрел', Math.max(1, intMod), 'long', 'arcane-shot')
   } else if (subclassSlug === 'artificer__alchemist') {
-    push(
-      'experimental_elixir',
-      'Экспериментальный эликсир',
-      scaleUses(classLevel, { 3: 2, 5: 3, 9: 4, 15: 5 }),
-      'long',
-      'experimental-elixir',
-    )
-    if (classLevel >= 9) {
-      push(
-        'restorative_reagents',
-        'Малое восстановление (реагенты)',
-        Math.max(1, intMod),
-        'long',
-        'restorative-reagents',
-      )
-    }
-  } else if (subclassSlug === 'sorcerer__wild-magic-sorcery' && classLevel >= 18) {
-    push('tamed_wild_surge', 'Укрощённый всплеск', 1, 'long', 'tamed-wild-magic-surge')
+    push('experimental_elixir', 'Экспериментальный эликсир', scaleUses(classLevel, { 3: 2, 5: 3, 9: 4, 15: 5 }), 'long', 'experimental-elixir')
+    if (classLevel >= 9) push('restorative_reagents', 'Малое восстановление (реагенты)', Math.max(1, intMod), 'long', 'restorative-reagents')
+  } else if (subclassSlug === 'artificer__artillerist') {
+    push('eldritch_cannon', 'Мистическая пушка', 1, 'long', 'eldritch-cannon')
+  } else if (subclassSlug === 'artificer__battle-smith') {
+    push('steel_defender', 'Стальной защитник', 1, 'long', 'steel-defender')
+    if (classLevel >= 9) push('arcane_jolt', 'Мистический импульс', Math.max(1, intMod), 'long', 'arcane-jolt')
+  } else if (subclassSlug === 'artificer__cartographer') {
+    push('adventure_atlas', 'Атлас приключений', Math.max(1, intMod), 'long', 'adventure-atlas')
+  } else if (subclassSlug === 'artificer__reanimator') {
+    push('reanimated_companion', 'Оживлённый спутник', 1, 'long', 'reanimated-companion')
+  } else if (subclassSlug === 'cleric__light-domain') {
+    push('warding_flare', 'Ограждающая вспышка', Math.max(1, wisMod), classLevel >= 6 ? 'short' : 'long', 'warding-flare')
+  } else if (subclassSlug === 'cleric__war-domain') {
+    push('war_priest', 'Боевой священник', Math.max(1, wisMod), 'short', 'war-priest')
+  } else if (subclassSlug === 'warlock__celestial-patron') {
+    push('healing_light', 'Лечащий свет', 1 + classLevel, 'long', 'healing-light', { die: 'd6' })
+  } else if (subclassSlug === 'warlock__archfey') {
+    push('steps_of_the_fey', 'Шаг феи', Math.max(1, chaMod), 'long', 'steps-of-the-fey')
+  } else if (subclassSlug === 'warlock__fiend-patron' && classLevel >= 6) {
+    push('dark_ones_own_luck', 'Удача темнейшего', Math.max(1, chaMod), 'long', 'dark-ones-own-luck')
+  } else if (subclassSlug === 'warlock__greate-old-one-patron' && classLevel >= 6) {
+    push('clairvoyant_combatant', 'Провидящий боец', 1, 'short', 'clairvoyant-combatant')
+  } else if (subclassSlug === 'warlock__undead') {
+    push('form_of_dread', 'Аватар ужаса', Math.max(1, chaMod), 'long', 'form-of-dread')
+  } else if (subclassSlug === 'warlock__vestige-patron') {
+    push('vestige_companion', 'Спутник-отголосок', 1, 'long', 'vestige-companion')
+  } else if (subclassSlug === 'wizard__abjurer') {
+    push('arcane_ward', 'Волшебный щит', classLevel * 2 + intMod, 'long', 'arcane-ward')
+  } else if (subclassSlug === 'wizard__diviner') {
+    push('portent', 'Знамение', classLevel >= 14 ? 3 : 2, 'long', 'portent', { die: 'd20' })
+  } else if (subclassSlug === 'wizard__evoker' && classLevel >= 14) {
+    push('overchannel', 'Перегрузка', 1, 'long', 'overchannel')
+  } else if (subclassSlug === 'wizard__illusionist' && classLevel >= 10) {
+    push('illusory_self', 'Собственная иллюзорность', 1, 'short', 'illusory-self')
+  } else if (subclassSlug === 'wizard__conjurer') {
+    push('benign_transposition', 'Безопасный перенос', 1, 'long', 'benign-transposition')
+  } else if (subclassSlug === 'wizard__enchanter') {
+    push('hypnotic_presence', 'Гипнотическое присутствие', 1, 'long', 'hypnotic-presence')
+  } else if (subclassSlug === 'wizard__bladesinger') {
+    push('bladesong', 'Песнь клинка', Math.max(1, intMod), 'long', 'bladesong')
+  } else if (subclassSlug === 'wizard__transmuter') {
+    push('transmuters_stone', 'Камень преобразителя', 1, 'long', 'transmuter-s-stone')
+  } else if (subclassSlug === 'sorcerer__wild-magic-sorcery') {
+    push('tides_of_chaos', 'Волны хаоса', 1, 'long', 'tides-of-chaos')
+    if (classLevel >= 18) push('tamed_wild_surge', 'Укрощённый всплеск', 1, 'long', 'tamed-surge')
+  } else if (subclassSlug === 'sorcerer__clockwork-sorcery') {
+    push('restore_balance', 'Восстановление баланса', Math.max(1, chaMod), 'long', 'restore-balance')
+  } else if (subclassSlug === 'sorcerer__shadow-sorcery') {
+    push('power_of_shadow', 'Сила тени', Math.max(1, chaMod), 'long', 'power-of-shadow')
+  } else if (subclassSlug === 'sorcerer__aberrant-sorcery') {
+    push('telepathic_speech', 'Телепатическая речь', 1, 'long', 'telepathic-speech')
+  } else if (subclassSlug === 'druid__stars') {
+    push('star_map_guiding_bolt', 'Звёздная карта (Направляющий снаряд)', Math.max(1, wisMod), 'long', 'star-map')
+    if (classLevel >= 6) push('cosmic_omen', 'Космическое знамение', Math.max(1, wisMod), 'long', 'cosmic-omen')
+  } else if (subclassSlug === 'druid__land' && classLevel >= 6) {
+    push('natural_recovery', 'Естественное восстановление', 1, 'long', 'natural-recovery')
+  } else if (subclassSlug === 'druid__moon' && classLevel >= 10) {
+    push('moonlight_step', 'Шаг в лунный свет', Math.max(1, wisMod), 'long', 'moonlight-step')
+  } else if (subclassSlug === 'monk__warrior-of-the-hand' && classLevel >= 6) {
+    push('wholeness_of_body', 'Целостность тела', Math.max(1, wisMod), 'long', 'wholeness-of-body')
+  } else if (subclassSlug === 'ranger__gloom-stalker') {
+    push('dread_ambusher_strike', 'Ужасающий удар', Math.max(1, wisMod), 'long', 'dread-ambusher', { die: 'd6' })
+  } else if (subclassSlug === 'ranger__winter-walker') {
+    push('hunters_rime', 'Иней охотника', Math.max(1, wisMod), 'long', 'hunters-rime')
+  } else if (subclassSlug === 'ranger__hollow-warden') {
+    push('wrath_of_the_wild', 'Гнев дикой природы', Math.max(1, wisMod), 'long', 'wrath-of-the-wild')
+  } else if (subclassSlug === 'rogue__phantom') {
+    const pb = 2 + Math.floor((Math.min(20, Math.max(1, classLevel)) - 1) / 4)
+    push('wails_from_the_grave', 'Вопли из могилы', pb, 'long', 'wails-from-the-grave')
+  } else if (subclassSlug === 'rogue__scion-of-the-three') {
+    push('bloodthirst', 'Кровожадность', Math.max(1, chaMod), 'long', 'bloodthirst')
+  } else if (subclassSlug === 'barbarian__zealot') {
+    if (classLevel >= 6) push('fanatical_focus', 'Фанатичная сосредоточенность', 1, 'long', 'fanatical-focus')
+    if (classLevel >= 10) push('zealous_presence', 'Рьяное присутствие', 1, 'long', 'zealous-presence')
+  } else if (subclassSlug === 'bard__glamour' && classLevel >= 6) {
+    push('mantle_of_majesty', 'Мантия величества', 1, 'long', 'mantle-of-majesty')
   }
   return out
 }
@@ -286,9 +554,13 @@ export function featureAutomationMode2024(input: {
   featureId: string
   subclassSlug: string | null
   hasResource: boolean
-}): 'resource' | 'always_prepared' | 'third_caster' | 'text' {
+  hasSharedOption?: boolean
+  hasCalc?: boolean
+}): 'resource' | 'shared_option' | 'always_prepared' | 'third_caster' | 'calc' | 'text' {
   const fid = input.featureId.replace(/_/g, '-')
   if (input.hasResource) return 'resource'
+  if (input.hasSharedOption) return 'shared_option'
+  if (input.hasCalc) return 'calc'
   if (fid.endsWith('-spells') || fid.endsWith('-domain-spells')) return 'always_prepared'
   if (
     input.subclassSlug &&

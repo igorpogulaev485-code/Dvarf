@@ -1,7 +1,8 @@
 """P24-M02b: subclass feature/resource/always-prepared automation for rules_edition=2024.
 
 Loads all accepted subclass packs (SRD, PH24, EFA, FRHoF, RTW, AU).
-Spendable pools get sheet buttons; everything else stays as feature text.
+Spendable pools and shared-pool options get sheet buttons; permanent formula
+bonuses land in sheet/desk calculations; narrative/DM-judgment stays as text.
 Never mutates 2014 tables.
 """
 
@@ -22,7 +23,6 @@ SUBCLASS_CATALOG_FILES: tuple[str, ...] = (
     "subclasses_au.json",
 )
 
-# Subclasses that grant ⅓ wizard-style spellcasting (slots via third caster table).
 THIRD_CASTER_SUBCLASSES: dict[str, dict[str, Any]] = {
     "fighter__eldritch-knight": {
         "ability": "int",
@@ -38,7 +38,6 @@ THIRD_CASTER_SUBCLASSES: dict[str, dict[str, Any]] = {
     },
 }
 
-# PHB / EFA 2024 third-caster slot row (index 0 = level 1). Same as casterProgression.ts.
 THIRD_CASTER_SLOTS: list[list[int]] = [
     [0, 0, 0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -63,52 +62,13 @@ THIRD_CASTER_SLOTS: list[list[int]] = [
 ]
 
 THIRD_CASTER_CANTRIPS: list[int] = [
-    0,
-    0,
-    2,
-    2,
-    2,
-    2,
-    2,
-    2,
-    2,
-    3,
-    3,
-    3,
-    3,
-    3,
-    3,
-    3,
-    3,
-    3,
-    3,
-    3,
+    0, 0, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
 ]
 
 THIRD_CASTER_SPELLS_KNOWN: list[int] = [
-    0,
-    0,
-    3,
-    4,
-    4,
-    4,
-    5,
-    6,
-    6,
-    7,
-    8,
-    8,
-    9,
-    10,
-    10,
-    11,
-    11,
-    11,
-    12,
-    13,
+    0, 0, 3, 4, 4, 4, 5, 6, 6, 7, 8, 8, 9, 10, 10, 11, 11, 11, 12, 13,
 ]
 
-# Feature ids that are covered by always-prepared spell lists (not a spend button).
 ALWAYS_PREPARED_FEATURE_IDS: frozenset[str] = frozenset(
     {
         "life-domain-spells",
@@ -147,6 +107,13 @@ ALWAYS_PREPARED_FEATURE_IDS: frozenset[str] = frozenset(
         "fiend-spells",
         "great-old-one-spells",
         "vestige-spells",
+        "oath-of-devotion-spells",
+        "oath-of-the-ancients-spells",
+        "oath-of-vengeance-spells",
+        "oath-of-glory-spells",
+        "circle-of-the-moon-spells",
+        "circle-of-the-sea-spells",
+        "circle-of-the-land-spells",
     }
 )
 
@@ -214,6 +181,31 @@ class SubclassResourcePool:
     meta: dict[str, Any] = field(default_factory=dict)
 
 
+@dataclass(frozen=True)
+class SharedPoolOption:
+    """Subclass feature that spends a class shared pool (channel / BI / focus / …)."""
+
+    feature_id: str
+    name_ru: str
+    spend_pool: str
+    cost: int = 1
+    cost_max: int | None = None
+    kind: str = "action"  # action | bonus | reaction | passive
+    min_level: int = 3
+
+
+@dataclass(frozen=True)
+class PermanentBonus:
+    """Formula applied in sheet/desk calculations (not a spend button)."""
+
+    feature_id: str
+    name_ru: str
+    kind: str  # crit_threshold | ac_formula | hp_per_level | initiative_mod | damage_rider | aura_radius | speed | other_calc
+    value: Any
+    min_level: int = 3
+    note_ru: str = ""
+
+
 def _pool_id(class_slug: str, pool_key: str, entry_id: str) -> str:
     return f"feat:{class_slug}:{pool_key}:{entry_id}"
 
@@ -227,7 +219,6 @@ def _scale_uses(level: int, table: Mapping[int, int]) -> int:
 
 
 def _psi_energy_table(level: int) -> tuple[int, str]:
-    """Psi Warrior / Soulknife 2024 energy dice: (count, die)."""
     rows = (
         (3, 4, "d6"),
         (5, 6, "d8"),
@@ -251,6 +242,478 @@ def _superiority_die(level: int) -> str:
     return "d8"
 
 
+def _mod_min1(abilities: Mapping[str, int], key: str) -> int:
+    return max(1, ability_mod(int(abilities.get(key) or 10)))
+
+
+# ---------------------------------------------------------------------------
+# Shared-pool options (button spends class pool, no separate max)
+# ---------------------------------------------------------------------------
+
+SHARED_OPTIONS: dict[str, list[SharedPoolOption]] = {
+    # Cleric domains — Channel Divinity options
+    "cleric__light-domain": [
+        SharedPoolOption("radiance-of-the-dawn", "Сияние рассвета", "channel_divinity", kind="action"),
+    ],
+    "cleric__life-domain": [
+        SharedPoolOption("preserve-life", "Сохранение жизни", "channel_divinity", kind="action"),
+    ],
+    "cleric__war-domain": [
+        SharedPoolOption("guided-strike", "Направленный удар", "channel_divinity", kind="reaction"),
+        SharedPoolOption(
+            "war-gods-blessing", "Благословение бога войны", "channel_divinity", kind="reaction", min_level=6
+        ),
+    ],
+    "cleric__trickery-domain": [
+        SharedPoolOption("invoke-duplicity", "Двуличность", "channel_divinity", kind="action"),
+    ],
+    "cleric__knowledge-domain": [
+        SharedPoolOption("mind-magic", "Магия разума", "channel_divinity", kind="action"),
+    ],
+    "cleric__arcana-domain": [
+        SharedPoolOption("modify-magic", "Изменение магии", "channel_divinity", kind="action"),
+    ],
+    "cleric__grave-domain": [
+        SharedPoolOption("path-to-the-grave", "Путь в могилу", "channel_divinity", kind="action"),
+    ],
+    # Paladin oaths — Channel Divinity (+ class divine_sense already on pool)
+    "paladin__oath-of-devotion": [
+        SharedPoolOption("sacred-weapon", "Священное оружие", "channel_divinity", kind="bonus"),
+    ],
+    "paladin__oath-of-the-ancients": [
+        SharedPoolOption("natures-wrath", "Гнев природы", "channel_divinity", kind="action"),
+    ],
+    "paladin__oath-of-vengeance": [
+        SharedPoolOption("vow-of-enmity", "Обет вражды", "channel_divinity", kind="bonus"),
+    ],
+    "paladin__oath-of-glory": [
+        SharedPoolOption("inspiring-smite", "Вдохновляющая кара", "channel_divinity", kind="bonus"),
+        SharedPoolOption("peerless-athlete", "Несравненный атлет", "channel_divinity", kind="bonus"),
+    ],
+    "paladin__oath-of-the-noble-genies": [
+        SharedPoolOption("elemental-smite", "Стихийная кара", "channel_divinity", kind="bonus"),
+    ],
+    # Bard colleges — spend Bardic Inspiration
+    "bard__lore": [
+        SharedPoolOption("cutting-words", "Острое словцо", "bardic_inspiration", kind="reaction"),
+    ],
+    "bard__glamour": [
+        SharedPoolOption("mantle-of-inspiration", "Ореол вдохновения", "bardic_inspiration", kind="bonus"),
+    ],
+    "bard__valor": [
+        SharedPoolOption("combat-inspiration", "Боевое вдохновение", "bardic_inspiration", kind="passive"),
+    ],
+    "bard__dance": [
+        SharedPoolOption(
+            "inspiring-movement", "Вдохновляющие движения", "bardic_inspiration", kind="reaction", min_level=6
+        ),
+        SharedPoolOption(
+            "tandem-footwork", "Совместный танец", "bardic_inspiration", kind="reaction", min_level=6
+        ),
+    ],
+    "bard__college-of-the-moon": [
+        SharedPoolOption("moons-inspiration", "Вдохновение луны", "bardic_inspiration", kind="bonus"),
+    ],
+    "bard__college-of-the-spirits": [
+        SharedPoolOption("spirits-from-beyond", "Духи извне", "bardic_inspiration", kind="bonus"),
+    ],
+    # Monk traditions — spend Focus (ki)
+    "monk__warrior-of-the-hand": [
+        SharedPoolOption("open-hand-technique", "Техники открытой ладони", "focus_points", kind="passive"),
+    ],
+    "monk__warrior-of-mercy": [
+        SharedPoolOption("hand-of-healing", "Исцеляющая рука", "focus_points", kind="action"),
+        SharedPoolOption("hand-of-harm", "Повреждающая рука", "focus_points", kind="passive"),
+    ],
+    "monk__warrior-of-shadow": [
+        SharedPoolOption("shadow-arts", "Тёмные искусства", "focus_points", kind="action"),
+        SharedPoolOption("shadow-step", "Шаг в тень", "focus_points", cost=0, kind="bonus", min_level=6),
+    ],
+    "monk__warrior-of-the-elements": [
+        SharedPoolOption("elemental-attunement", "Сродство со стихиями", "focus_points", kind="bonus"),
+        SharedPoolOption(
+            "elemental-burst", "Стихийный выброс", "focus_points", kind="action", min_level=6
+        ),
+    ],
+    "monk__warrior-of-the-mystic-arts": [
+        SharedPoolOption("mystic-focus", "Мистический фокус", "focus_points", kind="bonus", min_level=6),
+        SharedPoolOption(
+            "focused-strike", "Сосредоточенный удар", "focus_points", kind="passive", min_level=11
+        ),
+    ],
+    # Druid — Wild Shape spends
+    "druid__land": [
+        SharedPoolOption("lands-aid", "Помощь земли", "wild_shape", kind="action"),
+        SharedPoolOption(
+            "natures-sanctuary", "Природное убежище", "wild_shape", kind="action", min_level=14
+        ),
+    ],
+    "druid__stars": [
+        SharedPoolOption("starry-form", "Звёздный облик", "wild_shape", kind="bonus"),
+    ],
+    "druid__sea": [
+        SharedPoolOption("wrath-of-the-sea", "Гнев моря", "wild_shape", kind="bonus"),
+    ],
+    # Sorcerer — Sorcery Points
+    "sorcerer__wild-magic-sorcery": [
+        SharedPoolOption("bend-luck", "Искривление удачи", "sorcery_points", cost=1, kind="reaction", min_level=6),
+    ],
+    "sorcerer__clockwork-sorcery": [
+        SharedPoolOption(
+            "bastion-of-law",
+            "Бастион закона",
+            "sorcery_points",
+            cost=1,
+            cost_max=5,
+            kind="action",
+            min_level=6,
+        ),
+    ],
+    "sorcerer__aberrant-sorcery": [
+        SharedPoolOption(
+            "psionic-sorcery", "Псионическое колдовство", "sorcery_points", kind="passive", min_level=6
+        ),
+    ],
+    "sorcerer__spellfire-sorcery": [
+        SharedPoolOption("spellfire-burst", "Вспышка огня заклинаний", "sorcery_points", kind="bonus"),
+    ],
+    "sorcerer__shadow-sorcery": [
+        SharedPoolOption(
+            "beasts-of-ill-omen", "Звери дурного знамения", "sorcery_points", kind="action", min_level=6
+        ),
+    ],
+    # Fighter Banneret — rides Second Wind
+    "fighter__banneret": [
+        SharedPoolOption("group-recovery", "Групповое оздоровление", "second_wind", kind="passive"),
+    ],
+}
+
+
+def shared_options_for_subclass(
+    subclass_slug: str,
+    class_level: int,
+) -> list[SharedPoolOption]:
+    rows = SHARED_OPTIONS.get(subclass_slug) or []
+    return [r for r in rows if class_level >= r.min_level]
+
+
+def channel_option_ids_for_subclass(subclass_slug: str, class_level: int) -> list[str]:
+    return [
+        r.feature_id.replace("-", "_")
+        for r in shared_options_for_subclass(subclass_slug, class_level)
+        if r.spend_pool == "channel_divinity"
+    ]
+
+
+# ---------------------------------------------------------------------------
+# Permanent bonuses (applied in calculations)
+# ---------------------------------------------------------------------------
+
+def build_permanent_bonuses(
+    subclass_slug: str,
+    class_level: int,
+    *,
+    abilities: Mapping[str, int] | None = None,
+) -> list[PermanentBonus]:
+    abilities = abilities or {}
+    out: list[PermanentBonus] = []
+
+    def add(
+        feature_id: str,
+        name_ru: str,
+        kind: str,
+        value: Any,
+        *,
+        min_level: int = 3,
+        note_ru: str = "",
+    ) -> None:
+        if class_level < min_level:
+            return
+        out.append(
+            PermanentBonus(
+                feature_id=feature_id,
+                name_ru=name_ru,
+                kind=kind,
+                value=value,
+                min_level=min_level,
+                note_ru=note_ru,
+            )
+        )
+
+    # Fighter Champion
+    if subclass_slug == "fighter__champion":
+        add(
+            "improved-critical",
+            "Улучшенные критические попадания",
+            "crit_threshold",
+            19,
+            note_ru="Крит на 19–20",
+        )
+        if class_level >= 15:
+            add(
+                "superior-critical",
+                "Превосходные критические попадания",
+                "crit_threshold",
+                18,
+                min_level=15,
+                note_ru="Крит на 18–20",
+            )
+        add(
+            "remarkable-athlete",
+            "Выдающийся атлет",
+            "initiative_advantage",
+            True,
+            note_ru="Преимущество к инициативе и Атлетике",
+        )
+        if class_level >= 18:
+            add(
+                "survivor",
+                "Вызов смерти",
+                "other_calc",
+                {"death_save_18_plus_is_20": True, "regen_bloodied": True},
+                min_level=18,
+            )
+
+    # Sorcerer Draconic
+    if subclass_slug == "sorcerer__draconic-sorcery":
+        add(
+            "draconic-resilience",
+            "Драконья устойчивость",
+            "ac_formula",
+            {"base": 10, "mods": ["dex", "cha"], "allows_shield": True, "requires_no_armor": True},
+            note_ru="КД 10+Лов+Хар без доспеха",
+        )
+        add(
+            "draconic-resilience",
+            "Драконья устойчивость (хиты)",
+            "hp_per_level",
+            1,
+            note_ru="+1 хит за уровень чародея (на 3 ур. уже +3)",
+        )
+
+    # Wizard Evoker
+    if subclass_slug == "wizard__evoker" and class_level >= 10:
+        add(
+            "empowered-evocation",
+            "Усиленное воплощение",
+            "damage_rider",
+            {"add_ability": "int", "school": "evocation", "once_per_spell": True},
+            min_level=10,
+            note_ru="+мод. Инт к одному броску урона воплощения",
+        )
+
+    # Wizard Abjurer — ward max is a stock pool, also listed as calc for display
+    if subclass_slug == "wizard__abjurer":
+        int_m = ability_mod(int(abilities.get("int") or 10))
+        add(
+            "arcane-ward",
+            "Волшебный щит (формула)",
+            "other_calc",
+            {"ward_max": class_level * 2 + int_m},
+            note_ru="Макс. хитов щита = 2×ур.+мод. Инт",
+        )
+
+    # Ranger Gloom Stalker
+    if subclass_slug == "ranger__gloom-stalker":
+        add(
+            "dread-ambusher",
+            "Угроза из засады (инициатива)",
+            "initiative_mod",
+            "wis",
+            note_ru="+мод. Мудр к инициативе",
+        )
+        add(
+            "dread-ambusher",
+            "Угроза из засады (скорость)",
+            "speed",
+            {"first_turn_bonus_ft": 10},
+            note_ru="+10 фт скорости в первом ходу боя",
+        )
+
+    # Ranger Fey Wanderer
+    if subclass_slug == "ranger__fey-wanderer":
+        die = "d6" if class_level >= 11 else "d4"
+        add(
+            "dreadful-strikes",
+            "Ужасающие удары",
+            "damage_rider",
+            {"dice": f"1{die}", "type": "psychic", "once_per_turn_per_target": True},
+            note_ru=f"Доп. психический урон 1{die} раз за ход на цель",
+        )
+        add(
+            "otherworldly-glamour",
+            "Инойшарм",
+            "other_calc",
+            {"cha_check_bonus": "wis"},
+            note_ru="+мод. Мудр к проверкам Харизмы",
+        )
+
+    # Barbarian Berserker
+    if subclass_slug == "barbarian__berserker":
+        add(
+            "frenzy",
+            "Бешенство",
+            "damage_rider",
+            {"while_raging": True, "dice_count_from": "rage_damage", "die": "d6", "first_str_hit": True},
+            note_ru="В ярости: к6 × бонус урона ярости к первой силовой атаке хода при Безрассудной атаке",
+        )
+
+    # Barbarian Zealot
+    if subclass_slug == "barbarian__zealot":
+        add(
+            "divine-fury",
+            "Божественная ярость",
+            "damage_rider",
+            {"while_raging": True, "dice": "1d6", "plus_half_level": True, "once_per_turn": True},
+            note_ru="В ярости: +1к6 + пол-уровня к первой попавшей атаке за ход",
+        )
+
+    # Barbarian Wild Heart / World Tree — rage options are calc toggles
+    if subclass_slug == "barbarian__wild-heart":
+        add(
+            "rage-of-the-wilds",
+            "Ярость диких",
+            "other_calc",
+            {"rage_options": True},
+            note_ru="Опции ярости (выбор облика) — в расчётах стола",
+        )
+    if subclass_slug == "barbarian__world-tree":
+        add(
+            "vitality-of-the-tree",
+            "Живучесть древа",
+            "other_calc",
+            {"temp_hp_on_rage": True},
+            note_ru="Временные хиты при входе в ярость",
+        )
+
+    # Rogue Assassin
+    if subclass_slug == "rogue__assassin":
+        add(
+            "assassinate",
+            "Убийство",
+            "other_calc",
+            {"advantage_vs_surprised": True, "crit_vs_surprised": True},
+            note_ru="Преимущество и крит по застигнутым врасплох",
+        )
+
+    # Rogue Thief
+    if subclass_slug == "rogue__thief":
+        add(
+            "fast-hands",
+            "Быстрые руки",
+            "other_calc",
+            {"bonus_action_use_object": True, "bonus_sleight": True},
+            note_ru="Использование предмета / Ловкость рук бонусным действием",
+        )
+        add(
+            "second-story-work",
+            "Работа на втором этаже",
+            "speed",
+            {"climb_equals_speed": True},
+            note_ru="Лазание = скорость",
+        )
+
+    # Druid Moon — circle forms CR / AC
+    if subclass_slug == "druid__moon":
+        add(
+            "circle-forms",
+            "Облики Круга",
+            "other_calc",
+            {
+                "wild_shape_cr_div": 3,
+                "ac": {"base": 13, "mods": ["wis"]},
+            },
+            note_ru="ПО облика ≤ ур./3; КД max(зверь, 13+Мудр)",
+        )
+
+    # Ranger Beast Master companion scales with level/PB
+    if subclass_slug == "ranger__beastmaster":
+        add(
+            "primal-companion",
+            "Первичный спутник",
+            "other_calc",
+            {"companion_scales_with_level": True, "companion_scales_with_pb": True},
+            note_ru="Статблок спутника по уровню и БМ",
+        )
+
+    # Ranger Hunter — choice features (tracked as calc picks)
+    if subclass_slug == "ranger__hunter-ranger":
+        add(
+            "hunters-prey",
+            "Добыча охотника",
+            "other_calc",
+            {"choice": True},
+            note_ru="Выбор опции добычи/защиты — в расчётах",
+        )
+        if class_level >= 7:
+            add(
+                "defensive-tactics",
+                "Защитная тактика",
+                "other_calc",
+                {"choice": True},
+                min_level=7,
+            )
+
+    # Paladin aura radius expansion is a class feature at 18 — surface for oath auras
+    if subclass_slug.startswith("paladin__") and class_level >= 18:
+        add(
+            "aura-expansion",
+            "Расширение ауры",
+            "aura_radius",
+            {"ft": 30},
+            min_level=18,
+            note_ru="Ауры клятвы: 10 → 30 фт",
+        )
+    elif subclass_slug.startswith("paladin__") and class_level >= 7:
+        add(
+            "aura",
+            "Аура клятвы",
+            "aura_radius",
+            {"ft": 10},
+            min_level=7,
+            note_ru="Радиус ауры 10 фт (30 с 18 ур.)",
+        )
+
+    # Warlock Fiend — Dark One's Blessing temp HP formula (trigger, not pool)
+    if subclass_slug == "warlock__fiend-patron":
+        cha_m = ability_mod(int(abilities.get("cha") or 10))
+        add(
+            "dark-ones-blessing",
+            "Благословение темнейшего",
+            "other_calc",
+            {"temp_hp": max(1, cha_m + class_level), "on_reduce_enemy_to_0": True},
+            note_ru="Врем. хиты = Хар + ур. колдуна при убийстве",
+        )
+
+    # Light domain improved flare is a calc rider on the warding_flare pool
+    if subclass_slug == "cleric__light-domain" and class_level >= 6:
+        add(
+            "improved-warding-flare",
+            "Улучшенная ограждающая вспышка",
+            "other_calc",
+            {"reset_short": True, "temp_hp": "2d6+wis"},
+            min_level=6,
+            note_ru="Сброс вспышки на коротком; врем. хиты союзнику",
+        )
+
+    # Wizard Necromancer — thrall HP/damage scale with wizard level
+    if subclass_slug == "wizard__necromancer" and class_level >= 6:
+        add(
+            "undead-thralls",
+            "Неживые слуги",
+            "other_calc",
+            {"thrall_bonus_hp_per_wizard_level": True, "thrall_damage_bonus": True},
+            min_level=6,
+            note_ru="Бонус хитов/урона слуг по уровню волшебника",
+        )
+
+    return out
+
+
+# ---------------------------------------------------------------------------
+# Own spend pools
+# ---------------------------------------------------------------------------
+
 def build_subclass_resources(
     subclass_slug: str,
     class_level: int,
@@ -266,7 +729,12 @@ def build_subclass_resources(
         return []
     parent = subclass_parent(subclass_slug) or "class"
     pb = proficiency_bonus_for_level(total_level)
-    int_mod = ability_mod(int(abilities.get("int") or 10))
+    str_m = ability_mod(int(abilities.get("str") or 10))
+    dex_m = ability_mod(int(abilities.get("dex") or 10))
+    con_m = ability_mod(int(abilities.get("con") or 10))
+    int_m = ability_mod(int(abilities.get("int") or 10))
+    wis_m = ability_mod(int(abilities.get("wis") or 10))
+    cha_m = ability_mod(int(abilities.get("cha") or 10))
     out: list[SubclassResourcePool] = []
 
     def add(
@@ -278,9 +746,11 @@ def build_subclass_resources(
         feature_id: str,
         short_rest_regain: int | None = None,
         on_hot: bool = True,
+        track: str = "spend",
         extra_meta: dict[str, Any] | None = None,
+        min_level: int = 3,
     ) -> None:
-        if max_uses <= 0:
+        if class_level < min_level or max_uses <= 0:
             return
         meta = {"feature_id": feature_id, "subclass_slug": subclass_slug}
         if extra_meta:
@@ -294,12 +764,14 @@ def build_subclass_resources(
                 name_ru=name_ru,
                 max=max_uses,
                 reset=reset,
+                track=track,
                 short_rest_regain=short_rest_regain,
                 on_hot=on_hot,
                 meta=meta,
             )
         )
 
+    # --- Fighter ---
     if subclass_slug == "fighter__battlemaster":
         add(
             "superiority_dice",
@@ -327,15 +799,18 @@ def build_subclass_resources(
                 max_uses=1,
                 reset="long",
                 feature_id="psychic-veil",
+                min_level=13,
             )
     elif subclass_slug == "fighter__arcane-archer":
         add(
             "arcane_shot",
             name_ru="Чародейный выстрел",
-            max_uses=max(1, int_mod),
+            max_uses=max(1, int_m),
             reset="long",
             feature_id="arcane-shot",
         )
+
+    # --- Artificer ---
     elif subclass_slug == "artificer__alchemist":
         add(
             "experimental_elixir",
@@ -348,23 +823,425 @@ def build_subclass_resources(
             add(
                 "restorative_reagents",
                 name_ru="Малое восстановление (реагенты)",
-                max_uses=max(1, int_mod),
+                max_uses=max(1, int_m),
                 reset="long",
                 feature_id="restorative-reagents",
+                min_level=9,
             )
-    elif subclass_slug == "sorcerer__wild-magic-sorcery" and class_level >= 18:
+    elif subclass_slug == "artificer__artillerist":
         add(
-            "tamed_wild_surge",
-            name_ru="Укрощённый всплеск",
+            "eldritch_cannon",
+            name_ru="Мистическая пушка",
             max_uses=1,
             reset="long",
-            feature_id="tamed-wild-magic-surge",
+            feature_id="eldritch-cannon",
+        )
+    elif subclass_slug == "artificer__battle-smith":
+        add(
+            "steel_defender",
+            name_ru="Стальной защитник",
+            max_uses=1,
+            reset="long",
+            feature_id="steel-defender",
+            on_hot=False,
+        )
+        if class_level >= 9:
+            add(
+                "arcane_jolt",
+                name_ru="Мистический импульс",
+                max_uses=max(1, int_m),
+                reset="long",
+                feature_id="arcane-jolt",
+                min_level=9,
+            )
+    elif subclass_slug == "artificer__armorer":
+        pass  # armor model is choice/calc, not a spend pool
+    elif subclass_slug == "artificer__cartographer":
+        add(
+            "adventure_atlas",
+            name_ru="Атлас приключений",
+            max_uses=max(1, int_m),
+            reset="long",
+            feature_id="adventure-atlas",
+        )
+    elif subclass_slug == "artificer__reanimator":
+        add(
+            "reanimated_companion",
+            name_ru="Оживлённый спутник",
+            max_uses=1,
+            reset="long",
+            feature_id="reanimated-companion",
             on_hot=False,
         )
 
-    # Generic: feature id hints that often mean a 1/long button when summary says so.
-    # Kept narrow — prefer explicit tables above.
-    _ = pb  # reserved for future PB-scaled specialty pools
+    # --- Cleric own pools ---
+    elif subclass_slug == "cleric__light-domain":
+        reset = "short" if class_level >= 6 else "long"
+        add(
+            "warding_flare",
+            name_ru="Ограждающая вспышка",
+            max_uses=max(1, wis_m),
+            reset=reset,
+            feature_id="warding-flare",
+            extra_meta={"improved_from_level": 6, "temp_hp_on_use_from_level": 6},
+        )
+    elif subclass_slug == "cleric__war-domain":
+        add(
+            "war_priest",
+            name_ru="Боевой священник",
+            max_uses=max(1, wis_m),
+            reset="short",
+            feature_id="war-priest",
+        )
+
+    # --- Warlock ---
+    elif subclass_slug == "warlock__celestial-patron":
+        add(
+            "healing_light",
+            name_ru="Лечащий свет",
+            max_uses=1 + class_level,
+            reset="long",
+            feature_id="healing-light",
+            extra_meta={
+                "die": "d6",
+                "per_use_cap_ability": "cha",
+                "per_use_cap_min": 1,
+            },
+        )
+    elif subclass_slug == "warlock__archfey":
+        add(
+            "steps_of_the_fey",
+            name_ru="Шаг феи",
+            max_uses=max(1, cha_m),
+            reset="long",
+            feature_id="steps-of-the-fey",
+        )
+    elif subclass_slug == "warlock__fiend-patron":
+        if class_level >= 6:
+            add(
+                "dark_ones_own_luck",
+                name_ru="Удача темнейшего",
+                max_uses=max(1, cha_m),
+                reset="long",
+                feature_id="dark-ones-own-luck",
+                min_level=6,
+            )
+    elif subclass_slug == "warlock__greate-old-one-patron":
+        if class_level >= 6:
+            add(
+                "clairvoyant_combatant",
+                name_ru="Провидящий боец",
+                max_uses=1,
+                reset="short",
+                feature_id="clairvoyant-combatant",
+                min_level=6,
+            )
+    elif subclass_slug == "warlock__undead":
+        add(
+            "form_of_dread",
+            name_ru="Аватар ужаса",
+            max_uses=max(1, cha_m),
+            reset="long",
+            feature_id="form-of-dread",
+        )
+    elif subclass_slug == "warlock__vestige-patron":
+        add(
+            "vestige_companion",
+            name_ru="Спутник-отголосок",
+            max_uses=1,
+            reset="long",
+            feature_id="vestige-companion",
+            on_hot=False,
+        )
+
+    # --- Wizard ---
+    elif subclass_slug == "wizard__abjurer":
+        add(
+            "arcane_ward",
+            name_ru="Волшебный щит",
+            max_uses=class_level * 2 + int_m,
+            reset="long",
+            feature_id="arcane-ward",
+            track="stock",
+            on_hot=True,
+            extra_meta={"ward_formula": "2*level+int"},
+        )
+    elif subclass_slug == "wizard__diviner":
+        add(
+            "portent",
+            name_ru="Знамение",
+            max_uses=3 if class_level >= 14 else 2,
+            reset="long",
+            feature_id="portent",
+            extra_meta={"die": "d20"},
+        )
+    elif subclass_slug == "wizard__evoker" and class_level >= 14:
+        add(
+            "overchannel",
+            name_ru="Перегрузка",
+            max_uses=1,
+            reset="long",
+            feature_id="overchannel",
+            min_level=14,
+            on_hot=False,
+            extra_meta={"repeat_costs_hp": True},
+        )
+    elif subclass_slug == "wizard__illusionist" and class_level >= 10:
+        add(
+            "illusory_self",
+            name_ru="Собственная иллюзорность",
+            max_uses=1,
+            reset="short",
+            feature_id="illusory-self",
+            min_level=10,
+        )
+    elif subclass_slug == "wizard__conjurer":
+        add(
+            "benign_transposition",
+            name_ru="Безопасный перенос",
+            max_uses=1,
+            reset="long",
+            feature_id="benign-transposition",
+        )
+    elif subclass_slug == "wizard__enchanter":
+        add(
+            "hypnotic_presence",
+            name_ru="Гипнотическое присутствие",
+            max_uses=1,
+            reset="long",
+            feature_id="hypnotic-presence",
+        )
+    elif subclass_slug == "wizard__bladesinger":
+        add(
+            "bladesong",
+            name_ru="Песнь клинка",
+            max_uses=max(1, int_m),
+            reset="long",
+            feature_id="bladesong",
+        )
+    elif subclass_slug == "wizard__transmuter":
+        add(
+            "transmuters_stone",
+            name_ru="Камень преобразителя",
+            max_uses=1,
+            reset="long",
+            feature_id="transmuter-s-stone",
+            on_hot=False,
+        )
+
+    # --- Sorcerer ---
+    elif subclass_slug == "sorcerer__wild-magic-sorcery":
+        add(
+            "tides_of_chaos",
+            name_ru="Волны хаоса",
+            max_uses=1,
+            reset="long",
+            feature_id="tides-of-chaos",
+        )
+        if class_level >= 18:
+            add(
+                "tamed_wild_surge",
+                name_ru="Укрощённый всплеск",
+                max_uses=1,
+                reset="long",
+                feature_id="tamed-surge",
+                min_level=18,
+                on_hot=False,
+            )
+    elif subclass_slug == "sorcerer__clockwork-sorcery":
+        add(
+            "restore_balance",
+            name_ru="Восстановление баланса",
+            max_uses=max(1, cha_m),
+            reset="long",
+            feature_id="restore-balance",
+        )
+    elif subclass_slug == "sorcerer__shadow-sorcery":
+        add(
+            "power_of_shadow",
+            name_ru="Сила тени",
+            max_uses=max(1, cha_m),
+            reset="long",
+            feature_id="power-of-shadow",
+        )
+    elif subclass_slug == "sorcerer__aberrant-sorcery":
+        add(
+            "telepathic_speech",
+            name_ru="Телепатическая речь",
+            max_uses=1,
+            reset="long",
+            feature_id="telepathic-speech",
+            on_hot=False,
+        )
+
+    # --- Druid ---
+    elif subclass_slug == "druid__stars":
+        add(
+            "star_map_guiding_bolt",
+            name_ru="Звёздная карта (Направляющий снаряд)",
+            max_uses=max(1, wis_m),
+            reset="long",
+            feature_id="star-map",
+        )
+        if class_level >= 6:
+            add(
+                "cosmic_omen",
+                name_ru="Космическое знамение",
+                max_uses=max(1, wis_m),
+                reset="long",
+                feature_id="cosmic-omen",
+                min_level=6,
+            )
+    elif subclass_slug == "druid__land" and class_level >= 6:
+        add(
+            "natural_recovery",
+            name_ru="Естественное восстановление",
+            max_uses=1,
+            reset="long",
+            feature_id="natural-recovery",
+            min_level=6,
+            on_hot=False,
+            extra_meta={"also_short_rest_slot_recovery": True},
+        )
+    elif subclass_slug == "druid__moon" and class_level >= 10:
+        add(
+            "moonlight_step",
+            name_ru="Шаг в лунный свет",
+            max_uses=max(1, wis_m),
+            reset="long",
+            feature_id="moonlight-step",
+            min_level=10,
+        )
+
+    # --- Monk ---
+    elif subclass_slug == "monk__warrior-of-the-hand" and class_level >= 6:
+        add(
+            "wholeness_of_body",
+            name_ru="Целостность тела",
+            max_uses=max(1, wis_m),
+            reset="long",
+            feature_id="wholeness-of-body",
+            min_level=6,
+        )
+    elif subclass_slug == "monk__warrior-of-mercy" and class_level >= 17:
+        add(
+            "hand_of_ultimate_mercy",
+            name_ru="Рука высшего милосердия",
+            max_uses=1,
+            reset="long",
+            feature_id="hand-of-ultimate-mercy",
+            min_level=17,
+        )
+
+    # --- Ranger ---
+    elif subclass_slug == "ranger__gloom-stalker":
+        add(
+            "dread_ambusher_strike",
+            name_ru="Ужасающий удар",
+            max_uses=max(1, wis_m),
+            reset="long",
+            feature_id="dread-ambusher",
+            extra_meta={"damage": "2d6", "type": "psychic", "once_per_turn": True},
+        )
+    elif subclass_slug == "ranger__winter-walker":
+        add(
+            "hunters_rime",
+            name_ru="Иней охотника",
+            max_uses=max(1, wis_m),
+            reset="long",
+            feature_id="hunters-rime",
+        )
+    elif subclass_slug == "ranger__hollow-warden":
+        add(
+            "wrath_of_the_wild",
+            name_ru="Гнев дикой природы",
+            max_uses=max(1, wis_m),
+            reset="long",
+            feature_id="wrath-of-the-wild",
+        )
+
+    # --- Rogue ---
+    elif subclass_slug == "rogue__phantom":
+        add(
+            "wails_from_the_grave",
+            name_ru="Вопли из могилы",
+            max_uses=pb,
+            reset="long",
+            feature_id="wails-from-the-grave",
+        )
+        if class_level >= 9:
+            add(
+                "tokens_of_the_departed",
+                name_ru="Знаки ушедших",
+                max_uses=pb,
+                reset="long",
+                feature_id="tokens-of-the-departed",
+                track="stock",
+                min_level=9,
+            )
+    elif subclass_slug == "rogue__scion-of-the-three":
+        add(
+            "bloodthirst",
+            name_ru="Кровожадность",
+            max_uses=max(1, cha_m),
+            reset="long",
+            feature_id="bloodthirst",
+        )
+
+    # --- Barbarian ---
+    elif subclass_slug == "barbarian__zealot":
+        if class_level >= 6:
+            add(
+                "fanatical_focus",
+                name_ru="Фанатичная сосредоточенность",
+                max_uses=1,
+                reset="long",
+                feature_id="fanatical-focus",
+                min_level=6,
+                extra_meta={"per_rage": True, "note": "1 раз за ярость; пул отражает доступность вне ярости"},
+            )
+        if class_level >= 10:
+            add(
+                "zealous_presence",
+                name_ru="Рьяное присутствие",
+                max_uses=1,
+                reset="long",
+                feature_id="zealous-presence",
+                min_level=10,
+            )
+
+    # --- Bard extras ---
+    elif subclass_slug == "bard__glamour" and class_level >= 6:
+        add(
+            "mantle_of_majesty",
+            name_ru="Мантия величества",
+            max_uses=1,
+            reset="long",
+            feature_id="mantle-of-majesty",
+            min_level=6,
+        )
+
+    # --- Paladin L20 capstones often 1/long ---
+    if subclass_slug.startswith("paladin__") and class_level >= 20:
+        # Capstone feature ids vary; add generic 1/long if feature list has L20
+        for block in sub["data"].get("features") or []:
+            if int(block.get("level") or 0) != 20:
+                continue
+            for feat in block.get("features") or []:
+                fid = str(feat.get("id") or "")
+                if not fid:
+                    continue
+                add(
+                    fid.replace("-", "_"),
+                    name_ru=str(feat.get("name_ru") or fid),
+                    max_uses=1,
+                    reset="long",
+                    feature_id=fid,
+                    min_level=20,
+                    on_hot=False,
+                )
+
+    _ = (str_m, dex_m, con_m, pb)  # available for future PB/ability pools
     return out
 
 
@@ -374,11 +1251,6 @@ def always_prepared_for_subclass(
     *,
     land_choice: str | None = None,
 ) -> list[str]:
-    """Always-prepared spell slugs from subclass spell_list.
-
-    Circle of the Land rows carry a ``land`` key — only the chosen land is used.
-    Without a land pick, land-tagged rows are skipped (shown as text until chosen).
-    """
     if not subclass_slug:
         return []
     sub = load_subclass_catalog().get(subclass_slug)
@@ -430,11 +1302,17 @@ def feature_automation_mode(
     feature_id: str,
     subclass_slug: str | None,
     has_resource: bool,
+    has_shared_option: bool = False,
+    has_calc: bool = False,
 ) -> str:
-    """resource | always_prepared | third_caster | text"""
+    """resource | shared_option | always_prepared | third_caster | calc | text"""
     fid = feature_id.replace("_", "-")
     if has_resource:
         return "resource"
+    if has_shared_option:
+        return "shared_option"
+    if has_calc:
+        return "calc"
     if fid in ALWAYS_PREPARED_FEATURE_IDS or fid.endswith("-spells") or fid.endswith("-domain-spells"):
         return "always_prepared"
     if subclass_slug in THIRD_CASTER_SUBCLASSES and fid in {
@@ -452,18 +1330,21 @@ def classify_subclass(
     level: int = 11,
     land_choice: str | None = None,
 ) -> dict[str, Any]:
-    """Report helper: what is automated vs text for one subclass."""
+    """Report helper: button / calc / text for one subclass."""
     sub = load_subclass_catalog().get(subclass_slug)
     if not sub:
         return {"slug": subclass_slug, "error": "missing"}
     if subclass_slug == "druid__land" and not land_choice:
         land_choice = "arid"
+    abilities = {"str": 16, "dex": 14, "con": 14, "int": 14, "wis": 14, "cha": 14}
     resources = build_subclass_resources(
         subclass_slug,
         level,
         total_level=level,
-        abilities={"str": 16, "dex": 14, "con": 14, "int": 14, "wis": 12, "cha": 14},
+        abilities=abilities,
     )
+    shared = shared_options_for_subclass(subclass_slug, level)
+    bonuses = build_permanent_bonuses(subclass_slug, level, abilities=abilities)
     always = always_prepared_for_subclass(
         subclass_slug,
         level,
@@ -473,41 +1354,74 @@ def classify_subclass(
     resource_fids = {
         str(r.meta.get("feature_id") or "").replace("_", "-") for r in resources
     }
-    features_auto: list[str] = []
-    features_text: list[str] = []
+    shared_fids = {r.feature_id.replace("_", "-") for r in shared}
+    calc_fids = {b.feature_id.replace("_", "-") for b in bonuses}
+
+    buttons: list[str] = []
+    calcs: list[str] = []
+    texts: list[str] = []
     for block in sub["data"].get("features") or []:
         blv = int(block.get("level") or 0)
         if blv > level:
             continue
         for feat in block.get("features") or []:
             fid = str(feat.get("id") or "")
+            fid_n = fid.replace("_", "-")
+            name = str(feat.get("name_ru") or fid)
             mode = feature_automation_mode(
                 feature_id=fid,
                 subclass_slug=subclass_slug,
-                has_resource=fid.replace("_", "-") in resource_fids,
+                has_resource=fid_n in resource_fids,
+                has_shared_option=fid_n in shared_fids,
+                has_calc=fid_n in calc_fids,
             )
-            name = str(feat.get("name_ru") or fid)
-            if mode == "text":
-                features_text.append(f"L{blv} {name}")
+            line = f"L{blv} {name}"
+            if mode in {"resource", "shared_option"}:
+                spend = ""
+                for s in shared:
+                    if s.feature_id.replace("_", "-") == fid_n:
+                        spend = f" →{s.spend_pool}"
+                        break
+                pool = ""
+                for r in resources:
+                    if str(r.meta.get("feature_id") or "").replace("_", "-") == fid_n:
+                        pool = f" [{r.pool_id}×{r.max}/{r.reset}]"
+                        break
+                buttons.append(f"{line} [{mode}]{pool}{spend}")
+            elif mode in {"always_prepared", "third_caster"}:
+                buttons.append(f"{line} [{mode}]")
+            elif mode == "calc":
+                calcs.append(f"{line} [calc]")
             else:
-                features_auto.append(f"L{blv} {name} [{mode}]")
+                texts.append(f"{line} — мастер/нарратив или без формулы использований")
+
     return {
         "slug": subclass_slug,
         "name_ru": sub.get("name_ru"),
         "parent": subclass_parent(subclass_slug),
         "source": sub.get("source"),
         "resources": [r.pool_id for r in resources],
+        "shared_options": [s.feature_id for s in shared],
+        "permanent_bonuses": [
+            {"feature_id": b.feature_id, "kind": b.kind, "value": b.value, "name_ru": b.name_ru}
+            for b in bonuses
+        ],
         "always_prepared_count": len(always),
         "third_caster": bool(third),
-        "automated": features_auto,
-        "text": features_text,
+        "button": buttons,
+        "calc": calcs,
+        "text": texts,
+        # Back-compat keys for earlier tests
+        "automated": buttons + calcs,
         "mode": (
             "resource"
-            if resources
+            if resources or shared
+            else "calc"
+            if bonuses
             else "always_prepared"
             if always or third
             else "mixed"
-            if features_auto
+            if buttons or calcs
             else "text"
         ),
     }
@@ -515,6 +1429,27 @@ def classify_subclass(
 
 def automation_report(level: int = 11) -> list[dict[str, Any]]:
     return [classify_subclass(slug, level=level) for slug in list_all_subclass_slugs()]
+
+
+def automation_report_markdown(level: int = 11) -> str:
+    rows = automation_report(level=level)
+    lines = [
+        f"# P24-M02b: автоматизация подклассов 2024 (ур. {level})",
+        "",
+        "| Подкласс | Кнопки (пулы/опции) | Расчёты | Текстом |",
+        "|---|---|---|---|",
+    ]
+    for r in rows:
+        name = r.get("name_ru") or r["slug"]
+        btn = "; ".join(r.get("button") or []) or "—"
+        calc = "; ".join(r.get("calc") or []) or "—"
+        text = "; ".join(r.get("text") or []) or "—"
+        # escape pipes
+        btn = btn.replace("|", "/")
+        calc = calc.replace("|", "/")
+        text = text.replace("|", "/")
+        lines.append(f"| {name} (`{r['slug']}`) | {btn} | {calc} | {text} |")
+    return "\n".join(lines) + "\n"
 
 
 def subclass_resource_pools_to_sheet(
@@ -539,3 +1474,36 @@ def subclass_resource_pools_to_sheet(
             }
         )
     return rows
+
+
+def permanent_bonuses_to_sheet(
+    bonuses: Sequence[PermanentBonus],
+) -> list[dict[str, Any]]:
+    return [
+        {
+            "feature_id": b.feature_id,
+            "name_ru": b.name_ru,
+            "kind": b.kind,
+            "value": b.value,
+            "min_level": b.min_level,
+            "note_ru": b.note_ru,
+        }
+        for b in bonuses
+    ]
+
+
+def shared_options_to_sheet(
+    options: Sequence[SharedPoolOption],
+) -> list[dict[str, Any]]:
+    return [
+        {
+            "feature_id": o.feature_id,
+            "name_ru": o.name_ru,
+            "spend_pool": o.spend_pool,
+            "cost": o.cost,
+            "cost_max": o.cost_max,
+            "kind": o.kind,
+            "min_level": o.min_level,
+        }
+        for o in options
+    ]

@@ -421,7 +421,7 @@ class ClassFeatureRow:
     summary_ru: str
     source: str  # "class" | "subclass"
     subclass_slug: str | None = None
-    automation: str = "text"  # resource | always_prepared | third_caster | text
+    automation: str = "text"  # resource | shared_option | always_prepared | third_caster | calc | text
 
 
 @dataclass(frozen=True)
@@ -477,6 +477,8 @@ def _feature_rows_for_class(
     *,
     subclass_slug: str | None,
     resource_feature_ids: set[str] | None = None,
+    shared_option_ids: set[str] | None = None,
+    calc_feature_ids: set[str] | None = None,
 ) -> list[ClassFeatureRow]:
     rows: list[ClassFeatureRow] = []
     catalog = load_class_catalog().get(slug)
@@ -484,6 +486,8 @@ def _feature_rows_for_class(
         return rows
     subclass_at = int(catalog["data"].get("subclass_level") or 3)
     resource_feature_ids = resource_feature_ids or set()
+    shared_option_ids = shared_option_ids or set()
+    calc_feature_ids = calc_feature_ids or set()
     for row in catalog["data"].get("levels") or []:
         lv = int(row.get("level") or 0)
         if lv < 1 or lv > level:
@@ -520,11 +524,15 @@ def _feature_rows_for_class(
                         fid = str(feat.get("id") or "").strip()
                         if not fid:
                             continue
+                        fid_n = fid.replace("_", "-")
                         mode = e24sub.feature_automation_mode(
                             feature_id=fid,
                             subclass_slug=subclass_slug,
-                            has_resource=fid in resource_feature_ids
-                            or fid.replace("_", "-") in resource_feature_ids,
+                            has_resource=fid in resource_feature_ids or fid_n in resource_feature_ids,
+                            has_shared_option=fid_n in shared_option_ids
+                            or fid.replace("-", "_") in shared_option_ids,
+                            has_calc=fid_n in calc_feature_ids
+                            or fid.replace("-", "_") in calc_feature_ids,
                         )
                         rows.append(
                             ClassFeatureRow(
@@ -914,20 +922,57 @@ def compute_progression(
             if sub
             else []
         )
+        shared_opts = (
+            e24sub.shared_options_for_subclass(sub, level) if sub else []
+        )
+        perm_bonuses = (
+            e24sub.build_permanent_bonuses(sub, level, abilities=abilities) if sub else []
+        )
         resource_fids = {
             str(p.meta.get("feature_id") or "").replace("_", "-") for p in sub_pools
         }
+        shared_fids = {o.feature_id.replace("_", "-") for o in shared_opts}
+        calc_fids = {b.feature_id.replace("_", "-") for b in perm_bonuses}
         features.extend(
             _feature_rows_for_class(
                 slug,
                 level,
                 subclass_slug=sub,
                 resource_feature_ids=resource_fids,
+                shared_option_ids=shared_fids,
+                calc_feature_ids=calc_fids,
             )
         )
         pools, sc = _build_resources_for_class(
             slug, level, total_level=total_level, abilities=abilities
         )
+        # Attach subclass Channel Divinity options onto the shared class pool.
+        channel_opts = (
+            e24sub.channel_option_ids_for_subclass(sub, level) if sub else []
+        )
+        for pool in pools:
+            if pool.pool_id == "channel_divinity":
+                existing = list(pool.meta.get("channel_options") or [])
+                for opt in channel_opts:
+                    if opt not in existing:
+                        existing.append(opt)
+                if slug == "paladin" and "divine_sense" not in existing:
+                    existing.insert(0, "divine_sense")
+                pool.meta["channel_options"] = existing
+            # Bard college / monk / etc. shared options listed on the spend pool.
+            matching = [
+                {
+                    "feature_id": o.feature_id,
+                    "name_ru": o.name_ru,
+                    "cost": o.cost,
+                    "cost_max": o.cost_max,
+                    "kind": o.kind,
+                }
+                for o in shared_opts
+                if o.spend_pool == pool.pool_id
+            ]
+            if matching:
+                pool.meta["subclass_spend_options"] = matching
         resources.extend(pools)
         for sp in sub_pools:
             resources.append(
@@ -949,6 +994,32 @@ def compute_progression(
                 scales[f"{slug}:{sp.pool_id}:die"] = sp.meta["die"]
         for k, v in sc.items():
             scales[f"{slug}:{k}"] = v
+        if shared_opts:
+            scales[f"{slug}:subclass_shared_options"] = e24sub.shared_options_to_sheet(
+                shared_opts
+            )
+        if perm_bonuses:
+            scales[f"{slug}:subclass_permanent_bonuses"] = e24sub.permanent_bonuses_to_sheet(
+                perm_bonuses
+            )
+            crits = [b for b in perm_bonuses if b.kind == "crit_threshold"]
+            if crits:
+                # Lowest threshold wins (18 beats 19).
+                scales[f"{slug}:crit_threshold"] = min(int(b.value) for b in crits)
+            init_mod = next((b for b in perm_bonuses if b.kind == "initiative_mod"), None)
+            if init_mod is not None:
+                scales[f"{slug}:initiative_mod"] = init_mod.value
+            hp_pl = next((b for b in perm_bonuses if b.kind == "hp_per_level"), None)
+            if hp_pl is not None:
+                scales[f"{slug}:hp_per_level"] = hp_pl.value
+            ac = next((b for b in perm_bonuses if b.kind == "ac_formula"), None)
+            if ac is not None:
+                scales[f"{slug}:ac_formula"] = ac.value
+            aura = next((b for b in perm_bonuses if b.kind == "aura_radius"), None)
+            if aura is not None:
+                scales[f"{slug}:aura_radius_ft"] = (
+                    aura.value.get("ft") if isinstance(aura.value, dict) else aura.value
+                )
         block = _spellcasting_for_class(
             slug,
             level,

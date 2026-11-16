@@ -16,8 +16,10 @@ import type { DesiredFeatureResource } from './featureResources'
 import type { SheetResource } from './rest'
 import {
   alwaysPreparedForSubclass2024,
+  buildPermanentBonuses2024,
   buildSubclassResources2024,
   featureAutomationMode2024,
+  sharedOptionsForSubclass2024,
   SUBCLASS_CATALOG_2024,
   thirdCasterBlock2024,
   THIRD_CASTER_SUBCLASSES,
@@ -626,7 +628,19 @@ export function computeProgression2024(input: {
           abilities: input.abilities,
         })
       : []
+    const subclassShared = cls.subclassSlug
+      ? sharedOptionsForSubclass2024(cls.subclassSlug, cls.level)
+      : []
+    const subclassBonuses = cls.subclassSlug
+      ? buildPermanentBonuses2024({
+          subclassSlug: cls.subclassSlug,
+          classLevel: cls.level,
+          abilities: input.abilities,
+        })
+      : []
     const subclassResourceFids = new Set(subclassPools.map((p) => p.feature_id))
+    const sharedByFid = new Map(subclassShared.map((o) => [o.feature_id, o]))
+    const calcFids = new Set(subclassBonuses.map((b) => b.feature_id))
 
     if (cls.subclassSlug && cls.level >= subclassLevel) {
       const sub = SUBCLASS_CATALOG[cls.subclassSlug]
@@ -638,18 +652,50 @@ export function computeProgression2024(input: {
             const fidRaw = String(feat.id || '').trim()
             if (!fidRaw) continue
             if (subclassResourceFids.has(fidRaw)) continue
+            const shared = sharedByFid.get(fidRaw)
             const mode = featureAutomationMode2024({
               featureId: fidRaw,
               subclassSlug: cls.subclassSlug,
               hasResource: false,
+              hasSharedOption: Boolean(shared),
+              hasCalc: calcFids.has(fidRaw),
             })
+            const sharedResource: FeatureResource | undefined = shared
+              ? {
+                  uses: 1,
+                  recharge: 'long_rest',
+                  pool_id: shared.spend_pool,
+                  pool_name_ru: shared.name_ru,
+                  track: 'spend',
+                  spend_cost: Math.max(0, shared.cost),
+                  ...(shared.cost_max != null
+                    ? {
+                        linked_spend: {
+                          pool_id: shared.spend_pool,
+                          label_ru: shared.name_ru,
+                          mode: 'spend' as const,
+                          amount: shared.cost,
+                          amount_max: shared.cost_max,
+                        },
+                      }
+                    : {}),
+                }
+              : undefined
             features.push({
               id: fidRaw.replace(/-/g, '_'),
               level: blv,
               name_ru: String(feat.name_ru || fidRaw),
               name_en: String(feat.name_en || fidRaw),
               summary_ru: String(feat.summary_ru || ''),
-              kind: mode === 'always_prepared' || mode === 'third_caster' ? 'passive' : 'passive',
+              kind:
+                shared?.kind === 'bonus'
+                  ? 'bonus'
+                  : shared?.kind === 'reaction'
+                    ? 'reaction'
+                    : shared
+                      ? 'action'
+                      : 'passive',
+              resource: sharedResource,
               classEntryId: cls.entryId,
               className: cls.name,
               classLevel: cls.level,
@@ -810,6 +856,31 @@ export function computeProgression2024(input: {
       if (pool.shortRestRegain != null) desired.shortRestRegain = pool.shortRestRegain
       desiredResources.push(desired)
       if (pool.die) scales[`${cls.slug}:${pool.pool_id}:die`] = pool.die
+    }
+
+    if (subclassShared.length) {
+      scales[`${cls.slug}:subclass_shared_options`] = subclassShared
+    }
+    if (subclassBonuses.length) {
+      scales[`${cls.slug}:subclass_permanent_bonuses`] = subclassBonuses
+      const crits = subclassBonuses.filter((b) => b.kind === 'crit_threshold')
+      if (crits.length) {
+        scales[`${cls.slug}:crit_threshold`] = Math.min(
+          ...crits.map((b) => Number(b.value)),
+        )
+      }
+      const initMod = subclassBonuses.find((b) => b.kind === 'initiative_mod')
+      if (initMod) scales[`${cls.slug}:initiative_mod`] = initMod.value
+      const hpPl = subclassBonuses.find((b) => b.kind === 'hp_per_level')
+      if (hpPl) scales[`${cls.slug}:hp_per_level`] = hpPl.value
+      const ac = subclassBonuses.find((b) => b.kind === 'ac_formula')
+      if (ac) scales[`${cls.slug}:ac_formula`] = ac.value
+      const aura = subclassBonuses.find((b) => b.kind === 'aura_radius')
+      if (aura) {
+        const val = aura.value as { ft?: number } | number
+        scales[`${cls.slug}:aura_radius_ft`] =
+          typeof val === 'object' && val ? val.ft : val
+      }
     }
 
     if (cls.subclassSlug && THIRD_CASTER_SUBCLASSES[cls.subclassSlug]) {
