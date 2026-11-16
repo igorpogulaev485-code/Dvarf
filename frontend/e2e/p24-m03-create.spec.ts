@@ -142,6 +142,42 @@ async function walkLanguages(page: Page, ids: string[]) {
   }
 }
 
+/** No horizontal overflow / mid-screen rail collision on fold & phone. */
+async function assertPipelineLayoutHealthy(page: Page) {
+  const pipeline = page.locator('.create-pipeline').first()
+  if (!(await pipeline.count())) return
+  const metrics = await pipeline.evaluate((el) => {
+    const rail = el.querySelector('.create-pipeline__steprrail') as HTMLElement | null
+    const body = el.querySelector('.create-pipeline__body') as HTMLElement | null
+    const cards = el.querySelector('.create-pipeline__cards') as HTMLElement | null
+    const railBox = rail?.getBoundingClientRect()
+    const bodyBox = body?.getBoundingClientRect()
+    const cardsBox = cards?.getBoundingClientRect()
+    return {
+      pipelineScrollWidth: el.scrollWidth,
+      pipelineClientWidth: el.clientWidth,
+      railBottom: railBox?.bottom ?? 0,
+      bodyTop: bodyBox?.top ?? 0,
+      cardsWidth: cardsBox?.width ?? 0,
+      viewportWidth: window.innerWidth,
+    }
+  })
+  expect(
+    metrics.pipelineScrollWidth,
+    'create-pipeline horizontal overflow',
+  ).toBeLessThanOrEqual(metrics.pipelineClientWidth + 2)
+  if (metrics.railBottom && metrics.bodyTop) {
+    expect(metrics.bodyTop, 'step rail overlaps body').toBeGreaterThanOrEqual(
+      metrics.railBottom - 1,
+    )
+  }
+  if (metrics.cardsWidth && metrics.viewportWidth) {
+    expect(metrics.cardsWidth, 'cards wider than viewport').toBeLessThanOrEqual(
+      metrics.viewportWidth + 1,
+    )
+  }
+}
+
 /** Visible UI must not show service English / fixture banners. */
 async function assertNoServiceLatin(page: Page) {
   const body = await page.locator('main').innerText()
@@ -200,15 +236,26 @@ test.describe('P24-M03 create 2024 wizard', () => {
   test('нет CTA 2024; мастер 2014 маршрут жив; без служебного текста', async ({
     page,
   }, testInfo) => {
+    await loginViaApi(page)
     await page.goto('/characters/create')
-    await expect(page).toHaveURL(/\/(characters\/create|login)/)
+    await expect(page).toHaveURL(/\/characters\/create/)
     await expect(page.getByTestId('create-character-2024')).toHaveCount(0)
+    // 2014 shell should render without horizontal stretch on fold too.
+    await expect(page.locator('.create-pipeline').first()).toBeVisible({ timeout: 30_000 })
+    // Prefer a populated race list when the local DB has 2014 catalog rows.
+    await page
+      .locator('.create-pipeline__card')
+      .first()
+      .waitFor({ state: 'visible', timeout: 15_000 })
+      .catch(() => undefined)
+    await assertPipelineLayoutHealthy(page)
     await shot(page, 'create-2014-route', testInfo.project.name)
 
     // Fixtures harness is DEV-only smoke — not the live create path.
     await page.goto('/dev/p24-m03-preview')
     await expect(page.getByTestId('p24-m03-preview')).toBeVisible()
     await assertNoServiceLatin(page)
+    await assertPipelineLayoutHealthy(page)
   })
 
   for (const walk of [
@@ -326,27 +373,33 @@ test.describe('P24-M03 create 2024 wizard', () => {
       await assertNoServiceLatin(page)
 
       await walkClass(page, walk.class)
+      await assertPipelineLayoutHealthy(page)
       await shot(page, `${walk.key}-class`, project)
       await next(page)
 
       await walkBackground(page, walk.background)
+      await assertPipelineLayoutHealthy(page)
       await shot(page, `${walk.key}-background`, project)
       await next(page)
 
       await walkSpecies(page, walk.species)
+      await assertPipelineLayoutHealthy(page)
       await shot(page, `${walk.key}-species`, project)
       await next(page)
 
       await walkAbilities(page)
+      await assertPipelineLayoutHealthy(page)
       await shot(page, `${walk.key}-abilities`, project)
       await next(page)
 
       await walkLanguages(page, [...walk.languages])
+      await assertPipelineLayoutHealthy(page)
       await shot(page, `${walk.key}-languages`, project)
       await next(page)
 
       await expect(page.getByTestId('p24-m03-step-equipment')).toBeVisible()
       await expect(page.getByTestId('p24-m03-equipment-items')).toBeVisible()
+      await assertPipelineLayoutHealthy(page)
       await shot(page, `${walk.key}-equipment`, project)
       await next(page)
 

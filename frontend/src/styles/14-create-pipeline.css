@@ -370,10 +370,16 @@
     position: sticky;
     top: 0;
     z-index: 30;
-    margin: 0 -4px;
-    padding: 8px 4px 10px;
+    /* No negative side margin — it caused ~3–8px horizontal overflow on Fold/cover. */
+    margin: 0;
+    padding: 8px 0 10px;
     background: linear-gradient(180deg, var(--panel, #fffdf8) 70%, transparent);
     border-bottom: 1px solid color-mix(in srgb, var(--line) 70%, transparent);
+  }
+
+  .create-pipeline {
+    overflow-x: hidden;
+    max-width: 100%;
   }
 
   .create-pipeline__steprrail-intro .create-pipeline__title {
@@ -920,6 +926,70 @@
   }
 
   .create-2024__vitals {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  /*
+   * Fold open / near-square (e.g. 750×832): keep one-column phone stage, no stretch.
+   * Applies to 2014 and 2024 create pipelines.
+   */
+  .create-pipeline__cards,
+  .create-pipeline__detail {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  .create-pipeline__card,
+  .page--create-2024 .create-2024__vital,
+  .page--create-2024 .create-2024__ability {
+    min-width: 0;
+  }
+}
+
+/* Short fold landscape (832×750): rail + footer must not eat the stage. */
+@media (max-width: 860px) and (max-height: 780px) {
+  .page--create-2024 {
+    padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .page--create-2024 .create-pipeline__steprrail {
+    padding-top: 2px;
+    padding-bottom: 4px;
+  }
+
+  .page--create-2024 .create-pipeline__progress {
+    display: none;
+  }
+
+  .page--create-2024 .create-pipeline__step-label {
+    font-size: 0.7rem;
+  }
+
+  .create-2024__setup-bar {
+    bottom: calc(56px + env(safe-area-inset-bottom, 0px));
+    padding: 8px 10px;
+  }
+
+  .create-2024__setup {
+    max-height: min(52dvh, 420px);
+  }
+
+  .create-2024__pick-grid,
+  .create-2024__pick-grid--dense {
+    max-height: min(32dvh, 240px);
+  }
+
+  .create-2024__vitals {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .create-2024__vital {
+    padding: 6px 4px;
+  }
+
+  .create-2024__abilities {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
