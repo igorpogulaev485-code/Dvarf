@@ -5,7 +5,8 @@ import { isSelfForm } from '../companions'
 import { DEFAULT_ABILITY_SCORE_MAX, clampAbilityScore } from '../../../shared/dnd/abilityScoreCaps'
 import { AbilitySkillsColumn } from '../AbilitySkillsColumn'
 import { DarkvisionSense } from '../DarkvisionSense'
-import { formatSaveAdvantageNote } from '../gearEffects'
+import { PassiveSenseTile } from '../PassiveSenseTile'
+import { formatSaveAdvantageNote, listGearNamedSenses } from '../gearEffects'
 import { ABILITY_KEYS, type AbilityKey } from '../sheetTypes'
 import { cycleSkill } from './draft'
 
@@ -94,6 +95,7 @@ export function useSheetEditorPart5(model: SheetModel) {
   )
   model.abilityColumn = abilityColumn
 
+  const namedSenses = listGearNamedSenses(model.gearEffects)
   const passivesCompact = (
     <div className="play-desk__passives play-desk__passives--compact">
       <div className="play-desk__passives-label">Пассивы</div>
@@ -110,12 +112,20 @@ export function useSheetEditorPart5(model: SheetModel) {
           <span className="passive-card__label">Прониц.</span>
           <strong>{model.passives.insight}</strong>
         </div>
+        <DarkvisionSense
+          baseFt={model.draft.identity.darkvision}
+          effectiveFt={model.effectiveDarkvisionFt ?? model.draft.identity.darkvision}
+          onBaseChange={(darkvision) => model.patchIdentity({ darkvision })}
+        />
+        {namedSenses.map((sense) => (
+          <PassiveSenseTile
+            key={sense.key}
+            short={sense.short}
+            full={sense.full}
+            ft={sense.ft}
+          />
+        ))}
       </div>
-      <DarkvisionSense
-        baseFt={model.draft.identity.darkvision}
-        effectiveFt={model.effectiveDarkvisionFt ?? model.draft.identity.darkvision}
-        onBaseChange={(darkvision) => model.patchIdentity({ darkvision })}
-      />
     </div>
   )
   model.passivesCompact = passivesCompact

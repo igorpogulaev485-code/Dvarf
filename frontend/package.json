@@ -81,6 +81,7 @@
     "selfcheck:wapi11-review": "tsx --tsconfig tsconfig.app.json src/features/lobby/worldImportReview.selfcheck.ts",
     "selfcheck:wapi13-help": "tsx --tsconfig tsconfig.app.json src/features/worldImport/worldImportHelp.selfcheck.ts",
     "selfcheck:spells-collapse-align": "tsx --tsconfig tsconfig.app.json src/features/characters/spellsCollapseAlign.selfcheck.ts",
+    "selfcheck:passives-sense-row": "tsx --tsconfig tsconfig.app.json src/features/characters/passivesSenseRow.selfcheck.ts",
     "test:e2e:onboarding": "playwright test --config=playwright.onboarding.config.ts"
   },
   "dependencies": {

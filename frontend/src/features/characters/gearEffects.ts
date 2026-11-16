@@ -1031,6 +1031,64 @@ export function gearDarkvisionFt(gear: AggregatedGearEffects): number {
   return max
 }
 
+/** Named sense ranges from gear (blindsight / truesight / tremorsense). */
+export type GearNamedSense = {
+  key: 'blindsight' | 'truesight' | 'tremorsense'
+  /** Short tile label. */
+  short: string
+  /** Full name for tooltip. */
+  full: string
+  ft: number
+}
+
+const NAMED_SENSE_MATCHERS: Array<{
+  key: GearNamedSense['key']
+  short: string
+  full: string
+  match: (sense: string) => boolean
+}> = [
+  {
+    key: 'blindsight',
+    short: 'СЗ',
+    full: 'Слепое зрение',
+    match: (s) =>
+      s === 'blindsight' || s.includes('blindsight') || s.includes('слеп'),
+  },
+  {
+    key: 'truesight',
+    short: 'ИЗ',
+    full: 'Истинное зрение',
+    match: (s) =>
+      s === 'truesight' || s.includes('truesight') || s.includes('истинн'),
+  },
+  {
+    key: 'tremorsense',
+    short: 'ЧВ',
+    full: 'Чувство вибрации',
+    match: (s) =>
+      s === 'tremorsense' ||
+      s.includes('tremorsense') ||
+      s.includes('вибрац'),
+  },
+]
+
+/** Max range per named sense from gear `sense` effects (excludes darkvision). */
+export function listGearNamedSenses(gear: AggregatedGearEffects): GearNamedSense[] {
+  const out: GearNamedSense[] = []
+  for (const row of NAMED_SENSE_MATCHERS) {
+    let max = 0
+    for (const [sense, range] of Object.entries(gear.senses)) {
+      const key = sense.trim().toLowerCase()
+      if (!key || !row.match(key)) continue
+      // Darkvision-like keys stay on ТЗ tile, not СЗ.
+      if (key.includes('darkvision') || key.includes('тёмн') || key.includes('темн')) continue
+      max = Math.max(max, range)
+    }
+    if (max > 0) out.push({ key: row.key, short: row.short, full: row.full, ft: max })
+  }
+  return out
+}
+
 /** Append magic damage bonus to a dice string: "1d8" + 1 → "1d8+1". */
 export function appendDamageBonus(damage: string, bonus: number): string {
   if (!bonus) return damage

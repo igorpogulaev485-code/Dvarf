@@ -65,12 +65,18 @@
   box-shadow: none;
 }
 
-/* Keep 3 glance cards side-by-side on phone (override .passive-grid @520) */
+/* Passives + sense tiles wrap on phone (override .passive-grid @520 single-col) */
 .mobile-abil-page__passives .passive-grid,
 .mobile-abil-page__passives .passive-grid--desk {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  display: flex;
+  flex-wrap: wrap;
   gap: 6px;
+  align-content: start;
+}
+
+.mobile-abil-page__passives .passive-grid--desk .passive-card {
+  flex: 1 1 calc(25% - 6px);
+  min-width: 3.4rem;
 }
 
 .mobile-abil-page__own {
