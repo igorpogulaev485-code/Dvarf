@@ -142,6 +142,20 @@ Selfcheck: `npm run selfcheck:abilities-rail-cap` (рядом `selfcheck:abiliti
 `02-cards-join-lobby.css` (resize, min-height). Для формы «Написать нам» в кабинете и
 заметки админа в очереди обратной связи. Без page-level CSS.
 
+### DiceFab + FloatingPanel + BottomSheet (атомы, DICE-01)
+
+Свободный бросок кубиков на готовом листе (не мастер, не лобби):
+
+| Kit | Файл | Лицо |
+|-----|------|------|
+| `DiceFab` | `ui/DiceFab.tsx` | компактная кнопка d20, `is-on` когда панель открыта; класс `no-print` |
+| `FloatingPanel` | `ui/FloatingPanel.tsx` | плавающая панель у якоря (≥960): Esc / клик мимо / × |
+| `BottomSheet` | `ui/BottomSheet.tsx` | нижний лист на узком экране (частичная высота, body scroll lock) |
+
+Стили `.ui-dice-fab*` / `.ui-floating-*` / `.ui-bottom-sheet*` / `.dice-roller-panel*` в
+`01-tokens-base.css`. Фича: `frontend/src/features/diceRoller/` (парсер, честный RNG,
+локальный лог). Без page-level CSS и без правок `index.css`.
+
 ### Эталон 14.11.2026 — kit atoms (не менять вид без ok)
 
 | Kit | Файл | Лицо |
