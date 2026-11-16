@@ -25,7 +25,7 @@
 
 1. Шапка LOCK — `PlayDeskHeader` (§2b, доска `desk-header-lock`)
 2. Сцены / вкладки + хром — доска `desk-chrome`
-3. Rail характеристик (вариант A)
+3. Rail характеристик (вариант A) — высота колонки LOCK: [`ui-kit/README.md`](ui-kit/README.md) §2a (`usePlayDeskRailCap`, ≥960)
 4. Hot-bar LOCK (§2l)
 5. Панели сцен: Бой / Исследование / Общение / … по своим LOCK (§2c–2i)
 6. Редактор: `MinimalSheetEditor.tsx` (сборка из `minimalSheet/`) — не параллельный layout
