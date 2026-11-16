@@ -97,6 +97,11 @@ function mergeToolNames(base: string[], extra: string[]): string[] {
   return out
 }
 
+function withSpellResistance(defense: string, note: string): string {
+  if (!note) return defense
+  return defense ? `${defense} · ${note}` : note
+}
+
 function withConditionImmunities(
   defense: string,
   rows: Array<{ name: string }>,
@@ -107,6 +112,11 @@ function withConditionImmunities(
   return defense ? `${defense} · ${extra}` : extra
 }
 import { formatDefenseSummary } from '../../../shared/dnd/damageTypes'
+import {
+  spellResistanceDefenseNote2024,
+  wizard2024Context,
+  wizard2024Flags,
+} from '../../../shared/dnd/wizard2024Features'
 import { getFeaturePick } from '../../../shared/dnd/featurePicks'
 import { elementalAffinityPreview } from '../../../shared/dnd/pack04SorcererWarlock'
 import { totalCharacterLevel } from '../../../shared/dnd/classLevels'
@@ -1316,15 +1326,28 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
         featGrants={model.draft.featGrants}
         darkvision={model.effectiveDarkvisionFt}
         defenseSummary={withConditionImmunities(
-          formatDefenseSummary(
-            sheetDamageProfile({
-              raceSlug: model.draft.raceGrant?.slug,
-              raceResistances: model.draft.raceGrant?.damageResistances,
-              gear: model.gearEffects,
-              effects: model.draft.play.effects,
-              infusionResistances: model.infusionBonuses?.resistances,
-              featResistances: featResistanceTypes(model.draft.featGrants),
-            }),
+          withSpellResistance(
+            formatDefenseSummary(
+              sheetDamageProfile({
+                raceSlug: model.draft.raceGrant?.slug,
+                raceResistances: model.draft.raceGrant?.damageResistances,
+                gear: model.gearEffects,
+                effects: model.draft.play.effects,
+                infusionResistances: model.infusionBonuses?.resistances,
+                featResistances: featResistanceTypes(model.draft.featGrants),
+              }),
+            ),
+            model.rulesEdition === '2024'
+              ? spellResistanceDefenseNote2024(
+                  wizard2024Flags(
+                    wizard2024Context({
+                      rulesEdition: model.rulesEdition,
+                      classes: model.draft.classes,
+                      subclassSlugByEntryId: model.subclassSlugByEntryId,
+                    }),
+                  ),
+                )
+              : '',
           ),
           model.gearEffects.conditionImmunities,
         )}
@@ -1605,6 +1628,16 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
             learnBudgets={model.spellLearnBudgets}
             classes={model.draft.classes}
             elementalAffinity={elementalAffinity}
+            improvedIllusions={
+              model.rulesEdition === '2024' &&
+              wizard2024Flags(
+                wizard2024Context({
+                  rulesEdition: model.rulesEdition,
+                  classes: model.draft.classes,
+                  subclassSlugByEntryId: model.subclassSlugByEntryId,
+                }),
+              ).improvedIllusions
+            }
             castProfiles={model.spellcastingSync.castProfiles}
             characterLevel={model.characterLevel}
             pinned={model.deskSplit && model.splitSecondary === 'spells'}

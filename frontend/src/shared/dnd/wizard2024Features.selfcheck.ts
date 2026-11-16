@@ -5,6 +5,8 @@ import { computeProgression2024 } from './edition2024Classes'
 import { featureResourceId } from './featureResources'
 import type { SheetResource } from './rest'
 import type { SpellSlotState } from './spells'
+import { applySpellCastToCompanions } from '../../features/characters/spellCompanions'
+import { createSheetSpell } from '../../features/characters/spells'
 import { resolveWizardCopyMods2024 } from './wizardSpellbook2024'
 import {
   applyAbjurationToWard,
@@ -18,6 +20,17 @@ import {
   applySelfDamage2024,
   applyWizard2024FeatureUse,
   castTimingOverride2024,
+  clearWizard2024RestSwaps,
+  improvedIllusionsRange2024,
+  isPhantasmalFreeCast2024,
+  markWizard2024RestSwap,
+  parseSculptCreatureNames,
+  readWizard2024RestSwaps,
+  sculptCreatureLimit2024,
+  spellBreakerRefundOffer2024,
+  spellResistanceDefenseNote2024,
+  spellResistanceSaveNote2024,
+  wizard2024RestSwapDone,
   masteryCandidates2024,
   memorizeFromCandidates2024,
   overchannelNecroticDice2024,
@@ -450,6 +463,149 @@ const edition = '2024'
   const illRows = syncWizardSubclassSpells2024({ known: [] as W24Spell[], ctx: ill, resolve }).known
   assert.deepEqual(illRows.map((row) => row.name).sort(), ['Вызов зверя', 'Вызов феи', 'Малая иллюзия'].sort())
   assert.equal(illRows.find((row) => row.name === 'Вызов феи')?.grant_cast?.reset, 'long')
+}
+
+// --- Rest swaps: once per rest cycle ---------------------------------------
+{
+  let flags = readWizard2024RestSwaps(undefined)
+  assert.equal(flags, undefined, 'no flags by default')
+  assert.deepEqual(wizard2024RestSwapDone(flags), { memorize: false, cantrip: false, mastery: false })
+
+  flags = markWizard2024RestSwap(flags, 'memorize')
+  flags = markWizard2024RestSwap(flags, 'cantrip')
+  flags = markWizard2024RestSwap(flags, 'mastery')
+  flags = markWizard2024RestSwap(flags, 'cantripFormulas')
+
+  // reopen: flags are read back from the sheet, not reset
+  const reopened = readWizard2024RestSwaps(JSON.parse(JSON.stringify(flags)))
+  assert.deepEqual(reopened, flags)
+  assert.deepEqual(wizard2024RestSwapDone(reopened), { memorize: true, cantrip: true, mastery: true })
+
+  const afterShort = clearWizard2024RestSwaps(reopened, 'short')
+  assert.deepEqual(afterShort, { cantrip: true, mastery: true }, 'short rest frees memorize + formulas only')
+  assert.deepEqual(wizard2024RestSwapDone(afterShort), { memorize: false, cantrip: true, mastery: true })
+
+  const afterLong = clearWizard2024RestSwaps(reopened, 'long')
+  assert.equal(afterLong, undefined, 'long rest clears all swap flags')
+  assert.deepEqual(wizard2024RestSwapDone(afterLong), { memorize: false, cantrip: false, mastery: false })
+
+  assert.equal(clearWizard2024RestSwaps({ memorize: true }, 'short'), undefined)
+  assert.equal(clearWizard2024RestSwaps(undefined, 'long'), undefined)
+  assert.equal(readWizard2024RestSwaps({ memorize: false, foo: true }), undefined, 'false / unknown keys dropped')
+}
+
+// --- Sculpt Spells: 1 + spell level creatures -------------------------------
+{
+  assert.equal(sculptCreatureLimit2024(1), 2)
+  assert.equal(sculptCreatureLimit2024(3), 4)
+  assert.equal(sculptCreatureLimit2024(9), 10)
+  assert.deepEqual(parseSculptCreatureNames('Арн, Бела\nарн; ; Дик'), ['Арн', 'Бела', 'Дик'])
+  assert.deepEqual(parseSculptCreatureNames(''), [])
+
+  const base = {
+    featureId: 'sculpt_spells',
+    resourceId: null,
+    resources: [] as SheetResource[],
+    classEntryId: ENTRY,
+    slots: {} as Record<string, SpellSlotState>,
+  }
+  const ok = applyWizard2024FeatureUse({ ...base, slotLevel: 3, target: 'Арн, Бела, Дик' })
+  assert.equal(ok.ok, true)
+  assert.match(ok.message, /защищены: 3 \(лимит 4/)
+  assert.match(ok.message, /0 урона/)
+  const full = applyWizard2024FeatureUse({ ...base, slotLevel: 1, target: 'А, Б' })
+  assert.equal(full.ok, true, '1st level protects exactly 2')
+  const over = applyWizard2024FeatureUse({ ...base, slotLevel: 1, target: 'А, Б, В' })
+  assert.equal(over.ok, false, 'over the 1 + level limit is refused')
+  assert.match(over.message, /не больше 2/)
+  const none = applyWizard2024FeatureUse({ ...base, slotLevel: 2 })
+  assert.equal(none.ok, true)
+  assert.match(none.message, /защищены: 0 \(лимит 3/)
+  assert.equal(applyWizard2024FeatureUse({ ...base, slotLevel: 0 }).ok, false)
+}
+
+// --- Subclass convenience: refund, resistance, phantasmal HP, illusion range -
+{
+  const flagsFor = (slug: string, level: number) =>
+    wizard2024Flags(
+      wizard2024Context({
+        rulesEdition: edition,
+        classes: [{ id: ENTRY, name: 'Волшебник', level }],
+        subclassSlugByEntryId: { [ENTRY]: slug },
+      }),
+    )
+  const abj10 = flagsFor('wizard__abjurer', 10)
+  const counter = { name: 'Контрзаклинание', level: 3 }
+  assert.deepEqual(
+    spellBreakerRefundOffer2024({ flags: abj10, spell: counter, slotLevel: 5, viaSlot: true }),
+    { slotLevel: 5 },
+  )
+  assert.deepEqual(
+    spellBreakerRefundOffer2024({ flags: abj10, spell: { name: 'Рассеивание магии', level: 3 }, slotLevel: 3, viaSlot: true }),
+    { slotLevel: 3 },
+  )
+  assert.equal(
+    spellBreakerRefundOffer2024({ flags: abj10, spell: { name: 'Огненный шар', level: 3 }, slotLevel: 3, viaSlot: true }),
+    null,
+    'other spells do not offer a refund',
+  )
+  assert.equal(spellBreakerRefundOffer2024({ flags: abj10, spell: counter, slotLevel: 3, viaSlot: false }), null)
+  assert.equal(
+    spellBreakerRefundOffer2024({ flags: flagsFor('wizard__abjurer', 9), spell: counter, slotLevel: 3, viaSlot: true }),
+    null,
+    'needs level 10',
+  )
+  assert.equal(
+    spellBreakerRefundOffer2024({ flags: flagsFor('wizard__evoker', 10), spell: counter, slotLevel: 3, viaSlot: true }),
+    null,
+  )
+
+  const abj14 = flagsFor('wizard__abjurer', 14)
+  assert.match(spellResistanceSaveNote2024(abj14), /преимущество на спасброски против заклинаний/)
+  assert.match(spellResistanceDefenseNote2024(abj14), /урону от заклинаний/)
+  assert.equal(spellResistanceSaveNote2024(abj10), '')
+  assert.equal(spellResistanceDefenseNote2024(flagsFor('wizard__illusionist', 14)), '')
+
+  const ill6 = flagsFor('wizard__illusionist', 6)
+  assert.equal(isPhantasmalFreeCast2024({ flags: ill6, grantLabel: 'Призрачные существа' }), true)
+  assert.equal(isPhantasmalFreeCast2024({ flags: ill6, grantLabel: 'Лунное воплощение' }), false)
+  assert.equal(
+    isPhantasmalFreeCast2024({ flags: flagsFor('wizard__illusionist', 5), grantLabel: 'Призрачные существа' }),
+    false,
+  )
+
+  const summon = { ...createSheetSpell(), name: 'Призыв духа зверя', level: 2 }
+  const full = applySpellCastToCompanions({ companions: [], spell: summon, slotLevel: 2, characterLevel: 6, spellMod: 4 })
+  const half = applySpellCastToCompanions({
+    companions: [],
+    spell: summon,
+    slotLevel: 2,
+    characterLevel: 6,
+    spellMod: 4,
+    halfHp: true,
+  })
+  const fullHp = full?.companions[0]?.stats.hp_max
+  assert.ok(fullHp && fullHp > 1, 'template has hit points')
+  assert.equal(half?.companions[0]?.stats.hp_max, Math.floor(fullHp / 2), 'free cast has half HP')
+  assert.equal(half?.companions[0]?.stats.hp, Math.floor(fullHp / 2))
+  assert.match(half?.companions[0]?.notes ?? '', /Призрачные существа/)
+  assert.doesNotMatch(full?.companions[0]?.notes ?? '', /Призрачные существа/)
+
+  const ill3 = flagsFor('wizard__illusionist', 3)
+  const minor = { name: 'Малая иллюзия', range: '30 фт', school: 'illusion' }
+  assert.match(improvedIllusionsRange2024(minor, ill3) ?? '', /30 фт → 90 фт/)
+  assert.equal(improvedIllusionsRange2024(minor, flagsFor('wizard__illusionist', 2)), null)
+  assert.equal(improvedIllusionsRange2024(minor, flagsFor('wizard__evoker', 6)), null)
+  assert.equal(improvedIllusionsRange2024({ ...minor, range: 'Касание' }, ill3), null)
+  assert.equal(
+    improvedIllusionsRange2024({ name: 'Огненный шар', range: '150 фт', school: 'evocation' }, ill3),
+    null,
+    'only Illusion spells',
+  )
+  assert.match(
+    improvedIllusionsRange2024({ name: 'Образ', range: '120 feet', school: 'иллюзия' }, ill3) ?? '',
+    /120 фт → 180 фт/,
+  )
 }
 
 console.log('wizard2024Features selfcheck: ok')

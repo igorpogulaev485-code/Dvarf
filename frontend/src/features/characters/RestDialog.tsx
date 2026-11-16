@@ -49,11 +49,16 @@ import {
 } from '../../shared/dnd/o04DmgAdvanced'
 import type { RestResult } from '../../shared/dnd/rest'
 import {
-  WIZARD_2024_REST_DONE_EMPTY,
   Wizard2024RestSwaps,
   type Wizard2024RestDone,
   type Wizard2024RestProps,
 } from './Wizard2024RestSwaps'
+import {
+  clearWizard2024RestSwaps,
+  markWizard2024RestSwap,
+  wizard2024RestSwapDone,
+  type Wizard2024RestSwapKey,
+} from '../../shared/dnd/wizard2024Features'
 
 type RestKind = 'short' | 'long'
 
@@ -155,10 +160,19 @@ export function RestDialog({
   const [confirm, setConfirm] = useState<ConfirmState | null>(null)
   const [cantripFromId, setCantripFromId] = useState('')
   const [cantripToId, setCantripToId] = useState('')
-  const [cantripSwapped, setCantripSwapped] = useState(false)
-  const [wizardSwapDone, setWizardSwapDone] = useState<Wizard2024RestDone>(
-    WIZARD_2024_REST_DONE_EMPTY,
-  )
+  const [cantripSwappedLocal, setCantripSwappedLocal] = useState(false)
+  const is2024 = rulesEdition === '2024'
+  const wizardSwapDone: Wizard2024RestDone = wizard2024RestSwapDone(play.wizard2024RestSwaps)
+  const cantripSwapped = is2024
+    ? play.wizard2024RestSwaps?.cantripFormulas === true
+    : cantripSwappedLocal
+
+  function markWizardSwap(key: Wizard2024RestSwapKey) {
+    onPlayChange({
+      ...play,
+      wizard2024RestSwaps: markWizard2024RestSwap(play.wizard2024RestSwaps, key),
+    })
+  }
   const activePool =
     pools.find((row) => row.classEntryId === spendPoolId) ??
     pools.find((row) => row.current > 0) ??
@@ -186,8 +200,7 @@ export function RestDialog({
     }
     setConfirm(null)
     setTab(preferKind === 'long' ? 'long' : 'short')
-    setCantripSwapped(false)
-    setWizardSwapDone(WIZARD_2024_REST_DONE_EMPTY)
+    setCantripSwappedLocal(false)
     setCantripFromId(cantripFormulas?.known[0]?.id ?? '')
     setCantripToId(cantripFormulas?.catalog[0]?.id ?? '')
   }, [open, preferKind, cantripFormulas])
@@ -315,6 +328,9 @@ export function RestDialog({
     patchPlay({
       resources: finishWizardResourcesOnRest(result.resources, 'short'),
       ...(result.effects ? { effects: result.effects } : {}),
+      ...(play.wizard2024RestSwaps
+        ? { wizard2024RestSwaps: clearWizard2024RestSwaps(play.wizard2024RestSwaps, 'short') }
+        : {}),
     })
     const known = recoverGrantCastsOnRest(spells.known, 'short')
     const spellsTouched =
@@ -383,6 +399,9 @@ export function RestDialog({
         effects: result.effects ?? play.effects ?? [],
         // O-03 / XGE: длинный отдых сбрасывает счётчик суток без отдыха
         noLongRestDays: 0,
+        ...(play.wizard2024RestSwaps
+          ? { wizard2024RestSwaps: clearWizard2024RestSwaps(play.wizard2024RestSwaps, 'long') }
+          : {}),
       }),
     )
     if (removed) {
@@ -622,7 +641,8 @@ export function RestDialog({
                         const to = cantripFormulas.catalog.find((r) => r.id === cantripToId)
                         if (!to) return
                         cantripFormulas.onSwap(cantripFromId, to.id, to.name)
-                        setCantripSwapped(true)
+                        if (is2024) markWizardSwap('cantripFormulas')
+                        else setCantripSwappedLocal(true)
                         onToast(`Формулы заговоров: заменён на «${to.name}»`)
                       }}
                     >
@@ -635,7 +655,7 @@ export function RestDialog({
                     kind="short"
                     swaps={wizard2024Rest}
                     done={wizardSwapDone}
-                    onDone={(key) => setWizardSwapDone((prev) => ({ ...prev, [key]: true }))}
+                    onDone={markWizardSwap}
                   />
                 ) : null}
                 {pools.length > 0 ? (
@@ -767,7 +787,7 @@ export function RestDialog({
                     kind="long"
                     swaps={wizard2024Rest}
                     done={wizardSwapDone}
-                    onDone={(key) => setWizardSwapDone((prev) => ({ ...prev, [key]: true }))}
+                    onDone={markWizardSwap}
                   />
                 ) : null}
                 <div className="play-rest-actions">

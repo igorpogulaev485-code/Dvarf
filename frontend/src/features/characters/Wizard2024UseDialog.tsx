@@ -14,6 +14,8 @@ import {
   expertDivinationRestoreLevel2024,
   overchannelNecroticDice2024,
   overchannelUseCount2024,
+  parseSculptCreatureNames,
+  sculptCreatureLimit2024,
   slotRemaining2024,
   slotUsed2024,
 } from '../../shared/dnd/wizard2024Features'
@@ -67,6 +69,7 @@ export function Wizard2024UseDialog({ open, request, resources, slots, onConfirm
   const [slotLevel, setSlotLevel] = useState(0)
   const [castLevel, setCastLevel] = useState(2)
   const [amount, setAmount] = useState(0)
+  const [sculptNames, setSculptNames] = useState('')
 
   const featureId = request?.featureId ?? ''
   const resource = useMemo(() => {
@@ -90,6 +93,8 @@ export function Wizard2024UseDialog({ open, request, resources, slots, onConfirm
   const expertAuto = expertDivinationRestoreLevel2024(slots, castLevel)
   const expertLevel = featureId === 'expert_divination' ? slotLevel || expertAuto || 0 : 0
   const overUse = overchannelUseCount2024(resource) + 1
+  const sculptLimit = sculptCreatureLimit2024(slotLevel)
+  const sculptCount = parseSculptCreatureNames(sculptNames).length
 
   function confirm() {
     const result = applyWizard2024FeatureUse({
@@ -102,7 +107,7 @@ export function Wizard2024UseDialog({ open, request, resources, slots, onConfirm
       slotLevel: featureId === 'expert_divination' ? expertLevel : slotLevel,
       castLevel,
       amount,
-      target,
+      target: featureId === 'sculpt_spells' ? sculptNames : target,
       dieIndex,
     })
     onConfirm(result)
@@ -299,7 +304,27 @@ export function Wizard2024UseDialog({ open, request, resources, slots, onConfirm
             <Field label="Круг заклинания">
               <LevelChips levels={slotLevels} value={slotLevel} onPick={setSlotLevel} />
             </Field>
-            {slotLevel > 0 ? <Text tone="muted">До {1 + slotLevel} существ.</Text> : null}
+            {slotLevel > 0 ? (
+              <>
+                <Field
+                  label={`Защищённые существа (до ${sculptLimit})`}
+                  hint="По одному на строку или через запятую"
+                >
+                  <textarea
+                    className="ui-input ui-textarea"
+                    rows={3}
+                    value={sculptNames}
+                    placeholder={'Арн\nБела'}
+                    onChange={(event) => setSculptNames(event.target.value)}
+                  />
+                </Field>
+                <Text tone={sculptCount > sculptLimit ? 'danger' : 'muted'}>
+                  защищены: {sculptCount} (лимит {sculptLimit} = 1 + круг {slotLevel}) · автоматически
+                  успешный спас, 0 урона
+                  {sculptCount > sculptLimit ? ' · слишком много существ' : ''}
+                </Text>
+              </>
+            ) : null}
           </>
         ) : null}
       </Stack>

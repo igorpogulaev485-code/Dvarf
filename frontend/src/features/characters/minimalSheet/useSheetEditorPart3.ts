@@ -1106,6 +1106,11 @@ export function useSheetEditorPart3(model: SheetModel) {
       combat.concentration = playSheet.combatPatch.concentration
       combat.shillelagh = playSheet.combatPatch.shillelagh
       combat.effects = playSheet.combatPatch.effects
+      if (playSheet.combatPatch.wizard2024_rest_swaps) {
+        combat.wizard2024_rest_swaps = playSheet.combatPatch.wizard2024_rest_swaps
+      } else {
+        delete combat.wizard2024_rest_swaps
+      }
       sheet.combat = combat
       const proficiency = asRecord(sheet.proficiency)
       proficiency.bonus = proficiencyBonusForTotalLevel(totalLevel)

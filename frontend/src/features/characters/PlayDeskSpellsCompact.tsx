@@ -84,6 +84,8 @@ type PlayDeskSpellsCompactProps = {
   characterLevel?: number
   /** Draconic Elemental Affinity preview (+CHA to one ancestry damage roll). */
   elementalAffinity?: { damageType: string; amount: number } | null
+  /** 2024 Illusionist: show Improved Illusions range on the spell card. */
+  improvedIllusions?: boolean
   pinned?: boolean
   concentration?: ConcentrationState | null
   /** Rules edition for catalog description lookup in detail dialog. */
@@ -134,6 +136,7 @@ export function PlayDeskSpellsCompact({
   castProfiles = null,
   characterLevel: characterLevelProp = 1,
   elementalAffinity = null,
+  improvedIllusions = false,
   pinned = false,
   concentration = null,
   edition = '2014',
@@ -750,6 +753,7 @@ export function PlayDeskSpellsCompact({
         edition={edition}
         characterLevel={characterLevel}
         elementalAffinity={elementalAffinity}
+        improvedIllusions={improvedIllusions}
         spellMod={
           detailSpell
             ? (() => {

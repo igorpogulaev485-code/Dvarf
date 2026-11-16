@@ -26,6 +26,7 @@ export const WIZARD_SPELL_MASTERY_LEVEL_2024 = 18
 export const WIZARD_SIGNATURE_LEVEL_2024 = 20
 export const OVERCHANNEL_LEVEL_2024 = 14
 export const OVERCHANNEL_MAX_SLOT_2024 = 5
+export const IMPROVED_ILLUSIONS_RANGE_BONUS_FT = 60
 export const SPELL_MASTERY_TIERS_2024 = [1, 2] as const
 
 export const MEMORIZE_SPELL_NAME_RU = 'Запомнить заклинание'
@@ -404,6 +405,110 @@ export function wizard2024Flags(ctx: Wizard2024Context | null): Wizard2024Flags 
   }
 }
 
+// ---------------------------------------------------------------------------
+// Rest swaps: once per rest cycle (persisted on PlayState)
+// ---------------------------------------------------------------------------
+
+export type Wizard2024RestSwapFlags = {
+  /** Memorize Spell — one swap per short rest. */
+  memorize?: boolean
+  /** Spellcasting cantrip swap — one per long rest. */
+  cantrip?: boolean
+  /** Spell Mastery swap — one per long rest. */
+  mastery?: boolean
+  /** TCE Cantrip Formulas swap on a 2024 sheet — one per short rest. */
+  cantripFormulas?: boolean
+}
+
+export type Wizard2024RestSwapKey = keyof Wizard2024RestSwapFlags
+
+const REST_SWAP_KEYS: Wizard2024RestSwapKey[] = ['memorize', 'cantrip', 'mastery', 'cantripFormulas']
+const SHORT_REST_SWAP_KEYS: Wizard2024RestSwapKey[] = ['memorize', 'cantripFormulas']
+
+function compactRestSwaps(flags: Wizard2024RestSwapFlags): Wizard2024RestSwapFlags | undefined {
+  const next: Wizard2024RestSwapFlags = {}
+  for (const key of REST_SWAP_KEYS) {
+    if (flags[key] === true) next[key] = true
+  }
+  return Object.keys(next).length > 0 ? next : undefined
+}
+
+export function readWizard2024RestSwaps(raw: unknown): Wizard2024RestSwapFlags | undefined {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return undefined
+  const row = raw as Record<string, unknown>
+  return compactRestSwaps({
+    memorize: row.memorize === true,
+    cantrip: row.cantrip === true,
+    mastery: row.mastery === true,
+    cantripFormulas: row.cantripFormulas === true || row.cantrip_formulas === true,
+  })
+}
+
+export function markWizard2024RestSwap(
+  flags: Wizard2024RestSwapFlags | undefined,
+  key: Wizard2024RestSwapKey,
+): Wizard2024RestSwapFlags {
+  return { ...(flags ?? {}), [key]: true }
+}
+
+/** Short rest frees Memorize Spell (and Cantrip Formulas); long rest frees everything. */
+export function clearWizard2024RestSwaps(
+  flags: Wizard2024RestSwapFlags | undefined,
+  rest: 'short' | 'long',
+): Wizard2024RestSwapFlags | undefined {
+  if (!flags) return undefined
+  if (rest === 'long') return undefined
+  const next: Wizard2024RestSwapFlags = { ...flags }
+  for (const key of SHORT_REST_SWAP_KEYS) delete next[key]
+  return compactRestSwaps(next)
+}
+
+export function wizard2024RestSwapDone(flags: Wizard2024RestSwapFlags | undefined): {
+  memorize: boolean
+  cantrip: boolean
+  mastery: boolean
+} {
+  return {
+    memorize: flags?.memorize === true,
+    cantrip: flags?.cantrip === true,
+    mastery: flags?.mastery === true,
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Sculpt Spells: creature limit 1 + spell level
+// ---------------------------------------------------------------------------
+
+export function sculptCreatureLimit2024(spellLevel: number): number {
+  return 1 + Math.max(0, Math.floor(spellLevel) || 0)
+}
+
+/** Names split by newline, comma or semicolon; blank and duplicate rows dropped. */
+export function parseSculptCreatureNames(text: string | null | undefined): string[] {
+  const seen = new Set<string>()
+  const names: string[] = []
+  for (const part of (text ?? '').split(/[\n\r,;]+/)) {
+    const name = part.trim()
+    const key = name.toLowerCase()
+    if (!name || seen.has(key)) continue
+    seen.add(key)
+    names.push(name)
+  }
+  return names
+}
+
+/** Abjurer 14: Advantage on saving throws against spells (shown as a sheet hint). */
+export function spellResistanceSaveNote2024(flags: Wizard2024Flags): string {
+  return flags.spellResistance
+    ? 'Сопротивление заклинаниям: преимущество на спасброски против заклинаний'
+    : ''
+}
+
+/** Abjurer 14: Resistance to the damage of spells (not a damage type, so a text line). */
+export function spellResistanceDefenseNote2024(flags: Wizard2024Flags): string {
+  return flags.spellResistance ? 'Сопротивление урону от заклинаний' : ''
+}
+
 const SCHOOL_KEYS: Array<[RegExp, string]> = [
   [/ограждени|преграждени|abjur/i, 'abjuration'],
   [/прорицани|divin/i, 'divination'],
@@ -425,6 +530,22 @@ export function isDispelMagicSpell(spell: { name: string }): boolean {
 export function isMinorIllusionSpell(spell: { name: string }): boolean {
   const key = nameKey(spell.name)
   return key === 'малая-иллюзия' || key === 'minor-illusion'
+}
+
+/**
+ * Improved Illusions: an Illusion spell with a range of 10 feet or more reaches 60 feet further.
+ * Returns the display string, or null when the rule does not apply.
+ */
+export function improvedIllusionsRange2024(
+  spell: { name: string; range?: string | null; school?: string | null },
+  flags: Pick<Wizard2024Flags, 'improvedIllusions'>,
+): string | null {
+  if (!flags.improvedIllusions) return null
+  if (!isMinorIllusionSpell(spell) && wizardSpellSchoolKey(spell.school) !== 'illusion') return null
+  const match = /(\d+)\s*(?:фт|фут|ft|feet|foot)/i.exec(spell.range ?? '')
+  const base = match ? Number(match[1]) : 0
+  if (base < 10) return null
+  return `${base} фт → ${base + IMPROVED_ILLUSIONS_RANGE_BONUS_FT} фт (+${IMPROVED_ILLUSIONS_RANGE_BONUS_FT}, Улучшенные иллюзии)`
 }
 
 /** Casting-time override: Dispel Magic (Spell Breaker) and Minor Illusion (Improved Illusions). */
@@ -476,6 +597,20 @@ export const WIZARD_SUBCLASS_SPELL_RULES_2024: FeatureSpellRule[] = [
     freeCast: { max: 1, reset: 'long' },
   },
 ]
+
+/** Phantasmal Creatures: the free cast granted by the subclass (not any other grant). */
+export function isPhantasmalFreeCast2024(input: {
+  flags: Wizard2024Flags
+  grantLabel: string | null | undefined
+}): boolean {
+  if (!input.flags.phantasmalCreatures) return false
+  return WIZARD_SUBCLASS_SPELL_RULES_2024.some(
+    (rule) =>
+      rule.subclass === 'wizard__illusionist' &&
+      Boolean(rule.freeCast) &&
+      rule.label === input.grantLabel,
+  )
+}
 
 export function wizardSubclassSpellSlugs2024(
   subclass: string | null | undefined,
@@ -939,9 +1074,15 @@ export function applyWizard2024FeatureUse(input: Wizard2024UseInput): WizardFeat
     }
     case 'sculpt_spells': {
       if (slotLevel < 1) return refuse(input, 'Выбери круг заклинания воплощения')
+      const limit = sculptCreatureLimit2024(slotLevel)
+      const names = parseSculptCreatureNames(input.target)
+      if (names.length > limit) {
+        return refuse(input, `Защитить можно не больше ${limit} существ (1 + круг ${slotLevel}), указано ${names.length}`)
+      }
+      const who = names.length > 0 ? `: ${names.join(', ')}` : ''
       return done(
         input,
-        `Построение заклинаний: защитите до ${1 + slotLevel} видимых существ. Они автоматически преуспевают в спасброске и не получают урона.`,
+        `Построение заклинаний: защищены: ${names.length} (лимит ${limit} = 1 + ${slotLevel} круг)${who}. Автоматически успешный спасбросок, 0 урона.`,
       )
     }
     default:
@@ -956,6 +1097,19 @@ export function applyWizard2024FeatureUse(input: Wizard2024UseInput): WizardFeat
 export type Wizard2024CastNote = {
   slots: Record<string, SpellSlotState>
   notes: string[]
+}
+
+/** Spell Breaker: Counterspell / Dispel Magic cast through a slot may get the slot back when it fails. */
+export function spellBreakerRefundOffer2024(input: {
+  flags: Wizard2024Flags
+  spell: { name: string; level: number }
+  slotLevel: number
+  viaSlot: boolean
+}): { slotLevel: number } | null {
+  if (!input.flags.spellBreaker || !input.viaSlot || input.spell.level <= 0) return null
+  if (!isCounterspellOrDispel(input.spell)) return null
+  const slotLevel = Math.floor(input.slotLevel)
+  return slotLevel >= 1 ? { slotLevel } : null
 }
 
 /** Notes and slot refunds that follow a cast (slot-based hooks only). */
@@ -981,7 +1135,7 @@ export function wizard2024CastFollowUp(input: {
       )
     }
     if (input.flags.spellBreaker && isCounterspellOrDispel(input.spell)) {
-      notes.push('Разрушитель заклинаний: не пресекло — верни ячейку на карточке умения')
+      notes.push('Разрушитель заклинаний: не пресекло — «Вернуть ячейку» в этом уведомлении или на карточке умения')
     }
     if (input.flags.sculptSpells && school === 'evocation') {
       notes.push(`Построение: защити до ${1 + input.slotLevel} существ`)

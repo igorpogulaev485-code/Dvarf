@@ -1,12 +1,14 @@
 /** Действия листа, группа 4. Тела функций перенесены без изменения порядка вызовов. */
 import type { SheetModel } from './sheetModel'
 import type { Draft } from './draft'
+import type { ToastInput } from '../../../ui'
 import { type CompanionEntry } from '../companions'
 import {
   applyConcentrationChangeToCompanions,
   applySpellCastToCompanions,
   resolveSpellNaparnikSlug,
 } from '../spellCompanions'
+import { isPhantasmalSummonSpell } from '../spellCompanions'
 import { isSpellSelfFormCast, resolveSpellSelfFormSlug } from '../spellForms'
 import { type SpellFormDialogResult } from '../SpellFormDialog'
 import { type FamiliarPickDialogResult } from '../FamiliarPickDialog'
@@ -42,6 +44,9 @@ import { isMantleCommandSpell, MANTLE_CONCENTRATION_ID, silverTongueApplies } fr
 import {
   applyExpertDivination2024,
   castTimingOverride2024,
+  isPhantasmalFreeCast2024,
+  restoreSlot2024,
+  spellBreakerRefundOffer2024,
   wizard2024CastFollowUp,
   wizard2024Context,
   wizard2024Flags,
@@ -232,7 +237,11 @@ export function installSheetActions4(model: SheetModel) {
     )
   }
 
-  model.applyDeskNaparnikFromCast = function applyDeskNaparnikFromCast(spell: SheetSpell, slotLevel: number): string {
+  model.applyDeskNaparnikFromCast = function applyDeskNaparnikFromCast(
+    spell: SheetSpell,
+    slotLevel: number,
+    opts?: { halfHp?: boolean },
+  ): string {
     const abilityKey = model.draft.spells.casting_ability
     const spellMod = abilityKey ? abilityModifier(model.effectiveAbilities[abilityKey]) : 0
     const castCtx = {
@@ -240,6 +249,7 @@ export function installSheetActions4(model: SheetModel) {
       slotLevel,
       characterLevel: model.characterLevel,
       spellMod,
+      ...(opts?.halfHp ? { halfHp: true } : {}),
     }
     const preview = applySpellCastToCompanions({
       companions: model.draft.companions,
@@ -253,9 +263,10 @@ export function installSheetActions4(model: SheetModel) {
       })
       return result ? { ...prev, companions: result.companions } : prev
     })
+    const halfNote = opts?.halfHp ? ' (хиты вдвое меньше — Призрачные существа)' : ''
     return preview.refreshed
-      ? ` · напарник «${preview.name}» снова в строю`
-      : ` · напарник «${preview.name}»`
+      ? ` · напарник «${preview.name}» снова в строю${halfNote}`
+      : ` · напарник «${preview.name}»${halfNote}`
   }
 
 /** Pact of the Chain: ensure Find Familiar row, then open cast dialog. */
@@ -578,6 +589,46 @@ export function installSheetActions4(model: SheetModel) {
         }))
       }
     }
+    let spellBreakerRefund: { slotLevel: number; pact: boolean } | null = null
+    const offerSpellBreakerRefund = (slotLevel: number, pact: boolean) => {
+      if (model.rulesEdition !== '2024') return
+      const offer = spellBreakerRefundOffer2024({
+        flags: wizard2024FlagsNow(),
+        spell,
+        slotLevel,
+        viaSlot: true,
+      })
+      spellBreakerRefund = offer ? { slotLevel: offer.slotLevel, pact } : null
+    }
+    const spellBreakerToast = (message: string): ToastInput => {
+      const offer = spellBreakerRefund
+      if (!offer) return message
+      let refunded = false
+      return {
+        message,
+        durationMs: 12000,
+        actionLabel: 'Вернуть ячейку',
+        onAction: () => {
+          if (refunded) return
+          refunded = true
+          model.setDraft((prev) => {
+            if (offer.pact) {
+              const pact = prev.spells.pact_slots
+              if (!pact || pact.used <= 0) return prev
+              return {
+                ...prev,
+                spells: { ...prev.spells, pact_slots: { ...pact, used: pact.used - 1 } },
+              }
+            }
+            const slots = restoreSlot2024(prev.spells.slots, offer.slotLevel)
+            return slots ? { ...prev, spells: { ...prev.spells, slots } } : prev
+          })
+          model.onToast(
+            `Разрушитель заклинаний: ${offer.pact ? 'ячейка договора' : `ячейка ${offer.slotLevel} круга`} возвращена`,
+          )
+        },
+      }
+    }
     const successToast = (message: string) => {
       let spareNote = ''
       if (isSpareTheDyingSpell(spell)) {
@@ -646,7 +697,7 @@ export function installSheetActions4(model: SheetModel) {
         metaNotes.length > 0
           ? `${message}${spareNote} · ${metaNotes.join(' · ')}`
           : `${message}${spareNote}`
-      model.onToast(full)
+      model.onToast(spellBreakerToast(full))
       const sourceId = String(model.baseCharacter.id)
       void (async () => {
         if (spell.concentration) {
@@ -1032,10 +1083,17 @@ export function installSheetActions4(model: SheetModel) {
           spell,
         ),
       )
+      const phantasmal =
+        model.rulesEdition === '2024' &&
+        isPhantasmalFreeCast2024({
+          flags: wizard2024FlagsNow(),
+          grantLabel: label,
+        }) &&
+        isPhantasmalSummonSpell(spell)
       const naparnikNote =
         wantsForm || wantsFamiliar || wantsCreaturePick
           ? ''
-          : model.applyDeskNaparnikFromCast(spell, naparnikSlot)
+          : model.applyDeskNaparnikFromCast(spell, naparnikSlot, { halfHp: phantasmal })
       const wardNote = wizardCastFollowUp(spell, spell.level, choice, false)
       successToast(
         `Каст: ${name} (−1 ${label})${effectNote}${consumeNote}${allyNote}${
@@ -1121,6 +1179,7 @@ export function installSheetActions4(model: SheetModel) {
           ? ''
           : model.applyDeskNaparnikFromCast(spell, pactResult.pact.level)
       const wardNote = wizardCastFollowUp(spell, pactResult.pact.level, choice)
+      offerSpellBreakerRefund(pactResult.pact.level, true)
       successToast(
         `Каст: ${name} (−1 договор ${pactResult.pact.level} ур.)${effectNote}${consumeNote}${allyNote}${
           spell.concentration ? ' · концентрация' : ''
@@ -1149,6 +1208,7 @@ export function installSheetActions4(model: SheetModel) {
     const upcast =
       choice.slotLevel > spell.level ? ` · upcast ${choice.slotLevel}` : ''
     const wardNote = wizardCastFollowUp(spell, choice.slotLevel, choice)
+    offerSpellBreakerRefund(choice.slotLevel, false)
     successToast(
       `Каст: ${name} (−1 ячейка ${choice.slotLevel} ур.)${upcast}${effectNote}${consumeNote}${allyNote}${
         spell.concentration ? ' · концентрация' : ''

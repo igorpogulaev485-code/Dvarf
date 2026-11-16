@@ -19,12 +19,6 @@ export type Wizard2024RestProps = {
 
 export type Wizard2024RestDone = { memorize: boolean; cantrip: boolean; mastery: boolean }
 
-export const WIZARD_2024_REST_DONE_EMPTY: Wizard2024RestDone = {
-  memorize: false,
-  cantrip: false,
-  mastery: false,
-}
-
 function SwapSelect({
   label,
   value,

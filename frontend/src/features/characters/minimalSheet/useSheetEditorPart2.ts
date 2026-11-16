@@ -45,8 +45,10 @@ import { darkvisionFtFromFeatures, initiativeBonusFromFeatures, initiativeBonusF
 import { raceDarkvisionFallbackFt } from '../../../shared/dnd/race'
 import { createSheetSpell, sheetSpellFromCatalog } from '../spells'
 import {
+  spellResistanceSaveNote2024,
   syncWizardSubclassSpells2024,
   wizard2024Context,
+  wizard2024Flags,
   wizardSubclassSpellSlugs2024,
 } from '../../../shared/dnd/wizard2024Features'
 import {
@@ -1006,6 +1008,25 @@ export function useSheetEditorPart2(model: SheetModel) {
       parentSlug: model.draft.raceGrant?.parentSlug ?? null,
     })
     const note = formatRaceSaveAdvantageNote(rows)
-    return note ? note.split(' · ') : []
-  }, [model.draft.raceGrant?.slug, model.draft.raceGrant?.parentSlug])
+    const notes = note ? note.split(' · ') : []
+    if (model.rulesEdition === '2024') {
+      const spellNote = spellResistanceSaveNote2024(
+        wizard2024Flags(
+          wizard2024Context({
+            rulesEdition: model.rulesEdition,
+            classes: model.draft.classes,
+            subclassSlugByEntryId: model.subclassSlugByEntryId,
+          }),
+        ),
+      )
+      if (spellNote) notes.push(spellNote)
+    }
+    return notes
+  }, [
+    model.draft.raceGrant?.slug,
+    model.draft.raceGrant?.parentSlug,
+    model.rulesEdition,
+    model.draft.classes,
+    model.subclassSlugByEntryId,
+  ])
 }
