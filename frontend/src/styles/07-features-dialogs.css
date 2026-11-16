@@ -355,8 +355,9 @@
   background: #fffdf9;
 }
 
-/* Kit Dialog layout: primary справа (высоты — через Button size prop) */
-.ui-dialog__actions .ui-button--primary {
+/* Kit Dialog layout: primary/danger справа (высоты — через Button size prop) */
+.ui-dialog__actions .ui-button--primary,
+.ui-dialog__actions .ui-button--danger {
   order: 2;
 }
 

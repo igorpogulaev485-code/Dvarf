@@ -96,20 +96,24 @@ test.describe('ADM-02 help', () => {
     await expect(emailDialog.getByLabel('Пароль админки')).toHaveValue('')
     await emailDialog.getByRole('button', { name: 'Отмена' }).click()
 
-    await page.getByRole('button', { name: 'Заблокировать' }).click()
+    await page.getByRole('button', { name: 'Заблокировать' }).first().click()
     const blockDialog = page.getByRole('dialog', { name: /Заблокировать аккаунт/i })
     await expect(blockDialog).toBeVisible()
+    await expect(blockDialog).toHaveCSS('opacity', '1')
     await expect(blockDialog.getByText(/Вход будет закрыт/)).toBeVisible()
     await expect(blockDialog.getByLabel('Пароль админки')).toHaveValue('')
+    await expect(blockDialog.getByRole('button', { name: 'Заблокировать' })).toBeVisible()
     await blockDialog.getByRole('button', { name: 'Отмена' }).click()
 
     await page.getByRole('button', { name: 'Удалить аккаунт' }).click()
     const deleteDialog = page.getByRole('dialog', { name: /Удалить аккаунт/i })
     await expect(deleteDialog).toBeVisible()
+    await expect(deleteDialog).toHaveCSS('opacity', '1')
     await expect(deleteDialog.getByText(/Будут стерты персонажи человека \(3\)/)).toBeVisible()
     await expect(deleteDialog.getByText(/лобби, где он хозяин \(2\)/)).toBeVisible()
     await expect(deleteDialog.getByLabel('Пароль админки')).toHaveValue('')
     await expect(deleteDialog.getByLabel(/Введите почту удаляемого/)).toHaveValue('')
+    await expect(deleteDialog.getByRole('button', { name: 'Удалить навсегда' })).toBeVisible()
   })
 
   test('неадмин по-прежнему не входит', async ({ page }) => {

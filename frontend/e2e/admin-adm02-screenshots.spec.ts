@@ -1,4 +1,4 @@
-import { expect, test, type Page } from '@playwright/test'
+import { expect, test, type Page, type Locator } from '@playwright/test'
 import { mkdirSync } from 'node:fs'
 import { join } from 'node:path'
 
@@ -89,6 +89,14 @@ async function openHelpCard(page: Page) {
   await expect(page.getByText('Не заблокирован')).toBeVisible()
 }
 
+/** Дождаться конца sheet-rise (opacity 0→1 на ≤640px) и стабильного листа. */
+async function settleDialog(dialog: Locator) {
+  await expect(dialog).toBeVisible()
+  await expect(dialog).toHaveCSS('opacity', '1')
+  // Короткий запас после animationend / paint (motion-sheet = 220ms).
+  await dialog.page().waitForTimeout(280)
+}
+
 test.describe('ADM-02 screenshots', () => {
   test.beforeAll(() => {
     mkdirSync(OUT, { recursive: true })
@@ -105,7 +113,6 @@ test.describe('ADM-02 screenshots', () => {
       await openHelpCard(page)
       await page.screenshot({
         path: join(OUT, `admin-help-card-${name}.png`),
-        fullPage: true,
       })
     })
 
@@ -115,11 +122,10 @@ test.describe('ADM-02 screenshots', () => {
       await openHelpCard(page)
       await page.getByRole('button', { name: 'Сменить почту' }).click()
       const dialog = page.getByRole('dialog', { name: /Смена почты/i })
-      await expect(dialog).toBeVisible()
+      await settleDialog(dialog)
       await expect(dialog.getByLabel('Пароль админки')).toHaveValue('')
       await page.screenshot({
         path: join(OUT, `admin-help-email-${name}.png`),
-        fullPage: true,
       })
     })
 
@@ -127,11 +133,12 @@ test.describe('ADM-02 screenshots', () => {
       await page.setViewportSize(size)
       await mockHelp(page)
       await openHelpCard(page)
-      await page.getByRole('button', { name: 'Заблокировать' }).click()
-      await expect(page.getByRole('dialog', { name: /Заблокировать аккаунт/i })).toBeVisible()
+      await page.getByRole('button', { name: 'Заблокировать' }).first().click()
+      const dialog = page.getByRole('dialog', { name: /Заблокировать аккаунт/i })
+      await settleDialog(dialog)
+      await expect(dialog.getByRole('button', { name: 'Заблокировать' })).toBeVisible()
       await page.screenshot({
         path: join(OUT, `admin-help-block-${name}.png`),
-        fullPage: true,
       })
     })
 
@@ -141,11 +148,12 @@ test.describe('ADM-02 screenshots', () => {
       await openHelpCard(page)
       await page.getByRole('button', { name: 'Удалить аккаунт' }).click()
       const dialog = page.getByRole('dialog', { name: /Удалить аккаунт/i })
+      await settleDialog(dialog)
       await expect(dialog.getByText(/персонажи человека \(3\)/)).toBeVisible()
       await expect(dialog.getByLabel('Пароль админки')).toHaveValue('')
+      await expect(dialog.getByRole('button', { name: 'Удалить навсегда' })).toBeVisible()
       await page.screenshot({
         path: join(OUT, `admin-help-delete-${name}.png`),
-        fullPage: true,
       })
     })
   }

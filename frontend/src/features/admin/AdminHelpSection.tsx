@@ -438,7 +438,14 @@ export function AdminHelpSection({
       <Dialog
         open={danger !== null}
         title={danger ? dangerTitle[danger] : ''}
-        primaryLabel="Подтвердить"
+        primaryLabel={
+          danger === 'delete'
+            ? 'Удалить навсегда'
+            : danger === 'block'
+              ? 'Заблокировать'
+              : 'Подтвердить'
+        }
+        primaryVariant={danger === 'delete' ? 'danger' : 'primary'}
         secondaryLabel="Отмена"
         busy={busy}
         primaryDisabled={primaryDisabled}
