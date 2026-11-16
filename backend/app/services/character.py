@@ -19,6 +19,10 @@ from app.schemas.character import (
     CharacterUpdateRequest,
     ClearConcentrationEffectsResponse,
 )
+from app.schemas.character_create_2024 import (
+    CharacterCreate2024Request,
+    CharacterCreate2024ValidateResponse,
+)
 from app.services.sheet_effects import (
     append_effect,
     broadcast_sheet_effects_changed,
@@ -190,6 +194,72 @@ class CharacterService:
             sheet=empty_character_sheet(),
             is_draft=bool(getattr(payload, 'is_draft', False)),
         )
+        self.db.commit()
+        self.db.refresh(character)
+        return to_detail(character, db=self.db)
+
+    def validate_create_2024(
+        self,
+        payload: CharacterCreate2024Request,
+    ) -> CharacterCreate2024ValidateResponse:
+        from app.dnd.edition_2024_create import (
+            Create2024Error,
+            payload_from_dict,
+            validate_create_2024,
+        )
+
+        try:
+            result = validate_create_2024(payload_from_dict(payload.model_dump()))
+        except Create2024Error as exc:
+            raise AppError(exc.message, code=exc.code, status_code=400) from exc
+        return CharacterCreate2024ValidateResponse(
+            ok=True,
+            name=result.name,
+            level=result.level,
+            class_name=result.class_name,
+            race_name=result.race_name,
+            hp_max=result.hp_max,
+            sheet=result.sheet,
+            warnings=list(result.warnings),
+        )
+
+    def create_2024(self, user: User, payload: CharacterCreate2024Request) -> CharacterDetail:
+        """Finalize a 2024 level-1 character.
+
+        Player CTA stays closed until M06. Preview/tests may pass ``is_preview=True``
+        while ``RULES_EDITION_2024_OPEN`` is still false.
+        """
+        from app.core.config import settings
+        from app.dnd.edition_2024_create import (
+            Create2024Error,
+            payload_from_dict,
+            validate_create_2024,
+        )
+
+        if not settings.rules_edition_2024_open and not payload.is_preview:
+            raise AppError(
+                "Редакция 2024 ещё не открыта",
+                code="rules_edition_closed",
+                status_code=400,
+            )
+
+        try:
+            result = validate_create_2024(payload_from_dict(payload.model_dump()))
+        except Create2024Error as exc:
+            raise AppError(exc.message, code=exc.code, status_code=400) from exc
+
+        character = self.characters.create(
+            user_id=user.id,
+            rules_edition=RulesEdition.edition_2024,
+            name=result.name,
+            sheet=result.sheet,
+            is_draft=bool(payload.is_draft),
+        )
+        character.level = result.level
+        character.class_name = result.class_name
+        character.race_name = result.race_name
+        character.hp_max = result.hp_max
+        character.hp_current = result.hp_current
         self.db.commit()
         self.db.refresh(character)
         return to_detail(character, db=self.db)

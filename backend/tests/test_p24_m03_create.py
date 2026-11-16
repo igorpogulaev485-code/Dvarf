@@ -1,0 +1,480 @@
+"""P24-M03: 2024 character creation validation + API finalize."""
+
+from __future__ import annotations
+
+from types import SimpleNamespace
+from uuid import uuid4
+
+import pytest
+
+from app.core.config import settings
+from app.core.exceptions import AppError
+from app.dnd import edition_2024_create as create24
+from app.dnd import weapon_mastery as wm
+from app.dnd.edition_2024_languages import LANGUAGE_CHOICE_COUNT, COMMON_LANGUAGE_ID
+from app.models.character import RulesEdition
+from app.schemas.character_create_2024 import CharacterCreate2024Request
+from app.services.character import CharacterService
+
+
+CLASS_SLUGS = [
+    "barbarian",
+    "bard",
+    "cleric",
+    "druid",
+    "fighter",
+    "monk",
+    "paladin",
+    "ranger",
+    "rogue",
+    "sorcerer",
+    "warlock",
+    "wizard",
+    "artificer",
+]
+
+# Varied backgrounds / species for parametrized creates.
+BG_BY_CLASS = {
+    "barbarian": "soldier",
+    "bard": "entertainer",
+    "cleric": "acolyte",
+    "druid": "guide",
+    "fighter": "soldier",
+    "monk": "artisan",
+    "paladin": "noble",
+    "ranger": "guide",
+    "rogue": "criminal",
+    "sorcerer": "hermit",
+    "warlock": "charlatan",
+    "wizard": "sage",
+    "artificer": "artisan",
+}
+
+SPECIES_BY_CLASS = {
+    "barbarian": "goliath",
+    "bard": "tiefling",
+    "cleric": "human",
+    "druid": "elf",
+    "fighter": "dwarf",
+    "monk": "halfling",
+    "paladin": "dragonborn",
+    "ranger": "orc",
+    "rogue": "gnome",
+    "sorcerer": "tiefling",
+    "warlock": "human",
+    "wizard": "elf",
+    "artificer": "warforged",
+}
+
+
+def _spell_pick(class_slug: str, level: int, n: int) -> list[str]:
+    out: list[str] = []
+    for slug, row in create24.load_spell_catalog().items():
+        data = row.get("data") or {}
+        classes = data.get("classes") or []
+        lv = data.get("level")
+        if lv is None:
+            continue
+        if int(lv) == level and class_slug in classes:
+            out.append(slug)
+        if len(out) >= n:
+            break
+    return out
+
+
+def _melee_weapons(n: int) -> list[str]:
+    out: list[str] = []
+    for slug, row in wm.load_weapon_catalog_index().items():
+        if row.range_kind == "melee":
+            out.append(slug)
+        if len(out) >= n:
+            break
+    return out
+
+
+def _any_weapons(n: int) -> list[str]:
+    return list(wm.load_weapon_catalog_index().keys())[:n]
+
+
+def _species_picks(species_slug: str) -> dict:
+    species = create24.load_species_catalog()[species_slug]
+    data = species.get("data") or {}
+    out: dict = {}
+    sizes = [str(x).lower() for x in (data.get("size_options") or [])]
+    if sizes:
+        out["species_size"] = sizes[0]
+    elif data.get("size"):
+        out["species_size"] = str(data["size"]).lower()
+    lineages = data.get("lineages") if isinstance(data.get("lineages"), list) else []
+    if data.get("lineage_required") or lineages:
+        first = lineages[0]
+        out["species_lineage_id"] = str(first.get("id") or first.get("slug"))
+    if data.get("draconic_ancestry"):
+        out["species_ancestry_id"] = "fire"
+    return out
+
+
+def _background_tool(bg_slug: str) -> str | None:
+    bg = create24.load_background_catalog()[bg_slug]
+    data = bg.get("data") or {}
+    fixed = data.get("tool_proficiencies") or []
+    if fixed:
+        return None
+    choices = data.get("tool_choices")
+    if not choices:
+        return None
+    pool = create24._tool_choice_pool(choices if isinstance(choices, dict) else None)
+    if pool:
+        return pool[0]
+    return "dice-set"
+
+
+def _origin_feat_fields(bg_slug: str) -> dict:
+    bg = create24.load_background_catalog()[bg_slug]
+    feat = (bg.get("data") or {}).get("origin_feat") or {}
+    slug = str(feat.get("slug") or feat.get("id") or "")
+    out: dict = {}
+    if slug == "magic-initiate":
+        out["origin_feat_list"] = "wizard"
+        out["origin_feat_cantrips"] = _spell_pick("wizard", 0, 2)
+        out["origin_feat_spell_id"] = _spell_pick("wizard", 1, 1)[0]
+    elif slug == "skilled":
+        out["origin_feat_skilled"] = ["athletics", "stealth", "persuasion"]
+    return out
+
+
+def _class_option_picks(class_slug: str, class_skills: list[str]) -> dict:
+    if class_slug == "cleric":
+        return {"divine_order": "protector"}
+    if class_slug == "druid":
+        return {"primal_order": "magician"}
+    if class_slug == "rogue":
+        return {"expertise": class_skills[:2]}
+    if class_slug == "warlock":
+        return {"eldritch_invocations": ["armor-of-shadows"]}
+    return {}
+
+
+def _bg_asi(bg_slug: str) -> tuple[str, dict[str, int]]:
+    bg = create24.load_background_catalog()[bg_slug]
+    abilities = [str(a).lower() for a in ((bg.get("data") or {}).get("asi") or {}).get("abilities") or []]
+    assert len(abilities) == 3
+    return "+2/+1", {abilities[0]: 2, abilities[1]: 1}
+
+
+def _class_skills(class_slug: str) -> list[str]:
+    from app.dnd import edition_2024_classes as e24
+
+    data = e24.load_class_catalog()[class_slug]["data"]
+    choices = data.get("skill_choices") or {}
+    count = int(choices.get("count") or 0)
+    pool = list(choices.get("from") or [])
+    if choices.get("from_any") or not pool:
+        pool = sorted(create24.SKILL_IDS)
+    return pool[:count]
+
+
+def build_valid_payload(class_slug: str, **overrides) -> dict:
+    bg_slug = BG_BY_CLASS[class_slug]
+    species_slug = SPECIES_BY_CLASS[class_slug]
+    # Fallback if book-specific bg/species missing in thin envs.
+    bgs = create24.load_background_catalog()
+    species = create24.load_species_catalog()
+    if bg_slug not in bgs:
+        bg_slug = "acolyte" if "acolyte" in bgs else next(iter(bgs))
+    if species_slug not in species:
+        species_slug = "human" if "human" in species else next(iter(species))
+
+    asi_mode, asi = _bg_asi(bg_slug)
+    skills = _class_skills(class_slug)
+    limit = create24._weapon_mastery_limit(class_slug)
+    if class_slug == "barbarian":
+        mastery = _melee_weapons(limit) if limit else []
+    else:
+        mastery = _any_weapons(limit) if limit else []
+
+    from app.dnd import edition_2024_classes as e24
+
+    class_data = e24.load_class_catalog()[class_slug]["data"]
+    packs = class_data.get("starting_equipment") or []
+    pack_id = "a" if any(p.get("id") == "a" for p in packs) else packs[0]["id"]
+
+    base = {
+        "str": 15,
+        "dex": 14,
+        "con": 13,
+        "int": 12,
+        "wis": 10,
+        "cha": 8,
+    }
+    # Casters: put 15 into primary.
+    primaries = [str(x).lower() for x in (class_data.get("primary_abilities") or [])]
+    if primaries:
+        primary = primaries[0]
+        # Swap so primary gets 15.
+        for k, v in list(base.items()):
+            if v == 15 and k != primary:
+                base[k] = base.get(primary, 8)
+                base[primary] = 15
+                break
+
+    payload = {
+        "name": f"Герой-{class_slug}",
+        "class_slug": class_slug,
+        "background_slug": bg_slug,
+        "species_slug": species_slug,
+        "ability_method": "standard_array",
+        "base_abilities": base,
+        "background_asi_mode": asi_mode,
+        "background_asi": asi,
+        "language_ids": ["elvish", "dwarvish"],
+        "class_skill_ids": skills,
+        "weapon_mastery_ids": mastery,
+        "fighting_style_slug": "defense" if class_slug == "fighter" else None,
+        "background_tool_id": _background_tool(bg_slug),
+        "background_equipment": "pack",
+        "class_equipment": pack_id,
+        "cantrip_ids": [],
+        "prepared_spell_ids": [],
+        "class_option_picks": _class_option_picks(class_slug, skills),
+        "is_preview": True,
+        "is_draft": False,
+        **_species_picks(species_slug),
+        **_origin_feat_fields(bg_slug),
+    }
+
+    # Spells for L1 casters
+    snap = e24.compute_progression([{"slug": class_slug, "level": 1}], abilities=base)
+    if snap.spellcasting:
+        block = snap.spellcasting[0]
+        payload["cantrip_ids"] = _spell_pick(class_slug, 0, int(block.cantrips or 0))
+        always = set(block.always_prepared or ())
+        prep = _spell_pick(class_slug, 1, int(block.prepared_spells or 0) + len(always))
+        # Prefer non-always for budget fills.
+        filled: list[str] = []
+        for sid in prep:
+            if sid in always:
+                continue
+            filled.append(sid)
+            if len(filled) >= int(block.prepared_spells or 0):
+                break
+        payload["prepared_spell_ids"] = filled
+
+    payload.update(overrides)
+    # Drop None optional fields
+    return {k: v for k, v in payload.items() if v is not None}
+
+
+def test_rules_edition_2024_still_closed():
+    assert settings.rules_edition_2024_open is False
+
+
+def test_languages_catalog():
+    langs = create24.languages_catalog_payload()
+    assert len(langs) >= 10
+    ids = {row["id"] for row in langs}
+    assert COMMON_LANGUAGE_ID not in ids
+    assert "common-sign-language" in ids
+    assert LANGUAGE_CHOICE_COUNT == 2
+
+
+@pytest.mark.parametrize("class_slug", CLASS_SLUGS)
+def test_create_2024_each_class(class_slug: str):
+    payload = build_valid_payload(class_slug)
+    result = create24.validate_create_2024(create24.payload_from_dict(payload))
+    assert result.level == 1
+    assert result.hp_max >= 4
+    sheet = result.sheet
+    assert sheet["meta"]["rules_edition"] == "2024"
+    assert sheet["classes"][0]["level"] == 1
+    assert sheet["classes"][0]["subclass_slug"] is None
+    assert "class_progress_2024" in sheet
+    assert sheet["proficiency"]["languages"][0] == COMMON_LANGUAGE_ID
+    assert len(sheet["create_2024"]["languages_chosen"]) == 2
+    # No racial ASI: final scores = base + background only
+    for key, base in payload["base_abilities"].items():
+        bonus = int(payload["background_asi"].get(key, 0))
+        assert sheet["abilities"][key]["score"] == base + bonus
+    if class_slug in {"barbarian", "fighter", "paladin", "ranger", "rogue"}:
+        assert sheet.get("weapon_mastery")
+    if class_slug == "fighter":
+        assert sheet["create_2024"]["fighting_style"] == "defense"
+
+
+def test_reject_subclass_at_level_1():
+    payload = build_valid_payload("fighter", subclass_slug="champion")
+    with pytest.raises(create24.Create2024Error) as exc:
+        create24.validate_create_2024(create24.payload_from_dict(payload))
+    assert exc.value.code == "create_2024_subclass"
+
+
+def test_reject_asi_outside_background_trio():
+    payload = build_valid_payload("fighter")
+    # Soldier trio is str/dex/con — cha is illegal.
+    payload["background_asi"] = {"cha": 2, "str": 1}
+    with pytest.raises(create24.Create2024Error) as exc:
+        create24.validate_create_2024(create24.payload_from_dict(payload))
+    assert exc.value.code == "create_2024_asi"
+
+
+def test_reject_extra_languages():
+    payload = build_valid_payload("wizard", language_ids=["elvish", "dwarvish", "draconic"])
+    with pytest.raises(create24.Create2024Error) as exc:
+        create24.validate_create_2024(create24.payload_from_dict(payload))
+    assert exc.value.code == "create_2024_languages"
+
+
+def test_reject_common_as_choice():
+    payload = build_valid_payload("wizard", language_ids=["common", "elvish"])
+    with pytest.raises(create24.Create2024Error) as exc:
+        create24.validate_create_2024(create24.payload_from_dict(payload))
+    assert exc.value.code == "create_2024_languages"
+
+
+def test_reject_wrong_origin_feat_picks():
+    payload = build_valid_payload("wizard")  # sage may not be magic-initiate
+    # Force acolyte path
+    payload = build_valid_payload("cleric", background_slug="acolyte")
+    payload.pop("origin_feat_cantrips", None)
+    payload["origin_feat_cantrips"] = ["fire-bolt"]  # only one
+    payload["origin_feat_list"] = "wizard"
+    payload["origin_feat_spell_id"] = _spell_pick("wizard", 1, 1)[0]
+    with pytest.raises(create24.Create2024Error) as exc:
+        create24.validate_create_2024(create24.payload_from_dict(payload))
+    assert exc.value.code == "create_2024_origin_feat"
+
+
+def test_reject_fighting_style_on_wizard():
+    payload = build_valid_payload("wizard", fighting_style_slug="defense")
+    with pytest.raises(create24.Create2024Error) as exc:
+        create24.validate_create_2024(create24.payload_from_dict(payload))
+    assert exc.value.code == "create_2024_fighting_style"
+
+
+def test_reject_weapon_mastery_on_wizard():
+    payload = build_valid_payload("wizard", weapon_mastery_ids=["dagger", "club"])
+    with pytest.raises(create24.Create2024Error) as exc:
+        create24.validate_create_2024(create24.payload_from_dict(payload))
+    assert exc.value.code == "create_2024_weapon_mastery"
+
+
+def test_asi_cap_20():
+    payload = build_valid_payload("fighter")
+    payload["ability_method"] = "manual"
+    payload["base_abilities"] = {
+        "str": 18,
+        "dex": 14,
+        "con": 13,
+        "int": 12,
+        "wis": 10,
+        "cha": 8,
+    }
+    payload["background_asi_mode"] = "+2/+1"
+    payload["background_asi"] = {"str": 2, "dex": 1}
+    create24.validate_create_2024(create24.payload_from_dict(payload))
+    payload["base_abilities"]["str"] = 19
+    with pytest.raises(create24.Create2024Error) as exc:
+        create24.validate_create_2024(create24.payload_from_dict(payload))
+    assert exc.value.code == "create_2024_asi_cap"
+
+
+def test_create_2024_api_preview_allows_when_flag_closed(monkeypatch):
+    created: dict = {}
+
+    class FakeRepo:
+        def create(self, **kwargs):
+            created.update(kwargs)
+            char = SimpleNamespace(
+                id=uuid4(),
+                user_id=kwargs["user_id"],
+                name=kwargs["name"],
+                rules_edition=kwargs["rules_edition"],
+                sheet=kwargs["sheet"],
+                sheet_version=1,
+                avatar_url=None,
+                level=1,
+                class_name=None,
+                race_name=None,
+                hp_current=None,
+                hp_max=None,
+                is_draft=False,
+                created_at=None,
+                updated_at=None,
+            )
+            return char
+
+    monkeypatch.setattr(settings, "rules_edition_2024_open", False)
+    db = SimpleNamespace(commit=lambda: None, refresh=lambda _c: None)
+    svc = CharacterService(db=db)  # type: ignore[arg-type]
+    svc.characters = FakeRepo()  # type: ignore[assignment]
+    import app.services.character as char_mod
+
+    monkeypatch.setattr(
+        char_mod,
+        "to_detail",
+        lambda character, **_kw: SimpleNamespace(
+            id=character.id,
+            rules_edition=character.rules_edition,
+            name=character.name,
+            sheet=character.sheet,
+            level=character.level,
+            class_name=character.class_name,
+            race_name=character.race_name,
+            hp_max=character.hp_max,
+        ),
+    )
+    payload = CharacterCreate2024Request(**build_valid_payload("fighter", is_preview=True))
+    out = svc.create_2024(SimpleNamespace(id=uuid4()), payload)  # type: ignore[arg-type]
+    assert created["rules_edition"] == RulesEdition.edition_2024
+    assert out.rules_edition == RulesEdition.edition_2024
+    assert created["sheet"]["weapon_mastery"]["known"]
+
+
+def test_create_2024_api_refuses_without_preview_when_closed(monkeypatch):
+    monkeypatch.setattr(settings, "rules_edition_2024_open", False)
+    svc = CharacterService(db=SimpleNamespace())  # type: ignore[arg-type]
+    payload = CharacterCreate2024Request(**build_valid_payload("fighter", is_preview=False))
+    with pytest.raises(AppError) as exc:
+        svc.create_2024(SimpleNamespace(id=uuid4()), payload)  # type: ignore[arg-type]
+    assert exc.value.code == "rules_edition_closed"
+
+
+def test_empty_2014_create_still_works_shape():
+    """2014 empty sheet skeleton unchanged (no 2024 keys)."""
+    from app.services.character_sheet import empty_character_sheet
+
+    sheet = empty_character_sheet()
+    assert "weapon_mastery" not in sheet
+    assert "class_progress_2024" not in sheet
+    assert "create_2024" not in sheet
+    assert sheet["combat"]["inspiration"] is False
+
+
+# Snapshot of a minimal 2014-like summary shape used by create pipeline finish.
+_CREATE_2014_SHEET_SNAPSHOT_KEYS = frozenset(
+    {
+        "identity",
+        "abilities",
+        "saves",
+        "skills",
+        "combat",
+        "proficiency",
+        "bonuses",
+        "weapons",
+        "attunements",
+        "inventory",
+        "resources",
+        "spells",
+        "features_text",
+        "personality",
+        "notes",
+        "meta",
+    }
+)
+
+
+def test_2014_empty_sheet_keys_identical_after_pack():
+    from app.services.character_sheet import empty_character_sheet
+
+    sheet = empty_character_sheet()
+    assert set(sheet.keys()) == _CREATE_2014_SHEET_SNAPSHOT_KEYS

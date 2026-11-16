@@ -15,6 +15,11 @@ from app.schemas.character import (
     ClearConcentrationEffectsRequest,
     ClearConcentrationEffectsResponse,
 )
+from app.schemas.character_create_2024 import (
+    CharacterCreate2024Request,
+    CharacterCreate2024ValidateResponse,
+    Languages2024Response,
+)
 from app.services.character import CharacterService
 
 router = APIRouter(prefix="/characters", tags=["characters"])
@@ -32,6 +37,48 @@ def create_character(
     db: DbSession,
 ) -> CharacterDetail:
     return CharacterService(db).create(current_user, payload)
+
+
+@router.get("/create-2024/languages", response_model=Languages2024Response)
+def list_create_2024_languages(current_user: CurrentUser) -> Languages2024Response:
+    """P24-M03: language catalog for the 2024 create wizard (Common + 2 picks)."""
+    from app.dnd.edition_2024_create import (
+        class_special_languages_payload,
+        languages_catalog_payload,
+    )
+    from app.dnd.edition_2024_languages import COMMON_LANGUAGE_ID, LANGUAGE_CHOICE_COUNT
+
+    _ = current_user
+    return Languages2024Response(
+        common_id=COMMON_LANGUAGE_ID,
+        choice_count=LANGUAGE_CHOICE_COUNT,
+        languages=languages_catalog_payload(),
+        class_special=class_special_languages_payload(),
+    )
+
+
+@router.post(
+    "/create-2024/validate",
+    response_model=CharacterCreate2024ValidateResponse,
+)
+def validate_create_character_2024(
+    payload: CharacterCreate2024Request,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> CharacterCreate2024ValidateResponse:
+    """Validate a full 2024 level-1 create payload without persisting."""
+    _ = current_user
+    return CharacterService(db).validate_create_2024(payload)
+
+
+@router.post("/create-2024", response_model=CharacterDetail, status_code=201)
+def create_character_2024(
+    payload: CharacterCreate2024Request,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> CharacterDetail:
+    """Create a finished 2024 level-1 character (preview flag or open edition)."""
+    return CharacterService(db).create_2024(current_user, payload)
 
 
 @router.get("/{character_id}", response_model=CharacterDetail)

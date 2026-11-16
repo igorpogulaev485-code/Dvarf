@@ -2263,7 +2263,7 @@ export function CreateCharacterPage() {
         detail={detail}
         footer={footer}
         detailPrimary={step === 'abilities' || step === 'leveling'}
-        onStepClick={goToStep}
+        onStepClick={(id) => goToStep(id as CreatePipelineStepId)}
         onBack={
           backTarget
             ? () => goToStep(backTarget)

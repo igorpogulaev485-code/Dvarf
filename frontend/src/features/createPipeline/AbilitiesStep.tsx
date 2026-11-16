@@ -28,6 +28,8 @@ type AbilitiesStepProps = {
   onBaseChange: (scores: AbilityScores) => void
   /** L-16: если задано — показать только эти методы (вкл. скрытие manual). */
   allowedMethods?: AbilityMethod[] | null
+  /** Overlay label (2014 «раса», 2024 «предыстория»). */
+  bonusLabel?: string
 }
 
 type MethodCard = {
@@ -77,6 +79,7 @@ export function AbilitiesStep({
   onMethodChange,
   onBaseChange,
   allowedMethods,
+  bonusLabel = 'раса',
 }: AbilitiesStepProps) {
   const methodCards =
     allowedMethods && allowedMethods.length > 0
@@ -137,8 +140,8 @@ export function AbilitiesStep({
         Характеристики
       </Text>
       <Text tone="muted">
-        База без расовых бонусов. Справа в сумме уже с расой. Point buy — {POINT_BUY_BUDGET} очков,
-        до расы максимум {POINT_BUY_MAX}.
+        База без бонусов ({bonusLabel}). Справа в сумме уже с бонусом. Point buy —{' '}
+        {POINT_BUY_BUDGET} очков, до бонуса максимум {POINT_BUY_MAX}.
       </Text>
 
       <div className="create-pipeline__method-cards" role="group" aria-label="Метод характеристик">
@@ -195,7 +198,7 @@ export function AbilitiesStep({
                 <Text className="create-pipeline__ability-label">{ABILITY_LABEL_RU[key]}</Text>
                 {bonus ? (
                   <Text tone="muted" className="create-pipeline__ability-bonus">
-                    раса {bonus > 0 ? `+${bonus}` : bonus}
+                    {bonusLabel} {bonus > 0 ? `+${bonus}` : bonus}
                   </Text>
                 ) : null}
                 {method === 'roll' && detail ? (
