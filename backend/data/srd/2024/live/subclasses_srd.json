@@ -906,8 +906,39 @@
           }
         ],
         "summary_ru": "Подкласс чародея: драконья кровь.",
-        "spell_list": [],
-        "spell_list_note_ru": "У подкласса нет отдельного списка заклинаний в справочнике 5.2.1."
+        "spell_list": [
+          {
+            "level": 3,
+            "spells": [
+              "dragons-breath",
+              "command",
+              "alter-self",
+              "chromatic-orb"
+            ]
+          },
+          {
+            "level": 5,
+            "spells": [
+              "fly",
+              "fear"
+            ]
+          },
+          {
+            "level": 7,
+            "spells": [
+              "arcane-eye",
+              "charm-monster"
+            ]
+          },
+          {
+            "level": 9,
+            "spells": [
+              "summon-dragon",
+              "legend-lore"
+            ]
+          }
+        ],
+        "spell_list_note_ru": "Всегда подготовленные заклинания подкласса по таблице уровней."
       }
     },
     {

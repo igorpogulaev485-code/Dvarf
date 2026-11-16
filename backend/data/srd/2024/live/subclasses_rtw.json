@@ -86,8 +86,45 @@
             ]
           }
         ],
-        "spell_list": [],
-        "spell_list_note_ru": "Расширенный список (если есть) — в умениях подкласса про заклинания; отдельного списка в этой карточке нет.",
+        "spell_list": [
+          {
+            "level": 3,
+            "spells": [
+              "witch-bolt",
+              "false-life",
+              "spare-the-dying"
+            ]
+          },
+          {
+            "level": 5,
+            "spells": [
+              "blindness-deafness",
+              "enhance-ability"
+            ]
+          },
+          {
+            "level": 9,
+            "spells": [
+              "lightning-bolt",
+              "animate-dead"
+            ]
+          },
+          {
+            "level": 13,
+            "spells": [
+              "death-ward",
+              "blight"
+            ]
+          },
+          {
+            "level": 17,
+            "spells": [
+              "raise-dead",
+              "antilife-shell"
+            ]
+          }
+        ],
+        "spell_list_note_ru": "Всегда подготовленные заклинания подкласса по таблице уровней.",
         "summary_ru": "Пересобирайте трупы и поднимайте мёртвых"
       }
     },
@@ -216,8 +253,40 @@
             ]
           }
         ],
-        "spell_list": [],
-        "spell_list_note_ru": "Расширенный список (если есть) — в умениях подкласса про заклинания; отдельного списка в этой карточке нет.",
+        "spell_list": [
+          {
+            "level": 3,
+            "spells": [
+              "ray-of-enfeeblement",
+              "gentle-repose",
+              "false-life",
+              "spare-the-dying",
+              "detect-evil-and-good"
+            ]
+          },
+          {
+            "level": 5,
+            "spells": [
+              "revivify",
+              "vampiric-touch"
+            ]
+          },
+          {
+            "level": 7,
+            "spells": [
+              "death-ward",
+              "blight"
+            ]
+          },
+          {
+            "level": 9,
+            "spells": [
+              "raise-dead",
+              "dispel-evil-and-good"
+            ]
+          }
+        ],
+        "spell_list_note_ru": "Всегда подготовленные заклинания подкласса по таблице уровней.",
         "summary_ru": "Воплощайте божественные силы Смерти"
       }
     },
@@ -289,8 +358,39 @@
             ]
           }
         ],
-        "spell_list": [],
-        "spell_list_note_ru": "Расширенный список (если есть) — в умениях подкласса про заклинания; отдельного списка в этой карточке нет.",
+        "spell_list": [
+          {
+            "level": 3,
+            "spells": [
+              "wrathful-smite"
+            ]
+          },
+          {
+            "level": 5,
+            "spells": [
+              "alter-self"
+            ]
+          },
+          {
+            "level": 9,
+            "spells": [
+              "phantom-steed"
+            ]
+          },
+          {
+            "level": 13,
+            "spells": [
+              "dominate-beast"
+            ]
+          },
+          {
+            "level": 17,
+            "spells": [
+              "steel-wind-strike"
+            ]
+          }
+        ],
+        "spell_list_note_ru": "Всегда подготовленные заклинания подкласса по таблице уровней.",
         "summary_ru": "Используйте ужасные силы древности"
       }
     },
@@ -441,8 +541,39 @@
             ]
           }
         ],
-        "spell_list": [],
-        "spell_list_note_ru": "Расширенный список (если есть) — в умениях подкласса про заклинания; отдельного списка в этой карточке нет.",
+        "spell_list": [
+          {
+            "level": 3,
+            "spells": [
+              "pass-without-trace",
+              "inflict-wounds",
+              "bane",
+              "darkness"
+            ]
+          },
+          {
+            "level": 5,
+            "spells": [
+              "hunger-of-hadar",
+              "nondetection"
+            ]
+          },
+          {
+            "level": 7,
+            "spells": [
+              "phantasmal-killer",
+              "greater-invisibility"
+            ]
+          },
+          {
+            "level": 9,
+            "spells": [
+              "contagion",
+              "creation"
+            ]
+          }
+        ],
+        "spell_list_note_ru": "Всегда подготовленные заклинания подкласса по таблице уровней.",
         "summary_ru": "Подчиняйте вашей воле тьму и сам рок"
       }
     },
@@ -514,8 +645,39 @@
             ]
           }
         ],
-        "spell_list": [],
-        "spell_list_note_ru": "Расширенный список (если есть) — в умениях подкласса про заклинания; отдельного списка в этой карточке нет.",
+        "spell_list": [
+          {
+            "level": 3,
+            "spells": [
+              "phantasmal-force",
+              "blindness-deafness",
+              "ray-of-sickness",
+              "bane"
+            ]
+          },
+          {
+            "level": 5,
+            "spells": [
+              "summon-undead",
+              "speak-with-dead"
+            ]
+          },
+          {
+            "level": 7,
+            "spells": [
+              "phantasmal-killer",
+              "greater-invisibility"
+            ]
+          },
+          {
+            "level": 9,
+            "spells": [
+              "cloudkill",
+              "antilife-shell"
+            ]
+          }
+        ],
+        "spell_list_note_ru": "Всегда подготовленные заклинания подкласса по таблице уровней.",
         "summary_ru": "Получите нечестивые силы, отринув смерть"
       }
     }

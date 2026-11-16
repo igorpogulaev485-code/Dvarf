@@ -12,6 +12,8 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Any, Iterable, Mapping, Sequence
 
+from app.dnd import edition_2024_subclasses as e24sub
+
 CLASS_SLUG_ALIASES: dict[str, str] = {
     "варвар": "barbarian",
     "бард": "bard",
@@ -392,29 +394,9 @@ def load_class_catalog() -> dict[str, dict[str, Any]]:
     return out
 
 
-@lru_cache(maxsize=1)
 def load_subclass_catalog() -> dict[str, dict[str, Any]]:
-    out: dict[str, dict[str, Any]] = {}
-    for filename in (
-        "subclasses_srd.json",
-        "subclasses_efa.json",
-        "subclasses_ph24.json",
-    ):
-        path = _live_dir() / filename
-        if not path.is_file():
-            continue
-        payload = json.loads(path.read_text(encoding="utf-8"))
-        for entry in payload.get("entries") or []:
-            slug = str(entry.get("slug") or "").strip()
-            if not slug:
-                continue
-            out[slug] = {
-                "slug": slug,
-                "name_ru": entry.get("name_ru") or slug,
-                "name_en": entry.get("name_en") or slug,
-                "data": entry.get("data") or {},
-            }
-    return out
+    """All accepted 2024 subclass packs (SRD/PH24/EFA/FRHoF/RTW/AU)."""
+    return e24sub.load_subclass_catalog()
 
 
 def class_level_row(slug: str, level: int) -> dict[str, Any] | None:
@@ -439,6 +421,7 @@ class ClassFeatureRow:
     summary_ru: str
     source: str  # "class" | "subclass"
     subclass_slug: str | None = None
+    automation: str = "text"  # resource | always_prepared | third_caster | text
 
 
 @dataclass(frozen=True)
@@ -456,6 +439,7 @@ class ResourcePool:
     blocks_magic_action: bool = False
     distinct_from_heroic: bool = False
     meta: dict[str, Any] = field(default_factory=dict)
+    subclass_slug: str | None = None
 
 
 @dataclass(frozen=True)
@@ -467,6 +451,9 @@ class SpellcastingBlock:
     slots: dict[str, int]  # "1".."9" max
     pact_slots: dict[str, int] | None  # {level, count}
     always_prepared: tuple[str, ...] = ()
+    subclass_slug: str | None = None
+    spells_known: int | None = None
+    ability: str | None = None
 
 
 @dataclass(frozen=True)
@@ -489,12 +476,14 @@ def _feature_rows_for_class(
     level: int,
     *,
     subclass_slug: str | None,
+    resource_feature_ids: set[str] | None = None,
 ) -> list[ClassFeatureRow]:
     rows: list[ClassFeatureRow] = []
     catalog = load_class_catalog().get(slug)
     if not catalog:
         return rows
     subclass_at = int(catalog["data"].get("subclass_level") or 3)
+    resource_feature_ids = resource_feature_ids or set()
     for row in catalog["data"].get("levels") or []:
         lv = int(row.get("level") or 0)
         if lv < 1 or lv > level:
@@ -515,6 +504,7 @@ def _feature_rows_for_class(
                     name_en=str(feat.get("name_en") or fid),
                     summary_ru=str(feat.get("summary_ru") or ""),
                     source="class",
+                    automation="resource" if fid in resource_feature_ids else "text",
                 )
             )
     if subclass_slug and level >= subclass_at:
@@ -530,6 +520,12 @@ def _feature_rows_for_class(
                         fid = str(feat.get("id") or "").strip()
                         if not fid:
                             continue
+                        mode = e24sub.feature_automation_mode(
+                            feature_id=fid,
+                            subclass_slug=subclass_slug,
+                            has_resource=fid in resource_feature_ids
+                            or fid.replace("_", "-") in resource_feature_ids,
+                        )
                         rows.append(
                             ClassFeatureRow(
                                 id=fid.replace("-", "_"),
@@ -540,27 +536,23 @@ def _feature_rows_for_class(
                                 summary_ru=str(feat.get("summary_ru") or ""),
                                 source="subclass",
                                 subclass_slug=subclass_slug,
+                                automation=mode,
                             )
                         )
     return rows
 
 
-def _always_prepared_for_subclass(subclass_slug: str | None, class_level: int) -> list[str]:
-    if not subclass_slug:
-        return []
-    sub = load_subclass_catalog().get(subclass_slug)
-    if not sub:
-        return []
-    out: list[str] = []
-    for block in sub["data"].get("spell_list") or []:
-        blv = int(block.get("level") or 0)
-        if blv > class_level:
-            continue
-        for spell in block.get("spells") or []:
-            s = str(spell).strip()
-            if s and s not in out:
-                out.append(s)
-    return out
+def _always_prepared_for_subclass(
+    subclass_slug: str | None,
+    class_level: int,
+    *,
+    land_choice: str | None = None,
+) -> list[str]:
+    return e24sub.always_prepared_for_subclass(
+        subclass_slug,
+        class_level,
+        land_choice=land_choice,
+    )
 
 
 def _resource_max(
@@ -712,6 +704,7 @@ def _spellcasting_for_class(
     level: int,
     *,
     subclass_slug: str | None,
+    land_choice: str | None = None,
 ) -> SpellcastingBlock | None:
     progression = CASTER_PROGRESSION.get(slug, "none")
     if progression == "none":
@@ -742,7 +735,13 @@ def _spellcasting_for_class(
             if ks.isdigit() and 1 <= int(ks) <= 9:
                 slots[ks] = int(v or 0)
 
-    always = tuple(_always_prepared_for_subclass(subclass_slug, level))
+    always = tuple(
+        _always_prepared_for_subclass(
+            subclass_slug,
+            level,
+            land_choice=land_choice,
+        )
+    )
     # Class-level always-prepared hints (ranger hunter's mark, paladin smite) —
     # encoded as feature text; add known free spells when feature unlocked.
     catalog = load_class_catalog().get(slug)
@@ -769,6 +768,7 @@ def _spellcasting_for_class(
         slots=slots,
         pact_slots=pact,
         always_prepared=tuple(free),
+        subclass_slug=subclass_slug,
     )
 
 
@@ -850,10 +850,10 @@ def compute_progression(
 ) -> ClassProgressionSnapshot:
     """Build a full 2024 class progression snapshot for the sheet.
 
-    `classes` items: {name|slug, level, subclass_slug?}
+    `classes` items: {name|slug, level, subclass_slug?, land_choice?}
     """
     abilities = dict(abilities or {})
-    parsed: list[tuple[str, int, str | None]] = []
+    parsed: list[tuple[str, int, str | None, str | None]] = []
     for row in classes:
         slug = normalize_class_slug(
             str(row.get("slug") or row.get("catalog_slug") or row.get("name") or "")
@@ -868,9 +868,20 @@ def compute_progression(
             guess = SRD_SUBCLASS_BY_PARENT.get(slug)
             if guess and (sub_s in guess or guess.endswith(sub_s)):
                 sub_s = guess
-        parsed.append((slug, level, sub_s))
+            else:
+                # unique suffix match across catalog
+                hits = [
+                    s
+                    for s in load_subclass_catalog()
+                    if s.endswith(f"__{sub_s}") or s.endswith(sub_s)
+                ]
+                if len(hits) == 1:
+                    sub_s = hits[0]
+        land = row.get("land_choice") or row.get("circle_land")
+        land_s = str(land).strip().lower() if land else None
+        parsed.append((slug, level, sub_s, land_s))
 
-    total_level = sum(lv for _, lv, _ in parsed) or 1
+    total_level = sum(lv for _, lv, _, _ in parsed) or 1
     total_level = min(20, total_level)
     pb = proficiency_bonus_for_level(total_level)
 
@@ -882,7 +893,7 @@ def compute_progression(
     epic = False
     subclass_level = 3
 
-    for slug, level, sub in parsed:
+    for slug, level, sub, land_s in parsed:
         catalog = load_class_catalog().get(slug)
         if not catalog:
             continue
@@ -892,24 +903,94 @@ def compute_progression(
                 feat_levels.append(int(fl))
         if level >= int(catalog["data"].get("epic_boon_level") or 19):
             epic = True
-        features.extend(_feature_rows_for_class(slug, level, subclass_slug=sub))
+
+        sub_pools = (
+            e24sub.build_subclass_resources(
+                sub,
+                level,
+                total_level=total_level,
+                abilities=abilities,
+            )
+            if sub
+            else []
+        )
+        resource_fids = {
+            str(p.meta.get("feature_id") or "").replace("_", "-") for p in sub_pools
+        }
+        features.extend(
+            _feature_rows_for_class(
+                slug,
+                level,
+                subclass_slug=sub,
+                resource_feature_ids=resource_fids,
+            )
+        )
         pools, sc = _build_resources_for_class(
             slug, level, total_level=total_level, abilities=abilities
         )
         resources.extend(pools)
+        for sp in sub_pools:
+            resources.append(
+                ResourcePool(
+                    id=sp.id,
+                    pool_id=sp.pool_id,
+                    class_slug=sp.class_slug,
+                    name_ru=sp.name_ru,
+                    max=sp.max,
+                    reset=sp.reset,
+                    track=sp.track,
+                    on_hot=sp.on_hot,
+                    short_rest_regain=sp.short_rest_regain,
+                    meta=sp.meta,
+                    subclass_slug=sp.subclass_slug,
+                )
+            )
+            if sp.meta.get("die"):
+                scales[f"{slug}:{sp.pool_id}:die"] = sp.meta["die"]
         for k, v in sc.items():
             scales[f"{slug}:{k}"] = v
-        block = _spellcasting_for_class(slug, level, subclass_slug=sub)
+        block = _spellcasting_for_class(
+            slug,
+            level,
+            subclass_slug=sub,
+            land_choice=land_s,
+        )
         if block:
             spell_blocks.append(block)
+        if sub:
+            third = e24sub.third_caster_block(sub, level)
+            if third:
+                spell_blocks.append(
+                    SpellcastingBlock(
+                        class_slug=str(third["class_slug"]),
+                        progression="third",
+                        cantrips=int(third["cantrips"]),
+                        prepared_spells=0,
+                        slots=dict(third["slots"]),
+                        pact_slots=None,
+                        always_prepared=(),
+                        subclass_slug=sub,
+                        spells_known=int(third["spells_known"]),
+                        ability=str(third["ability"]),
+                    )
+                )
+                scales[f"{slug}:third_caster_known"] = third["spells_known"]
 
-    caster_lv = multiclass_caster_level([(s, lv) for s, lv, _ in parsed])
+    caster_lv = multiclass_caster_level([(s, lv) for s, lv, _, _ in parsed])
+    # Include third-caster levels in multiclass caster level.
+    for slug, level, sub, _ in parsed:
+        if sub and sub in e24sub.THIRD_CASTER_SUBCLASSES:
+            caster_lv += level // 3
     # Single-class non-warlock: prefer class table slots; multiclass: combined table.
-    non_pact = [b for b in spell_blocks if b.progression != "pact"]
+    non_pact = [b for b in spell_blocks if b.progression not in {"pact"}]
+    primary_slots = [b for b in non_pact if b.progression != "third"]
     pact_blocks = [b for b in spell_blocks if b.progression == "pact"]
-    if len(parsed) <= 1 and non_pact:
-        mc_slots = dict(non_pact[0].slots)
-    elif non_pact:
+    third_only = [b for b in non_pact if b.progression == "third"]
+    if len(parsed) <= 1 and primary_slots:
+        mc_slots = dict(primary_slots[0].slots)
+    elif len(parsed) <= 1 and third_only and not primary_slots:
+        mc_slots = dict(third_only[0].slots)
+    elif primary_slots or third_only:
         mc_slots = slots_for_caster_level(caster_lv)
     else:
         mc_slots = {str(i): 0 for i in range(1, 10)}
@@ -993,6 +1074,7 @@ def resource_pools_to_sheet(
                 "id": pool.id,
                 "pool_id": pool.pool_id,
                 "class_slug": pool.class_slug,
+                "subclass_slug": pool.subclass_slug,
                 "name": pool.name_ru,
                 "max": pool.max,
                 "used": 0,
@@ -1026,6 +1108,7 @@ def snapshot_to_sheet_fragment(snap: ClassProgressionSnapshot) -> dict[str, Any]
                 "summary_ru": f.summary_ru,
                 "source": f.source,
                 "subclass_slug": f.subclass_slug,
+                "automation": f.automation,
             }
             for f in snap.features
         ],
@@ -1040,6 +1123,9 @@ def snapshot_to_sheet_fragment(snap: ClassProgressionSnapshot) -> dict[str, Any]
                 "slots": b.slots,
                 "pact_slots": b.pact_slots,
                 "always_prepared": list(b.always_prepared),
+                "subclass_slug": b.subclass_slug,
+                "spells_known": b.spells_known,
+                "ability": b.ability,
             }
             for b in snap.spellcasting
         ],

@@ -5,8 +5,6 @@
 
 import classesSrd from './data/edition2024/classes_srd.json'
 import classesEfa from './data/edition2024/classes_efa.json'
-import subclassesSrd from './data/edition2024/subclasses_srd.json'
-import subclassesEfa from './data/edition2024/subclasses_efa.json'
 import type {
   ClassFeatureDef,
   FeatureKind,
@@ -16,6 +14,14 @@ import type {
 import type { ClassLevelEntry } from './classLevels'
 import type { DesiredFeatureResource } from './featureResources'
 import type { SheetResource } from './rest'
+import {
+  alwaysPreparedForSubclass2024,
+  buildSubclassResources2024,
+  featureAutomationMode2024,
+  SUBCLASS_CATALOG_2024,
+  thirdCasterBlock2024,
+  THIRD_CASTER_SUBCLASSES,
+} from './edition2024Subclasses'
 
 type CatalogFile = {
   entries: Array<{
@@ -309,27 +315,8 @@ function buildClassCatalog(): Record<string, { slug: string; name_ru: string; da
   return out
 }
 
-function buildSubclassCatalog(): Record<
-  string,
-  { slug: string; name_ru: string; data: Record<string, unknown> }
-> {
-  const out: Record<string, { slug: string; name_ru: string; data: Record<string, unknown> }> = {}
-  for (const file of [subclassesSrd, subclassesEfa] as CatalogFile[]) {
-    for (const entry of file.entries) {
-      const slug = String(entry.slug || '').trim()
-      if (!slug) continue
-      out[slug] = {
-        slug,
-        name_ru: entry.name_ru || slug,
-        data: entry.data || {},
-      }
-    }
-  }
-  return out
-}
-
 const CLASS_CATALOG = buildClassCatalog()
-const SUBCLASS_CATALOG = buildSubclassCatalog()
+const SUBCLASS_CATALOG = SUBCLASS_CATALOG_2024
 
 export function normalizeClassSlug2024(value: string | null | undefined): string | null {
   const raw = String(value || '')
@@ -363,6 +350,9 @@ export type SpellcastingBlock2024 = {
   slots: Record<string, number>
   pact_slots: { level: number; count: number } | null
   always_prepared: string[]
+  subclass_slug?: string | null
+  spells_known?: number | null
+  ability?: string | null
 }
 
 export type ClassProgressSnapshot2024 = {
@@ -395,19 +385,12 @@ function featureKindFor(id: string, meta?: ResourceMeta): FeatureKind {
   return 'passive'
 }
 
-function alwaysPrepared(subclassSlug: string | null, classLevel: number): string[] {
-  if (!subclassSlug) return []
-  const sub = SUBCLASS_CATALOG[subclassSlug]
-  if (!sub) return []
-  const out: string[] = []
-  const list = (sub.data.spell_list as Array<{ level?: number; spells?: string[] }>) || []
-  for (const block of list) {
-    if (Number(block.level || 0) > classLevel) continue
-    for (const spell of block.spells || []) {
-      if (spell && !out.includes(spell)) out.push(spell)
-    }
-  }
-  return out
+function alwaysPrepared(
+  subclassSlug: string | null,
+  classLevel: number,
+  landChoice?: string | null,
+): string[] {
+  return alwaysPreparedForSubclass2024(subclassSlug, classLevel, landChoice)
 }
 
 export function multiclassCasterLevel2024(entries: Array<{ slug: string; level: number }>): number {
@@ -636,6 +619,15 @@ export function computeProgression2024(input: {
       }
     }
 
+    const subclassPools = cls.subclassSlug
+      ? buildSubclassResources2024({
+          subclassSlug: cls.subclassSlug,
+          classLevel: cls.level,
+          abilities: input.abilities,
+        })
+      : []
+    const subclassResourceFids = new Set(subclassPools.map((p) => p.feature_id))
+
     if (cls.subclassSlug && cls.level >= subclassLevel) {
       const sub = SUBCLASS_CATALOG[cls.subclassSlug]
       if (sub) {
@@ -645,20 +637,26 @@ export function computeProgression2024(input: {
           for (const feat of (block.features as Array<Record<string, unknown>>) || []) {
             const fidRaw = String(feat.id || '').trim()
             if (!fidRaw) continue
+            if (subclassResourceFids.has(fidRaw)) continue
+            const mode = featureAutomationMode2024({
+              featureId: fidRaw,
+              subclassSlug: cls.subclassSlug,
+              hasResource: false,
+            })
             features.push({
               id: fidRaw.replace(/-/g, '_'),
               level: blv,
               name_ru: String(feat.name_ru || fidRaw),
               name_en: String(feat.name_en || fidRaw),
               summary_ru: String(feat.summary_ru || ''),
-              kind: 'passive',
+              kind: mode === 'always_prepared' || mode === 'third_caster' ? 'passive' : 'passive',
               classEntryId: cls.entryId,
               className: cls.name,
               classLevel: cls.level,
               source: 'subclass',
               subclassSlug: cls.subclassSlug,
               subclassName: cls.subclassName || sub.name_ru,
-              scaleValue: null,
+              scaleValue: mode === 'text' ? null : mode,
               resourceUses: null,
             })
           }
@@ -772,18 +770,86 @@ export function computeProgression2024(input: {
         slots,
         pact_slots: pact,
         always_prepared: free,
+        subclass_slug: cls.subclassSlug,
       })
+    }
+
+    for (const pool of subclassPools) {
+      features.push({
+        id: pool.feature_id.replace(/-/g, '_'),
+        level: cls.level,
+        name_ru: pool.name,
+        name_en: pool.pool_id,
+        summary_ru: pool.die ? `${pool.name} (${pool.die})` : pool.name,
+        kind: 'resource',
+        resource: {
+          uses: pool.max,
+          recharge: pool.reset === 'short' ? 'short_rest' : 'long_rest',
+          pool_id: pool.pool_id,
+          pool_name_ru: pool.name,
+          track: 'spend',
+        },
+        classEntryId: cls.entryId,
+        className: cls.name,
+        classLevel: cls.level,
+        source: 'subclass',
+        subclassSlug: cls.subclassSlug,
+        subclassName: cls.subclassName,
+        scaleValue: pool.die || 'resource',
+        resourceUses: pool.max,
+      })
+      const desired: DesiredFeatureResource = {
+        id: pool.id,
+        name: pool.name,
+        max: pool.max,
+        reset: pool.reset,
+        track: 'spend',
+        classSlug: pool.class_slug,
+        classLabelRu: CLASS_CATALOG[pool.class_slug]?.name_ru,
+      }
+      if (pool.shortRestRegain != null) desired.shortRestRegain = pool.shortRestRegain
+      desiredResources.push(desired)
+      if (pool.die) scales[`${cls.slug}:${pool.pool_id}:die`] = pool.die
+    }
+
+    if (cls.subclassSlug && THIRD_CASTER_SUBCLASSES[cls.subclassSlug]) {
+      const third = thirdCasterBlock2024(cls.subclassSlug, cls.level)
+      if (third) {
+        spellcasting.push({
+          class_slug: third.class_slug,
+          progression: 'third',
+          cantrips: third.cantrips,
+          prepared_spells: 0,
+          slots: third.slots,
+          pact_slots: null,
+          always_prepared: [],
+          subclass_slug: cls.subclassSlug,
+          spells_known: third.spells_known,
+          ability: third.ability,
+        })
+        scales[`${cls.slug}:third_caster_known`] = third.spells_known
+      }
     }
   }
 
   const nonPact = spellcasting.filter((b) => b.progression !== 'pact')
+  const primarySlots = nonPact.filter((b) => b.progression !== 'third')
+  const thirdOnly = nonPact.filter((b) => b.progression === 'third')
   const pactBlocks = spellcasting.filter((b) => b.progression === 'pact')
   let multiclassSlots: Record<string, number>
-  if (parsed.length <= 1 && nonPact[0]) multiclassSlots = { ...nonPact[0].slots }
-  else if (nonPact.length) {
-    multiclassSlots = slotsForCasterLevel2024(
-      multiclassCasterLevel2024(parsed.map((p) => ({ slug: p.slug, level: p.level }))),
+  if (parsed.length <= 1 && primarySlots[0]) multiclassSlots = { ...primarySlots[0].slots }
+  else if (parsed.length <= 1 && thirdOnly[0] && !primarySlots[0]) {
+    multiclassSlots = { ...thirdOnly[0].slots }
+  } else if (nonPact.length) {
+    let casterLv = multiclassCasterLevel2024(
+      parsed.map((p) => ({ slug: p.slug, level: p.level })),
     )
+    for (const p of parsed) {
+      if (p.subclassSlug && THIRD_CASTER_SUBCLASSES[p.subclassSlug]) {
+        casterLv += Math.floor(p.level / 3)
+      }
+    }
+    multiclassSlots = slotsForCasterLevel2024(casterLv)
   } else {
     multiclassSlots = Object.fromEntries(Array.from({ length: 9 }, (_, i) => [String(i + 1), 0]))
   }

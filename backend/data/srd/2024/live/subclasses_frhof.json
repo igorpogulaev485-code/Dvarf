@@ -131,8 +131,44 @@
             ]
           }
         ],
-        "spell_list": [],
-        "spell_list_note_ru": "Расширенный список (если есть) — в умениях подкласса про заклинания; отдельного списка в этой карточке нет.",
+        "spell_list": [
+          {
+            "level": 3,
+            "spells": [
+              "command",
+              "detect-magic",
+              "detect-thoughts",
+              "identify",
+              "comprehend-languages",
+              "mind-spike"
+            ]
+          },
+          {
+            "level": 5,
+            "spells": [
+              "nondetection",
+              "dispel-magic",
+              "tongues"
+            ]
+          },
+          {
+            "level": 7,
+            "spells": [
+              "banishment",
+              "confusion",
+              "arcane-eye"
+            ]
+          },
+          {
+            "level": 9,
+            "spells": [
+              "synaptic-static",
+              "legend-lore",
+              "scrying"
+            ]
+          }
+        ],
+        "spell_list_note_ru": "Всегда подготовленные заклинания подкласса по таблице уровней.",
         "summary_ru": "Раскрывайте секреты и станьте мастером разума"
       }
     },
@@ -294,8 +330,45 @@
             ]
           }
         ],
-        "spell_list": [],
-        "spell_list_note_ru": "Расширенный список (если есть) — в умениях подкласса про заклинания; отдельного списка в этой карточке нет.",
+        "spell_list": [
+          {
+            "level": 3,
+            "spells": [
+              "thunderous-smite",
+              "chromatic-orb",
+              "elementalism"
+            ]
+          },
+          {
+            "level": 5,
+            "spells": [
+              "phantasmal-force",
+              "mirror-image"
+            ]
+          },
+          {
+            "level": 9,
+            "spells": [
+              "gaseous-form",
+              "fly"
+            ]
+          },
+          {
+            "level": 13,
+            "spells": [
+              "summon-elemental",
+              "conjure-minor-elementals"
+            ]
+          },
+          {
+            "level": 17,
+            "spells": [
+              "banishing-smite",
+              "contact-other-plane"
+            ]
+          }
+        ],
+        "spell_list_note_ru": "Всегда подготовленные заклинания подкласса по таблице уровней.",
         "summary_ru": "Вооружитесь стихийным великолепием гениев"
       }
     },
@@ -373,8 +446,39 @@
             ]
           }
         ],
-        "spell_list": [],
-        "spell_list_note_ru": "Расширенный список (если есть) — в умениях подкласса про заклинания; отдельного списка в этой карточке нет.",
+        "spell_list": [
+          {
+            "level": 3,
+            "spells": [
+              "ice-knife"
+            ]
+          },
+          {
+            "level": 5,
+            "spells": [
+              "hold-person"
+            ]
+          },
+          {
+            "level": 9,
+            "spells": [
+              "remove-curse"
+            ]
+          },
+          {
+            "level": 13,
+            "spells": [
+              "ice-storm"
+            ]
+          },
+          {
+            "level": 17,
+            "spells": [
+              "cone-of-cold"
+            ]
+          }
+        ],
+        "spell_list_note_ru": "Всегда подготовленные заклинания подкласса по таблице уровней.",
         "summary_ru": "Выживайте среди ужасов ледяных пустошей"
       }
     },
@@ -519,8 +623,39 @@
             ]
           }
         ],
-        "spell_list": [],
-        "spell_list_note_ru": "Расширенный список (если есть) — в умениях подкласса про заклинания; отдельного списка в этой карточке нет.",
+        "spell_list": [
+          {
+            "level": 3,
+            "spells": [
+              "cure-wounds",
+              "lesser-restoration",
+              "guiding-bolt",
+              "scorching-ray"
+            ]
+          },
+          {
+            "level": 5,
+            "spells": [
+              "aura-of-vitality",
+              "dispel-magic"
+            ]
+          },
+          {
+            "level": 7,
+            "spells": [
+              "fire-shield",
+              "wall-of-fire"
+            ]
+          },
+          {
+            "level": 9,
+            "spells": [
+              "greater-restoration",
+              "flame-strike"
+            ]
+          }
+        ],
+        "spell_list_note_ru": "Всегда подготовленные заклинания подкласса по таблице уровней.",
         "summary_ru": "Используйте мощь чистой, сырой магии"
       }
     },

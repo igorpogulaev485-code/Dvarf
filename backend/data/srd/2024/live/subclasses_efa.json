@@ -80,8 +80,44 @@
             ]
           }
         ],
-        "spell_list": [],
-        "spell_list_note_ru": "Расширенный список специальности — всегда подготовленные заклинания в умениях подкласса.",
+        "spell_list": [
+          {
+            "level": 3,
+            "spells": [
+              "healing-word",
+              "ray-of-sickness"
+            ]
+          },
+          {
+            "level": 5,
+            "spells": [
+              "melfs-acid-arrow",
+              "flaming-sphere"
+            ]
+          },
+          {
+            "level": 9,
+            "spells": [
+              "gaseous-form",
+              "mass-healing-word"
+            ]
+          },
+          {
+            "level": 13,
+            "spells": [
+              "vitriolic-sphere",
+              "death-ward"
+            ]
+          },
+          {
+            "level": 17,
+            "spells": [
+              "cloudkill",
+              "revivify"
+            ]
+          }
+        ],
+        "spell_list_note_ru": "Всегда подготовленные заклинания подкласса по таблице уровней.",
         "summary_ru": "Алхимия: эликсиры, лечение и кислот/яд."
       }
     },
@@ -165,8 +201,44 @@
             ]
           }
         ],
-        "spell_list": [],
-        "spell_list_note_ru": "Расширенный список специальности — всегда подготовленные заклинания в умениях подкласса.",
+        "spell_list": [
+          {
+            "level": 3,
+            "spells": [
+              "thunderwave",
+              "magic-missile"
+            ]
+          },
+          {
+            "level": 5,
+            "spells": [
+              "shatter",
+              "mirror-image"
+            ]
+          },
+          {
+            "level": 9,
+            "spells": [
+              "hypnotic-pattern",
+              "lightning-bolt"
+            ]
+          },
+          {
+            "level": 13,
+            "spells": [
+              "greater-invisibility",
+              "fire-shield"
+            ]
+          },
+          {
+            "level": 17,
+            "spells": [
+              "passwall",
+              "wall-of-force"
+            ]
+          }
+        ],
+        "spell_list_note_ru": "Всегда подготовленные заклинания подкласса по таблице уровней.",
         "summary_ru": "Арканный доспех: страж или штурмовик."
       }
     },
@@ -244,8 +316,44 @@
             ]
           }
         ],
-        "spell_list": [],
-        "spell_list_note_ru": "Расширенный список специальности — всегда подготовленные заклинания в умениях подкласса.",
+        "spell_list": [
+          {
+            "level": 3,
+            "spells": [
+              "thunderwave",
+              "shield"
+            ]
+          },
+          {
+            "level": 5,
+            "spells": [
+              "shatter",
+              "scorching-ray"
+            ]
+          },
+          {
+            "level": 9,
+            "spells": [
+              "fireball",
+              "wind-wall"
+            ]
+          },
+          {
+            "level": 13,
+            "spells": [
+              "ice-storm",
+              "wall-of-fire"
+            ]
+          },
+          {
+            "level": 17,
+            "spells": [
+              "cone-of-cold",
+              "wall-of-force"
+            ]
+          }
+        ],
+        "spell_list_note_ru": "Всегда подготовленные заклинания подкласса по таблице уровней.",
         "summary_ru": "Мистическая пушка и магострельное оружие."
       }
     },
@@ -329,8 +437,44 @@
             ]
           }
         ],
-        "spell_list": [],
-        "spell_list_note_ru": "Расширенный список специальности — всегда подготовленные заклинания в умениях подкласса.",
+        "spell_list": [
+          {
+            "level": 3,
+            "spells": [
+              "heroism",
+              "shield"
+            ]
+          },
+          {
+            "level": 5,
+            "spells": [
+              "warding-bond",
+              "shining-smite"
+            ]
+          },
+          {
+            "level": 9,
+            "spells": [
+              "aura-of-vitality",
+              "conjure-barrage"
+            ]
+          },
+          {
+            "level": 13,
+            "spells": [
+              "aura-of-purity",
+              "fire-shield"
+            ]
+          },
+          {
+            "level": 17,
+            "spells": [
+              "banishing-smite",
+              "mass-cure-wounds"
+            ]
+          }
+        ],
+        "spell_list_note_ru": "Всегда подготовленные заклинания подкласса по таблице уровней.",
         "summary_ru": "Стальной защитник и бои на Интеллекте."
       }
     },
@@ -414,8 +558,45 @@
             ]
           }
         ],
-        "spell_list": [],
-        "spell_list_note_ru": "Расширенный список специальности — всегда подготовленные заклинания в умениях подкласса.",
+        "spell_list": [
+          {
+            "level": 3,
+            "spells": [
+              "healing-word",
+              "guiding-bolt",
+              "faerie-fire"
+            ]
+          },
+          {
+            "level": 5,
+            "spells": [
+              "locate-object",
+              "mind-spike"
+            ]
+          },
+          {
+            "level": 9,
+            "spells": [
+              "clairvoyance",
+              "call-lightning"
+            ]
+          },
+          {
+            "level": 13,
+            "spells": [
+              "banishment",
+              "locate-creature"
+            ]
+          },
+          {
+            "level": 17,
+            "spells": [
+              "scrying",
+              "teleportation-circle"
+            ]
+          }
+        ],
+        "spell_list_note_ru": "Всегда подготовленные заклинания подкласса по таблице уровней.",
         "summary_ru": "Атлас приключений и магия карты."
       }
     }
