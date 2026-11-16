@@ -30,6 +30,11 @@ import { migrateLegacyHitDice, syncHitDicePools } from '../../../shared/dnd/clas
 import { withSyncedHitDiceSummary } from '../play'
 import { classWalkSpeedBonusFt } from '../../../shared/dnd/classMovement'
 import { readFeaturePicks, type FeaturePicksState } from '../../../shared/dnd/featurePicks'
+import {
+  emptyWeaponMasteryState,
+  readWeaponMasteryState,
+  type WeaponMasteryState,
+} from '../../../shared/dnd/weaponMastery'
 import { bridgeOriginPicks } from '../../../shared/dnd/pack04SorcererWarlock'
 import {
   emptySubclassPicks,
@@ -128,6 +133,8 @@ export type Draft = {
   /** Wild Shape / form library — seen or learned forms. */
   knownForms: KnownForm[]
   featurePicks: FeaturePicksState
+  /** P24-M01: known weapon mastery slugs (2024 only). */
+  weaponMastery: WeaponMasteryState
   classAsi: AppliedClassAsi[]
   /** Barbarian 20 Primal Champion bonuses already written onto abilities. */
   primalChampion: PrimalChampionGrant | null
@@ -450,6 +457,7 @@ export function buildDraft(character: CharacterDetail): Draft {
       classes,
       sheet,
     ),
+    weaponMastery: readWeaponMasteryState(sheet.weapon_mastery) ?? emptyWeaponMasteryState(),
     classAsi: readClassAsiLedger(sheet.class_asi),
     primalChampion: readPrimalChampion(sheet.primal_champion),
     piety: readPiety(sheet.piety),

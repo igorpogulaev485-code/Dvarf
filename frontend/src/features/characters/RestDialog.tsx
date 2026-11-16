@@ -109,6 +109,8 @@ type RestDialogProps = {
   onCombatChange: (patch: { hpCurrent?: number | null }) => void
   /** Dismiss active self_forms and reset naparnik resources after short/long rest. */
   onCompanionRest?: (kind: 'short' | 'long') => void
+  /** P24-M01: after long rest — open weapon mastery swap window (2024). */
+  onLongRestComplete?: () => void
   onToast: (message: string) => void
   onClose: () => void
 }
@@ -133,6 +135,7 @@ export function RestDialog({
   onSpellsChange,
   onCombatChange,
   onCompanionRest,
+  onLongRestComplete,
   onToast,
   onClose,
 }: RestDialogProps) {
@@ -391,6 +394,7 @@ export function RestDialog({
           ? ' · −1 истощение'
           : ''
     onCompanionRest?.('long')
+    onLongRestComplete?.()
     const rechargeNote = result.rechargeLines?.length
       ? ` · ${result.rechargeLines.join(' · ')}`
       : ''

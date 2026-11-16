@@ -271,6 +271,12 @@ class CharacterService:
             # L-21: владелец не может снять отметки мастера / блок неожиданности
             # через updateCharacter — мержим turn_economy.
             from app.services import session_turn_economy as stec
+            from app.dnd.weapon_mastery import (
+                WeaponMasteryValidationError,
+                strip_weapon_mastery_from_sheet_for_2014,
+                validate_weapon_mastery_update,
+                weapon_mastery_to_sheet,
+            )
 
             prev_sheet = character.sheet if isinstance(character.sheet, dict) else {}
             prev_combat = (
@@ -296,6 +302,49 @@ class CharacterService:
                         next_combat.get("turn_economy"),
                     )
                     next_sheet["combat"] = next_combat
+
+                # P24-M01: weapon mastery picks — 2024 only; validated server-side.
+                edition_val = character.rules_edition
+                edition_s = (
+                    edition_val.value
+                    if isinstance(edition_val, RulesEdition)
+                    else str(edition_val or "2014")
+                )
+                if edition_s != "2024":
+                    next_sheet = strip_weapon_mastery_from_sheet_for_2014(next_sheet)
+                elif "weapon_mastery" in next_sheet or prev_sheet.get("weapon_mastery"):
+                    prof = (
+                        next_sheet.get("proficiency")
+                        if isinstance(next_sheet.get("proficiency"), dict)
+                        else {}
+                    )
+                    weapons_prof = (
+                        prof.get("weapons") if isinstance(prof.get("weapons"), dict) else {}
+                    )
+                    try:
+                        wm_state = validate_weapon_mastery_update(
+                            rules_edition=edition_s,
+                            previous=prev_sheet.get("weapon_mastery"),
+                            incoming=next_sheet.get("weapon_mastery"),
+                            sheet=next_sheet,
+                            has_simple_prof=bool(weapons_prof.get("simple")),
+                            has_martial_prof=bool(weapons_prof.get("martial")),
+                        )
+                    except WeaponMasteryValidationError as exc:
+                        raise AppError(
+                            str(exc),
+                            code=exc.code,
+                            status_code=400,
+                        ) from exc
+                    if wm_state is None or (
+                        not wm_state.known
+                        and not wm_state.source_class
+                        and not wm_state.swap_available
+                    ):
+                        next_sheet.pop("weapon_mastery", None)
+                    else:
+                        next_sheet["weapon_mastery"] = weapon_mastery_to_sheet(wm_state)
+
                 character.sheet = next_sheet
             else:
                 character.sheet = payload.sheet

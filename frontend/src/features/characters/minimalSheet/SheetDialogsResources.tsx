@@ -12,6 +12,10 @@ import { FeatureSelfFormDialog, type FeatureSelfFormDialogResult } from '../Feat
 import { shapechangerFormLimits } from '../featureForms'
 import { WildShapeDialog } from '../WildShapeDialog'
 import { RestDialog } from '../RestDialog'
+import {
+  characterHasWeaponMastery,
+  markLongRestWeaponMasterySwap,
+} from '../../../shared/dnd/weaponMastery'
 import { normalizeCampaignRules } from '../../lobby/campaignRules'
 import { SorceryPointsSpendDialog } from '../SorceryPointsSpendDialog'
 import { ChannelDivinitySpendDialog } from '../ChannelDivinitySpendDialog'
@@ -158,6 +162,18 @@ export function SheetDialogsResources({ model }: { model: SheetModel }) {
           } else if (kind === 'long') {
             model.onToast('Отдых: напарники восстановлены по правилам')
           }
+        }}
+        onLongRestComplete={() => {
+          const edition =
+            model.baseCharacter?.rules_edition ?? model.rulesEdition ?? '2014'
+          if (edition !== '2024') return
+          model.setDraft((prev) => {
+            if (!characterHasWeaponMastery(edition, prev.classes)) return prev
+            return {
+              ...prev,
+              weaponMastery: markLongRestWeaponMasterySwap(prev.weaponMastery),
+            }
+          })
         }}
         onToast={model.onToast}
         onClose={() => {
