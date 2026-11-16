@@ -37,7 +37,11 @@ assert(cabinet.includes('to="/admin"'), 'cabinet links to /admin')
 assert(cabinet.includes('is_admin'), 'cabinet shows link only for admin hint')
 assert(adminPage.includes('Аккаунты'), 'admin UI Russian: Аккаунты')
 assert(adminPage.includes('Задать пароль админки'), 'admin UI Russian password setup')
-assert(adminPage.includes('Раздел появится в следующей пачке'), 'stubs for later sections')
+assert(
+  adminPage.includes('Раздел появится в следующей пачке') ||
+    adminPage.includes('AdminMetricsSection'),
+  'stubs for later sections or live metrics',
+)
 assert(!/ADMIN_PANEL|RULES_EDITION|bootstrap/i.test(adminPage), 'no English service labels in UI')
 assert(adminPage.includes("from '../ui'"), 'admin page uses kit atoms')
 assert(adminPage.includes('Select'), 'narrow nav uses kit Select')

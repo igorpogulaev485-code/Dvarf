@@ -1347,6 +1347,149 @@ a.ui-button--primary {
   word-break: break-word;
 }
 
+/* StatTile + MetricGrid (атомы, ADM-03) */
+.ui-stat-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--card);
+  box-sizing: border-box;
+}
+
+.ui-stat-tile__value {
+  font-family: var(--font-display), 'Source Serif 4', Georgia, serif;
+  font-size: 1.75rem;
+  font-weight: 600;
+  line-height: 1.15;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.ui-stat-tile__label {
+  font-size: 0.8rem;
+  line-height: 1.25;
+  color: var(--muted);
+}
+
+.ui-metric-grid-block {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  min-width: 0;
+}
+
+.ui-metric-grid-block__title {
+  margin: 0;
+  font-family: var(--font-display), 'Source Serif 4', Georgia, serif;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.ui-metric-grid {
+  display: grid;
+  gap: 12px;
+  width: 100%;
+  min-width: 0;
+  /* 390: 2 в ряд */
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+@media (min-width: 960px) {
+  /* 1024: 3 в ряд */
+  .ui-metric-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1280px) {
+  /* 1440: 4 в ряд */
+  .ui-metric-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+/* BarChart (атом, ADM-03) — столбцы по дням; скролл внутри рамки */
+.ui-bar-chart {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.ui-bar-chart__caption {
+  min-width: 0;
+}
+
+.ui-bar-chart__scroll {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--card);
+  padding: 10px 12px 8px;
+  box-sizing: border-box;
+  -webkit-overflow-scrolling: touch;
+}
+
+.ui-bar-chart__row {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  width: 100%;
+  min-width: 100%;
+  box-sizing: border-box;
+}
+
+.ui-bar-chart__col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+  flex: 1 1 28px;
+  min-width: 28px;
+  width: auto;
+  box-sizing: border-box;
+}
+
+.ui-bar-chart__value {
+  font-size: 0.7rem;
+  line-height: 1;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  min-height: 0.7rem;
+}
+
+.ui-bar-chart__bar {
+  display: block;
+  width: 70%;
+  max-width: 100%;
+  border-radius: 6px 6px 2px 2px;
+  background: var(--accent);
+  min-height: 0;
+}
+
+.ui-bar-chart__label {
+  font-size: 0.65rem;
+  line-height: 1.1;
+  color: var(--muted);
+  text-align: center;
+  white-space: nowrap;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: clip;
+}
+
 .mode-switch {
   display: inline-flex;
   gap: 6px;

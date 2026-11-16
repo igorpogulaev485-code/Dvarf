@@ -60,8 +60,57 @@ export type AdminMessageResult = {
   debug_confirm_url?: string | null
 }
 
+/** ADM-03: сводка метрик — только числа, без почт и имён. */
+export type AdminMetricsDayPoint = {
+  date: string
+  signups: number
+  logins_unique: number
+  characters_created: number
+  lobbies_created: number
+  play_started: number
+}
+
+export type AdminMetrics = {
+  period_days: number
+  timezone: string
+  note: string
+  accounts: {
+    total: number
+    email_verified: number
+    new_in_period: number
+    new_1d: number
+    new_7d: number
+    new_30d: number
+    blocked: number
+  }
+  active: {
+    active_1d: number
+    active_7d: number
+    active_30d: number
+  }
+  characters: {
+    total_alive: number
+    edition_2014: number
+    edition_2024: number
+    drafts: number
+  }
+  lobbies: {
+    total: number
+    new_in_period: number
+  }
+  sessions: {
+    started_in_period: number
+    closed_in_period: number
+  }
+  daily: AdminMetricsDayPoint[]
+}
+
 export async function getAdminStatus(): Promise<AdminStatus> {
   return apiRequest<AdminStatus>('/admin/status')
+}
+
+export async function getAdminMetrics(period: 1 | 7 | 30 = 7): Promise<AdminMetrics> {
+  return apiRequest<AdminMetrics>(`/admin/metrics?period=${period}`)
 }
 
 export async function listAdminAccounts(params: {

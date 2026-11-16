@@ -259,6 +259,15 @@ class AuthService:
         )
         self.db.commit()
 
+        from app.models.product_event import ProductEventType
+        from app.services.product_events import record_product_event
+
+        record_product_event(
+            self.db,
+            ProductEventType.signup,
+            user_id=user.id,
+        )
+
         message, debug_url = self._issue_verification_and_send(user)
         return RegisterResponse(
             message=message,
@@ -291,7 +300,17 @@ class AuthService:
 
         loaded = self.users.get_by_id(user.id)
         assert loaded is not None
-        return self.issue_tokens(loaded, user_agent=user_agent, ip_address=ip_address)
+        tokens = self.issue_tokens(loaded, user_agent=user_agent, ip_address=ip_address)
+
+        from app.models.product_event import ProductEventType
+        from app.services.product_events import record_product_event
+
+        record_product_event(
+            self.db,
+            ProductEventType.login,
+            user_id=loaded.id,
+        )
+        return tokens
 
     def verify_email(
         self,
@@ -500,6 +519,9 @@ class AuthService:
     ) -> TokenResponse:
         from app.services.admin import raise_if_blocked
 
+        from app.models.product_event import ProductEventType
+        from app.services.product_events import record_product_event, record_product_events
+
         existing = self.users.get_by_identity(profile.provider, profile.provider_user_id)
         if existing is not None:
             raise_if_blocked(existing)
@@ -508,8 +530,12 @@ class AuthService:
                 self.db.commit()
                 loaded = self.users.get_by_id(existing.id)
                 assert loaded is not None
-                return self.issue_tokens(loaded, user_agent=user_agent, ip_address=ip_address)
-            return self.issue_tokens(existing, user_agent=user_agent, ip_address=ip_address)
+                tokens = self.issue_tokens(loaded, user_agent=user_agent, ip_address=ip_address)
+                record_product_event(self.db, ProductEventType.login, user_id=loaded.id)
+                return tokens
+            tokens = self.issue_tokens(existing, user_agent=user_agent, ip_address=ip_address)
+            record_product_event(self.db, ProductEventType.login, user_id=existing.id)
+            return tokens
 
         if profile.email:
             email_owner = self.users.get_by_email(profile.email)
@@ -534,7 +560,15 @@ class AuthService:
         self.db.commit()
         loaded = self.users.get_by_id(user.id)
         assert loaded is not None
-        return self.issue_tokens(loaded, user_agent=user_agent, ip_address=ip_address)
+        tokens = self.issue_tokens(loaded, user_agent=user_agent, ip_address=ip_address)
+        record_product_events(
+            self.db,
+            [
+                (ProductEventType.signup, loaded.id, None),
+                (ProductEventType.login, loaded.id, None),
+            ],
+        )
+        return tokens
 
     def link_oauth_profile(self, user_id: UUID, profile: OAuthProfile) -> UserResponse:
         """Attach provider identity to an existing logged-in account (cabinet)."""

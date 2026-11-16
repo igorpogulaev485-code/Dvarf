@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link, Navigate, useNavigate } from 'react-router-dom'
 import { AdminHelpSection } from '../features/admin/AdminHelpSection'
+import { AdminMetricsSection } from '../features/admin/AdminMetricsSection'
 import {
   changeAdminPassword,
   getAdminStatus,
@@ -53,7 +54,7 @@ const SECTION_OPTIONS: { id: AdminSection; label: string }[] = [
   { id: 'catalog', label: 'Справочники' },
 ]
 
-const LIVE_SECTIONS = new Set<AdminSection>(['accounts', 'help'])
+const LIVE_SECTIONS = new Set<AdminSection>(['accounts', 'help', 'metrics'])
 
 function formatDate(value: string | null | undefined): string {
   if (!value) return '—'
@@ -436,11 +437,15 @@ export function AdminPage() {
           />
         ) : null}
 
+        {section === 'metrics' && LIVE_SECTIONS.has(section) ? (
+          <AdminMetricsSection onToast={showToast} />
+        ) : null}
+
         {!LIVE_SECTIONS.has(section) ? (
           <Panel title={sectionTitle}>
             <EmptyState
               title="Раздел появится в следующей пачке"
-              description="Сейчас доступны «Аккаунты» и «Помощь»"
+              description="Сейчас доступны «Аккаунты», «Помощь» и «Метрики»"
             />
           </Panel>
         ) : null}

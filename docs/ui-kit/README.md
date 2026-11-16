@@ -107,6 +107,21 @@ Selfcheck: `npm run selfcheck:abilities-rail-cap` (рядом `selfcheck:abiliti
 Страница `/help/world-import` использует `wrap`, чтобы на 390px curl/JSON читались целиком.
 Без page-level CSS: длинный код не должен вылезать за край экрана.
 
+### BarChart (атом, ADM-03)
+
+`BarChart` в `frontend/src/ui/BarChart.tsx` — простые столбцы по дням для раздела «Метрики».
+Пропсы: `items` (`label`, `value`, опционально `title`), `height`, `caption`, `emptyLabel`.
+Стили `.ui-bar-chart*` в `01-tokens-base.css`. Столбцы `flex: 1` с `min-width: 28px` —
+на широком экране ряд заполняет рамку; горизонтальный скролл **внутри рамки** только когда
+30×28px не влезает (как на 390). Цвет столбца — `var(--accent)`. Без page-level CSS админки.
+
+### StatTile + MetricGrid (атомы, ADM-03)
+
+`StatTile` — плитка: крупное число, мелкая подпись (`value`, `label`).
+`MetricGrid` — сетка плиток с опциональным подзаголовком группы (`title`, `children`).
+Сетка: 2 колонки по умолчанию (390), 3 с `min-width: 960px` (1024), 4 с `min-width: 1280px` (1440).
+Стили `.ui-stat-tile*` / `.ui-metric-grid*` в `01-tokens-base.css`. Без CSS в фиче админки.
+
 ### Эталон 14.11.2026 — kit atoms (не менять вид без ok)
 
 | Kit | Файл | Лицо |
