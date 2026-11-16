@@ -1207,7 +1207,8 @@ class LobbyService:
             name=name,
             rules_edition=edition,
         )
-        lobby.campaign_rules = default_campaign_rules()
+        edition_value = getattr(edition, "value", edition)
+        lobby.campaign_rules = default_campaign_rules(str(edition_value) if edition_value else "2014")
         self.db.commit()
         lobby = self._require_lobby(lobby.id)
         return self._to_detail(lobby, user)

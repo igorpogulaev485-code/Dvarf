@@ -15,11 +15,11 @@ const HOMEBREW_2024_OVERLAY: Partial<
   Record<HomebrewKey, Pick<HomebrewCatalogEntry, 'label' | 'tip' | 'source'>>
 > = {
   potion_bonus_self: {
-    label: 'Зелье стоит действие',
+    label: 'Зелье бонусным действием',
     tip:
       'По книге 2024 выпить или дать зелье — бонусное действие. ' +
-      'Вкл.: домашнее ужесточение — зелье себе стоит полноценное действие.',
-    source: 'Домашнее поверх SRD 5.2.1',
+      'Выкл.: домашнее правило — зелье себе стоит полноценное действие.',
+    source: 'SRD 5.2.1 / домашнее',
   },
   inspiration_stack: {
     label: 'Стопка героического вдохновения',
@@ -112,18 +112,24 @@ export function homebrewEntryForEdition(
 }
 
 /**
- * Potion timing for a seat: 2014 uses Tasha toggle; 2024 book = bonus,
- * toggle ON = action (stricter house).
+ * Potion timing for a seat.
+ * Both editions: ON (potion_bonus_self) = bonus; OFF = action.
+ * 2014: ON = Tasha house; OFF = PHB action.
+ * 2024: ON = book bonus (default for new campaigns); OFF = house action.
  */
 export function potionSelfTiming(input: {
   edition: string | null | undefined
   potion_bonus_self: boolean
 }): 'bonus' | 'action' {
-  const edition = String(input.edition ?? '2014').trim()
-  if (edition === '2024') {
-    return input.potion_bonus_self ? 'action' : 'bonus'
-  }
+  void input.edition
   return input.potion_bonus_self ? 'bonus' : 'action'
+}
+
+/** Default potion_bonus_self for a fresh lobby by rules edition. */
+export function defaultPotionBonusSelfForEdition(
+  edition: string | null | undefined,
+): boolean {
+  return String(edition ?? '2014').trim() === '2024'
 }
 
 /** Report table: key | 2014 meaning | 2024 meaning. */
