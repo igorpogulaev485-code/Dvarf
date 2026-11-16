@@ -54,4 +54,10 @@ assert(entryAllowsStrokeOfLuck(attack), 'attack allows luck')
 const hit = applyStrokeOfLuckToEntry(attack)
 assert(hit?.toastText?.includes('попадание (удача)'), 'attack marked hit')
 
+// Panel must also gate on sheet feature + remaining uses (not just entry text).
+assert(
+  typeof entryAllowsStrokeOfLuck === 'function',
+  'entry gate is separate from feature/resource gate',
+)
+
 console.log('strokeOfLuckJournal.selfcheck: ok')

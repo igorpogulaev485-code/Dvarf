@@ -27,6 +27,7 @@ async function openPreview(
     session?: boolean
     log?: boolean
     rogue20?: boolean
+    miss?: boolean
   },
 ) {
   const q = new URLSearchParams()
@@ -36,6 +37,7 @@ async function openPreview(
   if (opts?.session) q.set('session', '1')
   if (opts?.log) q.set('log', '1')
   if (opts?.rogue20) q.set('rogue20', '1')
+  if (opts?.miss) q.set('miss', '1')
   await page.goto(`/dev/dice-roller-preview?${q.toString()}`)
   await expect(page.getByTestId('dice-fab')).toBeVisible()
   await page.waitForTimeout(400)
@@ -183,14 +185,75 @@ test.describe('DICE-02a screenshots', () => {
     await shot(page, 'rolls-button-opens-journal')
   })
 
-  test('stroke-of-luck rogue20 — miss → 20 in journal', async ({ page }) => {
+  test('stroke-of-luck gating: wizard no / rogue20 yes / spent no / rest yes', async ({
+    page,
+  }) => {
+    // Wizard 5 — miss entry but no Stroke of Luck feature → no button.
+    await openPreview(page, { edition: '2014', open: true, miss: true })
+    const wizFirst = page.getByTestId('dice-log').locator('li').first()
+    await wizFirst.click()
+    await expect(page.getByTestId('dice-stroke-of-luck')).toHaveCount(0)
+    await shot(page, 'stroke-of-luck-wizard5-no')
+
+    // Rogue 20 — button present on miss.
     await openPreview(page, { edition: '2014', open: true, rogue20: true })
+    // Wait for sheet to sync feature pool + publish availability.
+    await expect
+      .poll(async () => page.getByTestId('dice-stroke-of-luck').count(), { timeout: 10_000 })
+      .toBeGreaterThan(0)
     const first = page.getByTestId('dice-log').locator('li').first()
     await first.click()
     await expect(page.getByTestId('dice-stroke-of-luck')).toBeVisible()
+    await shot(page, 'stroke-of-luck-rogue20')
+
+    // Spend luck → button gone until rest.
     await page.getByTestId('dice-stroke-of-luck').click()
     await expect(first).toContainText(/20|удач/i)
-    await shot(page, 'stroke-of-luck-rogue20')
+    await expect(page.getByTestId('dice-stroke-of-luck')).toHaveCount(0)
+    await shot(page, 'stroke-of-luck-rogue20-spent')
+
+    // Short rest restores pool → button returns on a new check.
+    await page.locator('.ui-bottom-sheet__close, .ui-floating-panel__close').click()
+    const restBtn = page.getByRole('button', { name: /^отдых$/i }).or(
+      page.getByRole('button', { name: 'Отдых' }),
+    )
+    if (await restBtn.first().isVisible().catch(() => false)) {
+      await restBtn.first().click()
+    } else {
+      const expand = page.getByRole('button', { name: 'Развернуть шапку' })
+      if (await expand.isVisible().catch(() => false)) await expand.click()
+      await page.getByRole('button', { name: 'Отдых' }).click()
+    }
+    await expect(page.getByText(/Короткий|короткий|Сброс коротких/i).first()).toBeVisible({
+      timeout: 10_000,
+    })
+    await page.getByRole('button', { name: /Сброс коротких ресурсов/i }).click()
+    await page.getByRole('button', { name: /^Применить$/i }).click()
+    await page.waitForTimeout(500)
+    const restClose = page.getByRole('button', { name: /Закрыть|Отмена/i }).first()
+    if (await restClose.isVisible().catch(() => false)) {
+      await restClose.click().catch(() => {})
+    }
+    // New skill check → eligible journal row + restored pool → «Удача» again.
+    const skill = page
+      .locator('.play-desk-skill-strip button, .play-desk__hot-item, .abil-skill__roll')
+      .filter({ hasText: /Атлетика|Акробатика|Скрытность|Внимание/i })
+      .first()
+    if (await skill.isVisible().catch(() => false)) {
+      await skill.click()
+    } else {
+      const intBlock = page.locator('.abil-block').filter({ hasText: 'Ловкость' }).first()
+      const chevron = intBlock.locator('.abil-block__label-chevron')
+      if ((await chevron.getAttribute('aria-expanded')) === 'false') await chevron.click()
+      await intBlock.locator('.abil-skill__roll').first().click()
+    }
+    await page.getByTestId('dice-fab').click()
+    await expect
+      .poll(async () => page.getByTestId('dice-stroke-of-luck').count(), { timeout: 10_000 })
+      .toBeGreaterThan(0)
+    await page.getByTestId('dice-log').locator('li').first().click()
+    await expect(page.getByTestId('dice-stroke-of-luck')).toBeVisible()
+    await shot(page, 'stroke-of-luck-rogue20-after-rest')
   })
 
   test('fab over characteristics after save (390)', async ({ page }) => {

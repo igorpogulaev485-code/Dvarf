@@ -114,16 +114,17 @@ export function DiceRollerPreviewPage() {
   const clean = params.get('clean') === '1'
   const withLog = params.get('log') === '1'
   const rogue20 = params.get('rogue20') === '1'
+  const withMiss = params.get('miss') === '1' || rogue20
   const [character, setCharacter] = useState(() =>
     editionCharacter(edition, { rogue20 }),
   )
 
   const missSeed: DiceLogEntry[] = useMemo(
     () =>
-      rogue20
+      withMiss
         ? [
             {
-              id: 'rogue20-miss-1',
+              id: 'luck-miss-1',
               at: Date.now() - 5_000,
               expression: '1d20+7',
               advantageMode: 'none',
@@ -137,7 +138,7 @@ export function DiceRollerPreviewPage() {
             },
           ]
         : [],
-    [rogue20],
+    [withMiss],
   )
 
   const seedLog = useMemo(() => {

@@ -17,9 +17,11 @@ import {
   writeDiceLog,
 } from './diceLog'
 import {
+  isStrokeOfLuckAvailable,
   notifyDiceLogCleared,
   requestStrokeOfLuck,
   subscribeDiceLogChanged,
+  subscribeStrokeOfLuckAvailable,
 } from './journalBridge'
 import { readOnlyMePref, writeOnlyMePref } from './onlyMePref'
 import { formulaFromPool, parseFormula, poolHasDice } from './parseFormula'
@@ -97,6 +99,9 @@ export function DiceRollerPanel({
   })
   const [confirmClear, setConfirmClear] = useState(false)
   const [advFlash, setAdvFlash] = useState(false)
+  const [strokeOfLuckReady, setStrokeOfLuckReady] = useState(() =>
+    isStrokeOfLuckAvailable(characterId),
+  )
   const holdTimer = useRef<number | null>(null)
   const holdFired = useRef(false)
   const flashTimer = useRef<number | null>(null)
@@ -117,10 +122,18 @@ export function DiceRollerPanel({
 
   useEffect(() => {
     return subscribeDiceLogChanged((id) => {
-      if (id !== characterId || initialLog) return
+      if (id !== characterId) return
       setLog(readDiceLog(characterId))
     })
-  }, [characterId, initialLog])
+  }, [characterId])
+
+  useEffect(() => {
+    setStrokeOfLuckReady(isStrokeOfLuckAvailable(characterId))
+    return subscribeStrokeOfLuckAvailable((id, available) => {
+      if (id !== characterId) return
+      setStrokeOfLuckReady(available)
+    })
+  }, [characterId])
 
   useEffect(() => {
     if (!focusJournal) return
@@ -539,7 +552,7 @@ export function DiceRollerPanel({
                             Повторить
                           </Button>
                         ) : null}
-                        {entryAllowsStrokeOfLuck(entry) ? (
+                        {strokeOfLuckReady && entryAllowsStrokeOfLuck(entry) ? (
                           <Button
                             type="button"
                             variant="secondary"

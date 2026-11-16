@@ -43,12 +43,17 @@ import {
 import {
   openDiceJournal,
   registerStrokeOfLuckHandler,
+  setStrokeOfLuckAvailable,
   subscribeDiceLogCleared,
 } from '../../diceRoller/journalBridge'
 import { applyStrokeOfLuckInJournal } from '../../diceRoller/strokeOfLuckJournal'
 import { ensureUnifiedJournal } from '../../diceRoller/unifiedJournal'
 import { applyStrokeOfLuck, strokeOfLuckKind } from '../../../shared/dnd/strokeOfLuck'
-import { spendFeatureUse } from '../../../shared/dnd/featureResources'
+import {
+  findFeatureResource,
+  spendFeatureUse,
+  spendRemaining,
+} from '../../../shared/dnd/featureResources'
 import {
   resolveClassFeatureSlug,
   type UnlockedFeature,
@@ -548,13 +553,28 @@ export function useSheetEditorPart4(model: SheetModel) {
   }, [model.character.id])
 
   useEffect(() => {
+    const characterId = model.character.id
+    const feature = ((model.unlockedFeatures ?? []) as UnlockedFeature[]).find(
+      (item) => item.id === 'stroke_of_luck',
+    )
+    let available = false
+    if (feature?.resource?.pool_id) {
+      const classSlug =
+        resolveClassFeatureSlug(feature.className ?? 'плут') ?? 'rogue'
+      const pool = findFeatureResource(
+        model.draft.play.resources,
+        classSlug,
+        feature.resource.pool_id,
+        feature.classEntryId,
+      )
+      available = spendRemaining(pool) >= 1
+    }
+    setStrokeOfLuckAvailable(characterId, available)
+
     registerStrokeOfLuckHandler((req) => {
-      if (req.characterId !== model.character.id) {
+      if (req.characterId !== characterId) {
         return { ok: false, message: 'Удача недоступна' }
       }
-      const feature = ((model.unlockedFeatures ?? []) as UnlockedFeature[]).find(
-        (item) => item.id === 'stroke_of_luck',
-      )
       if (!feature) {
         const message = 'Удача доступна плуту 20-го уровня'
         model.onToast?.(message)
@@ -593,6 +613,8 @@ export function useSheetEditorPart4(model: SheetModel) {
           ),
         },
       }))
+      // Hide «Удача» until short/long rest restores the pool.
+      setStrokeOfLuckAvailable(characterId, false)
       model.onToast?.(
         kind === 'attack'
           ? 'Удача: промах становится попаданием'
@@ -600,7 +622,10 @@ export function useSheetEditorPart4(model: SheetModel) {
       )
       return { ok: true, nextText, kind }
     })
-    return () => registerStrokeOfLuckHandler(null)
+    return () => {
+      registerStrokeOfLuckHandler(null)
+      setStrokeOfLuckAvailable(characterId, false)
+    }
   }, [model.character.id, model.unlockedFeatures, model.draft.play.resources])
 
   const emitToast = useCallback(

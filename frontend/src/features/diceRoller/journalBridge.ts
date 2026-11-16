@@ -100,3 +100,41 @@ export function requestStrokeOfLuck(req: StrokeOfLuckRequest): StrokeOfLuckResul
     return { ok: false, message: 'Не удалось применить Удачу' }
   }
 }
+
+/**
+ * Whether the sheet currently has Stroke of Luck unlocked + a remaining use.
+ * Panel hides «Удача» when false (wizard / spent until rest).
+ */
+type LuckAvailableListener = (characterId: string, available: boolean) => void
+
+const luckAvailableByChar = new Map<string, boolean>()
+const luckAvailableListeners = new Set<LuckAvailableListener>()
+
+export function setStrokeOfLuckAvailable(
+  characterId: string,
+  available: boolean,
+): void {
+  const prev = luckAvailableByChar.get(characterId)
+  luckAvailableByChar.set(characterId, available)
+  if (prev === available) return
+  luckAvailableListeners.forEach((fn) => {
+    try {
+      fn(characterId, available)
+    } catch {
+      // ignore
+    }
+  })
+}
+
+export function isStrokeOfLuckAvailable(characterId: string): boolean {
+  return luckAvailableByChar.get(characterId) === true
+}
+
+export function subscribeStrokeOfLuckAvailable(
+  listener: LuckAvailableListener,
+): () => void {
+  luckAvailableListeners.add(listener)
+  return () => {
+    luckAvailableListeners.delete(listener)
+  }
+}
