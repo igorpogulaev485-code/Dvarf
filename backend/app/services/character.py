@@ -282,6 +282,10 @@ class CharacterService:
                 strip_class_progress_from_sheet_for_2014,
                 validate_class_progress_update,
             )
+            from app.dnd.edition_2024_class_options import (
+                strip_class_options_from_sheet_for_2014,
+                validate_class_options_update,
+            )
 
             prev_sheet = character.sheet if isinstance(character.sheet, dict) else {}
             prev_combat = (
@@ -318,6 +322,7 @@ class CharacterService:
                 if edition_s != "2024":
                     next_sheet = strip_weapon_mastery_from_sheet_for_2014(next_sheet)
                     next_sheet = strip_class_progress_from_sheet_for_2014(next_sheet)
+                    next_sheet = strip_class_options_from_sheet_for_2014(next_sheet)
                 elif "weapon_mastery" in next_sheet or prev_sheet.get("weapon_mastery"):
                     prof = (
                         next_sheet.get("proficiency")
@@ -374,6 +379,30 @@ class CharacterService:
                         next_sheet.pop("class_progress_2024", None)
                     else:
                         next_sheet["class_progress_2024"] = progress
+
+                # P24-M02a+: class options (invocations/metamagic/plans/rage) — 2024 only.
+                if edition_s == "2024" and (
+                    "class_options_2024" in next_sheet
+                    or prev_sheet.get("class_options_2024")
+                    or next_sheet.get("classes")
+                ):
+                    try:
+                        options = validate_class_options_update(
+                            rules_edition=edition_s,
+                            previous=prev_sheet.get("class_options_2024"),
+                            incoming=next_sheet.get("class_options_2024"),
+                            sheet=next_sheet,
+                        )
+                    except Edition2024ClassError as exc:
+                        raise AppError(
+                            str(exc),
+                            code=exc.code,
+                            status_code=400,
+                        ) from exc
+                    if options is None:
+                        next_sheet.pop("class_options_2024", None)
+                    else:
+                        next_sheet["class_options_2024"] = options
 
                 character.sheet = next_sheet
             else:

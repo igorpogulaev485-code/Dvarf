@@ -27,10 +27,27 @@ test.describe('P24-M02a classes 2024', () => {
     )
     await expect(page.getByTestId('p24-m02a-wizard5-spells')).toContainText('подготовлено 9')
 
+    await expect(page.getByTestId('p24-m02a-warlock5')).toBeVisible()
+    await expect(page.getByTestId('p24-m02a-warlock5-limit')).toContainText('5')
+    await expect(page.getByTestId('p24-m02a-warlock5-invocations')).toContainText(
+      'Договор клинка',
+    )
+    await expect(page.getByTestId('p24-m02a-sorcerer5')).toBeVisible()
+    await expect(page.getByTestId('p24-m02a-sorcerer5-metamagic')).toContainText(
+      'Ускоренное',
+    )
+
     await page.getByTestId('p24-m02a-short-rest').click()
     await expect(page.getByTestId('p24-m02a-rest-log')).toContainText('used=2')
 
     const shot = path.join(ARTIFACTS, `classes-${testInfo.project.name}.png`)
     await page.screenshot({ path: shot, fullPage: true })
+
+    await page.getByTestId('p24-m02a-warlock5').screenshot({
+      path: path.join(ARTIFACTS, `warlock5-${testInfo.project.name}.png`),
+    })
+    await page.getByTestId('p24-m02a-sorcerer5').screenshot({
+      path: path.join(ARTIFACTS, `sorcerer5-${testInfo.project.name}.png`),
+    })
   })
 })

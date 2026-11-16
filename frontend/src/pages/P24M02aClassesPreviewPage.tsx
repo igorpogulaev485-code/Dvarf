@@ -11,6 +11,12 @@ import {
   listClassSlugs2024,
   SRD_SUBCLASS_BY_PARENT,
 } from '../shared/dnd/edition2024Classes'
+import {
+  ELDRITCH_INVOCATIONS_2024,
+  METAMAGIC_2024,
+  metamagicKnownLimit2024,
+  warlockInvocationLimit2024,
+} from '../shared/dnd/edition2024ClassOptions'
 import { RULES_EDITION_2024_OPEN } from '../shared/dnd/rulesEdition2024'
 import { createClassLevel } from '../shared/dnd/classLevels'
 import { Panel, Stack, Text, Button } from '../ui'
@@ -146,6 +152,55 @@ export function P24M02aClassesPreviewPage() {
 
         <ClassCard slug="fighter" nameRu="Боец" level={5} testId="p24-m02a-fighter5" />
         <ClassCard slug="wizard" nameRu="Волшебник" level={5} testId="p24-m02a-wizard5" />
+
+        <Panel>
+          <div data-testid="p24-m02a-warlock5">
+            <Text as="h2">Колдун 5 · воззвания</Text>
+            <p data-testid="p24-m02a-warlock5-limit">
+              Лимит воззваний: {warlockInvocationLimit2024(5)}
+            </p>
+            <ul data-testid="p24-m02a-warlock5-invocations">
+              {[
+                'pact-of-the-blade',
+                'agonizing-blast',
+                'devils-sight',
+                'thirsting-blade',
+                'repelling-blast',
+              ].map((id) => {
+                const row = ELDRITCH_INVOCATIONS_2024.find((r) => r.id === id)
+                return (
+                  <li key={id}>
+                    {row?.nameRu || id}
+                    {row?.requiresPact ? ` (договор ${row.requiresPact})` : ''}
+                  </li>
+                )
+              })}
+            </ul>
+          </div>
+        </Panel>
+
+        <Panel>
+          <div data-testid="p24-m02a-sorcerer5">
+            <Text as="h2">Чародей 5 · метамагия</Text>
+            <p data-testid="p24-m02a-sorcerer5-limit">
+              Известно вариантов: {metamagicKnownLimit2024(5)} · очков чародейства:{' '}
+              {
+                computeProgression2024({
+                  classes: previewClasses('sorcerer', 5, 'Чародей'),
+                }).desiredResources.find((r) => r.id.includes('sorcery_points'))?.max
+              }
+            </p>
+            <ul data-testid="p24-m02a-sorcerer5-metamagic">
+              {METAMAGIC_2024.filter((r) => ['quickened', 'careful'].includes(r.id)).map(
+                (row) => (
+                  <li key={row.id}>
+                    {row.nameRu} (−{row.cost} очк.) — {row.summaryRu}
+                  </li>
+                ),
+              )}
+            </ul>
+          </div>
+        </Panel>
 
         <Panel>
           <div data-testid="p24-m02a-rest">

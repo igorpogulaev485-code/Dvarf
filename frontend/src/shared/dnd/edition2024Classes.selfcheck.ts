@@ -55,12 +55,21 @@ assert.ok(wiz.desiredResources.some((r) => r.id.includes('arcane_recovery')))
 
 const bard = computeProgression2024({
   classes: [createClassLevel({ name: 'Бард', level: 5, catalog_id: 'bard' })],
+  abilities: { cha: 16 },
 })
 const bi = bard.desiredResources.find((r) => r.id.includes('bardic_inspiration'))
 assert.ok(bi)
-assert.equal(bi!.max, 3)
+assert.equal(bi!.max, 3) // CHA 16 → +3, not PB
 assert.equal(bi!.reset, 'short')
 assert.ok(!bi!.id.includes('heroic'))
+
+const bardLow = computeProgression2024({
+  classes: [createClassLevel({ name: 'Бард', level: 1, catalog_id: 'bard' })],
+  abilities: { cha: 8 },
+})
+const biLow = bardLow.desiredResources.find((r) => r.id.includes('bardic_inspiration'))
+assert.equal(biLow!.max, 1)
+assert.equal(biLow!.reset, 'long')
 
 assert.equal(actionSurgeAllowsAction2024('magic'), false)
 assert.equal(actionSurgeAllowsAction2024('attack'), true)

@@ -147,11 +147,13 @@ RESOURCE_META: dict[str, dict[str, Any]] = {
     },
     "rages": {
         "name_ru": "Ярость",
+        # SRD 5.2.1: +1 use on Short Rest, all on Long Rest.
         "reset": "long",
+        "short_rest_regain": 1,
         "track": "spend",
         "on_hot": True,
         "feature_id": "rage",
-        "unlimited_from_level": None,  # 2024 table stays capped (no PHB-20 unlimited)
+        "unlimited_from_level": None,
     },
     "focus_points": {
         "name_ru": "Очки фокуса",
@@ -163,26 +165,39 @@ RESOURCE_META: dict[str, dict[str, Any]] = {
     },
     "bardic_inspiration": {
         "name_ru": "Бардовское вдохновение",
-        "reset": "long",  # Font of Inspiration (L5+) → short
+        # Uses = CHA mod (min 1). Font of Inspiration (L5+): full restore on short.
+        "reset": "long",
         "track": "spend",
         "on_hot": True,
         "feature_id": "bardic-inspiration",
-        "uses_from": "proficiency_bonus",
+        "uses_from": "cha_mod_min_1",
         "distinct_from_heroic": True,
     },
     "channel_divinity": {
         "name_ru": "Проведение божественности",
-        "reset": "short",
+        # Cleric/Paladin 2024: +1 on Short Rest, all on Long Rest.
+        "reset": "long",
+        "short_rest_regain": 1,
         "track": "spend",
         "on_hot": True,
         "feature_id": "channel-divinity",
     },
     "wild_shape": {
         "name_ru": "Дикий облик",
-        "reset": "short",
+        # SRD 5.2.1: +1 on Short Rest, all on Long Rest.
+        "reset": "long",
+        "short_rest_regain": 1,
         "track": "spend",
         "on_hot": True,
         "feature_id": "wild-shape",
+    },
+    "magic_of_making": {
+        "name_ru": "Магия вещей",
+        "reset": "long",
+        "track": "spend",
+        "on_hot": True,
+        "feature_id": "magic-of-making",
+        "uses_from": "int_mod_min_1",
     },
     "lay_on_hands_hp": {
         "name_ru": "Наложение рук",
@@ -221,15 +236,9 @@ RESOURCE_META: dict[str, dict[str, Any]] = {
         "feature_id": "arcane-recovery",
         "fixed_uses": 1,
     },
-    "divine_sense": {
-        "name_ru": "Божественное чувство",
-        "reset": "long",
-        "track": "spend",
-        "on_hot": True,
-        "feature_id": "divine-sense",
-        "uses_from": "one_plus_cha",
-    },
 }
+
+# Divine Sense is a Channel Divinity *option* for Paladin 2024, not a separate pool.
 
 # Non-spend scale values shown on the sheet (not play.resources spend pools).
 SCALE_KEYS = frozenset(
@@ -336,6 +345,32 @@ def proficiency_bonus_for_level(total_level: int) -> int:
 
 def ability_mod(score: int) -> int:
     return (max(1, int(score)) - 10) // 2
+
+
+def read_ability_scores_from_sheet(sheet: Mapping[str, Any] | None) -> dict[str, int]:
+    """Parse sheet.abilities in the real leaf format: {str: {score: N}, ...}.
+
+    Also accepts flat ints for convenience in unit tests.
+    """
+    out: dict[str, int] = {k: 10 for k in ("str", "dex", "con", "int", "wis", "cha")}
+    if not isinstance(sheet, Mapping):
+        return out
+    ab = sheet.get("abilities")
+    if not isinstance(ab, Mapping):
+        return out
+    for key in out:
+        raw = ab.get(key)
+        if isinstance(raw, Mapping):
+            score = raw.get("score", raw.get("value", raw.get("base")))
+            try:
+                out[key] = int(score)  # type: ignore[arg-type]
+            except (TypeError, ValueError):
+                pass
+        elif isinstance(raw, (int, float)):
+            out[key] = int(raw)
+        elif isinstance(raw, str) and raw.strip().isdigit():
+            out[key] = int(raw.strip())
+    return out
 
 
 @lru_cache(maxsize=1)
@@ -539,13 +574,18 @@ def _resource_max(
     meta = RESOURCE_META.get(pool_key)
     if pool_key in SCALE_KEYS:
         return None
-    if pool_key == "bardic_inspiration":
-        # Catalog only has die; uses = proficiency bonus.
-        return proficiency_bonus_for_level(total_level)
     if meta and meta.get("fixed_uses") is not None:
         return int(meta["fixed_uses"])
-    if meta and meta.get("uses_from") == "one_plus_cha":
+    uses_from = (meta or {}).get("uses_from")
+    if uses_from == "cha_mod_min_1" or pool_key == "bardic_inspiration":
+        # SRD 5.2.1 Bardic Inspiration: Charisma modifier (minimum 1).
+        return max(1, ability_mod(int(abilities.get("cha") or 10)))
+    if uses_from == "int_mod_min_1":
+        return max(1, ability_mod(int(abilities.get("int") or 10)))
+    if uses_from == "one_plus_cha":
         return max(1, 1 + ability_mod(int(abilities.get("cha") or 10)))
+    if uses_from == "proficiency_bonus":
+        return proficiency_bonus_for_level(total_level)
     if isinstance(raw_value, (int, float)):
         n = int(raw_value)
         return n if n > 0 else 0
@@ -590,6 +630,10 @@ def _build_resources_for_class(
     if has_arcane and slug == "wizard":
         raw.setdefault("arcane_recovery", 1)
 
+    # Artificer Magic of Making — INT mod uses / long rest (not in resources table).
+    if slug == "artificer" and level >= 1:
+        raw.setdefault("magic_of_making", True)
+
     for key, value in raw.items():
         if key in SCALE_KEYS or key == "weapon_mastery":
             scales[key] = value
@@ -619,9 +663,15 @@ def _build_resources_for_class(
             continue
 
         reset = str(meta.get("reset") or "long")
-        # Bard Font of Inspiration: short rest from level 5.
+        short_regain = (
+            int(meta["short_rest_regain"])
+            if meta.get("short_rest_regain") is not None
+            else None
+        )
+        # Bard Font of Inspiration (L5+): regain *all* BI uses on Short or Long Rest.
         if key == "bardic_inspiration" and level >= 5:
             reset = "short"
+            short_regain = None
 
         entry = str(meta.get("feature_id") or key).replace("-", "_")
         pools.append(
@@ -634,11 +684,7 @@ def _build_resources_for_class(
                 reset=reset,
                 track=str(meta.get("track") or "spend"),
                 on_hot=bool(meta.get("on_hot", True)),
-                short_rest_regain=(
-                    int(meta["short_rest_regain"])
-                    if meta.get("short_rest_regain") is not None
-                    else None
-                ),
+                short_rest_regain=short_regain,
                 blocks_magic_action=bool(meta.get("blocks_magic_action")),
                 distinct_from_heroic=bool(meta.get("distinct_from_heroic")),
                 meta={
@@ -649,6 +695,11 @@ def _build_resources_for_class(
                     "bardic_die": scales.get("bardic_inspiration_die")
                     if key == "bardic_inspiration"
                     else None,
+                    "channel_options": (
+                        ["divine_sense"]
+                        if key == "channel_divinity" and slug == "paladin"
+                        else None
+                    ),
                 },
             )
         )
@@ -1017,16 +1068,7 @@ def validate_class_progress_update(
         raw_classes = sheet.get("classes")
         if isinstance(raw_classes, list):
             classes_raw = raw_classes
-    abilities: dict[str, int] = {}
-    if isinstance(sheet, Mapping):
-        ab = sheet.get("abilities")
-        if isinstance(ab, Mapping):
-            for k in ("str", "dex", "con", "int", "wis", "cha"):
-                if k in ab:
-                    try:
-                        abilities[k] = int(ab[k])  # type: ignore[arg-type]
-                    except (TypeError, ValueError):
-                        pass
+    abilities = read_ability_scores_from_sheet(sheet)
 
     snap = compute_progression(classes_raw, abilities=abilities)
     expected = snapshot_to_sheet_fragment(snap)

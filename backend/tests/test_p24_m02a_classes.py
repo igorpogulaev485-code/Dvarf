@@ -99,9 +99,12 @@ def test_progression_checkpoints(slug: str, level: int):
     if slug == "bard":
         assert "bardic_inspiration" in pool_ids
         bi = next(r for r in snap.resources if r.pool_id == "bardic_inspiration")
-        assert bi.max == snap.proficiency_bonus
+        # CHA 14 in fixture → +2 (not proficiency bonus)
+        assert bi.max == 2
         assert bi.distinct_from_heroic is True
         assert bi.reset == ("short" if level >= 5 else "long")
+        if level >= 5:
+            assert bi.short_rest_regain is None
         assert snap.spellcasting
         assert snap.spellcasting[0].prepared_spells > 0
 

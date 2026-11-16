@@ -170,9 +170,13 @@ type ResourceMeta = {
   feature_id: string
   blocks_magic_action?: boolean
   distinct_from_heroic?: boolean
-  uses_from?: 'proficiency_bonus'
+  uses_from?: 'proficiency_bonus' | 'cha_mod_min_1' | 'int_mod_min_1'
   fixed_uses?: number
   kind?: FeatureKind
+}
+
+function abilityMod2024(score: number): number {
+  return Math.floor((Math.max(1, Math.floor(score)) - 10) / 2)
 }
 
 const RESOURCE_META: Record<string, ResourceMeta> = {
@@ -199,6 +203,7 @@ const RESOURCE_META: Record<string, ResourceMeta> = {
   rages: {
     name_ru: 'Ярость',
     reset: 'long',
+    short_rest_regain: 1,
     feature_id: 'rage',
     kind: 'bonus',
   },
@@ -213,20 +218,29 @@ const RESOURCE_META: Record<string, ResourceMeta> = {
     reset: 'long',
     feature_id: 'bardic-inspiration',
     distinct_from_heroic: true,
-    uses_from: 'proficiency_bonus',
+    uses_from: 'cha_mod_min_1',
     kind: 'bonus',
   },
   channel_divinity: {
     name_ru: 'Проведение божественности',
-    reset: 'short',
+    reset: 'long',
+    short_rest_regain: 1,
     feature_id: 'channel-divinity',
     kind: 'resource',
   },
   wild_shape: {
     name_ru: 'Дикий облик',
-    reset: 'short',
+    reset: 'long',
+    short_rest_regain: 1,
     feature_id: 'wild-shape',
     kind: 'action',
+  },
+  magic_of_making: {
+    name_ru: 'Магия вещей',
+    reset: 'long',
+    feature_id: 'magic-of-making',
+    uses_from: 'int_mod_min_1',
+    kind: 'resource',
   },
   lay_on_hands_hp: {
     name_ru: 'Наложение рук',
@@ -491,13 +505,33 @@ function parseClasses(
   return out
 }
 
+function resolveResourceMax(
+  meta: ResourceMeta,
+  poolKey: string,
+  rawValue: unknown,
+  totalLevel: number,
+  abilities: Partial<Record<'str' | 'dex' | 'con' | 'int' | 'wis' | 'cha', number>>,
+): number {
+  if (meta.fixed_uses != null) return meta.fixed_uses
+  if (meta.uses_from === 'cha_mod_min_1' || poolKey === 'bardic_inspiration') {
+    return Math.max(1, abilityMod2024(abilities.cha ?? 10))
+  }
+  if (meta.uses_from === 'int_mod_min_1') {
+    return Math.max(1, abilityMod2024(abilities.int ?? 10))
+  }
+  if (meta.uses_from === 'proficiency_bonus') {
+    return proficiencyBonusForLevel2024(totalLevel)
+  }
+  return typeof rawValue === 'number' ? rawValue : 0
+}
+
 function buildResourceFeature(
   slug: string,
   _entryId: string,
   poolKey: string,
   max: number,
   classLevel: number,
-  totalLevel: number,
+  _totalLevel: number,
 ): { def: ClassFeatureDef; desired: DesiredFeatureResource } | null {
   const meta = RESOURCE_META[poolKey]
   if (!meta || max <= 0) return null
@@ -511,10 +545,6 @@ function buildResourceFeature(
     pool_name_ru: meta.name_ru,
     track: meta.track || 'spend',
   }
-  if (meta.uses_from === 'proficiency_bonus') {
-    resource.uses_from = 'proficiency_bonus'
-    resource.uses = proficiencyBonusForLevel2024(totalLevel)
-  }
   const def: ClassFeatureDef = {
     id: featureId,
     level: classLevel,
@@ -527,7 +557,7 @@ function buildResourceFeature(
   const desired: DesiredFeatureResource = {
     id: `feat:${slug}:${poolKey}:${featureId}`,
     name: meta.name_ru,
-    max: resource.uses_from === 'proficiency_bonus' ? proficiencyBonusForLevel2024(totalLevel) : max,
+    max,
     reset,
     track: 'spend',
     classSlug: slug,
@@ -650,6 +680,7 @@ export function computeProgression2024(input: {
       }
     }
     if (hasArcane && cls.slug === 'wizard') rawRes.arcane_recovery = 1
+    if (cls.slug === 'artificer' && cls.level >= 1) rawRes.magic_of_making = true
 
     for (const [key, value] of Object.entries(rawRes)) {
       if (SCALE_KEYS.has(key) || key === 'bardic_inspiration_die') {
@@ -661,14 +692,7 @@ export function computeProgression2024(input: {
         scales[`${cls.slug}:${key}`] = value
         continue
       }
-      let max =
-        meta.fixed_uses != null
-          ? meta.fixed_uses
-          : meta.uses_from === 'proficiency_bonus'
-            ? pb
-            : typeof value === 'number'
-              ? value
-              : 0
+      const max = resolveResourceMax(meta, key, value, totalLevel, input.abilities || {})
       if (max <= 0) continue
       const built = buildResourceFeature(
         cls.slug,
@@ -696,9 +720,11 @@ export function computeProgression2024(input: {
         resourceUses: built.desired.max,
       })
       const desired = { ...built.desired }
-      if (meta.short_rest_regain != null) {
-        ;(desired as DesiredFeatureResource & { shortRestRegain?: number }).shortRestRegain =
-          meta.short_rest_regain
+      // Font of Inspiration (L5+): full short-rest restore → no shortRestRegain partial.
+      if (key === 'bardic_inspiration' && cls.level >= 5) {
+        // reset already flipped to short in buildResourceFeature
+      } else if (meta.short_rest_regain != null) {
+        desired.shortRestRegain = meta.short_rest_regain
       }
       desiredResources.push(desired)
     }
