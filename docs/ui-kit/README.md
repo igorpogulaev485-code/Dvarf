@@ -142,6 +142,23 @@ Selfcheck: `npm run selfcheck:abilities-rail-cap` (рядом `selfcheck:abiliti
 `02-cards-join-lobby.css` (resize, min-height). Для формы «Написать нам» в кабинете и
 заметки админа в очереди обратной связи. Без page-level CSS.
 
+### DiceFab + FloatingPanel + BottomSheet + Stepper (атомы, DICE-01)
+
+Свободный бросок кубиков на готовом листе (не мастер, не лобби):
+
+| Kit | Файл | Лицо |
+|-----|------|------|
+| `DiceFab` | `ui/DiceFab.tsx` | компактная кнопка d20, `is-on` когда панель открыта; класс `no-print` |
+| `FloatingPanel` | `ui/FloatingPanel.tsx` | плавающая панель у якоря (≥960): Esc / клик мимо / ×; тело скроллится |
+| `BottomSheet` | `ui/BottomSheet.tsx` | нижний лист на узком экране (частичная высота, body scroll lock) |
+| `Stepper` | `ui/Stepper.tsx` | компактный − / число / + в одну высоту контроля; ширина по содержимому |
+
+Стили `.ui-dice-fab*` / `.ui-floating-*` / `.ui-bottom-sheet*` / `.ui-stepper*` /
+`.dice-roller-panel*` в `01-tokens-base.css`. FAB справа внизу; «хвост» только у
+прокручиваемых списков заклинаний/атак и `::after` у `.play-desk__stage` (не у
+`.play-desk__left` / рельса — LOCK §2a). Before-скрины 2014: `scripts/dice-before-from-main.sh`.
+Фича: `frontend/src/features/diceRoller/`. Без page-level CSS и без правок `index.css`.
+
 ### Эталон 14.11.2026 — kit atoms (не менять вид без ok)
 
 | Kit | Файл | Лицо |

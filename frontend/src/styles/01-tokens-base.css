@@ -1992,3 +1992,525 @@ a.ui-button--primary {
   padding: 8px;
 }
 
+
+
+/* ——— DICE-01 kit atoms: DiceFab / FloatingPanel / BottomSheet / Stepper ——— */
+.no-print {
+  /* Shared print-hide for chrome (FAB, roller). Classic print also lists this. */
+}
+
+@media print {
+  .no-print,
+  .ui-dice-fab,
+  .ui-dice-fab-slot,
+  .ui-floating-root,
+  .ui-bottom-sheet-root {
+    display: none !important;
+  }
+}
+
+/*
+ * FAB clearance — ONLY scroll tails on right spells / center attacks (and mobile stage).
+ * Do NOT pad .play-desk__left / .abil-column — rail height LOCK stays pixel-identical to main.
+ */
+body:has(.ui-dice-fab-slot) {
+  /* FAB 52 + gap under last row inside scrollports */
+  --dice-fab-clearance: 80px;
+}
+
+/*
+ * Scroll tails — ONLY stage (center attacks + right spells). Never .play-desk__left / .abil-column.
+ * List padding helps when the scrollport ends above the FAB; stage ::after gives window-scroll
+ * room when the list box itself extends below the fold (padding would sit off-screen).
+ */
+body:has(.ui-dice-fab-slot) .play-desk__stage .play-desk-compact__list {
+  padding-bottom: calc(var(--dice-fab-clearance) + 8px);
+  box-sizing: border-box;
+}
+
+@media (min-width: 960px) {
+  /* Extra stage tail — room to window-scroll last КАСТ fully above fixed FAB. */
+  body:has(.ui-dice-fab-slot) .play-desk__stage::after {
+    content: '';
+    display: block;
+    height: calc(var(--dice-fab-clearance) + 96px);
+    flex: 0 0 auto;
+    pointer-events: none;
+  }
+}
+
+@media (max-width: 959px) {
+  /* Mobile: FAB above Bottom Scene Nav — tail at end of scene. */
+  body:has(.ui-dice-fab-slot) {
+    --dice-fab-clearance: 88px;
+  }
+  body:has(.ui-dice-fab-slot) .play-desk--mobile .play-desk__stage {
+    padding-bottom: calc(var(--dice-fab-clearance) + 8px);
+    box-sizing: border-box;
+  }
+  body:has(.ui-dice-fab-slot) .play-desk--mobile .play-desk__stage .play-desk-compact__list {
+    padding-bottom: calc(var(--dice-fab-clearance) + 8px);
+  }
+}
+
+.ui-dice-fab-slot {
+  position: fixed;
+  /* Bottom-right — LSS / DICE-01 TZ. */
+  right: 16px;
+  left: auto;
+  bottom: 16px;
+  z-index: 48;
+  pointer-events: none;
+}
+
+.ui-dice-fab-slot .ui-dice-fab {
+  pointer-events: auto;
+}
+
+.ui-dice-fab {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  border: 2px solid var(--accent);
+  background: var(--card);
+  color: var(--accent);
+  display: grid;
+  place-items: center;
+  box-shadow: 0 10px 28px rgba(45, 45, 42, 0.18);
+  cursor: pointer;
+}
+
+.ui-dice-fab:hover {
+  background: var(--accent-soft);
+}
+
+.ui-dice-fab.is-on {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+
+@media (max-width: 959px) {
+  .ui-dice-fab-slot {
+    right: 12px;
+    left: auto;
+    bottom: calc(72px + env(safe-area-inset-bottom, 0px));
+  }
+}
+
+.ui-floating-root {
+  position: fixed;
+  inset: 0;
+  z-index: 52;
+  pointer-events: none;
+}
+
+.ui-floating-backdrop {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  background: transparent;
+  cursor: default;
+  pointer-events: auto;
+}
+
+.ui-floating-panel {
+  pointer-events: auto;
+  display: flex;
+  flex-direction: column;
+  min-width: 280px;
+  max-width: calc(100vw - 24px);
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  box-shadow: 0 16px 40px rgba(45, 45, 42, 0.18);
+  overflow: hidden;
+}
+
+.ui-floating-panel__header,
+.ui-bottom-sheet__header {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--line);
+  background: var(--card);
+}
+
+.ui-floating-panel__title,
+.ui-bottom-sheet__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.ui-floating-panel__close,
+.ui-bottom-sheet__close {
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 1.35rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.ui-floating-panel__close:hover,
+.ui-bottom-sheet__close:hover {
+  background: var(--accent-soft);
+  color: var(--ink);
+}
+
+.ui-floating-panel__body,
+.ui-bottom-sheet__body {
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: 12px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.ui-bottom-sheet-root {
+  position: fixed;
+  inset: 0;
+  z-index: 52;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+.ui-bottom-sheet-backdrop {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  margin: 0;
+  padding: 0;
+  background: rgba(45, 45, 42, 0.28);
+  cursor: default;
+}
+
+.ui-bottom-sheet {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  background: var(--panel);
+  border-radius: 16px 16px 0 0;
+  border: 1px solid var(--line);
+  border-bottom: 0;
+  box-shadow: 0 -12px 36px rgba(45, 45, 42, 0.16);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  overflow: hidden;
+}
+
+.ui-bottom-sheet__grab {
+  width: 40px;
+  height: 4px;
+  border-radius: 999px;
+  background: var(--line);
+  margin: 8px auto 0;
+  flex: 0 0 auto;
+}
+
+/* Kit Stepper — compact − / value / + */
+.ui-stepper {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  width: max-content;
+  max-width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--card);
+  padding: 2px;
+  box-sizing: border-box;
+}
+
+.ui-stepper--sm {
+  min-height: var(--control-h-sm);
+}
+
+.ui-stepper--md {
+  min-height: var(--control-h-md);
+}
+
+.ui-stepper__btn {
+  width: var(--control-h-sm);
+  height: var(--control-h-sm);
+  min-width: var(--control-h-sm);
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-weight: 700;
+  font-size: 1.05rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.ui-stepper--md .ui-stepper__btn {
+  width: var(--control-h-md);
+  height: var(--control-h-md);
+  min-width: var(--control-h-md);
+}
+
+.ui-stepper__btn:hover:not(:disabled) {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.ui-stepper__btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.ui-stepper__value {
+  min-width: 2.25rem;
+  padding: 0 6px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--ink);
+}
+
+/* Dice roller panel content (kit pattern, not page override) */
+.dice-roller-panel__dice {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.dice-roller-panel__die-cell {
+  position: relative;
+  min-width: 0;
+}
+
+.dice-roller-panel__die {
+  position: relative;
+  width: 100%;
+  min-height: var(--control-h-lg);
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: var(--card);
+  color: var(--ink);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 6px 4px;
+}
+
+.dice-roller-panel__die.is-on {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.dice-roller-panel__die-label {
+  font-size: 0.85rem;
+}
+
+.dice-roller-panel__die-count {
+  position: absolute;
+  top: 2px;
+  right: 4px;
+  min-width: 1.1rem;
+  height: 1.1rem;
+  padding: 0 3px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 0.7rem;
+  line-height: 1.1rem;
+  text-align: center;
+}
+
+.dice-roller-panel__die-dec {
+  position: absolute;
+  left: 2px;
+  bottom: 2px;
+  z-index: 1;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border-radius: 5px;
+  border: 1px solid var(--line);
+  background: var(--card);
+  color: var(--muted);
+  font-size: 0.85rem;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.dice-roller-panel__die-dec:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.dice-roller-panel__mod-field {
+  width: max-content;
+  max-width: 100%;
+}
+
+.dice-roller-panel__mod-field .ui-field__label {
+  margin-bottom: 4px;
+}
+
+.dice-roller-panel__error {
+  margin: 0 0 4px;
+  font-size: 0.85rem;
+}
+
+.dice-roller-panel__adv {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.dice-roller-panel__adv-hit {
+  display: grid;
+  min-width: 0;
+}
+
+/* Let the wrapper receive clicks when the chip is disabled (title + flash hint). */
+.dice-roller-panel__adv-hit .ui-toggle-chip.is-disabled,
+.dice-roller-panel__adv-hit .ui-toggle-chip:disabled {
+  pointer-events: none;
+}
+
+.dice-roller-panel__adv-hint {
+  margin: 0;
+  font-size: 0.85rem;
+}
+
+.dice-roller-panel__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.dice-roller-panel__log-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.dice-roller-panel__log-head .ui-text {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1rem;
+}
+
+.dice-roller-panel__log {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.dice-roller-panel__log-item {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--card);
+  overflow: hidden;
+}
+
+.dice-roller-panel__log-summary {
+  width: 100%;
+  display: grid;
+  grid-template-columns: auto 1fr auto auto;
+  gap: 8px;
+  align-items: center;
+  padding: 8px 10px;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+}
+
+.dice-roller-panel__log-time {
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+.dice-roller-panel__log-expr {
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dice-roller-panel__log-tag {
+  font-size: 0.75rem;
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.dice-roller-panel__log-total {
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  font-size: 1.05rem;
+}
+
+.dice-roller-panel__log-detail {
+  display: grid;
+  gap: 8px;
+  padding: 0 10px 10px;
+}
+
+.dice-roller-panel__faces {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.dice-roller-panel__face {
+  min-width: 2rem;
+  height: 2rem;
+  padding: 0 6px;
+  display: inline-grid;
+  place-items: center;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.dice-roller-panel__face.is-dropped {
+  opacity: 0.4;
+  text-decoration: line-through;
+}
+
+.dice-roller-panel__face.is-nat20 {
+  border-color: var(--success);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--success) 35%, transparent);
+}
+
+.dice-roller-panel__face.is-nat1 {
+  border-color: var(--danger);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--danger) 35%, transparent);
+}
+
+.dice-roller-panel__face.is-mod {
+  background: var(--accent-soft);
+  color: var(--accent);
+}

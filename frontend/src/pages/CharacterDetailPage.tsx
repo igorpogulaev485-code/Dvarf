@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { MinimalSheetEditor } from '../features/characters/MinimalSheetEditor'
+import { DiceRollerHost } from '../features/diceRoller'
 import {
   CharacterReadyDialog,
   HelpDrawer,
@@ -413,6 +414,10 @@ export function CharacterDetailPage() {
           />
         ) : null}
       </Stack>
+
+      {character && !loading ? (
+        <DiceRollerHost characterId={character.id} />
+      ) : null}
 
       <CharacterReadyDialog
         open={onboarding.showReadyBridge}
