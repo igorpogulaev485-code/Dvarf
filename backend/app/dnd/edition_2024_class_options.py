@@ -94,31 +94,31 @@ def warlock_invocation_limit(level: int) -> int:
     return row_limits[lv]
 
 
-# —— Metamagic (SRD 5.2.1, 10) ——
+# —— Metamagic (PHB 2024 / next.dnd.su: 2 at L2, +2 at L10, +2 at L17) ——
 METAMAGIC_2024: tuple[MetamagicDef, ...] = (
-    MetamagicDef("careful", "Careful Spell", "Осторожное заклинание", 1, "До Хар. существ автоуспех на спас; без половины урона."),
+    MetamagicDef("careful", "Careful Spell", "Аккуратное заклинание", 1, "До Хар. существ автоуспех на спас; без половины урона."),
     MetamagicDef("distant", "Distant Spell", "Далёкое заклинание", 1, "Дистанция ×2; касание → 30 фт."),
     MetamagicDef("empowered", "Empowered Spell", "Усиленное заклинание", 1, "Перебросить до Хар. костей урона.", stackable_with_other=True),
     MetamagicDef("extended", "Extended Spell", "Продлённое заклинание", 1, "Длительность ×2 (≤24 ч.); преимущество к концентрации."),
-    MetamagicDef("heightened", "Heightened Spell", "Напряжённое заклинание", 2, "Одна цель — помеха на спас."),
-    MetamagicDef("quickened", "Quickened Spell", "Ускоренное заклинание", 2, "Время «действие» → бонусное (с лимитом двух заклинаний)."),
+    MetamagicDef("heightened", "Heightened Spell", "Непреодолимое заклинание", 2, "Одна цель — помеха на спасброски от этого заклинания."),
+    MetamagicDef("quickened", "Quickened Spell", "Ускоренное заклинание", 2, "Время «действие» → бонусное (с лимитом заклинаний 1+ круга в ход)."),
     MetamagicDef("seeking", "Seeking Spell", "Ищущее заклинание", 1, "Промах атаки заклинания — переброс d20.", stackable_with_other=True),
-    MetamagicDef("subtle", "Subtle Spell", "Тонкое заклинание", 1, "Без V/S/M (кроме расходуемых/с ценой)."),
-    MetamagicDef("transmuted", "Transmuted Spell", "Преображённое заклинание", 1, "Сменить тип урона (кислота/холод/огонь/молния/яд/гром)."),
-    MetamagicDef("twinned", "Twinned Spell", "Удвоенное заклинание", 1, "Повысить эффективный круг на 1 для доп. цели."),
+    MetamagicDef("subtle", "Subtle Spell", "Неуловимое заклинание", 1, "Без V/S/M (кроме расходуемых/с ценой)."),
+    MetamagicDef("transmuted", "Transmuted Spell", "Преобразованное заклинание", 1, "Сменить тип урона (звук/кислота/огонь/холод/электричество/яд)."),
+    MetamagicDef("twinned", "Twinned Spell", "Удвоенное заклинание", 1, "Повысить фактический круг на 1 для доп. цели."),
 )
 METAMAGIC_BY_ID = {row.id: row for row in METAMAGIC_2024}
 
 
 def metamagic_known_limit(sorcerer_level: int) -> int:
-    """SRD 5.2.1: 2 at L2, +1 at L10, +1 at L17."""
+    """PHB 2024 / next.dnd.su: 2 at L2, +2 at L10 (4), +2 at L17 (6)."""
     lv = max(0, int(sorcerer_level or 0))
     if lv < 2:
         return 0
     if lv >= 17:
-        return 4
+        return 6
     if lv >= 10:
-        return 3
+        return 4
     return 2
 
 

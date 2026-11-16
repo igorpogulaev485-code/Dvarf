@@ -375,7 +375,16 @@ SHARED_OPTIONS: dict[str, list[SharedPoolOption]] = {
     ],
     "sorcerer__aberrant-sorcery": [
         SharedPoolOption(
-            "psionic-sorcery", "Псионическое колдовство", "sorcery_points", kind="passive", min_level=6
+            "psionic-sorcery", "Псионическое чародейство", "sorcery_points", kind="passive", min_level=6
+        ),
+        SharedPoolOption(
+            "revelation-in-flesh",
+            "Откровение во плоти",
+            "sorcery_points",
+            cost=1,
+            cost_max=4,
+            kind="bonus",
+            min_level=14,
         ),
     ],
     "sorcerer__spellfire-sorcery": [
@@ -492,7 +501,25 @@ def build_permanent_bonuses(
             "Драконья устойчивость (хиты)",
             "hp_per_level",
             1,
-            note_ru="+1 хит за уровень чародея (на 3 ур. уже +3)",
+            note_ru="+1 хит за каждый уровень чародея (на уровне N сумма +N)",
+        )
+        add(
+            "elemental-affinity",
+            "Родство со стихией",
+            "other_calc",
+            {"resistance_chosen": True, "damage_bonus_cha_once": True},
+            min_level=6,
+            note_ru="Сопротивление выбранному типу постоянно; +Хар к одному броску урона этого типа",
+        )
+
+    if subclass_slug == "sorcerer__aberrant-sorcery":
+        add(
+            "psychic-defenses",
+            "Психическая защита",
+            "other_calc",
+            {"psychic_resistance": True, "adv_vs_charmed_frightened": True},
+            min_level=6,
+            note_ru="Сопротивление психическому; преимущество против Очарованный/Испуганный",
         )
 
     # Wizard subclasses (PHB 2024)
@@ -1178,7 +1205,7 @@ def build_subclass_resources(
         if class_level >= 18:
             add(
                 "tamed_wild_surge",
-                name_ru="Укрощённый всплеск",
+                name_ru="Укрощённый всплеск дикой магии",
                 max_uses=1,
                 reset="long",
                 feature_id="tamed-surge",
@@ -1193,6 +1220,27 @@ def build_subclass_resources(
             reset="long",
             feature_id="restore-balance",
         )
+        if class_level >= 14:
+            add(
+                "trance_of_order",
+                name_ru="Транс упорядоченности",
+                max_uses=1,
+                reset="long",
+                feature_id="trance-of-order",
+                min_level=14,
+                extra_meta={"restore_sp_cost": 5},
+            )
+        if class_level >= 18:
+            add(
+                "clockwork_cavalcade",
+                name_ru="Заводная кавалькада",
+                max_uses=1,
+                reset="long",
+                feature_id="clockwork-cavalcade",
+                min_level=18,
+                on_hot=False,
+                extra_meta={"restore_sp_cost": 7},
+            )
     elif subclass_slug == "sorcerer__shadow-sorcery":
         add(
             "power_of_shadow",
@@ -1209,7 +1257,41 @@ def build_subclass_resources(
             reset="long",
             feature_id="telepathic-speech",
             on_hot=False,
+            extra_meta={"duration_minutes_eq_level": True, "range_miles_eq_cha_mod": True},
         )
+        if class_level >= 18:
+            add(
+                "warping_explosion",
+                name_ru="Искажающий взрыв",
+                max_uses=1,
+                reset="long",
+                feature_id="warping-explosion",
+                min_level=18,
+                on_hot=False,
+                extra_meta={"restore_sp_cost": 5},
+            )
+    elif subclass_slug == "sorcerer__draconic-sorcery":
+        if class_level >= 14:
+            add(
+                "dragon_wings",
+                name_ru="Крылья дракона",
+                max_uses=1,
+                reset="long",
+                feature_id="dragon-wings",
+                min_level=14,
+                extra_meta={"restore_sp_cost": 3, "fly_speed_ft": 60, "duration_hours": 1},
+            )
+        if class_level >= 18:
+            add(
+                "dragon_companion",
+                name_ru="Дракон-спутник",
+                max_uses=1,
+                reset="long",
+                feature_id="dragon-companion",
+                min_level=18,
+                on_hot=False,
+                extra_meta={"free_summon_dragon": True},
+            )
 
     # --- Druid ---
     elif subclass_slug == "druid__stars":

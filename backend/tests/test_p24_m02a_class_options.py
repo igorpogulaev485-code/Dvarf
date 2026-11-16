@@ -207,8 +207,8 @@ def test_metamagic_limit_and_spend():
     known = opt.validate_metamagic(["careful", "quickened"], sorcerer_level=5)
     assert known == ["careful", "quickened"]
     assert opt.metamagic_known_limit(2) == 2
-    assert opt.metamagic_known_limit(10) == 3
-    assert opt.metamagic_known_limit(17) == 4
+    assert opt.metamagic_known_limit(10) == 4
+    assert opt.metamagic_known_limit(17) == 6
 
     with pytest.raises(e24.Edition2024ClassError) as exc:
         opt.validate_metamagic(["careful", "quickened", "subtle"], sorcerer_level=5)

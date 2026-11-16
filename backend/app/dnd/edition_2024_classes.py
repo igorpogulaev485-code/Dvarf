@@ -223,6 +223,14 @@ RESOURCE_META: dict[str, dict[str, Any]] = {
         "on_hot": True,
         "feature_id": "innate-sorcery",
     },
+    "sorcerous_restoration": {
+        "name_ru": "Чародейское восстановление",
+        "reset": "long",
+        "track": "spend",
+        "on_hot": False,
+        "feature_id": "sorcerous-restoration",
+        "fixed_uses": 1,
+    },
     "favored_enemy_uses": {
         "name_ru": "Заклятый враг",
         "reset": "long",
@@ -630,6 +638,17 @@ def _build_resources_for_class(
                     has_arcane = True
     if has_arcane and slug == "wizard":
         raw.setdefault("arcane_recovery", 1)
+
+    has_sorcerous_restoration = False
+    if catalog:
+        for lr in catalog["data"].get("levels") or []:
+            if int(lr.get("level") or 0) > level:
+                continue
+            for f in lr.get("features") or []:
+                if f.get("id") == "sorcerous-restoration":
+                    has_sorcerous_restoration = True
+    if has_sorcerous_restoration and slug == "sorcerer":
+        raw.setdefault("sorcerous_restoration", 1)
 
     # Artificer Magic of Making — INT mod uses / long rest (not in resources table).
     if slug == "artificer" and level >= 1:
