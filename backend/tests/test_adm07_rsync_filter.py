@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 import shutil
 import subprocess
 from pathlib import Path
@@ -37,8 +38,12 @@ def test_rsync_dry_run_keeps_env_bak(tmp_path: Path):
     dst = tmp_path / "dst"
     src.mkdir()
     dst.mkdir()
-    (src / "app.txt").write_text("new\n", encoding="utf-8")
-    (dst / "app.txt").write_text("old\n", encoding="utf-8")
+    # Разный размер + старый mtime на dst: rsync -a quick-check (size+mtime)
+    # иначе может не скопировать "new" поверх "old" той же длины в ту же секунду.
+    (src / "app.txt").write_text("new-content\n", encoding="utf-8")
+    dst_app = dst / "app.txt"
+    dst_app.write_text("old\n", encoding="utf-8")
+    os.utime(dst_app, (1_000_000_000, 1_000_000_000))
     (dst / ".env").write_text("SECRET=keep\n", encoding="utf-8")
     (dst / ".env.bak").write_text("SECRET=backup\n", encoding="utf-8")
     (dst / "stale.txt").write_text("delete-me\n", encoding="utf-8")
@@ -86,4 +91,4 @@ def test_rsync_dry_run_keeps_env_bak(tmp_path: Path):
     assert (dst / ".env").read_text(encoding="utf-8") == "SECRET=keep\n"
     assert (dst / ".env.bak").read_text(encoding="utf-8") == "SECRET=backup\n"
     assert not (dst / "stale.txt").exists()
-    assert (dst / "app.txt").read_text(encoding="utf-8") == "new\n"
+    assert (dst / "app.txt").read_text(encoding="utf-8") == "new-content\n"
