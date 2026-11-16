@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link, Navigate, useNavigate } from 'react-router-dom'
+import { AdminCatalogSection } from '../features/admin/AdminCatalogSection'
 import { AdminFeedbackSection } from '../features/admin/AdminFeedbackSection'
 import { AdminHelpSection } from '../features/admin/AdminHelpSection'
 import { AdminMetricsSection } from '../features/admin/AdminMetricsSection'
@@ -9,6 +10,7 @@ import {
   listAdminAccounts,
   setupAdminPassword,
   type AdminAccountItem,
+  type AdminSectionId,
   type AdminStatus,
 } from '../shared/api/admin'
 import { ApiRequestError } from '../shared/api/client'
@@ -45,7 +47,7 @@ function useCompactAdminNav(maxWidthPx = 1100): boolean {
   return compact
 }
 
-type AdminSection = 'accounts' | 'help' | 'metrics' | 'feedback' | 'catalog'
+type AdminSection = AdminSectionId
 
 const SECTION_OPTIONS: { id: AdminSection; label: string }[] = [
   { id: 'accounts', label: 'Аккаунты' },
@@ -55,7 +57,13 @@ const SECTION_OPTIONS: { id: AdminSection; label: string }[] = [
   { id: 'catalog', label: 'Справочники' },
 ]
 
-const LIVE_SECTIONS = new Set<AdminSection>(['accounts', 'help', 'metrics', 'feedback'])
+const LIVE_SECTIONS = new Set<AdminSection>([
+  'accounts',
+  'help',
+  'metrics',
+  'feedback',
+  'catalog',
+])
 
 function formatDate(value: string | null | undefined): string {
   if (!value) return '—'
@@ -81,7 +89,7 @@ export function AdminPage() {
   const navigate = useNavigate()
   const compactNav = useCompactAdminNav()
   const [status, setStatus] = useState<AdminStatus | null>(null)
-  const [section, setSection] = useState<AdminSection>('accounts')
+  const [section, setSection] = useState<AdminSection | null>(null)
   const [loading, setLoading] = useState(true)
   const [denied, setDenied] = useState<'missing' | 'forbidden' | null>(null)
   const [toast, setToast] = useState<string | null>(null)
@@ -114,6 +122,17 @@ export function AdminPage() {
         if (!active) return
         setStatus(next)
         setDenied(null)
+        const allowed = next.sections?.length
+          ? next.sections
+          : next.is_full_admin
+            ? (['accounts', 'help', 'metrics', 'feedback', 'catalog'] as AdminSection[])
+            : (['catalog'] as AdminSection[])
+        setSection((prev) => {
+          if (prev && allowed.includes(prev)) return prev
+          return allowed.includes('catalog') && !next.is_full_admin
+            ? 'catalog'
+            : allowed[0] || 'catalog'
+        })
       })
       .catch((err: unknown) => {
         if (!active) return
@@ -187,7 +206,7 @@ export function AdminPage() {
     )
   }
 
-  if (loading || !status) {
+  if (loading || !status || !section) {
     return (
       <main className="page page--app">
         <Text tone="muted">Загружаем админку…</Text>
@@ -197,8 +216,17 @@ export function AdminPage() {
 
   const pageSize = 20
   const totalPages = Math.max(1, Math.ceil(total / pageSize))
+  const allowedSections = new Set(
+    status.sections?.length
+      ? status.sections
+      : status.is_full_admin
+        ? SECTION_OPTIONS.map((s) => s.id)
+        : (['catalog'] as AdminSection[]),
+  )
+  const visibleSections = SECTION_OPTIONS.filter((item) => allowedSections.has(item.id))
   const sectionTitle =
-    SECTION_OPTIONS.find((item) => item.id === section)?.label || 'Раздел'
+    visibleSections.find((item) => item.id === section)?.label || 'Раздел'
+  const isFullAdmin = Boolean(status.is_full_admin)
 
   async function submitPassword() {
     setPwdBusy(true)
@@ -247,7 +275,7 @@ export function AdminPage() {
           </Stack>
         </header>
 
-        {!status.admin_password_set ? (
+        {isFullAdmin && !status.admin_password_set ? (
           <Panel title="Пароль админки">
             <Stack gap={12}>
               <Text>
@@ -267,7 +295,9 @@ export function AdminPage() {
               </div>
             </Stack>
           </Panel>
-        ) : (
+        ) : null}
+
+        {isFullAdmin && status.admin_password_set ? (
           <Stack gap={8}>
             <ChipStack>
               <Chip>Пароль админки задан</Chip>
@@ -284,7 +314,7 @@ export function AdminPage() {
               </Button>
             </div>
           </Stack>
-        )}
+        ) : null}
 
         {compactNav ? (
           <Field label="Раздел">
@@ -293,7 +323,7 @@ export function AdminPage() {
               value={section}
               onChange={(event) => setSection(event.target.value as AdminSection)}
             >
-              {SECTION_OPTIONS.map((item) => (
+              {visibleSections.map((item) => (
                 <option key={item.id} value={item.id}>
                   {item.label}
                 </option>
@@ -305,11 +335,11 @@ export function AdminPage() {
             aria-label="Разделы админки"
             value={section}
             onChange={setSection}
-            options={SECTION_OPTIONS}
+            options={visibleSections}
           />
         )}
 
-        {section === 'accounts' && LIVE_SECTIONS.has(section) ? (
+        {section === 'accounts' && LIVE_SECTIONS.has(section) && isFullAdmin ? (
           <Panel title="Аккаунты">
             <Stack gap={16}>
               <Stack gap={8}>
@@ -437,7 +467,7 @@ export function AdminPage() {
           </Panel>
         ) : null}
 
-        {section === 'help' && LIVE_SECTIONS.has(section) ? (
+        {section === 'help' && LIVE_SECTIONS.has(section) && isFullAdmin ? (
           <AdminHelpSection
             initialUserId={helpUserId}
             passwordSet={status.admin_password_set}
@@ -449,11 +479,11 @@ export function AdminPage() {
           />
         ) : null}
 
-        {section === 'metrics' && LIVE_SECTIONS.has(section) ? (
+        {section === 'metrics' && LIVE_SECTIONS.has(section) && isFullAdmin ? (
           <AdminMetricsSection onToast={showToast} />
         ) : null}
 
-        {section === 'feedback' && LIVE_SECTIONS.has(section) ? (
+        {section === 'feedback' && LIVE_SECTIONS.has(section) && isFullAdmin ? (
           <AdminFeedbackSection
             onToast={showToast}
             onOpenHelp={openHelpFor}
@@ -461,11 +491,15 @@ export function AdminPage() {
           />
         ) : null}
 
+        {section === 'catalog' && LIVE_SECTIONS.has(section) ? (
+          <AdminCatalogSection isFullAdmin={isFullAdmin} onToast={showToast} />
+        ) : null}
+
         {!LIVE_SECTIONS.has(section) ? (
           <Panel title={sectionTitle}>
             <EmptyState
               title="Раздел появится в следующей пачке"
-              description="Сейчас доступны «Аккаунты», «Помощь», «Метрики» и «Обратная связь»"
+              description="Этот раздел ещё не открыт"
             />
           </Panel>
         ) : null}

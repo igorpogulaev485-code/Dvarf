@@ -1,4 +1,4 @@
-"""API админ-панели (ADM-01/02/03/04). При выключенном флаге — 404."""
+"""API админ-панели (ADM-01/02/03/04/05). При выключенном флаге — 404."""
 
 from __future__ import annotations
 
@@ -24,12 +24,19 @@ from app.schemas.admin import (
     AdminSessionsResponse,
     AdminStatusResponse,
 )
+from app.schemas.admin_catalog import (
+    AdminCatalogDetail,
+    AdminCatalogDraftRequest,
+    AdminCatalogNameFeedbackPage,
+    AdminCatalogPage,
+)
 from app.schemas.feedback import (
     AdminFeedbackItem,
     AdminFeedbackPage,
     AdminFeedbackPatchRequest,
 )
 from app.services.admin import AdminService, require_panel_enabled
+from app.services.admin_catalog import AdminCatalogService
 from app.services.feedback import FeedbackService
 
 router = APIRouter(prefix="/admin", tags=["admin"])
@@ -99,6 +106,113 @@ def patch_feedback(
         admin_note=payload.admin_note,
         note_provided=note_provided,
     )
+
+
+@router.get("/catalog", response_model=AdminCatalogPage)
+def list_admin_catalog(
+    current_user: CurrentUser,
+    db: DbSession,
+    q: str | None = Query(default=None, max_length=200),
+    kind: str | None = Query(default=None, max_length=32),
+    edition: str | None = Query(default=None, max_length=16),
+    source: str | None = Query(default=None, max_length=80),
+    layer: str | None = Query(default=None, max_length=32),
+    has_pending: bool | None = Query(default=None),
+    include_inactive: bool = Query(default=True),
+    page: int = Query(default=1, ge=1),
+    page_size: int = Query(default=20, ge=1, le=100),
+) -> AdminCatalogPage:
+    require_panel_enabled()
+    return AdminCatalogService(db).list_entries(
+        current_user,
+        q=q,
+        kind=kind,
+        edition=edition,
+        source=source,
+        layer=layer,
+        has_pending=has_pending,
+        include_inactive=include_inactive,
+        page=page,
+        page_size=page_size,
+    )
+
+
+@router.get("/catalog/name-feedback", response_model=AdminCatalogNameFeedbackPage)
+def list_catalog_name_feedback(
+    current_user: CurrentUser,
+    db: DbSession,
+    page: int = Query(default=1, ge=1),
+    page_size: int = Query(default=10, ge=1, le=50),
+) -> AdminCatalogNameFeedbackPage:
+    """Сообщения «Название в справочнике» — без почты, для раздела справочников."""
+    require_panel_enabled()
+    return AdminCatalogService(db).list_name_feedback(
+        current_user,
+        page=page,
+        page_size=page_size,
+    )
+
+
+@router.get("/catalog/{entry_id}", response_model=AdminCatalogDetail)
+def get_admin_catalog_entry(
+    entry_id: UUID,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> AdminCatalogDetail:
+    require_panel_enabled()
+    return AdminCatalogService(db).get_entry(current_user, entry_id)
+
+
+@router.put("/catalog/{entry_id}/draft", response_model=AdminCatalogDetail)
+def upsert_catalog_draft(
+    entry_id: UUID,
+    payload: AdminCatalogDraftRequest,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> AdminCatalogDetail:
+    require_panel_enabled()
+    return AdminCatalogService(db).upsert_draft(current_user, entry_id, payload)
+
+
+@router.delete("/catalog/{entry_id}/draft", response_model=AdminCatalogDetail)
+def withdraw_catalog_draft(
+    entry_id: UUID,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> AdminCatalogDetail:
+    require_panel_enabled()
+    return AdminCatalogService(db).withdraw_draft(current_user, entry_id)
+
+
+@router.post("/catalog/{entry_id}/accept", response_model=AdminCatalogDetail)
+def accept_catalog_draft(
+    entry_id: UUID,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> AdminCatalogDetail:
+    require_panel_enabled()
+    return AdminCatalogService(db).accept(current_user, entry_id)
+
+
+@router.post("/catalog/{entry_id}/reject", response_model=AdminCatalogDetail)
+def reject_catalog_draft(
+    entry_id: UUID,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> AdminCatalogDetail:
+    require_panel_enabled()
+    return AdminCatalogService(db).reject(current_user, entry_id)
+
+
+@router.post("/catalog/{entry_id}/revisions/{revision_id}/rollback", response_model=AdminCatalogDetail)
+def rollback_catalog_revision(
+    entry_id: UUID,
+    revision_id: UUID,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> AdminCatalogDetail:
+    require_panel_enabled()
+    return AdminCatalogService(db).rollback(current_user, entry_id, revision_id)
 
 
 @router.get("/accounts", response_model=AdminAccountsPage)

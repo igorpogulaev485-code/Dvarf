@@ -1,5 +1,9 @@
 from app.models.admin import AdminAuditLog, AdminRole, AdminRoleName, AdminSecret
 from app.models.catalog import CatalogEntry, CatalogKind, CatalogRulesEdition
+from app.models.catalog_name_revision import (
+    CatalogNameRevision,
+    CatalogNameRevisionStatus,
+)
 from app.models.character import Character, RulesEdition
 from app.models.product_event import ProductEvent, ProductEventType
 from app.models.feedback import FeedbackMessage, FeedbackStatus, FeedbackTopic
@@ -54,6 +58,8 @@ __all__ = [
     "CampaignJournalEntry",
     "CatalogEntry",
     "CatalogKind",
+    "CatalogNameRevision",
+    "CatalogNameRevisionStatus",
     "CatalogRulesEdition",
     "Character",
     "ChatChannel",

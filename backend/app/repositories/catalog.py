@@ -2,10 +2,14 @@ from __future__ import annotations
 
 from uuid import UUID
 
-from sqlalchemy import or_, select
+from sqlalchemy import and_, exists, func, or_, select
 from sqlalchemy.orm import Session
 
 from app.models.catalog import CatalogEntry, CatalogKind, CatalogRulesEdition
+from app.models.catalog_name_revision import (
+    CatalogNameRevision,
+    CatalogNameRevisionStatus,
+)
 
 
 class CatalogRepository:
@@ -21,6 +25,7 @@ class CatalogRepository:
         parent_id: UUID | None = None,
         include_inactive: bool = False,
         limit: int | None = None,
+        search_live_names: bool = False,
     ) -> list[CatalogEntry]:
         stmt = select(CatalogEntry)
         if not include_inactive:
@@ -38,13 +43,50 @@ class CatalogRepository:
             )
         if q:
             pattern = f"%{q.strip()}%"
-            stmt = stmt.where(
-                or_(
-                    CatalogEntry.name_ru.ilike(pattern),
-                    CatalogEntry.name_en.ilike(pattern),
-                    CatalogEntry.slug.ilike(pattern),
-                )
+            seed_match = or_(
+                CatalogEntry.name_ru.ilike(pattern),
+                CatalogEntry.name_en.ilike(pattern),
+                CatalogEntry.slug.ilike(pattern),
             )
+            if search_live_names:
+                # Только последняя принятая правка; черновик в поиск не входит.
+                latest_accepted = (
+                    select(
+                        CatalogNameRevision.catalog_entry_id.label("entry_id"),
+                        func.max(CatalogNameRevision.reviewed_at).label("max_reviewed"),
+                    )
+                    .where(
+                        CatalogNameRevision.status
+                        == CatalogNameRevisionStatus.accepted.value
+                    )
+                    .group_by(CatalogNameRevision.catalog_entry_id)
+                    .subquery()
+                )
+                live_match = exists(
+                    select(1)
+                    .select_from(CatalogNameRevision)
+                    .join(
+                        latest_accepted,
+                        and_(
+                            CatalogNameRevision.catalog_entry_id
+                            == latest_accepted.c.entry_id,
+                            CatalogNameRevision.reviewed_at
+                            == latest_accepted.c.max_reviewed,
+                        ),
+                    )
+                    .where(
+                        CatalogNameRevision.catalog_entry_id == CatalogEntry.id,
+                        CatalogNameRevision.status
+                        == CatalogNameRevisionStatus.accepted.value,
+                        or_(
+                            CatalogNameRevision.name_ru.ilike(pattern),
+                            CatalogNameRevision.name_en.ilike(pattern),
+                        ),
+                    )
+                )
+                stmt = stmt.where(or_(seed_match, live_match))
+            else:
+                stmt = stmt.where(seed_match)
         stmt = stmt.order_by(CatalogEntry.sort_order.asc(), CatalogEntry.name_ru.asc())
         # Бестиарий большой (~2380) — без q не тащим весь каталог в combobox.
         effective_limit = limit

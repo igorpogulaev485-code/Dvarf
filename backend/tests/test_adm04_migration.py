@@ -87,10 +87,23 @@ def test_alembic_single_head_includes_adm04():
     script = ScriptDirectory.from_config(cfg)
     heads = script.get_heads()
     assert len(heads) == 1
-    assert heads[0] == "adm04feedback01"
     revisions = {rev.revision for rev in script.walk_revisions()}
     assert "adm04feedback01" in revisions
     assert "adm03metrics01" in revisions
+    ancestors: set[str] = {heads[0]}
+    cur = script.get_revision(heads[0])
+    while cur is not None:
+        down = cur.down_revision
+        if down is None:
+            break
+        if isinstance(down, (list, tuple, set)):
+            for d in down:
+                ancestors.add(d)
+            break
+        ancestors.add(down)
+        cur = script.get_revision(down)
+    assert "adm04feedback01" in ancestors
+    assert "adm03metrics01" in ancestors
 
 
 def test_upgrade_downgrade(monkeypatch):

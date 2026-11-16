@@ -38,6 +38,7 @@ from app.services.sheet_effects import (
     write_infusion_ally_share,
 )
 from app.repositories.catalog import CatalogRepository
+from app.services.catalog_names import live_names_for_entry, load_live_accepted_map
 from app.dnd.encounter_budget import EncounterDifficulty
 from app.dnd.encounter_compose import compose_encounter
 from app.dnd.encounter_pool import monster_from_catalog_entry
@@ -5405,8 +5406,11 @@ class LobbyService:
             catalog_id = str(entry.id)
             slug = entry.slug
             hp = int(data.get("hp_average") or payload.hp_max or 1)
+            live_ru, _ = live_names_for_entry(
+                entry, load_live_accepted_map(self.db, [entry.id]).get(entry.id)
+            )
             template = {
-                "name": payload.name.strip() if payload.name else entry.name_ru,
+                "name": payload.name.strip() if payload.name else live_ru,
                 "hp_max": int(payload.hp_max or hp),
                 "hp_current": int(payload.hp_max or hp),
                 "ac": payload.ac if payload.ac is not None else data.get("ac"),
@@ -9907,12 +9911,20 @@ class LobbyService:
                 )
 
         catalog_rows = self.catalog.list_bestiary_for_generator(edition="2014")
+        entry_ids = [
+            row.id for row in catalog_rows if getattr(row, "id", None) is not None
+        ]
+        live_map = load_live_accepted_map(self.db, entry_ids) if entry_ids else {}
         monsters = []
         for row in catalog_rows:
+            row_id = getattr(row, "id", None)
+            live_ru, _ = live_names_for_entry(
+                row, live_map.get(row_id) if row_id is not None else None
+            )
             ref = monster_from_catalog_entry(
                 {
                     "slug": row.slug,
-                    "name_ru": row.name_ru,
+                    "name_ru": live_ru,
                     "data": row.data if isinstance(row.data, dict) else {},
                 }
             )
