@@ -724,7 +724,9 @@ export function formatEldritchSpearRangeRu(rangeFt: number): string {
   return `${Math.max(0, Math.floor(rangeFt))} фт`
 }
 
-/** Format EB damage line including beams and optional Agonizing. */
+/** Format EB damage line including beams and optional Agonizing.
+ * Beams first so compact rows keep the count when truncated («3 луча × 1к10+3…»).
+ */
 export function formatEldritchBlastDamagePreview(input: {
   characterLevel: number
   chaMod: number
@@ -738,8 +740,9 @@ export function formatEldritchBlastDamagePreview(input: {
         : String(Math.trunc(input.chaMod))
       : ''
   const one = `1к10${mod}`
-  if (beams <= 1) return `${one} силовое поле`
-  return `${one} силовое поле ×${beams} луча`
+  if (beams <= 1) return `${one} силовым полем`
+  const beamWord = beams === 2 || beams === 3 || beams === 4 ? 'луча' : 'лучей'
+  return `${beams} ${beamWord} × ${one} силовым полем`
 }
 
 /**

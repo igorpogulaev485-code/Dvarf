@@ -711,9 +711,9 @@ export function CastSpellDialog({
     })
     const lines = [...summary.lines]
     if (beams > 1) {
-      lines.unshift(`${beams} луча · каждый: ${preview.replace(/\s*×\d+\s*луча/, '')}`)
+      lines.unshift(preview)
     } else if (agonizing !== 0) {
-      lines.unshift(`1 луч · ${preview}`)
+      lines.unshift(preview)
     }
     const spearFt = eldritchSpearRangeFt({
       knownInvocationIds,

@@ -829,6 +829,37 @@ async function shotSubclassLevel(
       await page.waitForTimeout(300)
     }
   }
+
+  async function expectBadge(name: RegExp, badge: number) {
+    const row = page
+      .locator('.feature-card')
+      .filter({ has: page.locator('.feature-card__name, .feature-card__title', { hasText: name }) })
+      .first()
+    await expect(row).toBeVisible()
+    await expect(row.locator('.feature-card__level')).toHaveText(String(badge))
+  }
+
+  if (sub.key === 'fiend' && level >= 6) await expectBadge(/Удача темнейшего/, 6)
+  if (sub.key === 'fiend' && level >= 14) await expectBadge(/Бросок через преисподнюю/, 14)
+  if (sub.key === 'archfey' && level >= 3) await expectBadge(/Шаг феи/, 3)
+  if (sub.key === 'archfey' && level >= 6) await expectBadge(/Туманное исчезновение/, 6)
+  if (sub.key === 'archfey' && level >= 10) await expectBadge(/Чарующая защита/, 10)
+  if (sub.key === 'celestial' && level >= 3) await expectBadge(/Лечащий свет/, 3)
+  if (sub.key === 'celestial' && level >= 14) await expectBadge(/Опаляющее возмездие/, 14)
+  if (sub.key === 'goo' && level >= 6) await expectBadge(/Провидящий боец/, 6)
+
+  if (level >= 11) {
+    const bareArcanum = page
+      .locator('.feature-card')
+      .filter({
+        has: page.locator('.feature-card__name', { hasText: /^Таинственный арканум$/ }),
+      })
+    await expect(bareArcanum).toHaveCount(0)
+    await expect(
+      page.locator('.feature-card__name', { hasText: /Таинственный арканум \(6 круг\)/ }).first(),
+    ).toBeVisible()
+  }
+
   await tallShot(page, ARTIFACTS, `${SHOT}-${sub.key}-${String(level).padStart(2, '0')}`, project)
   expect(store.unmatched).toEqual([])
 }
@@ -905,20 +936,20 @@ test.describe('P24-M02 warlock — Доправка 1: EB / tome rest / fiend re
     const ebRow = page.locator('.play-desk-compact__row.is-spell').filter({ hasText: /Мистический заряд/ }).first()
     await expect(ebRow).toBeVisible({ timeout: 15_000 })
     await ebRow.scrollIntoViewIfNeeded()
-    await expect(ebRow.locator('.play-desk-compact__spell-dmg')).toContainText(/1к10\+[34]/)
-    await expect(ebRow.locator('.play-desk-compact__spell-dmg')).toContainText(/×3/)
-    await shot(page, ARTIFACTS, `${SHOT}-fixup1-eb-attack-card`, project)
+    const dmg = ebRow.locator('.play-desk-compact__spell-dmg')
+    await expect(dmg).toContainText(/3 луча/)
+    await expect(dmg).toContainText(/1к10\+3/)
+    await shot(page, ARTIFACTS, `${SHOT}-fixup2-eb-attack-card`, project)
 
     const castBtn = ebRow.locator('button.play-desk-compact__spell-cast').first()
     await expect(castBtn).toBeVisible()
     await castBtn.click()
     const castDlg = page.getByRole('dialog').filter({ hasText: /Мистический заряд/ }).first()
     await expect(castDlg).toBeVisible({ timeout: 15_000 })
-    await expect(castDlg).toContainText(/3 луч/)
-    await expect(castDlg).toContainText(/1к10\+/)
+    await expect(castDlg).toContainText(/3 луча × 1к10\+3/)
     await expect(castDlg).toContainText(/Мистическое копьё|фт/)
     await expect(castDlg).toContainText(/Отталкивающий заряд|оттолкнуть/)
-    await shot(page, ARTIFACTS, `${SHOT}-fixup1-eb-cast-dialog`, project)
+    await shot(page, ARTIFACTS, `${SHOT}-fixup2-eb-cast-dialog`, project)
   })
 
   test('pact-of-the-tome rest re-pick Book of Shadows', async ({ page }, testInfo) => {

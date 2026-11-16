@@ -719,6 +719,8 @@ export function computeProgression2024(input: {
     const resourceOwnerIds = new Set<string>()
     /** First unlock level for resource features (badge), from pack feature rows. */
     const resourceUnlockLevels = new Map<string, number>()
+    /** Catalog summaries for Mystic Arcanum circle cards (dedupe text rows). */
+    const mysticArcanumSummary = new Map<string, string>()
 
     for (const row of levels) {
       const lv = Number(row.level || 0)
@@ -728,6 +730,19 @@ export function computeProgression2024(input: {
         if (!fidRaw) continue
         if (fidRaw.endsWith('-subclass') || fidRaw === 'subclass-feature') continue
         const fid = fidRaw.replace(/-/g, '_')
+        // Generic class row `mystic-arcanum` at 11/13/15/17 → one resource card per circle.
+        if (fidRaw === 'mystic-arcanum' || fid === 'mystic_arcanum') {
+          const circle =
+            lv >= 17 ? 9 : lv >= 15 ? 8 : lv >= 13 ? 7 : lv >= 11 ? 6 : null
+          if (circle != null) {
+            const poolKey = `mystic_arcanum_${circle}`
+            resourceOwnerIds.add(poolKey)
+            if (!resourceUnlockLevels.has(poolKey)) resourceUnlockLevels.set(poolKey, lv)
+            const summary = String(feat.summary_ru || '').trim()
+            if (summary) mysticArcanumSummary.set(poolKey, summary)
+          }
+          continue
+        }
         const metaKey = Object.entries(RESOURCE_META).find(
           ([, m]) => m.feature_id === fidRaw || m.feature_id.replace(/-/g, '_') === fid,
         )?.[0]
@@ -779,6 +794,8 @@ export function computeProgression2024(input: {
         })
       : []
     const subclassResourceFids = new Set(subclassPools.map((p) => p.feature_id))
+    /** Badge = catalog unlock level for subclass resource pools (not current class level). */
+    const subclassResourceUnlock = new Map<string, number>()
     const sharedByFid = new Map(subclassShared.map((o) => [o.feature_id, o]))
     const calcFids = new Set(subclassBonuses.map((b) => b.feature_id))
 
@@ -791,7 +808,12 @@ export function computeProgression2024(input: {
           for (const feat of (block.features as Array<Record<string, unknown>>) || []) {
             const fidRaw = String(feat.id || '').trim()
             if (!fidRaw) continue
-            if (subclassResourceFids.has(fidRaw)) continue
+            if (subclassResourceFids.has(fidRaw)) {
+              if (!subclassResourceUnlock.has(fidRaw)) {
+                subclassResourceUnlock.set(fidRaw, blv)
+              }
+              continue
+            }
             const shared = sharedByFid.get(fidRaw)
             const mode = featureAutomationMode2024({
               featureId: fidRaw,
@@ -913,8 +935,10 @@ export function computeProgression2024(input: {
         resourceUnlockLevels.get(key),
       )
       if (!built) continue
+      const arcanumSummary = mysticArcanumSummary.get(key)
       features.push({
         ...built.def,
+        ...(arcanumSummary ? { summary_ru: arcanumSummary } : {}),
         classEntryId: cls.entryId,
         className: cls.name,
         classLevel: cls.level,
@@ -1036,9 +1060,13 @@ export function computeProgression2024(input: {
     }
 
     for (const pool of subclassPools) {
+      const unlock =
+        subclassResourceUnlock.get(pool.feature_id) ??
+        subclassResourceUnlock.get(pool.feature_id.replace(/_/g, '-')) ??
+        null
       features.push({
         id: pool.feature_id.replace(/-/g, '_'),
-        level: cls.level,
+        level: unlock != null && unlock > 0 ? unlock : cls.level,
         name_ru: pool.name,
         name_en: pool.pool_id,
         summary_ru: pool.die ? `${pool.name} (${pool.die})` : pool.name,

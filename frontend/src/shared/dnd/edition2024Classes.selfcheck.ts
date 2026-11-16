@@ -159,4 +159,78 @@ assert.equal(multiclassPackage2024('homebrew', null), null)
 const wizard2014 = resolveClassGrantDef({ className: 'Волшебник', rulesEdition: '2014' })
 assert.deepEqual(wizard2014?.multiclass.skillChoices, null)
 
+// Warlock 2024: subclass resource badges = unlock level; mystic arcanum not duplicated.
+{
+  const fiend14 = computeProgression2024({
+    classes: [
+      createClassLevel({
+        name: 'Колдун',
+        level: 14,
+        catalog_id: 'warlock',
+        subclass_catalog_id: 'warlock__fiend-patron',
+      }),
+    ],
+    abilities: { cha: 17 },
+  })
+  const luck = fiend14.features.find((f) => f.id === 'dark_ones_own_luck')
+  assert.equal(luck?.level, 6, 'Dark One’s Own Luck badge = 6')
+  const hurl = fiend14.features.find((f) => f.id === 'hurl_through_hell')
+  assert.equal(hurl?.level, 14, 'Hurl Through Hell badge = 14')
+  const arcanumText = fiend14.features.filter(
+    (f) => f.id === 'mystic_arcanum' && !f.resource,
+  )
+  assert.equal(arcanumText.length, 0, 'no bare mystic-arcanum text cards')
+  const a6 = fiend14.features.find((f) => f.id === 'mystic_arcanum_6')
+  const a7 = fiend14.features.find((f) => f.id === 'mystic_arcanum_7')
+  assert.equal(a6?.level, 11)
+  assert.equal(a7?.level, 13)
+  assert.ok(a6?.resource)
+  assert.ok(a7?.resource)
+
+  const archfey10 = computeProgression2024({
+    classes: [
+      createClassLevel({
+        name: 'Колдун',
+        level: 10,
+        catalog_id: 'warlock',
+        subclass_catalog_id: 'warlock__archfey',
+      }),
+    ],
+    abilities: { cha: 16 },
+  })
+  assert.equal(archfey10.features.find((f) => f.id === 'steps_of_the_fey')?.level, 3)
+  assert.equal(archfey10.features.find((f) => f.id === 'beguiling_defenses')?.level, 10)
+  assert.equal(
+    archfey10.features.find((f) => f.id === 'misty_escape')?.level,
+    6,
+  )
+
+  const celestial14 = computeProgression2024({
+    classes: [
+      createClassLevel({
+        name: 'Колдун',
+        level: 14,
+        catalog_id: 'warlock',
+        subclass_catalog_id: 'warlock__celestial-patron',
+      }),
+    ],
+    abilities: { cha: 16 },
+  })
+  assert.equal(celestial14.features.find((f) => f.id === 'healing_light')?.level, 3)
+  assert.equal(celestial14.features.find((f) => f.id === 'searing_vengeance')?.level, 14)
+
+  const goo6 = computeProgression2024({
+    classes: [
+      createClassLevel({
+        name: 'Колдун',
+        level: 6,
+        catalog_id: 'warlock',
+        subclass_catalog_id: 'warlock__greate-old-one-patron',
+      }),
+    ],
+    abilities: { cha: 16 },
+  })
+  assert.equal(goo6.features.find((f) => f.id === 'clairvoyant_combatant')?.level, 6)
+}
+
 console.log('edition2024Classes.selfcheck: ok')

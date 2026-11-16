@@ -158,13 +158,19 @@ const preview = formatEldritchBlastDamagePreview({
   chaMod: 4,
   hasAgonizing: true,
 })
-assert(preview.includes('1к10+4') && preview.includes('×2'), `preview ${preview}`)
+assert(
+  preview === '2 луча × 1к10+4 силовым полем',
+  `preview ${preview}`,
+)
 const preview11 = formatEldritchBlastDamagePreview({
   characterLevel: 11,
   chaMod: 3,
   hasAgonizing: true,
 })
-assert(preview11.includes('1к10+3') && preview11.includes('×3'), `preview L11 ${preview11}`)
+assert(
+  preview11 === '3 луча × 1к10+3 силовым полем',
+  `preview L11 ${preview11}`,
+)
 assert(eldritchBlastBeamCount(11) === 3, '3 beams at 11')
 assert(eldritchBlastBeamCount(17) === 4, '4 beams at 17')
 assert(
