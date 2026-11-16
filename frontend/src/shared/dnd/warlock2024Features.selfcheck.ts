@@ -1,6 +1,11 @@
 /** Run: npx tsx --tsconfig tsconfig.app.json src/shared/dnd/warlock2024Features.selfcheck.ts */
 import assert from 'node:assert/strict'
 import {
+  canRepickFiendishResilience2024,
+  hasPactOfTheTome2024,
+  PACT_TOME_RITUALS_FEATURE_ID_2024,
+  readPactTomePicks2024,
+  savePactTomePicks2024,
   applyMagicalCunning2024,
   applyWarlock2024FeatureUse,
   arcanumCirclesForWarlockLevel2024,
@@ -381,5 +386,34 @@ for (const id of [
   assert.ok(WARLOCK_2024_CARD_BUTTONS[id], `button for ${id}`)
   assert.ok(warlock2024UseFeatureId(id), `route for ${id}`)
 }
+
+assert.equal(hasPactOfTheTome2024(['pact-of-the-tome', 'devils-sight']), true)
+assert.equal(hasPactOfTheTome2024(['pact-of-the-blade']), false)
+assert.equal(hasPactOfTheTome2024(undefined), false)
+assert.equal(PACT_TOME_RITUALS_FEATURE_ID_2024, 'pact_tome_rituals')
+
+const tomePicks = { values: {} }
+assert.equal(savePactTomePicks2024(tomePicks, 'w1', ['a', 'b'], ['x', 'y']), null)
+assert.equal(savePactTomePicks2024(tomePicks, 'w1', ['a', 'b', 'c'], ['x']), null)
+const savedTome = savePactTomePicks2024(tomePicks, 'w1', ['a', 'b', 'c'], ['x', 'y'])
+assert.ok(savedTome)
+assert.deepEqual(readPactTomePicks2024(savedTome, 'w1'), {
+  cantrips: ['a', 'b', 'c'],
+  rituals: ['x', 'y'],
+})
+assert.equal(savedTome.values['w1:pact_tome_rituals'], 'x,y')
+
+assert.equal(
+  canRepickFiendishResilience2024({ subclassSlug: 'warlock__fiend-patron', warlockLevel: 10 }),
+  true,
+)
+assert.equal(
+  canRepickFiendishResilience2024({ subclassSlug: 'warlock__fiend-patron', warlockLevel: 9 }),
+  false,
+)
+assert.equal(
+  canRepickFiendishResilience2024({ subclassSlug: 'warlock__archfey-patron', warlockLevel: 12 }),
+  false,
+)
 
 console.log('warlock2024Features.selfcheck: ok')

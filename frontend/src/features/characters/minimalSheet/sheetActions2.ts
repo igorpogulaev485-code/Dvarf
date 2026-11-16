@@ -140,6 +140,8 @@ export function installSheetActions2(model: SheetModel) {
       const sanitized = sanitizeFeaturePicksForPactBoons({
         featurePicks,
         classes: prev.classes,
+        edition: model.rulesEdition,
+        invocations2024: prev.classOptions2024?.eldritch_invocations,
       })
       const unlocked = unlockFeaturesForClasses({
         classes: prev.classes,
@@ -179,6 +181,8 @@ export function installSheetActions2(model: SheetModel) {
       const sanitized = sanitizeFeaturePicksForPactBoons({
         featurePicks,
         classes: model.draft.classes,
+        edition: model.rulesEdition,
+        invocations2024: model.draft.classOptions2024?.eldritch_invocations,
       })
       const nextSteps = withPactTomeCantripsStep(prev.steps, {
         classEntryId: step.classEntryId,

@@ -524,6 +524,8 @@ export function useSheetEditorPart3(model: SheetModel) {
           spells: prev.spells,
           featurePicks: prev.featurePicks,
           classes: prev.classes,
+          edition: model.rulesEdition,
+          invocations2024: prev.classOptions2024?.eldritch_invocations,
           resolveSpell: (slug) => resolvePactTomeCantripFromOptions(slug, options),
         })
         if (!synced.changed) return prev
@@ -533,7 +535,12 @@ export function useSheetEditorPart3(model: SheetModel) {
     return () => {
       cancelled = true
     }
-  }, [model.draft.featurePicks, model.draft.classes, model.rulesEdition])
+  }, [
+    model.draft.featurePicks,
+    model.draft.classes,
+    model.draft.classOptions2024?.eldritch_invocations,
+    model.rulesEdition,
+  ])
 
   // Pact of the Chain: Find Familiar as warlock ritual (card appears after cast).
   useEffect(() => {

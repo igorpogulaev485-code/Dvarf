@@ -13,7 +13,12 @@ import {
   warlockInvocationLimit2024,
   type InvocationDef2024,
 } from './edition2024ClassOptions'
-import { getFeaturePick, setFeaturePick, type FeaturePicksState } from './featurePicks'
+import {
+  getFeaturePick,
+  getFeaturePickList,
+  setFeaturePick,
+  type FeaturePicksState,
+} from './featurePicks'
 import { parseFeatureResourceId } from './featureResources'
 import { clampResource, type SheetResource } from './rest'
 
@@ -50,6 +55,68 @@ export const MAGICAL_CUNNING_FEATURE_ID = 'magical-cunning'
 export const CONTACT_PATRON_FEATURE_ID = 'contact-patron'
 export const MYSTIC_ARCANUM_FEATURE_ID = 'mystic-arcanum'
 export const ELDRITCH_MASTER_FEATURE_ID = 'eldritch-master'
+
+export const PACT_OF_THE_TOME_INVOCATION_ID_2024 = 'pact-of-the-tome'
+export const PACT_TOME_RITUALS_FEATURE_ID_2024 = 'pact_tome_rituals'
+export const PACT_TOME_CANTRIPS_LIMIT_2024 = 3
+export const PACT_TOME_RITUALS_LIMIT_2024 = 2
+export const BOOK_OF_SHADOWS_NAME_RU = 'Книга теней'
+export const FIENDISH_RESILIENCE_PICK_ID_2024 = 'fiendish_resilience'
+export const FIEND_PATRON_SUBCLASS_SLUG_2024 = 'warlock__fiend-patron'
+export const FIENDISH_RESILIENCE_MIN_LEVEL_2024 = 10
+
+export function hasPactOfTheTome2024(invocations: readonly string[] | null | undefined): boolean {
+  return (invocations ?? []).includes(PACT_OF_THE_TOME_INVOCATION_ID_2024)
+}
+
+export const PACT_TOME_CANTRIPS_FEATURE_ID_2024 = 'pact_tome_cantrips'
+
+export function readPactTomePicks2024(
+  picks: FeaturePicksState,
+  classEntryId: string,
+): { cantrips: string[]; rituals: string[] } {
+  return {
+    cantrips: getFeaturePickList(picks, classEntryId, PACT_TOME_CANTRIPS_FEATURE_ID_2024).slice(
+      0,
+      PACT_TOME_CANTRIPS_LIMIT_2024,
+    ),
+    rituals: getFeaturePickList(picks, classEntryId, PACT_TOME_RITUALS_FEATURE_ID_2024).slice(
+      0,
+      PACT_TOME_RITUALS_LIMIT_2024,
+    ),
+  }
+}
+
+/** Book of Shadows save: exactly 3 cantrips + 2 rituals, otherwise null. */
+export function savePactTomePicks2024(
+  picks: FeaturePicksState,
+  classEntryId: string,
+  cantrips: readonly string[],
+  rituals: readonly string[],
+): FeaturePicksState | null {
+  const c = [...new Set(cantrips)]
+  const r = [...new Set(rituals)]
+  if (c.length !== PACT_TOME_CANTRIPS_LIMIT_2024) return null
+  if (r.length !== PACT_TOME_RITUALS_LIMIT_2024) return null
+  const withCantrips = setFeaturePick(
+    picks,
+    classEntryId,
+    PACT_TOME_CANTRIPS_FEATURE_ID_2024,
+    c.join(','),
+  )
+  return setFeaturePick(withCantrips, classEntryId, PACT_TOME_RITUALS_FEATURE_ID_2024, r.join(','))
+}
+
+/** Fiendish Resilience re-pick on rest: Fiend Patron, warlock level 10+. */
+export function canRepickFiendishResilience2024(input: {
+  subclassSlug: string | null | undefined
+  warlockLevel: number
+}): boolean {
+  return (
+    input.subclassSlug === FIEND_PATRON_SUBCLASS_SLUG_2024 &&
+    input.warlockLevel >= FIENDISH_RESILIENCE_MIN_LEVEL_2024
+  )
+}
 
 /** Pact Magic slots as stored on the sheet (`pact_slots`). */
 export type WarlockPactSlots2024 = { max: number; used: number; level: number } | null

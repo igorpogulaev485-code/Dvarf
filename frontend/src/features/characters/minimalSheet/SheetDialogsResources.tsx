@@ -57,12 +57,22 @@ import {
   type MonkFeatureUseResult,
 } from '../../../shared/dnd/monk2024Features'
 import {
+  hasPactOfTheTome2024,
   warlock2024UseFeatureId,
   type WarlockFeatureUseResult,
 } from '../../../shared/dnd/warlock2024Features'
 import { chooseTempHpPool } from '../../../shared/dnd/activeEffects'
 import { resolveClassCasterSlug, warlockLevels } from '../../../shared/dnd/casterProgression'
 import type { Wizard2024RestProps } from '../Wizard2024RestSwaps'
+import type { Warlock2024RestPanelProps } from '../Warlock2024RestPanel'
+import { ensurePactTomeSpellCatalog } from '../PactTomeCantripsPicker'
+import { isWarlockClassName, syncPactTomeCantrips } from '../pactTomeEffects'
+import {
+  PACT_TOME_CANTRIP_CLASS_LISTS,
+  spellOptionsForClassLists,
+  spellOptionsForPactTomeCantrips,
+  type FeatSpellCatalogRow,
+} from '../../../shared/dnd/featSpellListOptions'
 import { listCatalogEntries } from '../../../shared/api/catalog'
 import { parseSpellCatalogData, spellAvailableOnClassList } from '../../../shared/dnd/spellCatalog'
 import { maxSpellLevelForClassAlone } from '../../../shared/dnd/casterProgression'
@@ -426,6 +436,68 @@ export function SheetDialogsResources({ model }: { model: SheetModel }) {
     }
   })()
 
+  const warlock2024Entry =
+    model.rulesEdition === '2024'
+      ? (model.draft.classes.find((row) => isWarlockClassName(row.name) && row.level > 0) ?? null)
+      : null
+  const warlock2024Invocations = model.draft.classOptions2024?.eldritch_invocations ?? []
+  const warlock2024HasTome = warlock2024Entry != null && hasPactOfTheTome2024(warlock2024Invocations)
+
+  const [tomeSpellCatalog, setTomeSpellCatalog] = useState<FeatSpellCatalogRow[]>([])
+  useEffect(() => {
+    if (!model.restOpen || !warlock2024HasTome) return
+    let active = true
+    ensurePactTomeSpellCatalog('2024')
+      .then((rows) => {
+        if (active) setTomeSpellCatalog(rows)
+      })
+      .catch(() => undefined)
+    return () => {
+      active = false
+    }
+  }, [model.restOpen, warlock2024HasTome])
+
+  const warlock2024Rest: Omit<Warlock2024RestPanelProps, 'kind'> | null = (() => {
+    if (!warlock2024Entry) return null
+    const cantripRows = spellOptionsForPactTomeCantrips({ spells: tomeSpellCatalog })
+    const ritualRows = spellOptionsForClassLists({
+      spells: tomeSpellCatalog,
+      classSlugs: [...PACT_TOME_CANTRIP_CLASS_LISTS],
+      level: 1,
+      ritualOnly: true,
+      anyClassList: true,
+    })
+    return {
+      classEntryId: warlock2024Entry.id,
+      warlockLevel: warlock2024Entry.level,
+      subclassSlug: model.subclassSlugByEntryId?.[warlock2024Entry.id] ?? null,
+      invocations: warlock2024Invocations,
+      featurePicks: model.draft.featurePicks,
+      cantripOptions: cantripRows.map((row) => ({ id: row.id, name: row.label_ru })),
+      ritualOptions: ritualRows.map((row) => ({ id: row.id, name: row.label_ru })),
+      onToast: model.onToast,
+      onFeaturePicksChange: (featurePicks) =>
+        model.setDraft((prev) => {
+          const synced = syncPactTomeCantrips({
+            spells: prev.spells,
+            featurePicks,
+            classes: prev.classes,
+            edition: '2024',
+            invocations2024: prev.classOptions2024?.eldritch_invocations,
+            resolveSpell: (slug) => {
+              const hit = cantripRows.find((row) => row.id === slug)
+              return hit ? { slug, nameRu: hit.label_ru, catalogId: slug } : null
+            },
+          })
+          return {
+            ...prev,
+            featurePicks,
+            ...(synced.changed ? { spells: synced.spells } : {}),
+          }
+        }),
+    }
+  })()
+
   const wizard2024Use =
     model.rulesEdition === '2024' &&
     model.wizardFeatureUse != null &&
@@ -505,6 +577,7 @@ export function SheetDialogsResources({ model }: { model: SheetModel }) {
         }
         preferKind={model.restPreferKind ?? null}
         wizard2024Rest={wizard2024Rest}
+        warlock2024Rest={warlock2024Rest}
         cantripFormulas={(() => {
           const tceOn =
             model.campaignRulesRaw != null &&

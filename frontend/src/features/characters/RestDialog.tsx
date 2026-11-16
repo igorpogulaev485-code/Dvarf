@@ -54,6 +54,10 @@ import {
   type Wizard2024RestProps,
 } from './Wizard2024RestSwaps'
 import {
+  Warlock2024RestPanel,
+  type Warlock2024RestPanelProps,
+} from './Warlock2024RestPanel'
+import {
   clearWizard2024RestSwaps,
   markWizard2024RestSwap,
   wizard2024RestSwapDone,
@@ -117,6 +121,8 @@ type RestDialogProps = {
   } | null
   /** 2024 Wizard: Memorize Spell (short), cantrip and Spell Mastery swaps (long). */
   wizard2024Rest?: Wizard2024RestProps | null
+  /** 2024 Warlock: Book of Shadows re-pick and Fiendish Resilience (null for 2014 / non-warlock). */
+  warlock2024Rest?: Omit<Warlock2024RestPanelProps, 'kind'> | null
   onPlayChange: (play: PlayState) => void
   onSpellsChange: (spells: SpellsState) => void
   onCombatChange: (patch: { hpCurrent?: number | null }) => void
@@ -145,6 +151,7 @@ export function RestDialog({
   preferKind = null,
   cantripFormulas = null,
   wizard2024Rest = null,
+  warlock2024Rest = null,
   onPlayChange,
   onSpellsChange,
   onCombatChange,
@@ -658,6 +665,9 @@ export function RestDialog({
                     onDone={markWizardSwap}
                   />
                 ) : null}
+                {is2024 && warlock2024Rest ? (
+                  <Warlock2024RestPanel kind="short" {...warlock2024Rest} />
+                ) : null}
                 {pools.length > 0 ? (
                   <div className="play-hit-dice">
                     {pools.map((pool) => (
@@ -790,6 +800,9 @@ export function RestDialog({
                     done={wizardSwapDone}
                     onDone={markWizardSwap}
                   />
+                ) : null}
+                {is2024 && warlock2024Rest ? (
+                  <Warlock2024RestPanel kind="long" {...warlock2024Rest} />
                 ) : null}
                 <div className="play-rest-actions">
                   <Button type="button" onClick={requestLongRest}>
