@@ -1,5 +1,5 @@
 /**
- * Passives row: three glance cards + sense tiles (ТЗ/СЗ/ИЗ/ЧВ) in one wrap row.
+ * Passives grid: three glance cards + sense tiles (ТЗ/СЗ/ИЗ/ЧВ) in the same grid.
  * Run: npx tsx --tsconfig tsconfig.app.json src/features/characters/passivesSenseRow.selfcheck.ts
  */
 import assert from 'node:assert/strict'
@@ -41,15 +41,20 @@ assert.match(senseTile, /passive-card--sense/)
 assert.match(senseTile, /title=\{tip\}/)
 assert.match(senseTile, /aria-label=\{tip\}/)
 
-// No fixed 3-column grid on desk (empty 4th track); flex wrap instead.
-assert.match(deskCss, /\.passive-grid--desk\s*\{[^}]*display:\s*flex/)
-assert.match(deskCss, /\.passive-grid--desk\s*\{[^}]*flex-wrap:\s*wrap/)
-assert.doesNotMatch(
+// Desk keeps CSS grid; auto-fit so ТЗ/СЗ fit in the same flow (no flex rebuild).
+assert.match(
   deskCss,
-  /\.passive-grid--desk\s*\{[^}]*grid-template-columns:\s*repeat\(3/,
+  /\.passive-grid--desk\s*\{[^}]*grid-template-columns:\s*repeat\(\s*auto-fit/,
 )
-assert.match(mobileCss, /mobile-abil-page__passives[\s\S]*?display:\s*flex/)
-assert.match(mobileCss, /mobile-abil-page__passives[\s\S]*?flex-wrap:\s*wrap/)
+assert.doesNotMatch(deskCss, /\.passive-grid--desk\s*\{[^}]*display:\s*flex/)
+assert.match(
+  mobileCss,
+  /mobile-abil-page__passives[\s\S]*?grid-template-columns:\s*repeat\(\s*auto-fit/,
+)
+assert.doesNotMatch(
+  mobileCss,
+  /mobile-abil-page__passives[\s\S]*?\.passive-grid--desk\s*\{[^}]*display:\s*flex/,
+)
 
 assert.match(etalon, /passive-card--sense/)
 assert.match(etalon, /Тёмное зрение: 60 фт/)

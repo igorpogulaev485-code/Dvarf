@@ -329,24 +329,19 @@
   letter-spacing: 0.04em;
 }
 
-/* LP-01: ТЗ/СЗ/ИЗ/ЧВ — плитки в том же ряду, что Внимат./Анализ/Прониц. */
+/* LP-01: ТЗ/СЗ/ИЗ/ЧВ — плитки в той же сетке, что Внимат./Анализ/Прониц. */
 .darkvision-sense__panel {
   min-width: min(16rem, calc(100vw - 24px));
   padding: 10px;
 }
 
-/* Flex wrap: 3 tiles pack with no empty column; 4+ wrap cleanly */
 .passive-grid--desk {
-  display: flex;
-  flex-wrap: wrap;
   gap: 4px;
-  align-content: start;
+  /* Keep display:grid from .passive-grid; allow 4+ sense tiles in the same flow */
+  grid-template-columns: repeat(auto-fit, minmax(3.6rem, 1fr));
 }
 
 .passive-grid--desk .passive-card {
-  flex: 1 1 calc(25% - 4px);
-  min-width: 3.6rem;
-  box-sizing: border-box;
   padding: 6px 4px 7px;
   border-radius: 10px;
   gap: 1px;
@@ -388,6 +383,7 @@
   display: grid;
   max-width: none;
   width: auto;
+  min-width: 0;
   cursor: pointer;
   position: relative;
 }
