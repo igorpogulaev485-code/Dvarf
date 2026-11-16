@@ -11,8 +11,34 @@ import type { CharacterDetail } from '../shared/api/characters'
 import type { DiceLogEntry } from '../features/diceRoller/types'
 import { Text } from '../ui'
 
-function editionCharacter(edition: '2014' | '2024'): CharacterDetail {
+function editionCharacter(
+  edition: '2014' | '2024',
+  opts?: { rogue20?: boolean },
+): CharacterDetail {
   const base = sampleClassic2014Character
+  if (opts?.rogue20) {
+    const sheet = { ...(base.sheet ?? {}) } as Record<string, unknown>
+    const identity = {
+      ...((sheet.identity as Record<string, unknown> | undefined) ?? {}),
+      subclass_name: 'Вор',
+    }
+    sheet.identity = identity
+    if (edition === '2024') {
+      const ui = { ...((sheet.ui as Record<string, unknown> | undefined) ?? {}) }
+      ui.classic_sheet_layout = '2024'
+      sheet.ui = ui
+    }
+    return {
+      ...base,
+      id: edition === '2024' ? 'preview-dice-rogue20-2024' : 'preview-dice-rogue20-2014',
+      rules_edition: edition,
+      name: 'Тень Удачливая',
+      class_name: 'Плут',
+      level: 20,
+      race_name: 'Халифлинг (легконогий)',
+      sheet,
+    } as CharacterDetail
+  }
   if (edition === '2014') {
     return {
       ...base,
@@ -87,9 +113,38 @@ export function DiceRollerPreviewPage() {
   const open = params.get('open') === '1'
   const clean = params.get('clean') === '1'
   const withLog = params.get('log') === '1'
-  const [character, setCharacter] = useState(() => editionCharacter(edition))
+  const rogue20 = params.get('rogue20') === '1'
+  const [character, setCharacter] = useState(() =>
+    editionCharacter(edition, { rogue20 }),
+  )
 
-  const seedLog = useMemo(() => (withLog ? DEMO_LOG : undefined), [withLog])
+  const missSeed: DiceLogEntry[] = useMemo(
+    () =>
+      rogue20
+        ? [
+            {
+              id: 'rogue20-miss-1',
+              at: Date.now() - 5_000,
+              expression: '1d20+7',
+              advantageMode: 'none',
+              total: 9,
+              modifierTotal: 7,
+              dice: [{ sides: 20, value: 2, dropped: false, nat: '1' }],
+              title: 'Скрытность',
+              toastText: 'Скрытность: 9 (d20:2 +7)',
+              source: 'sheet',
+              repeatable: true,
+            },
+          ]
+        : [],
+    [rogue20],
+  )
+
+  const seedLog = useMemo(() => {
+    if (withLog) return DEMO_LOG
+    if (missSeed.length) return missSeed
+    return undefined
+  }, [withLog, missSeed])
 
   return (
     <main

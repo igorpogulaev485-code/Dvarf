@@ -68,3 +68,35 @@ export function subscribeDiceLogCleared(listener: ClearedListener): () => void {
     clearedListeners.delete(listener)
   }
 }
+
+/** Stroke of Luck spend — sheet registers; panel journal calls. */
+export type StrokeOfLuckRequest = {
+  characterId: string
+  entryId: string
+  text: string
+}
+
+export type StrokeOfLuckResult =
+  | { ok: true; nextText: string; kind: 'check' | 'attack' }
+  | { ok: false; message: string }
+
+type StrokeOfLuckHandler = (req: StrokeOfLuckRequest) => StrokeOfLuckResult
+
+let strokeOfLuckHandler: StrokeOfLuckHandler | null = null
+
+export function registerStrokeOfLuckHandler(
+  handler: StrokeOfLuckHandler | null,
+): void {
+  strokeOfLuckHandler = handler
+}
+
+export function requestStrokeOfLuck(req: StrokeOfLuckRequest): StrokeOfLuckResult {
+  if (!strokeOfLuckHandler) {
+    return { ok: false, message: 'Удача доступна плуту 20-го уровня' }
+  }
+  try {
+    return strokeOfLuckHandler(req)
+  } catch {
+    return { ok: false, message: 'Не удалось применить Удачу' }
+  }
+}

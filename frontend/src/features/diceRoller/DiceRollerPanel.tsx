@@ -9,12 +9,26 @@ import {
   Text,
   ToggleChip,
 } from '../../ui'
-import { clearDiceLog, newLogId, prependLogEntry, readDiceLog } from './diceLog'
-import { notifyDiceLogCleared, subscribeDiceLogChanged } from './journalBridge'
+import {
+  clearDiceLog,
+  newLogId,
+  prependLogEntry,
+  readDiceLog,
+  writeDiceLog,
+} from './diceLog'
+import {
+  notifyDiceLogCleared,
+  requestStrokeOfLuck,
+  subscribeDiceLogChanged,
+} from './journalBridge'
 import { readOnlyMePref, writeOnlyMePref } from './onlyMePref'
 import { formulaFromPool, parseFormula, poolHasDice } from './parseFormula'
 import { recordDigitalRoll } from './recordDigitalRoll'
 import { rollExpression } from './rollFormula'
+import {
+  entryAllowsStrokeOfLuck,
+  journalEntryLuckText,
+} from './strokeOfLuckJournal'
 import { ensureUnifiedJournal } from './unifiedJournal'
 import {
   STANDARD_DICE,
@@ -70,7 +84,11 @@ export function DiceRollerPanel({
   const [advantage, setAdvantage] = useState<AdvantageMode>('none')
   const [onlyMe, setOnlyMe] = useState(() => readOnlyMePref(characterId))
   const [log, setLog] = useState<DiceLogEntry[]>(() => {
-    if (initialLog) return initialLog
+    if (initialLog) {
+      // Seed storage so Stroke of Luck / clear / bridge share the same journal.
+      writeDiceLog(characterId, initialLog)
+      return initialLog
+    }
     return ensureUnifiedJournal(characterId, sheetRollHistory)
   })
   const [expandedIds, setExpandedIds] = useState<Set<string>>(() => {
@@ -511,15 +529,39 @@ export function DiceRollerPanel({
                       ) : entry.toastText ? (
                         <Text tone="muted">{entry.toastText}</Text>
                       ) : null}
-                      {canRepeat ? (
-                        <Button
-                          variant="secondary"
-                          size="sm"
-                          onClick={() => doRoll(entry.expression, entry.advantageMode)}
-                        >
-                          Повторить
-                        </Button>
-                      ) : null}
+                      <div className="dice-roller-panel__log-actions">
+                        {canRepeat ? (
+                          <Button
+                            variant="secondary"
+                            size="sm"
+                            onClick={() => doRoll(entry.expression, entry.advantageMode)}
+                          >
+                            Повторить
+                          </Button>
+                        ) : null}
+                        {entryAllowsStrokeOfLuck(entry) ? (
+                          <Button
+                            type="button"
+                            variant="secondary"
+                            size="sm"
+                            data-testid="dice-stroke-of-luck"
+                            title="Удача: d20 проверки → 20 / промах атаки → попадание"
+                            onClick={(e: MouseEvent) => {
+                              e.stopPropagation()
+                              const result = requestStrokeOfLuck({
+                                characterId,
+                                entryId: entry.id,
+                                text: journalEntryLuckText(entry),
+                              })
+                              if (!result.ok) return
+                              setLog(readDiceLog(characterId))
+                              setExpandedIds((prev) => new Set(prev).add(entry.id))
+                            }}
+                          >
+                            Удача
+                          </Button>
+                        ) : null}
+                      </div>
                     </div>
                   ) : null}
                 </li>
