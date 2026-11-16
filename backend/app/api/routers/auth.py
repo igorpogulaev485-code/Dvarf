@@ -162,8 +162,8 @@ def revoke_sessions(
 
 
 @router.get("/me", response_model=UserResponse)
-def me(current_user: CurrentUser) -> UserResponse:
-    return serialize_user(current_user)
+def me(current_user: CurrentUser, db: DbSession) -> UserResponse:
+    return serialize_user(current_user, db=db)
 
 
 @router.patch("/me", response_model=UserResponse)

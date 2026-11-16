@@ -1,3 +1,4 @@
+from app.models.admin import AdminAuditLog, AdminRole, AdminRoleName, AdminSecret
 from app.models.catalog import CatalogEntry, CatalogKind, CatalogRulesEdition
 from app.models.character import Character, RulesEdition
 from app.models.chat import (
@@ -42,6 +43,10 @@ from app.models.world_import import (
 from app.models.world_import_attachment import WorldImportAttachment
 
 __all__ = [
+    "AdminAuditLog",
+    "AdminRole",
+    "AdminRoleName",
+    "AdminSecret",
     "AuthProvider",
     "AuthSession",
     "CampaignJournalEntry",

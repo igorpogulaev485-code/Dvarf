@@ -60,7 +60,12 @@ def normalize_onboarding_payload(raw: object | None) -> OnboardingStatePayload |
         return None
 
 
-def serialize_user(user: User) -> UserResponse:
+def serialize_user(
+    user: User,
+    *,
+    db: Session | None = None,
+    is_admin: bool | None = None,
+) -> UserResponse:
     theme_id = getattr(user, "theme_id", None) or "wis"
     ability_colors = getattr(user, "ability_colors", None) or "identity"
     if theme_id not in {"str", "dex", "con", "int", "wis", "cha"}:
@@ -68,6 +73,11 @@ def serialize_user(user: User) -> UserResponse:
     if ability_colors not in {"identity", "theme"}:
         ability_colors = "identity"
     onboarding = normalize_onboarding_payload(getattr(user, "onboarding", None))
+    admin_flag = bool(is_admin) if is_admin is not None else False
+    if is_admin is None and db is not None:
+        from app.services.admin import hint_is_admin
+
+        admin_flag = hint_is_admin(db, user)
     return UserResponse(
         id=user.id,
         email=user.email,
@@ -83,6 +93,7 @@ def serialize_user(user: User) -> UserResponse:
         created_at=user.created_at,
         updated_at=user.updated_at,
         providers=[identity.provider.value for identity in user.identities],
+        is_admin=admin_flag,
     )
 
 
@@ -155,7 +166,7 @@ class AuthService:
         return TokenResponse(
             access_token=access,
             refresh_token=refresh,
-            user=serialize_user(loaded),
+            user=serialize_user(loaded, db=self.db),
         )
 
     def _issue_verification_and_send(self, user: User) -> tuple[str, str | None]:
@@ -434,7 +445,7 @@ class AuthService:
         user = self.users.get_by_id(user_id)
         if user is None:
             raise UnauthorizedError("Пользователь не найден")
-        return serialize_user(user)
+        return serialize_user(user, db=self.db)
 
     def update_me(self, user_id: UUID, payload: UserUpdateRequest) -> UserResponse:
         user = self.users.get_by_id(user_id)
@@ -471,7 +482,7 @@ class AuthService:
         self.db.commit()
         loaded = self.users.get_by_id(user_id)
         assert loaded is not None
-        return serialize_user(loaded)
+        return serialize_user(loaded, db=self.db)
 
     def login_with_oauth_profile(
         self,
@@ -535,7 +546,7 @@ class AuthService:
                 code="oauth_identity_taken",
             )
         if owner is not None and owner.id == user.id:
-            return serialize_user(owner)
+            return serialize_user(owner, db=self.db)
 
         already = next(
             (identity for identity in user.identities if identity.provider == profile.provider),
@@ -561,7 +572,7 @@ class AuthService:
         self.db.commit()
         loaded = self.users.get_by_id(user.id)
         assert loaded is not None
-        return serialize_user(loaded)
+        return serialize_user(loaded, db=self.db)
 
     def unlink_oauth_provider(self, user: User, provider: AuthProvider) -> UserResponse:
         if provider == AuthProvider.password:
@@ -595,7 +606,7 @@ class AuthService:
         self.db.commit()
         refreshed = self.users.get_by_id(user.id)
         assert refreshed is not None
-        return serialize_user(refreshed)
+        return serialize_user(refreshed, db=self.db)
 
     def forgot_password(self, email: str) -> ForgotPasswordResponse:
         """Always returns the same public message (no email enumeration)."""
@@ -707,7 +718,7 @@ class AuthService:
         self.db.commit()
         loaded = self.users.get_by_id(user_id)
         assert loaded is not None
-        return serialize_user(loaded)
+        return serialize_user(loaded, db=self.db)
 
     def delete_avatar(self, user_id: UUID) -> UserResponse:
         from app.services.avatar import delete_avatar_file, is_uploaded_avatar_url
@@ -722,7 +733,7 @@ class AuthService:
         self.db.commit()
         loaded = self.users.get_by_id(user_id)
         assert loaded is not None
-        return serialize_user(loaded)
+        return serialize_user(loaded, db=self.db)
 
     def request_email_change(self, user_id: UUID, new_email: str) -> EmailChangeRequestResponse:
         """Send confirmation to CURRENT email. Change applies only after confirm."""
@@ -827,7 +838,7 @@ class AuthService:
         assert loaded is not None
         return EmailChangeConfirmResponse(
             message="Email успешно изменён",
-            user=serialize_user(loaded),
+            user=serialize_user(loaded, db=self.db),
         )
 
     def delete_account(

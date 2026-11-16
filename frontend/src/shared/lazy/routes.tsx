@@ -87,6 +87,9 @@ export const loadClassicSheetPage = () =>
 export const loadCabinetPage = () =>
   import('../../pages/CabinetPage').then((m) => ({ default: m.CabinetPage }))
 
+export const loadAdminPage = () =>
+  import('../../pages/AdminPage').then((m) => ({ default: m.AdminPage }))
+
 export const loadConfirmEmailPage = () =>
   import('../../pages/ConfirmEmailPage').then((m) => ({ default: m.ConfirmEmailPage }))
 
@@ -112,6 +115,7 @@ export const loadVerifyEmailPage = () =>
   import('../../pages/VerifyEmailPage').then((m) => ({ default: m.VerifyEmailPage }))
 
 export const LazyCabinetPage = lazyWithRetry(loadCabinetPage)
+export const LazyAdminPage = lazyWithRetry(loadAdminPage)
 export const LazyCharacterDetailPage = lazyWithRetry(loadCharacterDetailPage)
 export const LazyCreateCharacterPage = lazyWithRetry(loadCreateCharacterPage)
 export const LazyClassicSheetPage = lazyWithRetry(loadClassicSheetPage)
