@@ -528,23 +528,20 @@ export function installSheetActions1(model: SheetModel) {
   }
 
   model.advanceGuidedWizardAfterSubclass = function advanceGuidedWizardAfterSubclass() {
-    model.setPausedWizardForSubclass((paused) => {
-      if (paused) {
-        const nextIndex = paused.index + 1
-        if (nextIndex >= paused.steps.length) {
-          model.setGuidedWizard(null)
-        } else {
-          model.setGuidedWizard({ ...paused, index: nextIndex })
-        }
-        return null
-      }
-      model.setGuidedWizard((prev) => {
-        if (!prev) return null
-        const nextIndex = prev.index + 1
-        if (nextIndex >= prev.steps.length) return null
-        return { ...prev, index: nextIndex }
-      })
-      return null
+    // Read the paused session directly: calling setGuidedWizard from inside a state
+    // updater runs twice under StrictMode and skipped the next guided step.
+    const paused = model.pausedWizardForSubclass
+    model.setPausedWizardForSubclass(null)
+    if (paused) {
+      const nextIndex = paused.index + 1
+      model.setGuidedWizard(nextIndex >= paused.steps.length ? null : { ...paused, index: nextIndex })
+      return
+    }
+    model.setGuidedWizard((prev) => {
+      if (!prev) return null
+      const nextIndex = prev.index + 1
+      if (nextIndex >= prev.steps.length) return null
+      return { ...prev, index: nextIndex }
     })
   }
 

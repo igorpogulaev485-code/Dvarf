@@ -3,6 +3,11 @@ import { CatalogCombobox } from '../catalog'
 import type { CatalogEntry } from '../../shared/api/catalog'
 import type { RulesEdition } from '../../shared/api/characters'
 import {
+  is2024Edition,
+  overlayLearnBudget2024,
+  overlayLearnBudgets2024,
+} from '../../shared/dnd/spellBudgets2024'
+import {
   buildCastProfiles,
   formatNamedCantripBudgets,
   resolveSpellLearnBudgets,
@@ -226,23 +231,25 @@ export function SpellsPanel({
   const learnBudget = useMemo(() => {
     const rows = classes?.filter((row) => row.name.trim() && row.level > 0) ?? []
     if (rows.length === 0) return null
-    return resolveSpellLearnBudget({
+    const budget = resolveSpellLearnBudget({
       classes: rows,
       subclassCasters,
       abilityModFor: (ability) => abilityModifier(abilities[ability]),
     })
-  }, [classes, subclassCasters, abilities])
+    return is2024Edition(edition) ? overlayLearnBudget2024(budget, rows) : budget
+  }, [classes, subclassCasters, abilities, edition])
 
   const learnBudgets = useMemo(() => {
     const rows = classes?.filter((row) => row.name.trim() && row.level > 0) ?? []
     if (rows.length === 0) return []
-    return resolveSpellLearnBudgets({
+    const budgets = resolveSpellLearnBudgets({
       classes: rows,
       subclassCasters,
       abilityModFor: (ability) => abilityModifier(abilities[ability]),
       proficiencyBonus,
     })
-  }, [classes, subclassCasters, abilities, proficiencyBonus])
+    return is2024Edition(edition) ? overlayLearnBudgets2024(budgets, rows) : budgets
+  }, [classes, subclassCasters, abilities, proficiencyBonus, edition])
 
   const castProfiles = useMemo(() => {
     const rows = classes?.filter((row) => row.name.trim() && row.level > 0) ?? []

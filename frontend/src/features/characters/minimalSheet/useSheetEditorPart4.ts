@@ -24,6 +24,11 @@ import {
 } from '../consumableSpend'
 import { jumpDistances } from '../../../shared/dnd/jumpDistance'
 import { useSpellcastingSheetSync } from '../useSpellcastingSheetSync'
+import {
+  is2024Edition,
+  overlayLearnBudget2024,
+  overlayLearnBudgets2024,
+} from '../../../shared/dnd/spellBudgets2024'
 import { getFeaturePickList } from '../../../shared/dnd/featurePicks'
 import { isPactChainActive } from '../pactChainEffects'
 import { isWarlockClassName } from '../pactTomeEffects'
@@ -969,27 +974,36 @@ export function useSheetEditorPart4(model: SheetModel) {
   )
   model.subclassCastersForSpells = subclassCastersForSpells
 
+  const sheetIs2024 = is2024Edition(model.rulesEdition ?? model.baseCharacter?.rules_edition)
   const spellLearnBudget = useMemo(() => {
     const rows = model.draft.classes.filter((row) => row.name.trim() && row.level > 0)
     if (rows.length === 0) return null
-    return resolveSpellLearnBudget({
+    const budget = resolveSpellLearnBudget({
       classes: rows,
       subclassCasters: subclassCastersForSpells,
       abilityModFor: (ability) => abilityModifier(model.draft.abilities[ability]),
     })
-  }, [model.draft.classes, subclassCastersForSpells, model.draft.abilities])
+    return sheetIs2024 ? overlayLearnBudget2024(budget, rows) : budget
+  }, [model.draft.classes, subclassCastersForSpells, model.draft.abilities, sheetIs2024])
   model.spellLearnBudget = spellLearnBudget
 
   const spellLearnBudgets = useMemo(() => {
     const rows = model.draft.classes.filter((row) => row.name.trim() && row.level > 0)
     if (rows.length === 0) return null
-    return resolveSpellLearnBudgets({
+    const budgets = resolveSpellLearnBudgets({
       classes: rows,
       subclassCasters: subclassCastersForSpells,
       abilityModFor: (ability) => abilityModifier(model.draft.abilities[ability]),
       proficiencyBonus: model.proficiencyBonus,
     })
-  }, [model.draft.classes, subclassCastersForSpells, model.draft.abilities, model.proficiencyBonus])
+    return sheetIs2024 ? overlayLearnBudgets2024(budgets, rows) : budgets
+  }, [
+    model.draft.classes,
+    subclassCastersForSpells,
+    model.draft.abilities,
+    model.proficiencyBonus,
+    sheetIs2024,
+  ])
   model.spellLearnBudgets = spellLearnBudgets
 
   const spellcastingSync = useSpellcastingSheetSync({

@@ -129,8 +129,14 @@ export function useSpellcastingSheetSync({
     [classRows, subclassCasters, proficiencyBonus, abilities],
   )
 
+  const is2024 = String(rulesEdition || '2014').trim() === '2024'
+  // 2024 sheets from create keep max_prepared empty until the table is applied below;
+  // without this fallback every spell would be marked «ready» as for a known caster.
+  const effectiveMaxPrepared =
+    spells.max_prepared ?? (is2024 ? (suggestion?.max_prepared ?? null) : null)
+
   const knownCaster = isKnownSpellcastingMode({
-    maxPrepared: spells.max_prepared,
+    maxPrepared: effectiveMaxPrepared,
     hasCasterSuggestion: suggestion != null && suggestion.progression !== 'none',
   })
 
@@ -211,6 +217,9 @@ export function useSpellcastingSheetSync({
     if (!prepareKey || suggestion?.max_prepared == null) return
     if (appliedPrepare.current == null) {
       appliedPrepare.current = prepareKey
+      if (is2024 && spells.max_prepared == null) {
+        onChange({ ...spells, max_prepared: suggestion.max_prepared })
+      }
       return
     }
     if (appliedPrepare.current === prepareKey) return

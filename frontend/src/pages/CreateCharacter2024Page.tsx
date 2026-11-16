@@ -22,6 +22,11 @@ import {
 } from '../features/createPipeline2024/Create2024Picks'
 import { Create2024SheetPreview } from '../features/createPipeline2024/Create2024SheetPreview'
 import { LevelingForks2024 } from '../features/createPipeline2024/LevelingForks2024'
+import {
+  buildWizardSeedSpells,
+  parseWizardSeed,
+  type WizardSeedSpells,
+} from '../features/createPipeline2024/e2eWizardSeed2024'
 import { createClassLevel, totalCharacterLevel } from '../shared/dnd/classLevels'
 import { ensureHpChoices } from '../features/createPipeline/LevelingStep'
 import type { AbilityScores } from '../shared/dnd/multiclassRules'
@@ -290,6 +295,9 @@ export function CreateCharacter2024Page({
       fighting?: string
       mastery?: number
       asi?: Create2024State['asiChoices']
+      skills?: string[]
+      backgroundAsi?: Create2024State['backgroundAsi']
+      spells?: WizardSeedSpells
     }
     const seeds: Record<string, Seed> = {
       fighter5: {
@@ -364,6 +372,25 @@ export function CreateCharacter2024Page({
         mastery: 2,
       },
     }
+    const wizardSpec = parseWizardSeed(e2eSeed)
+    const wizardClass = bySlug(catalog.classes, 'wizard')
+    if (wizardSpec && wizardClass) {
+      seeds[e2eSeed] = {
+        name: `Волшебник ${wizardSpec.level}`,
+        classSlug: 'wizard',
+        abilities: { str: 8, dex: 13, con: 14, int: 15, wis: 12, cha: 10 },
+        rows: [
+          {
+            slug: 'wizard',
+            level: wizardSpec.level,
+            ...(wizardSpec.subclassSlug ? { subclass: wizardSpec.subclassSlug } : {}),
+          },
+        ],
+        skills: ['arcana', 'history'],
+        backgroundAsi: { con: 2, dex: 1 },
+        spells: buildWizardSeedSpells(catalog.spells, wizardClass, wizardSpec.level),
+      }
+    }
     const seed = seeds[e2eSeed] || seeds.fighter5
     const classes = seed.rows
       .map((row) => make(row.slug, row.level, row.subclass))
@@ -385,14 +412,18 @@ export function CreateCharacter2024Page({
       speciesSlug: dwarf.slug,
       speciesSize: 'medium',
       languageIds: ['elvish', 'dwarvish'],
-      classSkillIds: ['athletics', 'perception'],
+      classSkillIds: seed.skills ?? ['athletics', 'perception'],
       weaponMasteryIds: (catalog.weapons || []).slice(0, seed.mastery || 0).map((w) => w.slug),
       fightingStyleSlug: seed.fighting || null,
       backgroundAsiMode: '+2/+1',
-      backgroundAsi: { str: 2, con: 1 },
+      backgroundToolId: 'dice-set',
+      backgroundAsi: seed.backgroundAsi ?? { str: 2, con: 1 },
       backgroundEquipment: 'pack',
       classEquipment: 'a',
       baseAbilities: seed.abilities,
+      cantripIds: seed.spells?.cantripIds ?? [],
+      spellbookSpellIds: seed.spells?.spellbookSpellIds ?? [],
+      preparedSpellIds: seed.spells?.preparedSpellIds ?? [],
       classes,
       primaryClassEntryId: classes[0]!.id,
       hpChoices: ensureHpChoices(classes, []),

@@ -401,6 +401,9 @@ export function SpellbookManageDialog({
     onClose()
   }
 
+  const foreignTariff = copySpellCost({ spellLevel: 1, kind: 'foreign' })
+  const ownTariff = copySpellCost({ spellLevel: 1, kind: 'own' })
+
   const copyModsHint = (() => {
     const parts: string[] = []
     if (mods.wizardlyQuill) parts.push('Перо писца: копии без золота, 2 мин/ур.')
@@ -432,6 +435,11 @@ export function SpellbookManageDialog({
           Статус: <strong>{status.label}</strong>
         </Text>
         {copyModsHint ? <Text tone="muted">{copyModsHint}</Text> : null}
+        <Text tone="muted">
+          Тариф за каждый круг заклинания: чужая копия (свиток, чужая книга) —{' '}
+          {formatGpTotal(foreignTariff.gp)} зм · {foreignTariff.hours} ч; своя копия
+          (запасная книга, перепись) — {formatGpTotal(ownTariff.gp)} зм · {ownTariff.hours} ч.
+        </Text>
 
         <Stack gap={8}>
           <Text as="h3">Внести из свитка</Text>

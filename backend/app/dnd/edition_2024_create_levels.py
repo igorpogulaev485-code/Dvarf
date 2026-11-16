@@ -518,6 +518,15 @@ def _grant_multiclass_proficiencies(
         prof["skills"] = prof_skills
 
 
+def _known_spell_key(row: Mapping[str, Any]) -> str:
+    """Catalog slug of a known-spell row (create rows carry it only inside ``id``)."""
+    explicit = str(row.get("catalog_slug") or row.get("slug") or "")
+    if explicit:
+        return explicit
+    ident = str(row.get("id") or "")
+    return ident.rsplit(":", 1)[-1] if ":" in ident else ""
+
+
 def _append_spells(
     sheet: dict[str, Any],
     *,
@@ -528,11 +537,8 @@ def _append_spells(
 ) -> None:
     spells = sheet.setdefault("spells", {})
     known = list(spells.get("known") or [])
-    existing = {
-        str(row.get("catalog_slug") or row.get("slug") or "")
-        for row in known
-        if isinstance(row, Mapping)
-    }
+    existing = {_known_spell_key(row) for row in known if isinstance(row, Mapping)}
+    existing.discard("")
     for slug in cantrips:
         key = create24._normalize_slug(slug)
         if not key or key in existing:
@@ -552,9 +558,7 @@ def _append_spells(
             continue
         if key in existing:
             for row in known:
-                if isinstance(row, dict) and (
-                    row.get("catalog_slug") == key or row.get("slug") == key
-                ):
+                if isinstance(row, dict) and _known_spell_key(row) == key:
                     row["prepared"] = True
             continue
         row = create24._spell_sheet_row(
@@ -572,9 +576,7 @@ def _append_spells(
             continue
         if key in existing:
             for row in known:
-                if isinstance(row, dict) and (
-                    row.get("catalog_slug") == key or row.get("slug") == key
-                ):
+                if isinstance(row, dict) and _known_spell_key(row) == key:
                     row["in_spellbook"] = True
                     row["spellbook_acquisition"] = row.get("spellbook_acquisition") or "level_up"
             continue

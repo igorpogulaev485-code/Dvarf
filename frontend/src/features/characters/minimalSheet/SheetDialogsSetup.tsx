@@ -274,7 +274,8 @@ export function SheetDialogsSetup({ model }: { model: SheetModel }) {
             savantSchool:
               model.baseCharacter.rules_edition === '2024' && wizard
                 ? (wizardSavantSchool(model.subclassSlugByEntryId[wizard.id]) ??
-                  wizardSavantSchool(wizard.subclass_catalog_id))
+                  wizardSavantSchool(wizard.subclass_catalog_id) ??
+                  wizardSavantSchool(wizard.subclass_name))
                 : null,
           }
         })()}
