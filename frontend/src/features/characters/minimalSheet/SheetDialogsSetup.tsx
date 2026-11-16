@@ -38,6 +38,10 @@ export function SheetDialogsSetup({ model }: { model: SheetModel }) {
         draconicResilience={(model.unlockedFeatures ?? []).some(
           (f: { id?: string }) => f.id === 'draconic_resilience',
         )}
+        dwarvenToughness={
+          model.draft.raceGrant?.slug === 'hill_dwarf' ||
+          model.draft.raceGrant?.slug === 'gold_dwarf'
+        }
         allowMulticlass={campaignRules.edition_2014.multiclass}
         defaultHpMode={campaignRules.edition_2014.hp_on_level_up}
         onConfirm={model.applyLevelUp}

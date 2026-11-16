@@ -376,6 +376,10 @@ export function PlayDeskTop({ model }: { model: SheetModel }) {
             draconicResilience={(model.unlockedFeatures ?? []).some(
               (f: { id?: string }) => f.id === 'draconic_resilience',
             )}
+            dwarvenToughness={
+              model.draft.raceGrant?.slug === 'hill_dwarf' ||
+              model.draft.raceGrant?.slug === 'gold_dwarf'
+            }
             play={model.draft.play}
             autoAc={model.armorClass.ac}
             acHint={model.armorClass.summary}
@@ -585,6 +589,10 @@ export function PlayDeskTop({ model }: { model: SheetModel }) {
           draconicResilience={(model.unlockedFeatures ?? []).some(
             (f: { id?: string }) => f.id === 'draconic_resilience',
           )}
+          dwarvenToughness={
+            model.draft.raceGrant?.slug === 'hill_dwarf' ||
+            model.draft.raceGrant?.slug === 'gold_dwarf'
+          }
           play={model.draft.play}
           autoAc={model.armorClass.ac}
           acOverride={model.draft.ac}

@@ -26,6 +26,7 @@ import { readClassAsiLedger, type AppliedClassAsi } from '../../../shared/dnd/cl
 import { readPiety, type PietyState } from '../../../shared/dnd/therosPiety'
 import { readPrimalChampion, type PrimalChampionGrant } from '../../../shared/dnd/primalChampion'
 import { readFeatGrantLedger, sumFeatSpeedBonus, type AppliedFeatGrant } from '../../../shared/dnd/featGrants'
+import { readPassiveHpBonuses } from '../../../shared/dnd/hpPassiveBonuses'
 import { migrateLegacyHitDice, syncHitDicePools } from '../../../shared/dnd/classHitDice'
 import { withSyncedHitDiceSummary } from '../play'
 import { classWalkSpeedBonusFt } from '../../../shared/dnd/classMovement'
@@ -148,6 +149,11 @@ export type Draft = {
     kind?: string
     migration_id?: string
   }>
+  /**
+   * Passive +HP already baked into hpMax (Draconic Resilience / Dwarven Toughness).
+   * null = never reconciled — open-sheet effect bootstraps safely.
+   */
+  passiveHpBonuses: { draconic: number; dwarven: number } | null
 }
 
 export function readWeapons(sheet: Record<string, unknown>): WeaponAttack[] {
@@ -460,6 +466,9 @@ export function buildDraft(character: CharacterDetail): Draft {
     migrations: Array.isArray(sheet.migrations)
       ? (sheet.migrations as Array<Record<string, unknown>>)
       : [],
+    passiveHpBonuses: readPassiveHpBonuses(
+      sheet.passive_hp_bonuses ?? sheet.passiveHpBonuses,
+    ),
     uiNotices: (() => {
       const raw = sheet.ui_notices ?? sheet.uiNotices
       if (!Array.isArray(raw)) return []

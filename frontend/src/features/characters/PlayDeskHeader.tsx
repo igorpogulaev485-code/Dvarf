@@ -101,6 +101,8 @@ type PlayDeskHeaderProps = {
   hasShieldMasterEvasion?: boolean
   /** B-05: Draconic Resilience for max-HP-by-levels dialog. */
   draconicResilience?: boolean
+  /** Hill/Gold Dwarf toughness for max-HP-by-levels dialog. */
+  dwarvenToughness?: boolean
   play: PlayState
   autoAc: number
   acHint: string
@@ -220,6 +222,7 @@ export function PlayDeskHeader({
   mountName = null,
   onRedirectDamageToMount,
   draconicResilience = false,
+  dwarvenToughness = false,
   play,
   autoAc,
   acHint,
@@ -1075,6 +1078,7 @@ export function PlayDeskHeader({
         hpMax={hpMax}
         hpCurrent={hpCurrent}
         draconicResilience={draconicResilience}
+        dwarvenToughness={dwarvenToughness}
         onClose={() => setMaxDialogOpen(false)}
         onApply={({ hpMax: nextMax, hpCurrent: nextCurrent }) => {
           onCombatChange({ hpMax: nextMax, hpCurrent: nextCurrent })

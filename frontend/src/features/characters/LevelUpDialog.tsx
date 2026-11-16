@@ -40,6 +40,8 @@ type LevelUpDialogProps = {
   constitutionMod: number
   /** B-05: +1 HP per sorcerer level (Draconic Resilience). */
   draconicResilience?: boolean
+  /** Hill/Gold Dwarf: +1 HP every level. */
+  dwarvenToughness?: boolean
   /** L-08: разрешить мультикласс (дефолт true). */
   allowMulticlass?: boolean
   /** L-08: среднее | бросок — стартовый режим хитов кампании. */
@@ -55,6 +57,7 @@ export function LevelUpDialog({
   abilities,
   constitutionMod,
   draconicResilience = false,
+  dwarvenToughness = false,
   allowMulticlass = true,
   defaultHpMode = 'average',
   onConfirm,
@@ -118,6 +121,7 @@ export function LevelUpDialog({
         draconicResilience:
           draconicResilience &&
           /чародей|sorcerer/i.test(targetClass.name),
+        dwarvenToughness,
       })
     : null
 
