@@ -97,6 +97,7 @@
   "generated": "2026-11-15",
   "notes": [
     "DDBD (Dragon Delves): 0 записей на обоих сайтах на дату опроса.",
+    "P24-C19: DDBD live=0 (свой разбор открытых EN-источников; эксклюзивных карточек нет; дубли MM24/DMG24 не сидить).",
     "bastions: 35 — P24-C12 свой перевод DMG 2024 (сайты пусты; см. gaps.md).",
     "Доправка: url_ttg суффикс ↔ книга; elf-phb; EFA без UAEU-ссылок; elf__lfl с ttg.",
     "P24-C03: srd-флаги armor/equipment сверстаны с SRD 5.2.1; в equipment.csv добавлены 10 пропущенных SRD-предметов (без зелья/свитков — они в magic_items).",
@@ -111,7 +112,8 @@
     "P24-C17: FRHoF live waves seeded (8+18+34+19+12+2=93); source=frhof; species/creatures FRHoF=0.",
     "P24-C12: bastions DMG24=35 facilities in CSV; live wave 43 (6 basic + 29 special + 7 orders + 1 rules); source=dmg24; own short RU.",
     "P24-C18: FRAiF+ABH+LFL+NsF live=111 cards (target 111).",
-    "P24-C20: RTW live=95 cards (target 95)."
+    "P24-C20: RTW live=95 cards (target 95).",
+    "P24-C19: DDBD exclusive catalog = 0 (adventures/maps out of scope)."
   ],
   "srd_creatures": {
     "monsters": 235,

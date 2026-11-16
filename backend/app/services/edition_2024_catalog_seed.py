@@ -53,6 +53,9 @@ Schema contract for later packs (P24-00 lists → data packs):
 - RTW (C20): ``species_rtw`` / ``backgrounds_rtw`` / ``feats_rtw`` /
   ``subclasses_rtw`` / ``magic_items_rtw`` / ``creatures_rtw``;
   ``source`` ``rtw`` → ``community_ref``. Domain/adventure prose not seeded.
+- DDBD (C19): Dragon Delves — **0** exclusive catalog waves. Open sources
+  confirm no new creatures/items/character options; MM24/DMG24 duplicates
+  are not re-seeded. Adventure prose/maps stay out of scope.
 - ``source`` ``srd-5.2`` / ``srd-5.2.1`` stamps ``content_layer=srd``
 """
 
