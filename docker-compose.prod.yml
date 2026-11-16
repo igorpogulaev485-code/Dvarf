@@ -45,6 +45,9 @@ services:
       VK_CLIENT_SECRET: ${VK_CLIENT_SECRET:-}
       VK_REDIRECT_URI: ${VK_REDIRECT_URI:-}
       VK_SERVICE_TOKEN: ${VK_SERVICE_TOKEN:-}
+      # ADM-01/06: флаг панели и почта первого полного админа из живого .env на VPS.
+      ADMIN_PANEL_ENABLED: ${ADMIN_PANEL_ENABLED:-false}
+      ADMIN_BOOTSTRAP_EMAIL: ${ADMIN_BOOTSTRAP_EMAIL:-}
       UPLOADS_DIR: /app/uploads
     volumes:
       - dvarf_uploads:/app/uploads

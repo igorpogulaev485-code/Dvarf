@@ -18,6 +18,7 @@ Workflow из этого репозитория агенты не запуска
 2. **deploy** (environment `production`, ждёт required reviewer, когда правило включено):
    - забирает уже собранный `frontend/dist`;
    - `rsync --delete` на VPS по фильтру [`deploy/rsync-filter.txt`](../deploy/rsync-filter.txt). Не присылает и не удаляет `.env`. Не удаляет `backups/`, `pgdata/`, `postgres-data/`, `uploads/`, `backend/uploads/`, дампы `*.sql` / `*.dump` / `*.sql.gz`. Каталог целиком не стирает;
+   - при заданном `ADMIN_BOOTSTRAP_EMAIL` — upsert в живой `.env` на VPS (`ADMIN_BOOTSTRAP_EMAIL`, `ADMIN_PANEL_ENABLED=true`) **до** перезапуска; см. ниже «Первый админ»;
    - на VPS [`deploy/remote-release.sh`](../deploy/remote-release.sh): сборка образов (`remote-up` с `DVARF_BUILD_ONLY=1`, старые контейнеры ещё отвечают), `alembic upgrade head` отдельным контейнером, затем перезапуск [`deploy/remote-up.sh`](../deploy/remote-up.sh). Порядок тот же. Запускает его [`deploy/remote-release-ctl.sh`](../deploy/remote-release-ctl.sh) в отдельной сессии (`setsid`), с lock-файлом против второй сборки. Job не держит один длинный ssh на всю сборку: он опрашивает статус и журнал короткими вызовами;
    - с раннера `curl https://creed20.tech/health`.
 
@@ -44,8 +45,22 @@ SSH с раннера: `ConnectTimeout=20`, `ServerAliveInterval=15`, `ServerAli
 | `DEPLOY_SSH_KEY` | полный PEM | Приватный ключ OpenSSH **без passphrase**, вместе со строками `BEGIN` и `END` |
 | `DEPLOY_PATH` | `/opt/dvarf` | Каталог на VPS. Другие пути скрипт отклоняет |
 | `DEPLOY_KNOWN_HOSTS` | строка `ssh-keyscan` | Публичный host key. Первое поле = значение `DEPLOY_HOST` |
+| `ADMIN_BOOTSTRAP_EMAIL` | почта владельца | Почта первого полного админа. Репозиторный или environment-секрет; в лог и в текст workflow не подставлять |
 
 Workflow не читает секрет Cursor `DVARF_SSH_PRIVATE_KEY`. Если публичная часть того ключа уже на VPS, в `DEPLOY_SSH_KEY` кладётся тот же приватный ключ. Новый ключ на сервер из этого PR не ставится.
+
+### Первый админ (ADM-06)
+
+Владелец **не** правит живой `.env` на VPS руками. При каждом Deploy, **после** `rsync` и **до** перезапуска сервисов, workflow:
+
+1. Берёт `secrets.ADMIN_BOOTSTRAP_EMAIL` только через `env` шага (значение не печатается).
+2. Если секрет пустой — пишет `ADMIN_BOOTSTRAP_EMAIL не задан, пропуск` и `.env` не трогает.
+3. Если секрет задан — идемпотентно пишет в живой `${DEPLOY_PATH}/.env` (тот же файл, что читает `docker compose --env-file .env`):
+   - `ADMIN_BOOTSTRAP_EMAIL=<секрет>`
+   - `ADMIN_PANEL_ENABLED=true`
+4. Перед правкой делает `${DEPLOY_PATH}/.env.bak`. Остальные строки и права файла сохраняются. Нет `.env` — предупреждение и пропуск, деплой не роняется на этом шаге (позже `remote-release` всё равно остановится, если `.env` пуст).
+
+После зелёного деплоя владелец заходит в https://creed20.tech/admin под аккаунтом с этой почтой и **задаёт пароль админки** (отдельный от пароля входа в аккаунт). Пока пароль не задан, разделы админки закрыты подтверждением.
 
 ## Как завести environment и секреты
 

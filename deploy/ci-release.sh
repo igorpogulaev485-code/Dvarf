@@ -378,4 +378,45 @@ if (( probe == 0 )); then
 fi
 
 retry_rsync
+
+# ADM-06: до перезапуска сервисов записать bootstrap-почту админа в живой .env.
+# Секрет только из env раннера (workflow передаёт secrets.ADMIN_BOOTSTRAP_EMAIL через env).
+# Значение на удалённый хост — через stdin (не в argv ssh и не в текст команды).
+upsert_admin_bootstrap_env() {
+  # Не включать xtrace вокруг передачи почты.
+  set +x
+  { set +o xtrace; } 2>/dev/null || true
+
+  if [[ -z "${ADMIN_BOOTSTRAP_EMAIL:-}" ]]; then
+    echo "ADMIN_BOOTSTRAP_EMAIL не задан, пропуск"
+    return 0
+  fi
+
+  local remote_env remote_script
+  # Живой .env на VPS — корень выкладки (compose --env-file .env), не backend/.env.
+  remote_env="${quoted_path}/.env"
+  remote_script="${quoted_path}/deploy/upsert-admin-bootstrap-env.sh"
+
+  echo "admin bootstrap: запись ключей в ${DEPLOY_PATH%/}/.env (значение не печатаем)"
+
+  local code=0
+  set +e
+  # Первая строка stdin — почта; дальше скрипт на сервере уже есть после rsync, запускаем его.
+  # Передаём почту через stdin → переменную окружения на удалённой стороне.
+  printf '%s\n' "$ADMIN_BOOTSTRAP_EMAIL" | "${ssh_base[@]}" "$target" \
+    "IFS= read -r ADMIN_BOOTSTRAP_EMAIL; export ADMIN_BOOTSTRAP_EMAIL; unset HISTFILE; bash ${remote_script} ${remote_env}"
+  code=$?
+  set -e
+
+  if (( code == 255 )); then
+    echo "ci-release: ssh оборвался при записи admin bootstrap env (код 255). Повторите Deploy." >&2
+    exit 1
+  fi
+  if (( code != 0 )); then
+    echo "ci-release: upsert admin bootstrap env завершился с кодом ${code}." >&2
+    exit "$code"
+  fi
+}
+
+upsert_admin_bootstrap_env
 launch_and_wait
