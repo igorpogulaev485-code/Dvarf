@@ -49,8 +49,16 @@ class CharacterCreate2024Request(BaseModel):
     spellbook_spell_ids: list[str] = Field(default_factory=list)
     class_option_picks: dict[str, Any] = Field(default_factory=dict)
 
-    # Must stay empty at level 1.
+    # Empty at level 1; set when create-at-N reaches subclass gate (or via class_levels).
     subclass_slug: str | None = None
+
+    # P24-M03c: create at level N with multiclass / per-level choices.
+    # When omitted, behavior stays level-1 only (backward compatible).
+    class_levels: list[dict[str, Any]] | None = None
+    hp_choices: list[dict[str, Any]] = Field(default_factory=list)
+    asi_choices: list[dict[str, Any]] = Field(default_factory=list)
+    level_gains: list[dict[str, Any]] = Field(default_factory=list)
+    spells_by_class: dict[str, Any] = Field(default_factory=dict)
 
 
 class CharacterCreate2024ValidateResponse(BaseModel):

@@ -1,14 +1,13 @@
 /**
- * P24-M03 v2: D&D 2024 character creation wizard (level 1 on the API).
+ * P24-M03 / M03c: D&D 2024 character creation wizard (create-at-N + multiclass).
  * Same shell and step order as the 2014 pipeline: вид → черта* → предыстория → класс →
  * характеристики → прокачка. Picks live in setup dialogs on phone / detail column on desktop.
  * Entry: `/characters/create?edition=2024&preview=1` (embedded from CreateCharacterPage).
  * Legacy `/characters/create-2024` redirects here.
- * Levels above 1 and subclass (3+) are shown honestly on the leveling stage but the create
- * endpoint still builds level 1; the rest is applied later on the sheet.
+ * «Прокачка» materializes levels 1–20 with per-level forks and multiclass (same engine as sheet).
  */
 
-import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { AbilitiesStep } from '../features/createPipeline/AbilitiesStep'
 import { CatalogCardList, type CatalogCardItem } from '../features/createPipeline/CatalogCardList'
@@ -22,6 +21,10 @@ import {
   SpeciesPicks,
 } from '../features/createPipeline2024/Create2024Picks'
 import { Create2024SheetPreview } from '../features/createPipeline2024/Create2024SheetPreview'
+import { LevelingForks2024 } from '../features/createPipeline2024/LevelingForks2024'
+import { createClassLevel, totalCharacterLevel } from '../shared/dnd/classLevels'
+import { ensureHpChoices } from '../features/createPipeline/LevelingStep'
+import type { AbilityScores } from '../shared/dnd/multiclassRules'
 import {
   buildItemNameIndex,
   castingTimeLabelRu,
@@ -82,7 +85,7 @@ import { catalogSourceLabelRu } from '../shared/dnd/catalogSourceLabelRu'
 import { CHARACTER_GENDER_LABELS, parseCharacterGender } from '../shared/dnd/characterGender'
 import { ABILITY_LABEL_RU, type AbilityKey } from '../shared/dnd/pointBuy'
 import { RULES_EDITION_2024_OPEN } from '../shared/dnd/rulesEdition2024'
-import { Button, Dialog, Field, NumberInput, Stack, Text } from '../ui'
+import { Button, Dialog, Stack, Text } from '../ui'
 
 export type Create2024Harness = {
   catalog: Create2024CatalogBundle
@@ -121,21 +124,33 @@ async function loadLiveCatalog(
   signal: AbortSignal,
 ): Promise<{ catalog: Create2024CatalogBundle; languages: LanguagesBundle }> {
   const q = (kind: CatalogKind) => listCatalogEntries({ kind, edition: '2024' }, signal)
-  const [classes, backgrounds, species, feats, weapons, armor, gear, spells, languages] =
-    await Promise.all([
-      q('class'),
-      q('background'),
-      q('race'),
-      q('feat'),
-      q('weapon'),
-      q('armor'),
-      q('item'),
-      q('spell'),
-      listCreate2024Languages(signal),
-    ])
+  const [
+    classes,
+    subclasses,
+    backgrounds,
+    species,
+    feats,
+    weapons,
+    armor,
+    gear,
+    spells,
+    languages,
+  ] = await Promise.all([
+    q('class'),
+    q('subclass'),
+    q('background'),
+    q('race'),
+    q('feat'),
+    q('weapon'),
+    q('armor'),
+    q('item'),
+    q('spell'),
+    listCreate2024Languages(signal),
+  ])
   return {
     catalog: {
       classes,
+      subclasses,
       backgrounds,
       species,
       feats,
@@ -183,6 +198,8 @@ export function CreateCharacter2024Page({
   const [params] = useSearchParams()
   const phone = useIsPhone()
   const previewQuery = params.get('preview') === '1'
+  // Internal e2e: jump to leveling with a seeded fighter (screenshots / forks).
+  const e2eLeveling = params.get('e2eLeveling') === '1'
   // Even when embedded in `/characters/create`, keep the M06 gate (preview or flag).
   const blocked = !harness && !previewQuery && !RULES_EDITION_2024_OPEN
 
@@ -198,6 +215,7 @@ export function CreateCharacter2024Page({
   const [spellTab, setSpellTab] = useState<'cantrips' | 'book' | 'level1'>('cantrips')
   const [focusSpellSlug, setFocusSpellSlug] = useState<string | null>(null)
   const [harnessDone, setHarnessDone] = useState(false)
+  const e2eLevelingSeeded = useRef(false)
 
   useEffect(() => {
     if (harness || blocked) return
@@ -238,6 +256,45 @@ export function CreateCharacter2024Page({
     }
   }, [steps, state.step])
 
+  useEffect(() => {
+    if (!e2eLeveling || !catalog || e2eLevelingSeeded.current) return
+    const fighter = catalog.classes.find((e) => e.slug === 'fighter')
+    const soldier = catalog.backgrounds.find((e) => e.slug === 'soldier')
+    const dwarf = catalog.species.find((e) => e.slug === 'dwarf')
+    if (!fighter || !soldier || !dwarf) return
+    e2eLevelingSeeded.current = true
+    const primary = createClassLevel({
+      name: fighter.name_ru,
+      catalog_id: fighter.slug || fighter.id,
+      level: 5,
+    })
+    // Низкий Int — волшебник в MC недоступен (скрин multiclass-blocked).
+    setState((prev) => ({
+      ...prev,
+      step: 'leveling',
+      characterName: 'Тестовый воин',
+      gender: 'male',
+      classSlug: 'fighter',
+      backgroundSlug: 'soldier',
+      speciesSlug: 'dwarf',
+      languageIds: ['elvish', 'dwarvish'],
+      classSkillIds: ['athletics', 'perception'],
+      weaponMasteryIds: (catalog.weapons || []).slice(0, 3).map((w) => w.slug),
+      fightingStyleSlug: 'defense',
+      backgroundAsiMode: '+2/+1',
+      backgroundAsi: { str: 2, con: 1 },
+      backgroundEquipment: 'pack',
+      classEquipment: 'a',
+      baseAbilities: { str: 15, dex: 14, con: 13, int: 8, wis: 12, cha: 10 },
+      classes: [primary],
+      primaryClassEntryId: primary.id,
+      hpChoices: ensureHpChoices([primary], []),
+      characterLevel: 5,
+      subclassByEntryId: {},
+      asiChoices: [],
+    }))
+  }, [e2eLeveling, catalog])
+
   const issues = catalog
     ? create2024StepIssues(step, state, {
         classEntry,
@@ -257,10 +314,45 @@ export function CreateCharacter2024Page({
   }, [])
 
   function goToStep(nextStep: string) {
-    if ((steps as readonly string[]).includes(nextStep)) {
-      setSetupOpen(false)
-      patch({ step: nextStep as Create2024StepId })
+    if (!(steps as readonly string[]).includes(nextStep)) return
+    setSetupOpen(false)
+    const next = nextStep as Create2024StepId
+    const curIdx = steps.indexOf(step)
+    const nextIdx = steps.indexOf(next)
+    // «Назад» сбрасывает только поля покидаемого шага (как в 2014).
+    if (nextIdx >= 0 && nextIdx < curIdx) {
+      if (step === 'leveling') {
+        const primary = createClassLevel({
+          id: state.primaryClassEntryId,
+          name: classEntry?.name_ru || '',
+          catalog_id: classEntry?.id || null,
+          level: 1,
+        })
+        patch({
+          step: next,
+          classes: [primary],
+          characterLevel: 1,
+          hpChoices: ensureHpChoices([primary], []),
+          asiChoices: [],
+          subclassByEntryId: {},
+          subclassSlug: null,
+          multiclassSlug: null,
+          cantripIds: [],
+          spellbookSpellIds: [],
+          preparedSpellIds: [],
+        })
+        return
+      }
+      if (step === 'abilities') {
+        patch({
+          step: next,
+          abilityMethod: 'standard_array',
+          baseAbilities: state.baseAbilities,
+        })
+        return
+      }
     }
+    patch({ step: next })
   }
 
   const requestKey = useMemo(() => JSON.stringify(toCreate2024Request(state)), [state])
@@ -646,6 +738,12 @@ export function CreateCharacter2024Page({
             const entry = catalogData.classes.find((e) => e.id === id)
             if (!entry) return
             const packs = classStartingPacks(entry)
+            const primary = createClassLevel({
+              id: state.primaryClassEntryId,
+              name: entry.name_ru,
+              catalog_id: entry.id,
+              level: 1,
+            })
             patch({
               classSlug: entry.slug,
               classSkillIds: [],
@@ -658,6 +756,12 @@ export function CreateCharacter2024Page({
               spellbookSpellIds: [],
               preparedSpellIds: [],
               subclassSlug: null,
+              classes: [primary],
+              primaryClassEntryId: primary.id,
+              hpChoices: ensureHpChoices([primary], []),
+              asiChoices: [],
+              subclassByEntryId: {},
+              characterLevel: 1,
             })
             setSpellTab('cantrips')
             setSetupOpen(true)
@@ -732,16 +836,43 @@ export function CreateCharacter2024Page({
         : tab === 'book'
           ? state.spellbookSpellIds
           : state.preparedSpellIds
+    const wizardBookNeed =
+      WIZARD_BOOK_SPELLS_AT_L1 +
+      Math.max(0, (state.classes.find((c) => c.name === classEntry?.name_ru)?.level ?? 1) - 1) * 2
     const max =
       tab === 'cantrips'
         ? (sc?.cantrips ?? 0)
         : tab === 'book'
-          ? WIZARD_BOOK_SPELLS_AT_L1
+          ? wizardBookNeed
           : (sc?.prepared_spells ?? 0)
     const focus =
       catalogData.spells.find((row) => row.slug === focusSpellSlug) ??
       spellList.find((row) => row.slug === selected[selected.length - 1]) ??
       null
+
+    const totalLevel = Math.max(1, totalCharacterLevel(state.classes) || state.characterLevel)
+    const finalAbilities = {
+      str: state.baseAbilities.str + (bonuses.str || 0),
+      dex: state.baseAbilities.dex + (bonuses.dex || 0),
+      con: state.baseAbilities.con + (bonuses.con || 0),
+      int: state.baseAbilities.int + (bonuses.int || 0),
+      wis: state.baseAbilities.wis + (bonuses.wis || 0),
+      cha: state.baseAbilities.cha + (bonuses.cha || 0),
+    } as AbilityScores
+
+    // Keep primary class row labelled when arriving from earlier steps.
+    const levelingClasses =
+      state.classes[0] && classEntry
+        ? state.classes.map((row, index) =>
+            index === 0
+              ? {
+                  ...row,
+                  name: row.name || classEntry.name_ru,
+                  catalog_id: row.catalog_id || classEntry.id,
+                }
+              : row,
+          )
+        : state.classes
 
     const model =
       classEntry && backgroundEntry && speciesEntry
@@ -750,6 +881,7 @@ export function CreateCharacter2024Page({
               state: {
                 ...state,
                 characterName: state.characterName.trim() || 'Без имени',
+                characterLevel: totalLevel,
               },
               catalog: catalogData,
               languages: languagesData,
@@ -763,19 +895,23 @@ export function CreateCharacter2024Page({
         : null
     const humanFeat = findFeat(catalogData.feats, state.speciesFeatSlug)
     const genderLabel = parseCharacterGender(state.gender)
+    const classSummary = levelingClasses
+      .filter((row) => row.level > 0)
+      .map((row) => `${row.name || 'Класс'} ${row.level}`)
+      .join(' / ')
     const choices: Array<[string, string]> = [
       ['Имя', state.characterName.trim() || '—'],
       ['Пол', genderLabel ? CHARACTER_GENDER_LABELS[genderLabel] : '—'],
       ['Вид', speciesEntry?.name_ru ?? '—'],
       ['Предыстория', backgroundEntry?.name_ru ?? '—'],
-      ['Класс', classEntry?.name_ru ?? '—'],
+      ['Классы', classSummary || classEntry?.name_ru || '—'],
       [
         'Увеличение характеристик',
         Object.entries(state.backgroundAsi)
           .map(([k, v]) => `${ABILITY_LABEL_RU[k as AbilityKey]} +${v}`)
           .join(', ') || '—',
       ],
-      ['Уровень', String(state.characterLevel)],
+      ['Уровень', String(totalLevel)],
     ]
     if (humanFeat) choices.push(['Гибкий', humanFeat.name_ru])
     const lineage = speciesLineages(speciesEntry).find((l) => l.id === state.speciesLineageId)
@@ -798,37 +934,51 @@ export function CreateCharacter2024Page({
     detail = (
       <div data-testid="p24-m03-step-leveling">
         <Stack gap={16}>
-          <Stack gap={8}>
-            <Field label="Уровень персонажа">
-              <NumberInput
-                value={state.characterLevel}
-                min={1}
-                max={20}
-                emptyValue={1}
-                onValueChange={(value) =>
-                  patch({ characterLevel: value ?? 1, subclassSlug: null })
-                }
-                data-testid="p24-m03-level"
-              />
-            </Field>
-            {state.characterLevel > 1 ? (
-              <Text tone="muted" data-testid="p24-m03-level-note">
-                Создание пока строит персонажа на 1 уровне. Остальные уровни
-                {state.characterLevel >= 3 ? ', подкласс' : ''} вы добавите на листе после
-                создания.
-              </Text>
-            ) : null}
-            <Text tone="muted" data-testid="p24-m03-multiclass-note">
-              Мультикласс (например, воин 3 → волшебник 1) добавляется на листе: «Основное» →
-              «+1 уровень» → «Мультикласс». Требования характеристик 2024 проверяются там.
-            </Text>
-            {state.characterLevel >= 3 ? (
-              <Text tone="muted" data-testid="p24-m03-subclass-note">
-                Подкласс {classEntry ? `класса «${classEntry.name_ru}» ` : ''}открывается с 3
-                уровня и выбирается на листе.
-              </Text>
-            ) : null}
-          </Stack>
+          <LevelingForks2024
+            classes={levelingClasses}
+            classCatalog={[...catalogData.classes, ...(catalogData.subclasses ?? [])]}
+            abilities={finalAbilities}
+            hpChoices={
+              state.hpChoices.length
+                ? state.hpChoices
+                : ensureHpChoices(levelingClasses, [])
+            }
+            primaryClassEntryId={state.primaryClassEntryId}
+            subclassByEntryId={state.subclassByEntryId}
+            asiChoices={state.asiChoices}
+            onClassesChange={(classes) =>
+              patch({
+                classes,
+                characterLevel: totalCharacterLevel(classes),
+                hpChoices: ensureHpChoices(classes, state.hpChoices),
+              })
+            }
+            onHpChoicesChange={(hpChoices) => patch({ hpChoices })}
+            onSubclassChange={(classEntryId, subclassSlug) => {
+              const next = {
+                ...state.subclassByEntryId,
+                [classEntryId]: subclassSlug,
+              }
+              const primarySub =
+                classEntryId === state.primaryClassEntryId ? subclassSlug : state.subclassSlug
+              patch({ subclassByEntryId: next, subclassSlug: primarySub })
+            }}
+            onAsiChoicesChange={(asiChoices) => patch({ asiChoices })}
+            onOpenSpells={() => {
+              setSpellTab(wizardBook ? 'book' : 'cantrips')
+              setFocusSpellSlug(null)
+            }}
+            onOpenFork={(_classEntryId, _classLevel, kind) => {
+              if (kind === 'overview' || kind === 'class_option' || kind === 'epic_boon') {
+                // Honest stub toast via validated warnings surface.
+                setError(
+                  kind === 'epic_boon'
+                    ? 'Эпический дар: каталог дополнится пачками M02 — развилка сохранена как заглушка.'
+                    : 'Выборы умений класса дополнит пачка M02 — развилка показана как заглушка и не ломает создание.',
+                )
+              }
+            }}
+          />
           {sc ? (
             <div data-testid="p24-m03-step-spells">
               <CatalogCardList
@@ -867,7 +1017,7 @@ export function CreateCharacter2024Page({
                           onClick={() => setSpellTab('book')}
                           data-testid="p24-m03-spell-tab-book"
                         >
-                          В книгу {state.spellbookSpellIds.length}/{WIZARD_BOOK_SPELLS_AT_L1}
+                          В книгу {state.spellbookSpellIds.length}/{wizardBookNeed}
                         </button>
                       ) : null}
                       {sc.prepared_spells > 0 ? (
@@ -887,10 +1037,7 @@ export function CreateCharacter2024Page({
                     <Text tone="muted">
                       Выбрано {selected.length} из {max}
                       {wizardBook && tab === 'book'
-                        ? '. Волшебник вписывает заклинания 1 круга в книгу, затем готовит их из неё.'
-                        : null}
-                      {wizardBook && tab === 'level1' && state.spellbookSpellIds.length === 0
-                        ? '. Сначала выберите заклинания во вкладке «В книгу».'
+                        ? '. Волшебник: 6 на 1 уровне, +2 за каждый следующий уровень волшебника.'
                         : null}
                     </Text>
                   </Stack>
@@ -898,7 +1045,14 @@ export function CreateCharacter2024Page({
                 onSelect={(slug) => {
                   setFocusSpellSlug(slug)
                   if (tab === 'book') {
-                    patch(toggleSpellbookPick(state.spellbookSpellIds, state.preparedSpellIds, slug))
+                    patch(
+                      toggleSpellbookPick(
+                        state.spellbookSpellIds,
+                        state.preparedSpellIds,
+                        slug,
+                        wizardBookNeed,
+                      ),
+                    )
                     return
                   }
                   const nextList = toggleUniquePick(selected, slug, max)

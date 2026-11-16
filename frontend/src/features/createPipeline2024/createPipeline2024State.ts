@@ -473,14 +473,26 @@ function abilitiesIssues(state: Create2024State): string[] {
 function levelingIssues(state: Create2024State, ctx: StepIssueCtx): string[] {
   const issues: string[] = []
   const sc = classL1Spellcasting(ctx.classEntry)
+  const wizardLevel = Math.max(
+    1,
+    state.classes.find((row) => {
+      const name = row.name.trim().toLowerCase()
+      return name === 'волшебник' || state.classSlug === 'wizard'
+    })?.level ?? (state.classSlug === 'wizard' ? state.characterLevel : 1),
+  )
+  const bookNeed = WIZARD_BOOK_SPELLS_AT_L1 + Math.max(0, wizardLevel - 1) * 2
   if (sc) {
-    if (!uniqueCount(state.cantripIds, sc.cantrips)) {
+    // Cantrips / prepared: keep L1 budget as minimum; higher tables land with class packs.
+    if (state.cantripIds.length < sc.cantrips || new Set(state.cantripIds).size !== state.cantripIds.length) {
       issues.push(`Заговоры: выбрано ${state.cantripIds.length} из ${sc.cantrips}`)
     }
     if (usesSpellbook(state.classSlug)) {
-      if (!uniqueCount(state.spellbookSpellIds, WIZARD_BOOK_SPELLS_AT_L1)) {
+      if (
+        state.spellbookSpellIds.length < bookNeed ||
+        new Set(state.spellbookSpellIds).size !== state.spellbookSpellIds.length
+      ) {
         issues.push(
-          `Книга заклинаний: выбрано ${state.spellbookSpellIds.length} из ${WIZARD_BOOK_SPELLS_AT_L1}`,
+          `Книга заклинаний: выбрано ${state.spellbookSpellIds.length} из ${bookNeed}`,
         )
       }
       const book = new Set(state.spellbookSpellIds)
@@ -488,20 +500,19 @@ function levelingIssues(state: Create2024State, ctx: StepIssueCtx): string[] {
         issues.push('Подготовить можно только заклинания из книги')
       }
       if (
-        state.preparedSpellIds.length > sc.prepared_spells ||
+        state.preparedSpellIds.length < sc.prepared_spells ||
         new Set(state.preparedSpellIds).size !== state.preparedSpellIds.length
       ) {
         issues.push(
-          `Подготовка: не больше ${sc.prepared_spells} ${ruPlural(sc.prepared_spells, 'заклинания', 'заклинаний', 'заклинаний')} (выбрано ${state.preparedSpellIds.length})`,
-        )
-      } else if (state.preparedSpellIds.length < sc.prepared_spells) {
-        issues.push(
-          `Подготовка: выбрано ${state.preparedSpellIds.length} из ${sc.prepared_spells}`,
+          `Подготовка: нужно минимум ${sc.prepared_spells} ${ruPlural(sc.prepared_spells, 'заклинание', 'заклинания', 'заклинаний')} (выбрано ${state.preparedSpellIds.length})`,
         )
       }
-    } else if (!uniqueCount(state.preparedSpellIds, sc.prepared_spells)) {
+    } else if (
+      state.preparedSpellIds.length < sc.prepared_spells ||
+      new Set(state.preparedSpellIds).size !== state.preparedSpellIds.length
+    ) {
       issues.push(
-        `Заклинания 1 круга: выбрано ${state.preparedSpellIds.length} из ${sc.prepared_spells}`,
+        `Заклинания: выбрано ${state.preparedSpellIds.length} из ${sc.prepared_spells}`,
       )
     }
   }
@@ -563,8 +574,9 @@ export function toggleSpellbookPick(
   book: string[],
   prepared: string[],
   id: string,
+  max = WIZARD_BOOK_SPELLS_AT_L1,
 ): { spellbookSpellIds: string[]; preparedSpellIds: string[] } {
-  const spellbookSpellIds = toggleUniquePick(book, id, WIZARD_BOOK_SPELLS_AT_L1)
+  const spellbookSpellIds = toggleUniquePick(book, id, max)
   const inBook = new Set(spellbookSpellIds)
   return {
     spellbookSpellIds,

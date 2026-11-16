@@ -1,0 +1,247 @@
+{
+  "wizard5": {
+    "name": "Герой-wizard",
+    "class_slug": "wizard",
+    "background_slug": "sage",
+    "species_slug": "elf",
+    "ability_method": "standard_array",
+    "base_abilities": {
+      "str": 12,
+      "dex": 14,
+      "con": 13,
+      "int": 15,
+      "wis": 10,
+      "cha": 8
+    },
+    "background_asi_mode": "+2/+1",
+    "background_asi": {
+      "con": 2,
+      "int": 1
+    },
+    "language_ids": [
+      "elvish",
+      "dwarvish"
+    ],
+    "class_skill_ids": [
+      "arcana",
+      "history"
+    ],
+    "weapon_mastery_ids": [],
+    "background_equipment": "pack",
+    "class_equipment": "a",
+    "cantrip_ids": [
+      "blade-ward",
+      "friends",
+      "mind-sliver"
+    ],
+    "prepared_spell_ids": [
+      "spellfire-flare",
+      "wardaway",
+      "tashas-hideous-laughter",
+      "tensers-floating-disk"
+    ],
+    "class_option_picks": {
+      "client_picks": {
+        "origin_feat_picks": {
+          "list": [
+            "wizard"
+          ],
+          "cantrips": [
+            "blade-ward",
+            "friends"
+          ],
+          "spell": [
+            "spellfire-flare"
+          ],
+          "ability": [
+            "int"
+          ]
+        },
+        "species_picks": {
+          "skills": [
+            "insight"
+          ],
+          "ability": [
+            "int"
+          ]
+        }
+      }
+    },
+    "is_preview": true,
+    "is_draft": false,
+    "species_size": "medium",
+    "species_lineage_id": "drow",
+    "origin_feat_list": "wizard",
+    "origin_feat_cantrips": [
+      "blade-ward",
+      "friends"
+    ],
+    "origin_feat_spell_id": "spellfire-flare",
+    "spellbook_spell_ids": [
+      "spellfire-flare",
+      "wardaway",
+      "tashas-hideous-laughter",
+      "tensers-floating-disk",
+      "witch-bolt",
+      "alarm"
+    ],
+    "class_levels": [
+      {
+        "slug": "wizard",
+        "level": 5,
+        "subclass_slug": "wizard__evoker"
+      }
+    ],
+    "asi_choices": [
+      {
+        "class_slug": "wizard",
+        "class_level": 4,
+        "kind": "asi_plus2",
+        "abilities": {
+          "int": 2
+        }
+      }
+    ]
+  },
+  "fighter4_wizard1": {
+    "name": "Герой-fighter",
+    "class_slug": "fighter",
+    "background_slug": "soldier",
+    "species_slug": "dwarf",
+    "ability_method": "manual",
+    "base_abilities": {
+      "str": 15,
+      "dex": 13,
+      "con": 14,
+      "int": 14,
+      "wis": 10,
+      "cha": 8
+    },
+    "background_asi_mode": "+2/+1",
+    "background_asi": {
+      "str": 2,
+      "dex": 1
+    },
+    "language_ids": [
+      "elvish",
+      "dwarvish"
+    ],
+    "class_skill_ids": [
+      "acrobatics",
+      "animal_handling"
+    ],
+    "weapon_mastery_ids": [
+      "battleaxe",
+      "blowgun",
+      "club"
+    ],
+    "fighting_style_slug": "defense",
+    "background_tool_id": "dice-set",
+    "background_equipment": "pack",
+    "class_equipment": "a",
+    "cantrip_ids": [],
+    "prepared_spell_ids": [],
+    "class_option_picks": {
+      "client_picks": {
+        "origin_feat_picks": {},
+        "species_picks": {}
+      }
+    },
+    "is_preview": true,
+    "is_draft": false,
+    "species_size": "medium",
+    "class_levels": [
+      {
+        "slug": "fighter",
+        "level": 4,
+        "subclass_slug": "fighter__champion"
+      },
+      {
+        "slug": "wizard",
+        "level": 1
+      }
+    ],
+    "asi_choices": [
+      {
+        "class_slug": "fighter",
+        "class_level": 4,
+        "kind": "asi_plus2",
+        "abilities": {
+          "str": 2
+        }
+      }
+    ]
+  },
+  "paladin2_warlock3": {
+    "name": "Герой-paladin",
+    "class_slug": "paladin",
+    "background_slug": "noble",
+    "species_slug": "dragonborn",
+    "ability_method": "manual",
+    "base_abilities": {
+      "str": 15,
+      "dex": 10,
+      "con": 13,
+      "int": 8,
+      "wis": 12,
+      "cha": 14
+    },
+    "background_asi_mode": "+2/+1",
+    "background_asi": {
+      "str": 2,
+      "int": 1
+    },
+    "language_ids": [
+      "elvish",
+      "dwarvish"
+    ],
+    "class_skill_ids": [
+      "athletics",
+      "insight"
+    ],
+    "weapon_mastery_ids": [
+      "battleaxe",
+      "blowgun"
+    ],
+    "background_tool_id": "dice-set",
+    "background_equipment": "pack",
+    "class_equipment": "a",
+    "cantrip_ids": [],
+    "prepared_spell_ids": [
+      "wardaway",
+      "compelled-duel"
+    ],
+    "class_option_picks": {
+      "client_picks": {
+        "origin_feat_picks": {
+          "skilled": [
+            "athletics",
+            "stealth",
+            "persuasion"
+          ]
+        },
+        "species_picks": {}
+      }
+    },
+    "is_preview": true,
+    "is_draft": false,
+    "species_size": "medium",
+    "species_ancestry_id": "fire",
+    "origin_feat_skilled": [
+      "athletics",
+      "stealth",
+      "persuasion"
+    ],
+    "class_levels": [
+      {
+        "slug": "paladin",
+        "level": 2
+      },
+      {
+        "slug": "warlock",
+        "level": 3,
+        "subclass_slug": "warlock__fiend-patron"
+      }
+    ]
+  }
+}

@@ -6,6 +6,12 @@
 
 import classesSrd from '../../shared/dnd/data/edition2024/classes_srd.json'
 import classesEfa from '../../shared/dnd/data/edition2024/classes_efa.json'
+import subclassesSrd from '../../shared/dnd/data/edition2024/subclasses_srd.json'
+import subclassesPh24 from '../../shared/dnd/data/edition2024/subclasses_ph24.json'
+import subclassesEfa from '../../shared/dnd/data/edition2024/subclasses_efa.json'
+import subclassesFrhof from '../../shared/dnd/data/edition2024/subclasses_frhof.json'
+import subclassesRtw from '../../shared/dnd/data/edition2024/subclasses_rtw.json'
+import subclassesAu from '../../shared/dnd/data/edition2024/subclasses_au.json'
 import speciesSrd from '../../shared/dnd/data/edition2024/species_srd.json'
 import speciesPh24 from '../../shared/dnd/data/edition2024/species_ph24.json'
 import speciesEfa from '../../shared/dnd/data/edition2024/species_efa.json'
@@ -118,6 +124,14 @@ export function buildCreate2024Fixtures(): Create2024CatalogBundle {
   const gear = toCatalogEntries('item', [equipmentSrd, equipmentFrhof])
   return {
     classes: toCatalogEntries('class', [classesSrd, classesEfa]),
+    subclasses: toCatalogEntries('subclass', [
+      subclassesSrd,
+      subclassesPh24,
+      subclassesEfa,
+      subclassesFrhof,
+      subclassesRtw,
+      subclassesAu,
+    ]),
     backgrounds: toCatalogEntries('background', [
       backgroundsSrd,
       backgroundsPh24,

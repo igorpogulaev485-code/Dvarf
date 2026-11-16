@@ -211,11 +211,19 @@ assert.ok(create2024StepIssues('feat', { ...state, speciesSlug: 'human' }, { ...
 const req = toCreate2024Request(state, { isPreview: true })
 assert.equal(req.is_preview, true)
 assert.equal(req.subclass_slug, null)
-assert.equal(
-  toCreate2024Request({ ...state, characterLevel: 5, subclassSlug: 'champion' }).subclass_slug,
-  null,
-  'create API stays level 1: no subclass sent',
-)
+assert.equal(req.class_levels, undefined, 'level-1 create omits class_levels')
+// P24-M03c: create-at-N sends class_levels + subclass when total ≥ 3.
+const leveled = {
+  ...state,
+  characterLevel: 5,
+  classes: state.classes.map((row, i) => (i === 0 ? { ...row, level: 5 } : row)),
+  subclassSlug: 'fighter__champion',
+  subclassByEntryId: { [state.primaryClassEntryId]: 'fighter__champion' },
+}
+const leveledReq = toCreate2024Request(leveled)
+assert.equal(leveledReq.subclass_slug, 'fighter__champion')
+assert.ok(leveledReq.class_levels?.length === 1)
+assert.equal(leveledReq.class_levels?.[0]?.level, 5)
 assert.equal(req.class_slug, 'fighter')
 assert.deepEqual(req.language_ids, ['elvish', 'dwarvish'])
 

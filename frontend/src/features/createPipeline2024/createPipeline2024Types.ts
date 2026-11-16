@@ -1,4 +1,4 @@
-/** P24-M03: state for the 2024 create wizard (level 1 only). */
+/** P24-M03 / M03c: state for the 2024 create wizard (level 1–20 + multiclass). */
 
 import type { AbilityScores } from '../../shared/dnd/multiclassRules'
 import { freeBookSlotsAtLevel } from '../../shared/dnd/wizardSpellbook'
@@ -6,7 +6,12 @@ import type { AbilityMethod } from '../../shared/dnd/pointBuy'
 import { applyStandardArrayByPriority } from '../../shared/dnd/pointBuy'
 import type { CatalogEntry } from '../../shared/api/catalog'
 import type { CharacterCreate2024Request } from '../../shared/api/characters'
+import type { ClassLevelEntry } from '../../shared/dnd/classLevels'
+import { createClassLevel, totalCharacterLevel } from '../../shared/dnd/classLevels'
+import { normalizeClassSlug2024 } from '../../shared/dnd/edition2024Classes'
+import type { HpLevelChoice } from '../createPipeline/createPipelineTypes'
 import type { FeatPicks } from './create2024FeatPicks'
+import type { AsiChoice2024 } from './LevelingForks2024'
 
 /**
  * Same shell order as the 2014 pipeline: вид → черта* → предыстория → класс →
@@ -73,21 +78,27 @@ export type Create2024State = {
   classEquipment: string
 
   /**
-   * Target level shown on the leveling stage. The create endpoint is level 1 only:
-   * levels above 1 (and subclass / multiclass) are applied later on the sheet.
+   * P24-M03c: class rows + HP / ASI / subclass forks materialize create-at-N.
+   * `characterLevel` stays as a derived convenience (= sum of class levels).
    */
   characterLevel: number
   subclassSlug: string | null
   multiclassSlug: string | null
   multiclassLevel: number
+  classes: ClassLevelEntry[]
+  primaryClassEntryId: string
+  hpChoices: HpLevelChoice[]
+  asiChoices: AsiChoice2024[]
+  subclassByEntryId: Record<string, string | null>
 
   cantripIds: string[]
-  /** Wizard only: first-level spells written into the spellbook (6 at level 1). */
+  /** Wizard only: first-level spells written into the spellbook (6 at L1, +2 per wizard level). */
   spellbookSpellIds: string[]
   preparedSpellIds: string[]
 }
 
 export function createEmptyCreate2024State(): Create2024State {
+  const primary = createClassLevel({ level: 1 })
   return {
     step: 'species',
     characterName: '',
@@ -119,6 +130,11 @@ export function createEmptyCreate2024State(): Create2024State {
     subclassSlug: null,
     multiclassSlug: null,
     multiclassLevel: 1,
+    classes: [primary],
+    primaryClassEntryId: primary.id,
+    hpChoices: [],
+    asiChoices: [],
+    subclassByEntryId: {},
     cantripIds: [],
     spellbookSpellIds: [],
     preparedSpellIds: [],
@@ -127,6 +143,7 @@ export function createEmptyCreate2024State(): Create2024State {
 
 export type Create2024CatalogBundle = {
   classes: CatalogEntry[]
+  subclasses: CatalogEntry[]
   backgrounds: CatalogEntry[]
   species: CatalogEntry[]
   feats: CatalogEntry[]
@@ -198,16 +215,83 @@ export function visibleCreate2024Steps(
   return CREATE_2024_STEPS.filter((id) => id !== 'feat' || needsFeat)
 }
 
+function classSlugOf(row: ClassLevelEntry, fallback: string | null): string {
+  return (
+    normalizeClassSlug2024(row.catalog_id) ||
+    normalizeClassSlug2024(row.name) ||
+    fallback ||
+    ''
+  )
+}
+
 export function toCreate2024Request(
   state: Create2024State,
   options?: { isPreview?: boolean; isDraft?: boolean },
 ): CharacterCreate2024Request {
+  const primarySlug = state.classSlug || ''
+  let classLevels = state.classes
+    .filter((row) => row.level > 0 && (row.name.trim() || row.catalog_id || primarySlug))
+    .map((row, index) => {
+      const slug = classSlugOf(row, index === 0 ? primarySlug : null) || primarySlug
+      const sub = state.subclassByEntryId[row.id] || null
+      return {
+        slug,
+        level: Math.max(1, Math.floor(row.level)),
+        subclass_slug: sub,
+      }
+    })
+    .filter((row) => Boolean(row.slug))
+  if (!classLevels.length && primarySlug) {
+    classLevels = [
+      {
+        slug: primarySlug,
+        level: Math.max(1, Math.floor(state.characterLevel || 1)),
+        subclass_slug: state.subclassSlug || null,
+      },
+    ]
+  } else if (classLevels.length === 1 && state.characterLevel > classLevels[0]!.level) {
+    // Legacy state that only bumped characterLevel without syncing classes[].
+    classLevels = [
+      {
+        ...classLevels[0]!,
+        level: Math.max(1, Math.floor(state.characterLevel)),
+        subclass_slug: classLevels[0]!.subclass_slug || state.subclassSlug || null,
+      },
+    ]
+  }
+  const total =
+    classLevels.reduce((sum, row) => sum + row.level, 0) ||
+    totalCharacterLevel(state.classes) ||
+    state.characterLevel ||
+    1
+  const primarySubclass = classLevels[0]?.subclass_slug || state.subclassSlug || null
+
+  const hpChoices = state.hpChoices.map((row) => {
+    const cls = state.classes.find((c) => c.id === row.classEntryId)
+    const slug = cls ? classSlugOf(cls, primarySlug) : primarySlug
+    return {
+      class_slug: slug,
+      class_level: row.classLevel,
+      mode: row.mode,
+      rolled: row.rolled ?? null,
+    }
+  })
+
+  const asiChoices = state.asiChoices.map((row) => ({
+    class_slug: row.classSlug,
+    class_level: row.classLevel,
+    kind: row.kind,
+    abilities: (row.abilities || {}) as Record<string, number>,
+    feat_slug: row.featSlug || null,
+    note_ru: row.noteRu || null,
+  }))
+
   return {
     name: state.characterName.trim() || 'Новый персонаж',
     gender: state.gender,
     is_draft: options?.isDraft ?? false,
     is_preview: options?.isPreview ?? true,
-    class_slug: state.classSlug || '',
+    class_slug: primarySlug,
     background_slug: state.backgroundSlug || '',
     species_slug: state.speciesSlug || '',
     ability_method: state.abilityMethod,
@@ -237,9 +321,10 @@ export function toCreate2024Request(
       ...state.classOptionPicks,
       client_picks: clientPicks(state),
     },
-    // The API creates level 1 only (no subclass before level 3); state.subclassSlug /
-    // characterLevel / multiclass* stay client-side until level-up is wired to create.
-    subclass_slug: null,
+    subclass_slug: total >= 3 ? primarySubclass : null,
+    class_levels: total > 1 ? classLevels : undefined,
+    hp_choices: total > 1 ? hpChoices : [],
+    asi_choices: total > 1 ? asiChoices : [],
   }
 }
 

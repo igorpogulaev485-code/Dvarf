@@ -94,6 +94,24 @@ export type CharacterCreate2024Request = {
   spellbook_spell_ids?: string[]
   class_option_picks?: Record<string, unknown>
   subclass_slug?: string | null
+  /** P24-M03c: create-at-N with multiclass / per-level choices. */
+  class_levels?: Array<{ slug: string; level: number; subclass_slug?: string | null }> | null
+  hp_choices?: Array<{
+    class_slug: string
+    class_level: number
+    mode?: 'average' | 'roll'
+    rolled?: number | null
+  }>
+  asi_choices?: Array<{
+    class_slug: string
+    class_level: number
+    kind: string
+    abilities?: Record<string, number>
+    feat_slug?: string | null
+    note_ru?: string | null
+  }>
+  level_gains?: Array<Record<string, unknown>>
+  spells_by_class?: Record<string, unknown>
 }
 
 export type CharacterCreate2024ValidateResponse = {

@@ -1,4 +1,4 @@
-"""P24-M03: validate and materialize a level-1 character for rules_edition=2024.
+"""P24-M03 / M03c: validate and materialize a 2024 character (level 1+ with multiclass).
 
 2014 create path is untouched. This module is the server source of truth for the
 2024 wizard finalize payload.
@@ -169,7 +169,13 @@ class Create2024Payload:
     gender: str | None = None
     is_draft: bool = False
     is_preview: bool = False
-    subclass_slug: str | None = None  # must be None/empty at L1
+    subclass_slug: str | None = None  # L1 must stay empty; higher levels use class_levels / gains
+    # P24-M03c: optional create-at-N plan (None → level 1 only, backward compatible).
+    class_levels: list[dict[str, Any]] | None = None
+    hp_choices: list[dict[str, Any]] = field(default_factory=list)
+    asi_choices: list[dict[str, Any]] = field(default_factory=list)
+    level_gains: list[dict[str, Any]] = field(default_factory=list)
+    spells_by_class: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -343,6 +349,31 @@ def payload_from_dict(raw: Mapping[str, Any]) -> Create2024Payload:
             _normalize_slug(str(raw.get("subclass_slug")))
             if raw.get("subclass_slug")
             else None
+        ),
+        class_levels=(
+            [dict(x) for x in raw.get("class_levels") if isinstance(x, Mapping)]
+            if isinstance(raw.get("class_levels"), list)
+            else None
+        ),
+        hp_choices=(
+            [dict(x) for x in raw.get("hp_choices") if isinstance(x, Mapping)]
+            if isinstance(raw.get("hp_choices"), list)
+            else []
+        ),
+        asi_choices=(
+            [dict(x) for x in raw.get("asi_choices") if isinstance(x, Mapping)]
+            if isinstance(raw.get("asi_choices"), list)
+            else []
+        ),
+        level_gains=(
+            [dict(x) for x in raw.get("level_gains") if isinstance(x, Mapping)]
+            if isinstance(raw.get("level_gains"), list)
+            else []
+        ),
+        spells_by_class=(
+            dict(raw.get("spells_by_class") or {})
+            if isinstance(raw.get("spells_by_class"), Mapping)
+            else {}
         ),
     )
 
@@ -966,11 +997,7 @@ def _validate_class_options(payload: Create2024Payload) -> dict[str, Any]:
 
 
 def validate_create_2024(payload: Create2024Payload) -> Create2024Result:
-    if payload.subclass_slug:
-        raise Create2024Error(
-            "Подкласс на 1 уровне недоступен (с 3 уровня)",
-            code="create_2024_subclass",
-        )
+    from app.dnd import edition_2024_create_levels as create_levels
 
     class_slug = e24.normalize_class_slug(payload.class_slug) or payload.class_slug
     payload.class_slug = class_slug
@@ -979,9 +1006,32 @@ def validate_create_2024(payload: Create2024Payload) -> Create2024Result:
     if class_row is None:
         raise Create2024Error(f"Неизвестный класс: {class_slug}", code="create_2024_class")
     class_data = class_row.get("data") if isinstance(class_row.get("data"), dict) else {}
-    if int(class_data.get("subclass_level") or 3) > 1 and payload.subclass_slug:
+
+    levels_plan = None
+    if payload.class_levels:
+        levels_plan = create_levels.parse_create_levels_plan(
+            {
+                "class_levels": payload.class_levels,
+                "hp_choices": payload.hp_choices,
+                "asi_choices": payload.asi_choices,
+                "level_gains": payload.level_gains,
+                "spells_by_class": payload.spells_by_class,
+            }
+        )
+        if levels_plan and levels_plan.class_levels:
+            if levels_plan.class_levels[0].slug != class_slug:
+                raise Create2024Error(
+                    "Первый класс в class_levels должен совпадать с class_slug",
+                    code="create_2024_levels",
+                )
+
+    total_planned = (
+        sum(r.level for r in levels_plan.class_levels) if levels_plan else 1
+    )
+    # Top-level subclass_slug only valid when creating above subclass gate (or via class_levels).
+    if payload.subclass_slug and total_planned < int(class_data.get("subclass_level") or 3):
         raise Create2024Error(
-            "Подкласс на 1 уровне недоступен",
+            "Подкласс на 1 уровне недоступен (с 3 уровня)",
             code="create_2024_subclass",
         )
 
@@ -998,7 +1048,101 @@ def validate_create_2024(payload: Create2024Payload) -> Create2024Result:
     final_abilities = _apply_asi(payload.base_abilities, asi)
     class_skills = _validate_class_skills(payload, class_data)
     fighting_style = _validate_fighting_style(payload)
-    mastery = _validate_weapon_mastery(payload)
+    # Weapon mastery / spells / options: validate against L1 for the base sheet;
+    # higher-level budgets are enforced after materialize_levels_on_sheet.
+    l1_payload = payload
+    if total_planned > 1:
+        # Soften L1 mastery count: keep picks, validate limit after leveling.
+        mastery = [_normalize_slug(x) for x in payload.weapon_mastery_ids]
+        if mastery:
+            # Still reject duplicates / unknown weapons via L1 path when limit matches.
+            l1_limit = _weapon_mastery_limit(payload.class_slug)
+            if l1_limit > 0 and len(mastery) == l1_limit:
+                mastery = _validate_weapon_mastery(payload)
+            elif l1_limit > 0 and len(set(mastery)) != len(mastery):
+                raise Create2024Error(
+                    "Виды оружия с мастерством не должны повторяться",
+                    code="create_2024_weapon_mastery",
+                )
+        else:
+            mastery = []
+        # Spells: validate L1 budget using a trimmed payload; extras overlay after levels.
+        wizard_lv = 1
+        if levels_plan:
+            for row in levels_plan.class_levels:
+                if row.slug == WIZARD_CLASS_SLUG:
+                    wizard_lv = row.level
+                    break
+        trimmed = Create2024Payload(
+            **{
+                **payload.__dict__,
+                "spellbook_spell_ids": list(payload.spellbook_spell_ids)[
+                    : (WIZARD_BOOK_SPELLS_AT_L1 if payload.class_slug == WIZARD_CLASS_SLUG else 0)
+                ]
+                if payload.class_slug == WIZARD_CLASS_SLUG
+                else list(payload.spellbook_spell_ids),
+                "prepared_spell_ids": list(payload.prepared_spell_ids),
+                "cantrip_ids": list(payload.cantrip_ids),
+                "subclass_slug": None,
+            }
+        )
+        # Cap prepared to L1 need for the L1 sheet build.
+        try:
+            spell_info = _validate_spells(trimmed)
+        except Create2024Error:
+            if trimmed.cantrip_ids or trimmed.prepared_spell_ids or trimmed.spellbook_spell_ids:
+                # Fall back to empty L1 spells; full list applied after materialize.
+                spell_info = {
+                    "cantrips": [_normalize_slug(x) for x in payload.cantrip_ids],
+                    "prepared": [_normalize_slug(x) for x in payload.prepared_spell_ids],
+                    "spellbook": [_normalize_slug(x) for x in payload.spellbook_spell_ids][
+                        :WIZARD_BOOK_SPELLS_AT_L1
+                    ]
+                    if payload.class_slug == WIZARD_CLASS_SLUG
+                    else [],
+                    "slots": {},
+                    "pact_slots": None,
+                    "ability": None,
+                }
+            else:
+                spell_info = {
+                    "cantrips": [],
+                    "prepared": [],
+                    "spellbook": [],
+                    "slots": {},
+                    "pact_slots": None,
+                    "ability": None,
+                }
+        # Stash remaining wizard book spells for post-level overlay.
+        if payload.class_slug == WIZARD_CLASS_SLUG and wizard_lv > 1:
+            extra_book = [
+                _normalize_slug(x) for x in payload.spellbook_spell_ids[WIZARD_BOOK_SPELLS_AT_L1:]
+            ]
+            if extra_book:
+                if levels_plan and not levels_plan.spells_by_class.get(WIZARD_CLASS_SLUG):
+                    levels_plan.spells_by_class[WIZARD_CLASS_SLUG] = {
+                        "cantrips": [],
+                        "prepared": [],
+                        "spellbook": extra_book,
+                    }
+                elif levels_plan:
+                    levels_plan.spells_by_class[WIZARD_CLASS_SLUG]["spellbook"] = list(
+                        dict.fromkeys(
+                            list(levels_plan.spells_by_class[WIZARD_CLASS_SLUG].get("spellbook") or [])
+                            + extra_book
+                        )
+                    )
+        class_options = _validate_class_options(payload)
+    else:
+        if payload.subclass_slug:
+            raise Create2024Error(
+                "Подкласс на 1 уровне недоступен (с 3 уровня)",
+                code="create_2024_subclass",
+            )
+        mastery = _validate_weapon_mastery(payload)
+        spell_info = _validate_spells(payload)
+        class_options = _validate_class_options(payload)
+
     tool_id = _validate_background_tool(payload, bg_data)
     origin_picks = _validate_origin_feat(payload, bg_data)
     species_info = _validate_species(payload)
@@ -1007,12 +1151,9 @@ def validate_create_2024(payload: Create2024Payload) -> Create2024Result:
     except ValueError as exc:
         raise Create2024Error(str(exc), code="create_2024_languages") from exc
     gear = _validate_equipment(payload, class_data)
-    # Spells use final abilities only for progression tables (counts), base is fine.
-    spell_info = _validate_spells(payload)
-    class_options = _validate_class_options(payload)
 
     sheet = _build_sheet(
-        payload=payload,
+        payload=l1_payload,
         class_row=class_row,
         class_data=class_data,
         bg=bg,
@@ -1031,15 +1172,43 @@ def validate_create_2024(payload: Create2024Payload) -> Create2024Result:
         class_options=class_options,
     )
 
+    warnings: list[str] = []
+    final_level = 1
+    if levels_plan and total_planned > 1:
+        # Stamp primary subclass onto plan if only top-level subclass_slug given.
+        if payload.subclass_slug and levels_plan.class_levels:
+            primary = levels_plan.class_levels[0]
+            if not primary.subclass_slug:
+                primary.subclass_slug = payload.subclass_slug
+        warnings.extend(
+            create_levels.materialize_levels_on_sheet(
+                sheet,
+                levels_plan,
+                primary_slug=class_slug,
+            )
+        )
+        final_level = sum(r.level for r in levels_plan.class_levels)
+
+    # Class name line: primary + multiclass summary.
+    class_name = str(class_row.get("name_ru") or class_slug)
+    if final_level > 1:
+        parts = []
+        for row in sheet.get("classes") or []:
+            if isinstance(row, dict):
+                parts.append(f"{row.get('name_ru') or row.get('name')} {row.get('level')}")
+        if parts:
+            class_name = " / ".join(parts)
+
     hp_max = int(sheet["combat"]["hp_max"])
     return Create2024Result(
         sheet=sheet,
         name=payload.name,
-        level=1,
-        class_name=str(class_row.get("name_ru") or class_slug),
+        level=final_level,
+        class_name=class_name,
         race_name=str(species_info.get("name_ru") or payload.species_slug),
         hp_max=hp_max,
         hp_current=hp_max,
+        warnings=warnings,
     )
 
 
