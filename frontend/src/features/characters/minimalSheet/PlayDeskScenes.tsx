@@ -32,6 +32,8 @@ import { SpellsSettingsDialog } from '../SpellsSettingsDialog'
 import { ClassFeaturesPanel } from '../ClassFeaturesPanel'
 import { WeaponMasteryPanel } from '../WeaponMasteryPanel'
 import { WeaponMasteryAttackPanel } from '../WeaponMasteryAttackPanel'
+import { ClassOptions2024Panel } from '../ClassOptions2024Panel'
+import { ClassOptions2024CombatPanel } from '../ClassOptions2024CombatPanel'
 import {
   SRD_WEAPONS_2024_MASTERY,
   srdWeaponMasteryBySlug,
@@ -1193,6 +1195,80 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
         weaponOptions={[...SRD_WEAPONS_2024_MASTERY]}
         hasSimpleProf
         hasMartialProf
+        onToast={(message) => model.onToast?.(message)}
+      />
+      <ClassOptions2024Panel
+        rulesEdition={model.rulesEdition}
+        classes={model.draft.classes}
+        state={model.draft.classOptions2024}
+        onChange={(classOptions2024) =>
+          model.setDraft((prev) => ({ ...prev, classOptions2024 }))
+        }
+        onToast={(message) => model.onToast?.(message)}
+      />
+      <ClassOptions2024CombatPanel
+        rulesEdition={model.rulesEdition}
+        classes={model.draft.classes}
+        options={model.draft.classOptions2024}
+        onOptionsChange={(classOptions2024) =>
+          model.setDraft((prev) => ({ ...prev, classOptions2024 }))
+        }
+        sneakAttackScale={
+          typeof model.progression2024?.scales?.['rogue:sneak_attack'] === 'string'
+            ? String(model.progression2024.scales['rogue:sneak_attack'])
+            : null
+        }
+        dexMod={abilityModifier(model.effectiveAbilities?.dex ?? model.draft.abilities.dex)}
+        proficiencyBonus={model.proficiencyBonus}
+        channelRemaining={
+          model.draft.play.resources.find((r) =>
+            String(r.id).includes('channel_divinity'),
+          )
+            ? Math.max(
+                0,
+                (model.draft.play.resources.find((r) =>
+                  String(r.id).includes('channel_divinity'),
+                )?.max || 0) -
+                  (model.draft.play.resources.find((r) =>
+                    String(r.id).includes('channel_divinity'),
+                  )?.used || 0),
+              )
+            : 0
+        }
+        onSpendChannel={(n) =>
+          model.setDraft((prev) => ({
+            ...prev,
+            play: {
+              ...prev.play,
+              resources: prev.play.resources.map((r) =>
+                String(r.id).includes('channel_divinity')
+                  ? { ...r, used: Math.min(r.max, (r.used || 0) + n) }
+                  : r,
+              ),
+            },
+          }))
+        }
+        sorceryPointsMax={
+          model.draft.play.resources.find((r) => String(r.id).includes('sorcery_points'))
+            ?.max || 0
+        }
+        sorceryPointsUsed={
+          model.draft.play.resources.find((r) => String(r.id).includes('sorcery_points'))
+            ?.used || 0
+        }
+        onSpendSorcery={(newUsed) =>
+          model.setDraft((prev) => ({
+            ...prev,
+            play: {
+              ...prev.play,
+              resources: prev.play.resources.map((r) =>
+                String(r.id).includes('sorcery_points') ? { ...r, used: newUsed } : r,
+              ),
+            },
+          }))
+        }
+        openSessionId={model.character?.open_session_id}
+        characterId={model.baseCharacter?.id ?? model.character?.id}
         onToast={(message) => model.onToast?.(message)}
       />
       <ClassFeaturesPanel

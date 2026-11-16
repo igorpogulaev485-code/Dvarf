@@ -48,7 +48,7 @@ export type TurnEconomyContextValue = {
   /** O-02: доп. урон «Избранного противника» в этот ход. */
   markFavoredFoeDamageUsed: () => void
   /** Э7: Всплеск действий → +1 доп. действие (отметку не тратит). */
-  grantActionSurge: () => void
+  grantActionSurge: (opts?: { blocksMagic?: boolean }) => void
   canSearch: () => TurnSpendResult
   spendSearch: () => void
   canHide: (hasCunningAction: boolean) => TurnSpendResult & { timing?: HideSpendTiming }

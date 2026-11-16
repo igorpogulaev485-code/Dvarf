@@ -1,0 +1,874 @@
+/**
+ * P24-M02a: 2024 class tables / resources / spell prep / multiclass.
+ * Mirror of backend/app/dnd/edition_2024_classes.py. Never feeds 2014 packs.
+ */
+
+import classesSrd from './data/edition2024/classes_srd.json'
+import classesEfa from './data/edition2024/classes_efa.json'
+import subclassesSrd from './data/edition2024/subclasses_srd.json'
+import subclassesEfa from './data/edition2024/subclasses_efa.json'
+import type {
+  ClassFeatureDef,
+  FeatureKind,
+  FeatureResource,
+  UnlockedFeature,
+} from './classFeatures'
+import type { ClassLevelEntry } from './classLevels'
+import type { DesiredFeatureResource } from './featureResources'
+import type { SheetResource } from './rest'
+
+type CatalogFile = {
+  entries: Array<{
+    slug: string
+    name_ru?: string
+    name_en?: string
+    data: Record<string, unknown>
+  }>
+}
+
+const CLASS_SLUG_ALIASES: Record<string, string> = {
+  варвар: 'barbarian',
+  бард: 'bard',
+  жрец: 'cleric',
+  друид: 'druid',
+  боец: 'fighter',
+  воин: 'fighter',
+  монах: 'monk',
+  паладин: 'paladin',
+  следопыт: 'ranger',
+  плут: 'rogue',
+  разбойник: 'rogue',
+  чародей: 'sorcerer',
+  колдун: 'warlock',
+  варлок: 'warlock',
+  волшебник: 'wizard',
+  маг: 'wizard',
+  изобретатель: 'artificer',
+  артифицер: 'artificer',
+}
+
+export const SRD_SUBCLASS_BY_PARENT: Record<string, string> = {
+  barbarian: 'barbarian__berserker',
+  bard: 'bard__lore',
+  cleric: 'cleric__life-domain',
+  druid: 'druid__land',
+  fighter: 'fighter__champion',
+  monk: 'monk__warrior-of-the-hand',
+  paladin: 'paladin__oath-of-devotion',
+  ranger: 'ranger__hunter-ranger',
+  rogue: 'rogue__thief',
+  sorcerer: 'sorcerer__draconic-sorcery',
+  warlock: 'warlock__fiend-patron',
+  wizard: 'wizard__evoker',
+}
+
+const MULTICLASS_MODE: Record<string, 'any' | 'all'> = {
+  fighter: 'any',
+  barbarian: 'all',
+  bard: 'all',
+  cleric: 'all',
+  druid: 'all',
+  monk: 'all',
+  paladin: 'all',
+  ranger: 'all',
+  rogue: 'all',
+  sorcerer: 'all',
+  warlock: 'all',
+  wizard: 'all',
+  artificer: 'all',
+}
+
+export const MULTICLASS_PROFICIENCIES_2024: Record<
+  string,
+  { armor: string[]; weapons: string[]; tools: string[]; skills: number }
+> = {
+  barbarian: { armor: ['shields'], weapons: ['simple', 'martial'], tools: [], skills: 0 },
+  bard: { armor: ['light'], weapons: [], tools: ['one_musical_instrument'], skills: 1 },
+  cleric: { armor: ['light', 'medium', 'shields'], weapons: [], tools: [], skills: 0 },
+  druid: { armor: ['light', 'shields'], weapons: [], tools: [], skills: 0 },
+  fighter: {
+    armor: ['light', 'medium', 'shields'],
+    weapons: ['simple', 'martial'],
+    tools: [],
+    skills: 0,
+  },
+  monk: {
+    armor: [],
+    weapons: ['simple', 'light_martial_melee'],
+    tools: ['one_artisan_or_instrument'],
+    skills: 0,
+  },
+  paladin: {
+    armor: ['light', 'medium', 'shields'],
+    weapons: ['simple', 'martial'],
+    tools: [],
+    skills: 0,
+  },
+  ranger: {
+    armor: ['light', 'medium', 'shields'],
+    weapons: ['simple', 'martial'],
+    tools: [],
+    skills: 1,
+  },
+  rogue: { armor: ['light'], weapons: [], tools: ['thieves_tools'], skills: 1 },
+  sorcerer: { armor: [], weapons: [], tools: [], skills: 0 },
+  warlock: { armor: ['light'], weapons: [], tools: [], skills: 0 },
+  wizard: { armor: [], weapons: [], tools: [], skills: 0 },
+  artificer: {
+    armor: ['light', 'medium', 'shields'],
+    weapons: ['simple'],
+    tools: ['thieves_tools', 'tinkers_tools', 'one_artisan'],
+    skills: 0,
+  },
+}
+
+const CASTER_PROGRESSION: Record<string, string> = {
+  bard: 'full',
+  cleric: 'full',
+  druid: 'full',
+  sorcerer: 'full',
+  wizard: 'full',
+  paladin: 'half',
+  ranger: 'half',
+  artificer: 'half_up',
+  warlock: 'pact',
+  barbarian: 'none',
+  fighter: 'none',
+  monk: 'none',
+  rogue: 'none',
+}
+
+const FULL_CASTER_SLOTS: number[][] = [
+  [2, 0, 0, 0, 0, 0, 0, 0, 0],
+  [3, 0, 0, 0, 0, 0, 0, 0, 0],
+  [4, 2, 0, 0, 0, 0, 0, 0, 0],
+  [4, 3, 0, 0, 0, 0, 0, 0, 0],
+  [4, 3, 2, 0, 0, 0, 0, 0, 0],
+  [4, 3, 3, 0, 0, 0, 0, 0, 0],
+  [4, 3, 3, 1, 0, 0, 0, 0, 0],
+  [4, 3, 3, 2, 0, 0, 0, 0, 0],
+  [4, 3, 3, 3, 1, 0, 0, 0, 0],
+  [4, 3, 3, 3, 2, 0, 0, 0, 0],
+  [4, 3, 3, 3, 2, 1, 0, 0, 0],
+  [4, 3, 3, 3, 2, 1, 0, 0, 0],
+  [4, 3, 3, 3, 2, 1, 1, 0, 0],
+  [4, 3, 3, 3, 2, 1, 1, 0, 0],
+  [4, 3, 3, 3, 2, 1, 1, 1, 0],
+  [4, 3, 3, 3, 2, 1, 1, 1, 0],
+  [4, 3, 3, 3, 2, 1, 1, 1, 1],
+  [4, 3, 3, 3, 3, 1, 1, 1, 1],
+  [4, 3, 3, 3, 3, 2, 1, 1, 1],
+  [4, 3, 3, 3, 3, 2, 2, 1, 1],
+]
+
+type ResourceMeta = {
+  name_ru: string
+  reset: 'short' | 'long'
+  short_rest_regain?: number
+  track?: 'spend' | 'stock'
+  on_hot?: boolean
+  feature_id: string
+  blocks_magic_action?: boolean
+  distinct_from_heroic?: boolean
+  uses_from?: 'proficiency_bonus' | 'cha_mod_min_1' | 'int_mod_min_1'
+  fixed_uses?: number
+  kind?: FeatureKind
+}
+
+function abilityMod2024(score: number): number {
+  return Math.floor((Math.max(1, Math.floor(score)) - 10) / 2)
+}
+
+const RESOURCE_META: Record<string, ResourceMeta> = {
+  second_wind: {
+    name_ru: 'Второе дыхание',
+    reset: 'long',
+    short_rest_regain: 1,
+    feature_id: 'second-wind',
+    kind: 'bonus',
+  },
+  action_surge: {
+    name_ru: 'Всплеск действий',
+    reset: 'short',
+    feature_id: 'action-surge',
+    blocks_magic_action: true,
+    kind: 'resource',
+  },
+  indomitable: {
+    name_ru: 'Непоколебимость',
+    reset: 'long',
+    feature_id: 'indomitable',
+    kind: 'resource',
+  },
+  rages: {
+    name_ru: 'Ярость',
+    reset: 'long',
+    short_rest_regain: 1,
+    feature_id: 'rage',
+    kind: 'bonus',
+  },
+  focus_points: {
+    name_ru: 'Очки фокуса',
+    reset: 'short',
+    feature_id: 'monks-focus',
+    kind: 'resource',
+  },
+  bardic_inspiration: {
+    name_ru: 'Бардовское вдохновение',
+    reset: 'long',
+    feature_id: 'bardic-inspiration',
+    distinct_from_heroic: true,
+    uses_from: 'cha_mod_min_1',
+    kind: 'bonus',
+  },
+  channel_divinity: {
+    name_ru: 'Проведение божественности',
+    reset: 'long',
+    short_rest_regain: 1,
+    feature_id: 'channel-divinity',
+    kind: 'resource',
+  },
+  wild_shape: {
+    name_ru: 'Дикий облик',
+    reset: 'long',
+    short_rest_regain: 1,
+    feature_id: 'wild-shape',
+    kind: 'action',
+  },
+  magic_of_making: {
+    name_ru: 'Магия вещей',
+    reset: 'long',
+    feature_id: 'magic-of-making',
+    uses_from: 'int_mod_min_1',
+    kind: 'resource',
+  },
+  lay_on_hands_hp: {
+    name_ru: 'Наложение рук',
+    reset: 'long',
+    feature_id: 'lay-on-hands',
+    kind: 'action',
+  },
+  sorcery_points: {
+    name_ru: 'Очки чародейства',
+    reset: 'long',
+    feature_id: 'font-of-magic',
+    kind: 'resource',
+  },
+  innate_sorcery_uses: {
+    name_ru: 'Врождённое чародейство',
+    reset: 'long',
+    feature_id: 'innate-sorcery',
+    kind: 'resource',
+  },
+  favored_enemy_uses: {
+    name_ru: 'Заклятый враг',
+    reset: 'long',
+    feature_id: 'favored-enemy',
+    kind: 'resource',
+  },
+  arcane_recovery: {
+    name_ru: 'Арканное восстановление',
+    reset: 'long',
+    feature_id: 'arcane-recovery',
+    fixed_uses: 1,
+    kind: 'resource',
+    on_hot: false,
+  },
+}
+
+const SCALE_KEYS = new Set([
+  'rage_damage',
+  'bardic_inspiration_die',
+  'sneak_attack',
+  'martial_arts_die',
+  'unarmored_movement_ft',
+  'eldritch_invocations',
+  'replicate_plans_known',
+  'replicate_magic_items',
+  'weapon_mastery',
+])
+
+function buildClassCatalog(): Record<string, { slug: string; name_ru: string; data: Record<string, unknown> }> {
+  const out: Record<string, { slug: string; name_ru: string; data: Record<string, unknown> }> = {}
+  for (const file of [classesSrd, classesEfa] as CatalogFile[]) {
+    for (const entry of file.entries) {
+      const slug = String(entry.slug || '')
+        .trim()
+        .toLowerCase()
+        .replace(/ /g, '-')
+        .replace(/_/g, '-')
+      if (!slug) continue
+      out[slug] = {
+        slug,
+        name_ru: entry.name_ru || slug,
+        data: entry.data || {},
+      }
+    }
+  }
+  return out
+}
+
+function buildSubclassCatalog(): Record<
+  string,
+  { slug: string; name_ru: string; data: Record<string, unknown> }
+> {
+  const out: Record<string, { slug: string; name_ru: string; data: Record<string, unknown> }> = {}
+  for (const file of [subclassesSrd, subclassesEfa] as CatalogFile[]) {
+    for (const entry of file.entries) {
+      const slug = String(entry.slug || '').trim()
+      if (!slug) continue
+      out[slug] = {
+        slug,
+        name_ru: entry.name_ru || slug,
+        data: entry.data || {},
+      }
+    }
+  }
+  return out
+}
+
+const CLASS_CATALOG = buildClassCatalog()
+const SUBCLASS_CATALOG = buildSubclassCatalog()
+
+export function normalizeClassSlug2024(value: string | null | undefined): string | null {
+  const raw = String(value || '')
+    .trim()
+    .toLowerCase()
+  if (!raw) return null
+  if (CLASS_SLUG_ALIASES[raw]) return CLASS_SLUG_ALIASES[raw]
+  const cleaned = raw.replace(/ /g, '-').replace(/_/g, '-')
+  if (cleaned in CLASS_CATALOG) return cleaned
+  return null
+}
+
+export function proficiencyBonusForLevel2024(totalLevel: number): number {
+  const lv = Math.min(20, Math.max(1, Math.floor(totalLevel) || 1))
+  return Math.floor((lv - 1) / 4) + 2
+}
+
+export function actionSurgeAllowsAction2024(actionKind: string | null | undefined): boolean {
+  const kind = String(actionKind || '')
+    .trim()
+    .toLowerCase()
+  if (kind === 'magic' || kind === 'магия' || kind === 'cast' || kind === 'spell') return false
+  return true
+}
+
+export type SpellcastingBlock2024 = {
+  class_slug: string
+  progression: string
+  cantrips: number
+  prepared_spells: number
+  slots: Record<string, number>
+  pact_slots: { level: number; count: number } | null
+  always_prepared: string[]
+}
+
+export type ClassProgressSnapshot2024 = {
+  total_level: number
+  proficiency_bonus: number
+  features: UnlockedFeature[]
+  desiredResources: DesiredFeatureResource[]
+  scales: Record<string, unknown>
+  spellcasting: SpellcastingBlock2024[]
+  multiclass_slots: Record<string, number>
+  multiclass_pact: { level: number; count: number } | null
+  feat_levels_reached: number[]
+  epic_boon_reached: boolean
+  subclass_level: number
+}
+
+function classLevelRow(slug: string, level: number): Record<string, unknown> | null {
+  const catalog = CLASS_CATALOG[slug]
+  if (!catalog) return null
+  const lv = Math.min(20, Math.max(1, Math.floor(level) || 1))
+  const levels = (catalog.data.levels as Array<Record<string, unknown>>) || []
+  return levels.find((row) => Number(row.level) === lv) || null
+}
+
+function featureKindFor(id: string, meta?: ResourceMeta): FeatureKind {
+  if (meta?.kind) return meta.kind
+  if (id.includes('action') || id === 'wild-shape') return 'action'
+  if (id.includes('bonus') || id === 'rage' || id === 'cunning-action') return 'bonus'
+  if (id.includes('reaction')) return 'reaction'
+  return 'passive'
+}
+
+function alwaysPrepared(subclassSlug: string | null, classLevel: number): string[] {
+  if (!subclassSlug) return []
+  const sub = SUBCLASS_CATALOG[subclassSlug]
+  if (!sub) return []
+  const out: string[] = []
+  const list = (sub.data.spell_list as Array<{ level?: number; spells?: string[] }>) || []
+  for (const block of list) {
+    if (Number(block.level || 0) > classLevel) continue
+    for (const spell of block.spells || []) {
+      if (spell && !out.includes(spell)) out.push(spell)
+    }
+  }
+  return out
+}
+
+export function multiclassCasterLevel2024(entries: Array<{ slug: string; level: number }>): number {
+  let total = 0
+  for (const row of entries) {
+    const prog = CASTER_PROGRESSION[row.slug] || 'none'
+    const lv = Math.max(0, Math.floor(row.level) || 0)
+    if (prog === 'full') total += lv
+    else if (prog === 'half') total += Math.floor(lv / 2)
+    else if (prog === 'half_up') total += Math.floor((lv + 1) / 2)
+    else if (prog === 'third') total += Math.floor(lv / 3)
+  }
+  return total
+}
+
+export function slotsForCasterLevel2024(casterLevel: number): Record<string, number> {
+  if (casterLevel < 1) {
+    return Object.fromEntries(Array.from({ length: 9 }, (_, i) => [String(i + 1), 0]))
+  }
+  const row = FULL_CASTER_SLOTS[Math.min(20, casterLevel) - 1]
+  return Object.fromEntries(row.map((n, i) => [String(i + 1), n]))
+}
+
+export function checkMulticlassPrerequisites2024(input: {
+  currentClasses: string[]
+  newClass: string
+  abilities: Partial<Record<'str' | 'dex' | 'con' | 'int' | 'wis' | 'cha', number>>
+}): { ok: boolean; reasonRu: string } {
+  const newSlug = normalizeClassSlug2024(input.newClass)
+  if (!newSlug || !CLASS_CATALOG[newSlug]) {
+    return { ok: false, reasonRu: `Неизвестный класс: ${input.newClass}` }
+  }
+  const involved: string[] = []
+  for (const name of input.currentClasses) {
+    const s = normalizeClassSlug2024(name)
+    if (s) involved.push(s)
+  }
+  if (!involved.includes(newSlug)) involved.push(newSlug)
+  for (const slug of involved) {
+    const catalog = CLASS_CATALOG[slug]
+    const primaries = (catalog.data.primary_abilities as string[]) || []
+    if (!primaries.length) continue
+    const mode = MULTICLASS_MODE[slug] || 'all'
+    const scores = primaries.map((a) => Number(input.abilities[a as keyof typeof input.abilities] || 0))
+    if (mode === 'any') {
+      if (!scores.some((s) => s >= 13)) {
+        return {
+          ok: false,
+          reasonRu: `${catalog.name_ru}: нужна характеристика ≥13 (${primaries.join('/').toUpperCase()})`,
+        }
+      }
+    } else if (!scores.every((s) => s >= 13)) {
+      return {
+        ok: false,
+        reasonRu: `${catalog.name_ru}: нужны ${primaries.map((a) => a.toUpperCase()).join(' и ')} ≥13`,
+      }
+    }
+  }
+  return { ok: true, reasonRu: '' }
+}
+
+type ParsedClass = {
+  entryId: string
+  slug: string
+  name: string
+  level: number
+  subclassSlug: string | null
+  subclassName: string | null
+}
+
+function parseClasses(
+  classes: ClassLevelEntry[],
+  subclassSlugByEntryId?: Record<string, string | null | undefined>,
+): ParsedClass[] {
+  const out: ParsedClass[] = []
+  for (const row of classes) {
+    const slug =
+      normalizeClassSlug2024(row.catalog_id || undefined) ||
+      normalizeClassSlug2024(row.name)
+    if (!slug) continue
+    const level = Math.min(20, Math.max(1, Math.floor(row.level) || 1))
+    let sub =
+      subclassSlugByEntryId?.[row.id] ||
+      row.subclass_catalog_id ||
+      null
+    const subS = sub ? String(sub).trim() : null
+    out.push({
+      entryId: row.id,
+      slug,
+      name: row.name || CLASS_CATALOG[slug]?.name_ru || slug,
+      level,
+      subclassSlug: subS,
+      subclassName: row.subclass_name || null,
+    })
+  }
+  return out
+}
+
+function resolveResourceMax(
+  meta: ResourceMeta,
+  poolKey: string,
+  rawValue: unknown,
+  totalLevel: number,
+  abilities: Partial<Record<'str' | 'dex' | 'con' | 'int' | 'wis' | 'cha', number>>,
+): number {
+  if (meta.fixed_uses != null) return meta.fixed_uses
+  if (meta.uses_from === 'cha_mod_min_1' || poolKey === 'bardic_inspiration') {
+    return Math.max(1, abilityMod2024(abilities.cha ?? 10))
+  }
+  if (meta.uses_from === 'int_mod_min_1') {
+    return Math.max(1, abilityMod2024(abilities.int ?? 10))
+  }
+  if (meta.uses_from === 'proficiency_bonus') {
+    return proficiencyBonusForLevel2024(totalLevel)
+  }
+  return typeof rawValue === 'number' ? rawValue : 0
+}
+
+function buildResourceFeature(
+  slug: string,
+  _entryId: string,
+  poolKey: string,
+  max: number,
+  classLevel: number,
+  _totalLevel: number,
+): { def: ClassFeatureDef; desired: DesiredFeatureResource } | null {
+  const meta = RESOURCE_META[poolKey]
+  if (!meta || max <= 0) return null
+  let reset = meta.reset
+  if (poolKey === 'bardic_inspiration' && classLevel >= 5) reset = 'short'
+  const featureId = meta.feature_id.replace(/-/g, '_')
+  const resource: FeatureResource = {
+    uses: max,
+    recharge: reset === 'short' ? 'short_rest' : 'long_rest',
+    pool_id: poolKey,
+    pool_name_ru: meta.name_ru,
+    track: meta.track || 'spend',
+  }
+  const def: ClassFeatureDef = {
+    id: featureId,
+    level: classLevel,
+    name_ru: meta.name_ru,
+    name_en: poolKey,
+    summary_ru: meta.name_ru,
+    kind: featureKindFor(meta.feature_id, meta),
+    resource,
+  }
+  const desired: DesiredFeatureResource = {
+    id: `feat:${slug}:${poolKey}:${featureId}`,
+    name: meta.name_ru,
+    max,
+    reset,
+    track: 'spend',
+    classSlug: slug,
+    classLabelRu: CLASS_CATALOG[slug]?.name_ru,
+  }
+  return { def, desired }
+}
+
+export function computeProgression2024(input: {
+  classes: ClassLevelEntry[]
+  subclassSlugByEntryId?: Record<string, string | null | undefined>
+  abilities?: Partial<Record<'str' | 'dex' | 'con' | 'int' | 'wis' | 'cha', number>>
+}): ClassProgressSnapshot2024 {
+  const parsed = parseClasses(input.classes, input.subclassSlugByEntryId)
+  const totalLevel = Math.min(
+    20,
+    Math.max(
+      1,
+      parsed.reduce((sum, row) => sum + row.level, 0),
+    ),
+  )
+  const pb = proficiencyBonusForLevel2024(totalLevel)
+  const features: UnlockedFeature[] = []
+  const desiredResources: DesiredFeatureResource[] = []
+  const scales: Record<string, unknown> = {}
+  const spellcasting: SpellcastingBlock2024[] = []
+  const featLevels = new Set<number>()
+  let epic = false
+  let subclassLevel = 3
+
+  for (const cls of parsed) {
+    const catalog = CLASS_CATALOG[cls.slug]
+    if (!catalog) continue
+    subclassLevel = Number(catalog.data.subclass_level || 3)
+    for (const fl of (catalog.data.feat_levels as number[]) || []) {
+      if (fl <= cls.level) featLevels.add(fl)
+    }
+    if (cls.level >= Number(catalog.data.epic_boon_level || 19)) epic = true
+
+    const levels = (catalog.data.levels as Array<Record<string, unknown>>) || []
+    const resourceOwnerIds = new Set<string>()
+
+    for (const row of levels) {
+      const lv = Number(row.level || 0)
+      if (lv < 1 || lv > cls.level) continue
+      for (const feat of (row.features as Array<Record<string, unknown>>) || []) {
+        const fidRaw = String(feat.id || '').trim()
+        if (!fidRaw) continue
+        if (fidRaw.endsWith('-subclass') || fidRaw === 'subclass-feature') continue
+        const fid = fidRaw.replace(/-/g, '_')
+        const metaKey = Object.entries(RESOURCE_META).find(
+          ([, m]) => m.feature_id === fidRaw || m.feature_id.replace(/-/g, '_') === fid,
+        )?.[0]
+        // Resource-bearing features are materialised from the resources table below.
+        if (metaKey) {
+          resourceOwnerIds.add(metaKey)
+          continue
+        }
+        features.push({
+          id: fid,
+          level: lv,
+          name_ru: String(feat.name_ru || fid),
+          name_en: String(feat.name_en || fid),
+          summary_ru: String(feat.summary_ru || ''),
+          kind: featureKindFor(fidRaw),
+          classEntryId: cls.entryId,
+          className: cls.name,
+          classLevel: cls.level,
+          source: 'class',
+          subclassSlug: null,
+          subclassName: null,
+          scaleValue: null,
+          resourceUses: null,
+        })
+      }
+    }
+
+    if (cls.subclassSlug && cls.level >= subclassLevel) {
+      const sub = SUBCLASS_CATALOG[cls.subclassSlug]
+      if (sub) {
+        for (const block of (sub.data.features as Array<Record<string, unknown>>) || []) {
+          const blv = Number(block.level || 0)
+          if (blv < 1 || blv > cls.level) continue
+          for (const feat of (block.features as Array<Record<string, unknown>>) || []) {
+            const fidRaw = String(feat.id || '').trim()
+            if (!fidRaw) continue
+            features.push({
+              id: fidRaw.replace(/-/g, '_'),
+              level: blv,
+              name_ru: String(feat.name_ru || fidRaw),
+              name_en: String(feat.name_en || fidRaw),
+              summary_ru: String(feat.summary_ru || ''),
+              kind: 'passive',
+              classEntryId: cls.entryId,
+              className: cls.name,
+              classLevel: cls.level,
+              source: 'subclass',
+              subclassSlug: cls.subclassSlug,
+              subclassName: cls.subclassName || sub.name_ru,
+              scaleValue: null,
+              resourceUses: null,
+            })
+          }
+        }
+      }
+    }
+
+    const row = classLevelRow(cls.slug, cls.level)
+    const rawRes = { ...((row?.resources as Record<string, unknown>) || {}) }
+    if (rawRes.bardic_inspiration_die != null) {
+      scales[`${cls.slug}:bardic_inspiration_die`] = rawRes.bardic_inspiration_die
+      rawRes.bardic_inspiration = true
+    }
+    // Arcane recovery
+    let hasArcane = false
+    for (const lr of levels) {
+      if (Number(lr.level || 0) > cls.level) continue
+      for (const f of (lr.features as Array<Record<string, unknown>>) || []) {
+        if (f.id === 'arcane-recovery') hasArcane = true
+      }
+    }
+    if (hasArcane && cls.slug === 'wizard') rawRes.arcane_recovery = 1
+    if (cls.slug === 'artificer' && cls.level >= 1) rawRes.magic_of_making = true
+
+    for (const [key, value] of Object.entries(rawRes)) {
+      if (SCALE_KEYS.has(key) || key === 'bardic_inspiration_die') {
+        if (key !== 'bardic_inspiration') scales[`${cls.slug}:${key}`] = value
+        continue
+      }
+      const meta = RESOURCE_META[key]
+      if (!meta) {
+        scales[`${cls.slug}:${key}`] = value
+        continue
+      }
+      const max = resolveResourceMax(meta, key, value, totalLevel, input.abilities || {})
+      if (max <= 0) continue
+      const built = buildResourceFeature(
+        cls.slug,
+        cls.entryId,
+        key,
+        max,
+        cls.level,
+        totalLevel,
+      )
+      if (!built) continue
+      features.push({
+        ...built.def,
+        classEntryId: cls.entryId,
+        className: cls.name,
+        classLevel: cls.level,
+        source: 'class',
+        subclassSlug: null,
+        subclassName: null,
+        scaleValue:
+          key === 'bardic_inspiration'
+            ? String(scales[`${cls.slug}:bardic_inspiration_die`] || '')
+            : key === 'rages'
+              ? String(rawRes.rage_damage ?? '')
+              : null,
+        resourceUses: built.desired.max,
+      })
+      const desired = { ...built.desired }
+      // Font of Inspiration (L5+): full short-rest restore → no shortRestRegain partial.
+      if (key === 'bardic_inspiration' && cls.level >= 5) {
+        // reset already flipped to short in buildResourceFeature
+      } else if (meta.short_rest_regain != null) {
+        desired.shortRestRegain = meta.short_rest_regain
+      }
+      desiredResources.push(desired)
+    }
+
+    const prog = CASTER_PROGRESSION[cls.slug] || 'none'
+    const sc = row?.spellcasting as Record<string, unknown> | null | undefined
+    if (prog !== 'none' && sc) {
+      const slots: Record<string, number> = Object.fromEntries(
+        Array.from({ length: 9 }, (_, i) => [String(i + 1), 0]),
+      )
+      let pact: { level: number; count: number } | null = null
+      if (prog === 'pact') {
+        const src =
+          (sc.pact_slots as Record<string, number> | undefined) ||
+          (sc.slots as Record<string, number> | undefined) ||
+          {}
+        pact = {
+          level: Number(src.slot_level || src.level || 1),
+          count: Number(src.count || 0),
+        }
+      } else {
+        const rawSlots = (sc.slots as Record<string, number>) || {}
+        for (const [k, v] of Object.entries(rawSlots)) {
+          if (/^\d+$/.test(k) && Number(k) >= 1 && Number(k) <= 9) slots[k] = Number(v || 0)
+        }
+      }
+      const free = alwaysPrepared(cls.subclassSlug, cls.level)
+      const unlockedIds = new Set<string>()
+      for (const lr of levels) {
+        if (Number(lr.level || 0) > cls.level) continue
+        for (const f of (lr.features as Array<Record<string, unknown>>) || []) {
+          unlockedIds.add(String(f.id))
+        }
+      }
+      if (unlockedIds.has('favored-enemy') && !free.includes('hunters-mark')) free.push('hunters-mark')
+      if (unlockedIds.has('paladins-smite') && !free.includes('divine-smite')) free.push('divine-smite')
+      if (unlockedIds.has('magic-of-making') && !free.includes('mending')) free.push('mending')
+
+      spellcasting.push({
+        class_slug: cls.slug,
+        progression: prog,
+        cantrips: Number(sc.cantrips || 0),
+        prepared_spells: Number(sc.prepared_spells || 0),
+        slots,
+        pact_slots: pact,
+        always_prepared: free,
+      })
+    }
+  }
+
+  const nonPact = spellcasting.filter((b) => b.progression !== 'pact')
+  const pactBlocks = spellcasting.filter((b) => b.progression === 'pact')
+  let multiclassSlots: Record<string, number>
+  if (parsed.length <= 1 && nonPact[0]) multiclassSlots = { ...nonPact[0].slots }
+  else if (nonPact.length) {
+    multiclassSlots = slotsForCasterLevel2024(
+      multiclassCasterLevel2024(parsed.map((p) => ({ slug: p.slug, level: p.level }))),
+    )
+  } else {
+    multiclassSlots = Object.fromEntries(Array.from({ length: 9 }, (_, i) => [String(i + 1), 0]))
+  }
+  let multiclassPact: { level: number; count: number } | null = null
+  if (pactBlocks.length) {
+    multiclassPact = pactBlocks.reduce((best, cur) => {
+      const b = best.pact_slots || { level: 0, count: 0 }
+      const c = cur.pact_slots || { level: 0, count: 0 }
+      return c.count + 10 * c.level >= b.count + 10 * b.level ? cur : best
+    }).pact_slots
+  }
+
+  return {
+    total_level: totalLevel,
+    proficiency_bonus: pb,
+    features,
+    desiredResources,
+    scales,
+    spellcasting,
+    multiclass_slots: multiclassSlots,
+    multiclass_pact: multiclassPact,
+    feat_levels_reached: [...featLevels].sort((a, b) => a - b),
+    epic_boon_reached: epic,
+    subclass_level: subclassLevel,
+  }
+}
+
+/** Apply 2024 short-rest policy (Second Wind regain 1). */
+export function applyShortRestResources2024(resources: SheetResource[]): SheetResource[] {
+  return resources.map((raw) => {
+    const reset = raw.reset
+    const used = Math.max(0, Math.floor(raw.used || 0))
+    const regain = (raw as SheetResource & { shortRestRegain?: number }).shortRestRegain
+    if (reset === 'short') return { ...raw, used: 0 }
+    if (typeof regain === 'number') {
+      return { ...raw, used: Math.max(0, used - Math.floor(regain)) }
+    }
+    if (raw.id.includes(':second_wind:')) {
+      return { ...raw, used: Math.max(0, used - 1) }
+    }
+    return raw
+  })
+}
+
+export function snapshotToSheetFragment2024(snap: ClassProgressSnapshot2024): Record<string, unknown> {
+  return {
+    total_level: snap.total_level,
+    proficiency_bonus: snap.proficiency_bonus,
+    subclass_level: snap.subclass_level,
+    feat_levels_reached: snap.feat_levels_reached,
+    epic_boon_reached: snap.epic_boon_reached,
+    features: snap.features.map((f) => ({
+      id: f.id,
+      class_slug: normalizeClassSlug2024(f.className) || f.classEntryId,
+      class_level: f.classLevel,
+      name_ru: f.name_ru,
+      name_en: f.name_en,
+      summary_ru: f.summary_ru,
+      source: f.source,
+      subclass_slug: f.subclassSlug,
+    })),
+    resources: snap.desiredResources.map((r) => ({
+      id: r.id,
+      pool_id: r.id.split(':')[2],
+      class_slug: r.classSlug,
+      name: r.name,
+      max: r.max,
+      used: 0,
+      reset: r.reset,
+      track: r.track,
+      onHot: true,
+      short_rest_regain: (r as DesiredFeatureResource & { shortRestRegain?: number }).shortRestRegain,
+      distinct_from_heroic: r.id.includes('bardic_inspiration'),
+      blocks_magic_action: r.id.includes('action_surge'),
+    })),
+    scales: snap.scales,
+    spellcasting: snap.spellcasting,
+    multiclass_slots: snap.multiclass_slots,
+    multiclass_pact: snap.multiclass_pact,
+  }
+}
+
+export function listClassSlugs2024(): string[] {
+  return Object.keys(CLASS_CATALOG).sort()
+}
+
+export function classCatalog2024() {
+  return CLASS_CATALOG
+}

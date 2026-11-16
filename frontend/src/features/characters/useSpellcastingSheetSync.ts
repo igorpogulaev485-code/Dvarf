@@ -7,9 +7,14 @@ import {
   applySpellcastingSuggestion,
   spellcastingTableChanged,
   suggestSpellcasting,
+  type SpellcastingSuggestion,
   type SubclassCasterOverlay,
 } from '../../shared/dnd/casterProgression'
 import { createClassLevel, type ClassLevelEntry } from '../../shared/dnd/classLevels'
+import {
+  computeProgression2024,
+  normalizeClassSlug2024,
+} from '../../shared/dnd/edition2024Classes'
 import { abilityModifier, type AbilityKey } from './sheetTypes'
 import {
   ensureInnateGrantCasts,
@@ -17,6 +22,7 @@ import {
   isKnownSpellcastingMode,
   type SpellsState,
 } from './spells'
+import { clampPactSlots, clampSlot } from '../../shared/dnd/spells'
 
 type UseSpellcastingSheetSyncArgs = {
   /** When false, only computes suggestion/knownCaster (no sheet writes). */
@@ -30,6 +36,48 @@ type UseSpellcastingSheetSyncArgs = {
   proficiencyBonus: number
   onChange: (spells: SpellsState) => void
   onToast?: (message: string) => void
+  /** P24-M02a: use 2024 catalog tables instead of 2014 PHB progression. */
+  rulesEdition?: string | null
+}
+
+function suggestionFromProgression2024(
+  classes: ClassLevelEntry[],
+): SpellcastingSuggestion | null {
+  const snap = computeProgression2024({ classes })
+  if (!snap.spellcasting.length && !Object.values(snap.multiclass_slots).some((n) => n > 0)) {
+    return null
+  }
+  const primary = snap.spellcasting[0]
+  const ability =
+    primary?.class_slug === 'wizard' || primary?.class_slug === 'artificer'
+      ? 'int'
+      : primary?.class_slug === 'cleric' ||
+          primary?.class_slug === 'druid' ||
+          primary?.class_slug === 'ranger'
+        ? 'wis'
+        : primary
+          ? 'cha'
+          : null
+  const slots = Object.fromEntries(
+    Object.entries(snap.multiclass_slots).map(([k, max]) => [k, clampSlot({ max, used: 0 })]),
+  )
+  const preparedSum = snap.spellcasting.reduce((s, b) => s + (b.prepared_spells || 0), 0)
+  const pact = snap.multiclass_pact
+    ? clampPactSlots({
+        max: snap.multiclass_pact.count,
+        used: 0,
+        level: snap.multiclass_pact.level,
+      })
+    : null
+  return {
+    slug: primary?.class_slug || normalizeClassSlug2024(classes[0]?.name) || 'caster',
+    labelRu: 'Заклинания 2024',
+    progression: (primary?.progression as SpellcastingSuggestion['progression']) || 'full',
+    casting_ability: ability,
+    max_prepared: preparedSum > 0 ? preparedSum : null,
+    slots,
+    pact_slots: pact,
+  }
 }
 
 /**
@@ -48,6 +96,7 @@ export function useSpellcastingSheetSync({
   proficiencyBonus,
   onChange,
   onToast,
+  rulesEdition = '2014',
 }: UseSpellcastingSheetSyncArgs) {
   const classRows = useMemo(() => {
     const rows = classes?.filter((row) => row.name.trim() && row.level > 0) ?? []
@@ -56,17 +105,18 @@ export function useSpellcastingSheetSync({
     return [createClassLevel({ name: className, level })]
   }, [classes, className, level])
 
-  const suggestion = useMemo(
-    () =>
-      suggestSpellcasting({
-        className,
-        level,
-        classes,
-        subclassCasters,
-        abilityModFor: (ability) => abilityModifier(abilities[ability]),
-      }),
-    [className, level, classes, subclassCasters, abilities],
-  )
+  const suggestion = useMemo(() => {
+    if (String(rulesEdition || '2014').trim() === '2024') {
+      return suggestionFromProgression2024(classRows)
+    }
+    return suggestSpellcasting({
+      className,
+      level,
+      classes,
+      subclassCasters,
+      abilityModFor: (ability) => abilityModifier(abilities[ability]),
+    })
+  }, [rulesEdition, className, level, classes, classRows, subclassCasters, abilities])
 
   const castProfiles = useMemo(
     () =>

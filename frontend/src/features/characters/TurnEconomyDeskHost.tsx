@@ -192,7 +192,8 @@ export function TurnEconomyDeskHost({ model, children }: Props) {
         patchEconomy((te) => markBlessedStrikesUsedState(te)),
       markFavoredFoeDamageUsed: () =>
         patchEconomy((te) => markFavoredFoeDamageUsedState(te)),
-      grantActionSurge: () => patchEconomy(applyActionSurge),
+      grantActionSurge: (opts) =>
+        patchEconomy((te) => applyActionSurge(te, opts)),
       canSearch: () => canSpendSearch(economy),
       spendSearch: () => patchEconomy(applySearchSpend),
       canHide: (hasCunningAction) => resolveHideTiming(economy, hasCunningAction),

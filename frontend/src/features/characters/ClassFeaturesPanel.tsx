@@ -379,6 +379,7 @@ function FeatureResourceControls({
   onFeatureBuffApply,
   moonCombatWildShape = false,
   scaleText = null,
+  edition = '2014',
 }: {
   feature: UnlockedFeature
   classSlug: string
@@ -399,6 +400,7 @@ function FeatureResourceControls({
   /** Circle of the Moon: Wild Shape is a bonus action. */
   moonCombatWildShape?: boolean
   scaleText?: string | null
+  edition?: RulesEdition
 }) {
   const perUseCap =
     feature.resource?.per_use_cap === 'half_class_level'
@@ -428,7 +430,9 @@ function FeatureResourceControls({
   }
   const markFeatureSpend = () => {
     if (isActionSurge) {
-      turnEco?.grantActionSurge()
+      turnEco?.grantActionSurge({
+        blocksMagic: String(edition ?? '2014').trim() === '2024',
+      })
       return
     }
     turnEco?.spendFeature(featureTiming)
@@ -2477,6 +2481,7 @@ function FeatureRow({
           onFeatureBuffApply={onFeatureBuffApply}
           moonCombatWildShape={moonCombatWildShape}
           scaleText={scaleShown}
+          edition={edition}
         />
       ) : null}
       {replacementStatus === 'active' &&

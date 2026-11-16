@@ -55,6 +55,11 @@ import { proficiencyBonusForTotalLevel } from '../../../shared/dnd/classFeatures
 import { classWalkSpeedBonusFt } from '../../../shared/dnd/classMovement'
 import { featurePicksToSheet } from '../../../shared/dnd/featurePicks'
 import { weaponMasteryToSheet } from '../../../shared/dnd/weaponMastery'
+import { classOptions2024ToSheet } from '../../../shared/dnd/edition2024ClassOptions'
+import {
+  computeProgression2024,
+  snapshotToSheetFragment2024,
+} from '../../../shared/dnd/edition2024Classes'
 import { fightingStyleAcBonusFromIds } from '../../../shared/dnd/fightingStyles'
 import {
   elegantCourtierPersuasionBonus,
@@ -1002,14 +1007,36 @@ export function useSheetEditorPart3(model: SheetModel) {
       sheet.companions = draftSnap.companions
       sheet.known_forms = draftSnap.knownForms
       sheet.feature_picks = featurePicksToSheet(draftSnap.featurePicks)
-      // P24-M01: persist weapon mastery only for 2024; strip on 2014.
+      // P24-M01 / M02a: persist 2024-only sheet fragments; strip on 2014.
       {
         const edition =
           model.baseCharacter?.rules_edition ?? model.rulesEdition ?? '2014'
         if (edition === '2024') {
           sheet.weapon_mastery = weaponMasteryToSheet(draftSnap.weaponMastery)
+          sheet.class_options_2024 = classOptions2024ToSheet(draftSnap.classOptions2024)
+          const progress = computeProgression2024({
+            classes: draftSnap.classes,
+            abilities: draftSnap.abilities,
+          })
+          const fragment = snapshotToSheetFragment2024(progress) as {
+            resources?: Array<Record<string, unknown>>
+            [key: string]: unknown
+          }
+          const usedById = new Map(
+            draftSnap.play.resources.map((r: { id: string; used: number }) => [
+              r.id,
+              r.used,
+            ] as const),
+          )
+          for (const row of fragment.resources || []) {
+            const id = String(row.id || '')
+            if (id && usedById.has(id)) row.used = usedById.get(id)
+          }
+          sheet.class_progress_2024 = fragment
         } else {
           delete sheet.weapon_mastery
+          delete sheet.class_progress_2024
+          delete sheet.class_options_2024
         }
       }
       sheet.class_asi = draftSnap.classAsi

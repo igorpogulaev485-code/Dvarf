@@ -35,6 +35,10 @@ import {
   readWeaponMasteryState,
   type WeaponMasteryState,
 } from '../../../shared/dnd/weaponMastery'
+import {
+  readClassOptions2024,
+  type ClassOptions2024State,
+} from '../../../shared/dnd/edition2024ClassOptions'
 import { bridgeOriginPicks } from '../../../shared/dnd/pack04SorcererWarlock'
 import {
   emptySubclassPicks,
@@ -135,6 +139,8 @@ export type Draft = {
   featurePicks: FeaturePicksState
   /** P24-M01: known weapon mastery slugs (2024 only). */
   weaponMastery: WeaponMasteryState
+  /** P24-M02a+: invocations / metamagic / plans / rage (2024 only). */
+  classOptions2024: ClassOptions2024State
   classAsi: AppliedClassAsi[]
   /** Barbarian 20 Primal Champion bonuses already written onto abilities. */
   primalChampion: PrimalChampionGrant | null
@@ -458,6 +464,7 @@ export function buildDraft(character: CharacterDetail): Draft {
       sheet,
     ),
     weaponMastery: readWeaponMasteryState(sheet.weapon_mastery) ?? emptyWeaponMasteryState(),
+    classOptions2024: readClassOptions2024(sheet.class_options_2024),
     classAsi: readClassAsiLedger(sheet.class_asi),
     primalChampion: readPrimalChampion(sheet.primal_champion),
     piety: readPiety(sheet.piety),

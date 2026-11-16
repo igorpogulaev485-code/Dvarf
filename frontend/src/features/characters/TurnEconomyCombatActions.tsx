@@ -1,9 +1,11 @@
 import { useState, type ReactNode } from 'react'
 import { useTurnEconomy } from './TurnEconomyContext'
 import {
+  ACTION_SURGE_MAGIC_BLOCK_HINT,
   STEADY_AIM_HINT,
   TURN_MARK_LABELS,
   applyNamedActionSpend,
+  canSpendMagicAction2024,
   canSpendSearch,
   markClearBlocked,
   movementClearBlocked,
@@ -829,7 +831,9 @@ export function TurnEconomyCombatActions({
         title={
           empty
             ? 'Всплеск действий: нет зарядов до короткого или продолжительного отдыха'
-            : `+1 действие (Всплеск) · само умение отметку хода не тратит · осталось ${actionSurge.remaining}/${actionSurge.max}`
+            : String(rulesEdition ?? '2014').trim() === '2024'
+              ? `+1 действие (Всплеск) · нельзя на «Магию» · осталось ${actionSurge.remaining}/${actionSurge.max}`
+              : `+1 действие (Всплеск) · само умение отметку хода не тратит · осталось ${actionSurge.remaining}/${actionSurge.max}`
         }
         onClick={() => {
           if (actionSurge.remaining <= 0) return
@@ -892,6 +896,11 @@ export function TurnEconomyCombatActions({
         continue
       }
       const spentAs = action.spentAs ?? action.id
+      const magicGate =
+        action.id === 'magic'
+          ? canSpendMagicAction2024(turnEco.turnEconomy)
+          : searchGate
+      const actionGate = action.id === 'magic' ? magicGate : searchGate
       push(
         action.id,
         ['action'],
@@ -900,10 +909,18 @@ export function TurnEconomyCombatActions({
           key={action.id}
           type="button"
           className="sheet-chip"
-          disabled={!searchGate.ok}
-          title={searchGate.ok ? action.hintRu : searchGate.reason}
+          disabled={!actionGate.ok}
+          title={actionGate.ok ? action.hintRu : actionGate.reason}
           onClick={() => {
-            if (!canSpendSearch(turnEco.turnEconomy).ok) return
+            if (action.id === 'magic') {
+              const gate = canSpendMagicAction2024(turnEco.turnEconomy)
+              if (!gate.ok) {
+                onToast?.(gate.reason || ACTION_SURGE_MAGIC_BLOCK_HINT)
+                return
+              }
+            } else if (!canSpendSearch(turnEco.turnEconomy).ok) {
+              return
+            }
             turnEco.patchTurnEconomy((s) =>
               applyNamedActionSpend(
                 s,
