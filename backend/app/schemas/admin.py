@@ -194,4 +194,5 @@ class AdminMetricsResponse(BaseModel):
     characters: AdminMetricsCharacters
     lobbies: AdminMetricsLobbies
     sessions: AdminMetricsSessions
+    feedback_new: int = 0
     daily: list[AdminMetricsDayPoint]

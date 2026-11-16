@@ -2,6 +2,7 @@ from app.models.admin import AdminAuditLog, AdminRole, AdminRoleName, AdminSecre
 from app.models.catalog import CatalogEntry, CatalogKind, CatalogRulesEdition
 from app.models.character import Character, RulesEdition
 from app.models.product_event import ProductEvent, ProductEventType
+from app.models.feedback import FeedbackMessage, FeedbackStatus, FeedbackTopic
 from app.models.chat import (
     ChatChannel,
     ChatMessage,
@@ -60,6 +61,9 @@ __all__ = [
     "ChatReadCursor",
     "EmailChangeToken",
     "EmailVerificationToken",
+    "FeedbackMessage",
+    "FeedbackStatus",
+    "FeedbackTopic",
     "Lobby",
     "LobbyMedia",
     "LobbyMember",
