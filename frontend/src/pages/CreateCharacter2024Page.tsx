@@ -13,6 +13,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { AbilitiesStep } from '../features/createPipeline/AbilitiesStep'
 import { CatalogCardList, type CatalogCardItem } from '../features/createPipeline/CatalogCardList'
 import { CreatePipelineShell } from '../features/createPipeline/CreatePipelineShell'
+import { Create2024IdentityFields } from '../features/createPipeline2024/Create2024IdentityFields'
 import { Create2024DetailPanel } from '../features/createPipeline2024/Create2024DetailPanel'
 import {
   BackgroundPicks,
@@ -78,10 +79,10 @@ import {
 } from '../shared/api/characters'
 import { getAccessToken } from '../shared/api/client'
 import { catalogSourceLabelRu } from '../shared/dnd/catalogSourceLabelRu'
-import { CHARACTER_GENDER_LABELS, CHARACTER_GENDERS } from '../shared/dnd/characterGender'
+import { CHARACTER_GENDER_LABELS, parseCharacterGender } from '../shared/dnd/characterGender'
 import { ABILITY_LABEL_RU, type AbilityKey } from '../shared/dnd/pointBuy'
 import { RULES_EDITION_2024_OPEN } from '../shared/dnd/rulesEdition2024'
-import { Button, Dialog, Field, Input, NumberInput, Stack, Text, ToggleChip } from '../ui'
+import { Button, Dialog, Field, NumberInput, Stack, Text } from '../ui'
 
 export type Create2024Harness = {
   catalog: Create2024CatalogBundle
@@ -354,27 +355,7 @@ export function CreateCharacter2024Page({
     ) : null
 
   const identityFields = (
-    <Stack gap={10} className="create-2024__identity">
-      <Field label="Имя персонажа">
-        <Input
-          value={state.characterName}
-          onChange={(e) => patch({ characterName: e.target.value })}
-          placeholder="Как зовут героя?"
-          data-testid="p24-m03-name"
-        />
-      </Field>
-      <div className="create-2024__gender" role="group" aria-label="Пол персонажа">
-        {CHARACTER_GENDERS.map((g) => (
-          <ToggleChip
-            key={g}
-            main={CHARACTER_GENDER_LABELS[g]}
-            checked={state.gender === g}
-            onChange={() => patch({ gender: state.gender === g ? null : g })}
-            data-testid={`p24-m03-gender-${g}`}
-          />
-        ))}
-      </div>
-    </Stack>
+    <Create2024IdentityFields state={state} speciesEntry={speciesEntry} patch={patch} />
   )
 
   function phoneSetupBar(title: string, name: string) {
@@ -781,7 +762,10 @@ export function CreateCharacter2024Page({
           )
         : null
     const humanFeat = findFeat(catalogData.feats, state.speciesFeatSlug)
+    const genderLabel = parseCharacterGender(state.gender)
     const choices: Array<[string, string]> = [
+      ['Имя', state.characterName.trim() || '—'],
+      ['Пол', genderLabel ? CHARACTER_GENDER_LABELS[genderLabel] : '—'],
       ['Вид', speciesEntry?.name_ru ?? '—'],
       ['Предыстория', backgroundEntry?.name_ru ?? '—'],
       ['Класс', classEntry?.name_ru ?? '—'],
@@ -814,7 +798,6 @@ export function CreateCharacter2024Page({
     detail = (
       <div data-testid="p24-m03-step-leveling">
         <Stack gap={16}>
-          {identityFields}
           <Stack gap={8}>
             <Field label="Уровень персонажа">
               <NumberInput
@@ -835,6 +818,10 @@ export function CreateCharacter2024Page({
                 создания.
               </Text>
             ) : null}
+            <Text tone="muted" data-testid="p24-m03-multiclass-note">
+              Мультикласс (например, воин 3 → волшебник 1) добавляется на листе: «Основное» →
+              «+1 уровень» → «Мультикласс». Требования характеристик 2024 проверяются там.
+            </Text>
             {state.characterLevel >= 3 ? (
               <Text tone="muted" data-testid="p24-m03-subclass-note">
                 Подкласс {classEntry ? `класса «${classEntry.name_ru}» ` : ''}открывается с 3

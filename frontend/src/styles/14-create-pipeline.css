@@ -761,6 +761,18 @@
   gap: 8px;
 }
 
+.create-2024__name-row {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+}
+
+.create-2024__name-row > .ui-input,
+.create-2024__name-row > input {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
 .create-2024__sheet {
   padding: 14px;
   border: 1px solid var(--line);

@@ -303,6 +303,7 @@ export function applyClassGrantToDraft(input: {
   def?: ClassGrantDef | null
   catalogSlug?: string | null
   catalogData?: Record<string, unknown> | null
+  rulesEdition?: string | null
 }): { draft: ClassGrantDraftSlice; summary: string } | null {
   const def =
     input.def ??
@@ -310,6 +311,7 @@ export function applyClassGrantToDraft(input: {
       className: input.className,
       catalogSlug: input.catalogSlug,
       catalogData: input.catalogData,
+      rulesEdition: input.rulesEdition,
     })
   if (!def) return null
 

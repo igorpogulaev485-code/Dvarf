@@ -11,6 +11,7 @@ import {
   slotsForCasterLevel2024,
 } from './edition2024Classes'
 import { createClassLevel } from './classLevels'
+import { multiclassPackage2024, resolveClassGrantDef } from './classGrants'
 import { RULES_EDITION_2024_OPEN } from './rulesEdition2024'
 
 assert.equal(RULES_EDITION_2024_OPEN, false)
@@ -98,5 +99,46 @@ assert.equal(multiclassCasterLevel2024([
   { slug: 'wizard', level: 2 },
 ]), 5)
 assert.equal(slotsForCasterLevel2024(5)['3'], 2)
+
+// MULTICLASS_PROFICIENCIES_2024 feeds the sheet grant package (not the full start package).
+const wizardData2024 = {
+  armor: [],
+  weapons: { simple: true, martial: false, extras: [] },
+  saving_throws: ['int', 'wis'],
+  hit_die: 6,
+  skill_choices: { count: 2, from: ['arcana', 'history', 'insight'] },
+}
+const wizardGrant = resolveClassGrantDef({
+  className: 'Волшебник',
+  catalogSlug: 'wizard',
+  catalogData: wizardData2024,
+  rulesEdition: '2024',
+})
+assert.ok(wizardGrant)
+assert.deepEqual(wizardGrant.multiclass.skillChoices, null, '2024 wizard multiclass: no skills')
+assert.deepEqual(wizardGrant.multiclass.weapons, [], '2024 wizard multiclass: no weapons')
+assert.deepEqual(wizardGrant.multiclass.saves, [], 'multiclass never grants saves')
+assert.deepEqual(wizardGrant.start.skillChoices?.count, 2, 'start package untouched')
+
+const fighterMc = multiclassPackage2024('fighter', null)
+assert.deepEqual(fighterMc?.armor, ['light', 'medium', 'shields'])
+assert.deepEqual(fighterMc?.weapons, ['simple', 'martial'])
+const rogueMc = multiclassPackage2024('rogue', {
+  skill_choices: { count: 4, from: ['acrobatics', 'stealth', 'deception'] },
+})
+assert.equal(rogueMc?.skillChoices?.count, 1, 'rogue multiclass: 1 skill')
+assert.deepEqual(rogueMc?.skillChoices?.from, ['acrobatics', 'stealth', 'deception'])
+assert.deepEqual(rogueMc?.toolsFixed, ['Воровские инструменты'])
+assert.deepEqual(rogueMc?.armor, ['light'])
+const bardMc = multiclassPackage2024('bard', { skill_choices: { count: 3, from_any: true } })
+assert.equal(bardMc?.skillChoices?.from, 'any')
+assert.equal(bardMc?.toolChoices?.count, 1)
+const monkMc = multiclassPackage2024('monk', null)
+assert.ok(monkMc?.weaponExtras.some((row) => /лёгкое/.test(row)))
+assert.equal(monkMc?.toolChoices?.count, 1)
+assert.equal(multiclassPackage2024('homebrew', null), null)
+// 2014 stays on the PHB table.
+const wizard2014 = resolveClassGrantDef({ className: 'Волшебник', rulesEdition: '2014' })
+assert.deepEqual(wizard2014?.multiclass.skillChoices, null)
 
 console.log('edition2024Classes.selfcheck: ok')

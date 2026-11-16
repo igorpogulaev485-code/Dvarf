@@ -146,6 +146,17 @@ export function normalizeSlug(value: string): string {
   return value.trim().toLowerCase().replace(/_/g, '-')
 }
 
+/** Russian noun form after a number: 1 заклинание / 2–4 заклинания / 5+ заклинаний. */
+export function ruPlural(n: number, one: string, few: string, many: string): string {
+  const abs = Math.abs(Math.trunc(n))
+  const mod100 = abs % 100
+  if (mod100 >= 11 && mod100 <= 14) return many
+  const last = abs % 10
+  if (last === 1) return one
+  if (last >= 2 && last <= 4) return few
+  return many
+}
+
 /** `1d8` → `1к8` (Russian dice notation in UI copy). */
 export function ruDice(text: string): string {
   return text

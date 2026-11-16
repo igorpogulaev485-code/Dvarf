@@ -145,7 +145,7 @@ type Walk = {
 async function walkSpecies(page: Page, walk: Walk) {
   await expect(page.getByTestId('p24-m03-step-species')).toBeVisible()
   await selectCatalogCard(page, walk.species.title)
-  // Name and gender live in the species setup (and are repeated on leveling).
+  // Name and gender are required on the species setup (and shown in the leveling summary).
   await page.getByTestId('p24-m03-name').fill(walk.name)
   await page.getByTestId('p24-m03-gender-male').click()
   if (walk.species.size) await pickPrefixed(page, 'p24-m03-pick-size', [walk.species.size])
@@ -440,6 +440,49 @@ test.describe('P24-M03 create 2024 wizard v2', () => {
     await shot(page, 'create-2024-entry', testInfo.project.name)
   })
 
+  test('вид: имя и пол обязательны, кубик имени заполняет поле', async ({ page }, testInfo) => {
+    test.skip(process.env.P24_E2E_SKIP_LIVE === '1', 'live API skipped')
+    const project = testInfo.project.name
+    await loginViaApi(page)
+    await page.goto(CREATE_2024_URL)
+    await expect(page.getByTestId('p24-m03-step-species')).toBeVisible({ timeout: 45_000 })
+
+    await selectCatalogCard(page, 'Дварф')
+    const name = page.getByTestId('p24-m03-name')
+    const dice = page.getByTestId('p24-m03-name-generate')
+    const nextBtn = page.getByTestId('p24-m03-next')
+    await expect(name).toBeVisible()
+    await expect(dice).toBeDisabled()
+
+    const nextEnabled = async () => {
+      await closeSetupDialog(page)
+      return nextBtn.isEnabled()
+    }
+    expect(await nextEnabled(), 'без имени и пола «Далее» закрыто').toBe(false)
+    await ensureSetupOpen(page)
+
+    await name.fill('Тордек')
+    expect(await nextEnabled(), 'имя без пола — «Далее» закрыто').toBe(false)
+    await ensureSetupOpen(page)
+    await expect(page.getByTestId('p24-m03-issues')).toContainText('Выберите пол персонажа')
+
+    await page.getByTestId('p24-m03-gender-female').click()
+    await expect(dice).toBeEnabled()
+    await name.fill('')
+    await dice.click()
+    const generated = await name.inputValue()
+    expect(generated.trim().length, 'кубик дал имя').toBeGreaterThan(1)
+    expect(generated).toMatch(/[А-Яа-яЁё]/)
+    await dice.click()
+    await expect(name).not.toHaveValue('')
+    await shot(page, 'species-name-generate', project)
+    expect(await nextEnabled(), 'имя и пол заданы — «Далее» открыто').toBe(true)
+    await ensureSetupOpen(page)
+    await page.getByTestId('p24-m03-gender-male').click()
+    await page.getByTestId('p24-m03-gender-male').click()
+    await expect(page.getByTestId('p24-m03-issues')).toContainText('Выберите пол персонажа')
+  })
+
   for (const walk of WALKS) {
     test(`live create ${walk.key}`, async ({ page }, testInfo) => {
       test.skip(process.env.P24_E2E_SKIP_LIVE === '1', 'live API skipped')
@@ -472,7 +515,11 @@ test.describe('P24-M03 create 2024 wizard v2', () => {
       await next(page)
 
       await expect(page.getByTestId('p24-m03-step-leveling')).toBeVisible()
-      await expect(page.getByTestId('p24-m03-name')).toHaveValue(walk.name)
+      await expect(page.getByTestId('p24-m03-name')).toHaveCount(0)
+      await expect(page.getByTestId('p24-m03-gender-male')).toHaveCount(0)
+      const summary = page.locator('.create-2024__list').first()
+      await expect(summary).toContainText(`Имя: ${walk.name}`)
+      await expect(summary).toContainText('Пол: Мужской')
       if (walk.spells) await walkSpells(page, walk.spells, project)
       await expect(page.getByTestId('p24-m03-finish')).toBeEnabled()
       await shot(page, `${walk.key}-leveling`, project)

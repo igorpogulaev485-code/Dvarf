@@ -245,6 +245,19 @@ def _require_mapping(value: Mapping[str, Any] | None, label: str) -> dict[str, A
     return dict(value)
 
 
+def _ru_plural(n: int, one: str, few: str, many: str) -> str:
+    """Russian noun form after a number: 1 заговор / 2–4 заговора / 5+ заговоров."""
+    n = abs(int(n))
+    if 11 <= n % 100 <= 14:
+        return many
+    last = n % 10
+    if last == 1:
+        return one
+    if 2 <= last <= 4:
+        return few
+    return many
+
+
 def _normalize_slug(value: str | None) -> str:
     # Keep underscores (e.g. species elf__lfl, skill animal_handling).
     return (value or "").strip().lower()
@@ -812,7 +825,8 @@ def _validate_spells(payload: Create2024Payload) -> dict[str, Any]:
         )
     if len(cantrips) != cantrip_need or len(set(cantrips)) != len(cantrips):
         raise Create2024Error(
-            f"Нужно {cantrip_need} заговора(ов), выбрано {len(cantrips)}",
+            f"Нужно {cantrip_need} {_ru_plural(cantrip_need, 'заговор', 'заговора', 'заговоров')}, "
+            f"выбрано {len(cantrips)}",
             code="create_2024_spells",
         )
     # Always-prepared (e.g. hunter's mark) do not consume the prepared budget.
@@ -820,7 +834,9 @@ def _validate_spells(payload: Create2024Payload) -> dict[str, Any]:
     prepared_budget = [p for p in prepared if p not in always]
     if len(prepared_budget) != prep_need or len(set(prepared)) != len(prepared):
         raise Create2024Error(
-            f"Нужно {prep_need} подготовленных заклинаний 1 круга, выбрано {len(prepared_budget)}",
+            f"Нужно {prep_need} "
+            f"{_ru_plural(prep_need, 'подготовленное заклинание', 'подготовленных заклинания', 'подготовленных заклинаний')} "
+            f"1 круга, выбрано {len(prepared_budget)}",
             code="create_2024_spells",
         )
 

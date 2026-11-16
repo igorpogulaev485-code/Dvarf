@@ -4,6 +4,7 @@ import { existsSync, readFileSync, readdirSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { RULES_EDITION_2024_OPEN } from './rulesEdition2024'
+import { speciesNamingSlug } from '../../features/createPipeline2024/Create2024IdentityFields'
 import {
   CREATE_2024_STEPS,
   CREATE_2024_STEP_LABELS,
@@ -142,6 +143,7 @@ state = {
   classEquipment: 'a',
   backgroundEquipment: 'pack',
   characterName: 'Тест-воин',
+  gender: 'male',
 }
 
 assert.equal(
@@ -184,10 +186,26 @@ assert.ok(
   'class equipment is validated inside the class step',
 )
 assert.deepEqual(create2024StepIssues('leveling', state, issueCtx), [])
-assert.ok(
-  create2024StepIssues('leveling', { ...state, characterName: ' ' }, issueCtx).length > 0,
-  'name required to finish',
+assert.deepEqual(
+  create2024StepIssues('leveling', { ...state, characterName: ' ', gender: null }, issueCtx),
+  [],
+  'name and gender are no longer a leveling concern',
 )
+assert.deepEqual(create2024StepIssues('species', state, issueCtx), [])
+assert.ok(
+  create2024StepIssues('species', { ...state, characterName: ' ' }, issueCtx).includes(
+    'Введите имя персонажа',
+  ),
+  'species step needs a name',
+)
+assert.ok(
+  create2024StepIssues('species', { ...state, gender: null }, issueCtx).includes(
+    'Выберите пол персонажа',
+  ),
+  'species step needs a gender',
+)
+assert.equal(speciesNamingSlug('elf__lfl'), 'elf', 'catalog suffix is stripped for naming tables')
+assert.equal(speciesNamingSlug('lorwyn-changeling'), 'lorwyn_changeling')
 assert.ok(create2024StepIssues('feat', { ...state, speciesSlug: 'human' }, { ...issueCtx, speciesEntry: humanSpecies }).length > 0)
 
 const req = toCreate2024Request(state, { isPreview: true })
@@ -251,9 +269,22 @@ assert.match(wizardSrc, /RULES_EDITION_2024_OPEN/)
 for (const id of ['species', 'feat', 'background', 'class', 'abilities', 'leveling']) {
   assert.match(wizardSrc, new RegExp(`p24-m03-step-${id}`), `step test id ${id}`)
 }
-for (const id of ['p24-m03-name', 'p24-m03-gender-', 'p24-m03-finish', 'p24-m03-next']) {
+for (const id of ['p24-m03-finish', 'p24-m03-next']) {
   assert.ok(wizardSrc.includes(id), `test id ${id}`)
 }
+const identitySrc = readFileSync(
+  join(here, '../../features/createPipeline2024/Create2024IdentityFields.tsx'),
+  'utf8',
+)
+for (const id of ['p24-m03-name', 'p24-m03-gender-', 'p24-m03-name-generate']) {
+  assert.ok(identitySrc.includes(id), `identity test id ${id}`)
+}
+assert.match(identitySrc, /generateRaceName/, 'dice uses the 2014 naming engine')
+assert.equal(
+  (wizardSrc.match(/\{identityFields\}/g) ?? []).length,
+  1,
+  'identity fields render once (species setup), not on leveling',
+)
 for (const old of ['languages', 'equipment', 'summary']) {
   assert.doesNotMatch(wizardSrc, new RegExp(`step === '${old}'`), `no dedicated ${old} step`)
 }
@@ -410,6 +441,7 @@ function autoState(classEntry: CatalogEntry, bg: CatalogEntry, species: CatalogE
           .map((s) => s.slug)
       : [],
     characterName: 'Проверка',
+    gender: 'female',
   }
 }
 

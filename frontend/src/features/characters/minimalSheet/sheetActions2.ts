@@ -335,6 +335,7 @@ export function installSheetActions2(model: SheetModel) {
         def: input.def,
         catalogSlug: input.catalogSlug,
         catalogData: input.catalogData,
+        rulesEdition: model.baseCharacter?.rules_edition ?? model.rulesEdition ?? '2014',
       })
       if (!applied) return prev
       summary = applied.summary
@@ -360,6 +361,7 @@ export function installSheetActions2(model: SheetModel) {
       className: input.className,
       catalogSlug: input.catalogSlug,
       catalogData: input.catalogData,
+      rulesEdition: model.baseCharacter?.rules_edition ?? model.rulesEdition ?? '2014',
     })
     if (!def) {
       model.onToast(`Класс «${input.className}» пока без пакета владений — выставь вручную`)

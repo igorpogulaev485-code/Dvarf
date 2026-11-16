@@ -474,6 +474,37 @@ def test_wizard_prepared_must_be_subset_of_book():
     assert exc.value.code == "create_2024_spells"
 
 
+def test_ru_plural_forms():
+    plural = create24._ru_plural
+    forms = ("заклинание", "заклинания", "заклинаний")
+    assert [plural(n, *forms) for n in (1, 2, 4, 5, 11, 12, 14, 21, 22, 25)] == [
+        "заклинание",
+        "заклинания",
+        "заклинания",
+        "заклинаний",
+        "заклинаний",
+        "заклинаний",
+        "заклинаний",
+        "заклинание",
+        "заклинания",
+        "заклинаний",
+    ]
+
+
+def test_spell_count_errors_use_russian_declension():
+    payload = build_valid_payload("cleric")
+    payload["prepared_spell_ids"] = payload["prepared_spell_ids"][:-1]
+    with pytest.raises(create24.Create2024Error) as exc:
+        create24.validate_create_2024(create24.payload_from_dict(payload))
+    assert "Нужно 4 подготовленных заклинания 1 круга, выбрано 3" in str(exc.value)
+
+    payload = build_valid_payload("cleric")
+    payload["cantrip_ids"] = payload["cantrip_ids"][:-1]
+    with pytest.raises(create24.Create2024Error) as exc:
+        create24.validate_create_2024(create24.payload_from_dict(payload))
+    assert "Нужно 3 заговора, выбрано 2" in str(exc.value)
+
+
 def test_non_wizard_rejects_spellbook_ids():
     payload = build_valid_payload("cleric")
     payload["spellbook_spell_ids"] = _spell_pick("wizard", 1, 6)

@@ -1,6 +1,7 @@
 /** P24-M03: client-side step validation + helpers for the 2024 create wizard. */
 
 import type { AbilityScores } from '../../shared/dnd/multiclassRules'
+import { parseCharacterGender } from '../../shared/dnd/characterGender'
 import { ABILITY_ORDER, type AbilityKey } from '../../shared/dnd/pointBuy'
 import {
   WEAPON_MASTERY_CLASS_RULES,
@@ -17,6 +18,7 @@ import {
   GAMING_SET_IDS,
   MUSICAL_INSTRUMENT_IDS,
   normalizeSlug,
+  ruPlural,
   type ItemNameIndex,
 } from './create2024Labels'
 import {
@@ -326,6 +328,8 @@ function speciesIssues(state: Create2024State, ctx: StepIssueCtx): string[] {
   const { speciesEntry } = ctx
   const issues: string[] = []
   if (!state.speciesSlug || !speciesEntry) return ['Выберите вид']
+  if (!state.characterName.trim()) issues.push('Введите имя персонажа')
+  if (!parseCharacterGender(state.gender)) issues.push('Выберите пол персонажа')
   const sizes = speciesSizeOptions(speciesEntry)
   if (sizes.length > 1 && !state.speciesSize) issues.push('Выберите размер')
   if (speciesNeedsLineage(speciesEntry) && !state.speciesLineageId) {
@@ -488,7 +492,7 @@ function levelingIssues(state: Create2024State, ctx: StepIssueCtx): string[] {
         new Set(state.preparedSpellIds).size !== state.preparedSpellIds.length
       ) {
         issues.push(
-          `Подготовка: не больше ${sc.prepared_spells} заклинаний (выбрано ${state.preparedSpellIds.length})`,
+          `Подготовка: не больше ${sc.prepared_spells} ${ruPlural(sc.prepared_spells, 'заклинания', 'заклинаний', 'заклинаний')} (выбрано ${state.preparedSpellIds.length})`,
         )
       } else if (state.preparedSpellIds.length < sc.prepared_spells) {
         issues.push(
@@ -501,7 +505,6 @@ function levelingIssues(state: Create2024State, ctx: StepIssueCtx): string[] {
       )
     }
   }
-  if (!state.characterName.trim()) issues.push('Введите имя персонажа')
   return issues
 }
 

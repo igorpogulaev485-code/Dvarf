@@ -139,6 +139,80 @@ async function levelUpSameClass(page: Page) {
   await expect(dialog).toBeHidden()
 }
 
+type SheetJson = {
+  classes?: Array<{ name?: string; level?: number }>
+  abilities?: Record<string, { score: number }>
+  proficiency?: { armor?: Record<string, boolean>; weapons?: Record<string, boolean> }
+  spells?: { slots?: Record<string, { max?: number; used?: number } | number> }
+  [key: string]: unknown
+}
+
+async function getSheet(page: Page, access: string, id: string): Promise<SheetJson> {
+  const res = await page.request.get(`${API}/characters/${id}`, {
+    headers: { authorization: `Bearer ${access}` },
+  })
+  expect(res.ok(), await res.text()).toBeTruthy()
+  return ((await res.json()).sheet ?? {}) as SheetJson
+}
+
+async function slotMax(page: Page, access: string, id: string, level: string): Promise<number> {
+  const slot = (await getSheet(page, access, id)).spells?.slots?.[level]
+  if (typeof slot === 'number') return slot
+  return slot?.max ?? 0
+}
+
+async function setAbilityScore(
+  page: Page,
+  access: string,
+  id: string,
+  key: string,
+  score: number,
+) {
+  const detail = await page.request.get(`${API}/characters/${id}`, {
+    headers: { authorization: `Bearer ${access}` },
+  })
+  const body = (await detail.json()) as { sheet: SheetJson; sheet_version: number }
+  const abilities = { ...(body.sheet.abilities ?? {}), [key]: { score } }
+  const res = await page.request.patch(`${API}/characters/${id}`, {
+    headers: { authorization: `Bearer ${access}` },
+    data: { sheet: { ...body.sheet, abilities }, sheet_version: body.sheet_version },
+  })
+  expect(res.ok(), await res.text()).toBeTruthy()
+}
+
+async function createCharacter2024(
+  page: Page,
+  access: string,
+  data: Record<string, unknown>,
+): Promise<string> {
+  const res = await page.request.post(`${API}/characters/create-2024`, {
+    headers: { authorization: `Bearer ${access}` },
+    data: { is_preview: true, ...data },
+  })
+  expect(res.ok(), await res.text()).toBeTruthy()
+  return String((await res.json()).id)
+}
+
+async function openMulticlassDialog(page: Page) {
+  await page.getByRole('button', { name: '+1 уровень' }).click()
+  const dialog = page.getByRole('dialog').filter({
+    has: page.getByRole('heading', { name: 'Повышение уровня', exact: true }),
+  })
+  await expect(dialog).toBeVisible()
+  await dialog.getByRole('button', { name: 'Мультикласс', exact: true }).click()
+  await expect(dialog.getByText('Новый класс')).toBeVisible()
+  return dialog
+}
+
+/** Class-feature picks that open right after a multiclass level (e.g. Fighting Style) can wait. */
+async function postponeGuidedWizard(page: Page) {
+  const later = page.getByRole('dialog').getByRole('button', { name: 'Позже' })
+  while (await later.first().isVisible({ timeout: 2_500 }).catch(() => false)) {
+    await later.first().click()
+  }
+  await expect(page.locator('.ui-dialog-backdrop')).toHaveCount(0)
+}
+
 test.describe('P24-M03 level-up 2024', () => {
   test('воин 2024: 1→4 ур. (подкласс, ASI), −1 снимает ASI, текст без «PHB 2014»', async ({
     page,
@@ -228,5 +302,151 @@ test.describe('P24-M03 level-up 2024', () => {
     await openIdentity(page)
     await page.getByRole('button', { name: '−1', exact: true }).click()
     await expect.poll(() => bookSpellCount(page, access, id), { timeout: 20_000 }).toBe(6)
+  })
+
+  test('мультикласс 2024: воин 3 → волшебник 1 (требования, откат)', async ({ page }, testInfo) => {
+    const project = testInfo.project.name
+    const access = await loginViaApi(page)
+    const id = await createFighter2024(page, access)
+
+    await page.goto(`/characters/${id}`)
+    await expect(page.getByText('Воин для уровней').first()).toBeVisible({ timeout: 45_000 })
+
+    await openIdentity(page)
+    await levelUpSameClass(page)
+    await openIdentity(page)
+    await levelUpSameClass(page)
+    const subclassWizard = page.getByRole('dialog').filter({ hasText: 'подкласс' })
+    await expect(subclassWizard.first()).toBeVisible({ timeout: 15_000 })
+    await subclassWizard.first().getByRole('combobox').fill('Чемпион')
+    await page.getByRole('option', { name: 'Чемпион', exact: true }).click()
+    await expect(subclassWizard.first()).toBeHidden({ timeout: 15_000 })
+    await expect
+      .poll(async () => (await getSheet(page, access, id)).classes?.[0]?.level, { timeout: 20_000 })
+      .toBe(3)
+
+    // ИНТ 8: волшебник закрыт требованиями 2024.
+    await openIdentity(page)
+    let dialog = await openMulticlassDialog(page)
+    await expect(dialog).toContainText('редакция 2024')
+    const combo = dialog.getByRole('combobox')
+    await combo.fill('Волшебник')
+    await expect(page.getByRole('option', { name: 'Волшебник', exact: true })).toHaveCount(0)
+    await page.waitForTimeout(300)
+    await shot(page, 'mc-dialog-wizard-gated', project)
+    await combo.fill('Плут')
+    await expect(page.getByRole('option', { name: 'Плут', exact: true })).toBeVisible()
+    await page.waitForTimeout(300)
+    await shot(page, 'mc-dialog-gated', project)
+    await dialog.getByRole('button', { name: 'Отмена' }).click()
+    await expect(dialog).toBeHidden()
+
+    // ИНТ 14: волшебник доступен.
+    await setAbilityScore(page, access, id, 'int', 14)
+    await page.reload()
+    await expect(page.getByText('Воин для уровней').first()).toBeVisible({ timeout: 45_000 })
+    await openIdentity(page)
+    dialog = await openMulticlassDialog(page)
+    await dialog.getByRole('combobox').fill('Волшебник')
+    await page.getByRole('option', { name: 'Волшебник', exact: true }).click()
+    await expect(dialog.locator('.ui-text--danger')).toHaveCount(0)
+    await page.waitForTimeout(300)
+    await shot(page, 'mc-dialog-pick', project)
+    await dialog.getByRole('button', { name: 'Повысить' }).click()
+    await expect(dialog).toBeHidden()
+    await postponeGuidedWizard(page)
+
+    await expect
+      .poll(
+        async () => {
+          const sheet = await getSheet(page, access, id)
+          return (sheet.classes ?? []).map((row) => `${row.name} ${row.level}`).join(' / ')
+        },
+        { timeout: 20_000 },
+      )
+      .toBe('Воин 3 / Волшебник 1')
+    await expect.poll(() => slotMax(page, access, id, '1')).toBe(2)
+
+    await openIdentity(page)
+    await expect(page.getByText('Воин 3', { exact: false }).first()).toBeAttached()
+    await expect(page.getByText('Волшебник 1', { exact: false }).first()).toBeAttached()
+    await page.waitForTimeout(300)
+    await shot(page, 'mc-sheet-identity', project)
+    await page.getByRole('button', { name: 'Закрыть', exact: true }).click()
+    await page.waitForTimeout(300)
+    await shot(page, 'mc-sheet', project)
+    await openIdentity(page)
+
+    // −1 на строке волшебника снимает класс целиком.
+    await page.getByRole('button', { name: '−1', exact: true }).last().click()
+    await expect
+      .poll(
+        async () => {
+          const sheet = await getSheet(page, access, id)
+          return (sheet.classes ?? []).map((row) => `${row.name} ${row.level}`).join(' / ')
+        },
+        { timeout: 20_000 },
+      )
+      .toBe('Воин 3')
+    await expect.poll(() => slotMax(page, access, id, '1')).toBe(0)
+    await page.getByRole('button', { name: 'Закрыть', exact: true }).click()
+    await shot(page, 'mc-sheet-after-rollback', project)
+  })
+
+  test('мультикласс 2024: владения воина (MULTICLASS_PROFICIENCIES_2024) и откат', async ({
+    page,
+  }, testInfo) => {
+    const project = testInfo.project.name
+    const access = await loginViaApi(page)
+    const id = await createCharacter2024(page, access, {
+      name: 'Маг-мультикласс',
+      class_slug: 'wizard',
+      background_slug: 'soldier',
+      species_slug: 'dwarf',
+      ability_method: 'standard_array',
+      base_abilities: { str: 13, dex: 14, con: 12, int: 15, wis: 8, cha: 10 },
+      background_asi_mode: '+2/+1',
+      background_asi: { str: 2, con: 1 },
+      language_ids: ['elvish', 'dwarvish'],
+      class_skill_ids: ['arcana', 'history'],
+      background_tool_id: 'dice-set',
+      background_equipment: 'pack',
+      class_equipment: 'a',
+      cantrip_ids: ['fire-bolt', 'light', 'prestidigitation'],
+      spellbook_spell_ids: WIZARD_BOOK,
+      prepared_spell_ids: WIZARD_BOOK.slice(0, 4),
+    })
+    const armorOf = async () => (await getSheet(page, access, id)).proficiency?.armor ?? {}
+
+    await page.goto(`/characters/${id}`)
+    await expect(page.getByText('Маг-мультикласс').first()).toBeVisible({ timeout: 45_000 })
+    expect(Boolean((await armorOf()).medium)).toBe(false)
+
+    await openIdentity(page)
+    const dialog = await openMulticlassDialog(page)
+    await dialog.getByRole('combobox').fill('Воин')
+    await page.getByRole('option', { name: 'Воин', exact: true }).click()
+    await dialog.getByRole('button', { name: 'Повысить' }).click()
+    await expect(dialog).toBeHidden()
+    await postponeGuidedWizard(page)
+
+    await expect
+      .poll(async () => (await armorOf()).medium, { timeout: 20_000 })
+      .toBe(true)
+    const armor = await armorOf()
+    expect(armor.light).toBe(true)
+    expect(armor.shields).toBe(true)
+    expect(Boolean(armor.heavy)).toBe(false)
+    const weapons = (await getSheet(page, access, id)).proficiency?.weapons ?? {}
+    expect(weapons.martial).toBe(true)
+    await page.waitForTimeout(300)
+    await shot(page, 'mc-fighter-granted', project)
+
+    await openIdentity(page)
+    await page.getByRole('button', { name: '−1', exact: true }).last().click()
+    await expect
+      .poll(async () => Boolean((await armorOf()).medium), { timeout: 20_000 })
+      .toBe(false)
+    expect(Boolean(((await getSheet(page, access, id)).proficiency?.weapons ?? {}).martial)).toBe(false)
   })
 })

@@ -9,6 +9,7 @@ import {
   hitDieLabel,
   itemNameRu,
   ruDice,
+  ruPlural,
 } from './create2024Labels'
 import { buildCreate2024Fixtures, FIXTURE_LANGUAGES } from './createPipeline2024Fixtures'
 import { classStartingPacks } from './createPipeline2024State'
@@ -99,5 +100,11 @@ for (const cls of fixtures.classes) {
 assert.equal(ruDice('1d8 + 2d6'), '1к8 + 2к6')
 assert.equal(hitDieLabel('d10'), 'к10')
 assert.equal(hitDieLabel(8), 'к8')
+
+assert.deepEqual(
+  [1, 2, 4, 5, 11, 12, 21, 22, 25].map((n) => ruPlural(n, 'заклинание', 'заклинания', 'заклинаний')),
+  ['заклинание', 'заклинания', 'заклинания', 'заклинаний', 'заклинаний', 'заклинаний', 'заклинание', 'заклинания', 'заклинаний'],
+  'ruPlural: 1 / 2–4 / 5+ / teens',
+)
 
 console.log('create2024Labels.selfcheck: ok')
