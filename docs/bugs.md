@@ -1036,6 +1036,13 @@
 - Причина: `.play-desk-compact__list` — `display:grid`, `.play-desk-compact__list--scroll` получает фиксированную высоту (`flex:1`), `align-content` по умолчанию `stretch`.
 - Статус: фикс `align-content: start` на `.play-desk-compact__list--scroll` (`18-spell-compact-cards.css`). ClassFeatures / Companions / TextBlocks без той же связки flex+grid — без правок.
 
+### 2026-11-16 — пустота под рельсом характеристик (max-height от окна)
+
+- Где: Play Desk ≥960, левая колонка после фикса скролла списка (`calc(100dvh - 27.5rem)` на `.abil-column`).
+- Симптом: список крутится, а ниже «Можно позже» — пустое место до низа центрального блока.
+- Ожидание: высота левой = `min(контент, высота центра)`; прокрутка списка только если контент выше центра; пассивы/владения/«Можно позже» остаются снизу; центр не растёт из‑за левой.
+- Статус: `usePlayDeskRailCap` + `max-height: var(--play-desk-stage-h)`.
+
 ### 2026-11-16 — заклинания в круге не по алфавиту
 
 - Где: Play Desk compact «Заклинания» / полная `SpellsPanel` (и прочие потребители `groupSpellsByLevel`).
