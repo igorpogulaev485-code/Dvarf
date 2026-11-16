@@ -2,6 +2,12 @@ export { Button } from './Button'
 export type { ButtonSize } from './Button'
 export { BarChart } from './BarChart'
 export type { BarChartItem } from './BarChart'
+export {
+  Pagination,
+  buildPaginationItems,
+  PAGINATION_PAGE_SIZES,
+} from './Pagination'
+export type { PaginationProps, PaginationPageSize } from './Pagination'
 export { MetricGrid } from './MetricGrid'
 export { StatTile } from './StatTile'
 export { CodeBlock } from './CodeBlock'

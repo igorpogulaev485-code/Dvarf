@@ -157,32 +157,80 @@ class MetricsMemoryDB:
         return 0
 
     def execute(self, stmt):  # noqa: ANN001
-        sql = str(stmt).lower()
+        sql = str(stmt).lower().replace('"', "")
+
+        class _Result:
+            def __init__(self, rows):
+                self._rows = rows
+
+            def all(self):
+                return self._rows
+
+        since = None
+        try:
+            params = stmt.compile().params
+            for val in params.values():
+                if isinstance(val, datetime):
+                    since = val
+                    break
+        except Exception:
+            pass
+
         if "product_events" in sql:
-
-            class _Result:
-                def __init__(self, rows):
-                    self._rows = rows
-
-                def all(self):
-                    return self._rows
-
-            since = None
-            try:
-                params = stmt.compile().params
-                for val in params.values():
-                    if isinstance(val, datetime):
-                        since = val
-                        break
-            except Exception:
-                pass
             rows = []
             for e in self.events:
                 if since is not None and e.created_at < since:
                     continue
                 rows.append((e.event_type, e.user_id, e.created_at))
             return _Result(rows)
-        return SimpleNamespace(all=lambda: [])
+
+        if "auth_sessions" in sql and "user_id" in sql:
+            rows = []
+            for s in self.auth_sessions:
+                created = getattr(s, "created_at", None) or getattr(s, "last_seen_at", None)
+                if created is None:
+                    continue
+                if since is not None and created < since:
+                    continue
+                rows.append((s.user_id, created))
+            return _Result(rows)
+
+        if "from users" in sql or sql.strip().startswith("select users."):
+            rows = []
+            for u in self.users:
+                if since is not None and u.created_at < since:
+                    continue
+                rows.append((u.created_at,))
+            return _Result(rows)
+
+        if "characters" in sql and "created_at" in sql:
+            rows = []
+            for c in self.characters:
+                created = getattr(c, "created_at", None)
+                if created is None:
+                    continue
+                if since is not None and created < since:
+                    continue
+                rows.append((created,))
+            return _Result(rows)
+
+        if "lobbies" in sql and "created_at" in sql and "lobby_members" not in sql:
+            rows = []
+            for lobby in self.lobbies:
+                if since is not None and lobby.created_at < since:
+                    continue
+                rows.append((lobby.created_at,))
+            return _Result(rows)
+
+        if "play_sessions" in sql and "created_at" in sql:
+            rows = []
+            for s in self.sessions:
+                if since is not None and s.created_at < since:
+                    continue
+                rows.append((s.created_at,))
+            return _Result(rows)
+
+        return _Result([])
 
     def add(self, obj) -> None:  # noqa: ANN001
         if self._fail_add:
@@ -377,20 +425,25 @@ def test_metrics_aggregates_editions_drafts_blocked(monkeypatch, db):
     assert result.active.active_1d == 1
 
 
-def test_metrics_daily_from_events(monkeypatch, db):
+def test_metrics_daily_from_tables_and_logins(monkeypatch, db):
+    """Дневные ряды — из таблиц; уникальные входы — из журнала/сессий."""
     monkeypatch.setattr(admin_mod.settings, "admin_panel_enabled", True)
     admin = _user(email="admin@example.com")
     _grant_full(db, admin)
     uid = uuid4()
     now = datetime.now(timezone.utc)
-    db.events.append(
-        ProductEvent(
-            id=uuid4(),
-            event_type=ProductEventType.signup.value,
+    db.users.append(_user(id=uid, email="player@example.com", created_at=now))
+    db.characters.append(
+        SimpleNamespace(
             user_id=uid,
+            rules_edition=RulesEdition.edition_2014,
+            is_draft=False,
+            deleted_at=None,
             created_at=now,
         )
     )
+    db.lobbies.append(SimpleNamespace(id=uuid4(), owner_id=uid, created_at=now))
+    db.sessions.append(SimpleNamespace(id=uuid4(), created_at=now, closed_at=None))
     db.events.append(
         ProductEvent(
             id=uuid4(),
@@ -410,8 +463,43 @@ def test_metrics_daily_from_events(monkeypatch, db):
     result = AdminService(db).get_metrics(admin, period=1)
     today = result.daily[-1]
     assert today.signups == 1
+    assert today.characters_created == 1
+    assert today.lobbies_created == 1
+    assert today.play_started == 1
     assert today.logins_unique == 1  # уникальные люди
-    assert "выкладки" in result.note.lower() or "журнала" in result.note.lower()
+    assert "екатеринбург" in result.note.lower() or "таблиц" in result.note.lower()
+
+
+def test_metrics_daily_yekaterinburg_boundaries(monkeypatch, db):
+    """События 23:30 и 00:30 местного попадают в разные календарные дни."""
+    from zoneinfo import ZoneInfo
+
+    monkeypatch.setattr(admin_mod.settings, "admin_panel_enabled", True)
+    tz = ZoneInfo("Asia/Yekaterinburg")
+    frozen_utc = datetime(2026, 11, 16, 7, 0, 0, tzinfo=timezone.utc)  # 12:00 Екб
+
+    class _PatchedDateTime(datetime):
+        @classmethod
+        def now(cls, tz=None):  # noqa: A003
+            if tz is None:
+                return frozen_utc.replace(tzinfo=None)
+            return frozen_utc.astimezone(tz)
+
+    monkeypatch.setattr(admin_mod, "datetime", _PatchedDateTime)
+
+    admin = _user(email="admin@example.com", created_at=frozen_utc - timedelta(days=40))
+    _grant_full(db, admin)
+
+    before_midnight = datetime(2026, 11, 15, 23, 30, tzinfo=tz).astimezone(timezone.utc)
+    after_midnight = datetime(2026, 11, 16, 0, 30, tzinfo=tz).astimezone(timezone.utc)
+    db.users.append(_user(email="late@example.com", created_at=before_midnight))
+    db.users.append(_user(email="early@example.com", created_at=after_midnight))
+
+    result = AdminService(db).get_metrics(admin, period=1)
+    by_date = {point.date: point for point in result.daily}
+    assert by_date["2026-11-15"].signups == 1
+    assert by_date["2026-11-16"].signups == 1
+    assert _PatchedDateTime.now(timezone.utc) == frozen_utc
 
 
 def test_record_product_event_ok(db):

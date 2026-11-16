@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import {
   listAdminFeedback,
   patchAdminFeedback,
@@ -13,6 +13,7 @@ import {
   ChipStack,
   EmptyState,
   Field,
+  Pagination,
   Panel,
   ScrollRow,
   SegmentedControl,
@@ -21,6 +22,7 @@ import {
   Text,
   Textarea,
 } from '../../ui'
+import { useAdminPaging } from './useAdminPaging'
 
 const STATUS_FILTERS: { id: string; label: string }[] = [
   { id: '', label: 'Все' },
@@ -64,9 +66,9 @@ type Props = {
 }
 
 export function AdminFeedbackSection({ onToast, onOpenHelp, initialUserId }: Props) {
+  const { page, pageSize, setPage, setPageSize, resetPage } = useAdminPaging()
   const [status, setStatus] = useState('')
   const [topic, setTopic] = useState('')
-  const [page, setPage] = useState(1)
   const [items, setItems] = useState<AdminFeedbackItem[]>([])
   const [total, setTotal] = useState(0)
   const [newCount, setNewCount] = useState(0)
@@ -74,6 +76,14 @@ export function AdminFeedbackSection({ onToast, onOpenHelp, initialUserId }: Pro
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [noteDrafts, setNoteDrafts] = useState<Record<string, string>>({})
   const [busyId, setBusyId] = useState<string | null>(null)
+  const filtersKey = `${status}|${topic}`
+  const prevFiltersKey = useRef(filtersKey)
+
+  useEffect(() => {
+    if (prevFiltersKey.current === filtersKey) return
+    prevFiltersKey.current = filtersKey
+    resetPage()
+  }, [filtersKey, resetPage])
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -82,7 +92,7 @@ export function AdminFeedbackSection({ onToast, onOpenHelp, initialUserId }: Pro
         status: status || undefined,
         topic: (topic as FeedbackTopic) || undefined,
         page,
-        page_size: 20,
+        page_size: pageSize,
       })
       setItems(data.items)
       setTotal(data.total)
@@ -103,7 +113,7 @@ export function AdminFeedbackSection({ onToast, onOpenHelp, initialUserId }: Pro
     } finally {
       setLoading(false)
     }
-  }, [status, topic, page, onToast])
+  }, [status, topic, page, pageSize, onToast])
 
   useEffect(() => {
     void load()
@@ -147,7 +157,7 @@ export function AdminFeedbackSection({ onToast, onOpenHelp, initialUserId }: Pro
     }
   }
 
-  const totalPages = Math.max(1, Math.ceil(total / 20))
+  const totalPages = Math.max(1, Math.ceil(total / pageSize))
 
   return (
     <Panel
@@ -302,28 +312,15 @@ export function AdminFeedbackSection({ onToast, onOpenHelp, initialUserId }: Pro
           })}
         </Stack>
 
-        {totalPages > 1 ? (
-          <Stack gap={8}>
-            <Text tone="muted">
-              Страница {page} из {totalPages} · всего {total}
-            </Text>
-            <ChipStack>
-              <Button
-                variant="secondary"
-                disabled={page <= 1}
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-              >
-                Назад
-              </Button>
-              <Button
-                variant="secondary"
-                disabled={page >= totalPages}
-                onClick={() => setPage((p) => p + 1)}
-              >
-                Вперёд
-              </Button>
-            </ChipStack>
-          </Stack>
+        {total > 0 ? (
+          <Pagination
+            page={page}
+            totalPages={totalPages}
+            total={total}
+            pageSize={pageSize}
+            onPageChange={setPage}
+            onPageSizeChange={setPageSize}
+          />
         ) : null}
       </Stack>
     </Panel>

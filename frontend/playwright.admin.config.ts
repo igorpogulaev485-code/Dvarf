@@ -16,6 +16,7 @@ export default defineConfig({
     '**/admin-adm04.spec.ts',
     '**/admin-adm05.spec.ts',
     '**/admin-adm07.spec.ts',
+    '**/admin-adm08.spec.ts',
   ],
   fullyParallel: false,
   forbidOnly: Boolean(process.env.CI),

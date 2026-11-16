@@ -107,13 +107,26 @@ Selfcheck: `npm run selfcheck:abilities-rail-cap` (рядом `selfcheck:abiliti
 Страница `/help/world-import` использует `wrap`, чтобы на 390px curl/JSON читались целиком.
 Без page-level CSS: длинный код не должен вылезать за край экрана.
 
-### BarChart (атом, ADM-03)
+### BarChart (атом, ADM-03 / ADM-08)
 
-`BarChart` в `frontend/src/ui/BarChart.tsx` — простые столбцы по дням для раздела «Метрики».
-Пропсы: `items` (`label`, `value`, опционально `title`), `height`, `caption`, `emptyLabel`.
-Стили `.ui-bar-chart*` в `01-tokens-base.css`. Столбцы `flex: 1` с `min-width: 28px` —
-на широком экране ряд заполняет рамку; горизонтальный скролл **внутри рамки** только когда
-30×28px не влезает (как на 390). Цвет столбца — `var(--accent)`. Без page-level CSS админки.
+`BarChart` в `frontend/src/ui/BarChart.tsx` — столбцы по дням для раздела «Метрики».
+Пропсы: `items` (`label`, `value`, опционально `title`), `height`, `caption`, `totalLabel`,
+`emptyLabel`. Над рядом — итог за период и подпись максимума; слева ось 0…max; при наведении
+или тапе — подсказка из `title` (например «16.11 — 3 регистрации»). Стили `.ui-bar-chart*` в
+`01-tokens-base.css`. Столбцы `flex: 1` с `min-width: 28px` — на широком экране ряд заполняет
+рамку; горизонтальный скролл **внутри рамки** только когда 30×28px не влезает (как на 390).
+Цвет столбца — `var(--accent)`. Без page-level CSS админки.
+
+### Pagination (атом, ADM-08)
+
+`Pagination` в `frontend/src/ui/Pagination.tsx` — общий пагинатор списков админки.
+В одну строку: «‹ Назад», номера с сокращением (`1 … 4 5 6 … 281`), «Вперёд ›», первая/последняя,
+поле «Перейти к странице», размер страницы (20 / 50 / 100), подпись
+«Страница N из M · всего T». На `max-width: 390px` — компакт «‹ N / M ›» + поле перехода
+(без столбика «Назад/Вперёд»). Пропсы: `page`, `totalPages`, `total`, `pageSize`,
+`onPageChange`, `onPageSizeChange`. Хелпер `buildPaginationItems`. Стили `.ui-pagination*` в
+`01-tokens-base.css`. Номер страницы и размер хранит адрес (`?page=&page_size=`), не атом.
+Без page-level CSS.
 
 ### StatTile + MetricGrid (атомы, ADM-03)
 

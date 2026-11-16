@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import {
   acceptAdminCatalogDraft,
   getAdminCatalogEntry,
@@ -22,6 +22,7 @@ import {
   EmptyState,
   Field,
   Input,
+  Pagination,
   Panel,
   ScrollRow,
   SegmentedControl,
@@ -29,6 +30,7 @@ import {
   Stack,
   Text,
 } from '../../ui'
+import { useAdminPaging } from './useAdminPaging'
 
 const KIND_OPTIONS = [
   { value: '', label: 'Все типы' },
@@ -101,13 +103,13 @@ type Props = {
 
 export function AdminCatalogSection({ isFullAdmin, onToast }: Props) {
   const compact = useCompactFilters()
+  const { page, pageSize, setPage, setPageSize, resetPage } = useAdminPaging()
   const [queryDraft, setQueryDraft] = useState('')
   const [query, setQuery] = useState('')
   const [kind, setKind] = useState('')
   const [edition, setEdition] = useState('')
   const [layer, setLayer] = useState('')
   const [pendingFilter, setPendingFilter] = useState('')
-  const [page, setPage] = useState(1)
   const [items, setItems] = useState<AdminCatalogListItem[]>([])
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(true)
@@ -121,9 +123,16 @@ export function AdminCatalogSection({ isFullAdmin, onToast }: Props) {
   const [confirmReject, setConfirmReject] = useState(false)
   const [confirmRollbackId, setConfirmRollbackId] = useState<string | null>(null)
   const [nameFeedback, setNameFeedback] = useState<AdminCatalogNameFeedbackItem[]>([])
+  const filtersKey = `${query}|${kind}|${edition}|${layer}|${pendingFilter}`
+  const prevFiltersKey = useRef(filtersKey)
 
-  const pageSize = 20
   const totalPages = Math.max(1, Math.ceil(total / pageSize))
+
+  useEffect(() => {
+    if (prevFiltersKey.current === filtersKey) return
+    prevFiltersKey.current = filtersKey
+    resetPage()
+  }, [filtersKey, resetPage])
 
   const loadList = useCallback(async () => {
     setLoading(true)
@@ -144,8 +153,7 @@ export function AdminCatalogSection({ isFullAdmin, onToast }: Props) {
     } finally {
       setLoading(false)
     }
-  }, [query, kind, edition, layer, pendingFilter, page, onToast])
-
+  }, [query, kind, edition, layer, pendingFilter, page, pageSize, onToast])
   const loadDetail = useCallback(
     async (id: string) => {
       setDetailLoading(true)
@@ -603,28 +611,15 @@ export function AdminCatalogSection({ isFullAdmin, onToast }: Props) {
             })}
           </Stack>
 
-          {totalPages > 1 ? (
-            <Stack gap={8}>
-              <Text tone="muted">
-                Страница {page} из {totalPages} · всего {total}
-              </Text>
-              <ChipStack>
-                <Button
-                  variant="secondary"
-                  disabled={page <= 1}
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
-                >
-                  Назад
-                </Button>
-                <Button
-                  variant="secondary"
-                  disabled={page >= totalPages}
-                  onClick={() => setPage((p) => p + 1)}
-                >
-                  Вперёд
-                </Button>
-              </ChipStack>
-            </Stack>
+          {total > 0 ? (
+            <Pagination
+              page={page}
+              totalPages={totalPages}
+              total={total}
+              pageSize={pageSize}
+              onPageChange={setPage}
+              onPageSizeChange={setPageSize}
+            />
           ) : (
             <Text tone="muted">Всего записей: {total}</Text>
           )}
