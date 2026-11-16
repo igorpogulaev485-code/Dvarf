@@ -1,10 +1,12 @@
 /**
- * P24-M02-wizard: preview + sheet mock shots (1440/390) and real 2014 create walk
- * to the Wizard class setup dialog (not Race).
+ * P24-M02-wizard acceptance (1440 / 390). No live API: catalog, auth and the 2024
+ * create validator run offline (e2e/support/wizard2024Harness.ts + create2024_bridge.py).
+ * Every sheet shot walks the real create pipeline (seed → «Готово») and opens the real
+ * sheet dialogs. The 2014 regression walks the wizard class dialog before/after.
  *
- * SHOT_TAG=before|after controls 2014 regression suffix.
+ * SHOT_TAG=before|after controls the 2014 regression suffix.
  */
-import { expect, test, type Page, type Route } from '@playwright/test'
+import { expect, test, type Page } from '@playwright/test'
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -217,238 +219,12 @@ async function walk2014ToWizardClass(page: Page) {
   return classDlg
 }
 
-function sheetCharacter(input: {
-  id: string
-  name: string
-  level: number
-  subclass?: string
-  subclassName?: string
-  prepared: number
-  slots: Record<string, { max: number; used: number }>
-}) {
-  return {
-    id: input.id,
-    name: input.name,
-    level: input.level,
-    class_name: `Волшебник ${input.level}`,
-    race_name: 'Эльф',
-    hp_current: 6 + (input.level - 1) * 4,
-    hp_max: 6 + (input.level - 1) * 4,
-    rules_edition: '2024',
-    sheet_version: 1,
-    avatar_url: null,
-    created_at: '2024-01-01T00:00:00Z',
-    updated_at: '2024-01-01T00:00:00Z',
-    sheet: {
-      abilities: {
-        str: { score: 8 },
-        dex: { score: 14 },
-        con: { score: 14 },
-        int: { score: 16 },
-        wis: { score: 12 },
-        cha: { score: 10 },
-      },
-      combat: {
-        hp_max: 6 + (input.level - 1) * 4,
-        hp_current: 6 + (input.level - 1) * 4,
-        ac: 12,
-        proficiency_bonus: Math.floor((input.level - 1) / 4) + 2,
-        speed: 30,
-        initiative: 2,
-      },
-      classes: [
-        {
-          id: 'wiz1',
-          slug: 'wizard',
-          name: 'Волшебник',
-          level: input.level,
-          subclass_slug: input.subclass || null,
-          subclass_name: input.subclassName || null,
-          catalog_id: 'wizard',
-        },
-      ],
-      identity: { background: 'Мудрец', species_slug: 'elf', race_catalog_id: 'elf' },
-      spells: {
-        slots: input.slots,
-        known: [
-          {
-            id: 'shield',
-            name: 'Щит',
-            level: 1,
-            prepared: true,
-            in_spellbook: true,
-            class_slug: 'wizard',
-          },
-          {
-            id: 'magic-missile',
-            name: 'Волшебная стрела',
-            level: 1,
-            prepared: true,
-            in_spellbook: true,
-            class_slug: 'wizard',
-          },
-          {
-            id: 'fire-bolt',
-            name: 'Огненный снаряд',
-            level: 0,
-            prepared: true,
-            class_slug: 'wizard',
-          },
-        ],
-        prepared: [],
-        cantrips: [],
-      },
-      class_progress_2024: {
-        total_level: input.level,
-        proficiency_bonus: Math.floor((input.level - 1) / 4) + 2,
-        multiclass_slots: Object.fromEntries(
-          Object.entries(input.slots).map(([k, v]) => [k, v.max]),
-        ),
-        multiclass_pact: null,
-        features: [],
-        resources: [
-          {
-            id: 'feat:wizard:arcane_recovery:arcane_recovery',
-            pool_id: 'arcane_recovery',
-            name_ru: 'Магическое восстановление',
-            max: 1,
-            reset: 'long',
-          },
-        ],
-        spellcasting: [
-          {
-            class_slug: 'wizard',
-            cantrips: input.level >= 10 ? 5 : input.level >= 4 ? 4 : 3,
-            prepared_spells: input.prepared,
-          },
-        ],
-      },
-      meta: { rules_edition: '2024' },
-      inventory: {
-        coins: { gp: 50 },
-        items: [
-          {
-            id: 'book1',
-            name: 'Книга заклинаний',
-            qty: 1,
-            tags: ['spellbook'],
-          },
-        ],
-        notes: '',
-      },
-      skills: {},
-      saves: {},
-      play: {
-        resources: [
-          {
-            id: 'feat:wizard:arcane_recovery:wiz1',
-            pool_id: 'arcane_recovery',
-            name: 'Магическое восстановление',
-            current: 1,
-            max: 1,
-          },
-        ],
-      },
-    },
-  }
-}
-
-async function mockAuthOnly(page: Page) {
-  await page.route('**/health', async (route) => {
-    if (!isApi(route.request().url())) {
-      await route.continue()
-      return
-    }
-    await route.fulfill({
-      status: 200,
-      contentType: 'application/json',
-      body: JSON.stringify({ status: 'ok' }),
-    })
-  })
-  await page.route('**/auth/**', async (route: Route) => {
-    if (!isApi(route.request().url()) || route.request().resourceType() === 'document') {
-      await route.continue()
-      return
-    }
-    await route.fulfill({
-      status: 200,
-      contentType: 'application/json',
-      body: JSON.stringify({
-        id: '00000000-0000-4000-8000-000000000001',
-        email: 'm02w@example.com',
-        display_name: 'M02w',
-        is_email_verified: true,
-        access_token: 'access',
-        refresh_token: 'refresh',
-      }),
-    })
-  })
-  await page.route('**/catalog**', async (route: Route) => {
-    const reqUrl = route.request().url()
-    if (!isApi(reqUrl) || route.request().resourceType() === 'document') {
-      await route.continue()
-      return
-    }
-    if (!new URL(reqUrl).pathname.startsWith('/catalog')) {
-      await route.continue()
-      return
-    }
-    await route.fulfill({ status: 200, contentType: 'application/json', body: '[]' })
-  })
-  await page.addInitScript(() => {
-    localStorage.setItem('dvarf.access_token', 'access')
-    localStorage.setItem('dvarf.refresh_token', 'refresh')
-  })
-}
-
-async function mockSheet(page: Page, character: ReturnType<typeof sheetCharacter>) {
-  await page.addInitScript(() => {
-    localStorage.setItem('dvarf.access_token', 'access')
-    localStorage.setItem('dvarf.refresh_token', 'refresh')
-  })
-  await mockAuthOnly(page)
-  await page.route('**/characters/**', async (route) => {
-    const pathName = new URL(route.request().url()).pathname
-    if (
-      route.request().resourceType() === 'document' ||
-      pathName.startsWith('/src/') ||
-      pathName.startsWith('/assets/') ||
-      pathName.includes('node_modules') ||
-      /\.(tsx?|jsx?|css|map|json)$/.test(pathName)
-    ) {
-      await route.continue()
-      return
-    }
-    if (!pathName.startsWith('/characters')) {
-      await route.continue()
-      return
-    }
-    if (route.request().method() === 'GET' && /^\/characters\/[0-9a-f-]{36}/i.test(pathName)) {
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify(character),
-      })
-      return
-    }
-    if (
-      route.request().method() === 'GET' &&
-      (pathName === '/characters' || pathName === '/characters/')
-    ) {
-      await route.fulfill({ status: 200, contentType: 'application/json', body: '[]' })
-      return
-    }
-    if (pathName.startsWith('/characters')) {
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify(character),
-      })
-      return
-    }
-    await route.continue()
-  })
-}
+import {
+  createStore,
+  installWizardHarness,
+  loadCatalog2024,
+  type HarnessStore,
+} from './support/wizard2024Harness'
 
 async function dismissWelcome(page: Page) {
   const skip = page.getByRole('button', { name: /Пропустит.*подсказ/i })
@@ -460,87 +236,313 @@ async function dismissWelcome(page: Page) {
   }
 }
 
-async function openSheet(page: Page, character: ReturnType<typeof sheetCharacter>) {
-  await mockSheet(page, character)
-  await page.goto('/characters')
-  await expect(page.locator('#root')).not.toBeEmpty({ timeout: 20_000 })
-  await dismissWelcome(page)
-  await page.goto(`/characters/${character.id}`)
+/** Real 2024 create pipeline: seeded leveling step → «Готово» → sheet. */
+async function createWizardViaPipeline(page: Page, store: HarnessStore, seed: string) {
+  await installWizardHarness(page, store)
+  await page.goto(`/characters/create?edition=2024&preview=1&e2eLeveling=1&e2eSeed=${seed}`)
+  await expect(page.getByTestId('p24-m03c-leveling')).toBeVisible({ timeout: 30_000 })
+  const finish = page.getByTestId('p24-m03-finish')
+  await expect(finish).toBeEnabled({ timeout: 30_000 })
+  await finish.click()
+  await page.waitForURL(/\/characters\/[0-9a-f-]{36}$/i, { timeout: 30_000 })
   await expect(page.locator('#root')).not.toBeEmpty({ timeout: 20_000 })
   await dismissWelcome(page)
 }
 
-test.describe('P24-M02 wizard preview', () => {
-  test('preview: уровни 1/3/5/11/20 + подклассы; флаг закрыт', async ({ page }, testInfo) => {
-    const project = testInfo.project.name.includes('390') ? '390' : '1440'
-    await page.goto('/dev/p24-m02-wizard-preview')
-    await expect(page.getByTestId('p24-m02-wizard-preview')).toBeVisible()
-    await expect(page.getByTestId('p24-m02-wizard-flag')).toContainText('закрыт')
-    await expect(page.getByTestId('p24-m02-wizard-l5-spells')).toContainText('подготовлено 9')
-    await expect(page.getByTestId('p24-m02-wizard-l11-spells')).toContainText('подготовлено 16')
-    await expect(page.getByTestId('p24-m02-wizard-l20-gates')).toContainText('Фирменные заклинания: есть')
-    await expect(page.getByTestId('p24-m02-wizard-wizard__evoker-l14-school')).toContainText(
-      'полцены: нет',
-    )
-    await page.getByTestId('p24-m02-wizard-l5').scrollIntoViewIfNeeded()
-    await shot(page, ARTIFACTS, 'preview-l5', project)
-    await page.getByTestId('p24-m02-wizard-l11').scrollIntoViewIfNeeded()
-    await shot(page, ARTIFACTS, 'preview-l11', project)
-    await page.getByTestId('p24-m02-wizard-l1').scrollIntoViewIfNeeded()
-    await shot(page, ARTIFACTS, 'preview-overview', project)
-  })
-})
+function projectOf(testInfo: { project: { name: string } }): '390' | '1440' {
+  return testInfo.project.name.includes('390') ? '390' : '1440'
+}
 
-test.describe('P24-M02 wizard sheet mock', () => {
-  test('лист волшебника 5 и 11', async ({ page }, testInfo) => {
-    const project = testInfo.project.name.includes('390') ? '390' : '1440'
-    const wiz5 = sheetCharacter({
-      id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
-      name: 'Волшебник 5',
-      level: 5,
-      subclass: 'wizard__evoker',
-      subclassName: 'Воплотитель',
-      prepared: 9,
-      slots: { '1': { max: 4, used: 0 }, '2': { max: 3, used: 0 }, '3': { max: 2, used: 0 } },
+async function openFeaturesScene(page: Page, project: string) {
+  if (project === '390') await page.getByText('Способн.', { exact: true }).last().click()
+  else await page.getByRole('button', { name: /^Способности$/ }).first().click()
+  await page.waitForTimeout(700)
+}
+
+const isPhone = (project: string) => project === '390'
+
+/** Phone splits the desk: spells live on their own sub-tab of the combat scene. */
+async function goSpells(page: Page, project: string) {
+  if (!isPhone(project)) return
+  await page.getByText('Заклинания', { exact: true }).first().click()
+  await page.waitForTimeout(500)
+}
+
+async function openRest(page: Page, project: string) {
+  if (isPhone(project)) {
+    await page.locator('button:has-text("▾")').first().click()
+    await page.waitForTimeout(400)
+  }
+  await page.getByRole('button', { name: /Отдых/ }).first().click()
+  await expect(page.getByRole('dialog').last()).toBeVisible()
+}
+
+async function openMagicDialog(page: Page, project: string) {
+  if (isPhone(project)) {
+    await goSpells(page, project)
+    await page.getByRole('button', { name: /^Книга$/ }).last().click()
+  } else {
+    await page.getByRole('button', { name: /^Магия$/ }).first().click()
+  }
+  await expect(page.getByRole('dialog').last()).toBeVisible()
+}
+
+async function openIdentity(page: Page) {
+  await page
+    .locator('.play-desk__top button, [data-onboarding="combat-header"] button')
+    .first()
+    .click()
+  const dlg = page.getByRole('dialog').last()
+  await expect(dlg.getByRole('button', { name: /\+1 уровень/ })).toBeVisible()
+  return dlg
+}
+
+function storedSheet(store: HarnessStore): Record<string, any> {
+  const row = [...store.characters.values()][0]
+  return row.sheet as Record<string, any>
+}
+
+function spellEntryId(slug: string): string {
+  const row = loadCatalog2024().spell.find((entry) => entry.slug === slug)
+  if (!row) throw new Error(`spell ${slug} not in catalog`)
+  return String(row.id)
+}
+
+async function pickFirstOption(page: Page, label: RegExp, index = 1) {
+  const select = page.getByLabel(label).first()
+  await select.scrollIntoViewIfNeeded()
+  await select.selectOption({ index })
+  await page.waitForTimeout(300)
+}
+
+async function logDialog(page: Page, tag: string) {
+  const dlg = page.getByRole('dialog').last()
+  const text = (await dlg.innerText()).replace(/\n+/g, ' | ').slice(0, 900)
+  console.log(`DIALOG[${tag}] ${text}`)
+}
+
+async function spellsPanelShot(page: Page, name: string, project: string) {
+  const viewport = page.viewportSize()
+  if (viewport) {
+    await page.setViewportSize({ width: viewport.width, height: isPhone(project) ? 3600 : 2100 })
+  }
+  const quota = page.getByText(/подготовлено \d+ из \d+/).first()
+  await quota.scrollIntoViewIfNeeded()
+  await page.waitForTimeout(500)
+  await shot(page, ARTIFACTS, name, project)
+  if (viewport) await page.setViewportSize(viewport)
+}
+
+test.describe('P24-M02 wizard — real create pipeline', () => {
+  test.setTimeout(75_000)
+  test.use({ actionTimeout: 12_000 })
+
+  for (const spec of [
+    { seed: 'wizard5', level: 5, prepared: 9, book: 14, slots: [4, 3, 2] },
+    { seed: 'wizard11', level: 11, prepared: 16, book: 26, slots: [4, 3, 3, 3, 2, 1] },
+  ]) {
+    test(`sheet-wizard-l${spec.level}`, async ({ page }, testInfo) => {
+      const project = projectOf(testInfo)
+      const store = createStore()
+      await createWizardViaPipeline(page, store, spec.seed)
+      if (isPhone(project)) await shot(page, ARTIFACTS, `sheet-wizard-l${spec.level}-combat`, project)
+      await goSpells(page, project)
+      const sheet = storedSheet(store)
+      expect(sheet.spells.known.filter((row: any) => row.in_spellbook).length).toBe(spec.book)
+      spec.slots.forEach((max, index) => {
+        expect(sheet.spells.slots[String(index + 1)].max).toBe(max)
+      })
+      await expect(
+        page
+          .getByText(`подготовлено ${spec.prepared} из ${spec.prepared} · в книге ${spec.book}`)
+          .first(),
+      ).toBeVisible({ timeout: 15_000 })
+      await shot(page, ARTIFACTS, `sheet-wizard-l${spec.level}`, project)
+      await spellsPanelShot(page, `sheet-wizard-l${spec.level}-spells`, project)
+      expect(store.unmatched).toEqual([])
     })
-    await openSheet(page, wiz5)
-    await expect(page.getByText(/Волшебник/i).first()).toBeVisible({ timeout: 25_000 })
-    await expect(page.locator('body')).not.toContainText(/Без имени/)
-    await shot(page, ARTIFACTS, 'sheet-wizard-l5', project)
-    const featuresTab = page.getByRole('button', { name: /^Умения$/i }).first()
-    if (await featuresTab.count()) {
-      await featuresTab.click({ timeout: 5_000 }).catch(() => undefined)
-      await page.waitForTimeout(300)
-      await shot(page, ARTIFACTS, 'sheet-wizard-l5-features', project)
-    }
-    const spellsTab = page.getByRole('button', { name: /^Заклинания$/i }).first()
-    if (await spellsTab.count()) {
-      await spellsTab.click({ timeout: 5_000 }).catch(() => undefined)
-      await page.waitForTimeout(300)
-      await shot(page, ARTIFACTS, 'sheet-wizard-l5-spells', project)
-    }
+  }
 
-    const wiz11 = sheetCharacter({
-      id: 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',
-      name: 'Волшебник 11',
-      level: 11,
-      subclass: 'wizard__abjurer',
-      subclassName: 'Оградитель',
-      prepared: 16,
-      slots: {
-        '1': { max: 4, used: 0 },
-        '2': { max: 3, used: 0 },
-        '3': { max: 3, used: 0 },
-        '4': { max: 3, used: 0 },
-        '5': { max: 2, used: 0 },
-        '6': { max: 1, used: 0 },
+  test('book-2024-copy', async ({ page }, testInfo) => {
+    const project = projectOf(testInfo)
+    const store = createStore()
+    await createWizardViaPipeline(page, store, 'wizard5')
+    const sheet = storedSheet(store)
+    const template = sheet.inventory.items[0]
+    sheet.inventory.items.push({
+      ...template,
+      id: 'scroll-slow',
+      name: 'Свиток: Замедление (3 ур.)',
+      catalog_slug: 'spell_scroll_3',
+      qty: 1,
+      scroll_spell: {
+        catalog_id: spellEntryId('slow'),
+        slug: 'slow',
+        name: 'Замедление',
+        level: 3,
+        school: 'transmutation',
+        ritual: false,
+        concentration: true,
       },
     })
-    await page.unrouteAll({ behavior: 'ignoreErrors' })
-    await openSheet(page, wiz11)
-    await expect(page.getByText(/Волшебник/i).first()).toBeVisible({ timeout: 25_000 })
-    await expect(page.locator('body')).not.toContainText(/Без имени/)
-    await shot(page, ARTIFACTS, 'sheet-wizard-l11', project)
+    sheet.inventory.coins = { cp: 0, sp: 0, ep: 0, gp: 500, pp: 0 }
+    await page.reload()
+    await expect(page.locator('#root')).not.toBeEmpty()
+    await dismissWelcome(page)
+    await openMagicDialog(page, project)
+    await page.getByRole('button', { name: /Книга: есть/ }).click()
+    const manage = page.getByRole('dialog').last()
+    await expect(manage.getByText(/50 зм · 2 ч/)).toBeVisible()
+    await expect(manage.getByText(/10 зм · 1 ч/)).toBeVisible()
+    await expect(manage.getByText(/СЛ 13/).first()).toBeVisible()
+    await manage.getByText(/Тариф чужой копии/).scrollIntoViewIfNeeded()
+    await shot(page, ARTIFACTS, 'book-2024-copy', project)
+  })
+
+  test('arcane-recovery-dialog', async ({ page }, testInfo) => {
+    const project = projectOf(testInfo)
+    const store = createStore()
+    await createWizardViaPipeline(page, store, 'wizard5')
+    const sheet = storedSheet(store)
+    sheet.spells.slots['1'].used = 3
+    sheet.spells.slots['2'].used = 2
+    sheet.spells.slots['3'].used = 1
+    await page.reload()
+    await dismissWelcome(page)
+    await page.locator('[aria-label^="Магическое восстановление"] button').first().click()
+    const dlg = page.getByRole('dialog').last()
+    await expect(dlg.getByText(/Лимит суммы уровней ячеек: 3/)).toBeVisible()
+    await dlg.getByRole('button', { name: '+' }).nth(1).click()
+    await page.waitForTimeout(300)
+    await shot(page, ARTIFACTS, 'arcane-recovery-dialog', project)
+  })
+
+  test('memorize-spell-short-rest', async ({ page }, testInfo) => {
+    const project = projectOf(testInfo)
+    const store = createStore()
+    await createWizardViaPipeline(page, store, 'wizard5')
+    await openRest(page, project)
+    const dlg = page.getByRole('dialog').last()
+    await expect(dlg.getByText(/Запомнить заклинание/)).toBeVisible()
+    await dlg.getByText(/Запомнить заклинание/).scrollIntoViewIfNeeded()
+    await shot(page, ARTIFACTS, 'memorize-spell-short-rest', project)
+  })
+
+  test('levelup-book-plus2 (L2→3 abjurer)', async ({ page }, testInfo) => {
+    const project = projectOf(testInfo)
+    const store = createStore()
+    await createWizardViaPipeline(page, store, 'wizard2')
+    const identity = await openIdentity(page)
+    await identity.getByRole('button', { name: /\+1 уровень/ }).first().click()
+    await page.getByRole('button', { name: /^Повысить$/ }).click()
+    const guided = page.getByRole('dialog').last()
+    await expect(guided.getByText(/Шаг 1 из 3/)).toBeVisible()
+    const combo = guided.getByRole('combobox').first()
+    await combo.click()
+    await combo.fill('Оград')
+    await page.getByRole('option', { name: /Оградитель/ }).click()
+    await expect(guided.getByText(/Шаг 2 из 3/)).toBeVisible()
+    await expect(guided.getByText(/\+2 бесплатно в книгу/)).toBeVisible()
+    await guided.getByRole('button', { name: /^В книгу$/ }).first().click()
+    await guided.getByRole('button', { name: /^В книгу$/ }).first().click()
+    await expect(guided.getByText(/Выбрано: 2\/2/)).toBeVisible()
+    await shot(page, ARTIFACTS, 'levelup-book-plus2', project)
+    await guided.getByRole('button', { name: /^Далее$/ }).click()
+    await expect(guided.getByText(/Шаг 3 из 3/)).toBeVisible()
+    await expect(guided.getByText(/Знаток школы: 2 закл\./)).toBeVisible()
+    await guided.getByRole('button', { name: /^В книгу$/ }).first().click()
+    await guided.getByRole('button', { name: /^В книгу$/ }).first().click()
+    await shot(page, ARTIFACTS, 'levelup-savant-abjuration', project)
+    await guided.getByRole('button', { name: /^Готово$/ }).click()
+    await expect(page.getByRole('dialog')).toHaveCount(0)
+    await page.waitForTimeout(500)
+    await openFeaturesScene(page, project)
+    await page.getByText('Волшебный щит').first().scrollIntoViewIfNeeded()
+    await shot(page, ARTIFACTS, 'subclass-abjurer-ward', project)
+  })
+
+  test('scholar-expertise-pick (L1→2)', async ({ page }, testInfo) => {
+    const project = projectOf(testInfo)
+    const store = createStore()
+    await createWizardViaPipeline(page, store, 'wizard1')
+    const identity = await openIdentity(page)
+    await identity.getByRole('button', { name: /\+1 уровень/ }).first().click()
+    await page.getByRole('button', { name: /^Повысить$/ }).click()
+    const guided = page.getByRole('dialog').last()
+    await logDialog(page, 'scholar')
+    await expect(guided.getByText(/Академические знания|Экспертиза/).first()).toBeVisible()
+    await shot(page, ARTIFACTS, 'scholar-expertise-pick', project)
+  })
+
+  test('subclass-diviner-portent', async ({ page }, testInfo) => {
+    const project = projectOf(testInfo)
+    const store = createStore()
+    await createWizardViaPipeline(page, store, 'wizard3diviner')
+    await openFeaturesScene(page, project)
+    await page.getByText('Знамение').first().scrollIntoViewIfNeeded()
+    await shot(page, ARTIFACTS, 'subclass-diviner-portent', project)
+  })
+
+  test('spell-mastery-l18', async ({ page }, testInfo) => {
+    const project = projectOf(testInfo)
+    const store = createStore()
+    await createWizardViaPipeline(page, store, 'wizard18')
+    await openFeaturesScene(page, project)
+    const card = page.getByText('Мастерство заклинателя').first()
+    await card.scrollIntoViewIfNeeded()
+    await card.click()
+    await page.waitForTimeout(500)
+    await pickFirstOption(page, /1 круг, время/)
+    await pickFirstOption(page, /2 круг, время/)
+    await shot(page, ARTIFACTS, 'spell-mastery-l18', project)
+  })
+
+  test('signature-l20', async ({ page }, testInfo) => {
+    const project = projectOf(testInfo)
+    const store = createStore()
+    await createWizardViaPipeline(page, store, 'wizard20')
+    await openFeaturesScene(page, project)
+    const card = page.getByText('Фирменные заклинания').first()
+    await card.scrollIntoViewIfNeeded()
+    await card.click()
+    await page.waitForTimeout(500)
+    await pickFirstOption(page, /Первое, 3 круг/)
+    await pickFirstOption(page, /Второе, 3 круг/, 2)
+    await shot(page, ARTIFACTS, 'signature-l20', project)
+  })
+
+  for (const spec of [
+    { seed: 'wizard20', to: 19, name: 'leveldown-20-to-19' },
+    { seed: 'wizard3', to: 2, name: 'leveldown-3-to-2' },
+  ]) {
+    test(spec.name, async ({ page }, testInfo) => {
+      const project = projectOf(testInfo)
+      const store = createStore()
+      await createWizardViaPipeline(page, store, spec.seed)
+      const identity = await openIdentity(page)
+      await identity.getByRole('button', { name: '−1' }).first().click()
+      await page.waitForTimeout(600)
+      await logDialog(page, spec.name)
+      await identity.getByText(/^Итого: Волшебник/).scrollIntoViewIfNeeded()
+      await expect(identity.getByText(new RegExp(`^Итого: Волшебник ${spec.to}`))).toBeVisible()
+      await shot(page, ARTIFACTS, spec.name, project)
+      await identity.getByRole('button', { name: /^Готово$/ }).click()
+      await page.waitForTimeout(500)
+      await openFeaturesScene(page, project)
+      await shot(page, ARTIFACTS, `${spec.name}-features`, project)
+    })
+  }
+})
+
+
+test.describe('P24-M02 DEV test stand (not acceptance evidence)', () => {
+  test('preview page is marked DEV and is not a sheet', async ({ page }) => {
+    await page.goto('/dev/p24-m02-wizard-preview')
+    await expect(page.getByTestId('p24-m02-wizard-dev-banner')).toContainText(
+      'Только для тестов / DEV',
+    )
+    await expect(page.getByTestId('p24-m02-wizard-preview')).toBeVisible()
+    await expect(page.locator('.play-desk')).toHaveCount(0)
   })
 })
 

@@ -1,5 +1,6 @@
 /**
- * DEV preview for P24-M02-wizard Playwright screenshots.
+ * DEV test stand for P24-M02-wizard progression numbers (not product UI, not acceptance evidence).
+ * Acceptance screenshots walk the real create pipeline and the real sheet instead.
  * Does not open RULES_EDITION_2024_OPEN.
  */
 import { useMemo } from 'react'
@@ -58,26 +59,24 @@ function WizardLevelCard({ level }: { level: number }) {
   )
   const sc = snap.spellcasting[0]
   const features = snap.features.filter((f) => f.source === 'class' || f.source === 'subclass')
-  const recovery =
-    snap.desiredResources.find((r) => r.pool_id === 'arcane_recovery') ||
-    features.find((f) => f.resource?.pool_id === 'arcane_recovery')
+  const recoveryResource = snap.desiredResources.find((r) => r.id.includes('arcane_recovery'))
+  const recoveryFeature = features.find((f) => f.resource?.pool_id === 'arcane_recovery')
   const scholar = features.find((f) => f.id === 'scholar')
   const memorize = features.find((f) => f.id === 'memorize_spell')
   const mastery = features.find((f) => f.id === 'spell_mastery')
   const signature = features.find((f) => f.id === 'signature_spells')
   const newTier = newSlotTiersGainedAtWizardLevel(level)
-  const recoveryLabel =
-    recovery && 'name_ru' in recovery
-      ? `${recovery.name_ru}: ${'max' in recovery ? recovery.max : recovery.resource?.uses ?? 1} (${'reset' in recovery ? recovery.reset : recovery.resource?.recharge ?? 'long'})`
-      : recovery
-        ? `Магическое восстановление: ${recovery.resource?.uses ?? 1}`
-        : 'без Магического восстановления'
+  const recoveryLabel = recoveryResource
+    ? `${recoveryResource.name}: ${recoveryResource.max} (${recoveryResource.reset})`
+    : recoveryFeature
+      ? `${recoveryFeature.name_ru}: ${recoveryFeature.resource?.uses ?? 1}`
+      : 'без Магического восстановления'
 
   return (
     <Panel>
       <div data-testid={`p24-m02-wizard-l${level}`}>
         <Text as="h2">Волшебник · ур. {level}</Text>
-        <p data-testid={`p24-m02-wizard-l${level}-pb`}>БМ +{snap.proficiencyBonus}</p>
+        <p data-testid={`p24-m02-wizard-l${level}-pb`}>БМ +{snap.proficiency_bonus}</p>
         <p data-testid={`p24-m02-wizard-l${level}-spells`}>
           заговоры {sc?.cantrips ?? 0} · подготовлено {sc?.prepared_spells ?? 0} · ячейки 1×
           {sc?.slots['1'] ?? 0}
@@ -198,7 +197,11 @@ export function P24M02WizardPreviewPage() {
   return (
     <main className="page page--app" data-testid="p24-m02-wizard-preview">
       <Stack gap={4}>
-        <Text as="h1">P24-M02 · Волшебник 2024</Text>
+        <p data-testid="p24-m02-wizard-dev-banner" role="note">
+          <strong>Только для тестов / DEV</strong> — стенд расчётов, не лист персонажа и не
+          доказательство для приёмки.
+        </p>
+        <Text as="h1">P24-M02 · Волшебник 2024 (DEV)</Text>
         <p data-testid="p24-m02-wizard-flag">
           Флаг 2024: {RULES_EDITION_2024_OPEN ? 'открыт' : 'закрыт'}
         </p>
