@@ -310,6 +310,109 @@ def test_draconic_resilience_multiclass_sorcerer3():
     assert sorc[2]["subclass_slug"] == "sorcerer__draconic-sorcery"
 
 
+def test_dwarven_toughness_helpers_2024():
+    assert levels.has_dwarven_toughness_2024("dwarf") is True
+    assert levels.has_dwarven_toughness_2024("hill_dwarf") is False
+    assert levels.dwarven_toughness_hp_total_2024(11, "dwarf") == 11
+    assert levels.dwarven_toughness_hp_total_2024(5, "tiefling") == 0
+    assert (
+        levels.hp_gain_for_level(
+            class_slug="sorcerer",
+            class_level=5,
+            is_primary_origin=False,
+            con_mod=3,
+            mode="average",
+            rolled=None,
+            subclass_slug="sorcerer__draconic-sorcery",
+            previous_class_level=4,
+            species_slug="dwarf",
+            previous_character_level=4,
+            character_level=5,
+        )
+        == 4 + 3 + 1 + 1
+    )  # d6 avg face 4 + CON 3 + dragon +1 + toughness +1
+
+
+def _sorcerer_species_payload(
+    species: str,
+    level: int,
+    *,
+    con: int = 16,
+    subclass: str = "sorcerer__draconic-sorcery",
+) -> dict:
+    """Build create payload with fixed CON (no BG ASI on CON) and correct species picks."""
+    from tests.test_p24_m03_create import _species_client_picks, _species_picks
+
+    payload = build_valid_payload(
+        "sorcerer",
+        species_slug=species,
+        ability_method="manual",
+        base_abilities={
+            "str": 8,
+            "dex": 14,
+            "con": con,
+            "int": 10,
+            "wis": 10,
+            "cha": 15,
+        },
+        # Soldier ASI pool is con/wis/cha — put bonuses off CON so score stays `con`.
+        background_asi={"cha": 2, "wis": 1},
+        class_levels=[
+            {
+                "slug": "sorcerer",
+                "level": level,
+                "subclass_slug": subclass,
+            }
+        ],
+    )
+    payload.update(_species_picks(species))
+    client = dict((payload.get("class_option_picks") or {}).get("client_picks") or {})
+    client.update(_species_client_picks(species))
+    data = (create24.load_species_catalog().get(species) or {}).get("data") or {}
+    if not data.get("lineages"):
+        payload.pop("species_lineage_id", None)
+    payload.setdefault("class_option_picks", {})["client_picks"] = client
+    return payload
+
+
+def test_dwarven_toughness_create_at_n_vs_tiefling():
+    """Dwarf 2024: +1 max HP per character level on top of class/draconic."""
+
+    def _make(species: str, level: int):
+        return create24.validate_create_2024(
+            create24.payload_from_dict(_sorcerer_species_payload(species, level))
+        )
+
+    for level in (5, 10, 11):
+        dwarf = _make("dwarf", level)
+        tiefling = _make("tiefling", level)
+        assert (
+            dwarf.sheet["combat"]["hp_max"] - tiefling.sheet["combat"]["hp_max"] == level
+        ), f"L{level}: dwarf should be +{level} vs tiefling"
+
+    # CON 16 (=+3): L11 = 90 without toughness + 11 = 101 (review fixture).
+    assert int(_make("dwarf", 11).sheet["combat"]["hp_max"]) == 101
+    assert int(_make("dwarf", 5).sheet["combat"]["hp_max"]) == 47
+    assert int(_make("dwarf", 10).sheet["combat"]["hp_max"]) == 92
+
+
+def test_dwarven_toughness_rollback_drops_one():
+    sheet = deepcopy(
+        create24.validate_create_2024(
+            create24.payload_from_dict(_sorcerer_species_payload("dwarf", 5))
+        ).sheet
+    )
+    hp5 = int(sheet["combat"]["hp_max"])
+    assert hp5 == 47
+    hist = (sheet.get("create_2024") or {}).get("level_gains") or []
+    expected_loss = int(hist[-1]["hp_gain"])
+    levels.rollback_last_level_gain(sheet)
+    assert sum(int(r["level"]) for r in sheet["classes"]) == 4
+    assert hp5 - int(sheet["combat"]["hp_max"]) == expected_loss
+    # L4 dwarf draconic CON16: toughness 4, dragon 4 → 38
+    assert int(sheet["combat"]["hp_max"]) == 38
+
+
 def test_aberrant_pools_and_psychic_defenses():
     bonuses = {
         b.feature_id: b

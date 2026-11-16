@@ -86,6 +86,8 @@ type MobileVitalsBarProps = {
   mountName?: string | null
   onRedirectDamageToMount?: (amount: number, note: string) => void
   draconicResilience?: boolean
+  /** 2024 flat species/edition bonuses for Max HP dialog (e.g. Dwarven Toughness). */
+  maxHpExtraBonuses?: Array<{ label: string; amount: number }>
   play: PlayState
   autoAc: number
   acOverride: number | null
@@ -183,6 +185,7 @@ export function MobileVitalsBar({
   onRedirectDamageToMount,
   hasShieldMasterEvasion = false,
   draconicResilience = false,
+  maxHpExtraBonuses = [],
   play,
   autoAc,
   acOverride,
@@ -819,6 +822,7 @@ export function MobileVitalsBar({
           hpMax={hpMax}
           hpCurrent={hpCurrent}
           draconicResilience={draconicResilience}
+          extraFlatBonuses={maxHpExtraBonuses}
           onClose={() => setMaxDialogOpen(false)}
           onApply={({ hpMax: nextMax, hpCurrent: nextCurrent }) => {
             onCombatChange({ hpMax: nextMax, hpCurrent: nextCurrent })

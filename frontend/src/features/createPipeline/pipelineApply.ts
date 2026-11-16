@@ -238,6 +238,7 @@ function emptyIdentity(): IdentityExtras {
     subclassName: '',
     background: '',
     backgroundSlug: null,
+    speciesSlug: null,
     alignment: '',
     alignmentText: '',
     gender: null,

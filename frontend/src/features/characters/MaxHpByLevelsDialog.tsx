@@ -8,6 +8,13 @@ import {
 import type { HitDie } from '../../shared/dnd/hitDice'
 import { Dialog, Field, NumberInput, Stack, Text } from '../../ui'
 
+export type MaxHpExtraBonusRow = {
+  /** Display label, e.g. «Дварфийская стойкость». */
+  label: string
+  /** Flat +HP amount (already total, not per-level). */
+  amount: number
+}
+
 type MaxHpByLevelsDialogProps = {
   open: boolean
   classes: ClassLevelEntry[]
@@ -17,6 +24,12 @@ type MaxHpByLevelsDialogProps = {
   hpCurrent: number | null
   /** B-05: Draconic Resilience +1 HP per sorcerer level. */
   draconicResilience?: boolean
+  /**
+   * Flat edition/species bonuses shown as explicit lines after per-level rows
+   * (e.g. 2024 «+N Дварфийская стойкость»). Kept separate from #498's
+   * `dwarvenToughness` wiring into `buildMaxHpByLevels` to avoid rebase conflict.
+   */
+  extraFlatBonuses?: MaxHpExtraBonusRow[]
   onApply: (next: { hpMax: number; hpCurrent: number }) => void
   onClose: () => void
 }
@@ -31,12 +44,25 @@ export function MaxHpByLevelsDialog({
   hpMax,
   hpCurrent,
   draconicResilience = false,
+  extraFlatBonuses = [],
   onApply,
   onClose,
 }: MaxHpByLevelsDialogProps) {
   const [mode, setMode] = useState<Mode>('rules')
   const [manualTotal, setManualTotal] = useState<number | null>(hpMax)
   const [fillCurrent, setFillCurrent] = useState(true)
+
+  const extras = useMemo(
+    () =>
+      (extraFlatBonuses ?? []).filter(
+        (row) => row && row.label.trim() && Number.isFinite(row.amount) && row.amount !== 0,
+      ),
+    [extraFlatBonuses],
+  )
+  const extrasTotal = useMemo(
+    () => extras.reduce((sum, row) => sum + Math.floor(row.amount), 0),
+    [extras],
+  )
 
   const built = useMemo(
     () =>
@@ -49,16 +75,17 @@ export function MaxHpByLevelsDialog({
     [classes, constitutionMod, hitDie, draconicResilience],
   )
 
+  const rulesTotal = built == null ? null : built.total + extrasTotal
+
   useEffect(() => {
     if (!open) return
     setMode('rules')
-    setManualTotal(built?.total ?? hpMax)
+    setManualTotal(rulesTotal ?? hpMax)
     const wasFull =
       hpMax != null && hpCurrent != null && hpCurrent >= hpMax
     setFillCurrent(hpCurrent == null || wasFull)
-  }, [open, built?.total, hpMax, hpCurrent])
+  }, [open, rulesTotal, hpMax, hpCurrent])
 
-  const rulesTotal = built?.total ?? null
   const nextMax =
     mode === 'rules'
       ? rulesTotal
@@ -125,8 +152,21 @@ export function MaxHpByLevelsDialog({
                   <HpLevelRowView key={`${row.label}-${index}`} row={row} />
                 ))}
               </ul>
+              {extras.length > 0 ? (
+                <ul className="hp-levels__list hp-levels__list--extras">
+                  {extras.map((row) => (
+                    <li key={row.label} className="hp-levels__row hp-levels__row--extra">
+                      <span className="hp-levels__label">{row.label}</span>
+                      <span className="hp-levels__meta">бонус вида</span>
+                      <span className="hp-levels__gain">
+                        +{Math.floor(row.amount)} {row.label}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
               <p className="hp-levels__total">
-                Итого макс. хиты: <strong>{built.total}</strong>
+                Итого макс. хиты: <strong>{rulesTotal}</strong>
                 {hpMax != null ? ` · было ${hpMax}` : ''}
               </p>
             </div>

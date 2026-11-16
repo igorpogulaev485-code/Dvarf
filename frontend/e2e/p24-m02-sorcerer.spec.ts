@@ -386,6 +386,9 @@ test.describe('P24-M02 sorcerer — real create pipeline', () => {
       spec.slots.forEach((max, index) => {
         expect(sheet.spells.slots[String(index + 1)].max).toBe(max)
       })
+      // Dwarf 2024 + Draconic + CON 16: L5=47, L11=101 (toughness +level).
+      const expectedHp = spec.level === 5 ? 47 : 101
+      expect(sheet.combat?.hp_max).toBe(expectedHp)
 
       if (isPhone(project)) await shot(page, ARTIFACTS, `sheet-sorcerer-l${spec.level}-combat`, project)
       await goSpells(page, project)
@@ -396,6 +399,25 @@ test.describe('P24-M02 sorcerer — real create pipeline', () => {
       expect(store.unmatched).toEqual([])
     })
   }
+
+  test('max-hp-dialog-dwarven-toughness', async ({ page }, testInfo) => {
+    const project = projectOf(testInfo)
+    const store = createStore()
+    await createSorcererViaPipeline(page, store, 'sorcerer11draconic')
+    await page.reload()
+    await dismissWelcome(page)
+    if (isPhone(project)) await ensureMobileVitalsExpanded(page)
+    // Open HP pad → «Максимум…» → «Макс. хиты по уровням»
+    await page.getByRole('button', { name: /Хиты/i }).first().click()
+    const pad = page.getByRole('dialog').last()
+    await expect(pad).toBeVisible({ timeout: 10_000 })
+    await pad.getByRole('button', { name: /Максимум/ }).click()
+    const dlg = page.getByRole('dialog', { name: /Макс\. хиты по уровням/i })
+    await expect(dlg).toBeVisible({ timeout: 10_000 })
+    await expect(dlg.getByText(/\+11\s*Дварфийская стойкость/)).toBeVisible()
+    await expect(dlg.getByText(/Итого макс\. хиты/i)).toContainText('101')
+    await shot(page, ARTIFACTS, 'max-hp-dialog-dwarven-toughness', project)
+  })
 
   test('font-of-magic-dialog', async ({ page }, testInfo) => {
     const project = projectOf(testInfo)
@@ -542,6 +564,13 @@ test.describe('P24-M02 sorcerer — real create pipeline', () => {
     await page.reload()
     await dismissWelcome(page)
     await openFeaturesScene(page, project)
+    // PHB 2024: restoration unlocks at 5 — badge must not show character level 18.
+    const restoration = page
+      .locator('.feature-card')
+      .filter({ hasText: /Чародейское восстановление/ })
+      .first()
+    await expect(restoration).toBeVisible({ timeout: 10_000 })
+    await expect(restoration.locator('.feature-card__level')).toHaveText('5')
     const surge = await expandFeature(page, /Всплеск дикой магии/)
     await shot(page, ARTIFACTS, 'subclass-wild-surge', project)
     const rollBtn = surge.getByRole('button', { name: /Всплеск|Бросок|Таблица|к100|1к20/i }).first()

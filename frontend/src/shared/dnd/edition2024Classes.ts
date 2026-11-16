@@ -183,6 +183,8 @@ type ResourceMeta = {
   uses_from?: 'proficiency_bonus' | 'cha_mod_min_1' | 'int_mod_min_1'
   fixed_uses?: number
   kind?: FeatureKind
+  /** Unlock level for the badge (defaults to current class level if omitted). */
+  unlock_level?: number
 }
 
 function abilityMod2024(score: number): number {
@@ -277,6 +279,7 @@ const RESOURCE_META: Record<string, ResourceMeta> = {
     fixed_uses: 1,
     kind: 'resource',
     on_hot: false,
+    unlock_level: 5,
   },
   favored_enemy_uses: {
     name_ru: 'Заклятый враг',
@@ -559,6 +562,7 @@ function buildResourceFeature(
   max: number,
   classLevel: number,
   _totalLevel: number,
+  unlockLevel?: number,
 ): { def: ClassFeatureDef; desired: DesiredFeatureResource } | null {
   const meta = RESOURCE_META[poolKey]
   if (!meta || max <= 0) return null
@@ -572,9 +576,15 @@ function buildResourceFeature(
     pool_name_ru: meta.name_ru,
     track: meta.track || 'spend',
   }
+  const badgeLevel =
+    typeof unlockLevel === 'number' && unlockLevel > 0
+      ? unlockLevel
+      : typeof meta.unlock_level === 'number' && meta.unlock_level > 0
+        ? meta.unlock_level
+        : classLevel
   const def: ClassFeatureDef = {
     id: featureId,
-    level: classLevel,
+    level: badgeLevel,
     name_ru: meta.name_ru,
     name_en: poolKey,
     summary_ru: meta.name_ru,
@@ -644,6 +654,8 @@ export function computeProgression2024(input: {
 
     const levels = (catalog.data.levels as Array<Record<string, unknown>>) || []
     const resourceOwnerIds = new Set<string>()
+    /** First unlock level for resource features (badge), from pack feature rows. */
+    const resourceUnlockLevels = new Map<string, number>()
 
     for (const row of levels) {
       const lv = Number(row.level || 0)
@@ -659,6 +671,9 @@ export function computeProgression2024(input: {
         // Resource-bearing features are materialised from the resources table below.
         if (metaKey) {
           resourceOwnerIds.add(metaKey)
+          if (!resourceUnlockLevels.has(metaKey)) {
+            resourceUnlockLevels.set(metaKey, lv)
+          }
           continue
         }
         features.push({
@@ -810,6 +825,7 @@ export function computeProgression2024(input: {
         max,
         cls.level,
         totalLevel,
+        resourceUnlockLevels.get(key),
       )
       if (!built) continue
       features.push({

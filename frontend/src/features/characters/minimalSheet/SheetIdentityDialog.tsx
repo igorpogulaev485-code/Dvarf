@@ -45,6 +45,7 @@ import { trimLevelUpSpellbookRows } from '../../../shared/dnd/wizardSpellbook'
 import { trimSavantSpellsOnLevelDown2024 } from '../../../shared/dnd/wizard2024Features'
 import { averageHpGain, hitDieForClass } from '../../../shared/dnd/multiclassRules'
 import { draconicResilienceHpDelta2024 } from '../../../shared/dnd/sorcerer2024Features'
+import { dwarvenToughnessHpDelta2024 } from '../../../shared/dnd/speciesHpBonus2024'
 import { withSyncedHitDiceSummary } from '../play'
 import { unlockFeaturesForClasses } from '../../../shared/dnd/classFeatures'
 import { clearFeaturePicksForClass } from '../../../shared/dnd/featurePicks'
@@ -323,7 +324,22 @@ export function SheetIdentityDialog({ model }: { model: SheetModel }) {
                                       }),
                                     )
                                   : 0
-                              const hpLoss = averageHpGain(die, conMod) + dragonLoss
+                              const oldCharacterLevel = totalCharacterLevel(prev.classes)
+                              const toughnessLoss = edition2024
+                                ? Math.max(
+                                    0,
+                                    -dwarvenToughnessHpDelta2024({
+                                      oldCharacterLevel,
+                                      newCharacterLevel: Math.max(0, oldCharacterLevel - 1),
+                                      speciesSlug:
+                                        prev.identity.speciesSlug ??
+                                        prev.raceGrant?.slug ??
+                                        null,
+                                    }),
+                                  )
+                                : 0
+                              const hpLoss =
+                                averageHpGain(die, conMod) + dragonLoss + toughnessLoss
                               const nextClasses = reduceClassLevel(prev.classes, row.id)
                               const removed = !nextClasses.some((item) => item.id === row.id)
                               const hitDiceByClass = syncHitDicePools({

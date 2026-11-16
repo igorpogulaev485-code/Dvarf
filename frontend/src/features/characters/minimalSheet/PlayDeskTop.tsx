@@ -48,6 +48,11 @@ import {
   hasDraconicResilienceFeature,
   initiativeAdvantageFromFeatures,
 } from '../featureCombatBonuses'
+import {
+  DWARVEN_TOUGHNESS_NAME_RU,
+  dwarvenToughnessHpTotal2024,
+  resolveSpeciesSlug2024,
+} from '../../../shared/dnd/speciesHpBonus2024'
 
 function initiativeAdvantageFromSheet(model: SheetModel): 'advantage' | 'disadvantage' | 'normal' {
   const fromFx = resolveAdvantageFromEffects(model.draft.play.effects, {
@@ -103,6 +108,27 @@ export function PlayDeskTop({ model }: { model: SheetModel }) {
     hasFeatFlag(model.draft.featGrants, 'shield_master') &&
     Boolean(equippedArmorPieces(model.draft.inventory.items).shield)
   const raceSlug = model.draft.raceGrant?.slug ?? ''
+  const edition = model.baseCharacter.rules_edition ?? model.rulesEdition
+  const maxHpExtraBonuses = useMemo(() => {
+    if (edition !== '2024') return []
+    const speciesSlug = resolveSpeciesSlug2024({
+      speciesSlug: model.draft.identity.speciesSlug,
+      raceGrantSlug: model.draft.raceGrant?.slug,
+      raceName: model.draft.raceName,
+    })
+    const amount = dwarvenToughnessHpTotal2024({
+      characterLevel: model.characterLevel ?? 1,
+      speciesSlug,
+    })
+    if (amount <= 0) return []
+    return [{ label: DWARVEN_TOUGHNESS_NAME_RU, amount }]
+  }, [
+    edition,
+    model.characterLevel,
+    model.draft.identity.speciesSlug,
+    model.draft.raceGrant?.slug,
+    model.draft.raceName,
+  ])
   // Stable preview amounts for the pad chips (exact roll is table-facing; here mean+mod).
   const stonesCut =
     raceSlug === 'goliath'
@@ -386,6 +412,7 @@ export function PlayDeskTop({ model }: { model: SheetModel }) {
               model.unlockedFeatures ?? [],
               model.baseCharacter.rules_edition ?? model.rulesEdition,
             )}
+            maxHpExtraBonuses={maxHpExtraBonuses}
             play={model.draft.play}
             autoAc={model.armorClass.ac}
             acHint={model.armorClass.summary}
@@ -596,6 +623,7 @@ export function PlayDeskTop({ model }: { model: SheetModel }) {
             model.unlockedFeatures ?? [],
             model.baseCharacter.rules_edition ?? model.rulesEdition,
           )}
+          maxHpExtraBonuses={maxHpExtraBonuses}
           play={model.draft.play}
           autoAc={model.armorClass.ac}
           acOverride={model.draft.ac}

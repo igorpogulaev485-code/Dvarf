@@ -31,6 +31,7 @@ import { applyFeatGrantToDraft, revokeFeatGrantsForRace } from '../featEffects'
 import { syncHitDicePools } from '../../../shared/dnd/classHitDice'
 import { buildMaxHpByLevels } from '../../../shared/dnd/multiclassRules'
 import { draconicResilienceHpTotal2024 } from '../../../shared/dnd/sorcerer2024Features'
+import { dwarvenToughnessHpTotal2024 } from '../../../shared/dnd/speciesHpBonus2024'
 import { clampCharacterLevel, xpToReachLevel } from '../../../shared/dnd/experience'
 import { withSyncedHitDiceSummary } from '../play'
 import { proficiencyBonusForTotalLevel, unlockFeaturesForClasses } from '../../../shared/dnd/classFeatures'
@@ -243,6 +244,10 @@ export function installSheetActions2(model: SheetModel) {
           subclassSlug: row.subclass_catalog_id || row.subclass_name || null,
         })
       }
+      hpTotal += dwarvenToughnessHpTotal2024({
+        characterLevel: totalCharacterLevel(nextClasses),
+        speciesSlug: prev.identity.speciesSlug ?? prev.raceGrant?.slug ?? null,
+      })
     }
     const hitDiceByClass = syncHitDicePools({
       classes: nextClasses,

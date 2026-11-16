@@ -47,6 +47,9 @@ export function SheetDialogsSetup({ model }: { model: SheetModel }) {
           model.unlockedFeatures ?? [],
           model.baseCharacter.rules_edition,
         )}
+        speciesSlug={
+          model.draft.identity.speciesSlug ?? model.draft.raceGrant?.slug ?? null
+        }
         allowMulticlass={campaignRules.edition_2014.multiclass}
         defaultHpMode={campaignRules.edition_2014.hp_on_level_up}
         onConfirm={model.applyLevelUp}

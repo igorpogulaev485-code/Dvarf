@@ -92,6 +92,48 @@ def is_draconic_sorcery_subclass(subclass_slug: str | None) -> bool:
     return "draconic" in key
 
 
+def has_dwarven_toughness_2024(species_slug: str | None) -> bool:
+    """PHB 2024 dwarf trait `dwarven_toughness` (+1 max HP per character level).
+
+    Intentionally separate from 2014 hill/gold dwarf helpers (#498) — do not
+    share race-slug tables or passive_hp_bonuses ledger with that PR.
+    """
+    return (species_slug or "").strip().lower() == "dwarf"
+
+
+def dwarven_toughness_hp_total_2024(
+    character_level: int,
+    species_slug: str | None,
+) -> int:
+    if not has_dwarven_toughness_2024(species_slug):
+        return 0
+    return max(0, int(character_level or 0))
+
+
+def dwarven_toughness_hp_delta_2024(
+    *,
+    new_character_level: int,
+    old_character_level: int,
+    species_slug: str | None,
+) -> int:
+    return dwarven_toughness_hp_total_2024(
+        new_character_level, species_slug
+    ) - dwarven_toughness_hp_total_2024(old_character_level, species_slug)
+
+
+def species_slug_from_sheet(sheet: Mapping[str, Any] | None) -> str | None:
+    if not isinstance(sheet, Mapping):
+        return None
+    identity = sheet.get("identity")
+    if not isinstance(identity, Mapping):
+        return None
+    raw = identity.get("species_slug")
+    if raw is None:
+        return None
+    key = str(raw).strip().lower()
+    return key or None
+
+
 def draconic_resilience_hp_total_2024(
     sorcerer_level: int,
     subclass_slug: str | None,
@@ -127,11 +169,16 @@ def hp_gain_for_level(
     rolled: int | None,
     subclass_slug: str | None = None,
     previous_class_level: int | None = None,
+    species_slug: str | None = None,
+    previous_character_level: int | None = None,
+    character_level: int | None = None,
 ) -> int:
     """Primary class level 1 = max die; later levels average or roll. Never max on MC entry.
 
     2024 Draconic Resilience: +3 when sorcerer reaches 3 with draconic subclass,
     then +1 per subsequent sorcerer level (not applied on 2014 paths — this module is 2024-only).
+
+    2024 Dwarven Toughness: +1 max HP per character level for species `dwarf`.
     """
     sides = _hit_die_sides(class_slug)
     if is_primary_origin and class_level == 1:
@@ -151,6 +198,27 @@ def hp_gain_for_level(
             new_level=int(class_level),
             old_level=old_lv,
             subclass_slug=subclass_slug,
+        )
+    if has_dwarven_toughness_2024(species_slug):
+        # Character level rose by 1 for this gain (or L1 create: 0 → 1).
+        new_total = (
+            int(character_level)
+            if character_level is not None
+            else (
+                int(previous_character_level) + 1
+                if previous_character_level is not None
+                else 1
+            )
+        )
+        old_total = (
+            int(previous_character_level)
+            if previous_character_level is not None
+            else max(0, new_total - 1)
+        )
+        base += dwarven_toughness_hp_delta_2024(
+            new_character_level=new_total,
+            old_character_level=old_total,
+            species_slug=species_slug,
         )
     return base
 
@@ -757,6 +825,17 @@ def apply_level_gain_2024(
         str(row.get("subclass_slug") or row.get("subclass_catalog_id") or step.subclass_slug or "")
         or None
     )
+    # Character level after this gain (class rows already bumped above).
+    new_character_level = sum(max(0, int(r.get("level") or 0)) for r in classes) or 1
+    if entering_new:
+        # New MC class row was just added at level 1; `classes` still holds prior rows
+        # plus the new one from _ensure_class_row — recount from sheet.
+        new_character_level = sum(
+            max(0, int(r.get("level") or 0))
+            for r in (sheet.get("classes") or [])
+            if isinstance(r, dict)
+        ) or 1
+    old_character_level = max(0, new_character_level - 1)
     gain = hp_gain_for_level(
         class_slug=step.class_slug,
         class_level=class_level,
@@ -766,6 +845,9 @@ def apply_level_gain_2024(
         rolled=step.rolled,
         subclass_slug=subclass_now,
         previous_class_level=0 if entering_new else class_level - 1,
+        species_slug=species_slug_from_sheet(sheet),
+        previous_character_level=old_character_level,
+        character_level=new_character_level,
     )
     combat = sheet.setdefault("combat", {})
     prev_max = int(combat.get("hp_max") or 0)

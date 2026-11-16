@@ -8,6 +8,7 @@ import { ABILITY_LABEL_RU, ABILITY_ORDER, type AbilityKey } from '../../shared/d
 import { masteryPropertyNameRu } from '../../shared/dnd/weaponMastery'
 import { abilityModifier, SKILL_DEFS } from '../characters/sheetTypes'
 import { draconicResilienceHpTotal2024 } from '../../shared/dnd/sorcerer2024Features'
+import { dwarvenToughnessHpTotal2024 } from '../../shared/dnd/speciesHpBonus2024'
 import {
   abilityLabelRuById,
   buildItemNameIndex,
@@ -263,6 +264,10 @@ export function buildCreate2024SheetPreview(input: SheetPreviewInput): SheetPrev
       subclassSlug,
     })
   }
+  hpMax += dwarvenToughnessHpTotal2024({
+    characterLevel: totalLevel,
+    speciesSlug: state.speciesSlug,
+  })
 
   // Feats + their picks.
   const bgFeatSlug = originFeatSlugOf(backgroundEntry)

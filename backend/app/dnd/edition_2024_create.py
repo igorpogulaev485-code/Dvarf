@@ -1494,6 +1494,10 @@ def _build_sheet(
     con_mod = _ability_mod(int(final_abilities["con"]))
     hit_die = int(class_data.get("hit_die") or 8)
     hp_max = hit_die + con_mod
+    # PHB 2024 Dwarven Toughness: +1 max HP at character level 1 (species dwarf).
+    # Kept local to 2024 create — do not share with 2014 hill-dwarf passive ledger (#498).
+    if str(payload.species_slug or "").strip().lower() == "dwarf":
+        hp_max += 1
 
     # Abilities
     sheet["abilities"] = {k: {"score": int(final_abilities[k])} for k in ABILITY_KEYS}

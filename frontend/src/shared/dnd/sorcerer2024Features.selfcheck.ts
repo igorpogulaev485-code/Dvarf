@@ -15,6 +15,7 @@ import {
   sorcerousRestorationMaxPoints2024,
 } from './sorcerer2024Features'
 import { METAMAGIC_2024, metamagicKnownLimit2024 } from './edition2024ClassOptions'
+import { computeProgression2024 } from './edition2024Classes'
 import {
   findWildMagicSurge2024,
   tamedSurgeChoices2024,
@@ -174,5 +175,24 @@ assert.equal(
   }),
   -3,
 )
+
+{
+  const snap = computeProgression2024({
+    classes: [
+      {
+        id: 'c1',
+        name: 'Чародей',
+        level: 18,
+        catalog_id: 'sorcerer',
+        subclass_catalog_id: 'sorcerer__wild-magic-sorcery',
+        subclass_name: 'Чародейство дикой магии',
+      },
+    ],
+    abilities: { cha: 18, con: 14 },
+  })
+  const restoration = snap.features.find((f) => f.id === 'sorcerous_restoration')
+  assert.ok(restoration, 'sorcerous_restoration feature present at L18')
+  assert.equal(restoration!.level, 5, 'badge unlock level is 5, not class level')
+}
 
 console.log('sorcerer2024Features selfcheck: ok')

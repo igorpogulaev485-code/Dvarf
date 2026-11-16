@@ -101,6 +101,8 @@ type PlayDeskHeaderProps = {
   hasShieldMasterEvasion?: boolean
   /** B-05: Draconic Resilience for max-HP-by-levels dialog. */
   draconicResilience?: boolean
+  /** 2024 flat species/edition bonuses for Max HP dialog (e.g. Dwarven Toughness). */
+  maxHpExtraBonuses?: Array<{ label: string; amount: number }>
   play: PlayState
   autoAc: number
   acHint: string
@@ -220,6 +222,7 @@ export function PlayDeskHeader({
   mountName = null,
   onRedirectDamageToMount,
   draconicResilience = false,
+  maxHpExtraBonuses = [],
   play,
   autoAc,
   acHint,
@@ -1090,6 +1093,7 @@ export function PlayDeskHeader({
         hpMax={hpMax}
         hpCurrent={hpCurrent}
         draconicResilience={draconicResilience}
+        extraFlatBonuses={maxHpExtraBonuses}
         onClose={() => setMaxDialogOpen(false)}
         onApply={({ hpMax: nextMax, hpCurrent: nextCurrent }) => {
           onCombatChange({ hpMax: nextMax, hpCurrent: nextCurrent })

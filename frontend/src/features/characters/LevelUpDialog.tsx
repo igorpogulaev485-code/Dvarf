@@ -12,6 +12,7 @@ import {
 import type { HitDie } from '../../shared/dnd/hitDice'
 import { checkMulticlassPrerequisites2024 } from '../../shared/dnd/edition2024Classes'
 import { draconicResilienceHpDelta2024 } from '../../shared/dnd/sorcerer2024Features'
+import { dwarvenToughnessHpDelta2024 } from '../../shared/dnd/speciesHpBonus2024'
 import { CatalogCombobox } from '../catalog'
 import { Dialog, Field, NumberInput, Stack, Text } from '../../ui'
 
@@ -42,6 +43,8 @@ type LevelUpDialogProps = {
   constitutionMod: number
   /** B-05: +1 HP per sorcerer level (Draconic Resilience). */
   draconicResilience?: boolean
+  /** 2024 species slug for Dwarven Toughness (+1 HP / character level). */
+  speciesSlug?: string | null
   /** L-08: разрешить мультикласс (дефолт true). */
   allowMulticlass?: boolean
   /** L-08: среднее | бросок — стартовый режим хитов кампании. */
@@ -57,6 +60,7 @@ export function LevelUpDialog({
   abilities,
   constitutionMod,
   draconicResilience = false,
+  speciesSlug = null,
   allowMulticlass = true,
   defaultHpMode = 'average',
   onConfirm,
@@ -126,7 +130,16 @@ export function LevelUpDialog({
         }
         // 2024: +3 at sorcerer 3 (when subclass is already/will be draconic), then +1.
         const base = averageHpGain(hitDie, constitutionMod)
-        if (!isSorcerer) return base
+        const oldCharacterLevel = classes.reduce(
+          (sum, row) => sum + Math.max(0, Math.floor(row.level || 0)),
+          0,
+        )
+        const toughness = dwarvenToughnessHpDelta2024({
+          oldCharacterLevel,
+          newCharacterLevel: oldCharacterLevel + 1,
+          speciesSlug,
+        })
+        if (!isSorcerer) return base + toughness
         const row = mode === 'same' ? classes.find((c) => c.id === classId) : null
         const oldLv = row?.level ?? 0
         const newLv = oldLv + 1
@@ -136,6 +149,7 @@ export function LevelUpDialog({
           (draconicResilience ? 'draconic' : null)
         return (
           base +
+          toughness +
           draconicResilienceHpDelta2024({
             oldLevel: oldLv,
             newLevel: newLv,
