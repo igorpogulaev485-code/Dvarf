@@ -16,6 +16,7 @@ import {
   type ClassOptions2024State,
 } from './edition2024ClassOptions'
 import { metamagicPickGainAtLevel2024 } from './sorcerer2024Features'
+import { invocationPickGainAtLevel2024 } from './warlock2024Features'
 import { getFeatureChoicePick, type FeaturePicksState } from './featurePicks'
 import {
   withWizardSpellbookPicksStep,
@@ -144,6 +145,25 @@ export function buildPendingWizardSteps2024(input: PendingWizardInput2024): Guid
         steps.push({
           id: `metamagic-picks:${input.classEntryId}:${level}`,
           kind: 'metamagic_picks',
+          classEntryId: input.classEntryId,
+          className: input.className,
+          classLevel: level,
+          picksNeeded,
+        })
+      }
+    }
+  }
+
+  if (slug === 'warlock') {
+    const gain = invocationPickGainAtLevel2024(level)
+    if (gain > 0) {
+      const known = input.classOptions?.eldritch_invocations ?? []
+      const limit = warlockInvocationLimit2024(level)
+      const picksNeeded = Math.min(gain, Math.max(0, limit - known.length))
+      if (picksNeeded > 0) {
+        steps.push({
+          id: `invocation-picks:${input.classEntryId}:${level}`,
+          kind: 'invocation_picks',
           classEntryId: input.classEntryId,
           className: input.className,
           classLevel: level,

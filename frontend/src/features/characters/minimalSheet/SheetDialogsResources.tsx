@@ -28,6 +28,7 @@ import { WizardFeatureUseDialog } from '../WizardFeatureUseDialog'
 import { Wizard2024UseDialog } from '../Wizard2024UseDialog'
 import { Sorcerer2024UseDialog } from '../Sorcerer2024UseDialog'
 import { Monk2024UseDialog } from '../Monk2024UseDialog'
+import { Warlock2024UseDialog } from '../Warlock2024UseDialog'
 import type { WizardFeatureUseResult } from '../../../shared/dnd/wizardTradition'
 import {
   applySelfDamage2024,
@@ -55,7 +56,12 @@ import {
   monk2024UseFeatureId,
   type MonkFeatureUseResult,
 } from '../../../shared/dnd/monk2024Features'
-import { resolveClassCasterSlug } from '../../../shared/dnd/casterProgression'
+import {
+  warlock2024UseFeatureId,
+  type WarlockFeatureUseResult,
+} from '../../../shared/dnd/warlock2024Features'
+import { chooseTempHpPool } from '../../../shared/dnd/activeEffects'
+import { resolveClassCasterSlug, warlockLevels } from '../../../shared/dnd/casterProgression'
 import type { Wizard2024RestProps } from '../Wizard2024RestSwaps'
 import { listCatalogEntries } from '../../../shared/api/catalog'
 import { parseSpellCatalogData, spellAvailableOnClassList } from '../../../shared/dnd/spellCatalog'
@@ -215,6 +221,55 @@ export function SheetDialogsResources({ model }: { model: SheetModel }) {
     }))
     model.onToast(result.message)
     model.setMonkFeatureUse(null)
+  }
+
+  const onWarlockUseConfirm = (result: WarlockFeatureUseResult) => {
+    if (!result.ok) {
+      model.onToast(result.message)
+      return
+    }
+    const featureId = model.warlockFeatureUse?.featureId ?? 'warlock'
+    model.setDraft((prev) => ({
+      ...prev,
+      ...(result.featurePicks ? { featurePicks: result.featurePicks } : {}),
+      ...(result.pact_slots !== undefined
+        ? { spells: { ...prev.spells, pact_slots: result.pact_slots } }
+        : {}),
+      play: {
+        ...prev.play,
+        resources: result.resources,
+        concentration: result.concentrationName
+          ? setConcentration({
+              spellId: `feature:${featureId}`,
+              name: result.concentrationName,
+            })
+          : prev.play.concentration,
+      },
+    }))
+    const incomingTemp =
+      typeof result.tempHp === 'number' ? Math.max(0, Math.floor(result.tempHp)) : 0
+    if (incomingTemp > 0) {
+      const current = Math.max(0, model.draft.play.hpTemp || 0)
+      const applyTemp = (value: number) =>
+        model.setDraft((prev) => ({
+          ...prev,
+          play: { ...prev.play, hpTemp: value },
+        }))
+      const ask = model.askTempHpReplace as
+        | ((input: { current: number; incoming: number }) => Promise<'keep' | 'replace'>)
+        | undefined
+      if (current <= 0) {
+        applyTemp(incomingTemp)
+      } else if (typeof ask === 'function') {
+        void ask({ current, incoming: incomingTemp }).then((choice) =>
+          applyTemp(chooseTempHpPool(current, incomingTemp, choice)),
+        )
+      } else {
+        applyTemp(Math.max(current, incomingTemp))
+      }
+    }
+    model.onToast(result.message)
+    model.setWarlockFeatureUse(null)
   }
 
   const [wizardCantripCatalog, setWizardCantripCatalog] = useState<SheetSpell[]>([])
@@ -385,6 +440,13 @@ export function SheetDialogsResources({ model }: { model: SheetModel }) {
     model.rulesEdition === '2024' &&
     model.monkFeatureUse != null &&
     monk2024UseFeatureId(model.monkFeatureUse.featureId)
+
+  const warlock2024Use =
+    model.rulesEdition === '2024' &&
+    model.warlockFeatureUse != null &&
+    warlock2024UseFeatureId(model.warlockFeatureUse.featureId)
+
+  const warlockLevel = warlockLevels(model.draft.classes)
 
   const sorcererLevel = (() => {
     let level = 0
@@ -801,6 +863,21 @@ export function SheetDialogsResources({ model }: { model: SheetModel }) {
           wisMod={abilityModifier(model.draft.abilities.wis)}
           onClose={() => model.setMonkFeatureUse(null)}
           onConfirm={onMonkUseConfirm}
+        />
+      ) : null}
+
+      {warlock2024Use ? (
+        <Warlock2024UseDialog
+          key={`${model.warlockFeatureUse?.featureId}:${model.warlockFeatureUse?.classEntryId}`}
+          open
+          request={model.warlockFeatureUse}
+          resources={model.draft.play.resources}
+          featurePicks={model.draft.featurePicks}
+          pactSlots={model.draft.spells.pact_slots ?? null}
+          warlockLevel={warlockLevel}
+          chaMod={abilityModifier(model.draft.abilities.cha)}
+          onClose={() => model.setWarlockFeatureUse(null)}
+          onConfirm={onWarlockUseConfirm}
         />
       ) : null}
 

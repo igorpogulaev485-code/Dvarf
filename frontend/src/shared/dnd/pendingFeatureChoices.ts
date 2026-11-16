@@ -91,6 +91,14 @@ export type GuidedWizardStep =
       classLevel: number
       picksNeeded: number
     }
+  | {
+      id: string
+      kind: 'invocation_picks'
+      classEntryId: string
+      className: string
+      classLevel: number
+      picksNeeded: number
+    }
 
 export function backgroundWizardStep(): GuidedWizardStep {
   return {

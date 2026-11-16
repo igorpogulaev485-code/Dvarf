@@ -254,6 +254,27 @@ export function validateInvocationReplace2024(input: {
   return { ok: true }
 }
 
+/** Why `addId` cannot be picked right now (Russian text), or null when it can. */
+export function invocationUnavailableReason2024(input: {
+  known: string[]
+  addId: string
+  warlockLevel: number
+}): string | null {
+  const def = invocationById2024(input.addId)
+  if (!def) return `Неизвестное воззвание: ${input.addId}`
+  if (!def.repeatable && input.known.includes(input.addId)) return null
+  if (input.warlockLevel < def.minLevel) return `Доступно с ${def.minLevel} уровня колдуна`
+  if (def.requiresPact && !input.known.includes(PACT_INVOCATION_BY_BOON[def.requiresPact])) {
+    const pact = invocationById2024(PACT_INVOCATION_BY_BOON[def.requiresPact])
+    return `Нужно «${pact?.nameRu ?? def.requiresPact}»`
+  }
+  if (def.requiresInvocation && !input.known.includes(def.requiresInvocation)) {
+    const req = invocationById2024(def.requiresInvocation)
+    return `Нужно «${req?.nameRu ?? def.requiresInvocation}»`
+  }
+  return null
+}
+
 export function listInvocations2024(): InvocationDef2024[] {
   return [...ELDRITCH_INVOCATIONS_2024]
 }

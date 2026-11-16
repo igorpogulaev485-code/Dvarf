@@ -69,9 +69,14 @@ import {
   MONK_2024_CARD_BUTTONS,
   monk2024UseFeatureId,
 } from '../../shared/dnd/monk2024Features'
+import {
+  WARLOCK_2024_CARD_BUTTONS,
+  warlock2024UseFeatureId,
+} from '../../shared/dnd/warlock2024Features'
 import type { WizardFeatureRequest } from './WizardFeatureUseDialog'
 import type { SorcererFeatureRequest } from './SorcererFeatureUseDialog'
 import type { MonkFeatureRequest } from './Monk2024UseDialog'
+import type { WarlockFeatureRequest } from './Warlock2024UseDialog'
 import {
   FLEXIBLE_CASTING_SLOT_COST,
   isTceMetamagic,
@@ -233,6 +238,7 @@ type ClassFeaturesPanelProps = {
   onSorcererFeatureUse?: (request: SorcererFeatureRequest) => void
   /** Monk 2024 feature dialogs (edition 2024 only). */
   onMonkFeatureUse?: (request: MonkFeatureRequest) => void
+  onWarlockFeatureUse?: (request: WarlockFeatureRequest) => void
   /** Open sorcery-points spend dialog (2024 metamagic / font). */
   onSorceryPointsSpend?: (resourceId: string) => void
   /**
@@ -406,6 +412,7 @@ function FeatureResourceControls({
   onWizardFeatureUse,
   onSorcererFeatureUse,
   onMonkFeatureUse,
+  onWarlockFeatureUse,
   onFeatureBuffApply,
   moonCombatWildShape = false,
   scaleText = null,
@@ -428,6 +435,7 @@ function FeatureResourceControls({
   onWizardFeatureUse?: (request: WizardFeatureRequest) => void
   onSorcererFeatureUse?: (request: SorcererFeatureRequest) => void
   onMonkFeatureUse?: (request: MonkFeatureRequest) => void
+  onWarlockFeatureUse?: (request: WarlockFeatureRequest) => void
   onFeatureBuffApply?: ClassFeaturesPanelProps['onFeatureBuffApply']
   /** Circle of the Moon: Wild Shape is a bonus action. */
   moonCombatWildShape?: boolean
@@ -858,6 +866,23 @@ function FeatureResourceControls({
                 ? 'Потратить (бонусным)…'
                 : 'Потратить…'
               : 'Через Дикий облик…'}
+          </Button>
+        ) : edition === '2024' &&
+          onWarlockFeatureUse &&
+          warlock2024UseFeatureId(feature.id) ? (
+          <Button
+            type="button"
+            onClick={() =>
+              onWarlockFeatureUse({
+                featureId: feature.id,
+                resourceId: pool.id,
+                classSlug,
+                classEntryId: feature.classEntryId,
+                name: feature.name_ru,
+              })
+            }
+          >
+            {WARLOCK_2024_CARD_BUTTONS[feature.id] ?? 'Применить…'}
           </Button>
         ) : isPack03CustomSpend(feature.id) ||
           pack04CustomSpendFeature(feature.id) ||
@@ -2108,6 +2133,7 @@ function FeatureRow({
   onWizardFeatureUse,
   onSorcererFeatureUse,
   onMonkFeatureUse,
+  onWarlockFeatureUse,
   onSorceryPointsSpend,
   moonCombatWildShape = false,
   onMoonFormSlotHeal,
@@ -2160,6 +2186,7 @@ function FeatureRow({
   onWizardFeatureUse?: (request: WizardFeatureRequest) => void
   onSorcererFeatureUse?: (request: SorcererFeatureRequest) => void
   onMonkFeatureUse?: (request: MonkFeatureRequest) => void
+  onWarlockFeatureUse?: (request: WarlockFeatureRequest) => void
   onSorceryPointsSpend?: (resourceId: string) => void
   moonCombatWildShape?: boolean
   onMoonFormSlotHeal?: (input: {
@@ -2527,6 +2554,27 @@ function FeatureRow({
         </div>
       ) : null}
       {replacementStatus === 'active' &&
+      edition === '2024' &&
+      onWarlockFeatureUse &&
+      warlock2024UseFeatureId(feature.id) ? (
+        <div className="feature-resource__actions">
+          <Button
+            type="button"
+            onClick={() =>
+              onWarlockFeatureUse({
+                featureId: feature.id,
+                resourceId: null,
+                classSlug,
+                classEntryId: feature.classEntryId,
+                name: feature.name_ru,
+              })
+            }
+          >
+            {WARLOCK_2024_CARD_BUTTONS[feature.id] ?? 'Применить…'}
+          </Button>
+        </div>
+      ) : null}
+      {replacementStatus === 'active' &&
       onWizardFeatureUse &&
       (feature.id === 'minor_conjuration' || feature.id === 'command_undead') ? (
         <div className="feature-resource__actions">
@@ -2663,6 +2711,7 @@ function FeatureRow({
           onWizardFeatureUse={onWizardFeatureUse}
           onSorcererFeatureUse={onSorcererFeatureUse}
           onMonkFeatureUse={onMonkFeatureUse}
+          onWarlockFeatureUse={onWarlockFeatureUse}
           onFeatureBuffApply={onFeatureBuffApply}
           moonCombatWildShape={moonCombatWildShape}
           scaleText={scaleShown}
@@ -2877,6 +2926,7 @@ export function ClassFeaturesPanel({
   onWizardFeatureUse,
   onSorcererFeatureUse,
   onMonkFeatureUse,
+  onWarlockFeatureUse,
   onSorceryPointsSpend,
   onMoonFormSlotHeal,
   divineSmiteIntent,
@@ -3457,6 +3507,7 @@ export function ClassFeaturesPanel({
                             onWizardFeatureUse={onWizardFeatureUse}
                             onSorcererFeatureUse={onSorcererFeatureUse}
                             onMonkFeatureUse={onMonkFeatureUse}
+                            onWarlockFeatureUse={onWarlockFeatureUse}
                             onSorceryPointsSpend={onSorceryPointsSpend}
                             moonCombatWildShape={moonCombatWildShape}
                             onMoonFormSlotHeal={onMoonFormSlotHeal}

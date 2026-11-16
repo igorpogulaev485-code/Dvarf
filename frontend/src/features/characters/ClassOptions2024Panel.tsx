@@ -11,6 +11,7 @@ import {
   type ClassOptions2024State,
 } from '../../shared/dnd/edition2024ClassOptions'
 import { normalizeClassSlug2024 } from '../../shared/dnd/edition2024Classes'
+import { invocationUnavailableReason2024 } from '../../shared/dnd/warlock2024Features'
 import type { ClassLevelEntry } from './classLevels'
 
 export type ClassOptions2024PanelProps = {
@@ -84,14 +85,25 @@ export function ClassOptions2024Panel({
             Таинственные воззвания ({state.eldritch_invocations.length}/{invLimit})
           </Text>
           <div className="sheet-chip-row">
-            {ELDRITCH_INVOCATIONS_2024.filter((row) => row.minLevel <= warlockLv).map((row) => {
+            {ELDRITCH_INVOCATIONS_2024.map((row) => {
               const on = state.eldritch_invocations.includes(row.id)
+              const reason = on
+                ? null
+                : invocationUnavailableReason2024({
+                    known: state.eldritch_invocations,
+                    addId: row.id,
+                    warlockLevel: warlockLv,
+                  })
+              const locked = reason != null
               return (
                 <button
                   key={row.id}
                   type="button"
                   className={`sheet-chip${on ? ' is-on' : ''}`}
-                  title={row.summaryRu}
+                  disabled={locked}
+                  aria-disabled={locked}
+                  style={locked ? { opacity: 0.45 } : undefined}
+                  title={locked ? `${row.summaryRu} — ${reason}` : row.summaryRu}
                   onClick={() => toggleList('eldritch_invocations', row.id, invLimit)}
                 >
                   {row.nameRu}

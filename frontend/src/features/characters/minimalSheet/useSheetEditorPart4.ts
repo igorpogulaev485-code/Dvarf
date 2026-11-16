@@ -12,6 +12,7 @@ import { type SpellSelfFormSlug } from '../spellForms'
 import type { WizardFeatureRequest } from '../WizardFeatureUseDialog'
 import type { SorcererFeatureRequest } from '../SorcererFeatureUseDialog'
 import type { MonkFeatureRequest } from '../Monk2024UseDialog'
+import type { WarlockFeatureRequest } from '../Warlock2024UseDialog'
 import { type FamiliarCastMode } from '../familiarForms'
 import { withInitiativeBonus } from '../modifiers'
 import { type ToastInput } from '../../../ui'
@@ -215,6 +216,10 @@ export function useSheetEditorPart4(model: SheetModel) {
   const [monkFeatureUse, setMonkFeatureUse] = useState<MonkFeatureRequest | null>(null)
   model.monkFeatureUse = monkFeatureUse
   model.setMonkFeatureUse = setMonkFeatureUse
+  const [warlockFeatureUse, setWarlockFeatureUse] =
+    useState<WarlockFeatureRequest | null>(null)
+  model.warlockFeatureUse = warlockFeatureUse
+  model.setWarlockFeatureUse = setWarlockFeatureUse
   const [infusionsSpendId, setInfusionsSpendId] = useState<string | null>(null)
   model.infusionsSpendId = infusionsSpendId
   model.setInfusionsSpendId = setInfusionsSpendId

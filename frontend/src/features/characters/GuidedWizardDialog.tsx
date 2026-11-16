@@ -34,10 +34,16 @@ import {
 } from '../../shared/dnd/classFeatures'
 import { filterTceCatalogOptions } from '../../shared/dnd/filterTceCatalogOptions'
 import {
+  ELDRITCH_INVOCATIONS_2024,
   METAMAGIC_2024,
   metamagicKnownLimit2024,
+  warlockInvocationLimit2024,
   type ClassOptions2024State,
 } from '../../shared/dnd/edition2024ClassOptions'
+import {
+  invocationUnavailableReason2024,
+  invocationsDependingOn2024,
+} from '../../shared/dnd/warlock2024Features'
 import {
   collectExpertiseOptionIdsFromPicks,
   isExpertiseChoice,
@@ -964,6 +970,14 @@ export function GuidedWizardDialog({
     step?.kind === 'metamagic_picks' &&
     metamagicCount >= Math.min(step.picksNeeded, metamagicLimit)
 
+  const invocationLimit =
+    step?.kind === 'invocation_picks' ? warlockInvocationLimit2024(step.classLevel) : 0
+  const invocationCount =
+    step?.kind === 'invocation_picks' ? (classOptions2024?.eldritch_invocations.length ?? 0) : 0
+  const invocationReady =
+    step?.kind === 'invocation_picks' &&
+    invocationCount >= Math.min(step.picksNeeded, invocationLimit)
+
   const primaryDisabled =
     step?.kind === 'class_grant'
       ? !grantReady
@@ -981,7 +995,9 @@ export function GuidedWizardDialog({
                   ? !pactTomeReady
                   : step?.kind === 'metamagic_picks'
                     ? !metamagicReady
-                    : false
+                    : step?.kind === 'invocation_picks'
+                      ? !invocationReady
+                      : false
 
   const title = !step
     ? 'Настройка персонажа'
@@ -1001,9 +1017,11 @@ export function GuidedWizardDialog({
                   ? `Заговоры договора · ${step.className}`
                   : step.kind === 'metamagic_picks'
                     ? `Метамагия · ${step.className} ${step.classLevel}`
-                    : step.kind === 'feature_choice'
-                      ? `${step.choice.label_ru} · ${step.className}`
-                      : 'Настройка персонажа'
+                    : step.kind === 'invocation_picks'
+                      ? `Воззвания · ${step.className} ${step.classLevel}`
+                      : step.kind === 'feature_choice'
+                        ? `${step.choice.label_ru} · ${step.className}`
+                        : 'Настройка персонажа'
 
   const choosingFeat =
     (step?.kind === 'asi' && asiUiMode === 'feat') || step?.kind === 'feat'
@@ -1126,6 +1144,16 @@ export function GuidedWizardDialog({
         return
       }
       onToast?.('Метамагия: готово')
+      onAdvance(index + 1)
+      return
+    }
+
+    if (step.kind === 'invocation_picks') {
+      if (!invocationReady) {
+        onToast?.(`Выбери ещё ${Math.max(0, step.picksNeeded - invocationCount)} воззвание(й)`)
+        return
+      }
+      onToast?.('Воззвания: готово')
       onAdvance(index + 1)
     }
   }
@@ -1362,6 +1390,63 @@ export function GuidedWizardDialog({
                     }}
                   >
                     {row.nameRu}
+                  </button>
+                )
+              })}
+            </div>
+          </Stack>
+        ) : null}
+        {step.kind === 'invocation_picks' ? (
+          <Stack gap={12}>
+            <Text tone="muted">
+              Выбери {step.picksNeeded} воззвание(й) ({invocationCount}/{invocationLimit}).
+            </Text>
+            <div className="sheet-chip-row" data-testid="wizard-invocation-picks">
+              {ELDRITCH_INVOCATIONS_2024.map((row) => {
+                const known = classOptions2024?.eldritch_invocations ?? []
+                const selected = known.includes(row.id)
+                const reason = selected
+                  ? null
+                  : invocationUnavailableReason2024({
+                      known,
+                      addId: row.id,
+                      warlockLevel: step.classLevel,
+                    })
+                const locked = !selected && reason != null
+                return (
+                  <button
+                    key={row.id}
+                    type="button"
+                    className={`sheet-chip${selected ? ' is-on' : ''}`}
+                    disabled={locked}
+                    aria-disabled={locked}
+                    style={locked ? { opacity: 0.45 } : undefined}
+                    title={locked ? `${row.summaryRu} — ${reason}` : row.summaryRu}
+                    onClick={() => {
+                      if (!classOptions2024 || !onClassOptions2024Change) return
+                      const cur = new Set(classOptions2024.eldritch_invocations)
+                      if (cur.has(row.id)) {
+                        const dependents = invocationsDependingOn2024([...cur], row.id)
+                        if (dependents.length > 0) {
+                          onToast?.(`Сначала убери зависимые воззвания (${dependents.length})`)
+                          return
+                        }
+                        cur.delete(row.id)
+                      } else {
+                        if (cur.size >= invocationLimit) {
+                          onToast?.(`Лимит воззваний: ${invocationLimit}`)
+                          return
+                        }
+                        cur.add(row.id)
+                      }
+                      onClassOptions2024Change({
+                        ...classOptions2024,
+                        eldritch_invocations: [...cur],
+                      })
+                    }}
+                  >
+                    {row.nameRu}
+                    {row.minLevel > 1 ? ` ·${row.minLevel}+` : ''}
                   </button>
                 )
               })}

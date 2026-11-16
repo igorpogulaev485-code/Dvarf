@@ -1593,6 +1593,7 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
         onWizardFeatureUse={(request) => model.setWizardFeatureUse(request)}
         onSorcererFeatureUse={(request) => model.setSorcererFeatureUse(request)}
         onMonkFeatureUse={(request) => model.setMonkFeatureUse(request)}
+        onWarlockFeatureUse={(request) => model.setWarlockFeatureUse(request)}
         onSorceryPointsSpend={(resourceId) => model.setSorcerySpendId(resourceId)}
         onMoonFormSlotHeal={({ slotLevel, diceCount, diceSize }) => {
           const form = model.draft.companions.find(
