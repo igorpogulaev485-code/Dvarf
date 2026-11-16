@@ -118,6 +118,7 @@ import {
   wizard2024Flags,
 } from '../../../shared/dnd/wizard2024Features'
 import { getFeaturePick } from '../../../shared/dnd/featurePicks'
+import { potentSpellcastingBonusForSheet2024 } from '../../../shared/dnd/cleric2024Features'
 import { elementalAffinityPreview } from '../../../shared/dnd/pack04SorcererWarlock'
 import { collectWarlockInvocationIds } from '../../../shared/dnd/o06StylesBreathInvocations'
 import { totalCharacterLevel } from '../../../shared/dnd/classLevels'
@@ -1642,6 +1643,13 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
               model.draft.classes.find((row) => /колдун|warlock/i.test(row.name))?.level ??
               model.characterLevel
             }
+            potentSpellcastingBonus={potentSpellcastingBonusForSheet2024({
+              rulesEdition: model.rulesEdition,
+              classes: model.draft.classes,
+              featurePicks: model.draft.featurePicks,
+              classOptions: model.draft.classOptions2024,
+              wisScore: model.effectiveAbilities?.wis ?? model.draft.abilities.wis,
+            })}
             improvedIllusions={
               model.rulesEdition === '2024' &&
               wizard2024Flags(

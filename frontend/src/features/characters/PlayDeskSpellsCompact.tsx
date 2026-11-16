@@ -62,6 +62,10 @@ import {
 } from '../../shared/dnd/spells'
 import type { RulesEdition } from '../../shared/api/characters'
 import { type BonusLine, withSpellCastBonuses } from './modifiers'
+import {
+  applyPotentSpellcastingToDamage2024,
+  isPotentSpellcastingCantrip2024,
+} from '../../shared/dnd/cleric2024Features'
 
 type SpellFilter =
   | 'all'
@@ -97,6 +101,8 @@ type PlayDeskSpellsCompactProps = {
   knownInvocationIds?: string[]
   /** Warlock class level for EB beams / Eldritch Spear 2024. */
   warlockLevel?: number
+  /** 2024 Cleric Potent Spellcasting: +Wis to cleric cantrip damage (0 = off). */
+  potentSpellcastingBonus?: number
   /** 2024 Illusionist: show Improved Illusions range on the spell card. */
   improvedIllusions?: boolean
   pinned?: boolean
@@ -151,6 +157,7 @@ export function PlayDeskSpellsCompact({
   elementalAffinity = null,
   knownInvocationIds = [],
   warlockLevel,
+  potentSpellcastingBonus = 0,
   improvedIllusions = false,
   pinned = false,
   concentration = null,
@@ -762,6 +769,7 @@ export function PlayDeskSpellsCompact({
                           knownInvocationIds={knownInvocationIds}
                           warlockLevel={warlockLevel ?? characterLevel}
                           edition={edition}
+                          potentSpellcastingBonus={potentSpellcastingBonus}
                           learnMode={learnMode}
                           hasSpellbook={hasSpellbook}
                           activeConcentration={isActiveConc}
@@ -932,6 +940,7 @@ function compactDamage(
     warlockLevel?: number
     edition?: string | null
     chaMod?: number
+    potentBonus?: number
   },
 ): string {
   const rules = withBundledRules(spell)
@@ -971,9 +980,11 @@ function compactDamage(
     spellModLabel,
     affinity,
   })
+  const potent =
+    opts?.potentBonus && isPotentSpellcastingCantrip2024(spell) ? opts.potentBonus : 0
   const scaled = shortDamage(summary.effect)
-  if (scaled) return scaled
-  return shortDamage(rules.damage ?? '')
+  if (scaled) return shortDamage(applyPotentSpellcastingToDamage2024(scaled, potent))
+  return shortDamage(applyPotentSpellcastingToDamage2024(rules.damage ?? '', potent))
 }
 
 function compactSpellMeta(
@@ -1039,7 +1050,9 @@ function SpellRow({
   showClassChip,
   metaOpen,
   onToggleMeta,
+  potentSpellcastingBonus = 0,
 }: {
+  potentSpellcastingBonus?: number
   spell: SheetSpell
   characterLevel: number
   affinity?: { damageType: string; amount: number } | null
@@ -1099,6 +1112,7 @@ function SpellRow({
       warlockLevel,
       edition,
       chaMod: abilityModifier(abilities.cha),
+      potentBonus: potentSpellcastingBonus,
     },
   )
   const source = spellSourceBadge(spell)

@@ -993,6 +993,42 @@ def _validate_spells(payload: Create2024Payload) -> dict[str, Any]:
     }
 
 
+def _planned_class_level(payload: Create2024Payload, class_slug: str) -> int:
+    """Final level of `class_slug` in the create plan (1 when no class_levels)."""
+    for row in payload.class_levels or []:
+        if not isinstance(row, Mapping):
+            continue
+        slug = e24.normalize_class_slug(str(row.get("slug") or row.get("class_slug") or ""))
+        if slug == class_slug:
+            try:
+                return max(1, int(row.get("level") or 1))
+            except (TypeError, ValueError):
+                return 1
+    return 1
+
+
+def _sync_blessed_strikes_pick(sheet: dict[str, Any]) -> None:
+    """Mirror class_options_2024.blessed_strikes into feature_picks for the cleric row."""
+    options = sheet.get("class_options_2024")
+    pick = str((options or {}).get("blessed_strikes") or "").strip().lower()
+    if pick not in e24opt.BLESSED_STRIKES_OPTIONS_2024:
+        return
+    for row in sheet.get("classes") or []:
+        if not isinstance(row, dict):
+            continue
+        if e24.normalize_class_slug(str(row.get("slug") or "")) != "cleric":
+            continue
+        if int(row.get("level") or 0) < e24opt.BLESSED_STRIKES_MIN_LEVEL_2024:
+            return
+        entry_id = str(row.get("id") or "class-cleric")
+        picks = sheet.get("feature_picks")
+        values = dict(picks.get("values") or {}) if isinstance(picks, dict) else {}
+        values[f"{entry_id}:blessed_strikes"] = pick
+        values[f"{entry_id}:blessed-strikes"] = pick
+        sheet["feature_picks"] = {"values": values}
+        return
+
+
 def _validate_class_options(payload: Create2024Payload) -> dict[str, Any]:
     picks = dict(payload.class_option_picks or {})
     out: dict[str, Any] = {}
@@ -1004,6 +1040,16 @@ def _validate_class_options(payload: Create2024Payload) -> dict[str, Any]:
                 code="create_2024_class_options",
             )
         out["divine_order"] = order
+        cleric_level = _planned_class_level(payload, "cleric")
+        strikes = str(picks.get("blessed_strikes") or "").lower()
+        if cleric_level >= e24opt.BLESSED_STRIKES_MIN_LEVEL_2024:
+            if strikes not in e24opt.BLESSED_STRIKES_OPTIONS_2024:
+                raise Create2024Error(
+                    "Жрец 7+: выберите Благословленные удары "
+                    "(divine_strike/potent_spellcasting)",
+                    code="create_2024_class_options",
+                )
+            out["blessed_strikes"] = strikes
     if payload.class_slug == "druid":
         order = str(picks.get("primal_order") or "").lower()
         if order not in PRIMAL_ORDER_OPTIONS:
@@ -1282,6 +1328,7 @@ def validate_create_2024(payload: Create2024Payload) -> Create2024Result:
             )
         )
         final_level = sum(r.level for r in levels_plan.class_levels)
+    _sync_blessed_strikes_pick(sheet)
 
     # Class name line: primary + multiclass summary.
     class_name = str(class_row.get("name_ru") or class_slug)
@@ -1941,6 +1988,8 @@ def _build_sheet(
     }
     if class_options.get("divine_order"):
         options_sheet["divine_order"] = str(class_options["divine_order"])
+    if class_options.get("blessed_strikes"):
+        options_sheet["blessed_strikes"] = str(class_options["blessed_strikes"])
     sheet["class_options_2024"] = options_sheet
 
     sheet["create_2024"] = {

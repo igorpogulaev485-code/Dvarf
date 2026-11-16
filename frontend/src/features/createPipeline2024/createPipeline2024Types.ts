@@ -48,7 +48,10 @@ export type Create2024State = {
   classSkillIds: string[]
   weaponMasteryIds: string[]
   fightingStyleSlug: string | null
-  classOptionPicks: Record<string, unknown>
+  classOptionPicks: Record<string, unknown> & {
+    /** Cleric 2024 L7+ Blessed Strikes pick; written to feature_picks by the create endpoint. */
+    blessed_strikes?: 'divine_strike' | 'potent_spellcasting' | null
+  }
   /** Class tool proficiencies the player chooses (bard instruments, monk, artificer). */
   classToolIds: string[]
 

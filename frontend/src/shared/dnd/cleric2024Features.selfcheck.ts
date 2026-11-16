@@ -43,7 +43,10 @@ import {
   warAvatarResistances2024,
   type DivineInterventionSpellRow,
 } from './cleric2024Features'
-import { emptyFeaturePicks, setFeaturePick } from './featurePicks'
+import { computeProgression2024 } from './edition2024Classes'
+import { featureChoiceOptionLabel } from './featureChoiceOptionLabel'
+import { emptyFeaturePicks, getFeatureChoicePick, setFeaturePick } from './featurePicks'
+import { createClassLevel } from './classLevels'
 import type { SheetResource } from './rest'
 
 const ENTRY = 'entry-cleric'
@@ -299,5 +302,59 @@ assert.equal(
   }).available,
   true,
 )
+
+/* Доправка 1: create-at-11 pick, Potent Spellcasting numbers, Divine Spark card text */
+{
+  const entry = 'class-cleric'
+  const created = { values: { 'class-cleric:blessed_strikes': 'divine_strike', 'class-cleric:blessed-strikes': 'divine_strike' } }
+  assert.equal(cleric.readBlessedStrikes2024(created, entry), 'divine_strike')
+  assert.equal(
+    cleric.readBlessedStrikes2024(emptyFeaturePicks(), entry, { blessed_strikes: 'potent_spellcasting' }),
+    'potent_spellcasting',
+  )
+  assert.equal(cleric.readBlessedStrikes2024(emptyFeaturePicks(), entry, {}), null)
+  assert.equal(
+    getFeatureChoicePick(created, entry, 'blessed_strikes', blessedStrikesChoice2024.id),
+    'divine_strike',
+  )
+  assert.equal(
+    featureChoiceOptionLabel('divine_strike', blessedStrikesChoice2024),
+    'Божественный удар',
+  )
+  assert.equal(featureChoiceOptionLabel('potent_spellcasting'), 'Могущественные заклинания')
+  assert.equal(featureChoiceOptionLabel('divine_strike'), 'Божественный удар')
+
+  const potent = { values: { 'class-cleric:blessed_strikes': 'potent_spellcasting' } }
+  const classes = [{ id: entry, name: 'Жрец', level: 11 }]
+  assert.equal(
+    cleric.potentSpellcastingBonusForSheet2024({ rulesEdition: '2024', classes, featurePicks: potent, wisScore: 17 }),
+    3,
+  )
+  assert.equal(
+    cleric.potentSpellcastingBonusForSheet2024({ rulesEdition: '2014', classes, featurePicks: potent, wisScore: 17 }),
+    0,
+  )
+  assert.equal(
+    cleric.potentSpellcastingBonusForSheet2024({ rulesEdition: '2024', classes, featurePicks: created, wisScore: 17 }),
+    0,
+  )
+  assert.equal(cleric.applyPotentSpellcastingToDamage2024('3d8 излучение', 3), '3d8+3 излучение')
+  assert.equal(cleric.applyPotentSpellcastingToDamage2024('3к8', 3), '3к8+3')
+  assert.equal(cleric.applyPotentSpellcastingToDamage2024('3d8', 0), '3d8')
+  assert.equal(cleric.isPotentSpellcastingCantrip2024({ level: 0, class_slug: 'cleric' }), true)
+  assert.equal(cleric.isPotentSpellcastingCantrip2024({ level: 0, class_slug: 'wizard' }), false)
+  assert.equal(cleric.isPotentSpellcastingCantrip2024({ level: 1, class_slug: 'cleric' }), false)
+  assert.equal(divineSparkFormulaRu2024(11, 3), '2к8+3')
+  assert.equal(divineSparkFormulaRu2024(17, 3), '3к8+3')
+
+  const progress = computeProgression2024({
+    classes: [createClassLevel({ id: entry, name: 'Жрец', catalog_id: 'cleric', level: 11 })],
+    abilities: { str: 10, dex: 10, con: 10, int: 10, wis: 17, cha: 10 },
+  })
+  const spark = progress.features.find((f) => f.id === 'divine_spark')
+  assert.ok(spark, 'divine spark card')
+  assert.match(spark!.summary_ru, /2к8\+3/)
+  assert.ok(!/\+2\/3\/4к8/.test(spark!.summary_ru))
+}
 
 console.log('cleric2024Features.selfcheck: ok')

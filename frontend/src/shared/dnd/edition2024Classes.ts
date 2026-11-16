@@ -18,6 +18,8 @@ import type { SheetResource } from './rest'
 import {
   blessedStrikesChoice2024,
   clericBaseChannelOptionsAtLevel2024,
+  DIVINE_SPARK_FEATURE_ID,
+  divineSparkFormulaRu2024,
 } from './cleric2024Features'
 import {
   alwaysPreparedForSubclass2024,
@@ -709,6 +711,11 @@ function catalogSummaryFor(
   return ''
 }
 
+function divineSparkSummaryRu2024(clericLevel: number, wisScore: number | undefined): string {
+  const formula = divineSparkFormulaRu2024(clericLevel, abilityMod2024(wisScore ?? 10))
+  return `Проведение (Магия): ${formula} — лечение или урон Некротический/Излучением (спас Тел на половину).`
+}
+
 export function computeProgression2024(input: {
   classes: ClassLevelEntry[]
   subclassSlugByEntryId?: Record<string, string | null | undefined>
@@ -1052,7 +1059,10 @@ export function computeProgression2024(input: {
             level: option.min_level,
             name_ru: option.name_ru,
             name_en: option.feature_id,
-            summary_ru: catalogSummaryFor(levels, option.feature_id) || option.name_ru,
+            summary_ru:
+              option.feature_id === DIVINE_SPARK_FEATURE_ID
+                ? divineSparkSummaryRu2024(cls.level, input.abilities?.wis)
+                : catalogSummaryFor(levels, option.feature_id) || option.name_ru,
             kind: option.kind === 'bonus' ? 'bonus' : 'action',
             resource: channelResource,
             classEntryId: cls.entryId,

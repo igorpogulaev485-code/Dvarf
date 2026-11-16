@@ -1197,6 +1197,15 @@ export function CreateCharacter2024Page({
               patch({ subclassByEntryId: next, subclassSlug: primarySub })
             }}
             onAsiChoicesChange={(asiChoices) => patch({ asiChoices })}
+            blessedStrikesPick={
+              state.classOptionPicks.blessed_strikes === 'divine_strike' ||
+              state.classOptionPicks.blessed_strikes === 'potent_spellcasting'
+                ? state.classOptionPicks.blessed_strikes
+                : null
+            }
+            onBlessedStrikesChange={(pick) =>
+              patch({ classOptionPicks: { ...state.classOptionPicks, blessed_strikes: pick } })
+            }
             onOpenSpells={() => {
               setSpellTab(wizardBook ? 'book' : 'cantrips')
               setFocusSpellSlug(null)

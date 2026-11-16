@@ -303,15 +303,30 @@ export const blessedStrikesChoice2024: FeatureChoiceDef = {
   max_picks: 1,
 }
 
+function normalizeBlessedStrikes(raw: unknown): BlessedStrikesPick2024 | null {
+  const key = String(raw ?? '').trim().toLowerCase()
+  if (key === BLESSED_STRIKES_DIVINE_STRIKE || key === BLESSED_STRIKES_POTENT_SPELLCASTING) {
+    return key
+  }
+  return null
+}
+
+/**
+ * Blessed Strikes pick: feature picks (`{classEntryId}:blessed_strikes` / `blessed-strikes`) first,
+ * then `class_options_2024.blessed_strikes` (create-at-N fallback).
+ */
 export function readBlessedStrikes2024(
   picks: FeaturePicksState,
   classEntryId: string,
+  classOptions?: unknown,
 ): BlessedStrikesPick2024 | null {
-  const raw =
-    getFeaturePick(picks, classEntryId, BLESSED_STRIKES_PICK_ID_2024) ??
-    getFeaturePick(picks, classEntryId, 'blessed_strikes')
-  if (raw === BLESSED_STRIKES_DIVINE_STRIKE || raw === BLESSED_STRIKES_POTENT_SPELLCASTING) {
-    return raw
+  const fromPicks = normalizeBlessedStrikes(
+    getFeaturePick(picks, classEntryId, 'blessed_strikes') ??
+      getFeaturePick(picks, classEntryId, BLESSED_STRIKES_PICK_ID_2024),
+  )
+  if (fromPicks) return fromPicks
+  if (classOptions && typeof classOptions === 'object') {
+    return normalizeBlessedStrikes((classOptions as Record<string, unknown>).blessed_strikes)
   }
   return null
 }
@@ -339,6 +354,50 @@ export function potentSpellcastingTempHp2024(wisMod: number, clericLevel: number
 export function potentSpellcastingCantripBonus2024(wisMod: number, clericLevel: number): number {
   if (lvl(clericLevel) < BLESSED_STRIKES_MIN_LEVEL_2024) return 0
   return Math.max(0, mod(wisMod))
+}
+
+/**
+ * Wis-mod cantrip damage bonus for a sheet, or 0 when the character is not a 2024
+ * cleric (L7+) with the Potent Spellcasting pick.
+ */
+export function potentSpellcastingBonusForSheet2024(input: {
+  rulesEdition: string | null | undefined
+  classes: ReadonlyArray<{ id: string; name: string; level: number }>
+  featurePicks: FeaturePicksState
+  classOptions?: unknown
+  wisScore: number | null | undefined
+}): number {
+  if (String(input.rulesEdition ?? '2014').trim() !== '2024') return 0
+  const cleric = input.classes.find((row) => /жрец|cleric/i.test(row.name))
+  if (!cleric) return 0
+  if (readBlessedStrikes2024(input.featurePicks, cleric.id, input.classOptions) !== BLESSED_STRIKES_POTENT_SPELLCASTING) {
+    return 0
+  }
+  const wisMod = Math.floor(((input.wisScore ?? 10) - 10) / 2)
+  return potentSpellcastingCantripBonus2024(wisMod, cleric.level)
+}
+
+/** Damaging cantrips of the cleric list (unlabeled class counts; other classes do not). */
+export function isPotentSpellcastingCantrip2024(spell: {
+  level: number
+  class_slug?: string | null
+}): boolean {
+  if (spell.level > 0) return false
+  const slug = (spell.class_slug ?? '').trim().toLowerCase()
+  return !slug || slug === CLERIC_CLASS_SLUG_2024
+}
+
+/** Add the bonus to the first dice term: `3d8 излучение` → `3d8+3 излучение`. */
+export function applyPotentSpellcastingToDamage2024(effect: string, bonus: number): string {
+  if (!effect || bonus <= 0) return effect
+  return effect.replace(
+    /(\d+\s*[dDкК]\s*\d+)(?:\s*([+-])\s*(\d+))?/,
+    (_whole, dice: string, sign?: string, num?: string) => {
+      const existing = sign && num ? (sign === '-' ? -Number(num) : Number(num)) : 0
+      const total = existing + bonus
+      return `${dice}${total > 0 ? `+${total}` : total < 0 ? `${total}` : ''}`
+    },
+  )
 }
 
 export function divineStrikeAttackRiderRu2024(clericLevel: number): string {

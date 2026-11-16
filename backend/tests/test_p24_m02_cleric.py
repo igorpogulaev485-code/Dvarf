@@ -374,6 +374,11 @@ def test_create_cleric_at_5_and_11_life_domain():
                 {"slug": "cleric", "level": level, "subclass_slug": "cleric__life-domain"}
             ],
         )
+        if level >= 7:
+            payload["class_option_picks"] = {
+                **payload["class_option_picks"],
+                "blessed_strikes": "divine_strike",
+            }
         result = create24.validate_create_2024(create24.payload_from_dict(payload))
         assert sum(int(r["level"]) for r in result.sheet["classes"]) == level
         assert result.sheet["classes"][0]["subclass_slug"] == "cleric__life-domain"
@@ -387,6 +392,84 @@ def test_create_cleric_at_5_and_11_life_domain():
         assert next(r for r in prog.resources if r.pool_id == "channel_divinity").max == channel
         weapons = (result.sheet.get("proficiency") or {}).get("weapons") or {}
         assert weapons.get("martial") is True
+
+
+@pytest.mark.parametrize("pick", ["divine_strike", "potent_spellcasting"])
+def test_create_cleric_at_11_persists_blessed_strikes(pick: str):
+    payload = build_valid_payload(
+        "cleric",
+        ability_method="manual",
+        base_abilities=_ABILITIES,
+        class_levels=[{"slug": "cleric", "level": 11, "subclass_slug": "cleric__life-domain"}],
+    )
+    payload["class_option_picks"] = {**payload["class_option_picks"], "blessed_strikes": pick}
+    sheet = create24.validate_create_2024(create24.payload_from_dict(payload)).sheet
+    assert sheet["class_options_2024"]["blessed_strikes"] == pick
+    entry_id = sheet["classes"][0]["id"]
+    assert entry_id == "class-cleric"
+    values = sheet["feature_picks"]["values"]
+    assert values["class-cleric:blessed_strikes"] == pick
+    assert values["class-cleric:blessed-strikes"] == pick
+
+
+def test_create_cleric_at_11_requires_blessed_strikes():
+    payload = build_valid_payload(
+        "cleric",
+        ability_method="manual",
+        base_abilities=_ABILITIES,
+        class_levels=[{"slug": "cleric", "level": 11, "subclass_slug": "cleric__life-domain"}],
+    )
+    payload["class_option_picks"] = {**payload["class_option_picks"], "blessed_strikes": ""}
+    with pytest.raises(create24.Create2024Error):
+        create24.validate_create_2024(create24.payload_from_dict(payload))
+
+
+def test_create_cleric_at_5_ignores_blessed_strikes():
+    payload = build_valid_payload(
+        "cleric",
+        ability_method="manual",
+        base_abilities=_ABILITIES,
+        class_levels=[{"slug": "cleric", "level": 5, "subclass_slug": "cleric__life-domain"}],
+    )
+    payload["class_option_picks"] = {
+        **payload["class_option_picks"],
+        "blessed_strikes": "divine_strike",
+    }
+    sheet = create24.validate_create_2024(create24.payload_from_dict(payload)).sheet
+    assert "blessed_strikes" not in sheet["class_options_2024"]
+    assert "feature_picks" not in sheet
+
+
+def test_class_options_validator_keeps_blessed_strikes_for_cleric_7_plus():
+    from app.dnd import edition_2024_class_options as opt
+
+    sheet11 = {"classes": [{"slug": "cleric", "level": 11}]}
+    out = opt.validate_class_options_update(
+        rules_edition="2024",
+        previous={"divine_order": "protector"},
+        incoming={"blessed_strikes": "Potent_Spellcasting"},
+        sheet=sheet11,
+    )
+    assert out["blessed_strikes"] == "potent_spellcasting"
+    assert out["divine_order"] == "protector"
+    kept = opt.validate_class_options_update(
+        rules_edition="2024", previous=out, incoming={}, sheet=sheet11
+    )
+    assert kept["blessed_strikes"] == "potent_spellcasting"
+    low = opt.validate_class_options_update(
+        rules_edition="2024",
+        previous={},
+        incoming={"blessed_strikes": "divine_strike"},
+        sheet={"classes": [{"slug": "cleric", "level": 5}]},
+    )
+    assert "blessed_strikes" not in low
+    bogus = opt.validate_class_options_update(
+        rules_edition="2024",
+        previous={},
+        incoming={"blessed_strikes": "nope"},
+        sheet=sheet11,
+    )
+    assert "blessed_strikes" not in bogus
 
 
 def test_create_cleric_rollback_thresholds():

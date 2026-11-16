@@ -15,6 +15,10 @@ import {
   type DamageTypeChoice,
 } from '../../shared/dnd/spellCatalog'
 import {
+  applyPotentSpellcastingToDamage2024,
+  isPotentSpellcastingCantrip2024,
+} from '../../shared/dnd/cleric2024Features'
+import {
   availableCastSlotLevels,
   canSpendPactSlot,
   levelLabel,
@@ -255,6 +259,8 @@ type CastSpellDialogProps = {
   knownInvocationIds?: string[]
   /** Warlock class level — EB beams / Eldritch Spear 2024. */
   warlockLevel?: number
+  /** 2024 Cleric Potent Spellcasting: +Wis to cleric cantrip damage (0 = off). */
+  potentSpellcastingBonus?: number
   /** Feature / ki pools, for cards that do not spend a spell slot. */
   resources?: SheetResource[]
   /** T-02: выбранные варианты метамагии чародея (id из sorcererMetamagic). */
@@ -304,6 +310,7 @@ export function CastSpellDialog({
   elementalAffinity = null,
   knownInvocationIds = [],
   warlockLevel,
+  potentSpellcastingBonus = 0,
   resources,
   metamagicIds = [],
   initialMetamagicId = null,
@@ -698,7 +705,21 @@ export function CastSpellDialog({
       damageChoice,
       affinity,
     })
-    if (!isEb) return summary
+    if (!isEb) {
+      if (
+        potentSpellcastingBonus > 0 &&
+        spell &&
+        isPotentSpellcastingCantrip2024({ level: rulesSpell.level, class_slug: spell.class_slug })
+      ) {
+        const effect = applyPotentSpellcastingToDamage2024(summary.effect, potentSpellcastingBonus)
+        return {
+          ...summary,
+          effect,
+          lines: summary.lines.map((line) => (line === summary.effect ? effect : line)),
+        }
+      }
+      return summary
+    }
     const beamLevel =
       rulesEdition === '2024' && warlockLevel != null && warlockLevel > 0
         ? warlockLevel
@@ -744,6 +765,7 @@ export function CastSpellDialog({
     damageChoice,
     elementalAffinity,
     knownInvocationIds,
+    potentSpellcastingBonus,
     abilities,
     castProfiles,
     proficiencyBonus,

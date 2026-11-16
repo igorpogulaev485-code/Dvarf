@@ -83,6 +83,8 @@ ELDRITCH_INVOCATIONS_2024: tuple[InvocationDef, ...] = (
 )
 
 DIVINE_ORDER_OPTIONS_2024 = frozenset({"protector", "thaumaturge"})
+BLESSED_STRIKES_OPTIONS_2024 = frozenset({"divine_strike", "potent_spellcasting"})
+BLESSED_STRIKES_MIN_LEVEL_2024 = 7
 
 INVOCATIONS_BY_ID = {row.id: row for row in ELDRITCH_INVOCATIONS_2024}
 
@@ -622,6 +624,10 @@ def validate_class_options_update(
 
     order_src = src.get("divine_order") if "divine_order" in src else prev.get("divine_order")
     order = str(order_src or "").strip().lower()
+    strikes_src = (
+        src.get("blessed_strikes") if "blessed_strikes" in src else prev.get("blessed_strikes")
+    )
+    strikes = str(strikes_src or "").strip().lower()
 
     result: dict[str, Any] = {
         "eldritch_invocations": invocations,
@@ -687,6 +693,11 @@ def validate_class_options_update(
     }
     if cleric_lv and order in DIVINE_ORDER_OPTIONS_2024:
         result["divine_order"] = order
+    if (
+        cleric_lv >= BLESSED_STRIKES_MIN_LEVEL_2024
+        and strikes in BLESSED_STRIKES_OPTIONS_2024
+    ):
+        result["blessed_strikes"] = strikes
     return result
 
 

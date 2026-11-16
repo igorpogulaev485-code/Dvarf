@@ -23,6 +23,7 @@ import {
   slotSpendHasDice,
   unlockFeaturesForClasses,
   type AbilityScoreKey,
+  type FeatureChoiceDef,
   type UnlockedFeature,
 } from '../../shared/dnd/classFeatures'
 import {
@@ -1184,8 +1185,11 @@ function FeatureResourceControls({
   )
 }
 
-function choiceOptionLabel(optionId: string): string {
-  return featureChoiceOptionLabel(optionId, null, (id) =>
+function choiceOptionLabel(
+  optionId: string,
+  choice?: FeatureChoiceDef | null,
+): string {
+  return featureChoiceOptionLabel(optionId, choice ?? null, (id) =>
     SKILL_DEFS.find((row) => row.key === id)?.label,
   )
 }
@@ -1283,7 +1287,7 @@ function FeatureChoiceControls({
         : options
   const showTceBadge = tceAllowed === null
   function optionLabelWithTce(optionId: string): string {
-    const base = choiceOptionLabel(optionId)
+    const base = choiceOptionLabel(optionId, choice)
     if (!showTceBadge) return base
     const tce =
       isTceFightingStyle(optionId) ||
@@ -1296,9 +1300,9 @@ function FeatureChoiceControls({
   const selectedDef = fightingStyleById(selected)
   const selectedMeta = selectedList.map((id) => metamagicById(id)).filter(Boolean)
   const selectedLabel = multi
-    ? selectedList.map(choiceOptionLabel).join(', ')
+    ? selectedList.map((id) => choiceOptionLabel(id, choice)).join(', ')
     : selected
-      ? choiceOptionLabel(selected)
+      ? choiceOptionLabel(selected, choice)
       : null
   const useSelect = !multi && visibleOptions.length > 6
   const replicateChoices = replicateItemsAtLevel(feature.classLevel)
@@ -1318,7 +1322,7 @@ function FeatureChoiceControls({
     )
     onFeaturePicksChange(next)
     onToast?.(
-      `${choiceLabel}: ${getFeaturePickList(next, feature.classEntryId, feature.id).map(choiceOptionLabel).join(', ') || 'очищено'}`,
+      `${choiceLabel}: ${getFeaturePickList(next, feature.classEntryId, feature.id).map((id) => choiceOptionLabel(id, choice)).join(', ') || 'очищено'}`,
     )
     setPendingReplicate(false)
     setPendingReplicateSlug('')
@@ -1484,7 +1488,7 @@ function FeatureChoiceControls({
               onFeaturePicksChange(
                 setFeaturePick(featurePicks, feature.classEntryId, feature.id, optionId),
               )
-              if (optionId) onToast?.(`${choice.label_ru}: ${choiceOptionLabel(optionId)}`)
+              if (optionId) onToast?.(`${choice.label_ru}: ${choiceOptionLabel(optionId, choice)}`)
             }}
           >
             <option value="">— выбрать —</option>
@@ -1571,7 +1575,7 @@ function FeatureChoiceControls({
                     )
                     onFeaturePicksChange(next)
                     onToast?.(
-                      `${choice.label_ru}: ${getFeaturePickList(next, feature.classEntryId, feature.id).map(choiceOptionLabel).join(', ') || 'очищено'}`,
+                      `${choice.label_ru}: ${getFeaturePickList(next, feature.classEntryId, feature.id).map((id) => choiceOptionLabel(id, choice)).join(', ') || 'очищено'}`,
                     )
                     return
                   }
@@ -1608,11 +1612,11 @@ function FeatureChoiceControls({
                       )
                       onFeaturePicksChange(next)
                       onToast?.(
-                        `${choice.label_ru}: ${getFeaturePickList(next, feature.classEntryId, feature.id).map(choiceOptionLabel).join(', ') || 'очищено'}`,
+                        `${choice.label_ru}: ${getFeaturePickList(next, feature.classEntryId, feature.id).map((id) => choiceOptionLabel(id, choice)).join(', ') || 'очищено'}`,
                       )
                     }}
                   >
-                    ✕ {choiceOptionLabel(id)}
+                    ✕ {choiceOptionLabel(id, choice)}
                   </Button>
                 ))
             : null}
@@ -2273,7 +2277,7 @@ function FeatureRow({
             feature.id,
             feature.choice.id,
           )
-            .map(choiceOptionLabel)
+            .map((id) => choiceOptionLabel(id, feature.choice))
             .join(', ')
         : getFeatureChoicePick(
             featurePicks,
@@ -2286,7 +2290,7 @@ function FeatureRow({
     typeof choicePick === 'string' && choicePick
       ? choiceMulti
         ? choicePick
-        : choiceOptionLabel(choicePick)
+        : choiceOptionLabel(choicePick, feature.choice)
       : null
   const tomeCantripsPending =
     feature.id === PACT_BOON_FEATURE_ID &&
@@ -2604,6 +2608,7 @@ function FeatureRow({
       {replacementStatus === 'active' &&
       edition === '2024' &&
       onClericFeatureUse &&
+      !feature.resource?.pool_id &&
       cleric2024UseFeatureId(feature.id) ? (
         <div className="feature-resource__actions">
           <Button

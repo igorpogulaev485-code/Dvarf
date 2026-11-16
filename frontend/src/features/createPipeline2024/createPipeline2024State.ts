@@ -485,6 +485,19 @@ function levelingIssues(state: Create2024State, ctx: StepIssueCtx): string[] {
     1,
     state.classes.find((row) => row.level > 0)?.level ?? state.characterLevel ?? 1,
   )
+  if (state.classSlug === 'cleric') {
+    const primary =
+      state.classes.find((row) => row.id === state.primaryClassEntryId) ?? state.classes[0]
+    const clericLevel = Math.max(1, primary?.level ?? state.characterLevel ?? 1)
+    const pick = String(state.classOptionPicks.blessed_strikes || '')
+    if (
+      clericLevel >= 7 &&
+      pick !== 'divine_strike' &&
+      pick !== 'potent_spellcasting'
+    ) {
+      issues.push('Выберите Благословленные удары (с 7 ур. жреца)')
+    }
+  }
   const divineOrder =
     ctx.classEntry?.slug === 'cleric'
       ? String(state.classOptionPicks.divine_order || '')

@@ -11,6 +11,13 @@ export type ClassOptions2024State = {
   rage: { active: boolean; rounds_extended: number; max_minutes: number }
   /** Cleric Divine Order (2024). */
   divine_order?: 'protector' | 'thaumaturge' | null
+  /** Cleric Blessed Strikes (2024, L7+). */
+  blessed_strikes?: 'divine_strike' | 'potent_spellcasting' | null
+}
+
+function readBlessedStrikes(raw: unknown): 'divine_strike' | 'potent_spellcasting' | null {
+  const key = String(raw ?? '').trim().toLowerCase()
+  return key === 'divine_strike' || key === 'potent_spellcasting' ? key : null
 }
 
 function readDivineOrder(raw: unknown): 'protector' | 'thaumaturge' | null {
@@ -25,6 +32,7 @@ export function emptyClassOptions2024(): ClassOptions2024State {
     replicate_plans: [],
     rage: { active: false, rounds_extended: 0, max_minutes: 10 },
     divine_order: null,
+    blessed_strikes: null,
   }
 }
 
@@ -50,6 +58,7 @@ export function readClassOptions2024(raw: unknown): ClassOptions2024State {
       max_minutes: 10,
     },
     divine_order: readDivineOrder(row.divine_order),
+    blessed_strikes: readBlessedStrikes(row.blessed_strikes),
   }
 }
 
@@ -64,6 +73,7 @@ export function classOptions2024ToSheet(state: ClassOptions2024State): Record<st
       max_minutes: 10,
     },
     ...(state.divine_order ? { divine_order: state.divine_order } : {}),
+    ...(state.blessed_strikes ? { blessed_strikes: state.blessed_strikes } : {}),
   }
 }
 

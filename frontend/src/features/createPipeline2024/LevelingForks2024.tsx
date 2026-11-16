@@ -4,7 +4,7 @@
  */
 
 import { useMemo, useState } from 'react'
-import { Button, Field, NumberInput, Stack, Text } from '../../ui'
+import { Button, Field, NumberInput, SegmentedControl, Stack, Text } from '../../ui'
 import type { CatalogEntry } from '../../shared/api/catalog'
 import {
   addMulticlassLevel,
@@ -29,6 +29,15 @@ import {
   featLevelsForClassSlug,
   subclassLevelForClassSlug,
 } from '../../shared/dnd/pendingFeatureChoices2024'
+import {
+  BLESSED_STRIKES_DIVINE_STRIKE,
+  BLESSED_STRIKES_MIN_LEVEL_2024,
+  BLESSED_STRIKES_NAME_RU,
+  BLESSED_STRIKES_POTENT_SPELLCASTING,
+  DIVINE_STRIKE_NAME_RU,
+  POTENT_SPELLCASTING_NAME_RU,
+  type BlessedStrikesPick2024,
+} from '../../shared/dnd/cleric2024Features'
 import { hitDieForClass, type AbilityScores } from '../../shared/dnd/multiclassRules'
 import { hitDieSides, type HitDie } from '../../shared/dnd/hitDice'
 import { WEAPON_MASTERY_CLASS_RULES } from '../../shared/dnd/weaponMastery'
@@ -76,6 +85,9 @@ export type LevelingForks2024Props = {
   onAsiChoicesChange: (choices: AsiChoice2024[]) => void
   onOpenSpells: () => void
   onOpenFork: (classEntryId: string, classLevel: number, kind: string) => void
+  /** Cleric 2024 Blessed Strikes pick (required from cleric level 7). */
+  blessedStrikesPick?: BlessedStrikesPick2024 | null
+  onBlessedStrikesChange?: (pick: BlessedStrikesPick2024) => void
 }
 
 function averageFace(die: HitDie): number {
@@ -107,6 +119,8 @@ export function LevelingForks2024({
   onAsiChoicesChange,
   onOpenSpells,
   onOpenFork,
+  blessedStrikesPick = null,
+  onBlessedStrikesChange,
 }: LevelingForks2024Props) {
   const [mcOpen, setMcOpen] = useState(false)
   const [cascadeWarn, setCascadeWarn] = useState<{
@@ -659,6 +673,28 @@ export function LevelingForks2024({
                   </div>
                 ))}
               </Stack>
+              </div>
+            ) : null}
+
+            {slug === 'cleric' && isPrimary && row.level >= BLESSED_STRIKES_MIN_LEVEL_2024 ? (
+              <div data-testid="p24-m02-blessed-strikes-pick">
+                <Stack gap={8}>
+                  <Text as="h3" className="create-pipeline__section-title">
+                    {BLESSED_STRIKES_NAME_RU} (с {BLESSED_STRIKES_MIN_LEVEL_2024} ур.) — обязательный выбор
+                  </Text>
+                  <SegmentedControl<BlessedStrikesPick2024>
+                    aria-label={BLESSED_STRIKES_NAME_RU}
+                    options={[
+                      { id: BLESSED_STRIKES_DIVINE_STRIKE, label: DIVINE_STRIKE_NAME_RU },
+                      { id: BLESSED_STRIKES_POTENT_SPELLCASTING, label: POTENT_SPELLCASTING_NAME_RU },
+                    ]}
+                    value={(blessedStrikesPick ?? '') as BlessedStrikesPick2024}
+                    onChange={(pick) => onBlessedStrikesChange?.(pick)}
+                  />
+                  {!blessedStrikesPick ? (
+                    <Text tone="muted">Не выбрано — выберите, чтобы продолжить.</Text>
+                  ) : null}
+                </Stack>
               </div>
             ) : null}
           </div>
