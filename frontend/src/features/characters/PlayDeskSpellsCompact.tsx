@@ -935,16 +935,15 @@ function compactDamage(
   },
 ): string {
   const rules = withBundledRules(spell)
-  const isEb = isEldritchBlastSpell({
-    name: spell.name,
-    catalogId: spell.catalog_id,
-    slug: (rules as { slug?: string }).slug,
-  })
+  const isEb =
+    opts?.edition === '2024' &&
+    isEldritchBlastSpell({
+      name: spell.name,
+      catalogId: spell.catalog_id,
+      slug: (rules as { slug?: string }).slug,
+    })
   if (isEb) {
-    const beamLevel =
-      opts?.edition === '2024' && opts.warlockLevel
-        ? opts.warlockLevel
-        : characterLevel
+    const beamLevel = opts.warlockLevel && opts.warlockLevel > 0 ? opts.warlockLevel : characterLevel
     const chaMod = opts?.chaMod ?? 0
     const agonizing = agonizingBlastDamageBonus({
       knownInvocationIds: opts?.knownInvocationIds,
@@ -989,16 +988,18 @@ function compactSpellMeta(
   const rules = withBundledRules(spell)
   const time = shortCastingTime(rules.casting_time || spell.casting_time)
   parts.push(time || '—')
-  const isEb = isEldritchBlastSpell({
-    name: spell.name,
-    catalogId: spell.catalog_id,
-    slug: (rules as { slug?: string }).slug,
-  })
-  const spearFt = isEb
+  const isEb2024 =
+    opts?.edition === '2024' &&
+    isEldritchBlastSpell({
+      name: spell.name,
+      catalogId: spell.catalog_id,
+      slug: (rules as { slug?: string }).slug,
+    })
+  const spearFt = isEb2024
     ? eldritchSpearRangeFt({
         knownInvocationIds: opts?.knownInvocationIds,
         warlockLevel: opts?.warlockLevel ?? 1,
-        rulesEdition: opts?.edition,
+        rulesEdition: '2024',
       })
     : null
   const range =
@@ -1012,7 +1013,7 @@ function compactSpellMeta(
   if (comps) parts.push(comps)
   if (spell.school) parts.push(spellSchoolLabelRu(spell.school))
   if (spell.duration?.trim()) parts.push(spell.duration.trim())
-  if (isEb && hasRepellingBlast(opts?.knownInvocationIds)) {
+  if (isEb2024 && hasRepellingBlast(opts?.knownInvocationIds)) {
     parts.push('отталкивание 10 фт')
   }
   return parts.join(' · ')

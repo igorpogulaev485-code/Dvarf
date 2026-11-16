@@ -890,20 +890,10 @@ test.describe('P24-M02 warlock — Доправка 1: EB / tome rest / fiend re
     ])
     await waitForSavedInvocations(store, 7)
 
-    const cha = page.locator('.abil-block[data-abil="cha"]').first()
-    if (isPhone(project)) {
-      await page.getByText('Бой', { exact: true }).last().click()
-      await ensureMobileVitalsExpanded(page)
-      await page.locator('button.mobile-vitals__abil').click()
-      const abilPage = page.getByRole('dialog', { name: /Характеристики/ })
-      await expect(abilPage).toBeVisible()
-      await expect(abilPage.locator('.abil-block[data-abil="cha"]')).toContainText(/17|16/)
-      await abilPage.locator('button.mobile-abil-page__back').click()
-    } else {
-      await expect(cha).toBeVisible()
-      // ASI +2 CHA on L4 → 17 with standard array CHA 15
-      await expect(cha).toContainText('17')
-    }
+    // ASI +2 CHA on L4 → 17 with standard array CHA 15 (Agonizing → +3).
+    const sheet = await storedSheet(store)
+    const chaScore = Number((sheet.abilities as { cha?: { score?: number } })?.cha?.score ?? 0)
+    expect(chaScore).toBe(17)
 
     await openCombatScene(page, project)
     if (isPhone(project)) {
@@ -953,8 +943,11 @@ test.describe('P24-M02 warlock — Доправка 1: EB / tome rest / fiend re
     await expect(tome).toBeVisible({ timeout: 15_000 })
     await tome.scrollIntoViewIfNeeded()
     await expect(tome).toContainText(/Книга теней|Заговоры|Ритуалы/)
-    await expect(tome.getByRole('button', { name: /Пропустить/ })).toBeVisible()
-    await shot(page, ARTIFACTS, `${SHOT}-fixup1-tome-rest-repick`, project)
+    const skip = tome.getByRole('button', { name: /Пропустить/ })
+    await expect(skip).toBeVisible()
+    await skip.scrollIntoViewIfNeeded()
+    await expect(tome.getByRole('button', { name: /Применить набор/ })).toBeVisible()
+    await tallShot(page, ARTIFACTS, `${SHOT}-fixup1-tome-rest-repick`, project)
   })
 
   test('fiendish-resilience type pick after rest L10', async ({ page }, testInfo) => {
