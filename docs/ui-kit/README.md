@@ -85,6 +85,14 @@ Skill для агентов: [`.cursor/skills/dvarf-ui-kit/SKILL.md`](../../.cur
 Страница `/help/world-import` использует `wrap`, чтобы на 390px curl/JSON читались целиком.
 Без page-level CSS: длинный код не должен вылезать за край экрана.
 
+### BarChart (атом, ADM-03)
+
+`BarChart` в `frontend/src/ui/BarChart.tsx` — простые столбцы по дням для раздела «Метрики».
+Пропсы: `items` (`label`, `value`, опционально `title`), `height`, `caption`, `emptyLabel`.
+Стили `.ui-bar-chart*` в `01-tokens-base.css`. Горизонтальная прокрутка **внутри рамки**
+(как у `CodeBlock` scroll) — на 390px страница не должна уезжать вбок. Цвет столбца —
+`var(--accent)`. Без page-level CSS админки.
+
 ### Эталон 14.11.2026 — kit atoms (не менять вид без ok)
 
 | Kit | Файл | Лицо |

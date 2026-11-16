@@ -1,6 +1,7 @@
 from app.models.admin import AdminAuditLog, AdminRole, AdminRoleName, AdminSecret
 from app.models.catalog import CatalogEntry, CatalogKind, CatalogRulesEdition
 from app.models.character import Character, RulesEdition
+from app.models.product_event import ProductEvent, ProductEventType
 from app.models.chat import (
     ChatChannel,
     ChatMessage,
@@ -68,6 +69,8 @@ __all__ = [
     "Note",
     "PasswordResetToken",
     "PlaySession",
+    "ProductEvent",
+    "ProductEventType",
     "RulesEdition",
     "SessionEvent",
     "SessionSeat",

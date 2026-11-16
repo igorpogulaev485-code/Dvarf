@@ -1347,6 +1347,76 @@ a.ui-button--primary {
   word-break: break-word;
 }
 
+/* BarChart (атом, ADM-03) — столбцы по дням; скролл внутри рамки */
+.ui-bar-chart {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.ui-bar-chart__caption {
+  min-width: 0;
+}
+
+.ui-bar-chart__scroll {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--card);
+  padding: 10px 12px 8px;
+  box-sizing: border-box;
+  -webkit-overflow-scrolling: touch;
+}
+
+.ui-bar-chart__row {
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+  min-width: min-content;
+}
+
+.ui-bar-chart__col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+  flex: 0 0 auto;
+  width: 28px;
+  min-width: 28px;
+}
+
+.ui-bar-chart__value {
+  font-size: 0.7rem;
+  line-height: 1;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  min-height: 0.7rem;
+}
+
+.ui-bar-chart__bar {
+  display: block;
+  width: 100%;
+  max-width: 22px;
+  border-radius: 6px 6px 2px 2px;
+  background: var(--accent);
+  min-height: 0;
+}
+
+.ui-bar-chart__label {
+  font-size: 0.65rem;
+  line-height: 1.1;
+  color: var(--muted);
+  text-align: center;
+  white-space: nowrap;
+}
+
 .mode-switch {
   display: inline-flex;
   gap: 6px;

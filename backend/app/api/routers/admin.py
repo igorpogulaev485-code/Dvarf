@@ -15,6 +15,7 @@ from app.schemas.admin import (
     AdminEmailChangeRequest,
     AdminEmailChangeResponse,
     AdminMessageResponse,
+    AdminMetricsResponse,
     AdminOAuthUnlinkRequest,
     AdminPasswordChangeRequest,
     AdminPasswordConfirmRequest,
@@ -32,6 +33,19 @@ router = APIRouter(prefix="/admin", tags=["admin"])
 def admin_status(current_user: CurrentUser, db: DbSession) -> AdminStatusResponse:
     require_panel_enabled()
     return AdminService(db).status(current_user)
+
+
+@router.get("/metrics", response_model=AdminMetricsResponse)
+def admin_metrics(
+    current_user: CurrentUser,
+    db: DbSession,
+    period: int = Query(default=7, ge=1, le=30),
+) -> AdminMetricsResponse:
+    """Сводка метрик. period: 1, 7 или 30 (иначе 7). Только числа."""
+    require_panel_enabled()
+    if period not in (1, 7, 30):
+        period = 7
+    return AdminService(db).get_metrics(current_user, period=period)
 
 
 @router.get("/accounts", response_model=AdminAccountsPage)

@@ -327,7 +327,10 @@ export function AdminHelpSection({
                 </Text>
                 <Text tone="muted">Вход: {loginMethodsLabel(account)}</Text>
                 <Text tone="muted">
-                  Персонажи: {account.characters.total} · своих лобби: {account.lobbies.owned}
+                  Персонажи: всего {account.characters.total} (2014:{' '}
+                  {account.characters.edition_2014}, 2024: {account.characters.edition_2024},
+                  черновики: {account.characters.drafts}) · своих лобби:{' '}
+                  {account.lobbies.owned}
                 </Text>
                 <Text tone="muted">Идентификатор: {account.id}</Text>
               </Stack>

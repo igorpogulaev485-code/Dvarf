@@ -189,6 +189,17 @@ class CharacterService:
         )
         self.db.commit()
         self.db.refresh(character)
+
+        from app.models.product_event import ProductEventType
+        from app.services.product_events import record_product_event
+
+        edition = getattr(character.rules_edition, "value", character.rules_edition)
+        record_product_event(
+            self.db,
+            ProductEventType.character_created,
+            user_id=user.id,
+            rules_edition=str(edition) if edition else None,
+        )
         return to_detail(character, db=self.db)
 
     def get_mine(self, user: User, character_id: UUID) -> CharacterDetail:

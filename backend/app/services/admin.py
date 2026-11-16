@@ -9,7 +9,9 @@ from datetime import UTC, datetime, timedelta, timezone
 from typing import Any
 from uuid import UUID
 
-from sqlalchemy import cast, func, or_, select, String
+from zoneinfo import ZoneInfo
+
+from sqlalchemy import cast, distinct, func, or_, select, String
 from sqlalchemy.orm import Session, selectinload
 
 from app.core.config import settings
@@ -17,8 +19,9 @@ from app.core.exceptions import AppError, ConflictError, NotFoundError
 from app.core.security import hash_password, verify_password
 from app.models.admin import AdminAuditLog, AdminRole, AdminRoleName, AdminSecret
 from app.models.character import Character, RulesEdition
-from app.models.lobby import Lobby, LobbyMember
-from app.models.user import AuthProvider, User
+from app.models.lobby import Lobby, LobbyMember, PlaySession
+from app.models.product_event import ProductEvent, ProductEventType
+from app.models.user import AuthProvider, AuthSession, User
 from app.schemas.admin import (
     AdminAccountCharacterStats,
     AdminAccountItem,
@@ -27,11 +30,21 @@ from app.schemas.admin import (
     AdminAccountsPage,
     AdminEmailChangeResponse,
     AdminMessageResponse,
+    AdminMetricsAccounts,
+    AdminMetricsActive,
+    AdminMetricsCharacters,
+    AdminMetricsDayPoint,
+    AdminMetricsLobbies,
+    AdminMetricsResponse,
+    AdminMetricsSessions,
     AdminPasswordOkResponse,
     AdminSessionItem,
     AdminSessionsResponse,
     AdminStatusResponse,
 )
+
+METRICS_TZ = ZoneInfo("Asia/Yekaterinburg")
+METRICS_PERIODS = frozenset({1, 7, 30})
 
 logger = logging.getLogger(__name__)
 
@@ -509,6 +522,212 @@ class AdminService:
     def get_account(self, actor: User, user_id: UUID) -> AdminAccountItem:
         self.require_full_admin(actor)
         return self._serialize_account(self._get_target_user(user_id))
+
+    def get_metrics(self, actor: User, period: int = 7) -> AdminMetricsResponse:
+        """Сводка метрик: агрегаты из таблиц + дневные ряды из журнала событий.
+
+        В ответе только числа — без почт, имён и идентификаторов людей.
+        """
+        self.require_full_admin(actor)
+        days = int(period) if int(period) in METRICS_PERIODS else 7
+        now_utc = datetime.now(UTC)
+        now_local = now_utc.astimezone(METRICS_TZ)
+
+        def ago(n: int) -> datetime:
+            return now_utc - timedelta(days=n)
+
+        accounts_total = int(self.db.scalar(select(func.count()).select_from(User)) or 0)
+        email_verified = int(
+            self.db.scalar(
+                select(func.count()).select_from(User).where(User.email_verified_at.is_not(None))
+            )
+            or 0
+        )
+        blocked = int(
+            self.db.scalar(
+                select(func.count()).select_from(User).where(User.blocked_at.is_not(None))
+            )
+            or 0
+        )
+
+        def new_users_since(since: datetime) -> int:
+            return int(
+                self.db.scalar(
+                    select(func.count()).select_from(User).where(User.created_at >= since)
+                )
+                or 0
+            )
+
+        new_1d = new_users_since(ago(1))
+        new_7d = new_users_since(ago(7))
+        new_30d = new_users_since(ago(30))
+        new_in_period = {1: new_1d, 7: new_7d, 30: new_30d}[days]
+
+        def active_since(since: datetime) -> int:
+            return int(
+                self.db.scalar(
+                    select(func.count(distinct(AuthSession.user_id))).where(
+                        AuthSession.last_seen_at >= since,
+                    )
+                )
+                or 0
+            )
+
+        active = AdminMetricsActive(
+            active_1d=active_since(ago(1)),
+            active_7d=active_since(ago(7)),
+            active_30d=active_since(ago(30)),
+        )
+
+        alive = Character.deleted_at.is_(None)
+        char_total = int(
+            self.db.scalar(select(func.count()).select_from(Character).where(alive)) or 0
+        )
+        char_2014 = int(
+            self.db.scalar(
+                select(func.count())
+                .select_from(Character)
+                .where(alive, Character.rules_edition == RulesEdition.edition_2014)
+            )
+            or 0
+        )
+        char_2024 = int(
+            self.db.scalar(
+                select(func.count())
+                .select_from(Character)
+                .where(alive, Character.rules_edition == RulesEdition.edition_2024)
+            )
+            or 0
+        )
+        char_drafts = int(
+            self.db.scalar(
+                select(func.count())
+                .select_from(Character)
+                .where(alive, Character.is_draft.is_(True))
+            )
+            or 0
+        )
+
+        lobbies_total = int(self.db.scalar(select(func.count()).select_from(Lobby)) or 0)
+        lobbies_new = int(
+            self.db.scalar(
+                select(func.count()).select_from(Lobby).where(Lobby.created_at >= ago(days))
+            )
+            or 0
+        )
+
+        period_start = ago(days)
+        sessions_started = int(
+            self.db.scalar(
+                select(func.count())
+                .select_from(PlaySession)
+                .where(PlaySession.created_at >= period_start)
+            )
+            or 0
+        )
+        sessions_closed = int(
+            self.db.scalar(
+                select(func.count())
+                .select_from(PlaySession)
+                .where(
+                    PlaySession.closed_at.is_not(None),
+                    PlaySession.closed_at >= period_start,
+                )
+            )
+            or 0
+        )
+
+        # Дневные ряды за последние 30 календарных дней (Asia/Yekaterinburg).
+        daily_start_local = (now_local.date() - timedelta(days=29))
+        daily_start_utc = datetime(
+            daily_start_local.year,
+            daily_start_local.month,
+            daily_start_local.day,
+            tzinfo=METRICS_TZ,
+        ).astimezone(UTC)
+
+        events = list(
+            self.db.execute(
+                select(
+                    ProductEvent.event_type,
+                    ProductEvent.user_id,
+                    ProductEvent.created_at,
+                ).where(ProductEvent.created_at >= daily_start_utc)
+            ).all()
+        )
+
+        # date -> counters (логины — уникальные user_id за день)
+        buckets: dict[str, dict[str, Any]] = {}
+        for i in range(30):
+            d = (daily_start_local + timedelta(days=i)).isoformat()
+            buckets[d] = {
+                "signups": 0,
+                "login_users": set(),
+                "characters_created": 0,
+                "lobbies_created": 0,
+                "play_started": 0,
+            }
+
+        for event_type, user_id, created_at in events:
+            if created_at is None:
+                continue
+            local_day = created_at.astimezone(METRICS_TZ).date().isoformat()
+            bucket = buckets.get(local_day)
+            if bucket is None:
+                continue
+            kind = getattr(event_type, "value", event_type)
+            if kind == ProductEventType.signup.value:
+                bucket["signups"] = int(bucket["signups"]) + 1
+            elif kind == ProductEventType.login.value:
+                if user_id is not None:
+                    bucket["login_users"].add(user_id)
+            elif kind == ProductEventType.character_created.value:
+                bucket["characters_created"] = int(bucket["characters_created"]) + 1
+            elif kind == ProductEventType.lobby_created.value:
+                bucket["lobbies_created"] = int(bucket["lobbies_created"]) + 1
+            elif kind == ProductEventType.play_started.value:
+                bucket["play_started"] = int(bucket["play_started"]) + 1
+
+        daily: list[AdminMetricsDayPoint] = []
+        for i in range(30):
+            d = (daily_start_local + timedelta(days=i)).isoformat()
+            b = buckets[d]
+            daily.append(
+                AdminMetricsDayPoint(
+                    date=d,
+                    signups=int(b["signups"]),
+                    logins_unique=len(b["login_users"]),
+                    characters_created=int(b["characters_created"]),
+                    lobbies_created=int(b["lobbies_created"]),
+                    play_started=int(b["play_started"]),
+                )
+            )
+
+        return AdminMetricsResponse(
+            period_days=days,
+            accounts=AdminMetricsAccounts(
+                total=accounts_total,
+                email_verified=email_verified,
+                new_in_period=new_in_period,
+                new_1d=new_1d,
+                new_7d=new_7d,
+                new_30d=new_30d,
+                blocked=blocked,
+            ),
+            active=active,
+            characters=AdminMetricsCharacters(
+                total_alive=char_total,
+                edition_2014=char_2014,
+                edition_2024=char_2024,
+                drafts=char_drafts,
+            ),
+            lobbies=AdminMetricsLobbies(total=lobbies_total, new_in_period=lobbies_new),
+            sessions=AdminMetricsSessions(
+                started_in_period=sessions_started,
+                closed_in_period=sessions_closed,
+            ),
+            daily=daily,
+        )
 
     def list_user_sessions(self, actor: User, user_id: UUID) -> AdminSessionsResponse:
         self.require_full_admin(actor)

@@ -1189,6 +1189,15 @@ class LobbyService:
         lobby.campaign_rules = default_campaign_rules()
         self.db.commit()
         lobby = self._require_lobby(lobby.id)
+
+        from app.models.product_event import ProductEventType
+        from app.services.product_events import record_product_event
+
+        record_product_event(
+            self.db,
+            ProductEventType.lobby_created,
+            user_id=user.id,
+        )
         return self._to_detail(lobby, user)
 
     def get(self, user: User, lobby_id: UUID) -> LobbyDetail:
@@ -3339,6 +3348,15 @@ class LobbyService:
                 )
             self.lobbies.add_seat(session_id=session.id, character_id=character_id)
         self.db.commit()
+
+        from app.models.product_event import ProductEventType
+        from app.services.product_events import record_product_event
+
+        record_product_event(
+            self.db,
+            ProductEventType.play_started,
+            user_id=user.id,
+        )
         return self.get_session(user, session.id)
 
     def purge_retained_seats(self, session_id: UUID) -> int:

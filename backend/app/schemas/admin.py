@@ -131,3 +131,67 @@ class AdminOAuthUnlinkRequest(BaseModel):
 class AdminDeleteAccountRequest(BaseModel):
     confirm: str = Field(min_length=1, max_length=320)
     admin_password: str = Field(min_length=1, max_length=128)
+
+
+# --- ADM-03: метрики (только числа, без почт и имён) ---
+
+
+class AdminMetricsAccounts(BaseModel):
+    total: int = 0
+    email_verified: int = 0
+    new_in_period: int = 0
+    new_1d: int = 0
+    new_7d: int = 0
+    new_30d: int = 0
+    blocked: int = 0
+
+
+class AdminMetricsActive(BaseModel):
+    """Уникальные люди по auth_sessions.last_seen_at."""
+
+    active_1d: int = 0
+    active_7d: int = 0
+    active_30d: int = 0
+
+
+class AdminMetricsCharacters(BaseModel):
+    total_alive: int = 0
+    edition_2014: int = 0
+    edition_2024: int = 0
+    drafts: int = 0
+
+
+class AdminMetricsLobbies(BaseModel):
+    total: int = 0
+    new_in_period: int = 0
+
+
+class AdminMetricsSessions(BaseModel):
+    started_in_period: int = 0
+    closed_in_period: int = 0
+
+
+class AdminMetricsDayPoint(BaseModel):
+    """Один день (календарный, Asia/Yekaterinburg). Только числа."""
+
+    date: str  # YYYY-MM-DD
+    signups: int = 0
+    logins_unique: int = 0
+    characters_created: int = 0
+    lobbies_created: int = 0
+    play_started: int = 0
+
+
+class AdminMetricsResponse(BaseModel):
+    period_days: int
+    timezone: str = "Asia/Yekaterinburg"
+    note: str = (
+        "Итоговые числа — из таблиц. Дневные ряды — из журнала событий "
+        "и начинаются со дня выкладки (раньше данных нет)."
+    )
+    accounts: AdminMetricsAccounts
+    active: AdminMetricsActive
+    characters: AdminMetricsCharacters
+    lobbies: AdminMetricsLobbies
+    sessions: AdminMetricsSessions
+    daily: list[AdminMetricsDayPoint]
