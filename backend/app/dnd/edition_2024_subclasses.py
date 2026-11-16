@@ -321,22 +321,74 @@ SHARED_OPTIONS: dict[str, list[SharedPoolOption]] = {
     "bard__college-of-the-spirits": [
         SharedPoolOption("spirits-from-beyond", "Духи извне", "bardic_inspiration", kind="bonus"),
     ],
-    # Monk traditions — spend Focus (ki)
+    # Monk traditions — spend Focus Points
     "monk__warrior-of-the-hand": [
-        SharedPoolOption("open-hand-technique", "Техники открытой ладони", "focus_points", kind="passive"),
+        SharedPoolOption(
+            "open-hand-technique", "Техники открытой ладони", "focus_points", cost=0, kind="passive"
+        ),
+        SharedPoolOption(
+            "fleet-step", "Быстрые ноги", "focus_points", cost=0, kind="bonus", min_level=11
+        ),
+        SharedPoolOption(
+            "quivering-palm", "Дрожащая ладонь", "focus_points", cost=4, kind="action", min_level=17
+        ),
     ],
     "monk__warrior-of-mercy": [
         SharedPoolOption("hand-of-healing", "Исцеляющая рука", "focus_points", kind="action"),
         SharedPoolOption("hand-of-harm", "Повреждающая рука", "focus_points", kind="passive"),
+        SharedPoolOption(
+            "flurry-of-healing-and-harm",
+            "Шквал исцеления и повреждения",
+            "flurry_of_healing_and_harm",
+            kind="passive",
+            min_level=11,
+        ),
+        SharedPoolOption(
+            "hand-of-ultimate-mercy",
+            "Рука абсолютного милосердия",
+            "focus_points",
+            cost=5,
+            kind="action",
+            min_level=17,
+        ),
     ],
     "monk__warrior-of-shadow": [
         SharedPoolOption("shadow-arts", "Тёмные искусства", "focus_points", kind="action"),
         SharedPoolOption("shadow-step", "Шаг в тень", "focus_points", cost=0, kind="bonus", min_level=6),
+        SharedPoolOption(
+            "improved-shadow-step",
+            "Улучшенный шаг в тень",
+            "focus_points",
+            cost=1,
+            kind="bonus",
+            min_level=11,
+        ),
+        SharedPoolOption(
+            "cloak-of-shadows",
+            "Покров теней",
+            "focus_points",
+            cost=3,
+            kind="bonus",
+            min_level=17,
+        ),
     ],
     "monk__warrior-of-the-elements": [
         SharedPoolOption("elemental-attunement", "Сродство со стихиями", "focus_points", kind="bonus"),
         SharedPoolOption(
-            "elemental-burst", "Стихийный выброс", "focus_points", kind="action", min_level=6
+            "elemental-burst",
+            "Стихийный выброс",
+            "focus_points",
+            cost=2,
+            kind="action",
+            min_level=6,
+        ),
+        SharedPoolOption(
+            "elemental-epitome",
+            "Воплощение стихий",
+            "focus_points",
+            cost=0,
+            kind="passive",
+            min_level=17,
         ),
     ],
     "monk__warrior-of-the-mystic-arts": [
@@ -1342,15 +1394,25 @@ def build_subclass_resources(
             feature_id="wholeness-of-body",
             min_level=6,
         )
-    elif subclass_slug == "monk__warrior-of-mercy" and class_level >= 17:
-        add(
-            "hand_of_ultimate_mercy",
-            name_ru="Рука высшего милосердия",
-            max_uses=1,
-            reset="long",
-            feature_id="hand-of-ultimate-mercy",
-            min_level=17,
-        )
+    elif subclass_slug == "monk__warrior-of-mercy":
+        if class_level >= 11:
+            add(
+                "flurry_of_healing_and_harm",
+                name_ru="Шквал исцеления и повреждения",
+                max_uses=max(1, wis_m),
+                reset="long",
+                feature_id="flurry-of-healing-and-harm",
+                min_level=11,
+            )
+        if class_level >= 17:
+            add(
+                "hand_of_ultimate_mercy",
+                name_ru="Рука абсолютного милосердия",
+                max_uses=1,
+                reset="long",
+                feature_id="hand-of-ultimate-mercy",
+                min_level=17,
+            )
 
     # --- Ranger ---
     elif subclass_slug == "ranger__gloom-stalker":

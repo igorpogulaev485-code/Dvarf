@@ -248,19 +248,61 @@ const SHARED_OPTIONS_2024: Record<string, SharedPoolOption2024[]> = {
     { feature_id: 'spirits-from-beyond', name_ru: 'Духи извне', spend_pool: 'bardic_inspiration', cost: 1, kind: 'bonus', min_level: 3 },
   ],
   'monk__warrior-of-the-hand': [
-    { feature_id: 'open-hand-technique', name_ru: 'Техники открытой ладони', spend_pool: 'focus_points', cost: 1, kind: 'passive', min_level: 3 },
+    { feature_id: 'open-hand-technique', name_ru: 'Техники открытой ладони', spend_pool: 'focus_points', cost: 0, kind: 'passive', min_level: 3 },
+    { feature_id: 'fleet-step', name_ru: 'Быстрые ноги', spend_pool: 'focus_points', cost: 0, kind: 'bonus', min_level: 11 },
+    { feature_id: 'quivering-palm', name_ru: 'Дрожащая ладонь', spend_pool: 'focus_points', cost: 4, kind: 'action', min_level: 17 },
   ],
   'monk__warrior-of-mercy': [
     { feature_id: 'hand-of-healing', name_ru: 'Исцеляющая рука', spend_pool: 'focus_points', cost: 1, kind: 'action', min_level: 3 },
     { feature_id: 'hand-of-harm', name_ru: 'Повреждающая рука', spend_pool: 'focus_points', cost: 1, kind: 'passive', min_level: 3 },
+    {
+      feature_id: 'flurry-of-healing-and-harm',
+      name_ru: 'Шквал исцеления и повреждения',
+      spend_pool: 'flurry_of_healing_and_harm',
+      cost: 1,
+      kind: 'passive',
+      min_level: 11,
+    },
+    {
+      feature_id: 'hand-of-ultimate-mercy',
+      name_ru: 'Рука абсолютного милосердия',
+      spend_pool: 'focus_points',
+      cost: 5,
+      kind: 'action',
+      min_level: 17,
+    },
   ],
   'monk__warrior-of-shadow': [
     { feature_id: 'shadow-arts', name_ru: 'Тёмные искусства', spend_pool: 'focus_points', cost: 1, kind: 'action', min_level: 3 },
     { feature_id: 'shadow-step', name_ru: 'Шаг в тень', spend_pool: 'focus_points', cost: 0, kind: 'bonus', min_level: 6 },
+    {
+      feature_id: 'improved-shadow-step',
+      name_ru: 'Улучшенный шаг в тень',
+      spend_pool: 'focus_points',
+      cost: 1,
+      kind: 'bonus',
+      min_level: 11,
+    },
+    {
+      feature_id: 'cloak-of-shadows',
+      name_ru: 'Покров теней',
+      spend_pool: 'focus_points',
+      cost: 3,
+      kind: 'bonus',
+      min_level: 17,
+    },
   ],
   'monk__warrior-of-the-elements': [
     { feature_id: 'elemental-attunement', name_ru: 'Сродство со стихиями', spend_pool: 'focus_points', cost: 1, kind: 'bonus', min_level: 3 },
-    { feature_id: 'elemental-burst', name_ru: 'Стихийный выброс', spend_pool: 'focus_points', cost: 1, kind: 'action', min_level: 6 },
+    { feature_id: 'elemental-burst', name_ru: 'Стихийный выброс', spend_pool: 'focus_points', cost: 2, kind: 'action', min_level: 6 },
+    {
+      feature_id: 'elemental-epitome',
+      name_ru: 'Воплощение стихий',
+      spend_pool: 'focus_points',
+      cost: 0,
+      kind: 'passive',
+      min_level: 17,
+    },
   ],
   'monk__warrior-of-the-mystic-arts': [
     { feature_id: 'mystic-focus', name_ru: 'Мистический фокус', spend_pool: 'focus_points', cost: 1, kind: 'bonus', min_level: 6 },
@@ -643,6 +685,25 @@ export function buildSubclassResources2024(input: {
     push('moonlight_step', 'Шаг в лунный свет', Math.max(1, wisMod), 'long', 'moonlight-step')
   } else if (subclassSlug === 'monk__warrior-of-the-hand' && classLevel >= 6) {
     push('wholeness_of_body', 'Целостность тела', Math.max(1, wisMod), 'long', 'wholeness-of-body')
+  } else if (subclassSlug === 'monk__warrior-of-mercy') {
+    if (classLevel >= 11) {
+      push(
+        'flurry_of_healing_and_harm',
+        'Шквал исцеления и повреждения',
+        Math.max(1, wisMod),
+        'long',
+        'flurry-of-healing-and-harm',
+      )
+    }
+    if (classLevel >= 17) {
+      push(
+        'hand_of_ultimate_mercy',
+        'Рука абсолютного милосердия',
+        1,
+        'long',
+        'hand-of-ultimate-mercy',
+      )
+    }
   } else if (subclassSlug === 'ranger__gloom-stalker') {
     push('dread_ambusher_strike', 'Ужасающий удар', Math.max(1, wisMod), 'long', 'dread-ambusher', { die: 'd6' })
   } else if (subclassSlug === 'ranger__winter-walker') {
