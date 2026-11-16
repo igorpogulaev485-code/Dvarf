@@ -1,0 +1,177 @@
+{
+  "meta": {
+    "pack": "P24-C15",
+    "rules_edition": "2024",
+    "source": "efa",
+    "notes_ru": "5 видов EFA. Без ASI/языков с вида. RU: species.csv / next.dnd.su."
+  },
+  "entries": [
+    {
+      "kind": "race",
+      "slug": "changeling",
+      "name_ru": "Ченжлинг",
+      "name_en": "Changeling",
+      "source": "efa",
+      "sort_order": 10,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/species/changeling",
+        "url_ttg": "https://new.ttg.club/species/changeling-efa",
+        "book": "EFA"
+      },
+      "data": {
+        "creature_type": "fey",
+        "size": "medium",
+        "size_options": [
+          "medium",
+          "small"
+        ],
+        "speed": 30,
+        "darkvision": null,
+        "ability_bonuses": {},
+        "languages": [],
+        "languages_choose": 0,
+        "traits": [
+          "changeling-instincts",
+          "shape-shifter"
+        ],
+        "traits_text": "Ченжлинг (EFA): fey, medium/small, 30 фт. Инстинкты подменыша: Ваша связь с мирами фей дарует вам владение двумя навыками на ваш выбор из следующего списка: Выступление, Запугивание, Обман… Перевёртыш: Вы можете действием перевоплотиться, изменяя внешний вид и голос. Вы определяете, какие именно изменения произойдут, включая окраски, пол…"
+      }
+    },
+    {
+      "kind": "race",
+      "slug": "kalashtar",
+      "name_ru": "Калаштар",
+      "name_en": "Kalashtar",
+      "source": "efa",
+      "sort_order": 20,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/species/kalashtar",
+        "url_ttg": "https://new.ttg.club/species/kalashtar-efa",
+        "book": "EFA"
+      },
+      "data": {
+        "creature_type": "aberration",
+        "size": "medium",
+        "size_options": [
+          "medium"
+        ],
+        "speed": 30,
+        "darkvision": null,
+        "ability_bonuses": {},
+        "languages": [],
+        "languages_choose": 0,
+        "traits": [
+          "dual-mind",
+          "mental-discipline",
+          "mind-link",
+          "severed-from-dreams"
+        ],
+        "traits_text": "Калаштар (EFA): aberration, medium, 30 фт. Двойственность разума: Вы совершаете с Преимуществом спасброски Мудрости и Харизмы. Ментальная дисциплина: Вы обладаете Сопротивлением Психическому урону. Связь разумов: Вы обладаете телепатией дальностью, равной вашему уровню, умноженному на 10 футов. Когда вы используете эту особенность, чтобы… Отделённый от снов: Заклинание Грёзы не может быть нацелено на вас. Кроме того, когда вы завершаете Долгий отдых, вы получаете владение одним навыком на ваш…"
+      }
+    },
+    {
+      "kind": "race",
+      "slug": "khoravar",
+      "name_ru": "Кхоравар",
+      "name_en": "Khoravar",
+      "source": "efa",
+      "sort_order": 30,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/species/khoravar",
+        "url_ttg": "https://new.ttg.club/species/khoravar-efa",
+        "book": "EFA"
+      },
+      "data": {
+        "creature_type": "humanoid",
+        "size": "medium",
+        "size_options": [
+          "medium",
+          "small"
+        ],
+        "speed": 30,
+        "darkvision": 60,
+        "ability_bonuses": {},
+        "languages": [],
+        "languages_choose": 0,
+        "traits": [
+          "darkvision",
+          "fey-ancestry",
+          "fey-gift",
+          "lethargy-resilience",
+          "skill-versatility"
+        ],
+        "traits_text": "Кхоравар (EFA): humanoid, medium/small, 30 фт. Тёмное зрение: Вы обладаете Тёмным зрением дальностью 60 футов. Наследие фей: Вы совершаете с Преимуществом спасброски на избежание или окончание состояния Очарованный. Дар фей: Вы знаете заговор Дружба. Каждый раз, когда вы завершаете Долгий отдых, вы можете заменить этот заговор другим заговором из списка… Сопротивление летаргии: Когда вы проваливаете спасбросок на избежание или окончание состояния Бессознательный, можете вместо провала преуспеть. Как только вы… Универсальные умения: Вы получаете…"
+      }
+    },
+    {
+      "kind": "race",
+      "slug": "shifter",
+      "name_ru": "Шифтер",
+      "name_en": "Shifter",
+      "source": "efa",
+      "sort_order": 40,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/species/shifter",
+        "url_ttg": "https://new.ttg.club/species/shifter-efa",
+        "book": "EFA"
+      },
+      "data": {
+        "creature_type": "humanoid",
+        "size": "medium",
+        "size_options": [
+          "medium",
+          "small"
+        ],
+        "speed": 30,
+        "darkvision": 60,
+        "ability_bonuses": {},
+        "languages": [],
+        "languages_choose": 0,
+        "traits": [
+          "bestial-instincts",
+          "darkvision",
+          "shifting",
+          "beasthide",
+          "longtooth",
+          "swiftstride",
+          "wildhunt"
+        ],
+        "traits_text": "Шифтер (EFA): humanoid, medium/small, 30 фт. Звериные инстинкты: Через зверя внутри вас вы владеете одним навыком на ваш выбор из следующего списка: Акробатика, Атлетика, Выживание, Запугивание. Тёмное зрение: Вы обладаете Тёмным зрением дальностью 60 футов. Переворот: Вы можете Бонусным действием перевоплотиться, принимая звероподобный облик. Это перевоплощение длится 1 минуту или пока вы Бонусным… Звериная шкура: Принимая звероподобный облик, вы получаете 1к6 дополнительных Временных хитов. Пока вы находитесь в этом облике, вы обладаете бонусом +1 к……"
+      }
+    },
+    {
+      "kind": "race",
+      "slug": "warforged",
+      "name_ru": "Кованый",
+      "name_en": "Warforged",
+      "source": "efa",
+      "sort_order": 50,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/species/warforged",
+        "url_ttg": "https://new.ttg.club/species/warforged-efa",
+        "book": "EFA"
+      },
+      "data": {
+        "creature_type": "construct",
+        "size": "medium",
+        "size_options": [
+          "medium",
+          "small"
+        ],
+        "speed": 30,
+        "darkvision": null,
+        "ability_bonuses": {},
+        "languages": [],
+        "languages_choose": 0,
+        "traits": [
+          "construct-resilience",
+          "integrated-protection",
+          "sentrys-rest",
+          "specialized-design",
+          "tireless"
+        ],
+        "traits_text": "Кованый (EFA): construct, medium/small, 30 фт. Устойчивость конструкта: Вы обладаете Сопротивлением урону Ядом, а также совершаете с Преимуществом спасброски на избежание и окончание состояния Отравленный. Встроенная защита: Вы обладаете бонусом +1 к КЗ. Кроме того, доспех, который вы надели на себя, нельзя снять с вас против вашей воли, пока вы живы. Отдых часового: Вам не требуется сон, и магия не может усыпить вас. Вы можете завершить Долгий отдых за 6 часов, если проводите это время без движения и… Специальная сборка: Вы получаете владение одним…"
+      }
+    }
+  ]
+}

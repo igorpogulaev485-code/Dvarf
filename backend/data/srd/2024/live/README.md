@@ -31,6 +31,13 @@
 | `magic_items_dmg24.json` | P24-C11 | 196 магических предметов DMG сверх SRD (`kind=item`, `source=dmg24`; именные → `data.srd_alias`) |
 | `creatures_mm24_w1.json` | P24-C13 | 86 существ MM24 сверх SRD, волна 1 до Kuo-toa Archpriest (`kind=bestiary`, `source=mm24`) |
 | `creatures_mm24_w2.json` | P24-C14 | 87 существ MM24 сверх SRD, волна 2 от Kuo-toa Archpriest (`kind=bestiary`, `source=mm24`) |
+| `classes_efa.json` | P24-C15 | класс артефактора EFA (`kind=class`, `source=efa`) |
+| `subclasses_efa.json` | P24-C15 | 5 специальностей артефактора EFA (`source=efa`) |
+| `species_efa.json` | P24-C15 | 5 видов EFA (`kind=race`, `source=efa`) |
+| `backgrounds_efa.json` | P24-C15 | 17 предысторий EFA (`source=efa`) |
+| `feats_efa.json` | P24-C15 | 28 черт EFA, в т.ч. драконьи метки (`source=efa`) |
+| `spells_efa.json` | P24-C15 | 1 заклинание EFA — гомункул-слуга (`source=efa`) |
+| `magic_items_efa.json` | P24-C15 | 9 магических предметов/реплик EFA (`source=efa`) |
 
 ## Схема карточек (контракт)
 
@@ -47,6 +54,6 @@
 - бестиарий (`bestiary`, C07 Monsters / C08 Animals / C13 MM24 w1): КД, хиты, скорости, ПО/опыт/БМ, инициатива, характеристики + мод + спас, `gear_refs` → C03, `spell_refs` → C05/C10; у Animals — `beast_tags` (`wild_shape_ok`, `mount`, `has_fly`, `has_swim`); у MM сверх SRD — `source=mm24`; короткое `summary_ru` / `text_ru` (без длинного текста книги и без статов 2014)
 - отображаемые строки (`summary_ru`, `traits_text`, `components.m`, `casting_time.condition`, …) — по-русски; словари `spell_materials_ru.json` / `spell_reaction_conditions_ru.json`
 - `source` вида `srd-5.2` → `content_layer: srd`
-- `source` вида `ph24` / `dmg24` / `mm24` → `content_layer: community_ref` (ярлык игроку не показываем)
+- `source` вида `ph24` / `dmg24` / `mm24` / `efa` → `content_layer: community_ref` (ярлык игроку не показываем)
 
-Не сидить: Culture, Engineering, пустые заглушки классов/видов/предысторий, книжный контент сверх PHB/DMG/MM этой очереди (Eberron/FR/Ravenloft — C15+), Изобретатель (C15). Черты и заклинания PHB сверх SRD — C10; предметы DMG сверх SRD — C11; MM сверх SRD волна 1 — C13 (здесь), волна 2 — C14.
+Не сидить: Culture, Engineering, пустые заглушки. Книжный контент FR/Ravenloft/AU — следующие пачки. Артефактор 2014 (Таша) не трогать. Черты и заклинания PHB сверх SRD — C10; предметы DMG сверх SRD — C11; MM сверх SRD — C13/C14; EFA — C15.

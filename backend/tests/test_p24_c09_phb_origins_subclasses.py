@@ -19,7 +19,7 @@ LIVE = REPO_ROOT / "backend" / "data" / "srd" / "2024" / "live"
 
 PH24_EXTRA = 1 + 12 + 36
 # C10 adds 58 feats + 69 spells on top of C01–C09 baseline.
-PLANNED_TOTAL = 863 + 235 + 95 + PH24_EXTRA + 58 + 69 + 196 + 86 + 87  # +C11 DMG24 +C13 MM24 w1 +C14 MM24 w2
+PLANNED_TOTAL = 863 + 235 + 95 + PH24_EXTRA + 58 + 69 + 196 + 86 + 87 + 66  # +C11 DMG24 +C13 MM24 w1 +C14 MM24 w2 +C15 EFA
 
 SRD_ORIGIN_FEATS = {"alert", "magic-initiate", "savage-attacker", "skilled"}
 
@@ -288,7 +288,9 @@ def test_alembic_single_head_includes_p24_c09():
     # C10 may become the tip; C09 must remain an ancestor.
 
 
-def test_no_who_or_artificer_in_this_pack():
+def test_no_who_or_artificer_in_ph24_pack():
+    """C09 PHB waves only — artificer arrives in C15 (source=efa)."""
     for row in load_wave_rows():
         assert "who" not in row["slug"].lower()
-        assert not row["slug"].startswith("artificer")
+        if row["source"] == "ph24":
+            assert not row["slug"].startswith("artificer")

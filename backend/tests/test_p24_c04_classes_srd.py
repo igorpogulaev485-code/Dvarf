@@ -50,7 +50,7 @@ SRD_SUBCLASSES = {
 }
 WM_CLASSES = {"barbarian", "fighter", "paladin", "ranger", "rogue"}
 # C01–C09 + C10 (58 feats + 69 spells PHB beyond SRD).
-PLANNED_TOTAL = 215 + 12 + 12 + 339 + 285 + 235 + 95 + 1 + 12 + 36 + 58 + 69 + 196 + 86 + 87  # +C11 DMG24 +C13 MM24 w1 +C14 MM24 w2
+PLANNED_TOTAL = 215 + 12 + 12 + 339 + 285 + 235 + 95 + 1 + 12 + 36 + 58 + 69 + 196 + 86 + 87 + 66  # +C11 DMG24 +C13 MM24 w1 +C14 MM24 w2 +C15 EFA
 
 
 def _srd_ids(category: str) -> set[str]:
@@ -60,8 +60,11 @@ def _srd_ids(category: str) -> set[str]:
     return {r["id"] for r in rows if str(r.get("srd", "")).lower() == "true"}
 
 
-def _rows(kind: str):
-    return [r for r in load_wave_rows() if r["kind"] == kind]
+def _rows(kind: str, *, srd_only: bool = False):
+    rows = [r for r in load_wave_rows() if r["kind"] == kind]
+    if srd_only:
+        rows = [r for r in rows if str(r["source"]).startswith("srd")]
+    return rows
 
 
 def _gear_ids() -> set[str]:
@@ -101,18 +104,16 @@ def test_live_class_waves_registered_and_complete():
     assert (LIVE / "classes_srd.json").is_file()
     assert (LIVE / "subclasses_srd.json").is_file()
 
-    assert {r["slug"] for r in _rows("class")} == SRD_CLASSES == _srd_ids("classes")
-    srd_subs = [
-        r for r in _rows("subclass") if str(r["source"]).startswith("srd")
-    ]
+    assert {r["slug"] for r in _rows("class", srd_only=True)} == SRD_CLASSES == _srd_ids("classes")
+    srd_subs = _rows("subclass", srd_only=True)
     assert {r["slug"] for r in srd_subs} == SRD_SUBCLASSES == _srd_ids("subclasses")
-    assert len(_rows("class")) == 12
+    assert len(_rows("class", srd_only=True)) == 12
     assert len(srd_subs) == 12
     assert len(_rows("subclass")) >= 12
 
 
 def test_each_class_has_full_level_table_and_subclass_at_3():
-    for row in _rows("class"):
+    for row in _rows("class", srd_only=True):
         data = row["data"]
         assert data.get("hit_die") in {6, 8, 10, 12}, row["slug"]
         assert data.get("subclass_level") == 3
@@ -148,7 +149,7 @@ def test_each_class_has_full_level_table_and_subclass_at_3():
 
 
 def test_weapon_mastery_by_class_matches_srd():
-    for row in _rows("class"):
+    for row in _rows("class", srd_only=True):
         wm = row["data"].get("weapon_mastery") or {}
         if row["slug"] in WM_CLASSES:
             assert wm.get("enabled") is True, row["slug"]
@@ -171,7 +172,7 @@ def test_weapon_mastery_by_class_matches_srd():
 
 def test_starting_equipment_and_mastery_links_resolve():
     gear = _gear_ids()
-    for row in _rows("class"):
+    for row in _rows("class", srd_only=True):
         for opt in row["data"].get("starting_equipment") or []:
             if opt.get("id") == "gold":
                 assert opt.get("coins_gp")
@@ -220,9 +221,7 @@ def test_names_match_reference_csv():
             for r in csv.DictReader((SOURCES / f"{category}.csv").open(encoding="utf-8"))
             if r["srd"] == "true"
         }
-        for row in _rows(kind):
-            if kind == "subclass" and not str(row["source"]).startswith("srd"):
-                continue
+        for row in _rows(kind, srd_only=True):
             assert row["name_ru"] == ref[row["slug"]]["name_ru"]
             assert row["name_en"] == ref[row["slug"]]["name_en"]
 
@@ -298,7 +297,13 @@ def test_apply_seed_includes_classes_idempotent():
     stats2 = apply_edition_2024_catalog_seed(conn)  # type: ignore[arg-type]
     assert stats1.upserted == planned == PLANNED_TOTAL
     assert stats2.upserted == planned
-    assert {k[1] for k in store if k[0] == "class"} == SRD_CLASSES
+    srd_classes = {
+        k[1]
+        for k, v in store.items()
+        if k[0] == "class" and str(v.get("source", "")).startswith("srd")
+    }
+    assert srd_classes == SRD_CLASSES
+    assert "artificer" in {k[1] for k in store if k[0] == "class"}
     srd_subs = {
         k[1]
         for k, v in store.items()
@@ -330,9 +335,12 @@ def test_alembic_single_head_includes_p24_c04():
     assert "p24c06magic01" in ancestor_ids  # head may advance (C07+)
 
 
-def test_no_artificer_in_live_class_wave():
-    """Artificer stays out of C04; PHB book subclasses may appear from C09+."""
-    assert "artificer" not in {r["slug"] for r in _rows("class")}
+def test_no_artificer_in_srd_class_wave():
+    """Artificer is EFA (C15), not SRD C04."""
+    srd_classes = {
+        r["slug"] for r in _rows("class") if str(r["source"]).startswith("srd")
+    }
+    assert "artificer" not in srd_classes
     srd_slugs = {
         r["slug"] for r in _rows("subclass") if str(r["source"]).startswith("srd")
     }

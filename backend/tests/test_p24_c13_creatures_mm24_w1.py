@@ -21,7 +21,7 @@ LIVE = REPO_ROOT / "backend" / "data" / "srd" / "2024" / "live"
 
 CUTOFF = "Kuo-toa Archpriest"
 MM24_W1_COUNT = 86
-PLANNED_TOTAL = 863 + 235 + 95 + 1 + 12 + 36 + 58 + 69 + 196 + MM24_W1_COUNT + 87  # +C14 MM24 w2
+PLANNED_TOTAL = 863 + 235 + 95 + 1 + 12 + 36 + 58 + 69 + 196 + MM24_W1_COUNT + 87 + 66  # +C14 MM24 w2 +C15 EFA
 
 ABILITIES = ("str", "dex", "con", "int", "wis", "cha")
 

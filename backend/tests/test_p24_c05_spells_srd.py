@@ -21,6 +21,7 @@ LIVE = REPO_ROOT / "backend" / "data" / "srd" / "2024" / "live"
 
 SRD_SPELL_COUNT = 339
 CASTER_CLASSES = {
+    "artificer",
     "bard",
     "cleric",
     "druid",
@@ -48,7 +49,8 @@ PLANNED_TOTAL = (
     + 196
     + 86
     + 87
-)  # +C07+C08+C09+C10+C11+C13+C14
+    + 66  # +C15 EFA
+)  # +C07+C08+C09+C10+C11+C13+C14+C15
 
 SRD_RENAMES = {
     "acid-arrow",
@@ -168,8 +170,7 @@ def test_class_spell_lists_resolve_to_cards():
             assert slugs, row["slug"]
             for sid in slugs:
                 assert sid in spell_slugs, f"{row['slug']} -> missing {sid}"
-            # Every spell that lists this class appears in the class list
-            # (ignore Artificer-only refs until the Artificer pack).
+            # Every spell that lists this class appears in the class list.
             expected = {
                 r["slug"]
                 for r in _rows("spell")
@@ -272,7 +273,7 @@ def test_apply_seed_includes_spells_idempotent():
     assert stats1.upserted == planned == PLANNED_TOTAL
     assert stats2.upserted == planned
     spell_rows = [v for k, v in store.items() if k[0] == "spell"]
-    assert len(spell_rows) == SRD_SPELL_COUNT + 69  # + PHB beyond (C10)
+    assert len(spell_rows) == SRD_SPELL_COUNT + 69 + 1  # + PHB beyond (C10) + EFA (C15)
     assert sum(1 for v in spell_rows if str(v.get("source", "")).startswith("srd")) == (
         SRD_SPELL_COUNT
     )

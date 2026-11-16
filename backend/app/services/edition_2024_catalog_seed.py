@@ -33,6 +33,10 @@ Schema contract for later packs (P24-00 lists → data packs):
   ``community_ref``; alphabet before ``Kuo-toa Archpriest``.
 - MM beyond SRD (C14 wave 2): ``creatures_mm24_w2``; ``source`` ``mm24`` →
   ``community_ref``; alphabet from ``Kuo-toa Archpriest`` to end.
+- EFA (C15): ``classes_efa`` / ``subclasses_efa`` / ``species_efa`` /
+  ``backgrounds_efa`` / ``feats_efa`` / ``spells_efa`` /
+  ``magic_items_efa``; ``source`` ``efa`` → ``community_ref``.
+  Artificer 2024 only — do not touch 2014 Tasha artificer.
 - ``source`` ``srd-5.2`` / ``srd-5.2.1`` stamps ``content_layer=srd``
 """
 
@@ -93,6 +97,14 @@ EDITION_2024_CATALOG_WAVES: tuple[WaveSpec, ...] = (
     WaveSpec("creatures_mm24_w1.json"),
     # P24-C14 — MM 2024 bestiary beyond SRD, wave 2 (community_ref)
     WaveSpec("creatures_mm24_w2.json"),
+    # P24-C15 — Eberron: Forge of the Artificer (community_ref)
+    WaveSpec("classes_efa.json"),
+    WaveSpec("subclasses_efa.json"),
+    WaveSpec("species_efa.json"),
+    WaveSpec("backgrounds_efa.json"),
+    WaveSpec("feats_efa.json"),
+    WaveSpec("spells_efa.json"),
+    WaveSpec("magic_items_efa.json"),
 )
 
 WEAPON_MASTERY_FILENAME = "weapon_mastery_srd.json"

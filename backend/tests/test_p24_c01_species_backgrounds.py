@@ -212,7 +212,7 @@ def test_seed_rows_are_edition_2024_only():
             "bestiary",
         }
         src = str(row["source"])
-        assert src.startswith("srd") or src in {"ph24", "dmg24", "mm24"}
+        assert src.startswith("srd") or src in {"ph24", "dmg24", "mm24", "efa"}
 
 
 def test_apply_seed_idempotent_with_fake_conn():
@@ -301,6 +301,8 @@ def test_apply_seed_idempotent_with_fake_conn():
                 "general",
                 "fighting_style",
                 "epic_boon",
+                "dragonmark",
+                "dark_gift",
             }
     # No statement may filter or write rules_edition 2014.
     joined = "\n".join(executed)

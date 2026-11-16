@@ -38,6 +38,7 @@
         "concentration": false,
         "ritual": false,
         "classes": [
+          "artificer",
           "sorcerer",
           "wizard"
         ],
@@ -136,6 +137,7 @@
         "concentration": true,
         "ritual": false,
         "classes": [
+          "artificer",
           "bard",
           "sorcerer",
           "wizard"
@@ -265,6 +267,7 @@
         "concentration": false,
         "ritual": false,
         "classes": [
+          "artificer",
           "druid",
           "sorcerer",
           "wizard"
@@ -307,6 +310,7 @@
         "concentration": false,
         "ritual": false,
         "classes": [
+          "artificer",
           "sorcerer",
           "wizard"
         ],
@@ -355,6 +359,7 @@
         "concentration": true,
         "ritual": false,
         "classes": [
+          "artificer",
           "cleric",
           "druid"
         ],
@@ -397,6 +402,7 @@
         "concentration": false,
         "ritual": false,
         "classes": [
+          "artificer",
           "bard",
           "cleric",
           "sorcerer",
@@ -440,6 +446,7 @@
         "concentration": false,
         "ritual": false,
         "classes": [
+          "artificer",
           "bard",
           "sorcerer",
           "warlock",
@@ -484,6 +491,7 @@
         "concentration": false,
         "ritual": false,
         "classes": [
+          "artificer",
           "bard",
           "cleric",
           "druid",
@@ -529,6 +537,7 @@
         "concentration": false,
         "ritual": false,
         "classes": [
+          "artificer",
           "bard",
           "druid",
           "sorcerer",
@@ -616,6 +625,7 @@
         "concentration": false,
         "ritual": false,
         "classes": [
+          "artificer",
           "druid",
           "sorcerer",
           "warlock",
@@ -666,6 +676,7 @@
         "concentration": false,
         "ritual": false,
         "classes": [
+          "artificer",
           "bard",
           "sorcerer",
           "warlock",
@@ -756,6 +767,7 @@
         "concentration": false,
         "ritual": false,
         "classes": [
+          "artificer",
           "sorcerer",
           "wizard"
         ],
@@ -804,6 +816,7 @@
         "concentration": true,
         "ritual": false,
         "classes": [
+          "artificer",
           "cleric",
           "druid"
         ],
@@ -934,6 +947,7 @@
         "concentration": false,
         "ritual": false,
         "classes": [
+          "artificer",
           "sorcerer",
           "wizard"
         ],
@@ -1030,6 +1044,7 @@
         "concentration": false,
         "ritual": false,
         "classes": [
+          "artificer",
           "cleric",
           "druid"
         ],
@@ -1161,6 +1176,7 @@
         "concentration": false,
         "ritual": false,
         "classes": [
+          "artificer",
           "bard",
           "sorcerer",
           "warlock",
@@ -1253,6 +1269,7 @@
         "concentration": false,
         "ritual": true,
         "classes": [
+          "artificer",
           "ranger",
           "wizard"
         ],
@@ -1759,6 +1776,7 @@
         "concentration": false,
         "ritual": false,
         "classes": [
+          "artificer",
           "bard",
           "cleric",
           "druid",
@@ -1856,6 +1874,7 @@
         "concentration": true,
         "ritual": true,
         "classes": [
+          "artificer",
           "bard",
           "cleric",
           "druid",
@@ -1948,6 +1967,7 @@
         "concentration": false,
         "ritual": false,
         "classes": [
+          "artificer",
           "bard",
           "sorcerer",
           "wizard"
@@ -2221,6 +2241,7 @@
         "concentration": true,
         "ritual": false,
         "classes": [
+          "artificer",
           "sorcerer",
           "warlock",
           "wizard"
@@ -2263,6 +2284,7 @@
         "concentration": true,
         "ritual": false,
         "classes": [
+          "artificer",
           "bard",
           "druid"
         ],
@@ -2305,6 +2327,7 @@
         "concentration": false,
         "ritual": false,
         "classes": [
+          "artificer",
           "sorcerer",
           "wizard"
         ],
@@ -2352,6 +2375,7 @@
         "concentration": false,
         "ritual": false,
         "classes": [
+          "artificer",
           "bard",
           "sorcerer",
           "wizard"
@@ -2568,6 +2592,7 @@
         "concentration": false,
         "ritual": false,
         "classes": [
+          "artificer",
           "sorcerer",
           "wizard"
         ],
@@ -3003,6 +3028,7 @@
         "concentration": false,
         "ritual": true,
         "classes": [
+          "artificer",
           "bard",
           "wizard"
         ],
@@ -3143,6 +3169,7 @@
         "concentration": false,
         "ritual": false,
         "classes": [
+          "artificer",
           "druid",
           "ranger",
           "sorcerer",
@@ -3188,6 +3215,7 @@
         "concentration": false,
         "ritual": false,
         "classes": [
+          "artificer",
           "bard",
           "druid",
           "ranger",
@@ -3366,6 +3394,7 @@
         "concentration": false,
         "ritual": true,
         "classes": [
+          "artificer",
           "cleric",
           "druid",
           "paladin"
@@ -3462,6 +3491,7 @@
         "concentration": false,
         "ritual": false,
         "classes": [
+          "artificer",
           "cleric"
         ],
         "attack_or_save": "МДР",
@@ -3919,6 +3949,7 @@
         "concentration": false,
         "ritual": false,
         "classes": [
+          "artificer",
           "bard",
           "cleric",
           "druid",
@@ -3964,6 +3995,7 @@
         "concentration": true,
         "ritual": false,
         "classes": [
+          "artificer",
           "sorcerer",
           "wizard"
         ],
@@ -4055,6 +4087,7 @@
         "concentration": false,
         "ritual": false,
         "classes": [
+          "artificer",
           "wizard"
         ],
         "attack_or_save": null,
@@ -4268,6 +4301,7 @@
         "concentration": true,
         "ritual": false,
         "classes": [
+          "artificer",
           "sorcerer",
           "wizard"
         ],
@@ -4353,6 +4387,7 @@
         "concentration": false,
         "ritual": false,
         "classes": [
+          "artificer",
           "cleric",
           "druid",
           "wizard"
@@ -4439,6 +4474,7 @@
         "concentration": false,
         "ritual": false,
         "classes": [
+          "artificer",
           "druid",
           "ranger",
           "sorcerer",
@@ -4526,6 +4562,7 @@
         "concentration": true,
         "ritual": false,
         "classes": [
+          "artificer",
           "sorcerer",
           "wizard"
         ],
@@ -4579,6 +4616,7 @@
         "concentration": true,
         "ritual": false,
         "classes": [
+          "artificer",
           "bard",
           "cleric",
           "druid",
@@ -4626,6 +4664,7 @@
         "concentration": true,
         "ritual": false,
         "classes": [
+          "artificer",
           "bard",
           "druid",
           "sorcerer",
@@ -4990,6 +5029,7 @@
         "concentration": true,
         "ritual": false,
         "classes": [
+          "artificer",
           "bard",
           "druid"
         ],
@@ -5091,6 +5131,7 @@
         "concentration": true,
         "ritual": false,
         "classes": [
+          "artificer",
           "bard",
           "sorcerer",
           "warlock",
@@ -5177,6 +5218,7 @@
         "concentration": false,
         "ritual": false,
         "classes": [
+          "artificer",
           "bard",
           "cleric",
           "druid",
@@ -5222,6 +5264,7 @@
         "concentration": true,
         "ritual": false,
         "classes": [
+          "artificer",
           "sorcerer",
           "wizard"
         ],
@@ -5356,6 +5399,7 @@
         "concentration": false,
         "ritual": true,
         "classes": [
+          "artificer",
           "bard",
           "wizard"
         ],
@@ -5397,6 +5441,7 @@
         "concentration": false,
         "ritual": false,
         "classes": [
+          "artificer",
           "paladin",
           "ranger",
           "sorcerer",
@@ -5780,6 +5825,7 @@
         "concentration": false,
         "ritual": false,
         "classes": [
+          "artificer",
           "cleric",
           "druid",
           "paladin",
@@ -5868,6 +5914,7 @@
         "concentration": false,
         "ritual": false,
         "classes": [
+          "artificer",
           "wizard"
         ],
         "attack_or_save": null,
@@ -5954,6 +6001,7 @@
         "concentration": false,
         "ritual": false,
         "classes": [
+          "artificer",
           "bard",
           "sorcerer",
           "wizard"
@@ -6144,6 +6192,7 @@
         "concentration": true,
         "ritual": false,
         "classes": [
+          "artificer",
           "sorcerer",
           "warlock",
           "wizard"
@@ -6374,6 +6423,7 @@
         "concentration": true,
         "ritual": false,
         "classes": [
+          "artificer",
           "sorcerer",
           "wizard"
         ],
@@ -6591,6 +6641,7 @@
         "concentration": false,
         "ritual": false,
         "classes": [
+          "artificer",
           "sorcerer",
           "wizard"
         ],
@@ -6825,6 +6876,7 @@
         "concentration": false,
         "ritual": false,
         "classes": [
+          "artificer",
           "cleric",
           "paladin"
         ],
@@ -6910,6 +6962,7 @@
         "concentration": false,
         "ritual": false,
         "classes": [
+          "artificer",
           "bard",
           "cleric",
           "druid",
@@ -7055,6 +7108,7 @@
         "concentration": true,
         "ritual": false,
         "classes": [
+          "artificer",
           "sorcerer",
           "warlock",
           "wizard"
@@ -7145,6 +7199,7 @@
         "concentration": false,
         "ritual": false,
         "classes": [
+          "artificer",
           "bard",
           "cleric",
           "wizard"
@@ -7198,6 +7253,7 @@
         "concentration": true,
         "ritual": false,
         "classes": [
+          "artificer",
           "sorcerer",
           "wizard"
         ],
@@ -7651,6 +7707,7 @@
         "concentration": true,
         "ritual": false,
         "classes": [
+          "artificer",
           "cleric",
           "druid",
           "ranger",
@@ -7742,6 +7799,7 @@
         "concentration": false,
         "ritual": false,
         "classes": [
+          "artificer",
           "cleric",
           "druid",
           "paladin",
@@ -8236,6 +8294,7 @@
         "concentration": false,
         "ritual": true,
         "classes": [
+          "artificer",
           "druid",
           "ranger",
           "sorcerer",
@@ -8280,6 +8339,7 @@
         "concentration": false,
         "ritual": true,
         "classes": [
+          "artificer",
           "cleric",
           "druid",
           "ranger",
@@ -8370,6 +8430,7 @@
         "concentration": true,
         "ritual": false,
         "classes": [
+          "artificer",
           "wizard"
         ],
         "attack_or_save": null,
@@ -9047,6 +9108,7 @@
         "concentration": false,
         "ritual": false,
         "classes": [
+          "artificer",
           "wizard"
         ],
         "attack_or_save": null,
@@ -9178,6 +9240,7 @@
         "concentration": false,
         "ritual": false,
         "classes": [
+          "artificer",
           "bard",
           "cleric",
           "druid",
@@ -9713,6 +9776,7 @@
         "concentration": false,
         "ritual": false,
         "classes": [
+          "artificer",
           "cleric",
           "druid",
           "wizard"
@@ -9758,6 +9822,7 @@
         "concentration": true,
         "ritual": false,
         "classes": [
+          "artificer",
           "druid",
           "ranger",
           "sorcerer",
@@ -9905,6 +9970,7 @@
         "concentration": true,
         "ritual": false,
         "classes": [
+          "artificer",
           "bard",
           "sorcerer",
           "wizard"
@@ -10399,6 +10465,7 @@
         "concentration": false,
         "ritual": false,
         "classes": [
+          "artificer",
           "sorcerer",
           "wizard"
         ],
@@ -10674,6 +10741,7 @@
         "concentration": false,
         "ritual": false,
         "classes": [
+          "artificer",
           "bard",
           "cleric",
           "druid",
@@ -11564,6 +11632,7 @@
         "concentration": true,
         "ritual": false,
         "classes": [
+          "artificer",
           "druid",
           "sorcerer",
           "wizard"
