@@ -1463,6 +1463,9 @@ function parseWeaponKeys(raw: unknown): WeaponProfKey[] {
   return keys
 }
 
+/** Monk 2024 weapon extra (not full martial). */
+const LIGHT_MARTIAL_MELEE_RU = 'Воинское рукопашное оружие со свойством «лёгкое»'
+
 function parseWeaponExtras(raw: unknown): string[] {
   if (!raw || typeof raw !== 'object') return []
   const row = raw as Record<string, unknown>
@@ -1680,8 +1683,6 @@ export function catalogHasClassGrantData(
     data.multiclass_proficiencies != null
   )
 }
-
-const LIGHT_MARTIAL_MELEE_RU = 'Воинское рукопашное оружие со свойством «лёгкое»'
 
 /** 2024 multiclass «Владения» table (PHB 2024) → the same package shape the sheet applies. */
 export function multiclassPackage2024(

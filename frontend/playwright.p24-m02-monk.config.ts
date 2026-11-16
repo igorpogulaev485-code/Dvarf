@@ -13,7 +13,7 @@ const ARTIFACTS = '/opt/cursor/artifacts/p24-m02-monk'
  */
 export default defineConfig({
   testDir: './e2e',
-  testMatch: '**/p24-m02-monk.spec.ts',
+  testMatch: ['**/p24-m02-monk.spec.ts', '**/p24-m02-monk-live.spec.ts'],
   fullyParallel: false,
   forbidOnly: Boolean(process.env.CI),
   retries: 0,

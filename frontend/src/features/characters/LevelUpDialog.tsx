@@ -10,11 +10,77 @@ import {
   type AbilityScores,
 } from '../../shared/dnd/multiclassRules'
 import type { HitDie } from '../../shared/dnd/hitDice'
-import { checkMulticlassPrerequisites2024 } from '../../shared/dnd/edition2024Classes'
+import {
+  checkMulticlassPrerequisites2024,
+  classCatalog2024,
+  normalizeClassSlug2024,
+} from '../../shared/dnd/edition2024Classes'
+import { SUBCLASS_CATALOG_2024 } from '../../shared/dnd/edition2024Subclasses'
 import { draconicResilienceHpDelta2024 } from '../../shared/dnd/sorcerer2024Features'
-import { dwarvenToughnessHpDelta2024 } from '../../shared/dnd/speciesHpBonus2024'
+import {
+  DWARVEN_TOUGHNESS_NAME_RU,
+  dwarvenToughnessHpDelta2024,
+  hasDwarvenToughness2024,
+} from '../../shared/dnd/speciesHpBonus2024'
 import { CatalogCombobox } from '../catalog'
 import { Dialog, Field, NumberInput, Stack, Text } from '../../ui'
+
+/** Class / subclass feature names the character gains when landing on `newClassLevel`. */
+function upcomingFeatureNames2024(input: {
+  classSlug: string | null
+  newClassLevel: number
+  subclassSlug: string | null
+}): string[] {
+  const slug = input.classSlug
+  if (!slug) return []
+  const lv = Math.max(1, Math.floor(input.newClassLevel) || 1)
+  const cat = classCatalog2024()[slug]
+  const levelRows = Array.isArray(cat?.data?.levels)
+    ? (cat!.data.levels as Array<{ level?: number; features?: unknown[] }>)
+    : []
+  const levelRow = levelRows.find((r) => Number(r?.level) === lv)
+  const levelFeatures = Array.isArray(levelRow?.features) ? levelRow!.features! : []
+  const skip = new Set([
+    'ability-score-improvement',
+    'epic-boon',
+    `${slug}-subclass`,
+    'monk-subclass',
+  ])
+  const out: string[] = []
+  for (const raw of levelFeatures) {
+    if (!raw || typeof raw !== 'object') continue
+    const feat = raw as { id?: string; name_ru?: string }
+    const id = String(feat.id || '')
+    if (!id || skip.has(id) || id.endsWith('-subclass')) continue
+    if (id === 'subclass-feature') {
+      const subSlug = input.subclassSlug
+      if (!subSlug) {
+        out.push(`Умение подкласса (${lv} ур.)`)
+        continue
+      }
+      const sub = SUBCLASS_CATALOG_2024[subSlug]
+      const blocks =
+        (sub?.data?.features as Array<{
+          level?: number
+          features?: Array<{ id?: string; name_ru?: string }>
+        }>) || []
+      const block = blocks.find((b) => Number(b?.level) === lv)
+      const subFeats = Array.isArray(block?.features) ? block!.features! : []
+      if (subFeats.length) {
+        for (const sf of subFeats) {
+          const name = String(sf?.name_ru || sf?.id || '').trim()
+          if (name) out.push(name)
+        }
+      } else {
+        out.push(`Умение подкласса (${lv} ур.)`)
+      }
+      continue
+    }
+    const name = String(feat.name_ru || id).trim()
+    if (name) out.push(name)
+  }
+  return out
+}
 
 export type LevelUpChoice =
   | {
@@ -119,6 +185,35 @@ export function LevelUpDialog({
     [targetClass],
   )
 
+  const sameClassRow = mode === 'same' ? classes.find((c) => c.id === classId) ?? classes[0] : null
+  const oldCharacterLevel = classes.reduce(
+    (sum, row) => sum + Math.max(0, Math.floor(row.level || 0)),
+    0,
+  )
+  const toughnessDelta =
+    edition === '2024'
+      ? dwarvenToughnessHpDelta2024({
+          oldCharacterLevel,
+          newCharacterLevel: oldCharacterLevel + 1,
+          speciesSlug,
+        })
+      : 0
+  const showToughnessNote =
+    edition === '2024' && hasDwarvenToughness2024(speciesSlug) && toughnessDelta > 0
+
+  const upcomingFeatures = useMemo(() => {
+    if (edition !== '2024' || mode !== 'same' || !sameClassRow) return [] as string[]
+    const classSlug =
+      normalizeClassSlug2024(sameClassRow.catalog_id) ||
+      normalizeClassSlug2024(sameClassRow.name)
+    const newClassLevel = Math.max(0, Math.floor(sameClassRow.level || 0)) + 1
+    return upcomingFeatureNames2024({
+      classSlug,
+      newClassLevel,
+      subclassSlug: sameClassRow.subclass_catalog_id,
+    })
+  }, [edition, mode, sameClassRow])
+
   const averageGain = hitDie
     ? (() => {
         const isSorcerer = /чародей|sorcerer/i.test(targetClass.name)
@@ -130,26 +225,16 @@ export function LevelUpDialog({
         }
         // 2024: +3 at sorcerer 3 (when subclass is already/will be draconic), then +1.
         const base = averageHpGain(hitDie, constitutionMod)
-        const oldCharacterLevel = classes.reduce(
-          (sum, row) => sum + Math.max(0, Math.floor(row.level || 0)),
-          0,
-        )
-        const toughness = dwarvenToughnessHpDelta2024({
-          oldCharacterLevel,
-          newCharacterLevel: oldCharacterLevel + 1,
-          speciesSlug,
-        })
-        if (!isSorcerer) return base + toughness
-        const row = mode === 'same' ? classes.find((c) => c.id === classId) : null
-        const oldLv = row?.level ?? 0
+        if (!isSorcerer) return base + toughnessDelta
+        const oldLv = sameClassRow?.level ?? 0
         const newLv = oldLv + 1
         const subclassSlug =
-          row?.subclass_catalog_id ||
-          row?.subclass_name ||
+          sameClassRow?.subclass_catalog_id ||
+          sameClassRow?.subclass_name ||
           (draconicResilience ? 'draconic' : null)
         return (
           base +
-          toughness +
+          toughnessDelta +
           draconicResilienceHpDelta2024({
             oldLevel: oldLv,
             newLevel: newLv,
@@ -331,11 +416,20 @@ export function LevelUpDialog({
         </Field>
 
         {hpMode === 'average' ? (
-          <Text tone="muted">
-            {hitDie && averageGain != null
-              ? `Среднее по ${hitDie}: ⌊${hitDie.slice(1)}/2⌋+1 + ТЕЛ (${constitutionMod >= 0 ? '+' : ''}${constitutionMod}) = +${averageGain} к макс. хитам`
-              : 'Не удалось определить кость хитов класса — выбери класс из справочника или введи хиты вручную.'}
-          </Text>
+          <Stack gap={4}>
+            <Text tone="muted">
+              {hitDie && averageGain != null
+                ? `Среднее по ${hitDie}: ⌊${hitDie.slice(1)}/2⌋+1 + ТЕЛ (${constitutionMod >= 0 ? '+' : ''}${constitutionMod}) = +${averageGain} к макс. хитам`
+                : 'Не удалось определить кость хитов класса — выбери класс из справочника или введи хиты вручную.'}
+            </Text>
+            {showToughnessNote ? (
+              <div data-testid="level-up-dwarven-toughness">
+                <Text tone="muted">
+                  В том числе +{toughnessDelta} от «{DWARVEN_TOUGHNESS_NAME_RU}».
+                </Text>
+              </div>
+            ) : null}
+          </Stack>
         ) : (
           <Field label="Прибавка к макс. хитам" hint="Бросок кости + модификатор ТЕЛ">
             <NumberInput
@@ -346,6 +440,19 @@ export function LevelUpDialog({
             />
           </Field>
         )}
+
+        {upcomingFeatures.length ? (
+          <div data-testid="level-up-features">
+            <Text>
+              На {(sameClassRow?.level ?? 0) + 1} ур. появятся:
+            </Text>
+            <ul className="create-2024__list">
+              {upcomingFeatures.map((name) => (
+                <li key={name}>{name}</li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
 
         {!canConfirm ? (
           <Text tone="muted">

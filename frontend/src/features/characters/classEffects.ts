@@ -675,6 +675,12 @@ export function reconcileDruidStartWeapons(input: {
       weaponExtras: uniqueStrings([...DRUID_PHB_WEAPONS, ...kept]),
     }
   })
+  // Only rewrite sheet weapons when a druid start grant was actually migrated.
+  // Otherwise empty class_grants (2024 create materializes proficiency only) would
+  // incorrectly clear «Простое» for monk / fighter / etc.
+  if (!changed) {
+    return { classGrants: input.classGrants, weapons: input.weapons, changed: false }
+  }
   const simpleStill =
     classGrants.some((grant) => grant.weaponKeys.includes('simple')) ||
     (input.subclassWeaponKeys ?? []).includes('simple')
@@ -684,13 +690,6 @@ export function reconcileDruidStartWeapons(input: {
       .filter((grant) => grant.slug === 'druid' && grant.mode === 'start')
       .flatMap((grant) => grant.weaponExtras),
   ])
-  const weaponsChanged =
-    input.weapons.simple !== simpleStill ||
-    extras.length !== (input.weapons.extras ?? []).length ||
-    extras.some((name, index) => (input.weapons.extras ?? [])[index] !== name)
-  if (!changed && !weaponsChanged) {
-    return { classGrants: input.classGrants, weapons: input.weapons, changed: false }
-  }
   return {
     classGrants,
     weapons: { ...input.weapons, simple: simpleStill, extras },

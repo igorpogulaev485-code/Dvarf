@@ -29,6 +29,9 @@ const TOKEN_TO_RU: Record<string, string> = {
   battleaxe: 'Боевой топор',
   light_hammer: 'Лёгкий молот',
   lighthammer: 'Лёгкий молот',
+  /** Monk 2024: simple + light martial melee (not full martial). */
+  light_martial_melee: 'Воинское рукопашное оружие со свойством «лёгкое»',
+  light_martial: 'Воинское рукопашное оружие со свойством «лёгкое»',
 }
 
 export const WEAPON_EXTRA_PRESETS = [
