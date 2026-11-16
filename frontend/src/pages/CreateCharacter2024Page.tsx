@@ -23,6 +23,12 @@ import {
 import { Create2024SheetPreview } from '../features/createPipeline2024/Create2024SheetPreview'
 import { LevelingForks2024 } from '../features/createPipeline2024/LevelingForks2024'
 import {
+  buildSorcererSeedSpells,
+  parseSorcererSeed,
+  sorcererMetamagicForLevel,
+  type SorcererSeedSpells,
+} from '../features/createPipeline2024/e2eSorcererSeed2024'
+import {
   buildWizardSeedSpells,
   parseWizardSeed,
   type WizardSeedSpells,
@@ -303,7 +309,8 @@ export function CreateCharacter2024Page({
       asi?: Create2024State['asiChoices']
       skills?: string[]
       backgroundAsi?: Create2024State['backgroundAsi']
-      spells?: WizardSeedSpells
+      spells?: WizardSeedSpells | SorcererSeedSpells
+      classOptionPicks?: Create2024State['classOptionPicks']
     }
     const seeds: Record<string, Seed> = {
       fighter5: {
@@ -397,6 +404,26 @@ export function CreateCharacter2024Page({
         spells: buildWizardSeedSpells(catalog.spells, wizardClass, wizardSpec.level),
       }
     }
+    const sorcererSpec = parseSorcererSeed(e2eSeed)
+    const sorcererClass = bySlug(catalog.classes, 'sorcerer')
+    if (sorcererSpec && sorcererClass) {
+      seeds[e2eSeed] = {
+        name: `Чародей ${sorcererSpec.level}`,
+        classSlug: 'sorcerer',
+        abilities: { str: 8, dex: 13, con: 14, int: 10, wis: 12, cha: 15 },
+        rows: [
+          {
+            slug: 'sorcerer',
+            level: sorcererSpec.level,
+            ...(sorcererSpec.subclassSlug ? { subclass: sorcererSpec.subclassSlug } : {}),
+          },
+        ],
+        skills: ['arcana', 'persuasion'],
+        backgroundAsi: { con: 2, dex: 1 },
+        spells: buildSorcererSeedSpells(catalog.spells, sorcererClass, sorcererSpec.level),
+        classOptionPicks: { metamagic: sorcererMetamagicForLevel(sorcererSpec.level) },
+      }
+    }
     const seed = seeds[e2eSeed] || seeds.fighter5
     const classes = seed.rows
       .map((row) => make(row.slug, row.level, row.subclass))
@@ -430,6 +457,9 @@ export function CreateCharacter2024Page({
       cantripIds: e2eEmptySpells ? [] : (seed.spells?.cantripIds ?? []),
       spellbookSpellIds: e2eEmptySpells ? [] : (seed.spells?.spellbookSpellIds ?? []),
       preparedSpellIds: e2eEmptySpells ? [] : (seed.spells?.preparedSpellIds ?? []),
+      classOptionPicks: seed.classOptionPicks
+        ? { ...state.classOptionPicks, ...seed.classOptionPicks }
+        : state.classOptionPicks,
       classes,
       primaryClassEntryId: classes[0]!.id,
       hpChoices: ensureHpChoices(classes, []),
