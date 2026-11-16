@@ -198,10 +198,10 @@ const SHARED_OPTIONS_2024: Record<string, SharedPoolOption2024[]> = {
   ],
   'cleric__war-domain': [
     { feature_id: 'guided-strike', name_ru: 'Направленный удар', spend_pool: 'channel_divinity', cost: 1, kind: 'reaction', min_level: 3 },
-    { feature_id: 'war-gods-blessing', name_ru: 'Благословение бога войны', spend_pool: 'channel_divinity', cost: 1, kind: 'reaction', min_level: 6 },
+    { feature_id: 'war-gods-blessing', name_ru: 'Благословение бога войны', spend_pool: 'channel_divinity', cost: 1, kind: 'action', min_level: 6 },
   ],
   'cleric__trickery-domain': [
-    { feature_id: 'invoke-duplicity', name_ru: 'Двуличность', spend_pool: 'channel_divinity', cost: 1, kind: 'action', min_level: 3 },
+    { feature_id: 'invoke-duplicity', name_ru: 'Двуличность', spend_pool: 'channel_divinity', cost: 1, kind: 'bonus', min_level: 3 },
   ],
   'cleric__knowledge-domain': [
     { feature_id: 'mind-magic', name_ru: 'Магия разума', spend_pool: 'channel_divinity', cost: 1, kind: 'action', min_level: 3 },
@@ -630,6 +630,7 @@ export function buildSubclassResources2024(input: {
     push('reanimated_companion', 'Оживлённый спутник', 1, 'long', 'reanimated-companion')
   } else if (subclassSlug === 'cleric__light-domain') {
     push('warding_flare', 'Ограждающая вспышка', Math.max(1, wisMod), classLevel >= 6 ? 'short' : 'long', 'warding-flare')
+    if (classLevel >= 17) push('corona_of_light', 'Корона света', Math.max(1, wisMod), 'long', 'corona-of-light')
   } else if (subclassSlug === 'cleric__war-domain') {
     push('war_priest', 'Боевой священник', Math.max(1, wisMod), 'short', 'war-priest')
   } else if (subclassSlug === 'warlock__celestial-patron') {
