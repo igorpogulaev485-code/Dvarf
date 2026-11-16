@@ -302,7 +302,7 @@ function SpeciesDetail({ entry }: { entry: CatalogEntry }) {
           <li>Скорость: {Number(data.speed || 30)} фт.</li>
           <li>Тёмное зрение: {dv ? `${dv} фт.` : 'нет'}</li>
           <li>Увеличение характеристик: нет (даёт предыстория)</li>
-          <li>Языки: нет (выбираются отдельным шагом)</li>
+          <li>Языки: в окне предыстории (Общий + 2)</li>
         </ul>
       </DetailSection>
       {lineages.length ? (
