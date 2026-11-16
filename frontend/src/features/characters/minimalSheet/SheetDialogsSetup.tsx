@@ -24,6 +24,7 @@ import { wizardHasUsableSpellbook } from '../wizardSpellbookInventory'
 import { addCatalogSpellToKnown } from '../spells'
 import { abilityModifier } from '../sheetTypes'
 import { subclassSlugMapFromLedger, subclassTransitionMapFromLedger } from './draft'
+import { hasDraconicResilienceFeature } from '../featureCombatBonuses'
 
 export function SheetDialogsSetup({ model }: { model: SheetModel }) {
   const campaignRules = normalizeCampaignRules(model.campaignRulesRaw)
@@ -35,9 +36,9 @@ export function SheetDialogsSetup({ model }: { model: SheetModel }) {
         classes={model.draft.classes}
         abilities={model.draft.abilities}
         constitutionMod={abilityModifier(model.draft.abilities.con)}
-        draconicResilience={(model.unlockedFeatures ?? []).some(
-          (f: { id?: string }) =>
-            f.id === 'draconic_resilience' || f.id === 'draconic-resilience',
+        draconicResilience={hasDraconicResilienceFeature(
+          model.unlockedFeatures ?? [],
+          model.baseCharacter.rules_edition,
         )}
         allowMulticlass={campaignRules.edition_2014.multiclass}
         defaultHpMode={campaignRules.edition_2014.hp_on_level_up}

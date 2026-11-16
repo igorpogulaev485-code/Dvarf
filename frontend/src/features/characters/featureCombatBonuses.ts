@@ -14,8 +14,19 @@ function normalizeFeatureId(id: string): string {
   return id.trim().replace(/-/g, '_')
 }
 
-/** Champion (2014/2024): improved 19–20, superior 18–20; lowest threshold wins. */
-export function critThresholdFromFeatures(features: FeatureLike[]): number {
+function isRulesEdition2024(rulesEdition: string | null | undefined): boolean {
+  return String(rulesEdition ?? '2014').trim() === '2024'
+}
+
+/**
+ * Expanded crit range for Champion 2024 only (improved 19–20, superior 18–20).
+ * 2014 sheets keep nat-20 crits — do not apply even if feature ids match.
+ */
+export function critThresholdFromFeatures(
+  features: FeatureLike[],
+  rulesEdition?: string | null,
+): number {
+  if (!isRulesEdition2024(rulesEdition)) return 20
   let threshold = 20
   for (const feature of features) {
     const id = normalizeFeatureId(feature.id)
@@ -25,9 +36,29 @@ export function critThresholdFromFeatures(features: FeatureLike[]): number {
   return threshold
 }
 
-/** 2024 Remarkable Athlete: narrative advantage on initiative (Dexterity check). */
-export function initiativeAdvantageFromFeatures(features: FeatureLike[]): boolean {
+/**
+ * 2024 Remarkable Athlete: advantage on initiative.
+ * 2014 Remarkable Athlete is half-PB on Str/Dex/Con checks — never this flag.
+ */
+export function initiativeAdvantageFromFeatures(
+  features: FeatureLike[],
+  rulesEdition?: string | null,
+): boolean {
+  if (!isRulesEdition2024(rulesEdition)) return false
   return features.some((feature) => normalizeFeatureId(feature.id) === 'remarkable_athlete')
+}
+
+/** Draconic Resilience feature id — hyphen form is 2024-catalog only. */
+export function hasDraconicResilienceFeature(
+  features: Array<{ id?: string }>,
+  rulesEdition?: string | null,
+): boolean {
+  const allowHyphen = isRulesEdition2024(rulesEdition)
+  return features.some((feature) => {
+    const id = String(feature.id || '')
+    if (id === 'draconic_resilience') return true
+    return allowHyphen && id === 'draconic-resilience'
+  })
 }
 
 /**

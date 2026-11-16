@@ -861,8 +861,8 @@ export function PlayDeskAttacksCompact({
   const isMobile =
     typeof window !== 'undefined' && window.matchMedia('(max-width: 959px)').matches
   const attackCritThreshold = useMemo(
-    () => critThresholdFromFeatures(combatFeatures),
-    [combatFeatures],
+    () => critThresholdFromFeatures(combatFeatures, rulesEdition),
+    [combatFeatures, rulesEdition],
   )
   const divineStrike = useMemo(() => divineStrikeRider(combatFeatures), [combatFeatures])
   const blessedStrikes = useMemo(

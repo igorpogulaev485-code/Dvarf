@@ -63,6 +63,7 @@ import {
 import { fightingStyleAcBonusFromIds } from '../../../shared/dnd/fightingStyles'
 import {
   elegantCourtierPersuasionBonus,
+  hasDraconicResilienceFeature,
   remarkableAthleteCheckBonus,
 } from '../featureCombatBonuses'
 import { aggregateInfusionBonuses } from '../../../shared/dnd/infusionEffects'
@@ -802,14 +803,11 @@ export function useSheetEditorPart3(model: SheetModel) {
     const effectFormulas = pieces.armor ? [] : acFormulasFromActiveEffects(effectsRaw)
     const draconic = (() => {
       if (pieces.armor) return null
-      const has = model.unlockedFeatures.some(
-        (feature: { id: string }) =>
-          feature.id === 'draconic_resilience' || feature.id === 'draconic-resilience',
-      )
-      if (!has) return null
-      const is2024 =
-        String(model.rulesEdition ?? model.baseCharacter?.rules_edition ?? '2014').trim() ===
-        '2024'
+      const edition = String(
+        model.rulesEdition ?? model.baseCharacter?.rules_edition ?? '2014',
+      ).trim()
+      if (!hasDraconicResilienceFeature(model.unlockedFeatures, edition)) return null
+      const is2024 = edition === '2024'
       const chaMod = mods.cha
       return {
         key: 'draconic_resilience',

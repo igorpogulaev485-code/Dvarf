@@ -44,6 +44,7 @@ import {
   type NeedsSetupItem,
 } from '../needsSetup'
 import { normalizeCampaignRules } from '../../lobby/campaignRules'
+import { hasDraconicResilienceFeature } from '../featureCombatBonuses'
 
 function initiativeAdvantageFromSheet(model: SheetModel): 'advantage' | 'disadvantage' | 'normal' {
   const fromFx = resolveAdvantageFromEffects(model.draft.play.effects, {
@@ -373,9 +374,9 @@ export function PlayDeskTop({ model }: { model: SheetModel }) {
             hasShieldMasterEvasion={hasShieldMasterEvasion}
             {...o07HpPad}
             {...o10HpPad}
-            draconicResilience={(model.unlockedFeatures ?? []).some(
-              (f: { id?: string }) =>
-                f.id === 'draconic_resilience' || f.id === 'draconic-resilience',
+            draconicResilience={hasDraconicResilienceFeature(
+              model.unlockedFeatures ?? [],
+              model.baseCharacter.rules_edition ?? model.rulesEdition,
             )}
             play={model.draft.play}
             autoAc={model.armorClass.ac}
@@ -583,9 +584,9 @@ export function PlayDeskTop({ model }: { model: SheetModel }) {
           raceSlug={model.draft.raceGrant?.slug ?? null}
           {...o07HpPad}
           {...o10HpPad}
-          draconicResilience={(model.unlockedFeatures ?? []).some(
-            (f: { id?: string }) =>
-              f.id === 'draconic_resilience' || f.id === 'draconic-resilience',
+          draconicResilience={hasDraconicResilienceFeature(
+            model.unlockedFeatures ?? [],
+            model.baseCharacter.rules_edition ?? model.rulesEdition,
           )}
           play={model.draft.play}
           autoAc={model.armorClass.ac}

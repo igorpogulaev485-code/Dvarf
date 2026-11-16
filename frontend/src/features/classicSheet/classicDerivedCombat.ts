@@ -23,7 +23,10 @@ import {
   applyMediumArmorMasterCap,
   dualWielderAcBonus,
 } from '../../shared/dnd/b07FeatCombat'
-import { initiativeBonusFromFeatures } from '../characters/featureCombatBonuses'
+import {
+  hasDraconicResilienceFeature,
+  initiativeBonusFromFeatures,
+} from '../characters/featureCombatBonuses'
 import { listFightingStyleIds, readFeaturePicks } from '../../shared/dnd/featurePicks'
 import { fightingStyleAcBonusFromIds } from '../../shared/dnd/fightingStyles'
 import { aggregateInfusionBonuses } from '../../shared/dnd/infusionEffects'
@@ -188,11 +191,8 @@ export function classicAutoArmorClass(character: CharacterDetail): number {
   const mageFormula = mageArmor ? { ...mageArmor, key: 'mage_armor' } : null
   const combatEffects = asRecord(sheet.combat).effects
   const effectFormulas = pieces.armor ? [] : acFormulasFromActiveEffects(combatEffects)
-  const hasDraconic = unlocked.some(
-    (feature) =>
-      feature.id === 'draconic_resilience' || feature.id === 'draconic-resilience',
-  )
   const rulesEdition = String(character.rules_edition ?? '2014').trim()
+  const hasDraconic = hasDraconicResilienceFeature(unlocked, rulesEdition)
   const draconic = !pieces.armor && hasDraconic
     ? {
         key: 'draconic_resilience',
