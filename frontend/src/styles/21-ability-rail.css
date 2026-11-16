@@ -495,6 +495,15 @@
   background: color-mix(in srgb, var(--panel) 94%, white);
 }
 
+/* Ability rail: same collapse-link row as spells chrome + help pip */
+.abil-column > .abil-column__toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 6px 12px;
+  flex: 0 0 auto;
+}
+
 .abil-column__toolbar button {
   border: 1px solid var(--line);
   background: var(--card);
@@ -848,17 +857,39 @@
     align-items: stretch;
   }
 
-  /* UIKIT-01: на десктопе страница скроллится целиком — без внутренней обрезки рельса */
+  /* UIKIT-01: страница скроллится; список характеристик — как панель магии (max-height + scroll) */
   .play-desk__left {
     position: static;
     max-height: none;
     overflow: visible;
+    align-content: start;
+  }
+
+  /* Same viewport budget as pinned spells (18-spell-compact-cards.css) */
+  .play-desk--wide .abil-column {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    max-height: calc(100dvh - 27.5rem);
+    overflow: hidden;
+    align-self: start;
+    box-sizing: border-box;
   }
 
   .play-desk__stage {
     min-height: 100%;
     height: 100%;
     align-content: start;
+  }
+}
+
+@media (max-width: 959px) {
+  /* 390 / phone: page scroll only — no nested ability-column scroll */
+  .play-desk--wide .abil-column,
+  .play-desk--mobile .abil-column {
+    max-height: none;
+    height: auto;
+    overflow: visible;
   }
 }
 

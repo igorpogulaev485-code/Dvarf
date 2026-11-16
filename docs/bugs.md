@@ -1034,7 +1034,14 @@
 - Симптом: после «Свернуть все» заголовки кругов («Заговоры», «1-й уровень…») растягиваются по высоте панели — огромные пустые блоки между ними.
 - Ожидание: свёрнутые круги плотно сверху; при развёртывании скролл списка как раньше.
 - Причина: `.play-desk-compact__list` — `display:grid`, `.play-desk-compact__list--scroll` получает фиксированную высоту (`flex:1`), `align-content` по умолчанию `stretch`.
-- Статус: фикс `align-content: start` на `.play-desk-compact__list--scroll` (`18-spell-compact-cards.css`). Остальные «Свернуть все» (ClassFeatures / Companions / TextBlocks / AbilitySkills) без той же связки flex+grid — без правок.
+- Статус: фикс `align-content: start` на `.play-desk-compact__list--scroll` (`18-spell-compact-cards.css`). ClassFeatures / Companions / TextBlocks без той же связки flex+grid — без правок.
+
+### 2026-11-16 — развёрнутые характеристики разъезжают Play Desk
+
+- Где: Play Desk, левая колонка `AbilitySkillsColumn` (десктоп ≥960, рядом с «Атаки» / «Заклинания»).
+- Симптом: «Развернуть все» / раскрытые навыки у Силы/Ловкости/… вытягивают колонку ниже соседних панелей — страница разъезжается.
+- Ожидание: колонка держит тот же бюджет высоты, что панель магии (`max-height: calc(100dvh - 27.5rem)`), список крутится внутри (`play-desk-compact__list--scroll`); «Свернуть все / Развернуть все» как у магии; свёрнутые карточки плотно (`align-content: start`). На 390 — без вложенного скролла.
+- Статус: фикс в `AbilitySkillsColumn` + `21-ability-rail.css` / `20-pinned-spells.css`.
 
 ### 2026-11-11 — лобби L06, L07 (живые обновления)
 

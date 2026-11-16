@@ -126,15 +126,24 @@ export function AbilitySkillsColumn({
   return (
     <div className="abil-column" data-onboarding="abilities">
       <div className="abil-column__toolbar">
-        <button
-          type="button"
-          onClick={() => onCollapsedChange([...ABILITY_KEYS])}
-        >
-          ▲ Свернуть все
-        </button>
-        <button type="button" onClick={() => onCollapsedChange([])}>
-          ▼ Развернуть все
-        </button>
+        <div className="play-desk-compact__collapse-actions">
+          <button
+            type="button"
+            className="play-desk-compact__link"
+            aria-label="Свернуть все характеристики"
+            onClick={() => onCollapsedChange([...ABILITY_KEYS])}
+          >
+            Свернуть все
+          </button>
+          <button
+            type="button"
+            className="play-desk-compact__link"
+            aria-label="Развернуть все характеристики"
+            onClick={() => onCollapsedChange([])}
+          >
+            Развернуть все
+          </button>
+        </div>
         <button
           type="button"
           className="abil-column__toolbar-help"
@@ -144,7 +153,10 @@ export function AbilitySkillsColumn({
           ?
         </button>
       </div>
-      <div className="abil-column__list" id="abil-column-list">
+      <div
+        className="abil-column__list play-desk-compact__list play-desk-compact__list--scroll"
+        id="abil-column-list"
+      >
         {order.map((key) => {
           const baseScore = abilities[key]
           const score = shown[key]
