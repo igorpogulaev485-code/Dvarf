@@ -519,3 +519,72 @@ def test_anonymous_mail_omits_author_email(db):
     assert db.mail_calls
     body = db.mail_calls[-1]["text_body"]
     assert "hidden@example.com" not in body
+
+
+def test_anonymous_drops_character_lobby_and_hides_in_admin_api(db, monkeypatch):
+    """Аноним: character_id/lobby_id не сохраняются; в GET нет автора/почты/персонажа/лобби/rate_account_id."""
+    monkeypatch.setattr(admin_mod, "admin_panel_enabled", lambda: True)
+    user = _user(email="secret@example.com", display_name="Секретный")
+    admin = _user(email="admin@example.com", display_name="Админ")
+    db.users.extend([user, admin])
+    _grant_full(db, admin)
+
+    own_char = SimpleNamespace(
+        id=uuid4(), user_id=user.id, name="Мира", deleted_at=None
+    )
+    own_lobby = SimpleNamespace(id=uuid4(), owner_id=user.id, name="Вечерний стол")
+    db.characters.append(own_char)
+    db.lobbies.append(own_lobby)
+
+    svc = FeedbackService(db)
+    res = svc.create(
+        user,
+        topic=FeedbackTopic.bug,
+        body="Анонимный баг с привязками",
+        is_anonymous=True,
+        character_id=own_char.id,
+        lobby_id=own_lobby.id,
+        page_path="/cabinet",
+    )
+    saved = next(m for m in db.messages if m.id == res.id)
+    assert saved.user_id is None
+    assert saved.is_anonymous is True
+    assert saved.character_id is None
+    assert saved.lobby_id is None
+    assert saved.page_path == "/cabinet"
+    assert saved.rate_account_id == user.id  # только для лимита
+
+    mail = db.mail_calls[-1]["text_body"]
+    assert "secret@example.com" not in mail
+    assert "Мира" not in mail
+    assert "Вечерний стол" not in mail
+
+    from app.api import deps
+
+    app.dependency_overrides[deps.get_current_user] = lambda: admin
+    app.dependency_overrides[deps.get_db] = lambda: db
+    try:
+        client = TestClient(app)
+        response = client.get("/admin/feedback")
+        assert response.status_code == 200
+        payload = response.json()
+        assert "rate_account_id" not in payload
+        item = next(i for i in payload["items"] if i["id"] == str(res.id))
+        raw = response.text
+        assert "rate_account_id" not in raw
+        assert item["is_anonymous"] is True
+        assert item["author"] is None
+        assert item["character_id"] is None
+        assert item["character_name"] is None
+        assert item["lobby_id"] is None
+        assert item["lobby_name"] is None
+        assert item["page_path"] == "/cabinet"
+        assert "secret@example.com" not in raw
+        assert "Мира" not in raw
+        assert "Вечерний стол" not in raw
+        # schema: rate_account_id не в ответе элемента
+        assert "rate_account_id" not in item
+        assert "user_id" not in item
+        assert "email" not in item
+    finally:
+        app.dependency_overrides.clear()

@@ -178,8 +178,14 @@ class FeedbackService:
         if topic_value not in {t.value for t in FeedbackTopic}:
             raise AppError("Неизвестная тема", code="feedback_bad_topic", status_code=422)
 
-        resolved_character = self._resolve_character(user, character_id)
-        resolved_lobby = self._resolve_lobby(user, lobby_id)
+        # Аноним: не сохраняем персонажа/лобби — по ним легко вычислить автора.
+        # page_path оставляем; rate_account_id — только для лимита, в API не отдаём.
+        if is_anonymous:
+            resolved_character = None
+            resolved_lobby = None
+        else:
+            resolved_character = self._resolve_character(user, character_id)
+            resolved_lobby = self._resolve_lobby(user, lobby_id)
 
         msg = FeedbackMessage(
             id=uuid.uuid4(),
