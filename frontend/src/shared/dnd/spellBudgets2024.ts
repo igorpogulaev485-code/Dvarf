@@ -26,7 +26,11 @@ function tableByClass2024(classes: ClassLevelEntry[]): Map<string, PreparedRow> 
   return out
 }
 
-/** Overlay 2024 table cantrips / prepare cap on prepare-style classes (wizard, cleric, …). */
+/**
+ * Overlay 2024 table cantrips / prepare cap.
+ * PHB 2024 prepared casters (sorcerer, …) still resolve as 2014 `known` in the
+ * base tables — flip them to `prepared_list` when the 2024 row has prepared_spells.
+ */
 export function overlayLearnBudgets2024(
   budgets: SpellLearnBudget[],
   classes: ClassLevelEntry[],
@@ -35,7 +39,17 @@ export function overlayLearnBudgets2024(
   if (table.size === 0) return budgets
   return budgets.map((row) => {
     const hit = table.get(row.slug)
-    if (!hit || row.mode === 'known') return row
+    if (!hit) return row
+    if (hit.prepared_spells > 0 && row.mode === 'known') {
+      return {
+        ...row,
+        mode: 'prepared_list' as const,
+        cantrips: hit.cantrips,
+        leveledKnown: null,
+        maxPrepared: hit.prepared_spells,
+      }
+    }
+    if (row.mode === 'known') return row
     return {
       ...row,
       cantrips: hit.cantrips,

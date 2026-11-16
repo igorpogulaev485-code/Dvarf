@@ -307,6 +307,19 @@ export function PlayDeskSpellsCompact({
         alwaysPrepared: alwaysPreparedCount,
       })
     }
+    // 2024 prepared casters (sorcerer…): plain «подготовлено X из Y», never «изв.».
+    if (
+      edition === '2024' &&
+      learnBudgets &&
+      learnBudgets.length === 1 &&
+      learnBudgets[0]!.mode === 'prepared_list' &&
+      learnBudgets[0]!.maxPrepared != null
+    ) {
+      const only = learnBudgets[0]!
+      const used = preparedBySlug[only.slug] ?? preparedCount
+      const base = `подготовлено ${used} из ${only.maxPrepared}`
+      return alwaysPreparedCount > 0 ? `${base} · всегда ${alwaysPreparedCount}` : base
+    }
     if (learnBudgets && learnBudgets.length > 0) {
       const mixed = formatNamedClassQuotas(learnBudgets, knownBySlug, preparedBySlug, {
         bookCountBySlug,
@@ -318,9 +331,17 @@ export function PlayDeskSpellsCompact({
       })
       if (namedPrep) return namedPrep
     }
-    if (learnBudget?.mode === 'known') {
+    // 2014 known casters keep «изв.»; 2024 never falls through here for sorcerer
+    // after overlayLearnBudgets2024 flips them to prepared_list.
+    if (learnBudget?.mode === 'known' && edition !== '2024') {
       const cap = learnBudget.leveledKnown
       return cap != null ? `изв. ${learnedLeveled}/${cap}` : `изв. ${learnedLeveled}`
+    }
+    if (learnBudget?.mode === 'known' && edition === '2024') {
+      // Safety net if overlay missed a prepared table row.
+      const cap = learnBudget.maxPrepared ?? learnBudget.leveledKnown
+      if (cap != null) return `подготовлено ${preparedCount} из ${cap}`
+      return `подготовлено ${preparedCount}`
     }
     if (!learnBudget) {
       if (spells.max_prepared != null) {

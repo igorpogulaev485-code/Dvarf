@@ -533,13 +533,26 @@ function levelingIssues(state: Create2024State, ctx: StepIssueCtx): string[] {
           `Подготовка: нужно ${sc.prepared_spells} ${ruPlural(sc.prepared_spells, 'подготовленное заклинание', 'подготовленных заклинания', 'подготовленных заклинаний')} (выбрано ${state.preparedSpellIds.length})`,
         )
       }
-    } else if (
-      state.preparedSpellIds.length < sc.prepared_spells ||
-      new Set(state.preparedSpellIds).size !== state.preparedSpellIds.length
-    ) {
-      issues.push(
-        `Заклинания: выбрано ${state.preparedSpellIds.length} из ${sc.prepared_spells}`,
-      )
+    } else {
+      const maxCircle = Math.max(1, sc.maxSlotLevel || 1)
+      const overCircle = state.preparedSpellIds.filter((id) => {
+        const entry = (ctx.catalog?.spells ?? []).find((row) => row.slug === id || row.id === id)
+        if (!entry) return false
+        return catalogSpellLevel(entry) > maxCircle
+      })
+      if (overCircle.length) {
+        issues.push(
+          `Подготовка: нельзя брать круг выше ${maxCircle} (на ур. ${classLevel} нет таких ячеек)`,
+        )
+      }
+      if (
+        state.preparedSpellIds.length < sc.prepared_spells ||
+        new Set(state.preparedSpellIds).size !== state.preparedSpellIds.length
+      ) {
+        issues.push(
+          `Подготовка: выбрано ${state.preparedSpellIds.length} из ${sc.prepared_spells}`,
+        )
+      }
     }
   }
   return issues

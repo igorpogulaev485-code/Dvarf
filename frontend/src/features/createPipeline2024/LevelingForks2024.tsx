@@ -301,26 +301,71 @@ export function LevelingForks2024({
       if (lv === epicBoonLevelForClassSlug(slug)) {
         out.push({ level: lv, kind: 'epic_boon', label: 'Эпический дар' })
       }
+      // Features live under data.levels[n].features (PHB 2024 packs), not a flat data.features.
       const cat = classCatalog2024()[slug]
-      const features = Array.isArray(cat?.data?.features) ? (cat!.data.features as unknown[]) : []
-      const levelFeatures = features.filter((f) => {
-        if (!f || typeof f !== 'object') return false
-        return Number((f as { level?: number }).level) === lv
-      })
+      const levelRows = Array.isArray(cat?.data?.levels)
+        ? (cat!.data.levels as Array<{ level?: number; features?: unknown[] }>)
+        : []
+      const levelRow = levelRows.find((r) => Number(r?.level) === lv)
+      const levelFeatures = Array.isArray(levelRow?.features) ? levelRow!.features! : []
+      const packLoaded = levelRows.length > 0
+      const coveredIds = new Set([
+        'ability-score-improvement',
+        'epic-boon',
+        `${slug}-subclass`,
+        'wizard-subclass',
+        'sorcerer-subclass',
+        'warlock-subclass',
+        'cleric-subclass',
+        'druid-subclass',
+        'bard-subclass',
+        'fighter-subclass',
+        'rogue-subclass',
+        'ranger-subclass',
+        'paladin-subclass',
+        'barbarian-subclass',
+        'monk-subclass',
+        'artificer-subclass',
+      ])
+      for (const raw of levelFeatures) {
+        if (!raw || typeof raw !== 'object') continue
+        const feat = raw as { id?: string; name_ru?: string }
+        const id = String(feat.id || '')
+        if (!id || coveredIds.has(id) || id.endsWith('-subclass')) continue
+        if (lv === 1 && isPrimary) continue // L1 class features already on the Class step
+        if (id === 'subclass-feature') {
+          out.push({
+            level: lv,
+            kind: 'subclass',
+            label: subclassByEntryId[row.id]
+              ? `Умение подкласса (${lv} ур.)`
+              : `Умение подкласса (${lv} ур.) — выберите подкласс`,
+          })
+          continue
+        }
+        const name = String(feat.name_ru || id).trim()
+        if (!name) continue
+        const kind =
+          id === 'metamagic' || id.includes('invocation') || id === 'scholar'
+            ? 'class_option'
+            : 'class_feature'
+        out.push({ level: lv, kind, label: name })
+      }
+      // Only stub when the class pack is missing entirely (no levels table).
       if (
+        !packLoaded &&
         lv > 1 &&
         levelFeatures.length === 0 &&
         !featLevelsForClassSlug(slug).includes(lv) &&
-        lv !== subGate
+        lv !== subGate &&
+        [2, 5, 6, 7, 9, 10, 11, 13, 14, 15, 17, 18].includes(lv)
       ) {
-        if ([2, 5, 6, 7, 9, 10, 11, 13, 14, 15, 17, 18].includes(lv)) {
-          out.push({
-            level: lv,
-            kind: 'class_option',
-            label: `Умения ${lv} уровня появятся с пакетом класса`,
-            stub: true,
-          })
-        }
+        out.push({
+          level: lv,
+          kind: 'class_option',
+          label: `Умения ${lv} уровня появятся с пакетом класса`,
+          stub: true,
+        })
       }
     }
     return out

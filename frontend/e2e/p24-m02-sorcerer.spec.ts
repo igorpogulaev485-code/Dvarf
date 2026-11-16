@@ -334,8 +334,9 @@ function ensureMetamagicOnSheet(store: HarnessStore, level: number) {
 }
 
 function sorcererQuotaRe(prepared: number, cantrips: number) {
+  // 2024: prepared wording only — never «изв.» (2014 known leftover).
   return new RegExp(
-    `подготовлено ${prepared} из ${prepared}|Чародей.*${prepared}\\/|заговоры:.*${cantrips}\\/${cantrips}`,
+    `подготовлено ${prepared} из ${prepared}|Чародей подг\\. ${prepared}/${prepared}|заговоры:.*${cantrips}/${cantrips}`,
     'i',
   )
 }
@@ -513,6 +514,54 @@ test.describe('P24-M02 sorcerer — real create pipeline', () => {
     await shot(page, ARTIFACTS, 'subclass-clockwork-balance', project)
   })
 
+  test('subclass-aberrant-features', async ({ page }, testInfo) => {
+    const project = projectOf(testInfo)
+    const store = createStore()
+    await createSorcererViaPipeline(page, store, 'sorcerer18aberrant')
+    ensureMetamagicOnSheet(store, 18)
+    await page.reload()
+    await dismissWelcome(page)
+    await openFeaturesScene(page, project)
+    await expandFeature(page, /Телепатическая речь/)
+    await shot(page, ARTIFACTS, 'subclass-aberrant-telepathy', project)
+    await expandFeature(page, /Псионическое чародейство/)
+    await shot(page, ARTIFACTS, 'subclass-aberrant-psionic-sorcery', project)
+    await expandFeature(page, /Психическая защита/)
+    await shot(page, ARTIFACTS, 'subclass-aberrant-psychic-defenses', project)
+    await expandFeature(page, /Откровение во плоти/)
+    await shot(page, ARTIFACTS, 'subclass-aberrant-revelation', project)
+    await expandFeature(page, /Искажающий взрыв/)
+    await shot(page, ARTIFACTS, 'subclass-aberrant-warping-explosion', project)
+  })
+
+  test('subclass-wild-magic-features', async ({ page }, testInfo) => {
+    const project = projectOf(testInfo)
+    const store = createStore()
+    await createSorcererViaPipeline(page, store, 'sorcerer18wild')
+    ensureMetamagicOnSheet(store, 18)
+    await page.reload()
+    await dismissWelcome(page)
+    await openFeaturesScene(page, project)
+    const surge = await expandFeature(page, /Всплеск дикой магии/)
+    await shot(page, ARTIFACTS, 'subclass-wild-surge', project)
+    const rollBtn = surge.getByRole('button', { name: /Всплеск|Бросок|Таблица|к100|1к20/i }).first()
+    if (await rollBtn.isVisible().catch(() => false)) {
+      await rollBtn.click()
+      await page.waitForTimeout(400)
+      await expect(page.getByRole('dialog').last()).toBeVisible()
+      await shot(page, ARTIFACTS, 'subclass-wild-surge-table', project)
+      await page.keyboard.press('Escape')
+    }
+    await expandFeature(page, /Волны хаоса/)
+    await shot(page, ARTIFACTS, 'subclass-wild-tides-of-chaos', project)
+    await expandFeature(page, /Искривление удачи/)
+    await shot(page, ARTIFACTS, 'subclass-wild-bend-luck', project)
+    await expandFeature(page, /Контролируемый хаос/)
+    await shot(page, ARTIFACTS, 'subclass-wild-controlled-chaos', project)
+    await expandFeature(page, /Укрощённый всплеск/)
+    await shot(page, ARTIFACTS, 'subclass-wild-tamed-surge', project)
+  })
+
   for (const spec of [
     { seed: 'sorcerer20draconic', to: 19, level: 20, name: 'leveldown-20-to-19' },
     { seed: 'sorcerer10draconic', to: 9, level: 10, name: 'leveldown-10-to-9' },
@@ -570,8 +619,12 @@ async function fillSorcererSpellsViaUi(
   )
   await page.getByTestId('p24-m03-spell-tab-level1').click()
   await page.waitForTimeout(200)
+  // Pool is sorted highest circle first — picks fill from top available circles.
   await pickCatalogCards(page, opts.preparedNeed)
   await expect(page.getByTestId('p24-m03-spell-pick-counter')).toContainText(`из ${opts.preparedNeed}`)
+  await expect(page.getByTestId('p24-m03-spell-tab-level1')).toContainText(
+    `Подготовка ${opts.preparedNeed}/${opts.preparedNeed}`,
+  )
 }
 
 test.describe('P24-M02 sorcerer — honest spell picks (no spell seed)', () => {
@@ -583,24 +636,47 @@ test.describe('P24-M02 sorcerer — honest spell picks (no spell seed)', () => {
       level: 5,
       preparedNeed: 9,
       cantripsNeed: 5,
+      topCircle: 3,
       shot: 'create-at-5-spell-picker',
+      circleShot: 'create-at-5-spell-picker-circle3',
     },
     {
       level: 11,
       preparedNeed: 16,
       cantripsNeed: 6,
+      topCircle: 6,
       shot: 'create-at-11-spell-picker',
+      circleShot: 'create-at-11-spell-picker-circle6',
     },
   ]) {
     test(`create-at-${spec.level} prepare cap ${spec.preparedNeed}`, async ({ page }, testInfo) => {
       const project = projectOf(testInfo)
       const store = createStore()
       await openSorcererEmptySpells(page, store, spec.level)
+
+      // Leveling forks: real features, not «появятся с пакетом класса».
+      await expect(page.getByText(/появятся с пакетом класса/i)).toHaveCount(0)
+      if (spec.level >= 10) {
+        await expect(page.getByText(/10 ур\.\s*·\s*Метамагия/i).first()).toBeVisible()
+      }
+      if (spec.level >= 5) {
+        await expect(page.getByText(/5 ур\.\s*·\s*Чародейское восстановление/i).first()).toBeVisible()
+      }
+
       await page.getByTestId('p24-m03-spell-tab-level1').click()
+      await expect(page.getByTestId('p24-m03-spell-tab-level1')).toContainText(/Подготовка/)
       await expect(page.getByTestId('p24-m03-spell-pick-counter')).toContainText(
         `из ${spec.preparedNeed}`,
       )
+      await expect(page.getByTestId('p24-m03-spell-pick-counter')).toContainText(
+        new RegExp(`круги 1–${spec.topCircle}`),
+      )
+      // Highest circle first in the pool — prove circle N is selectable.
+      await expect(
+        page.locator('button.create-pipeline__card').filter({ hasText: new RegExp(`${spec.topCircle} круг`) }).first(),
+      ).toBeVisible({ timeout: 15_000 })
       await shot(page, ARTIFACTS, spec.shot, project)
+      await shot(page, ARTIFACTS, spec.circleShot, project)
 
       await fillSorcererSpellsViaUi(page, spec)
       const finish = page.getByTestId('p24-m03-finish')
@@ -615,6 +691,7 @@ test.describe('P24-M02 sorcerer — honest spell picks (no spell seed)', () => {
       await expect(page.getByText(sorcererQuotaRe(spec.preparedNeed, spec.cantripsNeed)).first()).toBeVisible({
         timeout: 15_000,
       })
+      await expect(page.getByText(/изв\./i)).toHaveCount(0)
       await shot(page, ARTIFACTS, `create-at-${spec.level}-sheet`, project)
       expect(metamagicKnownLimit2024(spec.level)).toBe(spec.level >= 10 ? 4 : spec.level >= 2 ? 2 : 0)
       expect(store.unmatched).toEqual([])

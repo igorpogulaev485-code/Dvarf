@@ -1005,8 +1005,13 @@ export function CreateCharacter2024Page({
         : maxSpellLevelForClassAlone('full', wizardLevel) || 1,
     )
     const cantrips = spellsByLevelForClass(catalogData.spells, 0, [classSlug])
-    const level1 = spellsByLevelForClass(catalogData.spells, 1, [classSlug])
     const bookPool = spellsUpToLevelForClass(catalogData.spells, maxBookCircle, [classSlug])
+    // Prepared casters (sorcerer 2024 etc.): same circle cap as slots — not L1-only.
+    const preparedPool = spellsUpToLevelForClass(
+      catalogData.spells,
+      maxBookCircle,
+      [classSlug],
+    )
     const wizardBook = usesSpellbook(classSlug)
     const bookSlugs = new Set(state.spellbookSpellIds)
     let tab: 'cantrips' | 'book' | 'level1' = spellTab
@@ -1019,7 +1024,7 @@ export function CreateCharacter2024Page({
           ? bookPool
           : wizardBook
             ? bookPool.filter((row) => bookSlugs.has(row.slug))
-            : level1
+            : preparedPool
     const selected =
       tab === 'cantrips'
         ? state.cantripIds
@@ -1167,12 +1172,10 @@ export function CreateCharacter2024Page({
               setFocusSpellSlug(null)
             }}
             onOpenFork={(_classEntryId, _classLevel, kind) => {
-              if (kind === 'overview' || kind === 'class_option' || kind === 'epic_boon') {
-                // Honest stub toast via validated warnings surface.
+              // Epic boon catalog is still a stub; class features for sorcerer/wizard packs are real.
+              if (kind === 'epic_boon') {
                 setError(
-                  kind === 'epic_boon'
-                    ? 'Эпический дар: каталог дополнится пачками M02 — развилка сохранена как заглушка.'
-                    : 'Выборы умений класса дополнит пачка M02 — развилка показана как заглушка и не ломает создание.',
+                  'Эпический дар: каталог дополнится пачками M02 — развилка сохранена как заглушка.',
                 )
               }
             }}
@@ -1232,8 +1235,7 @@ export function CreateCharacter2024Page({
                           onClick={() => setSpellTab('level1')}
                           data-testid="p24-m03-spell-tab-level1"
                         >
-                          {wizardBook ? 'Подготовка' : '1 круг'} {state.preparedSpellIds.length}/
-                          {sc.prepared_spells}
+                          Подготовка {state.preparedSpellIds.length}/{sc.prepared_spells}
                         </button>
                       ) : null}
                     </div>
@@ -1244,6 +1246,9 @@ export function CreateCharacter2024Page({
                       Выбрано {selected.length} из {max}
                       {wizardBook && tab === 'book'
                         ? `. Книга: ≥6 первого круга, далее любой доступный · круги 1–${maxBookCircle}.`
+                        : null}
+                      {!wizardBook && tab === 'level1' && maxBookCircle > 0
+                        ? `. Подготовка из списка класса · круги 1–${maxBookCircle} (по ячейкам).`
                         : null}
                     </p>
                   </Stack>
@@ -1262,6 +1267,10 @@ export function CreateCharacter2024Page({
                       ),
                     )
                     return
+                  }
+                  if (tab === 'level1' && !wizardBook) {
+                    const entry = catalogData.spells.find((row) => row.slug === slug)
+                    if (entry && catalogSpellLevel(entry) > maxBookCircle) return
                   }
                   const nextList = toggleUniquePick(selected, slug, max)
                   if (tab === 'cantrips') patch({ cantripIds: nextList })
