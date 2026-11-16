@@ -20,7 +20,7 @@ SOURCES = REPO_ROOT / "docs" / "edition-2024" / "sources"
 LIVE = REPO_ROOT / "backend" / "data" / "srd" / "2024" / "live"
 
 DMG24_COUNT = 196
-PLANNED_TOTAL = 863 + 235 + 95 + 1 + 12 + 36 + 58 + 69 + DMG24_COUNT + 86 + 87 + 66  # +C13 MM24 w1 +C14 MM24 w2 +C15 EFA
+PLANNED_TOTAL = 863 + 235 + 95 + 1 + 12 + 36 + 58 + 69 + DMG24_COUNT + 86 + 87 + 66 + 93  # +C13 MM24 w1 +C14 MM24 w2 +C15 EFA +C17 FRHoF
 
 SRD_ALIASES = {
     "apparatus-of-kwalish": "apparatus-of-the-crab",

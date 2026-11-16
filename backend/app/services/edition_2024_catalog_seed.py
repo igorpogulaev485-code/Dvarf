@@ -37,6 +37,10 @@ Schema contract for later packs (P24-00 lists → data packs):
   ``backgrounds_efa`` / ``feats_efa`` / ``spells_efa`` /
   ``magic_items_efa``; ``source`` ``efa`` → ``community_ref``.
   Artificer 2024 only — do not touch 2014 Tasha artificer.
+- FRHoF (C17): ``subclasses_frhof`` / ``backgrounds_frhof`` /
+  ``feats_frhof`` / ``spells_frhof`` / ``equipment_frhof`` /
+  ``magic_items_frhof``; ``source`` ``frhof`` → ``community_ref``.
+  C12 bastions skipped. Species/creatures FRHoF = 0 in reference CSV.
 - ``source`` ``srd-5.2`` / ``srd-5.2.1`` stamps ``content_layer=srd``
 """
 
@@ -105,6 +109,13 @@ EDITION_2024_CATALOG_WAVES: tuple[WaveSpec, ...] = (
     WaveSpec("feats_efa.json"),
     WaveSpec("spells_efa.json"),
     WaveSpec("magic_items_efa.json"),
+    # P24-C17 — Forgotten Realms: Heroes of Faerûn (community_ref)
+    WaveSpec("subclasses_frhof.json"),
+    WaveSpec("backgrounds_frhof.json"),
+    WaveSpec("feats_frhof.json"),
+    WaveSpec("spells_frhof.json"),
+    WaveSpec("equipment_frhof.json"),
+    WaveSpec("magic_items_frhof.json"),
 )
 
 WEAPON_MASTERY_FILENAME = "weapon_mastery_srd.json"

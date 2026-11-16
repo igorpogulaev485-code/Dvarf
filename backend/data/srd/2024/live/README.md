@@ -38,6 +38,12 @@
 | `feats_efa.json` | P24-C15 | 28 черт EFA, в т.ч. драконьи метки (`source=efa`) |
 | `spells_efa.json` | P24-C15 | 1 заклинание EFA — гомункул-слуга (`source=efa`) |
 | `magic_items_efa.json` | P24-C15 | 9 магических предметов/реплик EFA (`source=efa`) |
+| `subclasses_frhof.json` | P24-C17 | 8 подклассов FRHoF (`source=frhof`) |
+| `backgrounds_frhof.json` | P24-C17 | 18 предысторий FRHoF (`source=frhof`) |
+| `feats_frhof.json` | P24-C17 | 34 черты FRHoF (`source=frhof`) |
+| `spells_frhof.json` | P24-C17 | 19 заклинаний FRHoF (`source=frhof`) |
+| `equipment_frhof.json` | P24-C17 | 12 предметов снаряжения FRHoF (`kind=item`, `source=frhof`) |
+| `magic_items_frhof.json` | P24-C17 | 2 магических предмета FRHoF (`source=frhof`) |
 
 ## Схема карточек (контракт)
 
@@ -54,6 +60,6 @@
 - бестиарий (`bestiary`, C07 Monsters / C08 Animals / C13 MM24 w1): КД, хиты, скорости, ПО/опыт/БМ, инициатива, характеристики + мод + спас, `gear_refs` → C03, `spell_refs` → C05/C10; у Animals — `beast_tags` (`wild_shape_ok`, `mount`, `has_fly`, `has_swim`); у MM сверх SRD — `source=mm24`; короткое `summary_ru` / `text_ru` (без длинного текста книги и без статов 2014)
 - отображаемые строки (`summary_ru`, `traits_text`, `components.m`, `casting_time.condition`, …) — по-русски; словари `spell_materials_ru.json` / `spell_reaction_conditions_ru.json`
 - `source` вида `srd-5.2` → `content_layer: srd`
-- `source` вида `ph24` / `dmg24` / `mm24` / `efa` → `content_layer: community_ref` (ярлык игроку не показываем)
+- `source` вида `ph24` / `dmg24` / `mm24` / `efa` / `frhof` → `content_layer: community_ref` (ярлык игроку не показываем)
 
-Не сидить: Culture, Engineering, пустые заглушки. Книжный контент FR/Ravenloft/AU — следующие пачки. Артефактор 2014 (Таша) не трогать. Черты и заклинания PHB сверх SRD — C10; предметы DMG сверх SRD — C11; MM сверх SRD — C13/C14; EFA — C15.
+Не сидить: Culture, Engineering, пустые заглушки. Книжный контент Ravenloft/AU/FRAiF — следующие пачки. Артефактор 2014 (Таша) не трогать. Черты и заклинания PHB сверх SRD — C10; предметы DMG сверх SRD — C11; MM сверх SRD — C13/C14; EFA — C15; FRHoF — C17 (C12 бастионы пропущены).

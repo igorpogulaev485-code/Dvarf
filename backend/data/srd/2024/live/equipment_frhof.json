@@ -1,0 +1,280 @@
+{
+  "meta": {
+    "pack": "P24-C17",
+    "rules_edition": "2024",
+    "source": "frhof",
+    "notes_ru": "12 предметов снаряжения FRHoF (включая инструменты). kind=item; source=frhof → community_ref."
+  },
+  "entries": [
+    {
+      "kind": "item",
+      "slug": "bandore",
+      "name_ru": "Бандура",
+      "name_en": "Bandore",
+      "source": "frhof",
+      "sort_order": 10,
+      "external_ref": {
+        "book": "FRHoF",
+        "url_dndsu": "https://next.dnd.su/equipment/17353-bandore",
+        "url_ttg": "https://new.ttg.club/items/bandore-frhof"
+      },
+      "data": {
+        "equipment_group": "musical_instrument",
+        "summary_ru": "Музыкальный инструмент. Использование: Игра известной вам мелодии (Сл 10) или импровизация (Сл 15) Вариант Музыкального инструмента.",
+        "weight_lb": 3.0,
+        "cost": {
+          "amount": 65,
+          "unit": "gp"
+        },
+        "utilize_ru": "Игра известной вам мелодии (Сл 10) или импровизация (Сл 15)",
+        "tool_ability": "charisma"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "bright-fungal-cloak",
+      "name_ru": "Плащ светящейся грибницы",
+      "name_en": "Bright Fungal Cloak",
+      "source": "frhof",
+      "sort_order": 20,
+      "external_ref": {
+        "book": "FRHoF",
+        "url_dndsu": "https://next.dnd.su/equipment/17343-bright-fungal-cloak",
+        "url_ttg": "https://new.ttg.club/items/bright-fungal-cloak-frhof"
+      },
+      "data": {
+        "equipment_group": "equipment",
+        "summary_ru": "Нося этот плащ, вы можете Бонусным действие раскрыть его полы или закрыть снова. Пока полы плаща раскрыты, он испускает Яркий свет в радиусе 5 футов и Тусклый свет ещё на 5 футов.",
+        "weight_lb": null,
+        "cost": {
+          "amount": 25,
+          "unit": "gp"
+        }
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "cittern",
+      "name_ru": "Цистра",
+      "name_en": "Cittern",
+      "source": "frhof",
+      "sort_order": 30,
+      "external_ref": {
+        "book": "FRHoF",
+        "url_dndsu": "https://next.dnd.su/equipment/17354-cittern",
+        "url_ttg": "https://new.ttg.club/items/cittern-frhof"
+      },
+      "data": {
+        "equipment_group": "musical_instrument",
+        "summary_ru": "Музыкальный инструмент. Использование: Игра известной вам мелодии (Сл 10) или импровизация (Сл 15) Вариант Музыкального инструмента.",
+        "weight_lb": 2.0,
+        "cost": {
+          "amount": 65,
+          "unit": "gp"
+        },
+        "utilize_ru": "Игра известной вам мелодии (Сл 10) или импровизация (Сл 15)",
+        "tool_ability": "charisma"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "desert-clothing",
+      "name_ru": "Одежда для пустыни",
+      "name_en": "Desert Clothing",
+      "source": "frhof",
+      "sort_order": 40,
+      "external_ref": {
+        "book": "FRHoF",
+        "url_dndsu": "https://next.dnd.su/equipment/17344-desert-clothing",
+        "url_ttg": "https://new.ttg.club/items/desert-clothing-frhof"
+      },
+      "data": {
+        "equipment_group": "equipment",
+        "summary_ru": "Пока вы носите Одежду для пустыни и не носите Среднего или Тяжёлого доспеха, вы автоматически преуспеваете в спасбросках против эффектов экстремальной жары.",
+        "weight_lb": null,
+        "cost": {
+          "amount": 10,
+          "unit": "gp"
+        }
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "devil-mask",
+      "name_ru": "Маска дьявола",
+      "name_en": "Devil Mask",
+      "source": "frhof",
+      "sort_order": 50,
+      "external_ref": {
+        "book": "FRHoF",
+        "url_dndsu": "https://next.dnd.su/equipment/17345-devil-mask",
+        "url_ttg": "https://new.ttg.club/items/devil-mask-frhof"
+      },
+      "data": {
+        "equipment_group": "equipment",
+        "summary_ru": "Пока вы носите Маску дьявола, другие существа совершают с Помехой проверки Интеллекта (Расследование) и Мудрости (Проницательность), направленные на понимание…",
+        "weight_lb": null,
+        "cost": {
+          "amount": 25,
+          "unit": "gp"
+        }
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "garb-of-light-and-shadow",
+      "name_ru": "Одеяние света и тьмы",
+      "name_en": "Garb of Light and Shadow",
+      "source": "frhof",
+      "sort_order": 60,
+      "external_ref": {
+        "book": "FRHoF",
+        "url_dndsu": "https://next.dnd.su/equipment/17346-garb-of-light-and-shadow",
+        "url_ttg": "https://new.ttg.club/items/garb-of-light-and-shadow-frhof"
+      },
+      "data": {
+        "equipment_group": "equipment",
+        "summary_ru": "Одеяние напоминает Фей одного из Доменов (как, например, Сумеречный двор или Летний двор). Пока вы носите это одеяние, вы совершаете с Преимуществом проверки характеристик, направленные на влияние на Фей, связанных с этим Доменом.",
+        "weight_lb": null,
+        "cost": {
+          "amount": 50,
+          "unit": "gp"
+        }
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "genie-robe",
+      "name_ru": "Мантия гения",
+      "name_en": "Genie Robe",
+      "source": "frhof",
+      "sort_order": 70,
+      "external_ref": {
+        "book": "FRHoF",
+        "url_dndsu": "https://next.dnd.su/equipment/17347-genie-robe",
+        "url_ttg": "https://new.ttg.club/items/genie-robe-frhof"
+      },
+      "data": {
+        "equipment_group": "equipment",
+        "summary_ru": "Эта мантия несёт образ Элементалей, связанных с одним из Стихийных планов (Воздух, Вода, Земля, Огонь). Пока вы носите эту мантию, вы совершаете с Преимуществом проверки характеристик, направленные на влияние на Элементалей, связанных с этим планом.",
+        "weight_lb": null,
+        "cost": {
+          "amount": 50,
+          "unit": "gp"
+        }
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "locking-spellbook",
+      "name_ru": "Книга заклинаний с замком",
+      "name_en": "Locking Spellbook",
+      "source": "frhof",
+      "sort_order": 80,
+      "external_ref": {
+        "book": "FRHoF",
+        "url_dndsu": "https://next.dnd.su/equipment/17348-locking-spellbook",
+        "url_ttg": "https://new.ttg.club/items/locking-spellbook-frhof"
+      },
+      "data": {
+        "equipment_group": "equipment",
+        "summary_ru": "Этот переплетённый кожей том из 100 страниц можно использовать, как Книгу заклинаний. Она запирается на замок; ключ от замка приобретается вместе с книгой.",
+        "weight_lb": null,
+        "cost": {
+          "amount": 35,
+          "unit": "gp"
+        }
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "monster-camouflage",
+      "name_ru": "Набор маскировки под монстра",
+      "name_en": "Monster Camouflage",
+      "source": "frhof",
+      "sort_order": 90,
+      "external_ref": {
+        "book": "FRHoF",
+        "url_dndsu": "https://next.dnd.su/equipment/17349-monster-camouflage",
+        "url_ttg": "https://new.ttg.club/items/monster-camouflage-frhof"
+      },
+      "data": {
+        "equipment_group": "equipment",
+        "summary_ru": "позволяет выглядеть как Зверь или Чудовище, такое как Совомедведь. Чтобы понять, что под маскировкой вы, существо должно совершить действие Изучение и преуспеть в проверке Интеллекта ( Расследование или Природа ) Сл 10, осматр…",
+        "weight_lb": null,
+        "cost": {
+          "amount": 50,
+          "unit": "gp"
+        }
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "warm-fungal-clothing",
+      "name_ru": "Тёплый грибной плащ",
+      "name_en": "Warm Fungal Clothing",
+      "source": "frhof",
+      "sort_order": 100,
+      "external_ref": {
+        "book": "FRHoF",
+        "url_dndsu": "https://next.dnd.su/equipment/17350-warm-fungal-clothing",
+        "url_ttg": "https://new.ttg.club/items/warm-fungal-clothing-frhof"
+      },
+      "data": {
+        "equipment_group": "equipment",
+        "summary_ru": "Пока вы носите этот плащ, вы автоматически преуспеваете в спасбросках против эффектов экстремального холода. В плащ вшит 1 фунт грибницы.",
+        "weight_lb": null,
+        "cost": {
+          "amount": 15,
+          "unit": "gp"
+        }
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "winter-camouflage",
+      "name_ru": "Зимняя маскировка",
+      "name_en": "Winter Camouflage",
+      "source": "frhof",
+      "sort_order": 110,
+      "external_ref": {
+        "book": "FRHoF",
+        "url_dndsu": "https://next.dnd.su/equipment/17352-winter-camouflage",
+        "url_ttg": "https://new.ttg.club/items/winter-camouflage-frhof"
+      },
+      "data": {
+        "equipment_group": "equipment",
+        "summary_ru": "Пока вы носите Зимнюю маскировку в подходящем окружении, вы совершаете с Преимуществом проверки Ловкости ( Скрытность ).",
+        "weight_lb": null,
+        "cost": {
+          "amount": 50,
+          "unit": "gp"
+        }
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "yarting",
+      "name_ru": "Яртинг",
+      "name_en": "Yarting",
+      "source": "frhof",
+      "sort_order": 120,
+      "external_ref": {
+        "book": "FRHoF",
+        "url_dndsu": "https://next.dnd.su/equipment/17355-yarting",
+        "url_ttg": "https://new.ttg.club/items/yarting-frhof"
+      },
+      "data": {
+        "equipment_group": "musical_instrument",
+        "summary_ru": "Музыкальный инструмент. Использование: Игра известной вам мелодии (Сл 10) или импровизация (Сл 15) Вариант Музыкального инструмента.",
+        "weight_lb": 2.0,
+        "cost": {
+          "amount": 40,
+          "unit": "gp"
+        },
+        "utilize_ru": "Игра известной вам мелодии (Сл 10) или импровизация (Сл 15)",
+        "tool_ability": "charisma"
+      }
+    }
+  ]
+}

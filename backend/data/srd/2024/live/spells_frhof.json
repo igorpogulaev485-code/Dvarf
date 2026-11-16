@@ -1,0 +1,829 @@
+{
+  "meta": {
+    "pack": "P24-C17",
+    "rules_edition": "2024",
+    "source": "frhof",
+    "notes_ru": "19 заклинаний FRHoF (community_ref). Короткие карточки по next.dnd.su; RU из spells.csv. Полный текст книги не копируем.",
+    "spell_count": 19
+  },
+  "entries": [
+    {
+      "kind": "spell",
+      "slug": "spellfire-flare",
+      "name_ru": "Вспышка чаропламени",
+      "name_en": "Spellfire Flare",
+      "source": "frhof",
+      "sort_order": 1000,
+      "external_ref": {
+        "book": "FRHoF",
+        "url_dndsu": "https://next.dnd.su/spells/12463-spellfire-flare",
+        "url_ttg": "https://new.ttg.club/spells/spellfire-flare-frhof"
+      },
+      "data": {
+        "schema_version": 1,
+        "level": 1,
+        "school": "evocation",
+        "school_ru": "воплощение",
+        "casting_time": {
+          "unit": "action",
+          "amount": 1
+        },
+        "magic_action": true,
+        "range": "60 футов",
+        "components": {
+          "v": true,
+          "s": true
+        },
+        "duration": "Мгновенная",
+        "concentration": false,
+        "ritual": false,
+        "classes": [
+          "sorcerer",
+          "wizard"
+        ],
+        "attack_or_save": "атака",
+        "damage": "2d10 излучение",
+        "summary_ru": "Вы высвобождаете поток сияющего пламени. Совершите дальнобойную атаку заклинанием по цели в пределах дистанции; при этом цель не получает преимуществ Укрытия наполовину и Укрытия на три четверти.",
+        "description": "Вы высвобождаете поток сияющего пламени. Совершите дальнобойную атаку заклинанием по цели в пределах дистанции; при этом цель не получает преимуществ Укрытия наполовину и Укрытия на три четверти.",
+        "source_book": "FRHoF",
+        "higher_levels": "Вы высвобождаете по одному дополнительному потоку за каждый уровень ячейки выше 1-го, и вы можете направлять их в одну цель или в разные. На каждый поток совершается отдельный бро…",
+        "higher_levels_ru": "Вы высвобождаете по одному дополнительному потоку за каждый уровень ячейки выше 1-го, и вы можете направлять их в одну цель или в разные. На каждый поток совершается отдельный бро…"
+      }
+    },
+    {
+      "kind": "spell",
+      "slug": "wardaway",
+      "name_ru": "Оберегающий разряд",
+      "name_en": "Wardaway",
+      "source": "frhof",
+      "sort_order": 1001,
+      "external_ref": {
+        "book": "FRHoF",
+        "url_dndsu": "https://next.dnd.su/spells/12471-wardaway",
+        "url_ttg": "https://new.ttg.club/spells/wardaway-frhof"
+      },
+      "data": {
+        "schema_version": 1,
+        "level": 1,
+        "school": "abjuration",
+        "school_ru": "ограждение",
+        "casting_time": {
+          "unit": "action",
+          "amount": 1
+        },
+        "magic_action": true,
+        "range": "60 футов",
+        "components": {
+          "v": true,
+          "s": true,
+          "m": "миниатюрная глиняная рука"
+        },
+        "duration": "Мгновенная",
+        "concentration": false,
+        "ritual": false,
+        "classes": [
+          "bard",
+          "cleric",
+          "paladin",
+          "wizard"
+        ],
+        "attack_or_save": "ТЕЛ",
+        "damage": "2d4 силовой",
+        "summary_ru": "Вы метаете дезориентирующую магическую энергию в одно существо в пределах дистанции. Цель совершает спасбросок Телосложения; Конструкты и Нежить автоматически преуспевают в этом спасброске.",
+        "description": "Вы метаете дезориентирующую магическую энергию в одно существо в пределах дистанции. Цель совершает спасбросок Телосложения; Конструкты и Нежить автоматически преуспевают в этом спасброске.",
+        "source_book": "FRHoF",
+        "higher_levels": "Урон увеличивается на 2к4 за каждый уровень ячейки выше 1-го.",
+        "higher_levels_ru": "Урон увеличивается на 2к4 за каждый уровень ячейки выше 1-го."
+      }
+    },
+    {
+      "kind": "spell",
+      "slug": "death-armor",
+      "name_ru": "Броня смерти",
+      "name_en": "Death Armor",
+      "source": "frhof",
+      "sort_order": 2002,
+      "external_ref": {
+        "book": "FRHoF",
+        "url_dndsu": "https://next.dnd.su/spells/12448-death-armor",
+        "url_ttg": "https://new.ttg.club/spells/death-armor-frhof"
+      },
+      "data": {
+        "schema_version": 1,
+        "level": 2,
+        "school": "necromancy",
+        "school_ru": "некромантия",
+        "casting_time": {
+          "unit": "action",
+          "amount": 1
+        },
+        "magic_action": true,
+        "range": "Касание",
+        "components": {
+          "v": true,
+          "s": true,
+          "m": "оникс стоимостью не менее 50 ЗМ, расходуемый заклинанием"
+        },
+        "duration": "1 час",
+        "concentration": false,
+        "ritual": false,
+        "classes": [
+          "sorcerer",
+          "wizard"
+        ],
+        "attack_or_save": null,
+        "damage": "2d4 некротический",
+        "summary_ru": "Чернильно-тёмная аура окружает существо, которого вы коснулись, на время действия заклинания. Цель совершает с Преимуществом спасброски от Смерти, и один раз за ход, когда существо в пределах 5 футов от цели попадает по ней броском рукопашной атаки, это…",
+        "description": "Чернильно-тёмная аура окружает существо, которого вы коснулись, на время действия заклинания. Цель совершает с Преимуществом спасброски от Смерти, и один раз за ход, когда существо в пределах 5 футов от цели попадает по ней броском рукопашной атаки, это…",
+        "source_book": "FRHoF"
+      }
+    },
+    {
+      "kind": "spell",
+      "slug": "deryans-helpful-homunculi",
+      "name_ru": "Услужливые гомункулы Дериан",
+      "name_en": "Deryan’s Helpful Homunculi",
+      "source": "frhof",
+      "sort_order": 2003,
+      "external_ref": {
+        "book": "FRHoF",
+        "url_dndsu": "https://next.dnd.su/spells/12449-deryans-helpful-homunculi",
+        "url_ttg": "https://new.ttg.club/spells/deryan-s-helpful-homunculi-frhof"
+      },
+      "data": {
+        "schema_version": 1,
+        "level": 2,
+        "school": "conjuration",
+        "school_ru": "вызов",
+        "casting_time": {
+          "unit": "action",
+          "amount": 1
+        },
+        "magic_action": true,
+        "range": "На себя",
+        "components": {
+          "v": true,
+          "s": true,
+          "m": "толчёные самоцветы стоимостью не менее 100 ЗМ, расходуемые заклинанием, а также один набор Ремесленных инструментов, которыми вы владеете"
+        },
+        "duration": "8 часов",
+        "concentration": false,
+        "ritual": true,
+        "classes": [
+          "cleric",
+          "wizard"
+        ],
+        "attack_or_save": null,
+        "damage": null,
+        "summary_ru": "Вы призываете группу услужливых духов, существующих, пока действует заклинание. Духи выглядят, как гомункулы или иные Конструкты по вашему выбору, но нематериальны и неуязвимы.",
+        "description": "Вы призываете группу услужливых духов, существующих, пока действует заклинание. Духи выглядят, как гомункулы или иные Конструкты по вашему выбору, но нематериальны и неуязвимы.",
+        "source_book": "FRHoF"
+      }
+    },
+    {
+      "kind": "spell",
+      "slug": "elminsters-elusion",
+      "name_ru": "Увёртливость Эльминстера",
+      "name_en": "Elminster’s Elusion",
+      "source": "frhof",
+      "sort_order": 2004,
+      "external_ref": {
+        "book": "FRHoF",
+        "url_dndsu": "https://next.dnd.su/spells/12453-elminsters-elusion",
+        "url_ttg": "https://new.ttg.club/spells/elminster-s-elusion-frhof"
+      },
+      "data": {
+        "schema_version": 1,
+        "level": 2,
+        "school": "abjuration",
+        "school_ru": "ограждение",
+        "casting_time": {
+          "unit": "bonus",
+          "amount": 1
+        },
+        "magic_action": false,
+        "range": "На себя",
+        "components": {
+          "v": true,
+          "s": true
+        },
+        "duration": ", вплоть до 10 минут",
+        "concentration": true,
+        "ritual": false,
+        "classes": [
+          "wizard"
+        ],
+        "attack_or_save": null,
+        "damage": null,
+        "summary_ru": "Пока заклинание действует, волшебные обереги защищают вас от магии. Вы совершаете с Преимуществом спасброски против заклинаний и магических эффектов.",
+        "description": "Пока заклинание действует, волшебные обереги защищают вас от магии. Вы совершаете с Преимуществом спасброски против заклинаний и магических эффектов.",
+        "source_book": "FRHoF"
+      }
+    },
+    {
+      "kind": "spell",
+      "slug": "cacophonic-shield",
+      "name_ru": "Щит какофонии",
+      "name_en": "Cacophonic Shield",
+      "source": "frhof",
+      "sort_order": 3005,
+      "external_ref": {
+        "book": "FRHoF",
+        "url_dndsu": "https://next.dnd.su/spells/12446-cacophonic-shield",
+        "url_ttg": "https://new.ttg.club/spells/cacophonic-shield-frhof"
+      },
+      "data": {
+        "schema_version": 1,
+        "level": 3,
+        "school": "evocation",
+        "school_ru": "воплощение",
+        "casting_time": {
+          "unit": "action",
+          "amount": 1
+        },
+        "magic_action": true,
+        "range": "На себя",
+        "components": {
+          "v": true,
+          "s": true
+        },
+        "duration": ", вплоть до 10 минут",
+        "concentration": true,
+        "ritual": false,
+        "classes": [
+          "bard",
+          "sorcerer",
+          "wizard"
+        ],
+        "attack_or_save": "ТЕЛ",
+        "damage": null,
+        "summary_ru": "Оглушительные раскаты звуков заполняют исходящую от вас 10-футовую Эманацию на время действия заклинания. Каждый раз, когда Эманация входит в пространство существа, когда существо входит в Эманацию, и когда существо заканчивает в ней свой ход, это существо совершае…",
+        "description": "Оглушительные раскаты звуков заполняют исходящую от вас 10-футовую Эманацию на время действия заклинания. Каждый раз, когда Эманация входит в пространство существа, когда существо входит в Эманацию, и когда существо заканчивает в ней свой ход, это существо совершае…",
+        "source_book": "FRHoF",
+        "higher_levels": "Урон увеличивается на 1к6 за каждый уровень ячейки выше 3-го.",
+        "higher_levels_ru": "Урон увеличивается на 1к6 за каждый уровень ячейки выше 3-го."
+      }
+    },
+    {
+      "kind": "spell",
+      "slug": "conjure-constructs",
+      "name_ru": "Призыв конструктов",
+      "name_en": "Conjure Constructs",
+      "source": "frhof",
+      "sort_order": 3006,
+      "external_ref": {
+        "book": "FRHoF",
+        "url_dndsu": "https://next.dnd.su/spells/12447-conjure-constructs",
+        "url_ttg": "https://new.ttg.club/spells/conjure-constructs-frhof"
+      },
+      "data": {
+        "schema_version": 1,
+        "level": 3,
+        "school": "conjuration",
+        "school_ru": "вызов",
+        "casting_time": {
+          "unit": "action",
+          "amount": 1
+        },
+        "magic_action": true,
+        "range": "60 футов",
+        "components": {
+          "v": true,
+          "s": true,
+          "m": "латунная шестерня"
+        },
+        "duration": ", вплоть до 10 минут",
+        "concentration": true,
+        "ritual": false,
+        "classes": [
+          "wizard"
+        ],
+        "attack_or_save": "ЛОВ",
+        "damage": "3d6 силовой",
+        "summary_ru": "Вы призываете несколько нематериальных, аккуратных духов, принимающих облик Среднего размера группы модронов или иных Конструктов, в видимом вами в пределах ди… Духи существуют, пока действует заклинание.",
+        "description": "Вы призываете несколько нематериальных, аккуратных духов, принимающих облик Среднего размера группы модронов или иных Конструктов, в видимом вами в пределах ди… Духи существуют, пока действует заклинание.",
+        "source_book": "FRHoF",
+        "higher_levels": "Урон и количество Временных хитов увеличиваются на 1к6 за каждый уровень ячейки выше 3-го.",
+        "higher_levels_ru": "Урон и количество Временных хитов увеличиваются на 1к6 за каждый уровень ячейки выше 3-го."
+      }
+    },
+    {
+      "kind": "spell",
+      "slug": "laerals-silver-lance",
+      "name_ru": "Серебряное копьё Лаэрали",
+      "name_en": "Laeral’s Silver Lance",
+      "source": "frhof",
+      "sort_order": 3007,
+      "external_ref": {
+        "book": "FRHoF",
+        "url_dndsu": "https://next.dnd.su/spells/12455-laerals-silver-lance",
+        "url_ttg": "https://new.ttg.club/spells/laeral-s-silver-lance-frhof"
+      },
+      "data": {
+        "schema_version": 1,
+        "level": 3,
+        "school": "evocation",
+        "school_ru": "воплощение",
+        "casting_time": {
+          "unit": "action",
+          "amount": 1
+        },
+        "magic_action": true,
+        "range": "На себя",
+        "components": {
+          "v": true,
+          "s": true,
+          "m": "серебряная заколка стоимостью не менее 250 ЗМ"
+        },
+        "duration": "Мгновенная",
+        "concentration": false,
+        "ritual": false,
+        "classes": [
+          "cleric",
+          "sorcerer",
+          "wizard"
+        ],
+        "attack_or_save": "СИЛ",
+        "damage": "3d10 силовой",
+        "summary_ru": "Серебристая энергия вырывается из вас Линией 120 футов длиной и 5 футов шириной. Каждое выбранное вами в области Линии существо совершает спасбросок Силы.",
+        "description": "Серебристая энергия вырывается из вас Линией 120 футов длиной и 5 футов шириной. Каждое выбранное вами в области Линии существо совершает спасбросок Силы.",
+        "source_book": "FRHoF",
+        "higher_levels": "Урон увеличивается на 1к10 за каждый уровень ячейки выше 3-го.",
+        "higher_levels_ru": "Урон увеличивается на 1к10 за каждый уровень ячейки выше 3-го."
+      }
+    },
+    {
+      "kind": "spell",
+      "slug": "sylunes-viper",
+      "name_ru": "Гадюка Силунэй",
+      "name_en": "Syluné’s Viper",
+      "source": "frhof",
+      "sort_order": 3008,
+      "external_ref": {
+        "book": "FRHoF",
+        "url_dndsu": "https://next.dnd.su/spells/12468-sylunes-viper",
+        "url_ttg": "https://new.ttg.club/spells/sylune-s-viper-frhof"
+      },
+      "data": {
+        "schema_version": 1,
+        "level": 3,
+        "school": "conjuration",
+        "school_ru": "вызов",
+        "casting_time": {
+          "unit": "bonus",
+          "amount": 1
+        },
+        "magic_action": false,
+        "range": "На себя",
+        "components": {
+          "v": true,
+          "s": true,
+          "m": "клык змеи"
+        },
+        "duration": "1 час",
+        "concentration": false,
+        "ritual": false,
+        "classes": [
+          "druid",
+          "wizard"
+        ],
+        "attack_or_save": "атака",
+        "damage": "1d6 силовой",
+        "summary_ru": "Мерцающая призрачная змея оборачивается вокруг вашего тела на время действия заклинания. Вы получаете 15 Временных хитов; заклинание оканчивается преждевременно, когда у вас не остаётся Временных хитов.",
+        "description": "Мерцающая призрачная змея оборачивается вокруг вашего тела на время действия заклинания. Вы получаете 15 Временных хитов; заклинание оканчивается преждевременно, когда у вас не остаётся Временных хитов.",
+        "source_book": "FRHoF",
+        "higher_levels": "За каждый уровень ячейки выше 3-го количество получаемых вами от этого заклинания Временных хитов увеличивается на 5, а урон Ядовитого укуса на 1к6.",
+        "higher_levels_ru": "За каждый уровень ячейки выше 3-го количество получаемых вами от этого заклинания Временных хитов увеличивается на 5, а урон Ядовитого укуса на 1к6."
+      }
+    },
+    {
+      "kind": "spell",
+      "slug": "backlash",
+      "name_ru": "Ответный урон",
+      "name_en": "Backlash",
+      "source": "frhof",
+      "sort_order": 4009,
+      "external_ref": {
+        "book": "FRHoF",
+        "url_dndsu": "https://next.dnd.su/spells/12444-backlash",
+        "url_ttg": "https://new.ttg.club/spells/backlash-frhof"
+      },
+      "data": {
+        "schema_version": 1,
+        "level": 4,
+        "school": "abjuration",
+        "school_ru": "ограждение",
+        "casting_time": {
+          "unit": "reaction",
+          "amount": 1,
+          "condition": "когда вы получаете урон"
+        },
+        "magic_action": false,
+        "range": "60 футов",
+        "components": {
+          "v": true,
+          "s": false
+        },
+        "duration": "Мгновенная",
+        "concentration": false,
+        "ritual": false,
+        "classes": [
+          "bard",
+          "sorcerer",
+          "warlock",
+          "wizard"
+        ],
+        "attack_or_save": "ТЕЛ",
+        "damage": "4d6 силовой",
+        "summary_ru": "Вы защищаетесь от разрушительной энергии, снижая получаемый урон на число, равное 4к6 + ваш модификатор заклинательной характеристики. Если этот урон наносился существом в пределах дистанции, вы можете заставить это существо совершить спасбросок Телосложения; оно получает 4к6…",
+        "description": "Вы защищаетесь от разрушительной энергии, снижая получаемый урон на число, равное 4к6 + ваш модификатор заклинательной характеристики. Если этот урон наносился существом в пределах дистанции, вы можете заставить это существо совершить спасбросок Телосложения; оно получает 4к6…",
+        "source_book": "FRHoF",
+        "higher_levels": "Снижение получаемого вами урона и Силовой урон увеличиваются на 1к6 за каждый уровень ячейки выше 4-го.",
+        "higher_levels_ru": "Снижение получаемого вами урона и Силовой урон увеличиваются на 1к6 за каждый уровень ячейки выше 4-го."
+      }
+    },
+    {
+      "kind": "spell",
+      "slug": "doomtide",
+      "name_ru": "Погибель",
+      "name_en": "Doomtide",
+      "source": "frhof",
+      "sort_order": 4010,
+      "external_ref": {
+        "book": "FRHoF",
+        "url_dndsu": "https://next.dnd.su/spells/12451-doomtide",
+        "url_ttg": "https://new.ttg.club/spells/doomtide-frhof"
+      },
+      "data": {
+        "schema_version": 1,
+        "level": 4,
+        "school": "evocation",
+        "school_ru": "воплощение",
+        "casting_time": {
+          "unit": "action",
+          "amount": 1
+        },
+        "magic_action": true,
+        "range": "120 футов",
+        "components": {
+          "v": true,
+          "s": true,
+          "m": "сажа и сушёный угорь"
+        },
+        "duration": ", вплоть до 1 минуты",
+        "concentration": true,
+        "ritual": false,
+        "classes": [
+          "bard",
+          "cleric",
+          "warlock"
+        ],
+        "attack_or_save": "МДР",
+        "damage": "5d6 психический",
+        "summary_ru": "Вы создаёте Сферу чернильно-тёмного тумана радиусом 20 футов в пределах дистанции. Этот туман считается магической Темнотой и существует, пока заклинание действует или пока сильный ветер (такой как созданный Порывом ветра ) не рассеет его, ок…",
+        "description": "Вы создаёте Сферу чернильно-тёмного тумана радиусом 20 футов в пределах дистанции. Этот туман считается магической Темнотой и существует, пока заклинание действует или пока сильный ветер (такой как созданный Порывом ветра ) не рассеет его, ок…",
+        "source_book": "FRHoF"
+      }
+    },
+    {
+      "kind": "spell",
+      "slug": "spellfire-storm",
+      "name_ru": "Буря чаропламени",
+      "name_en": "Spellfire Storm",
+      "source": "frhof",
+      "sort_order": 4011,
+      "external_ref": {
+        "book": "FRHoF",
+        "url_dndsu": "https://next.dnd.su/spells/12466-spellfire-storm",
+        "url_ttg": "https://new.ttg.club/spells/spellfire-storm-frhof"
+      },
+      "data": {
+        "schema_version": 1,
+        "level": 4,
+        "school": "evocation",
+        "school_ru": "воплощение",
+        "casting_time": {
+          "unit": "action",
+          "amount": 1
+        },
+        "magic_action": true,
+        "range": "60 футов",
+        "components": {
+          "v": true,
+          "s": true
+        },
+        "duration": ", вплоть до 1 минуты",
+        "concentration": true,
+        "ritual": false,
+        "classes": [
+          "sorcerer",
+          "wizard"
+        ],
+        "attack_or_save": "ТЕЛ",
+        "damage": "4d10 излучение",
+        "summary_ru": "Вы создаёте столп чаропламени в виде Цилиндра радиусом 20 футов и высотой 20 футов с центром в точке в пределах дистанции. Область этого цилиндра залита Ярким светом, и каждое существо, находящееся в области, когда она появляется, совершает спасбросок Телосложения, получая 4к1…",
+        "description": "Вы создаёте столп чаропламени в виде Цилиндра радиусом 20 футов и высотой 20 футов с центром в точке в пределах дистанции. Область этого цилиндра залита Ярким светом, и каждое существо, находящееся в области, когда она появляется, совершает спасбросок Телосложения, получая 4к1…",
+        "source_book": "FRHoF",
+        "higher_levels": "Урон увеличивается на 1к10 за каждый уровень ячейки выше 4-го.",
+        "higher_levels_ru": "Урон увеличивается на 1к10 за каждый уровень ячейки выше 4-го."
+      }
+    },
+    {
+      "kind": "spell",
+      "slug": "alustriels-mooncloak",
+      "name_ru": "Лунный покров Алустриэли",
+      "name_en": "Alustriel’s Mooncloak",
+      "source": "frhof",
+      "sort_order": 5012,
+      "external_ref": {
+        "book": "FRHoF",
+        "url_dndsu": "https://next.dnd.su/spells/12443-alustriels-mooncloak",
+        "url_ttg": "https://new.ttg.club/spells/alustriel-s-mooncloak-frhof"
+      },
+      "data": {
+        "schema_version": 1,
+        "level": 5,
+        "school": "abjuration",
+        "school_ru": "ограждение",
+        "casting_time": {
+          "unit": "action",
+          "amount": 1
+        },
+        "magic_action": true,
+        "range": "На себя",
+        "components": {
+          "v": true,
+          "s": true,
+          "m": "лунный камень стоимостью не менее 50 ЗМ"
+        },
+        "duration": ", вплоть до 1 минуты",
+        "concentration": true,
+        "ritual": false,
+        "classes": [
+          "bard",
+          "druid",
+          "ranger",
+          "wizard"
+        ],
+        "attack_or_save": null,
+        "damage": null,
+        "summary_ru": "Пока заклинание действует, лунный свет заполняет Тусклым светом 20-футовую Эманацию, исходящую от вас. Находясь в этой области, вы и ваши союзники обладаете Укрытием наполовину и Сопротивлением урону Излучением, Холодом и Электричеством.",
+        "description": "Пока заклинание действует, лунный свет заполняет Тусклым светом 20-футовую Эманацию, исходящую от вас. Находясь в этой области, вы и ваши союзники обладаете Укрытием наполовину и Сопротивлением урону Излучением, Холодом и Электричеством.",
+        "source_book": "FRHoF"
+      }
+    },
+    {
+      "kind": "spell",
+      "slug": "songals-elemental-suffusion",
+      "name_ru": "Стихийное насыщение Сонгалы",
+      "name_en": "Songal’s Elemental Suffusion",
+      "source": "frhof",
+      "sort_order": 5013,
+      "external_ref": {
+        "book": "FRHoF",
+        "url_dndsu": "https://next.dnd.su/spells/12458-songals-elemental-suffusion",
+        "url_ttg": "https://new.ttg.club/spells/songal-s-elemental-suffusion-frhof"
+      },
+      "data": {
+        "schema_version": 1,
+        "level": 5,
+        "school": "transmutation",
+        "school_ru": "преобразование",
+        "casting_time": {
+          "unit": "action",
+          "amount": 1
+        },
+        "magic_action": true,
+        "range": "На себя",
+        "components": {
+          "v": true,
+          "s": true,
+          "m": "жемчужина стоимостью не менее 100 ЗМ"
+        },
+        "duration": ", вплоть до 1 минуты",
+        "concentration": true,
+        "ritual": false,
+        "classes": [
+          "druid",
+          "sorcerer",
+          "wizard"
+        ],
+        "attack_or_save": "ЛОВ",
+        "damage": null,
+        "summary_ru": "Вы наполняете себя стихийной силой гениев, получая следующие преимущества на время действия заклинания: Стихийная невосприимчивость. Когда вы сотворяете это заклинание, выберите один тип урона из следующего списка: Звук, Кислота, Огонь, Холод, Электричество.",
+        "description": "Вы наполняете себя стихийной силой гениев, получая следующие преимущества на время действия заклинания: Стихийная невосприимчивость. Когда вы сотворяете это заклинание, выберите один тип урона из следующего списка: Звук, Кислота, Огонь, Холод, Электричество.",
+        "source_book": "FRHoF"
+      }
+    },
+    {
+      "kind": "spell",
+      "slug": "dirge",
+      "name_ru": "Панихида",
+      "name_en": "Dirge",
+      "source": "frhof",
+      "sort_order": 6014,
+      "external_ref": {
+        "book": "FRHoF",
+        "url_dndsu": "https://next.dnd.su/spells/12450-dirge",
+        "url_ttg": "https://new.ttg.club/spells/dirge-frhof"
+      },
+      "data": {
+        "schema_version": 1,
+        "level": 6,
+        "school": "enchantment",
+        "school_ru": "очарование",
+        "casting_time": {
+          "unit": "action",
+          "amount": 1
+        },
+        "magic_action": true,
+        "range": "На себя",
+        "components": {
+          "v": true,
+          "s": false
+        },
+        "duration": ", вплоть до 1 минуты",
+        "concentration": true,
+        "ritual": false,
+        "classes": [
+          "bard",
+          "cleric"
+        ],
+        "attack_or_save": "ТЕЛ",
+        "damage": "3d10 некротический",
+        "summary_ru": "Пока действует заклинание, смертная сила заполняет исходящую от вас 60-футовую Эманацию. Когда вы сотворяете это заклинание, можете указать существ, на которых заклинание действовать не будет.",
+        "description": "Пока действует заклинание, смертная сила заполняет исходящую от вас 60-футовую Эманацию. Когда вы сотворяете это заклинание, можете указать существ, на которых заклинание действовать не будет.",
+        "source_book": "FRHoF"
+      }
+    },
+    {
+      "kind": "spell",
+      "slug": "elminsters-effulgent-spheres",
+      "name_ru": "Лучезарные сферы Эльминстера",
+      "name_en": "Elminster’s Effulgent Spheres",
+      "source": "frhof",
+      "sort_order": 6015,
+      "external_ref": {
+        "book": "FRHoF",
+        "url_dndsu": "https://next.dnd.su/spells/12452-elminsters-effulgent-spheres",
+        "url_ttg": "https://new.ttg.club/spells/elminster-s-effulgent-spheres-frhof"
+      },
+      "data": {
+        "schema_version": 1,
+        "level": 6,
+        "school": "evocation",
+        "school_ru": "воплощение",
+        "casting_time": {
+          "unit": "action",
+          "amount": 1
+        },
+        "magic_action": true,
+        "range": "На себя",
+        "components": {
+          "v": true,
+          "s": true,
+          "m": "опал стоимостью не менее 1000 ЗМ"
+        },
+        "duration": "1 час",
+        "concentration": false,
+        "ritual": false,
+        "classes": [
+          "druid",
+          "sorcerer",
+          "wizard"
+        ],
+        "attack_or_save": "атака",
+        "damage": null,
+        "summary_ru": "Шесть цветных сфер крутятся вокруг вас, пока заклинание действует. Пока сферы крутятся вокруг вас, вы можете тратить их, чтобы создавать следующие эффекты: Поглощение энергии.",
+        "description": "Шесть цветных сфер крутятся вокруг вас, пока заклинание действует. Пока сферы крутятся вокруг вас, вы можете тратить их, чтобы создавать следующие эффекты: Поглощение энергии.",
+        "source_book": "FRHoF",
+        "higher_levels": "Количество сфер увеличивается на 1 за каждый уровень ячейки выше 6-го.",
+        "higher_levels_ru": "Количество сфер увеличивается на 1 за каждый уровень ячейки выше 6-го."
+      }
+    },
+    {
+      "kind": "spell",
+      "slug": "simbuls-synostodweomer",
+      "name_ru": "Синостодвеомер Симбул",
+      "name_en": "Simbul’s Synostodweomer",
+      "source": "frhof",
+      "sort_order": 7016,
+      "external_ref": {
+        "book": "FRHoF",
+        "url_dndsu": "https://next.dnd.su/spells/12456-simbuls-synostodweomer",
+        "url_ttg": "https://new.ttg.club/spells/simbul-s-synostodweomer-frhof"
+      },
+      "data": {
+        "schema_version": 1,
+        "level": 7,
+        "school": "transmutation",
+        "school_ru": "преобразование",
+        "casting_time": {
+          "unit": "action",
+          "amount": 1
+        },
+        "magic_action": true,
+        "range": "Касание",
+        "components": {
+          "v": true,
+          "s": true
+        },
+        "duration": "1 час",
+        "concentration": false,
+        "ritual": false,
+        "classes": [
+          "sorcerer",
+          "wizard"
+        ],
+        "attack_or_save": null,
+        "damage": null,
+        "summary_ru": "Коснувшись, вы наполняете одно существо магической целебной энергией. Каждый раз, когда цель сотворяет заклинание с ячейкой заклинаний, она может немедленно бросить непотраченные Кости хитов, количеством не больше, чем уровень ис…",
+        "description": "Коснувшись, вы наполняете одно существо магической целебной энергией. Каждый раз, когда цель сотворяет заклинание с ячейкой заклинаний, она может немедленно бросить непотраченные Кости хитов, количеством не больше, чем уровень ис…",
+        "source_book": "FRHoF"
+      }
+    },
+    {
+      "kind": "spell",
+      "slug": "holy-star-of-mystra",
+      "name_ru": "Священная звезда Мистры",
+      "name_en": "Holy Star of Mystra",
+      "source": "frhof",
+      "sort_order": 8017,
+      "external_ref": {
+        "book": "FRHoF",
+        "url_dndsu": "https://next.dnd.su/spells/12454-holy-star-of-mystra",
+        "url_ttg": "https://new.ttg.club/spells/holy-star-of-mystra-frhof"
+      },
+      "data": {
+        "schema_version": 1,
+        "level": 8,
+        "school": "evocation",
+        "school_ru": "воплощение",
+        "casting_time": {
+          "unit": "bonus",
+          "amount": 1
+        },
+        "magic_action": false,
+        "range": "На себя",
+        "components": {
+          "v": true,
+          "s": true
+        },
+        "duration": ", вплоть до 1 минуты",
+        "concentration": true,
+        "ritual": false,
+        "classes": [
+          "cleric",
+          "wizard"
+        ],
+        "attack_or_save": "атака",
+        "damage": null,
+        "summary_ru": "Вы создаёте светящийся сгусток энергии, парящий над вами, пока действует заклинание. Этот сгусток испускает Яркий свет в радиусе 5 футов и Тусклый свет ещё на 5 футов.",
+        "description": "Вы создаёте светящийся сгусток энергии, парящий над вами, пока действует заклинание. Этот сгусток испускает Яркий свет в радиусе 5 футов и Тусклый свет ещё на 5 футов.",
+        "source_book": "FRHoF"
+      }
+    },
+    {
+      "kind": "spell",
+      "slug": "blade-of-disaster",
+      "name_ru": "Клинок разрушения",
+      "name_en": "Blade of Disaster",
+      "source": "frhof",
+      "sort_order": 9018,
+      "external_ref": {
+        "book": "FRHoF",
+        "url_dndsu": "https://next.dnd.su/spells/12445-blade-of-disaster",
+        "url_ttg": "https://new.ttg.club/spells/blade-of-disaster-frhof"
+      },
+      "data": {
+        "schema_version": 1,
+        "level": 9,
+        "school": "conjuration",
+        "school_ru": "вызов",
+        "casting_time": {
+          "unit": "bonus",
+          "amount": 1
+        },
+        "magic_action": false,
+        "range": "60 футов",
+        "components": {
+          "v": true,
+          "s": true
+        },
+        "duration": ", вплоть до 1 минуты",
+        "concentration": true,
+        "ritual": false,
+        "classes": [
+          "sorcerer",
+          "warlock",
+          "wizard"
+        ],
+        "attack_or_save": "атака",
+        "damage": "10d6 силовой",
+        "summary_ru": "Вы создаёте пространственный разлом в форме клинка длиной 3 фута. Разлом появляется в пространстве в пределах дистанции на ваш выбор и существует, пока заклинание действует.",
+        "description": "Вы создаёте пространственный разлом в форме клинка длиной 3 фута. Разлом появляется в пространстве в пределах дистанции на ваш выбор и существует, пока заклинание действует.",
+        "source_book": "FRHoF"
+      }
+    }
+  ]
+}

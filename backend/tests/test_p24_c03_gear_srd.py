@@ -90,11 +90,21 @@ def test_live_gear_waves_registered_and_complete():
         r["slug"]
         for r in _rows("item")
         if (r.get("data") or {}).get("equipment_group") != "magic_item"
+        and str(r.get("source") or "").startswith("srd")
     }
     assert mundane == _srd_ids("equipment")
     assert len(_rows("weapon")) == len(_srd_ids("weapons"))
     assert len(_rows("armor")) == len(_srd_ids("armor"))
     assert len(mundane) == len(_srd_ids("equipment"))
+    # P24-C17: FRHoF mundane gear lives in equipment_frhof.json
+    frhof_gear = {
+        r["slug"]
+        for r in _rows("item")
+        if r.get("source") == "frhof"
+        and (r.get("data") or {}).get("equipment_group") != "magic_item"
+    }
+    assert len(frhof_gear) == 12
+    assert "bandore" in frhof_gear
 
 
 def test_weapon_mastery_dictionary_has_eight_entries():
@@ -150,7 +160,15 @@ def test_equipment_cards_have_group_and_optional_utilize():
     for row in _rows("item"):
         data = row["data"]
         if data.get("equipment_group") == "magic_item":
-            continue  # P24-C06
+            continue  # P24-C06 / C17 magic
+        if row.get("source") == "frhof":
+            assert data.get("equipment_group") in {
+                "equipment",
+                "musical_instrument",
+                "toolkit",
+            }, row["slug"]
+            assert data.get("content_layer") == "community_ref"
+            continue
         assert data.get("equipment_group") in {
             "equipment",
             "toolkit",
@@ -180,6 +198,8 @@ def test_names_match_reference_csv():
         for row in _rows(kind):
             if kind == "item" and (row.get("data") or {}).get("equipment_group") == "magic_item":
                 continue  # P24-C06 — names checked against magic_items.csv there
+            if not str(row.get("source") or "").startswith("srd"):
+                continue  # P24-C17 FRHoF gear — names vs FRHoF CSV in C17 tests
             assert row["name_ru"] == ref[row["slug"]]["name_ru"]
             assert row["name_en"] == ref[row["slug"]]["name_en"]
 
@@ -305,7 +325,7 @@ def test_apply_seed_includes_gear_idempotent():
     assert stats2.upserted == planned
     assert {k[1] for k in store if k[0] == "weapon"} == _srd_ids("weapons")
     assert {k[1] for k in store if k[0] == "armor"} == _srd_ids("armor")
-    # Mundane C03 gear only (P24-C06 adds magic_item rows under kind=item).
+    # Mundane C03 SRD gear only (P24-C06 magic_item; P24-C17 FRHoF gear).
     mundane_items = set()
     for key, params in store.items():
         if key[0] != "item":
@@ -313,8 +333,11 @@ def test_apply_seed_includes_gear_idempotent():
         data = params["data"]
         if isinstance(data, str):
             data = json.loads(data)
-        if data.get("equipment_group") != "magic_item":
-            mundane_items.add(key[1])
+        if data.get("equipment_group") == "magic_item":
+            continue
+        if not str(params.get("source") or "").startswith("srd"):
+            continue
+        mundane_items.add(key[1])
     assert mundane_items == _srd_ids("equipment")
     # Never write 2014 edition.
     for params in store.values():
@@ -339,7 +362,15 @@ def test_alembic_single_head_includes_p24_c03():
 
 
 def test_no_who_or_faerun_book_gear_in_live_wave():
-    slugs = {r["slug"] for r in _rows("item")}
-    assert "bandore" not in slugs
-    assert "bright-fungal-cloak" not in slugs
-    assert "yarting" not in slugs
+    """C03 SRD wave still excludes FRHoF; C17 seeds them under source=frhof."""
+    srd_mundane = {
+        r["slug"]
+        for r in _rows("item")
+        if str(r.get("source") or "").startswith("srd")
+        and (r.get("data") or {}).get("equipment_group") != "magic_item"
+    }
+    assert "bandore" not in srd_mundane
+    assert "bright-fungal-cloak" not in srd_mundane
+    assert "yarting" not in srd_mundane
+    frhof = {r["slug"] for r in _rows("item") if r.get("source") == "frhof"}
+    assert {"bandore", "bright-fungal-cloak", "yarting"} <= frhof
