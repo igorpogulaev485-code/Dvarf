@@ -21,10 +21,26 @@ import {
   Panel,
   PasswordInput,
   SegmentedControl,
+  Select,
   Stack,
   Text,
   Toast,
 } from '../ui'
+
+/** Узкий экран: сегменты из 5 длинных названий сжимаются — kit Select, как в кабинете/лобби. */
+function useCompactAdminNav(maxWidthPx = 1100): boolean {
+  const [compact, setCompact] = useState(() =>
+    typeof window !== 'undefined' ? window.matchMedia(`(max-width: ${maxWidthPx}px)`).matches : false,
+  )
+  useEffect(() => {
+    const mq = window.matchMedia(`(max-width: ${maxWidthPx}px)`)
+    const apply = () => setCompact(mq.matches)
+    apply()
+    mq.addEventListener('change', apply)
+    return () => mq.removeEventListener('change', apply)
+  }, [maxWidthPx])
+  return compact
+}
 
 type AdminSection = 'accounts' | 'help' | 'metrics' | 'feedback' | 'catalog'
 
@@ -60,6 +76,7 @@ function loginMethodsLabel(item: AdminAccountItem): string {
 
 export function AdminPage() {
   const navigate = useNavigate()
+  const compactNav = useCompactAdminNav()
   const [status, setStatus] = useState<AdminStatus | null>(null)
   const [section, setSection] = useState<AdminSection>('accounts')
   const [loading, setLoading] = useState(true)
@@ -253,12 +270,28 @@ export function AdminPage() {
           </Stack>
         )}
 
-        <SegmentedControl
-          aria-label="Разделы админки"
-          value={section}
-          onChange={setSection}
-          options={SECTION_OPTIONS}
-        />
+        {compactNav ? (
+          <Field label="Раздел">
+            <Select
+              aria-label="Разделы админки"
+              value={section}
+              onChange={(event) => setSection(event.target.value as AdminSection)}
+            >
+              {SECTION_OPTIONS.map((item) => (
+                <option key={item.id} value={item.id}>
+                  {item.label}
+                </option>
+              ))}
+            </Select>
+          </Field>
+        ) : (
+          <SegmentedControl
+            aria-label="Разделы админки"
+            value={section}
+            onChange={setSection}
+            options={SECTION_OPTIONS}
+          />
+        )}
 
         {section === 'accounts' && LIVE_SECTIONS.has(section) ? (
           <Panel title="Аккаунты">

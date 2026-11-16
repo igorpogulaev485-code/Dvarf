@@ -40,6 +40,9 @@ assert(adminPage.includes('Задать пароль админки'), 'admin UI
 assert(adminPage.includes('Раздел появится в следующей пачке'), 'stubs for later sections')
 assert(!/ADMIN_PANEL|RULES_EDITION|bootstrap/i.test(adminPage), 'no English service labels in UI')
 assert(adminPage.includes("from '../ui'"), 'admin page uses kit atoms')
+assert(adminPage.includes('Select'), 'narrow nav uses kit Select')
+assert(adminPage.includes('SegmentedControl'), 'wide nav keeps SegmentedControl')
+assert(adminPage.includes('useCompactAdminNav'), 'compact nav breakpoint without custom CSS')
 assert(!adminPage.includes('.css'), 'admin page must not import custom CSS')
 assert(!/admin-.*\.css|AdminPage\.css/.test(indexCss), 'index.css must not gain admin styles')
 

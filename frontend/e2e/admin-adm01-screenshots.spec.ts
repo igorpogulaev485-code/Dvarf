@@ -89,16 +89,41 @@ test.describe('ADM-01 screenshots', () => {
     mkdirSync(OUT, { recursive: true })
   })
 
+  test('accounts 1440x900', async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 })
+    await mockAdmin(page, { passwordSet: true })
+    await page.goto('/admin')
+    await expect(page.getByRole('heading', { name: 'Админка' })).toBeVisible()
+    await expect(page.getByRole('tab', { name: 'Обратная связь' })).toBeVisible()
+    await expect(page.getByRole('tab', { name: 'Справочники' })).toBeVisible()
+    await page.screenshot({
+      path: join(OUT, 'admin-accounts-1440x900.png'),
+      fullPage: true,
+    })
+  })
+
   for (const [name, size] of [
-    ['1440x900', { width: 1440, height: 900 }],
     ['1024x768', { width: 1024, height: 768 }],
     ['390x844', { width: 390, height: 844 }],
   ] as const) {
-    test(`accounts ${name}`, async ({ page }) => {
+    test(`accounts compact nav ${name}`, async ({ page }) => {
       await page.setViewportSize(size)
       await mockAdmin(page, { passwordSet: true })
       await page.goto('/admin')
       await expect(page.getByRole('heading', { name: 'Админка' })).toBeVisible()
+      const nav = page.getByLabel('Разделы админки')
+      await expect(nav).toBeVisible()
+      await expect(nav.locator('option', { hasText: 'Обратная связь' })).toHaveCount(1)
+      await expect(nav.locator('option', { hasText: 'Справочники' })).toHaveCount(1)
+      // Все пять названий целиком в select (не обрезанный segmented).
+      const labels = await nav.locator('option').allTextContents()
+      expect(labels).toEqual([
+        'Аккаунты',
+        'Помощь',
+        'Метрики',
+        'Обратная связь',
+        'Справочники',
+      ])
       await page.screenshot({
         path: join(OUT, `admin-accounts-${name}.png`),
         fullPage: true,
