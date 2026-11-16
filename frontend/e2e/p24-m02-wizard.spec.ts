@@ -268,13 +268,56 @@ async function goSpells(page: Page, project: string) {
   await page.waitForTimeout(500)
 }
 
-async function openRest(page: Page, project: string) {
-  if (isPhone(project)) {
-    await page.locator('button:has-text("▾")').first().click()
-    await page.waitForTimeout(400)
+async function ensureMobileVitalsExpanded(page: Page) {
+  const rest = page.getByRole('button', { name: /^Отдых$/ })
+  if (await rest.isVisible().catch(() => false)) return
+  const expand = page.getByRole('button', { name: /Развернуть шапку/ })
+  if (await expand.isVisible().catch(() => false)) {
+    await expand.click()
+    await page.waitForTimeout(300)
   }
-  await page.getByRole('button', { name: /Отдых/ }).first().click()
-  await expect(page.getByRole('dialog').last()).toBeVisible()
+}
+
+async function openRest(page: Page, project: string) {
+  // Desktop: labelled header control. Phone: MobileVitalsBar (expand vitals if collapsed).
+  if (project === '390') {
+    await ensureMobileVitalsExpanded(page)
+    const rest = page.getByRole('button', { name: /^Отдых$/ }).first()
+    await expect(rest).toBeVisible({ timeout: 10_000 })
+    await rest.click()
+  } else {
+    await page.locator('button.play-desk-header__rest').first().click()
+  }
+  await expect(
+    page.getByRole('dialog').filter({ hasText: /Короткий|Долгий|кости хитов/i }).first(),
+  ).toBeVisible()
+}
+
+/** Expand a compact feature card so action buttons (Записать кость, …) appear. */
+async function expandFeature(page: Page, name: string | RegExp) {
+  // Match prefix: expanded titles may append scale («Знамение · d20»).
+  const nameRe =
+    typeof name === 'string'
+      ? new RegExp(`^${name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`)
+      : name
+  const card = page
+    .locator('.feature-card')
+    .filter({ has: page.locator('.feature-card__name, .feature-card__title', { hasText: nameRe }) })
+    .first()
+  await expect(card).toBeVisible({ timeout: 10_000 })
+  await card.scrollIntoViewIfNeeded()
+  if (await card.locator('.feature-card__title').count()) return card
+  await card.locator('button.feature-card__glance, button[aria-label="Подробнее"]').first().click()
+  await expect(
+    page
+      .locator('.feature-card--expand')
+      .filter({ has: page.locator('.feature-card__title', { hasText: nameRe }) })
+      .first(),
+  ).toBeVisible({ timeout: 5_000 })
+  return page
+    .locator('.feature-card--expand')
+    .filter({ has: page.locator('.feature-card__title', { hasText: nameRe }) })
+    .first()
 }
 
 async function openMagicDialog(page: Page, project: string) {
@@ -426,6 +469,17 @@ test.describe('P24-M02 wizard — real create pipeline', () => {
     await expect(dlg.getByText(/Запомнить заклинание/)).toBeVisible()
     await dlg.getByText(/Запомнить заклинание/).scrollIntoViewIfNeeded()
     await shot(page, ARTIFACTS, 'memorize-spell-short-rest', project)
+    // Apply once, close, reopen — second swap must be blocked until next rest.
+    await dlg.getByRole('button', { name: /^Заменить$/ }).click()
+    await expect(dlg.getByText(/уже заменено за этот отдых/)).toBeVisible()
+    await dlg.getByRole('button', { name: /^Закрыть$|^Отмена$/ }).first().click()
+    await expect(page.getByRole('dialog')).toHaveCount(0)
+    await openRest(page, project)
+    const again = page.getByRole('dialog').last()
+    await expect(again.getByText(/уже заменено за этот отдых/)).toBeVisible()
+    await expect(again.getByRole('button', { name: /^Заменить$/ })).toBeDisabled()
+    await again.getByText(/Запомнить заклинание/).scrollIntoViewIfNeeded()
+    await shot(page, ARTIFACTS, 'rest-swap-locked', project)
   })
 
   test('levelup-book-plus2 (L2→3 abjurer)', async ({ page }, testInfo) => {
@@ -479,8 +533,137 @@ test.describe('P24-M02 wizard — real create pipeline', () => {
     const store = createStore()
     await createWizardViaPipeline(page, store, 'wizard3diviner')
     await openFeaturesScene(page, project)
-    await page.getByText('Знамение').first().scrollIntoViewIfNeeded()
+    const card = await expandFeature(page, 'Знамение')
+    const record = card.getByRole('button', { name: /^Записать кость$/ })
+    await expect(record).toBeVisible({ timeout: 10_000 })
+    // Stock may already be full (2/2) after create-at-N — only roll when slots are free.
+    if (await record.isEnabled()) {
+      await record.click()
+      if (await record.isEnabled()) await record.click()
+    }
+    await expect(card.getByText(/Записано:/)).toBeVisible({ timeout: 10_000 })
+    await card.getByRole('button', { name: /Заменить бросок/ }).click()
+    const useDlg = page.getByRole('dialog').filter({ hasText: /Выбери кость/ })
+    await expect(useDlg).toBeVisible()
+    await expect(useDlg.locator('button.sheet-chip')).toHaveCount(2)
     await shot(page, ARTIFACTS, 'subclass-diviner-portent', project)
+  })
+
+  test('subclass-evoker-sculpt', async ({ page }, testInfo) => {
+    const project = projectOf(testInfo)
+    const store = createStore()
+    await createWizardViaPipeline(page, store, 'wizard6evoker')
+    await openFeaturesScene(page, project)
+    const card = await expandFeature(page, /Построение заклинаний/)
+    await card.getByRole('button', { name: /Защитить существ/ }).click()
+    const dlg = page.getByRole('dialog').filter({ hasText: /защитите существ/i })
+    await expect(dlg).toBeVisible()
+    await dlg.locator('button.sheet-chip', { hasText: /^1 круг$/ }).click()
+    await dlg.locator('textarea').fill('Альрик, Борис')
+    await expect(dlg.getByText(/лимит 2/)).toBeVisible()
+    await shot(page, ARTIFACTS, 'subclass-evoker-sculpt', project)
+  })
+
+  test('subclass-abjurer-breaker-resistance', async ({ page }, testInfo) => {
+    const project = projectOf(testInfo)
+    const store = createStore()
+    await createWizardViaPipeline(page, store, 'wizard14abjurer')
+    // Spend a slot so «Вернуть ячейку» has a circle to pick.
+    const sheet = storedSheet(store)
+    sheet.spells.slots['3'].used = 1
+    await page.reload()
+    await dismissWelcome(page)
+    await openFeaturesScene(page, project)
+    await expect(page.getByText(/Сопротивление урону от заклинаний/i).first()).toBeVisible({
+      timeout: 10_000,
+    })
+    const card = await expandFeature(page, /Разрушитель заклинаний/)
+    await card.getByRole('button', { name: /Вернуть ячейку/ }).click()
+    const dlg = page.getByRole('dialog').filter({ hasText: /Контрзаклинание и Рассеивание/i })
+    await expect(dlg).toBeVisible()
+    await expect(dlg.locator('button.sheet-chip', { hasText: /^3 круг$/ })).toBeVisible()
+    await shot(page, ARTIFACTS, 'subclass-abjurer-spell-breaker', project)
+    await dlg.getByRole('button', { name: /^Отмена$/ }).click()
+    await expect(page.getByRole('dialog')).toHaveCount(0)
+    // Save note: desktop ability rail; phone opens Характеристики sheet first.
+    if (isPhone(project)) {
+      await page.getByText('Бой', { exact: true }).last().click()
+      await page.waitForTimeout(300)
+      await ensureMobileVitalsExpanded(page)
+      await page.locator('button.mobile-vitals__abil').click()
+      const abilPage = page.getByRole('dialog', { name: /Характеристики/ })
+      await expect(abilPage).toBeVisible()
+      await abilPage
+        .locator('button.abil-block__label-open')
+        .filter({ hasText: /Интеллект/i })
+        .click()
+    } else {
+      await page.getByRole('button', { name: /^Бой$/ }).first().click()
+      await page.waitForTimeout(400)
+      await page
+        .locator('button.abil-block__label-open')
+        .filter({ hasText: /Интеллект/i })
+        .first()
+        .click()
+    }
+    const saveDlg = page.getByRole('dialog').filter({
+      hasText: /преимущество на спасброски против заклинаний/i,
+    })
+    await expect(saveDlg).toBeVisible({ timeout: 10_000 })
+    await shot(page, ARTIFACTS, 'subclass-abjurer-spell-resistance', project)
+  })
+
+  test('subclass-illusionist-range-phantasmal', async ({ page }, testInfo) => {
+    const project = projectOf(testInfo)
+    const store = createStore()
+    await createWizardViaPipeline(page, store, 'wizard6illusionist')
+    // Ensure Minor Illusion is on the sheet with a real range (seed may pick other cantrips).
+    const sheet = storedSheet(store)
+    const catalog = loadCatalog2024().spell.find((row) => row.slug === 'minor-illusion')
+    if (!catalog) throw new Error('minor-illusion missing from 2024 catalog')
+    const already = (sheet.spells.known as any[]).some(
+      (row) => row.catalog_id === catalog.id || /малая иллюзия/i.test(String(row.name)),
+    )
+    if (!already) {
+      ;(sheet.spells.known as any[]).push({
+        id: 'e2e-minor-illusion',
+        catalog_id: catalog.id,
+        name: String(catalog.name_ru || 'Малая иллюзия'),
+        level: 0,
+        prepared: true,
+        in_spellbook: false,
+        school: 'illusion',
+        range: '30 фт',
+        casting_time: '1 действие',
+        duration: '1 мин',
+        components: 'S, M',
+      })
+    } else {
+      const row = (sheet.spells.known as any[]).find(
+        (s) => s.catalog_id === catalog.id || /малая иллюзия/i.test(String(s.name)),
+      )
+      if (row && !row.range) row.range = '30 фт'
+      if (row && !row.school) row.school = 'illusion'
+    }
+    await page.reload()
+    await dismissWelcome(page)
+    await goSpells(page, project)
+    // Prefer the spells list, not a hidden feature-card preview of the same name.
+    const spellsRoot = page.locator('.play-desk, [data-onboarding="combat-header"]').first()
+    const minor = spellsRoot.getByText(/^Малая иллюзия$/).first()
+    await expect(minor).toBeVisible({ timeout: 15_000 })
+    await minor.click()
+    const detail = page.getByRole('dialog').last()
+    await expect(detail.getByText(/Улучшенные иллюзии|\+60/)).toBeVisible({
+      timeout: 10_000,
+    })
+    await shot(page, ARTIFACTS, 'subclass-illusionist-improved', project)
+    await detail.getByRole('button', { name: /^Закрыть$/ }).first().click()
+    await expect(page.getByRole('dialog')).toHaveCount(0)
+    // Features: Призрачные существа card (half-HP applied on free cast of summon).
+    await openFeaturesScene(page, project)
+    await expandFeature(page, /Призрачные существа/)
+    await shot(page, ARTIFACTS, 'subclass-illusionist-phantasmal', project)
   })
 
   test('spell-mastery-l18', async ({ page }, testInfo) => {
