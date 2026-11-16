@@ -118,7 +118,10 @@ import {
 import {
   REPELLING_BLAST_HINT,
   agonizingBlastDamageBonus,
+  collectWarlockInvocationIds,
+  eldritchSpearRangeFt,
   formatEldritchBlastDamagePreview,
+  formatEldritchSpearRangeRu,
   hasRepellingBlast,
   isEldritchBlastSpell,
 } from '../../../shared/dnd/o06StylesBreathInvocations'
@@ -868,16 +871,16 @@ export function installSheetActions4(model: SheetModel) {
           chaMod: abilityModifier(model.effectiveAbilities.cha),
         })
       : null
-    const warlockInvocationIds: string[] = []
-    for (const row of model.draft.classes) {
-      if (!/колдун|warlock/i.test(row.name)) continue
-      const raw =
-        model.draft.featurePicks.values[`${row.id}:eldritch_invocations`] ?? ''
-      for (const id of raw.split(',')) {
-        const t = id.trim()
-        if (t) warlockInvocationIds.push(t)
-      }
-    }
+    const warlockInvocationIds = collectWarlockInvocationIds({
+      classes: model.draft.classes,
+      featurePickValues: model.draft.featurePicks.values,
+      classOptionsInvocations:
+        model.baseCharacter.rules_edition === '2024'
+          ? model.draft.classOptions2024?.eldritch_invocations
+          : null,
+    })
+    const warlockRow = model.draft.classes.find((row) => /колдун|warlock/i.test(row.name))
+    const warlockLevel = warlockRow?.level ?? model.characterLevel
     const chaMod = abilityModifier(model.effectiveAbilities.cha)
     const agonizing = agonizingBlastDamageBonus({
       knownInvocationIds: warlockInvocationIds,
@@ -904,12 +907,22 @@ export function installSheetActions4(model: SheetModel) {
     if (
       isEldritchBlastSpell({ name: spell.name, catalogId: spell.catalog_id })
     ) {
+      const beamLevel =
+        model.baseCharacter.rules_edition === '2024' ? warlockLevel : model.characterLevel
       effect = formatEldritchBlastDamagePreview({
-        characterLevel: model.characterLevel,
+        characterLevel: beamLevel,
         chaMod,
         hasAgonizing: agonizing !== 0,
       })
       scaled = true
+      const spearFt = eldritchSpearRangeFt({
+        knownInvocationIds: warlockInvocationIds,
+        warlockLevel,
+        rulesEdition: model.baseCharacter.rules_edition,
+      })
+      if (spearFt != null) {
+        effect = `${effect} · ${formatEldritchSpearRangeRu(spearFt)}`
+      }
       if (hasRepellingBlast(warlockInvocationIds)) {
         effect = `${effect} · ${REPELLING_BLAST_HINT}`
       }

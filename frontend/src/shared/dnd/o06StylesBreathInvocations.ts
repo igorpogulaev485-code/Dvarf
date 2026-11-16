@@ -613,6 +613,23 @@ export function rollBreathWeaponDamage(input: {
 
 // —— Warlock invocations ——
 
+/** Normalize 2014 (`agonizing_blast`) and 2024 (`agonizing-blast`) invocation ids. */
+export function normalizeInvocationId(id: string | null | undefined): string {
+  return String(id || '')
+    .trim()
+    .toLowerCase()
+    .replace(/-/g, '_')
+}
+
+export function hasKnownInvocation(
+  knownInvocationIds: Array<string | null | undefined> | null | undefined,
+  id: string,
+): boolean {
+  const target = normalizeInvocationId(id)
+  if (!target) return false
+  return (knownInvocationIds ?? []).some((row) => normalizeInvocationId(row) === target)
+}
+
 export function isEldritchBlastSpell(input: {
   name?: string | null
   catalogId?: string | null
@@ -627,7 +644,7 @@ export function isEldritchBlastSpell(input: {
   return /мистическ(ий|ого)\s*заряд|eldritch\s*blast/i.test(name)
 }
 
-/** Beams: 1 / 2 at 5 / 3 at 11 / 4 at 17. */
+/** Beams: 1 / 2 at 5 / 3 at 11 / 4 at 17 (cantrip scale; pure warlock = class level). */
 export function eldritchBlastBeamCount(characterLevel: number): number {
   const lvl = Math.max(1, Math.floor(characterLevel))
   if (lvl >= 17) return 4
@@ -639,24 +656,30 @@ export function eldritchBlastBeamCount(characterLevel: number): number {
 export function hasAgonizingBlast(
   knownInvocationIds: Array<string | null | undefined> | null | undefined,
 ): boolean {
-  return (knownInvocationIds ?? []).includes('agonizing_blast')
+  return hasKnownInvocation(knownInvocationIds, 'agonizing_blast')
 }
 
 export function hasRepellingBlast(
   knownInvocationIds: Array<string | null | undefined> | null | undefined,
 ): boolean {
-  return (knownInvocationIds ?? []).includes('repelling_blast')
+  return hasKnownInvocation(knownInvocationIds, 'repelling_blast')
 }
 
 export function hasDevilsSight(
   knownInvocationIds: Array<string | null | undefined> | null | undefined,
 ): boolean {
-  return (knownInvocationIds ?? []).includes('devils_sight')
+  return hasKnownInvocation(knownInvocationIds, 'devils_sight')
+}
+
+export function hasEldritchSpear(
+  knownInvocationIds: Array<string | null | undefined> | null | undefined,
+): boolean {
+  return hasKnownInvocation(knownInvocationIds, 'eldritch_spear')
 }
 
 /**
- * Agonizing Blast: +CHA to each Eldritch Blast beam.
- * Returns null when invocation missing or not EB.
+ * Agonizing Blast: +CHA to each Eldritch Blast beam (2014: EB only;
+ * 2024: chosen damage cantrip — we apply when the cast spell is EB, the common pick).
  */
 export function agonizingBlastDamageBonus(input: {
   knownInvocationIds: Array<string | null | undefined> | null | undefined
@@ -678,6 +701,29 @@ export function agonizingBlastDamageBonus(input: {
   return Math.trunc(input.chaMod)
 }
 
+/**
+ * Eldritch Spear range.
+ * 2014: fixed 300 ft. 2024: base + 30 × warlock level (typically 120 + 30×level).
+ */
+export function eldritchSpearRangeFt(input: {
+  knownInvocationIds: Array<string | null | undefined> | null | undefined
+  warlockLevel: number
+  rulesEdition?: string | null
+  baseRangeFt?: number
+}): number | null {
+  if (!hasEldritchSpear(input.knownInvocationIds)) return null
+  if (input.rulesEdition === '2024') {
+    const base = Math.max(0, Math.floor(input.baseRangeFt ?? 120))
+    const level = Math.max(1, Math.floor(input.warlockLevel || 1))
+    return base + 30 * level
+  }
+  return 300
+}
+
+export function formatEldritchSpearRangeRu(rangeFt: number): string {
+  return `${Math.max(0, Math.floor(rangeFt))} фт`
+}
+
 /** Format EB damage line including beams and optional Agonizing. */
 export function formatEldritchBlastDamagePreview(input: {
   characterLevel: number
@@ -696,8 +742,39 @@ export function formatEldritchBlastDamagePreview(input: {
   return `${one} силовое поле ×${beams} луча`
 }
 
+/**
+ * Collect known warlock invocation ids from 2014 feature picks and/or 2024 class options.
+ * Does not change 2014 storage — only merges sources for combat previews.
+ */
+export function collectWarlockInvocationIds(input: {
+  classes: Array<{ id: string; name: string }>
+  featurePickValues: Record<string, string>
+  classOptionsInvocations?: string[] | null
+}): string[] {
+  const out: string[] = []
+  const seen = new Set<string>()
+  const push = (raw: string) => {
+    const id = String(raw || '').trim()
+    if (!id) return
+    const key = normalizeInvocationId(id)
+    if (seen.has(key)) return
+    seen.add(key)
+    out.push(id)
+  }
+  for (const row of input.classes) {
+    if (!/колдун|warlock/i.test(row.name)) continue
+    const raw = input.featurePickValues[`${row.id}:eldritch_invocations`] ?? ''
+    for (const id of raw.split(',')) push(id)
+  }
+  for (const id of input.classOptionsInvocations ?? []) push(id)
+  return out
+}
+
 export const DEVILS_SIGHT_HINT =
   'Дьявольское зрение: видишь нормально в магической и обычной тьме на 120 фт'
 
 export const REPELLING_BLAST_HINT =
-  'Отталкивающий заряд: при попадании лучом можно оттолкнуть цель на 10 фт по прямой (без спасброска)'
+  'Отталкивающий заряд: при попадании лучом существо Большого размера или меньше можно оттолкнуть до 10 фт прямо от себя'
+
+export const ELDRITCH_SPEAR_HINT_2024 =
+  'Мистическое копьё: дальность заговора +30 фт × уровень колдуна'

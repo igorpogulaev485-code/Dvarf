@@ -119,6 +119,7 @@ import {
 } from '../../../shared/dnd/wizard2024Features'
 import { getFeaturePick } from '../../../shared/dnd/featurePicks'
 import { elementalAffinityPreview } from '../../../shared/dnd/pack04SorcererWarlock'
+import { collectWarlockInvocationIds } from '../../../shared/dnd/o06StylesBreathInvocations'
 import { totalCharacterLevel } from '../../../shared/dnd/classLevels'
 import { RitualBookCopyDialog, ritualBookButtonLabel } from '../RitualBookCopyDialog'
 
@@ -470,19 +471,14 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
                 }
               })
             }}
-            knownInvocationIds={(() => {
-              const ids: string[] = []
-              for (const row of model.draft.classes) {
-                if (!/колдун|warlock/i.test(row.name)) continue
-                const raw =
-                  model.draft.featurePicks.values[`${row.id}:eldritch_invocations`] ?? ''
-                for (const id of raw.split(',')) {
-                  const t = id.trim()
-                  if (t) ids.push(t)
-                }
-              }
-              return ids
-            })()}
+            knownInvocationIds={collectWarlockInvocationIds({
+              classes: model.draft.classes,
+              featurePickValues: model.draft.featurePicks.values,
+              classOptionsInvocations:
+                model.baseCharacter.rules_edition === '2024'
+                  ? model.draft.classOptions2024?.eldritch_invocations
+                  : null,
+            })}
             featurePicks={model.draft.featurePicks}
             spells={model.draft.spells}
             onSpellsChange={(spells) => model.setDraft((prev) => ({ ...prev, spells }))}
@@ -1633,6 +1629,18 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
             learnBudgets={model.spellLearnBudgets}
             classes={model.draft.classes}
             elementalAffinity={elementalAffinity}
+            knownInvocationIds={collectWarlockInvocationIds({
+              classes: model.draft.classes,
+              featurePickValues: model.draft.featurePicks.values,
+              classOptionsInvocations:
+                model.rulesEdition === '2024'
+                  ? model.draft.classOptions2024?.eldritch_invocations
+                  : null,
+            })}
+            warlockLevel={
+              model.draft.classes.find((row) => /колдун|warlock/i.test(row.name))?.level ??
+              model.characterLevel
+            }
             improvedIllusions={
               model.rulesEdition === '2024' &&
               wizard2024Flags(

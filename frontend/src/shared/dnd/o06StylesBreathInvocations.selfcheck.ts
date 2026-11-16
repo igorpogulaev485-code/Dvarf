@@ -8,10 +8,14 @@ import {
   breathWeaponSaveDc,
   canProtectionReaction,
   canTwoWeaponBonusAttack,
+  collectWarlockInvocationIds,
   eldritchBlastBeamCount,
+  eldritchSpearRangeFt,
   formatEldritchBlastDamagePreview,
   ftdBreathDiceCount,
+  hasEldritchSpear,
   hasFightingStyle,
+  hasRepellingBlast,
   isEldritchBlastSpell,
   markTwoWeaponBonusReady,
   phbBreathDiceCount,
@@ -135,6 +139,14 @@ assert(
 )
 assert(
   agonizingBlastDamageBonus({
+    knownInvocationIds: ['agonizing-blast'],
+    chaMod: 3,
+    spellName: 'Мистический заряд',
+  }) === 3,
+  'agonizing kebab +3',
+)
+assert(
+  agonizingBlastDamageBonus({
     knownInvocationIds: ['agonizing_blast'],
     chaMod: 4,
     spellName: 'Огненный снаряд',
@@ -147,5 +159,41 @@ const preview = formatEldritchBlastDamagePreview({
   hasAgonizing: true,
 })
 assert(preview.includes('1к10+4') && preview.includes('×2'), `preview ${preview}`)
+const preview11 = formatEldritchBlastDamagePreview({
+  characterLevel: 11,
+  chaMod: 3,
+  hasAgonizing: true,
+})
+assert(preview11.includes('1к10+3') && preview11.includes('×3'), `preview L11 ${preview11}`)
+assert(eldritchBlastBeamCount(11) === 3, '3 beams at 11')
+assert(eldritchBlastBeamCount(17) === 4, '4 beams at 17')
+assert(
+  eldritchSpearRangeFt({
+    knownInvocationIds: ['eldritch-spear'],
+    warlockLevel: 11,
+    rulesEdition: '2024',
+  }) === 450,
+  'spear 2024 L11 = 120+30×11',
+)
+assert(
+  eldritchSpearRangeFt({
+    knownInvocationIds: ['eldritch_spear'],
+    warlockLevel: 5,
+    rulesEdition: '2014',
+  }) === 300,
+  'spear 2014 fixed',
+)
+assert(hasEldritchSpear(['eldritch-spear']), 'spear kebab')
+assert(hasRepellingBlast(['repelling-blast']), 'repelling kebab')
+assert(
+  collectWarlockInvocationIds({
+    classes: [{ id: 'w1', name: 'Колдун' }],
+    featurePickValues: { 'w1:eldritch_invocations': 'agonizing-blast,eldritch-spear' },
+    classOptionsInvocations: ['repelling-blast'],
+  })
+    .sort()
+    .join(',') === 'agonizing-blast,eldritch-spear,repelling-blast',
+  'collect merges feature picks + classOptions',
+)
 
 console.log('o06StylesBreathInvocations.selfcheck: ok')

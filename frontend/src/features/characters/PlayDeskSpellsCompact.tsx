@@ -23,6 +23,14 @@ import {
   resolveCastEffectSummary,
   spellSchoolLabelRu,
 } from '../../shared/dnd/spellCatalog'
+import {
+  agonizingBlastDamageBonus,
+  eldritchSpearRangeFt,
+  formatEldritchBlastDamagePreview,
+  formatEldritchSpearRangeRu,
+  hasRepellingBlast,
+  isEldritchBlastSpell,
+} from '../../shared/dnd/o06StylesBreathInvocations'
 import { withBundledRules } from './alwaysPreparedSpellEnrichment'
 import type { ClassLevelEntry } from '../../shared/dnd/classLevels'
 import {
@@ -85,6 +93,10 @@ type PlayDeskSpellsCompactProps = {
   characterLevel?: number
   /** Draconic Elemental Affinity preview (+CHA to one ancestry damage roll). */
   elementalAffinity?: { damageType: string; amount: number } | null
+  /** Warlock invocation ids (2014 picks and/or 2024 class options). */
+  knownInvocationIds?: string[]
+  /** Warlock class level for EB beams / Eldritch Spear 2024. */
+  warlockLevel?: number
   /** 2024 Illusionist: show Improved Illusions range on the spell card. */
   improvedIllusions?: boolean
   pinned?: boolean
@@ -137,6 +149,8 @@ export function PlayDeskSpellsCompact({
   castProfiles = null,
   characterLevel: characterLevelProp = 1,
   elementalAffinity = null,
+  knownInvocationIds = [],
+  warlockLevel,
   improvedIllusions = false,
   pinned = false,
   concentration = null,
@@ -745,6 +759,9 @@ export function PlayDeskSpellsCompact({
                           spell={spell}
                           characterLevel={characterLevel}
                           affinity={elementalAffinity}
+                          knownInvocationIds={knownInvocationIds}
+                          warlockLevel={warlockLevel ?? characterLevel}
+                          edition={edition}
                           learnMode={learnMode}
                           hasSpellbook={hasSpellbook}
                           activeConcentration={isActiveConc}
@@ -910,8 +927,42 @@ function compactDamage(
   spellMod: number | null,
   spellModLabel: string | null,
   affinity?: { damageType: string; amount: number } | null,
+  opts?: {
+    knownInvocationIds?: string[]
+    warlockLevel?: number
+    edition?: string | null
+    chaMod?: number
+  },
 ): string {
   const rules = withBundledRules(spell)
+  const isEb = isEldritchBlastSpell({
+    name: spell.name,
+    catalogId: spell.catalog_id,
+    slug: (rules as { slug?: string }).slug,
+  })
+  if (isEb) {
+    const beamLevel =
+      opts?.edition === '2024' && opts.warlockLevel
+        ? opts.warlockLevel
+        : characterLevel
+    const chaMod = opts?.chaMod ?? 0
+    const agonizing = agonizingBlastDamageBonus({
+      knownInvocationIds: opts?.knownInvocationIds,
+      chaMod,
+      spellName: spell.name,
+      catalogId: spell.catalog_id,
+      slug: (rules as { slug?: string }).slug,
+    })
+    let line = formatEldritchBlastDamagePreview({
+      characterLevel: beamLevel,
+      chaMod,
+      hasAgonizing: agonizing !== 0,
+    })
+    if (hasRepellingBlast(opts?.knownInvocationIds)) {
+      line = `${line} · отталкивание 10 фт`
+    }
+    return shortDamage(line)
+  }
   const level = Math.max(1, Math.floor(characterLevel) || 1)
   const slotLevel = Math.max(rules.level, 1)
   const summary = resolveCastEffectSummary(rules, {
@@ -926,12 +977,34 @@ function compactDamage(
   return shortDamage(rules.damage ?? '')
 }
 
-function compactSpellMeta(spell: SheetSpell): string {
+function compactSpellMeta(
+  spell: SheetSpell,
+  opts?: {
+    knownInvocationIds?: string[]
+    warlockLevel?: number
+    edition?: string | null
+  },
+): string {
   const parts: string[] = []
   const rules = withBundledRules(spell)
   const time = shortCastingTime(rules.casting_time || spell.casting_time)
   parts.push(time || '—')
-  const range = shortRange(rules.range || spell.range)
+  const isEb = isEldritchBlastSpell({
+    name: spell.name,
+    catalogId: spell.catalog_id,
+    slug: (rules as { slug?: string }).slug,
+  })
+  const spearFt = isEb
+    ? eldritchSpearRangeFt({
+        knownInvocationIds: opts?.knownInvocationIds,
+        warlockLevel: opts?.warlockLevel ?? 1,
+        rulesEdition: opts?.edition,
+      })
+    : null
+  const range =
+    spearFt != null
+      ? formatEldritchSpearRangeRu(spearFt)
+      : shortRange(rules.range || spell.range)
   parts.push(range || '—')
   const atk = (rules.attack_or_save || spell.attack_or_save)?.trim()
   parts.push(atk && atk !== '—' ? atk : '—')
@@ -939,6 +1012,9 @@ function compactSpellMeta(spell: SheetSpell): string {
   if (comps) parts.push(comps)
   if (spell.school) parts.push(spellSchoolLabelRu(spell.school))
   if (spell.duration?.trim()) parts.push(spell.duration.trim())
+  if (isEb && hasRepellingBlast(opts?.knownInvocationIds)) {
+    parts.push('отталкивание 10 фт')
+  }
   return parts.join(' · ')
 }
 
@@ -946,6 +1022,9 @@ function SpellRow({
   spell,
   characterLevel,
   affinity = null,
+  knownInvocationIds = [],
+  warlockLevel = 1,
+  edition = '2014',
   learnMode,
   hasSpellbook,
   activeConcentration,
@@ -963,6 +1042,9 @@ function SpellRow({
   spell: SheetSpell
   characterLevel: number
   affinity?: { damageType: string; amount: number } | null
+  knownInvocationIds?: string[]
+  warlockLevel?: number
+  edition?: string | null
   learnMode: 'known' | 'prepared_list' | 'spellbook' | null
   hasSpellbook: boolean
   activeConcentration: boolean
@@ -993,7 +1075,11 @@ function SpellRow({
         ? `от ${spell.item_cast.charges} зар.`
         : `${spell.item_cast.charges} зар.`
     : ''
-  const meta = compactSpellMeta(spell)
+  const meta = compactSpellMeta(spell, {
+    knownInvocationIds,
+    warlockLevel,
+    edition,
+  })
   const modStats = resolveSpellCastStats({
     spell,
     profiles: castProfiles ?? [],
@@ -1007,6 +1093,12 @@ function SpellRow({
     modStats.ability ? abilityModifier(abilities[modStats.ability]) : null,
     modStats.ability ? SPELLCASTING_ABILITY_LABELS[modStats.ability] : null,
     affinity,
+    {
+      knownInvocationIds,
+      warlockLevel,
+      edition,
+      chaMod: abilityModifier(abilities.cha),
+    },
   )
   const source = spellSourceBadge(spell)
   const granted = isGrantedSpellHighlight(spell)

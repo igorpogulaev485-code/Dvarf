@@ -31,6 +31,7 @@ import { resolveClassFeatureSlug, type UnlockedFeature } from '../../../shared/d
 import { setConcentration } from '../../../shared/dnd/concentration'
 import { equippedArmorPieces } from '../inventory'
 import { CastSpellDialog } from '../CastSpellDialog'
+import { collectWarlockInvocationIds } from '../../../shared/dnd/o06StylesBreathInvocations'
 import { normalizeCampaignRules } from '../../lobby/campaignRules'
 import { listActiveInfusionBindings } from '../../../shared/dnd/infusionsActive'
 import { ScrollCastGate, useScrollSpellClasses } from '../ScrollCastGate'
@@ -279,19 +280,18 @@ export function SheetDialogsRolls({ model }: { model: SheetModel }) {
           )
         }
         elementalAffinity={elementalAffinity}
-        knownInvocationIds={(() => {
-          const ids: string[] = []
-          for (const row of model.draft.classes) {
-            if (!/колдун|warlock/i.test(row.name)) continue
-            const raw =
-              model.draft.featurePicks.values[`${row.id}:eldritch_invocations`] ?? ''
-            for (const id of raw.split(',')) {
-              const t = id.trim()
-              if (t) ids.push(t)
-            }
-          }
-          return ids
-        })()}
+        knownInvocationIds={collectWarlockInvocationIds({
+          classes: model.draft.classes,
+          featurePickValues: model.draft.featurePicks.values,
+          classOptionsInvocations:
+            model.baseCharacter.rules_edition === '2024'
+              ? model.draft.classOptions2024?.eldritch_invocations
+              : null,
+        })}
+        warlockLevel={
+          model.draft.classes.find((row) => /колдун|warlock/i.test(row.name))?.level ??
+          model.characterLevel
+        }
         abilities={model.effectiveAbilities}
         proficiencyBonus={model.proficiencyBonus}
         castProfiles={model.spellcastingSync.castProfiles}

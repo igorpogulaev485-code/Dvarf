@@ -67,7 +67,9 @@ import { abilityModifier, formatModifier, type AbilityKey } from './sheetTypes'
 import {
   agonizingBlastDamageBonus,
   eldritchBlastBeamCount,
+  eldritchSpearRangeFt,
   formatEldritchBlastDamagePreview,
+  formatEldritchSpearRangeRu,
   hasRepellingBlast,
   isEldritchBlastSpell,
   REPELLING_BLAST_HINT,
@@ -251,6 +253,8 @@ type CastSpellDialogProps = {
   elementalAffinity?: { damageType: string; amount: number } | null
   /** O-06: выбранные воззвания колдуна. */
   knownInvocationIds?: string[]
+  /** Warlock class level — EB beams / Eldritch Spear 2024. */
+  warlockLevel?: number
   /** Feature / ki pools, for cards that do not spend a spell slot. */
   resources?: SheetResource[]
   /** T-02: выбранные варианты метамагии чародея (id из sorcererMetamagic). */
@@ -299,6 +303,7 @@ export function CastSpellDialog({
   voiceOfAuthority = false,
   elementalAffinity = null,
   knownInvocationIds = [],
+  warlockLevel,
   resources,
   metamagicIds = [],
   initialMetamagicId = null,
@@ -694,28 +699,47 @@ export function CastSpellDialog({
       affinity,
     })
     if (!isEb) return summary
-    const beams = eldritchBlastBeamCount(characterLevel)
+    const beamLevel =
+      rulesEdition === '2024' && warlockLevel != null && warlockLevel > 0
+        ? warlockLevel
+        : characterLevel
+    const beams = eldritchBlastBeamCount(beamLevel)
     const preview = formatEldritchBlastDamagePreview({
-      characterLevel,
+      characterLevel: beamLevel,
       chaMod,
       hasAgonizing: agonizing !== 0,
     })
     const lines = [...summary.lines]
     if (beams > 1) {
       lines.unshift(`${beams} луча · каждый: ${preview.replace(/\s*×\d+\s*луча/, '')}`)
+    } else if (agonizing !== 0) {
+      lines.unshift(`1 луч · ${preview}`)
+    }
+    const spearFt = eldritchSpearRangeFt({
+      knownInvocationIds,
+      warlockLevel: warlockLevel ?? characterLevel,
+      rulesEdition,
+    })
+    if (spearFt != null) {
+      lines.push(
+        `Мистическое копьё: дальность ${formatEldritchSpearRangeRu(spearFt)}` +
+          (rulesEdition === '2024' ? ' (база +30×ур. колдуна)' : ' (300 фт)'),
+      )
     }
     if (hasRepellingBlast(knownInvocationIds)) {
       lines.push(REPELLING_BLAST_HINT)
     }
     return {
-      effect: beams > 1 ? preview : summary.effect || preview,
-      scaled: summary.scaled || beams > 1 || agonizing !== 0,
+      effect: beams > 1 || agonizing !== 0 ? preview : summary.effect || preview,
+      scaled: summary.scaled || beams > 1 || agonizing !== 0 || spearFt != null,
       lines,
     }
   }, [
     rulesSpell,
     spell,
     characterLevel,
+    warlockLevel,
+    rulesEdition,
     castSlot,
     damageChoice,
     elementalAffinity,
@@ -854,9 +878,23 @@ export function CastSpellDialog({
     ? Math.max(0, spells.pact_slots.max - spells.pact_slots.used)
     : 0
 
+  const isEbMeta = isEldritchBlastSpell({
+    name: spell.name,
+    catalogId: spell.catalog_id,
+    slug: (rulesSpell as { slug?: string } | null)?.slug,
+  })
+  const spearRangeFt = isEbMeta
+    ? eldritchSpearRangeFt({
+        knownInvocationIds,
+        warlockLevel: warlockLevel ?? characterLevel,
+        rulesEdition,
+      })
+    : null
   const metaPartsBase = [
     rulesSpell?.casting_time || spell.casting_time,
-    rulesSpell?.range || spell.range,
+    spearRangeFt != null
+      ? formatEldritchSpearRangeRu(spearRangeFt)
+      : rulesSpell?.range || spell.range,
     (rulesSpell?.duration || spell.duration)
       ? `длится ${rulesSpell?.duration || spell.duration}`
       : '',
