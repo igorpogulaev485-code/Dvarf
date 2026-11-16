@@ -74,7 +74,7 @@
     {
       "kind": "feat",
       "slug": "skilled",
-      "name_ru": "Одарённый",
+      "name_ru": "Умелый",
       "name_en": "Skilled",
       "source": "srd-5.2",
       "sort_order": 40,

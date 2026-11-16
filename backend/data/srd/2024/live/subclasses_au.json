@@ -108,7 +108,7 @@
     {
       "kind": "subclass",
       "slug": "fighter__arcane-archer",
-      "name_ru": "Чародейный стрелок",
+      "name_ru": "Мистический лучник",
       "name_en": "Arcane Archer",
       "source": "au",
       "sort_order": 20,

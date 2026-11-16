@@ -95,7 +95,7 @@
     {
       "kind": "item",
       "slug": "alchemy-jug",
-      "name_ru": "Алхимический сосуд",
+      "name_ru": "Алхимический кувшин",
       "name_en": "Alchemy Jug",
       "source": "dmg24",
       "sort_order": 20,
@@ -125,7 +125,7 @@
         "base_item_categories": [],
         "name_ru_pending": false,
         "text_ru_pending": false,
-        "summary_ru": "Алхимический сосуд: Чудесный предмет, необычный."
+        "summary_ru": "Алхимический кувшин: Чудесный предмет, необычный."
       }
     },
     {
@@ -146,7 +146,7 @@
         "magic_item_type": "weapon",
         "magic_item_type_ru": "оружие",
         "rarity": "varies",
-        "rarity_ru": "редкость различается",
+        "rarity_ru": "редкость варьируется",
         "requires_attunement": false,
         "attunement_restriction_ru": null,
         "charges": null,
@@ -242,7 +242,7 @@
     {
       "kind": "item",
       "slug": "armor-of-gleaming",
-      "name_ru": "Сверкающий доспех",
+      "name_ru": "Сияющий доспех",
       "name_en": "Armor of Gleaming",
       "source": "dmg24",
       "sort_order": 60,
@@ -276,13 +276,13 @@
         ],
         "name_ru_pending": false,
         "text_ru_pending": false,
-        "summary_ru": "Сверкающий доспех: Доспех, обычный; база: лёгкий доспех, средний доспех, тяжёлый доспех."
+        "summary_ru": "Сияющий доспех: Доспех, обычный; база: лёгкий доспех, средний доспех, тяжёлый доспех."
       }
     },
     {
       "kind": "item",
       "slug": "armor-1-2-or-3",
-      "name_ru": "Доспех +1, +2, +3",
+      "name_ru": "Доспех +1, +2 или +3",
       "name_en": "Armor, +1, +2, or +3",
       "source": "dmg24",
       "sort_order": 70,
@@ -297,7 +297,7 @@
         "magic_item_type": "armor",
         "magic_item_type_ru": "доспех",
         "rarity": "varies",
-        "rarity_ru": "редкость различается",
+        "rarity_ru": "редкость варьируется",
         "requires_attunement": false,
         "attunement_restriction_ru": null,
         "charges": null,
@@ -316,13 +316,13 @@
         ],
         "name_ru_pending": false,
         "text_ru_pending": false,
-        "summary_ru": "Доспех +1, +2, +3: Доспех, редкость различается; база: лёгкий доспех, средний доспех, тяжёлый доспех; семейство вариантов по редкости или уровню."
+        "summary_ru": "Доспех +1, +2 или +3: Доспех, редкость различается; база: лёгкий доспех, средний доспех, тяжёлый доспех; семейство вариантов по редкости или уровню."
       }
     },
     {
       "kind": "item",
       "slug": "axe-of-the-dwarvish-lords",
-      "name_ru": "Топор дварфийских владык",
+      "name_ru": "Топор повелителей дварфов",
       "name_en": "Axe of the Dwarvish Lords",
       "source": "dmg24",
       "sort_order": 80,
@@ -354,7 +354,7 @@
         ],
         "name_ru_pending": false,
         "text_ru_pending": false,
-        "summary_ru": "Топор дварфийских владык: Оружие, артефакт; требуется настройка; база: боевой топор; разумный.",
+        "summary_ru": "Топор повелителей дварфов: Оружие, артефакт; требуется настройка; база: боевой топор; разумный.",
         "artifact": true,
         "sentient_traits": {
           "note_ru": "Разумный предмет; характеристики и мировоззрение задаёт мастер."
@@ -694,7 +694,7 @@
     {
       "kind": "item",
       "slug": "book-of-exalted-deeds",
-      "name_ru": "Книга превозносимых деяний",
+      "name_ru": "Книга возвышенных деяний",
       "name_en": "Book of Exalted Deeds",
       "source": "dmg24",
       "sort_order": 180,
@@ -724,7 +724,7 @@
         "base_item_categories": [],
         "name_ru_pending": false,
         "text_ru_pending": false,
-        "summary_ru": "Книга превозносимых деяний: Чудесный предмет, артефакт; требуется настройка.",
+        "summary_ru": "Книга возвышенных деяний: Чудесный предмет, артефакт; требуется настройка.",
         "artifact": true
       }
     },
@@ -771,7 +771,7 @@
     {
       "kind": "item",
       "slug": "boots-of-false-tracks",
-      "name_ru": "Сапоги ложных следов",
+      "name_ru": "Сапоги ложного следа",
       "name_en": "Boots of False Tracks",
       "source": "dmg24",
       "sort_order": 200,
@@ -801,7 +801,7 @@
         "base_item_categories": [],
         "name_ru_pending": false,
         "text_ru_pending": false,
-        "summary_ru": "Сапоги ложных следов: Чудесный предмет, обычный; требуется настройка."
+        "summary_ru": "Сапоги ложного следа: Чудесный предмет, обычный; требуется настройка."
       }
     },
     {
@@ -915,7 +915,7 @@
     {
       "kind": "item",
       "slug": "cast-off-armor",
-      "name_ru": "Доспех сбрасывания",
+      "name_ru": "Доспех быстрого снятия",
       "name_en": "Cast-Off Armor",
       "source": "dmg24",
       "sort_order": 240,
@@ -949,7 +949,7 @@
         ],
         "name_ru_pending": false,
         "text_ru_pending": false,
-        "summary_ru": "Доспех сбрасывания: Доспех, обычный; база: лёгкий доспех, средний доспех, тяжёлый доспех."
+        "summary_ru": "Доспех быстрого снятия: Доспех, обычный; база: лёгкий доспех, средний доспех, тяжёлый доспех."
       }
     },
     {
@@ -1063,7 +1063,7 @@
     {
       "kind": "item",
       "slug": "cloak-of-billowing",
-      "name_ru": "Развевающийся плащ",
+      "name_ru": "Плащ развевания",
       "name_en": "Cloak of Billowing",
       "source": "dmg24",
       "sort_order": 280,
@@ -1093,13 +1093,13 @@
         "base_item_categories": [],
         "name_ru_pending": false,
         "text_ru_pending": false,
-        "summary_ru": "Развевающийся плащ: Чудесный предмет, обычный."
+        "summary_ru": "Плащ развевания: Чудесный предмет, обычный."
       }
     },
     {
       "kind": "item",
       "slug": "cloak-of-many-fashions",
-      "name_ru": "Плащ множества стилей",
+      "name_ru": "Плащ многих обличий",
       "name_en": "Cloak of Many Fashions",
       "source": "dmg24",
       "sort_order": 290,
@@ -1129,13 +1129,13 @@
         "base_item_categories": [],
         "name_ru_pending": false,
         "text_ru_pending": false,
-        "summary_ru": "Плащ множества стилей: Чудесный предмет, обычный."
+        "summary_ru": "Плащ многих обличий: Чудесный предмет, обычный."
       }
     },
     {
       "kind": "item",
       "slug": "clockwork-amulet",
-      "name_ru": "Механистический амулет",
+      "name_ru": "Заводной амулет",
       "name_en": "Clockwork Amulet",
       "source": "dmg24",
       "sort_order": 300,
@@ -1165,7 +1165,7 @@
         "base_item_categories": [],
         "name_ru_pending": false,
         "text_ru_pending": false,
-        "summary_ru": "Механистический амулет: Чудесный предмет, обычный."
+        "summary_ru": "Заводной амулет: Чудесный предмет, обычный."
       }
     },
     {
@@ -1465,7 +1465,7 @@
     {
       "kind": "item",
       "slug": "driftglobe",
-      "name_ru": "Парящая сфера",
+      "name_ru": "Сфера-светильник",
       "name_en": "Driftglobe",
       "source": "dmg24",
       "sort_order": 390,
@@ -1495,13 +1495,13 @@
         "base_item_categories": [],
         "name_ru_pending": false,
         "text_ru_pending": false,
-        "summary_ru": "Парящая сфера: Чудесный предмет, необычный."
+        "summary_ru": "Сфера-светильник: Чудесный предмет, необычный."
       }
     },
     {
       "kind": "item",
       "slug": "ear-horn-of-hearing",
-      "name_ru": "Слуховой рог",
+      "name_ru": "Рожок слуха",
       "name_en": "Ear Horn of Hearing",
       "source": "dmg24",
       "sort_order": 400,
@@ -1531,7 +1531,7 @@
         "base_item_categories": [],
         "name_ru_pending": false,
         "text_ru_pending": false,
-        "summary_ru": "Слуховой рог: Чудесный предмет, обычный."
+        "summary_ru": "Рожок слуха: Чудесный предмет, обычный."
       }
     },
     {
@@ -1624,7 +1624,7 @@
         "magic_item_type": "armor",
         "magic_item_type_ru": "доспех",
         "rarity": "varies",
-        "rarity_ru": "редкость различается",
+        "rarity_ru": "редкость варьируется",
         "requires_attunement": true,
         "attunement_restriction_ru": null,
         "charges": null,
@@ -2024,7 +2024,7 @@
         "magic_item_type": "staff",
         "magic_item_type_ru": "посох",
         "rarity": "varies",
-        "rarity_ru": "редкость различается",
+        "rarity_ru": "редкость варьируется",
         "requires_attunement": true,
         "attunement_restriction_ru": "заклинатель",
         "charges": null,
@@ -2384,7 +2384,7 @@
         "magic_item_type": "weapon",
         "magic_item_type_ru": "оружие",
         "rarity": "varies",
-        "rarity_ru": "редкость различается",
+        "rarity_ru": "редкость варьируется",
         "requires_attunement": true,
         "attunement_restriction_ru": null,
         "charges": null,
@@ -3164,7 +3164,7 @@
     {
       "kind": "item",
       "slug": "figurine-of-wondrous-power-silver-raven",
-      "name_ru": "Статуэтка чудесной силы (серебряный ворон)",
+      "name_ru": "Фигурка серебряного ворона",
       "name_en": "Figurine of Wondrous Power (silver raven)",
       "source": "dmg24",
       "sort_order": 840,
@@ -3194,7 +3194,7 @@
         "base_item_categories": [],
         "name_ru_pending": false,
         "text_ru_pending": false,
-        "summary_ru": "Статуэтка чудесной силы (серебряный ворон): Чудесный предмет, необычный."
+        "summary_ru": "Фигурка серебряного ворона: Чудесный предмет, необычный."
       }
     },
     {
@@ -3272,7 +3272,7 @@
     {
       "kind": "item",
       "slug": "hat-of-vermin",
-      "name_ru": "Шляпа вредителей",
+      "name_ru": "Шляпа паразитов",
       "name_en": "Hat of Vermin",
       "source": "dmg24",
       "sort_order": 870,
@@ -3302,7 +3302,7 @@
         "base_item_categories": [],
         "name_ru_pending": false,
         "text_ru_pending": false,
-        "summary_ru": "Шляпа вредителей: Чудесный предмет, обычный."
+        "summary_ru": "Шляпа паразитов: Чудесный предмет, обычный."
       }
     },
     {
@@ -3417,7 +3417,7 @@
     {
       "kind": "item",
       "slug": "horn-of-silent-alarm",
-      "name_ru": "Рог беззвучного сигнала",
+      "name_ru": "Рог тихого сигнала",
       "name_en": "Horn of Silent Alarm",
       "source": "dmg24",
       "sort_order": 910,
@@ -3447,13 +3447,13 @@
         "base_item_categories": [],
         "name_ru_pending": false,
         "text_ru_pending": false,
-        "summary_ru": "Рог беззвучного сигнала: Чудесный предмет, обычный."
+        "summary_ru": "Рог тихого сигнала: Чудесный предмет, обычный."
       }
     },
     {
       "kind": "item",
       "slug": "horn-of-valhalla-brass",
-      "name_ru": "Рог Вальхаллы (латунный)",
+      "name_ru": "Рог Валгаллы (латунный)",
       "name_en": "Horn of Valhalla (Brass)",
       "source": "dmg24",
       "sort_order": 920,
@@ -3483,13 +3483,13 @@
         "base_item_categories": [],
         "name_ru_pending": false,
         "text_ru_pending": false,
-        "summary_ru": "Рог Вальхаллы (латунный): Чудесный предмет, редкий."
+        "summary_ru": "Рог Валгаллы (латунный): Чудесный предмет, редкий."
       }
     },
     {
       "kind": "item",
       "slug": "horn-of-valhalla-bronze",
-      "name_ru": "Рог Вальхаллы (бронзовый)",
+      "name_ru": "Рог Валгаллы (бронзовый)",
       "name_en": "Horn of Valhalla (Bronze)",
       "source": "dmg24",
       "sort_order": 930,
@@ -3519,13 +3519,13 @@
         "base_item_categories": [],
         "name_ru_pending": false,
         "text_ru_pending": false,
-        "summary_ru": "Рог Вальхаллы (бронзовый): Чудесный предмет, очень редкий."
+        "summary_ru": "Рог Валгаллы (бронзовый): Чудесный предмет, очень редкий."
       }
     },
     {
       "kind": "item",
       "slug": "horn-of-valhalla-iron",
-      "name_ru": "Рог Вальхаллы (железный)",
+      "name_ru": "Рог Валгаллы (железный)",
       "name_en": "Horn of Valhalla (Iron)",
       "source": "dmg24",
       "sort_order": 940,
@@ -3555,13 +3555,13 @@
         "base_item_categories": [],
         "name_ru_pending": false,
         "text_ru_pending": false,
-        "summary_ru": "Рог Вальхаллы (железный): Чудесный предмет, легендарный."
+        "summary_ru": "Рог Валгаллы (железный): Чудесный предмет, легендарный."
       }
     },
     {
       "kind": "item",
       "slug": "horn-of-valhalla-silver",
-      "name_ru": "Рог Вальхаллы (серебряный)",
+      "name_ru": "Рог Валгаллы (серебряный)",
       "name_en": "Horn of Valhalla (Silver)",
       "source": "dmg24",
       "sort_order": 950,
@@ -3591,7 +3591,7 @@
         "base_item_categories": [],
         "name_ru_pending": false,
         "text_ru_pending": false,
-        "summary_ru": "Рог Вальхаллы (серебряный): Чудесный предмет, редкий."
+        "summary_ru": "Рог Валгаллы (серебряный): Чудесный предмет, редкий."
       }
     },
     {
@@ -3633,7 +3633,7 @@
     {
       "kind": "item",
       "slug": "instrument-of-scribing",
-      "name_ru": "Инструмент надписей",
+      "name_ru": "Инструмент записи",
       "name_en": "Instrument of Scribing",
       "source": "dmg24",
       "sort_order": 970,
@@ -3663,7 +3663,7 @@
         "base_item_categories": [],
         "name_ru_pending": false,
         "text_ru_pending": false,
-        "summary_ru": "Инструмент надписей: Чудесный предмет, обычный."
+        "summary_ru": "Инструмент записи: Чудесный предмет, обычный."
       }
     },
     {
@@ -3684,7 +3684,7 @@
         "magic_item_type": "wondrous",
         "magic_item_type_ru": "чудесный предмет",
         "rarity": "varies",
-        "rarity_ru": "редкость различается",
+        "rarity_ru": "редкость варьируется",
         "requires_attunement": true,
         "attunement_restriction_ru": "бард",
         "charges": null,
@@ -3741,7 +3741,7 @@
     {
       "kind": "item",
       "slug": "ioun-stone-agility",
-      "name_ru": "Камень Айун (проворство)",
+      "name_ru": "Камень Иоун (ловкости)",
       "name_en": "Ioun Stone (agility)",
       "source": "dmg24",
       "sort_order": 1000,
@@ -3771,13 +3771,13 @@
         "base_item_categories": [],
         "name_ru_pending": false,
         "text_ru_pending": false,
-        "summary_ru": "Камень Айун (проворство): Чудесный предмет, очень редкий; требуется настройка."
+        "summary_ru": "Камень Иоун (ловкости): Чудесный предмет, очень редкий; требуется настройка."
       }
     },
     {
       "kind": "item",
       "slug": "ioun-stone-awareness",
-      "name_ru": "Камень Айун (осведомлённость)",
+      "name_ru": "Камень Иоун (осознания)",
       "name_en": "Ioun Stone (awareness)",
       "source": "dmg24",
       "sort_order": 1010,
@@ -3807,13 +3807,13 @@
         "base_item_categories": [],
         "name_ru_pending": false,
         "text_ru_pending": false,
-        "summary_ru": "Камень Айун (осведомлённость): Чудесный предмет, редкий; требуется настройка."
+        "summary_ru": "Камень Иоун (осознания): Чудесный предмет, редкий; требуется настройка."
       }
     },
     {
       "kind": "item",
       "slug": "ioun-stone-fortitude",
-      "name_ru": "Камень Айун (стойкость)",
+      "name_ru": "Камень Иоун (стойкости)",
       "name_en": "Ioun Stone (fortitude)",
       "source": "dmg24",
       "sort_order": 1020,
@@ -3843,7 +3843,7 @@
         "base_item_categories": [],
         "name_ru_pending": false,
         "text_ru_pending": false,
-        "summary_ru": "Камень Айун (стойкость): Чудесный предмет, очень редкий; требуется настройка."
+        "summary_ru": "Камень Иоун (стойкости): Чудесный предмет, очень редкий; требуется настройка."
       }
     },
     {
@@ -3885,7 +3885,7 @@
     {
       "kind": "item",
       "slug": "ioun-stone-insight",
-      "name_ru": "Камень Айун (проницательность)",
+      "name_ru": "Камень Иоун (прозрения)",
       "name_en": "Ioun Stone (insight)",
       "source": "dmg24",
       "sort_order": 1040,
@@ -3915,13 +3915,13 @@
         "base_item_categories": [],
         "name_ru_pending": false,
         "text_ru_pending": false,
-        "summary_ru": "Камень Айун (проницательность): Чудесный предмет, очень редкий; требуется настройка."
+        "summary_ru": "Камень Иоун (прозрения): Чудесный предмет, очень редкий; требуется настройка."
       }
     },
     {
       "kind": "item",
       "slug": "ioun-stone-intellect",
-      "name_ru": "Камень Айун (рассудок)",
+      "name_ru": "Камень Иоун (интеллекта)",
       "name_en": "Ioun Stone (intellect)",
       "source": "dmg24",
       "sort_order": 1050,
@@ -3951,13 +3951,13 @@
         "base_item_categories": [],
         "name_ru_pending": false,
         "text_ru_pending": false,
-        "summary_ru": "Камень Айун (рассудок): Чудесный предмет, очень редкий; требуется настройка."
+        "summary_ru": "Камень Иоун (интеллекта): Чудесный предмет, очень редкий; требуется настройка."
       }
     },
     {
       "kind": "item",
       "slug": "ioun-stone-leadership",
-      "name_ru": "Камень Айун (лидерство)",
+      "name_ru": "Камень Иоун (лидерства)",
       "name_en": "Ioun Stone (leadership)",
       "source": "dmg24",
       "sort_order": 1060,
@@ -3987,13 +3987,13 @@
         "base_item_categories": [],
         "name_ru_pending": false,
         "text_ru_pending": false,
-        "summary_ru": "Камень Айун (лидерство): Чудесный предмет, очень редкий; требуется настройка."
+        "summary_ru": "Камень Иоун (лидерства): Чудесный предмет, очень редкий; требуется настройка."
       }
     },
     {
       "kind": "item",
       "slug": "ioun-stone-mastery",
-      "name_ru": "Камень Айун (искусность)",
+      "name_ru": "Камень Иоун (мастерства)",
       "name_en": "Ioun Stone (mastery)",
       "source": "dmg24",
       "sort_order": 1070,
@@ -4023,13 +4023,13 @@
         "base_item_categories": [],
         "name_ru_pending": false,
         "text_ru_pending": false,
-        "summary_ru": "Камень Айун (искусность): Чудесный предмет, легендарный; требуется настройка."
+        "summary_ru": "Камень Иоун (мастерства): Чудесный предмет, легендарный; требуется настройка."
       }
     },
     {
       "kind": "item",
       "slug": "ioun-stone-protection",
-      "name_ru": "Камень Айун (защита)",
+      "name_ru": "Камень Иоун (защиты)",
       "name_en": "Ioun Stone (protection)",
       "source": "dmg24",
       "sort_order": 1080,
@@ -4059,7 +4059,7 @@
         "base_item_categories": [],
         "name_ru_pending": false,
         "text_ru_pending": false,
-        "summary_ru": "Камень Айун (защита): Чудесный предмет, редкий; требуется настройка."
+        "summary_ru": "Камень Иоун (защиты): Чудесный предмет, редкий; требуется настройка."
       }
     },
     {
@@ -4101,7 +4101,7 @@
     {
       "kind": "item",
       "slug": "ioun-stone-reserve",
-      "name_ru": "Камень Айун (резерв)",
+      "name_ru": "Камень Иоун (запаса)",
       "name_en": "Ioun Stone (reserve)",
       "source": "dmg24",
       "sort_order": 1100,
@@ -4131,13 +4131,13 @@
         "base_item_categories": [],
         "name_ru_pending": false,
         "text_ru_pending": false,
-        "summary_ru": "Камень Айун (резерв): Чудесный предмет, редкий; требуется настройка."
+        "summary_ru": "Камень Иоун (запаса): Чудесный предмет, редкий; требуется настройка."
       }
     },
     {
       "kind": "item",
       "slug": "ioun-stone-strength",
-      "name_ru": "Камень Айун (сила)",
+      "name_ru": "Камень Иоун (силы)",
       "name_en": "Ioun Stone (strength)",
       "source": "dmg24",
       "sort_order": 1110,
@@ -4167,13 +4167,13 @@
         "base_item_categories": [],
         "name_ru_pending": false,
         "text_ru_pending": false,
-        "summary_ru": "Камень Айун (сила): Чудесный предмет, очень редкий; требуется настройка."
+        "summary_ru": "Камень Иоун (силы): Чудесный предмет, очень редкий; требуется настройка."
       }
     },
     {
       "kind": "item",
       "slug": "ioun-stone-sustenance",
-      "name_ru": "Камень Айун (питание)",
+      "name_ru": "Камень Иоун (питания)",
       "name_en": "Ioun Stone (sustenance)",
       "source": "dmg24",
       "sort_order": 1120,
@@ -4203,7 +4203,7 @@
         "base_item_categories": [],
         "name_ru_pending": false,
         "text_ru_pending": false,
-        "summary_ru": "Камень Айун (питание): Чудесный предмет, редкий; требуется настройка."
+        "summary_ru": "Камень Иоун (питания): Чудесный предмет, редкий; требуется настройка."
       }
     },
     {
@@ -4282,7 +4282,7 @@
     {
       "kind": "item",
       "slug": "lock-of-trickery",
-      "name_ru": "Плутовской замок",
+      "name_ru": "Замок хитрости",
       "name_en": "Lock of Trickery",
       "source": "dmg24",
       "sort_order": 1150,
@@ -4312,7 +4312,7 @@
         "base_item_categories": [],
         "name_ru_pending": false,
         "text_ru_pending": false,
-        "summary_ru": "Плутовской замок: Чудесный предмет, обычный."
+        "summary_ru": "Замок хитрости: Чудесный предмет, обычный."
       }
     },
     {
@@ -4356,7 +4356,7 @@
     {
       "kind": "item",
       "slug": "mac-fuirmidh-cittern",
-      "name_ru": "Цистра Мак-Фурми",
+      "name_ru": "Цитра Мак-Фуирми",
       "name_en": "Mac-Fuirmidh cittern",
       "source": "dmg24",
       "sort_order": 1170,
@@ -4386,13 +4386,13 @@
         "base_item_categories": [],
         "name_ru_pending": false,
         "text_ru_pending": false,
-        "summary_ru": "Цистра Мак-Фурми: Чудесный предмет, необычный; настройка: бард."
+        "summary_ru": "Цитра Мак-Фуирми: Чудесный предмет, необычный; настройка: бард."
       }
     },
     {
       "kind": "item",
       "slug": "manual-of-golems-clay",
-      "name_ru": "Справочник по глиняным големам",
+      "name_ru": "Справочник по големам (глина)",
       "name_en": "Manual of Golems (Clay)",
       "source": "dmg24",
       "sort_order": 1180,
@@ -4422,13 +4422,13 @@
         "base_item_categories": [],
         "name_ru_pending": false,
         "text_ru_pending": false,
-        "summary_ru": "Справочник по глиняным големам: Чудесный предмет, очень редкий."
+        "summary_ru": "Справочник по големам (глина): Чудесный предмет, очень редкий."
       }
     },
     {
       "kind": "item",
       "slug": "manual-of-golems-flesh",
-      "name_ru": "Справочник по мясным големам",
+      "name_ru": "Справочник по големам (плоть)",
       "name_en": "Manual of Golems (Flesh)",
       "source": "dmg24",
       "sort_order": 1190,
@@ -4458,13 +4458,13 @@
         "base_item_categories": [],
         "name_ru_pending": false,
         "text_ru_pending": false,
-        "summary_ru": "Справочник по мясным големам: Чудесный предмет, очень редкий."
+        "summary_ru": "Справочник по големам (плоть): Чудесный предмет, очень редкий."
       }
     },
     {
       "kind": "item",
       "slug": "manual-of-golems-iron",
-      "name_ru": "Справочник по железным големам",
+      "name_ru": "Справочник по големам (железо)",
       "name_en": "Manual of Golems (Iron)",
       "source": "dmg24",
       "sort_order": 1200,
@@ -4494,13 +4494,13 @@
         "base_item_categories": [],
         "name_ru_pending": false,
         "text_ru_pending": false,
-        "summary_ru": "Справочник по железным големам: Чудесный предмет, очень редкий."
+        "summary_ru": "Справочник по големам (железо): Чудесный предмет, очень редкий."
       }
     },
     {
       "kind": "item",
       "slug": "manual-of-golems-stone",
-      "name_ru": "Справочник по каменным големам",
+      "name_ru": "Справочник по големам (камень)",
       "name_en": "Manual of Golems (Stone)",
       "source": "dmg24",
       "sort_order": 1210,
@@ -4530,7 +4530,7 @@
         "base_item_categories": [],
         "name_ru_pending": false,
         "text_ru_pending": false,
-        "summary_ru": "Справочник по каменным големам: Чудесный предмет, очень редкий."
+        "summary_ru": "Справочник по големам (камень): Чудесный предмет, очень редкий."
       }
     },
     {
@@ -4576,7 +4576,7 @@
     {
       "kind": "item",
       "slug": "moon-touched-sword",
-      "name_ru": "Осенённый луной меч",
+      "name_ru": "Меч лунного касания",
       "name_en": "Moon-Touched Sword",
       "source": "dmg24",
       "sort_order": 1230,
@@ -4613,7 +4613,7 @@
         ],
         "name_ru_pending": false,
         "text_ru_pending": false,
-        "summary_ru": "Осенённый луной меч: Оружие, обычный; база: глефа, двуручный меч, длинный меч, короткий меч, рапира, скимитар."
+        "summary_ru": "Меч лунного касания: Оружие, обычный; база: глефа, двуручный меч, длинный меч, короткий меч, рапира, скимитар."
       }
     },
     {
@@ -4664,7 +4664,7 @@
     {
       "kind": "item",
       "slug": "mystery-key",
-      "name_ru": "Таинственный ключ",
+      "name_ru": "Загадочный ключ",
       "name_en": "Mystery Key",
       "source": "dmg24",
       "sort_order": 1250,
@@ -4694,13 +4694,13 @@
         "base_item_categories": [],
         "name_ru_pending": false,
         "text_ru_pending": false,
-        "summary_ru": "Таинственный ключ: Чудесный предмет, обычный."
+        "summary_ru": "Загадочный ключ: Чудесный предмет, обычный."
       }
     },
     {
       "kind": "item",
       "slug": "natures-mantle",
-      "name_ru": "Одеяние природы",
+      "name_ru": "Мантия природы",
       "name_en": "Nature’s Mantle",
       "source": "dmg24",
       "sort_order": 1260,
@@ -4730,7 +4730,7 @@
         "base_item_categories": [],
         "name_ru_pending": false,
         "text_ru_pending": false,
-        "summary_ru": "Одеяние природы: Чудесный предмет, необычный; настройка: друид или следопыт."
+        "summary_ru": "Мантия природы: Чудесный предмет, необычный; настройка: друид или следопыт."
       }
     },
     {
@@ -4773,7 +4773,7 @@
     {
       "kind": "item",
       "slug": "ollamh-harp",
-      "name_ru": "Арфа Оллав",
+      "name_ru": "Арфа Оллава",
       "name_en": "Ollamh harp",
       "source": "dmg24",
       "sort_order": 1280,
@@ -4803,7 +4803,7 @@
         "base_item_categories": [],
         "name_ru_pending": false,
         "text_ru_pending": false,
-        "summary_ru": "Арфа Оллав: Чудесный предмет, легендарный; настройка: бард."
+        "summary_ru": "Арфа Оллава: Чудесный предмет, легендарный; настройка: бард."
       }
     },
     {
@@ -4845,7 +4845,7 @@
     {
       "kind": "item",
       "slug": "orb-of-dragonkind",
-      "name_ru": "Око Дракона",
+      "name_ru": "Сфера драконьего рода",
       "name_en": "Orb of Dragonkind",
       "source": "dmg24",
       "sort_order": 1300,
@@ -4875,7 +4875,7 @@
         "base_item_categories": [],
         "name_ru_pending": false,
         "text_ru_pending": false,
-        "summary_ru": "Око Дракона: Чудесный предмет, артефакт; требуется настройка; именная версия предмета из открытых правил.",
+        "summary_ru": "Сфера драконьего рода: Чудесный предмет, артефакт; требуется настройка; именная версия предмета из открытых правил.",
         "srd_alias": "dragon-orb",
         "artifact": true
       }
@@ -4919,7 +4919,7 @@
     {
       "kind": "item",
       "slug": "perfume-of-bewitching",
-      "name_ru": "Парфюм очарования",
+      "name_ru": "Духи очарования",
       "name_en": "Perfume of Bewitching",
       "source": "dmg24",
       "sort_order": 1320,
@@ -4949,13 +4949,13 @@
         "base_item_categories": [],
         "name_ru_pending": false,
         "text_ru_pending": false,
-        "summary_ru": "Парфюм очарования: Чудесный предмет, обычный."
+        "summary_ru": "Духи очарования: Чудесный предмет, обычный."
       }
     },
     {
       "kind": "item",
       "slug": "pipe-of-smoke-monsters",
-      "name_ru": "Трубка дымных чудовищ",
+      "name_ru": "Трубка дымовых чудищ",
       "name_en": "Pipe of Smoke Monsters",
       "source": "dmg24",
       "sort_order": 1330,
@@ -4985,7 +4985,7 @@
         "base_item_categories": [],
         "name_ru_pending": false,
         "text_ru_pending": false,
-        "summary_ru": "Трубка дымных чудовищ: Чудесный предмет, обычный."
+        "summary_ru": "Трубка дымовых чудищ: Чудесный предмет, обычный."
       }
     },
     {
@@ -5186,7 +5186,7 @@
         "magic_item_type": "potion",
         "magic_item_type_ru": "зелье",
         "rarity": "varies",
-        "rarity_ru": "редкость различается",
+        "rarity_ru": "редкость варьируется",
         "requires_attunement": false,
         "attunement_restriction_ru": null,
         "charges": null,
@@ -5258,7 +5258,7 @@
         "magic_item_type": "potion",
         "magic_item_type_ru": "зелье",
         "rarity": "varies",
-        "rarity_ru": "редкость различается",
+        "rarity_ru": "редкость варьируется",
         "requires_attunement": false,
         "attunement_restriction_ru": null,
         "charges": null,
@@ -5367,7 +5367,7 @@
         "magic_item_type": "wondrous",
         "magic_item_type_ru": "чудесный предмет",
         "rarity": "varies",
-        "rarity_ru": "редкость различается",
+        "rarity_ru": "редкость варьируется",
         "requires_attunement": false,
         "attunement_restriction_ru": null,
         "charges": null,
@@ -5497,7 +5497,7 @@
     {
       "kind": "item",
       "slug": "quaals-feather-token-swan-boat",
-      "name_ru": "Перо Кваля (лодка-лебедь)",
+      "name_ru": "Перо Кваля (лебединая ладья)",
       "name_en": "Quaal’s Feather Token (swan boat)",
       "source": "dmg24",
       "sort_order": 1480,
@@ -5527,7 +5527,7 @@
         "base_item_categories": [],
         "name_ru_pending": false,
         "text_ru_pending": false,
-        "summary_ru": "Перо Кваля (лодка-лебедь): Чудесный предмет, редкий."
+        "summary_ru": "Перо Кваля (лебединая ладья): Чудесный предмет, редкий."
       }
     },
     {
@@ -5837,7 +5837,7 @@
         "magic_item_type": "rod",
         "magic_item_type_ru": "жезл",
         "rarity": "varies",
-        "rarity_ru": "редкость различается",
+        "rarity_ru": "редкость варьируется",
         "requires_attunement": true,
         "attunement_restriction_ru": "колдун",
         "charges": null,
@@ -5966,7 +5966,7 @@
     {
       "kind": "item",
       "slug": "rope-of-mending",
-      "name_ru": "Срастающаяся верёвка",
+      "name_ru": "Верёвка починки",
       "name_en": "Rope of Mending",
       "source": "dmg24",
       "sort_order": 1610,
@@ -5996,7 +5996,7 @@
         "base_item_categories": [],
         "name_ru_pending": false,
         "text_ru_pending": false,
-        "summary_ru": "Срастающаяся верёвка: Чудесный предмет, обычный."
+        "summary_ru": "Верёвка починки: Чудесный предмет, обычный."
       }
     },
     {
@@ -6199,7 +6199,7 @@
         "magic_item_type": "armor",
         "magic_item_type_ru": "доспех",
         "rarity": "varies",
-        "rarity_ru": "редкость различается",
+        "rarity_ru": "редкость варьируется",
         "requires_attunement": false,
         "attunement_restriction_ru": null,
         "charges": null,
@@ -6316,7 +6316,7 @@
         "magic_item_type": "scroll",
         "magic_item_type_ru": "свиток",
         "rarity": "varies",
-        "rarity_ru": "редкость различается",
+        "rarity_ru": "редкость варьируется",
         "requires_attunement": false,
         "attunement_restriction_ru": null,
         "charges": null,
@@ -6939,7 +6939,7 @@
     {
       "kind": "item",
       "slug": "wand-of-orcus",
-      "name_ru": "Волшебная палочка Оркуса",
+      "name_ru": "Жезл Оркуса",
       "name_en": "Wand of Orcus",
       "source": "dmg24",
       "sort_order": 1870,
@@ -6969,7 +6969,7 @@
         "base_item_categories": [],
         "name_ru_pending": false,
         "text_ru_pending": false,
-        "summary_ru": "Волшебная палочка Оркуса: Палочка, артефакт; требуется настройка; разумный.",
+        "summary_ru": "Жезл Оркуса: Палочка, артефакт; требуется настройка; разумный.",
         "artifact": true,
         "sentient_traits": {
           "note_ru": "Разумный предмет; характеристики и мировоззрение задаёт мастер."
@@ -7030,7 +7030,7 @@
         "magic_item_type": "wand",
         "magic_item_type_ru": "палочка",
         "rarity": "varies",
-        "rarity_ru": "редкость различается",
+        "rarity_ru": "редкость варьируется",
         "requires_attunement": true,
         "attunement_restriction_ru": "заклинатель",
         "charges": null,
@@ -7093,7 +7093,7 @@
     {
       "kind": "item",
       "slug": "weapon-1-2-or-3",
-      "name_ru": "Оружие +1, +2, +3",
+      "name_ru": "Оружие +1, +2 или +3",
       "name_en": "Weapon, +1, +2, or +3",
       "source": "dmg24",
       "sort_order": 1910,
@@ -7108,7 +7108,7 @@
         "magic_item_type": "weapon",
         "magic_item_type_ru": "оружие",
         "rarity": "varies",
-        "rarity_ru": "редкость различается",
+        "rarity_ru": "редкость варьируется",
         "requires_attunement": false,
         "attunement_restriction_ru": null,
         "charges": null,
@@ -7126,7 +7126,7 @@
         ],
         "name_ru_pending": false,
         "text_ru_pending": false,
-        "summary_ru": "Оружие +1, +2, +3: Оружие, редкость различается; база: простое оружие, воинское оружие; семейство вариантов по редкости или уровню."
+        "summary_ru": "Оружие +1, +2 или +3: Оружие, редкость различается; база: простое оружие, воинское оружие; семейство вариантов по редкости или уровню."
       }
     },
     {
@@ -7149,7 +7149,7 @@
         "rarity": "artifact",
         "rarity_ru": "артефакт",
         "requires_attunement": true,
-        "attunement_restriction_ru": "дварф или существо, настроенное на Пояс дварфов",
+        "attunement_restriction_ru": "дварф или существо, настроенное на Пояс дварфийского рода",
         "charges": null,
         "recharge_ru": null,
         "bonus_attack": null,
@@ -7164,7 +7164,7 @@
         ],
         "name_ru_pending": false,
         "text_ru_pending": false,
-        "summary_ru": "Сокрушитель: Оружие, артефакт; настройка: дварф или существо, настроенное на Пояс дварфов; база: молот; разумный.",
+        "summary_ru": "Сокрушитель: Оружие, артефакт; настройка: дварф или существо, настроенное на Пояс дварфийского рода; база: молот; разумный.",
         "artifact": true,
         "sentient_traits": {
           "note_ru": "Разумный предмет; характеристики и мировоззрение задаёт мастер."
@@ -7189,7 +7189,7 @@
         "magic_item_type": "wondrous",
         "magic_item_type_ru": "чудесный предмет",
         "rarity": "varies",
-        "rarity_ru": "редкость различается",
+        "rarity_ru": "редкость варьируется",
         "requires_attunement": false,
         "attunement_restriction_ru": null,
         "charges": null,

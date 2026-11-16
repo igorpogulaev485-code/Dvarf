@@ -1,6 +1,6 @@
 id,class_id,subclass_id,name_en,name_ru,book,category,url_dndsu,url_ttg,srd
 cleric__arcana-domain,cleric,arcana-domain,Arcana Domain,Домен магии,AU,subclasses,https://next.dnd.su/class/cleric,,false
-fighter__arcane-archer,fighter,arcane-archer,Arcane Archer,Чародейный стрелок,AU,subclasses,https://next.dnd.su/class/fighter,,false
+fighter__arcane-archer,fighter,arcane-archer,Arcane Archer,Мистический лучник,AU,subclasses,https://next.dnd.su/class/fighter,,false
 monk__warrior-of-the-mystic-arts,monk,warrior-of-the-mystic-arts,Warrior of the Mystic Arts,Мистический воин,AU,subclasses,https://next.dnd.su/class/monk,,false
 warlock__vestige-patron,warlock,vestige-patron,Vestige Patron,Предтеча,AU,subclasses,https://next.dnd.su/class/warlock,,false
 wizard__conjurer,wizard,conjurer,Conjurer,Призыватель,AU,subclasses,https://next.dnd.su/class/wizard,,false
@@ -36,7 +36,7 @@ druid__land,druid,land,Circle of the Land,Круг земли,PH24,subclasses,ht
 druid__moon,druid,moon,Circle of the Moon,Круг луны,PH24,subclasses,https://next.dnd.su/class/druid,,false
 druid__sea,druid,sea,Circle of the Sea,Круг моря,PH24,subclasses,https://next.dnd.su/class/druid,,false
 druid__stars,druid,stars,Circle of the Stars,Круг звёзд,PH24,subclasses,https://next.dnd.su/class/druid,,false
-fighter__battlemaster,fighter,battlemaster,Battle Master,Мастер боя,PH24,subclasses,https://next.dnd.su/class/fighter,,false
+fighter__battlemaster,fighter,battlemaster,Battle Master,Мастер боевых искусств,PH24,subclasses,https://next.dnd.su/class/fighter,,false
 fighter__champion,fighter,champion,Champion,Чемпион,PH24,subclasses,https://next.dnd.su/class/fighter,,true
 fighter__eldritch-knight,fighter,eldritch-knight,Eldritch Knight,Мистический рыцарь,PH24,subclasses,https://next.dnd.su/class/fighter,,false
 fighter__psi-warrior,fighter,psi-warrior,Psi Warrior,Пси-воин,PH24,subclasses,https://next.dnd.su/class/fighter,,false
@@ -47,14 +47,14 @@ monk__warrior-of-the-hand,monk,warrior-of-the-hand,Warrior of the Open Hand,Во
 paladin__oath-of-devotion,paladin,oath-of-devotion,Oath of Devotion,Клятва преданности,PH24,subclasses,https://next.dnd.su/class/paladin,,true
 paladin__oath-of-glory,paladin,oath-of-glory,Oath of Glory,Клятва славы,PH24,subclasses,https://next.dnd.su/class/paladin,,false
 paladin__oath-of-the-ancients,paladin,oath-of-the-ancients,Oath of the Ancients,Клятва древних,PH24,subclasses,https://next.dnd.su/class/paladin,,false
-paladin__oath-of-vengeance,paladin,oath-of-vengeance,Oath of Vengeance,Клятва возмездия,PH24,subclasses,https://next.dnd.su/class/paladin,,false
+paladin__oath-of-vengeance,paladin,oath-of-vengeance,Oath of Vengeance,Клятва мести,PH24,subclasses,https://next.dnd.su/class/paladin,,false
 ranger__beastmaster,ranger,beastmaster,Beast Master,Повелитель зверей,PH24,subclasses,https://next.dnd.su/class/ranger,,false
 ranger__fey-wanderer,ranger,fey-wanderer,Fey Wanderer,Странник фей,PH24,subclasses,https://next.dnd.su/class/ranger,,false
 ranger__gloom-stalker,ranger,gloom-stalker,Gloom Stalker,Сумрачный охотник,PH24,subclasses,https://next.dnd.su/class/ranger,,false
 ranger__hunter-ranger,ranger,hunter-ranger,Hunter,Охотник,PH24,subclasses,https://next.dnd.su/class/ranger,,true
 rogue__arcane-trickster,rogue,arcane-trickster,Arcane Trickster,Мистический ловкач,PH24,subclasses,https://next.dnd.su/class/rogue,,false
 rogue__assassin,rogue,assassin,Assassin,Убийца,PH24,subclasses,https://next.dnd.su/class/rogue,,false
-rogue__soulknife,rogue,soulknife,Soulknife,Клинок душ,PH24,subclasses,https://next.dnd.su/class/rogue,,false
+rogue__soulknife,rogue,soulknife,Soulknife,Клинок души,PH24,subclasses,https://next.dnd.su/class/rogue,,false
 rogue__thief,rogue,thief,Thief,Вор,PH24,subclasses,https://next.dnd.su/class/rogue,,true
 sorcerer__aberrant-sorcery,sorcerer,aberrant-sorcery,Aberrant Sorcery,Аберрантное чародейство,PH24,subclasses,https://next.dnd.su/class/sorcerer,,false
 sorcerer__clockwork-sorcery,sorcerer,clockwork-sorcery,Clockwork Sorcery,Заводное чародейство,PH24,subclasses,https://next.dnd.su/class/sorcerer,,false

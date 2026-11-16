@@ -260,7 +260,7 @@
     {
       "kind": "weapon",
       "slug": "greatclub",
-      "name_ru": "Палица",
+      "name_ru": "Двуручная дубина",
       "name_en": "Greatclub",
       "source": "srd-5.2",
       "sort_order": 90,
@@ -906,7 +906,7 @@
     {
       "kind": "weapon",
       "slug": "scimitar",
-      "name_ru": "Скимитар",
+      "name_ru": "Ятаган",
       "name_en": "Scimitar",
       "source": "srd-5.2",
       "sort_order": 290,

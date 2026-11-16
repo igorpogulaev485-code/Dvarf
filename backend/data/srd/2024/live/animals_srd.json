@@ -3304,7 +3304,7 @@
     {
       "kind": "bestiary",
       "slug": "giant-goat",
-      "name_ru": "Гигантский козел",
+      "name_ru": "Гигантский козёл",
       "name_en": "Giant Goat",
       "source": "srd-5.2",
       "sort_order": 370,
@@ -5725,7 +5725,7 @@
     {
       "kind": "bestiary",
       "slug": "mastiff",
-      "name_ru": "Мастиф",
+      "name_ru": "Мастифф",
       "name_en": "Mastiff",
       "source": "srd-5.2",
       "sort_order": 630,

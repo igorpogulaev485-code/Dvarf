@@ -62,8 +62,8 @@ animal-shapes,Animal Shapes,Превращение в животных,PH24,spel
 animate-dead,Animate Dead,Поднятие мертвеца,PH24,spells,https://next.dnd.su/spells/10422-animate-dead,https://new.ttg.club/spells/animate-dead-phb,true,3,necromancy,cleric|wizard
 animate-objects,Animate Objects,Оживление вещей,PH24,spells,https://next.dnd.su/spells/10423-animate-objects,https://new.ttg.club/spells/animate-objects-phb,true,5,transmutation,artificer|bard|sorcerer|wizard
 antilife-shell,Antilife Shell,Преграда жизни,PH24,spells,https://next.dnd.su/spells/10424-antilife-shell,https://new.ttg.club/spells/antilife-shell-phb,true,5,abjuration,druid
-antimagic-field,Antimagic Field,Поле антимагии,PH24,spells,https://next.dnd.su/spells/10425-antimagic-field,https://new.ttg.club/spells/antimagic-field-phb,true,8,abjuration,cleric|wizard
-antipathy-sympathy,Antipathy/Sympathy,Антипатия/симпатия,PH24,spells,https://next.dnd.su/spells/10426-antipathy-sympathy,https://new.ttg.club/spells/antipathy-sympathy-phb,true,8,enchantment,bard|druid|wizard
+antimagic-field,Antimagic Field,Преграда магии,PH24,spells,https://next.dnd.su/spells/10425-antimagic-field,https://new.ttg.club/spells/antimagic-field-phb,true,8,abjuration,cleric|wizard
+antipathy-sympathy,Antipathy/Sympathy,Антипатия,PH24,spells,https://next.dnd.su/spells/10426-antipathy-sympathy,https://new.ttg.club/spells/antipathy-sympathy-phb,true,8,enchantment,bard|druid|wizard
 arcane-eye,Arcane Eye,Магический глаз,PH24,spells,https://next.dnd.su/spells/10427-arcane-eye,https://new.ttg.club/spells/arcane-eye-phb,true,4,divination,artificer|wizard
 arcane-gate,Arcane Gate,Магические врата,PH24,spells,https://next.dnd.su/spells/10428-arcane-gate,,false,6,conjuration,sorcerer|warlock|wizard
 arcane-lock,Arcane Lock,Волшебный замок,PH24,spells,https://next.dnd.su/spells/10429-arcane-lock,https://new.ttg.club/spells/arcane-lock-phb,true,2,abjuration,artificer|wizard
@@ -79,7 +79,7 @@ awaken,Awaken,Пробуждение разума,PH24,spells,https://next.dnd.s
 bane,Bane,Порча,PH24,spells,https://next.dnd.su/spells/10243-bane,https://new.ttg.club/spells/bane-phb,true,1,enchantment,bard|cleric|warlock
 banishing-smite,Banishing Smite,Изгоняющая кара,PH24,spells,https://next.dnd.su/spells/10439-banishing-smite,https://new.ttg.club/spells/banishing-smite-phb,false,5,conjuration,paladin
 banishment,Banishment,Изгнание,PH24,spells,https://next.dnd.su/spells/10230-banishment,https://new.ttg.club/spells/banishment-phb,true,4,abjuration,cleric|paladin|sorcerer|warlock|wizard
-barkskin,Barkskin,Дубовая кожа,PH24,spells,https://next.dnd.su/spells/10266-barkskin,https://new.ttg.club/spells/barkskin-phb,true,2,transmutation,druid|ranger
+barkskin,Barkskin,Дубовая кора,PH24,spells,https://next.dnd.su/spells/10266-barkskin,https://new.ttg.club/spells/barkskin-phb,true,2,transmutation,druid|ranger
 beacon-of-hope,Beacon of Hope,Маяк надежды,PH24,spells,https://next.dnd.su/spells/10233-beacon-of-hope,https://new.ttg.club/spells/beacon-of-hope-phb,true,3,abjuration,cleric
 beast-sense,Beast Sense,Животные чувства,PH24,spells,https://next.dnd.su/spells/10267-beast-sense,https://new.ttg.club/spells/beast-sense-phb,false,2,divination,druid|ranger
 befuddlement,Befuddlement,Помутнение разума,PH24,spells,https://next.dnd.su/spells/10440-befuddlement,https://new.ttg.club/spells/befuddlement-phb,true,8,enchantment,bard|druid|warlock|wizard
@@ -90,14 +90,14 @@ blade-ward,Blade Ward,Защита от оружия,PH24,spells,https://next.dn
 bless,Bless,Благословение,PH24,spells,https://next.dnd.su/spells/10445-bless,https://new.ttg.club/spells/bless-phb,true,1,enchantment,cleric|paladin
 blight,Blight,Усыхание,PH24,spells,https://next.dnd.su/spells/10446-blight,https://new.ttg.club/spells/blight-phb,true,4,necromancy,druid|sorcerer|warlock|wizard
 blinding-smite,Blinding Smite,Ослепляющая кара,PH24,spells,https://next.dnd.su/spells/10447-blinding-smite,https://new.ttg.club/spells/blinding-smite-phb,false,3,evocation,paladin
-blindness-deafness,Blindness/Deafness,Глухота/слепота,PH24,spells,https://next.dnd.su/spells/10448-blindness-deafness,https://new.ttg.club/spells/blindness-deafness-phb,true,2,transmutation,bard|cleric|sorcerer|wizard
+blindness-deafness,Blindness/Deafness,Глухота,PH24,spells,https://next.dnd.su/spells/10448-blindness-deafness,https://new.ttg.club/spells/blindness-deafness-phb,true,2,transmutation,bard|cleric|sorcerer|wizard
 blink,Blink,Мерцание,PH24,spells,https://next.dnd.su/spells/10449-blink,https://new.ttg.club/spells/blink-phb,true,3,transmutation,artificer|sorcerer|wizard
 blur,Blur,Размытый образ,PH24,spells,https://next.dnd.su/spells/10450-blur,https://new.ttg.club/spells/blur-phb,true,2,illusion,artificer|sorcerer|wizard
 burning-hands,Burning Hands,Огненные ладони,PH24,spells,https://next.dnd.su/spells/10451-burning-hands,https://new.ttg.club/spells/burning-hands-phb,true,1,evocation,sorcerer|wizard
 call-lightning,Call Lightning,Призыв молнии,PH24,spells,https://next.dnd.su/spells/10452-call-lightning,https://new.ttg.club/spells/call-lightning-phb,true,3,conjuration,druid
 calm-emotions,Calm Emotions,Умиротворение,PH24,spells,https://next.dnd.su/spells/10453-calm-emotions,https://new.ttg.club/spells/calm-emotions-phb,true,2,enchantment,bard|cleric
-chain-lightning,Chain Lightning,Цепная молния,PH24,spells,https://next.dnd.su/spells/10454-chain-lightning,https://new.ttg.club/spells/chain-lightning-phb,true,6,evocation,sorcerer|wizard
-charm-monster,Charm Monster,Очарование монстра,PH24,spells,https://next.dnd.su/spells/10455-charm-monster,https://new.ttg.club/spells/charm-monster-phb,true,4,enchantment,bard|druid|sorcerer|warlock|wizard
+chain-lightning,Chain Lightning,Пляшущая молния,PH24,spells,https://next.dnd.su/spells/10454-chain-lightning,https://new.ttg.club/spells/chain-lightning-phb,true,6,evocation,sorcerer|wizard
+charm-monster,Charm Monster,Очарование чудовища,PH24,spells,https://next.dnd.su/spells/10455-charm-monster,https://new.ttg.club/spells/charm-monster-phb,true,4,enchantment,bard|druid|sorcerer|warlock|wizard
 charm-person,Charm Person,Очарование личности,PH24,spells,https://next.dnd.su/spells/10456-charm-person,https://new.ttg.club/spells/charm-person-phb,true,1,enchantment,bard|druid|sorcerer|warlock|wizard
 chill-touch,Chill Touch,Леденящее прикосновение,PH24,spells,https://next.dnd.su/spells/10457-chill-touch,https://new.ttg.club/spells/chill-touch-phb,true,0,necromancy,sorcerer|warlock|wizard
 chromatic-orb,Chromatic Orb,Хроматический шар,PH24,spells,https://next.dnd.su/spells/10458-chromatic-orb,https://new.ttg.club/spells/chromatic-orb-phb,true,1,evocation,sorcerer|wizard
@@ -124,7 +124,7 @@ conjure-fey,Conjure Fey,Призыв феи,PH24,spells,https://next.dnd.su/spel
 conjure-minor-elementals,Conjure Minor Elementals,Призыв малых элементалей,PH24,spells,https://next.dnd.su/spells/10209-conjure-minor-elementals,https://new.ttg.club/spells/conjure-minor-elementals-phb,true,4,conjuration,druid|wizard
 conjure-volley,Conjure Volley,Призыв залпа,PH24,spells,https://next.dnd.su/spells/10210-conjure-volley,https://new.ttg.club/spells/conjure-volley-phb,false,5,conjuration,ranger
 conjure-woodland-beings,Conjure Woodland Beings,Призыв лесных обитателей,PH24,spells,https://next.dnd.su/spells/10211-conjure-woodland-beings,https://new.ttg.club/spells/conjure-woodland-beings-phb,true,4,conjuration,druid|ranger
-contact-other-plane,Contact Other Plane,Связь с иным планом,PH24,spells,https://next.dnd.su/spells/10213-contact-other-plane,https://new.ttg.club/spells/contact-other-plane-phb,true,5,divination,warlock|wizard
+contact-other-plane,Contact Other Plane,Связь с иным миром,PH24,spells,https://next.dnd.su/spells/10213-contact-other-plane,https://new.ttg.club/spells/contact-other-plane-phb,true,5,divination,warlock|wizard
 contagion,Contagion,Заражение,PH24,spells,https://next.dnd.su/spells/10214-contagion,https://new.ttg.club/spells/contagion-phb,true,5,necromancy,cleric|druid
 contingency,Contingency,Предосторожность,PH24,spells,https://next.dnd.su/spells/10215-contingency,https://new.ttg.club/spells/contingency-phb,true,6,abjuration,wizard
 continual-flame,Continual Flame,Вечный огонь,PH24,spells,https://next.dnd.su/spells/10216-continual-flame,https://new.ttg.club/spells/continual-flame-phb,true,2,evocation,artificer|cleric|druid|wizard
@@ -147,14 +147,14 @@ death-ward,Death Ward,Защита от смерти,PH24,spells,https://next.dn
 delayed-blast-fireball,Delayed Blast Fireball,Замедленный огненный шар,PH24,spells,https://next.dnd.su/spells/10475-delayed-blast-fireball,https://new.ttg.club/spells/delayed-blast-fireball-phb,true,7,evocation,sorcerer|wizard
 demiplane,Demiplane,Демиплан,PH24,spells,https://next.dnd.su/spells/10476-demiplane,https://new.ttg.club/spells/demiplane-phb,true,8,conjuration,sorcerer|warlock|wizard
 destructive-wave,Destructive Wave,Разрушительная волна,PH24,spells,https://next.dnd.su/spells/10477-destructive-wave,https://new.ttg.club/spells/destructive-wave-phb,false,5,evocation,paladin
-detect-evil-and-good,Detect Evil and Good,Обнаружение добра и зла,PH24,spells,https://next.dnd.su/spells/10478-detect-evil-and-good,https://new.ttg.club/spells/detect-evil-and-good-phb,true,1,divination,cleric|paladin
+detect-evil-and-good,Detect Evil and Good,Обнаружение зла и добра,PH24,spells,https://next.dnd.su/spells/10478-detect-evil-and-good,https://new.ttg.club/spells/detect-evil-and-good-phb,true,1,divination,cleric|paladin
 detect-magic,Detect Magic,Обнаружение магии,PH24,spells,https://next.dnd.su/spells/10274-detect-magic,https://new.ttg.club/spells/detect-magic-phb,true,1,divination,artificer|bard|cleric|druid|paladin|ranger|sorcerer|warlock|wizard
 detect-poison-and-disease,Detect Poison and Disease,Обнаружение болезней и ядов,PH24,spells,https://next.dnd.su/spells/10275-detect-poison-and-disease,https://new.ttg.club/spells/detect-poison-and-disease-phb,true,1,divination,cleric|druid|paladin|ranger
 detect-thoughts,Detect Thoughts,Обнаружение мыслей,PH24,spells,https://next.dnd.su/spells/10479-detect-thoughts,https://new.ttg.club/spells/detect-thoughts-phb,true,2,divination,bard|sorcerer|wizard
 dimension-door,Dimension Door,Переносящая дверь,PH24,spells,https://next.dnd.su/spells/10244-dimension-door,https://new.ttg.club/spells/dimension-door-phb,true,4,conjuration,bard|sorcerer|warlock|wizard
 disguise-self,Disguise Self,Маскировка,PH24,spells,https://next.dnd.su/spells/10480-disguise-self,https://new.ttg.club/spells/disguise-self-phb,true,1,illusion,artificer|bard|sorcerer|wizard
 disintegrate,Disintegrate,Дезинтеграция,PH24,spells,https://next.dnd.su/spells/10481-disintegrate,https://new.ttg.club/spells/disintegrate-phb,true,6,transmutation,sorcerer|wizard
-dispel-evil-and-good,Dispel Evil and Good,Рассеивание добра и зла,PH24,spells,https://next.dnd.su/spells/10482-dispel-evil-and-good,https://new.ttg.club/spells/dispel-evil-and-good-phb,true,5,abjuration,cleric|paladin
+dispel-evil-and-good,Dispel Evil and Good,Рассеивание зла и добра,PH24,spells,https://next.dnd.su/spells/10482-dispel-evil-and-good,https://new.ttg.club/spells/dispel-evil-and-good-phb,true,5,abjuration,cleric|paladin
 dispel-magic,Dispel Magic,Рассеивание магии,PH24,spells,https://next.dnd.su/spells/10245-dispel-magic,https://new.ttg.club/spells/dispel-magic-phb,true,3,abjuration,artificer|bard|cleric|druid|paladin|ranger|sorcerer|warlock|wizard
 dissonant-whispers,Dissonant Whispers,Диссонирующий шёпот,PH24,spells,https://next.dnd.su/spells/10483-dissonant-whispers,https://new.ttg.club/spells/dissonant-whispers-phb,true,1,enchantment,bard
 divination,Divination,Предсказание,PH24,spells,https://next.dnd.su/spells/10484-divination,https://new.ttg.club/spells/divination-phb,true,4,divination,cleric|druid|wizard
@@ -173,7 +173,7 @@ eldritch-blast,Eldritch Blast,Мистический заряд,PH24,spells,http
 elemental-weapon,Elemental Weapon,Стихийное оружие,PH24,spells,https://next.dnd.su/spells/10280-elemental-weapon,https://new.ttg.club/spells/elemental-weapon-phb,false,3,transmutation,artificer|druid|paladin|ranger
 elementalism,Elementalism,Элементализм,PH24,spells,https://next.dnd.su/spells/10495-elementalism,https://new.ttg.club/spells/elementalism-phb,true,0,transmutation,artificer|druid|sorcerer|wizard
 enhance-ability,Enhance Ability,Улучшение характеристики,PH24,spells,https://next.dnd.su/spells/10252-enhance-ability,https://new.ttg.club/spells/enhance-ability-phb,true,2,transmutation,artificer|bard|cleric|druid|ranger|sorcerer|wizard
-enlarge-reduce,Enlarge/Reduce,Увеличение/уменьшение,PH24,spells,https://next.dnd.su/spells/10496-enlarge-reduce,https://new.ttg.club/spells/enlarge-reduce-phb,true,2,transmutation,artificer|bard|druid|sorcerer|wizard
+enlarge-reduce,Enlarge/Reduce,Увеличение,PH24,spells,https://next.dnd.su/spells/10496-enlarge-reduce,https://new.ttg.club/spells/enlarge-reduce-phb,true,2,transmutation,artificer|bard|druid|sorcerer|wizard
 ensnaring-strike,Ensnaring Strike,Опутывающий удар,PH24,spells,https://next.dnd.su/spells/10241-ensnaring-strike,https://new.ttg.club/spells/ensnaring-strike-phb,true,1,conjuration,ranger
 entangle,Entangle,Опутывание,PH24,spells,https://next.dnd.su/spells/10281-entangle,https://new.ttg.club/spells/entangle-phb,true,1,conjuration,druid|ranger
 enthrall,Enthrall,Речь златоуста,PH24,spells,https://next.dnd.su/spells/10497-enthrall,https://new.ttg.club/spells/enthrall-phb,true,2,enchantment,bard|warlock
@@ -223,7 +223,7 @@ greater-invisibility,Greater Invisibility,Высшая невидимость,PH
 greater-restoration,Greater Restoration,Высшее восстановление,PH24,spells,https://next.dnd.su/spells/10212-greater-restoration,https://new.ttg.club/spells/greater-restoration-phb,true,5,abjuration,artificer|bard|cleric|druid|paladin|ranger
 guardian-of-faith,Guardian of Faith,Страж веры,PH24,spells,https://next.dnd.su/spells/10250-guardian-of-faith,https://new.ttg.club/spells/guardian-of-faith-phb,true,4,conjuration,cleric
 guards-and-wards,Guards and Wards,Стражи и обереги,PH24,spells,https://next.dnd.su/spells/10534-guards-and-wards,https://new.ttg.club/spells/guards-and-wards-phb,true,6,abjuration,bard|wizard
-guidance,Guidance,Наставление,PH24,spells,https://next.dnd.su/spells/10235-guidance,https://new.ttg.club/spells/guidance-phb,true,0,divination,artificer|cleric|druid
+guidance,Guidance,Указание,PH24,spells,https://next.dnd.su/spells/10235-guidance,https://new.ttg.club/spells/guidance-phb,true,0,divination,artificer|cleric|druid
 guiding-bolt,Guiding Bolt,Направляющий снаряд,PH24,spells,https://next.dnd.su/spells/10237-guiding-bolt,https://new.ttg.club/spells/guiding-bolt-phb,true,1,evocation,cleric
 gust-of-wind,Gust of Wind,Порыв ветра,PH24,spells,https://next.dnd.su/spells/10286-gust-of-wind,https://new.ttg.club/spells/gust-of-wind-phb,true,2,evocation,druid|ranger|sorcerer|wizard
 hail-of-thorns,Hail of Thorns,Град шипов,PH24,spells,https://next.dnd.su/spells/10287-hail-of-thorns,https://new.ttg.club/spells/hail-of-thorns-phb,false,1,conjuration,ranger
@@ -231,7 +231,7 @@ hallow,Hallow,Святилище,PH24,spells,https://next.dnd.su/spells/10535-ha
 hallucinatory-terrain,Hallucinatory Terrain,Мираж,PH24,spells,https://next.dnd.su/spells/10536-hallucinatory-terrain,https://new.ttg.club/spells/hallucinatory-terrain-phb,true,4,illusion,bard|druid|warlock|wizard
 harm,Harm,Поражение,PH24,spells,https://next.dnd.su/spells/10537-harm,https://new.ttg.club/spells/harm-phb,true,6,necromancy,cleric
 haste,Haste,Ускорение,PH24,spells,https://next.dnd.su/spells/10255-haste,https://new.ttg.club/spells/haste-phb,true,3,transmutation,artificer|sorcerer|wizard
-heal,Heal,Исцеление,PH24,spells,https://next.dnd.su/spells/10538-heal,https://new.ttg.club/spells/heal-phb,true,6,abjuration,cleric|druid
+heal,Heal,Полное исцеление,PH24,spells,https://next.dnd.su/spells/10538-heal,https://new.ttg.club/spells/heal-phb,true,6,abjuration,cleric|druid
 healing-word,Healing Word,Лечащее слово,PH24,spells,https://next.dnd.su/spells/10539-healing-word,https://new.ttg.club/spells/healing-word-phb,true,1,abjuration,bard|cleric|druid
 heat-metal,Heat Metal,Нагрев металла,PH24,spells,https://next.dnd.su/spells/10540-heat-metal,https://new.ttg.club/spells/heat-metal-phb,true,2,transmutation,artificer|bard|druid
 hellish-rebuke,Hellish Rebuke,Адское возмездие,PH24,spells,https://next.dnd.su/spells/10541-hellish-rebuke,https://new.ttg.club/spells/hellish-rebuke-phb,true,1,evocation,warlock
@@ -247,7 +247,7 @@ hypnotic-pattern,Hypnotic Pattern,Гипнотический узор,PH24,spell
 ice-knife,Ice Knife,Ледяной кинжал,PH24,spells,https://next.dnd.su/spells/10548-ice-knife,https://new.ttg.club/spells/ice-knife-phb,true,1,conjuration,druid|sorcerer|wizard
 ice-storm,Ice Storm,Град,PH24,spells,https://next.dnd.su/spells/10224-ice-storm,https://new.ttg.club/spells/ice-storm-phb,true,4,evocation,druid|sorcerer|wizard
 identify,Identify,Опознание,PH24,spells,https://next.dnd.su/spells/10549-identify,https://new.ttg.club/spells/identify-phb,true,1,divination,artificer|bard|wizard
-illusory-script,Illusory Script,Иллюзорные письмена,PH24,spells,https://next.dnd.su/spells/10550-illusory-script,https://new.ttg.club/spells/illusory-script-phb,true,1,illusion,bard|warlock|wizard
+illusory-script,Illusory Script,Невидимое письмо,PH24,spells,https://next.dnd.su/spells/10550-illusory-script,https://new.ttg.club/spells/illusory-script-phb,true,1,illusion,bard|warlock|wizard
 imprisonment,Imprisonment,Заточение,PH24,spells,https://next.dnd.su/spells/10551-imprisonment,https://new.ttg.club/spells/imprisonment-phb,true,9,abjuration,warlock|wizard
 incendiary-cloud,Incendiary Cloud,Воспламеняющаяся туча,PH24,spells,https://next.dnd.su/spells/10552-incendiary-cloud,https://new.ttg.club/spells/incendiary-cloud-phb,true,8,conjuration,druid|sorcerer|wizard
 inflict-wounds,Inflict Wounds,Нанесение ран,PH24,spells,https://next.dnd.su/spells/10553-inflict-wounds,https://new.ttg.club/spells/inflict-wounds-phb,true,1,necromancy,cleric
@@ -255,7 +255,7 @@ insect-plague,Insect Plague,Нашествие насекомых,PH24,spells,ht
 invisibility,Invisibility,Невидимость,PH24,spells,https://next.dnd.su/spells/10555-invisibility,https://new.ttg.club/spells/invisibility-phb,true,2,illusion,artificer|bard|sorcerer|warlock|wizard
 jallarzis-storm-of-radiance,Jallarzi’s Storm of Radiance,Сияющий шторм Джалларзи,PH24,spells,https://next.dnd.su/spells/10556-jallarzis-storm-of-radiance,https://new.ttg.club/spells/jallarzi-s-storm-of-radiance-phb,false,5,evocation,warlock|wizard
 jump,Jump,Прыжок,PH24,spells,https://next.dnd.su/spells/10288-jump,https://new.ttg.club/spells/jump-phb,true,1,transmutation,artificer|druid|ranger|sorcerer|wizard
-knock,Knock,Стук,PH24,spells,https://next.dnd.su/spells/10557-knock,https://new.ttg.club/spells/knock-phb,true,2,transmutation,bard|sorcerer|wizard
+knock,Knock,Открывание,PH24,spells,https://next.dnd.su/spells/10557-knock,https://new.ttg.club/spells/knock-phb,true,2,transmutation,bard|sorcerer|wizard
 legend-lore,Legend Lore,Знание легенд,PH24,spells,https://next.dnd.su/spells/10228-legend-lore,https://new.ttg.club/spells/legend-lore-phb,true,5,divination,bard|cleric|wizard
 leomunds-secret-chest,Leomund’s Secret Chest,Потайной сундук Леомунда,PH24,spells,https://next.dnd.su/spells/10558-leomunds-secret-chest,https://new.ttg.club/spells/leomund-s-secret-chest-phb,false,4,conjuration,artificer|wizard
 leomunds-tiny-hut,Leomund’s Tiny Hut,Хижина Леомунда,PH24,spells,https://next.dnd.su/spells/10559-leomunds-tiny-hut,https://new.ttg.club/spells/leomund-s-tiny-hut-phb,false,3,evocation,bard|wizard
@@ -266,7 +266,7 @@ lightning-arrow,Lightning Arrow,Молниевая стрела,PH24,spells,http
 lightning-bolt,Lightning Bolt,Молния,PH24,spells,https://next.dnd.su/spells/10562-lightning-bolt,https://new.ttg.club/spells/lightning-bolt-phb,true,3,evocation,sorcerer|wizard
 locate-animals-or-plants,Locate Animals or Plants,Поиск животных или растений,PH24,spells,https://next.dnd.su/spells/10291-locate-animals-or-plants,https://new.ttg.club/spells/locate-animals-or-plants-phb,true,2,divination,bard|druid|ranger
 locate-creature,Locate Creature,Поиск существа,PH24,spells,https://next.dnd.su/spells/10292-locate-creature,https://new.ttg.club/spells/locate-creature-phb,true,4,divination,bard|cleric|druid|paladin|ranger|wizard
-locate-object,Locate Object,Поиск объекта,PH24,spells,https://next.dnd.su/spells/10293-locate-object,https://new.ttg.club/spells/locate-object-phb,true,2,divination,bard|cleric|druid|paladin|ranger|wizard
+locate-object,Locate Object,Поиск предмета,PH24,spells,https://next.dnd.su/spells/10293-locate-object,https://new.ttg.club/spells/locate-object-phb,true,2,divination,bard|cleric|druid|paladin|ranger|wizard
 longstrider,Longstrider,Скороход,PH24,spells,https://next.dnd.su/spells/10294-longstrider,https://new.ttg.club/spells/longstrider-phb,true,1,transmutation,artificer|bard|druid|ranger|wizard
 mage-armor,Mage Armor,Доспехи мага,PH24,spells,https://next.dnd.su/spells/10563-mage-armor,https://new.ttg.club/spells/mage-armor-phb,true,1,abjuration,sorcerer|wizard
 mage-hand,Mage Hand,Волшебная рука,PH24,spells,https://next.dnd.su/spells/10564-mage-hand,https://new.ttg.club/spells/mage-hand-phb,true,0,conjuration,artificer|bard|sorcerer|warlock|wizard
@@ -277,7 +277,7 @@ magic-mouth,Magic Mouth,Волшебные уста,PH24,spells,https://next.dnd
 magic-weapon,Magic Weapon,Магическое оружие,PH24,spells,https://next.dnd.su/spells/10234-magic-weapon,https://new.ttg.club/spells/magic-weapon-phb,true,2,transmutation,artificer|paladin|ranger|sorcerer|wizard
 major-image,Major Image,Образ,PH24,spells,https://next.dnd.su/spells/10569-major-image,https://new.ttg.club/spells/major-image-phb,true,3,illusion,bard|sorcerer|warlock|wizard
 mass-cure-wounds,Mass Cure Wounds,Множественное лечение ран,PH24,spells,https://next.dnd.su/spells/10570-mass-cure-wounds,https://new.ttg.club/spells/mass-cure-wounds-phb,true,5,abjuration,bard|cleric|druid
-mass-heal,Mass Heal,Множественное исцеление,PH24,spells,https://next.dnd.su/spells/10571-mass-heal,https://new.ttg.club/spells/mass-heal-phb,true,9,abjuration,cleric
+mass-heal,Mass Heal,Множественное полное исцеление,PH24,spells,https://next.dnd.su/spells/10571-mass-heal,https://new.ttg.club/spells/mass-heal-phb,true,9,abjuration,cleric
 mass-healing-word,Mass Healing Word,Множественное лечащее слово,PH24,spells,https://next.dnd.su/spells/10572-mass-healing-word,https://new.ttg.club/spells/mass-healing-word-phb,true,3,abjuration,bard|cleric
 mass-suggestion,Mass Suggestion,Множественное внушение,PH24,spells,https://next.dnd.su/spells/10573-mass-suggestion,https://new.ttg.club/spells/mass-suggestion-phb,true,6,enchantment,bard|sorcerer|wizard
 maze,Maze,Лабиринт,PH24,spells,https://next.dnd.su/spells/10574-maze,https://new.ttg.club/spells/maze-phb,true,8,conjuration,wizard
@@ -433,10 +433,10 @@ warding-bond,Warding Bond,Охраняющая связь,PH24,spells,https://ne
 water-breathing,Water Breathing,Подводное дыхание,PH24,spells,https://next.dnd.su/spells/10310-water-breathing,https://new.ttg.club/spells/water-breathing-phb,true,3,transmutation,artificer|druid|ranger|sorcerer|wizard
 water-walk,Water Walk,Хождение по воде,PH24,spells,https://next.dnd.su/spells/10311-water-walk,https://new.ttg.club/spells/water-walk-phb,true,3,transmutation,artificer|cleric|druid|ranger|sorcerer
 web,Web,Паутина,PH24,spells,https://next.dnd.su/spells/10700-web,https://new.ttg.club/spells/web-phb,true,2,conjuration,artificer|sorcerer|wizard
-weird,Weird,Жуть,PH24,spells,https://next.dnd.su/spells/10701-weird,https://new.ttg.club/spells/weird-phb,true,9,illusion,warlock|wizard
+weird,Weird,Смертный ужас,PH24,spells,https://next.dnd.su/spells/10701-weird,https://new.ttg.club/spells/weird-phb,true,9,illusion,warlock|wizard
 wind-walk,Wind Walk,Хождение по ветру,PH24,spells,https://next.dnd.su/spells/10702-wind-walk,https://new.ttg.club/spells/wind-walk-phb,true,6,transmutation,druid
 wind-wall,Wind Wall,Стена ветров,PH24,spells,https://next.dnd.su/spells/10312-wind-wall,https://new.ttg.club/spells/wind-wall-phb,true,3,evocation,druid|ranger
-wish,Wish,Желание,PH24,spells,https://next.dnd.su/spells/10703-wish,https://new.ttg.club/spells/wish-phb,true,9,conjuration,sorcerer|wizard
+wish,Wish,Исполнение желаний,PH24,spells,https://next.dnd.su/spells/10703-wish,https://new.ttg.club/spells/wish-phb,true,9,conjuration,sorcerer|wizard
 witch-bolt,Witch Bolt,Ведьмин снаряд,PH24,spells,https://next.dnd.su/spells/10704-witch-bolt,https://new.ttg.club/spells/witch-bolt-phb,false,1,evocation,sorcerer|warlock|wizard
 word-of-radiance,Word of Radiance,Слово сияния,PH24,spells,https://next.dnd.su/spells/10705-word-of-radiance,https://new.ttg.club/spells/word-of-radiance-phb,false,0,evocation,cleric
 word-of-recall,Word of Recall,Слово возврата,PH24,spells,https://next.dnd.su/spells/10706-word-of-recall,https://new.ttg.club/spells/word-of-recall-phb,true,6,conjuration,cleric

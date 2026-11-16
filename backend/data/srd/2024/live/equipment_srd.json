@@ -540,7 +540,7 @@
     {
       "kind": "item",
       "slug": "caltrops",
-      "name_ru": "Калтропы",
+      "name_ru": "Калтропы (сумка)",
       "name_en": "Caltrops",
       "source": "srd-5.2",
       "sort_order": 250,
@@ -551,7 +551,7 @@
       },
       "data": {
         "equipment_group": "equipment",
-        "summary_ru": "Калтропы — обыденное снаряжение редакции 2024.",
+        "summary_ru": "Калтропы (сумка) — обыденное снаряжение редакции 2024.",
         "weight_lb": 2,
         "cost": {
           "amount": 1,
@@ -746,7 +746,7 @@
     {
       "kind": "item",
       "slug": "cooks-utensils",
-      "name_ru": "Инструменты повара",
+      "name_ru": "Кухонная утварь",
       "name_en": "Cook’s Utensils",
       "source": "srd-5.2",
       "sort_order": 340,
@@ -757,7 +757,7 @@
       },
       "data": {
         "equipment_group": "artisan_tool",
-        "summary_ru": "Инструменты повара — обыденное снаряжение редакции 2024.",
+        "summary_ru": "Кухонная утварь — обыденное снаряжение редакции 2024.",
         "weight_lb": 8,
         "cost": {
           "amount": 1,
@@ -1209,7 +1209,7 @@
     {
       "kind": "item",
       "slug": "forgery-kit",
-      "name_ru": "Набор для фальсификации",
+      "name_ru": "Набор фальшивомонетчика",
       "name_en": "Forgery Kit",
       "source": "srd-5.2",
       "sort_order": 550,
@@ -1220,7 +1220,7 @@
       },
       "data": {
         "equipment_group": "toolkit",
-        "summary_ru": "Набор для фальсификации — обыденное снаряжение редакции 2024.",
+        "summary_ru": "Набор фальшивомонетчика — обыденное снаряжение редакции 2024.",
         "weight_lb": 5,
         "cost": {
           "amount": 15,
@@ -2749,7 +2749,7 @@
     {
       "kind": "item",
       "slug": "tinkers-tools",
-      "name_ru": "Инструменты ремонтника",
+      "name_ru": "Инструменты жестянщика",
       "name_en": "Tinker’s Tools",
       "source": "srd-5.2",
       "sort_order": 1240,
@@ -2760,7 +2760,7 @@
       },
       "data": {
         "equipment_group": "artisan_tool",
-        "summary_ru": "Инструменты ремонтника — обыденное снаряжение редакции 2024.",
+        "summary_ru": "Инструменты жестянщика — обыденное снаряжение редакции 2024.",
         "weight_lb": 10,
         "cost": {
           "amount": 50,

@@ -223,7 +223,7 @@
     {
       "kind": "item",
       "slug": "amulet-of-proof-against-detection-and-location",
-      "name_ru": "Амулет защиты от обнаружения и поиска",
+      "name_ru": "Амулет защиты от обнаружения",
       "name_en": "Amulet of Proof against Detection and Location",
       "source": "srd-5.2",
       "sort_order": 70,
@@ -291,7 +291,7 @@
     {
       "kind": "item",
       "slug": "animated-shield",
-      "name_ru": "Живой щит",
+      "name_ru": "Оживший щит",
       "name_en": "Animated Shield",
       "source": "srd-5.2",
       "sort_order": 90,
@@ -579,7 +579,7 @@
     {
       "kind": "item",
       "slug": "arrow-catching-shield",
-      "name_ru": "Ловящий стрелы щит",
+      "name_ru": "Щит ловли стрел",
       "name_en": "Arrow-Catching Shield",
       "source": "srd-5.2",
       "sort_order": 170,
@@ -614,7 +614,7 @@
     {
       "kind": "item",
       "slug": "bag-of-beans",
-      "name_ru": "Сумка с бобами",
+      "name_ru": "Мешок бобов",
       "name_en": "Bag of Beans",
       "source": "srd-5.2",
       "sort_order": 180,
@@ -812,7 +812,7 @@
     {
       "kind": "item",
       "slug": "belt-of-dwarvenkind",
-      "name_ru": "Пояс дварфов",
+      "name_ru": "Пояс дварфийского рода",
       "name_en": "Belt of Dwarvenkind",
       "source": "srd-5.2",
       "sort_order": 240,
@@ -860,7 +860,7 @@
         "magic_item_type": "wondrous",
         "magic_item_type_ru": "чудесный предмет",
         "rarity": "varies",
-        "rarity_ru": "редкость различается",
+        "rarity_ru": "редкость варьируется",
         "requires_attunement": true,
         "attunement_restriction_ru": null,
         "charges": null,
@@ -911,7 +911,7 @@
     {
       "kind": "item",
       "slug": "boots-of-elvenkind",
-      "name_ru": "Эльфийские сапоги",
+      "name_ru": "Сапоги эльфов",
       "name_en": "Boots of Elvenkind",
       "source": "srd-5.2",
       "sort_order": 270,
@@ -1012,7 +1012,7 @@
     {
       "kind": "item",
       "slug": "boots-of-striding-and-springing",
-      "name_ru": "Сапоги ходьбы и прыжков",
+      "name_ru": "Сапоги шага и прыжка",
       "name_en": "Boots of Striding and Springing",
       "source": "srd-5.2",
       "sort_order": 300,
@@ -1045,7 +1045,7 @@
     {
       "kind": "item",
       "slug": "boots-of-the-winterlands",
-      "name_ru": "Заполярные сапоги",
+      "name_ru": "Сапоги зимних земель",
       "name_en": "Boots of the Winterlands",
       "source": "srd-5.2",
       "sort_order": 310,
@@ -1111,7 +1111,7 @@
     {
       "kind": "item",
       "slug": "bracers-of-archery",
-      "name_ru": "Наручи стрельбы из лука",
+      "name_ru": "Наручи стрельбы",
       "name_en": "Bracers of Archery",
       "source": "srd-5.2",
       "sort_order": 330,
@@ -1245,7 +1245,7 @@
     {
       "kind": "item",
       "slug": "broom-of-flying",
-      "name_ru": "Помело полёта",
+      "name_ru": "Метла полёта",
       "name_en": "Broom of Flying",
       "source": "srd-5.2",
       "sort_order": 370,
@@ -1415,7 +1415,7 @@
     {
       "kind": "item",
       "slug": "chime-of-opening",
-      "name_ru": "Колокольчик открывания",
+      "name_ru": "Колокольчик открытия",
       "name_en": "Chime of Opening",
       "source": "srd-5.2",
       "sort_order": 420,
@@ -1448,7 +1448,7 @@
     {
       "kind": "item",
       "slug": "circlet-of-blasting",
-      "name_ru": "Обруч сжигания",
+      "name_ru": "Диадема взрыва",
       "name_en": "Circlet of Blasting",
       "source": "srd-5.2",
       "sort_order": 430,
@@ -1483,7 +1483,7 @@
     {
       "kind": "item",
       "slug": "cloak-of-arachnida",
-      "name_ru": "Плащ паука",
+      "name_ru": "Плащ арахниды",
       "name_en": "Cloak of Arachnida",
       "source": "srd-5.2",
       "sort_order": 440,
@@ -1518,7 +1518,7 @@
     {
       "kind": "item",
       "slug": "cloak-of-displacement",
-      "name_ru": "Плащ ускользания",
+      "name_ru": "Плащ смещения",
       "name_en": "Cloak of Displacement",
       "source": "srd-5.2",
       "sort_order": 450,
@@ -1551,7 +1551,7 @@
     {
       "kind": "item",
       "slug": "cloak-of-elvenkind",
-      "name_ru": "Эльфийский плащ",
+      "name_ru": "Плащ эльфов",
       "name_en": "Cloak of Elvenkind",
       "source": "srd-5.2",
       "sort_order": 460,
@@ -1685,7 +1685,7 @@
     {
       "kind": "item",
       "slug": "cloak-of-the-manta-ray",
-      "name_ru": "Плащ ската",
+      "name_ru": "Плащ манты",
       "name_en": "Cloak of the Manta Ray",
       "source": "srd-5.2",
       "sort_order": 500,
@@ -1751,7 +1751,7 @@
     {
       "kind": "item",
       "slug": "crystal-ball-of-mind-reading",
-      "name_ru": "Хрустальный шар чтения мыслей",
+      "name_ru": "Хрустальный шар (чтение мыслей)",
       "name_en": "Crystal Ball of Mind Reading",
       "source": "srd-5.2",
       "sort_order": 520,
@@ -1786,7 +1786,7 @@
     {
       "kind": "item",
       "slug": "crystal-ball-of-telepathy",
-      "name_ru": "Хрустальный шар телепатии",
+      "name_ru": "Хрустальный шар (телепатия)",
       "name_en": "Crystal Ball of Telepathy",
       "source": "srd-5.2",
       "sort_order": 530,
@@ -1821,7 +1821,7 @@
     {
       "kind": "item",
       "slug": "crystal-ball-of-true-seeing",
-      "name_ru": "Хрустальный шар истинного зрения",
+      "name_ru": "Хрустальный шар (истинное зрение)",
       "name_en": "Crystal Ball of True Seeing",
       "source": "srd-5.2",
       "sort_order": 540,
@@ -1890,7 +1890,7 @@
     {
       "kind": "item",
       "slug": "cubic-gate",
-      "name_ru": "Куб врат",
+      "name_ru": "Кубические врата",
       "name_en": "Cubic Gate",
       "source": "srd-5.2",
       "sort_order": 560,
@@ -1962,7 +1962,7 @@
     {
       "kind": "item",
       "slug": "dancing-sword",
-      "name_ru": "Танцующий меч",
+      "name_ru": "Пляшущий меч",
       "name_en": "Dancing Sword",
       "source": "srd-5.2",
       "sort_order": 580,
@@ -2135,7 +2135,7 @@
     {
       "kind": "item",
       "slug": "dimensional-shackles",
-      "name_ru": "Оковы измерений",
+      "name_ru": "Пространственные оковы",
       "name_en": "Dimensional Shackles",
       "source": "srd-5.2",
       "sort_order": 630,
@@ -2206,7 +2206,7 @@
     {
       "kind": "item",
       "slug": "dragon-scale-mail",
-      "name_ru": "Доспех из драконьей чешуи",
+      "name_ru": "Доспех из чешуи дракона",
       "name_en": "Dragon Scale Mail",
       "source": "srd-5.2",
       "sort_order": 650,
@@ -2376,7 +2376,7 @@
     {
       "kind": "item",
       "slug": "dwarven-plate",
-      "name_ru": "Латы дварфов",
+      "name_ru": "Дварфийские латы",
       "name_en": "Dwarven Plate",
       "source": "srd-5.2",
       "sort_order": 700,
@@ -2411,7 +2411,7 @@
     {
       "kind": "item",
       "slug": "dwarven-thrower",
-      "name_ru": "Дварфийский метатель",
+      "name_ru": "Метательный молот дварфов",
       "name_en": "Dwarven Thrower",
       "source": "srd-5.2",
       "sort_order": 710,
@@ -2428,7 +2428,7 @@
         "rarity": "very_rare",
         "rarity_ru": "очень редкий",
         "requires_attunement": true,
-        "attunement_restriction_ru": "дварф или существо, настроившееся на Пояс дварфов",
+        "attunement_restriction_ru": "дварф или существо, настроившееся на Пояс дварфийского рода",
         "charges": null,
         "bonus_attack": 3,
         "bonus_damage": 3,
@@ -2438,7 +2438,7 @@
         "spell_refs": [],
         "base_item_categories": [],
         "name_ru_pending": false,
-        "summary_ru": "Оружие, очень редкий. Настройка (дварф или существо, настроившееся на Пояс дварфов). Бонус +3 к атаке и урону."
+        "summary_ru": "Оружие, очень редкий. Настройка (дварф или существо, настроившееся на Пояс дварфийского рода). Бонус +3 к атаке и урону."
       }
     },
     {
@@ -2677,7 +2677,7 @@
     {
       "kind": "item",
       "slug": "eyes-of-charming",
-      "name_ru": "Очи обольщения",
+      "name_ru": "Глаза очарования",
       "name_en": "Eyes of Charming",
       "source": "srd-5.2",
       "sort_order": 790,
@@ -2746,7 +2746,7 @@
     {
       "kind": "item",
       "slug": "eyes-of-the-eagle",
-      "name_ru": "Очки орлиного зрения",
+      "name_ru": "Глаза орла",
       "name_en": "Eyes of the Eagle",
       "source": "srd-5.2",
       "sort_order": 810,
@@ -2827,7 +2827,7 @@
         "magic_item_type": "wondrous",
         "magic_item_type_ru": "чудесный предмет",
         "rarity": "varies",
-        "rarity_ru": "редкость различается",
+        "rarity_ru": "редкость варьируется",
         "requires_attunement": false,
         "attunement_restriction_ru": null,
         "charges": null,
@@ -3219,7 +3219,7 @@
     {
       "kind": "item",
       "slug": "goggles-of-night",
-      "name_ru": "Ночные очки",
+      "name_ru": "Очки ночного зрения",
       "name_en": "Goggles of Night",
       "source": "srd-5.2",
       "sort_order": 950,
@@ -3252,7 +3252,7 @@
     {
       "kind": "item",
       "slug": "hammer-of-thunderbolts",
-      "name_ru": "Молот грома",
+      "name_ru": "Молот громовых ударов",
       "name_en": "Hammer of Thunderbolts",
       "source": "srd-5.2",
       "sort_order": 960,
@@ -3321,7 +3321,7 @@
     {
       "kind": "item",
       "slug": "hat-of-disguise",
-      "name_ru": "Шапка маскировки",
+      "name_ru": "Шляпа маскировки",
       "name_en": "Hat of Disguise",
       "source": "srd-5.2",
       "sort_order": 980,
@@ -3387,7 +3387,7 @@
     {
       "kind": "item",
       "slug": "headband-of-intellect",
-      "name_ru": "Повязка интеллекта",
+      "name_ru": "Обруч интеллекта",
       "name_en": "Headband of Intellect",
       "source": "srd-5.2",
       "sort_order": 1000,
@@ -3420,7 +3420,7 @@
     {
       "kind": "item",
       "slug": "helm-of-brilliance",
-      "name_ru": "Шлем блеска",
+      "name_ru": "Шлем сияния",
       "name_en": "Helm of Brilliance",
       "source": "srd-5.2",
       "sort_order": 1010,
@@ -3811,7 +3811,7 @@
         "magic_item_type": "wondrous",
         "magic_item_type_ru": "чудесный предмет",
         "rarity": "varies",
-        "rarity_ru": "редкость различается",
+        "rarity_ru": "редкость варьируется",
         "requires_attunement": true,
         "attunement_restriction_ru": null,
         "charges": null,
@@ -3897,7 +3897,7 @@
     {
       "kind": "item",
       "slug": "javelin-of-lightning",
-      "name_ru": "Метательное копьё молнии",
+      "name_ru": "Молниевое копьё",
       "name_en": "Javelin of Lightning",
       "source": "srd-5.2",
       "sort_order": 1150,
@@ -3930,7 +3930,7 @@
     {
       "kind": "item",
       "slug": "lantern-of-revealing",
-      "name_ru": "Фонарь обнаружения",
+      "name_ru": "Фонарь выявления",
       "name_en": "Lantern of Revealing",
       "source": "srd-5.2",
       "sort_order": 1160,
@@ -4131,7 +4131,7 @@
     {
       "kind": "item",
       "slug": "manual-of-bodily-health",
-      "name_ru": "Справочник телесного здоровья",
+      "name_ru": "Учебник телесного здоровья",
       "name_en": "Manual of Bodily Health",
       "source": "srd-5.2",
       "sort_order": 1220,
@@ -4164,7 +4164,7 @@
     {
       "kind": "item",
       "slug": "manual-of-gainful-exercise",
-      "name_ru": "Справочник полезных упражнений",
+      "name_ru": "Учебник полезных упражнений",
       "name_en": "Manual of Gainful Exercise",
       "source": "srd-5.2",
       "sort_order": 1230,
@@ -4230,7 +4230,7 @@
     {
       "kind": "item",
       "slug": "manual-of-quickness-of-action",
-      "name_ru": "Справочник быстроты действий",
+      "name_ru": "Учебник быстроты действий",
       "name_en": "Manual of Quickness of Action",
       "source": "srd-5.2",
       "sort_order": 1250,
@@ -4334,7 +4334,7 @@
     {
       "kind": "item",
       "slug": "mirror-of-life-trapping",
-      "name_ru": "Зеркало похищения жизни",
+      "name_ru": "Зеркало пленения жизни",
       "name_en": "Mirror of Life Trapping",
       "source": "srd-5.2",
       "sort_order": 1280,
@@ -4367,7 +4367,7 @@
     {
       "kind": "item",
       "slug": "mithral-armor",
-      "name_ru": "Мифрильный доспех",
+      "name_ru": "Мифриловый доспех",
       "name_en": "Mithral Armor",
       "source": "srd-5.2",
       "sort_order": 1290,
@@ -4538,7 +4538,7 @@
     {
       "kind": "item",
       "slug": "nine-lives-stealer",
-      "name_ru": "Вор девяти жизней",
+      "name_ru": "Похититель девяти жизней",
       "name_en": "Nine Lives Stealer",
       "source": "srd-5.2",
       "sort_order": 1340,
@@ -4574,7 +4574,7 @@
     {
       "kind": "item",
       "slug": "oathbow",
-      "name_ru": "Лук клятвы",
+      "name_ru": "Клятволук",
       "name_en": "Oathbow",
       "source": "srd-5.2",
       "sort_order": 1350,
@@ -4772,7 +4772,7 @@
     {
       "kind": "item",
       "slug": "periapt-of-proof-against-poison",
-      "name_ru": "Медальон защиты от яда",
+      "name_ru": "Амулет защиты от яда",
       "name_en": "Periapt of Proof against Poison",
       "source": "srd-5.2",
       "sort_order": 1410,
@@ -4805,7 +4805,7 @@
     {
       "kind": "item",
       "slug": "periapt-of-wound-closure",
-      "name_ru": "Медальон затягивающихся ран",
+      "name_ru": "Амулет закрытия ран",
       "name_en": "Periapt of Wound Closure",
       "source": "srd-5.2",
       "sort_order": 1420,
@@ -4943,7 +4943,7 @@
     {
       "kind": "item",
       "slug": "plate-armor-of-etherealness",
-      "name_ru": "Латный доспех эфирности",
+      "name_ru": "Латы эфирности",
       "name_en": "Plate Armor of Etherealness",
       "source": "srd-5.2",
       "sort_order": 1460,
@@ -5251,7 +5251,7 @@
     {
       "kind": "item",
       "slug": "potion-of-giant-strength-frost",
-      "name_ru": "Зелье силы ледяного великана",
+      "name_ru": "Зелье силы морозного великана",
       "name_en": "Potion of Giant Strength (frost)",
       "source": "srd-5.2",
       "sort_order": 1550,
@@ -5421,7 +5421,7 @@
     {
       "kind": "item",
       "slug": "potion-of-growth",
-      "name_ru": "Зелье увеличения",
+      "name_ru": "Зелье роста",
       "name_en": "Potion of Growth",
       "source": "srd-5.2",
       "sort_order": 1600,
@@ -5490,7 +5490,7 @@
     {
       "kind": "item",
       "slug": "potion-of-greater-healing",
-      "name_ru": "Зелье большого лечения",
+      "name_ru": "Большое зелье лечения",
       "name_en": "Potion of Greater Healing",
       "source": "srd-5.2",
       "sort_order": 1620,
@@ -5524,7 +5524,7 @@
     {
       "kind": "item",
       "slug": "potion-of-superior-healing",
-      "name_ru": "Зелье отличного лечения",
+      "name_ru": "Отличное зелье лечения",
       "name_en": "Potion of Superior Healing",
       "source": "srd-5.2",
       "sort_order": 1630,
@@ -5558,7 +5558,7 @@
     {
       "kind": "item",
       "slug": "potion-of-supreme-healing",
-      "name_ru": "Зелье превосходного лечения",
+      "name_ru": "Превосходное зелье лечения",
       "name_en": "Potion of Supreme Healing",
       "source": "srd-5.2",
       "sort_order": 1640,
@@ -5893,7 +5893,7 @@
     {
       "kind": "item",
       "slug": "potion-of-water-breathing",
-      "name_ru": "Зелье подводного дыхания",
+      "name_ru": "Зелье водного дыхания",
       "name_en": "Potion of Water Breathing",
       "source": "srd-5.2",
       "sort_order": 1740,
@@ -6103,7 +6103,7 @@
     {
       "kind": "item",
       "slug": "ring-of-feather-falling",
-      "name_ru": "Кольцо падения пёрышком",
+      "name_ru": "Кольцо пернатого падения",
       "name_en": "Ring of Feather Falling",
       "source": "srd-5.2",
       "sort_order": 1800,
@@ -6539,7 +6539,7 @@
     {
       "kind": "item",
       "slug": "ring-of-the-ram",
-      "name_ru": "Кольцо барана",
+      "name_ru": "Кольцо тарана",
       "name_en": "Ring of the Ram",
       "source": "srd-5.2",
       "sort_order": 1930,
@@ -6681,7 +6681,7 @@
     {
       "kind": "item",
       "slug": "ring-of-x-ray-vision",
-      "name_ru": "Кольцо проникающего зрения",
+      "name_ru": "Кольцо рентгеновского зрения",
       "name_en": "Ring of X-ray Vision",
       "source": "srd-5.2",
       "sort_order": 1970,
@@ -7392,7 +7392,7 @@
     {
       "kind": "item",
       "slug": "shield-of-missile-attraction",
-      "name_ru": "Щит притягивания снарядов",
+      "name_ru": "Щит притяжения снарядов",
       "name_en": "Shield of Missile Attraction",
       "source": "srd-5.2",
       "sort_order": 2180,
@@ -7464,7 +7464,7 @@
     {
       "kind": "item",
       "slug": "slippers-of-spider-climbing",
-      "name_ru": "Туфли паука",
+      "name_ru": "Туфли паучьего лазания",
       "name_en": "Slippers of Spider Climbing",
       "source": "srd-5.2",
       "sort_order": 2200,
@@ -7532,7 +7532,7 @@
     {
       "kind": "item",
       "slug": "spellguard-shield",
-      "name_ru": "Щит ограждения от заклятий",
+      "name_ru": "Щит защиты от заклинаний",
       "name_en": "Spellguard Shield",
       "source": "srd-5.2",
       "sort_order": 2220,
@@ -7567,7 +7567,7 @@
     {
       "kind": "item",
       "slug": "spell-scroll-cantrip",
-      "name_ru": "Свиток заклинания (заговор)",
+      "name_ru": "Свиток заговора",
       "name_en": "Spell Scroll (Cantrip)",
       "source": "srd-5.2",
       "sort_order": 2230,
@@ -7907,7 +7907,7 @@
     {
       "kind": "item",
       "slug": "sphere-of-annihilation",
-      "name_ru": "Сфера аннигиляции",
+      "name_ru": "Сфера уничтожения",
       "name_en": "Sphere of Annihilation",
       "source": "srd-5.2",
       "sort_order": 2330,
@@ -8196,7 +8196,7 @@
     {
       "kind": "item",
       "slug": "staff-of-the-magi",
-      "name_ru": "Посох магов",
+      "name_ru": "Посох мага",
       "name_en": "Staff of the Magi",
       "source": "srd-5.2",
       "sort_order": 2410,
@@ -8265,7 +8265,7 @@
     {
       "kind": "item",
       "slug": "staff-of-the-woodlands",
-      "name_ru": "Посох леса",
+      "name_ru": "Посох лесов",
       "name_en": "Staff of the Woodlands",
       "source": "srd-5.2",
       "sort_order": 2430,
@@ -8336,7 +8336,7 @@
     {
       "kind": "item",
       "slug": "staff-of-withering",
-      "name_ru": "Посох иссушения",
+      "name_ru": "Посох увядания",
       "name_en": "Staff of Withering",
       "source": "srd-5.2",
       "sort_order": 2450,
@@ -8471,7 +8471,7 @@
     {
       "kind": "item",
       "slug": "sword-of-life-stealing",
-      "name_ru": "Меч кражи жизни",
+      "name_ru": "Меч похищения жизни",
       "name_en": "Sword of Life Stealing",
       "source": "srd-5.2",
       "sort_order": 2490,
@@ -8708,7 +8708,7 @@
     {
       "kind": "item",
       "slug": "tome-of-clear-thought",
-      "name_ru": "Фолиант чистых мыслей",
+      "name_ru": "Том ясной мысли",
       "name_en": "Tome of Clear Thought",
       "source": "srd-5.2",
       "sort_order": 2560,
@@ -8741,7 +8741,7 @@
     {
       "kind": "item",
       "slug": "tome-of-leadership-and-influence",
-      "name_ru": "Фолиант лидерства и влияния",
+      "name_ru": "Том лидерства и влияния",
       "name_en": "Tome of Leadership and Influence",
       "source": "srd-5.2",
       "sort_order": 2570,
@@ -8774,7 +8774,7 @@
     {
       "kind": "item",
       "slug": "tome-of-understanding",
-      "name_ru": "Фолиант понимания",
+      "name_ru": "Том понимания",
       "name_en": "Tome of Understanding",
       "source": "srd-5.2",
       "sort_order": 2580,
@@ -8807,7 +8807,7 @@
     {
       "kind": "item",
       "slug": "trident-of-fish-command",
-      "name_ru": "Трезубец командования рыбами",
+      "name_ru": "Трезубец власти над рыбами",
       "name_en": "Trident of Fish Command",
       "source": "srd-5.2",
       "sort_order": 2590,
@@ -8912,7 +8912,7 @@
     {
       "kind": "item",
       "slug": "vorpal-sword",
-      "name_ru": "Вострый меч",
+      "name_ru": "Меч отсечения",
       "name_en": "Vorpal Sword",
       "source": "srd-5.2",
       "sort_order": 2620,
@@ -8945,7 +8945,7 @@
     {
       "kind": "item",
       "slug": "wand-of-binding",
-      "name_ru": "Волшебная палочка сковывания",
+      "name_ru": "Волшебная палочка связывания",
       "name_en": "Wand of Binding",
       "source": "srd-5.2",
       "sort_order": 2630,
@@ -9167,7 +9167,7 @@
     {
       "kind": "item",
       "slug": "wand-of-magic-missiles",
-      "name_ru": "Волшебная палочка стрел",
+      "name_ru": "Волшебная палочка волшебных стрел",
       "name_en": "Wand of Magic Missiles",
       "source": "srd-5.2",
       "sort_order": 2690,
@@ -9447,7 +9447,7 @@
     {
       "kind": "item",
       "slug": "wand-of-wonder",
-      "name_ru": "Волшебная палочка чудес",
+      "name_ru": "Палочка чудес",
       "name_en": "Wand of Wonder",
       "source": "srd-5.2",
       "sort_order": 2770,

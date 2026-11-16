@@ -7,7 +7,7 @@ dart,Dart,Дротик,PH24,weapons,https://next.dnd.su/equipment/29-dart,https:
 flail,Flail,Цеп,PH24,weapons,https://next.dnd.su/equipment/28-flail,https://new.ttg.club/items/flail-phb,true,sap,Ослабляющее,melee_martial_weapon
 glaive,Glaive,Глефа,PH24,weapons,https://next.dnd.su/equipment/14-glaive,https://new.ttg.club/items/glaive-phb,true,graze,Секущее,melee_martial_weapon
 greataxe,Greataxe,Секира,PH24,weapons,https://next.dnd.su/equipment/25-greataxe,https://new.ttg.club/items/greataxe-phb,true,cleave,Прорубающее,melee_martial_weapon
-greatclub,Greatclub,Палица,PH24,weapons,https://next.dnd.su/equipment/8-greatclub,https://new.ttg.club/items/greatclub-phb,true,push,Отталкивающее,melee_simple_weapon
+greatclub,Greatclub,Двуручная дубина,PH24,weapons,https://next.dnd.su/equipment/8-greatclub,https://new.ttg.club/items/greatclub-phb,true,push,Отталкивающее,melee_simple_weapon
 greatsword,Greatsword,Двуручный меч,PH24,weapons,https://next.dnd.su/equipment/15-greatsword,https://new.ttg.club/items/greatsword-phb,true,graze,Секущее,melee_martial_weapon
 halberd,Halberd,Алебарда,PH24,weapons,https://next.dnd.su/equipment/11-halberd,https://new.ttg.club/items/halberd-phb,true,cleave,Прорубающее,melee_martial_weapon
 hand-crossbow,Hand Crossbow,Одноручный арбалет,PH24,weapons,https://next.dnd.su/equipment/37-hand-crossbow,https://new.ttg.club/items/hand-crossbow-phb,true,vex,Отвлекающее,ranged_martial_weapon
@@ -27,7 +27,7 @@ pike,Pike,Пика,PH24,weapons,https://next.dnd.su/equipment/23-pike,https://ne
 pistol,Pistol,Пистоль,PH24,weapons,https://next.dnd.su/equipment/36-pistol,https://new.ttg.club/items/pistol-phb,true,vex,Отвлекающее,ranged_martial_weapon
 quarterstaff,Quarterstaff,Боевой посох,PH24,weapons,https://next.dnd.su/equipment/1-quarterstaff,https://new.ttg.club/items/quarterstaff-phb,true,topple,Опрокидывающее,melee_simple_weapon
 rapier,Rapier,Рапира,PH24,weapons,https://next.dnd.su/equipment/24-rapier,https://new.ttg.club/items/rapier-phb,true,vex,Отвлекающее,melee_martial_weapon
-scimitar,Scimitar,Скимитар,PH24,weapons,https://next.dnd.su/equipment/26-scimitar,https://new.ttg.club/items/scimitar-phb,true,nick,Быстрое,melee_martial_weapon
+scimitar,Scimitar,Ятаган,PH24,weapons,https://next.dnd.su/equipment/26-scimitar,https://new.ttg.club/items/scimitar-phb,true,nick,Быстрое,melee_martial_weapon
 shortbow,Shortbow,Короткий лук,PH24,weapons,https://next.dnd.su/equipment/30-shortbow,https://new.ttg.club/items/shortbow-phb,true,vex,Отвлекающее,ranged_simple_weapon
 shortsword,Shortsword,Короткий меч,PH24,weapons,https://next.dnd.su/equipment/20-shortsword,https://new.ttg.club/items/shortsword-phb,true,vex,Отвлекающее,melee_martial_weapon
 sickle,Sickle,Серп,PH24,weapons,https://next.dnd.su/equipment/10-sickle,https://new.ttg.club/items/sickle-phb,true,nick,Быстрое,melee_simple_weapon

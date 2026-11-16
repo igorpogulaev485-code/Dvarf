@@ -331,7 +331,7 @@
     {
       "kind": "spell",
       "slug": "guidance",
-      "name_ru": "Наставление",
+      "name_ru": "Указание",
       "name_en": "Guidance",
       "source": "srd-5.2",
       "sort_order": 7,
@@ -1805,7 +1805,7 @@
     {
       "kind": "spell",
       "slug": "detect-evil-and-good",
-      "name_ru": "Обнаружение добра и зла",
+      "name_ru": "Обнаружение зла и добра",
       "name_en": "Detect Evil and Good",
       "source": "srd-5.2",
       "sort_order": 1039,
@@ -3042,7 +3042,7 @@
     {
       "kind": "spell",
       "slug": "illusory-script",
-      "name_ru": "Иллюзорные письмена",
+      "name_ru": "Невидимое письмо",
       "name_en": "Illusory Script",
       "source": "srd-5.2",
       "sort_order": 1066,
@@ -4187,7 +4187,7 @@
     {
       "kind": "spell",
       "slug": "barkskin",
-      "name_ru": "Дубовая кожа",
+      "name_ru": "Дубовая кора",
       "name_en": "Barkskin",
       "source": "srd-5.2",
       "sort_order": 2091,
@@ -4229,7 +4229,7 @@
     {
       "kind": "spell",
       "slug": "blindness-deafness",
-      "name_ru": "Глухота/слепота",
+      "name_ru": "Глухота",
       "name_en": "Blindness/Deafness",
       "source": "srd-5.2",
       "sort_order": 2092,
@@ -4635,7 +4635,7 @@
     {
       "kind": "spell",
       "slug": "enlarge-reduce",
-      "name_ru": "Увеличение/уменьшение",
+      "name_ru": "Увеличение",
       "name_en": "Enlarge/Reduce",
       "source": "srd-5.2",
       "sort_order": 2101,
@@ -5148,7 +5148,7 @@
     {
       "kind": "spell",
       "slug": "knock",
-      "name_ru": "Стук",
+      "name_ru": "Открывание",
       "name_en": "Knock",
       "source": "srd-5.2",
       "sort_order": 2112,
@@ -5321,7 +5321,7 @@
     {
       "kind": "spell",
       "slug": "locate-object",
-      "name_ru": "Поиск объекта",
+      "name_ru": "Поиск предмета",
       "name_en": "Locate Object",
       "source": "srd-5.2",
       "sort_order": 2116,
@@ -8627,7 +8627,7 @@
     {
       "kind": "spell",
       "slug": "charm-monster",
-      "name_ru": "Очарование монстра",
+      "name_ru": "Очарование чудовища",
       "name_en": "Charm Monster",
       "source": "srd-5.2",
       "sort_order": 4188,
@@ -10347,7 +10347,7 @@
     {
       "kind": "spell",
       "slug": "contact-other-plane",
-      "name_ru": "Связь с иным планом",
+      "name_ru": "Связь с иным миром",
       "name_en": "Contact Other Plane",
       "source": "srd-5.2",
       "sort_order": 5226,
@@ -10480,7 +10480,7 @@
     {
       "kind": "spell",
       "slug": "dispel-evil-and-good",
-      "name_ru": "Рассеивание добра и зла",
+      "name_ru": "Рассеивание зла и добра",
       "name_en": "Dispel Evil and Good",
       "source": "srd-5.2",
       "sort_order": 5229,
@@ -11691,7 +11691,7 @@
     {
       "kind": "spell",
       "slug": "chain-lightning",
-      "name_ru": "Цепная молния",
+      "name_ru": "Пляшущая молния",
       "name_en": "Chain Lightning",
       "source": "srd-5.2",
       "sort_order": 6256,
@@ -12325,7 +12325,7 @@
     {
       "kind": "spell",
       "slug": "heal",
-      "name_ru": "Исцеление",
+      "name_ru": "Полное исцеление",
       "name_en": "Heal",
       "source": "srd-5.2",
       "sort_order": 6270,
@@ -13962,7 +13962,7 @@
     {
       "kind": "spell",
       "slug": "antimagic-field",
-      "name_ru": "Поле антимагии",
+      "name_ru": "Преграда магии",
       "name_en": "Antimagic Field",
       "source": "srd-5.2",
       "sort_order": 8307,
@@ -14004,7 +14004,7 @@
     {
       "kind": "spell",
       "slug": "antipathy-sympathy",
-      "name_ru": "Антипатия/симпатия",
+      "name_ru": "Антипатия",
       "name_en": "Antipathy/Sympathy",
       "source": "srd-5.2",
       "sort_order": 8308,
@@ -14837,7 +14837,7 @@
     {
       "kind": "spell",
       "slug": "mass-heal",
-      "name_ru": "Множественное исцеление",
+      "name_ru": "Множественное полное исцеление",
       "name_en": "Mass Heal",
       "source": "srd-5.2",
       "sort_order": 9327,
@@ -15271,7 +15271,7 @@
     {
       "kind": "spell",
       "slug": "weird",
-      "name_ru": "Жуть",
+      "name_ru": "Смертный ужас",
       "name_en": "Weird",
       "source": "srd-5.2",
       "sort_order": 9337,
@@ -15315,7 +15315,7 @@
     {
       "kind": "spell",
       "slug": "wish",
-      "name_ru": "Желание",
+      "name_ru": "Исполнение желаний",
       "name_en": "Wish",
       "source": "srd-5.2",
       "sort_order": 9338,

@@ -188,4 +188,5 @@ def test_alembic_single_head_includes_p24_c07r():
         "p24c17frh01",
         "p24c21au01",
         "p24c21rau01",
+        "p24n01names01",
     } or "p24c07rbest01" in ancestor_ids

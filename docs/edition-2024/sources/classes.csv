@@ -1,5 +1,5 @@
 id,name_en,name_ru,book,category,url_dndsu,url_ttg,srd
-artificer,Artificer,Артефактор,EFA,classes,https://next.dnd.su/class/artificer,https://new.ttg.club/classes/artificer-efa,false
+artificer,Artificer,Изобретатель,EFA,classes,https://next.dnd.su/class/artificer,https://new.ttg.club/classes/artificer-efa,false
 barbarian,Barbarian,Варвар,PH24,classes,https://next.dnd.su/class/barbarian,https://new.ttg.club/classes/barbarian-phb,true
 bard,Bard,Бард,PH24,classes,https://next.dnd.su/class/bard,https://new.ttg.club/classes/bard-phb,true
 cleric,Cleric,Жрец,PH24,classes,https://next.dnd.su/class/cleric,https://new.ttg.club/classes/cleric-phb,true

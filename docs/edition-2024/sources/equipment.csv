@@ -35,7 +35,7 @@ bucket,Bucket,Ведро,PH24,equipment,https://next.dnd.su/equipment/216-bucket
 bullseye-lantern,Bullseye Lantern,Направленный фонарь,PH24,equipment,https://next.dnd.su/equipment/241-bullseye-lantern,,true,equipment
 burglars-pack,Burglar's Pack,Набор взломщика,PH24,equipment,https://next.dnd.su/equipment/91-burglars-pack,https://new.ttg.club/items/burglar-s-pack-phb,true,item_pack
 calligraphers-supplies,Calligrapher’s Supplies,Инструменты каллиграфа,PH24,equipment,https://next.dnd.su/equipment/14353-calligraphers-supplies,https://new.ttg.club/items/calligrapher-s-supplies-phb,true,artisan_tool
-caltrops,Caltrops,Калтропы,PH24,equipment,https://next.dnd.su/equipment/217-caltrops,https://new.ttg.club/items/caltrops-phb,true,equipment
+caltrops,Caltrops,Калтропы (сумка),PH24,equipment,https://next.dnd.su/equipment/217-caltrops,https://new.ttg.club/items/caltrops-phb,true,equipment
 candle,Candle,Свеча,PH24,equipment,https://next.dnd.su/equipment/218-candle,https://new.ttg.club/items/candle-phb,true,equipment
 carpenters-tools,Carpenter’s Tools,Инструменты плотника,PH24,equipment,https://next.dnd.su/equipment/14354-carpenters-tools,https://new.ttg.club/items/carpenter-s-tools-phb,true,artisan_tool
 cartographers-tools,Cartographer’s Tools,Инструменты картографа,PH24,equipment,https://next.dnd.su/equipment/14355-cartographers-tools,https://new.ttg.club/items/cartographer-s-tools-phb,true,artisan_tool
@@ -44,7 +44,7 @@ chest,Chest,Сундук,PH24,equipment,https://next.dnd.su/equipment/222-chest,
 climbers-kit,Climber's Kit,Комплект для лазания,PH24,equipment,https://next.dnd.su/equipment/223-climbers-kit,https://new.ttg.club/items/climber-s-kit-phb,true,equipment
 cobblers-tools,Cobbler’s Tools,Инструменты сапожника,PH24,equipment,https://next.dnd.su/equipment/14357-cobblers-tools,https://new.ttg.club/items/cobbler-s-tools-phb,true,artisan_tool
 component-pouch,Component Pouch,Мешочек с компонентами,PH24,equipment,https://next.dnd.su/equipment/226-component-pouch,https://new.ttg.club/items/component-pouch-phb,true,equipment
-cooks-utensils,Cook’s Utensils,Инструменты повара,PH24,equipment,https://next.dnd.su/equipment/14358-cooks-utensils,https://new.ttg.club/items/cook-s-utensils-phb,true,artisan_tool
+cooks-utensils,Cook’s Utensils,Кухонная утварь,PH24,equipment,https://next.dnd.su/equipment/14358-cooks-utensils,https://new.ttg.club/items/cook-s-utensils-phb,true,artisan_tool
 costume,Costume,Костюм,PH24,equipment,https://next.dnd.su/equipment/227-costume,https://new.ttg.club/items/costume-phb,true,equipment
 crossbow-bolt-case,Crossbow Bolt Case,Футляр для арбалетных болтов,PH24,equipment,https://next.dnd.su/equipment/219-crossbow-bolt-case,,true,equipment
 crossbow-bolts,Crossbow Bolts,Болты,PH24,equipment,https://next.dnd.su/equipment/39-crossbow-bolts,,true,ammunition
@@ -65,7 +65,7 @@ fine-clothes,Fine Clothes,Отличная одежда,PH24,equipment,https://n
 firearm-bullets,Firearm Bullets,Пули,PH24,equipment,https://next.dnd.su/equipment/42-firearm-bullets,,true,ammunition
 flask,Flask,Фляга,PH24,equipment,https://next.dnd.su/equipment/230-flask,https://new.ttg.club/items/flask-phb,true,equipment
 flute,Flute,Флейта,PH24,equipment,https://next.dnd.su/equipment/14390-flute,https://new.ttg.club/items/flute-phb,true,toolkit
-forgery-kit,Forgery Kit,Набор для фальсификации,PH24,equipment,https://next.dnd.su/equipment/14370-forgery-kit,https://new.ttg.club/items/forgery-kit-phb,true,toolkit
+forgery-kit,Forgery Kit,Набор фальшивомонетчика,PH24,equipment,https://next.dnd.su/equipment/14370-forgery-kit,https://new.ttg.club/items/forgery-kit-phb,true,toolkit
 gaming-set,Gaming Set,Игровой набор,PH24,equipment,https://next.dnd.su/equipment/14371-gaming-set,https://new.ttg.club/items/gaming-set-phb,true,toolkit
 glass-bottle,Glass Bottle,Стеклянная бутылка,PH24,equipment,https://next.dnd.su/equipment/215-glass-bottle,,true,equipment
 glassblowers-tools,Glassblower’s Tools,Инструменты стеклодува,PH24,equipment,https://next.dnd.su/equipment/14359-glassblowers-tools,https://new.ttg.club/items/glassblower-s-tools-phb,true,artisan_tool
@@ -134,7 +134,7 @@ tent,Tent,Палатка,PH24,equipment,https://next.dnd.su/equipment/269-tent,h
 thieves-tools,Thieves’ Tools,Воровские инструменты,PH24,equipment,https://next.dnd.su/equipment/14379-thieves-tools,https://new.ttg.club/items/thieves-tools-phb,true,toolkit
 three-dragon-ante,Three-dragon ante,Ставка трёх драконов,PH24,equipment,https://next.dnd.su/equipment/14375-three-dragon-ante,,true,toolkit
 tinderbox,Tinderbox,Трутница,PH24,equipment,https://next.dnd.su/equipment/270-tinderbox,https://new.ttg.club/items/tinderbox-phb,true,equipment
-tinkers-tools,Tinker’s Tools,Инструменты ремонтника,PH24,equipment,https://next.dnd.su/equipment/14366-tinkers-tools,https://new.ttg.club/items/tinker-s-tools-phb,true,artisan_tool
+tinkers-tools,Tinker’s Tools,Инструменты жестянщика,PH24,equipment,https://next.dnd.su/equipment/14366-tinkers-tools,https://new.ttg.club/items/tinker-s-tools-phb,true,artisan_tool
 torch,Torch,Факел,PH24,equipment,https://next.dnd.su/equipment/271-torch,https://new.ttg.club/items/torch-phb,true,equipment
 travelers-clothes,Traveler's Clothes,Дорожная одежда,PH24,equipment,https://next.dnd.su/equipment/225-travelers-clothes,https://new.ttg.club/items/traveler-s-clothes-phb,true,equipment
 vial,Vial,Флакон,PH24,equipment,https://next.dnd.su/equipment/272-vial,https://new.ttg.club/items/vial-phb,true,equipment
