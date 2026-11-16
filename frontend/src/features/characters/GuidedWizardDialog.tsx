@@ -686,7 +686,13 @@ function SpellbookPicksStepBody({
           entry.slug.toLowerCase().includes(q)
         )
       })
-      .slice(0, 30)
+      .sort((a, b) => {
+        const la = parseSpellCatalogData(a.data ?? {}).level
+        const lb = parseSpellCatalogData(b.data ?? {}).level
+        if (la !== lb) return lb - la // highest available circle first (show 3/6 on create-at-N shots)
+        return a.name_ru.localeCompare(b.name_ru, 'ru')
+      })
+      .slice(0, 60)
   }, [
     entries,
     query,

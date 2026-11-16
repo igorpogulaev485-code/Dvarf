@@ -38,8 +38,10 @@ import {
   spellSchoolLabelRu,
 } from '../features/createPipeline2024/create2024Labels'
 import {
+  catalogSpellLevel,
   originFeatNameOf,
   spellsByLevelForClass,
+  spellsUpToLevelForClass,
 } from '../features/createPipeline2024/create2024FeatPicks'
 import {
   buildCreate2024SheetPreview,
@@ -66,6 +68,7 @@ import {
 import {
   CREATE_2024_STEP_LABELS,
   classL1Spellcasting,
+  classSpellcastingAtLevel,
   createEmptyCreate2024State,
   entryData,
   toCreate2024Request,
@@ -77,6 +80,7 @@ import {
   type Create2024StepId,
   type LanguagesBundle,
 } from '../features/createPipeline2024/createPipeline2024Types'
+import { maxSpellLevelForClassAlone } from '../shared/dnd/casterProgression'
 import { useIsPhone } from '../features/createPipeline2024/useIsPhone'
 import { listCatalogEntries, type CatalogEntry, type CatalogKind } from '../shared/api/catalog'
 import {
@@ -206,6 +210,8 @@ export function CreateCharacter2024Page({
   // Internal e2e: jump to leveling with seeded builds (screenshots / forks).
   const e2eLeveling = params.get('e2eLeveling') === '1'
   const e2eSeed = params.get('e2eSeed') || 'fighter5'
+  /** Acceptance: jump to leveling at N but leave spell/book picks for the real UI. */
+  const e2eEmptySpells = params.get('e2eEmptySpells') === '1'
   // Even when embedded in `/characters/create`, keep the M06 gate (preview or flag).
   const blocked = !harness && !previewQuery && !RULES_EDITION_2024_OPEN
 
@@ -421,9 +427,9 @@ export function CreateCharacter2024Page({
       backgroundEquipment: 'pack',
       classEquipment: 'a',
       baseAbilities: seed.abilities,
-      cantripIds: seed.spells?.cantripIds ?? [],
-      spellbookSpellIds: seed.spells?.spellbookSpellIds ?? [],
-      preparedSpellIds: seed.spells?.preparedSpellIds ?? [],
+      cantripIds: e2eEmptySpells ? [] : (seed.spells?.cantripIds ?? []),
+      spellbookSpellIds: e2eEmptySpells ? [] : (seed.spells?.spellbookSpellIds ?? []),
+      preparedSpellIds: e2eEmptySpells ? [] : (seed.spells?.preparedSpellIds ?? []),
       classes,
       primaryClassEntryId: classes[0]!.id,
       hpChoices: ensureHpChoices(classes, []),
@@ -432,7 +438,7 @@ export function CreateCharacter2024Page({
       subclassSlug: seed.rows[0]?.subclass || null,
       asiChoices: seed.asi || [],
     }))
-  }, [e2eLeveling, e2eSeed, catalog])
+  }, [e2eLeveling, e2eSeed, e2eEmptySpells, catalog])
 
   const issues = catalog
     ? create2024StepIssues(step, state, {
@@ -954,10 +960,23 @@ export function CreateCharacter2024Page({
 
   if (step === 'leveling') {
     detailPrimary = true
-    const sc = classL1Spellcasting(classEntry)
     const classSlug = state.classSlug || ''
+    const wizardLevel = Math.max(
+      1,
+      state.classes.find((c) => c.name === classEntry?.name_ru || classSlug === 'wizard')?.level ??
+        (classSlug === 'wizard' ? state.characterLevel : 1),
+    )
+    const sc =
+      classSpellcastingAtLevel(classEntry, wizardLevel) ?? classL1Spellcasting(classEntry)
+    const maxBookCircle = Math.max(
+      1,
+      sc && sc.maxSlotLevel > 0
+        ? sc.maxSlotLevel
+        : maxSpellLevelForClassAlone('full', wizardLevel) || 1,
+    )
     const cantrips = spellsByLevelForClass(catalogData.spells, 0, [classSlug])
     const level1 = spellsByLevelForClass(catalogData.spells, 1, [classSlug])
+    const bookPool = spellsUpToLevelForClass(catalogData.spells, maxBookCircle, [classSlug])
     const wizardBook = usesSpellbook(classSlug)
     const bookSlugs = new Set(state.spellbookSpellIds)
     let tab: 'cantrips' | 'book' | 'level1' = spellTab
@@ -966,9 +985,11 @@ export function CreateCharacter2024Page({
     const spellList =
       tab === 'cantrips'
         ? cantrips
-        : tab === 'book' || !wizardBook
-          ? level1
-          : level1.filter((row) => bookSlugs.has(row.slug))
+        : tab === 'book'
+          ? bookPool
+          : wizardBook
+            ? bookPool.filter((row) => bookSlugs.has(row.slug))
+            : level1
     const selected =
       tab === 'cantrips'
         ? state.cantripIds
@@ -976,8 +997,7 @@ export function CreateCharacter2024Page({
           ? state.spellbookSpellIds
           : state.preparedSpellIds
     const wizardBookNeed =
-      WIZARD_BOOK_SPELLS_AT_L1 +
-      Math.max(0, (state.classes.find((c) => c.name === classEntry?.name_ru)?.level ?? 1) - 1) * 2
+      WIZARD_BOOK_SPELLS_AT_L1 + Math.max(0, wizardLevel - 1) * 2
     const max =
       tab === 'cantrips'
         ? (sc?.cantrips ?? 0)
@@ -1135,12 +1155,17 @@ export function CreateCharacter2024Page({
                 selectedIds={selected}
                 cardTestIdPrefix="p24-m03-card"
                 searchPlaceholder="Поиск заклинания…"
-                items={spellList.map<CatalogCardItem>((row) => ({
-                  id: row.slug,
-                  title: row.name_ru,
-                  source: catalogSourceLabelRu(row.source),
-                  meta: `${spellSchoolLabelRu(row)} · ${castingTimeLabelRu(row)}`,
-                }))}
+                items={spellList.map<CatalogCardItem>((row) => {
+                  const circle = catalogSpellLevel(row)
+                  const circleLabel =
+                    circle <= 0 ? 'Заговор' : `${circle} круг`
+                  return {
+                    id: row.slug,
+                    title: row.name_ru,
+                    source: catalogSourceLabelRu(row.source),
+                    meta: `${circleLabel} · ${spellSchoolLabelRu(row)} · ${castingTimeLabelRu(row)}`,
+                  }
+                })}
                 headerSlot={
                   <Stack gap={8}>
                     <div className="create-2024__tabs" role="tablist" aria-label="Тип заклинаний">
@@ -1182,17 +1207,22 @@ export function CreateCharacter2024Page({
                         </button>
                       ) : null}
                     </div>
-                    <Text tone="muted">
+                    <p
+                      className="ui-text ui-text--muted"
+                      data-testid="p24-m03-spell-pick-counter"
+                    >
                       Выбрано {selected.length} из {max}
                       {wizardBook && tab === 'book'
-                        ? '. Волшебник: 6 на 1 уровне, +2 за каждый следующий уровень волшебника.'
+                        ? `. Книга: ≥6 первого круга, далее любой доступный · круги 1–${maxBookCircle}.`
                         : null}
-                    </Text>
+                    </p>
                   </Stack>
                 }
                 onSelect={(slug) => {
                   setFocusSpellSlug(slug)
                   if (tab === 'book') {
+                    const entry = catalogData.spells.find((row) => row.slug === slug)
+                    if (entry && catalogSpellLevel(entry) > maxBookCircle) return
                     patch(
                       toggleSpellbookPick(
                         state.spellbookSpellIds,

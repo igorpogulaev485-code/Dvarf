@@ -102,6 +102,29 @@ export function spellsByLevelForClass(
     .sort((a, b) => a.name_ru.localeCompare(b.name_ru, 'ru'))
 }
 
+/** Leveled spells (1…maxLevel) on the class list — for wizard book / create-at-N. */
+export function spellsUpToLevelForClass(
+  spells: readonly CatalogEntry[],
+  maxLevel: number,
+  classSlugs: readonly string[],
+): CatalogEntry[] {
+  const cap = Math.max(0, Math.floor(maxLevel) || 0)
+  if (cap < 1) return []
+  return spells
+    .filter((s) => {
+      const lv = spellLevel(s)
+      return lv >= 1 && lv <= cap && classSlugs.some((c) => spellOnClassList(s, c))
+    })
+    .sort((a, b) => {
+      // Highest available circle first so create-at-N pickers surface 3rd/6th circle.
+      const d = spellLevel(b) - spellLevel(a)
+      if (d !== 0) return d
+      return a.name_ru.localeCompare(b.name_ru, 'ru')
+    })
+}
+
+export { spellLevel as catalogSpellLevel }
+
 function spellOptions(entries: readonly CatalogEntry[]): PickOption[] {
   return entries.map((s) => ({ id: s.slug, label: s.name_ru }))
 }

@@ -47,6 +47,7 @@ import {
   originFeatSlugOf,
   speciesPickFields,
   spellsByLevelForClass,
+  spellsUpToLevelForClass,
   type FeatPicks,
   type PickField,
 } from '../../features/createPipeline2024/create2024FeatPicks'
@@ -522,6 +523,27 @@ for (const [classEntry, bg, species] of combos) {
     items,
   }
   assert.equal(base.spellbookSpellIds.length, 6, 'wizard book = 6')
+  const bookPoolL5 = spellsUpToLevelForClass(catalog.spells, 3, ['wizard'])
+  assert.ok(
+    bookPoolL5.some((s) => s.slug === 'fireball'),
+    'create-at-5 book pool includes 3rd circle (fireball)',
+  )
+  assert.ok(
+    bookPoolL5.every((s) => {
+      const lv = Number((s.data as { level?: number } | undefined)?.level ?? -1)
+      return lv >= 1 && lv <= 3
+    }),
+    'create-at-5 book pool only circles 1–3',
+  )
+  const bookPoolL11 = spellsUpToLevelForClass(catalog.spells, 6, ['wizard'])
+  assert.ok(
+    bookPoolL11.some((s) => s.slug === 'chain-lightning'),
+    'create-at-11 book pool includes 6th circle',
+  )
+  assert.ok(
+    !bookPoolL11.some((s) => Number((s.data as { level?: number })?.level) === 7),
+    'create-at-11 book pool excludes 7th circle',
+  )
   assert.deepEqual(create2024StepIssues('leveling', base, ctx), [], 'wizard auto state is valid')
   const shortBook = { ...base, spellbookSpellIds: base.spellbookSpellIds.slice(0, 5) }
   assert.ok(create2024StepIssues('leveling', shortBook, ctx).length > 0, 'wizard needs 6 in book')

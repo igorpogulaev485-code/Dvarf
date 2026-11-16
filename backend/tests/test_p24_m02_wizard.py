@@ -262,3 +262,76 @@ def test_wizard_subclass_ru_names_present():
     assert names["spell-breaker"] == "Разрушитель заклинаний"
     assert names["the-third-eye"] == "Третий глаз"
     assert names["phantasmal-creatures"] == "Призрачные существа"
+
+
+# --- Create-at-N spellbook circles -----------------------------------------------------
+
+from tests.test_p24_m03_create import build_valid_payload, _spell_pick  # noqa: E402
+
+
+def _wizard_book(level: int, *, include_circle: int | None = None) -> list[str]:
+    need = 6 + 2 * max(0, level - 1)
+    l1 = _spell_pick("wizard", 1, max(12, need))
+    book = list(l1[:6])
+    if include_circle and include_circle > 1:
+        higher = _spell_pick("wizard", include_circle, 4)
+        book.extend(higher[:2])
+    circle = 2
+    while len(book) < need and circle <= 9:
+        for slug in _spell_pick("wizard", circle, 8):
+            if slug not in book:
+                book.append(slug)
+            if len(book) >= need:
+                break
+        circle += 1
+    return book[:need]
+
+
+def test_create_at_5_book_allows_3rd_circle():
+    snap = e24.compute_progression([{"slug": "wizard", "level": 5}])
+    cantrips = _spell_pick("wizard", 0, int(snap.spellcasting[0].cantrips))
+    book = _wizard_book(5, include_circle=3)
+    assert "fireball" in book or any(
+        create24._spell_level(create24.load_spell_catalog().get(s)) == 3 for s in book
+    )
+    if "fireball" not in book:
+        book = book[:-1] + ["fireball"]
+    prep = book[: int(snap.spellcasting[0].prepared_spells)]
+    result = create24.validate_create_2024(
+        create24.payload_from_dict(
+            build_valid_payload(
+                "wizard",
+                class_levels=[{"slug": "wizard", "level": 5, "subclass_slug": "wizard__evoker"}],
+                subclass_slug="wizard__evoker",
+                cantrip_ids=cantrips,
+                spellbook_spell_ids=book,
+                prepared_spell_ids=prep,
+            )
+        )
+    )
+    known = result.sheet["spells"]["known"]
+    assert sum(1 for row in known if row.get("in_spellbook")) == 14
+    assert result.sheet["spells"]["slots"]["3"]["max"] == 2
+
+
+def test_create_at_5_book_rejects_4th_circle():
+    snap = e24.compute_progression([{"slug": "wizard", "level": 5}])
+    cantrips = _spell_pick("wizard", 0, int(snap.spellcasting[0].cantrips))
+    l1 = _spell_pick("wizard", 1, 12)
+    l4 = _spell_pick("wizard", 4, 2)
+    book = l1[:12] + l4[:2]
+    with pytest.raises(create24.Create2024Error) as exc:
+        create24.validate_create_2024(
+            create24.payload_from_dict(
+                build_valid_payload(
+                    "wizard",
+                    class_levels=[{"slug": "wizard", "level": 5, "subclass_slug": "wizard__evoker"}],
+                    subclass_slug="wizard__evoker",
+                    cantrip_ids=cantrips,
+                    spellbook_spell_ids=book,
+                    prepared_spell_ids=book[:9],
+                )
+            )
+        )
+    assert exc.value.code == "create_2024_spells"
+    assert "1–3" in str(exc.value)

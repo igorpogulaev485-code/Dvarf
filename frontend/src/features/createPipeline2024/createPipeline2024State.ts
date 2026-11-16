@@ -22,6 +22,7 @@ import {
   type ItemNameIndex,
 } from './create2024Labels'
 import {
+  catalogSpellLevel,
   featPickFields,
   isOriginFeatEntry,
   originFeatSlugOf,
@@ -31,6 +32,7 @@ import {
 } from './create2024FeatPicks'
 import {
   classL1Spellcasting,
+  classSpellcastingAtLevel,
   entryData,
   speciesGrantsOriginFeat,
   usesSpellbook,
@@ -472,7 +474,6 @@ function abilitiesIssues(state: Create2024State): string[] {
 
 function levelingIssues(state: Create2024State, ctx: StepIssueCtx): string[] {
   const issues: string[] = []
-  const sc = classL1Spellcasting(ctx.classEntry)
   const wizardLevel = Math.max(
     1,
     state.classes.find((row) => {
@@ -480,9 +481,14 @@ function levelingIssues(state: Create2024State, ctx: StepIssueCtx): string[] {
       return name === 'волшебник' || state.classSlug === 'wizard'
     })?.level ?? (state.classSlug === 'wizard' ? state.characterLevel : 1),
   )
+  const classLevel = Math.max(
+    1,
+    state.classes.find((row) => row.level > 0)?.level ?? state.characterLevel ?? 1,
+  )
+  const sc =
+    classSpellcastingAtLevel(ctx.classEntry, classLevel) ?? classL1Spellcasting(ctx.classEntry)
   const bookNeed = WIZARD_BOOK_SPELLS_AT_L1 + Math.max(0, wizardLevel - 1) * 2
   if (sc) {
-    // Cantrips / prepared: keep L1 budget as minimum; higher tables land with class packs.
     if (state.cantripIds.length < sc.cantrips || new Set(state.cantripIds).size !== state.cantripIds.length) {
       issues.push(`Заговоры: выбрано ${state.cantripIds.length} из ${sc.cantrips}`)
     }
@@ -495,6 +501,26 @@ function levelingIssues(state: Create2024State, ctx: StepIssueCtx): string[] {
           `Книга заклинаний: выбрано ${state.spellbookSpellIds.length} из ${bookNeed}`,
         )
       }
+      const maxCircle = Math.max(1, sc.maxSlotLevel || 1)
+      const overCircle = state.spellbookSpellIds.filter((id) => {
+        const entry = (ctx.catalog?.spells ?? []).find((row) => row.slug === id || row.id === id)
+        if (!entry) return false
+        return catalogSpellLevel(entry) > maxCircle
+      })
+      if (overCircle.length) {
+        issues.push(
+          `В книгу нельзя брать круг выше ${maxCircle} (на ур. ${wizardLevel} нет таких ячеек)`,
+        )
+      }
+      const l1InBook = state.spellbookSpellIds.filter((id) => {
+        const entry = (ctx.catalog?.spells ?? []).find((row) => row.slug === id || row.id === id)
+        return entry ? catalogSpellLevel(entry) === 1 : false
+      }).length
+      if (l1InBook < WIZARD_BOOK_SPELLS_AT_L1) {
+        issues.push(
+          `Стартовая книга: нужно минимум ${WIZARD_BOOK_SPELLS_AT_L1} заклинаний 1 круга (сейчас ${l1InBook})`,
+        )
+      }
       const book = new Set(state.spellbookSpellIds)
       if (state.preparedSpellIds.some((id) => !book.has(id))) {
         issues.push('Подготовить можно только заклинания из книги')
@@ -504,7 +530,7 @@ function levelingIssues(state: Create2024State, ctx: StepIssueCtx): string[] {
         new Set(state.preparedSpellIds).size !== state.preparedSpellIds.length
       ) {
         issues.push(
-          `Подготовка: нужно минимум ${sc.prepared_spells} ${ruPlural(sc.prepared_spells, 'подготовленное заклинание', 'подготовленных заклинания', 'подготовленных заклинаний')} (выбрано ${state.preparedSpellIds.length})`,
+          `Подготовка: нужно ${sc.prepared_spells} ${ruPlural(sc.prepared_spells, 'подготовленное заклинание', 'подготовленных заклинания', 'подготовленных заклинаний')} (выбрано ${state.preparedSpellIds.length})`,
         )
       }
     } else if (

@@ -1073,14 +1073,22 @@ def validate_create_2024(payload: Create2024Payload) -> Create2024Result:
                 if row.slug == WIZARD_CLASS_SLUG:
                     wizard_lv = row.level
                     break
+        # For wizard create-at-N the book mixes 1st-circle starters with higher circles.
+        # Trimmed L1 validation needs six 1st-circle rows (not «first six ids in payload order»).
+        if payload.class_slug == WIZARD_CLASS_SLUG:
+            _spells_cat = load_spell_catalog()
+            _l1_ids = [
+                _normalize_slug(x)
+                for x in payload.spellbook_spell_ids
+                if _spell_level(_spells_cat.get(_normalize_slug(x))) == 1
+            ][:WIZARD_BOOK_SPELLS_AT_L1]
+            trimmed_book = _l1_ids
+        else:
+            trimmed_book = list(payload.spellbook_spell_ids)
         trimmed = Create2024Payload(
             **{
                 **payload.__dict__,
-                "spellbook_spell_ids": list(payload.spellbook_spell_ids)[
-                    : (WIZARD_BOOK_SPELLS_AT_L1 if payload.class_slug == WIZARD_CLASS_SLUG else 0)
-                ]
-                if payload.class_slug == WIZARD_CLASS_SLUG
-                else list(payload.spellbook_spell_ids),
+                "spellbook_spell_ids": trimmed_book,
                 "prepared_spell_ids": list(payload.prepared_spell_ids),
                 "cantrip_ids": list(payload.cantrip_ids),
                 "subclass_slug": None,
@@ -1091,15 +1099,11 @@ def validate_create_2024(payload: Create2024Payload) -> Create2024Result:
             spell_info = _validate_spells(trimmed)
         except Create2024Error:
             if trimmed.cantrip_ids or trimmed.prepared_spell_ids or trimmed.spellbook_spell_ids:
-                # Fall back to empty L1 spells; full list applied after materialize.
+                # Fall back: keep cantrips/prepared; L1 book starters only (higher overlay later).
                 spell_info = {
                     "cantrips": [_normalize_slug(x) for x in payload.cantrip_ids],
                     "prepared": [_normalize_slug(x) for x in payload.prepared_spell_ids],
-                    "spellbook": [_normalize_slug(x) for x in payload.spellbook_spell_ids][
-                        :WIZARD_BOOK_SPELLS_AT_L1
-                    ]
-                    if payload.class_slug == WIZARD_CLASS_SLUG
-                    else [],
+                    "spellbook": list(trimmed_book) if payload.class_slug == WIZARD_CLASS_SLUG else [],
                     "slots": {},
                     "pact_slots": None,
                     "ability": None,
@@ -1115,9 +1119,51 @@ def validate_create_2024(payload: Create2024Payload) -> Create2024Result:
                 }
         # Stash remaining wizard book spells for post-level overlay.
         if payload.class_slug == WIZARD_CLASS_SLUG and wizard_lv > 1:
-            extra_book = [
-                _normalize_slug(x) for x in payload.spellbook_spell_ids[WIZARD_BOOK_SPELLS_AT_L1:]
+            book_need = WIZARD_BOOK_SPELLS_AT_L1 + max(0, wizard_lv - 1) * 2
+            all_book = [_normalize_slug(x) for x in payload.spellbook_spell_ids]
+            if len(all_book) != book_need or len(set(all_book)) != len(all_book):
+                raise Create2024Error(
+                    f"Волшебник {wizard_lv} ур.: в книге ровно {book_need} заклинаний "
+                    f"(6 на 1 ур. + 2×{wizard_lv - 1}), выбрано {len(all_book)}",
+                    code="create_2024_spells",
+                )
+            slots = e24.slots_for_caster_level(wizard_lv)
+            max_circle = max((int(k) for k, n in slots.items() if int(n) > 0), default=1)
+            spell_list = _class_spell_list_slugs(WIZARD_CLASS_SLUG)
+            spells = load_spell_catalog()
+            l1_count = 0
+            for bid in all_book:
+                row = spells.get(bid)
+                if row is None:
+                    raise Create2024Error(f"Неизвестное заклинание: {bid}", code="create_2024_spells")
+                circle = _spell_level(row)
+                if circle < 1 or circle > max_circle:
+                    raise Create2024Error(
+                        f"{bid}: в книгу на ур. {wizard_lv} доступны круги 1–{max_circle}",
+                        code="create_2024_spells",
+                    )
+                if circle == 1:
+                    l1_count += 1
+                if spell_list and bid not in spell_list:
+                    raise Create2024Error(
+                        f"Заклинание {bid} не из списка класса",
+                        code="create_2024_spells",
+                    )
+            if l1_count < WIZARD_BOOK_SPELLS_AT_L1:
+                raise Create2024Error(
+                    f"Стартовая книга: нужно минимум {WIZARD_BOOK_SPELLS_AT_L1} заклинаний 1 круга "
+                    f"(сейчас {l1_count})",
+                    code="create_2024_spells",
+                )
+            # Prefer L1 rows for the trimmed L1 sheet; remainder overlays after levels.
+            l1_book = [bid for bid in all_book if _spell_level(spells.get(bid)) == 1][
+                :WIZARD_BOOK_SPELLS_AT_L1
             ]
+            extra_book = [bid for bid in all_book if bid not in set(l1_book)]
+            spell_info = {
+                **spell_info,
+                "spellbook": l1_book,
+            }
             if extra_book:
                 if levels_plan and not levels_plan.spells_by_class.get(WIZARD_CLASS_SLUG):
                     levels_plan.spells_by_class[WIZARD_CLASS_SLUG] = {

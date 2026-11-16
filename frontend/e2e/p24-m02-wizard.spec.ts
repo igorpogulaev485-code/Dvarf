@@ -2,7 +2,9 @@
  * P24-M02-wizard acceptance (1440 / 390). No live API: catalog, auth and the 2024
  * create validator run offline (e2e/support/wizard2024Harness.ts + create2024_bridge.py).
  * Every sheet shot walks the real create pipeline (seed → «Готово») and opens the real
- * sheet dialogs. The 2014 regression walks the wizard class dialog before/after.
+ * sheet dialogs. The 2014 regression covers the wizard class dialog and the real
+ * Play Desk sheet (header + 6 abilities + spells). Honest book picks use
+ * `e2eEmptySpells=1` (no seed fills) for create-at-5/11 and level-up 4→5 / 10→11.
  *
  * SHOT_TAG=before|after controls the 2014 regression suffix.
  */
@@ -10,6 +12,7 @@ import { expect, test, type Page } from '@playwright/test'
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { sampleClassic2014Character } from '../src/features/classicSheet/sampleClassicCharacter'
 
 const here = path.dirname(fileURLToPath(import.meta.url))
 const ARTIFACTS = '/opt/cursor/artifacts/p24-m02-wizard'
@@ -718,6 +721,197 @@ test.describe('P24-M02 wizard — real create pipeline', () => {
 })
 
 
+/** Open create-at-N leveling with empty spell/book picks (player fills via UI). */
+async function openWizardEmptyBook(page: Page, store: HarnessStore, level: number) {
+  await installWizardHarness(page, store)
+  await page.goto(
+    `/characters/create?edition=2024&preview=1&e2eLeveling=1&e2eSeed=wizard${level}evoker&e2eEmptySpells=1`,
+  )
+  await expect(page.getByTestId('p24-m03c-leveling')).toBeVisible({ timeout: 30_000 })
+  await expect(page.getByTestId('p24-m03-step-spells')).toBeVisible({ timeout: 15_000 })
+}
+
+async function pickCatalogCards(page: Page, count: number) {
+  for (let i = 0; i < count; i += 1) {
+    const card = page
+      .locator('button.create-pipeline__card:not(.create-pipeline__card--selected)')
+      .first()
+    if (!(await card.count())) break
+    await card.scrollIntoViewIfNeeded()
+    await card.click()
+    await page.waitForTimeout(40)
+  }
+}
+
+/** Prefer cards whose meta matches (e.g. «1 круг») so create-at-N keeps ≥6 L1 starters. */
+async function pickCatalogCardsWithMeta(page: Page, meta: RegExp, count: number) {
+  for (let i = 0; i < count; i += 1) {
+    const card = page
+      .locator('button.create-pipeline__card:not(.create-pipeline__card--selected)')
+      .filter({ hasText: meta })
+      .first()
+    if (!(await card.count())) break
+    await card.scrollIntoViewIfNeeded()
+    await card.click()
+    await page.waitForTimeout(40)
+  }
+}
+
+async function fillWizardBookViaUi(
+  page: Page,
+  opts: {
+    bookNeed: number
+    preparedNeed: number
+    cantripsNeed: number
+    maxCircle: number
+    highlightSlug: string
+    highlightRu: string
+  },
+) {
+  await page.getByTestId('p24-m03-spell-tab-cantrips').click()
+  await pickCatalogCards(page, opts.cantripsNeed)
+
+  await page.getByTestId('p24-m03-spell-tab-book').click()
+  await expect(page.getByTestId('p24-m03-spell-pick-counter')).toContainText(
+    `из ${opts.bookNeed}`,
+  )
+  await expect(page.getByTestId('p24-m03-spell-pick-counter')).toContainText(
+    `1–${opts.maxCircle}`,
+  )
+
+  // Starters: ≥6 first-circle (create-at-N still needs the L1 core).
+  await pickCatalogCardsWithMeta(page, /1 круг/, 6)
+
+  const search = page.getByPlaceholder(/Поиск/)
+  await search.fill(opts.highlightRu)
+  const highlight = page.getByTestId(`p24-m03-card-${opts.highlightSlug}`)
+  await expect(highlight).toBeVisible({ timeout: 10_000 })
+  await expect(highlight).toContainText(new RegExp(`${opts.maxCircle} круг`))
+  if (!(await highlight.getAttribute('aria-pressed')) || (await highlight.getAttribute('aria-pressed')) === 'false') {
+    await highlight.click()
+  }
+  await search.fill('')
+  await page.waitForTimeout(200)
+  // Remaining free slots — highest circles first in the pool.
+  const tab = page.getByTestId('p24-m03-spell-tab-book')
+  const match = /В книгу (\d+)\/(\d+)/.exec((await tab.innerText()).replace(/\s+/g, ' '))
+  const have = match ? Number(match[1]) : 6
+  const remaining = Math.max(0, opts.bookNeed - have)
+  await pickCatalogCards(page, remaining)
+  await expect(tab).toContainText(`В книгу ${opts.bookNeed}/${opts.bookNeed}`)
+
+  await page.getByTestId('p24-m03-spell-tab-level1').click()
+  await pickCatalogCards(page, opts.preparedNeed)
+}
+
+test.describe('P24-M02 wizard — honest book picks (no spell seed)', () => {
+  test.setTimeout(180_000)
+  test.use({ actionTimeout: 20_000 })
+
+  for (const spec of [
+    {
+      level: 5,
+      bookNeed: 14,
+      preparedNeed: 9,
+      cantripsNeed: 4,
+      maxCircle: 3,
+      highlightSlug: 'fireball',
+      highlightRu: 'Огненный шар',
+      shot: 'create-at-5-book-circle3',
+    },
+    {
+      level: 11,
+      bookNeed: 26,
+      preparedNeed: 16,
+      cantripsNeed: 5,
+      maxCircle: 6,
+      highlightSlug: 'chain-lightning',
+      highlightRu: 'Пляшущая молния',
+      shot: 'create-at-11-book-circle6',
+    },
+  ]) {
+    test(`create-at-${spec.level} book picker shows ${spec.maxCircle} круг`, async ({ page }, testInfo) => {
+      const project = projectOf(testInfo)
+      const store = createStore()
+      await openWizardEmptyBook(page, store, spec.level)
+      await page.getByTestId('p24-m03-spell-tab-book').click()
+      const search = page.getByPlaceholder(/Поиск/)
+      await search.fill(spec.highlightRu)
+      const highlight = page.getByTestId(`p24-m03-card-${spec.highlightSlug}`)
+      await expect(highlight).toBeVisible({ timeout: 10_000 })
+      await expect(highlight).toContainText(new RegExp(`${spec.maxCircle} круг`))
+      await expect(page.getByTestId('p24-m03-spell-pick-counter')).toContainText(
+        `1–${spec.maxCircle}`,
+      )
+      await shot(page, ARTIFACTS, spec.shot, project)
+
+      await fillWizardBookViaUi(page, spec)
+      const finish = page.getByTestId('p24-m03-finish')
+      await expect(finish).toBeEnabled({ timeout: 30_000 })
+      await finish.click()
+      await page.waitForURL(/\/characters\/[0-9a-f-]{36}$/i, { timeout: 30_000 })
+      await dismissWelcome(page)
+      await goSpells(page, project)
+      await expect(
+        page.getByText(new RegExp(`в книге ${spec.bookNeed}`)).first(),
+      ).toBeVisible({ timeout: 15_000 })
+      await shot(page, ARTIFACTS, `create-at-${spec.level}-sheet`, project)
+      expect(store.unmatched).toEqual([])
+    })
+  }
+
+  for (const spec of [
+    {
+      from: 4,
+      to: 5,
+      maxCircle: 3,
+      highlightRu: 'Огненный шар',
+      shot: 'levelup-4-to-5-book-circle3',
+    },
+    {
+      from: 10,
+      to: 11,
+      maxCircle: 6,
+      highlightRu: 'Пляшущая молния',
+      shot: 'levelup-10-to-11-book-circle6',
+    },
+  ]) {
+    test(`level-up ${spec.from}→${spec.to} book picker ≤${spec.maxCircle}`, async ({ page }, testInfo) => {
+      const project = projectOf(testInfo)
+      const store = createStore()
+      await createWizardViaPipeline(page, store, `wizard${spec.from}evoker`)
+      const identity = await openIdentity(page)
+      await identity.getByRole('button', { name: /\+1 уровень/ }).first().click()
+      await page.getByRole('button', { name: /^Повысить$/ }).click()
+      const guided = page.getByRole('dialog').last()
+      await expect(guided).toBeVisible({ timeout: 15_000 })
+      // Advance until spellbook +2 step (skip ASI / subclass / memorize if already chosen).
+      for (let i = 0; i < 8; i += 1) {
+        const bookStep = guided.getByText(/Повышение уровня: \+2 бесплатно в книгу|\+2 бесплатно в книгу/)
+        if (await bookStep.isVisible().catch(() => false)) break
+        const next = guided.getByRole('button', { name: /^Далее$|^Пропустить$|^Позже$/ })
+        if (await next.isEnabled().catch(() => false)) {
+          await next.click()
+          await page.waitForTimeout(300)
+          continue
+        }
+        break
+      }
+      await expect(
+        guided.getByText(new RegExp(`\\+2 бесплатно в книгу \\(ур\\. ≤ ${spec.maxCircle}\\)`)),
+      ).toBeVisible({ timeout: 15_000 })
+      const search = guided.getByPlaceholder(/Название заклинания/)
+      await search.fill(spec.highlightRu)
+      await expect(guided.getByText(spec.highlightRu).first()).toBeVisible({ timeout: 10_000 })
+      await expect(
+        guided.locator('.prepare-meta').filter({ hasText: new RegExp(`${spec.maxCircle}-й уровень`) }).first(),
+      ).toBeVisible()
+      await guided.getByRole('button', { name: /^В книгу$/ }).first().click()
+      await shot(page, ARTIFACTS, spec.shot, project)
+    })
+  }
+})
+
 test.describe('P24-M02 DEV test stand (not acceptance evidence)', () => {
   test('preview page is marked DEV and is not a sheet', async ({ page }) => {
     await page.goto('/dev/p24-m02-wizard-preview')
@@ -728,6 +922,100 @@ test.describe('P24-M02 DEV test stand (not acceptance evidence)', () => {
     await expect(page.locator('.play-desk')).toHaveCount(0)
   })
 })
+
+/** 2014 wizard Play Desk fixture (sample classic sheet + UUID id for /characters/:id). */
+function wizard2014SheetCharacter() {
+  const id = 'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeee0001'
+  const sample = JSON.parse(JSON.stringify(sampleClassic2014Character)) as Record<string, unknown>
+  sample.id = id
+  sample.rules_edition = '2014'
+  const sheet = (sample.sheet ?? {}) as Record<string, unknown>
+  sheet.classes = [
+    {
+      id: 'c-wizard',
+      slug: 'wizard',
+      name: 'Волшебник',
+      level: 5,
+      subclass_slug: 'school_of_evocation',
+      subclass_name: 'Школа воплощения',
+      catalog_id: 'wizard',
+    },
+  ]
+  sheet.meta = { ...(asRecord(sheet.meta) as object), rules_edition: '2014' }
+  sample.sheet = sheet
+  return sample as {
+    id: string
+    name: string
+    level: number
+    class_name: string
+    race_name: string
+    hp_current: number
+    hp_max: number
+    rules_edition: string
+    sheet_version: number
+    sheet: Record<string, unknown>
+    created_at: string
+    updated_at: string
+    avatar_url: null
+  }
+}
+
+function asRecord(value: unknown): Record<string, unknown> {
+  return value && typeof value === 'object' ? (value as Record<string, unknown>) : {}
+}
+
+async function mock2014Sheet(page: Page, character: ReturnType<typeof wizard2014SheetCharacter>) {
+  await page.addInitScript(() => {
+    localStorage.setItem('dvarf.access_token', 'access')
+    localStorage.setItem('dvarf.refresh_token', 'refresh')
+  })
+  await mock2014(page)
+  await page.route('**/characters/**', async (route) => {
+    const pathName = new URL(route.request().url()).pathname
+    if (
+      route.request().resourceType() === 'document' ||
+      pathName.startsWith('/src/') ||
+      pathName.startsWith('/assets/') ||
+      pathName.includes('node_modules') ||
+      /\.(tsx?|jsx?|css|map|json)$/.test(pathName)
+    ) {
+      await route.continue()
+      return
+    }
+    if (!pathName.startsWith('/characters')) {
+      await route.continue()
+      return
+    }
+    if (route.request().method() === 'GET' && /^\/characters\/[0-9a-f-]{36}/i.test(pathName)) {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(character),
+      })
+      return
+    }
+    if (
+      route.request().method() === 'GET' &&
+      (pathName === '/characters' || pathName === '/characters/')
+    ) {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify([character]),
+      })
+      return
+    }
+    if (pathName.startsWith('/characters')) {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(character),
+      })
+      return
+    }
+    await route.continue()
+  })
+}
 
 test.describe('P24-M02 2014 regression', () => {
   test('2014 create — класс Волшебник (не раса)', async ({ page }, testInfo) => {
@@ -751,5 +1039,48 @@ test.describe('P24-M02 2014 regression', () => {
     if (tag === 'after') {
       await shot(page, ARTIFACTS_2014, 'create-2014-wizard-class', project)
     }
+  })
+
+  test('2014 sheet — волшебник: шапка + 6 характеристик + заклинания', async ({ page }, testInfo) => {
+    const project = projectOf(testInfo)
+    const tag = SHOT_TAG
+    const character = wizard2014SheetCharacter()
+    await mock2014Sheet(page, character)
+
+    await page.goto(`/characters/${character.id}`)
+    await expect(page.locator('#root')).not.toBeEmpty({ timeout: 20_000 })
+    await dismissWelcome(page)
+    await expect(page.getByText(/Торин|Волшебник/i).first()).toBeVisible({ timeout: 15_000 })
+    await expect(page.locator('.play-desk-header, [data-onboarding="combat-header"]').first()).toBeVisible()
+
+    if (isPhone(project)) {
+      // Phone: combat «Заклинания», then vitals → Характеристики (six scores) for the shot.
+      await page.getByText('Бой', { exact: true }).last().click()
+      await page.waitForTimeout(300)
+      await goSpells(page, project)
+      await expect(
+        page.getByRole('button', { name: /^Заклинания$/ }).or(page.getByText('Заклинания', { exact: true })).first(),
+      ).toBeVisible()
+      await ensureMobileVitalsExpanded(page)
+      await page.locator('button.mobile-vitals__abil').click()
+      const abilPage = page.getByRole('dialog', { name: /Характеристики/ })
+      await expect(abilPage).toBeVisible()
+      for (const abil of ['str', 'dex', 'con', 'int', 'wis', 'cha']) {
+        await expect(abilPage.locator(`.abil-block[data-abil="${abil}"]`).first()).toBeVisible()
+      }
+      // Phone shot: full ability column (desktop shows rail + spells together).
+    } else {
+      // Desktop: left ability rail + spells compact on the combat scene (no Magia dialog overlay).
+      await page.getByRole('button', { name: /^Бой$/ }).first().click().catch(() => {})
+      await page.waitForTimeout(400)
+      for (const abil of ['str', 'dex', 'con', 'int', 'wis', 'cha']) {
+        await expect(page.locator(`.abil-block[data-abil="${abil}"]`).first()).toBeVisible()
+      }
+      await expect(
+        page.getByText(/Огненный снаряд|Заговоры|подготовлено|ячейк/i).first(),
+      ).toBeVisible({ timeout: 10_000 })
+    }
+
+    await shot(page, ARTIFACTS_2014, `sheet-2014-wizard-${tag}`, project)
   })
 })

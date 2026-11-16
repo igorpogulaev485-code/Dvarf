@@ -170,19 +170,54 @@ export function entryData(entry: CatalogEntry | null | undefined): Record<string
   return entry?.data && typeof entry.data === 'object' ? entry.data : {}
 }
 
+type ClassLevelSpellcastingRow = {
+  level?: number
+  spellcasting?: {
+    cantrips?: number
+    prepared_spells?: number
+    slots?: Record<string, number> | null
+  } | null
+}
+
+function classLevelRows(classEntry: CatalogEntry | null | undefined): ClassLevelSpellcastingRow[] {
+  const data = entryData(classEntry)
+  return Array.isArray(data.levels) ? (data.levels as ClassLevelSpellcastingRow[]) : []
+}
+
+export type ClassSpellcastingBudget = {
+  cantrips: number
+  prepared_spells: number
+  maxSlotLevel: number
+}
+
 export function classL1Spellcasting(
   classEntry: CatalogEntry | null | undefined,
-): { cantrips: number; prepared_spells: number } | null {
-  const data = entryData(classEntry)
-  const levels = Array.isArray(data.levels) ? data.levels : []
-  const l1 = levels.find((row) => row && typeof row === 'object' && (row as { level?: number }).level === 1) as
-    | { spellcasting?: { cantrips?: number; prepared_spells?: number } | null }
-    | undefined
-  const sc = l1?.spellcasting
+): ClassSpellcastingBudget | null {
+  return classSpellcastingAtLevel(classEntry, 1)
+}
+
+/** Spellcasting budgets + highest non-zero slot circle at a class level. */
+export function classSpellcastingAtLevel(
+  classEntry: CatalogEntry | null | undefined,
+  level: number,
+): ClassSpellcastingBudget | null {
+  const lv = Math.max(1, Math.min(20, Math.floor(level) || 1))
+  const row = classLevelRows(classEntry).find((item) => item?.level === lv)
+  const sc = row?.spellcasting
   if (!sc || typeof sc !== 'object') return null
+  const slots = sc.slots && typeof sc.slots === 'object' ? sc.slots : {}
+  let maxSlotLevel = 0
+  for (const [key, value] of Object.entries(slots)) {
+    const circle = Number(key)
+    const n = Number(value)
+    if (Number.isFinite(circle) && circle >= 1 && Number.isFinite(n) && n > 0) {
+      maxSlotLevel = Math.max(maxSlotLevel, circle)
+    }
+  }
   return {
     cantrips: Number(sc.cantrips || 0),
     prepared_spells: Number(sc.prepared_spells || 0),
+    maxSlotLevel,
   }
 }
 
