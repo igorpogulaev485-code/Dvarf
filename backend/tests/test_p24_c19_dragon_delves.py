@@ -20,6 +20,7 @@ LAYER3 = SOURCES / "P24-C19-layer3-review.md"
 # Same planned total as C20 tip — C19 adds zero exclusive rows.
 PLANNED_TOTAL = (
     863 + 235 + 95 + 1 + 12 + 36 + 58 + 69 + 196 + 86 + 87 + 66 + 93 + 43 + 111 + 95
+ + 166  # +C21 AU/AUD
 )
 
 
@@ -141,7 +142,7 @@ def test_alembic_single_head_is_p24_c19():
     script = ScriptDirectory.from_config(cfg)
     heads = script.get_heads()
     assert len(heads) == 1, f"expected one alembic head, got {heads}"
-    assert heads[0] == "p24c19ddbd01"
+    assert heads[0] in {"p24c19ddbd01", "p24c21au01"}
     ancestor_ids = {
         rev.revision for rev in script.walk_revisions(base="base", head=heads[0])
     }

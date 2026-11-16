@@ -22,7 +22,7 @@ LIVE = REPO_ROOT / "backend" / "data" / "srd" / "2024" / "live"
 SRD_MONSTER_COUNT = 235
 SRD_ANIMAL_COUNT = 95
 # C01–C06 catalog rows + monsters + animals (C08)
-PLANNED_TOTAL = 863 + SRD_MONSTER_COUNT + SRD_ANIMAL_COUNT + 1 + 12 + 36 + 58 + 69 + 196 + 86 + 87 + 66 + 93 + 43 + 111 + 95  # C11 DMG items + C13 MM24 w1 + C14 MM24 w2 +C15 EFA +C17 FRHoF +C12 bastions +C18 +C20 RTW
+PLANNED_TOTAL = 863 + SRD_MONSTER_COUNT + SRD_ANIMAL_COUNT + 1 + 12 + 36 + 58 + 69 + 196 + 86 + 87 + 66 + 93 + 43 + 111 + 95 + 166  # +C21 AU/AUD / was: # C11 DMG items + C13 MM24 w1 + C14 MM24 w2 +C15 EFA +C17 FRHoF +C12 bastions +C18 +C20 RTW
 
 ABILITIES = ("str", "dex", "con", "int", "wis", "cha")
 
@@ -218,7 +218,7 @@ def test_apply_seed_includes_creatures_idempotent():
     assert stats1.upserted == planned == PLANNED_TOTAL
     assert stats2.upserted == planned
     bestiary = sum(1 for p in store.values() if p["kind"] == "bestiary")
-    assert bestiary == SRD_MONSTER_COUNT + SRD_ANIMAL_COUNT + 86 + 87 + 61 + 68  # +C13/C14 MM24 +C18 FRAiF/ABH/LFL/NsF +C20 RTW
+    assert bestiary == SRD_MONSTER_COUNT + SRD_ANIMAL_COUNT + 86 + 87 + 61 + 68 + 25  # +C13/C14 MM24 +C18 +C20 RTW +C21 AU/AUD
     mm24 = 0
     for p in store.values():
         if p["kind"] != "bestiary":

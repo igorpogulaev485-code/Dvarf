@@ -55,6 +55,14 @@
 | `subclasses_rtw.json` | P24-C20 | 7 подклассов RTW (`source=rtw`) |
 | `magic_items_rtw.json` | P24-C20 | 1 магический предмет RTW — Чёрная Погибель (`source=rtw`) |
 | `creatures_rtw.json` | P24-C20 | 68 существ RTW (`kind=bestiary`, `source=rtw`) |
+| `subclasses_au.json` | P24-C21 | 8 подклассов AU (`source=au`) |
+| `backgrounds_au.json` | P24-C21 | 10 предысторий AU (`source=au`) |
+| `feats_au.json` | P24-C21 | 29 черт AU (`source=au`) |
+| `spells_au.json` | P24-C21 | 33 заклинания AU (`source=au`) |
+| `magic_items_au.json` | P24-C21 | 47 магических предметов AU (`source=au`) |
+| `creatures_au.json` | P24-C21 | 19 существ AU (`source=au`) |
+| `magic_items_aud.json` | P24-C21 | 14 магических предметов AUD (`source=aud`) |
+| `creatures_aud.json` | P24-C21 | 6 существ AUD (`source=aud`) |
 
 ## Схема карточек (контракт)
 
@@ -71,7 +79,7 @@
 - бестиарий (`bestiary`, C07 Monsters / C08 Animals / C13 MM24 w1): КД, хиты, скорости, ПО/опыт/БМ, инициатива, характеристики + мод + спас, `gear_refs` → C03, `spell_refs` → C05/C10; у Animals — `beast_tags` (`wild_shape_ok`, `mount`, `has_fly`, `has_swim`); у MM сверх SRD — `source=mm24`; короткое `summary_ru` / `text_ru` (без длинного текста книги и без статов 2014)
 - отображаемые строки (`summary_ru`, `traits_text`, `components.m`, `casting_time.condition`, …) — по-русски; словари `spell_materials_ru.json` / `spell_reaction_conditions_ru.json`
 - `source` вида `srd-5.2` → `content_layer: srd`
-- `source` вида `ph24` / `dmg24` / `mm24` / `efa` / `frhof` / `fraif` / `abh` / `lfl` / `nsf` / `rtw` → `content_layer: community_ref` (ярлык игроку не показываем)
+- `source` вида `ph24` / `dmg24` / `mm24` / `efa` / `frhof` / `fraif` / `abh` / `lfl` / `nsf` / `rtw` / `au` / `aud` → `content_layer: community_ref` (ярлык игроку не показываем)
 - бастион (`bastion`, C12): `facility_kind` (`basic` / `special` / `order` / `rules`), уровень, размер (тесное/просторное/обширное → 4/16/36 клеток), наёмники, приказы и краткие `order_effects_ru`; `name_ru_pending` у помещений/приказов; без онлайн-карты и UI
 
-Не сидить: Culture, Engineering, пустые заглушки. Тексты приключений и карты доменов RTW — не переносить. Артефактор 2014 (Таша) не трогать. Черты и заклинания PHB сверх SRD — C10; предметы DMG сверх SRD — C11; MM сверх SRD — C13/C14; EFA — C15; FRHoF — C17; бастионы DMG — C12; FRAiF/ABH/LFL/NsF — C18; RTW — C20; AU — следующие пачки.
+Не сидить: Culture, Engineering, пустые заглушки. Тексты приключений и карты доменов RTW — не переносить. Артефактор 2014 (Таша) не трогать. Черты и заклинания PHB сверх SRD — C10; предметы DMG сверх SRD — C11; MM сверх SRD — C13/C14; EFA — C15; FRHoF — C17; бастионы DMG — C12; FRAiF/ABH/LFL/NsF — C18; RTW — C20; AU/AUD — C21.

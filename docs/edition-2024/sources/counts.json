@@ -113,7 +113,8 @@
     "P24-C12: bastions DMG24=35 facilities in CSV; live wave 43 (6 basic + 29 special + 7 orders + 1 rules); source=dmg24; own short RU.",
     "P24-C18: FRAiF+ABH+LFL+NsF live=111 cards (target 111).",
     "P24-C20: RTW live=95 cards (target 95).",
-    "P24-C19: DDBD exclusive catalog = 0 (adventures/maps out of scope)."
+    "P24-C19: DDBD exclusive catalog = 0 (adventures/maps out of scope).",
+    "P24-C21: AU+AUD live=166 cards (target 166)."
   ],
   "srd_creatures": {
     "monsters": 235,

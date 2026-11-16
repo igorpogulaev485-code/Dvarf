@@ -112,3 +112,5 @@ SRD 5.2.1 PDF: [SRD_CC_v5.2.1.pdf](https://media.dndbeyond.com/compendium-images
 - **P24-C20R (2026-11-16):** восстановлены полные text_ru/traits_text во всех live 2024 JSON; ebonbane artifact/sentient; остаток «…» в text fields = 0.
 
 - **P24-C19 (2026-11-16):** Dragon Delves (DDBD) — **0** эксклюзивных карточек (свой разбор открытых EN-источников). Live-волн нет; миграция `p24c19ddbd01` поверх `p24c20rfull01`.
+
+- **P24-C21 (2026-11-16):** Arcana Unleashed AU + Deadfall AUD — **166** карточек (цель 166: AU 8+10+29+33+47+19, AUD 14+6). `source=au|aud` → community_ref. Пропусков: 0; pending: 0.

@@ -53,6 +53,7 @@ PLANNED_TOTAL = (
     + 93  # +C17 FRHoF
     + 43  # +C12 bastions
     + 111 + 95  # +C18 FRAiF/ABH/LFL/NsF +C20 RTW
+ + 166  # +C21 AU/AUD
 )  # +C07+C08+C09+C10+C11+C13+C14+C15+C17+C12+C18
 
 SRD_RENAMES = {
@@ -276,7 +277,7 @@ def test_apply_seed_includes_spells_idempotent():
     assert stats1.upserted == planned == PLANNED_TOTAL
     assert stats2.upserted == planned
     spell_rows = [v for k, v in store.items() if k[0] == "spell"]
-    assert len(spell_rows) == SRD_SPELL_COUNT + 69 + 1 + 19  # +C10 PHB +C15 EFA +C17 FRHoF
+    assert len(spell_rows) == SRD_SPELL_COUNT + 69 + 1 + 19 + 33  # +C10 PHB +C15 EFA +C17 FRHoF +C21 AU
     assert sum(1 for v in spell_rows if str(v.get("source", "")).startswith("srd")) == (
         SRD_SPELL_COUNT
     )

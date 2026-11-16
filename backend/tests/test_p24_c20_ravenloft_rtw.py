@@ -29,6 +29,7 @@ C20_COUNTS = {
 C20_TOTAL = 4 + 4 + 11 + 7 + 1 + 68  # 95
 PLANNED_TOTAL = (
     863 + 235 + 95 + 1 + 12 + 36 + 58 + 69 + 196 + 86 + 87 + 66 + 93 + 43 + 111 + C20_TOTAL
+ + 166  # +C21 AU/AUD
 )
 
 STUB_NEEDLES = (
@@ -327,7 +328,7 @@ def test_alembic_single_head_includes_p24_c20():
     script = ScriptDirectory.from_config(cfg)
     heads = script.get_heads()
     assert len(heads) == 1, f"expected one alembic head, got {heads}"
-    assert heads[0] in {"p24c20rfull01", "p24c19ddbd01"}
+    assert heads[0] in {"p24c20rfull01", "p24c19ddbd01", "p24c21au01"}
     ancestor_ids = {
         rev.revision for rev in script.walk_revisions(base="base", head=heads[0])
     }

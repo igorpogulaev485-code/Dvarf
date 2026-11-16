@@ -23,7 +23,7 @@ LIVE = REPO_ROOT / "backend" / "data" / "srd" / "2024" / "live"
 CUTOFF = "Kuo-toa Archpriest"
 MM24_W1_COUNT = 86
 MM24_W2_COUNT = 87
-PLANNED_TOTAL = 863 + 235 + 95 + 1 + 12 + 36 + 58 + 69 + 196 + MM24_W1_COUNT + MM24_W2_COUNT + 66 + 93 + 43 + 111 + 95  # +C15 EFA +C17 FRHoF +C12 bastions +C18 +C20 RTW
+PLANNED_TOTAL = 863 + 235 + 95 + 1 + 12 + 36 + 58 + 69 + 196 + MM24_W1_COUNT + MM24_W2_COUNT + 66 + 93 + 43 + 111 + 95 + 166  # +C21 AU/AUD / was: # +C15 EFA +C17 FRHoF +C12 bastions +C18 +C20 RTW
 
 ABILITIES = ("str", "dex", "con", "int", "wis", "cha")
 
@@ -399,4 +399,4 @@ def test_alembic_single_head_includes_p24_c14():
     assert "p24c14mmw201" in ancestor_ids
     assert "p24c13mmw101" in ancestor_ids
     # Head advances with later packs (C07R+); C14 stays on the single lineage.
-    assert heads[0] in {"p24c14mmw201", "p24c07rbest01"} or "p24c14mmw201" in ancestor_ids
+    assert heads[0] in {"p24c14mmw201", "p24c07rbest01", "p24c21au01"} or "p24c14mmw201" in ancestor_ids

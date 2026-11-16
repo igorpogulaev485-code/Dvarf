@@ -26,7 +26,7 @@ FRHOF_COUNTS = {
     "item_magic": 2,
 }
 FRHOF_TOTAL = 8 + 18 + 34 + 19 + 12 + 2  # 93
-PLANNED_TOTAL = 863 + 235 + 95 + 1 + 12 + 36 + 58 + 69 + 196 + 86 + 87 + 66 + FRHOF_TOTAL + 43 + 111 + 95  # +C18 FRAiF/ABH/LFL/NsF +C20 RTW
+PLANNED_TOTAL = 863 + 235 + 95 + 1 + 12 + 36 + 58 + 69 + 196 + 86 + 87 + 66 + FRHOF_TOTAL + 43 + 111 + 95 + 166  # +C21 AU/AUD / was: # +C18 FRAiF/ABH/LFL/NsF +C20 RTW
 
 STUB_NEEDLES = (
     "Предложено: Способность",
@@ -265,6 +265,7 @@ def test_alembic_single_head_includes_p24_c17():
         "p24c20rtw01",
         "p24c20rfull01",
         "p24c19ddbd01",
+        "p24c21au01",
     }
     ancestor_ids = {
         rev.revision for rev in script.walk_revisions(base="base", head=heads[0])

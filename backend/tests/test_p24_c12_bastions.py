@@ -40,6 +40,7 @@ PLANNED_TOTAL = (
     + FRHOF_TOTAL
     + BASTION_TOTAL
     + 111 + 95  # +C18 FRAiF/ABH/LFL/NsF +C20 RTW
+ + 166  # +C21 AU/AUD
 )
 
 SPECIAL_TOTALS = {5: 2, 9: 4, 13: 5, 17: 6}
@@ -270,6 +271,7 @@ def test_alembic_single_head_includes_p24_c12():
         "p24c20rtw01",
         "p24c20rfull01",
         "p24c19ddbd01",
+        "p24c21au01",
     }
     ancestor_ids = {
         rev.revision for rev in script.walk_revisions(base="base", head=heads[0])

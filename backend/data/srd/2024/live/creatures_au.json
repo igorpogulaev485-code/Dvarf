@@ -1,0 +1,2290 @@
+{
+  "meta": {
+    "pack": "P24-C21",
+    "source": "AU creatures (community_ref)",
+    "count": 19,
+    "notes": [
+      "19 существ AU; source=au.",
+      "Полные RU-статблоки; spell_refs только из блока колдовства."
+    ]
+  },
+  "entries": [
+    {
+      "kind": "bestiary",
+      "slug": "abjurer-archmage",
+      "name_ru": "Архимаг-оградитель",
+      "name_en": "Abjurer Archmage",
+      "source": "au",
+      "sort_order": 10,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/bestiary/35738-abjurer-archmage",
+        "url_ttg": "https://new.ttg.club/bestiary/abjurer-archmage-au",
+        "book": "AU"
+      },
+      "data": {
+        "schema_version": 1,
+        "size": "medium",
+        "size_ru": "средний",
+        "type": "humanoid",
+        "type_ru": "Гуманоид",
+        "subtype": "Волшебник",
+        "alignment": "нейтральный",
+        "ac": 16,
+        "hp_average": 198,
+        "hp_formula": "36к8+36",
+        "speed": {
+          "walk": 30
+        },
+        "cr": "15",
+        "xp": 13000,
+        "proficiency_bonus": 5,
+        "initiative": {
+          "mod": 8,
+          "score": 18
+        },
+        "abilities": {
+          "str": 10,
+          "dex": 16,
+          "con": 12,
+          "int": 20,
+          "wis": 15,
+          "cha": 16
+        },
+        "ability_mods": {
+          "str": 0,
+          "dex": 3,
+          "con": 1,
+          "int": 5,
+          "wis": 2,
+          "cha": 3
+        },
+        "ability_saves": {
+          "str": 0,
+          "dex": 3,
+          "con": 6,
+          "int": 10,
+          "wis": 7,
+          "cha": 3
+        },
+        "skills": {
+          "Внимательность": 7,
+          "История": 10,
+          "Магия": 15
+        },
+        "senses": {
+          "passive_perception": 17
+        },
+        "languages": [
+          "Общий"
+        ],
+        "source_book": "AU",
+        "srd_section": "monsters",
+        "summary_ru": "средний гуманоид, ПО 15; КД 16, хиты 198 (36к8+36); инициатива +8 (ср. 18), БМ +5; есть заклинания.",
+        "name_ru_pending": false,
+        "gear_refs": [],
+        "spell_refs": [
+          "mage-hand",
+          "arcane-lock",
+          "mage-armor",
+          "detect-magic",
+          "prestidigitation",
+          "nondetection",
+          "fireball",
+          "otilukes-resilient-sphere",
+          "mind-blank",
+          "teleport"
+        ],
+        "traits": [
+          {
+            "name_ru": "Сопротивление магии",
+            "text_ru": "Архимаг совершает с Преимуществом спасброски от заклинаний и прочих магических эффектов.",
+            "name_ru_pending": false
+          }
+        ],
+        "actions": [
+          {
+            "name_ru": "Мультиатака",
+            "text_ru": "Архимаг совершает три атаки Волшебным всплеском.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Волшебный всплеск",
+            "text_ru": "Бросок рукопашной или дальнобойной атаки: +10, досягаемость 5 фт. или дистанция 150 фт. Попадание: 27 (4к10 + 5) Силового урона.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Изгоняющая волна (Перезарядка 6)",
+            "text_ru": "Спасбросок Харизмы: Сл 18, все существа в 60-футовом Конусе. Провал: 45 (10к8) Силового урона, и цель Недееспособна и переносится на безвредный демиплан до начала следующего хода архимага, после чего вновь появляется в покинутом ранее пространстве или в ближайшем незанятом пространстве, если предыдущее занято. Успех: Только половина урона.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Сотворение заклинаний",
+            "text_ru": "Архимаг сотворяет одно из следующих заклинаний (заклинательная характеристика — Интеллект, Сл спасброска заклинаний 18): Неограниченно: Волшебная рука, Волшебный замок, Доспехи мага (включено в КЗ), Обнаружение магии, Фокусы 2/день каждое: Необнаружимость, Огненный шар (версия 7-го уровня), Упругий шар Отилюка 1/день каждое: Сокрытие разума (сотворяется до сражения), Телепортация",
+            "name_ru_pending": false
+          }
+        ],
+        "bonus_actions": [
+          {
+            "name_ru": "Укрепление (Перезарядка 4–6)",
+            "text_ru": "Архимаг магическим образом усиливает себя. Он получает 40 Временных хитов.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Пресечение магии (2/день)",
+            "text_ru": "Архимаг сотворяет Рассеивание магии или Сферу неуязвимости (заклинательная характеристика — та же, что для Сотворения заклинаний).",
+            "name_ru_pending": false
+          }
+        ],
+        "reactions": [
+          {
+            "name_ru": "Контрзаклинание",
+            "text_ru": "Архимаг сотворяет Контрзаклинание в ответ на условие этого заклинания (заклинательная характеристика — та же, что для Сотворения заклинаний).",
+            "name_ru_pending": false
+          }
+        ]
+      }
+    },
+    {
+      "kind": "bestiary",
+      "slug": "baelnorn",
+      "name_ru": "Баэлнорн",
+      "name_en": "Baelnorn",
+      "source": "au",
+      "sort_order": 20,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/bestiary/35746-baelnorn",
+        "url_ttg": "https://new.ttg.club/bestiary/baelnorn-au",
+        "book": "AU"
+      },
+      "data": {
+        "schema_version": 1,
+        "size": "medium",
+        "size_ru": "средний",
+        "type": "undead",
+        "type_ru": "Нежить",
+        "subtype": "Волшебник",
+        "alignment": "нейтрально-добрый",
+        "ac": 18,
+        "hp_average": 255,
+        "hp_formula": "34к8+102",
+        "speed": {
+          "walk": 30
+        },
+        "cr": "18",
+        "xp": 20000,
+        "proficiency_bonus": 6,
+        "initiative": {
+          "mod": 15,
+          "score": 25
+        },
+        "abilities": {
+          "str": 11,
+          "dex": 16,
+          "con": 16,
+          "int": 21,
+          "wis": 14,
+          "cha": 16
+        },
+        "ability_mods": {
+          "str": 0,
+          "dex": 3,
+          "con": 3,
+          "int": 5,
+          "wis": 2,
+          "cha": 3
+        },
+        "ability_saves": {
+          "str": 0,
+          "dex": 9,
+          "con": 9,
+          "int": 11,
+          "wis": 8,
+          "cha": 3
+        },
+        "skills": {
+          "Внимательность": 8,
+          "История": 11,
+          "Проницательность": 8,
+          "Магия": 17
+        },
+        "senses": {
+          "passive_perception": 18
+        },
+        "languages": [
+          "Все"
+        ],
+        "source_book": "AU",
+        "srd_section": "monsters",
+        "summary_ru": "средняя нежить, ПО 18; КД 18, хиты 255 (34к8+102); инициатива +15 (ср. 25), БМ +6; есть заклинания.",
+        "name_ru_pending": false,
+        "gear_refs": [],
+        "spell_refs": [
+          "mage-hand",
+          "lightning-bolt",
+          "invisibility",
+          "detect-magic",
+          "detect-thoughts",
+          "dispel-magic",
+          "prestidigitation"
+        ],
+        "traits": [
+          {
+            "name_ru": "Легендарное сопротивление (3/день, или 4/день в Логове)",
+            "text_ru": "Если баэлнорн проваливает спасбросок, он вместо этого может в нём преуспеть.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Сопротивление магии",
+            "text_ru": "Баэлнорн совершает с Преимуществом спасброски от заклинаний и прочих магических эффектов.",
+            "name_ru_pending": false
+          }
+        ],
+        "actions": [
+          {
+            "name_ru": "Мультиатака",
+            "text_ru": "Баэлнорн совершает три атаки Волшебным всплеском или Парализующим касанием в любой комбинации. Он может заменить две атаки одним использованием Сотворения заклинаний (Молния, версия 4-го уровня).",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Волшебная вспышка",
+            "text_ru": "Бросок рукопашной или дальнобойной атаки: +11, досягаемость 5 фт. или дистанция 120 фт. Попадание: 31 (4к12 + 5) Силового урона.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Парализующее касание",
+            "text_ru": "Бросок рукопашной атаки: +11, досягаемость 5 фт. Попадание: 10 (2к4 + 5) урона Холодом, и цель Парализована до начала следующего хода баэлнорна.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Сотворение заклинаний",
+            "text_ru": "Баэлнорн сотворяет одно из следующих заклинаний (заклинательная характеристика — Интеллект, Сл спасброска заклинаний 19): Неограниченно: Волшебная рука, Молния (версия 4-го уровня), Невидимость, Обнаружение магии, Обнаружение мыслей, Рассеивание магии, Фокусы",
+            "name_ru_pending": false
+          }
+        ],
+        "reactions": [
+          {
+            "name_ru": "Контрзаклинание",
+            "text_ru": "Баэлнорн сотворяет Контрзаклинание в ответ на условие этого заклинания (заклинательная характеристика — та же, что для Сотворения заклинаний).",
+            "name_ru_pending": false
+          }
+        ],
+        "legendary_actions": [
+          {
+            "name_ru": "Всепроникающее сияние",
+            "text_ru": "Спасбросок Телосложения: Сл 19, все существа в 20-футовой Эманации, исходящей от баэлнорна; Нежить совершает спасбросок с Помехой. Провал: 11 (2к10) урона Излучением. Успех: Только половина урона.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Ужасающий взор",
+            "text_ru": "Баэлнорн сотворяет заклинание Ужас (заклинательная характеристика — та же, что для Сотворения заклинаний). Баэлнорн не может совершить это действие снова до начала своего следующего хода.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Живительный телепорт",
+            "text_ru": "Баэлнорн телепортируется на расстояние вплоть до 60 футов в видимое им незанятое пространство и восстанавливает 11 (2к10) Хитов. Баэлнорн не может совершить это действие снова до начала своего следующего хода.",
+            "name_ru_pending": false
+          }
+        ],
+        "damage_resistances": [
+          "излучение",
+          "электрический"
+        ],
+        "legendary_actions_uses": 3,
+        "legendary_actions_uses_lair": 4,
+        "legendary_actions_note_ru": "3 за раунд (4 в логове)"
+      }
+    },
+    {
+      "kind": "bestiary",
+      "slug": "conjurer-archmage",
+      "name_ru": "Архимаг-призыватель",
+      "name_en": "Conjurer Archmage",
+      "source": "au",
+      "sort_order": 30,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/bestiary/35739-conjurer-archmage",
+        "url_ttg": "https://new.ttg.club/bestiary/conjurer-archmage-au",
+        "book": "AU"
+      },
+      "data": {
+        "schema_version": 1,
+        "size": "medium",
+        "size_ru": "средний",
+        "type": "humanoid",
+        "type_ru": "Гуманоид",
+        "subtype": "Волшебник",
+        "alignment": "нейтральный",
+        "ac": 16,
+        "hp_average": 225,
+        "hp_formula": "41к8+41",
+        "speed": {
+          "walk": 30
+        },
+        "cr": "15",
+        "xp": 13000,
+        "proficiency_bonus": 5,
+        "initiative": {
+          "mod": 8,
+          "score": 18
+        },
+        "abilities": {
+          "str": 10,
+          "dex": 16,
+          "con": 12,
+          "int": 20,
+          "wis": 15,
+          "cha": 16
+        },
+        "ability_mods": {
+          "str": 0,
+          "dex": 3,
+          "con": 1,
+          "int": 5,
+          "wis": 2,
+          "cha": 3
+        },
+        "ability_saves": {
+          "str": 0,
+          "dex": 3,
+          "con": 6,
+          "int": 10,
+          "wis": 7,
+          "cha": 3
+        },
+        "skills": {
+          "Внимательность": 7,
+          "История": 10,
+          "Магия": 15
+        },
+        "senses": {
+          "passive_perception": 17
+        },
+        "languages": [
+          "Общий"
+        ],
+        "source_book": "AU",
+        "srd_section": "monsters",
+        "summary_ru": "средний гуманоид, ПО 15; КД 16, хиты 225 (41к8+41); инициатива +8 (ср. 18), БМ +5; есть заклинания.",
+        "name_ru_pending": false,
+        "gear_refs": [],
+        "spell_refs": [
+          "mage-hand",
+          "mage-armor",
+          "unseen-servant",
+          "detect-magic",
+          "find-familiar",
+          "prestidigitation",
+          "dimension-door",
+          "incendiary-cloud",
+          "lightning-bolt",
+          "plane-shift",
+          "teleport"
+        ],
+        "traits": [
+          {
+            "name_ru": "Сопротивление магии",
+            "text_ru": "Архимаг совершает с Преимуществом спасброски от заклинаний и прочих магических эффектов.",
+            "name_ru_pending": false
+          }
+        ],
+        "actions": [
+          {
+            "name_ru": "Мультиатака",
+            "text_ru": "Архимаг совершает четыре атаки Волшебным всплеском.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Волшебный всплеск",
+            "text_ru": "Бросок рукопашной или дальнобойной атаки: +10, досягаемость 5 фт. или дистанция 150 фт. Попадание: 27 (4к10 + 5) Силового урона.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Сотворение заклинаний",
+            "text_ru": "Архимаг сотворяет одно из следующих заклинаний (заклинательная характеристика — Интеллект, Сл спасброска заклинаний 18): Неограниченно: Волшебная рука, Доспехи мага (включено в КЗ), Невидимый слуга, Обнаружение магии, Обретение фамильяра, Фокусы 2/день: Переносящая дверь 1/день каждое: Воспламеняющаяся туча, Молния (версия 8-го уровня), Планарный переход, Телепортация",
+            "name_ru_pending": false
+          }
+        ],
+        "bonus_actions": [
+          {
+            "name_ru": "Безопасный перенос (3/день)",
+            "text_ru": "Архимаг телепортируется на расстояние вплоть до 30 футов в видимое им незанятое пространство. Если в качестве альтернативы он выбирает в пределах дистанции пространство, занятое согласным существом, они оба телепортируются, меняясь местами.",
+            "name_ru_pending": false
+          }
+        ],
+        "reactions": [
+          {
+            "name_ru": "Защитная магия (3/день)",
+            "text_ru": "Архимаг сотворяет Контрзаклинание или Щит в ответ на условие этого заклинания (заклинательная характеристика — та же, что для Сотворения заклинаний).",
+            "name_ru_pending": false
+          }
+        ]
+      }
+    },
+    {
+      "kind": "bestiary",
+      "slug": "darkenbeast",
+      "name_ru": "Темнозверь",
+      "name_en": "Darkenbeast",
+      "source": "au",
+      "sort_order": 40,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/bestiary/35747-darkenbeast",
+        "url_ttg": "https://new.ttg.club/bestiary/darkenbeast-au",
+        "book": "AU"
+      },
+      "data": {
+        "schema_version": 1,
+        "size": "medium",
+        "size_ru": "средний",
+        "type": "monstrosity",
+        "type_ru": "Чудовище",
+        "subtype": null,
+        "alignment": "нейтральный",
+        "ac": 15,
+        "hp_average": 60,
+        "hp_formula": "8к8+24",
+        "speed": {
+          "walk": 20,
+          "fly": 40
+        },
+        "cr": "4",
+        "xp": 1100,
+        "proficiency_bonus": 2,
+        "initiative": {
+          "mod": 4,
+          "score": 14
+        },
+        "abilities": {
+          "str": 17,
+          "dex": 14,
+          "con": 16,
+          "int": 5,
+          "wis": 10,
+          "cha": 13
+        },
+        "ability_mods": {
+          "str": 3,
+          "dex": 2,
+          "con": 3,
+          "int": -3,
+          "wis": 0,
+          "cha": 1
+        },
+        "ability_saves": {
+          "str": 5,
+          "dex": 2,
+          "con": 3,
+          "int": -3,
+          "wis": 0,
+          "cha": 1
+        },
+        "skills": {
+          "Внимательность": 2,
+          "Скрытность": 4
+        },
+        "senses": {
+          "passive_perception": 12
+        },
+        "languages": [
+          "нет"
+        ],
+        "source_book": "AU",
+        "srd_section": "monsters",
+        "summary_ru": "среднее чудовище, ПО 4; КД 15, хиты 60 (8к8+24); инициатива +4 (ср. 14), БМ +2.",
+        "name_ru_pending": false,
+        "gear_refs": [],
+        "spell_refs": [],
+        "traits": [
+          {
+            "name_ru": "Отпечаток заклинания",
+            "text_ru": "Частью создания темнозверя его создатель может вложить в него одно заклинание с уровнем не выше 5-го и временем сотворения «Действие». Заклинание не производит эффект, а сохраняется в темнозвере. Находясь в пределах 30 футов от темнозверя, его создатель может сотворить сохранённое заклинания, не нуждаясь в компонентах и используя заклинательную характеристику заклинателя. Когда заклинание сотворяется таким образом, источником его эффекта становится темнозверь (как если бы темнозверь был заклинателем); сразу же после того как заклинание сотворено, темнозверь умирает во вспышке пурпурного пламени.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Чувствительность к солнечному свету",
+            "text_ru": "Находясь на солнечном свету, темнозверь совершает с Помехой проверки характеристик и броски атаки.",
+            "name_ru_pending": false
+          }
+        ],
+        "actions": [
+          {
+            "name_ru": "Мультиатака",
+            "text_ru": "Темнозверь совершает три атаки Раздиранием.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Раздирание",
+            "text_ru": "Бросок рукопашной атаки: +5, досягаемость 5 фт. Попадание: 12 (2к8 + 3) Рубящего урона.",
+            "name_ru_pending": false
+          }
+        ],
+        "bonus_actions": [
+          {
+            "name_ru": "Теневой охотник",
+            "text_ru": "Темнозверь совершает действие Затаивание или Отход, если находится в области Тусклого света или Темноты.",
+            "name_ru_pending": false
+          }
+        ]
+      }
+    },
+    {
+      "kind": "bestiary",
+      "slug": "diviner-archmage",
+      "name_ru": "Архимаг-прорицатель",
+      "name_en": "Diviner Archmage",
+      "source": "au",
+      "sort_order": 50,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/bestiary/35740-diviner-archmage",
+        "url_ttg": "https://new.ttg.club/bestiary/diviner-archmage-au",
+        "book": "AU"
+      },
+      "data": {
+        "schema_version": 1,
+        "size": "medium",
+        "size_ru": "средний",
+        "type": "humanoid",
+        "type_ru": "Гуманоид",
+        "subtype": "Волшебник",
+        "alignment": "нейтральный",
+        "ac": 16,
+        "hp_average": 176,
+        "hp_formula": "32к8+32",
+        "speed": {
+          "walk": 30
+        },
+        "cr": "15",
+        "xp": 13000,
+        "proficiency_bonus": 5,
+        "initiative": {
+          "mod": 8,
+          "score": 18
+        },
+        "abilities": {
+          "str": 10,
+          "dex": 16,
+          "con": 12,
+          "int": 20,
+          "wis": 15,
+          "cha": 16
+        },
+        "ability_mods": {
+          "str": 0,
+          "dex": 3,
+          "con": 1,
+          "int": 5,
+          "wis": 2,
+          "cha": 3
+        },
+        "ability_saves": {
+          "str": 0,
+          "dex": 3,
+          "con": 6,
+          "int": 10,
+          "wis": 7,
+          "cha": 3
+        },
+        "skills": {
+          "Внимательность": 7,
+          "История": 10,
+          "Проницательность": 7,
+          "Расследование": 10,
+          "Магия": 15
+        },
+        "senses": {
+          "passive_perception": 17
+        },
+        "languages": [
+          "Все"
+        ],
+        "source_book": "AU",
+        "srd_section": "monsters",
+        "summary_ru": "средний гуманоид, ПО 15; КД 16, хиты 176 (32к8+32); инициатива +8 (ср. 18), БМ +5; есть заклинания.",
+        "name_ru_pending": false,
+        "gear_refs": [],
+        "spell_refs": [
+          "mage-hand",
+          "mage-armor",
+          "detect-magic",
+          "detect-thoughts",
+          "mind-spike",
+          "prestidigitation",
+          "scrying",
+          "sending",
+          "foresight",
+          "telepathy"
+        ],
+        "traits": [
+          {
+            "name_ru": "Сопротивление магии",
+            "text_ru": "Архимаг совершает с Преимуществом спасброски от заклинаний и прочих магических эффектов.",
+            "name_ru_pending": false
+          }
+        ],
+        "actions": [
+          {
+            "name_ru": "Мультиатака",
+            "text_ru": "Архимаг совершает четыре атаки Волшебным всплеском. Он может заменить одну атаку использованием Сотворения заклинаний (Пронзание разума, версия 4-го уровня).",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Волшебный всплеск",
+            "text_ru": "Бросок рукопашной или дальнобойной атаки: +10, досягаемость 5 фт. или дистанция 150 фт. Попадание: 24 (3к12 + 5) Силового урона.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Сотворение заклинаний",
+            "text_ru": "Архимаг сотворяет одно из следующих заклинаний (заклинательная характеристика — Интеллект, Сл спасброска заклинаний 18): Неограниченно: Волшебная рука, Доспехи мага (включено в КЗ), Обнаружение магии, Обнаружение мыслей, Пронзание разума (версия 4-го уровня), Фокусы 2/день каждое: Наблюдение, Послание 1/день каждое: Предвидение (сотворяется до сражения), Телепатия",
+            "name_ru_pending": false
+          }
+        ],
+        "reactions": [
+          {
+            "name_ru": "Защитная магия (3/день)",
+            "text_ru": "Архимаг сотворяет Контрзаклинание или Щит в ответ на условие этого заклинания (заклинательная характеристика — та же, что для Сотворения заклинаний).",
+            "name_ru_pending": false
+          }
+        ]
+      }
+    },
+    {
+      "kind": "bestiary",
+      "slug": "enchanter-archmage",
+      "name_ru": "Архимаг-очарователь",
+      "name_en": "Enchanter Archmage",
+      "source": "au",
+      "sort_order": 60,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/bestiary/35741-enchanter-archmage",
+        "url_ttg": "https://new.ttg.club/bestiary/enchanter-archmage-au",
+        "book": "AU"
+      },
+      "data": {
+        "schema_version": 1,
+        "size": "medium",
+        "size_ru": "средний",
+        "type": "humanoid",
+        "type_ru": "Гуманоид",
+        "subtype": "Волшебник",
+        "alignment": "нейтральный",
+        "ac": 16,
+        "hp_average": 214,
+        "hp_formula": "39к8+39",
+        "speed": {
+          "walk": 30
+        },
+        "cr": "15",
+        "xp": 13000,
+        "proficiency_bonus": 5,
+        "initiative": {
+          "mod": 8,
+          "score": 18
+        },
+        "abilities": {
+          "str": 10,
+          "dex": 16,
+          "con": 12,
+          "int": 20,
+          "wis": 15,
+          "cha": 16
+        },
+        "ability_mods": {
+          "str": 0,
+          "dex": 3,
+          "con": 1,
+          "int": 5,
+          "wis": 2,
+          "cha": 3
+        },
+        "ability_saves": {
+          "str": 0,
+          "dex": 3,
+          "con": 6,
+          "int": 10,
+          "wis": 7,
+          "cha": 3
+        },
+        "skills": {
+          "Внимательность": 7,
+          "История": 10,
+          "Магия": 15,
+          "Убеждение": 13
+        },
+        "senses": {
+          "passive_perception": 17
+        },
+        "languages": [
+          "Общий"
+        ],
+        "source_book": "AU",
+        "srd_section": "monsters",
+        "summary_ru": "средний гуманоид, ПО 15; КД 16, хиты 214 (39к8+39); инициатива +8 (ср. 18), БМ +5; есть заклинания.",
+        "name_ru_pending": false,
+        "gear_refs": [],
+        "spell_refs": [
+          "mage-hand",
+          "mage-armor",
+          "detect-magic",
+          "prestidigitation",
+          "geas",
+          "modify-memory",
+          "fireball"
+        ],
+        "traits": [
+          {
+            "name_ru": "Сопротивление магии",
+            "text_ru": "Архимаг совершает с Преимуществом спасброски от заклинаний и прочих магических эффектов.",
+            "name_ru_pending": false
+          }
+        ],
+        "actions": [
+          {
+            "name_ru": "Мультиатака",
+            "text_ru": "Архимаг совершает четыре атаки Волшебным всплеском.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Волшебный всплеск",
+            "text_ru": "Бросок рукопашной или дальнобойной атаки: +10, досягаемость 5 фт. или дистанция 150 фт. Попадание: 21 (3к10 + 5) Силового урона.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Сотворение заклинаний",
+            "text_ru": "Архимаг сотворяет одно из следующих заклинаний (заклинательная характеристика — Интеллект, Сл спасброска заклинаний 18): Неограниченно: Волшебная рука, Доспехи мага (включено в КЗ), Обнаружение магии, Фокусы 2/день каждое: Гейс, Изменение памяти, Огненный шар (версия 7-го уровня)",
+            "name_ru_pending": false
+          }
+        ],
+        "bonus_actions": [
+          {
+            "name_ru": "Подчинение личности (1/день)",
+            "text_ru": "Архимаг сотворяет Подчинение личности (заклинательная характеристика — та же, что для Сотворения заклинаний).",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Вероломная магия (2/день)",
+            "text_ru": "Архимаг сотворяет Очарование личности, Удержание личности или Усыпление (заклинательная характеристика — та же, что для Сотворения заклинаний).",
+            "name_ru_pending": false
+          }
+        ],
+        "reactions": [
+          {
+            "name_ru": "Защитная магия (3/день)",
+            "text_ru": "Архимаг сотворяет Контрзаклинание или Щит в ответ на условие этого заклинания (заклинательная характеристика — та же, что для Сотворения заклинаний).",
+            "name_ru_pending": false
+          }
+        ]
+      }
+    },
+    {
+      "kind": "bestiary",
+      "slug": "evoker-archmage",
+      "name_ru": "Архимаг-воплотитель",
+      "name_en": "Evoker Archmage",
+      "source": "au",
+      "sort_order": 70,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/bestiary/35742-evoker-archmage",
+        "url_ttg": "https://new.ttg.club/bestiary/evoker-archmage-au",
+        "book": "AU"
+      },
+      "data": {
+        "schema_version": 1,
+        "size": "medium",
+        "size_ru": "средний",
+        "type": "humanoid",
+        "type_ru": "Гуманоид",
+        "subtype": "Волшебник",
+        "alignment": "нейтральный",
+        "ac": 16,
+        "hp_average": 214,
+        "hp_formula": "39к8+39",
+        "speed": {
+          "walk": 30,
+          "fly": 30
+        },
+        "cr": "15",
+        "xp": 13000,
+        "proficiency_bonus": 5,
+        "initiative": {
+          "mod": 8,
+          "score": 18
+        },
+        "abilities": {
+          "str": 10,
+          "dex": 16,
+          "con": 12,
+          "int": 20,
+          "wis": 15,
+          "cha": 16
+        },
+        "ability_mods": {
+          "str": 0,
+          "dex": 3,
+          "con": 1,
+          "int": 5,
+          "wis": 2,
+          "cha": 3
+        },
+        "ability_saves": {
+          "str": 0,
+          "dex": 3,
+          "con": 6,
+          "int": 10,
+          "wis": 7,
+          "cha": 3
+        },
+        "skills": {
+          "Внимательность": 7,
+          "Запугивание": 8,
+          "История": 10,
+          "Магия": 15
+        },
+        "senses": {
+          "passive_perception": 17
+        },
+        "languages": [
+          "Общий"
+        ],
+        "source_book": "AU",
+        "srd_section": "monsters",
+        "summary_ru": "средний гуманоид, ПО 15; КД 16, хиты 214 (39к8+39); инициатива +8 (ср. 18), БМ +5; есть заклинания.",
+        "name_ru_pending": false,
+        "gear_refs": [],
+        "spell_refs": [
+          "mage-hand",
+          "mage-armor",
+          "shatter",
+          "detect-magic",
+          "prestidigitation"
+        ],
+        "traits": [
+          {
+            "name_ru": "Построение заклинаний",
+            "text_ru": "Когда архимаг сотворяет заклинание с областью воздействия, он может заставить энергию заклинания обогнуть себя и вплоть до пяти других видимых им существ. Выбранные существа автоматически преуспевают в спасбросках от этого заклинания, и если обычно при успешном спасброске они должны получить половину урона, в этом случае они не получают урона вовсе.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Сопротивление магии",
+            "text_ru": "Архимаг совершает с Преимуществом спасброски от заклинаний и прочих магических эффектов.",
+            "name_ru_pending": false
+          }
+        ],
+        "actions": [
+          {
+            "name_ru": "Мультиатака",
+            "text_ru": "Архимаг совершает четыре атаки Волшебным всплеском. Он может заменить одну атаку использованием Сотворения заклинаний (Дребезги, версия 3-го уровня).",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Волшебный всплеск",
+            "text_ru": "Бросок рукопашной или дальнобойной атаки: +10, досягаемость 5 фт. или дистанция 150 фт. Попадание: 27 (4к10 + 5) Силового урона.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Канонада воплощения (Перезарядка 5–6)",
+            "text_ru": "Архимаг дважды сотворяет Град, Молнию или Огненный шар в любой комбинации (заклинательная характеристика — та же, что для Сотворения заклинаний).",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Сотворение заклинаний",
+            "text_ru": "Архимаг сотворяет одно из следующих заклинаний (заклинательная характеристика — Интеллект, Сл спасброска заклинаний 18): Неограниченно: Волшебная рука, Доспехи мага (включено в КЗ), Дребезги (версия 3-го уровня), Обнаружение магии, Фокусы",
+            "name_ru_pending": false
+          }
+        ],
+        "reactions": [
+          {
+            "name_ru": "Защитная магия (3/день)",
+            "text_ru": "Архимаг сотворяет Контрзаклинание или Щит в ответ на условие этого заклинания (заклинательная характеристика — та же, что для Сотворения заклинаний).",
+            "name_ru_pending": false
+          }
+        ]
+      }
+    },
+    {
+      "kind": "bestiary",
+      "slug": "groundling-grunt",
+      "name_ru": "Земельникус-боец",
+      "name_en": "Groundling Grunt",
+      "source": "au",
+      "sort_order": 80,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/bestiary/35752-groundling-grunt",
+        "url_ttg": "https://new.ttg.club/bestiary/groundling-grunt-au",
+        "book": "AU"
+      },
+      "data": {
+        "schema_version": 1,
+        "size": "medium",
+        "size_ru": "средний",
+        "type": "monstrosity",
+        "type_ru": "Чудовище",
+        "subtype": null,
+        "alignment": "нейтральный",
+        "ac": 14,
+        "hp_average": 45,
+        "hp_formula": "7к8+14",
+        "speed": {
+          "walk": 30,
+          "burrow": 10
+        },
+        "cr": "1",
+        "xp": 200,
+        "proficiency_bonus": 2,
+        "initiative": {
+          "mod": 2,
+          "score": 12
+        },
+        "abilities": {
+          "str": 16,
+          "dex": 15,
+          "con": 14,
+          "int": 7,
+          "wis": 10,
+          "cha": 8
+        },
+        "ability_mods": {
+          "str": 3,
+          "dex": 2,
+          "con": 2,
+          "int": -2,
+          "wis": 0,
+          "cha": -1
+        },
+        "ability_saves": {
+          "str": 3,
+          "dex": 2,
+          "con": 4,
+          "int": -2,
+          "wis": 0,
+          "cha": -1
+        },
+        "skills": {
+          "Внимательность": 2,
+          "Выживание": 2,
+          "Скрытность": 4
+        },
+        "senses": {
+          "passive_perception": 12
+        },
+        "languages": [
+          "Общий"
+        ],
+        "source_book": "AU",
+        "srd_section": "monsters",
+        "summary_ru": "среднее чудовище, ПО 1; КД 14, хиты 45 (7к8+14); инициатива +2 (ср. 12), БМ +2.",
+        "name_ru_pending": false,
+        "gear_refs": [],
+        "spell_refs": [],
+        "actions": [
+          {
+            "name_ru": "Когти",
+            "text_ru": "Бросок рукопашной атаки: +5, досягаемость 5 фт. Попадание: 7 (1к8 + 3) Рубящего урона. Если цель — существо Среднего размера или меньше, она Схвачена (Сл освобождения от захвата 13) одной из двух лап.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Праща",
+            "text_ru": "Бросок дальнобойной атаки: +4, дистанция 30/120 фт. Попадание: 7 (2к4 + 2) Дробящего урона.",
+            "name_ru_pending": false
+          }
+        ],
+        "damage_resistances": [
+          "ядовитый"
+        ]
+      }
+    },
+    {
+      "kind": "bestiary",
+      "slug": "groundling-slayer",
+      "name_ru": "Земельникус-ликвидатор",
+      "name_en": "Groundling Slayer",
+      "source": "au",
+      "sort_order": 90,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/bestiary/36034-groundling-slayer",
+        "url_ttg": "https://new.ttg.club/bestiary/groundling-slayer-au",
+        "book": "AU"
+      },
+      "data": {
+        "schema_version": 1,
+        "size": "medium",
+        "size_ru": "средний",
+        "type": "monstrosity",
+        "type_ru": "Чудовище",
+        "subtype": null,
+        "alignment": "нейтральный",
+        "ac": 15,
+        "hp_average": 58,
+        "hp_formula": "9к8+18",
+        "speed": {
+          "walk": 30,
+          "burrow": 20
+        },
+        "cr": "3",
+        "xp": 700,
+        "proficiency_bonus": 2,
+        "initiative": {
+          "mod": 5,
+          "score": 15
+        },
+        "abilities": {
+          "str": 17,
+          "dex": 16,
+          "con": 15,
+          "int": 10,
+          "wis": 13,
+          "cha": 8
+        },
+        "ability_mods": {
+          "str": 3,
+          "dex": 3,
+          "con": 2,
+          "int": 0,
+          "wis": 1,
+          "cha": -1
+        },
+        "ability_saves": {
+          "str": 3,
+          "dex": 5,
+          "con": 4,
+          "int": 0,
+          "wis": 1,
+          "cha": -1
+        },
+        "skills": {
+          "Внимательность": 3,
+          "Выживание": 3,
+          "Скрытность": 7
+        },
+        "senses": {
+          "passive_perception": 13
+        },
+        "languages": [
+          "Общий"
+        ],
+        "source_book": "AU",
+        "srd_section": "monsters",
+        "summary_ru": "среднее чудовище, ПО 3; КД 15, хиты 58 (9к8+18); инициатива +5 (ср. 15), БМ +2.",
+        "name_ru_pending": false,
+        "gear_refs": [
+          "dagger"
+        ],
+        "spell_refs": [],
+        "actions": [
+          {
+            "name_ru": "Мультиатака",
+            "text_ru": "Земельникус совершает две атаки Когтями или Кинжалом в любой комбинации.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Когти",
+            "text_ru": "Бросок рукопашной атаки: +5, досягаемость 5 фт. Попадание: 12 (2к8 + 3) Рубящего урона. Если цель — существо Среднего размера или меньше, оно Схвачено (Сл освобождения от захвата 13) одной из двух лап.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Кинжал",
+            "text_ru": "Бросок рукопашной или дальнобойной атаки: +5, досягаемость 5 фт. или дистанция 20/60 фт. Попадание: 5 (1к4 + 3) Колющего урона плюс 7 (2к6) урона Ядом.",
+            "name_ru_pending": false
+          }
+        ],
+        "damage_resistances": [
+          "ядовитый"
+        ]
+      }
+    },
+    {
+      "kind": "bestiary",
+      "slug": "groundling-stalker",
+      "name_ru": "Земельникус-охотник",
+      "name_en": "Groundling Stalker",
+      "source": "au",
+      "sort_order": 100,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/bestiary/35753-groundling-stalker",
+        "url_ttg": "https://new.ttg.club/bestiary/groundling-stalker-au",
+        "book": "AU"
+      },
+      "data": {
+        "schema_version": 1,
+        "size": "medium",
+        "size_ru": "средний",
+        "type": "monstrosity",
+        "type_ru": "Чудовище",
+        "subtype": null,
+        "alignment": "нейтральный",
+        "ac": 15,
+        "hp_average": 52,
+        "hp_formula": "8к8+16",
+        "speed": {
+          "walk": 30,
+          "burrow": 10
+        },
+        "cr": "2",
+        "xp": 450,
+        "proficiency_bonus": 2,
+        "initiative": {
+          "mod": 5,
+          "score": 15
+        },
+        "abilities": {
+          "str": 16,
+          "dex": 16,
+          "con": 14,
+          "int": 8,
+          "wis": 12,
+          "cha": 8
+        },
+        "ability_mods": {
+          "str": 3,
+          "dex": 3,
+          "con": 2,
+          "int": -1,
+          "wis": 1,
+          "cha": -1
+        },
+        "ability_saves": {
+          "str": 3,
+          "dex": 5,
+          "con": 4,
+          "int": -1,
+          "wis": 1,
+          "cha": -1
+        },
+        "skills": {
+          "Внимательность": 3,
+          "Выживание": 3,
+          "Скрытность": 5
+        },
+        "senses": {
+          "passive_perception": 13
+        },
+        "languages": [
+          "Общий"
+        ],
+        "source_book": "AU",
+        "srd_section": "monsters",
+        "summary_ru": "среднее чудовище, ПО 2; КД 15, хиты 52 (8к8+16); инициатива +5 (ср. 15), БМ +2.",
+        "name_ru_pending": false,
+        "gear_refs": [
+          "heavy-crossbow"
+        ],
+        "spell_refs": [],
+        "actions": [
+          {
+            "name_ru": "Когти",
+            "text_ru": "Бросок рукопашной атаки: +5, досягаемость 5 фт. Попадание: 7 (2к8 + 3) Рубящего урона. Если цель — существо Среднего размера или меньше, она Схвачена (Сл освобождения от захвата 13) одной из двух лап.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Тяжёлый арбалет",
+            "text_ru": "Бросок дальнобойной атаки: +5, дистанция 100/400 фт. Попадание: 14 (2к10 + 3) Колющего урона.",
+            "name_ru_pending": false
+          }
+        ],
+        "damage_resistances": [
+          "ядовитый"
+        ]
+      }
+    },
+    {
+      "kind": "bestiary",
+      "slug": "illusionist-archmage",
+      "name_ru": "Архимаг-иллюзионист",
+      "name_en": "Illusionist Archmage",
+      "source": "au",
+      "sort_order": 110,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/bestiary/35743-illusionist-archmage",
+        "url_ttg": "https://new.ttg.club/bestiary/illusionist-archmage-au",
+        "book": "AU"
+      },
+      "data": {
+        "schema_version": 1,
+        "size": "medium",
+        "size_ru": "средний",
+        "type": "humanoid",
+        "type_ru": "Гуманоид",
+        "subtype": "Волшебник",
+        "alignment": "нейтральный",
+        "ac": 16,
+        "hp_average": 220,
+        "hp_formula": "40к8+40",
+        "speed": {
+          "walk": 30
+        },
+        "cr": "15",
+        "xp": 13000,
+        "proficiency_bonus": 5,
+        "initiative": {
+          "mod": 8,
+          "score": 18
+        },
+        "abilities": {
+          "str": 10,
+          "dex": 16,
+          "con": 12,
+          "int": 20,
+          "wis": 15,
+          "cha": 16
+        },
+        "ability_mods": {
+          "str": 0,
+          "dex": 3,
+          "con": 1,
+          "int": 5,
+          "wis": 2,
+          "cha": 3
+        },
+        "ability_saves": {
+          "str": 0,
+          "dex": 3,
+          "con": 6,
+          "int": 10,
+          "wis": 7,
+          "cha": 3
+        },
+        "skills": {
+          "Внимательность": 7,
+          "Обман": 8,
+          "Скрытность": 8,
+          "Магия": 15
+        },
+        "senses": {
+          "passive_perception": 17
+        },
+        "languages": [
+          "Общий"
+        ],
+        "source_book": "AU",
+        "srd_section": "monsters",
+        "summary_ru": "средний гуманоид, ПО 15; КД 16, хиты 220 (40к8+40); инициатива +8 (ср. 18), БМ +5; есть заклинания.",
+        "name_ru_pending": false,
+        "gear_refs": [],
+        "spell_refs": [
+          "mage-hand",
+          "mage-armor",
+          "minor-illusion",
+          "disguise-self",
+          "invisibility",
+          "detect-magic",
+          "prestidigitation",
+          "nystuls-magic-aura",
+          "major-image",
+          "seeming",
+          "creation",
+          "weird",
+          "mirage-arcane"
+        ],
+        "traits": [
+          {
+            "name_ru": "Сопротивление магии",
+            "text_ru": "Архимаг совершает с Преимуществом спасброски от заклинаний и прочих магических эффектов.",
+            "name_ru_pending": false
+          }
+        ],
+        "actions": [
+          {
+            "name_ru": "Мультиатака",
+            "text_ru": "Архимаг совершает четыре атаки Волшебным всплеском.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Волшебный всплеск",
+            "text_ru": "Бросок рукопашной или дальнобойной атаки: +10, досягаемость 5 фт. или дистанция 150 фт. Попадание: 21 (3к10 + 5) Силового урона.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Сотворение заклинаний",
+            "text_ru": "Архимаг сотворяет одно из следующих заклинаний (заклинательная характеристика — Интеллект, Сл спасброска заклинаний 18): Неограниченно: Волшебная рука, Доспехи мага (включено в КЗ), Малая иллюзия, Маскировка, Невидимость, Обнаружение магии, Фокусы 2/день каждое: Волшебная аура Нистула, Образ, Притворство, Сотворение 1/день каждое: Жуть, Таинственный мираж",
+            "name_ru_pending": false
+          }
+        ],
+        "bonus_actions": [
+          {
+            "name_ru": "Морочащие заклинания (2/день)",
+            "text_ru": "Архимаг сотворяет Гипнотический узор или Отражения (заклинательная характеристика — та же, что для Сотворения заклинаний).",
+            "name_ru_pending": false
+          }
+        ],
+        "reactions": [
+          {
+            "name_ru": "Защитная магия (3/день)",
+            "text_ru": "Архимаг сотворяет Контрзаклинание или Щит в ответ на условие этого заклинания (заклинательная характеристика — та же, что для Сотворения заклинаний).",
+            "name_ru_pending": false
+          }
+        ]
+      }
+    },
+    {
+      "kind": "bestiary",
+      "slug": "living-cone-of-cold",
+      "name_ru": "Живой конус холода",
+      "name_en": "Living Cone of Cold",
+      "source": "au",
+      "sort_order": 120,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/bestiary/35754-living-cone-of-cold",
+        "url_ttg": "https://new.ttg.club/bestiary/living-cone-of-cold-au",
+        "book": "AU"
+      },
+      "data": {
+        "schema_version": 1,
+        "size": "large",
+        "size_ru": "большой",
+        "type": "construct",
+        "type_ru": "Конструкт",
+        "subtype": null,
+        "alignment": "без мировоззрения",
+        "ac": 15,
+        "hp_average": 105,
+        "hp_formula": "10к10+50",
+        "speed": {
+          "walk": 25,
+          "fly": 25
+        },
+        "cr": "7",
+        "xp": 2900,
+        "proficiency_bonus": 3,
+        "initiative": {
+          "mod": 2,
+          "score": 12
+        },
+        "abilities": {
+          "str": 10,
+          "dex": 15,
+          "con": 20,
+          "int": 3,
+          "wis": 11,
+          "cha": 6
+        },
+        "ability_mods": {
+          "str": 0,
+          "dex": 2,
+          "con": 5,
+          "int": -4,
+          "wis": 0,
+          "cha": -2
+        },
+        "ability_saves": {
+          "str": 0,
+          "dex": 2,
+          "con": 5,
+          "int": -4,
+          "wis": 0,
+          "cha": -2
+        },
+        "skills": {},
+        "senses": {
+          "passive_perception": 10
+        },
+        "languages": [
+          "нет"
+        ],
+        "source_book": "AU",
+        "srd_section": "monsters",
+        "summary_ru": "большой конструкт, ПО 7; КД 15, хиты 105 (10к10+50); инициатива +2 (ср. 12), БМ +3.",
+        "name_ru_pending": false,
+        "gear_refs": [],
+        "spell_refs": [],
+        "traits": [
+          {
+            "name_ru": "Аморфность",
+            "text_ru": "Живое заклинание может проходить через пространство шириной всего 1 дюйм, не тратя на это дополнительное перемещение.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Сопротивление магии",
+            "text_ru": "Живое заклинание совершает с Преимуществом спасброски от заклинаний и прочих магических эффектов.",
+            "name_ru_pending": false
+          }
+        ],
+        "actions": [
+          {
+            "name_ru": "Мультиатака",
+            "text_ru": "Живое заклинание совершает две атаки Магическим ударом.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Магический удар",
+            "text_ru": "Бросок рукопашной атаки: +8, досягаемость 10 фт. Попадание: 27 (5к8 + 5) урона Холодом.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Подражание заклинанию (Перезарядка 5–6)",
+            "text_ru": "Спасбросок Телосложения: Сл 16, все существа в 60-футовом Конусе. Провал: 36 (8к8) урона Холодом. Успех: Только половина урона.",
+            "name_ru_pending": false
+          }
+        ]
+      }
+    },
+    {
+      "kind": "bestiary",
+      "slug": "living-thunderwave",
+      "name_ru": "Живая волна грома",
+      "name_en": "Living Thunderwave",
+      "source": "au",
+      "sort_order": 130,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/bestiary/35755-living-thunderwave",
+        "url_ttg": "https://new.ttg.club/bestiary/living-thunderwave-au",
+        "book": "AU"
+      },
+      "data": {
+        "schema_version": 1,
+        "size": "medium",
+        "size_ru": "средний",
+        "type": "construct",
+        "type_ru": "Конструкт",
+        "subtype": null,
+        "alignment": "без мировоззрения",
+        "ac": 15,
+        "hp_average": 30,
+        "hp_formula": "4к8+12",
+        "speed": {
+          "walk": 25,
+          "fly": 25
+        },
+        "cr": "1",
+        "xp": 200,
+        "proficiency_bonus": 2,
+        "initiative": {
+          "mod": 1,
+          "score": 11
+        },
+        "abilities": {
+          "str": 10,
+          "dex": 13,
+          "con": 16,
+          "int": 3,
+          "wis": 6,
+          "cha": 6
+        },
+        "ability_mods": {
+          "str": 0,
+          "dex": 1,
+          "con": 3,
+          "int": -4,
+          "wis": -2,
+          "cha": -2
+        },
+        "ability_saves": {
+          "str": 0,
+          "dex": 1,
+          "con": 3,
+          "int": -4,
+          "wis": -2,
+          "cha": -2
+        },
+        "skills": {},
+        "senses": {
+          "passive_perception": 8
+        },
+        "languages": [
+          "нет"
+        ],
+        "source_book": "AU",
+        "srd_section": "monsters",
+        "summary_ru": "средний конструкт, ПО 1; КД 15, хиты 30 (4к8+12); инициатива +1 (ср. 11), БМ +2.",
+        "name_ru_pending": false,
+        "gear_refs": [],
+        "spell_refs": [],
+        "traits": [
+          {
+            "name_ru": "Аморфность",
+            "text_ru": "Живое заклинание может проходить через пространство шириной всего 1 дюйм, не тратя на это дополнительное перемещение.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Сопротивление магии",
+            "text_ru": "Живое заклинание совершает с Преимуществом спасброски от заклинаний и прочих магических эффектов.",
+            "name_ru_pending": false
+          }
+        ],
+        "actions": [
+          {
+            "name_ru": "Магический удар",
+            "text_ru": "Бросок рукопашной атаки: +5, досягаемость 5 фт. Попадание: 6 (1к6 + 3) урона Звуком.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Подражание заклинанию (Перезарядка 5–6)",
+            "text_ru": "Спасбросок Телосложения: Сл 13, все существа в 15-футовом Кубе, исходящем от живого заклинания. Провал: 9 (2к8) урона Звуком, и цель отталкивается на расстояние до 10 футов от живого заклинания. Успех: Только половина урона. Провал или успех: На расстоянии 300 футов слышен громовой раскат.",
+            "name_ru_pending": false
+          }
+        ]
+      }
+    },
+    {
+      "kind": "bestiary",
+      "slug": "living-vitriolic-sphere",
+      "name_ru": "Живой едкий шар",
+      "name_en": "Living Vitriolic Sphere",
+      "source": "au",
+      "sort_order": 140,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/bestiary/35756-living-vitriolic-sphere",
+        "url_ttg": "https://new.ttg.club/bestiary/living-vitriolic-sphere-au",
+        "book": "AU"
+      },
+      "data": {
+        "schema_version": 1,
+        "size": "large",
+        "size_ru": "большой",
+        "type": "construct",
+        "type_ru": "Конструкт",
+        "subtype": null,
+        "alignment": "без мировоззрения",
+        "ac": 15,
+        "hp_average": 76,
+        "hp_formula": "8к10+32",
+        "speed": {
+          "walk": 25,
+          "fly": 25
+        },
+        "cr": "5",
+        "xp": 1800,
+        "proficiency_bonus": 3,
+        "initiative": {
+          "mod": 2,
+          "score": 12
+        },
+        "abilities": {
+          "str": 10,
+          "dex": 15,
+          "con": 18,
+          "int": 3,
+          "wis": 10,
+          "cha": 6
+        },
+        "ability_mods": {
+          "str": 0,
+          "dex": 2,
+          "con": 4,
+          "int": -4,
+          "wis": 0,
+          "cha": -2
+        },
+        "ability_saves": {
+          "str": 0,
+          "dex": 2,
+          "con": 4,
+          "int": -4,
+          "wis": 0,
+          "cha": -2
+        },
+        "skills": {},
+        "senses": {
+          "passive_perception": 10
+        },
+        "languages": [
+          "нет"
+        ],
+        "source_book": "AU",
+        "srd_section": "monsters",
+        "summary_ru": "большой конструкт, ПО 5; КД 15, хиты 76 (8к10+32); инициатива +2 (ср. 12), БМ +3.",
+        "name_ru_pending": false,
+        "gear_refs": [],
+        "spell_refs": [],
+        "traits": [
+          {
+            "name_ru": "Аморфность",
+            "text_ru": "Живое заклинание может проходить через пространство шириной всего 1 дюйм, не тратя на это дополнительное перемещение.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Сопротивление магии",
+            "text_ru": "Живое заклинание совершает с Преимуществом спасброски от заклинаний и прочих магических эффектов.",
+            "name_ru_pending": false
+          }
+        ],
+        "actions": [
+          {
+            "name_ru": "Мультиатака",
+            "text_ru": "Живое заклинание совершает две атаки Магическим ударом.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Магический удар",
+            "text_ru": "Бросок рукопашной атаки: +7, досягаемость 10 фт. Попадание: 21 (5к6 + 4) урона Кислотой.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Подражание заклинанию (Перезарядка 5–6)",
+            "text_ru": "Спасбросок Ловкости: Сл 15, все существа в 20-футовой Сфере с центром в точке, находящейся в пределах 150 футах. Провал: 25 (10к4) урона Кислотой, и 12 (5к4) урона Кислотой в конце следующего хода цели. Успех: Только половина изначального урона.",
+            "name_ru_pending": false
+          }
+        ]
+      }
+    },
+    {
+      "kind": "bestiary",
+      "slug": "necromancer-archmage",
+      "name_ru": "Архимаг-некромант",
+      "name_en": "Necromancer Archmage",
+      "source": "au",
+      "sort_order": 150,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/bestiary/35744-necromancer-archmage",
+        "url_ttg": "https://new.ttg.club/bestiary/necromancer-archmage-au",
+        "book": "AU"
+      },
+      "data": {
+        "schema_version": 1,
+        "size": "medium",
+        "size_ru": "средний",
+        "type": "humanoid",
+        "type_ru": "Гуманоид",
+        "subtype": "Волшебник",
+        "alignment": "нейтральный",
+        "ac": 16,
+        "hp_average": 225,
+        "hp_formula": "41к8+41",
+        "speed": {
+          "walk": 30
+        },
+        "cr": "15",
+        "xp": 13000,
+        "proficiency_bonus": 5,
+        "initiative": {
+          "mod": 8,
+          "score": 18
+        },
+        "abilities": {
+          "str": 10,
+          "dex": 16,
+          "con": 12,
+          "int": 20,
+          "wis": 15,
+          "cha": 16
+        },
+        "ability_mods": {
+          "str": 0,
+          "dex": 3,
+          "con": 1,
+          "int": 5,
+          "wis": 2,
+          "cha": 3
+        },
+        "ability_saves": {
+          "str": 0,
+          "dex": 3,
+          "con": 6,
+          "int": 10,
+          "wis": 7,
+          "cha": 3
+        },
+        "skills": {
+          "Внимательность": 7,
+          "Запугивание": 8,
+          "История": 10,
+          "Магия": 15
+        },
+        "senses": {
+          "passive_perception": 17
+        },
+        "languages": [
+          "Общий"
+        ],
+        "source_book": "AU",
+        "srd_section": "monsters",
+        "summary_ru": "средний гуманоид, ПО 15; КД 16, хиты 225 (41к8+41); инициатива +8 (ср. 18), БМ +5; есть заклинания.",
+        "name_ru_pending": false,
+        "gear_refs": [],
+        "spell_refs": [
+          "mage-hand",
+          "mage-armor",
+          "detect-magic",
+          "speak-with-dead",
+          "blight",
+          "prestidigitation",
+          "circle-of-death",
+          "create-undead"
+        ],
+        "traits": [
+          {
+            "name_ru": "Военачальник нежити",
+            "text_ru": "Вся Нежить по выбору архимага в 60-футовой Эманации, исходящей от него, совершает с Преимуществом броски атаки и спасброски. Эта особенность не работает, если архимаг Недееспособен.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Сопротивление магии",
+            "text_ru": "Архимаг совершает с Преимуществом спасброски от заклинаний и прочих магических эффектов.",
+            "name_ru_pending": false
+          }
+        ],
+        "actions": [
+          {
+            "name_ru": "Мультиатака",
+            "text_ru": "Архимаг совершает четыре атаки Волшебным всплеском. Он может заменить одну атаку использованием Сотворения заклинаний (Усыхание).",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Волшебный всплеск",
+            "text_ru": "Бросок рукопашной или дальнобойной атаки: +10, досягаемость 5 фт. или дистанция 150 фт. Попадание: 21 (3к10 + 5) Силового урона.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Сотворение заклинаний",
+            "text_ru": "Архимаг сотворяет одно из следующих заклинаний (заклинательная характеристика — Интеллект, Сл спасброска заклинаний 18): Неограниченно: Волшебная рука, Доспехи мага (включено в КЗ), Обнаружение магии, Разговор с мёртвыми, Усыхание, Фокусы 1/день каждое: Круг смерти (версия 7-го уровня), Сотворение нежити",
+            "name_ru_pending": false
+          }
+        ],
+        "reactions": [
+          {
+            "name_ru": "Защитная магия (3/день)",
+            "text_ru": "Архимаг сотворяет Контрзаклинание или Щит в ответ на условие этого заклинания (заклинательная характеристика — та же, что для Сотворения заклинаний).",
+            "name_ru_pending": false
+          }
+        ],
+        "damage_resistances": [
+          "некротический"
+        ]
+      }
+    },
+    {
+      "kind": "bestiary",
+      "slug": "spellguard",
+      "name_ru": "Страж заклятий",
+      "name_en": "Spellguard",
+      "source": "au",
+      "sort_order": 160,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/bestiary/35759-spellguard",
+        "url_ttg": "https://new.ttg.club/bestiary/spellguard-au",
+        "book": "AU"
+      },
+      "data": {
+        "schema_version": 1,
+        "size": "medium",
+        "size_ru": "средний",
+        "type": "humanoid",
+        "type_ru": "Гуманоид",
+        "subtype": null,
+        "alignment": "законно-нейтральный",
+        "ac": 20,
+        "hp_average": 105,
+        "hp_formula": "14к8+42",
+        "speed": {
+          "walk": 30
+        },
+        "cr": "5",
+        "xp": 1800,
+        "proficiency_bonus": 3,
+        "initiative": {
+          "mod": 3,
+          "score": 13
+        },
+        "abilities": {
+          "str": 18,
+          "dex": 11,
+          "con": 16,
+          "int": 12,
+          "wis": 13,
+          "cha": 10
+        },
+        "ability_mods": {
+          "str": 4,
+          "dex": 0,
+          "con": 3,
+          "int": 1,
+          "wis": 1,
+          "cha": 0
+        },
+        "ability_saves": {
+          "str": 4,
+          "dex": 0,
+          "con": 6,
+          "int": 1,
+          "wis": 4,
+          "cha": 0
+        },
+        "skills": {
+          "Атлетика": 7,
+          "Внимательность": 4,
+          "Магия": 4
+        },
+        "senses": {
+          "passive_perception": 14
+        },
+        "languages": [
+          "Общий"
+        ],
+        "source_book": "AU",
+        "srd_section": "monsters",
+        "summary_ru": "средний гуманоид, ПО 5; КД 20, хиты 105 (14к8+42); инициатива +3 (ср. 13), БМ +3.",
+        "name_ru_pending": false,
+        "gear_refs": [
+          "javelin",
+          "spear"
+        ],
+        "spell_refs": [],
+        "traits": [
+          {
+            "name_ru": "Улучшенное сопротивление магии",
+            "text_ru": "Страж совершает с Преимуществом спасброски от заклинаний и прочих магических эффектов. Броски атаки заклинаниями против стража совершаются с Помехой.",
+            "name_ru_pending": false
+          }
+        ],
+        "actions": [
+          {
+            "name_ru": "Мультиатака",
+            "text_ru": "Страж совершает две атаки Силовым цепом или Метательным копьём в любой комбинации.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Силовой цеп",
+            "text_ru": "Бросок рукопашной атаки: +7, досягаемость 5 фт. Попадание: 8 (1к8 + 4) Дробящего урона плюс 7 (2к6) Силового урона.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Метательное копьё",
+            "text_ru": "Бросок рукопашной или дальнобойной атаки: +7, досягаемость 5 фт. или дистанция 30/120 фт. Попадание: 14 (3к6 + 4) Колющего урона.",
+            "name_ru_pending": false
+          }
+        ]
+      }
+    },
+    {
+      "kind": "bestiary",
+      "slug": "taisus",
+      "name_ru": "Тайсу",
+      "name_en": "Taisus",
+      "source": "au",
+      "sort_order": 170,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/bestiary/35760-taisus",
+        "url_ttg": "https://new.ttg.club/bestiary/taisus-au",
+        "book": "AU"
+      },
+      "data": {
+        "schema_version": 1,
+        "size": "huge",
+        "size_ru": "огромный",
+        "type": "aberration",
+        "type_ru": "Аберрация",
+        "subtype": null,
+        "alignment": "нейтральный",
+        "ac": 18,
+        "hp_average": 310,
+        "hp_formula": "27к12+135",
+        "speed": {
+          "walk": 40,
+          "fly": 60
+        },
+        "cr": "19",
+        "xp": 22000,
+        "proficiency_bonus": 6,
+        "initiative": {
+          "mod": 10,
+          "score": 20
+        },
+        "abilities": {
+          "str": 17,
+          "dex": 18,
+          "con": 20,
+          "int": 25,
+          "wis": 22,
+          "cha": 19
+        },
+        "ability_mods": {
+          "str": 3,
+          "dex": 4,
+          "con": 5,
+          "int": 7,
+          "wis": 6,
+          "cha": 4
+        },
+        "ability_saves": {
+          "str": 3,
+          "dex": 10,
+          "con": 11,
+          "int": 13,
+          "wis": 12,
+          "cha": 4
+        },
+        "skills": {
+          "Внимательность": 12,
+          "Проницательность": 12,
+          "Магия": 19
+        },
+        "senses": {
+          "passive_perception": 22
+        },
+        "languages": [
+          "Все",
+          "Телепатия 120 фт."
+        ],
+        "source_book": "AU",
+        "srd_section": "monsters",
+        "summary_ru": "огромная аберрация, ПО 19; КД 18, хиты 310 (27к12+135); инициатива +10 (ср. 20), БМ +6; есть заклинания.",
+        "name_ru_pending": false,
+        "gear_refs": [],
+        "spell_refs": [
+          "mage-hand",
+          "invisibility",
+          "detect-magic",
+          "fireball",
+          "scrying",
+          "plane-shift",
+          "jallarzis-storm-of-radiance",
+          "disintegrate",
+          "befuddlement"
+        ],
+        "traits": [
+          {
+            "name_ru": "Волшебное бессмертие",
+            "text_ru": "При смерти тайсу его тело рассыпается мерцающей пылью. Спустя 1к10 дней он обретает новое тело и возрождается со всеми Хитами, если только на его останки не было сотворено Желание, чтобы предотвратить срабатывание этой особенности. Новое тело появляется в незанятом пространстве в пределах 5 футов от места, выбранного тайсу при его создании.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Легендарное сопротивление (4/день)",
+            "text_ru": "Если тайсу проваливает спасбросок, он вместо этого может в нём преуспеть.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Сопротивление магии",
+            "text_ru": "Тайсу совершает с Преимуществом спасброски от заклинаний и прочих магических эффектов.",
+            "name_ru_pending": false
+          }
+        ],
+        "actions": [
+          {
+            "name_ru": "Мультиатака",
+            "text_ru": "Тайсу совершает две атаки Опустошением мозга.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Опустошение мозга",
+            "text_ru": "Бросок рукопашной атаки: +13, досягаемость 20 фт. Попадание: 20 (3к8 + 7) Силового урона плюс 16 (3к10) Психического урона, и цель — существо с ячейками заклинаний, она подвергается следующему эффекту. Спасбросок Телосложения: Сл 21. Провал: У цели тратится ячейка заклинаний самого высокого уровня, которая ещё не потрачена.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Сотворение заклинаний",
+            "text_ru": "Тайсу сотворяет одно из следующих заклинаний, не нуждаясь в Материальных компонентах (заклинательная характеристика — Интеллект, Сл спасброска заклинаний 21): Неограниченно: Волшебная рука, Невидимость, Обнаружение магии, Огненный шар (версия 5-го уровня) 2/день каждое: Наблюдение, Планарный переход, Сияющий шторм Джалларзи 1/день каждое: Дезинтеграция, Помутнение разума",
+            "name_ru_pending": false
+          }
+        ],
+        "reactions": [
+          {
+            "name_ru": "Защитная магия",
+            "text_ru": "Тайсу сотворяет Контрзаклинание или Щит в ответ на условие срабатывания этих заклинаний (заклинательная характеристика — та же, что для Сотворения заклинаний).",
+            "name_ru_pending": false
+          }
+        ],
+        "legendary_actions": [
+          {
+            "name_ru": "Смертельное опустошение",
+            "text_ru": "Тайсу совершает атаку Опустошением мозга. Тайсу не может совершить это действие снова до начала своего следующего хода.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Телепортация",
+            "text_ru": "Тайсу телепортирует себя или видимое им согласное существо в пределах 10 футов от себя на расстояние 120 футов в видимое им незанятое пространство.",
+            "name_ru_pending": false
+          }
+        ],
+        "legendary_actions_uses": 3,
+        "legendary_actions_note_ru": "3 за раунд"
+      }
+    },
+    {
+      "kind": "bestiary",
+      "slug": "transmuter-archmage",
+      "name_ru": "Архимаг-преобразователь",
+      "name_en": "Transmuter Archmage",
+      "source": "au",
+      "sort_order": 180,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/bestiary/35745-transmuter-archmage",
+        "url_ttg": "https://new.ttg.club/bestiary/transmuter-archmage-au",
+        "book": "AU"
+      },
+      "data": {
+        "schema_version": 1,
+        "size": "medium",
+        "size_ru": "средний",
+        "type": "humanoid",
+        "type_ru": "Гуманоид",
+        "subtype": "Волшебник",
+        "alignment": "нейтральный",
+        "ac": 16,
+        "hp_average": 220,
+        "hp_formula": "40к8+40",
+        "speed": {
+          "walk": 40,
+          "fly": 30
+        },
+        "cr": "15",
+        "xp": 13000,
+        "proficiency_bonus": 5,
+        "initiative": {
+          "mod": 8,
+          "score": 18
+        },
+        "abilities": {
+          "str": 10,
+          "dex": 16,
+          "con": 12,
+          "int": 20,
+          "wis": 15,
+          "cha": 16
+        },
+        "ability_mods": {
+          "str": 0,
+          "dex": 3,
+          "con": 1,
+          "int": 5,
+          "wis": 2,
+          "cha": 3
+        },
+        "ability_saves": {
+          "str": 0,
+          "dex": 3,
+          "con": 6,
+          "int": 10,
+          "wis": 7,
+          "cha": 3
+        },
+        "skills": {
+          "Внимательность": 7,
+          "История": 10,
+          "Магия": 15
+        },
+        "senses": {
+          "passive_perception": 17
+        },
+        "languages": [
+          "Общий"
+        ],
+        "source_book": "AU",
+        "srd_section": "monsters",
+        "summary_ru": "средний гуманоид, ПО 15; КД 16, хиты 220 (40к8+40); инициатива +8 (ср. 18), БМ +5; есть заклинания.",
+        "name_ru_pending": false,
+        "gear_refs": [],
+        "spell_refs": [
+          "mage-hand",
+          "mage-armor",
+          "detect-magic",
+          "polymorph",
+          "alter-self",
+          "knock",
+          "prestidigitation",
+          "gaseous-form",
+          "reverse-gravity"
+        ],
+        "traits": [
+          {
+            "name_ru": "Сопротивление магии",
+            "text_ru": "Архимаг совершает с Преимуществом спасброски от заклинаний и прочих магических эффектов.",
+            "name_ru_pending": false
+          }
+        ],
+        "actions": [
+          {
+            "name_ru": "Мультиатака",
+            "text_ru": "Архимаг совершает четыре атаки Волшебным всплеском.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Волшебный всплеск",
+            "text_ru": "Бросок рукопашной или дальнобойной атаки: +9, досягаемость 5 фт. или дистанция 150 фт. Попадание: 27 (4к10 + 5) Силового урона.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Сотворение заклинаний",
+            "text_ru": "Архимаг сотворяет одно из следующих заклинаний (заклинательная характеристика — Интеллект, Сл спасброска заклинаний 18): Неограниченно: Волшебная рука, Доспехи мага (включено в КЗ), Обнаружение магии, Превращение, Смена обличья, Стук, Фокусы 2/день: Газообразная форма 1/день: Изменение тяготения",
+            "name_ru_pending": false
+          }
+        ],
+        "bonus_actions": [
+          {
+            "name_ru": "Замедление (2/день)",
+            "text_ru": "Архимаг сотворяет Замедление (заклинательная характеристика — та же, что для Сотворения заклинаний).",
+            "name_ru_pending": false
+          }
+        ],
+        "reactions": [
+          {
+            "name_ru": "Защитная магия (3/день)",
+            "text_ru": "Архимаг сотворяет Контрзаклинание или Щит в ответ на условие этого заклинания (заклинательная характеристика — та же, что для Сотворения заклинаний).",
+            "name_ru_pending": false
+          }
+        ]
+      }
+    },
+    {
+      "kind": "bestiary",
+      "slug": "venger",
+      "name_ru": "Венгер",
+      "name_en": "Venger",
+      "source": "au",
+      "sort_order": 190,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/bestiary/35761-venger",
+        "url_ttg": "https://new.ttg.club/bestiary/venger-au",
+        "book": "AU"
+      },
+      "data": {
+        "schema_version": 1,
+        "size": "medium",
+        "size_ru": "средний",
+        "type": "fiend",
+        "type_ru": "Исчадие",
+        "subtype": null,
+        "alignment": "именной нип",
+        "ac": 19,
+        "hp_average": 202,
+        "hp_formula": "27к8+81",
+        "speed": {
+          "walk": 30,
+          "fly": 30
+        },
+        "cr": "17",
+        "xp": 18000,
+        "proficiency_bonus": 6,
+        "initiative": {
+          "mod": 17,
+          "score": 27
+        },
+        "abilities": {
+          "str": 18,
+          "dex": 20,
+          "con": 16,
+          "int": 17,
+          "wis": 14,
+          "cha": 21
+        },
+        "ability_mods": {
+          "str": 4,
+          "dex": 5,
+          "con": 3,
+          "int": 3,
+          "wis": 2,
+          "cha": 5
+        },
+        "ability_saves": {
+          "str": 4,
+          "dex": 5,
+          "con": 9,
+          "int": 3,
+          "wis": 8,
+          "cha": 5
+        },
+        "skills": {
+          "Внимательность": 8,
+          "Запугивание": 11,
+          "Обман": 11,
+          "Магия": 9
+        },
+        "senses": {
+          "passive_perception": 18
+        },
+        "languages": [
+          "Общий",
+          "Бездны",
+          "Инфернальный"
+        ],
+        "source_book": "AU",
+        "srd_section": "monsters",
+        "summary_ru": "среднее исчадие, ПО 17; КД 19, хиты 202 (27к8+81); инициатива +17 (ср. 27), БМ +6; есть заклинания.",
+        "name_ru_pending": false,
+        "gear_refs": [],
+        "spell_refs": [
+          "silent-image",
+          "mage-hand",
+          "invisibility",
+          "detect-magic",
+          "dimension-door",
+          "contact-other-plane",
+          "alter-self",
+          "create-undead",
+          "control-weather",
+          "imprisonment"
+        ],
+        "traits": [
+          {
+            "name_ru": "Восстановление исчадия",
+            "text_ru": "Когда Венгер умирает, его тело рассыпается багровой пылью и спустя 1к10 дней возрождается со всеми Хитами в одном из его логов.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Легендарное сопротивление (3/день, или 4/день в Логове)",
+            "text_ru": "Если Венгер проваливает спасбросок, он вместо этого может в нём преуспеть.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Сопротивление магии",
+            "text_ru": "Венгер совершает с Преимуществом спасброски от заклинаний и прочих магических эффектов.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Умелый наездник",
+            "text_ru": "Пока Венгер находится верхом, он и его скакун совершают с Преимуществом спасброски Ловкости, а Венгер может перенаправить на себя атаку, нацеленную на его скакуна. Венгер не может использовать эту особенность, если Недееспособен.",
+            "name_ru_pending": false
+          }
+        ],
+        "actions": [
+          {
+            "name_ru": "Мультиатака",
+            "text_ru": "Венгер совершает три атаки Багровыми когтями или Багровым разрядом в любой комбинации.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Багровые когти",
+            "text_ru": "Бросок рукопашной атаки: +11, досягаемость 5 фт. Попадание: 14 (2к8 + 5) Рубящего урона плюс 10 (3к6) урона Огнём.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Багровый разряд",
+            "text_ru": "Бросок дальнобойной атаки: +11, дистанция 120 фт. Попадание: 24 (3к12 + 5) Силового урона.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Сотворение заклинаний",
+            "text_ru": "Венгер сотворяет одно из следующих заклинаний (заклинательная характеристика — Харизма, Сл спасброска заклинаний 19): Неограниченно: Безмолвный образ, Волшебная рука, Невидимость, Обнаружение магии 2/день каждое: Переносящая дверь, Связь с иным планом, Смена обличья, Сотворение нежити 1/день каждое: Власть над погодой, Заточение",
+            "name_ru_pending": false
+          }
+        ],
+        "bonus_actions": [
+          {
+            "name_ru": "Телекинез (2/день)",
+            "text_ru": "Венгер сотворяет Телекинез (заклинательная характеристика — та же, что для Сотворения заклинаний).",
+            "name_ru_pending": false
+          }
+        ],
+        "reactions": [
+          {
+            "name_ru": "Защитная магия",
+            "text_ru": "Венгер сотворяет Контрзаклинание или Щит в ответ на условие этих заклинания (заклинательная характеристика — та же, что для Сотворения заклинаний).",
+            "name_ru_pending": false
+          }
+        ],
+        "legendary_actions": [
+          {
+            "name_ru": "Багровый удар",
+            "text_ru": "Венгер совершает одну атаку Багровыми когтями или Багровым разрядом.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Громогласное порицание",
+            "text_ru": "Спасбросок Мудрости: Сл 19, одно видимое Венгером существо в пределах 60 футов. Провал: 14 (4к6) Психического урона, и цель Испугана до конца своего следующего хода. Успех: Только половина урона.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Цепи сковывания магов",
+            "text_ru": "Спасбросок Ловкости: Сл 19, одно видимое Венгером существо в пределах 30 футов. Провал: Цель Опутана до конца своего следующего хода. Опутанная цель не может совершать действие Магия. Провал или успех: Венгер не может совершить это действие снова до начала своего следующего хода.",
+            "name_ru_pending": false
+          }
+        ],
+        "damage_resistances": [
+          "огонь",
+          "холод",
+          "электрический",
+          "ядовитый"
+        ],
+        "legendary_actions_uses": 3,
+        "legendary_actions_uses_lair": 4,
+        "legendary_actions_note_ru": "3 за раунд (4 в логове)"
+      }
+    }
+  ]
+}

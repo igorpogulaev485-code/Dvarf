@@ -28,7 +28,7 @@ EFA_COUNTS = {
     "item": 9,
 }
 EFA_TOTAL = sum(EFA_COUNTS.values())  # 66
-PLANNED_TOTAL = 863 + 235 + 95 + 1 + 12 + 36 + 58 + 69 + 196 + 86 + 87 + EFA_TOTAL + 93 + 43 + 111 + 95  # +C17 FRHoF +C12 bastions +C18 +C20 RTW
+PLANNED_TOTAL = 863 + 235 + 95 + 1 + 12 + 36 + 58 + 69 + 196 + 86 + 87 + EFA_TOTAL + 93 + 43 + 111 + 95 + 166  # +C21 AU/AUD / was: # +C17 FRHoF +C12 bastions +C18 +C20 RTW
 
 STUB_NEEDLES = (
     "Предложено: Способность",
@@ -280,6 +280,7 @@ def test_alembic_single_head_includes_p24_c15():
         "p24c20rtw01",
         "p24c20rfull01",
         "p24c19ddbd01",
+        "p24c21au01",
     }
     ancestor_ids = {
         rev.revision for rev in script.walk_revisions(base="base", head=heads[0])

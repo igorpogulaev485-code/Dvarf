@@ -20,7 +20,7 @@ LIVE = REPO_ROOT / "backend" / "data" / "srd" / "2024" / "live"
 
 PH24_FEATS = 58
 PH24_SPELLS = 69
-PLANNED_TOTAL = 863 + 235 + 95 + 1 + 12 + 36 + PH24_FEATS + PH24_SPELLS + 196 + 86 + 87 + 66 + 93 + 43 + 111 + 95  # +C11 DMG24 +C13 MM24 w1 +C14 MM24 w2 +C15 EFA +C17 FRHoF +C12 bastions +C18 +C20 RTW
+PLANNED_TOTAL = 863 + 235 + 95 + 1 + 12 + 36 + PH24_FEATS + PH24_SPELLS + 196 + 86 + 87 + 66 + 93 + 43 + 111 + 95 + 166  # +C21 AU/AUD / was: # +C11 DMG24 +C13 MM24 w1 +C14 MM24 w2 +C15 EFA +C17 FRHoF +C12 bastions +C18 +C20 RTW
 
 ORIGIN_FEATS_C09 = {
     "crafter",
@@ -321,4 +321,4 @@ def test_alembic_single_head_includes_p24_c10():
     assert "p24c09phb01" in ancestor_ids
     assert "p24c10phb01" in ancestor_ids
     # Head advances with later catalog packs (C11+); C10 must remain an ancestor.
-    assert heads[0] in {"p24c10phb01", "p24c11dmg01"} or "p24c10phb01" in ancestor_ids
+    assert heads[0] in {"p24c10phb01", "p24c11dmg01", "p24c21au01"} or "p24c10phb01" in ancestor_ids

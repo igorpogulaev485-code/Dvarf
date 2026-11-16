@@ -56,6 +56,10 @@ Schema contract for later packs (P24-00 lists → data packs):
 - DDBD (C19): Dragon Delves — **0** exclusive catalog waves. Open sources
   confirm no new creatures/items/character options; MM24/DMG24 duplicates
   are not re-seeded. Adventure prose/maps stay out of scope.
+- AU/AUD (C21): ``subclasses_au`` / ``backgrounds_au`` / ``feats_au`` /
+  ``spells_au`` / ``magic_items_au`` / ``creatures_au`` /
+  ``magic_items_aud`` / ``creatures_aud``; ``source`` ``au`` / ``aud`` →
+  ``community_ref``. Species AU/AUD = 0. Adventure prose not seeded.
 - ``source`` ``srd-5.2`` / ``srd-5.2.1`` stamps ``content_layer=srd``
 """
 
@@ -152,6 +156,15 @@ EDITION_2024_CATALOG_WAVES: tuple[WaveSpec, ...] = (
     WaveSpec("subclasses_rtw.json"),
     WaveSpec("magic_items_rtw.json"),
     WaveSpec("creatures_rtw.json"),
+    # P24-C21 — Arcana Unleashed + Deadfall (community_ref)
+    WaveSpec("subclasses_au.json"),
+    WaveSpec("backgrounds_au.json"),
+    WaveSpec("feats_au.json"),
+    WaveSpec("spells_au.json"),
+    WaveSpec("magic_items_au.json"),
+    WaveSpec("creatures_au.json"),
+    WaveSpec("magic_items_aud.json"),
+    WaveSpec("creatures_aud.json"),
 )
 
 WEAPON_MASTERY_FILENAME = "weapon_mastery_srd.json"
