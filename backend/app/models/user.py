@@ -52,6 +52,16 @@ class User(Base):
         DateTime(timezone=True),
         nullable=True,
     )
+    # ADM-02: блокировка аккаунта (NULL = не заблокирован).
+    blocked_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+    )
+    blocked_by: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("users.id", ondelete="SET NULL"),
+        nullable=True,
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),

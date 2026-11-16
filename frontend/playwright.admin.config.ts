@@ -9,7 +9,7 @@ const BASE = process.env.ADM_E2E_BASE || `http://127.0.0.1:${PORT}`
  */
 export default defineConfig({
   testDir: './e2e',
-  testMatch: '**/admin-adm01.spec.ts',
+  testMatch: ['**/admin-adm01.spec.ts', '**/admin-adm02.spec.ts'],
   fullyParallel: false,
   forbidOnly: Boolean(process.env.CI),
   retries: 0,

@@ -1,16 +1,26 @@
-"""API админ-панели (ADM-01). При выключенном флаге — 404."""
+"""API админ-панели (ADM-01/02). При выключенном флаге — 404."""
 
 from __future__ import annotations
+
+from uuid import UUID
 
 from fastapi import APIRouter, Query
 
 from app.api.deps import CurrentUser, DbSession
 from app.schemas.admin import (
+    AdminAccountItem,
     AdminAccountsPage,
+    AdminDangerPasswordRequest,
+    AdminDeleteAccountRequest,
+    AdminEmailChangeRequest,
+    AdminEmailChangeResponse,
+    AdminMessageResponse,
+    AdminOAuthUnlinkRequest,
     AdminPasswordChangeRequest,
     AdminPasswordConfirmRequest,
     AdminPasswordOkResponse,
     AdminPasswordSetupRequest,
+    AdminSessionsResponse,
     AdminStatusResponse,
 )
 from app.services.admin import AdminService, require_panel_enabled
@@ -38,6 +48,185 @@ def list_accounts(
         q=q,
         page=page,
         page_size=page_size,
+    )
+
+
+@router.get("/accounts/{user_id}", response_model=AdminAccountItem)
+def get_account(
+    user_id: UUID,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> AdminAccountItem:
+    require_panel_enabled()
+    return AdminService(db).get_account(current_user, user_id)
+
+
+@router.get("/accounts/{user_id}/sessions", response_model=AdminSessionsResponse)
+def list_account_sessions(
+    user_id: UUID,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> AdminSessionsResponse:
+    require_panel_enabled()
+    return AdminService(db).list_user_sessions(current_user, user_id)
+
+
+@router.post("/accounts/{user_id}/email/change", response_model=AdminEmailChangeResponse)
+def admin_email_change(
+    user_id: UUID,
+    payload: AdminEmailChangeRequest,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> AdminEmailChangeResponse:
+    require_panel_enabled()
+    return AdminService(db).request_email_change(
+        current_user,
+        user_id,
+        new_email=payload.new_email,
+        new_email_confirm=payload.new_email_confirm,
+        admin_password=payload.admin_password,
+    )
+
+
+@router.post("/accounts/{user_id}/email/resend-verification", response_model=AdminMessageResponse)
+def admin_resend_verification(
+    user_id: UUID,
+    payload: AdminDangerPasswordRequest,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> AdminMessageResponse:
+    require_panel_enabled()
+    return AdminService(db).resend_verification(
+        current_user,
+        user_id,
+        admin_password=payload.admin_password,
+    )
+
+
+@router.post("/accounts/{user_id}/email/mark-verified", response_model=AdminMessageResponse)
+def admin_mark_email_verified(
+    user_id: UUID,
+    payload: AdminDangerPasswordRequest,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> AdminMessageResponse:
+    require_panel_enabled()
+    return AdminService(db).mark_email_verified(
+        current_user,
+        user_id,
+        admin_password=payload.admin_password,
+    )
+
+
+@router.post("/accounts/{user_id}/password/reset", response_model=AdminMessageResponse)
+def admin_password_reset(
+    user_id: UUID,
+    payload: AdminDangerPasswordRequest,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> AdminMessageResponse:
+    require_panel_enabled()
+    return AdminService(db).send_password_reset(
+        current_user,
+        user_id,
+        admin_password=payload.admin_password,
+    )
+
+
+@router.post(
+    "/accounts/{user_id}/sessions/{session_id}/revoke",
+    response_model=AdminMessageResponse,
+)
+def admin_revoke_session(
+    user_id: UUID,
+    session_id: UUID,
+    payload: AdminDangerPasswordRequest,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> AdminMessageResponse:
+    require_panel_enabled()
+    return AdminService(db).revoke_session(
+        current_user,
+        user_id,
+        session_id,
+        admin_password=payload.admin_password,
+    )
+
+
+@router.post("/accounts/{user_id}/sessions/revoke-all", response_model=AdminMessageResponse)
+def admin_revoke_all_sessions(
+    user_id: UUID,
+    payload: AdminDangerPasswordRequest,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> AdminMessageResponse:
+    require_panel_enabled()
+    return AdminService(db).revoke_all_sessions(
+        current_user,
+        user_id,
+        admin_password=payload.admin_password,
+    )
+
+
+@router.post("/accounts/{user_id}/oauth/unlink", response_model=AdminMessageResponse)
+def admin_unlink_oauth(
+    user_id: UUID,
+    payload: AdminOAuthUnlinkRequest,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> AdminMessageResponse:
+    require_panel_enabled()
+    return AdminService(db).unlink_oauth(
+        current_user,
+        user_id,
+        provider=payload.provider,
+        admin_password=payload.admin_password,
+    )
+
+
+@router.post("/accounts/{user_id}/block", response_model=AdminMessageResponse)
+def admin_block_user(
+    user_id: UUID,
+    payload: AdminDangerPasswordRequest,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> AdminMessageResponse:
+    require_panel_enabled()
+    return AdminService(db).block_user(
+        current_user,
+        user_id,
+        admin_password=payload.admin_password,
+    )
+
+
+@router.post("/accounts/{user_id}/unblock", response_model=AdminMessageResponse)
+def admin_unblock_user(
+    user_id: UUID,
+    payload: AdminDangerPasswordRequest,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> AdminMessageResponse:
+    require_panel_enabled()
+    return AdminService(db).unblock_user(
+        current_user,
+        user_id,
+        admin_password=payload.admin_password,
+    )
+
+
+@router.post("/accounts/{user_id}/delete", response_model=AdminMessageResponse)
+def admin_delete_user(
+    user_id: UUID,
+    payload: AdminDeleteAccountRequest,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> AdminMessageResponse:
+    require_panel_enabled()
+    return AdminService(db).delete_user(
+        current_user,
+        user_id,
+        confirm=payload.confirm,
+        admin_password=payload.admin_password,
     )
 
 

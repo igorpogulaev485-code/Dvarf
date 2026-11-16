@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link, Navigate, useNavigate } from 'react-router-dom'
+import { AdminHelpSection } from '../features/admin/AdminHelpSection'
 import {
   changeAdminPassword,
   getAdminStatus,
@@ -52,7 +53,7 @@ const SECTION_OPTIONS: { id: AdminSection; label: string }[] = [
   { id: 'catalog', label: 'Справочники' },
 ]
 
-const LIVE_SECTIONS = new Set<AdminSection>(['accounts'])
+const LIVE_SECTIONS = new Set<AdminSection>(['accounts', 'help'])
 
 function formatDate(value: string | null | undefined): string {
   if (!value) return '—'
@@ -90,6 +91,7 @@ export function AdminPage() {
   const [searchDraft, setSearchDraft] = useState('')
   const [accountsLoading, setAccountsLoading] = useState(false)
   const [expandedId, setExpandedId] = useState<string | null>(null)
+  const [helpUserId, setHelpUserId] = useState<string | null>(null)
 
   const [pwdOpen, setPwdOpen] = useState(false)
   const [pwdMode, setPwdMode] = useState<'setup' | 'change'>('setup')
@@ -99,6 +101,7 @@ export function AdminPage() {
   const [pwdBusy, setPwdBusy] = useState(false)
 
   const closeToast = useCallback(() => setToast(null), [])
+  const showToast = useCallback((message: string) => setToast(message), [])
 
   useEffect(() => {
     let active = true
@@ -214,6 +217,11 @@ export function AdminPage() {
     } finally {
       setPwdBusy(false)
     }
+  }
+
+  function openHelpFor(userId: string) {
+    setHelpUserId(userId)
+    setSection('help')
   }
 
   return (
@@ -358,6 +366,7 @@ export function AdminPage() {
                               ? ' (подтверждена)'
                               : ' (не подтверждена)'
                             : ''}
+                          {item.is_blocked ? ' · заблокирован' : ''}
                         </Text>
                         <Text tone="muted">
                           Вход: {loginMethodsLabel(item)} · активность:{' '}
@@ -375,7 +384,9 @@ export function AdminPage() {
                           <Stack gap={8}>
                             <Text tone="muted">Идентификатор: {item.id}</Text>
                             <ChipStack>
-                              <Chip inactive>Помощь · скоро</Chip>
+                              <Button variant="secondary" onClick={() => openHelpFor(item.id)}>
+                                Помощь
+                              </Button>
                               <Chip inactive>Сообщения · скоро</Chip>
                             </ChipStack>
                           </Stack>
@@ -411,14 +422,28 @@ export function AdminPage() {
               ) : null}
             </Stack>
           </Panel>
-        ) : (
+        ) : null}
+
+        {section === 'help' && LIVE_SECTIONS.has(section) ? (
+          <AdminHelpSection
+            initialUserId={helpUserId}
+            passwordSet={status.admin_password_set}
+            onToast={showToast}
+            onOpenPasswordSetup={() => {
+              setPwdMode('setup')
+              setPwdOpen(true)
+            }}
+          />
+        ) : null}
+
+        {!LIVE_SECTIONS.has(section) ? (
           <Panel title={sectionTitle}>
             <EmptyState
               title="Раздел появится в следующей пачке"
-              description="Сейчас доступен только список аккаунтов"
+              description="Сейчас доступны «Аккаунты» и «Помощь»"
             />
           </Panel>
-        )}
+        ) : null}
 
         <AppLegalFooter />
       </Stack>

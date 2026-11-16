@@ -32,6 +32,7 @@ export type AdminAccountItem = {
   display_name: string | null
   created_at: string
   last_seen_at: string | null
+  is_blocked: boolean
   login_methods: AdminAccountLoginMethods
   characters: AdminAccountCharacterStats
   lobbies: AdminAccountLobbyStats
@@ -42,6 +43,21 @@ export type AdminAccountsPage = {
   total: number
   page: number
   page_size: number
+}
+
+export type AdminSessionItem = {
+  id: string
+  created_at: string
+  last_seen_at: string
+  user_agent: string | null
+  ip_address: string | null
+}
+
+export type AdminMessageResult = {
+  message: string
+  stub?: boolean
+  debug_url?: string | null
+  debug_confirm_url?: string | null
 }
 
 export async function getAdminStatus(): Promise<AdminStatus> {
@@ -59,6 +75,16 @@ export async function listAdminAccounts(params: {
   if (params.page_size) search.set('page_size', String(params.page_size))
   const qs = search.toString()
   return apiRequest<AdminAccountsPage>(`/admin/accounts${qs ? `?${qs}` : ''}`)
+}
+
+export async function getAdminAccount(userId: string): Promise<AdminAccountItem> {
+  return apiRequest<AdminAccountItem>(`/admin/accounts/${userId}`)
+}
+
+export async function listAdminAccountSessions(
+  userId: string,
+): Promise<{ items: AdminSessionItem[] }> {
+  return apiRequest(`/admin/accounts/${userId}/sessions`)
 }
 
 export async function setupAdminPassword(
@@ -86,5 +112,114 @@ export async function changeAdminPassword(
       new_password: newPassword,
       new_password_confirm: newPasswordConfirm,
     }),
+  })
+}
+
+export async function adminChangeEmail(
+  userId: string,
+  newEmail: string,
+  newEmailConfirm: string,
+  adminPassword: string,
+): Promise<AdminMessageResult> {
+  return apiRequest(`/admin/accounts/${userId}/email/change`, {
+    method: 'POST',
+    body: JSON.stringify({
+      new_email: newEmail,
+      new_email_confirm: newEmailConfirm,
+      admin_password: adminPassword,
+    }),
+  })
+}
+
+export async function adminResendVerification(
+  userId: string,
+  adminPassword: string,
+): Promise<AdminMessageResult> {
+  return apiRequest(`/admin/accounts/${userId}/email/resend-verification`, {
+    method: 'POST',
+    body: JSON.stringify({ admin_password: adminPassword }),
+  })
+}
+
+export async function adminMarkEmailVerified(
+  userId: string,
+  adminPassword: string,
+): Promise<AdminMessageResult> {
+  return apiRequest(`/admin/accounts/${userId}/email/mark-verified`, {
+    method: 'POST',
+    body: JSON.stringify({ admin_password: adminPassword }),
+  })
+}
+
+export async function adminSendPasswordReset(
+  userId: string,
+  adminPassword: string,
+): Promise<AdminMessageResult> {
+  return apiRequest(`/admin/accounts/${userId}/password/reset`, {
+    method: 'POST',
+    body: JSON.stringify({ admin_password: adminPassword }),
+  })
+}
+
+export async function adminRevokeSession(
+  userId: string,
+  sessionId: string,
+  adminPassword: string,
+): Promise<AdminMessageResult> {
+  return apiRequest(`/admin/accounts/${userId}/sessions/${sessionId}/revoke`, {
+    method: 'POST',
+    body: JSON.stringify({ admin_password: adminPassword }),
+  })
+}
+
+export async function adminRevokeAllSessions(
+  userId: string,
+  adminPassword: string,
+): Promise<AdminMessageResult> {
+  return apiRequest(`/admin/accounts/${userId}/sessions/revoke-all`, {
+    method: 'POST',
+    body: JSON.stringify({ admin_password: adminPassword }),
+  })
+}
+
+export async function adminUnlinkOAuth(
+  userId: string,
+  provider: 'yandex' | 'vk',
+  adminPassword: string,
+): Promise<AdminMessageResult> {
+  return apiRequest(`/admin/accounts/${userId}/oauth/unlink`, {
+    method: 'POST',
+    body: JSON.stringify({ provider, admin_password: adminPassword }),
+  })
+}
+
+export async function adminBlockUser(
+  userId: string,
+  adminPassword: string,
+): Promise<AdminMessageResult> {
+  return apiRequest(`/admin/accounts/${userId}/block`, {
+    method: 'POST',
+    body: JSON.stringify({ admin_password: adminPassword }),
+  })
+}
+
+export async function adminUnblockUser(
+  userId: string,
+  adminPassword: string,
+): Promise<AdminMessageResult> {
+  return apiRequest(`/admin/accounts/${userId}/unblock`, {
+    method: 'POST',
+    body: JSON.stringify({ admin_password: adminPassword }),
+  })
+}
+
+export async function adminDeleteUser(
+  userId: string,
+  confirm: string,
+  adminPassword: string,
+): Promise<AdminMessageResult> {
+  return apiRequest(`/admin/accounts/${userId}/delete`, {
+    method: 'POST',
+    body: JSON.stringify({ confirm, admin_password: adminPassword }),
   })
 }

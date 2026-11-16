@@ -56,6 +56,10 @@ def get_current_user(
     user = UserRepository(db).get_by_id(UUID(payload["sub"]))
     if user is None or user.id != session.user_id:
         raise UnauthorizedError("Пользователь не найден")
+    # ADM-02: заблокированный не продолжает работу по уже выданному access-токену.
+    from app.services.admin import raise_if_blocked
+
+    raise_if_blocked(user)
     return user
 
 

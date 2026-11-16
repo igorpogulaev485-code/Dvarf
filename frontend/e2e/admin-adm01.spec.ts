@@ -66,6 +66,7 @@ test.describe('ADM-01 admin shell', () => {
               display_name: 'Игрок',
               created_at: '2026-01-01T12:00:00Z',
               last_seen_at: '2026-01-02T12:00:00Z',
+              is_blocked: false,
               login_methods: { has_password: true, yandex: false, vk: false },
               characters: {
                 total: 2,

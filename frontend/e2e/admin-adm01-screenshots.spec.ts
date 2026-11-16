@@ -30,6 +30,7 @@ async function mockAdmin(page: Page, opts?: { passwordSet?: boolean }) {
             display_name: 'Игрок',
             created_at: '2026-01-01T12:00:00Z',
             last_seen_at: '2026-01-02T12:00:00Z',
+            is_blocked: false,
             login_methods: { has_password: true, yandex: true, vk: false },
             characters: { total: 3, edition_2014: 2, edition_2024: 1, drafts: 1 },
             lobbies: { owned: 1, as_player: 2 },
