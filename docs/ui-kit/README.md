@@ -122,6 +122,13 @@ Selfcheck: `npm run selfcheck:abilities-rail-cap` (рядом `selfcheck:abiliti
 Сетка: 2 колонки по умолчанию (390), 3 с `min-width: 960px` (1024), 4 с `min-width: 1280px` (1440).
 Стили `.ui-stat-tile*` / `.ui-metric-grid*` в `01-tokens-base.css`. Без CSS в фиче админки.
 
+### Textarea (атом, ADM-04)
+
+`Textarea` в `frontend/src/ui/Textarea.tsx` — многострочное поле на классах `ui-input ui-textarea`
+и размерах `ui-input--sm/md/lg` (как `Input` / `Select`). Стиль `.ui-textarea` уже в
+`02-cards-join-lobby.css` (resize, min-height). Для формы «Написать нам» в кабинете и
+заметки админа в очереди обратной связи. Без page-level CSS.
+
 ### Эталон 14.11.2026 — kit atoms (не менять вид без ok)
 
 | Kit | Файл | Лицо |

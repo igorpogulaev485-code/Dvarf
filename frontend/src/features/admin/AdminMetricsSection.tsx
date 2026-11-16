@@ -136,6 +136,10 @@ export function AdminMetricsSection({ onToast }: Props) {
                 label={`Партии закрыты ${periodLabel}`}
               />
             </MetricGrid>
+
+            <MetricGrid title="Обратная связь">
+              <StatTile value={data.feedback_new ?? 0} label="Новых сообщений" />
+            </MetricGrid>
           </Stack>
 
           <Panel title="По дням (30 дней)">

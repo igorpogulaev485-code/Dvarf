@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link, Navigate, useNavigate } from 'react-router-dom'
+import { AdminFeedbackSection } from '../features/admin/AdminFeedbackSection'
 import { AdminHelpSection } from '../features/admin/AdminHelpSection'
 import { AdminMetricsSection } from '../features/admin/AdminMetricsSection'
 import {
@@ -54,7 +55,7 @@ const SECTION_OPTIONS: { id: AdminSection; label: string }[] = [
   { id: 'catalog', label: 'Справочники' },
 ]
 
-const LIVE_SECTIONS = new Set<AdminSection>(['accounts', 'help', 'metrics'])
+const LIVE_SECTIONS = new Set<AdminSection>(['accounts', 'help', 'metrics', 'feedback'])
 
 function formatDate(value: string | null | undefined): string {
   if (!value) return '—'
@@ -93,6 +94,7 @@ export function AdminPage() {
   const [accountsLoading, setAccountsLoading] = useState(false)
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [helpUserId, setHelpUserId] = useState<string | null>(null)
+  const [feedbackUserId, setFeedbackUserId] = useState<string | null>(null)
 
   const [pwdOpen, setPwdOpen] = useState(false)
   const [pwdMode, setPwdMode] = useState<'setup' | 'change'>('setup')
@@ -223,6 +225,11 @@ export function AdminPage() {
   function openHelpFor(userId: string) {
     setHelpUserId(userId)
     setSection('help')
+  }
+
+  function openFeedbackFor(userId: string) {
+    setFeedbackUserId(userId)
+    setSection('feedback')
   }
 
   return (
@@ -388,7 +395,12 @@ export function AdminPage() {
                               <Button variant="secondary" onClick={() => openHelpFor(item.id)}>
                                 Помощь
                               </Button>
-                              <Chip inactive>Сообщения · скоро</Chip>
+                              <Button
+                                variant="secondary"
+                                onClick={() => openFeedbackFor(item.id)}
+                              >
+                                Сообщения
+                              </Button>
                             </ChipStack>
                           </Stack>
                         ) : null}
@@ -441,11 +453,19 @@ export function AdminPage() {
           <AdminMetricsSection onToast={showToast} />
         ) : null}
 
+        {section === 'feedback' && LIVE_SECTIONS.has(section) ? (
+          <AdminFeedbackSection
+            onToast={showToast}
+            onOpenHelp={openHelpFor}
+            initialUserId={feedbackUserId}
+          />
+        ) : null}
+
         {!LIVE_SECTIONS.has(section) ? (
           <Panel title={sectionTitle}>
             <EmptyState
               title="Раздел появится в следующей пачке"
-              description="Сейчас доступны «Аккаунты», «Помощь» и «Метрики»"
+              description="Сейчас доступны «Аккаунты», «Помощь», «Метрики» и «Обратная связь»"
             />
           </Panel>
         ) : null}

@@ -1,4 +1,4 @@
-"""API админ-панели (ADM-01/02). При выключенном флаге — 404."""
+"""API админ-панели (ADM-01/02/03/04). При выключенном флаге — 404."""
 
 from __future__ import annotations
 
@@ -24,7 +24,13 @@ from app.schemas.admin import (
     AdminSessionsResponse,
     AdminStatusResponse,
 )
+from app.schemas.feedback import (
+    AdminFeedbackItem,
+    AdminFeedbackPage,
+    AdminFeedbackPatchRequest,
+)
 from app.services.admin import AdminService, require_panel_enabled
+from app.services.feedback import FeedbackService
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 
@@ -46,6 +52,53 @@ def admin_metrics(
     if period not in (1, 7, 30):
         period = 7
     return AdminService(db).get_metrics(current_user, period=period)
+
+
+@router.get("/feedback", response_model=AdminFeedbackPage)
+def list_feedback(
+    current_user: CurrentUser,
+    db: DbSession,
+    status: str | None = Query(default=None, max_length=32),
+    topic: str | None = Query(default=None, max_length=32),
+    page: int = Query(default=1, ge=1),
+    page_size: int = Query(default=20, ge=1, le=100),
+) -> AdminFeedbackPage:
+    require_panel_enabled()
+    return FeedbackService(db).list_for_admin(
+        current_user,
+        status=status,
+        topic=topic,
+        page=page,
+        page_size=page_size,
+    )
+
+
+@router.get("/feedback/{feedback_id}", response_model=AdminFeedbackItem)
+def get_feedback(
+    feedback_id: UUID,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> AdminFeedbackItem:
+    require_panel_enabled()
+    return FeedbackService(db).get_for_admin(current_user, feedback_id)
+
+
+@router.patch("/feedback/{feedback_id}", response_model=AdminFeedbackItem)
+def patch_feedback(
+    feedback_id: UUID,
+    payload: AdminFeedbackPatchRequest,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> AdminFeedbackItem:
+    require_panel_enabled()
+    note_provided = "admin_note" in payload.model_fields_set
+    return FeedbackService(db).patch_for_admin(
+        current_user,
+        feedback_id,
+        status=payload.status,
+        admin_note=payload.admin_note,
+        note_provided=note_provided,
+    )
 
 
 @router.get("/accounts", response_model=AdminAccountsPage)

@@ -102,6 +102,8 @@ export type AdminMetrics = {
     started_in_period: number
     closed_in_period: number
   }
+  /** ADM-04: число сообщений со статусом «Новое». */
+  feedback_new?: number
   daily: AdminMetricsDayPoint[]
 }
 

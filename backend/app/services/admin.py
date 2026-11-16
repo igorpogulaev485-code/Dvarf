@@ -19,6 +19,7 @@ from app.core.exceptions import AppError, ConflictError, NotFoundError
 from app.core.security import hash_password, verify_password
 from app.models.admin import AdminAuditLog, AdminRole, AdminRoleName, AdminSecret
 from app.models.character import Character, RulesEdition
+from app.models.feedback import FeedbackMessage, FeedbackStatus
 from app.models.lobby import Lobby, LobbyMember, PlaySession
 from app.models.product_event import ProductEvent, ProductEventType
 from app.models.user import AuthProvider, AuthSession, User
@@ -703,6 +704,15 @@ class AdminService:
                 )
             )
 
+        feedback_new = int(
+            self.db.scalar(
+                select(func.count())
+                .select_from(FeedbackMessage)
+                .where(FeedbackMessage.status == FeedbackStatus.new.value)
+            )
+            or 0
+        )
+
         return AdminMetricsResponse(
             period_days=days,
             accounts=AdminMetricsAccounts(
@@ -726,6 +736,7 @@ class AdminService:
                 started_in_period=sessions_started,
                 closed_in_period=sessions_closed,
             ),
+            feedback_new=feedback_new,
             daily=daily,
         )
 

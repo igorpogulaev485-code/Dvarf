@@ -6,6 +6,7 @@ import {
   ChangeEmailForm,
   ChangePasswordForm,
   DangerZone,
+  FeedbackForm,
   ProfileForm,
   SessionsPanel,
 } from '../features/cabinet'
@@ -164,6 +165,10 @@ export function CabinetPage() {
                   navigate('/login', { replace: true })
                 }}
               />
+            </Panel>
+
+            <Panel title="Написать нам" className="cabinet-layout__feedback">
+              <FeedbackForm onToast={setToast} />
             </Panel>
 
             <Panel title="Опасная зона" className="ui-panel--danger cabinet-layout__danger">
