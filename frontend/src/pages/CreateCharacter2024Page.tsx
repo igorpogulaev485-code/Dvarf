@@ -33,6 +33,10 @@ import {
   parseWizardSeed,
   type WizardSeedSpells,
 } from '../features/createPipeline2024/e2eWizardSeed2024'
+import {
+  monkAsiChoicesForLevel,
+  parseMonkSeed,
+} from '../features/createPipeline2024/e2eMonkSeed2024'
 import { createClassLevel, totalCharacterLevel } from '../shared/dnd/classLevels'
 import { ensureHpChoices } from '../features/createPipeline/LevelingStep'
 import type { AbilityScores } from '../shared/dnd/multiclassRules'
@@ -308,6 +312,7 @@ export function CreateCharacter2024Page({
       mastery?: number
       asi?: Create2024State['asiChoices']
       skills?: string[]
+      classToolIds?: string[]
       backgroundAsi?: Create2024State['backgroundAsi']
       spells?: WizardSeedSpells | SorcererSeedSpells
       classOptionPicks?: Create2024State['classOptionPicks']
@@ -424,6 +429,27 @@ export function CreateCharacter2024Page({
         classOptionPicks: { metamagic: sorcererMetamagicForLevel(sorcererSpec.level) },
       }
     }
+    const monkSpec = parseMonkSeed(e2eSeed)
+    const monkClass = bySlug(catalog.classes, 'monk')
+    if (monkSpec && monkClass) {
+      seeds[e2eSeed] = {
+        name: `Монах ${monkSpec.level}`,
+        classSlug: 'monk',
+        // Point-buy friendly: DEX/WIS primary, CON solid (dwarf + soldier bump CON/DEX).
+        abilities: { str: 8, dex: 15, con: 13, int: 10, wis: 14, cha: 12 },
+        rows: [
+          {
+            slug: 'monk',
+            level: monkSpec.level,
+            ...(monkSpec.subclassSlug ? { subclass: monkSpec.subclassSlug } : {}),
+          },
+        ],
+        skills: ['acrobatics', 'stealth'],
+        classToolIds: ['smiths-tools'],
+        backgroundAsi: { con: 2, dex: 1 },
+        asi: monkAsiChoicesForLevel(monkSpec.level),
+      }
+    }
     const seed = seeds[e2eSeed] || seeds.fighter5
     const classes = seed.rows
       .map((row) => make(row.slug, row.level, row.subclass))
@@ -446,6 +472,7 @@ export function CreateCharacter2024Page({
       speciesSize: 'medium',
       languageIds: ['elvish', 'dwarvish'],
       classSkillIds: seed.skills ?? ['athletics', 'perception'],
+      classToolIds: seed.classToolIds ?? [],
       weaponMasteryIds: (catalog.weapons || []).slice(0, seed.mastery || 0).map((w) => w.slug),
       fightingStyleSlug: seed.fighting || null,
       backgroundAsiMode: '+2/+1',
