@@ -145,6 +145,35 @@ class AdminService:
         self.ensure_bootstrap_role(user)
         return self.has_role(user.id, AdminRoleName.full_admin.value)
 
+    def is_catalog_moderator(self, user: User) -> bool:
+        if not admin_panel_enabled():
+            return False
+        self.ensure_bootstrap_role(user)
+        if self.has_role(user.id, AdminRoleName.full_admin.value):
+            return False
+        return self.has_role(user.id, AdminRoleName.catalog_moderator.value)
+
+    def has_admin_access(self, user: User) -> bool:
+        """Полный админ или модератор справочников."""
+        if not admin_panel_enabled():
+            return False
+        self.ensure_bootstrap_role(user)
+        return self.has_role(user.id, AdminRoleName.full_admin.value) or self.has_role(
+            user.id, AdminRoleName.catalog_moderator.value
+        )
+
+    def require_catalog_access(self, user: User) -> None:
+        require_panel_enabled()
+        if not self.has_admin_access(user):
+            self.write_audit(
+                actor_id=user.id,
+                action=ACTION_ACCESS_DENIED,
+                target_type="admin",
+                target_id="catalog_access",
+                meta={"reason": "not_admin"},
+            )
+            raise AppError("Нет доступа", code="forbidden", status_code=403)
+
     def write_audit(
         self,
         *,
@@ -188,12 +217,29 @@ class AdminService:
         )
 
     def status(self, user: User) -> AdminStatusResponse:
-        self.require_full_admin(user)
+        require_panel_enabled()
+        if not self.has_admin_access(user):
+            self.write_audit(
+                actor_id=user.id,
+                action=ACTION_ACCESS_DENIED,
+                target_type="admin",
+                target_id="status",
+                meta={"reason": "not_admin"},
+            )
+            raise AppError("Нет доступа", code="forbidden", status_code=403)
+        is_full = self.is_full_admin(user)
+        is_mod = self.is_catalog_moderator(user) if not is_full else False
+        if is_full:
+            sections = ["accounts", "help", "metrics", "feedback", "catalog"]
+        else:
+            sections = ["catalog"]
         return AdminStatusResponse(
             panel_enabled=True,
-            is_full_admin=True,
-            admin_password_set=self.admin_password_set(user.id),
+            is_full_admin=is_full,
+            is_catalog_moderator=is_mod,
+            admin_password_set=self.admin_password_set(user.id) if is_full else False,
             display_name=user.display_name,
+            sections=sections,
         )
 
     def _get_secret(self, user_id: UUID) -> AdminSecret | None:
@@ -1225,7 +1271,7 @@ class AdminService:
 
 
 def hint_is_admin(db: Session, user: User) -> bool:
-    """Подсказка для /auth/me: полный админ при включённом флаге."""
+    """Подсказка для /auth/me: полный админ или модератор при включённом флаге."""
     if not admin_panel_enabled():
         return False
-    return AdminService(db).is_full_admin(user)
+    return AdminService(db).has_admin_access(user)

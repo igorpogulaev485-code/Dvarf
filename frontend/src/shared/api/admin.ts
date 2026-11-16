@@ -1,10 +1,100 @@
 import { apiRequest } from './client'
 
+export type AdminSectionId = 'accounts' | 'help' | 'metrics' | 'feedback' | 'catalog'
+
 export type AdminStatus = {
   panel_enabled: boolean
   is_full_admin: boolean
+  is_catalog_moderator?: boolean
   admin_password_set: boolean
   display_name: string | null
+  sections?: AdminSectionId[]
+}
+
+export type AdminCatalogRevisionItem = {
+  id: string
+  status: string
+  status_label: string
+  name_ru: string
+  name_en: string | null
+  previous_name_ru: string | null
+  previous_name_en: string | null
+  author_id: string | null
+  author_name: string | null
+  reviewer_id: string | null
+  reviewer_name: string | null
+  created_at: string
+  reviewed_at: string | null
+  can_rollback: boolean
+}
+
+export type AdminCatalogListItem = {
+  id: string
+  kind: string
+  kind_label: string
+  slug: string
+  name_ru_live: string
+  name_en_live: string | null
+  name_ru_seed: string
+  name_en_seed: string | null
+  names_differ: boolean
+  rules_edition: string
+  source: string | null
+  content_layer: string
+  content_layer_label: string
+  has_pending: boolean
+  pending_name_ru: string | null
+  is_active: boolean
+  updated_at: string
+}
+
+export type AdminCatalogPage = {
+  items: AdminCatalogListItem[]
+  total: number
+  page: number
+  page_size: number
+}
+
+export type AdminCatalogDetail = {
+  id: string
+  kind: string
+  kind_label: string
+  slug: string
+  name_ru_live: string
+  name_en_live: string | null
+  name_ru_seed: string
+  name_en_seed: string | null
+  names_differ: boolean
+  pending: AdminCatalogRevisionItem | null
+  rules_edition: string
+  source: string | null
+  content_layer: string
+  content_layer_label: string
+  parent_id: string | null
+  parent_name_ru: string | null
+  is_active: boolean
+  created_at: string
+  updated_at: string
+  revisions: AdminCatalogRevisionItem[]
+  can_edit_draft: boolean
+  can_accept: boolean
+  can_reject: boolean
+  can_withdraw: boolean
+}
+
+export type AdminCatalogNameFeedbackItem = {
+  id: string
+  body: string
+  author_name: string | null
+  is_anonymous: boolean
+  status: string
+  status_label: string
+  created_at: string
+}
+
+export type AdminCatalogNameFeedbackPage = {
+  items: AdminCatalogNameFeedbackItem[]
+  total: number
 }
 
 export type AdminAccountLoginMethods = {
@@ -273,4 +363,94 @@ export async function adminDeleteUser(
     method: 'POST',
     body: JSON.stringify({ confirm, admin_password: adminPassword }),
   })
+}
+
+export async function listAdminCatalog(params: {
+  q?: string
+  kind?: string
+  edition?: string
+  source?: string
+  layer?: string
+  has_pending?: boolean
+  include_inactive?: boolean
+  page?: number
+  page_size?: number
+}): Promise<AdminCatalogPage> {
+  const search = new URLSearchParams()
+  if (params.q) search.set('q', params.q)
+  if (params.kind) search.set('kind', params.kind)
+  if (params.edition) search.set('edition', params.edition)
+  if (params.source) search.set('source', params.source)
+  if (params.layer) search.set('layer', params.layer)
+  if (params.has_pending === true) search.set('has_pending', 'true')
+  if (params.has_pending === false) search.set('has_pending', 'false')
+  if (params.include_inactive === false) search.set('include_inactive', 'false')
+  if (params.page) search.set('page', String(params.page))
+  if (params.page_size) search.set('page_size', String(params.page_size))
+  const qs = search.toString()
+  return apiRequest<AdminCatalogPage>(`/admin/catalog${qs ? `?${qs}` : ''}`)
+}
+
+export async function getAdminCatalogEntry(entryId: string): Promise<AdminCatalogDetail> {
+  return apiRequest<AdminCatalogDetail>(`/admin/catalog/${entryId}`)
+}
+
+export async function upsertAdminCatalogDraft(
+  entryId: string,
+  nameRu: string,
+  nameEn?: string | null,
+): Promise<AdminCatalogDetail> {
+  return apiRequest<AdminCatalogDetail>(`/admin/catalog/${entryId}/draft`, {
+    method: 'PUT',
+    body: JSON.stringify({
+      name_ru: nameRu,
+      name_en: nameEn ?? null,
+    }),
+  })
+}
+
+export async function withdrawAdminCatalogDraft(entryId: string): Promise<AdminCatalogDetail> {
+  return apiRequest<AdminCatalogDetail>(`/admin/catalog/${entryId}/draft`, {
+    method: 'DELETE',
+  })
+}
+
+export async function acceptAdminCatalogDraft(entryId: string): Promise<AdminCatalogDetail> {
+  return apiRequest<AdminCatalogDetail>(`/admin/catalog/${entryId}/accept`, {
+    method: 'POST',
+    body: JSON.stringify({}),
+  })
+}
+
+export async function rejectAdminCatalogDraft(entryId: string): Promise<AdminCatalogDetail> {
+  return apiRequest<AdminCatalogDetail>(`/admin/catalog/${entryId}/reject`, {
+    method: 'POST',
+    body: JSON.stringify({}),
+  })
+}
+
+export async function rollbackAdminCatalogRevision(
+  entryId: string,
+  revisionId: string,
+): Promise<AdminCatalogDetail> {
+  return apiRequest<AdminCatalogDetail>(
+    `/admin/catalog/${entryId}/revisions/${revisionId}/rollback`,
+    {
+      method: 'POST',
+      body: JSON.stringify({}),
+    },
+  )
+}
+
+export async function listAdminCatalogNameFeedback(params?: {
+  page?: number
+  page_size?: number
+}): Promise<AdminCatalogNameFeedbackPage> {
+  const search = new URLSearchParams()
+  if (params?.page) search.set('page', String(params.page))
+  if (params?.page_size) search.set('page_size', String(params.page_size))
+  const qs = search.toString()
+  return apiRequest<AdminCatalogNameFeedbackPage>(
+    `/admin/catalog/name-feedback${qs ? `?${qs}` : ''}`,
+  )
 }

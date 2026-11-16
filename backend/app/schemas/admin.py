@@ -11,8 +11,11 @@ from pydantic import BaseModel, Field, field_validator
 class AdminStatusResponse(BaseModel):
     panel_enabled: bool = True
     is_full_admin: bool
+    is_catalog_moderator: bool = False
     admin_password_set: bool
     display_name: str | None = None
+    # Какие разделы открыты клиенту (не угадывать по роли).
+    sections: list[str] = Field(default_factory=list)
 
 
 class AdminPasswordSetupRequest(BaseModel):
