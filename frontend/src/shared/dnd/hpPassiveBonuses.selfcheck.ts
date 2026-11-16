@@ -5,6 +5,7 @@
 import { buildMaxHpByLevels } from './multiclassRules.ts'
 import {
   expectedPassiveHpBonuses,
+  formatAverageHpLabel,
   hasDwarvenToughness,
   reconcilePassiveHpBonuses,
 } from './hpPassiveBonuses.ts'
@@ -143,6 +144,29 @@ assert(!hasDwarvenToughness('mountain_dwarf'), 'mountain no toughness')
   })
   assert(manual.delta === 0, 'manual HP untouched')
   assert(manual.ledger.draconic === 8, 'ledger still pinned to expected')
+}
+
+{
+  const label = formatAverageHpLabel({
+    hitDie: 'd6',
+    constitutionMod: 2,
+    averageGain: 7,
+    draconicResilience: true,
+  })
+  assert(
+    label.includes('+1 Драконья устойчивость') && label.includes('= +7'),
+    `label draconic got ${label}`,
+  )
+  const dwarfLabel = formatAverageHpLabel({
+    hitDie: 'd10',
+    constitutionMod: 2,
+    averageGain: 9,
+    dwarvenToughness: true,
+  })
+  assert(
+    dwarfLabel.includes('+1 Дварфийская стойкость') && dwarfLabel.includes('= +9'),
+    `label dwarf got ${dwarfLabel}`,
+  )
 }
 
 console.log('hpPassiveBonuses.selfcheck: ok')

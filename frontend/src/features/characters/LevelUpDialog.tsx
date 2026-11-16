@@ -9,6 +9,7 @@ import {
   isClassEligibleForMulticlass,
   type AbilityScores,
 } from '../../shared/dnd/multiclassRules'
+import { formatAverageHpLabel } from '../../shared/dnd/hpPassiveBonuses'
 import type { HitDie } from '../../shared/dnd/hitDice'
 import { CatalogCombobox } from '../catalog'
 import { Dialog, Field, NumberInput, Stack, Text } from '../../ui'
@@ -279,7 +280,15 @@ export function LevelUpDialog({
         {hpMode === 'average' ? (
           <Text tone="muted">
             {hitDie && averageGain != null
-              ? `Среднее по ${hitDie}: ⌊${hitDie.slice(1)}/2⌋+1 + ТЕЛ (${constitutionMod >= 0 ? '+' : ''}${constitutionMod}) = +${averageGain} к макс. хитам`
+              ? formatAverageHpLabel({
+                  hitDie,
+                  constitutionMod,
+                  averageGain,
+                  draconicResilience:
+                    draconicResilience &&
+                    /чародей|sorcerer/i.test(targetClass.name),
+                  dwarvenToughness,
+                })
               : 'Не удалось определить кость хитов класса — выбери класс из справочника или введи хиты вручную.'}
           </Text>
         ) : (

@@ -9,7 +9,13 @@ import { sampleClassic2014Character } from '../features/classicSheet/sampleClass
 import type { CharacterDetail } from '../shared/api/characters'
 import { Text } from '../ui'
 
-type FixtureId = 'sheet58' | 'sheet50' | 'create8' | 'level7' | 'wizard'
+type FixtureId =
+  | 'sheet58'
+  | 'sheet50'
+  | 'create8'
+  | 'level7'
+  | 'wizard'
+  | 'hilldwarf'
 
 function sorcererFixture(input: {
   id: string
@@ -93,12 +99,57 @@ function sorcererFixture(input: {
   }
 }
 
+/**
+ * Exact same payload as `/dev/dice-roller-preview?edition=2014` —
+ * do not rewrite class_name (avoids «Волшебник 5 5» and lost class grants).
+ */
 function wizardRegression(): CharacterDetail {
   return {
     ...sampleClassic2014Character,
-    id: 'preview-wizard-regression',
-    name: 'Торин Камнебород',
-    class_name: 'Волшебник 5',
+    id: 'preview-classic-2014',
+  }
+}
+
+/**
+ * Hill dwarf wizard L5, CON 16: average without toughness = 37; with = 42.
+ * Same sheet as classic sample + race_grant.slug=hill_dwarf, hp seeded at 37.
+ */
+function hillDwarfAverageFixture(): CharacterDetail {
+  const base = sampleClassic2014Character
+  const sheet = structuredClone(base.sheet ?? {}) as Record<string, unknown>
+  sheet.race_grant = {
+    raceCatalogId: 'preview-hill-dwarf',
+    slug: 'hill_dwarf',
+    parentSlug: 'dwarf',
+    speed: 25,
+    size: 'medium',
+    darkvision: 60,
+    abilityBonuses: { con: 2, wis: 1 },
+    languages: ['Общий', 'Дварфийский'],
+    skills: [],
+    tools: [],
+    armorKeys: [],
+    weaponNames: [],
+    traitsText: 'Холмовой дварф: +1 хитов за уровень.',
+    traitCards: [],
+  }
+  sheet.combat = {
+    ...((sheet.combat as Record<string, unknown>) || {}),
+    hp_current: 37,
+    hp_max: 37,
+  }
+  delete sheet.passive_hp_bonuses
+  return {
+    ...base,
+    id: 'preview-hill-dwarf-avg',
+    name: base.name,
+    level: 5,
+    class_name: 'Волшебник',
+    race_name: 'Дварф (холмовой)',
+    hp_current: 37,
+    hp_max: 37,
+    rules_edition: '2014',
+    sheet,
   }
 }
 
@@ -131,6 +182,8 @@ function fixtureCharacter(id: FixtureId): CharacterDetail {
       })
     case 'wizard':
       return wizardRegression()
+    case 'hilldwarf':
+      return hillDwarfAverageFixture()
     case 'sheet58':
     default:
       return sorcererFixture({
@@ -152,6 +205,7 @@ export function DraconicHpPreviewPage() {
     'create8',
     'level7',
     'wizard',
+    'hilldwarf',
   ].includes(raw)
     ? raw
     : 'sheet58'

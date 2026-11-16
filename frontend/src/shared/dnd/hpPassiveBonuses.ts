@@ -247,3 +247,28 @@ export function hpExtrasForClassLevel(input: {
   }
 }
 
+/** Level-up dialog hint: show passive +1 lines so the sum matches visually. */
+export function formatAverageHpLabel(input: {
+  hitDie: string
+  constitutionMod: number
+  averageGain: number
+  draconicResilience?: boolean
+  dwarvenToughness?: boolean
+}): string {
+  const sides = String(input.hitDie).replace(/^d/i, '')
+  const con =
+    input.constitutionMod >= 0
+      ? `+${input.constitutionMod}`
+      : String(input.constitutionMod)
+  const parts = [
+    `Среднее по ${input.hitDie}: ⌊${sides}/2⌋+1 + ТЕЛ (${con})`,
+  ]
+  if (input.draconicResilience) {
+    parts.push('+1 Драконья устойчивость')
+  }
+  if (input.dwarvenToughness) {
+    parts.push('+1 Дварфийская стойкость')
+  }
+  return `${parts.join(' ')} = +${input.averageGain} к макс. хитам`
+}
+
