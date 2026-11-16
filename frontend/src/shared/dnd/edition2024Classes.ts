@@ -701,6 +701,8 @@ export function computeProgression2024(input: {
           scaleValue: null,
           resourceUses: null,
           ...(fid === 'scholar' ? { choice: SCHOLAR_CHOICE_2024 } : {}),
+          // Disciplined Survivor (2024): proficiency in all saving throws (like Diamond Soul 2014).
+          ...(fid === 'disciplined_survivor' ? { save_proficiency: 'all' as const } : {}),
         })
       }
     }
