@@ -223,6 +223,7 @@ def test_seed_rows_are_edition_2024_only():
             "abh",
             "lfl",
             "nsf",
+            "rtw",
         }
 
 

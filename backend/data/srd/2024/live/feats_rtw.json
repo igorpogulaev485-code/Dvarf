@@ -1,0 +1,251 @@
+{
+  "meta": {
+    "pack": "P24-C20",
+    "rules_edition": "2024",
+    "source": "rtw",
+    "notes_ru": "11 черт RTW (origin + dark_gift). Короткие карточки next.dnd.su / ttg.",
+    "feat_count": 11
+  },
+  "entries": [
+    {
+      "kind": "feat",
+      "slug": "aberrant-anatomy",
+      "name_ru": "Аберрантная анатомия",
+      "name_en": "Aberrant Anatomy",
+      "source": "rtw",
+      "sort_order": 100,
+      "external_ref": {
+        "book": "RTW",
+        "url_dndsu": "https://next.dnd.su/feats/483-aberrant-anatomy",
+        "url_ttg": "https://new.ttg.club/feats/aberrant-anatomy-rhw"
+      },
+      "data": {
+        "category": "dark_gift",
+        "prerequisites": {},
+        "repeatable": false,
+        "ability_score_increase": null,
+        "summary_ru": "Бездыханный; Вы можете задерживать дыхание на 1 час; Экстрасенсорное восприятие: Вы получаете владение навыком Восприятие, если у вас его н…",
+        "traits_text": "Тёмный дар (Равенлофт: Ужасы внутри): Бездыханный; Вы можете задерживать дыхание на 1 час; Экстрасенсорное восприятие: Вы получаете владени…",
+        "prerequisites_ru": "кампания в Равенлофте"
+      }
+    },
+    {
+      "kind": "feat",
+      "slug": "echoing-soul",
+      "name_ru": "Эхо прошлых жизней",
+      "name_en": "Echoing Soul",
+      "source": "rtw",
+      "sort_order": 105,
+      "external_ref": {
+        "book": "RTW",
+        "url_dndsu": "https://next.dnd.su/feats/484-echoing-soul",
+        "url_ttg": "https://new.ttg.club/feats/echoing-soul-rhw"
+      },
+      "data": {
+        "category": "dark_gift",
+        "prerequisites": {},
+        "repeatable": false,
+        "ability_score_increase": null,
+        "summary_ru": "Воплощённое мастерство; Вы получаете владение двумя навыками на ваш выбор: Кроме того, выберите один навык, которым вы владеете; вы получае…",
+        "traits_text": "Тёмный дар (Равенлофт: Ужасы внутри): Воплощённое мастерство; Вы получаете владение двумя навыками на ваш выбор: Кроме того, выберите один…",
+        "prerequisites_ru": "кампания в Равенлофте"
+      }
+    },
+    {
+      "kind": "feat",
+      "slug": "gathered-whispers",
+      "name_ru": "Сонм голосов",
+      "name_en": "Gathered Whispers",
+      "source": "rtw",
+      "sort_order": 110,
+      "external_ref": {
+        "book": "RTW",
+        "url_dndsu": "https://next.dnd.su/feats/485-gathered-whispers",
+        "url_ttg": "https://new.ttg.club/feats/gathered-whispers-rhw"
+      },
+      "data": {
+        "category": "dark_gift",
+        "prerequisites": {},
+        "repeatable": false,
+        "ability_score_increase": null,
+        "summary_ru": "Шепчущие духи: Вы изучаете заклинание Сообщение и можете сотворять его без предоставления Материальных компонентов. Неземной крик: Когда п…",
+        "traits_text": "Тёмный дар (Равенлофт: Ужасы внутри): Шепчущие духи: Вы изучаете заклинание Сообщение и можете сотворять его без предоставления Материальны…",
+        "prerequisites_ru": "кампания в Равенлофте"
+      }
+    },
+    {
+      "kind": "feat",
+      "slug": "living-shadow",
+      "name_ru": "Живая тень",
+      "name_en": "Living Shadow",
+      "source": "rtw",
+      "sort_order": 115,
+      "external_ref": {
+        "book": "RTW",
+        "url_dndsu": "https://next.dnd.su/feats/486-living-shadow",
+        "url_ttg": "https://new.ttg.club/feats/living-shadow-rhw"
+      },
+      "data": {
+        "category": "dark_gift",
+        "prerequisites": {},
+        "repeatable": false,
+        "ability_score_increase": null,
+        "summary_ru": "Цепкая тень: Вы изучаете заговор Волшебная рука и можете сотворять его без предоставления компонентов. Удлинённый выпад: Когда вы в ваш хо…",
+        "traits_text": "Тёмный дар (Равенлофт: Ужасы внутри): Цепкая тень: Вы изучаете заговор Волшебная рука и можете сотворять его без предоставления компонентов…",
+        "prerequisites_ru": "кампания в Равенлофте"
+      }
+    },
+    {
+      "kind": "feat",
+      "slug": "mist-walker",
+      "name_ru": "Ходок Туманов",
+      "name_en": "Mist Walker",
+      "source": "rtw",
+      "sort_order": 120,
+      "external_ref": {
+        "book": "RTW",
+        "url_dndsu": "https://next.dnd.su/feats/487-mist-walker",
+        "url_ttg": "https://new.ttg.club/feats/mist-walker-rhw"
+      },
+      "data": {
+        "category": "dark_gift",
+        "prerequisites": {},
+        "repeatable": false,
+        "ability_score_increase": null,
+        "summary_ru": "Странник доменов: Когда вы входите в Туманы с намерением достичь определённого домена, вы считаетесь обладателем Туманного талисмана, настр…",
+        "traits_text": "Тёмный дар (Равенлофт: Ужасы внутри): Странник доменов: Когда вы входите в Туманы с намерением достичь определённого домена, вы считаетесь…",
+        "prerequisites_ru": "кампания в Равенлофте"
+      }
+    },
+    {
+      "kind": "feat",
+      "slug": "second-skin",
+      "name_ru": "Волк среди овец",
+      "name_en": "Second Skin",
+      "source": "rtw",
+      "sort_order": 125,
+      "external_ref": {
+        "book": "RTW",
+        "url_dndsu": "https://next.dnd.su/feats/488-second-skin",
+        "url_ttg": "https://new.ttg.club/feats/second-skin-rhw"
+      },
+      "data": {
+        "category": "dark_gift",
+        "prerequisites": {},
+        "repeatable": false,
+        "ability_score_increase": null,
+        "summary_ru": "Иное обличье: У вас всегда подготовлено заклинание Смена обличья. Непроизвольное обращение: Определённые обстоятельства могут непроизвольн…",
+        "traits_text": "Тёмный дар (Равенлофт: Ужасы внутри): Иное обличье: У вас всегда подготовлено заклинание Смена обличья. Непроизвольное обращение: Определён…",
+        "prerequisites_ru": "кампания в Равенлофте"
+      }
+    },
+    {
+      "kind": "feat",
+      "slug": "symbiotic-being",
+      "name_ru": "Симбионт",
+      "name_en": "Symbiotic Being",
+      "source": "rtw",
+      "sort_order": 130,
+      "external_ref": {
+        "book": "RTW",
+        "url_dndsu": "https://next.dnd.su/feats/489-symbiotic-being",
+        "url_ttg": "https://new.ttg.club/feats/symbiotic-being-rhw"
+      },
+      "data": {
+        "category": "dark_gift",
+        "prerequisites": {},
+        "repeatable": false,
+        "ability_score_increase": null,
+        "summary_ru": "Переплетённые жизни: Симбионт не может быть выбран целью. Второй разум: Вы получаете владение одним из следующих навыков: Восприятие, Запу…",
+        "traits_text": "Тёмный дар (Равенлофт: Ужасы внутри): Переплетённые жизни: Симбионт не может быть выбран целью. Второй разум: Вы получаете владение одним и…",
+        "prerequisites_ru": "кампания в Равенлофте"
+      }
+    },
+    {
+      "kind": "feat",
+      "slug": "touch-of-death",
+      "name_ru": "Касание смерти",
+      "name_en": "Touch of Death",
+      "source": "rtw",
+      "sort_order": 135,
+      "external_ref": {
+        "book": "RTW",
+        "url_dndsu": "https://next.dnd.su/feats/490-touch-of-death",
+        "url_ttg": "https://new.ttg.club/feats/touch-of-death-rhw"
+      },
+      "data": {
+        "category": "dark_gift",
+        "prerequisites": {},
+        "repeatable": false,
+        "ability_score_increase": null,
+        "summary_ru": "Смертельное касание: Вы изучаете заговор Леденящее прикосновение и можете сотворять его без предоставления компонентов. Загробный зов: Вы…",
+        "traits_text": "Тёмный дар (Равенлофт: Ужасы внутри): Смертельное касание: Вы изучаете заговор Леденящее прикосновение и можете сотворять его без предостав…",
+        "prerequisites_ru": "кампания в Равенлофте"
+      }
+    },
+    {
+      "kind": "feat",
+      "slug": "watchers",
+      "name_ru": "Наблюдаемый",
+      "name_en": "Watchers",
+      "source": "rtw",
+      "sort_order": 140,
+      "external_ref": {
+        "book": "RTW",
+        "url_dndsu": "https://next.dnd.su/feats/491-watchers",
+        "url_ttg": "https://new.ttg.club/feats/watchers-rhw"
+      },
+      "data": {
+        "category": "dark_gift",
+        "prerequisites": {},
+        "repeatable": false,
+        "ability_score_increase": null,
+        "summary_ru": "Глазами взаймы: У вас всегда подготовлены заклинания Животные чувства и Разговор с животными. Обострённая подозрительность: Всякий раз, ко…",
+        "traits_text": "Тёмный дар (Равенлофт: Ужасы внутри): Глазами взаймы: У вас всегда подготовлены заклинания Животные чувства и Разговор с животными. Обострё…",
+        "prerequisites_ru": "кампания в Равенлофте"
+      }
+    },
+    {
+      "kind": "feat",
+      "slug": "sharp-eye",
+      "name_ru": "Остроглазый",
+      "name_en": "Sharp Eye",
+      "source": "rtw",
+      "sort_order": 95,
+      "external_ref": {
+        "book": "RTW",
+        "url_dndsu": "https://next.dnd.su/feats/481-sharp-eye",
+        "url_ttg": "https://new.ttg.club/feats/sharp-eye-rhw"
+      },
+      "data": {
+        "category": "origin",
+        "prerequisites": {},
+        "repeatable": false,
+        "ability_score_increase": null,
+        "summary_ru": "Остроглазый. Когда вы совершаете действие Изучение или Поиск, можете с Преимуществом совершить любую проверку характеристики, совершаемую…",
+        "traits_text": "Черта происхождения (Равенлофт: Ужасы внутри): Остроглазый. Когда вы совершаете действие Изучение или Поиск, можете с Преимуществом соверши…"
+      }
+    },
+    {
+      "kind": "feat",
+      "slug": "survivor",
+      "name_ru": "Выживший",
+      "name_en": "Survivor",
+      "source": "rtw",
+      "sort_order": 100,
+      "external_ref": {
+        "book": "RTW",
+        "url_dndsu": "https://next.dnd.su/feats/482-survivor",
+        "url_ttg": "https://new.ttg.club/feats/survivor-rhw"
+      },
+      "data": {
+        "category": "origin",
+        "prerequisites": {},
+        "repeatable": false,
+        "ability_score_increase": null,
+        "summary_ru": "Всегда начеку: Всякий раз, когда вы совершаете бросок Инициативы, можете перебросить к20, если выброшенный результат равен «9» или ниже. С…",
+        "traits_text": "Черта происхождения (Равенлофт: Ужасы внутри): Всегда начеку: Всякий раз, когда вы совершаете бросок Инициативы, можете перебросить к20, ес…"
+      }
+    }
+  ]
+}

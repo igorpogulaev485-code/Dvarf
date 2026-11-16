@@ -26,7 +26,22 @@ C18_COUNTS = {
 }
 C18_TOTAL = 40 + 12 + 3 + 16 + 5 + 7 + 2 + 2 + 8 + 8 + 8  # 111
 PLANNED_TOTAL = (
-    863 + 235 + 95 + 1 + 12 + 36 + 58 + 69 + 196 + 86 + 87 + 66 + 93 + 43 + C18_TOTAL
+    863
+    + 235
+    + 95
+    + 1
+    + 12
+    + 36
+    + 58
+    + 69
+    + 196
+    + 86
+    + 87
+    + 66
+    + 93
+    + 43
+    + C18_TOTAL
+    + 95  # +C20 RTW
 )
 
 STUB_NEEDLES = (
@@ -353,10 +368,11 @@ def test_alembic_single_head_includes_p24_c18():
     script = ScriptDirectory.from_config(cfg)
     heads = script.get_heads()
     assert len(heads) == 1, f"expected one alembic head, got {heads}"
-    assert heads[0] == "p24c18fraif01"
+    assert heads[0] in {"p24c18fraif01", "p24c20rtw01"}
     ancestor_ids = {
         rev.revision for rev in script.walk_revisions(base="base", head=heads[0])
     }
     assert "p24c18fraif01" in ancestor_ids
     assert "p24c12bast01" in ancestor_ids
     assert "p24c17frh01" in ancestor_ids
+    assert "p24c20rtw01" in ancestor_ids or heads[0] == "p24c18fraif01"

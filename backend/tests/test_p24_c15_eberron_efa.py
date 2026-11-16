@@ -28,7 +28,7 @@ EFA_COUNTS = {
     "item": 9,
 }
 EFA_TOTAL = sum(EFA_COUNTS.values())  # 66
-PLANNED_TOTAL = 863 + 235 + 95 + 1 + 12 + 36 + 58 + 69 + 196 + 86 + 87 + EFA_TOTAL + 93 + 43 + 111  # +C17 FRHoF +C12 bastions +C18
+PLANNED_TOTAL = 863 + 235 + 95 + 1 + 12 + 36 + 58 + 69 + 196 + 86 + 87 + EFA_TOTAL + 93 + 43 + 111 + 95  # +C17 FRHoF +C12 bastions +C18 +C20 RTW
 
 STUB_NEEDLES = (
     "Предложено: Способность",
@@ -272,7 +272,13 @@ def test_alembic_single_head_includes_p24_c15():
     script = ScriptDirectory.from_config(cfg)
     heads = script.get_heads()
     assert len(heads) == 1, f"expected one alembic head, got {heads}"
-    assert heads[0] in {"p24c15efa01", "p24c17frh01", "p24c12bast01", "p24c18fraif01"}
+    assert heads[0] in {
+        "p24c15efa01",
+        "p24c17frh01",
+        "p24c12bast01",
+        "p24c18fraif01",
+        "p24c20rtw01",
+    }
     ancestor_ids = {
         rev.revision for rev in script.walk_revisions(base="base", head=heads[0])
     }

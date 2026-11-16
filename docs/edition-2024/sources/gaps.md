@@ -106,3 +106,5 @@ SRD 5.2.1 PDF: [SRD_CC_v5.2.1.pdf](https://media.dndbeyond.com/compendium-images
 - **P24-C17 (2026-11-16):** полный каталог FRHoF (93 карточки): 8 подклассов, 18 предысторий, 34 черты, 19 заклинаний, 12 снаряжения, 2 маг. предмета; `source=frhof`. Виды/существа FRHoF в эталоне 0. В CSV у `arfist` дописан `name_en=Harper`. `enclave-magic` / `windskiff` без `url_ttg` (см. выше) — сид по next.dnd.su. C12 бастионы не трогали.
 
 - **P24-C18 (2026-11-16):** FRAiF+ABH+LFL+NsF live waves — **111** карточек (цель 111). `source` fraif/abh/lfl/nsf → community_ref. Пропусков: 0.
+
+- **P24-C20 (2026-11-16):** Ravenloft RTW live waves — **95** карточек (цель 95). `source=rtw` → community_ref. Пропусков: 0.

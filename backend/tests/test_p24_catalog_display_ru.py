@@ -51,6 +51,12 @@ WAVE_FILES = (
     "creatures_lfl.json",
     "magic_items_nsf.json",
     "creatures_nsf.json",
+    "species_rtw.json",
+    "backgrounds_rtw.json",
+    "feats_rtw.json",
+    "subclasses_rtw.json",
+    "magic_items_rtw.json",
+    "creatures_rtw.json",
 )
 
 DISPLAY_LEAVES = frozenset(

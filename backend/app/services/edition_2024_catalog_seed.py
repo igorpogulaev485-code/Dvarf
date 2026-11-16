@@ -50,6 +50,9 @@ Schema contract for later packs (P24-00 lists → data packs):
   ``creatures_lfl`` / ``magic_items_nsf`` / ``creatures_nsf``;
   sources ``fraif`` / ``abh`` / ``lfl`` / ``nsf`` → ``community_ref``.
   Adventure prose/maps not seeded — catalog cards only.
+- RTW (C20): ``species_rtw`` / ``backgrounds_rtw`` / ``feats_rtw`` /
+  ``subclasses_rtw`` / ``magic_items_rtw`` / ``creatures_rtw``;
+  ``source`` ``rtw`` → ``community_ref``. Domain/adventure prose not seeded.
 - ``source`` ``srd-5.2`` / ``srd-5.2.1`` stamps ``content_layer=srd``
 """
 
@@ -139,6 +142,13 @@ EDITION_2024_CATALOG_WAVES: tuple[WaveSpec, ...] = (
     WaveSpec("creatures_lfl.json"),
     WaveSpec("magic_items_nsf.json"),
     WaveSpec("creatures_nsf.json"),
+    # P24-C20 — Ravenloft: The Horrors Within (community_ref)
+    WaveSpec("species_rtw.json"),
+    WaveSpec("backgrounds_rtw.json"),
+    WaveSpec("feats_rtw.json"),
+    WaveSpec("subclasses_rtw.json"),
+    WaveSpec("magic_items_rtw.json"),
+    WaveSpec("creatures_rtw.json"),
 )
 
 WEAPON_MASTERY_FILENAME = "weapon_mastery_srd.json"

@@ -21,7 +21,7 @@ LIVE = REPO_ROOT / "backend" / "data" / "srd" / "2024" / "live"
 
 SRD_MAGIC_COUNT = 285
 # C01–C05 catalog rows + magic items
-PLANNED_TOTAL = 215 + 12 + 12 + 339 + SRD_MAGIC_COUNT + 235 + 95 + 1 + 12 + 36 + 58 + 69 + 196 + 86 + 87 + 66 + 93 + 43 + 111  # C11 DMG items + C13 MM24 w1 + C14 MM24 w2 +C15 EFA +C17 FRHoF +C12 bastions +C18
+PLANNED_TOTAL = 215 + 12 + 12 + 339 + SRD_MAGIC_COUNT + 235 + 95 + 1 + 12 + 36 + 58 + 69 + 196 + 86 + 87 + 66 + 93 + 43 + 111 + 95  # C11 DMG items + C13 MM24 w1 + C14 MM24 w2 +C15 EFA +C17 FRHoF +C12 bastions +C18 +C20 RTW
 
 SRD_RENAMES = {
     "apparatus-of-the-crab",

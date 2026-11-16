@@ -1,0 +1,47 @@
+{
+  "meta": {
+    "pack": "P24-C20",
+    "source": "RTW magic items (community_ref)",
+    "count": 1,
+    "notes": [
+      "1 магических предметов RTW.",
+      "source=rtw → community_ref."
+    ]
+  },
+  "entries": [
+    {
+      "kind": "item",
+      "slug": "ebonbane",
+      "name_ru": "Чёрная Погибель",
+      "name_en": "Ebonbane",
+      "source": "rtw",
+      "sort_order": 10,
+      "external_ref": {
+        "book": "RTW",
+        "url_dndsu": "https://next.dnd.su/items/19731-ebonbane",
+        "url_ttg": "https://new.ttg.club/magic-items/ebonbane-rhw"
+      },
+      "data": {
+        "schema_version": 1,
+        "equipment_group": "magic_item",
+        "magic_item_type": "weapon",
+        "magic_item_type_ru": "оружие",
+        "rarity": "common",
+        "rarity_ru": "вы совершаете с преимуществом спасброски от заклинаний и прочих магических эффектов",
+        "requires_attunement": true,
+        "attunement_restriction_ru": "требуется настройка",
+        "charges": null,
+        "recharge_ru": null,
+        "bonus_attack": null,
+        "bonus_damage": null,
+        "bonus_ac": null,
+        "bonus_spell_attack": null,
+        "spell_refs": [],
+        "base_item_categories": [],
+        "summary_ru": ". Разум.",
+        "sentient": false,
+        "artifact": false
+      }
+    }
+  ]
+}

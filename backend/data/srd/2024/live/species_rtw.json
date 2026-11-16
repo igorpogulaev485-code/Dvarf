@@ -1,0 +1,141 @@
+{
+  "meta": {
+    "pack": "P24-C20",
+    "rules_edition": "2024",
+    "source": "rtw",
+    "notes_ru": "4 вида RTW (дампир, ведьмовская кровь, волколак, возрождённый) по TTG / next.dnd.su; RU-имена из species.csv."
+  },
+  "entries": [
+    {
+      "kind": "race",
+      "slug": "dhampir",
+      "name_ru": "Дампир",
+      "name_en": "Dhampir",
+      "source": "rtw",
+      "sort_order": 10,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/species/dhampir",
+        "url_ttg": "https://new.ttg.club/species/dhampir-rhw",
+        "book": "RTW"
+      },
+      "data": {
+        "creature_type": "humanoid",
+        "size": "medium",
+        "size_options": [
+          "small",
+          "medium"
+        ],
+        "speed": 35,
+        "darkvision": 60,
+        "ability_bonuses": {},
+        "languages": [],
+        "languages_choose": 0,
+        "traits": [
+          "darkvision",
+          "pauche-lazanie",
+          "otpechatok-nezhiti",
+          "ukus-vampira"
+        ],
+        "traits_text": "Дампир (Равенлофт: Ужасы внутри): гуманоид, маленький/средний, 35 фт. Тёмное зрение: Вы обладаете тёмным зрением в пределах 60 футов. Паучь…"
+      }
+    },
+    {
+      "kind": "race",
+      "slug": "hexblood",
+      "name_ru": "Ведьмовская кровь",
+      "name_en": "Hexblood",
+      "source": "rtw",
+      "sort_order": 20,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/species/hexblood",
+        "url_ttg": "https://new.ttg.club/species/hexblood-rhw",
+        "book": "RTW"
+      },
+      "data": {
+        "creature_type": "fey",
+        "size": "medium",
+        "size_options": [
+          "small",
+          "medium"
+        ],
+        "speed": 30,
+        "darkvision": 60,
+        "ability_bonuses": {},
+        "languages": [],
+        "languages_choose": 0,
+        "traits": [
+          "darkvision",
+          "zhutkiy-talisman",
+          "magiya-sglaza"
+        ],
+        "traits_text": "Ведьмовская кровь (Равенлофт: Ужасы внутри): фея, маленький/средний, 30 фт. Тёмное зрение: У вас есть тёмное зрение с дистанцией до 60 футо…"
+      }
+    },
+    {
+      "kind": "race",
+      "slug": "lupin",
+      "name_ru": "Волколак",
+      "name_en": "Lupin",
+      "source": "rtw",
+      "sort_order": 30,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/species/lupin",
+        "url_ttg": "https://new.ttg.club/species/lupin-rhw",
+        "book": "RTW"
+      },
+      "data": {
+        "creature_type": "humanoid",
+        "size": "medium",
+        "size_options": [
+          "small",
+          "medium"
+        ],
+        "speed": 30,
+        "darkvision": 60,
+        "ability_bonuses": {},
+        "languages": [],
+        "languages_choose": 0,
+        "traits": [
+          "darkvision",
+          "zverinyy-brosok",
+          "voy",
+          "instinkty-vervolka"
+        ],
+        "traits_text": "Волколак (Равенлофт: Ужасы внутри): гуманоид, маленький/средний, 30 фт. Тёмное зрение: У вас есть тёмное зрение с дистанцией 60 футов. Звер…"
+      }
+    },
+    {
+      "kind": "race",
+      "slug": "reborn",
+      "name_ru": "Возрождённый",
+      "name_en": "Reborn",
+      "source": "rtw",
+      "sort_order": 40,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/species/reborn",
+        "url_ttg": "https://new.ttg.club/species/reborn-rhw",
+        "book": "RTW"
+      },
+      "data": {
+        "creature_type": "humanoid",
+        "size": "medium",
+        "size_options": [
+          "small",
+          "medium"
+        ],
+        "speed": 30,
+        "darkvision": null,
+        "ability_bonuses": {},
+        "languages": [],
+        "languages_choose": 0,
+        "traits": [
+          "izbezhavshiy-smerti",
+          "vechnyy",
+          "znaniya-proshloy-zhizni",
+          "neobychnaya-stoykost"
+        ],
+        "traits_text": "Возрождённый (Равенлофт: Ужасы внутри): гуманоид, маленький/средний, 30 фт. Избежавший смерти: Вы получаете преимущество на спасброски от с…"
+      }
+    }
+  ]
+}

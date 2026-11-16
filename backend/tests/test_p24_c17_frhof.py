@@ -26,7 +26,7 @@ FRHOF_COUNTS = {
     "item_magic": 2,
 }
 FRHOF_TOTAL = 8 + 18 + 34 + 19 + 12 + 2  # 93
-PLANNED_TOTAL = 863 + 235 + 95 + 1 + 12 + 36 + 58 + 69 + 196 + 86 + 87 + 66 + FRHOF_TOTAL + 43 + 111  # +C18 FRAiF/ABH/LFL/NsF
+PLANNED_TOTAL = 863 + 235 + 95 + 1 + 12 + 36 + 58 + 69 + 196 + 86 + 87 + 66 + FRHOF_TOTAL + 43 + 111 + 95  # +C18 FRAiF/ABH/LFL/NsF +C20 RTW
 
 STUB_NEEDLES = (
     "Предложено: Способность",
@@ -258,7 +258,7 @@ def test_alembic_single_head_includes_p24_c17():
     script = ScriptDirectory.from_config(cfg)
     heads = script.get_heads()
     assert len(heads) == 1, f"expected one alembic head, got {heads}"
-    assert heads[0] in {"p24c17frh01", "p24c12bast01", "p24c18fraif01"}
+    assert heads[0] in {"p24c17frh01", "p24c12bast01", "p24c18fraif01", "p24c20rtw01"}
     ancestor_ids = {
         rev.revision for rev in script.walk_revisions(base="base", head=heads[0])
     }

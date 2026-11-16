@@ -50,7 +50,7 @@ SRD_SUBCLASSES = {
 }
 WM_CLASSES = {"barbarian", "fighter", "paladin", "ranger", "rogue"}
 # C01–C09 + C10 (58 feats + 69 spells PHB beyond SRD).
-PLANNED_TOTAL = 215 + 12 + 12 + 339 + 285 + 235 + 95 + 1 + 12 + 36 + 58 + 69 + 196 + 86 + 87 + 66 + 93 + 43 + 111  # +C11 DMG24 +C13 MM24 w1 +C14 MM24 w2 +C15 EFA +C17 FRHoF +C12 bastions +C18
+PLANNED_TOTAL = 215 + 12 + 12 + 339 + 285 + 235 + 95 + 1 + 12 + 36 + 58 + 69 + 196 + 86 + 87 + 66 + 93 + 43 + 111 + 95  # +C11 DMG24 +C13 MM24 w1 +C14 MM24 w2 +C15 EFA +C17 FRHoF +C12 bastions +C18 +C20 RTW
 
 
 def _srd_ids(category: str) -> set[str]:

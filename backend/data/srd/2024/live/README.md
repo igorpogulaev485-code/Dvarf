@@ -45,6 +45,16 @@
 | `equipment_frhof.json` | P24-C17 | 12 предметов снаряжения FRHoF (`kind=item`, `source=frhof`) |
 | `magic_items_frhof.json` | P24-C17 | 2 магических предмета FRHoF (`source=frhof`) |
 | `bastions_dmg24.json` | P24-C12 | бастионы DMG 2024: 6 базовых + 29 особых помещений, 7 приказов, 1 карточка правил (`kind=bastion`, `source=dmg24`) |
+| `creatures_fraif.json` / `magic_items_fraif.json` | P24-C18 | FRAiF: 40 существ + 12 предметов (`source=fraif`) |
+| `backgrounds_abh.json` / `feats_abh.json` / `creatures_abh.json` | P24-C18 | ABH: 3 предыстории + 16 черт + 5 существ (`source=abh`) |
+| `species_lfl.json` / `backgrounds_lfl.json` / `feats_lfl.json` / `creatures_lfl.json` | P24-C18 | LFL: 7 видов + 2 предыстории + 2 черты + 8 существ (`source=lfl`) |
+| `magic_items_nsf.json` / `creatures_nsf.json` | P24-C18 | NsF: 8 предметов + 8 существ (`source=nsf`) |
+| `species_rtw.json` | P24-C20 | 4 вида RTW (`kind=race`, `source=rtw`) |
+| `backgrounds_rtw.json` | P24-C20 | 4 предыстории RTW (`source=rtw`) |
+| `feats_rtw.json` | P24-C20 | 11 черт RTW (2 origin + 9 dark_gift, `source=rtw`) |
+| `subclasses_rtw.json` | P24-C20 | 7 подклассов RTW (`source=rtw`) |
+| `magic_items_rtw.json` | P24-C20 | 1 магический предмет RTW — Чёрная Погибель (`source=rtw`) |
+| `creatures_rtw.json` | P24-C20 | 68 существ RTW (`kind=bestiary`, `source=rtw`) |
 
 ## Схема карточек (контракт)
 
@@ -53,7 +63,7 @@
 - снаряжение (`item`): `equipment_group`, опционально `utilize_ru` (данные, без автоматики боя)
 - вид (`race`): `ability_bonuses` пустой объект; без языков с вида; наследия в `lineages`
 - предыстория: `data.asi` (три характеристики), `data.origin_feat` (id + имя → карточка черты C02)
-- черта: `data.category` (`origin` / `general` / `fighting_style` / `epic_boon`), `prerequisites`, `repeatable`, `ability_score_increase`, короткое `summary_ru` / `traits_text`
+- черта: `data.category` (`origin` / `general` / `fighting_style` / `epic_boon` / `dragonmark` / `dark_gift`), `prerequisites`, `repeatable`, `ability_score_increase`, короткое `summary_ru` / `traits_text`
 - класс: `hit_die`, владения, `subclass_level=3`, `feat_levels`, `epic_boon_level=19`, `weapon_mastery`, `starting_equipment` (id → C03), `levels` 1–20; `spell_list` — slug карточек C05 (у не-кастеров пусто)
 - подкласс: `parent_class` + `parent_id`, умения по уровням; `spell_list` — домен/круг/клятва/покровитель, если есть в SRD
 - заклинание: `level` 0–9, `school`, `casting_time`, `magic_action` (для unit=action), `components` (В/С/М + цена/расход), `classes`, рост заговора / усиление ячейкой; короткое `summary_ru` (без длинного текста SRD); у именных PHB — `srd_alias` на безымянную SRD-карточку
@@ -61,7 +71,7 @@
 - бестиарий (`bestiary`, C07 Monsters / C08 Animals / C13 MM24 w1): КД, хиты, скорости, ПО/опыт/БМ, инициатива, характеристики + мод + спас, `gear_refs` → C03, `spell_refs` → C05/C10; у Animals — `beast_tags` (`wild_shape_ok`, `mount`, `has_fly`, `has_swim`); у MM сверх SRD — `source=mm24`; короткое `summary_ru` / `text_ru` (без длинного текста книги и без статов 2014)
 - отображаемые строки (`summary_ru`, `traits_text`, `components.m`, `casting_time.condition`, …) — по-русски; словари `spell_materials_ru.json` / `spell_reaction_conditions_ru.json`
 - `source` вида `srd-5.2` → `content_layer: srd`
-- `source` вида `ph24` / `dmg24` / `mm24` / `efa` / `frhof` → `content_layer: community_ref` (ярлык игроку не показываем)
+- `source` вида `ph24` / `dmg24` / `mm24` / `efa` / `frhof` / `fraif` / `abh` / `lfl` / `nsf` / `rtw` → `content_layer: community_ref` (ярлык игроку не показываем)
 - бастион (`bastion`, C12): `facility_kind` (`basic` / `special` / `order` / `rules`), уровень, размер (тесное/просторное/обширное → 4/16/36 клеток), наёмники, приказы и краткие `order_effects_ru`; `name_ru_pending` у помещений/приказов; без онлайн-карты и UI
 
-Не сидить: Culture, Engineering, пустые заглушки. Книжный контент Ravenloft/AU/FRAiF — следующие пачки. Артефактор 2014 (Таша) не трогать. Черты и заклинания PHB сверх SRD — C10; предметы DMG сверх SRD — C11; MM сверх SRD — C13/C14; EFA — C15; FRHoF — C17; бастионы DMG — C12.
+Не сидить: Culture, Engineering, пустые заглушки. Тексты приключений и карты доменов RTW — не переносить. Артефактор 2014 (Таша) не трогать. Черты и заклинания PHB сверх SRD — C10; предметы DMG сверх SRD — C11; MM сверх SRD — C13/C14; EFA — C15; FRHoF — C17; бастионы DMG — C12; FRAiF/ABH/LFL/NsF — C18; RTW — C20; AU — следующие пачки.
