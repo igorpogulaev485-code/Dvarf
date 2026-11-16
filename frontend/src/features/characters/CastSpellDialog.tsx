@@ -44,6 +44,7 @@ import {
   metamagicDisableReason,
   metamagicSelectionCost,
   metamagicShortLabel,
+  metamagicSpendCostForCast,
   metamagicStackOk,
   STACKABLE_METAMAGIC_IDS,
   type MetamagicCastFlags,
@@ -258,6 +259,9 @@ type CastSpellDialogProps = {
   initialMetamagicId?: string | null
   /** O-02: у кастера есть «Магическое вдохновение» и книга Таши вкл. */
   magicalInspirationAvailable?: boolean
+  rulesEdition?: string | null
+  sorcererLevel?: number
+  innateSorceryActive?: boolean
   /**
    * Spell scroll: these numbers replace the character's attack and DC.
    * Item bonuses from the sheet are not added.
@@ -299,6 +303,9 @@ export function CastSpellDialog({
   metamagicIds = [],
   initialMetamagicId = null,
   magicalInspirationAvailable = false,
+  rulesEdition = '2014',
+  sorcererLevel = 1,
+  innateSorceryActive = false,
   statLock = null,
   scrollItemId = null,
 }: CastSpellDialogProps) {
@@ -886,7 +893,9 @@ export function CastSpellDialog({
     embodimentRemaining > 0 && enchantment && !isCantrip && !notOneAction,
   )
   const knownMetamagic =
-    spell && !useRitual ? listKnownMetamagic(metamagicIds) : []
+    spell && !useRitual
+      ? listKnownMetamagic(metamagicIds, { rulesEdition })
+      : []
   const castingIsAction = !/бонус|реакц|мин|час|bonus|reaction|minute|hour/i.test(
     spell.casting_time ?? '',
   )
@@ -905,9 +914,20 @@ export function CastSpellDialog({
   const metaSlotLevel = usePact
     ? (spells.pact_slots?.level ?? spell.level)
     : Math.max(spell.level, slotLevel)
-  const metaCost = metamagicSelectionCost(metaFlags, metaSlotLevel)
-  const metaAffordable = metaCost <= sorceryLeft && metamagicStackOk(metaFlags)
-  const metaPreview = applyMetamagicToCastParams(rulesSpell ?? spell, metaFlags)
+  const metaCost = metamagicSelectionCost(metaFlags, metaSlotLevel, rulesEdition)
+  const metaAffordable =
+    metaCost <= sorceryLeft &&
+    metamagicStackOk(metaFlags, {
+      rulesEdition,
+      sorcererLevel,
+      innateSorceryActive,
+      metamagicKnown: metamagicIds,
+      spell: {
+        level: spell?.level ?? spellLevel,
+        casting_time: spell?.casting_time ?? '',
+      },
+    })
+  const metaPreview = applyMetamagicToCastParams(rulesSpell ?? spell, metaFlags, rulesEdition)
   const metaActive = metaCost > 0 || Boolean(metaFlags.transmutedType)
   const metaSelectedLabels = knownMetamagic
     .filter((def) => {
@@ -1483,7 +1503,7 @@ export function CastSpellDialog({
             {metamagicOpen ? (
               <div className="chip-row cast-source-row cast-metamagic-block__body">
                 {knownMetamagic.map((def) => {
-                  const cost = metamagicSpendCost(def, metaSlotLevel)
+                  const cost = metamagicSpendCostForCast(def, metaSlotLevel, rulesEdition)
                   const stackable = STACKABLE_METAMAGIC_IDS.has(def.id)
                   const checked =
                     def.id === 'careful'
@@ -1513,6 +1533,7 @@ export function CastSpellDialog({
                     checked,
                     castingIsAction,
                     useEmbodiment,
+                    rulesEdition,
                   })
                   const disabled = useRitual || Boolean(reason)
                   const rest = reason

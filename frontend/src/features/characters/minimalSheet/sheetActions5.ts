@@ -1,6 +1,7 @@
 /** Действия листа, группа 5. Тела функций перенесены без изменения порядка вызовов. */
 import type { SheetModel } from './sheetModel'
 import { parseFeatureResourceId } from '../../../shared/dnd/featureResources'
+import { sorcerer2024UseFeatureId } from '../../../shared/dnd/sorcerer2024Features'
 import { wizardResolvedFeatureId } from '../../../shared/dnd/wizardTradition'
 
 export function installSheetActions5(model: SheetModel) {
@@ -112,6 +113,20 @@ export function installSheetActions5(model: SheetModel) {
     }
     if (parsed && wizardResolvedFeatureId(parsed.poolId)) {
       model.setWizardFeatureUse({
+        featureId: parsed.poolId,
+        resourceId: row.id,
+        classSlug: parsed.classSlug,
+        classEntryId: parsed.classEntryId,
+        name: row.name,
+      })
+      return true
+    }
+    if (
+      model.rulesEdition === '2024' &&
+      parsed &&
+      sorcerer2024UseFeatureId(parsed.poolId)
+    ) {
+      model.setSorcererFeatureUse({
         featureId: parsed.poolId,
         resourceId: row.id,
         classSlug: parsed.classSlug,

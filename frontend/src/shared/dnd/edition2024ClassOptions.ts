@@ -121,24 +121,25 @@ export type MetamagicDef2024 = {
 }
 
 export const METAMAGIC_2024: MetamagicDef2024[] = [
-  { id: 'careful', nameRu: 'Осторожное заклинание', cost: 1, summaryRu: 'До Хар. существ автоуспех на спас.' },
+  { id: 'careful', nameRu: 'Аккуратное заклинание', cost: 1, summaryRu: 'До Хар. существ автоуспех на спас; без половины урона.' },
   { id: 'distant', nameRu: 'Далёкое заклинание', cost: 1, summaryRu: 'Дистанция ×2; касание → 30 фт.' },
   { id: 'empowered', nameRu: 'Усиленное заклинание', cost: 1, summaryRu: 'Перебросить до Хар. костей урона.', stackableWithOther: true },
-  { id: 'extended', nameRu: 'Продлённое заклинание', cost: 1, summaryRu: 'Длительность ×2; преимущество к концентрации.' },
-  { id: 'heightened', nameRu: 'Напряжённое заклинание', cost: 2, summaryRu: 'Одна цель — помеха на спас.' },
-  { id: 'quickened', nameRu: 'Ускоренное заклинание', cost: 2, summaryRu: 'Действие → бонусное.' },
+  { id: 'extended', nameRu: 'Продлённое заклинание', cost: 1, summaryRu: 'Длительность ×2 (≤24 ч.); преимущество к концентрации.' },
+  { id: 'heightened', nameRu: 'Непреодолимое заклинание', cost: 2, summaryRu: 'Одна цель — помеха на спасброски от этого заклинания.' },
+  { id: 'quickened', nameRu: 'Ускоренное заклинание', cost: 2, summaryRu: 'Действие → бонусное (лимит заклинаний 1+ круга в ход).' },
   { id: 'seeking', nameRu: 'Ищущее заклинание', cost: 1, summaryRu: 'Промах атаки — переброс d20.', stackableWithOther: true },
-  { id: 'subtle', nameRu: 'Тонкое заклинание', cost: 1, summaryRu: 'Без V/S/M (кроме расходуемых).' },
-  { id: 'transmuted', nameRu: 'Преображённое заклинание', cost: 1, summaryRu: 'Сменить тип урона.' },
-  { id: 'twinned', nameRu: 'Удвоенное заклинание', cost: 1, summaryRu: 'Повысить круг на 1 для доп. цели.' },
+  { id: 'subtle', nameRu: 'Неуловимое заклинание', cost: 1, summaryRu: 'Без V/S/M (кроме расходуемых/с ценой).' },
+  { id: 'transmuted', nameRu: 'Преобразованное заклинание', cost: 1, summaryRu: 'Сменить тип урона (звук/кислота/огонь/холод/электричество/яд).' },
+  { id: 'twinned', nameRu: 'Удвоенное заклинание', cost: 1, summaryRu: 'Повысить фактический круг на 1 для доп. цели.' },
 ]
 
 const METAMAGIC_BY_ID = Object.fromEntries(METAMAGIC_2024.map((r) => [r.id, r]))
 
+/** PHB 2024 / next.dnd.su: 2 at L2, +2 at L10 (4), +2 at L17 (6). */
 export function metamagicKnownLimit2024(level: number): number {
   if (level < 2) return 0
-  if (level >= 17) return 4
-  if (level >= 10) return 3
+  if (level >= 17) return 6
+  if (level >= 10) return 4
   return 2
 }
 

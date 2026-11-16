@@ -260,6 +260,14 @@ export function SheetDialogsRolls({ model }: { model: SheetModel }) {
         )}
         resources={model.draft.play.resources}
         metamagicIds={model.sorcererMetamagicIds ?? []}
+        rulesEdition={model.rulesEdition ?? model.baseCharacter?.rules_edition ?? '2014'}
+        sorcererLevel={model.draft.classes.reduce((sum, row) => {
+          if (!/чародей|sorcerer/i.test(row.name)) return sum
+          return sum + Math.max(0, row.level || 0)
+        }, 0)}
+        innateSorceryActive={model.draft.play.resources.some(
+          (row) => /врождённ.*чародей/i.test(row.name) && row.activeLabel,
+        )}
         initialMetamagicId={model.deskCastMetamagic ?? null}
         magicalInspirationAvailable={
           model.campaignRulesRaw != null &&

@@ -318,6 +318,10 @@ export function SheetDialogsSetup({ model }: { model: SheetModel }) {
             }
           })
         }}
+        classOptions2024={model.draft.classOptions2024}
+        onClassOptions2024Change={(classOptions2024) =>
+          model.setDraft((prev) => ({ ...prev, classOptions2024 }))
+        }
       />
 
       <ClassAsiDialog

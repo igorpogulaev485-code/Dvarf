@@ -283,7 +283,8 @@ const SHARED_OPTIONS_2024: Record<string, SharedPoolOption2024[]> = {
     { feature_id: 'bastion-of-law', name_ru: 'Бастион закона', spend_pool: 'sorcery_points', cost: 1, cost_max: 5, kind: 'action', min_level: 6 },
   ],
   'sorcerer__aberrant-sorcery': [
-    { feature_id: 'psionic-sorcery', name_ru: 'Псионическое колдовство', spend_pool: 'sorcery_points', cost: 1, kind: 'passive', min_level: 6 },
+    { feature_id: 'psionic-sorcery', name_ru: 'Псионическое чародейство', spend_pool: 'sorcery_points', cost: 1, kind: 'passive', min_level: 6 },
+    { feature_id: 'revelation-in-flesh', name_ru: 'Откровение во плоти', spend_pool: 'sorcery_points', cost: 1, cost_max: 4, kind: 'bonus', min_level: 14 },
   ],
   'sorcerer__spellfire-sorcery': [
     { feature_id: 'spellfire-burst', name_ru: 'Вспышка огня заклинаний', spend_pool: 'sorcery_points', cost: 1, kind: 'bonus', min_level: 3 },
@@ -611,13 +612,21 @@ export function buildSubclassResources2024(input: {
     push('transmuters_stone', 'Камень преобразителя', 1, 'long', 'transmuter-s-stone')
   } else if (subclassSlug === 'sorcerer__wild-magic-sorcery') {
     push('tides_of_chaos', 'Волны хаоса', 1, 'long', 'tides-of-chaos')
-    if (classLevel >= 18) push('tamed_wild_surge', 'Укрощённый всплеск', 1, 'long', 'tamed-surge')
+    if (classLevel >= 18) {
+      push('tamed_wild_surge', 'Укрощённый всплеск дикой магии', 1, 'long', 'tamed-surge')
+    }
   } else if (subclassSlug === 'sorcerer__clockwork-sorcery') {
     push('restore_balance', 'Восстановление баланса', Math.max(1, chaMod), 'long', 'restore-balance')
+    if (classLevel >= 14) push('trance_of_order', 'Транс упорядоченности', 1, 'long', 'trance-of-order')
+    if (classLevel >= 18) push('clockwork_cavalcade', 'Заводная кавалькада', 1, 'long', 'clockwork-cavalcade')
   } else if (subclassSlug === 'sorcerer__shadow-sorcery') {
     push('power_of_shadow', 'Сила тени', Math.max(1, chaMod), 'long', 'power-of-shadow')
   } else if (subclassSlug === 'sorcerer__aberrant-sorcery') {
     push('telepathic_speech', 'Телепатическая речь', 1, 'long', 'telepathic-speech')
+    if (classLevel >= 18) push('warping_explosion', 'Искажающий взрыв', 1, 'long', 'warping-explosion')
+  } else if (subclassSlug === 'sorcerer__draconic-sorcery') {
+    if (classLevel >= 14) push('dragon_wings', 'Крылья дракона', 1, 'long', 'dragon-wings')
+    if (classLevel >= 18) push('dragon_companion', 'Дракон-спутник', 1, 'long', 'dragon-companion')
   } else if (subclassSlug === 'druid__stars') {
     push('star_map_guiding_bolt', 'Звёздная карта (Направляющий снаряд)', Math.max(1, wisMod), 'long', 'star-map')
     if (classLevel >= 6) push('cosmic_omen', 'Космическое знамение', Math.max(1, wisMod), 'long', 'cosmic-omen')

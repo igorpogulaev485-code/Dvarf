@@ -26,6 +26,7 @@ import { SuperiorityDiceSpendDialog } from '../SuperiorityDiceSpendDialog'
 import { ArcaneRecoverySpendDialog } from '../ArcaneRecoverySpendDialog'
 import { WizardFeatureUseDialog } from '../WizardFeatureUseDialog'
 import { Wizard2024UseDialog } from '../Wizard2024UseDialog'
+import { Sorcerer2024UseDialog } from '../Sorcerer2024UseDialog'
 import type { WizardFeatureUseResult } from '../../../shared/dnd/wizardTradition'
 import {
   applySelfDamage2024,
@@ -45,6 +46,11 @@ import {
   WIZARD_SPELL_MASTERY_LEVEL_2024,
   type W24Result,
 } from '../../../shared/dnd/wizard2024Features'
+import {
+  sorcerer2024UseFeatureId,
+  type SorcererFeatureUseResult,
+} from '../../../shared/dnd/sorcerer2024Features'
+import { resolveClassCasterSlug } from '../../../shared/dnd/casterProgression'
 import type { Wizard2024RestProps } from '../Wizard2024RestSwaps'
 import { listCatalogEntries } from '../../../shared/api/catalog'
 import { parseSpellCatalogData, spellAvailableOnClassList } from '../../../shared/dnd/spellCatalog'
@@ -158,6 +164,31 @@ export function SheetDialogsResources({ model }: { model: SheetModel }) {
     model.onToast(result.message)
     model.setWizardFeatureUse(null)
   }
+
+  const onSorcererUseConfirm = (result: SorcererFeatureUseResult) => {
+    if (!result.ok) {
+      model.onToast(result.message)
+      return
+    }
+    model.setDraft((prev) => {
+      let spells = prev.spells
+      if (result.slots) {
+        spells = { ...prev.spells, slots: result.slots }
+      }
+      return {
+        ...prev,
+        ...(result.featurePicks ? { featurePicks: result.featurePicks } : {}),
+        spells,
+        play: {
+          ...prev.play,
+          resources: result.resources,
+        },
+      }
+    })
+    model.onToast(result.message)
+    model.setSorcererFeatureUse(null)
+  }
+
   const [wizardCantripCatalog, setWizardCantripCatalog] = useState<SheetSpell[]>([])
   useEffect(() => {
     if (!model.restOpen || model.rulesEdition !== '2024') return
@@ -317,6 +348,32 @@ export function SheetDialogsResources({ model }: { model: SheetModel }) {
     model.wizardFeatureUse != null &&
     wizard2024UseFeatureId(model.wizardFeatureUse.featureId)
 
+  const sorcerer2024Use =
+    model.rulesEdition === '2024' &&
+    model.sorcererFeatureUse != null &&
+    sorcerer2024UseFeatureId(model.sorcererFeatureUse.featureId)
+
+  const sorcererLevel = (() => {
+    let level = 0
+    for (const row of model.draft.classes) {
+      if (resolveClassCasterSlug(row.name) === 'sorcerer') {
+        level += Math.max(0, row.level || 0)
+      }
+    }
+    return level
+  })()
+
+  const hasControlledChaos = (model.unlockedFeatures ?? []).some(
+    (f: { id?: string }) =>
+      f.id === 'controlled-chaos' || f.id === 'controlled_chaos',
+  )
+
+  const innateActive = Boolean(
+    model.draft.play.resources.some((row) =>
+      /врождённ.*чародей/i.test(row.name) && row.activeLabel,
+    ),
+  )
+
   return (
     <>
       <RestDialog
@@ -444,6 +501,8 @@ export function SheetDialogsResources({ model }: { model: SheetModel }) {
         open={model.sorcerySpendId != null}
         resource={model.sorceryResource}
         metamagicIds={model.sorcererMetamagicIds}
+        rulesEdition={model.rulesEdition === '2024' ? '2024' : undefined}
+        sorcererLevel={sorcererLevel}
         slots={model.draft.spells.slots}
         onSetUsed={(used) => {
           if (!model.sorcerySpendId) return
@@ -669,6 +728,22 @@ export function SheetDialogsResources({ model }: { model: SheetModel }) {
           slots={model.draft.spells.slots}
           onClose={() => model.setWizardFeatureUse(null)}
           onConfirm={onWizardUseConfirm}
+        />
+      ) : null}
+
+      {sorcerer2024Use ? (
+        <Sorcerer2024UseDialog
+          key={`${model.sorcererFeatureUse?.featureId}:${model.sorcererFeatureUse?.classEntryId}`}
+          open
+          request={model.sorcererFeatureUse}
+          resources={model.draft.play.resources}
+          slots={model.draft.spells.slots}
+          featurePicks={model.draft.featurePicks}
+          sorcererLevel={sorcererLevel}
+          innateActive={innateActive}
+          hasControlledChaos={hasControlledChaos}
+          onClose={() => model.setSorcererFeatureUse(null)}
+          onConfirm={onSorcererUseConfirm}
         />
       ) : null}
 

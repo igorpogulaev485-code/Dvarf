@@ -15,6 +15,7 @@ import {
   warlockInvocationLimit2024,
   type ClassOptions2024State,
 } from './edition2024ClassOptions'
+import { metamagicPickGainAtLevel2024 } from './sorcerer2024Features'
 import { getFeatureChoicePick, type FeaturePicksState } from './featurePicks'
 import {
   withWizardSpellbookPicksStep,
@@ -84,6 +85,7 @@ export type PendingWizardInput2024 = {
   subclassSlug?: string | null
   /** Used to skip a Scholar step that already has its Expertise pick. */
   featurePicks?: FeaturePicksState
+  classOptions?: ClassOptions2024State
 }
 
 export const SCHOLAR_FEATURE_ID_2024 = 'scholar'
@@ -129,6 +131,26 @@ export function buildPendingWizardSteps2024(input: PendingWizardInput2024): Guid
       featureNameRu: 'Подкласс',
       promptRu: `Выбери подкласс для «${input.className}» — с ${subclassLevel} уровня он даёт умения.`,
     })
+  }
+
+  if (slug === 'sorcerer') {
+    const gain = metamagicPickGainAtLevel2024(level)
+    if (gain > 0) {
+      const known = input.classOptions?.metamagic ?? []
+      const limit = metamagicKnownLimit2024(level)
+      const need = Math.max(0, limit - known.length)
+      const picksNeeded = Math.min(gain, need)
+      if (picksNeeded > 0) {
+        steps.push({
+          id: `metamagic-picks:${input.classEntryId}:${level}`,
+          kind: 'metamagic_picks',
+          classEntryId: input.classEntryId,
+          className: input.className,
+          classLevel: level,
+          picksNeeded,
+        })
+      }
+    }
   }
 
   if (featLevelsForClassSlug(slug).includes(level)) {

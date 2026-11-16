@@ -12,8 +12,8 @@ import {
 
 assert.equal(warlockInvocationLimit2024(5), 5)
 assert.equal(metamagicKnownLimit2024(5), 2)
-assert.equal(metamagicKnownLimit2024(10), 3)
-assert.equal(metamagicKnownLimit2024(17), 4)
+assert.equal(metamagicKnownLimit2024(10), 4)
+assert.equal(metamagicKnownLimit2024(17), 6)
 
 const meta = applyMetamagicSpend2024({
   known: ['quickened', 'careful'],

@@ -10,6 +10,7 @@ import {
 import { formatConditionLabel } from '../../../shared/dnd/conditions'
 import { type SpellSelfFormSlug } from '../spellForms'
 import type { WizardFeatureRequest } from '../WizardFeatureUseDialog'
+import type { SorcererFeatureRequest } from '../SorcererFeatureUseDialog'
 import { type FamiliarCastMode } from '../familiarForms'
 import { withInitiativeBonus } from '../modifiers'
 import { type ToastInput } from '../../../ui'
@@ -206,6 +207,10 @@ export function useSheetEditorPart4(model: SheetModel) {
   )
   model.wizardFeatureUse = wizardFeatureUse
   model.setWizardFeatureUse = setWizardFeatureUse
+  const [sorcererFeatureUse, setSorcererFeatureUse] =
+    useState<SorcererFeatureRequest | null>(null)
+  model.sorcererFeatureUse = sorcererFeatureUse
+  model.setSorcererFeatureUse = setSorcererFeatureUse
   const [infusionsSpendId, setInfusionsSpendId] = useState<string | null>(null)
   model.infusionsSpendId = infusionsSpendId
   model.setInfusionsSpendId = setInfusionsSpendId
@@ -1023,13 +1028,26 @@ export function useSheetEditorPart4(model: SheetModel) {
   model.spellcastingSync = spellcastingSync
 
   const sorcererMetamagicIds = useMemo(() => {
+    const is2024 =
+      (model.rulesEdition ?? model.baseCharacter?.rules_edition ?? '2014') === '2024'
     const ids: string[] = []
+    if (is2024) {
+      ids.push(...(model.draft.classOptions2024?.metamagic ?? []))
+    }
     for (const row of model.draft.classes) {
       if (resolveClassCasterSlug(row.name) !== 'sorcerer') continue
-      ids.push(...getFeaturePickList(model.draft.featurePicks, row.id, 'metamagic'))
+      if (!is2024) {
+        ids.push(...getFeaturePickList(model.draft.featurePicks, row.id, 'metamagic'))
+      }
     }
     return [...new Set(ids)]
-  }, [model.draft.classes, model.draft.featurePicks])
+  }, [
+    model.draft.classes,
+    model.draft.featurePicks,
+    model.draft.classOptions2024,
+    model.rulesEdition,
+    model.baseCharacter?.rules_edition,
+  ])
   model.sorcererMetamagicIds = sorcererMetamagicIds
 
   const sorceryResource =

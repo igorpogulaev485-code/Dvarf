@@ -83,6 +83,14 @@ export type GuidedWizardStep =
       className: string
       classLevel: number
     }
+  | {
+      id: string
+      kind: 'metamagic_picks'
+      classEntryId: string
+      className: string
+      classLevel: number
+      picksNeeded: number
+    }
 
 export function backgroundWizardStep(): GuidedWizardStep {
   return {

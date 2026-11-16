@@ -34,6 +34,11 @@ import {
 } from '../../shared/dnd/classFeatures'
 import { filterTceCatalogOptions } from '../../shared/dnd/filterTceCatalogOptions'
 import {
+  METAMAGIC_2024,
+  metamagicKnownLimit2024,
+  type ClassOptions2024State,
+} from '../../shared/dnd/edition2024ClassOptions'
+import {
   collectExpertiseOptionIdsFromPicks,
   isExpertiseChoice,
   listExpertiseOptions,
@@ -164,6 +169,8 @@ type GuidedWizardDialogProps = {
   } | null
   /** Persist free research picks into the spellbook, then parent advances. */
   onConfirmSpellbookPicks?: (entries: CatalogEntry[]) => void
+  classOptions2024?: ClassOptions2024State
+  onClassOptions2024Change?: (next: ClassOptions2024State) => void
 }
 
 function skillLabel(key: string): string {
@@ -821,6 +828,8 @@ export function GuidedWizardDialog({
   selectedSubclassNameByEntryId,
   spellbookPicksContext = null,
   onConfirmSpellbookPicks,
+  classOptions2024,
+  onClassOptions2024Change,
 }: GuidedWizardDialogProps) {
   const step = session?.steps[session.index] ?? null
   const total = session?.steps.length ?? 0
@@ -945,6 +954,16 @@ export function GuidedWizardDialog({
     step?.kind === 'pact_tome_cantrips' &&
     isPactTomeCantripsComplete(featurePicks, step.classEntryId)
 
+  const metamagicLimit =
+    step?.kind === 'metamagic_picks'
+      ? metamagicKnownLimit2024(step.classLevel)
+      : 0
+  const metamagicCount =
+    step?.kind === 'metamagic_picks' ? (classOptions2024?.metamagic.length ?? 0) : 0
+  const metamagicReady =
+    step?.kind === 'metamagic_picks' &&
+    metamagicCount >= Math.min(step.picksNeeded, metamagicLimit)
+
   const primaryDisabled =
     step?.kind === 'class_grant'
       ? !grantReady
@@ -960,7 +979,9 @@ export function GuidedWizardDialog({
                 ? !spellbookReady
                 : step?.kind === 'pact_tome_cantrips'
                   ? !pactTomeReady
-                  : false
+                  : step?.kind === 'metamagic_picks'
+                    ? !metamagicReady
+                    : false
 
   const title = !step
     ? 'Настройка персонажа'
@@ -978,9 +999,11 @@ export function GuidedWizardDialog({
                 ? `Книга заклинаний · ${step.className} ${step.classLevel}`
                 : step.kind === 'pact_tome_cantrips'
                   ? `Заговоры договора · ${step.className}`
-                  : step.kind === 'feature_choice'
-                    ? `${step.choice.label_ru} · ${step.className}`
-                    : 'Настройка персонажа'
+                  : step.kind === 'metamagic_picks'
+                    ? `Метамагия · ${step.className} ${step.classLevel}`
+                    : step.kind === 'feature_choice'
+                      ? `${step.choice.label_ru} · ${step.className}`
+                      : 'Настройка персонажа'
 
   const choosingFeat =
     (step?.kind === 'asi' && asiUiMode === 'feat') || step?.kind === 'feat'
@@ -1093,6 +1116,16 @@ export function GuidedWizardDialog({
         return
       }
       onToast?.('Заговоры договора: готово')
+      onAdvance(index + 1)
+      return
+    }
+
+    if (step.kind === 'metamagic_picks') {
+      if (!metamagicReady) {
+        onToast?.(`Выбери ещё ${Math.max(0, step.picksNeeded - metamagicCount)} вариант(а) метамагии`)
+        return
+      }
+      onToast?.('Метамагия: готово')
       onAdvance(index + 1)
     }
   }
@@ -1296,6 +1329,44 @@ export function GuidedWizardDialog({
             classListSlugs={spellbookPicksContext?.classListSlugs ?? ['wizard']}
             subclassSlug={spellbookPicksContext?.subclassSlug ?? null}
           />
+        ) : null}
+        {step.kind === 'metamagic_picks' ? (
+          <Stack gap={12}>
+            <Text tone="muted">
+              Выбери {step.picksNeeded} вариант(а) метамагии ({metamagicCount}/{metamagicLimit}).
+            </Text>
+            <div className="sheet-chip-row">
+              {METAMAGIC_2024.map((row) => {
+                const selected = classOptions2024?.metamagic.includes(row.id) ?? false
+                return (
+                  <button
+                    key={row.id}
+                    type="button"
+                    className={`sheet-chip${selected ? ' is-on' : ''}`}
+                    title={`${row.summaryRu} (−${row.cost})`}
+                    onClick={() => {
+                      if (!classOptions2024 || !onClassOptions2024Change) return
+                      const cur = new Set(classOptions2024.metamagic)
+                      if (cur.has(row.id)) cur.delete(row.id)
+                      else {
+                        if (cur.size >= metamagicLimit) {
+                          onToast?.(`Лимит метамагии: ${metamagicLimit}`)
+                          return
+                        }
+                        cur.add(row.id)
+                      }
+                      onClassOptions2024Change({
+                        ...classOptions2024,
+                        metamagic: [...cur],
+                      })
+                    }}
+                  >
+                    {row.nameRu}
+                  </button>
+                )
+              })}
+            </div>
+          </Stack>
         ) : null}
         {step.kind === 'pact_tome_cantrips' ? (
           <Stack gap={12}>

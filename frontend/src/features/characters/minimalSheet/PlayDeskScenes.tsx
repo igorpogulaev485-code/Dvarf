@@ -1590,6 +1590,8 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
           if (notice) model.onToast(notice)
         }}
         onWizardFeatureUse={(request) => model.setWizardFeatureUse(request)}
+        onSorcererFeatureUse={(request) => model.setSorcererFeatureUse(request)}
+        onSorceryPointsSpend={(resourceId) => model.setSorcerySpendId(resourceId)}
         onMoonFormSlotHeal={({ slotLevel, diceCount, diceSize }) => {
           const form = model.draft.companions.find(
             (c) => c.role === 'self_form' && c.active,

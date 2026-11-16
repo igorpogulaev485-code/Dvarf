@@ -61,7 +61,12 @@ import {
   WIZARD_2024_CARD_BUTTONS,
   wizard2024UseFeatureId,
 } from '../../shared/dnd/wizard2024Features'
+import {
+  SORCERER_2024_CARD_BUTTONS,
+  sorcerer2024UseFeatureId,
+} from '../../shared/dnd/sorcerer2024Features'
 import type { WizardFeatureRequest } from './WizardFeatureUseDialog'
+import type { SorcererFeatureRequest } from './SorcererFeatureUseDialog'
 import {
   FLEXIBLE_CASTING_SLOT_COST,
   isTceMetamagic,
@@ -219,6 +224,10 @@ type ClassFeaturesPanelProps = {
   onFeatureSelfForm?: (request: FeatureSelfFormRequest) => void
   /** Tradition features that ask for a target, mode, or active state. */
   onWizardFeatureUse?: (request: WizardFeatureRequest) => void
+  /** Sorcerer 2024 feature dialogs (edition 2024 only). */
+  onSorcererFeatureUse?: (request: SorcererFeatureRequest) => void
+  /** Open sorcery-points spend dialog (2024 metamagic / font). */
+  onSorceryPointsSpend?: (resourceId: string) => void
   /**
    * Moon Combat Wild Shape: spend slot + heal active self_form (caller updates spells).
    * Return toast message on success, null if no form.
@@ -353,7 +362,13 @@ function featureCanExpand(feature: UnlockedFeature): boolean {
   if (feature.resource?.pool_id) return true
   if (feature.choice) return true
   if (feature.slot_spend) return true
-  if (feature.id === 'metamagic' || feature.id === 'flexible_casting') return true
+  if (
+    feature.id === 'metamagic' ||
+    feature.id === 'flexible_casting' ||
+    feature.id === 'font-of-magic'
+  ) {
+    return true
+  }
   if (feature.summon) return true
   if (feature.replaces) return true
   return false
@@ -382,6 +397,7 @@ function FeatureResourceControls({
   onOpenRecovery,
   onFeatureSelfForm,
   onWizardFeatureUse,
+  onSorcererFeatureUse,
   onFeatureBuffApply,
   moonCombatWildShape = false,
   scaleText = null,
@@ -402,6 +418,7 @@ function FeatureResourceControls({
   onOpenRecovery?: (resourceId: string) => void
   onFeatureSelfForm?: (request: FeatureSelfFormRequest) => void
   onWizardFeatureUse?: (request: WizardFeatureRequest) => void
+  onSorcererFeatureUse?: (request: SorcererFeatureRequest) => void
   onFeatureBuffApply?: ClassFeaturesPanelProps['onFeatureBuffApply']
   /** Circle of the Moon: Wild Shape is a bonus action. */
   moonCombatWildShape?: boolean
@@ -836,7 +853,24 @@ function FeatureResourceControls({
         ) : isPack03CustomSpend(feature.id) ||
           pack04CustomSpendFeature(feature.id) ||
           pack05CustomSpendFeature(feature.id) ||
-          pack07CustomSpendFeature(feature.id) ? null : onWizardFeatureUse &&
+          pack07CustomSpendFeature(feature.id) ? null : edition === '2024' &&
+          onSorcererFeatureUse &&
+          sorcerer2024UseFeatureId(feature.id) ? (
+          <Button
+            type="button"
+            onClick={() =>
+              onSorcererFeatureUse({
+                featureId: feature.id,
+                resourceId: pool.id,
+                classSlug,
+                classEntryId: feature.classEntryId,
+                name: feature.name_ru,
+              })
+            }
+          >
+            {SORCERER_2024_CARD_BUTTONS[feature.id] ?? 'Использовать…'}
+          </Button>
+        ) : onWizardFeatureUse &&
           (wizardResolvedFeatureId(feature.id) ||
             (edition === '2024' && wizard2024UseFeatureId(feature.id))) ? (
           <Button
@@ -1519,6 +1553,8 @@ function MetamagicSpendControls({
   resources,
   onResourcesChange,
   onToast,
+  edition = '2014',
+  onSorceryPointsSpend,
 }: {
   feature: UnlockedFeature
   featurePicks: FeaturePicksState
@@ -1526,8 +1562,29 @@ function MetamagicSpendControls({
   resources: SheetResource[]
   onResourcesChange: (resources: SheetResource[]) => void
   onToast?: (message: string) => void
+  edition?: string
+  onSorceryPointsSpend?: (resourceId: string) => void
 }) {
   if (feature.id !== 'metamagic') return null
+  if (edition === '2024') {
+    const pool = findFeatureResource(
+      resources,
+      classSlug,
+      'sorcery_points',
+      feature.classEntryId,
+    )
+    if (!pool) return null
+    return (
+      <div className="feature-resource">
+        <Text tone="muted">Метамагия и очки — через «Источник магии».</Text>
+        <div className="feature-resource__actions">
+          <Button type="button" onClick={() => onSorceryPointsSpend?.(pool.id)}>
+            Потратить очки…
+          </Button>
+        </div>
+      </div>
+    )
+  }
   const selected = getFeaturePickList(featurePicks, feature.classEntryId, feature.id)
   if (!selected.length) return null
 
@@ -1605,6 +1662,7 @@ function FlexibleCastingControls({
   spells,
   onSpellsChange,
   onToast,
+  edition = '2014',
 }: {
   feature: UnlockedFeature
   classSlug: string
@@ -1613,8 +1671,10 @@ function FlexibleCastingControls({
   spells: SpellsState
   onSpellsChange: (spells: SpellsState) => void
   onToast?: (message: string) => void
+  edition?: string
 }) {
   if (feature.id !== 'flexible_casting') return null
+  if (edition === '2024') return null
   const pool = findFeatureResource(
     resources,
     classSlug,
@@ -2020,6 +2080,8 @@ function FeatureRow({
   onHpChange,
   onFeatureSelfForm,
   onWizardFeatureUse,
+  onSorcererFeatureUse,
+  onSorceryPointsSpend,
   moonCombatWildShape = false,
   onMoonFormSlotHeal,
   divineSmiteIntent,
@@ -2069,6 +2131,8 @@ function FeatureRow({
   onHpChange?: (hp: number) => void
   onFeatureSelfForm?: (request: FeatureSelfFormRequest) => void
   onWizardFeatureUse?: (request: WizardFeatureRequest) => void
+  onSorcererFeatureUse?: (request: SorcererFeatureRequest) => void
+  onSorceryPointsSpend?: (resourceId: string) => void
   moonCombatWildShape?: boolean
   onMoonFormSlotHeal?: (input: {
     slotLevel: number
@@ -2393,6 +2457,27 @@ function FeatureRow({
         </div>
       ) : null}
       {replacementStatus === 'active' &&
+      edition === '2024' &&
+      onSorcererFeatureUse &&
+      SORCERER_2024_CARD_BUTTONS[feature.id] ? (
+        <div className="feature-resource__actions">
+          <Button
+            type="button"
+            onClick={() =>
+              onSorcererFeatureUse({
+                featureId: feature.id,
+                resourceId: null,
+                classSlug,
+                classEntryId: feature.classEntryId,
+                name: feature.name_ru,
+              })
+            }
+          >
+            {SORCERER_2024_CARD_BUTTONS[feature.id]}
+          </Button>
+        </div>
+      ) : null}
+      {replacementStatus === 'active' &&
       onWizardFeatureUse &&
       (feature.id === 'minor_conjuration' || feature.id === 'command_undead') ? (
         <div className="feature-resource__actions">
@@ -2459,6 +2544,8 @@ function FeatureRow({
           resources={resources}
           onResourcesChange={onResourcesChange}
           onToast={onToast}
+          edition={edition}
+          onSorceryPointsSpend={onSorceryPointsSpend}
         />
       ) : null}
       {replacementStatus === 'active' ? (
@@ -2470,6 +2557,7 @@ function FeatureRow({
           spells={spells}
           onSpellsChange={onSpellsChange}
           onToast={onToast}
+          edition={edition}
         />
       ) : null}
       {replacementStatus === 'active' ? (
@@ -2524,6 +2612,7 @@ function FeatureRow({
           onOpenRecovery={onOpenRecovery}
           onFeatureSelfForm={onFeatureSelfForm}
           onWizardFeatureUse={onWizardFeatureUse}
+          onSorcererFeatureUse={onSorcererFeatureUse}
           onFeatureBuffApply={onFeatureBuffApply}
           moonCombatWildShape={moonCombatWildShape}
           scaleText={scaleShown}
@@ -2736,6 +2825,8 @@ export function ClassFeaturesPanel({
   onHpChange,
   onFeatureSelfForm,
   onWizardFeatureUse,
+  onSorcererFeatureUse,
+  onSorceryPointsSpend,
   onMoonFormSlotHeal,
   divineSmiteIntent,
   onDivineSmiteIntent,
@@ -3313,6 +3404,8 @@ export function ClassFeaturesPanel({
                             onHpChange={onHpChange}
                             onFeatureSelfForm={onFeatureSelfForm}
                             onWizardFeatureUse={onWizardFeatureUse}
+                            onSorcererFeatureUse={onSorcererFeatureUse}
+                            onSorceryPointsSpend={onSorceryPointsSpend}
                             moonCombatWildShape={moonCombatWildShape}
                             onMoonFormSlotHeal={onMoonFormSlotHeal}
                             divineSmiteIntent={divineSmiteIntent}

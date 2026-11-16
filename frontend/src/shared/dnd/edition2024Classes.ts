@@ -270,6 +270,14 @@ const RESOURCE_META: Record<string, ResourceMeta> = {
     feature_id: 'innate-sorcery',
     kind: 'resource',
   },
+  sorcerous_restoration: {
+    name_ru: 'Чародейское восстановление',
+    reset: 'long',
+    feature_id: 'sorcerous-restoration',
+    fixed_uses: 1,
+    kind: 'resource',
+    on_hot: false,
+  },
   favored_enemy_uses: {
     name_ru: 'Заклятый враг',
     reset: 'long',
@@ -769,15 +777,18 @@ export function computeProgression2024(input: {
       scales[`${cls.slug}:bardic_inspiration_die`] = rawRes.bardic_inspiration_die
       rawRes.bardic_inspiration = true
     }
-    // Arcane recovery
+    // Arcane recovery / Sorcerous Restoration (not in raw resources table)
     let hasArcane = false
+    let hasSorcerousRestoration = false
     for (const lr of levels) {
       if (Number(lr.level || 0) > cls.level) continue
       for (const f of (lr.features as Array<Record<string, unknown>>) || []) {
         if (f.id === 'arcane-recovery') hasArcane = true
+        if (f.id === 'sorcerous-restoration') hasSorcerousRestoration = true
       }
     }
     if (hasArcane && cls.slug === 'wizard') rawRes.arcane_recovery = 1
+    if (hasSorcerousRestoration && cls.slug === 'sorcerer') rawRes.sorcerous_restoration = 1
     if (cls.slug === 'artificer' && cls.level >= 1) rawRes.magic_of_making = true
 
     for (const [key, value] of Object.entries(rawRes)) {
