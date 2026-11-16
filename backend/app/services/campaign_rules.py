@@ -384,8 +384,15 @@ DEFAULT_CAMPAIGN_RULES: dict[str, Any] = {
 }
 
 
-def default_campaign_rules() -> dict[str, Any]:
-    return deepcopy(DEFAULT_CAMPAIGN_RULES)
+def default_campaign_rules(edition: str | None = None) -> dict[str, Any]:
+    """Fresh campaign_rules. 2014 keeps potion_bonus_self=False (PHB action).
+
+    2024 defaults potion_bonus_self=True so new lobbies match the book (bonus).
+    """
+    rules = deepcopy(DEFAULT_CAMPAIGN_RULES)
+    if str(edition or "2014").strip() == "2024":
+        rules["homebrew"]["potion_bonus_self"] = True
+    return rules
 
 
 def _as_bool(value: Any, default: bool) -> bool:
@@ -644,12 +651,12 @@ def catalog_public() -> list[dict[str, str]]:
 # P24-02: same keys, SRD 5.2.1 reinterpretation for rules_edition=2024 lobbies.
 HOMEBREW_CATALOG_2024_OVERLAY: dict[str, dict[str, str]] = {
     "potion_bonus_self": {
-        "label": "Зелье стоит действие",
+        "label": "Зелье бонусным действием",
         "tip": (
             "По книге 2024 выпить или дать зелье — бонусное действие. "
-            "Вкл.: домашнее ужесточение — зелье себе стоит полноценное действие."
+            "Выкл.: домашнее правило — зелье себе стоит полноценное действие."
         ),
-        "source": "Домашнее поверх SRD 5.2.1",
+        "source": "SRD 5.2.1 / домашнее",
     },
     "inspiration_stack": {
         "label": "Стопка героического вдохновения",
@@ -700,9 +707,10 @@ def catalog_public_for_edition(edition: str | None = "2014") -> list[dict[str, s
 def potion_self_timing(edition: str | None, potion_bonus_self: bool) -> str:
     """Return 'bonus' or 'action' for drinking a potion on yourself.
 
-    2014: toggle ON = Tasha bonus; OFF = action.
-    2024: book default = bonus; toggle ON = stricter house (action).
+    Both editions: toggle ON (potion_bonus_self) = bonus; OFF = action.
+    2014: ON = Tasha house bonus; OFF = PHB action (default).
+    2024: ON = book bonus (default for new campaigns); OFF = house action.
+    ``edition`` kept for call-site compatibility; polarity is not inverted.
     """
-    if str(edition or "2014").strip() == "2024":
-        return "action" if potion_bonus_self else "bonus"
+    _ = edition
     return "bonus" if potion_bonus_self else "action"

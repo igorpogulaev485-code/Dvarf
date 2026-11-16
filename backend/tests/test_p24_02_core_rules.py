@@ -7,6 +7,7 @@ from app.services.campaign_rules import (
     HOMEBREW_KEYS,
     catalog_public,
     catalog_public_for_edition,
+    default_campaign_rules,
     potion_self_timing,
 )
 
@@ -27,8 +28,10 @@ def test_homebrew_catalog_2024_same_keys_new_tips():
     potion14 = next(r for r in c14 if r["key"] == "potion_bonus_self")
     potion24 = next(r for r in c24 if r["key"] == "potion_bonus_self")
     assert potion14["label"] == "Зелье бонусным действием"
-    assert potion24["label"] == "Зелье стоит действие"
-    assert "бонусное" in potion24["tip"].lower() or "бонусн" in potion24["tip"].lower()
+    assert potion24["label"] == "Зелье бонусным действием"
+    tip_l = potion24["tip"].lower()
+    assert "бонусн" in tip_l
+    assert "выкл" in tip_l
 
     stack24 = next(r for r in c24 if r["key"] == "inspiration_stack")
     assert "героическ" in stack24["label"].lower()
@@ -40,8 +43,27 @@ def test_homebrew_catalog_2014_unchanged_via_edition_helper():
     assert c14 == via
 
 
-def test_potion_self_timing_by_edition():
+def test_potion_self_timing_2014_unchanged():
+    """2014: OFF = PHB action, ON = Tasha bonus — polarity unchanged."""
     assert potion_self_timing("2014", False) == "action"
     assert potion_self_timing("2014", True) == "bonus"
-    assert potion_self_timing("2024", False) == "bonus"
-    assert potion_self_timing("2024", True) == "action"
+
+
+def test_potion_self_timing_2024_both_values():
+    """2024: ON = book bonus, OFF = house action (no polarity inversion)."""
+    assert potion_self_timing("2024", True) == "bonus"
+    assert potion_self_timing("2024", False) == "action"
+
+
+def test_potion_bonus_self_defaults_by_edition():
+    d14 = default_campaign_rules()
+    d14_explicit = default_campaign_rules("2014")
+    d24 = default_campaign_rules("2024")
+    assert d14["homebrew"]["potion_bonus_self"] is False
+    assert d14_explicit["homebrew"]["potion_bonus_self"] is False
+    assert d24["homebrew"]["potion_bonus_self"] is True
+    # Other homebrew defaults stay shared.
+    assert d14["homebrew"]["inspiration_stack"] is False
+    assert d24["homebrew"]["inspiration_stack"] is False
+    assert d14["homebrew"]["hidden_death_saves"] is True
+    assert d24["homebrew"]["hidden_death_saves"] is True

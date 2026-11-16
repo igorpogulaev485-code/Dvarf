@@ -479,7 +479,8 @@ export function defaultStartRules(): StartRules {
   }
 }
 
-export function defaultCampaignRules(): CampaignRules {
+export function defaultCampaignRules(edition?: string | null): CampaignRules {
+  const potionBonusSelf = String(edition ?? '2014').trim() === '2024'
   return {
     edition_2014: {
       feats_instead_of_asi: true,
@@ -487,7 +488,7 @@ export function defaultCampaignRules(): CampaignRules {
       hp_on_level_up: 'average',
     },
     homebrew: {
-      potion_bonus_self: false,
+      potion_bonus_self: potionBonusSelf,
       inspiration_stack: false,
       inspiration_stack_max: 3,
       flanking_advantage: false,

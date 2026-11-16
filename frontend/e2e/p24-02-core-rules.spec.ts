@@ -52,7 +52,7 @@ test.describe('P24-02 core rules: 2014 isolation + 2024 modules', () => {
       'Зелье бонусным действием',
     )
     await expect(page.getByTestId('p24-02-potion-2024')).toContainText(
-      'Зелье стоит действие',
+      'Зелье бонусным действием',
     )
     await expect(page.getByTestId('p24-02-stack-2024')).toContainText(
       'героического',
