@@ -1371,6 +1371,11 @@ export function readCatalogSpellFields(data: Record<string, unknown>): Partial<S
   }
 }
 
+/** Display order inside a circle: А→Я by Russian name (case-insensitive; ё≈е). */
+export function compareSpellDisplayName(a: string, b: string): number {
+  return a.localeCompare(b, 'ru', { sensitivity: 'base' })
+}
+
 export function groupSpellsByLevel(spells: SheetSpell[]): Array<{ level: number; spells: SheetSpell[] }> {
   const map = new Map<number, SheetSpell[]>()
   for (const spell of spells) {
@@ -1380,7 +1385,10 @@ export function groupSpellsByLevel(spells: SheetSpell[]): Array<{ level: number;
   }
   return [...map.entries()]
     .sort((a, b) => a[0] - b[0])
-    .map(([level, grouped]) => ({ level, spells: grouped }))
+    .map(([level, grouped]) => ({
+      level,
+      spells: [...grouped].sort((a, b) => compareSpellDisplayName(a.name, b.name)),
+    }))
 }
 
 /**

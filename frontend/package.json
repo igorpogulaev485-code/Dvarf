@@ -82,6 +82,7 @@
     "selfcheck:wapi13-help": "tsx --tsconfig tsconfig.app.json src/features/worldImport/worldImportHelp.selfcheck.ts",
     "selfcheck:spells-collapse-align": "tsx --tsconfig tsconfig.app.json src/features/characters/spellsCollapseAlign.selfcheck.ts",
     "selfcheck:abilities-column-scroll": "tsx --tsconfig tsconfig.app.json src/features/characters/abilitiesColumnScroll.selfcheck.ts",
+    "selfcheck:spell-alpha-sort": "tsx --tsconfig tsconfig.app.json src/features/characters/spellAlphaSort.selfcheck.ts",
     "selfcheck:passives-sense-row": "tsx --tsconfig tsconfig.app.json src/features/characters/passivesSenseRow.selfcheck.ts",
     "test:e2e:onboarding": "playwright test --config=playwright.onboarding.config.ts"
   },

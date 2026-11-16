@@ -1036,6 +1036,13 @@
 - Причина: `.play-desk-compact__list` — `display:grid`, `.play-desk-compact__list--scroll` получает фиксированную высоту (`flex:1`), `align-content` по умолчанию `stretch`.
 - Статус: фикс `align-content: start` на `.play-desk-compact__list--scroll` (`18-spell-compact-cards.css`). ClassFeatures / Companions / TextBlocks без той же связки flex+grid — без правок.
 
+### 2026-11-16 — заклинания в круге не по алфавиту
+
+- Где: Play Desk compact «Заклинания» / полная `SpellsPanel` (и прочие потребители `groupSpellsByLevel`).
+- Симптом: внутри круга порядок произвольный (напр. Туманное облако → Волна грома → Приказ).
+- Ожидание: А→Я по русскому `name`, `localeCompare('ru', { sensitivity: 'base' })`.
+- Статус: сортировка в `groupSpellsByLevel` (`spells.ts`).
+
 ### 2026-11-16 — развёрнутые характеристики разъезжают Play Desk
 
 - Где: Play Desk, левая колонка `AbilitySkillsColumn` (десктоп ≥960, рядом с «Атаки» / «Заклинания»).
