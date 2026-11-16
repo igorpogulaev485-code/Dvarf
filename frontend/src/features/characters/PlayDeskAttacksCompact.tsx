@@ -224,6 +224,12 @@ import {
   focusedAimKiClamp,
   hasO02Feature,
 } from '../../shared/dnd/o02TashaFeatures'
+import {
+  BLESSED_STRIKES_DIVINE_STRIKE,
+  BLESSED_STRIKES_POTENT_SPELLCASTING,
+  divineStrikeDice2024,
+  readBlessedStrikes2024,
+} from '../../shared/dnd/cleric2024Features'
 import { DivineSmiteCombatBlock } from './DivineSmiteCombatBlock'
 import {
   decideSmiteSlotClick,
@@ -866,15 +872,44 @@ export function PlayDeskAttacksCompact({
     () => critThresholdFromFeatures(combatFeatures, rulesEdition),
     [combatFeatures, rulesEdition],
   )
-  const divineStrike = useMemo(() => divineStrikeRider(combatFeatures), [combatFeatures])
-  const blessedStrikes = useMemo(
-    () =>
-      blessedStrikesRider({
-        features: combatFeatures,
-        tceAllowed,
-      }),
-    [combatFeatures, tceAllowed],
-  )
+  const divineStrike = useMemo(() => {
+    // 2014 domain Divine Strike (unchanged).
+    const from2014 = divineStrikeRider(combatFeatures)
+    if (String(rulesEdition ?? '2014').trim() !== '2024') return from2014
+    // 2024 Blessed Strikes → Divine Strike choice (class feature, not domain).
+    if (!featurePicks) return from2014
+    for (const row of combatFeatures) {
+      if (!row.classEntryId) continue
+      if (readBlessedStrikes2024(featurePicks, row.classEntryId) !== BLESSED_STRIKES_DIVINE_STRIKE) {
+        continue
+      }
+      const diceCount = divineStrikeDice2024(row.classLevel || 0)
+      if (diceCount <= 0) continue
+      return {
+        dice: `${diceCount}d8`,
+        type: 'излучением или некротическим',
+        label: `${diceCount}к8 излучением или некротическим, раз в ход`,
+        rollLabel: `Божественный удар, ${diceCount}к8`,
+      }
+    }
+    return from2014
+  }, [combatFeatures, featurePicks, rulesEdition])
+  const blessedStrikes = useMemo(() => {
+    // 2024 Potent Spellcasting is a cantrip rider — not the TCE Blessed Strikes weapon chip.
+    if (String(rulesEdition ?? '2014').trim() === '2024' && featurePicks) {
+      for (const row of combatFeatures) {
+        if (!row.classEntryId) continue
+        const pick = readBlessedStrikes2024(featurePicks, row.classEntryId)
+        if (pick === BLESSED_STRIKES_DIVINE_STRIKE || pick === BLESSED_STRIKES_POTENT_SPELLCASTING) {
+          return null
+        }
+      }
+    }
+    return blessedStrikesRider({
+      features: combatFeatures,
+      tceAllowed,
+    })
+  }, [combatFeatures, tceAllowed, featurePicks, rulesEdition])
   const improvedSmite = useMemo(
     () => improvedDivineSmiteRider(combatFeatures),
     [combatFeatures],
