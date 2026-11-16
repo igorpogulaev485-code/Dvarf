@@ -16,6 +16,10 @@ import type { ClassLevelEntry } from './classLevels'
 import type { DesiredFeatureResource } from './featureResources'
 import type { SheetResource } from './rest'
 import {
+  blessedStrikesChoice2024,
+  clericBaseChannelOptionsAtLevel2024,
+} from './cleric2024Features'
+import {
   alwaysPreparedForSubclass2024,
   buildPermanentBonuses2024,
   buildSubclassResources2024,
@@ -289,6 +293,15 @@ const RESOURCE_META: Record<string, ResourceMeta> = {
     kind: 'resource',
     on_hot: false,
     unlock_level: 5,
+  },
+  divine_intervention: {
+    name_ru: 'Божественное вмешательство',
+    reset: 'long',
+    feature_id: 'divine-intervention',
+    fixed_uses: 1,
+    kind: 'resource',
+    on_hot: false,
+    unlock_level: 10,
   },
   magical_cunning: {
     name_ru: 'Магическая искусность',
@@ -684,6 +697,18 @@ export const SCHOLAR_CHOICE_2024: FeatureChoiceDef = {
   options: [...SCHOLAR_SKILL_KEYS_2024],
 }
 
+function catalogSummaryFor(
+  levels: Array<Record<string, unknown>>,
+  featureId: string,
+): string {
+  for (const lr of levels) {
+    for (const f of (lr.features as Array<Record<string, unknown>>) || []) {
+      if (f.id === featureId) return String(f.summary_ru || '').trim()
+    }
+  }
+  return ''
+}
+
 export function computeProgression2024(input: {
   classes: ClassLevelEntry[]
   subclassSlugByEntryId?: Record<string, string | null | undefined>
@@ -730,6 +755,8 @@ export function computeProgression2024(input: {
         if (!fidRaw) continue
         if (fidRaw.endsWith('-subclass') || fidRaw === 'subclass-feature') continue
         const fid = fidRaw.replace(/-/g, '_')
+        // Cleric Divine Spark / Turn Undead are materialised as channel_divinity options below.
+        if (cls.slug === 'cleric' && (fid === 'divine_spark' || fid === 'turn_undead')) continue
         // Generic class row `mystic-arcanum` at 11/13/15/17 → one resource card per circle.
         if (fidRaw === 'mystic-arcanum' || fid === 'mystic_arcanum') {
           const circle =
@@ -770,6 +797,9 @@ export function computeProgression2024(input: {
           scaleValue: null,
           resourceUses: null,
           ...(fid === 'scholar' ? { choice: SCHOLAR_CHOICE_2024 } : {}),
+          ...(fid === 'blessed_strikes' && cls.slug === 'cleric'
+            ? { choice: blessedStrikesChoice2024 }
+            : {}),
           // Disciplined Survivor (2024): proficiency in all saving throws (like Diamond Soul 2014).
           ...(fid === 'disciplined_survivor' ? { save_proficiency: 'all' as const } : {}),
         })
@@ -895,6 +925,14 @@ export function computeProgression2024(input: {
     if (hasSorcerousRestoration && cls.slug === 'sorcerer') rawRes.sorcerous_restoration = 1
     if (hasUncannyMetabolism && cls.slug === 'monk') rawRes.uncanny_metabolism = 1
     if (cls.slug === 'artificer' && cls.level >= 1) rawRes.magic_of_making = true
+    if (cls.slug === 'cleric' && cls.level >= 10) {
+      for (const lr of levels) {
+        if (Number(lr.level || 0) > cls.level) continue
+        for (const f of (lr.features as Array<Record<string, unknown>>) || []) {
+          if (f.id === 'divine-intervention') rawRes.divine_intervention = 1
+        }
+      }
+    }
     if (cls.slug === 'warlock') {
       let hasMagicalCunning = false
       let hasContactPatron = false
@@ -986,6 +1024,37 @@ export function computeProgression2024(input: {
             summary_ru: tech.name_ru,
             kind: 'bonus',
             resource: focusResource,
+            classEntryId: cls.entryId,
+            className: cls.name,
+            classLevel: cls.level,
+            source: 'class',
+            subclassSlug: null,
+            subclassName: null,
+            scaleValue: null,
+            resourceUses: null,
+          })
+        }
+      }
+
+      // Cleric Channel Divinity base options — synthetic cards sharing the pool (2024 only).
+      if (key === 'channel_divinity' && cls.slug === 'cleric') {
+        const channelResource: FeatureResource = {
+          uses: max,
+          recharge: 'long_rest',
+          pool_id: 'channel_divinity',
+          pool_name_ru: RESOURCE_META.channel_divinity!.name_ru,
+          track: 'spend',
+          spend_cost: 1,
+        }
+        for (const option of clericBaseChannelOptionsAtLevel2024(cls.level)) {
+          features.push({
+            id: option.feature_id.replace(/-/g, '_'),
+            level: option.min_level,
+            name_ru: option.name_ru,
+            name_en: option.feature_id,
+            summary_ru: catalogSummaryFor(levels, option.feature_id) || option.name_ru,
+            kind: option.kind === 'bonus' ? 'bonus' : 'action',
+            resource: channelResource,
             classEntryId: cls.entryId,
             className: cls.name,
             classLevel: cls.level,

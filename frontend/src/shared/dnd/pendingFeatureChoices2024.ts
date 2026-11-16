@@ -15,6 +15,10 @@ import {
   warlockInvocationLimit2024,
   type ClassOptions2024State,
 } from './edition2024ClassOptions'
+import {
+  BLESSED_STRIKES_MIN_LEVEL_2024,
+  blessedStrikesChoice2024,
+} from './cleric2024Features'
 import { metamagicPickGainAtLevel2024 } from './sorcerer2024Features'
 import { invocationPickGainAtLevel2024 } from './warlock2024Features'
 import { getFeatureChoicePick, type FeaturePicksState } from './featurePicks'
@@ -91,6 +95,12 @@ export type PendingWizardInput2024 = {
 
 export const SCHOLAR_FEATURE_ID_2024 = 'scholar'
 export const SCHOLAR_LEVEL_2024 = 2
+
+export const BLESSED_STRIKES_FEATURE_ID_2024 = 'blessed_strikes'
+
+export function blessedStrikesStepId2024(classEntryId: string): string {
+  return `feature_choice:${classEntryId}:${BLESSED_STRIKES_FEATURE_ID_2024}`
+}
 
 export function scholarStepId2024(classEntryId: string): string {
   return `feature_choice:${classEntryId}:${SCHOLAR_FEATURE_ID_2024}`
@@ -197,6 +207,32 @@ export function buildPendingWizardSteps2024(input: PendingWizardInput2024): Guid
       promptRu: `Эпический дар: на ${level} уровне «${input.className}» открывает эпический дар вместо обычной черты. Выбери его из каталога.`,
       noteRu: 'Эпический дар (2024) — черта категории «Эпический дар»; гранты лягут на лист.',
     })
+  }
+
+  if (slug === 'cleric' && level >= BLESSED_STRIKES_MIN_LEVEL_2024) {
+    const picked = input.featurePicks
+      ? Boolean(
+          getFeatureChoicePick(
+            input.featurePicks,
+            input.classEntryId,
+            BLESSED_STRIKES_FEATURE_ID_2024,
+            blessedStrikesChoice2024.id,
+          ),
+        )
+      : false
+    if (!picked) {
+      steps.push({
+        id: blessedStrikesStepId2024(input.classEntryId),
+        kind: 'feature_choice',
+        classEntryId: input.classEntryId,
+        className: input.className,
+        classLevel: level,
+        featureId: BLESSED_STRIKES_FEATURE_ID_2024,
+        featureNameRu: blessedStrikesChoice2024.label_ru,
+        featureLevel: BLESSED_STRIKES_MIN_LEVEL_2024,
+        choice: blessedStrikesChoice2024,
+      })
+    }
   }
 
   // Level 1 book (6 spells) is filled by create; every later wizard level adds 2.

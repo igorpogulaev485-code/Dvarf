@@ -13,6 +13,7 @@ import type { WizardFeatureRequest } from '../WizardFeatureUseDialog'
 import type { SorcererFeatureRequest } from '../SorcererFeatureUseDialog'
 import type { MonkFeatureRequest } from '../Monk2024UseDialog'
 import type { WarlockFeatureRequest } from '../Warlock2024UseDialog'
+import type { ClericFeatureRequest } from '../Cleric2024UseDialog'
 import { type FamiliarCastMode } from '../familiarForms'
 import { withInitiativeBonus } from '../modifiers'
 import { type ToastInput } from '../../../ui'
@@ -220,6 +221,10 @@ export function useSheetEditorPart4(model: SheetModel) {
     useState<WarlockFeatureRequest | null>(null)
   model.warlockFeatureUse = warlockFeatureUse
   model.setWarlockFeatureUse = setWarlockFeatureUse
+  const [clericFeatureUse, setClericFeatureUse] =
+    useState<ClericFeatureRequest | null>(null)
+  model.clericFeatureUse = clericFeatureUse
+  model.setClericFeatureUse = setClericFeatureUse
   const [infusionsSpendId, setInfusionsSpendId] = useState<string | null>(null)
   model.infusionsSpendId = infusionsSpendId
   model.setInfusionsSpendId = setInfusionsSpendId

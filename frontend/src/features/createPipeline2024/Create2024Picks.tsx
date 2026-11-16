@@ -179,7 +179,7 @@ export function ClassPicks({
       ) : null}
       {state.classSlug === 'cleric' ? (
         <PickChipGroup
-          label="Божественный указ"
+          label="Божественный орден"
           options={DIVINE_ORDER_OPTIONS.map((row) => ({ ...row }))}
           selected={state.classOptionPicks.divine_order ? [String(state.classOptionPicks.divine_order)] : []}
           max={1}

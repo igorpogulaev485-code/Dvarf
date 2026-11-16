@@ -29,6 +29,7 @@ import { Wizard2024UseDialog } from '../Wizard2024UseDialog'
 import { Sorcerer2024UseDialog } from '../Sorcerer2024UseDialog'
 import { Monk2024UseDialog } from '../Monk2024UseDialog'
 import { Warlock2024UseDialog } from '../Warlock2024UseDialog'
+import { Cleric2024UseDialog, type ClericFeatureRequest } from '../Cleric2024UseDialog'
 import type { WizardFeatureUseResult } from '../../../shared/dnd/wizardTradition'
 import {
   applySelfDamage2024,
@@ -61,6 +62,11 @@ import {
   warlock2024UseFeatureId,
   type WarlockFeatureUseResult,
 } from '../../../shared/dnd/warlock2024Features'
+import {
+  cleric2024UseFeatureId,
+  type Cleric2024UseResult,
+} from '../../../shared/dnd/cleric2024Features'
+import { applyLongRestFeaturePicks2024 } from '../../../shared/dnd/rest2024'
 import { chooseTempHpPool } from '../../../shared/dnd/activeEffects'
 import { resolveClassCasterSlug, warlockLevels } from '../../../shared/dnd/casterProgression'
 import type { Wizard2024RestProps } from '../Wizard2024RestSwaps'
@@ -280,6 +286,34 @@ export function SheetDialogsResources({ model }: { model: SheetModel }) {
     }
     model.onToast(result.message)
     model.setWarlockFeatureUse(null)
+  }
+
+  const onClericUseConfirm = (result: Cleric2024UseResult) => {
+    if (!result.ok) {
+      model.onToast(result.message ?? 'Не удалось применить умение')
+      return
+    }
+    const featureId = cleric2024UseFeatureId(model.clericFeatureUse?.featureId) ?? 'cleric'
+    const patches = result.patches
+    model.setDraft((prev) => ({
+      ...prev,
+      ...(patches?.featurePicks ? { featurePicks: patches.featurePicks } : {}),
+      play: {
+        ...prev.play,
+        resources: result.resources,
+        concentration: patches?.concentrationName
+          ? setConcentration({
+              spellId: `feature:${featureId}`,
+              name: patches.concentrationName,
+            })
+          : patches?.concentrationName === null &&
+              prev.play.concentration?.spell_id === `feature:${featureId}`
+            ? null
+            : prev.play.concentration,
+      },
+    }))
+    model.onToast(result.feedLineRu)
+    model.setClericFeatureUse(null)
   }
 
   const [wizardCantripCatalog, setWizardCantripCatalog] = useState<SheetSpell[]>([])
@@ -518,6 +552,26 @@ export function SheetDialogsResources({ model }: { model: SheetModel }) {
     model.warlockFeatureUse != null &&
     warlock2024UseFeatureId(model.warlockFeatureUse.featureId)
 
+  const clericRequest = model.clericFeatureUse as ClericFeatureRequest | null
+  const cleric2024Use =
+    model.rulesEdition === '2024' &&
+    clericRequest != null &&
+    cleric2024UseFeatureId(clericRequest.featureId)
+
+  const clericLevel = (() => {
+    const entry = clericRequest
+      ? model.draft.classes.find((row) => row.id === clericRequest.classEntryId)
+      : null
+    if (entry) return Math.max(0, entry.level || 0)
+    let level = 0
+    for (const row of model.draft.classes) {
+      if (resolveClassCasterSlug(row.name) === 'cleric' || /жрец/i.test(row.name)) {
+        level += Math.max(0, row.level || 0)
+      }
+    }
+    return level
+  })()
+
   const warlockLevel = warlockLevels(model.draft.classes)
 
   const sorcererLevel = (() => {
@@ -661,9 +715,14 @@ export function SheetDialogsResources({ model }: { model: SheetModel }) {
             model.baseCharacter?.rules_edition ?? model.rulesEdition ?? '2014'
           if (edition !== '2024') return
           model.setDraft((prev) => {
-            if (!characterHasWeaponMastery(edition, prev.classes)) return prev
+            const featurePicks = applyLongRestFeaturePicks2024(prev.featurePicks)
+            const picksChanged = featurePicks !== prev.featurePicks
+            if (!characterHasWeaponMastery(edition, prev.classes)) {
+              return picksChanged ? { ...prev, featurePicks } : prev
+            }
             return {
               ...prev,
+              ...(picksChanged ? { featurePicks } : {}),
               weaponMastery: markLongRestWeaponMasterySwap(prev.weaponMastery),
             }
           })
@@ -711,6 +770,11 @@ export function SheetDialogsResources({ model }: { model: SheetModel }) {
         resources={model.draft.play.resources}
         slots={model.draft.spells.slots}
         characterLevel={model.characterLevel}
+        edition={model.rulesEdition === '2024' ? '2024' : '2014'}
+        onClericFeatureUse={(request) => {
+          model.setChannelDivinitySpendId(null)
+          model.setClericFeatureUse(request)
+        }}
         onSpend={(label) => {
           if (!model.channelDivinitySpendId) return
           model.setDraft((prev) => ({
@@ -951,6 +1015,20 @@ export function SheetDialogsResources({ model }: { model: SheetModel }) {
           chaMod={abilityModifier(model.draft.abilities.cha)}
           onClose={() => model.setWarlockFeatureUse(null)}
           onConfirm={onWarlockUseConfirm}
+        />
+      ) : null}
+
+      {cleric2024Use ? (
+        <Cleric2024UseDialog
+          key={`${clericRequest?.featureId}:${clericRequest?.classEntryId}`}
+          open
+          request={clericRequest}
+          resources={model.draft.play.resources}
+          featurePicks={model.draft.featurePicks}
+          clericLevel={clericLevel}
+          wisMod={abilityModifier(model.draft.abilities.wis)}
+          onClose={() => model.setClericFeatureUse(null)}
+          onConfirm={onClericUseConfirm}
         />
       ) : null}
 

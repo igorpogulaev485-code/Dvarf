@@ -75,7 +75,7 @@ export const COMMON_LANGUAGE_NAME_RU = 'Общий'
 
 export const DIVINE_ORDER_OPTIONS = [
   { id: 'protector', label: 'Защитник', rest: 'Доспехи и воинское оружие' },
-  { id: 'thaumaturge', label: 'Чудотворец', rest: 'Лишний заговор и бонус к Магии и Религии' },
+  { id: 'thaumaturge', label: 'Чудотворец', rest: 'Лишний заговор; бонус мод. Мудрости (мин. +1) к Магии (Arcana) и к Религии — к обоим навыкам' },
 ] as const
 
 export const PRIMAL_ORDER_OPTIONS = [

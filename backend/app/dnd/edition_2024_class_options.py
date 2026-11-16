@@ -82,6 +82,8 @@ ELDRITCH_INVOCATIONS_2024: tuple[InvocationDef, ...] = (
     InvocationDef("witch-sight", "Witch Sight", "Ведьмачий взор", min_level=15, summary_ru="Истинное зрение 30 фт."),
 )
 
+DIVINE_ORDER_OPTIONS_2024 = frozenset({"protector", "thaumaturge"})
+
 INVOCATIONS_BY_ID = {row.id: row for row in ELDRITCH_INVOCATIONS_2024}
 
 # Warlock invocation known count by level (from class table eldritch_invocations).
@@ -562,6 +564,7 @@ def validate_class_options_update(
     warlock_lv = _class_level(classes, "warlock")
     sorcerer_lv = _class_level(classes, "sorcerer")
     artificer_lv = _class_level(classes, "artificer")
+    cleric_lv = _class_level(classes, "cleric")
 
     src = incoming if isinstance(incoming, Mapping) else {}
     prev = previous if isinstance(previous, Mapping) else {}
@@ -617,7 +620,10 @@ def validate_class_options_update(
         "max_minutes": 10,
     }
 
-    return {
+    order_src = src.get("divine_order") if "divine_order" in src else prev.get("divine_order")
+    order = str(order_src or "").strip().lower()
+
+    result: dict[str, Any] = {
         "eldritch_invocations": invocations,
         "metamagic": metamagic,
         "replicate_plans": plans,
@@ -679,6 +685,9 @@ def validate_class_options_update(
             },
         },
     }
+    if cleric_lv and order in DIVINE_ORDER_OPTIONS_2024:
+        result["divine_order"] = order
+    return result
 
 
 def strip_class_options_from_sheet_for_2014(sheet: dict[str, Any]) -> dict[str, Any]:

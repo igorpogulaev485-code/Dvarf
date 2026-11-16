@@ -422,7 +422,7 @@ function classIssues(state: Create2024State, ctx: StepIssueCtx): string[] {
   if (state.classSlug === 'cleric') {
     const order = String(state.classOptionPicks.divine_order || '')
     if (order !== 'protector' && order !== 'thaumaturge') {
-      issues.push('Выберите Божественный указ')
+      issues.push('Выберите Божественный орден')
     }
   }
   if (state.classSlug === 'druid') {

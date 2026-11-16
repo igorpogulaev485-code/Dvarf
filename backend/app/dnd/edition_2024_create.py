@@ -995,7 +995,7 @@ def _validate_class_options(payload: Create2024Payload) -> dict[str, Any]:
         order = str(picks.get("divine_order") or "").lower()
         if order not in DIVINE_ORDER_OPTIONS:
             raise Create2024Error(
-                "Жрец: выберите Божественный указ (protector/thaumaturge)",
+                "Жрец: выберите Божественный орден (protector/thaumaturge)",
                 code="create_2024_class_options",
             )
         out["divine_order"] = order
@@ -1928,6 +1928,8 @@ def _build_sheet(
         "replicate_plans": [],
         "rage": {"active": False, "rounds_extended": 0, "max_minutes": 10},
     }
+    if class_options.get("divine_order"):
+        options_sheet["divine_order"] = str(class_options["divine_order"])
     sheet["class_options_2024"] = options_sheet
 
     sheet["create_2024"] = {

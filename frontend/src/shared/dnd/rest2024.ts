@@ -3,6 +3,12 @@
  * Does not change 2014 applyLongRest defaults.
  */
 
+import {
+  decrementWishLockOnLongRest2024,
+  DIVINE_INTERVENTION_WISH_LOCK_PICK_ID_2024,
+} from './cleric2024Features'
+import type { FeaturePicksState } from './featurePicks'
+
 export const LONG_REST_MIN_HOURS_2024 = 8
 export const LONG_REST_SLEEP_HOURS_2024 = 6
 export const LONG_REST_LIGHT_ACTIVITY_MAX_HOURS_2024 = 2
@@ -83,4 +89,18 @@ export function longRestMinHours2024(grittyRest: boolean, epicHeroism: boolean):
   if (epicHeroism && !grittyRest) return 1
   if (grittyRest) return 7 * 24
   return LONG_REST_MIN_HOURS_2024
+}
+
+/**
+ * Long Rest feature-pick upkeep (2024): ticks down the Cleric Divine Intervention
+ * Wish lock for every class entry that has one.
+ */
+export function applyLongRestFeaturePicks2024(picks: FeaturePicksState): FeaturePicksState {
+  const suffix = `:${DIVINE_INTERVENTION_WISH_LOCK_PICK_ID_2024}`
+  let next = picks
+  for (const key of Object.keys(picks.values)) {
+    if (!key.endsWith(suffix)) continue
+    next = decrementWishLockOnLongRest2024(next, key.slice(0, -suffix.length))
+  }
+  return next
 }

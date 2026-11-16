@@ -341,6 +341,38 @@ def test_validate_class_options_update_on_sheet():
         )
 
 
+def test_validate_class_options_keeps_cleric_divine_order():
+    sheet = {"classes": [{"slug": "cleric", "level": 3}]}
+    out = opt.validate_class_options_update(
+        rules_edition="2024",
+        previous=None,
+        incoming={"divine_order": "Thaumaturge"},
+        sheet=sheet,
+    )
+    assert out["divine_order"] == "thaumaturge"
+    kept = opt.validate_class_options_update(
+        rules_edition="2024",
+        previous=out,
+        incoming={},
+        sheet=sheet,
+    )
+    assert kept["divine_order"] == "thaumaturge"
+    bogus = opt.validate_class_options_update(
+        rules_edition="2024",
+        previous=None,
+        incoming={"divine_order": "nope"},
+        sheet=sheet,
+    )
+    assert "divine_order" not in bogus
+    non_cleric = opt.validate_class_options_update(
+        rules_edition="2024",
+        previous=None,
+        incoming={"divine_order": "protector"},
+        sheet={"classes": [{"slug": "fighter", "level": 3}]},
+    )
+    assert "divine_order" not in non_cleric
+
+
 def test_api_rejects_invalid_invocations(monkeypatch):
     character = SimpleNamespace(
         id=uuid4(),

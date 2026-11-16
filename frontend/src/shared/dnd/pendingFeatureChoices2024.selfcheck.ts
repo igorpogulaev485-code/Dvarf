@@ -277,4 +277,36 @@ assert.deepEqual(
 assert.equal(trimLevelUpSpellbookRows(bookAtL3, 3), bookAtL3, 'no change at the same level')
 assert.equal(trimLevelUpSpellbookRows(bookAtL3, 1).length, 6, 'L1 keeps only the starting six')
 
+{
+  const clericSteps = (level: number, picks = { values: {} as Record<string, string> }) =>
+    buildPendingWizardSteps2024({
+      classEntryId: 'c1',
+      className: 'Жрец',
+      classSlug: 'cleric',
+      classLevel: level,
+      hasSubclass: true,
+      classAsi: [],
+      featurePicks: picks,
+    })
+  assert.equal(clericSteps(6).some((s) => s.kind === 'feature_choice'), false)
+  const blessed = clericSteps(7).find((s) => s.kind === 'feature_choice')
+  assert.ok(blessed && blessed.kind === 'feature_choice')
+  assert.equal(blessed.choice.id, 'blessed-strikes')
+  assert.equal(blessed.featureId, 'blessed_strikes')
+  assert.equal(
+    clericSteps(7, { values: { 'c1:blessed_strikes': 'divine_strike' } }).some(
+      (s) => s.kind === 'feature_choice',
+    ),
+    false,
+  )
+  const cleared = clearAsiAndOptionsAboveLevel({
+    classEntryId: 'c1',
+    beforeLevel: 7,
+    classAsi: [],
+    featurePicks: { values: { 'c1:blessed_strikes': 'divine_strike' } },
+    features: [{ id: 'blessed_strikes', level: 7 }],
+  })
+  assert.equal(cleared.featurePicks.values['c1:blessed_strikes'], undefined)
+}
+
 console.log('pendingFeatureChoices2024.selfcheck ok')

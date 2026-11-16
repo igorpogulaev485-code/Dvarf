@@ -4,7 +4,11 @@
  */
 import { applyLongRest } from './rest.ts'
 import { recoverHitDiceOnLongRest, recoverHitDiceOnLongRest2024 } from './hitDice.ts'
-import { canStartLongRest2024, LONG_REST_COOLDOWN_HOURS_2024 } from './rest2024.ts'
+import {
+  applyLongRestFeaturePicks2024,
+  canStartLongRest2024,
+  LONG_REST_COOLDOWN_HOURS_2024,
+} from './rest2024.ts'
 import { isBloodied } from './bloodied.ts'
 import {
   initiativeModeWithSurprise2024,
@@ -87,5 +91,16 @@ assert(
   mergeInitiativeMode2024({ invisible: true, surprised: true }) === 'normal',
   'invis+surprise cancel',
 )
+
+{
+  const locked = { values: { 'c1:divine_intervention_wish_lock': '2', 'c1:other': 'x' } }
+  const once = applyLongRestFeaturePicks2024(locked)
+  assert(once.values['c1:divine_intervention_wish_lock'] === '1', 'wish lock 2 → 1')
+  const twice = applyLongRestFeaturePicks2024(once)
+  assert(twice.values['c1:divine_intervention_wish_lock'] === undefined, 'wish lock 1 → free')
+  assert(twice.values['c1:other'] === 'x', 'other picks kept')
+  const none = { values: { 'c1:other': 'x' } }
+  assert(applyLongRestFeaturePicks2024(none) === none, 'no lock: same ref')
+}
 
 console.log('rest2024.selfcheck: ok')

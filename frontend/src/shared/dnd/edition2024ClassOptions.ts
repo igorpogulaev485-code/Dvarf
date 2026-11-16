@@ -9,6 +9,13 @@ export type ClassOptions2024State = {
   metamagic: string[]
   replicate_plans: string[]
   rage: { active: boolean; rounds_extended: number; max_minutes: number }
+  /** Cleric Divine Order (2024). */
+  divine_order?: 'protector' | 'thaumaturge' | null
+}
+
+function readDivineOrder(raw: unknown): 'protector' | 'thaumaturge' | null {
+  const key = String(raw ?? '').trim().toLowerCase()
+  return key === 'protector' || key === 'thaumaturge' ? key : null
 }
 
 export function emptyClassOptions2024(): ClassOptions2024State {
@@ -17,6 +24,7 @@ export function emptyClassOptions2024(): ClassOptions2024State {
     metamagic: [],
     replicate_plans: [],
     rage: { active: false, rounds_extended: 0, max_minutes: 10 },
+    divine_order: null,
   }
 }
 
@@ -41,6 +49,7 @@ export function readClassOptions2024(raw: unknown): ClassOptions2024State {
       rounds_extended: Number(rageRaw.rounds_extended || 0),
       max_minutes: 10,
     },
+    divine_order: readDivineOrder(row.divine_order),
   }
 }
 
@@ -54,6 +63,7 @@ export function classOptions2024ToSheet(state: ClassOptions2024State): Record<st
       rounds_extended: state.rage.rounds_extended,
       max_minutes: 10,
     },
+    ...(state.divine_order ? { divine_order: state.divine_order } : {}),
   }
 }
 

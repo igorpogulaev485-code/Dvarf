@@ -233,4 +233,33 @@ assert.deepEqual(wizard2014?.multiclass.skillChoices, null)
   assert.equal(goo6.features.find((f) => f.id === 'clairvoyant_combatant')?.level, 6)
 }
 
+{
+  const clericAt = (level: number) =>
+    computeProgression2024({
+      classes: [
+        createClassLevel({
+          name: 'Жрец',
+          level,
+          catalog_id: 'cleric',
+          subclass_catalog_id: 'cleric__life-domain',
+        }),
+      ],
+      abilities: { wis: 16 },
+    })
+  const c1 = clericAt(1)
+  assert.equal(c1.features.some((f) => f.id === 'divine_spark'), false)
+  const c2 = clericAt(2)
+  for (const id of ['divine_spark', 'turn_undead']) {
+    const rows = c2.features.filter((f) => f.id === id)
+    assert.equal(rows.length, 1, `cleric ${id} single card`)
+    assert.equal(rows[0]?.resource?.pool_id, 'channel_divinity')
+  }
+  assert.equal(c2.features.some((f) => f.id === 'divine_intervention'), false)
+  const c10 = clericAt(10)
+  assert.equal(c10.features.find((f) => f.id === 'divine_intervention')?.resource?.pool_id, 'divine_intervention')
+  assert.equal(c10.features.find((f) => f.id === 'divine_intervention')?.level, 10)
+  assert.ok(c10.desiredResources.some((r) => r.id.includes(':divine_intervention:') && r.max === 1))
+  assert.equal(c10.features.find((f) => f.id === 'blessed_strikes')?.choice?.id, 'blessed-strikes')
+}
+
 console.log('edition2024Classes.selfcheck: ok')
