@@ -2381,6 +2381,53 @@ body:has(.ui-dice-fab-slot) .play-desk__stage .play-desk-compact__list {
   gap: 8px;
 }
 
+.dice-roller-panel__adv--with-only-me {
+  grid-template-columns: 1fr 1fr;
+}
+
+.dice-roller-panel__only-me {
+  grid-column: 1 / -1;
+}
+
+@media (min-width: 960px) {
+  .dice-roller-panel__adv--with-only-me {
+    grid-template-columns: 1fr 1fr auto;
+  }
+
+  .dice-roller-panel__only-me {
+    grid-column: auto;
+  }
+}
+
+.dice-roller-panel__tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.dice-roller-panel__tab {
+  border: 1px solid var(--line);
+  background: var(--card);
+  color: var(--ink);
+  border-radius: 999px;
+  padding: 4px 12px;
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.dice-roller-panel__tab.is-on {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+.dice-roller-panel__log-formula {
+  margin: 0 0 6px;
+  font-size: 0.85rem;
+}
+
 .dice-roller-panel__adv-hit {
   display: grid;
   min-width: 0;

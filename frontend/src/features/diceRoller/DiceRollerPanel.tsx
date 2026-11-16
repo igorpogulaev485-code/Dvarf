@@ -10,8 +10,12 @@ import {
   ToggleChip,
 } from '../../ui'
 import { clearDiceLog, newLogId, prependLogEntry, readDiceLog } from './diceLog'
+import { notifyDiceLogCleared, subscribeDiceLogChanged } from './journalBridge'
+import { readOnlyMePref, writeOnlyMePref } from './onlyMePref'
 import { formulaFromPool, parseFormula, poolHasDice } from './parseFormula'
+import { recordDigitalRoll } from './recordDigitalRoll'
 import { rollExpression } from './rollFormula'
+import { ensureUnifiedJournal } from './unifiedJournal'
 import {
   STANDARD_DICE,
   emptyPool,
@@ -20,12 +24,22 @@ import {
   type DicePool,
   type StandardDie,
 } from './types'
+import type { RollHistoryEntry } from '../characters/playDeskUi'
 
 type Props = {
   characterId: string
   /** Seed log for screenshots / tests. */
   initialLog?: DiceLogEntry[]
   onLogChange?: (entries: DiceLogEntry[]) => void
+  /** When set — show «Только себе» and post free rolls to the session feed. */
+  openSessionId?: string | null
+  /** Sheet rollHistory for one-time merge into the journal. */
+  sheetRollHistory?: RollHistoryEntry[] | null
+  /** Start with journal section focused (from «броски»). */
+  focusJournal?: boolean
+  /** Which journal tab is active — «Стол» reserved for 02b. */
+  journalTab?: 'mine'
+  onJournalTabChange?: (tab: 'mine') => void
 }
 
 function formatTime(at: number): string {
@@ -40,14 +54,25 @@ function formatTime(at: number): string {
   }
 }
 
-export function DiceRollerPanel({ characterId, initialLog, onLogChange }: Props) {
+export function DiceRollerPanel({
+  characterId,
+  initialLog,
+  onLogChange,
+  openSessionId,
+  sheetRollHistory,
+  focusJournal = false,
+  journalTab = 'mine',
+  onJournalTabChange,
+}: Props) {
   const [pool, setPool] = useState<DicePool>(emptyPool)
   const [formula, setFormula] = useState('')
   const [formulaTouched, setFormulaTouched] = useState(false)
   const [advantage, setAdvantage] = useState<AdvantageMode>('none')
-  const [log, setLog] = useState<DiceLogEntry[]>(() =>
-    initialLog ?? readDiceLog(characterId),
-  )
+  const [onlyMe, setOnlyMe] = useState(() => readOnlyMePref(characterId))
+  const [log, setLog] = useState<DiceLogEntry[]>(() => {
+    if (initialLog) return initialLog
+    return ensureUnifiedJournal(characterId, sheetRollHistory)
+  })
   const [expandedIds, setExpandedIds] = useState<Set<string>>(() => {
     const first = initialLog?.[0]?.id
     return first ? new Set([first]) : new Set()
@@ -57,19 +82,36 @@ export function DiceRollerPanel({ characterId, initialLog, onLogChange }: Props)
   const holdTimer = useRef<number | null>(null)
   const holdFired = useRef(false)
   const flashTimer = useRef<number | null>(null)
+  const journalRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
+    setOnlyMe(readOnlyMePref(characterId))
     if (initialLog) {
-      // Preview/screenshots: open first three so «Повторить» видно на log-кадре.
       setExpandedIds(new Set(initialLog.slice(0, 3).map((e) => e.id)))
       return
     }
-    setLog(readDiceLog(characterId))
-  }, [characterId, initialLog])
+    setLog(ensureUnifiedJournal(characterId, sheetRollHistory))
+  }, [characterId, initialLog, sheetRollHistory])
 
   useEffect(() => {
     onLogChange?.(log)
   }, [log, onLogChange])
+
+  useEffect(() => {
+    return subscribeDiceLogChanged((id) => {
+      if (id !== characterId || initialLog) return
+      setLog(readDiceLog(characterId))
+    })
+  }, [characterId, initialLog])
+
+  useEffect(() => {
+    if (!focusJournal) return
+    const node = journalRef.current
+    if (!node) return
+    window.requestAnimationFrame(() => {
+      node.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
+    })
+  }, [focusJournal, log.length])
 
   useEffect(() => {
     return () => {
@@ -94,6 +136,7 @@ export function DiceRollerPanel({ characterId, initialLog, onLogChange }: Props)
     !(advantage !== 'none' && !parsed.singleD20Eligible)
 
   const advDisabled = !(parsed.ok && parsed.singleD20Eligible)
+  const atTable = Boolean(openSessionId?.trim())
 
   useEffect(() => {
     if (advDisabled && advantage !== 'none') setAdvantage('none')
@@ -188,16 +231,21 @@ export function DiceRollerPanel({ characterId, initialLog, onLogChange }: Props)
     const adv = mode ?? advantage
     const rolled = rollExpression(expression, adv)
     if (!rolled.ok) return
-    const entry: DiceLogEntry = {
-      id: newLogId(),
-      at: Date.now(),
+    const entry = recordDigitalRoll({
+      characterId,
+      openSessionId,
+      onlyMe,
+      title: 'Свободный бросок',
       expression: rolled.result.expression,
-      advantageMode: rolled.result.advantageMode,
       total: rolled.result.total,
       dice: rolled.result.dice,
       modifierTotal: rolled.result.modifierTotal,
-    }
-    setLog((prev) => prependLogEntry(characterId, entry, prev))
+      advantageMode: rolled.result.advantageMode,
+      toastText: `${rolled.result.expression} = ${rolled.result.total}`,
+      category: 'roll',
+      source: 'panel',
+    })
+    setLog(readDiceLog(characterId))
     setExpandedIds(new Set([entry.id]))
   }
 
@@ -210,6 +258,7 @@ export function DiceRollerPanel({ characterId, initialLog, onLogChange }: Props)
     setLog([])
     setExpandedIds(new Set())
     setConfirmClear(false)
+    notifyDiceLogCleared(characterId)
   }
 
   function toggleExpanded(id: string) {
@@ -221,7 +270,14 @@ export function DiceRollerPanel({ characterId, initialLog, onLogChange }: Props)
     })
   }
 
+  function onOnlyMeChange(next: boolean) {
+    setOnlyMe(next)
+    writeOnlyMePref(characterId, next)
+  }
+
   void formulaTouched
+  void prependLogEntry
+  void newLogId
 
   return (
     <Stack gap={12} className="dice-roller-panel">
@@ -299,7 +355,7 @@ export function DiceRollerPanel({ characterId, initialLog, onLogChange }: Props)
       </div>
 
       <div
-        className="dice-roller-panel__adv"
+        className={`dice-roller-panel__adv${atTable ? ' dice-roller-panel__adv--with-only-me' : ''}`}
         role="group"
         aria-label="Преимущество и помеха"
       >
@@ -333,6 +389,18 @@ export function DiceRollerPanel({ characterId, initialLog, onLogChange }: Props)
             data-testid="dice-disadvantage"
           />
         </div>
+        {atTable ? (
+          <div className="dice-roller-panel__adv-hit dice-roller-panel__only-me">
+            <ToggleChip
+              main="Только себе"
+              rest={onlyMe ? 'в ленту не уйдёт' : 'уходит в ленту'}
+              checked={onlyMe}
+              onChange={onOnlyMeChange}
+              data-testid="dice-only-me"
+              title="Если включено — броски остаются только у вас"
+            />
+          </div>
+        ) : null}
       </div>
       {advFlash ? (
         <Text tone="muted" className="dice-roller-panel__adv-hint" role="status">
@@ -354,83 +422,112 @@ export function DiceRollerPanel({ characterId, initialLog, onLogChange }: Props)
         </Button>
       </div>
 
-      <div className="dice-roller-panel__log-head">
-        <Text as="h3">Мои броски</Text>
-        <Button
-          variant={confirmClear ? 'danger' : 'ghost'}
-          size="sm"
-          disabled={log.length === 0}
-          onClick={onClearLog}
-          data-testid="dice-log-clear"
-        >
-          {confirmClear ? 'Точно очистить?' : 'Очистить'}
-        </Button>
-      </div>
+      <div className="dice-roller-panel__journal" ref={journalRef} data-testid="dice-journal">
+        <div className="dice-roller-panel__tabs" role="tablist" aria-label="Журнал бросков">
+          <button
+            type="button"
+            role="tab"
+            aria-selected={journalTab === 'mine'}
+            className={`dice-roller-panel__tab${journalTab === 'mine' ? ' is-on' : ''}`}
+            data-testid="dice-journal-tab-mine"
+            onClick={() => onJournalTabChange?.('mine')}
+          >
+            Мои
+          </button>
+          {/* 02b: вкладка «Стол» рядом */}
+        </div>
 
-      {log.length === 0 ? (
-        <EmptyState title="Пока нет бросков" />
-      ) : (
-        <ul className="dice-roller-panel__log" data-testid="dice-log">
-          {log.map((entry, index) => {
-            const open =
-              expandedIds.has(entry.id) || (expandedIds.size === 0 && index === 0)
-            return (
-              <li key={entry.id} className="dice-roller-panel__log-item">
-                <button
-                  type="button"
-                  className="dice-roller-panel__log-summary"
-                  aria-expanded={open}
-                  onClick={() => toggleExpanded(entry.id)}
-                >
-                  <span className="dice-roller-panel__log-time">
-                    {formatTime(entry.at)}
-                  </span>
-                  <span className="dice-roller-panel__log-expr">{entry.expression}</span>
-                  {entry.advantageMode === 'advantage' ? (
-                    <span className="dice-roller-panel__log-tag">преим.</span>
-                  ) : null}
-                  {entry.advantageMode === 'disadvantage' ? (
-                    <span className="dice-roller-panel__log-tag">помеха</span>
-                  ) : null}
-                  <span className="dice-roller-panel__log-total">{entry.total}</span>
-                </button>
-                {open ? (
-                  <div className="dice-roller-panel__log-detail">
-                    <div className="dice-roller-panel__faces" aria-label="Кости броска">
-                      {entry.dice.map((die, i) => (
-                        <span
-                          key={`${entry.id}-${i}`}
-                          className={`dice-roller-panel__face${
-                            die.dropped ? ' is-dropped' : ''
-                          }${die.nat === '20' ? ' is-nat20' : ''}${
-                            die.nat === '1' ? ' is-nat1' : ''
-                          }`}
-                          title={`d${die.sides}`}
+        <div className="dice-roller-panel__log-head">
+          <Text as="h3">Журнал бросков</Text>
+          <Button
+            variant={confirmClear ? 'danger' : 'ghost'}
+            size="sm"
+            disabled={log.length === 0}
+            onClick={onClearLog}
+            data-testid="dice-log-clear"
+          >
+            {confirmClear ? 'Точно очистить?' : 'Очистить'}
+          </Button>
+        </div>
+
+        {log.length === 0 ? (
+          <EmptyState title="Пока нет бросков" />
+        ) : (
+          <ul className="dice-roller-panel__log" data-testid="dice-log">
+            {log.map((entry, index) => {
+              const open =
+                expandedIds.has(entry.id) || (expandedIds.size === 0 && index === 0)
+              const canRepeat = entry.repeatable !== false && entry.dice.length > 0
+              const label = entry.title?.trim() || entry.expression
+              return (
+                <li key={entry.id} className="dice-roller-panel__log-item">
+                  <button
+                    type="button"
+                    className="dice-roller-panel__log-summary"
+                    aria-expanded={open}
+                    onClick={() => toggleExpanded(entry.id)}
+                  >
+                    <span className="dice-roller-panel__log-time">
+                      {formatTime(entry.at)}
+                    </span>
+                    <span className="dice-roller-panel__log-expr">{label}</span>
+                    {entry.advantageMode === 'advantage' ? (
+                      <span className="dice-roller-panel__log-tag">преим.</span>
+                    ) : null}
+                    {entry.advantageMode === 'disadvantage' ? (
+                      <span className="dice-roller-panel__log-tag">помеха</span>
+                    ) : null}
+                    <span className="dice-roller-panel__log-total">{entry.total}</span>
+                  </button>
+                  {open ? (
+                    <div className="dice-roller-panel__log-detail">
+                      {entry.title ? (
+                        <Text tone="muted" className="dice-roller-panel__log-formula">
+                          {entry.expression}
+                        </Text>
+                      ) : null}
+                      {entry.dice.length > 0 ? (
+                        <div className="dice-roller-panel__faces" aria-label="Кости броска">
+                          {entry.dice.map((die, i) => (
+                            <span
+                              key={`${entry.id}-${i}`}
+                              className={`dice-roller-panel__face${
+                                die.dropped ? ' is-dropped' : ''
+                              }${die.nat === '20' ? ' is-nat20' : ''}${
+                                die.nat === '1' ? ' is-nat1' : ''
+                              }`}
+                              title={`d${die.sides}`}
+                            >
+                              {die.value}
+                            </span>
+                          ))}
+                          {entry.modifierTotal !== 0 ? (
+                            <span className="dice-roller-panel__face is-mod">
+                              {entry.modifierTotal > 0 ? '+' : ''}
+                              {entry.modifierTotal}
+                            </span>
+                          ) : null}
+                        </div>
+                      ) : entry.toastText ? (
+                        <Text tone="muted">{entry.toastText}</Text>
+                      ) : null}
+                      {canRepeat ? (
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          onClick={() => doRoll(entry.expression, entry.advantageMode)}
                         >
-                          {die.value}
-                        </span>
-                      ))}
-                      {entry.modifierTotal !== 0 ? (
-                        <span className="dice-roller-panel__face is-mod">
-                          {entry.modifierTotal > 0 ? '+' : ''}
-                          {entry.modifierTotal}
-                        </span>
+                          Повторить
+                        </Button>
                       ) : null}
                     </div>
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      onClick={() => doRoll(entry.expression, entry.advantageMode)}
-                    >
-                      Повторить
-                    </Button>
-                  </div>
-                ) : null}
-              </li>
-            )
-          })}
-        </ul>
-      )}
+                  ) : null}
+                </li>
+              )
+            })}
+          </ul>
+        )}
+      </div>
     </Stack>
   )
 }

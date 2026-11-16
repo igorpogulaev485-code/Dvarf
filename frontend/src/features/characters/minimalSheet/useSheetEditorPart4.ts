@@ -40,6 +40,8 @@ import {
   splitSecondaryPanel,
   type PlayDeskPanelId,
 } from '../playDeskUi'
+import { subscribeDiceLogCleared } from '../../diceRoller/journalBridge'
+import { ensureUnifiedJournal } from '../../diceRoller/unifiedJournal'
 import { resolveSpellLearnBudgets } from '../../../shared/dnd/castProfiles'
 import { resolveClassCasterSlug, resolveSpellLearnBudget } from '../../../shared/dnd/casterProgression'
 import { equippedArmorPieces } from '../inventory'
@@ -513,6 +515,24 @@ export function useSheetEditorPart4(model: SheetModel) {
   )
   model.isPlayDesk = isPlayDesk
   model.setIsPlayDesk = setIsPlayDesk
+
+  useEffect(() => {
+    // One-time merge of sheet toast history into the panel journal (no draft rewrite).
+    ensureUnifiedJournal(model.character.id, model.draft.sheetUi.rollHistory)
+  }, [model.character.id])
+
+  useEffect(() => {
+    return subscribeDiceLogCleared((characterId) => {
+      if (characterId !== model.character.id) return
+      model.setDraft((prev) => ({
+        ...prev,
+        sheetUi: {
+          ...prev.sheetUi,
+          rollHistory: [],
+        },
+      }))
+    })
+  }, [model.character.id])
 
   const emitToast = useCallback(
     (message: ToastInput) => {

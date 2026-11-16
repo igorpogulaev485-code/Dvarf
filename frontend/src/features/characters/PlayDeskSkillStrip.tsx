@@ -1,4 +1,5 @@
 import { useEffect, useId, useRef, useState } from 'react'
+import { intentionalActivateProps } from '../../ui'
 import { formatModifier } from './sheetTypes'
 import { PlayDeskHotScrollWrap } from './PlayDeskHotScrollWrap'
 
@@ -47,7 +48,9 @@ function SkillChipButton({
         skill.expertise ? ' is-on is-expert' : skill.trained ? ' is-on' : ''
       }`}
       title={`${skill.label}: ${formatModifier(skill.mod)} · ${prof}`}
-      onClick={() => onSkillClick?.(skill)}
+      {...(onSkillClick
+        ? intentionalActivateProps(() => onSkillClick(skill))
+        : {})}
     >
       <span>
         {skill.label}

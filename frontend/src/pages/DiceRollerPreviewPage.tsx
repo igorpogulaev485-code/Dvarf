@@ -112,6 +112,9 @@ export function DiceRollerPreviewPage() {
         characterId={character.id}
         defaultOpen={open}
         initialLog={seedLog}
+        openSessionId={
+          params.get('session') === '1' ? 'preview-session-open' : null
+        }
       />
     </main>
   )

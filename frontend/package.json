@@ -89,6 +89,7 @@
     "selfcheck:dice-parser": "tsx --tsconfig tsconfig.app.json src/features/diceRoller/parseFormula.selfcheck.ts",
     "selfcheck:dice-rng": "tsx --tsconfig tsconfig.app.json src/features/diceRoller/fairRandom.selfcheck.ts",
     "selfcheck:dice-roll": "tsx --tsconfig tsconfig.app.json src/features/diceRoller/rollFormula.selfcheck.ts",
+    "selfcheck:dice-record": "tsx --tsconfig tsconfig.app.json src/features/diceRoller/recordDigitalRoll.selfcheck.ts",
     "test:e2e:onboarding": "playwright test --config=playwright.onboarding.config.ts",
     "test:e2e:admin": "playwright test --config=playwright.admin.config.ts",
     "test:e2e:dice": "playwright test --config=playwright.dice.config.ts"

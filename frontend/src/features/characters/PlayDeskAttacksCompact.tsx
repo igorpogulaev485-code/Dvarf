@@ -245,12 +245,20 @@ import {
   listDeskCombatAttacks,
 } from './kitCombatAttacks'
 import {
+  checkExpression,
+  checkRollToDiceFaces,
+  parseDamageExpression,
   resolveAttackRoll,
   rollDamage,
   type BonusDiePart,
   type DeskRollMode,
 } from './deskRolls'
 import { postSheetRollToSession } from './postSheetRollToSession'
+import {
+  recordDigitalRoll,
+  shouldPostRollToSession,
+} from '../diceRoller/recordDigitalRoll'
+import { intentionalActivateProps } from '../../ui'
 import { attackSuppressedByEmptyStack } from './attacksInventorySync'
 import {
   abilityModifier,
@@ -3047,7 +3055,7 @@ export function PlayDeskAttacksCompact({
                       if (gate && !gate.ok) return gate.reason
                       return 'Бросок атаки'
                     })()}
-                    onClick={() => {
+                    {...intentionalActivateProps(() => {
                     if (uwMode.autoMiss) {
                       onToast?.(
                         uwMode.autoMissReason ||
@@ -3478,7 +3486,8 @@ export function PlayDeskAttacksCompact({
                                   .filter(Boolean)
                                   .join(' · ')
                               : `Атака: ${attack.name}`
-                        void postSheetRollToSession({
+                        if (shouldPostRollToSession(characterId)) {
+                          void postSheetRollToSession({
                           openSessionId: sessionId,
                           characterId,
                           title: feedTitle,
@@ -3488,6 +3497,7 @@ export function PlayDeskAttacksCompact({
                           physicalDice: physical,
                           targetName: null,
                         })
+                        }
                       }
                       smiteApplyLock.current = false
                       const smiteGate = resolveSmiteAfterAttack({
@@ -3734,6 +3744,28 @@ export function PlayDeskAttacksCompact({
                       ? `${strike.hitRoll.die}${effectiveAttackBonus >= 0 ? '+' : ''}${effectiveAttackBonus}`
                       : undefined
 
+                    if (characterId && strike.hitRoll) {
+                      recordDigitalRoll({
+                        characterId,
+                        openSessionId: openSessionId ?? turnEco?.openSessionId,
+                        title: `Атака: ${attack.name}`,
+                        expression: checkExpression(effectiveAttackBonus, attackMode),
+                        total: strike.hitRoll.total,
+                        dice: checkRollToDiceFaces(strike.hitRoll),
+                        modifierTotal: effectiveAttackBonus,
+                        advantageMode:
+                          attackMode === 'advantage'
+                            ? 'advantage'
+                            : attackMode === 'disadvantage'
+                              ? 'disadvantage'
+                              : 'none',
+                        toastText: strike.text,
+                        breakdown: breakdown ?? strike.text,
+                        skipSession: true,
+                        source: 'sheet',
+                      })
+                    }
+
                     finishAttackRef.current = finishAttack
                     finishAttack({
                       target: flushedTarget,
@@ -3780,7 +3812,7 @@ export function PlayDeskAttacksCompact({
                       return
                     }
                     runAttackWithPb(proficient ? proficiencyBonus : 0, '')
-                  }}
+                  })}
                   >
                     {formatModifier(attackBonus)}
                   </button>
@@ -3790,7 +3822,7 @@ export function PlayDeskAttacksCompact({
                     title="Бросок урона"
                     aria-label={`Бросок урона ${dmgLine}`}
                     disabled={!dmg && !baseDamage}
-                    onClick={() => {
+                    {...intentionalActivateProps(() => {
                       const expr = dmg || baseDamage || ''
                       const typeBit = shownType ? ` ${shownType}` : ''
                       const rolled = rollDamage(expr)
@@ -3799,18 +3831,40 @@ export function PlayDeskAttacksCompact({
                         : `Урон: ${attack.name} · ${expr || '—'}${typeBit}`
                       onToast?.(text)
                       if (characterId && rolled) {
-                        void postSheetRollToSession({
-                          openSessionId: openSessionId ?? turnEco?.openSessionId,
+                        const parsed = parseDamageExpression(expr)
+                        const sides = parsed?.sides ?? 6
+                        recordDigitalRoll({
                           characterId,
+                          openSessionId: openSessionId ?? turnEco?.openSessionId,
                           title: `Урон: ${attack.name}`,
+                          expression: expr || `${rolled.parts.length}d${sides}`,
                           total: rolled.total,
-                          formula: expr || null,
+                          dice: rolled.parts.map((value) => ({
+                            sides,
+                            value,
+                            dropped: false,
+                          })),
+                          modifierTotal: rolled.modifier,
+                          advantageMode: 'none',
+                          toastText: text,
                           breakdown: rolled.detail,
-                          physicalDice: Boolean(turnEco?.diceOnTable),
-                          targetName: null,
+                          skipSession: true,
+                          source: 'sheet',
                         })
+                        if (shouldPostRollToSession(characterId)) {
+                          void postSheetRollToSession({
+                            openSessionId: openSessionId ?? turnEco?.openSessionId,
+                            characterId,
+                            title: `Урон: ${attack.name}`,
+                            total: rolled.total,
+                            formula: expr || null,
+                            breakdown: rolled.detail,
+                            physicalDice: Boolean(turnEco?.diceOnTable),
+                            targetName: null,
+                          })
+                        }
                       }
-                    }}
+                    })}
                   >
                     {dmgLine}
                   </button>
@@ -4056,7 +4110,7 @@ export function PlayDeskAttacksCompact({
                   ? 'Действие уже потрачено'
                   : undefined
               }
-              onClick={() => {
+              {...intentionalActivateProps(() => {
                 const gate = turnEco?.canAttack()
                 if (gate && !gate.ok) {
                   onToast?.(
@@ -4084,7 +4138,27 @@ export function PlayDeskAttacksCompact({
                 })
                 turnEco?.spendAttack()
                 onToast?.(strike.text)
-                if (openSessionId && characterId) {
+                if (characterId && strike.hitRoll) {
+                  recordDigitalRoll({
+                    characterId,
+                    openSessionId,
+                    title: `${atk.companionName}: ${atk.name}`,
+                    expression: checkExpression(atk.attackBonus, rollMode),
+                    total: strike.hitRoll.total,
+                    dice: checkRollToDiceFaces(strike.hitRoll),
+                    modifierTotal: atk.attackBonus,
+                    advantageMode:
+                      rollMode === 'advantage'
+                        ? 'advantage'
+                        : rollMode === 'disadvantage'
+                          ? 'disadvantage'
+                          : 'none',
+                    toastText: strike.text,
+                    skipSession: true,
+                    source: 'sheet',
+                  })
+                }
+                if (openSessionId && characterId && shouldPostRollToSession(characterId)) {
                   void postSheetRollToSession({
                     openSessionId,
                     characterId,
@@ -4096,7 +4170,7 @@ export function PlayDeskAttacksCompact({
                       : undefined,
                   })
                 }
-              }}
+              })}
             >
               <div className="play-desk-compact__row-main">
                 <IconMelee className="play-desk-compact__row-icon" />
@@ -4568,13 +4642,15 @@ export function PlayDeskAttacksCompact({
       onClose={() => setEnterNumberOpen(false)}
       onConfirm={({ total }) => {
         if (characterId && enterNumberCtx) {
-          void postSheetRollToSession({
+          if (shouldPostRollToSession(characterId)) {
+            void postSheetRollToSession({
             openSessionId: openSessionId ?? turnEco?.openSessionId,
             characterId,
             title: enterNumberCtx.title,
             total,
             physicalDice: true,
           })
+          }
           onToast?.(`${enterNumberCtx.attackName}: ${total} 🎲 (кубик на столе)`)
           turnEco?.spendAttack()
         }
