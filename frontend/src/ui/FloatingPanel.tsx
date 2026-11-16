@@ -53,7 +53,8 @@ export function FloatingPanel({
 
   if (!open || typeof document === 'undefined') return null
 
-  const style: CSSProperties = {
+  const headerH = 52
+  const panelStyle: CSSProperties = {
     position: 'fixed',
     top: coords?.top,
     bottom: coords?.bottom,
@@ -62,6 +63,10 @@ export function FloatingPanel({
     width: coords?.width,
     maxHeight: coords?.maxHeight,
   }
+  const bodyStyle: CSSProperties | undefined =
+    coords?.maxHeight != null
+      ? { maxHeight: Math.max(160, coords.maxHeight - headerH) }
+      : undefined
 
   return createPortal(
     <div className={`ui-floating-root ${className}`.trim()}>
@@ -76,7 +81,7 @@ export function FloatingPanel({
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
-        style={style}
+        style={panelStyle}
       >
         <div className="ui-floating-panel__header">
           <h2 id={titleId} className="ui-floating-panel__title">
@@ -93,7 +98,9 @@ export function FloatingPanel({
             </button>
           ) : null}
         </div>
-        <div className="ui-floating-panel__body">{children}</div>
+        <div className="ui-floating-panel__body" style={bodyStyle}>
+          {children}
+        </div>
       </div>
     </div>,
     document.body,

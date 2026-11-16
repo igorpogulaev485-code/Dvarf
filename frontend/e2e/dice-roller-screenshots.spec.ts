@@ -49,7 +49,10 @@ test.describe('DICE-01 screenshots', () => {
     const dialog = page.getByRole('dialog', { name: 'Бросок кубиков' })
     await dialog.getByRole('button', { name: 'Добавить d20' }).click()
     await dialog.getByRole('button', { name: 'Добавить d6' }).click()
-    await dialog.getByLabel('Модификатор').fill('3')
+    const mod = dialog.getByRole('group', { name: 'Модификатор' })
+    await mod.getByRole('button', { name: 'Больше' }).click()
+    await mod.getByRole('button', { name: 'Больше' }).click()
+    await mod.getByRole('button', { name: 'Больше' }).click()
     await shot(page, 'pool')
 
     await dialog.getByLabel('Формула броска').fill('2d6+3')
@@ -69,9 +72,13 @@ test.describe('DICE-01 screenshots', () => {
     await dropped.scrollIntoViewIfNeeded()
     await shot(page, 'advantage')
 
-    // Seeded multi-entry log with nat-20 / nat-1
+    // Seeded multi-entry log — first 3 rows open with «Повторить»
     await page.goto('/dev/dice-roller-preview?edition=2014&clean=1&open=1&log=1')
-    await expect(page.getByRole('dialog', { name: 'Бросок кубиков' })).toBeVisible()
+    const logDialog = page.getByRole('dialog', { name: 'Бросок кубиков' })
+    await expect(logDialog).toBeVisible()
+    await expect(logDialog.getByTestId('dice-log').locator('li')).toHaveCount(4)
+    await expect(logDialog.getByRole('button', { name: 'Повторить' })).toHaveCount(3)
+    await logDialog.getByRole('button', { name: 'Повторить' }).nth(1).scrollIntoViewIfNeeded()
     await shot(page, 'log')
 
     await page.keyboard.press('Escape')

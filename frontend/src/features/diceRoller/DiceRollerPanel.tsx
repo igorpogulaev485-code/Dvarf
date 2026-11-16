@@ -4,8 +4,8 @@ import {
   EmptyState,
   Field,
   Input,
-  NumberInput,
   Stack,
+  Stepper,
   Text,
   ToggleChip,
 } from '../../ui'
@@ -48,13 +48,22 @@ export function DiceRollerPanel({ characterId, initialLog, onLogChange }: Props)
   const [log, setLog] = useState<DiceLogEntry[]>(() =>
     initialLog ?? readDiceLog(characterId),
   )
-  const [expandedId, setExpandedId] = useState<string | null>(null)
+  const [expandedIds, setExpandedIds] = useState<Set<string>>(() => {
+    const first = initialLog?.[0]?.id
+    return first ? new Set([first]) : new Set()
+  })
   const [confirmClear, setConfirmClear] = useState(false)
+  const [advFlash, setAdvFlash] = useState(false)
   const holdTimer = useRef<number | null>(null)
   const holdFired = useRef(false)
+  const flashTimer = useRef<number | null>(null)
 
   useEffect(() => {
-    if (initialLog) return
+    if (initialLog) {
+      // Preview/screenshots: open first three so «Повторить» видно на log-кадре.
+      setExpandedIds(new Set(initialLog.slice(0, 3).map((e) => e.id)))
+      return
+    }
     setLog(readDiceLog(characterId))
   }, [characterId, initialLog])
 
@@ -65,6 +74,7 @@ export function DiceRollerPanel({ characterId, initialLog, onLogChange }: Props)
   useEffect(() => {
     return () => {
       if (holdTimer.current != null) window.clearTimeout(holdTimer.current)
+      if (flashTimer.current != null) window.clearTimeout(flashTimer.current)
     }
   }, [])
 
@@ -84,13 +94,19 @@ export function DiceRollerPanel({ characterId, initialLog, onLogChange }: Props)
     !(advantage !== 'none' && !parsed.singleD20Eligible)
 
   const advDisabled = !(parsed.ok && parsed.singleD20Eligible)
-  const advHint = advDisabled && (poolHasDice(pool) || formula.trim())
-    ? 'Нужна одна кость d20'
-    : null
 
   useEffect(() => {
     if (advDisabled && advantage !== 'none') setAdvantage('none')
   }, [advDisabled, advantage])
+
+  function flashAdvHint() {
+    setAdvFlash(true)
+    if (flashTimer.current != null) window.clearTimeout(flashTimer.current)
+    flashTimer.current = window.setTimeout(() => {
+      setAdvFlash(false)
+      flashTimer.current = null
+    }, 2200)
+  }
 
   function syncFormulaFromPool(next: DicePool) {
     setPool(next)
@@ -164,6 +180,7 @@ export function DiceRollerPanel({ characterId, initialLog, onLogChange }: Props)
     setFormulaTouched(false)
     setAdvantage('none')
     setConfirmClear(false)
+    setAdvFlash(false)
   }
 
   function doRoll(expr?: string, mode?: AdvantageMode) {
@@ -181,7 +198,7 @@ export function DiceRollerPanel({ characterId, initialLog, onLogChange }: Props)
       modifierTotal: rolled.result.modifierTotal,
     }
     setLog((prev) => prependLogEntry(characterId, entry, prev))
-    setExpandedId(entry.id)
+    setExpandedIds(new Set([entry.id]))
   }
 
   function onClearLog() {
@@ -191,8 +208,17 @@ export function DiceRollerPanel({ characterId, initialLog, onLogChange }: Props)
     }
     clearDiceLog(characterId)
     setLog([])
-    setExpandedId(null)
+    setExpandedIds(new Set())
     setConfirmClear(false)
+  }
+
+  function toggleExpanded(id: string) {
+    setExpandedIds((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
   }
 
   void formulaTouched
@@ -203,55 +229,49 @@ export function DiceRollerPanel({ characterId, initialLog, onLogChange }: Props)
         {STANDARD_DICE.map((sides) => {
           const count = pool.counts[sides] ?? 0
           return (
-            <button
-              key={sides}
-              type="button"
-              className={`dice-roller-panel__die${count > 0 ? ' is-on' : ''}`}
-              aria-label={`Добавить d${sides}`}
-              title="Клик — добавить, удержание или «−» — убрать"
-              onClick={() => onDieClick(sides)}
-              onContextMenu={(e) => onDieContextMenu(sides, e)}
-              onPointerDown={() => startHold(sides)}
-              onPointerUp={endHold}
-              onPointerLeave={endHold}
-              onPointerCancel={endHold}
-            >
-              <span className="dice-roller-panel__die-label">d{sides}</span>
+            <div key={sides} className="dice-roller-panel__die-cell">
+              <button
+                type="button"
+                className={`dice-roller-panel__die${count > 0 ? ' is-on' : ''}`}
+                aria-label={`Добавить d${sides}`}
+                title="Клик — добавить; удержание или правый клик — убрать"
+                onClick={() => onDieClick(sides)}
+                onContextMenu={(e) => onDieContextMenu(sides, e)}
+                onPointerDown={() => startHold(sides)}
+                onPointerUp={endHold}
+                onPointerLeave={endHold}
+                onPointerCancel={endHold}
+              >
+                <span className="dice-roller-panel__die-label">d{sides}</span>
+                {count > 0 ? (
+                  <span className="dice-roller-panel__die-count">{count}</span>
+                ) : null}
+              </button>
               {count > 0 ? (
-                <span className="dice-roller-panel__die-count">{count}</span>
+                <button
+                  type="button"
+                  className="dice-roller-panel__die-dec"
+                  aria-label={`Убрать d${sides}`}
+                  title="Убрать одну"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    removeDie(sides)
+                  }}
+                >
+                  −
+                </button>
               ) : null}
-            </button>
+            </div>
           )
         })}
       </div>
 
-      <div className="dice-roller-panel__minus-row">
-        {STANDARD_DICE.map((sides) => {
-          const count = pool.counts[sides] ?? 0
-          return (
-            <button
-              key={`m-${sides}`}
-              type="button"
-              className="dice-roller-panel__minus"
-              disabled={count <= 0}
-              aria-label={`Убрать d${sides}`}
-              onClick={() => removeDie(sides)}
-            >
-              −
-            </button>
-          )
-        })}
-      </div>
-
-      <Field label="Модификатор">
-        <NumberInput
+      <Field label="Модификатор" className="dice-roller-panel__mod-field">
+        <Stepper
           value={pool.modifier}
-          onValueChange={(v) => {
-            syncFormulaFromPool({ ...pool, modifier: v ?? 0 })
-          }}
-          narrow
-          size="sm"
+          onValueChange={(v) => syncFormulaFromPool({ ...pool, modifier: v })}
           aria-label="Модификатор"
+          size="sm"
         />
       </Field>
 
@@ -283,24 +303,40 @@ export function DiceRollerPanel({ characterId, initialLog, onLogChange }: Props)
         role="group"
         aria-label="Преимущество и помеха"
       >
-        <ToggleChip
-          main="Преимущество"
-          checked={advantage === 'advantage'}
-          disabled={advDisabled}
-          onChange={(on) => setAdvantage(on ? 'advantage' : 'none')}
-          data-testid="dice-advantage"
-        />
-        <ToggleChip
-          main="Помеха"
-          checked={advantage === 'disadvantage'}
-          disabled={advDisabled}
-          onChange={(on) => setAdvantage(on ? 'disadvantage' : 'none')}
-          data-testid="dice-disadvantage"
-        />
+        <div
+          className="dice-roller-panel__adv-hit"
+          title={advDisabled ? 'Нужна одна кость d20' : undefined}
+          onClick={() => {
+            if (advDisabled) flashAdvHint()
+          }}
+        >
+          <ToggleChip
+            main="Преимущество"
+            checked={advantage === 'advantage'}
+            disabled={advDisabled}
+            onChange={(on) => setAdvantage(on ? 'advantage' : 'none')}
+            data-testid="dice-advantage"
+          />
+        </div>
+        <div
+          className="dice-roller-panel__adv-hit"
+          title={advDisabled ? 'Нужна одна кость d20' : undefined}
+          onClick={() => {
+            if (advDisabled) flashAdvHint()
+          }}
+        >
+          <ToggleChip
+            main="Помеха"
+            checked={advantage === 'disadvantage'}
+            disabled={advDisabled}
+            onChange={(on) => setAdvantage(on ? 'disadvantage' : 'none')}
+            data-testid="dice-disadvantage"
+          />
+        </div>
       </div>
-      {advHint ? (
-        <Text tone="muted" className="dice-roller-panel__adv-hint">
-          {advHint}
+      {advFlash ? (
+        <Text tone="muted" className="dice-roller-panel__adv-hint" role="status">
+          Нужна одна кость d20
         </Text>
       ) : null}
 
@@ -337,16 +373,14 @@ export function DiceRollerPanel({ characterId, initialLog, onLogChange }: Props)
         <ul className="dice-roller-panel__log" data-testid="dice-log">
           {log.map((entry, index) => {
             const open =
-              expandedId === entry.id || (expandedId == null && index === 0)
+              expandedIds.has(entry.id) || (expandedIds.size === 0 && index === 0)
             return (
               <li key={entry.id} className="dice-roller-panel__log-item">
                 <button
                   type="button"
                   className="dice-roller-panel__log-summary"
                   aria-expanded={open}
-                  onClick={() =>
-                    setExpandedId(open && expandedId === entry.id ? '' : entry.id)
-                  }
+                  onClick={() => toggleExpanded(entry.id)}
                 >
                   <span className="dice-roller-panel__log-time">
                     {formatTime(entry.at)}

@@ -29,7 +29,8 @@ export function DiceRollerHost({
   )
   const [coords, setCoords] = useState<{
     bottom: number
-    right: number
+    left?: number
+    right?: number
     width: number
     maxHeight: number
   } | null>(null)
@@ -48,13 +49,27 @@ export function DiceRollerHost({
     if (!fab) return
     const r = fab.getBoundingClientRect()
     const pad = 12
-    const width = Math.min(380, window.innerWidth - pad * 2)
-    const maxHeight = Math.min(560, window.innerHeight - pad * 2)
+    const width = Math.min(400, window.innerWidth - pad * 2)
+    // Grow up from the FAB: height = min(content, viewport − pads − gap to FAB).
+    const gap = 10
+    const bottom = Math.max(pad, window.innerHeight - r.top + gap)
+    const available = Math.max(280, r.top - pad - gap)
+    const spaceRight = window.innerWidth - r.left - pad
+    // FAB is bottom-left — open panel to the right of it when it fits.
+    if (spaceRight >= width) {
+      setCoords({
+        bottom,
+        left: Math.max(pad, Math.round(r.left)),
+        width,
+        maxHeight: available,
+      })
+      return
+    }
     setCoords({
-      bottom: Math.max(pad, window.innerHeight - r.top + 8),
-      right: Math.max(pad, window.innerWidth - r.right),
-      width,
-      maxHeight,
+      bottom,
+      right: pad,
+      width: Math.min(width, window.innerWidth - pad * 2),
+      maxHeight: available,
     })
   }, [])
 
@@ -98,11 +113,12 @@ export function DiceRollerHost({
             coords
               ? {
                   bottom: coords.bottom,
+                  left: coords.left,
                   right: coords.right,
                   width: coords.width,
                   maxHeight: coords.maxHeight,
                 }
-              : { bottom: 88, right: 16, width: 360, maxHeight: 520 }
+              : { bottom: 88, left: 16, width: 360, maxHeight: 520 }
           }
           panelClassName="no-print"
           className="no-print"

@@ -1994,7 +1994,7 @@ a.ui-button--primary {
 
 
 
-/* ——— DICE-01 kit atoms: DiceFab / FloatingPanel / BottomSheet ——— */
+/* ——— DICE-01 kit atoms: DiceFab / FloatingPanel / BottomSheet / Stepper ——— */
 .no-print {
   /* Shared print-hide for chrome (FAB, roller). Classic print also lists this. */
 }
@@ -2009,9 +2009,42 @@ a.ui-button--primary {
   }
 }
 
+/* Clearance so last CAST / attack row sits/scrolls above the FAB */
+body:has(.ui-dice-fab-slot) .play-desk {
+  --dice-fab-clearance: 88px;
+  padding-bottom: calc(var(--dice-fab-clearance) + env(safe-area-inset-bottom, 0px));
+}
+
+/* Pad stage / rail / lists so last controls clear the bottom-left FAB */
+body:has(.ui-dice-fab-slot) .play-desk-compact--spells,
+body:has(.ui-dice-fab-slot) .play-desk-compact--attacks,
+body:has(.ui-dice-fab-slot) .play-desk-compact__list--scroll,
+body:has(.ui-dice-fab-slot) .play-desk__left,
+body:has(.ui-dice-fab-slot) .abil-column {
+  padding-bottom: calc(var(--dice-fab-clearance) + 8px);
+  box-sizing: border-box;
+}
+
+@media (max-width: 959px) {
+  /* Scene nav (~72) + FAB (~56) + gap */
+  body:has(.ui-dice-fab-slot) .play-desk--mobile {
+    padding-bottom: calc(72px + 72px + env(safe-area-inset-bottom, 0px));
+  }
+
+  body:has(.ui-dice-fab-slot) .play-desk--mobile .play-desk__stage,
+  body:has(.ui-dice-fab-slot) .play-desk--mobile .play-desk-compact--attacks,
+  body:has(.ui-dice-fab-slot) .play-desk--mobile .play-desk-compact--spells,
+  body:has(.ui-dice-fab-slot) .play-desk--mobile .play-desk-compact__list {
+    padding-bottom: calc(72px + 8px);
+    box-sizing: border-box;
+  }
+}
+
 .ui-dice-fab-slot {
   position: fixed;
-  right: 16px;
+  /* Bottom-left: never sits on pinned-spell CAST / attack actions. */
+  left: 16px;
+  right: auto;
   bottom: 16px;
   z-index: 48;
   pointer-events: none;
@@ -2044,14 +2077,11 @@ a.ui-button--primary {
   border-color: var(--accent);
 }
 
-.ui-dice-fab--mobile-nav {
-  /* Clear Bottom Scene Nav (~56 + safe area) */
-  /* slot moves; see media query below */
-}
-
 @media (max-width: 959px) {
+  /* Phone: above Bottom Scene Nav, still left — clears attack card actions. */
   .ui-dice-fab-slot {
-    right: 12px;
+    left: 12px;
+    right: auto;
     bottom: calc(72px + env(safe-area-inset-bottom, 0px));
   }
 }
@@ -2089,6 +2119,7 @@ a.ui-button--primary {
 
 .ui-floating-panel__header,
 .ui-bottom-sheet__header {
+  flex: 0 0 auto;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -2128,10 +2159,12 @@ a.ui-button--primary {
 
 .ui-floating-panel__body,
 .ui-bottom-sheet__body {
-  padding: 12px;
-  overflow: auto;
+  flex: 1 1 auto;
   min-height: 0;
-  flex: 1;
+  padding: 12px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 .ui-bottom-sheet-root {
@@ -2165,6 +2198,7 @@ a.ui-button--primary {
   border-bottom: 0;
   box-shadow: 0 -12px 36px rgba(45, 45, 42, 0.16);
   padding-bottom: env(safe-area-inset-bottom, 0px);
+  overflow: hidden;
 }
 
 .ui-bottom-sheet__grab {
@@ -2173,6 +2207,71 @@ a.ui-button--primary {
   border-radius: 999px;
   background: var(--line);
   margin: 8px auto 0;
+  flex: 0 0 auto;
+}
+
+/* Kit Stepper — compact − / value / + */
+.ui-stepper {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  width: max-content;
+  max-width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--card);
+  padding: 2px;
+  box-sizing: border-box;
+}
+
+.ui-stepper--sm {
+  min-height: var(--control-h-sm);
+}
+
+.ui-stepper--md {
+  min-height: var(--control-h-md);
+}
+
+.ui-stepper__btn {
+  width: var(--control-h-sm);
+  height: var(--control-h-sm);
+  min-width: var(--control-h-sm);
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-weight: 700;
+  font-size: 1.05rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.ui-stepper--md .ui-stepper__btn {
+  width: var(--control-h-md);
+  height: var(--control-h-md);
+  min-width: var(--control-h-md);
+}
+
+.ui-stepper__btn:hover:not(:disabled) {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.ui-stepper__btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.ui-stepper__value {
+  min-width: 2.25rem;
+  padding: 0 6px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--ink);
 }
 
 /* Dice roller panel content (kit pattern, not page override) */
@@ -2182,8 +2281,14 @@ a.ui-button--primary {
   gap: 6px;
 }
 
+.dice-roller-panel__die-cell {
+  position: relative;
+  min-width: 0;
+}
+
 .dice-roller-panel__die {
   position: relative;
+  width: 100%;
   min-height: var(--control-h-lg);
   border-radius: 10px;
   border: 1px solid var(--line);
@@ -2220,24 +2325,37 @@ a.ui-button--primary {
   text-align: center;
 }
 
-.dice-roller-panel__minus-row {
-  display: grid;
-  grid-template-columns: repeat(7, minmax(0, 1fr));
-  gap: 6px;
-}
-
-.dice-roller-panel__minus {
-  min-height: var(--control-h-sm);
-  border-radius: 8px;
+.dice-roller-panel__die-dec {
+  position: absolute;
+  left: 2px;
+  bottom: 2px;
+  z-index: 1;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border-radius: 5px;
   border: 1px solid var(--line);
   background: var(--card);
   color: var(--muted);
+  font-size: 0.85rem;
+  font-weight: 700;
+  line-height: 1;
   cursor: pointer;
 }
 
-.dice-roller-panel__minus:disabled {
-  opacity: 0.4;
-  cursor: default;
+.dice-roller-panel__die-dec:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.dice-roller-panel__mod-field {
+  width: max-content;
+  max-width: 100%;
+}
+
+.dice-roller-panel__mod-field .ui-field__label {
+  margin-bottom: 4px;
 }
 
 .dice-roller-panel__error {
@@ -2249,6 +2367,17 @@ a.ui-button--primary {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 8px;
+}
+
+.dice-roller-panel__adv-hit {
+  display: grid;
+  min-width: 0;
+}
+
+/* Let the wrapper receive clicks when the chip is disabled (title + flash hint). */
+.dice-roller-panel__adv-hit .ui-toggle-chip.is-disabled,
+.dice-roller-panel__adv-hit .ui-toggle-chip:disabled {
+  pointer-events: none;
 }
 
 .dice-roller-panel__adv-hint {
