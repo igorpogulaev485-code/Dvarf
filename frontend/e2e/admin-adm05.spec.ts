@@ -5,7 +5,7 @@ const CATALOG_PAGE = {
     {
       id: 'cat-1',
       kind: 'spell',
-      kind_label: 'заклинание',
+      kind_label: 'Заклинание',
       slug: 'fireball',
       name_ru_live: 'Огненный шар',
       name_en_live: 'Fireball',
@@ -15,7 +15,7 @@ const CATALOG_PAGE = {
       rules_edition: '2014',
       source: 'srd-5.1',
       content_layer: 'srd',
-      content_layer_label: 'SRD',
+      content_layer_label: 'Базовые правила',
       has_pending: true,
       pending_name_ru: 'Шар пламени',
       is_active: true,
@@ -24,7 +24,7 @@ const CATALOG_PAGE = {
     {
       id: 'cat-2',
       kind: 'race',
-      kind_label: 'раса',
+      kind_label: 'Раса',
       slug: 'elf',
       name_ru_live: 'Эльф',
       name_en_live: 'Elf',
@@ -34,7 +34,7 @@ const CATALOG_PAGE = {
       rules_edition: '2014',
       source: 'srd-5.1',
       content_layer: 'srd',
-      content_layer_label: 'SRD',
+      content_layer_label: 'Базовые правила',
       has_pending: false,
       pending_name_ru: null,
       is_active: true,
@@ -49,7 +49,7 @@ const CATALOG_PAGE = {
 const CATALOG_DETAIL = {
   id: 'cat-1',
   kind: 'spell',
-  kind_label: 'заклинание',
+  kind_label: 'Заклинание',
   slug: 'fireball',
   name_ru_live: 'Огненный шар',
   name_en_live: 'Fireball',
@@ -75,7 +75,7 @@ const CATALOG_DETAIL = {
   rules_edition: '2014',
   source: 'srd-5.1',
   content_layer: 'srd',
-  content_layer_label: 'SRD',
+  content_layer_label: 'Базовые правила',
   parent_id: null,
   parent_name_ru: null,
   is_active: true,
@@ -244,7 +244,7 @@ test.describe('ADM-05 catalog admin', () => {
     await expect(page.getByText('черновик').first()).toBeVisible()
 
     await page.getByRole('button', { name: 'Открыть' }).first().click()
-    await expect(page.getByText('Слаг (только чтение): fireball')).toBeVisible()
+    await expect(page.getByText('Код записи (только чтение): fireball')).toBeVisible()
     await expect(page.getByRole('button', { name: 'Сохранить черновик' })).toBeVisible()
     await expect(page.getByRole('button', { name: 'Принять' })).toBeVisible()
     await expect(page.getByRole('button', { name: 'Отклонить' })).toBeVisible()

@@ -87,8 +87,10 @@ def test_alembic_single_head_includes_adm05():
     script = ScriptDirectory.from_config(cfg)
     heads = script.get_heads()
     assert len(heads) == 1
-    assert heads[0] == "adm05catalog01"
+    # ADM-QF extends the chain after ADM-05.
+    assert heads[0] == "admqf01bootstrapsrc"
     revisions = {rev.revision for rev in script.walk_revisions()}
+    assert "admqf01bootstrapsrc" in revisions
     assert "adm05catalog01" in revisions
     assert "adm04feedback01" in revisions
 

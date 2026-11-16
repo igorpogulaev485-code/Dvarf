@@ -250,30 +250,37 @@ export function AdminHelpSection({
   return (
     <Panel title="Помощь">
       <Stack gap={16}>
-        <Stack gap={8}>
-          <Field label="Найти аккаунт">
-            <Input
-              value={searchDraft}
-              onChange={(e) => setSearchDraft(e.target.value)}
-              placeholder="Почта, имя или идентификатор"
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  void searchAccounts(searchDraft)
-                }
-              }}
-            />
-          </Field>
-          <div>
-            <Button
-              variant="secondary"
-              onClick={() => {
-                void searchAccounts(searchDraft)
-              }}
-            >
-              Найти
-            </Button>
+        <div
+          style={{
+            display: 'flex',
+            gap: 8,
+            flexWrap: 'wrap',
+            alignItems: 'flex-end',
+          }}
+        >
+          <div style={{ flex: '1 1 220px', minWidth: 0 }}>
+            <Field label="Найти аккаунт">
+              <Input
+                value={searchDraft}
+                onChange={(e) => setSearchDraft(e.target.value)}
+                placeholder="Почта, имя или идентификатор"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    void searchAccounts(searchDraft)
+                  }
+                }}
+              />
+            </Field>
           </div>
-        </Stack>
+          <Button
+            variant="secondary"
+            onClick={() => {
+              void searchAccounts(searchDraft)
+            }}
+          >
+            Найти
+          </Button>
+        </div>
 
         {loading && !account ? <Text tone="muted">Загружаем…</Text> : null}
 
@@ -332,7 +339,7 @@ export function AdminHelpSection({
                   черновики: {account.characters.drafts}) · своих лобби:{' '}
                   {account.lobbies.owned}
                 </Text>
-                <Text tone="muted">Идентификатор: {account.id}</Text>
+                <Text tone="muted">Id аккаунта: {account.id}</Text>
               </Stack>
             </Panel>
 
@@ -424,7 +431,7 @@ export function AdminHelpSection({
                       Разблокировать
                     </Button>
                   ) : (
-                    <Button variant="secondary" onClick={() => openDanger('block')}>
+                    <Button variant="danger" onClick={() => openDanger('block')}>
                       Заблокировать
                     </Button>
                   )}
@@ -448,7 +455,9 @@ export function AdminHelpSection({
               ? 'Заблокировать'
               : 'Подтвердить'
         }
-        primaryVariant={danger === 'delete' ? 'danger' : 'primary'}
+        primaryVariant={
+          danger === 'delete' || danger === 'block' ? 'danger' : 'primary'
+        }
         secondaryLabel="Отмена"
         busy={busy}
         primaryDisabled={primaryDisabled}

@@ -42,6 +42,8 @@ class AdminRole(Base):
         ForeignKey("users.id", ondelete="SET NULL"),
         nullable=True,
     )
+    # ADM-QF: "bootstrap" — авто-выдача по ADMIN_BOOTSTRAP_EMAIL; NULL/manual — вручную.
+    source: Mapped[str | None] = mapped_column(String(32), nullable=True, index=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),

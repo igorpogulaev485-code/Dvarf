@@ -14,26 +14,28 @@ import {
   EmptyState,
   Field,
   Panel,
+  ScrollRow,
+  SegmentedControl,
   Select,
   Stack,
   Text,
   Textarea,
 } from '../../ui'
 
-const STATUS_OPTIONS: { value: string; label: string }[] = [
-  { value: '', label: 'Все статусы' },
-  { value: 'new', label: 'Новое' },
-  { value: 'in_progress', label: 'В работе' },
-  { value: 'closed', label: 'Закрыто' },
-  { value: 'not_bug', label: 'Не ошибка' },
+const STATUS_FILTERS: { id: string; label: string }[] = [
+  { id: '', label: 'Все' },
+  { id: 'new', label: 'Новое' },
+  { id: 'in_progress', label: 'В работе' },
+  { id: 'closed', label: 'Закрыто' },
+  { id: 'not_bug', label: 'Не ошибка' },
 ]
 
-const TOPIC_OPTIONS: { value: string; label: string }[] = [
-  { value: '', label: 'Все темы' },
-  { value: 'bug', label: 'Ошибка' },
-  { value: 'question', label: 'Вопрос' },
-  { value: 'idea', label: 'Идея' },
-  { value: 'name', label: 'Название в справочнике' },
+const TOPIC_FILTERS: { id: string; label: string }[] = [
+  { id: '', label: 'Все' },
+  { id: 'bug', label: 'Ошибка' },
+  { id: 'question', label: 'Вопрос' },
+  { id: 'idea', label: 'Идея' },
+  { id: 'name', label: 'В справочнике' },
 ]
 
 const STATUS_ACTIONS: { value: FeedbackStatus; label: string }[] = [
@@ -162,36 +164,32 @@ export function AdminFeedbackSection({ onToast, onOpenHelp, initialUserId }: Pro
       <Stack gap={16}>
         <Stack gap={8}>
           <Field label="Статус">
-            <Select
-              aria-label="Фильтр по статусу"
-              value={status}
-              onChange={(e) => {
-                setPage(1)
-                setStatus(e.target.value)
-              }}
-            >
-              {STATUS_OPTIONS.map((opt) => (
-                <option key={opt.value || 'all-status'} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </Select>
+            <ScrollRow>
+              <SegmentedControl
+                aria-label="Фильтр по статусу"
+                size="sm"
+                value={status}
+                onChange={(id) => {
+                  setPage(1)
+                  setStatus(id)
+                }}
+                options={STATUS_FILTERS}
+              />
+            </ScrollRow>
           </Field>
           <Field label="Тема">
-            <Select
-              aria-label="Фильтр по теме"
-              value={topic}
-              onChange={(e) => {
-                setPage(1)
-                setTopic(e.target.value)
-              }}
-            >
-              {TOPIC_OPTIONS.map((opt) => (
-                <option key={opt.value || 'all-topic'} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </Select>
+            <ScrollRow>
+              <SegmentedControl
+                aria-label="Фильтр по теме"
+                size="sm"
+                value={topic}
+                onChange={(id) => {
+                  setPage(1)
+                  setTopic(id)
+                }}
+                options={TOPIC_FILTERS}
+              />
+            </ScrollRow>
           </Field>
         </Stack>
 

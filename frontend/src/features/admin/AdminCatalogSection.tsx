@@ -17,11 +17,14 @@ import {
   Button,
   Chip,
   ChipStack,
+  DetailsMenu,
   Dialog,
   EmptyState,
   Field,
   Input,
   Panel,
+  ScrollRow,
+  SegmentedControl,
   Select,
   Stack,
   Text,
@@ -29,40 +32,54 @@ import {
 
 const KIND_OPTIONS = [
   { value: '', label: 'Все типы' },
-  { value: 'race', label: 'раса' },
-  { value: 'class', label: 'класс' },
-  { value: 'subclass', label: 'подкласс' },
-  { value: 'background', label: 'предыстория' },
-  { value: 'feat', label: 'черта' },
-  { value: 'spell', label: 'заклинание' },
-  { value: 'weapon', label: 'оружие' },
-  { value: 'armor', label: 'доспех' },
-  { value: 'item', label: 'предмет' },
-  { value: 'bestiary', label: 'бестиарий' },
-  { value: 'condition', label: 'состояние' },
-  { value: 'alignment', label: 'мировоззрение' },
-  { value: 'skill', label: 'навык' },
+  { value: 'race', label: 'Раса' },
+  { value: 'class', label: 'Класс' },
+  { value: 'subclass', label: 'Подкласс' },
+  { value: 'background', label: 'Предыстория' },
+  { value: 'feat', label: 'Черта' },
+  { value: 'spell', label: 'Заклинание' },
+  { value: 'weapon', label: 'Оружие' },
+  { value: 'armor', label: 'Доспех' },
+  { value: 'item', label: 'Предмет' },
+  { value: 'bestiary', label: 'Бестиарий' },
+  { value: 'condition', label: 'Состояние' },
+  { value: 'alignment', label: 'Мировоззрение' },
+  { value: 'skill', label: 'Навык' },
 ]
 
-const EDITION_OPTIONS = [
-  { value: '', label: 'Все редакции' },
-  { value: '2014', label: '2014' },
-  { value: '2024', label: '2024' },
+const EDITION_OPTIONS: { id: string; label: string }[] = [
+  { id: '', label: 'Все' },
+  { id: '2014', label: '2014' },
+  { id: '2024', label: '2024' },
 ]
 
 const LAYER_OPTIONS = [
   { value: '', label: 'Все слои' },
-  { value: 'srd', label: 'SRD' },
-  { value: 'community_ref', label: 'книга вне SRD' },
+  { value: 'srd', label: 'Базовые правила' },
+  { value: 'community_ref', label: 'книга вне базовых правил' },
   { value: 'user_import', label: 'импорт игрока' },
-  { value: 'homebrew', label: 'хомбрю' },
+  { value: 'homebrew', label: 'Свой контент' },
 ]
 
-const PENDING_OPTIONS = [
-  { value: '', label: 'Черновик: все' },
-  { value: 'yes', label: 'Есть черновик' },
-  { value: 'no', label: 'Без черновика' },
+const PENDING_OPTIONS: { id: string; label: string }[] = [
+  { id: '', label: 'Все' },
+  { id: 'yes', label: 'Есть' },
+  { id: 'no', label: 'Нет' },
 ]
+
+function useCompactFilters(maxWidthPx = 960): boolean {
+  const [compact, setCompact] = useState(() =>
+    typeof window !== 'undefined' ? window.matchMedia(`(max-width: ${maxWidthPx}px)`).matches : false,
+  )
+  useEffect(() => {
+    const mq = window.matchMedia(`(max-width: ${maxWidthPx}px)`)
+    const apply = () => setCompact(mq.matches)
+    apply()
+    mq.addEventListener('change', apply)
+    return () => mq.removeEventListener('change', apply)
+  }, [maxWidthPx])
+  return compact
+}
 
 function formatEkaterinburg(value: string | null | undefined): string {
   if (!value) return '—'
@@ -83,6 +100,7 @@ type Props = {
 }
 
 export function AdminCatalogSection({ isFullAdmin, onToast }: Props) {
+  const compact = useCompactFilters()
   const [queryDraft, setQueryDraft] = useState('')
   const [query, setQuery] = useState('')
   const [kind, setKind] = useState('')
@@ -256,103 +274,149 @@ export function AdminCatalogSection({ isFullAdmin, onToast }: Props) {
     }
   }
 
+  const layerSelect = (
+    <Field label="Слой">
+      <Select
+        aria-label="Слой содержимого"
+        size="sm"
+        value={layer}
+        onChange={(e) => {
+          setPage(1)
+          setLayer(e.target.value)
+        }}
+      >
+        {LAYER_OPTIONS.map((opt) => (
+          <option key={opt.value || 'all-layer'} value={opt.value}>
+            {opt.label}
+          </option>
+        ))}
+      </Select>
+    </Field>
+  )
+
   return (
     <Stack gap={16}>
       <Panel title="Справочники">
         <Stack gap={12}>
-          <Stack gap={8}>
-            <Field label="Поиск">
-              <Input
-                value={queryDraft}
-                onChange={(e) => setQueryDraft(e.target.value)}
-                placeholder="Русское или английское имя, слаг, id"
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    setPage(1)
-                    setQuery(queryDraft.trim())
-                  }
-                }}
-              />
-            </Field>
-            <div>
-              <Button
-                variant="secondary"
-                onClick={() => {
-                  setPage(1)
-                  setQuery(queryDraft.trim())
-                }}
-              >
-                Найти
-              </Button>
+          <div
+            style={{
+              display: 'flex',
+              gap: 8,
+              flexWrap: 'wrap',
+              alignItems: 'flex-end',
+            }}
+          >
+            <div style={{ flex: '1 1 220px', minWidth: 0 }}>
+              <Field label="Поиск">
+                <Input
+                  value={queryDraft}
+                  onChange={(e) => setQueryDraft(e.target.value)}
+                  placeholder="Русское или английское имя, код записи, id"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      setPage(1)
+                      setQuery(queryDraft.trim())
+                    }
+                  }}
+                />
+              </Field>
             </div>
-          </Stack>
+            <Button
+              variant="secondary"
+              onClick={() => {
+                setPage(1)
+                setQuery(queryDraft.trim())
+              }}
+            >
+              Найти
+            </Button>
+          </div>
 
           <Stack gap={8}>
-            <Field label="Тип">
-              <Select
-                aria-label="Тип записи"
-                value={kind}
-                onChange={(e) => {
-                  setPage(1)
-                  setKind(e.target.value)
-                }}
-              >
-                {KIND_OPTIONS.map((opt) => (
-                  <option key={opt.value || 'all'} value={opt.value}>
-                    {opt.label}
-                  </option>
-                ))}
-              </Select>
-            </Field>
             <Field label="Редакция">
-              <Select
+              <SegmentedControl
                 aria-label="Редакция"
+                size="sm"
                 value={edition}
-                onChange={(e) => {
+                onChange={(id) => {
                   setPage(1)
-                  setEdition(e.target.value)
+                  setEdition(id)
                 }}
-              >
-                {EDITION_OPTIONS.map((opt) => (
-                  <option key={opt.value || 'all-ed'} value={opt.value}>
-                    {opt.label}
-                  </option>
-                ))}
-              </Select>
-            </Field>
-            <Field label="Слой">
-              <Select
-                aria-label="Слой содержимого"
-                value={layer}
-                onChange={(e) => {
-                  setPage(1)
-                  setLayer(e.target.value)
-                }}
-              >
-                {LAYER_OPTIONS.map((opt) => (
-                  <option key={opt.value || 'all-layer'} value={opt.value}>
-                    {opt.label}
-                  </option>
-                ))}
-              </Select>
+                options={EDITION_OPTIONS}
+              />
             </Field>
             <Field label="Черновик">
-              <Select
+              <SegmentedControl
                 aria-label="Фильтр черновика"
+                size="sm"
                 value={pendingFilter}
-                onChange={(e) => {
+                onChange={(id) => {
                   setPage(1)
-                  setPendingFilter(e.target.value)
+                  setPendingFilter(id)
                 }}
-              >
-                {PENDING_OPTIONS.map((opt) => (
-                  <option key={opt.value || 'all-pending'} value={opt.value}>
-                    {opt.label}
-                  </option>
-                ))}
-              </Select>
+                options={PENDING_OPTIONS}
+              />
             </Field>
           </Stack>
+
+          {compact ? (
+            <Stack gap={8}>
+              <div style={{ maxWidth: 280 }}>
+                <Field label="Тип">
+                  <Select
+                    aria-label="Тип записи"
+                    size="sm"
+                    value={kind}
+                    onChange={(e) => {
+                      setPage(1)
+                      setKind(e.target.value)
+                    }}
+                  >
+                    {KIND_OPTIONS.map((opt) => (
+                      <option key={opt.value || 'all'} value={opt.value}>
+                        {opt.label}
+                      </option>
+                    ))}
+                  </Select>
+                </Field>
+              </div>
+              <DetailsMenu summary="Ещё фильтры">
+                <Stack gap={8}>{layerSelect}</Stack>
+              </DetailsMenu>
+            </Stack>
+          ) : (
+            <div
+              style={{
+                display: 'flex',
+                gap: 12,
+                flexWrap: 'wrap',
+                alignItems: 'flex-end',
+              }}
+            >
+              <div style={{ flex: '0 1 220px', maxWidth: 240, minWidth: 140 }}>
+                <Field label="Тип">
+                  <Select
+                    aria-label="Тип записи"
+                    size="sm"
+                    value={kind}
+                    onChange={(e) => {
+                      setPage(1)
+                      setKind(e.target.value)
+                    }}
+                  >
+                    {KIND_OPTIONS.map((opt) => (
+                      <option key={opt.value || 'all'} value={opt.value}>
+                        {opt.label}
+                      </option>
+                    ))}
+                  </Select>
+                </Field>
+              </div>
+              <div style={{ flex: '0 1 260px', maxWidth: 280, minWidth: 160 }}>
+                {layerSelect}
+              </div>
+            </div>
+          )}
 
           {loading ? <Text tone="muted">Загружаем список…</Text> : null}
 
@@ -378,16 +442,19 @@ export function AdminCatalogSection({ isFullAdmin, onToast }: Props) {
                 >
                   <Stack gap={6}>
                     <Text tone="muted">
-                      {item.kind_label} · {item.rules_edition} · {item.slug}
+                      {item.kind_label} · {item.rules_edition}
+                      {item.name_ru_live ? '' : ` · ${item.slug}`}
                       {!item.is_active ? ' · неактивна' : ''}
                     </Text>
-                    <ChipStack>
-                      <Chip>{item.content_layer_label}</Chip>
-                      {item.has_pending ? <Chip>черновик</Chip> : null}
-                      {item.names_differ ? <Chip>имя отличается от сида</Chip> : null}
-                    </ChipStack>
+                    <ScrollRow>
+                      <Chip inactive>{item.content_layer_label}</Chip>
+                      {item.has_pending ? <Chip inactive>черновик</Chip> : null}
+                      {item.names_differ ? (
+                        <Chip inactive>имя отличается от исходного</Chip>
+                      ) : null}
+                    </ScrollRow>
                     {item.names_differ ? (
-                      <Text tone="muted">В сиде: {item.name_ru_seed}</Text>
+                      <Text tone="muted">Исходное название: {item.name_ru_seed}</Text>
                     ) : null}
                     {item.has_pending && item.pending_name_ru ? (
                       <Text tone="muted">Черновик: {item.pending_name_ru}</Text>
@@ -404,7 +471,7 @@ export function AdminCatalogSection({ isFullAdmin, onToast }: Props) {
                             {detail.name_en_live ? ` / ${detail.name_en_live}` : ''}
                           </Text>
                           <Text tone="muted">
-                            В сиде: {detail.name_ru_seed}
+                            Исходное название: {detail.name_ru_seed}
                             {detail.name_en_seed ? ` / ${detail.name_en_seed}` : ''}
                           </Text>
                           <Text tone="muted">
@@ -413,7 +480,7 @@ export function AdminCatalogSection({ isFullAdmin, onToast }: Props) {
                           {detail.parent_name_ru ? (
                             <Text tone="muted">Родитель: {detail.parent_name_ru}</Text>
                           ) : null}
-                          <Text tone="muted">Слаг (только чтение): {detail.slug}</Text>
+                          <Text tone="muted">Код записи (только чтение): {detail.slug}</Text>
 
                           {detail.can_edit_draft ? (
                             <Stack gap={8}>
@@ -631,7 +698,7 @@ export function AdminCatalogSection({ isFullAdmin, onToast }: Props) {
         }}
       >
         <Text>
-          Живым снова станет предыдущее принятое имя или сидовое, если принятых больше нет.
+          Живым снова станет предыдущее принятое имя или исходное, если принятых больше нет.
         </Text>
       </Dialog>
     </Stack>

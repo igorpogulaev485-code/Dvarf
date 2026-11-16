@@ -6,7 +6,6 @@ from pydantic import ValidationError
 from sqlalchemy.orm import Session
 
 from app.core.exceptions import NotFoundError
-from app.dnd.content_layer import layer_for_source
 from app.models.catalog import CatalogEntry, CatalogKind
 from app.repositories.catalog import CatalogRepository
 from app.schemas.catalog import CatalogEntryOut
@@ -22,13 +21,6 @@ def to_out(
     accepted_map: dict[UUID, object] | None = None,
 ) -> CatalogEntryOut:
     data = entry.data if isinstance(entry.data, dict) else {}
-    kind_val = entry.kind.value if hasattr(entry.kind, "value") else str(entry.kind)
-    layer = layer_for_source(
-        entry.source,
-        kind=kind_val,
-        slug=entry.slug,
-        data=data,
-    )
     if live_name_ru is not None:
         name_ru = live_name_ru
         name_en = live_name_en
@@ -43,6 +35,7 @@ def to_out(
         name_en = entry.name_en
 
     # B2 anti-mirror: never expose ttg/dnd.su (or any) external_ref publicly.
+    # ADM-QF: content_layer игроку не отдаём (остаётся в админке).
     return CatalogEntryOut.model_validate(
         {
             "id": entry.id,
@@ -55,7 +48,7 @@ def to_out(
             "source": entry.source,
             "external_ref": None,
             "data": data,
-            "content_layer": layer,
+            "content_layer": None,
             "sort_order": entry.sort_order or 0,
             "is_active": bool(entry.is_active),
             "created_at": entry.created_at,

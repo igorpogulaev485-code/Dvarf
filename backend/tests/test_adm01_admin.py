@@ -60,10 +60,20 @@ class MemoryAdminDB:
         if "admin_roles" in sql:
             user_id = params.get("user_id_1") or params.get("user_id")
             role = params.get("role_1") or params.get("role")
+            source = params.get("source_1") or params.get("source")
+            # Запрос «bootstrap у другого аккаунта»: user_id_1 — исключаемый.
+            exclude_user = None
+            if "user_id" in sql and "!=" in sql.replace(" ", ""):
+                exclude_user = params.get("user_id_1") or params.get("user_id")
+                user_id = None
             for row in self.roles:
                 if user_id is not None and row.user_id != user_id:
                     continue
+                if exclude_user is not None and row.user_id == exclude_user:
+                    continue
                 if role is not None and row.role != role:
+                    continue
+                if source is not None and getattr(row, "source", None) != source:
                     continue
                 return row.id
             return None
@@ -95,6 +105,8 @@ class MemoryAdminDB:
         name = type(obj).__name__
         if name == "AdminRole":
             if not any(r.user_id == obj.user_id and r.role == obj.role for r in self.roles):
+                if not hasattr(obj, "source"):
+                    obj.source = None
                 self.roles.append(obj)
             return
         if name == "AdminSecret":
@@ -110,10 +122,40 @@ class MemoryAdminDB:
         if hasattr(obj, "action") and hasattr(obj, "actor_id"):
             self.audit.append(obj)
 
+    def delete(self, obj) -> None:  # noqa: ANN001
+        name = type(obj).__name__
+        if name == "AdminRole" or getattr(obj, "role", None) is not None:
+            self.roles = [
+                r
+                for r in self.roles
+                if not (r.user_id == obj.user_id and r.role == obj.role and getattr(r, "id", None) == getattr(obj, "id", None))
+            ]
+            # fallback: match by id alone
+            self.roles = [r for r in self.roles if getattr(r, "id", None) != getattr(obj, "id", None)]
+            return
+        if name == "AdminSecret" or (hasattr(obj, "password_hash") and hasattr(obj, "user_id")):
+            self.secrets.pop(obj.user_id, None)
+
     def commit(self) -> None:
         return None
 
     def scalars(self, stmt):  # noqa: ANN001
+        sql = str(stmt).lower()
+        try:
+            params = stmt.compile().params
+        except Exception:
+            params = {}
+        if "admin_roles" in sql:
+            user_id = params.get("user_id_1") or params.get("user_id")
+            source = params.get("source_1") or params.get("source")
+            rows = []
+            for row in self.roles:
+                if user_id is not None and row.user_id != user_id:
+                    continue
+                if source is not None and getattr(row, "source", None) != source:
+                    continue
+                rows.append(row)
+            return SimpleNamespace(all=lambda: rows)
         return SimpleNamespace(unique=lambda: SimpleNamespace(all=lambda: list(self.users)))
 
     def execute(self, stmt):  # noqa: ANN001
@@ -230,7 +272,12 @@ def test_bootstrap_grants_full_admin(monkeypatch, db):
     monkeypatch.setattr(admin_mod.settings, "admin_bootstrap_email", "Boss@Example.com")
     admin = _user(email="boss@example.com")
     assert AdminService(db).is_full_admin(admin) is True
-    assert any(r.role == AdminRoleName.full_admin.value and r.user_id == admin.id for r in db.roles)
+    assert any(
+        r.role == AdminRoleName.full_admin.value
+        and r.user_id == admin.id
+        and getattr(r, "source", None) == admin_mod.ROLE_SOURCE_BOOTSTRAP
+        for r in db.roles
+    )
 
 
 def test_status_reports_password_flag(monkeypatch, db):

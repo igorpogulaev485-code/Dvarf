@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Link, Navigate, useNavigate } from 'react-router-dom'
+import { Link, Navigate, useNavigate, useParams } from 'react-router-dom'
 import { AdminCatalogSection } from '../features/admin/AdminCatalogSection'
 import { AdminFeedbackSection } from '../features/admin/AdminFeedbackSection'
 import { AdminHelpSection } from '../features/admin/AdminHelpSection'
@@ -17,7 +17,6 @@ import { ApiRequestError } from '../shared/api/client'
 import { AppLegalFooter } from '../shared/brand/creed20'
 import {
   Button,
-  Chip,
   ChipStack,
   Dialog,
   EmptyState,
@@ -85,11 +84,27 @@ function loginMethodsLabel(item: AdminAccountItem): string {
   return parts.length ? parts.join(', ') : '—'
 }
 
+const VALID_SECTIONS = new Set<AdminSection>([
+  'accounts',
+  'help',
+  'metrics',
+  'feedback',
+  'catalog',
+])
+
+function parseSectionParam(raw: string | undefined): AdminSection | null {
+  if (!raw) return null
+  return VALID_SECTIONS.has(raw as AdminSection) ? (raw as AdminSection) : null
+}
+
 export function AdminPage() {
   const navigate = useNavigate()
+  const { section: sectionParam } = useParams<{ section?: string }>()
   const compactNav = useCompactAdminNav()
   const [status, setStatus] = useState<AdminStatus | null>(null)
-  const [section, setSection] = useState<AdminSection | null>(null)
+  const [section, setSection] = useState<AdminSection | null>(() =>
+    parseSectionParam(sectionParam),
+  )
   const [loading, setLoading] = useState(true)
   const [denied, setDenied] = useState<'missing' | 'forbidden' | null>(null)
   const [toast, setToast] = useState<string | null>(null)
@@ -122,22 +137,28 @@ export function AdminPage() {
         if (!active) return
         setStatus(next)
         setDenied(null)
-        const allowed = next.sections?.length
+        const allowed = (next.sections?.length
           ? next.sections
           : next.is_full_admin
             ? (['accounts', 'help', 'metrics', 'feedback', 'catalog'] as AdminSection[])
-            : (['catalog'] as AdminSection[])
-        setSection((prev) => {
-          if (prev && allowed.includes(prev)) return prev
-          return allowed.includes('catalog') && !next.is_full_admin
-            ? 'catalog'
-            : allowed[0] || 'catalog'
-        })
+            : (['catalog'] as AdminSection[])) as AdminSection[]
+        const fromUrl = parseSectionParam(sectionParam)
+        const nextSection =
+          fromUrl && allowed.includes(fromUrl)
+            ? fromUrl
+            : allowed.includes('catalog') && !next.is_full_admin
+              ? 'catalog'
+              : allowed[0] || 'catalog'
+        setSection(nextSection)
+        if (fromUrl !== nextSection || sectionParam !== nextSection) {
+          navigate(`/admin/${nextSection}`, { replace: true })
+        }
       })
       .catch((err: unknown) => {
         if (!active) return
+        const fromPath = sectionParam ? `/admin/${sectionParam}` : '/admin'
         if (err instanceof ApiRequestError && err.status === 401) {
-          navigate('/login', { replace: true, state: { from: '/admin' } })
+          navigate('/login', { replace: true, state: { from: fromPath } })
           return
         }
         if (err instanceof ApiRequestError && err.status === 404) {
@@ -156,7 +177,12 @@ export function AdminPage() {
     return () => {
       active = false
     }
-  }, [navigate])
+  }, [navigate, sectionParam])
+
+  function goSection(next: AdminSection) {
+    setSection(next)
+    navigate(`/admin/${next}`)
+  }
 
   const loadAccounts = useCallback(
     async (q: string, pageNum: number) => {
@@ -252,12 +278,12 @@ export function AdminPage() {
 
   function openHelpFor(userId: string) {
     setHelpUserId(userId)
-    setSection('help')
+    goSection('help')
   }
 
   function openFeedbackFor(userId: string) {
     setFeedbackUserId(userId)
-    setSection('feedback')
+    goSection('feedback')
   }
 
   return (
@@ -299,9 +325,7 @@ export function AdminPage() {
 
         {isFullAdmin && status.admin_password_set ? (
           <Stack gap={8}>
-            <ChipStack>
-              <Chip>Пароль админки задан</Chip>
-            </ChipStack>
+            <Text tone="muted">Пароль админки задан</Text>
             <div>
               <Button
                 variant="ghost"
@@ -316,58 +340,67 @@ export function AdminPage() {
           </Stack>
         ) : null}
 
-        {compactNav ? (
-          <Field label="Раздел">
-            <Select
+        {visibleSections.length > 1 ? (
+          compactNav ? (
+            <Field label="Раздел">
+              <Select
+                aria-label="Разделы админки"
+                value={section}
+                onChange={(event) => goSection(event.target.value as AdminSection)}
+              >
+                {visibleSections.map((item) => (
+                  <option key={item.id} value={item.id}>
+                    {item.label}
+                  </option>
+                ))}
+              </Select>
+            </Field>
+          ) : (
+            <SegmentedControl
               aria-label="Разделы админки"
               value={section}
-              onChange={(event) => setSection(event.target.value as AdminSection)}
-            >
-              {visibleSections.map((item) => (
-                <option key={item.id} value={item.id}>
-                  {item.label}
-                </option>
-              ))}
-            </Select>
-          </Field>
-        ) : (
-          <SegmentedControl
-            aria-label="Разделы админки"
-            value={section}
-            onChange={setSection}
-            options={visibleSections}
-          />
-        )}
+              onChange={goSection}
+              options={visibleSections}
+            />
+          )
+        ) : null}
 
         {section === 'accounts' && LIVE_SECTIONS.has(section) && isFullAdmin ? (
           <Panel title="Аккаунты">
             <Stack gap={16}>
-              <Stack gap={8}>
-                <Field label="Поиск">
-                  <Input
-                    value={searchDraft}
-                    onChange={(e) => setSearchDraft(e.target.value)}
-                    placeholder="Почта, имя или идентификатор"
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        setPage(1)
-                        setQuery(searchDraft.trim())
-                      }
-                    }}
-                  />
-                </Field>
-                <div>
-                  <Button
-                    variant="secondary"
-                    onClick={() => {
-                      setPage(1)
-                      setQuery(searchDraft.trim())
-                    }}
-                  >
-                    Найти
-                  </Button>
+              <div
+                style={{
+                  display: 'flex',
+                  gap: 8,
+                  flexWrap: 'wrap',
+                  alignItems: 'flex-end',
+                }}
+              >
+                <div style={{ flex: '1 1 220px', minWidth: 0 }}>
+                  <Field label="Поиск">
+                    <Input
+                      value={searchDraft}
+                      onChange={(e) => setSearchDraft(e.target.value)}
+                      placeholder="Почта, имя или идентификатор"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          setPage(1)
+                          setQuery(searchDraft.trim())
+                        }
+                      }}
+                    />
+                  </Field>
                 </div>
-              </Stack>
+                <Button
+                  variant="secondary"
+                  onClick={() => {
+                    setPage(1)
+                    setQuery(searchDraft.trim())
+                  }}
+                >
+                  Найти
+                </Button>
+              </div>
 
               {accountsLoading ? <Text tone="muted">Загружаем список…</Text> : null}
 
@@ -420,7 +453,7 @@ export function AdminPage() {
                         </Text>
                         {open ? (
                           <Stack gap={8}>
-                            <Text tone="muted">Идентификатор: {item.id}</Text>
+                            <Text tone="muted">Id: {item.id}</Text>
                             <ChipStack>
                               <Button variant="secondary" onClick={() => openHelpFor(item.id)}>
                                 Помощь

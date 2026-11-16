@@ -199,6 +199,18 @@ class CatalogMemoryDB:
             rows = [f for f in self.feedback if getattr(f, "topic", None) == "name"]
             return _Result(rows)
 
+        if "admin_roles" in sql:
+            user_id = params.get("user_id_1") or params.get("user_id")
+            source = params.get("source_1") or params.get("source")
+            rows = []
+            for row in self.roles:
+                if user_id is not None and row.user_id != user_id:
+                    continue
+                if source is not None and getattr(row, "source", None) != source:
+                    continue
+                rows.append(row)
+            return _Result(rows)
+
         return _Result([])
 
     def get(self, model, key):  # noqa: ANN001
@@ -237,8 +249,13 @@ class CatalogMemoryDB:
             return
 
     def delete(self, obj) -> None:  # noqa: ANN001
-        if type(obj).__name__ == "CatalogNameRevision":
+        name = type(obj).__name__
+        if name == "CatalogNameRevision":
             self.revisions = [r for r in self.revisions if r.id != obj.id]
+            return
+        if name == "AdminRole" or getattr(obj, "role", None) is not None:
+            oid = getattr(obj, "id", None)
+            self.roles = [r for r in self.roles if getattr(r, "id", None) != oid]
 
     def commit(self) -> None:
         self.committed += 1

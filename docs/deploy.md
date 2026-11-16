@@ -62,6 +62,22 @@ Workflow не читает секрет Cursor `DVARF_SSH_PRIVATE_KEY`. Если
 
 После зелёного деплоя владелец заходит в https://creed20.tech/admin под аккаунтом с этой почтой и **задаёт пароль админки** (отдельный от пароля входа в аккаунт). Пока пароль не задан, разделы админки закрыты подтверждением.
 
+### Сброс забытого пароля админки (CLI, ADM-QF)
+
+Отдельного письма и HTTP-эндпоинта нет: сброс только с хоста, где есть доступ к БД/`.env`. Команда **не** принимает и не печатает новый пароль — удаляет хеш в `admin_secrets`, сбрасывает попытки и блок; владелец снова задаёт пароль в `/admin`. Пишет в `admin_audit_log` (`source=cli`, без секретов). Нужен `--yes` или интерактивное `y`.
+
+```bash
+# из каталога /opt/dvarf на VPS, сервис api из docker-compose.prod.yml
+docker compose --env-file .env exec api \
+  python -m app.scripts.reset_admin_password --email owner@example.com --yes
+
+# или по UUID
+docker compose --env-file .env exec api \
+  python -m app.scripts.reset_admin_password --user-id <uuid> --yes
+```
+
+Флаг `ADMIN_PANEL_ENABLED` должен быть включён. Пароль входа в аккаунт команда не трогает.
+
 ## Как завести environment и секреты
 
 Нужны права администратора репозитория. Имена писать точно: workflow сравнивает `environment: production` и имена секретов.
