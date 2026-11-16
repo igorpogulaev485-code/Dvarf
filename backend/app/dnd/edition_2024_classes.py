@@ -30,6 +30,7 @@ CLASS_SLUG_ALIASES: dict[str, str] = {
     "волшебник": "wizard",
     "маг": "wizard",
     "изобретатель": "artificer",
+    "артефактор": "artificer",
     "артифицер": "artificer",
 }
 

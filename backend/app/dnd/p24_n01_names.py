@@ -56,6 +56,12 @@ COMPAT_KINDS = {
     "race": frozenset({"race", "species"}),
 }
 
+# P24-N02: Igor display overrides — keep 2014 pair for lineage, show different RU on 2024.
+# Key: (mapped 2014-ish kind, slug) → name_ru for live 2024 cards.
+N02_NAME_OVERRIDES: dict[tuple[str, str], str] = {
+    ("class", "artificer"): "Артефактор",
+}
+
 # discrepancies.md uses plural table names in the category column.
 DISC_CATEGORY_TO_KIND = {
     "species": "race",
@@ -316,6 +322,20 @@ def decide_name(
             new_ru=old_ru,
             basis="pending",
             pending=True,
+        )
+
+    mapped_kind = KIND_TO_2014.get(kind, kind)
+    n02 = N02_NAME_OVERRIDES.get((mapped_kind, norm_slug(slug)))
+    if n02 is not None:
+        return NameDecision(
+            slug=slug,
+            kind=kind,
+            file=file_name,
+            name_en=name_en,
+            old_ru=old_ru,
+            new_ru=n02,
+            basis="n02",
+            pending=False,
         )
 
     pair, how = find_2014_pair(

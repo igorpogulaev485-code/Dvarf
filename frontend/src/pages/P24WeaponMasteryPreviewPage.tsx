@@ -22,7 +22,7 @@ import type { ClassLevelEntry } from '../features/characters/classLevels'
 const FIGHTER: ClassLevelEntry[] = [
   {
     id: 'c1',
-    name: 'Боец',
+    name: 'Воин',
     catalog_id: null,
     level: 9,
     subclass_name: '',

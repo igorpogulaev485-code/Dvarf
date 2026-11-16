@@ -44,6 +44,7 @@ const CLASS_SLUG_ALIASES: Record<string, string> = {
   волшебник: 'wizard',
   маг: 'wizard',
   изобретатель: 'artificer',
+  артефактор: 'artificer',
   артифицер: 'artificer',
 }
 

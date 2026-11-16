@@ -3,7 +3,7 @@
     "pack": "P24-C09",
     "rules_edition": "2024",
     "source": "ph24",
-    "notes_ru": "36 подклассов PHB сверх 12 SRD (C04). Имена — subclasses.csv; умения — короткие карточки по next.dnd.su. parent_id = UUID класса 2024 из C04. Изобретатель не входит."
+    "notes_ru": "36 подклассов PHB сверх 12 SRD (C04). Имена — subclasses.csv; умения — короткие карточки по next.dnd.su. parent_id = UUID класса 2024 из C04. Артефактор не входит."
   },
   "entries": [
     {

@@ -13,7 +13,7 @@ test.beforeAll(() => {
 })
 
 test.describe('P24-M02a classes 2024', () => {
-  test('боец 5 + волшебник 5; флаг закрыт; surge≠magic', async ({ page }, testInfo) => {
+  test('воин 5 + волшебник 5; флаг закрыт; surge≠magic', async ({ page }, testInfo) => {
     await page.goto('/dev/p24-m02a-preview')
     await expect(page.getByTestId('p24-m02a-preview')).toBeVisible()
     await expect(page.getByTestId('p24-m02a-flag')).toContainText('закрыт')

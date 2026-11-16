@@ -963,6 +963,7 @@ const CLASS_NAME_TO_SLUG: Record<string, string> = {
   плут: 'rogue',
   fighter: 'fighter',
   воин: 'fighter',
+  боец: 'fighter',
   monk: 'monk',
   монах: 'monk',
   cleric: 'cleric',
@@ -983,6 +984,7 @@ const CLASS_NAME_TO_SLUG: Record<string, string> = {
   волшебник: 'wizard',
   artificer: 'artificer',
   изобретатель: 'artificer',
+  артефактор: 'artificer',
 }
 
 export function resolveClassFeatureSlug(className: string): string | null {

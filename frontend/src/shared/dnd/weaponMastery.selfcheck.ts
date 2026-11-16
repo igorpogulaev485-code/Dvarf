@@ -38,7 +38,7 @@ assert(masteryPropertyNameRu('topple') === 'Опрокидывание', 'topple
 {
   const { rule, limit } = resolveActiveMasteryBudget(
     [
-      { name: 'Боец', level: 1 },
+      { name: 'Воин', level: 1 },
       { name: 'Плут', level: 1 },
     ],
   )

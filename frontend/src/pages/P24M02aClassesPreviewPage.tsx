@@ -112,7 +112,7 @@ export function P24M02aClassesPreviewPage() {
   const fighterSnap = useMemo(
     () =>
       computeProgression2024({
-        classes: previewClasses('fighter', 5, 'Боец'),
+        classes: previewClasses('fighter', 5, 'Воин'),
       }),
     [],
   )
@@ -147,10 +147,10 @@ export function P24M02aClassesPreviewPage() {
             : 'ошибка'}
         </p>
         <p data-testid="p24-m02a-multiclass">
-          Мультикласс боец→волшебник: {mc.ok ? 'пороги ок' : mc.reasonRu}
+          Мультикласс воин→волшебник: {mc.ok ? 'пороги ок' : mc.reasonRu}
         </p>
 
-        <ClassCard slug="fighter" nameRu="Боец" level={5} testId="p24-m02a-fighter5" />
+        <ClassCard slug="fighter" nameRu="Воин" level={5} testId="p24-m02a-fighter5" />
         <ClassCard slug="wizard" nameRu="Волшебник" level={5} testId="p24-m02a-wizard5" />
 
         <Panel>
@@ -206,7 +206,7 @@ export function P24M02aClassesPreviewPage() {
           <div data-testid="p24-m02a-rest">
             <Text as="h2">Отдых · Второе дыхание</Text>
             <p data-testid="p24-m02a-sw-max">
-              Макс. применений бойца 5: {secondWind?.max ?? 0} (часть на короткий)
+              Макс. применений воина 5: {secondWind?.max ?? 0} (часть на короткий)
             </p>
             <Button
               type="button"

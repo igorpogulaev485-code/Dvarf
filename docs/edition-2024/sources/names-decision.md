@@ -128,3 +128,15 @@
 | `potion-of-giant-strength-cloud` | item | Potion of Giant Strength (cloud) | `potion_of_giant_strength_cloud` | Potion of Cloud Giant Strength | Зелье силы облачного великана | gear_dmg_polish_v1.json |
 | `potion-of-giant-strength-storm` | item | Potion of Giant Strength (storm) | `potion_of_giant_strength_storm` | Potion of Storm Giant Strength | Зелье силы штормового великана | gear_dmg_polish_v1.json |
 
+## P24-N02 — правки Игоря (16.11.2026)
+
+Переопределения поверх правила «пара 2014»:
+
+| slug | kind | было (N01) | стало (N02) |
+|---|---|---|---|
+| `beholder` | bestiary | Злобоглаз | Бехолдер (и в 2014 текстах) |
+| `beholder-zombie` | bestiary | Злобоглаз зомби | Бехолдер-зомби (и в 2014) |
+| `artificer` | class | Изобретатель | Артефактор (только 2024; 2014 без изменений) |
+
+Fighter display: везде «Воин» (алиас «боец» сохранён).
+

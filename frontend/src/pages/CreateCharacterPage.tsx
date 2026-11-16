@@ -204,7 +204,7 @@ import { inventoryToSheet, readInventory } from '../features/characters/inventor
 import { Button, Stack, Text, Toast } from '../ui'
 
 const CASTER_NAME_RE =
-  /бард|жрец|друид|паладин|следопыт|чародей|колдун|волшебник|изобретатель/i
+  /бард|жрец|друид|паладин|следопыт|чародей|колдун|волшебник|изобретатель|артефактор/i
 
 function catalogRef(entry: CatalogEntry) {
   return { id: entry.id, slug: entry.slug, nameRu: entry.name_ru }

@@ -318,7 +318,7 @@ def validate_replicate_plans(
             )
         if artificer_level < plan.min_level:
             raise Edition2024ClassError(
-                f"«{plan.name_ru}» с {plan.min_level} ур. изобретателя",
+                f"«{plan.name_ru}» с {plan.min_level} ур. артефактора",
                 code="replicate_level",
             )
         if pid in cleaned:

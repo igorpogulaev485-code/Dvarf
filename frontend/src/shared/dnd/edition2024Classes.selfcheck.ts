@@ -24,7 +24,7 @@ for (const level of [1, 3, 5, 11, 20]) {
   const snap = computeProgression2024({
     classes: [
       createClassLevel({
-        name: 'Боец',
+        name: 'Воин',
         level,
         catalog_id: 'fighter',
         subclass_catalog_id: level >= 3 ? SRD_SUBCLASS_BY_PARENT.fighter : null,

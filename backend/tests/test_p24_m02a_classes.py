@@ -272,7 +272,7 @@ def test_2014_rejects_class_progress():
             rules_edition="2014",
             previous=None,
             incoming={"resources": []},
-            sheet={"classes": [{"name": "Боец", "level": 1}]},
+            sheet={"classes": [{"name": "Воин", "level": 1}]},
         )
     stripped = e24.strip_class_progress_from_sheet_for_2014(
         {"class_progress_2024": {"x": 1}, "hp": 10}
@@ -283,7 +283,7 @@ def test_2014_rejects_class_progress():
 
 def test_validate_preserves_used_counters():
     sheet = {
-        "classes": [{"name": "Боец", "level": 5, "slug": "fighter"}],
+        "classes": [{"name": "Воин", "level": 5, "slug": "fighter"}],
         "abilities": {"str": 16, "dex": 14, "con": 14, "int": 10, "wis": 10, "cha": 10},
     }
     snap = e24.compute_progression(

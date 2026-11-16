@@ -168,6 +168,7 @@ export const WEAPON_MASTERY_CLASS_RULES: Record<string, WeaponMasteryClassRules>
 
 const CLASS_SLUG_ALIASES: Record<string, string> = {
   боец: 'fighter',
+  воин: 'fighter',
   варвар: 'barbarian',
   паладин: 'paladin',
   следопыт: 'ranger',

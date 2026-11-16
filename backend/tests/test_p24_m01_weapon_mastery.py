@@ -76,7 +76,7 @@ def test_2014_rejects_mastery_picks():
             rules_edition="2014",
             previous=None,
             incoming={"known": ["longsword"]},
-            sheet={"classes": [{"name": "Боец", "level": 1}]},
+            sheet={"classes": [{"name": "Воин", "level": 1}]},
         )
     assert exc.value.code == "weapon_mastery_edition_2014"
 
@@ -300,6 +300,6 @@ def test_nick_does_not_spend_bonus_and_once_per_turn():
 
 def test_class_levels_from_sheet_russian_names():
     levels = wm.class_levels_from_sheet(
-        {"classes": [{"name": "Боец", "level": 5}, {"name": "Плут", "level": 2}]}
+        {"classes": [{"name": "Воин", "level": 5}, {"name": "Плут", "level": 2}]}
     )
     assert levels == [("fighter", 5), ("rogue", 2)]

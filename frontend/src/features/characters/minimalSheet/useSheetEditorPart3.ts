@@ -225,7 +225,9 @@ export function useSheetEditorPart3(model: SheetModel) {
       const resources = syncGearResources(prev.play.resources, model.gearEffects)
       let companions = syncGearCompanions(prev.companions, model.gearEffects)
       companions = syncMountCompanions(companions, prev.inventory.items)
-      const art = prev.classes.find((row) => /изобретател|artificer/i.test(row.name))
+      const art = prev.classes.find((row) =>
+        /изобретател|артефактор|artificer/i.test(row.name),
+      )
       const intScore = model.effectiveAbilities?.int ?? prev.abilities?.int ?? 10
       const spellMod = abilityModifier(intScore)
       const pb = proficiencyBonusForLevel(model.characterLevel || 1)

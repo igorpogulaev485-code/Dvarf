@@ -25,6 +25,7 @@ TACTICAL_MASTER_OPTIONS = frozenset({"push", "sap", "slow"})
 # is used for only one of those classes (PHB/SRD multiclassing).
 CLASS_SLUG_ALIASES = {
     "боец": "fighter",
+    "воин": "fighter",
     "варвар": "barbarian",
     "паладин": "paladin",
     "следопыт": "ranger",
