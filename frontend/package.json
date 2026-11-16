@@ -83,6 +83,8 @@
     "test:e2e:onboarding": "playwright test --config=playwright.onboarding.config.ts",
     "test:e2e:p24-01": "playwright test --config=playwright.p24.config.ts",
     "test:e2e:p24-02": "playwright test --config=playwright.p24-02.config.ts",
+    "test:e2e:p24-m01": "playwright test --config=playwright.p24-m01.config.ts",
+    "selfcheck:p24-m01-weapon-mastery": "tsx src/shared/dnd/weaponMastery.selfcheck.ts",
     "selfcheck:p24-02-exhaustion": "tsx src/shared/dnd/exhaustion2024.selfcheck.ts",
     "selfcheck:p24-02-heroic": "tsx src/shared/dnd/heroicInspiration.selfcheck.ts",
     "selfcheck:p24-02-rest": "tsx src/shared/dnd/rest2024.selfcheck.ts",

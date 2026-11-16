@@ -54,6 +54,7 @@ import {
 import { proficiencyBonusForTotalLevel } from '../../../shared/dnd/classFeatures'
 import { classWalkSpeedBonusFt } from '../../../shared/dnd/classMovement'
 import { featurePicksToSheet } from '../../../shared/dnd/featurePicks'
+import { weaponMasteryToSheet } from '../../../shared/dnd/weaponMastery'
 import { fightingStyleAcBonusFromIds } from '../../../shared/dnd/fightingStyles'
 import {
   elegantCourtierPersuasionBonus,
@@ -1001,6 +1002,16 @@ export function useSheetEditorPart3(model: SheetModel) {
       sheet.companions = draftSnap.companions
       sheet.known_forms = draftSnap.knownForms
       sheet.feature_picks = featurePicksToSheet(draftSnap.featurePicks)
+      // P24-M01: persist weapon mastery only for 2024; strip on 2014.
+      {
+        const edition =
+          model.baseCharacter?.rules_edition ?? model.rulesEdition ?? '2014'
+        if (edition === '2024') {
+          sheet.weapon_mastery = weaponMasteryToSheet(draftSnap.weaponMastery)
+        } else {
+          delete sheet.weapon_mastery
+        }
+      }
       sheet.class_asi = draftSnap.classAsi
       sheet.primal_champion = draftSnap.primalChampion
       sheet.piety = draftSnap.piety

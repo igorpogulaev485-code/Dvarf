@@ -30,6 +30,12 @@ import { AttacksSettingsDialog } from '../AttacksSettingsDialog'
 import { SpellsPanel } from '../SpellsPanel'
 import { SpellsSettingsDialog } from '../SpellsSettingsDialog'
 import { ClassFeaturesPanel } from '../ClassFeaturesPanel'
+import { WeaponMasteryPanel } from '../WeaponMasteryPanel'
+import { WeaponMasteryAttackPanel } from '../WeaponMasteryAttackPanel'
+import {
+  SRD_WEAPONS_2024_MASTERY,
+  srdWeaponMasteryBySlug,
+} from '../../../shared/dnd/weaponMastery'
 import { PietyPanel } from '../PietyPanel'
 import { syncPietyChampion, type PietyState } from '../../../shared/dnd/therosPiety'
 import { CompanionsPanel } from '../CompanionsPanel'
@@ -112,6 +118,8 @@ type DeskTransferMode =
     }
 
 export function PlayDeskScenes({ model }: { model: SheetModel }) {
+  const [masteryNickUsed, setMasteryNickUsed] = useState(false)
+  const [masteryCleaveUsed, setMasteryCleaveUsed] = useState(false)
   const [divineSmiteIntent, setDivineSmiteIntent] = useState<DivineSmiteIntent>({
     slotLevel: null,
     vsUndeadOrFiend: false,
@@ -868,6 +876,93 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
               })
             }}
           />
+          {model.rulesEdition === '2024' &&
+          model.draft.weaponMastery.known.length > 0
+            ? (() => {
+                const held = model.draft.weapons.find((w) => {
+                  const slug =
+                    (typeof w.catalog_id === 'string' && w.catalog_id.includes(':')
+                      ? w.catalog_id.split(':').pop()
+                      : w.catalog_id) ||
+                    srdWeaponMasteryBySlug(
+                      String(w.name || '')
+                        .trim()
+                        .toLowerCase(),
+                    )?.slug
+                  const key = String(slug || '').toLowerCase()
+                  return (
+                    Boolean(w.held) &&
+                    key &&
+                    model.draft.weaponMastery.known.includes(key)
+                  )
+                })
+                if (!held) return null
+                const slugGuess =
+                  (typeof held.catalog_id === 'string' && held.catalog_id.includes(':')
+                    ? held.catalog_id.split(':').pop()
+                    : held.catalog_id) ||
+                  model.draft.weaponMastery.known.find((k) =>
+                    String(held.name || '')
+                      .toLowerCase()
+                      .includes(k),
+                  ) ||
+                  model.draft.weaponMastery.known[0]
+                const abilityKey =
+                  held.ability === 'dex' ||
+                  held.ability === 'str' ||
+                  held.ability === 'con' ||
+                  held.ability === 'int' ||
+                  held.ability === 'wis' ||
+                  held.ability === 'cha'
+                    ? held.ability
+                    : 'str'
+                const mod = abilityModifier(model.effectiveAbilities[abilityKey])
+                return (
+                  <WeaponMasteryAttackPanel
+                    key={held.id}
+                    rulesEdition={model.rulesEdition}
+                    classes={model.draft.classes}
+                    masteryState={model.draft.weaponMastery}
+                    weaponSlug={String(slugGuess || '')}
+                    weaponName={held.name}
+                    hit
+                    damageDealt
+                    attackAbilityMod={mod}
+                    proficiencyBonus={model.proficiencyBonus}
+                    damageType={held.damage_type}
+                    openSessionId={model.character.open_session_id}
+                    characterId={model.character.id}
+                    nickUsedThisTurn={masteryNickUsed}
+                    cleaveUsedThisTurn={masteryCleaveUsed}
+                    onNickUsed={() => setMasteryNickUsed(true)}
+                    onCleaveUsed={() => setMasteryCleaveUsed(true)}
+                    onApplyCondition={(condition) => {
+                      if (condition !== 'prone') return
+                      model.setDraft((prev) => {
+                        const list = prev.play.conditions ?? []
+                        if (list.some((c) => c.slug === 'prone')) return prev
+                        return {
+                          ...prev,
+                          play: {
+                            ...prev.play,
+                            conditions: [
+                              ...list,
+                              {
+                                slug: 'prone',
+                                name: 'Опрокинутый',
+                                catalog_id: null,
+                                level: 1,
+                              },
+                            ],
+                          },
+                        }
+                      })
+                    }}
+                    onToast={(message) => model.onToast?.(message)}
+                  />
+                )
+              })()
+            : null}
         </>
       ) : (
         <AttacksPanel
@@ -1088,6 +1183,18 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
           }
         />
       ) : null}
+      <WeaponMasteryPanel
+        rulesEdition={model.rulesEdition}
+        classes={model.draft.classes}
+        state={model.draft.weaponMastery}
+        onChange={(weaponMastery) =>
+          model.setDraft((prev) => ({ ...prev, weaponMastery }))
+        }
+        weaponOptions={[...SRD_WEAPONS_2024_MASTERY]}
+        hasSimpleProf
+        hasMartialProf
+        onToast={(message) => model.onToast?.(message)}
+      />
       <ClassFeaturesPanel
         classes={model.draft.classes}
         characterLevel={model.characterLevel}
