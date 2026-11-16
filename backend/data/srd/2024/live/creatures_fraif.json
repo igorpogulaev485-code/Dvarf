@@ -1,0 +1,4784 @@
+{
+  "meta": {
+    "pack": "P24-C18",
+    "source": "FRAiF creatures (community_ref)",
+    "count": 40,
+    "notes": [
+      "40 существ FRAiF; source=fraif.",
+      "Короткие RU-карточки; spell_refs только из блока заклинаний."
+    ]
+  },
+  "entries": [
+    {
+      "kind": "bestiary",
+      "slug": "adult-deep-dragon",
+      "name_ru": "Взрослый глубинный дракон",
+      "name_en": "Adult Deep Dragon",
+      "source": "fraif",
+      "sort_order": 10,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/bestiary/29345-adult-deep-dragon",
+        "url_ttg": "https://new.ttg.club/bestiary/adult-deep-dragon-fraif",
+        "book": "FRAiF"
+      },
+      "data": {
+        "schema_version": 1,
+        "size": "huge",
+        "size_ru": "огромный",
+        "type": "dragon",
+        "type_ru": "Дракон",
+        "subtype": null,
+        "alignment": "нейтральный",
+        "ac": 17,
+        "hp_average": 161,
+        "hp_formula": "17к12+51",
+        "speed": {
+          "walk": 40,
+          "fly": 80,
+          "swim": 40,
+          "burrow": 30
+        },
+        "cr": "11",
+        "xp": 7200,
+        "proficiency_bonus": 4,
+        "initiative": {
+          "mod": 10,
+          "score": 20
+        },
+        "abilities": {
+          "str": 20,
+          "dex": 14,
+          "con": 17,
+          "int": 16,
+          "wis": 16,
+          "cha": 18
+        },
+        "ability_mods": {
+          "str": 5,
+          "dex": 2,
+          "con": 3,
+          "int": 3,
+          "wis": 3,
+          "cha": 4
+        },
+        "ability_saves": {
+          "str": 5,
+          "dex": 6,
+          "con": 3,
+          "int": 3,
+          "wis": 7,
+          "cha": 4
+        },
+        "skills": {
+          "Внимательность": 11,
+          "Скрытность": 10
+        },
+        "senses": {
+          "passive_perception": 21
+        },
+        "languages": [
+          "Общий",
+          "Драконий",
+          "Подземный"
+        ],
+        "source_book": "FRAiF",
+        "srd_section": "monsters",
+        "summary_ru": "огромный дракон, ПО 11; КД 17, хиты 161 (17к12+51); инициатива +10 (ср. 20), БМ +4.",
+        "name_ru_pending": false,
+        "gear_refs": [],
+        "spell_refs": [],
+        "traits": [
+          {
+            "name_ru": "Легендарное сопротивление (3/день, или 4/день в Логове)",
+            "text_ru": "Если дракон проваливает спасбросок, он вместо этого может преуспеть в нём.",
+            "name_ru_pending": false
+          }
+        ],
+        "actions": [
+          {
+            "name_ru": "Мультиатака",
+            "text_ru": "Дракон совершает три атаки Раздиранием.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Раздирание",
+            "text_ru": "Бросок рукопашной атаки: +9, досягаемость 10 фт. Попадание: 14 (2к8 + 5) Рубящего урона плюс 5 (1к10) урона Ядом.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Кошмарное дыхание (Перезарядка 5–6)",
+            "text_ru": "Спасбросок Мудрости: Сл 15, каждое существо в 30-футовом Конусе. Провал: 38 (7к10) Психического урона, и цель Испугана до конца следующего…",
+            "name_ru_pending": false
+          }
+        ],
+        "bonus_actions": [
+          {
+            "name_ru": "Перевоплощение",
+            "text_ru": "Дракон либо перевоплощается в Гуманоида Среднего или Маленького размера или в Зверя Среднего или Маленького размера, либо возвращается в св…",
+            "name_ru_pending": false
+          }
+        ],
+        "legendary_actions": [
+          {
+            "name_ru": "Наскок",
+            "text_ru": "Дракон перемещается на расстояние вплоть до половины своей Скорости и совершает одну атаку Раздиранием.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Споровой залп",
+            "text_ru": "Спасбросок Телосложения: Сл 15, одно видимое драконом существо в 30 футах. Провал: 13 (3к8) урона Ядом, и цель Отравлена. Она повторяет спа…",
+            "name_ru_pending": false
+          }
+        ],
+        "damage_resistances": [
+          "психический",
+          "ядовитый"
+        ],
+        "legendary_actions_uses": 3,
+        "legendary_actions_uses_lair": 4,
+        "legendary_actions_note_ru": "3 за раунд (4 в логове)"
+      }
+    },
+    {
+      "kind": "bestiary",
+      "slug": "adult-spirit-dragon",
+      "name_ru": "Взрослый духовный дракон",
+      "name_en": "Adult Spirit Dragon",
+      "source": "fraif",
+      "sort_order": 20,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/bestiary/29375-adult-spirit-dragon",
+        "url_ttg": "https://new.ttg.club/bestiary/adult-spirit-dragon-fraif",
+        "book": "FRAiF"
+      },
+      "data": {
+        "schema_version": 1,
+        "size": "huge",
+        "size_ru": "огромный",
+        "type": "dragon",
+        "type_ru": "Дракон",
+        "subtype": null,
+        "alignment": "нейтральный",
+        "ac": 18,
+        "hp_average": 207,
+        "hp_formula": "18к12+90",
+        "speed": {
+          "walk": 40,
+          "fly": 80,
+          "burrow": 30
+        },
+        "cr": "15",
+        "xp": 13000,
+        "proficiency_bonus": 5,
+        "initiative": {
+          "mod": 7,
+          "score": 17
+        },
+        "abilities": {
+          "str": 22,
+          "dex": 15,
+          "con": 21,
+          "int": 20,
+          "wis": 15,
+          "cha": 19
+        },
+        "ability_mods": {
+          "str": 6,
+          "dex": 2,
+          "con": 5,
+          "int": 5,
+          "wis": 2,
+          "cha": 4
+        },
+        "ability_saves": {
+          "str": 6,
+          "dex": 7,
+          "con": 10,
+          "int": 5,
+          "wis": 2,
+          "cha": 4
+        },
+        "skills": {
+          "Внимательность": 7,
+          "История": 10,
+          "Проницательность": 7,
+          "Скрытность": 7
+        },
+        "senses": {
+          "passive_perception": 17
+        },
+        "languages": [
+          "Общий",
+          "Драконий",
+          "Телепатия 120 фт."
+        ],
+        "source_book": "FRAiF",
+        "srd_section": "monsters",
+        "summary_ru": "огромный дракон, ПО 15; КД 18, хиты 207 (18к12+90); инициатива +7 (ср. 17), БМ +5; есть заклинания.",
+        "name_ru_pending": false,
+        "gear_refs": [],
+        "spell_refs": [
+          "thunderwave",
+          "detect-magic",
+          "shapechange",
+          "legend-lore"
+        ],
+        "traits": [
+          {
+            "name_ru": "Легендарное сопротивление (3/день, или 4/день в Логове)",
+            "text_ru": "Если дракон проваливает спасбросок, он вместо этого может в нём преуспеть.",
+            "name_ru_pending": false
+          }
+        ],
+        "actions": [
+          {
+            "name_ru": "Мультиатака",
+            "text_ru": "Дракон совершает три атаки Раздиранием. Он может заменить одну атаку использованием (А) Дыхания искажения времени или (Б) Сотворения заклин…",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Раздирание",
+            "text_ru": "Бросок рукопашной атаки: +11, досягаемость 10 фт. Попадание: 15 (2к8 + 6) Рубящего урона плюс 7 (2к6) Некротического урона.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Гибельное дыхание (Перезарядка 5–6)",
+            "text_ru": "Спасбросок Телосложения: Сл 18, каждое существо в 60-футовом Конусе. Провал: 63 (14к8) Некротического урона. Успех: Только половина урона.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Сотворение заклинаний",
+            "text_ru": "Взрослый духовный дракон сотворяет одно из следующих заклинаний, не нуждаясь в компонентах заклинания (заклинательная характеристика — Инте…",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Дыхание искажения времени",
+            "text_ru": "Спасбросок Мудрости: Сл 18, каждое ещё не подверженное этому эффекту существо в 60-футовом Конусе. Провал: Цель в свой ход может совершить…",
+            "name_ru_pending": false
+          }
+        ],
+        "legendary_actions": [
+          {
+            "name_ru": "Наскок",
+            "text_ru": "Дракон перемещается на расстояние вплоть до половины своей Скорости и совершает одну атаку Раздиранием.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Раскалывающая волна",
+            "text_ru": "Дракон использует Сотворение заклинаний (Волна грома).",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Подъятие руин",
+            "text_ru": "Дракон магическим образом поднимает древние руины и развалины в Цилиндре радиусом 20 футов и высотой 60 футов с центром в видимой им точке…",
+            "name_ru_pending": false
+          }
+        ],
+        "damage_resistances": [
+          "некротический"
+        ],
+        "legendary_actions_uses": 3,
+        "legendary_actions_uses_lair": 4,
+        "legendary_actions_note_ru": "3 за раунд (4 в логове)"
+      }
+    },
+    {
+      "kind": "bestiary",
+      "slug": "ancient-deep-dragon",
+      "name_ru": "Древний глубинный дракон",
+      "name_en": "Ancient Deep Dragon",
+      "source": "fraif",
+      "sort_order": 30,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/bestiary/29346-ancient-deep-dragon",
+        "url_ttg": "https://new.ttg.club/bestiary/ancient-deep-dragon-fraif",
+        "book": "FRAiF"
+      },
+      "data": {
+        "schema_version": 1,
+        "size": "medium",
+        "size_ru": "средний",
+        "type": "dragon",
+        "type_ru": "Дракон",
+        "subtype": null,
+        "alignment": "нейтральный",
+        "ac": 20,
+        "hp_average": 247,
+        "hp_formula": "15к20+90",
+        "speed": {
+          "walk": 40,
+          "fly": 80,
+          "swim": 40,
+          "burrow": 40
+        },
+        "cr": "18",
+        "xp": 20000,
+        "proficiency_bonus": 6,
+        "initiative": {
+          "mod": 15,
+          "score": 25
+        },
+        "abilities": {
+          "str": 23,
+          "dex": 16,
+          "con": 22,
+          "int": 19,
+          "wis": 18,
+          "cha": 21
+        },
+        "ability_mods": {
+          "str": 6,
+          "dex": 3,
+          "con": 6,
+          "int": 4,
+          "wis": 4,
+          "cha": 5
+        },
+        "ability_saves": {
+          "str": 6,
+          "dex": 9,
+          "con": 6,
+          "int": 4,
+          "wis": 10,
+          "cha": 5
+        },
+        "skills": {
+          "Внимательность": 16,
+          "Скрытность": 15
+        },
+        "senses": {
+          "passive_perception": 26
+        },
+        "languages": [
+          "Общий",
+          "Драконий",
+          "Подземный"
+        ],
+        "source_book": "FRAiF",
+        "srd_section": "monsters",
+        "summary_ru": "средний дракон, ПО 18; КД 20, хиты 247 (15к20+90); инициатива +15 (ср. 25), БМ +6.",
+        "name_ru_pending": false,
+        "gear_refs": [],
+        "spell_refs": [],
+        "traits": [
+          {
+            "name_ru": "Легендарное сопротивление (4/день, или 5/день в Логове)",
+            "text_ru": "Если дракон проваливает спасбросок, он вместо этого может преуспеть в нём.",
+            "name_ru_pending": false
+          }
+        ],
+        "actions": [
+          {
+            "name_ru": "Мультиатака",
+            "text_ru": "Дракон совершает три атаки Раздиранием.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Раздирание",
+            "text_ru": "Бросок рукопашной атаки: +12, досягаемость 15 фт. Попадание: 17 (2к10 + 6) Рубящего урона плюс 5 (1к10) урона Ядом.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Кошмарное дыхание (Перезарядка 5–6)",
+            "text_ru": "Спасбросок Мудрости: Сл 20, каждое существо в 90-футовом Конусе. Провал: 44 (8к10) Психического урона, и цель Испугана до конца следующего…",
+            "name_ru_pending": false
+          }
+        ],
+        "bonus_actions": [
+          {
+            "name_ru": "Перевоплощение",
+            "text_ru": "Дракон либо перевоплощается в Гуманоида Среднего или Маленького размера или в Зверя Среднего или Маленького размера, либо возвращается в св…",
+            "name_ru_pending": false
+          }
+        ],
+        "legendary_actions": [
+          {
+            "name_ru": "Наскок",
+            "text_ru": "Дракон перемещается на расстояние вплоть до половины своей Скорости и совершает одну атаку Раздиранием.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Споровой залп",
+            "text_ru": "Спасбросок Телосложения: Сл 20, одно видимое драконом существо в 30 футах. Провал: 16 (3к10) урона Ядом, и цель Отравлена. Она повторяет сп…",
+            "name_ru_pending": false
+          }
+        ],
+        "damage_resistances": [
+          "психический",
+          "ядовитый"
+        ],
+        "legendary_actions_uses": 3,
+        "legendary_actions_uses_lair": 4,
+        "legendary_actions_note_ru": "3 за раунд (4 в логове)"
+      }
+    },
+    {
+      "kind": "bestiary",
+      "slug": "ancient-spirit-dragon",
+      "name_ru": "Древний духовный дракон",
+      "name_en": "Ancient Spirit Dragon",
+      "source": "fraif",
+      "sort_order": 40,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/bestiary/29376-ancient-spirit-dragon",
+        "url_ttg": "https://new.ttg.club/bestiary/ancient-spirit-dragon-fraif",
+        "book": "FRAiF"
+      },
+      "data": {
+        "schema_version": 1,
+        "size": "medium",
+        "size_ru": "средний",
+        "type": "dragon",
+        "type_ru": "Дракон",
+        "subtype": null,
+        "alignment": "нейтральный",
+        "ac": 21,
+        "hp_average": 420,
+        "hp_formula": "24к20+168",
+        "speed": {
+          "walk": 40,
+          "fly": 80,
+          "burrow": 30
+        },
+        "cr": "22",
+        "xp": 41000,
+        "proficiency_bonus": 7,
+        "initiative": {
+          "mod": 9,
+          "score": 19
+        },
+        "abilities": {
+          "str": 26,
+          "dex": 14,
+          "con": 25,
+          "int": 24,
+          "wis": 18,
+          "cha": 23
+        },
+        "ability_mods": {
+          "str": 8,
+          "dex": 2,
+          "con": 7,
+          "int": 7,
+          "wis": 4,
+          "cha": 6
+        },
+        "ability_saves": {
+          "str": 8,
+          "dex": 9,
+          "con": 14,
+          "int": 7,
+          "wis": 4,
+          "cha": 6
+        },
+        "skills": {
+          "Внимательность": 11,
+          "История": 14,
+          "Проницательность": 11,
+          "Скрытность": 9
+        },
+        "senses": {
+          "passive_perception": 21
+        },
+        "languages": [
+          "Общий",
+          "Драконий",
+          "Телепатия 120 фт."
+        ],
+        "source_book": "FRAiF",
+        "srd_section": "monsters",
+        "summary_ru": "средний дракон, ПО 22; КД 21, хиты 420 (24к20+168); инициатива +9 (ср. 19), БМ +7; есть заклинания.",
+        "name_ru_pending": false,
+        "gear_refs": [],
+        "spell_refs": [
+          "thunderwave",
+          "detect-magic",
+          "shapechange",
+          "legend-lore",
+          "sequester"
+        ],
+        "traits": [
+          {
+            "name_ru": "Легендарное сопротивление (4/день, или 5/день в Логове)",
+            "text_ru": "Если дракон проваливает спасбросок, он вместо этого может в нём преуспеть.",
+            "name_ru_pending": false
+          }
+        ],
+        "actions": [
+          {
+            "name_ru": "Мультиатака",
+            "text_ru": "Дракон совершает три атаки Раздиранием. Он может заменить одну атаку использованием (А) Дыхания искажения времени или (Б) Сотворения заклин…",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Раздирание",
+            "text_ru": "Бросок рукопашной атаки: +15, досягаемость 15 фт. Попадание: 19 (2к10 + 8) Рубящего урона плюс 9 (2к8) Некротического урона.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Гибельное дыхание (Перезарядка 5–6)",
+            "text_ru": "Спасбросок Телосложения: Сл 22, каждое существо в 90-футовом Конусе. Провал: 72 (16кd8) Некротического урона. Успех: Только половина урона.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Сотворение заклинаний",
+            "text_ru": "Древний духовный дракон сотворяет одно из следующих заклинаний, не нуждаясь в компонентах заклинания (заклинательная характеристика — Интел…",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Дыхание искажения времени",
+            "text_ru": "Спасбросок Мудрости: Сл 22, каждое ещё не подверженное этому эффекту существо в 90-футовом Конусе. Провал: Цель в свой ход может совершить…",
+            "name_ru_pending": false
+          }
+        ],
+        "legendary_actions": [
+          {
+            "name_ru": "Наскок",
+            "text_ru": "Дракон перемещается на расстояние вплоть до половины своей Скорости и совершает одну атаку Раздиранием.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Раскалывающая волна",
+            "text_ru": "Дракон использует Сотворение заклинаний (Волна грома, версия 2-го уровня).",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Подъятие руин",
+            "text_ru": "Дракон магическим образом поднимает древние руины и развалины в Цилиндре радиусом 20 футов и высотой 60 футов с центром в видимой им точке…",
+            "name_ru_pending": false
+          }
+        ],
+        "damage_resistances": [
+          "некротический"
+        ],
+        "legendary_actions_uses": 3,
+        "legendary_actions_uses_lair": 4,
+        "legendary_actions_note_ru": "3 за раунд (4 в логове)"
+      }
+    },
+    {
+      "kind": "bestiary",
+      "slug": "aranea",
+      "name_ru": "Аранея",
+      "name_en": "Aranea",
+      "source": "fraif",
+      "sort_order": 50,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/bestiary/29335-aranea",
+        "url_ttg": "https://new.ttg.club/bestiary/aranea-fraif",
+        "book": "FRAiF"
+      },
+      "data": {
+        "schema_version": 1,
+        "size": "medium",
+        "size_ru": "средний",
+        "type": "monstrosity",
+        "type_ru": "Чудовище",
+        "subtype": null,
+        "alignment": "нейтральный",
+        "ac": 14,
+        "hp_average": 66,
+        "hp_formula": "12к8+12",
+        "speed": {
+          "walk": 30,
+          "climb": 30
+        },
+        "cr": "2",
+        "xp": 450,
+        "proficiency_bonus": 2,
+        "initiative": {
+          "mod": 3,
+          "score": 13
+        },
+        "abilities": {
+          "str": 10,
+          "dex": 17,
+          "con": 12,
+          "int": 12,
+          "wis": 10,
+          "cha": 15
+        },
+        "ability_mods": {
+          "str": 0,
+          "dex": 3,
+          "con": 1,
+          "int": 1,
+          "wis": 0,
+          "cha": 2
+        },
+        "ability_saves": {
+          "str": 0,
+          "dex": 3,
+          "con": 1,
+          "int": 1,
+          "wis": 0,
+          "cha": 2
+        },
+        "skills": {
+          "Внимательность": 2,
+          "Скрытность": 5
+        },
+        "senses": {
+          "passive_perception": 12
+        },
+        "languages": [
+          "Общий"
+        ],
+        "source_book": "FRAiF",
+        "srd_section": "monsters",
+        "summary_ru": "среднее чудовище, ПО 2; КД 14, хиты 66 (12к8+12); инициатива +3 (ср. 13), БМ +2; есть заклинания.",
+        "name_ru_pending": false,
+        "gear_refs": [],
+        "spell_refs": [
+          "silent-image",
+          "friends",
+          "hold-person"
+        ],
+        "traits": [
+          {
+            "name_ru": "Паучье лазание (только в форме паука или в гибридной форме)",
+            "text_ru": "Аранеа может лазать по сложным поверхностям, включая потолки, без совершения проверок характеристик.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Хождение по паутине",
+            "text_ru": "Аранеа игнорирует ограничения перемещения, вызванные паутиной, и знает точное местоположение всех других существ, находящихся в контакте с…",
+            "name_ru_pending": false
+          }
+        ],
+        "actions": [
+          {
+            "name_ru": "Мультиатака",
+            "text_ru": "Аранеа совершает две атаки Укусом, Размашистым ударом или Пращой в любой комбинации.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Укус (в форме паука или в гибридной форме)",
+            "text_ru": "Бросок рукопашной атаки: +5, досягаемость 5 фт. Попадание: 6 (1к6 + 3) Колющего урона плюс 2 (1к4) урона Ядом.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Размашистый удар",
+            "text_ru": "Бросок рукопашной атаки: +5, досягаемость 5 фт. Попадание: 7 (1к8 + 3) Дробящего урона.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Праща (только в гуманоидной или гибридной форме)",
+            "text_ru": "Бросок дальнобойной атаки: +5, дистанция 30/120 фт. Попадание: 8 (2к4 + 3) Дробящего урона.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Сотворение заклинаний",
+            "text_ru": "Аранеа сотворяет одно из следующих заклинаний, не нуждаясь в Материальных компонентах (заклинательная характеристика — Харизма, Сл спасброс…",
+            "name_ru_pending": false
+          }
+        ],
+        "bonus_actions": [
+          {
+            "name_ru": "Перевоплощение",
+            "text_ru": "Аранеа перевоплощается в гуманоида, или в гибрид паука и гуманоида, или в свою истинную форму паука. Её статистика, кроме размера, не меняе…",
+            "name_ru_pending": false
+          }
+        ]
+      }
+    },
+    {
+      "kind": "bestiary",
+      "slug": "beast-of-malar",
+      "name_ru": "Зверь Малара",
+      "name_en": "Beast of Malar",
+      "source": "fraif",
+      "sort_order": 60,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/bestiary/29337-beast-of-malar",
+        "url_ttg": "https://new.ttg.club/bestiary/beast-of-malar-fraif",
+        "book": "FRAiF"
+      },
+      "data": {
+        "schema_version": 1,
+        "size": "medium",
+        "size_ru": "средний",
+        "type": "monstrosity",
+        "type_ru": "Чудовище",
+        "subtype": null,
+        "alignment": "хаотично-злой",
+        "ac": 17,
+        "hp_average": 168,
+        "hp_formula": "16к8+96",
+        "speed": {
+          "walk": 50,
+          "fly": 60,
+          "swim": 40,
+          "burrow": 40
+        },
+        "cr": "11",
+        "xp": 7200,
+        "proficiency_bonus": 4,
+        "initiative": {
+          "mod": 7,
+          "score": 17
+        },
+        "abilities": {
+          "str": 21,
+          "dex": 16,
+          "con": 23,
+          "int": 10,
+          "wis": 14,
+          "cha": 12
+        },
+        "ability_mods": {
+          "str": 5,
+          "dex": 3,
+          "con": 6,
+          "int": 0,
+          "wis": 2,
+          "cha": 1
+        },
+        "ability_saves": {
+          "str": 9,
+          "dex": 3,
+          "con": 6,
+          "int": 0,
+          "wis": 2,
+          "cha": 1
+        },
+        "skills": {
+          "Внимательность": 10,
+          "Скрытность": 7
+        },
+        "senses": {
+          "passive_perception": 20
+        },
+        "languages": [
+          "понимает Общий",
+          "но не говорит"
+        ],
+        "source_book": "FRAiF",
+        "srd_section": "monsters",
+        "summary_ru": "среднее чудовище, ПО 11; КД 17, хиты 168 (16к8+96); инициатива +7 (ср. 17), БМ +4.",
+        "name_ru_pending": false,
+        "gear_refs": [],
+        "spell_refs": [],
+        "traits": [
+          {
+            "name_ru": "Амфибия (только в морской форме)",
+            "text_ru": "Зверь может дышать как воздухом, так и под водой.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Божественное бессмертие",
+            "text_ru": "Когда зверь умирает, его тело растворяется чёрной слизью и спустя 1к10 дней заново возрождается со всеми Хитами в месте по выбору Малара.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Легендарное сопротивление (3/день)",
+            "text_ru": "Если зверь проваливает спасбросок, он вместо этого может преуспеть в нём.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Сопротивление магии",
+            "text_ru": "Зверь совершает с Преимуществом спасброски от заклинаний и прочих магических эффектов.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Регенерация",
+            "text_ru": "Зверь восстанавливает 20 Хитов в начале каждого своего хода. Когда зверь получает урон Излучением или от Критического попадания, в следующи…",
+            "name_ru_pending": false
+          }
+        ],
+        "actions": [
+          {
+            "name_ru": "Мультиатака",
+            "text_ru": "Зверь совершает три атаки Укусом или Когтями в любой комбинации.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Укус",
+            "text_ru": "Бросок рукопашной атаки: +9, досягаемость 5 фт. Попадание: 23 (4к8 + 5) Колющего урона.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Когти (только в земной или небесной форме)",
+            "text_ru": "Бросок рукопашной атаки: +9, досягаемость 5 фт. Попадание: 18 (3к8 + 5) Рубящего урона. Если цель — существо Большого размера или меньше, о…",
+            "name_ru_pending": false
+          }
+        ],
+        "bonus_actions": [
+          {
+            "name_ru": "Живительное перевоплощение",
+            "text_ru": "Зверь перевоплощается в земную, морскую или небесную форму и восстанавливает 9 (2к8) Хитов. Его статистика не меняется в зависимости от фор…",
+            "name_ru_pending": false
+          }
+        ]
+      }
+    },
+    {
+      "kind": "bestiary",
+      "slug": "biha-babir",
+      "name_ru": "Биха Бабир",
+      "name_en": "Biha Babir",
+      "source": "fraif",
+      "sort_order": 70,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/bestiary/29338-biha-babir",
+        "url_ttg": "",
+        "book": "FRAiF"
+      },
+      "data": {
+        "schema_version": 1,
+        "size": "large",
+        "size_ru": "большой",
+        "type": "elemental",
+        "type_ru": "Элементаль",
+        "subtype": "Гений",
+        "alignment": "именной нип",
+        "ac": 17,
+        "hp_average": 229,
+        "hp_formula": "17к10+136",
+        "speed": {
+          "walk": 30,
+          "fly": 60,
+          "swim": 90
+        },
+        "cr": "12",
+        "xp": 8400,
+        "proficiency_bonus": 4,
+        "initiative": {
+          "mod": 9,
+          "score": 19
+        },
+        "abilities": {
+          "str": 22,
+          "dex": 12,
+          "con": 26,
+          "int": 18,
+          "wis": 17,
+          "cha": 20
+        },
+        "ability_mods": {
+          "str": 6,
+          "dex": 1,
+          "con": 8,
+          "int": 4,
+          "wis": 3,
+          "cha": 5
+        },
+        "ability_saves": {
+          "str": 6,
+          "dex": 5,
+          "con": 8,
+          "int": 4,
+          "wis": 7,
+          "cha": 9
+        },
+        "skills": {
+          "Внимательность": 7,
+          "Обман": 9,
+          "Проницательность": 7,
+          "Скрытность": 5
+        },
+        "senses": {
+          "passive_perception": 17
+        },
+        "languages": [
+          "Общий",
+          "Первичный (Акван)"
+        ],
+        "source_book": "FRAiF",
+        "srd_section": "monsters",
+        "summary_ru": "большой элементаль, ПО 12; КД 17, хиты 229 (17к10+136); инициатива +9 (ср. 19), БМ +4; есть заклинания.",
+        "name_ru_pending": false,
+        "gear_refs": [],
+        "spell_refs": [
+          "detect-magic",
+          "major-image",
+          "create-or-destroy-water",
+          "control-water",
+          "invisibility",
+          "dispel-magic",
+          "control-weather",
+          "plane-shift"
+        ],
+        "traits": [
+          {
+            "name_ru": "Амфибия",
+            "text_ru": "Биха Бабир может дышать как воздухом, так и под водой.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Восстановление элементаля",
+            "text_ru": "Когда Биха Бабирумирает за пределами Стихийного плана Воды, её тело превращается в морскую воду и спустя 1к4 дня заново возрождается со все…",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Легендарное сопротивление (3/день)",
+            "text_ru": "Если Биха Бабир проваливает спасбросок, она вместо этого может преуспеть в нём.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Желания",
+            "text_ru": "Биха Бабир знает заклинание Желание, но может сотворить его только от имени другого существа (кроме гениев), если то сообщит ей желание пон…",
+            "name_ru_pending": false
+          }
+        ],
+        "actions": [
+          {
+            "name_ru": "Мультиатака",
+            "text_ru": "Биха Бабир совершает две атаки Морским всплеском. Она может заменить одну из этих атак на атаку Хвостом.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Морской всплеск",
+            "text_ru": "Бросок рукопашной или дальнобойной атаки: +10, досягаемость 5 фт. или дистанция 60 фт. Попадание: 17 (2к10 + 6) урона Холодом.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Хвост (только в форме марида)",
+            "text_ru": "Бросок рукопашной атаки: +10, досягаемость 15 фт. Попадание: 13 (2к6 + 6) Дробящего урона, и если цель — существо Огромного размера или мен…",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Сотворение заклинаний",
+            "text_ru": "Биха Бабир сотворяет одно из следующих заклинаний, не нуждаясь в Материальных компонентах (заклинательная характеристика — Харизма, Сл спас…",
+            "name_ru_pending": false
+          }
+        ],
+        "bonus_actions": [
+          {
+            "name_ru": "Текучая форма",
+            "text_ru": "Биха Бабир либо перевоплощается в форму, напоминающую Зверя или Гуманоида (и то, и другое Среднего размера или меньше), либо возвращается в…",
+            "name_ru_pending": false
+          }
+        ],
+        "legendary_actions": [
+          {
+            "name_ru": "Туманный всплеск",
+            "text_ru": "Биха Бабир телепортируется в видимое ей незанятое пространство в пределах 30 футов от неё и совершает одну атаку Морским всплеском.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Водоворот",
+            "text_ru": "Спасбросок Силы: Сл 18, каждое существо в 30-футовой Эманации, исходящей от Бихи Бабир. Провал: 10 (3к6) Силового урона, и цель притягивает…",
+            "name_ru_pending": false
+          }
+        ],
+        "damage_resistances": [
+          "кислота",
+          "холод",
+          "электрический"
+        ],
+        "legendary_actions_uses": 3,
+        "legendary_actions_note_ru": "3 за раунд"
+      }
+    },
+    {
+      "kind": "bestiary",
+      "slug": "cultist-of-bane",
+      "name_ru": "Культист Бейна",
+      "name_en": "Cultist of Bane",
+      "source": "fraif",
+      "sort_order": 80,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/bestiary/29339-cultist-of-bane",
+        "url_ttg": "https://new.ttg.club/bestiary/cultist-of-bane-fraif",
+        "book": "FRAiF"
+      },
+      "data": {
+        "schema_version": 1,
+        "size": "medium",
+        "size_ru": "средний",
+        "type": "humanoid",
+        "type_ru": "Гуманоид",
+        "subtype": null,
+        "alignment": "нейтральный",
+        "ac": 16,
+        "hp_average": 142,
+        "hp_formula": "19к8+57",
+        "speed": {
+          "walk": 30
+        },
+        "cr": "9",
+        "xp": 5000,
+        "proficiency_bonus": 4,
+        "initiative": {
+          "mod": 6,
+          "score": 16
+        },
+        "abilities": {
+          "str": 18,
+          "dex": 14,
+          "con": 16,
+          "int": 13,
+          "wis": 19,
+          "cha": 15
+        },
+        "ability_mods": {
+          "str": 4,
+          "dex": 2,
+          "con": 3,
+          "int": 1,
+          "wis": 4,
+          "cha": 2
+        },
+        "ability_saves": {
+          "str": 4,
+          "dex": 2,
+          "con": 7,
+          "int": 1,
+          "wis": 8,
+          "cha": 6
+        },
+        "skills": {
+          "Внимательность": 8,
+          "Запугивание": 6
+        },
+        "senses": {
+          "passive_perception": 18
+        },
+        "languages": [
+          "Общий"
+        ],
+        "source_book": "FRAiF",
+        "srd_section": "monsters",
+        "summary_ru": "средний гуманоид, ПО 9; КД 16, хиты 142 (19к8+57); инициатива +6 (ср. 16), БМ +4; есть заклинания.",
+        "name_ru_pending": false,
+        "gear_refs": [],
+        "spell_refs": [
+          "detect-thoughts",
+          "calm-emotions",
+          "dominate-person"
+        ],
+        "traits": [
+          {
+            "name_ru": "Смерти вопреки",
+            "text_ru": "Культист восстанавливает 10 Хитов в начале каждого своего хода, если он Окровавлен и у него остался хотя бы 1 Хит.",
+            "name_ru_pending": false
+          }
+        ],
+        "actions": [
+          {
+            "name_ru": "Мультиатака",
+            "text_ru": "Культист совершает три атаки Латной перчаткой или Подавляющим всплеском в любой комбинации. Он может заменить одну атаку использованием Сот…",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Латная перчатка",
+            "text_ru": "Бросок рукопашной атаки: +8, досягаемость 5 фт. Попадание: 17 (3к8 + 4) Дробящего урона.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Подавляющий всплеск",
+            "text_ru": "Бросок дальнобойной атаки: +8, дистанция 120 фт. Попадание: 16 (2к10 + 5) Психического урона, и цель не может совершать Реакции до начала с…",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Сотворение заклинаний",
+            "text_ru": "Культист Бейна сотворяет одно из следующих заклинаний (заклинательная характеристика — Мудрость, Сл спасброска заклинаний 16): 2/день каждо…",
+            "name_ru_pending": false
+          }
+        ]
+      }
+    },
+    {
+      "kind": "bestiary",
+      "slug": "cultist-of-bhaal",
+      "name_ru": "Культист Баала",
+      "name_en": "Cultist of Bhaal",
+      "source": "fraif",
+      "sort_order": 90,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/bestiary/29340-cultist-of-bhaal",
+        "url_ttg": "https://new.ttg.club/bestiary/cultist-of-bhaal-fraif",
+        "book": "FRAiF"
+      },
+      "data": {
+        "schema_version": 1,
+        "size": "medium",
+        "size_ru": "средний",
+        "type": "humanoid",
+        "type_ru": "Гуманоид",
+        "subtype": null,
+        "alignment": "нейтральный",
+        "ac": 16,
+        "hp_average": 144,
+        "hp_formula": "17к8+68",
+        "speed": {
+          "walk": 30
+        },
+        "cr": "7",
+        "xp": 2900,
+        "proficiency_bonus": 3,
+        "initiative": {
+          "mod": 7,
+          "score": 17
+        },
+        "abilities": {
+          "str": 13,
+          "dex": 19,
+          "con": 18,
+          "int": 15,
+          "wis": 17,
+          "cha": 14
+        },
+        "ability_mods": {
+          "str": 1,
+          "dex": 4,
+          "con": 4,
+          "int": 2,
+          "wis": 3,
+          "cha": 2
+        },
+        "ability_saves": {
+          "str": 1,
+          "dex": 7,
+          "con": 4,
+          "int": 5,
+          "wis": 3,
+          "cha": 2
+        },
+        "skills": {
+          "Внимательность": 6,
+          "Скрытность": 7
+        },
+        "senses": {
+          "passive_perception": 16
+        },
+        "languages": [
+          "Общий"
+        ],
+        "source_book": "FRAiF",
+        "srd_section": "monsters",
+        "summary_ru": "средний гуманоид, ПО 7; КД 16, хиты 144 (17к8+68); инициатива +7 (ср. 17), БМ +3; есть заклинания.",
+        "name_ru_pending": false,
+        "gear_refs": [],
+        "spell_refs": [
+          "mind-spike",
+          "dimension-door",
+          "mislead"
+        ],
+        "traits": [
+          {
+            "name_ru": "Обагрённая кровью решимость",
+            "text_ru": "Когда культист Окровавлен, он совершает спасброски с Преимуществом.",
+            "name_ru_pending": false
+          }
+        ],
+        "actions": [
+          {
+            "name_ru": "Мультиатака",
+            "text_ru": "Культист совершает три атаки Проклятым клинком. Он может заменить одну из этих атак использованием Сотворения заклинаний.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Проклятый клинок",
+            "text_ru": "Бросок рукопашной или дальнобойной атаки: +7 (с Преимуществом, если у цели неполные Хиты), досягаемость 5 фт. или дистанция 20/80 фт. Попад…",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Сотворение заклинаний",
+            "text_ru": "Культист Баала сотворяет одно из следующих заклинаний (заклинательная характеристика — Мудрость, Сл спасброска заклинаний 14): 2/день: Прон…",
+            "name_ru_pending": false
+          }
+        ]
+      }
+    },
+    {
+      "kind": "bestiary",
+      "slug": "cultist-of-myrkul",
+      "name_ru": "Культист Миркула",
+      "name_en": "Cultist of Myrkul",
+      "source": "fraif",
+      "sort_order": 100,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/bestiary/29341-cultist-of-myrkul",
+        "url_ttg": "https://new.ttg.club/bestiary/cultist-of-myrkul-fraif",
+        "book": "FRAiF"
+      },
+      "data": {
+        "schema_version": 1,
+        "size": "medium",
+        "size_ru": "средний",
+        "type": "humanoid",
+        "type_ru": "Гуманоид",
+        "subtype": null,
+        "alignment": "нейтральный",
+        "ac": 16,
+        "hp_average": 204,
+        "hp_formula": "24к8+96",
+        "speed": {
+          "walk": 30
+        },
+        "cr": "11",
+        "xp": 7200,
+        "proficiency_bonus": 4,
+        "initiative": {
+          "mod": 6,
+          "score": 16
+        },
+        "abilities": {
+          "str": 13,
+          "dex": 14,
+          "con": 18,
+          "int": 20,
+          "wis": 18,
+          "cha": 15
+        },
+        "ability_mods": {
+          "str": 1,
+          "dex": 2,
+          "con": 4,
+          "int": 5,
+          "wis": 4,
+          "cha": 2
+        },
+        "ability_saves": {
+          "str": 1,
+          "dex": 2,
+          "con": 8,
+          "int": 9,
+          "wis": 8,
+          "cha": 6
+        },
+        "skills": {
+          "Проницательность": 8,
+          "Религия": 9,
+          "Магия": 9
+        },
+        "senses": {
+          "passive_perception": 14
+        },
+        "languages": [
+          "Общий"
+        ],
+        "source_book": "FRAiF",
+        "srd_section": "monsters",
+        "summary_ru": "средний гуманоид, ПО 11; КД 16, хиты 204 (24к8+96); инициатива +6 (ср. 16), БМ +4; есть заклинания.",
+        "name_ru_pending": false,
+        "gear_refs": [],
+        "spell_refs": [
+          "speak-with-dead",
+          "thaumaturgy",
+          "circle-of-death",
+          "animate-dead"
+        ],
+        "traits": [
+          {
+            "name_ru": "Всё ближе к мертвецам",
+            "text_ru": "Когда культист Окровавлен, он получает иммунитет к состояниям Испуганный и Отравленный.",
+            "name_ru_pending": false
+          }
+        ],
+        "actions": [
+          {
+            "name_ru": "Мультиатака",
+            "text_ru": "Культист совершает три атаки Некротическим всплеском.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Некротический всплеск",
+            "text_ru": "Бросок рукопашной или дальнобойной атаки: +9, досягаемость 5 фт. или дистанция 120 фт. Попадание: 27 (5к10) Некротического урона, и цель не…",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Сотворение заклинаний",
+            "text_ru": "Культист Миркула сотворяет одно из следующих заклинаний (заклинательная характеристика — Интеллект, Сл спасброска заклинаний 17): Неогранич…",
+            "name_ru_pending": false
+          }
+        ],
+        "damage_resistances": [
+          "некротический"
+        ]
+      }
+    },
+    {
+      "kind": "bestiary",
+      "slug": "dead-three-scion",
+      "name_ru": "Наследник Мёртвой троицы",
+      "name_en": "Dead Three Scion",
+      "source": "fraif",
+      "sort_order": 110,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/bestiary/29342-dead-three-scion",
+        "url_ttg": "https://new.ttg.club/bestiary/dead-three-scion-fraif",
+        "book": "FRAiF"
+      },
+      "data": {
+        "schema_version": 1,
+        "size": "medium",
+        "size_ru": "средний",
+        "type": "humanoid",
+        "type_ru": "Гуманоид",
+        "subtype": null,
+        "alignment": "нейтральный",
+        "ac": 17,
+        "hp_average": 221,
+        "hp_formula": "26к8+104",
+        "speed": {
+          "walk": 30
+        },
+        "cr": "16",
+        "xp": 15000,
+        "proficiency_bonus": 5,
+        "initiative": {
+          "mod": 7,
+          "score": 17
+        },
+        "abilities": {
+          "str": 20,
+          "dex": 14,
+          "con": 19,
+          "int": 18,
+          "wis": 21,
+          "cha": 24
+        },
+        "ability_mods": {
+          "str": 5,
+          "dex": 2,
+          "con": 4,
+          "int": 4,
+          "wis": 5,
+          "cha": 7
+        },
+        "ability_saves": {
+          "str": 5,
+          "dex": 2,
+          "con": 9,
+          "int": 4,
+          "wis": 10,
+          "cha": 7
+        },
+        "skills": {
+          "Запугивание": 12,
+          "Скрытность": 7,
+          "Магия": 9
+        },
+        "senses": {
+          "passive_perception": 15
+        },
+        "languages": [
+          "Общий"
+        ],
+        "source_book": "FRAiF",
+        "srd_section": "monsters",
+        "summary_ru": "средний гуманоид, ПО 16; КД 17, хиты 221 (26к8+104); инициатива +7 (ср. 17), БМ +5; есть заклинания.",
+        "name_ru_pending": false,
+        "gear_refs": [],
+        "spell_refs": [
+          "detect-thoughts",
+          "dispel-magic",
+          "scrying",
+          "invisibility",
+          "dimension-door",
+          "circle-of-death",
+          "create-undead"
+        ],
+        "traits": [
+          {
+            "name_ru": "Умерщвляющая аура",
+            "text_ru": "Спасбросок Телосложения: Сл 20, каждое Окровавленное существо в 30-футовой Эманации, исходящей от наследника, в конце хода наследника. Пров…",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Легендарное сопротивление (3/день)",
+            "text_ru": "Если наследник проваливает спасбросок, он вместо этого может в нём преуспеть.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Сопротивление магии",
+            "text_ru": "Наследник совершает с Преимуществом спасброски от заклинаний и прочих магических эффектов.",
+            "name_ru_pending": false
+          }
+        ],
+        "actions": [
+          {
+            "name_ru": "Мультиатака",
+            "text_ru": "Наследник совершает две атаки Касанием смерти или Снарядом разрушения разума в любой комбинации.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Касание смерти",
+            "text_ru": "Бросок рукопашной атаки: +12, досягаемость 5 фт. Попадание: 25 (4к8 + 7) Некротического урона.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Снаряд разрушения разума",
+            "text_ru": "Бросок дальнобойной атаки: +12, дистанция 120 фт. Попадание: 21 (6к6) Психического урона, и цель Отравлена до начала следующего хода наслед…",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Сотворение заклинаний",
+            "text_ru": "Наследник Мёртвой троицы сотворяет одно из следующих заклинаний, не нуждаясь в Материальных компонентах (заклинательная характеристика — Ха…",
+            "name_ru_pending": false
+          }
+        ],
+        "legendary_actions": [
+          {
+            "name_ru": "Атака",
+            "text_ru": "Наследник совершает одну атаку Касанием смерти или Снарядом разрушения разума.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Приказ",
+            "text_ru": "Наследник сотворяет Приказ (версия 2-го уровня, заклинательная характеристика — та же, что для Сотворения заклинаний). Наследник не может с…",
+            "name_ru_pending": false
+          }
+        ],
+        "legendary_actions_uses": 3,
+        "legendary_actions_note_ru": "3 за раунд"
+      }
+    },
+    {
+      "kind": "bestiary",
+      "slug": "deep-dragon-wyrmling",
+      "name_ru": "Вирмлинг глубинного дракона",
+      "name_en": "Deep Dragon Wyrmling",
+      "source": "fraif",
+      "sort_order": 120,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/bestiary/29343-deep-dragon-wyrmling",
+        "url_ttg": "https://new.ttg.club/bestiary/deep-dragon-wyrmling-fraif",
+        "book": "FRAiF"
+      },
+      "data": {
+        "schema_version": 1,
+        "size": "medium",
+        "size_ru": "средний",
+        "type": "dragon",
+        "type_ru": "Дракон",
+        "subtype": null,
+        "alignment": "нейтральный",
+        "ac": 15,
+        "hp_average": 27,
+        "hp_formula": "5к8+5",
+        "speed": {
+          "walk": 30,
+          "fly": 60,
+          "swim": 30,
+          "burrow": 15
+        },
+        "cr": "1",
+        "xp": 200,
+        "proficiency_bonus": 2,
+        "initiative": {
+          "mod": 2,
+          "score": 12
+        },
+        "abilities": {
+          "str": 14,
+          "dex": 11,
+          "con": 12,
+          "int": 11,
+          "wis": 12,
+          "cha": 13
+        },
+        "ability_mods": {
+          "str": 2,
+          "dex": 0,
+          "con": 1,
+          "int": 0,
+          "wis": 1,
+          "cha": 1
+        },
+        "ability_saves": {
+          "str": 2,
+          "dex": 2,
+          "con": 1,
+          "int": 0,
+          "wis": 3,
+          "cha": 1
+        },
+        "skills": {
+          "Внимательность": 5,
+          "Скрытность": 4
+        },
+        "senses": {
+          "passive_perception": 15
+        },
+        "languages": [
+          "Драконий"
+        ],
+        "source_book": "FRAiF",
+        "srd_section": "monsters",
+        "summary_ru": "средний дракон, ПО 1; КД 15, хиты 27 (5к8+5); инициатива +2 (ср. 12), БМ +2.",
+        "name_ru_pending": false,
+        "gear_refs": [],
+        "spell_refs": [],
+        "actions": [
+          {
+            "name_ru": "Раздирание",
+            "text_ru": "Бросок рукопашной атаки: +4, досягаемость 5 фт. Попадание: 6 (1к8 + 2) Рубящего урона.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Кошмарное дыхание (Перезарядка 5–6)",
+            "text_ru": "Спасбросок Мудрости: Сл 11, каждое существо в 15-футовом Конусе. Провал: 7 (2к6) Психического урона, и цель становится Испуганной до конца…",
+            "name_ru_pending": false
+          }
+        ],
+        "damage_resistances": [
+          "психический",
+          "ядовитый"
+        ]
+      }
+    },
+    {
+      "kind": "bestiary",
+      "slug": "domestic-wonder",
+      "name_ru": "Диво домашнее",
+      "name_en": "Domestic Wonder",
+      "source": "fraif",
+      "sort_order": 130,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/bestiary/29384-domestic-wonder",
+        "url_ttg": "https://new.ttg.club/bestiary/domestic-wonder-fraif",
+        "book": "FRAiF"
+      },
+      "data": {
+        "schema_version": 1,
+        "size": "medium",
+        "size_ru": "средний",
+        "type": "construct",
+        "type_ru": "Конструкт",
+        "subtype": null,
+        "alignment": "без мировоззрения",
+        "ac": 9,
+        "hp_average": 5,
+        "hp_formula": "1к8+1",
+        "speed": {
+          "walk": 30
+        },
+        "cr": "0",
+        "xp": 0,
+        "proficiency_bonus": 2,
+        "initiative": {
+          "mod": -1,
+          "score": 9
+        },
+        "abilities": {
+          "str": 13,
+          "dex": 8,
+          "con": 13,
+          "int": 3,
+          "wis": 8,
+          "cha": 1
+        },
+        "ability_mods": {
+          "str": 1,
+          "dex": -1,
+          "con": 1,
+          "int": -4,
+          "wis": -1,
+          "cha": -5
+        },
+        "ability_saves": {
+          "str": 1,
+          "dex": -1,
+          "con": 1,
+          "int": -4,
+          "wis": -1,
+          "cha": -5
+        },
+        "skills": {},
+        "senses": {
+          "passive_perception": 9
+        },
+        "languages": [
+          "знает Общий",
+          "но не говорит"
+        ],
+        "source_book": "FRAiF",
+        "srd_section": "monsters",
+        "summary_ru": "средний конструкт, ПО 0; КД 9, хиты 5 (1к8+1); инициатива -1 (ср. 9), БМ +2.",
+        "name_ru_pending": false,
+        "gear_refs": [],
+        "spell_refs": [],
+        "traits": [
+          {
+            "name_ru": "Механическая целеустремлённость",
+            "text_ru": "Если получаемый урон опускает Хиты дива до 0, оно совершает спасбросок Телосложения со Сл, равной получаемому урону плюс 5, если только это…",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Завод",
+            "text_ru": "Диво Бессознательно, пока другое существо не потратит 1 минуту, чтобы завести его уникальным для этого дива ключом. Заведённое диво функцио…",
+            "name_ru_pending": false
+          }
+        ],
+        "actions": []
+      }
+    },
+    {
+      "kind": "bestiary",
+      "slug": "drow-elite-warrior-of-lolth",
+      "name_ru": "Элитный воин-дроу, посвящённый Лолс",
+      "name_en": "Drow Elite Warrior of Lolth",
+      "source": "fraif",
+      "sort_order": 140,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/bestiary/29348-drow-elite-warrior-of-lolth",
+        "url_ttg": "https://new.ttg.club/bestiary/drow-elite-warrior-of-lolth-fraif",
+        "book": "FRAiF"
+      },
+      "data": {
+        "schema_version": 1,
+        "size": "medium",
+        "size_ru": "средний",
+        "type": "humanoid",
+        "type_ru": "Гуманоид",
+        "subtype": "Эльф",
+        "alignment": "хаотично-злой",
+        "ac": 18,
+        "hp_average": 71,
+        "hp_formula": "11к8+22",
+        "speed": {
+          "walk": 30
+        },
+        "cr": "5",
+        "xp": 1800,
+        "proficiency_bonus": 3,
+        "initiative": {
+          "mod": 4,
+          "score": 14
+        },
+        "abilities": {
+          "str": 13,
+          "dex": 18,
+          "con": 14,
+          "int": 11,
+          "wis": 13,
+          "cha": 12
+        },
+        "ability_mods": {
+          "str": 1,
+          "dex": 4,
+          "con": 2,
+          "int": 0,
+          "wis": 1,
+          "cha": 1
+        },
+        "ability_saves": {
+          "str": 1,
+          "dex": 7,
+          "con": 5,
+          "int": 0,
+          "wis": 4,
+          "cha": 1
+        },
+        "skills": {
+          "Внимательность": 4,
+          "Скрытность": 10
+        },
+        "senses": {
+          "passive_perception": 14
+        },
+        "languages": [
+          "Общий",
+          "Подземный",
+          "Эльфийский"
+        ],
+        "source_book": "FRAiF",
+        "srd_section": "monsters",
+        "summary_ru": "средний гуманоид, ПО 5; КД 18, хиты 71 (11к8+22); инициатива +4 (ср. 14), БМ +3.",
+        "name_ru_pending": false,
+        "gear_refs": [
+          "hand-crossbow",
+          "shortsword"
+        ],
+        "spell_refs": [],
+        "traits": [
+          {
+            "name_ru": "Наследие фей",
+            "text_ru": "Дроу совершает с Преимуществом спасброски на избежание и окончание состояния Очарованный, а магия не может его усыпить.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Чувствительность к солнцу",
+            "text_ru": "Находясь на солнечном свету, дроу совершает броски атаки с Помехой.",
+            "name_ru_pending": false
+          }
+        ],
+        "actions": [
+          {
+            "name_ru": "Мультиатака",
+            "text_ru": "Дроу совершает две атаки Коротким мечом или Одноручным арбалетом дроу в любой комбинации.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Короткий меч",
+            "text_ru": "Бросок рукопашной атаки: +7, досягаемость 5 фт. Попадание: 11 (2к6 + 4) Колющего урона плюс 10 (3к6) урона Ядом.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Одноручный арбалет дроу",
+            "text_ru": "Бросок дальнобойной атаки: +7, дистанция 30/120 фт. Попадание: 7 (1к6 + 4) Колющего урона, и цель подвергается следующему эффекту. Спасброс…",
+            "name_ru_pending": false
+          }
+        ],
+        "bonus_actions": [
+          {
+            "name_ru": "Магия Подземья (3/день)",
+            "text_ru": "Дроу сотворяет Левитацию (только на себя), Огонь фей или Тьму, не нуждаясь в Материальных компонентах (заклинательная характеристика — Хари…",
+            "name_ru_pending": false
+          }
+        ]
+      }
+    },
+    {
+      "kind": "bestiary",
+      "slug": "drow-mage-of-lolth",
+      "name_ru": "Дроу-маг, посвящённый Лолс",
+      "name_en": "Drow Mage of Lolth",
+      "source": "fraif",
+      "sort_order": 150,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/bestiary/29349-drow-mage-of-lolth",
+        "url_ttg": "https://new.ttg.club/bestiary/drow-mage-of-lolth-fraif",
+        "book": "FRAiF"
+      },
+      "data": {
+        "schema_version": 1,
+        "size": "medium",
+        "size_ru": "средний",
+        "type": "humanoid",
+        "type_ru": "Гуманоид",
+        "subtype": "Эльф",
+        "alignment": "хаотично-злой",
+        "ac": 15,
+        "hp_average": 81,
+        "hp_formula": "18к8",
+        "speed": {
+          "walk": 30,
+          "fly": 15
+        },
+        "cr": "7",
+        "xp": 2900,
+        "proficiency_bonus": 3,
+        "initiative": {
+          "mod": 2,
+          "score": 12
+        },
+        "abilities": {
+          "str": 9,
+          "dex": 14,
+          "con": 10,
+          "int": 17,
+          "wis": 13,
+          "cha": 12
+        },
+        "ability_mods": {
+          "str": -1,
+          "dex": 2,
+          "con": 0,
+          "int": 3,
+          "wis": 1,
+          "cha": 1
+        },
+        "ability_saves": {
+          "str": -1,
+          "dex": 5,
+          "con": 0,
+          "int": 3,
+          "wis": 4,
+          "cha": 1
+        },
+        "skills": {
+          "Внимательность": 4,
+          "Скрытность": 5,
+          "Магия": 6
+        },
+        "senses": {
+          "passive_perception": 14
+        },
+        "languages": [
+          "Общий",
+          "Бездны",
+          "Подземный",
+          "Эльфийский"
+        ],
+        "source_book": "FRAiF",
+        "srd_section": "monsters",
+        "summary_ru": "средний гуманоид, ПО 7; КД 15, хиты 81 (18к8); инициатива +2 (ср. 12), БМ +3; есть заклинания.",
+        "name_ru_pending": false,
+        "gear_refs": [],
+        "spell_refs": [
+          "mage-hand",
+          "mage-armor",
+          "minor-illusion",
+          "dancing-lights",
+          "summon-fiend"
+        ],
+        "traits": [
+          {
+            "name_ru": "Наследие фей",
+            "text_ru": "Дроу совершает с Преимуществом спасброски на избежание и окончание состояния Очарованный, а магия не может его усыпить.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Чувстительность к солнцу",
+            "text_ru": "Находясь на солнечном свету, дроу совершает броски атаки с Помехой.",
+            "name_ru_pending": false
+          }
+        ],
+        "actions": [
+          {
+            "name_ru": "Мультиатака",
+            "text_ru": "Дроу совершает три атаки Демоническим всплеском.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Демонический всплеск",
+            "text_ru": "Бросок рукопашной или дальнобойной атаки: +6, досягаемость 5 фт. или дистанция 120 фт. Попадание: 21 (4к8 + 3) урона Ядом.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Сотворение заклинаний",
+            "text_ru": "Дроу-маг, посвящённый Лолс сотворяет одно из следующих заклинаний, не нуждаясь в Материальных компонентах (заклинательная характеристика —…",
+            "name_ru_pending": false
+          }
+        ],
+        "bonus_actions": [
+          {
+            "name_ru": "Магия Подземья (3/день)",
+            "text_ru": "Дроу сотворяет Огонь фей или Туманный шаг, не нуждаясь в Материальных компонентах (заклинательная характеристика — та же, что для Сотворени…",
+            "name_ru_pending": false
+          }
+        ]
+      }
+    },
+    {
+      "kind": "bestiary",
+      "slug": "drow-priestess-of-lolth",
+      "name_ru": "Дроу, жрица Лолс",
+      "name_en": "Drow Priestess of Lolth",
+      "source": "fraif",
+      "sort_order": 160,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/bestiary/29350-drow-priestess-of-lolth",
+        "url_ttg": "https://new.ttg.club/bestiary/drow-priestess-of-lolth-fraif",
+        "book": "FRAiF"
+      },
+      "data": {
+        "schema_version": 1,
+        "size": "medium",
+        "size_ru": "средний",
+        "type": "humanoid",
+        "type_ru": "Гуманоид",
+        "subtype": "Эльф",
+        "alignment": "хаотично-злой",
+        "ac": 16,
+        "hp_average": 99,
+        "hp_formula": "18к8+18",
+        "speed": {
+          "walk": 30,
+          "fly": 15
+        },
+        "cr": "8",
+        "xp": 3900,
+        "proficiency_bonus": 3,
+        "initiative": {
+          "mod": 2,
+          "score": 12
+        },
+        "abilities": {
+          "str": 10,
+          "dex": 14,
+          "con": 12,
+          "int": 13,
+          "wis": 18,
+          "cha": 17
+        },
+        "ability_mods": {
+          "str": 0,
+          "dex": 2,
+          "con": 1,
+          "int": 1,
+          "wis": 4,
+          "cha": 3
+        },
+        "ability_saves": {
+          "str": 0,
+          "dex": 2,
+          "con": 4,
+          "int": 1,
+          "wis": 7,
+          "cha": 6
+        },
+        "skills": {
+          "Внимательность": 7,
+          "Проницательность": 7,
+          "Религия": 4,
+          "Скрытность": 5
+        },
+        "senses": {
+          "passive_perception": 17
+        },
+        "languages": [
+          "Общий",
+          "Бездны",
+          "Подземный",
+          "Эльфийский"
+        ],
+        "source_book": "FRAiF",
+        "srd_section": "monsters",
+        "summary_ru": "средний гуманоид, ПО 8; КД 16, хиты 99 (18к8+18); инициатива +2 (ср. 12), БМ +3; есть заклинания.",
+        "name_ru_pending": false,
+        "gear_refs": [],
+        "spell_refs": [
+          "guidance",
+          "dancing-lights",
+          "thaumaturgy"
+        ],
+        "traits": [
+          {
+            "name_ru": "Наследие фей",
+            "text_ru": "Дроу совершает с Преимуществом спасброски на избежание и окончание состояния Очарованный, а магия не может его усыпить.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Чувствительность к солнцу",
+            "text_ru": "Находясь на солнечном свету, дроу совершает броски атаки с Помехой.",
+            "name_ru_pending": false
+          }
+        ],
+        "actions": [
+          {
+            "name_ru": "Мультиатака",
+            "text_ru": "Дроу совершает три атаки Бичом.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Бич",
+            "text_ru": "Бросок рукопашной атаки: +5, досягаемость 10 фт. Попадание: 6 (1к6 + 3) Колющего урона плюс 17 (5к6) урона Ядом.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Сотворение заклинаний",
+            "text_ru": "Дроу, жрица Лолс сотворяет одно из следующих заклинаний, не нуждаясь в Материальных компонентах (заклинательная характеристика — Мудрость):…",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Паучья воронка (Перезарядка 5–6)",
+            "text_ru": "Спасбросок Телосложения: Сл 15, каждое враждебное существо в 20-футовой Эманации, исходящей от дроу. Провал: 33 (6к10) Колющего урона, и це…",
+            "name_ru_pending": false
+          }
+        ],
+        "bonus_actions": [
+          {
+            "name_ru": "Благословение Лолс (3/день)",
+            "text_ru": "Дроу сотворяет Лечение ран, Малое восстановление, Рассеивание магии или Тьму (заклинательная характеристика — та же, что для Сотворения зак…",
+            "name_ru_pending": false
+          }
+        ]
+      }
+    },
+    {
+      "kind": "bestiary",
+      "slug": "drow-of-lolth",
+      "name_ru": "Дроу, посвящённый Лолс",
+      "name_en": "Drow of Lolth",
+      "source": "fraif",
+      "sort_order": 170,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/bestiary/29347-drow-of-lolth",
+        "url_ttg": "https://new.ttg.club/bestiary/drow-of-lolth-fraif",
+        "book": "FRAiF"
+      },
+      "data": {
+        "schema_version": 1,
+        "size": "medium",
+        "size_ru": "средний",
+        "type": "humanoid",
+        "type_ru": "Гуманоид",
+        "subtype": "Эльф",
+        "alignment": "хаотично-злой",
+        "ac": 15,
+        "hp_average": 13,
+        "hp_formula": "3к8",
+        "speed": {
+          "walk": 30
+        },
+        "cr": "1/4",
+        "xp": 50,
+        "proficiency_bonus": 2,
+        "initiative": {
+          "mod": 2,
+          "score": 12
+        },
+        "abilities": {
+          "str": 10,
+          "dex": 14,
+          "con": 10,
+          "int": 11,
+          "wis": 11,
+          "cha": 12
+        },
+        "ability_mods": {
+          "str": 0,
+          "dex": 2,
+          "con": 0,
+          "int": 0,
+          "wis": 0,
+          "cha": 1
+        },
+        "ability_saves": {
+          "str": 0,
+          "dex": 2,
+          "con": 0,
+          "int": 0,
+          "wis": 0,
+          "cha": 1
+        },
+        "skills": {
+          "Внимательность": 2,
+          "Скрытность": 4
+        },
+        "senses": {
+          "passive_perception": 12
+        },
+        "languages": [
+          "Общий",
+          "Подземный",
+          "Эльфийский"
+        ],
+        "source_book": "FRAiF",
+        "srd_section": "monsters",
+        "summary_ru": "средний гуманоид, ПО 1/4; КД 15, хиты 13 (3к8); инициатива +2 (ср. 12), БМ +2; есть заклинания.",
+        "name_ru_pending": false,
+        "gear_refs": [
+          "hand-crossbow",
+          "rapier"
+        ],
+        "spell_refs": [
+          "dancing-lights",
+          "faerie-fire"
+        ],
+        "traits": [
+          {
+            "name_ru": "Наследие фей",
+            "text_ru": "Дроу совершает с Преимуществом спасброски на избежание и окончание состояния Очарованный, а магия не может его усыпить.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Чувствительность к солнцу",
+            "text_ru": "Находясь на солнечном свету, дроу совершает броски атаки с Помехой.",
+            "name_ru_pending": false
+          }
+        ],
+        "actions": [
+          {
+            "name_ru": "Рапира",
+            "text_ru": "Бросок рукопашной атаки: +4, досягаемость 5 фт. Попадание: 6 (1к8 + 2) Колющего урона.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Одноручный арбалет дроу",
+            "text_ru": "Бросок дальнобойной атаки: +4, дистанция 30/120 фт. Попадание: 4 (1к4 + 2) Колющего урона, и цель подвергается следующему эффекту. Спасброс…",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Сотворение заклинаний",
+            "text_ru": "Дроу, посвящённый Лолс сотворяет одно из следующих заклинаний, не нуждаясь в Материальных компонентах (заклинательная характеристика — Хари…",
+            "name_ru_pending": false
+          }
+        ]
+      }
+    },
+    {
+      "kind": "bestiary",
+      "slug": "flying-wonder",
+      "name_ru": "Диво летающее",
+      "name_en": "Flying Wonder",
+      "source": "fraif",
+      "sort_order": 180,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/bestiary/29385-flying-wonder",
+        "url_ttg": "https://new.ttg.club/bestiary/flying-wonder-fraif",
+        "book": "FRAiF"
+      },
+      "data": {
+        "schema_version": 1,
+        "size": "tiny",
+        "size_ru": "крошечный",
+        "type": "construct",
+        "type_ru": "Конструкт",
+        "subtype": null,
+        "alignment": "без мировоззрения",
+        "ac": 12,
+        "hp_average": 2,
+        "hp_formula": "1к4",
+        "speed": {
+          "walk": 5,
+          "fly": 30
+        },
+        "cr": "0",
+        "xp": 0,
+        "proficiency_bonus": 2,
+        "initiative": {
+          "mod": 2,
+          "score": 12
+        },
+        "abilities": {
+          "str": 2,
+          "dex": 15,
+          "con": 10,
+          "int": 3,
+          "wis": 10,
+          "cha": 1
+        },
+        "ability_mods": {
+          "str": -4,
+          "dex": 2,
+          "con": 0,
+          "int": -4,
+          "wis": 0,
+          "cha": -5
+        },
+        "ability_saves": {
+          "str": -4,
+          "dex": 2,
+          "con": 0,
+          "int": -4,
+          "wis": 0,
+          "cha": -5
+        },
+        "skills": {},
+        "senses": {
+          "passive_perception": 10
+        },
+        "languages": [
+          "знает Общий",
+          "но не говорит"
+        ],
+        "source_book": "FRAiF",
+        "srd_section": "monsters",
+        "summary_ru": "крошечный конструкт, ПО 0; КД 12, хиты 2 (1к4); инициатива +2 (ср. 12), БМ +2.",
+        "name_ru_pending": false,
+        "gear_refs": [],
+        "spell_refs": [],
+        "traits": [
+          {
+            "name_ru": "Увеличенная грузоподъёмность",
+            "text_ru": "Диво может нести вплоть до 100 фунтов.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Завод",
+            "text_ru": "Диво Бессознательно, пока другое существо не потратит 1 минуту, чтобы завести его уникальным для этого дива ключом. Заведённое диво функцио…",
+            "name_ru_pending": false
+          }
+        ],
+        "actions": [],
+        "bonus_actions": [
+          {
+            "name_ru": "Перезвон",
+            "text_ru": "Диво играет весёлую мелодию с выверенным тактом. Оно выбирает одного видимого им в пределах 60 футов союзника; до начала следующего хода ди…",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Ускорение",
+            "text_ru": "Диво совершает действие Рывок.",
+            "name_ru_pending": false
+          }
+        ]
+      }
+    },
+    {
+      "kind": "bestiary",
+      "slug": "karas-chembryl",
+      "name_ru": "Карас Кхембрил",
+      "name_en": "Karas Chembryl",
+      "source": "fraif",
+      "sort_order": 190,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/bestiary/29351-karas-chembryl",
+        "url_ttg": "https://new.ttg.club/bestiary/karas-chembryl-fraif",
+        "book": "FRAiF"
+      },
+      "data": {
+        "schema_version": 1,
+        "size": "medium",
+        "size_ru": "средний",
+        "type": "humanoid",
+        "type_ru": "Гуманоид",
+        "subtype": "Человек",
+        "alignment": "именной нип",
+        "ac": 17,
+        "hp_average": 104,
+        "hp_formula": "19к8+19",
+        "speed": {
+          "walk": 30,
+          "climb": 30
+        },
+        "cr": "8",
+        "xp": 3900,
+        "proficiency_bonus": 3,
+        "initiative": {
+          "mod": 11,
+          "score": 21
+        },
+        "abilities": {
+          "str": 11,
+          "dex": 20,
+          "con": 12,
+          "int": 18,
+          "wis": 15,
+          "cha": 17
+        },
+        "ability_mods": {
+          "str": 0,
+          "dex": 5,
+          "con": 1,
+          "int": 4,
+          "wis": 2,
+          "cha": 3
+        },
+        "ability_saves": {
+          "str": 0,
+          "dex": 8,
+          "con": 4,
+          "int": 7,
+          "wis": 5,
+          "cha": 3
+        },
+        "skills": {
+          "Акробатика": 8,
+          "Внимательность": 8,
+          "Скрытность": 11
+        },
+        "senses": {
+          "passive_perception": 18
+        },
+        "languages": [
+          "Общий",
+          "Воровской жаргон",
+          "Инфернальный",
+          "Эльфийский"
+        ],
+        "source_book": "FRAiF",
+        "srd_section": "monsters",
+        "summary_ru": "средний гуманоид, ПО 8; КД 17, хиты 104 (19к8+19); инициатива +11 (ср. 21), БМ +3; есть заклинания.",
+        "name_ru_pending": false,
+        "gear_refs": [
+          "dagger"
+        ],
+        "spell_refs": [
+          "friends",
+          "silence",
+          "thaumaturgy",
+          "ray-of-sickness",
+          "blight",
+          "mislead"
+        ],
+        "traits": [
+          {
+            "name_ru": "Увёртливость",
+            "text_ru": "Если Карас подвергается эффекту, позволяющему совершить спасбросок Ловкости, чтобы получить только половину урона, то вместо этого она вооб…",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Легендарное сопротивление (3/день, или 4/день в Логове)",
+            "text_ru": "Если Карас проваливает спасбросок, она вместо этого может преуспеть в нём.",
+            "name_ru_pending": false
+          }
+        ],
+        "actions": [
+          {
+            "name_ru": "Мультиатака",
+            "text_ru": "Карас совершает две атаки Кинжалом страха или Клинком Тирана в любой комбинации.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Кинжал страха",
+            "text_ru": "Бросок рукопашной или дальнобойной атаки: +8, досягаемость 5 фт. или дистанция 20/60 фт. Попадание: 10 (2к4 + 5) Колющего урона плюс 4 (1к8…",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Клинок Тирана",
+            "text_ru": "Бросок рукопашной атаки: +8, досягаемость 5 фт. Попадание: 8 (1к6 + 5) Рубящего урона, и цель Испугана до начала следующего хода Карас. Есл…",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Сотворение заклинаний",
+            "text_ru": "Карас Кхембрил сотворяет одно из следующих заклинаний, не нуждаясь в Материальных компонентах (заклинательная характеристика — Интеллект, С…",
+            "name_ru_pending": false
+          }
+        ],
+        "bonus_actions": [
+          {
+            "name_ru": "Отступление",
+            "text_ru": "Карас перемещается на расстояние вплоть до половины своей Скорости, не Провоцируя атак, и совершает действие Затаивание.",
+            "name_ru_pending": false
+          }
+        ],
+        "legendary_actions": [
+          {
+            "name_ru": "Цепенящий ужас",
+            "text_ru": "Спасбросок Мудрости: Сл 15, одно видимое Карас существо в 90 футах. Провал: 10 (3к6) Психического урона, и цель Испугана на 1 минуту. Пока…",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Скрытная атака",
+            "text_ru": "Карас совершает одну атаку Кинжалом страха и использует Отступление.",
+            "name_ru_pending": false
+          }
+        ],
+        "damage_resistances": [
+          "психический",
+          "ядовитый"
+        ],
+        "legendary_actions_uses": 3,
+        "legendary_actions_uses_lair": 4,
+        "legendary_actions_note_ru": "3 за раунд (4 в логове)"
+      }
+    },
+    {
+      "kind": "bestiary",
+      "slug": "manshoon",
+      "name_ru": "Маншун",
+      "name_en": "Manshoon",
+      "source": "fraif",
+      "sort_order": 200,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/bestiary/29353-manshoon",
+        "url_ttg": "https://new.ttg.club/bestiary/manshoon-fraif",
+        "book": "FRAiF"
+      },
+      "data": {
+        "schema_version": 1,
+        "size": "medium",
+        "size_ru": "средний",
+        "type": "humanoid",
+        "type_ru": "Гуманоид",
+        "subtype": "Человек, Волшебник",
+        "alignment": "именной нип",
+        "ac": 15,
+        "hp_average": 214,
+        "hp_formula": "33к8+66",
+        "speed": {
+          "walk": 30
+        },
+        "cr": "13",
+        "xp": 10000,
+        "proficiency_bonus": 5,
+        "initiative": {
+          "mod": 7,
+          "score": 17
+        },
+        "abilities": {
+          "str": 10,
+          "dex": 14,
+          "con": 14,
+          "int": 23,
+          "wis": 15,
+          "cha": 16
+        },
+        "ability_mods": {
+          "str": 0,
+          "dex": 2,
+          "con": 2,
+          "int": 6,
+          "wis": 2,
+          "cha": 3
+        },
+        "ability_saves": {
+          "str": 0,
+          "dex": 2,
+          "con": 2,
+          "int": 11,
+          "wis": 7,
+          "cha": 3
+        },
+        "skills": {
+          "История": 11,
+          "Проницательность": 7,
+          "Магия": 11
+        },
+        "senses": {
+          "passive_perception": 12
+        },
+        "languages": [
+          "Общий",
+          "Драконий",
+          "Инфернальный",
+          "Подземный"
+        ],
+        "source_book": "FRAiF",
+        "srd_section": "monsters",
+        "summary_ru": "средний гуманоид, ПО 13; КД 15, хиты 214 (33к8+66); инициатива +7 (ср. 17), БМ +5; есть заклинания.",
+        "name_ru_pending": false,
+        "gear_refs": [],
+        "spell_refs": [
+          "mage-hand",
+          "mage-armor",
+          "lightning-bolt",
+          "detect-magic",
+          "detect-thoughts",
+          "light",
+          "prestidigitation",
+          "scrying",
+          "sending",
+          "wall-of-force",
+          "clone",
+          "finger-of-death",
+          "befuddlement",
+          "simulacrum",
+          "mind-blank"
+        ],
+        "traits": [
+          {
+            "name_ru": "Сопротивление магии",
+            "text_ru": "Маншун совершает с Преимуществом спасброски от заклинаний и прочих магических эффектов.",
+            "name_ru_pending": false
+          }
+        ],
+        "actions": [
+          {
+            "name_ru": "Мультиатака",
+            "text_ru": "Маншун совершает три атаки Волшебным всплеском. Он может заменить две атаки одним использованием Сотворения заклинаний.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Волшебный всплеск",
+            "text_ru": "Бросок рукопашной или дальнобойной атаки: +11, досягаемость 5 фт., или дистанция 120 фт. Попадание: 32 (4к12 + 6) Силового урона.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Сотворение заклинаний",
+            "text_ru": "Маншун сотворяет одно из следующих заклинаний (заклинательная характеристика — Интеллект, Сл спасброска заклинаний 19): Неограниченно: Волш…",
+            "name_ru_pending": false
+          }
+        ],
+        "bonus_actions": [
+          {
+            "name_ru": "Туманный шаг",
+            "text_ru": "Маншун сотворяет Туманный шаг (заклинательная характеристика — та же, что для Сотворения заклинаний).",
+            "name_ru_pending": false
+          }
+        ],
+        "reactions": [
+          {
+            "name_ru": "Защитная магия",
+            "text_ru": "Маншун сотворяет Контрзаклинание или Щит в ответ на условие этого заклинания (заклинательная характеристика — та же, что для Сотворения зак…",
+            "name_ru_pending": false
+          }
+        ]
+      }
+    },
+    {
+      "kind": "bestiary",
+      "slug": "nimblewright-guard",
+      "name_ru": "Шустрабо-страж",
+      "name_en": "Nimblewright Guard",
+      "source": "fraif",
+      "sort_order": 210,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/bestiary/29354-nimblewright-guard",
+        "url_ttg": "https://new.ttg.club/bestiary/nimblewright-guard-fraif",
+        "book": "FRAiF"
+      },
+      "data": {
+        "schema_version": 1,
+        "size": "medium",
+        "size_ru": "средний",
+        "type": "construct",
+        "type_ru": "Конструкт",
+        "subtype": null,
+        "alignment": "нейтральный",
+        "ac": 16,
+        "hp_average": 67,
+        "hp_formula": "9к8+27",
+        "speed": {
+          "walk": 60
+        },
+        "cr": "3",
+        "xp": 700,
+        "proficiency_bonus": 2,
+        "initiative": {
+          "mod": 6,
+          "score": 16
+        },
+        "abilities": {
+          "str": 12,
+          "dex": 18,
+          "con": 16,
+          "int": 8,
+          "wis": 12,
+          "cha": 6
+        },
+        "ability_mods": {
+          "str": 1,
+          "dex": 4,
+          "con": 3,
+          "int": -1,
+          "wis": 1,
+          "cha": -2
+        },
+        "ability_saves": {
+          "str": 1,
+          "dex": 6,
+          "con": 3,
+          "int": -1,
+          "wis": 1,
+          "cha": -2
+        },
+        "skills": {
+          "Акробатика": 6,
+          "Внимательность": 3
+        },
+        "senses": {
+          "passive_perception": 13
+        },
+        "languages": [
+          "знает Общий плюс один другой язык",
+          "но не говорит"
+        ],
+        "source_book": "FRAiF",
+        "srd_section": "monsters",
+        "summary_ru": "средний конструкт, ПО 3; КД 16, хиты 67 (9к8+27); инициатива +6 (ср. 16), БМ +2.",
+        "name_ru_pending": false,
+        "gear_refs": [
+          "scimitar"
+        ],
+        "spell_refs": [],
+        "traits": [
+          {
+            "name_ru": "Увёртливость",
+            "text_ru": "Если шустрабо подвергается эффекту, позволяющему совершить спасбросок Ловкости, чтобы получить только половину урона, то вместо этого он во…",
+            "name_ru_pending": false
+          }
+        ],
+        "actions": [
+          {
+            "name_ru": "Мультиатака",
+            "text_ru": "Шустрабо совершает три атаки Скимитаром или Заводным арбалетом в любой комбинации.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Скимитар",
+            "text_ru": "Бросок рукопашной атаки: +6, досягаемость 5 фт. Попадание: 7 (1к6 + 4) Рубящего урона.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Заводной арбалет",
+            "text_ru": "Бросок дальнобойной атаки: +6, дистанция 80/320 фт. Попадание: 8 (1к8 + 4) Колющего урона.",
+            "name_ru_pending": false
+          }
+        ]
+      }
+    },
+    {
+      "kind": "bestiary",
+      "slug": "nimblewright-hulk",
+      "name_ru": "Шустрабо-бастион",
+      "name_en": "Nimblewright Hulk",
+      "source": "fraif",
+      "sort_order": 220,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/bestiary/29357-nimblewright-hulk",
+        "url_ttg": "https://new.ttg.club/bestiary/nimblewright-hulk-fraif",
+        "book": "FRAiF"
+      },
+      "data": {
+        "schema_version": 1,
+        "size": "large",
+        "size_ru": "большой",
+        "type": "construct",
+        "type_ru": "Конструкт",
+        "subtype": null,
+        "alignment": "нейтральный",
+        "ac": 18,
+        "hp_average": 104,
+        "hp_formula": "11к10+44",
+        "speed": {
+          "walk": 50
+        },
+        "cr": "7",
+        "xp": 2900,
+        "proficiency_bonus": 3,
+        "initiative": {
+          "mod": 7,
+          "score": 17
+        },
+        "abilities": {
+          "str": 19,
+          "dex": 18,
+          "con": 19,
+          "int": 10,
+          "wis": 12,
+          "cha": 6
+        },
+        "ability_mods": {
+          "str": 4,
+          "dex": 4,
+          "con": 4,
+          "int": 0,
+          "wis": 1,
+          "cha": -2
+        },
+        "ability_saves": {
+          "str": 7,
+          "dex": 7,
+          "con": 4,
+          "int": 0,
+          "wis": 1,
+          "cha": -2
+        },
+        "skills": {
+          "Акробатика": 7,
+          "Внимательность": 7
+        },
+        "senses": {
+          "passive_perception": 17
+        },
+        "languages": [
+          "знает Общий плюс один другой язык",
+          "но не говорит"
+        ],
+        "source_book": "FRAiF",
+        "srd_section": "monsters",
+        "summary_ru": "большой конструкт, ПО 7; КД 18, хиты 104 (11к10+44); инициатива +7 (ср. 17), БМ +3.",
+        "name_ru_pending": false,
+        "gear_refs": [],
+        "spell_refs": [],
+        "traits": [
+          {
+            "name_ru": "Увёртливость",
+            "text_ru": "Если шустрабо подвергается эффекту, позволяющему совершить спасбросок Ловкости, чтобы получить только половину урона, то вместо этого он во…",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Сопротивление магии",
+            "text_ru": "Шустрабо-совершает с Преимуществом спасброски от заклинаний и прочих магических эффектов.",
+            "name_ru_pending": false
+          }
+        ],
+        "actions": [
+          {
+            "name_ru": "Мультиатака",
+            "text_ru": "Щустрабо совершает четыре атаки Останавливающим ударом или Сияющим лучом в любой комбинации.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Останавливающий удар",
+            "text_ru": "Бросок рукопашной атаки: +7, досягаемость 10 фт. Попадание: 15 (2к10 + 4) Дробящего урона, и Скорость цели снижается до 0 до конца её следу…",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Сияющий луч",
+            "text_ru": "Бросок дальнобойной атаки: +7, дистанция 60 фт. Попадание: 14 (4к6) урона Излучением.",
+            "name_ru_pending": false
+          }
+        ]
+      }
+    },
+    {
+      "kind": "bestiary",
+      "slug": "nimblewright-steed",
+      "name_ru": "Шустрабо-скакун",
+      "name_en": "Nimblewright Steed",
+      "source": "fraif",
+      "sort_order": 230,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/bestiary/29358-nimblewright-steed",
+        "url_ttg": "https://new.ttg.club/bestiary/nimblewright-steed-fraif",
+        "book": "FRAiF"
+      },
+      "data": {
+        "schema_version": 1,
+        "size": "large",
+        "size_ru": "большой",
+        "type": "construct",
+        "type_ru": "Конструкт",
+        "subtype": null,
+        "alignment": "нейтральный",
+        "ac": 16,
+        "hp_average": 47,
+        "hp_formula": "5к10+20",
+        "speed": {
+          "walk": 60
+        },
+        "cr": "2",
+        "xp": 450,
+        "proficiency_bonus": 2,
+        "initiative": {
+          "mod": 6,
+          "score": 16
+        },
+        "abilities": {
+          "str": 17,
+          "dex": 18,
+          "con": 18,
+          "int": 6,
+          "wis": 10,
+          "cha": 6
+        },
+        "ability_mods": {
+          "str": 3,
+          "dex": 4,
+          "con": 4,
+          "int": -2,
+          "wis": 0,
+          "cha": -2
+        },
+        "ability_saves": {
+          "str": 3,
+          "dex": 6,
+          "con": 4,
+          "int": -2,
+          "wis": 0,
+          "cha": -2
+        },
+        "skills": {},
+        "senses": {
+          "passive_perception": 10
+        },
+        "languages": [
+          "знает Общий плюс один другой язык",
+          "но не говорит"
+        ],
+        "source_book": "FRAiF",
+        "srd_section": "monsters",
+        "summary_ru": "большой конструкт, ПО 2; КД 16, хиты 47 (5к10+20); инициатива +6 (ср. 16), БМ +2.",
+        "name_ru_pending": false,
+        "gear_refs": [],
+        "spell_refs": [],
+        "traits": [
+          {
+            "name_ru": "Увёртливость",
+            "text_ru": "Если шустрабо подвергается эффекту, позволяющему совершить спасбросок Ловкости, чтобы получить только половину урона, то вместо этого он во…",
+            "name_ru_pending": false
+          }
+        ],
+        "actions": [
+          {
+            "name_ru": "Копыта",
+            "text_ru": "Бросок рукопашной атаки: +6, досягаемость 5 фт. Попадание: 7 (1к8 + 3) Дробящего урона. Если шустрабо переместился к цели по прямой хотя бы…",
+            "name_ru_pending": false
+          }
+        ],
+        "bonus_actions": [
+          {
+            "name_ru": "Проворное движение",
+            "text_ru": "Шустрабо совершает действие Отход.",
+            "name_ru_pending": false
+          }
+        ]
+      }
+    },
+    {
+      "kind": "bestiary",
+      "slug": "polar-serpent",
+      "name_ru": "Полярный змей",
+      "name_en": "Polar Serpent",
+      "source": "fraif",
+      "sort_order": 240,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/bestiary/29366-polar-serpent",
+        "url_ttg": "https://new.ttg.club/bestiary/polar-serpent-fraif",
+        "book": "FRAiF"
+      },
+      "data": {
+        "schema_version": 1,
+        "size": "large",
+        "size_ru": "большой",
+        "type": "elemental",
+        "type_ru": "Элементаль",
+        "subtype": null,
+        "alignment": "нейтральный",
+        "ac": 14,
+        "hp_average": 58,
+        "hp_formula": "9к10+9",
+        "speed": {
+          "walk": 40,
+          "fly": 40
+        },
+        "cr": "3",
+        "xp": 700,
+        "proficiency_bonus": 2,
+        "initiative": {
+          "mod": 4,
+          "score": 14
+        },
+        "abilities": {
+          "str": 18,
+          "dex": 19,
+          "con": 12,
+          "int": 4,
+          "wis": 12,
+          "cha": 6
+        },
+        "ability_mods": {
+          "str": 4,
+          "dex": 4,
+          "con": 1,
+          "int": -3,
+          "wis": 1,
+          "cha": -2
+        },
+        "ability_saves": {
+          "str": 4,
+          "dex": 4,
+          "con": 1,
+          "int": -3,
+          "wis": 1,
+          "cha": -2
+        },
+        "skills": {
+          "Внимательность": 3,
+          "Скрытность": 6
+        },
+        "senses": {
+          "passive_perception": 13
+        },
+        "languages": [
+          "знает Первичный",
+          "но не говорит"
+        ],
+        "source_book": "FRAiF",
+        "srd_section": "monsters",
+        "summary_ru": "большой элементаль, ПО 3; КД 14, хиты 58 (9к10+9); инициатива +4 (ср. 14), БМ +2.",
+        "name_ru_pending": false,
+        "gear_refs": [],
+        "spell_refs": [],
+        "traits": [
+          {
+            "name_ru": "Туманное скольжение",
+            "text_ru": "Змей может проходить через пространство шириной всего 1 дюйм, не тратя на это дополнительное перемещение.",
+            "name_ru_pending": false
+          }
+        ],
+        "actions": [
+          {
+            "name_ru": "Мультиатака",
+            "text_ru": "Змей совершает одну атаку Укусом и использует Сдавливание.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Укус",
+            "text_ru": "Бросок рукопашной атаки: +6, досягаемость 5 фт. Попадание: 8 (1к8 + 4) Колющего урона плюс 3 (1к6) урона Холодом.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Сдавливание",
+            "text_ru": "Спасбросок Силы: Сл 14, одно видимое змеем существо Среднего размера или меньше в 10 футах. Провал: 3 (1к6) Дробящего урона плюс 7 (2к6) ур…",
+            "name_ru_pending": false
+          }
+        ],
+        "damage_vulnerabilities": [
+          "огонь"
+        ]
+      }
+    },
+    {
+      "kind": "bestiary",
+      "slug": "queen-forfallen",
+      "name_ru": "Королева Фарфалле",
+      "name_en": "Queen Forfallen",
+      "source": "fraif",
+      "sort_order": 250,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/bestiary/29367-queen-forfallen",
+        "url_ttg": "https://new.ttg.club/bestiary/queen-forfallen-fraif",
+        "book": "FRAiF"
+      },
+      "data": {
+        "schema_version": 1,
+        "size": "medium",
+        "size_ru": "средний",
+        "type": "construct",
+        "type_ru": "Конструкт",
+        "subtype": null,
+        "alignment": "именной нип",
+        "ac": 16,
+        "hp_average": 153,
+        "hp_formula": "18к8+72",
+        "speed": {
+          "walk": 30
+        },
+        "cr": "10",
+        "xp": 5900,
+        "proficiency_bonus": 4,
+        "initiative": {
+          "mod": 6,
+          "score": 16
+        },
+        "abilities": {
+          "str": 20,
+          "dex": 14,
+          "con": 19,
+          "int": 15,
+          "wis": 17,
+          "cha": 18
+        },
+        "ability_mods": {
+          "str": 5,
+          "dex": 2,
+          "con": 4,
+          "int": 2,
+          "wis": 3,
+          "cha": 4
+        },
+        "ability_saves": {
+          "str": 5,
+          "dex": 2,
+          "con": 4,
+          "int": 2,
+          "wis": 7,
+          "cha": 4
+        },
+        "skills": {
+          "Атлетика": 9,
+          "Внимательность": 7,
+          "Проницательность": 7
+        },
+        "senses": {
+          "passive_perception": 17
+        },
+        "languages": [
+          "Общий"
+        ],
+        "source_book": "FRAiF",
+        "srd_section": "monsters",
+        "summary_ru": "средний конструкт, ПО 10; КД 16, хиты 153 (18к8+72); инициатива +6 (ср. 16), БМ +4.",
+        "name_ru_pending": false,
+        "gear_refs": [
+          "handaxe",
+          "greataxe"
+        ],
+        "spell_refs": [],
+        "traits": [
+          {
+            "name_ru": "Вдохновляющее присутствие",
+            "text_ru": "Существа по выбору Фарфалле (исключая её саму) в 30-футовой Эманации, исходящей от неё, совершают броски атаки с Преимуществом. Фарфалле не…",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Сопротивление магии",
+            "text_ru": "Фарфалле совершает с Преимуществом спасброски от заклинаний и прочих магических эффектов.",
+            "name_ru_pending": false
+          }
+        ],
+        "actions": [
+          {
+            "name_ru": "Мультиатака",
+            "text_ru": "Фарфалле совершает три атаки Секирой или Одноручным топором в любой комбинации.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Секира",
+            "text_ru": "Бросок рукопашной атаки: +9, досягаемость 5 фт. Попадание: 18 (2к12 + 5) Рубящего урона, и цель Отравлена до конца своего следующего хода.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Одноручный топор",
+            "text_ru": "Бросок рукопашной или дальнобойной атаки: +9, досягаемость 5 фт. или дистанция 20/60 фт. Попадание: 22 (5к6 + 5) Рубящего урона.",
+            "name_ru_pending": false
+          }
+        ],
+        "bonus_actions": [
+          {
+            "name_ru": "Хватка ржавчины",
+            "text_ru": "Спасбросок Телосложения: Сл 16, одно видимое Фарфалле существо в 20 футах. Если цель Отравлена, она совершает этот спасбросок с Помехой. Пе…",
+            "name_ru_pending": false
+          }
+        ]
+      }
+    },
+    {
+      "kind": "bestiary",
+      "slug": "rusted-behemoth",
+      "name_ru": "Оржавевшее чудище",
+      "name_en": "Rusted Behemoth",
+      "source": "fraif",
+      "sort_order": 260,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/bestiary/29368-rusted-behemoth",
+        "url_ttg": "https://new.ttg.club/bestiary/rusted-behemoth-fraif",
+        "book": "FRAiF"
+      },
+      "data": {
+        "schema_version": 1,
+        "size": "huge",
+        "size_ru": "огромный",
+        "type": "construct",
+        "type_ru": "Конструкт",
+        "subtype": null,
+        "alignment": "нейтральный",
+        "ac": 18,
+        "hp_average": 157,
+        "hp_formula": "15к12+60",
+        "speed": {
+          "walk": 40
+        },
+        "cr": "9",
+        "xp": 5000,
+        "proficiency_bonus": 4,
+        "initiative": {
+          "mod": 0,
+          "score": 10
+        },
+        "abilities": {
+          "str": 22,
+          "dex": 10,
+          "con": 19,
+          "int": 6,
+          "wis": 12,
+          "cha": 6
+        },
+        "ability_mods": {
+          "str": 6,
+          "dex": 0,
+          "con": 4,
+          "int": -2,
+          "wis": 1,
+          "cha": -2
+        },
+        "ability_saves": {
+          "str": 6,
+          "dex": 0,
+          "con": 4,
+          "int": -2,
+          "wis": 1,
+          "cha": -2
+        },
+        "skills": {},
+        "senses": {
+          "passive_perception": 11
+        },
+        "languages": [
+          "Общий",
+          "Великаний"
+        ],
+        "source_book": "FRAiF",
+        "srd_section": "monsters",
+        "summary_ru": "огромный конструкт, ПО 9; КД 18, хиты 157 (15к12+60); инициатива +0 (ср. 10), БМ +4.",
+        "name_ru_pending": false,
+        "gear_refs": [],
+        "spell_refs": [],
+        "actions": [
+          {
+            "name_ru": "Мультиатака",
+            "text_ru": "Чудище совершает три атаки Размашистым ударом или Ржавым ядром в любой комбинации.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Размашистый удар",
+            "text_ru": "Бросок рукопашной атаки: +10, досягаемость 10 фт. Попадание: 20 (4к6 + 6) Дробящего урона.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Ржавое ядро",
+            "text_ru": "Бросок дальнобойной атаки: +10, дистанция 60/240 фт. Попадание: 15 (2к8 + 6) Дробящего урона, и цель становится Отравленной до конца своего…",
+            "name_ru_pending": false
+          }
+        ]
+      }
+    },
+    {
+      "kind": "bestiary",
+      "slug": "rusted-berserker",
+      "name_ru": "Оржавевший берсерк",
+      "name_en": "Rusted Berserker",
+      "source": "fraif",
+      "sort_order": 270,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/bestiary/29369-rusted-berserker",
+        "url_ttg": "https://new.ttg.club/bestiary/rusted-berserker-fraif",
+        "book": "FRAiF"
+      },
+      "data": {
+        "schema_version": 1,
+        "size": "medium",
+        "size_ru": "средний",
+        "type": "construct",
+        "type_ru": "Конструкт",
+        "subtype": null,
+        "alignment": "нейтральный",
+        "ac": 16,
+        "hp_average": 82,
+        "hp_formula": "11к8+33",
+        "speed": {
+          "walk": 30
+        },
+        "cr": "4",
+        "xp": 1100,
+        "proficiency_bonus": 2,
+        "initiative": {
+          "mod": 2,
+          "score": 12
+        },
+        "abilities": {
+          "str": 18,
+          "dex": 14,
+          "con": 17,
+          "int": 6,
+          "wis": 10,
+          "cha": 6
+        },
+        "ability_mods": {
+          "str": 4,
+          "dex": 2,
+          "con": 3,
+          "int": -2,
+          "wis": 0,
+          "cha": -2
+        },
+        "ability_saves": {
+          "str": 4,
+          "dex": 2,
+          "con": 3,
+          "int": -2,
+          "wis": 0,
+          "cha": -2
+        },
+        "skills": {},
+        "senses": {
+          "passive_perception": 10
+        },
+        "languages": [
+          "Общий"
+        ],
+        "source_book": "FRAiF",
+        "srd_section": "monsters",
+        "summary_ru": "средний конструкт, ПО 4; КД 16, хиты 82 (11к8+33); инициатива +2 (ср. 12), БМ +2.",
+        "name_ru_pending": false,
+        "gear_refs": [
+          "javelin",
+          "greatsword",
+          "spear"
+        ],
+        "spell_refs": [],
+        "actions": [
+          {
+            "name_ru": "Мультиатака",
+            "text_ru": "Оржавевший совершает две атаки Двуручным мечом или Метательным копьём в любой комбинации.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Двуручный меч",
+            "text_ru": "Бросок рукопашной атаки: +6, досягаемость 5 фт. Попадание: 11 (2к6 + 4) Рубящего урона, и цель становится Отравленной до конца своего следу…",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Метательное копьё",
+            "text_ru": "Бросок рукопашной или дальнобойной атаки: +6, досягаемость 5 фт. или дистанция 30/120 фт. Попадание: 11 (2к6 + 4) Колющего урона, и цель ст…",
+            "name_ru_pending": false
+          }
+        ]
+      }
+    },
+    {
+      "kind": "bestiary",
+      "slug": "rusted-wyrm",
+      "name_ru": "Оржавевший вирм",
+      "name_en": "Rusted Wyrm",
+      "source": "fraif",
+      "sort_order": 280,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/bestiary/29370-rusted-wyrm",
+        "url_ttg": "https://new.ttg.club/bestiary/rusted-wyrm-fraif",
+        "book": "FRAiF"
+      },
+      "data": {
+        "schema_version": 1,
+        "size": "medium",
+        "size_ru": "средний",
+        "type": "construct",
+        "type_ru": "Конструкт",
+        "subtype": null,
+        "alignment": "нейтральный",
+        "ac": 20,
+        "hp_average": 231,
+        "hp_formula": "14к20+84",
+        "speed": {
+          "walk": 40,
+          "swim": 60
+        },
+        "cr": "14",
+        "xp": 11500,
+        "proficiency_bonus": 5,
+        "initiative": {
+          "mod": 6,
+          "score": 16
+        },
+        "abilities": {
+          "str": 25,
+          "dex": 13,
+          "con": 22,
+          "int": 8,
+          "wis": 14,
+          "cha": 6
+        },
+        "ability_mods": {
+          "str": 7,
+          "dex": 1,
+          "con": 6,
+          "int": -1,
+          "wis": 2,
+          "cha": -2
+        },
+        "ability_saves": {
+          "str": 7,
+          "dex": 1,
+          "con": 6,
+          "int": -1,
+          "wis": 2,
+          "cha": -2
+        },
+        "skills": {},
+        "senses": {
+          "passive_perception": 12
+        },
+        "languages": [
+          "Общий",
+          "Драконий"
+        ],
+        "source_book": "FRAiF",
+        "srd_section": "monsters",
+        "summary_ru": "средний конструкт, ПО 14; КД 20, хиты 231 (14к20+84); инициатива +6 (ср. 16), БМ +5.",
+        "name_ru_pending": false,
+        "gear_refs": [],
+        "spell_refs": [],
+        "traits": [
+          {
+            "name_ru": "Легендарное сопротивление (3/день)",
+            "text_ru": "Если вирм проваливает спасбросок, он вместо этого может преуспеть в нём.",
+            "name_ru_pending": false
+          }
+        ],
+        "actions": [
+          {
+            "name_ru": "Мультиатака",
+            "text_ru": "Вирм совершает две атаки Укусом.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Укус",
+            "text_ru": "Бросок рукопашной атаки: +12, досягаемость 20 фт. Попадание: 29 (4к10 + 7) Колющего урона.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Паровое дыхание (Перезарядка 5–6)",
+            "text_ru": "Спасбросок Ловкости: Сл 19, каждое существо и каждый воспламеняемый объект, который никто не носит и не несёт, в 60-футовом Конусе. Провал:…",
+            "name_ru_pending": false
+          }
+        ],
+        "bonus_actions": [
+          {
+            "name_ru": "Ржавая короста",
+            "text_ru": "Спасбросок Телосложения: Сл 19, одно существо в пределах 20 футов от вирма. Провал: 14 (4к6) урона Ядом, и цель Отравлена до конца своего с…",
+            "name_ru_pending": false
+          }
+        ]
+      }
+    },
+    {
+      "kind": "bestiary",
+      "slug": "sammaster-dracolich-form",
+      "name_ru": "Саммастер (форма драколича)",
+      "name_en": "Sammaster (Dracolich Form)",
+      "source": "fraif",
+      "sort_order": 290,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/bestiary/29371-sammaster-dracolich-form",
+        "url_ttg": "https://new.ttg.club/bestiary/sammaster-dracolich-form-fraif",
+        "book": "FRAiF"
+      },
+      "data": {
+        "schema_version": 1,
+        "size": "huge",
+        "size_ru": "огромный",
+        "type": "undead",
+        "type_ru": "Нежить",
+        "subtype": null,
+        "alignment": "именной нип",
+        "ac": 20,
+        "hp_average": 276,
+        "hp_formula": "24к12+120",
+        "speed": {
+          "walk": 40,
+          "fly": 80,
+          "burrow": 30
+        },
+        "cr": "22",
+        "xp": 41000,
+        "proficiency_bonus": 7,
+        "initiative": {
+          "mod": 14,
+          "score": 24
+        },
+        "abilities": {
+          "str": 25,
+          "dex": 10,
+          "con": 21,
+          "int": 23,
+          "wis": 15,
+          "cha": 21
+        },
+        "ability_mods": {
+          "str": 7,
+          "dex": 0,
+          "con": 5,
+          "int": 6,
+          "wis": 2,
+          "cha": 5
+        },
+        "ability_saves": {
+          "str": 7,
+          "dex": 7,
+          "con": 12,
+          "int": 13,
+          "wis": 9,
+          "cha": 5
+        },
+        "skills": {
+          "Внимательность": 16,
+          "История": 13,
+          "Магия": 20
+        },
+        "senses": {
+          "passive_perception": 26
+        },
+        "languages": [
+          "Общий",
+          "Драконий",
+          "Инфернальный"
+        ],
+        "source_book": "FRAiF",
+        "srd_section": "monsters",
+        "summary_ru": "огромная нежить, ПО 22; КД 20, хиты 276 (24к12+120); инициатива +14 (ср. 24), БМ +7; есть заклинания.",
+        "name_ru_pending": false,
+        "gear_refs": [],
+        "spell_refs": [
+          "mage-hand",
+          "ray-of-sickness",
+          "detect-magic",
+          "dispel-magic",
+          "blight",
+          "prestidigitation",
+          "dimension-door",
+          "speak-with-dead",
+          "power-word-kill",
+          "create-undead"
+        ],
+        "traits": [
+          {
+            "name_ru": "Легендарное сопротивление (3/день)",
+            "text_ru": "Если Саммастер проваливает спасбросок, он вместо этого может в нём преуспеть.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Подавление жизни",
+            "text_ru": "Существа в пределах 60 футов от Саммастера не могут восстанавливать Хиты.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Сопротивление магии",
+            "text_ru": "Саммастер совершает с Преимуществом спасброски от заклинаний и прочих магических эффектов.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Камень души",
+            "text_ru": "Сердце Саммастера в форме драколича — это магический камень души. Камень невозможно повредить или изъять, пока Хиты Саммастера выше 0. Если…",
+            "name_ru_pending": false
+          }
+        ],
+        "actions": [
+          {
+            "name_ru": "Мультиатака",
+            "text_ru": "Саммастер совершает три атаки Раздиранием. Он может заменить одну из этих атак использованием Сотворения заклинаний (Усыхание или Луч болез…",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Раздирание",
+            "text_ru": "Бросок рукопашной атаки: +14, досягаемость 10 фт. Попадание: 18 (2к10 + 7) Рубящего урона плюс 18 (4к8) Некротического урона.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Разъедающее дыхание (Перезарядка 5–6)",
+            "text_ru": "Спасбросок Телосложения: Сл 20, каждое существо в 90-футовом Конусе. Провал: 52 (8к12) Некротического урона или урона Кислотой (по выбору С…",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Сотворение заклинаний",
+            "text_ru": "Саммастер (форма драколича) сотворяет одно из следующих заклинаний, не нуждаясь в Материальных компонентах (заклинательная характеристика —…",
+            "name_ru_pending": false
+          }
+        ],
+        "legendary_actions": [
+          {
+            "name_ru": "Наскок",
+            "text_ru": "Саммастер перемещается на расстояние вплоть до половины своей Скорости и совершает одну атаку Раздиранием.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Тошнотворный луч",
+            "text_ru": "Саммастер использует Сотворение заклинаний (Луч болезни, версия 6-го уровня).",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Ужасающее присутствие",
+            "text_ru": "Спасбросок Мудрости: Сл 21, каждое существо в 20-футовой Эманации, исходящей от Саммастера. Провал: 13 (2к12) Психического урона, и цель Ис…",
+            "name_ru_pending": false
+          }
+        ],
+        "legendary_actions_uses": 3,
+        "legendary_actions_note_ru": "3 за раунд"
+      }
+    },
+    {
+      "kind": "bestiary",
+      "slug": "sammaster-lich-form",
+      "name_ru": "Саммастер (форма лича)",
+      "name_en": "Sammaster (Lich Form)",
+      "source": "fraif",
+      "sort_order": 300,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/bestiary/29372-sammaster-lich-form",
+        "url_ttg": "https://new.ttg.club/bestiary/sammaster-lich-form-fraif",
+        "book": "FRAiF"
+      },
+      "data": {
+        "schema_version": 1,
+        "size": "medium",
+        "size_ru": "средний",
+        "type": "undead",
+        "type_ru": "Нежить",
+        "subtype": "Волшебник",
+        "alignment": "именной нип",
+        "ac": 18,
+        "hp_average": 322,
+        "hp_formula": "43к8+129",
+        "speed": {
+          "walk": 30
+        },
+        "cr": "22",
+        "xp": 41000,
+        "proficiency_bonus": 7,
+        "initiative": {
+          "mod": 16,
+          "score": 26
+        },
+        "abilities": {
+          "str": 12,
+          "dex": 14,
+          "con": 16,
+          "int": 23,
+          "wis": 15,
+          "cha": 21
+        },
+        "ability_mods": {
+          "str": 1,
+          "dex": 2,
+          "con": 3,
+          "int": 6,
+          "wis": 2,
+          "cha": 5
+        },
+        "ability_saves": {
+          "str": 1,
+          "dex": 9,
+          "con": 10,
+          "int": 13,
+          "wis": 9,
+          "cha": 5
+        },
+        "skills": {
+          "Внимательность": 9,
+          "История": 13,
+          "Магия": 20
+        },
+        "senses": {
+          "passive_perception": 19
+        },
+        "languages": [
+          "Общий",
+          "Драконий",
+          "Инфернальный"
+        ],
+        "source_book": "FRAiF",
+        "srd_section": "monsters",
+        "summary_ru": "средняя нежить, ПО 22; КД 18, хиты 322 (43к8+129); инициатива +16 (ср. 26), БМ +7; есть заклинания.",
+        "name_ru_pending": false,
+        "gear_refs": [],
+        "spell_refs": [
+          "mage-hand",
+          "cone-of-cold",
+          "invisibility",
+          "detect-magic",
+          "dispel-magic",
+          "prestidigitation",
+          "speak-with-dead",
+          "wall-of-force",
+          "disintegrate",
+          "power-word-kill",
+          "create-undead"
+        ],
+        "traits": [
+          {
+            "name_ru": "Легендарное сопротивление (3/день)",
+            "text_ru": "Если Саммастер проваливает спасбросок, он вместо этого может в нём преуспеть.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Подавление жизни",
+            "text_ru": "Существа в пределах 60 футов от Саммастера не могут восстанавливать Хиты.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Сопротивление магии",
+            "text_ru": "Саммастер совершает с Преимуществом спасброски от заклинаний и прочих магических эффектов.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Камень души",
+            "text_ru": "Если Хиты Саммастера опускаются до 0, а его камень души не уничтожен, то Саммастер в форме лича рассыпается прахом и спустя 1к10 дней появл…",
+            "name_ru_pending": false
+          }
+        ],
+        "actions": [
+          {
+            "name_ru": "Мультиатака",
+            "text_ru": "Саммастер совершает три атаки Едким всплеском или Парализующим касанием в любой комбинации. Он может заменить две атаки одним использование…",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Едкий всплеск",
+            "text_ru": "Бросок рукопашной или дальнобойной атаки: +13, досягаемость 5 фт. или дистанция 120 фт. Попадание: 38 (5к12 + 6) Некротического урона или у…",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Парализующее касание",
+            "text_ru": "Бросок рукопашной атаки: +13, досягаемость 5 фт. Попадание: 16 (3к6 + 6) урона Холодом, и цель Парализована до начала следующего хода Самма…",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Сотворение заклинаний",
+            "text_ru": "Саммастер (форма лича) сотворяет одно из следующих заклинаний, не нуждаясь в Материальных компонентах (заклинательная характеристика — Инте…",
+            "name_ru_pending": false
+          }
+        ],
+        "reactions": [
+          {
+            "name_ru": "Защитная магия",
+            "text_ru": "Саммастер сотворяет Контрзаклинание или Щит в ответ на условие этого заклинания (заклинательная характеристика — та же, что для Сотворения…",
+            "name_ru_pending": false
+          }
+        ],
+        "legendary_actions": [
+          {
+            "name_ru": "Смертельный телепорт",
+            "text_ru": "Саммастер телепортируется в видимое им в пределах 60 футов незанятое пространство, и каждое существо в пределах 10 футов от покинутого им п…",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Растворение",
+            "text_ru": "Саммастер совершает одну атаку Едким всплеском.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Ужасающее присутствие",
+            "text_ru": "Спасбросок Мудрости: Сл 21, каждое существо в 20-футовой Эманации, исходящей от Саммастера. Провал: 13 (2к12) Психического урона, и цель Ис…",
+            "name_ru_pending": false
+          }
+        ],
+        "damage_resistances": [
+          "кислота",
+          "холод",
+          "электрический"
+        ],
+        "legendary_actions_uses": 3,
+        "legendary_actions_note_ru": "3 за раунд"
+      }
+    },
+    {
+      "kind": "bestiary",
+      "slug": "spirit-dragon-wyrmling",
+      "name_ru": "Вирмлинг духовного дракона",
+      "name_en": "Spirit Dragon Wyrmling",
+      "source": "fraif",
+      "sort_order": 310,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/bestiary/29373-spirit-dragon-wyrmling",
+        "url_ttg": "https://new.ttg.club/bestiary/spirit-dragon-wyrmling-fraif",
+        "book": "FRAiF"
+      },
+      "data": {
+        "schema_version": 1,
+        "size": "medium",
+        "size_ru": "средний",
+        "type": "dragon",
+        "type_ru": "Дракон",
+        "subtype": null,
+        "alignment": "нейтральный",
+        "ac": 16,
+        "hp_average": 52,
+        "hp_formula": "8к8+16",
+        "speed": {
+          "walk": 30,
+          "fly": 60,
+          "burrow": 20
+        },
+        "cr": "2",
+        "xp": 450,
+        "proficiency_bonus": 2,
+        "initiative": {
+          "mod": 3,
+          "score": 13
+        },
+        "abilities": {
+          "str": 15,
+          "dex": 12,
+          "con": 15,
+          "int": 14,
+          "wis": 11,
+          "cha": 14
+        },
+        "ability_mods": {
+          "str": 2,
+          "dex": 1,
+          "con": 2,
+          "int": 2,
+          "wis": 0,
+          "cha": 2
+        },
+        "ability_saves": {
+          "str": 2,
+          "dex": 3,
+          "con": 4,
+          "int": 2,
+          "wis": 0,
+          "cha": 2
+        },
+        "skills": {
+          "Внимательность": 2,
+          "Скрытность": 3
+        },
+        "senses": {
+          "passive_perception": 12
+        },
+        "languages": [
+          "Общий",
+          "Драконий",
+          "Телепатия 120 фт."
+        ],
+        "source_book": "FRAiF",
+        "srd_section": "monsters",
+        "summary_ru": "средний дракон, ПО 2; КД 16, хиты 52 (8к8+16); инициатива +3 (ср. 13), БМ +2.",
+        "name_ru_pending": false,
+        "gear_refs": [],
+        "spell_refs": [],
+        "actions": [
+          {
+            "name_ru": "Раздирание",
+            "text_ru": "Бросок рукопашной атаки: +4, досягаемость 5 фт. Попадание: 9 (2к6 + 2) Рубящего урона плюс 3 (1к6) Некротического урона.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Гибельное дыхание (Перезарядка 5–6)",
+            "text_ru": "Спасбросок Телосложения: Сл 12, каждое существо в 15-футовом Конусе. Провал: 13 (3к8) Некротического урона. Успех: Только половина урона.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Дыхание искажения времени",
+            "text_ru": "Спасбросок Мудрости: Сл 12, каждое ещё не подверженное этому эффекту существо в 15-футовом Конусе. Провал: Цель в свой ход может совершить…",
+            "name_ru_pending": false
+          }
+        ],
+        "damage_resistances": [
+          "некротический"
+        ]
+      }
+    },
+    {
+      "kind": "bestiary",
+      "slug": "spore-of-moander",
+      "name_ru": "Спора Моандера",
+      "name_en": "Spore of Moander",
+      "source": "fraif",
+      "sort_order": 320,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/bestiary/29377-spore-of-moander",
+        "url_ttg": "https://new.ttg.club/bestiary/spore-of-moander-fraif",
+        "book": "FRAiF"
+      },
+      "data": {
+        "schema_version": 1,
+        "size": "huge",
+        "size_ru": "огромный",
+        "type": "plant",
+        "type_ru": "Растение",
+        "subtype": null,
+        "alignment": "хаотично-злой",
+        "ac": 19,
+        "hp_average": 230,
+        "hp_formula": "20к12+100",
+        "speed": {
+          "walk": 30,
+          "climb": 30
+        },
+        "cr": "12",
+        "xp": 8400,
+        "proficiency_bonus": 4,
+        "initiative": {
+          "mod": -1,
+          "score": 9
+        },
+        "abilities": {
+          "str": 22,
+          "dex": 9,
+          "con": 20,
+          "int": 4,
+          "wis": 10,
+          "cha": 6
+        },
+        "ability_mods": {
+          "str": 6,
+          "dex": -1,
+          "con": 5,
+          "int": -3,
+          "wis": 0,
+          "cha": -2
+        },
+        "ability_saves": {
+          "str": 10,
+          "dex": -1,
+          "con": 9,
+          "int": -3,
+          "wis": 0,
+          "cha": -2
+        },
+        "skills": {},
+        "senses": {
+          "passive_perception": 10
+        },
+        "languages": [
+          "знает язык Бездны",
+          "но не говорит"
+        ],
+        "source_book": "FRAiF",
+        "srd_section": "monsters",
+        "summary_ru": "огромное растение, ПО 12; КД 19, хиты 230 (20к12+100); инициатива -1 (ср. 9), БМ +4.",
+        "name_ru_pending": false,
+        "gear_refs": [],
+        "spell_refs": [],
+        "traits": [
+          {
+            "name_ru": "Взрывная сердцевина",
+            "text_ru": "Когда спора подвергается урону Огнём, каждое существо в 5-футовой Эманации, исходящей от споры, получает 7 (2к6) урона Огнём.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Катящаяся масса",
+            "text_ru": "Труднопроходимая местность не стоит споре дополнительных футов перемещения.",
+            "name_ru_pending": false
+          }
+        ],
+        "actions": [
+          {
+            "name_ru": "Мультиатака",
+            "text_ru": "Спора (А) совершает четыре атаки Отростком или (Б) совершат две атаки Отростком и использует Поглощение.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Отросток",
+            "text_ru": "Бросок рукопашной атаки: +10, досягаемость 20 фт. Попадание: 11 (1к10 + 6) Колющего урона плюс 10 (3к6) урона Кислотой. Если цель Большого…",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Поглощение",
+            "text_ru": "Спасбросок Силы: Сл 18, одно существо Большого размера или меньше в 5 футах. Провал: Цель притягивается в пространство споры и становится С…",
+            "name_ru_pending": false
+          }
+        ],
+        "damage_resistances": [
+          "кислота",
+          "холод",
+          "электрический"
+        ]
+      }
+    },
+    {
+      "kind": "bestiary",
+      "slug": "swanmay",
+      "name_ru": "Лебединая дева",
+      "name_en": "Swanmay",
+      "source": "fraif",
+      "sort_order": 330,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/bestiary/29378-swanmay",
+        "url_ttg": "https://new.ttg.club/bestiary/swanmay-fraif",
+        "book": "FRAiF"
+      },
+      "data": {
+        "schema_version": 1,
+        "size": "medium",
+        "size_ru": "средний",
+        "type": "fey",
+        "type_ru": "Фея",
+        "subtype": null,
+        "alignment": "нейтрально-добрый",
+        "ac": 14,
+        "hp_average": 71,
+        "hp_formula": "11к8+22",
+        "speed": {
+          "walk": 30,
+          "fly": 40
+        },
+        "cr": "3",
+        "xp": 700,
+        "proficiency_bonus": 2,
+        "initiative": {
+          "mod": 4,
+          "score": 14
+        },
+        "abilities": {
+          "str": 10,
+          "dex": 18,
+          "con": 14,
+          "int": 10,
+          "wis": 16,
+          "cha": 15
+        },
+        "ability_mods": {
+          "str": 0,
+          "dex": 4,
+          "con": 2,
+          "int": 0,
+          "wis": 3,
+          "cha": 2
+        },
+        "ability_saves": {
+          "str": 0,
+          "dex": 4,
+          "con": 4,
+          "int": 0,
+          "wis": 5,
+          "cha": 2
+        },
+        "skills": {
+          "Внимательность": 5,
+          "Природа": 4
+        },
+        "senses": {
+          "passive_perception": 15
+        },
+        "languages": [
+          "Общий",
+          "Сильван"
+        ],
+        "source_book": "FRAiF",
+        "srd_section": "monsters",
+        "summary_ru": "средняя фея, ПО 3; КД 14, хиты 71 (11к8+22); инициатива +4 (ср. 14), БМ +2; есть заклинания.",
+        "name_ru_pending": false,
+        "gear_refs": [
+          "longbow",
+          "scimitar"
+        ],
+        "spell_refs": [
+          "druidcraft",
+          "speak-with-animals",
+          "animal-friendship",
+          "beast-sense",
+          "spike-growth"
+        ],
+        "traits": [
+          {
+            "name_ru": "Облёт (только в форме лебедя)",
+            "text_ru": "Лебединая дева не Провоцирует атак, когда вылетает из вражеской досягаемости.",
+            "name_ru_pending": false
+          }
+        ],
+        "actions": [
+          {
+            "name_ru": "Мультиатака",
+            "text_ru": "Лебединая дева совершает две атаки Клювом, Скимитаром или Длинным луком в любой комбинации.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Клюв (только в форме лебедя)",
+            "text_ru": "Бросок рукопашной атаки: +6, досягаемость 5 фт. Попадание: 7 (1к6 + 4) Колющего урона. Если цель — существо Большого размер или меньше, она…",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Скимитар (только в гуманоидной форме)",
+            "text_ru": "Бросок рукопашной атаки: +6, досягаемость 5 фт. Попадание: 11 (2к6 + 4) Рубящего урона.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Длинный лук (только в гуманоидной форме)",
+            "text_ru": "Бросок дальнобойной атаки: +6, дистанция 150/600 фт. Попадание: 13 (2к8 + 4) Колющего урона.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Сотворение заклинаний",
+            "text_ru": "Лебединая дева сотворяет одно из следующих заклинаний, не нуждаясь в Соматических и Материальных компонентах (заклинательная характеристика…",
+            "name_ru_pending": false
+          }
+        ],
+        "bonus_actions": [
+          {
+            "name_ru": "Перевоплощение",
+            "text_ru": "Лебединая дева либо перевоплощается в лебедя Маленького размера, либо возвращается в истинную гуманоидную форму. Её статистика не меняется…",
+            "name_ru_pending": false
+          }
+        ]
+      }
+    },
+    {
+      "kind": "bestiary",
+      "slug": "valindra-shadowmantle",
+      "name_ru": "Валиндра Теневая Мантия",
+      "name_en": "Valindra Shadowmantle",
+      "source": "fraif",
+      "sort_order": 340,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/bestiary/29379-valindra-shadowmantle",
+        "url_ttg": "https://new.ttg.club/bestiary/valindra-shadowmantle-fraif",
+        "book": "FRAiF"
+      },
+      "data": {
+        "schema_version": 1,
+        "size": "medium",
+        "size_ru": "средний",
+        "type": "undead",
+        "type_ru": "Нежить",
+        "subtype": "Волшебник",
+        "alignment": "именной нип",
+        "ac": 20,
+        "hp_average": 315,
+        "hp_formula": "42к8+126",
+        "speed": {
+          "walk": 30
+        },
+        "cr": "21",
+        "xp": 33000,
+        "proficiency_bonus": 7,
+        "initiative": {
+          "mod": 17,
+          "score": 27
+        },
+        "abilities": {
+          "str": 11,
+          "dex": 16,
+          "con": 16,
+          "int": 21,
+          "wis": 14,
+          "cha": 16
+        },
+        "ability_mods": {
+          "str": 0,
+          "dex": 3,
+          "con": 3,
+          "int": 5,
+          "wis": 2,
+          "cha": 3
+        },
+        "ability_saves": {
+          "str": 0,
+          "dex": 10,
+          "con": 10,
+          "int": 12,
+          "wis": 9,
+          "cha": 3
+        },
+        "skills": {
+          "Внимательность": 9,
+          "История": 12,
+          "Проницательность": 9,
+          "Магия": 19
+        },
+        "senses": {
+          "passive_perception": 19
+        },
+        "languages": [
+          "Все"
+        ],
+        "source_book": "FRAiF",
+        "srd_section": "monsters",
+        "summary_ru": "средняя нежить, ПО 21; КД 20, хиты 315 (42к8+126); инициатива +17 (ср. 27), БМ +7; есть заклинания.",
+        "name_ru_pending": false,
+        "gear_refs": [],
+        "spell_refs": [
+          "mage-hand",
+          "lightning-bolt",
+          "invisibility",
+          "detect-magic",
+          "detect-thoughts",
+          "fly",
+          "dispel-magic",
+          "prestidigitation",
+          "plane-shift",
+          "animate-dead",
+          "cone-of-cold",
+          "scrying",
+          "finger-of-death",
+          "power-word-kill"
+        ],
+        "traits": [
+          {
+            "name_ru": "Легендарное сопротивление (4/день, или 5/день в логове)",
+            "text_ru": "Если Валиндра проваливает спасбросок, она вместо этого может в нём преуспеть.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Камень души",
+            "text_ru": "Спустя 1к10 дней после уничтожения Валиндра заново возрождается со всеми Хитами, если её камень души цел. Её новое тело появляется в незаня…",
+            "name_ru_pending": false
+          }
+        ],
+        "actions": [
+          {
+            "name_ru": "Мультиатака",
+            "text_ru": "Валиндра совершает три атаки Потусторонней вспышкой или Парализующим касанием в любой комбинации. Она может заменить две атаки одним исполь…",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Потусторонняя вспышка",
+            "text_ru": "Бросок рукопашной или дальнобойной атаки: +12, досягаемость 5 фт. или дистанция 120 фт. Попадание: 31 (4к12 + 5) Силового урона.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Парализующее касание",
+            "text_ru": "Бросок рукопашной атаки: +12, досягаемость 5 фт. Попадание: 14 (2к8 + 5) урона Холодом, и цель Парализована до начала следующего хода Валин…",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Хватка смерти (Перезарядка 5–6)",
+            "text_ru": "Спасбросок Ловкости: Сл 20, каждое существо в 30-футовой Эманации, исходящей от Валиндры. Первый провал: 39 (6к12) Силового урона, и цель О…",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Сотворение заклинаний",
+            "text_ru": "Валиндра Теневая Мантия сотворяет одно из следующих заклинаний (заклинательная характеристика — Интеллект, Сл спасброска заклинаний 20): Не…",
+            "name_ru_pending": false
+          }
+        ],
+        "bonus_actions": [
+          {
+            "name_ru": "Иллюзорная маскировка",
+            "text_ru": "Валиндра сотворяет Маскировку (заклинательная характеристика — та же, что для Сотворения заклинаний). Заклинание длится до тех пор, пока Хи…",
+            "name_ru_pending": false
+          }
+        ],
+        "reactions": [
+          {
+            "name_ru": "Защитная магия",
+            "text_ru": "Валиндра сотворяет Контрзаклинание или Щит в ответ на условие этого заклинания (заклинательная характеристика — та же, что для Сотворения з…",
+            "name_ru_pending": false
+          }
+        ],
+        "legendary_actions": [
+          {
+            "name_ru": "Разрушение жизни",
+            "text_ru": "Спасбросок Телосложения: Сл 20, каждое существо, кроме Нежити, в 20-футовой Эманации, исходящей от Валиндры. Провал: 21 (6к6) Некротическог…",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Потусторонний скачок",
+            "text_ru": "Валиндра совершает одну атаку Потусторонней вспышкой. До или после совершения этой атаки Валиндра может телепортироваться в видимое ей неза…",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Душераздирающий взгляд",
+            "text_ru": "Спасбросок Мудрости: Сл 20, одно видимое Валиндрой существо в 30 футах. Провал: 22 (4к10) Некротического урона, и цель Испугана до конца св…",
+            "name_ru_pending": false
+          }
+        ],
+        "damage_resistances": [
+          "холод",
+          "электрический"
+        ],
+        "legendary_actions_uses": 3,
+        "legendary_actions_uses_lair": 4,
+        "legendary_actions_note_ru": "3 за раунд (4 в логове)"
+      }
+    },
+    {
+      "kind": "bestiary",
+      "slug": "werewyvern",
+      "name_ru": "Вервиверна",
+      "name_en": "Werewyvern",
+      "source": "fraif",
+      "sort_order": 350,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/bestiary/29380-werewyvern",
+        "url_ttg": "https://new.ttg.club/bestiary/werewyvern-fraif",
+        "book": "FRAiF"
+      },
+      "data": {
+        "schema_version": 1,
+        "size": "medium",
+        "size_ru": "средний",
+        "type": "dragon",
+        "type_ru": "Дракон",
+        "subtype": "Ликантроп",
+        "alignment": "хаотично-злой",
+        "ac": 16,
+        "hp_average": 152,
+        "hp_formula": "16к8+80",
+        "speed": {
+          "walk": 30,
+          "fly": 40
+        },
+        "cr": "8",
+        "xp": 3900,
+        "proficiency_bonus": 3,
+        "initiative": {
+          "mod": 5,
+          "score": 15
+        },
+        "abilities": {
+          "str": 19,
+          "dex": 15,
+          "con": 20,
+          "int": 10,
+          "wis": 12,
+          "cha": 12
+        },
+        "ability_mods": {
+          "str": 4,
+          "dex": 2,
+          "con": 5,
+          "int": 0,
+          "wis": 1,
+          "cha": 1
+        },
+        "ability_saves": {
+          "str": 4,
+          "dex": 5,
+          "con": 5,
+          "int": 0,
+          "wis": 4,
+          "cha": 1
+        },
+        "skills": {
+          "Внимательность": 4,
+          "Скрытность": 5
+        },
+        "senses": {
+          "passive_perception": 14
+        },
+        "languages": [
+          "Общий",
+          "Драконий (не говорит в форме виверны)"
+        ],
+        "source_book": "FRAiF",
+        "srd_section": "monsters",
+        "summary_ru": "средний дракон, ПО 8; КД 16, хиты 152 (16к8+80); инициатива +5 (ср. 15), БМ +3.",
+        "name_ru_pending": false,
+        "gear_refs": [
+          "javelin",
+          "spear"
+        ],
+        "spell_refs": [],
+        "traits": [
+          {
+            "name_ru": "Облёт (только в форме виверны или в гибридной форме)",
+            "text_ru": "Вервиверна не Провоцирует атак, когда вылетает из зоны досягаемости врага.",
+            "name_ru_pending": false
+          }
+        ],
+        "actions": [
+          {
+            "name_ru": "Мультиатака",
+            "text_ru": "Вервиверна совершает три атаки Метательным копьём или Раздиранием в любой комбинации. Она может заменить одну из этих атак на атаку Жалом.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Метательное копьё (только в гуманоидной или гибридной форме)",
+            "text_ru": "Бросок рукопашной или дальнобойной атаки: +7, досягаемость 5 фт. или дистанция 30/120 фт. Попадание: 18 (4к6 + 4) Колющего урона.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Раздирание",
+            "text_ru": "Бросок рукопашной атаки: +7, досягаемость 5 фт. Попадание: 18 (4к6 + 4) Рубящего урона.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Жало (только в форме виверны или в гибридной форме)",
+            "text_ru": "Бросок рукопашной атаки: +7, досягаемость 5 фт. Попадание: 7 (1к6 + 4) Колющего урона плюс 16 (3к10) урона Ядом, и цель становится Отравлен…",
+            "name_ru_pending": false
+          }
+        ],
+        "bonus_actions": [
+          {
+            "name_ru": "Перевоплощение",
+            "text_ru": "Вервиверна либо перевоплощается в гибрид виверны и гуманоида Среднего размера или в виверну Большого размера, либо возвращается в истинную…",
+            "name_ru_pending": false
+          }
+        ]
+      }
+    },
+    {
+      "kind": "bestiary",
+      "slug": "young-deep-dragon",
+      "name_ru": "Молодой глубинный дракон",
+      "name_en": "Young Deep Dragon",
+      "source": "fraif",
+      "sort_order": 360,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/bestiary/29344-young-deep-dragon",
+        "url_ttg": "https://new.ttg.club/bestiary/young-deep-dragon-fraif",
+        "book": "FRAiF"
+      },
+      "data": {
+        "schema_version": 1,
+        "size": "large",
+        "size_ru": "большой",
+        "type": "dragon",
+        "type_ru": "Дракон",
+        "subtype": null,
+        "alignment": "нейтральный",
+        "ac": 16,
+        "hp_average": 93,
+        "hp_formula": "11к10+33",
+        "speed": {
+          "walk": 40,
+          "fly": 80,
+          "swim": 40,
+          "burrow": 20
+        },
+        "cr": "5",
+        "xp": 1800,
+        "proficiency_bonus": 3,
+        "initiative": {
+          "mod": 4,
+          "score": 14
+        },
+        "abilities": {
+          "str": 18,
+          "dex": 13,
+          "con": 16,
+          "int": 12,
+          "wis": 14,
+          "cha": 16
+        },
+        "ability_mods": {
+          "str": 4,
+          "dex": 1,
+          "con": 3,
+          "int": 1,
+          "wis": 2,
+          "cha": 3
+        },
+        "ability_saves": {
+          "str": 4,
+          "dex": 4,
+          "con": 3,
+          "int": 1,
+          "wis": 5,
+          "cha": 3
+        },
+        "skills": {
+          "Внимательность": 8,
+          "Скрытность": 7
+        },
+        "senses": {
+          "passive_perception": 18
+        },
+        "languages": [
+          "Общий",
+          "Драконий",
+          "Подземный"
+        ],
+        "source_book": "FRAiF",
+        "srd_section": "monsters",
+        "summary_ru": "большой дракон, ПО 5; КД 16, хиты 93 (11к10+33); инициатива +4 (ср. 14), БМ +3.",
+        "name_ru_pending": false,
+        "gear_refs": [],
+        "spell_refs": [],
+        "actions": [
+          {
+            "name_ru": "Мультиатака",
+            "text_ru": "Дракон совершает три атаки Раздиранием.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Раздирание",
+            "text_ru": "Бросок рукопашной атаки: +7, досягаемость 10 фт. Попадание: 11 (2к6 + 4) Рубящего урона плюс 3 (1к6) урона Ядом.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Кошмарное дыхание (Перезарядка 5–6)",
+            "text_ru": "Спасбросок Мудрости: Сл 14, каждое существо в 30-футовом Конусе. Провал: 22 (4к10) Психического урона, и цель Испугана до конца следующего…",
+            "name_ru_pending": false
+          }
+        ],
+        "damage_resistances": [
+          "психический",
+          "ядовитый"
+        ]
+      }
+    },
+    {
+      "kind": "bestiary",
+      "slug": "young-spirit-dragon",
+      "name_ru": "Молодой духовный дракон",
+      "name_en": "Young Spirit Dragon",
+      "source": "fraif",
+      "sort_order": 370,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/bestiary/29374-young-spirit-dragon",
+        "url_ttg": "https://new.ttg.club/bestiary/young-spirit-dragon-fraif",
+        "book": "FRAiF"
+      },
+      "data": {
+        "schema_version": 1,
+        "size": "large",
+        "size_ru": "большой",
+        "type": "dragon",
+        "type_ru": "Дракон",
+        "subtype": null,
+        "alignment": "нейтральный",
+        "ac": 17,
+        "hp_average": 152,
+        "hp_formula": "16к10+64",
+        "speed": {
+          "walk": 40,
+          "fly": 80,
+          "burrow": 30
+        },
+        "cr": "8",
+        "xp": 3900,
+        "proficiency_bonus": 3,
+        "initiative": {
+          "mod": 4,
+          "score": 14
+        },
+        "abilities": {
+          "str": 19,
+          "dex": 13,
+          "con": 19,
+          "int": 17,
+          "wis": 14,
+          "cha": 16
+        },
+        "ability_mods": {
+          "str": 4,
+          "dex": 1,
+          "con": 4,
+          "int": 3,
+          "wis": 2,
+          "cha": 3
+        },
+        "ability_saves": {
+          "str": 4,
+          "dex": 4,
+          "con": 7,
+          "int": 3,
+          "wis": 2,
+          "cha": 3
+        },
+        "skills": {
+          "Внимательность": 5,
+          "Проницательность": 5,
+          "Скрытность": 4
+        },
+        "senses": {
+          "passive_perception": 15
+        },
+        "languages": [
+          "Общий",
+          "Драконий",
+          "Телепатия 120 фт."
+        ],
+        "source_book": "FRAiF",
+        "srd_section": "monsters",
+        "summary_ru": "большой дракон, ПО 8; КД 17, хиты 152 (16к10+64); инициатива +4 (ср. 14), БМ +3.",
+        "name_ru_pending": false,
+        "gear_refs": [],
+        "spell_refs": [],
+        "actions": [
+          {
+            "name_ru": "Мультиатака",
+            "text_ru": "Дракон совершает три атаки Раздиранием. Он может заменить одну атаку использованием Дыхания искажения времени.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Раздирание",
+            "text_ru": "Бросок рукопашной атаки: +7, досягаемость 10 фт. Попадание: 14 (3к6 + 4) Рубящего урона плюс 7 (2к6) Некротического урона.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Гибельное дыхание (Перезарядка 5–6)",
+            "text_ru": "Спасбросок Телосложения: Сл 15, каждое существо в 30-футовом Конусе. Провал: 36 (8к8) Некротического урона. Успех: Только половина урона.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Дыхание искажения времени",
+            "text_ru": "Спасбросок Мудрости: Сл 15, каждое ещё не подверженное этому эффекту существо в 30-футовом Конусе. Провал: Цель в свой ход может совершить…",
+            "name_ru_pending": false
+          }
+        ],
+        "damage_resistances": [
+          "некротический"
+        ]
+      }
+    },
+    {
+      "kind": "bestiary",
+      "slug": "zhentilar-paladin-of-bane",
+      "name_ru": "Жентиларский паладин Бейна",
+      "name_en": "Zhentilar Paladin of Bane",
+      "source": "fraif",
+      "sort_order": 380,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/bestiary/29382-zhentilar-paladin-of-bane",
+        "url_ttg": "https://new.ttg.club/bestiary/zhentilar-paladin-of-bane-fraif",
+        "book": "FRAiF"
+      },
+      "data": {
+        "schema_version": 1,
+        "size": "medium",
+        "size_ru": "средний",
+        "type": "humanoid",
+        "type_ru": "Гуманоид",
+        "subtype": null,
+        "alignment": "законно-злой",
+        "ac": 18,
+        "hp_average": 58,
+        "hp_formula": "9к8+18",
+        "speed": {
+          "walk": 30
+        },
+        "cr": "4",
+        "xp": 1100,
+        "proficiency_bonus": 2,
+        "initiative": {
+          "mod": 0,
+          "score": 10
+        },
+        "abilities": {
+          "str": 16,
+          "dex": 11,
+          "con": 14,
+          "int": 12,
+          "wis": 13,
+          "cha": 17
+        },
+        "ability_mods": {
+          "str": 3,
+          "dex": 0,
+          "con": 2,
+          "int": 1,
+          "wis": 1,
+          "cha": 3
+        },
+        "ability_saves": {
+          "str": 5,
+          "dex": 0,
+          "con": 2,
+          "int": 1,
+          "wis": 1,
+          "cha": 5
+        },
+        "skills": {
+          "Атлетика": 5,
+          "Запугивание": 5,
+          "Религия": 3
+        },
+        "senses": {
+          "passive_perception": 11
+        },
+        "languages": [
+          "Общий"
+        ],
+        "source_book": "FRAiF",
+        "srd_section": "monsters",
+        "summary_ru": "средний гуманоид, ПО 4; КД 18, хиты 58 (9к8+18); инициатива +0 (ср. 10), БМ +2; есть заклинания.",
+        "name_ru_pending": false,
+        "gear_refs": [],
+        "spell_refs": [
+          "command",
+          "fear"
+        ],
+        "traits": [
+          {
+            "name_ru": "Аура страха",
+            "text_ru": "Все Скорости существ снижаются вдвое, пока они находятся в 10-футовой Эманации, исходящей от жентилара. Жентилар может определить, на каких…",
+            "name_ru_pending": false
+          }
+        ],
+        "actions": [
+          {
+            "name_ru": "Мультиатака",
+            "text_ru": "Жентилар совершает три атаки Обрекающим клинком или Подавляющим лучом в любой комбинации. Он может заменить одну атаку на использование Сот…",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Обрекающий клинок",
+            "text_ru": "Бросок рукопашной атаки: +5, досягаемость 5 фт. Попадание: 7 (1к8 + 3) Дробящего урона плюс 7 (2к6) Некротического урона.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Подавляющий луч",
+            "text_ru": "Бросок дальнобойной атаки: +5, дистанция 90 фт. Попадание: 16 (3к10) Психического урона.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Сотворение заклинаний",
+            "text_ru": "Жентиларский паладин Бейна сотворяет одно из следующих заклинаний (заклинательная характеристика — Харизма, Сл спасброска заклинаний 13): 1…",
+            "name_ru_pending": false
+          }
+        ]
+      }
+    },
+    {
+      "kind": "bestiary",
+      "slug": "zhentilar-soldier",
+      "name_ru": "Жентиларский солдат",
+      "name_en": "Zhentilar Soldier",
+      "source": "fraif",
+      "sort_order": 390,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/bestiary/29381-zhentilar-soldier",
+        "url_ttg": "https://new.ttg.club/bestiary/zhentilar-soldier-fraif",
+        "book": "FRAiF"
+      },
+      "data": {
+        "schema_version": 1,
+        "size": "medium",
+        "size_ru": "средний",
+        "type": "humanoid",
+        "type_ru": "Гуманоид",
+        "subtype": null,
+        "alignment": "законно-злой",
+        "ac": 13,
+        "hp_average": 22,
+        "hp_formula": "4к8+4",
+        "speed": {
+          "walk": 30
+        },
+        "cr": "1",
+        "xp": 200,
+        "proficiency_bonus": 2,
+        "initiative": {
+          "mod": 2,
+          "score": 12
+        },
+        "abilities": {
+          "str": 14,
+          "dex": 14,
+          "con": 13,
+          "int": 10,
+          "wis": 11,
+          "cha": 11
+        },
+        "ability_mods": {
+          "str": 2,
+          "dex": 2,
+          "con": 1,
+          "int": 0,
+          "wis": 0,
+          "cha": 0
+        },
+        "ability_saves": {
+          "str": 2,
+          "dex": 4,
+          "con": 3,
+          "int": 0,
+          "wis": 0,
+          "cha": 0
+        },
+        "skills": {
+          "Акробатика": 4,
+          "Атлетика": 4
+        },
+        "senses": {
+          "passive_perception": 10
+        },
+        "languages": [
+          "Общий"
+        ],
+        "source_book": "FRAiF",
+        "srd_section": "monsters",
+        "summary_ru": "средний гуманоид, ПО 1; КД 13, хиты 22 (4к8+4); инициатива +2 (ср. 12), БМ +2.",
+        "name_ru_pending": false,
+        "gear_refs": [
+          "shortsword"
+        ],
+        "spell_refs": [],
+        "actions": [
+          {
+            "name_ru": "Мультиатака",
+            "text_ru": "Жентилар совершает две атаки Коротким мечом или Пистолем в любой комбинации. Он может заменить одну атаку использованием Опрокидывания.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Короткий меч",
+            "text_ru": "Бросок рукопашной атаки: +4, досягаемость 5 фт. Попадание: 5 (1к6 + 2) Колющего урона плюс 2 (1к4) урона Ядом.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Пистоль",
+            "text_ru": "Бросок дальнобойной атаки: +4, дистанция 80/320 фт. Попадание: 7 (1к10 + 2) Колющего урона.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Опрокидывание",
+            "text_ru": "Спасбросок Силы: Сл 12, одно видимое жентиларом существо в 5 футах. Провал: 4 (1к4 + 2) Дробящего урона. Если цель — существо Среднего разм…",
+            "name_ru_pending": false
+          }
+        ]
+      }
+    },
+    {
+      "kind": "bestiary",
+      "slug": "zlan",
+      "name_ru": "Злан",
+      "name_en": "Zlan",
+      "source": "fraif",
+      "sort_order": 400,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/bestiary/29383-zlan",
+        "url_ttg": "https://new.ttg.club/bestiary/zlan-fraif",
+        "book": "FRAiF"
+      },
+      "data": {
+        "schema_version": 1,
+        "size": "huge",
+        "size_ru": "огромный",
+        "type": "undead",
+        "type_ru": "Нежить",
+        "subtype": "Волшебник",
+        "alignment": "именной нип",
+        "ac": 18,
+        "hp_average": 199,
+        "hp_formula": "19к12+76",
+        "speed": {
+          "walk": 30
+        },
+        "cr": "18",
+        "xp": 20000,
+        "proficiency_bonus": 6,
+        "initiative": {
+          "mod": 7,
+          "score": 17
+        },
+        "abilities": {
+          "str": 20,
+          "dex": 12,
+          "con": 19,
+          "int": 21,
+          "wis": 18,
+          "cha": 14
+        },
+        "ability_mods": {
+          "str": 5,
+          "dex": 1,
+          "con": 4,
+          "int": 5,
+          "wis": 4,
+          "cha": 2
+        },
+        "ability_saves": {
+          "str": 5,
+          "dex": 7,
+          "con": 10,
+          "int": 11,
+          "wis": 10,
+          "cha": 2
+        },
+        "skills": {
+          "Внимательность": 10,
+          "История": 11,
+          "Магия": 17
+        },
+        "senses": {
+          "passive_perception": 20
+        },
+        "languages": [
+          "Все"
+        ],
+        "source_book": "FRAiF",
+        "srd_section": "monsters",
+        "summary_ru": "огромная нежить, ПО 18; КД 18, хиты 199 (19к12+76); инициатива +7 (ср. 17), БМ +6; есть заклинания.",
+        "name_ru_pending": false,
+        "gear_refs": [],
+        "spell_refs": [
+          "mage-hand",
+          "detect-magic",
+          "detect-thoughts",
+          "dispel-magic",
+          "message",
+          "scrying",
+          "dimension-door",
+          "fly",
+          "disintegrate",
+          "befuddlement"
+        ],
+        "traits": [
+          {
+            "name_ru": "Чардалиновое чутьё",
+            "text_ru": "Злан чувствует эмоции любого в 100 милях от себя, кто касается частицы чардалина.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Легендарное сопротивление (3/день)",
+            "text_ru": "Если Злан проваливает спасбросок, он вместо этого может в нём преуспеть.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Сопротивление магии",
+            "text_ru": "Злан совершает с Преимуществом спасброски от заклинаний и прочих магических эффектов.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Следующий из Семи (6/год)",
+            "text_ru": "Когда Злан умирает в пределах 100 миль от куска чардалина хотя бы 4 дюйма (~10 см) длиной, он перерождается из этого куска чардалина спустя…",
+            "name_ru_pending": false
+          }
+        ],
+        "actions": [
+          {
+            "name_ru": "Мультиатака",
+            "text_ru": "Злан совершает три атаки Размашистым ударом или Обескураживающим разрядом в любой комбинации. Он может заменить две атаки одним использован…",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Размашистый удар",
+            "text_ru": "Бросок рукопашной атаки: +11, досягаемость 10 фт. Попадание: 12 (3к4 + 5) Дробящего урона плюс 22 (4к10) Некротического урона.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Обескураживающий разряд",
+            "text_ru": "Бросок дальнобойной атаки: +11, дистанция 120 фт. Попадание: 27 (4к10 + 5) Психического урона, и цель Очарована до конца своего следующего…",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Сотворение заклинаний",
+            "text_ru": "Злан сотворяет одно из следующих заклинаний, не нуждаясь в Материальных компонентах (заклинательная характеристика — Интеллект, Сл спасброс…",
+            "name_ru_pending": false
+          }
+        ],
+        "reactions": [
+          {
+            "name_ru": "Контрзаклинание",
+            "text_ru": "Злан сотворяет Контрзаклинание в ответ на условие этого заклинания (заклинательная характеристика — та же, что для Сотворения заклинаний).",
+            "name_ru_pending": false
+          }
+        ],
+        "legendary_actions": [
+          {
+            "name_ru": "Возмездие",
+            "text_ru": "Злан совершает одну атаку Размашистым ударом или Обескураживающим разрядом.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Разжигание паранойи",
+            "text_ru": "Спасбросок Мудрости: Сл 19, одно видимое Зланом существо в 30 футах (с Помехой, если цель несёт или носит чардалин). Провал: 27 (6к8) Психи…",
+            "name_ru_pending": false
+          }
+        ],
+        "damage_resistances": [
+          "некротический",
+          "электрический"
+        ],
+        "legendary_actions_uses": 3,
+        "legendary_actions_note_ru": "3 за раунд"
+      }
+    }
+  ],
+  "skipped": []
+}

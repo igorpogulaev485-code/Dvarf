@@ -1,0 +1,448 @@
+{
+  "meta": {
+    "pack": "P24-C18",
+    "rules_edition": "2024",
+    "source": "abh",
+    "notes_ru": "16 черт ABH. Короткие карточки next.dnd.su.",
+    "feat_count": 16
+  },
+  "entries": [
+    {
+      "kind": "feat",
+      "slug": "boon-of-blazing-dawn",
+      "name_ru": "Дар опаляющего рассвета",
+      "name_en": "Boon of Blazing Dawn",
+      "source": "abh",
+      "sort_order": 600,
+      "external_ref": {
+        "book": "ABH",
+        "url_dndsu": "https://next.dnd.su/feats/434-boon-of-blazing-dawn",
+        "url_ttg": "https://new.ttg.club/feats/boon-of-blazing-dawn-abh"
+      },
+      "data": {
+        "category": "epic_boon",
+        "prerequisites": {
+          "level": 19
+        },
+        "repeatable": false,
+        "ability_score_increase": {
+          "amount": 1,
+          "from": "any",
+          "cap": 30
+        },
+        "summary_ru": "Повышение характеристики: Увеличьте значение одной из ваших характеристик на 1, но не выше 30.; Возлюбленный солнца; Вы обладаете Иммунитет…",
+        "traits_text": "Эпический дар (ABH), 19 уровень: Повышение характеристики: Увеличьте значение одной из ваших характеристик на 1, но не выше 30.;…",
+        "prerequisites_ru": "19 уровень"
+      }
+    },
+    {
+      "kind": "feat",
+      "slug": "boon-of-looming-shadows",
+      "name_ru": "Дар движущихся теней",
+      "name_en": "Boon of Looming Shadows",
+      "source": "abh",
+      "sort_order": 605,
+      "external_ref": {
+        "book": "ABH",
+        "url_dndsu": "https://next.dnd.su/feats/435-boon-of-looming-shadows",
+        "url_ttg": "https://new.ttg.club/feats/boon-of-looming-shadows-abh"
+      },
+      "data": {
+        "category": "epic_boon",
+        "prerequisites": {
+          "level": 19
+        },
+        "repeatable": false,
+        "ability_score_increase": {
+          "amount": 1,
+          "from": "any",
+          "cap": 30
+        },
+        "summary_ru": "Повышение характеристики: Увеличьте значение одной из ваших характеристик на 1, но не выше 30.; Тянущиеся тени: Когда вы совершаете действи…",
+        "traits_text": "Эпический дар (ABH), 19 уровень: Повышение характеристики: Увеличьте значение одной из ваших характеристик на 1, но не выше 30.;…",
+        "prerequisites_ru": "19 уровень"
+      }
+    },
+    {
+      "kind": "feat",
+      "slug": "boon-of-misty-escape",
+      "name_ru": "Дар туманного побега",
+      "name_en": "Boon of Misty Escape",
+      "source": "abh",
+      "sort_order": 610,
+      "external_ref": {
+        "book": "ABH",
+        "url_dndsu": "https://next.dnd.su/feats/436-boon-of-misty-escape",
+        "url_ttg": "https://new.ttg.club/feats/boon-of-misty-escape-abh"
+      },
+      "data": {
+        "category": "epic_boon",
+        "prerequisites": {
+          "level": 19
+        },
+        "repeatable": false,
+        "ability_score_increase": {
+          "amount": 1,
+          "from": [
+            "int",
+            "wis",
+            "cha"
+          ],
+          "cap": 30
+        },
+        "summary_ru": "Повышение характеристики: Увеличьте значение вашего Интеллекта, Мудрости или Харизмы на 1, но не выше 30.; Газообразная форма: Когда ваши Х…",
+        "traits_text": "Эпический дар (ABH), 19 уровень: Повышение характеристики: Увеличьте значение вашего Интеллекта, Мудрости или Харизмы на 1, но не…",
+        "prerequisites_ru": "19 уровень"
+      }
+    },
+    {
+      "kind": "feat",
+      "slug": "bloodlust",
+      "name_ru": "Жажда крови",
+      "name_en": "Bloodlust",
+      "source": "abh",
+      "sort_order": 215,
+      "external_ref": {
+        "book": "ABH",
+        "url_dndsu": "https://next.dnd.su/feats/424-bloodlust",
+        "url_ttg": "https://new.ttg.club/feats/bloodlust-abh"
+      },
+      "data": {
+        "category": "general",
+        "prerequisites": {
+          "level": 4
+        },
+        "repeatable": false,
+        "ability_score_increase": {
+          "amount": 1,
+          "from": [
+            "str",
+            "dex",
+            "con"
+          ],
+          "cap": 20
+        },
+        "summary_ru": "Повышение характеристики: Увеличьте значение вашей Силы, Ловкости или Телосложения на 1, но не выше 20.; Мощное восстановление: Когда вы бр…",
+        "traits_text": "Универсальная черта (ABH), 4 уровень: Повышение характеристики: Увеличьте значение вашей Силы, Ловкости или Телосложения на 1, но…",
+        "prerequisites_ru": "4 уровень"
+      }
+    },
+    {
+      "kind": "feat",
+      "slug": "bomber",
+      "name_ru": "Бомбометатель",
+      "name_en": "Bomber",
+      "source": "abh",
+      "sort_order": 220,
+      "external_ref": {
+        "book": "ABH",
+        "url_dndsu": "https://next.dnd.su/feats/425-bomber",
+        "url_ttg": "https://new.ttg.club/feats/bomber-abh"
+      },
+      "data": {
+        "category": "general",
+        "prerequisites": {
+          "level": 4
+        },
+        "repeatable": false,
+        "ability_score_increase": {
+          "amount": 1,
+          "from": [
+            "dex"
+          ],
+          "cap": 20
+        },
+        "summary_ru": "Повышение характеристики: Увеличьте значение вашей Ловкости на 1, но не выше 20.; Опытный метатель: Когда вы метаете фиал или флягу в рамка…",
+        "traits_text": "Универсальная черта (ABH), 4 уровень: Повышение характеристики: Увеличьте значение вашей Ловкости на 1, но не выше 20.; Опытный м…",
+        "prerequisites_ru": "4 уровень"
+      }
+    },
+    {
+      "kind": "feat",
+      "slug": "cloying-mists",
+      "name_ru": "Ползучий туман",
+      "name_en": "Cloying Mists",
+      "source": "abh",
+      "sort_order": 225,
+      "external_ref": {
+        "book": "ABH",
+        "url_dndsu": "https://next.dnd.su/feats/426-cloying-mists",
+        "url_ttg": "https://new.ttg.club/feats/cloying-mists-abh"
+      },
+      "data": {
+        "category": "general",
+        "prerequisites": {
+          "level": 4
+        },
+        "repeatable": false,
+        "ability_score_increase": {
+          "amount": 1,
+          "from": [
+            "int",
+            "wis",
+            "cha"
+          ],
+          "cap": 20
+        },
+        "summary_ru": "Повышение характеристики: Увеличьте значение вашего Интеллекта, Мудрости или Харизмы на 1, но не выше 20.; Клубись, туман!: У вас всегда по…",
+        "traits_text": "Универсальная черта (ABH), 4 уровень: Повышение характеристики: Увеличьте значение вашего Интеллекта, Мудрости или Харизмы на 1,…",
+        "prerequisites_ru": "4 уровень"
+      }
+    },
+    {
+      "kind": "feat",
+      "slug": "delicious-pain",
+      "name_ru": "Сладкая боль",
+      "name_en": "Delicious Pain",
+      "source": "abh",
+      "sort_order": 230,
+      "external_ref": {
+        "book": "ABH",
+        "url_dndsu": "https://next.dnd.su/feats/427-delicious-pain",
+        "url_ttg": "https://new.ttg.club/feats/delicious-pain-abh"
+      },
+      "data": {
+        "category": "general",
+        "prerequisites": {
+          "level": 4
+        },
+        "repeatable": false,
+        "ability_score_increase": null,
+        "summary_ru": "Повышение характеристики: Увеличьте значение одной из ваших характеристик на 1, но не выше 20.; Закалённая плоть: Немедленно после получени…",
+        "traits_text": "Универсальная черта (ABH), 4 уровень: Повышение характеристики: Увеличьте значение одной из ваших характеристик на 1, но не выше…",
+        "prerequisites_ru": "4 уровень"
+      }
+    },
+    {
+      "kind": "feat",
+      "slug": "light-bringer",
+      "name_ru": "Несущий свет",
+      "name_en": "Light Bringer",
+      "source": "abh",
+      "sort_order": 235,
+      "external_ref": {
+        "book": "ABH",
+        "url_dndsu": "https://next.dnd.su/feats/428-light-bringer",
+        "url_ttg": "https://new.ttg.club/feats/light-bringer-abh"
+      },
+      "data": {
+        "category": "general",
+        "prerequisites": {
+          "level": 4
+        },
+        "repeatable": false,
+        "ability_score_increase": {
+          "amount": 1,
+          "from": [
+            "int",
+            "wis",
+            "cha"
+          ],
+          "cap": 20
+        },
+        "summary_ru": "Повышение характеристики: Увеличьте значение вашего Интеллекта, Мудрости или Харизмы на 1, но не выше 20.; Священная магия: Вы узнаёте закл…",
+        "traits_text": "Универсальная черта (ABH), 4 уровень: Повышение характеристики: Увеличьте значение вашего Интеллекта, Мудрости или Харизмы на 1,…",
+        "prerequisites_ru": "4 уровень"
+      }
+    },
+    {
+      "kind": "feat",
+      "slug": "love-bites",
+      "name_ru": "Укус любви",
+      "name_en": "Love Bites",
+      "source": "abh",
+      "sort_order": 240,
+      "external_ref": {
+        "book": "ABH",
+        "url_dndsu": "https://next.dnd.su/feats/429-love-bites",
+        "url_ttg": "https://new.ttg.club/feats/love-bites-abh"
+      },
+      "data": {
+        "category": "general",
+        "prerequisites": {
+          "level": 4
+        },
+        "repeatable": false,
+        "ability_score_increase": null,
+        "summary_ru": "Повышение характеристики: Увеличьте значение одной из ваших характеристик на 1, но не выше 20.; Сладостная боль: Немедленно после того, как…",
+        "traits_text": "Универсальная черта (ABH), 4 уровень: Повышение характеристики: Увеличьте значение одной из ваших характеристик на 1, но не выше…",
+        "prerequisites_ru": "4 уровень"
+      }
+    },
+    {
+      "kind": "feat",
+      "slug": "putrefy",
+      "name_ru": "Гниение",
+      "name_en": "Putrefy",
+      "source": "abh",
+      "sort_order": 245,
+      "external_ref": {
+        "book": "ABH",
+        "url_dndsu": "https://next.dnd.su/feats/430-putrefy",
+        "url_ttg": "https://new.ttg.club/feats/putrefy-abh"
+      },
+      "data": {
+        "category": "general",
+        "prerequisites": {
+          "level": 4
+        },
+        "repeatable": false,
+        "ability_score_increase": null,
+        "summary_ru": "Повышение характеристики: Увеличьте значение одной из ваших характеристик на 1, но не выше 20.; Некроз: Когда вы совершаете бросок урона, в…",
+        "traits_text": "Универсальная черта (ABH), 4 уровень: Повышение характеристики: Увеличьте значение одной из ваших характеристик на 1, но не выше…",
+        "prerequisites_ru": "4 уровень"
+      }
+    },
+    {
+      "kind": "feat",
+      "slug": "rebuke",
+      "name_ru": "Осуждение",
+      "name_en": "Rebuke",
+      "source": "abh",
+      "sort_order": 250,
+      "external_ref": {
+        "book": "ABH",
+        "url_dndsu": "https://next.dnd.su/feats/431-rebuke",
+        "url_ttg": "https://new.ttg.club/feats/rebuke-abh"
+      },
+      "data": {
+        "category": "general",
+        "prerequisites": {
+          "level": 4
+        },
+        "repeatable": false,
+        "ability_score_increase": null,
+        "summary_ru": "Повышение характеристики: Увеличьте значение одной из ваших характеристик на 1, но не выше 20.; Сияющий удар: Когда вы совершаете бросок ур…",
+        "traits_text": "Универсальная черта (ABH), 4 уровень: Повышение характеристики: Увеличьте значение одной из ваших характеристик на 1, но не выше…",
+        "prerequisites_ru": "4 уровень"
+      }
+    },
+    {
+      "kind": "feat",
+      "slug": "treacherous-allure",
+      "name_ru": "Обманчивая привлекательность",
+      "name_en": "Treacherous Allure",
+      "source": "abh",
+      "sort_order": 255,
+      "external_ref": {
+        "book": "ABH",
+        "url_dndsu": "https://next.dnd.su/feats/432-treacherous-allure",
+        "url_ttg": "https://new.ttg.club/feats/treacherous-allure-abh"
+      },
+      "data": {
+        "category": "general",
+        "prerequisites": {
+          "level": 4
+        },
+        "repeatable": false,
+        "ability_score_increase": {
+          "amount": 1,
+          "from": [
+            "int",
+            "wis",
+            "cha"
+          ],
+          "cap": 20
+        },
+        "summary_ru": "Повышение характеристики: Увеличьте значение вашего Интеллекта, Мудрости или Харизмы на 1, но не выше 20.; Чарующее присутствие: У вас всег…",
+        "traits_text": "Универсальная черта (ABH), 4 уровень: Повышение характеристики: Увеличьте значение вашего Интеллекта, Мудрости или Харизмы на 1,…",
+        "prerequisites_ru": "4 уровень"
+      }
+    },
+    {
+      "kind": "feat",
+      "slug": "vampire-touched",
+      "name_ru": "Затронутый вампиром",
+      "name_en": "Vampire Touched",
+      "source": "abh",
+      "sort_order": 260,
+      "external_ref": {
+        "book": "ABH",
+        "url_dndsu": "https://next.dnd.su/feats/433-vampire-touched",
+        "url_ttg": "https://new.ttg.club/feats/vampire-touched-abh"
+      },
+      "data": {
+        "category": "general",
+        "prerequisites": {
+          "level": 4
+        },
+        "repeatable": false,
+        "ability_score_increase": {
+          "amount": 1,
+          "from": [
+            "int",
+            "wis",
+            "cha"
+          ],
+          "cap": 20
+        },
+        "summary_ru": "Повышение характеристики: Увеличьте значение вашего Интеллекта, Мудрости или Харизмы на 1, но не выше 20.; Магия вампиров: Выберите одно за…",
+        "traits_text": "Универсальная черта (ABH), 4 уровень: Повышение характеристики: Увеличьте значение вашего Интеллекта, Мудрости или Харизмы на 1,…",
+        "prerequisites_ru": "4 уровень"
+      }
+    },
+    {
+      "kind": "feat",
+      "slug": "tireless-reveler",
+      "name_ru": "Неустанный гуляка",
+      "name_en": "Tireless Reveler",
+      "source": "abh",
+      "sort_order": 115,
+      "external_ref": {
+        "book": "ABH",
+        "url_dndsu": "https://next.dnd.su/feats/421-tireless-reveler",
+        "url_ttg": "https://new.ttg.club/feats/tireless-reveler-abh"
+      },
+      "data": {
+        "category": "origin",
+        "prerequisites": {},
+        "repeatable": false,
+        "ability_score_increase": null,
+        "summary_ru": "Неустанный гуляка: Когда видимый вами в пределах 60 футов от вас союзник тратит Героическое вдохновение, вы можете получить Героическое вдо…",
+        "traits_text": "Черта происхождения (ABH): Неустанный гуляка: Когда видимый вами в пределах 60 футов от вас союзник тратит Героическое вдохновени…"
+      }
+    },
+    {
+      "kind": "feat",
+      "slug": "vampire-hunter",
+      "name_ru": "Охотник на вампиров",
+      "name_en": "Vampire Hunter",
+      "source": "abh",
+      "sort_order": 120,
+      "external_ref": {
+        "book": "ABH",
+        "url_dndsu": "https://next.dnd.su/feats/422-vampire-hunter",
+        "url_ttg": "https://new.ttg.club/feats/vampire-hunter-abh"
+      },
+      "data": {
+        "category": "origin",
+        "prerequisites": {},
+        "repeatable": false,
+        "ability_score_increase": null,
+        "summary_ru": "Ловкий побег: Вы совершаете с Преимуществом проверки, направленные на избежание немагических ограничителей и состояния Схваченный.; Оберег…",
+        "traits_text": "Черта происхождения (ABH): Ловкий побег: Вы совершаете с Преимуществом проверки, направленные на избежание немагических ограничит…"
+      }
+    },
+    {
+      "kind": "feat",
+      "slug": "vampires-plaything",
+      "name_ru": "Игрушка вампира",
+      "name_en": "Vampire’s Plaything",
+      "source": "abh",
+      "sort_order": 125,
+      "external_ref": {
+        "book": "ABH",
+        "url_dndsu": "https://next.dnd.su/feats/423-vampires-plaything",
+        "url_ttg": "https://new.ttg.club/feats/vampire-s-plaything-abh"
+      },
+      "data": {
+        "category": "origin",
+        "prerequisites": {},
+        "repeatable": false,
+        "ability_score_increase": null,
+        "summary_ru": "Переливание: Когда вы завершаете Долгий отдых, вы можете создать одну порцию Зелья лечения или Противоядия, если у вас есть пустой флакон и…",
+        "traits_text": "Черта происхождения (ABH): Переливание: Когда вы завершаете Долгий отдых, вы можете создать одну порцию Зелья лечения или Противо…"
+      }
+    }
+  ]
+}

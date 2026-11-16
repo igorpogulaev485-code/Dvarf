@@ -1,0 +1,53 @@
+{
+  "meta": {
+    "pack": "P24-C18",
+    "rules_edition": "2024",
+    "source": "lfl",
+    "notes_ru": "2 черт LFL. Короткие карточки next.dnd.su.",
+    "feat_count": 2
+  },
+  "entries": [
+    {
+      "kind": "feat",
+      "slug": "child-of-the-sun",
+      "name_ru": "Дитя солнца",
+      "name_en": "Child of the Sun",
+      "source": "lfl",
+      "sort_order": 50,
+      "external_ref": {
+        "book": "LFL",
+        "url_dndsu": "https://next.dnd.su/feats/438-child-of-the-sun",
+        "url_ttg": "https://new.ttg.club/feats/child-of-the-sun-lfl"
+      },
+      "data": {
+        "category": "origin",
+        "prerequisites": {},
+        "repeatable": false,
+        "ability_score_increase": null,
+        "summary_ru": "Глаза Эйрду: Вы и ваши союзники в пределах 10 футов от вас совершаете с Преимуществом спасброски на избежание или окончание состояния Ослеп…",
+        "traits_text": "Черта происхождения (LFL): Глаза Эйрду: Вы и ваши союзники в пределах 10 футов от вас совершаете с Преимуществом спасброски на из…"
+      }
+    },
+    {
+      "kind": "feat",
+      "slug": "shadowmoor-hexer",
+      "name_ru": "Проклинатель Шэдоумура",
+      "name_en": "Shadowmoor Hexer",
+      "source": "lfl",
+      "sort_order": 55,
+      "external_ref": {
+        "book": "LFL",
+        "url_dndsu": "https://next.dnd.su/feats/437-shadowmoor-hexer",
+        "url_ttg": "https://new.ttg.club/feats/shadowmoor-hexer-lfl"
+      },
+      "data": {
+        "category": "origin",
+        "prerequisites": {},
+        "repeatable": false,
+        "ability_score_increase": null,
+        "summary_ru": "Сглаз: У вас всегда подготовлено заклинание Сглаз.; Магия проклятия: Когда существо, которое вы прокляли Сглазом, попадает по вам броском а…",
+        "traits_text": "Черта происхождения (LFL): Сглаз: У вас всегда подготовлено заклинание Сглаз.; Магия проклятия: Когда существо, которое вы прокля…"
+      }
+    }
+  ]
+}

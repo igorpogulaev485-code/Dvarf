@@ -1,0 +1,241 @@
+{
+  "meta": {
+    "pack": "P24-C18",
+    "rules_edition": "2024",
+    "source": "lfl",
+    "notes_ru": "7 видов LFL. elf__lfl с ttg; остальные — next.dnd.su."
+  },
+  "entries": [
+    {
+      "kind": "race",
+      "slug": "boggart",
+      "name_ru": "Боггарт",
+      "name_en": "Boggart",
+      "source": "lfl",
+      "sort_order": 10,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/species/boggart",
+        "url_ttg": "https://new.ttg.club/species/boggart-lfl",
+        "book": "LFL"
+      },
+      "data": {
+        "creature_type": "humanoid",
+        "size": "small",
+        "size_options": [
+          "small"
+        ],
+        "speed": 30,
+        "darkvision": 4,
+        "ability_bonuses": {},
+        "languages": [],
+        "languages_choose": 0,
+        "traits": [
+          "creatute-type",
+          "darkvision",
+          "fey-ancestry",
+          "fury-of-the-small",
+          "nimble-escape"
+        ],
+        "traits_text": "Боггарт (LFL): humanoid, small, 30 фт. Тип существа: Помимо того, что вы Гуманоид, вы также считаетесь гоблиноидом для условий и эффектов,…"
+      }
+    },
+    {
+      "kind": "race",
+      "slug": "elf__lfl",
+      "name_ru": "Эльф",
+      "name_en": "Elf",
+      "source": "lfl",
+      "sort_order": 20,
+      "external_ref": {
+        "url_dndsu": null,
+        "url_ttg": "https://new.ttg.club/species/elf-lfl",
+        "book": "LFL"
+      },
+      "data": {
+        "creature_type": "humanoid",
+        "size": "medium",
+        "size_options": [
+          "medium"
+        ],
+        "speed": 30,
+        "darkvision": 60,
+        "ability_bonuses": {},
+        "languages": [],
+        "languages_choose": 0,
+        "traits": [
+          "trait",
+          "trait",
+          "trait",
+          "trait",
+          "trait"
+        ],
+        "traits_text": "Эльф (LFL): humanoid, medium, 30 фт. Тёмное зрение: Вы обладаете с дистанцией 60 фт. Эльфийское происхождение: Вы принадлежите к родословно…"
+      }
+    },
+    {
+      "kind": "race",
+      "slug": "faerie",
+      "name_ru": "Феери",
+      "name_en": "Faerie",
+      "source": "lfl",
+      "sort_order": 30,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/species/faerie",
+        "url_ttg": "https://new.ttg.club/species/faerie-lfl",
+        "book": "LFL"
+      },
+      "data": {
+        "creature_type": "fey",
+        "size": "small",
+        "size_options": [
+          "small"
+        ],
+        "speed": 30,
+        "darkvision": null,
+        "ability_bonuses": {},
+        "languages": [],
+        "languages_choose": 0,
+        "traits": [
+          "fey-magic",
+          "flight"
+        ],
+        "traits_text": "Феери (LFL): fey, small, 30 фт. Магия фей: Вы знаете заговор Искусство друидов. Когда вы достигаете 3-го уровня персонажа, вы изучаете закл…"
+      }
+    },
+    {
+      "kind": "race",
+      "slug": "flamekin",
+      "name_ru": "Огневик",
+      "name_en": "Flamekin",
+      "source": "lfl",
+      "sort_order": 40,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/species/flamekin",
+        "url_ttg": "https://new.ttg.club/species/flamekin-lfl",
+        "book": "LFL"
+      },
+      "data": {
+        "creature_type": "humanoid",
+        "size": "medium",
+        "size_options": [
+          "small",
+          "medium"
+        ],
+        "speed": 30,
+        "darkvision": 30,
+        "ability_bonuses": {},
+        "languages": [],
+        "languages_choose": 0,
+        "traits": [
+          "darkvision",
+          "fire-resistance",
+          "reach-to-the-blaze"
+        ],
+        "traits_text": "Огневик (LFL): humanoid, small/medium, 30 фт. Тёмное зрение: Вы обладаете Тёмным зрением дальностью 60 футов. Сопротивление огню: Вы облада…"
+      }
+    },
+    {
+      "kind": "race",
+      "slug": "kithkin",
+      "name_ru": "Свояк",
+      "name_en": "Kithkin",
+      "source": "lfl",
+      "sort_order": 50,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/species/kithkin",
+        "url_ttg": "https://new.ttg.club/species/kithkin-lfl",
+        "book": "LFL"
+      },
+      "data": {
+        "creature_type": "humanoid",
+        "size": "medium",
+        "size_options": [
+          "small",
+          "medium"
+        ],
+        "speed": 30,
+        "darkvision": 30,
+        "ability_bonuses": {},
+        "languages": [],
+        "languages_choose": 0,
+        "traits": [
+          "brave",
+          "halfling-nimbleness",
+          "luck",
+          "naturally-stealthy",
+          "darkvision",
+          "brave",
+          "halfling-nimbleness",
+          "luck",
+          "naturally-stealthy"
+        ],
+        "traits_text": "Свояк (LFL): humanoid, small/medium, 30 фт. Храбрый: Вы совершаете с Преимуществом спасброски на избежание или окончание состояния Испуганн…"
+      }
+    },
+    {
+      "kind": "race",
+      "slug": "lorwyn-changeling",
+      "name_ru": "Пересад Лорвина",
+      "name_en": "Lorwyn Changeling",
+      "source": "lfl",
+      "sort_order": 60,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/species/lorwyn-changeling",
+        "url_ttg": "https://new.ttg.club/species/lorwyn-changeling-lfl",
+        "book": "LFL"
+      },
+      "data": {
+        "creature_type": "humanoid",
+        "size": "medium",
+        "size_options": [
+          "small",
+          "medium"
+        ],
+        "speed": 30,
+        "darkvision": 7,
+        "ability_bonuses": {},
+        "languages": [],
+        "languages_choose": 0,
+        "traits": [
+          "darkvision",
+          "shape-self",
+          "delightful-imitator",
+          "unpredictable-movement"
+        ],
+        "traits_text": "Пересад Лорвина (LFL): humanoid, small/medium, 30 фт. Тёмное зрение: Вы обладаете Тёмным зрением дальностью 120 футов. Формование: Вы может…"
+      }
+    },
+    {
+      "kind": "race",
+      "slug": "rimekin",
+      "name_ru": "Измороз",
+      "name_en": "Rimekin",
+      "source": "lfl",
+      "sort_order": 70,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/species/rimekin",
+        "url_ttg": "https://new.ttg.club/species/rimekin-lfl",
+        "book": "LFL"
+      },
+      "data": {
+        "creature_type": "humanoid",
+        "size": "medium",
+        "size_options": [
+          "small",
+          "medium"
+        ],
+        "speed": 30,
+        "darkvision": 7,
+        "ability_bonuses": {},
+        "languages": [],
+        "languages_choose": 0,
+        "traits": [
+          "darkvision",
+          "cold-fire-magic",
+          "cold-resistance"
+        ],
+        "traits_text": "Измороз (LFL): humanoid, small/medium, 30 фт. Тёмное зрение: У вас есть Тёмное зрение дальностью 60 футов. Магия ледяного огня: Вы также зн…"
+      }
+    }
+  ]
+}

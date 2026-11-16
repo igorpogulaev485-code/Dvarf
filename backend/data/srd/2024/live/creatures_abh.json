@@ -1,0 +1,638 @@
+{
+  "meta": {
+    "pack": "P24-C18",
+    "source": "ABH creatures (community_ref)",
+    "count": 5,
+    "notes": [
+      "5 существ ABH; source=abh.",
+      "Короткие RU-карточки; spell_refs только из блока заклинаний."
+    ]
+  },
+  "entries": [
+    {
+      "kind": "bestiary",
+      "slug": "fiendish-icon",
+      "name_ru": "Идол исчадия",
+      "name_en": "Fiendish Icon",
+      "source": "abh",
+      "sort_order": 10,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/bestiary/27072-fiendish-icon",
+        "url_ttg": "https://new.ttg.club/bestiary/fiendish-icon-abh",
+        "book": "ABH"
+      },
+      "data": {
+        "schema_version": 1,
+        "size": "small",
+        "size_ru": "маленький",
+        "type": "construct",
+        "type_ru": "Конструкт",
+        "subtype": null,
+        "alignment": "законно-злой",
+        "ac": 13,
+        "hp_average": 22,
+        "hp_formula": "5к6+5",
+        "speed": {
+          "walk": 30
+        },
+        "cr": "1",
+        "xp": 200,
+        "proficiency_bonus": 2,
+        "initiative": {
+          "mod": 1,
+          "score": 11
+        },
+        "abilities": {
+          "str": 15,
+          "dex": 12,
+          "con": 13,
+          "int": 6,
+          "wis": 11,
+          "cha": 6
+        },
+        "ability_mods": {
+          "str": 2,
+          "dex": 1,
+          "con": 1,
+          "int": -2,
+          "wis": 0,
+          "cha": -2
+        },
+        "ability_saves": {
+          "str": 2,
+          "dex": 1,
+          "con": 1,
+          "int": -2,
+          "wis": 0,
+          "cha": -2
+        },
+        "skills": {
+          "Скрытность": 5
+        },
+        "senses": {
+          "passive_perception": 10
+        },
+        "languages": [
+          "понимает Общий и Инфернальный",
+          "но не говорит"
+        ],
+        "source_book": "ABH",
+        "srd_section": "monsters",
+        "summary_ru": "маленький конструкт, ПО 1; КД 13, хиты 22 (5к6+5); инициатива +1 (ср. 11), БМ +2.",
+        "name_ru_pending": false,
+        "gear_refs": [],
+        "spell_refs": [],
+        "traits": [
+          {
+            "name_ru": "Сопротивление магии",
+            "text_ru": "Идол совершает с Преимуществом спасброски от заклинаний и прочих магических эффектов.",
+            "name_ru_pending": false
+          }
+        ],
+        "actions": [
+          {
+            "name_ru": "Мультиатака",
+            "text_ru": "Идол совершает два Размашистых удара и использует Огненный выброс.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Размашистый удар",
+            "text_ru": "Бросок рукопашной атаки: +4, досягаемость 5 фт. Попадание: 4 (1к4 + 2) Дробящего урона.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Огненный выброс",
+            "text_ru": "Спасбросок Ловкости: Сл 11, каждое существо в 5-футовой Эманации, исходящей от идола. Провал: 7 (2к6) урона Огнём.",
+            "name_ru_pending": false
+          }
+        ]
+      }
+    },
+    {
+      "kind": "bestiary",
+      "slug": "harvester-devil",
+      "name_ru": "Дьявол-собиратель (фальксугон)",
+      "name_en": "Harvester Devil",
+      "source": "abh",
+      "sort_order": 20,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/bestiary/27073-harvester-devil",
+        "url_ttg": "https://new.ttg.club/bestiary/harvester-devil-abh",
+        "book": "ABH"
+      },
+      "data": {
+        "schema_version": 1,
+        "size": "medium",
+        "size_ru": "средний",
+        "type": "fiend",
+        "type_ru": "Исчадие",
+        "subtype": "Дьявол",
+        "alignment": "законно-злой",
+        "ac": 14,
+        "hp_average": 65,
+        "hp_formula": "10к8+20",
+        "speed": {
+          "walk": 30
+        },
+        "cr": "3",
+        "xp": 700,
+        "proficiency_bonus": 2,
+        "initiative": {
+          "mod": 3,
+          "score": 13
+        },
+        "abilities": {
+          "str": 12,
+          "dex": 17,
+          "con": 14,
+          "int": 14,
+          "wis": 13,
+          "cha": 19
+        },
+        "ability_mods": {
+          "str": 1,
+          "dex": 3,
+          "con": 2,
+          "int": 2,
+          "wis": 1,
+          "cha": 4
+        },
+        "ability_saves": {
+          "str": 1,
+          "dex": 3,
+          "con": 4,
+          "int": 2,
+          "wis": 3,
+          "cha": 4
+        },
+        "skills": {
+          "Внимательность": 3,
+          "Скрытность": 5,
+          "Убеждение": 8
+        },
+        "senses": {
+          "passive_perception": 13
+        },
+        "languages": [
+          "Общий",
+          "Инфернальный",
+          "Телепатия 120 фт."
+        ],
+        "source_book": "ABH",
+        "srd_section": "monsters",
+        "summary_ru": "среднее исчадие, ПО 3; КД 14, хиты 65 (10к8+20); инициатива +3 (ср. 13), БМ +2.",
+        "name_ru_pending": false,
+        "gear_refs": [],
+        "spell_refs": [],
+        "traits": [
+          {
+            "name_ru": "Дьявольский оберег",
+            "text_ru": "Броски атаки против дьявола совершаются с Помехой. Если дьявол совершает бросок атаки, эта особенность перестаёт работать до начала его сле…",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Восстановление дьявола",
+            "text_ru": "Когда дьявол умирает за пределами Девяти Преисподних, его тело превращается в сернистое облако и в тот же миг заново возрождается со всеми…",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Сопротивление магии",
+            "text_ru": "Дьявол совершает с Преимуществом спасброски от заклинаний и прочих магических эффектов.",
+            "name_ru_pending": false
+          }
+        ],
+        "actions": [
+          {
+            "name_ru": "Мультиатака",
+            "text_ru": "Дьявол совершает две атаки Адским клинком или Дизориентирующим лучом в любой комбинации.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Адский клинок",
+            "text_ru": "Бросок рукопашной атаки: +5, досягаемость 5 фт. Попадание: 6 (1к6 + 3) Рубящего урона плюс 7 (2к6) урона Огнём.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Дизориентирующий луч",
+            "text_ru": "Бросок дальнобойной атаки: +5, дистанция 120 фт. Попадание: 13 (2к12) Психического урона. Если цель — существо, оно не может совершать Пров…",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Принуждающий договор (1/день)",
+            "text_ru": "Спасбросок Харизмы: Сл 14, одно существо в пределах 30 футов от дьявола. Провал: Цель получает состояние Очарованный. Пока у неё есть состо…",
+            "name_ru_pending": false
+          }
+        ],
+        "damage_resistances": [
+          "холод"
+        ]
+      }
+    },
+    {
+      "kind": "bestiary",
+      "slug": "speaker-devil",
+      "name_ru": "Дьявол-златоуст (логокрон)",
+      "name_en": "Speaker Devil",
+      "source": "abh",
+      "sort_order": 30,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/bestiary/27074-speaker-devil",
+        "url_ttg": "https://new.ttg.club/bestiary/speaker-devil-abh",
+        "book": "ABH"
+      },
+      "data": {
+        "schema_version": 1,
+        "size": "large",
+        "size_ru": "большой",
+        "type": "fiend",
+        "type_ru": "Исчадие",
+        "subtype": "Дьявол",
+        "alignment": "законно-злой",
+        "ac": 17,
+        "hp_average": 189,
+        "hp_formula": "18к10+90",
+        "speed": {
+          "walk": 30,
+          "fly": 30
+        },
+        "cr": "12",
+        "xp": 8400,
+        "proficiency_bonus": 4,
+        "initiative": {
+          "mod": 4,
+          "score": 14
+        },
+        "abilities": {
+          "str": 21,
+          "dex": 19,
+          "con": 20,
+          "int": 22,
+          "wis": 18,
+          "cha": 17
+        },
+        "ability_mods": {
+          "str": 5,
+          "dex": 4,
+          "con": 5,
+          "int": 6,
+          "wis": 4,
+          "cha": 3
+        },
+        "ability_saves": {
+          "str": 5,
+          "dex": 4,
+          "con": 9,
+          "int": 10,
+          "wis": 8,
+          "cha": 7
+        },
+        "skills": {
+          "Внимательность": 8,
+          "История": 10,
+          "Магия": 10
+        },
+        "senses": {
+          "passive_perception": 18
+        },
+        "languages": [
+          "Инфернальный",
+          "Телепатия 120 фт."
+        ],
+        "source_book": "ABH",
+        "srd_section": "monsters",
+        "summary_ru": "большое исчадие, ПО 12; КД 17, хиты 189 (18к10+90); инициатива +4 (ср. 14), БМ +4; есть заклинания.",
+        "name_ru_pending": false,
+        "gear_refs": [
+          "halberd"
+        ],
+        "spell_refs": [
+          "detect-magic",
+          "detect-thoughts",
+          "modify-memory",
+          "dimension-door"
+        ],
+        "traits": [
+          {
+            "name_ru": "Восстановление дьявола",
+            "text_ru": "Когда дьявол умирает за пределами Девяти Преисподних, его тело превращается в сернистое облако и в тот же миг заново возрождается со всеми…",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Сопротивление магии",
+            "text_ru": "Дьявол совершает с Преимуществом спасброски от заклинаний и прочих магических эффектов.",
+            "name_ru_pending": false
+          }
+        ],
+        "actions": [
+          {
+            "name_ru": "Мультиатака",
+            "text_ru": "Дьявол совершает две атаки Громовой алебардой.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Громовая алебарда",
+            "text_ru": "Бросок рукопашной атаки: +9, досягаемость 10 фт. Попадание: 16 (2к10 + 5) Рубящего урона плюс 14 (4к6) урона Звуком.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Сотворение заклинаний",
+            "text_ru": "Дьявол-златоуст сотворяет одно из следующих заклинаний, не нуждаясь в Материальных компонентах (заклинательная характеристика — Интеллект,…",
+            "name_ru_pending": false
+          }
+        ],
+        "bonus_actions": [
+          {
+            "name_ru": "Изречение боли",
+            "text_ru": "Спасбросок Мудрости: Сл 18, каждое существо в 20-футовой Эманации, исходящей от дьявола. Провал: Цель получает состояние Ошеломлённый до ко…",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Изречение распада",
+            "text_ru": "Спасбросок Телосложения: Сл 18, каждое существо в 20-футовой Эманации, исходящей от дьявола. Провал: 22 (4к10) Силового урона. Успех: Тольк…",
+            "name_ru_pending": false
+          }
+        ],
+        "damage_resistances": [
+          "холод"
+        ]
+      }
+    },
+    {
+      "kind": "bestiary",
+      "slug": "vampire-infernalist",
+      "name_ru": "Вампир-инферналист",
+      "name_en": "Vampire Infernalist",
+      "source": "abh",
+      "sort_order": 40,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/bestiary/27075-vampire-infernalist",
+        "url_ttg": "https://new.ttg.club/bestiary/vampire-infernalist-abh",
+        "book": "ABH"
+      },
+      "data": {
+        "schema_version": 1,
+        "size": "medium",
+        "size_ru": "средний",
+        "type": "undead",
+        "type_ru": "Нежить",
+        "subtype": "Волшебник",
+        "alignment": "законно-злой",
+        "ac": 16,
+        "hp_average": 172,
+        "hp_formula": "23к8+69",
+        "speed": {
+          "walk": 40,
+          "fly": 40
+        },
+        "cr": "14",
+        "xp": 11500,
+        "proficiency_bonus": 5,
+        "initiative": {
+          "mod": 13,
+          "score": 23
+        },
+        "abilities": {
+          "str": 19,
+          "dex": 16,
+          "con": 17,
+          "int": 20,
+          "wis": 16,
+          "cha": 18
+        },
+        "ability_mods": {
+          "str": 4,
+          "dex": 3,
+          "con": 3,
+          "int": 5,
+          "wis": 3,
+          "cha": 4
+        },
+        "ability_saves": {
+          "str": 4,
+          "dex": 3,
+          "con": 8,
+          "int": 10,
+          "wis": 3,
+          "cha": 4
+        },
+        "skills": {
+          "Внимательность": 8,
+          "Религия": 10,
+          "Скрытность": 8,
+          "Магия": 10
+        },
+        "senses": {
+          "passive_perception": 18
+        },
+        "languages": [
+          "Общий",
+          "Инфернальный"
+        ],
+        "source_book": "ABH",
+        "srd_section": "monsters",
+        "summary_ru": "средняя нежить, ПО 14; КД 16, хиты 172 (23к8+69); инициатива +13 (ср. 23), БМ +5; есть заклинания.",
+        "name_ru_pending": false,
+        "gear_refs": [],
+        "spell_refs": [
+          "mage-hand",
+          "detect-magic",
+          "detect-thoughts",
+          "fireball",
+          "dispel-magic",
+          "prestidigitation",
+          "scrying",
+          "wall-of-fire"
+        ],
+        "traits": [
+          {
+            "name_ru": "Легендарное сопротивление (3/день, или 4/день в Логове)",
+            "text_ru": "Если вампир проваливает спасбросок, он может вместо этого сделать его успешным.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Туманный побег",
+            "text_ru": "Если Хиты вампира опускаются до 0 за пределами места отдыха, он использует Перевоплощение, чтобы превратиться в туман (действий не требуетс…",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Слабости вампира",
+            "text_ru": "Вампир обладает следующими слабостями: Запрет. Вампир не может войти в жилище без приглашения одного из обитателей. Текущая вода. Вампир по…",
+            "name_ru_pending": false
+          }
+        ],
+        "actions": [
+          {
+            "name_ru": "Мультиатака",
+            "text_ru": "Вампир совершает две атаки Адскими когтями и использует Укус.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Адские когти (только в форме вампира)",
+            "text_ru": "Бросок рукопашной атаки: +9, досягаемость 5 фт. Попадание: 13 (2к8 + 4) Рубящего урона плюс 10 (3к6) урона Огнём. Если цель — существо Сред…",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Укус (только в форме вампира или беса)",
+            "text_ru": "Спасбросок Телосложения: Сл 18, одно согласное или Схваченное или Недееспособное или Опутанное существо в пределах 5 футов. Провал: 6 (1к4…",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Сотворение заклинаний",
+            "text_ru": "Вампир-инферналист сотворяет одно из следующих заклинаний (заклинательная характеристика — Интеллект, Сл спасброска заклинаний 18): Неогран…",
+            "name_ru_pending": false
+          }
+        ],
+        "bonus_actions": [
+          {
+            "name_ru": "Перевоплощение",
+            "text_ru": "Если вампир не находится под солнечным светом или в текущей воде, он либо перевоплощается в беса Крошечного размера (Скорость 20 футов, Пол…",
+            "name_ru_pending": false
+          }
+        ],
+        "legendary_actions": [
+          {
+            "name_ru": "Адский удар",
+            "text_ru": "Вампир перемещается на расстояние вплоть до половины своей Скорости и совершает одну атаку Адскими когтями.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Инфернальное величие",
+            "text_ru": "Спасбросок Харизмы: Сл 17, каждое существо в 20-футовой Эманации, исходящей от вампира. Провал: 9 (2к8) Психического урона, и цель Испугана…",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Телепортация",
+            "text_ru": "Вампир телепортируется в видимое им в пределах 30 футов незанятое пространство.",
+            "name_ru_pending": false
+          }
+        ],
+        "damage_resistances": [
+          "некротический",
+          "огонь",
+          "ядовитый"
+        ],
+        "legendary_actions_uses": 3,
+        "legendary_actions_uses_lair": 4,
+        "legendary_actions_note_ru": "3 за раунд (4 в логове)"
+      }
+    },
+    {
+      "kind": "bestiary",
+      "slug": "vampire-warden",
+      "name_ru": "Вампир-страж",
+      "name_en": "Vampire Warden",
+      "source": "abh",
+      "sort_order": 50,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/bestiary/27076-vampire-warden",
+        "url_ttg": "https://new.ttg.club/bestiary/vampire-warden-abh",
+        "book": "ABH"
+      },
+      "data": {
+        "schema_version": 1,
+        "size": "medium",
+        "size_ru": "средний",
+        "type": "undead",
+        "type_ru": "Нежить",
+        "subtype": null,
+        "alignment": "нейтральный",
+        "ac": 18,
+        "hp_average": 190,
+        "hp_formula": "21к8+96",
+        "speed": {
+          "walk": 30
+        },
+        "cr": "10",
+        "xp": 5900,
+        "proficiency_bonus": 4,
+        "initiative": {
+          "mod": 6,
+          "score": 16
+        },
+        "abilities": {
+          "str": 21,
+          "dex": 15,
+          "con": 18,
+          "int": 10,
+          "wis": 14,
+          "cha": 17
+        },
+        "ability_mods": {
+          "str": 5,
+          "dex": 2,
+          "con": 4,
+          "int": 0,
+          "wis": 2,
+          "cha": 3
+        },
+        "ability_saves": {
+          "str": 5,
+          "dex": 2,
+          "con": 8,
+          "int": 0,
+          "wis": 6,
+          "cha": 3
+        },
+        "skills": {
+          "Атлетика": 9,
+          "Внимательность": 10
+        },
+        "senses": {
+          "passive_perception": 20
+        },
+        "languages": [
+          "Общий"
+        ],
+        "source_book": "ABH",
+        "srd_section": "monsters",
+        "summary_ru": "средняя нежить, ПО 10; КД 18, хиты 190 (21к8+96); инициатива +6 (ср. 16), БМ +4.",
+        "name_ru_pending": false,
+        "gear_refs": [],
+        "spell_refs": [],
+        "traits": [
+          {
+            "name_ru": "Сопротивление магии",
+            "text_ru": "Вампир совершает с Преимуществом спасброски от заклинаний и прочих магических эффектов.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Слабости вампира",
+            "text_ru": "Вампир обладает следующими слабостями: Запрет. Вампир не может войти в жилище без приглашения одного из обитателей. Текущая вода. Вампир по…",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Неподвижное восстановление",
+            "text_ru": "Если Хиты вампира опускаются до 0 и у него нет состояния Окаменевший, он превращается в камень, восстанавливая 50 Хитов и становясь Окамене…",
+            "name_ru_pending": false
+          }
+        ],
+        "actions": [
+          {
+            "name_ru": "Мультиатака",
+            "text_ru": "Вампир совершает две атаки Когтями и использует Укус или Приказ стража.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Когти",
+            "text_ru": "Бросок рукопашной атаки: +9, досягаемость 5 фт. Попадание: 14 (2к8 + 5) Рубящего урона плюс 7 (2к6) Некротического урона. Если цель — сущес…",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Укус",
+            "text_ru": "Спасбросок Телосложения: Сл 16, одно согласное или Схваченное или Недееспособное или Опутанное существо в пределах 5 футов. Провал: 7 (1к4…",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Приказ стража",
+            "text_ru": "Вампир сотворяет Принуждение, не требуя компонентов (заклинательная характеристика — Харизма, Сл спасброска заклинаний 15).",
+            "name_ru_pending": false
+          }
+        ],
+        "damage_resistances": [
+          "некротический"
+        ]
+      }
+    }
+  ],
+  "skipped": []
+}
