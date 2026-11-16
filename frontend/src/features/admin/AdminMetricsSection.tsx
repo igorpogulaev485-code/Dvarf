@@ -1,7 +1,17 @@
 import { useCallback, useEffect, useState } from 'react'
 import { getAdminMetrics, type AdminMetrics } from '../../shared/api/admin'
 import { ApiRequestError } from '../../shared/api/client'
-import { BarChart, Button, EmptyState, Panel, SegmentedControl, Stack, Text } from '../../ui'
+import {
+  BarChart,
+  Button,
+  EmptyState,
+  MetricGrid,
+  Panel,
+  SegmentedControl,
+  Stack,
+  StatTile,
+  Text,
+} from '../../ui'
 
 type Period = 1 | 7 | 30
 
@@ -15,22 +25,6 @@ function formatDayLabel(isoDate: string): string {
   const parts = isoDate.split('-')
   if (parts.length !== 3) return isoDate
   return `${parts[2]}.${parts[1]}`
-}
-
-type TileProps = {
-  label: string
-  value: number | string
-}
-
-function MetricTile({ label, value }: TileProps) {
-  return (
-    <Panel>
-      <Stack gap={4}>
-        <Text tone="muted">{label}</Text>
-        <Text as="h2">{value}</Text>
-      </Stack>
-    </Panel>
-  )
 }
 
 type Props = {
@@ -109,35 +103,44 @@ export function AdminMetricsSection({ onToast }: Props) {
 
       {data ? (
         <>
-          <Stack gap={12}>
-            <MetricTile label="Аккаунтов всего" value={data.accounts.total} />
-            <MetricTile label="Почта подтверждена" value={data.accounts.email_verified} />
-            <MetricTile label={`Новых ${periodLabel}`} value={data.accounts.new_in_period} />
-            <MetricTile label="Заблокированных" value={data.accounts.blocked} />
-            <MetricTile label="Живые за 1 день" value={data.active.active_1d} />
-            <MetricTile label="Живые за 7 дней" value={data.active.active_7d} />
-            <MetricTile label="Живые за 30 дней" value={data.active.active_30d} />
-            <MetricTile label="Персонажи живые" value={data.characters.total_alive} />
-            <MetricTile label="Листы 2014" value={data.characters.edition_2014} />
-            <MetricTile label="Листы 2024" value={data.characters.edition_2024} />
-            <MetricTile label="Черновики" value={data.characters.drafts} />
-            <MetricTile label="Лобби всего" value={data.lobbies.total} />
-            <MetricTile label={`Лобби новых ${periodLabel}`} value={data.lobbies.new_in_period} />
-            <MetricTile
-              label={`Партии начаты ${periodLabel}`}
-              value={data.sessions.started_in_period}
-            />
-            <MetricTile
-              label={`Партии закрыты ${periodLabel}`}
-              value={data.sessions.closed_in_period}
-            />
+          <Stack gap={20}>
+            <MetricGrid title="Аккаунты">
+              <StatTile value={data.accounts.total} label="Всего" />
+              <StatTile value={data.accounts.email_verified} label="Почта подтверждена" />
+              <StatTile value={data.accounts.new_in_period} label={`Новых ${periodLabel}`} />
+              <StatTile value={data.accounts.blocked} label="Заблокированных" />
+            </MetricGrid>
+
+            <MetricGrid title="Живые">
+              <StatTile value={data.active.active_1d} label="За 1 день" />
+              <StatTile value={data.active.active_7d} label="За 7 дней" />
+              <StatTile value={data.active.active_30d} label="За 30 дней" />
+            </MetricGrid>
+
+            <MetricGrid title="Персонажи">
+              <StatTile value={data.characters.total_alive} label="Живые" />
+              <StatTile value={data.characters.edition_2014} label="2014" />
+              <StatTile value={data.characters.edition_2024} label="2024" />
+              <StatTile value={data.characters.drafts} label="Черновики" />
+            </MetricGrid>
+
+            <MetricGrid title="Лобби и партии">
+              <StatTile value={data.lobbies.total} label="Лобби всего" />
+              <StatTile value={data.lobbies.new_in_period} label={`Лобби новых ${periodLabel}`} />
+              <StatTile
+                value={data.sessions.started_in_period}
+                label={`Партии начаты ${periodLabel}`}
+              />
+              <StatTile
+                value={data.sessions.closed_in_period}
+                label={`Партии закрыты ${periodLabel}`}
+              />
+            </MetricGrid>
           </Stack>
 
           <Panel title="По дням (30 дней)">
             <Stack gap={16}>
-              <Text tone="muted">
-                Время — Екатеринбург (UTC+5). Дни без событий = 0.
-              </Text>
+              <Text tone="muted">Время — Екатеринбург (UTC+5). Дни без событий = 0.</Text>
               <BarChart
                 caption="Регистрации"
                 items={data.daily.map((d) => ({

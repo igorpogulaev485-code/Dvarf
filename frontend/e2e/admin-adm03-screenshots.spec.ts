@@ -95,7 +95,7 @@ async function openMetrics(page: import('@playwright/test').Page) {
   } else {
     await page.locator('select[aria-label="Разделы админки"]').selectOption('metrics')
   }
-  await expect(page.getByText('Аккаунтов всего')).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Аккаунты', exact: true })).toBeVisible()
   // Короткий запас после отрисовки столбцов.
   await page.waitForTimeout(280)
 }
