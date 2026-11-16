@@ -25,6 +25,8 @@ export type User = {
   created_at: string
   updated_at: string
   providers: string[]
+  /** Подсказка для ссылки в кабинете; права проверяются только на сервере. */
+  is_admin?: boolean
 }
 
 export type UserUpdatePayload = {

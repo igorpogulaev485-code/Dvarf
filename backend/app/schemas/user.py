@@ -69,6 +69,8 @@ class UserResponse(BaseModel):
     created_at: datetime
     updated_at: datetime
     providers: list[str] = Field(default_factory=list)
+    # Подсказка для ссылки в кабинете. Права всегда проверяются на сервере.
+    is_admin: bool = False
 
 
 class UserUpdateRequest(BaseModel):

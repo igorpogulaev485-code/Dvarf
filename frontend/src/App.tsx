@@ -20,6 +20,7 @@ import { RequireAuth } from './shared/auth/RequireAuth'
 import { getAccessToken } from './shared/api/client'
 import { safeNextPath } from './shared/auth/nextPath'
 import {
+  LazyAdminPage,
   LazyCabinetPage,
   LazyCharacterDetailPage,
   LazyClassicSheetPage,
@@ -236,6 +237,14 @@ export default function App() {
           element={
             <AuthLazy>
               <LazyCabinetPage />
+            </AuthLazy>
+          }
+        />
+        <Route
+          path="/admin"
+          element={
+            <AuthLazy>
+              <LazyAdminPage />
             </AuthLazy>
           }
         />

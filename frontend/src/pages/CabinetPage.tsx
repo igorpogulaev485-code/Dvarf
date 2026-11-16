@@ -100,6 +100,11 @@ export function CabinetPage() {
           <Stack gap={6}>
             <Text as="h1">Личный кабинет</Text>
             <Text tone="muted">Профиль, безопасность и оформление</Text>
+            {user?.is_admin ? (
+              <Link className="back-link" to="/admin">
+                Админка
+              </Link>
+            ) : null}
           </Stack>
         </header>
 

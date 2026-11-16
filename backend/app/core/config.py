@@ -49,6 +49,11 @@ class Settings(BaseSettings):
     mcp_allowed_hosts: str = ""
     mcp_port: int = 8100
 
+    # ADM-01: админ-панель. По умолчанию выключена; на прод не включать этой пачкой.
+    # Первый полный админ — почта из окружения (значение в git не класть).
+    admin_panel_enabled: bool = False
+    admin_bootstrap_email: str = ""
+
     @property
     def cors_origin_list(self) -> list[str]:
         return [origin.strip() for origin in self.cors_origins.split(",") if origin.strip()]
