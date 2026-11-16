@@ -1,4 +1,4 @@
-"""Схемы API админки (ADM-01). Без ФИО, телефона, паролей и токенов."""
+"""Схемы API админки (ADM-01/02). Без ФИО, телефона, паролей и токенов."""
 
 from __future__ import annotations
 
@@ -69,6 +69,7 @@ class AdminAccountItem(BaseModel):
     display_name: str | None = None
     created_at: datetime
     last_seen_at: datetime | None = None
+    is_blocked: bool = False
     login_methods: AdminAccountLoginMethods
     characters: AdminAccountCharacterStats
     lobbies: AdminAccountLobbyStats
@@ -79,3 +80,54 @@ class AdminAccountsPage(BaseModel):
     total: int
     page: int
     page_size: int
+
+
+class AdminDangerPasswordRequest(BaseModel):
+    """Опасное действие: в теле — пароль админки."""
+
+    admin_password: str = Field(min_length=1, max_length=128)
+
+
+class AdminEmailChangeRequest(BaseModel):
+    new_email: str = Field(min_length=3, max_length=320)
+    new_email_confirm: str = Field(min_length=3, max_length=320)
+    admin_password: str = Field(min_length=1, max_length=128)
+
+    @field_validator("new_email", "new_email_confirm")
+    @classmethod
+    def normalize_email(cls, value: str) -> str:
+        return value.strip().lower()
+
+
+class AdminEmailChangeResponse(BaseModel):
+    message: str
+    stub: bool = False
+    debug_confirm_url: str | None = None
+
+
+class AdminMessageResponse(BaseModel):
+    message: str
+    stub: bool = False
+    debug_url: str | None = None
+
+
+class AdminSessionItem(BaseModel):
+    id: UUID
+    created_at: datetime
+    last_seen_at: datetime
+    user_agent: str | None = None
+    ip_address: str | None = None
+
+
+class AdminSessionsResponse(BaseModel):
+    items: list[AdminSessionItem]
+
+
+class AdminOAuthUnlinkRequest(BaseModel):
+    provider: str = Field(min_length=2, max_length=32)
+    admin_password: str = Field(min_length=1, max_length=128)
+
+
+class AdminDeleteAccountRequest(BaseModel):
+    confirm: str = Field(min_length=1, max_length=320)
+    admin_password: str = Field(min_length=1, max_length=128)

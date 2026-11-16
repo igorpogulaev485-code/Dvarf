@@ -85,6 +85,21 @@ def send_email_change_confirm(*, to: str, new_email: str, confirm_url: str) -> N
     )
 
 
+def send_admin_email_change_confirm(*, to: str, confirm_url: str) -> None:
+    """Письмо на НОВЫЙ адрес при смене почты из админки (ADM-02)."""
+    send_email(
+        to=to,
+        subject="КриD20 — подтверждение нового email",
+        text_body=(
+            "Администратор КриD20 назначил этот адрес вашему аккаунту.\n\n"
+            "Почта в аккаунте изменится только после перехода по ссылке "
+            f"(действует ограниченное время):\n{confirm_url}\n\n"
+            "Если вы не ожидали это письмо — просто проигнорируйте его, "
+            "адрес аккаунта не изменится.\n"
+        ),
+    )
+
+
 def send_registration_verify_email(*, to: str, verify_url: str) -> None:
     send_email(
         to=to,

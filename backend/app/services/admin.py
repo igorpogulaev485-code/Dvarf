@@ -1,9 +1,11 @@
-"""Сервис админ-панели: роли, bootstrap, пароль админки, аккаунты, журнал."""
+"""Сервис админ-панели: роли, bootstrap, пароль админки, аккаунты, помощь, журнал."""
 
 from __future__ import annotations
 
+import logging
+import secrets
 import uuid
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta, timezone
 from typing import Any
 from uuid import UUID
 
@@ -11,24 +13,35 @@ from sqlalchemy import cast, func, or_, select, String
 from sqlalchemy.orm import Session, selectinload
 
 from app.core.config import settings
-from app.core.exceptions import AppError, NotFoundError
+from app.core.exceptions import AppError, ConflictError, NotFoundError
 from app.core.security import hash_password, verify_password
 from app.models.admin import AdminAuditLog, AdminRole, AdminRoleName, AdminSecret
 from app.models.character import Character, RulesEdition
 from app.models.lobby import Lobby, LobbyMember
-from app.models.user import AuthProvider, AuthSession, User, UserIdentity
+from app.models.user import AuthProvider, User
 from app.schemas.admin import (
     AdminAccountCharacterStats,
     AdminAccountItem,
     AdminAccountLobbyStats,
     AdminAccountLoginMethods,
     AdminAccountsPage,
+    AdminEmailChangeResponse,
+    AdminMessageResponse,
     AdminPasswordOkResponse,
+    AdminSessionItem,
+    AdminSessionsResponse,
     AdminStatusResponse,
 )
 
+logger = logging.getLogger(__name__)
+
 ADMIN_PASSWORD_MAX_ATTEMPTS = 5
 ADMIN_PASSWORD_LOCK_MINUTES = 15
+
+ACCOUNT_BLOCKED_MESSAGE = (
+    "Аккаунт заблокирован. Если это ошибка, напишите на info@creed20.tech."
+)
+ACCOUNT_BLOCKED_CODE = "account_blocked"
 
 # Действия журнала (расширяемые строками в поздних пачках).
 ACTION_PASSWORD_SETUP = "admin_password_setup"
@@ -37,6 +50,32 @@ ACTION_PASSWORD_FAILED = "admin_password_failed"
 ACTION_PASSWORD_LOCKED = "admin_password_locked"
 ACTION_ACCESS_DENIED = "admin_access_denied"
 ACTION_ACCOUNTS_LIST = "admin_accounts_list"
+ACTION_EMAIL_CHANGE_REQUESTED = "admin_email_change_requested"
+ACTION_EMAIL_VERIFIED = "admin_email_verified"
+ACTION_EMAIL_RESEND = "admin_email_verification_resent"
+ACTION_PASSWORD_RESET_SENT = "admin_password_reset_sent"
+ACTION_SESSION_REVOKED = "admin_session_revoked"
+ACTION_SESSIONS_REVOKED_ALL = "admin_sessions_revoked_all"
+ACTION_OAUTH_UNLINKED = "admin_oauth_unlinked"
+ACTION_USER_BLOCKED = "admin_user_blocked"
+ACTION_USER_UNBLOCKED = "admin_user_unblocked"
+ACTION_USER_DELETED = "admin_user_deleted"
+
+
+def raise_if_blocked(user: User) -> None:
+    """Заблокированный пользователь не входит и не продолжает сессию."""
+    if getattr(user, "blocked_at", None) is not None:
+        raise AppError(
+            ACCOUNT_BLOCKED_MESSAGE,
+            code=ACCOUNT_BLOCKED_CODE,
+            status_code=403,
+        )
+
+
+def _hash_token(token: str) -> str:
+    import hashlib
+
+    return hashlib.sha256(token.encode("utf-8")).hexdigest()
 
 
 def admin_panel_enabled() -> bool:
@@ -310,6 +349,17 @@ class AdminService:
         self._verify_admin_password(user, password)
         return AdminPasswordOkResponse(message="Пароль админки подтверждён")
 
+    def require_admin_password(self, user: User, password: str) -> None:
+        """Проверка пароля админки на каждом опасном запросе (ADM-02)."""
+        self.require_full_admin(user)
+        if not self.admin_password_set(user.id):
+            raise AppError(
+                "Сначала задайте пароль админки",
+                code="admin_password_not_set",
+                status_code=400,
+            )
+        self._verify_admin_password(user, password)
+
     def list_accounts(
         self,
         user: User,
@@ -435,6 +485,7 @@ class AdminService:
             display_name=account.display_name,
             created_at=account.created_at,
             last_seen_at=last_seen,
+            is_blocked=getattr(account, "blocked_at", None) is not None,
             login_methods=login_methods,
             characters=AdminAccountCharacterStats(
                 total=total_chars,
@@ -443,6 +494,503 @@ class AdminService:
                 drafts=drafts,
             ),
             lobbies=AdminAccountLobbyStats(owned=int(owned), as_player=int(as_player)),
+        )
+
+    def _get_target_user(self, user_id: UUID) -> User:
+        account = self.db.scalar(
+            select(User)
+            .options(selectinload(User.identities), selectinload(User.auth_sessions))
+            .where(User.id == user_id)
+        )
+        if account is None:
+            raise NotFoundError("Аккаунт не найден")
+        return account
+
+    def get_account(self, actor: User, user_id: UUID) -> AdminAccountItem:
+        self.require_full_admin(actor)
+        return self._serialize_account(self._get_target_user(user_id))
+
+    def list_user_sessions(self, actor: User, user_id: UUID) -> AdminSessionsResponse:
+        self.require_full_admin(actor)
+        account = self._get_target_user(user_id)
+        items: list[AdminSessionItem] = []
+        for session in account.auth_sessions:
+            if session.revoked_at is not None:
+                continue
+            items.append(
+                AdminSessionItem(
+                    id=session.id,
+                    created_at=session.created_at,
+                    last_seen_at=session.last_seen_at,
+                    user_agent=session.user_agent,
+                    ip_address=session.ip_address,
+                )
+            )
+        items.sort(key=lambda s: s.last_seen_at, reverse=True)
+        return AdminSessionsResponse(items=items)
+
+    def _count_full_admins(self) -> int:
+        return int(
+            self.db.scalar(
+                select(func.count())
+                .select_from(AdminRole)
+                .where(AdminRole.role == AdminRoleName.full_admin.value)
+            )
+            or 0
+        )
+
+    def _is_full_admin_user(self, user_id: UUID) -> bool:
+        return self.has_role(user_id, AdminRoleName.full_admin.value)
+
+    def _assert_not_self_or_last_admin(self, actor: User, target: User, *, action: str) -> None:
+        if target.id == actor.id:
+            raise AppError(
+                "Нельзя выполнить это действие над своим аккаунтом",
+                code="admin_self_forbidden",
+                status_code=400,
+            )
+        if self._is_full_admin_user(target.id) and self._count_full_admins() <= 1:
+            raise AppError(
+                "Нельзя затронуть последнего полного администратора",
+                code="admin_last_admin_forbidden",
+                status_code=400,
+            )
+
+    def request_email_change(
+        self,
+        actor: User,
+        user_id: UUID,
+        *,
+        new_email: str,
+        new_email_confirm: str,
+        admin_password: str,
+    ) -> AdminEmailChangeResponse:
+        self.require_admin_password(actor, admin_password)
+        if new_email != new_email_confirm:
+            raise AppError(
+                "Адреса почты не совпадают",
+                code="email_mismatch",
+                status_code=400,
+            )
+        target = self._get_target_user(user_id)
+        if target.email and new_email == target.email.strip().lower():
+            raise AppError(
+                "Новый email совпадает с текущим",
+                code="email_unchanged",
+                status_code=400,
+            )
+        existing = self.db.scalar(select(User).where(User.email == new_email))
+        if existing is not None and existing.id != target.id:
+            raise ConflictError("Этот email уже занят", code="email_taken")
+
+        from app.repositories.email_change import EmailChangeRepository
+        from app.services.mail import MailError, send_admin_email_change_confirm, smtp_configured
+
+        changes = EmailChangeRepository(self.db)
+        changes.invalidate_active_for_user(target.id)
+        raw_token = secrets.token_urlsafe(32)
+        changes.create(
+            user_id=target.id,
+            new_email=new_email,
+            token_hash=_hash_token(raw_token),
+            expires_at=datetime.now(UTC)
+            + timedelta(minutes=settings.email_change_ttl_minutes),
+        )
+        self.db.commit()
+
+        confirm_url = (
+            f"{settings.app_public_url.rstrip('/')}/confirm-email?token={raw_token}"
+        )
+        debug_url: str | None = None
+
+        if settings.auth_email_stub or not smtp_configured():
+            logger.info(
+                "Admin email change stub for user %s → %s",
+                target.id,
+                new_email,
+            )
+            if settings.auth_email_stub:
+                debug_url = confirm_url
+            message = (
+                f"Ссылка подтверждения для новой почты готова "
+                f"(режим разработки — письмо на {new_email} не отправлялось)."
+            )
+        else:
+            try:
+                send_admin_email_change_confirm(to=new_email, confirm_url=confirm_url)
+            except MailError as exc:
+                raise AppError(
+                    "Не удалось отправить письмо. Попробуйте позже.",
+                    code="mail_send_failed",
+                    status_code=502,
+                ) from exc
+            message = (
+                f"Мы отправили ссылку подтверждения на новый адрес {new_email}. "
+                "Почта в аккаунте изменится только после перехода по ссылке."
+            )
+
+        self.write_audit(
+            actor_id=actor.id,
+            action=ACTION_EMAIL_CHANGE_REQUESTED,
+            target_type="user",
+            target_id=str(target.id),
+            meta={"new_email": new_email, "had_email": bool(target.email)},
+        )
+        return AdminEmailChangeResponse(
+            message=message,
+            stub=settings.auth_email_stub,
+            debug_confirm_url=debug_url,
+        )
+
+    def resend_verification(
+        self,
+        actor: User,
+        user_id: UUID,
+        *,
+        admin_password: str,
+    ) -> AdminMessageResponse:
+        self.require_admin_password(actor, admin_password)
+        target = self._get_target_user(user_id)
+        if not target.email:
+            raise AppError(
+                "У аккаунта нет почты — отправить подтверждение нельзя",
+                code="email_missing",
+                status_code=400,
+            )
+        if target.email_verified_at is not None:
+            raise AppError(
+                "Почта уже подтверждена",
+                code="email_already_verified",
+                status_code=400,
+            )
+
+        from app.services.auth import AuthService
+
+        message, debug_url = AuthService(self.db)._issue_verification_and_send(target)
+        self.write_audit(
+            actor_id=actor.id,
+            action=ACTION_EMAIL_RESEND,
+            target_type="user",
+            target_id=str(target.id),
+            meta={"email": target.email},
+        )
+        return AdminMessageResponse(
+            message=message,
+            stub=settings.auth_email_stub,
+            debug_url=debug_url if settings.auth_email_stub else None,
+        )
+
+    def mark_email_verified(
+        self,
+        actor: User,
+        user_id: UUID,
+        *,
+        admin_password: str,
+    ) -> AdminMessageResponse:
+        self.require_admin_password(actor, admin_password)
+        target = self._get_target_user(user_id)
+        if not target.email:
+            raise AppError(
+                "У аккаунта нет почты — отметить подтверждение нельзя",
+                code="email_missing",
+                status_code=400,
+            )
+        if target.email_verified_at is not None:
+            return AdminMessageResponse(message="Почта уже была подтверждена")
+
+        from app.repositories.user import UserRepository
+
+        UserRepository(self.db).mark_email_verified(target)
+        self.db.commit()
+        self.write_audit(
+            actor_id=actor.id,
+            action=ACTION_EMAIL_VERIFIED,
+            target_type="user",
+            target_id=str(target.id),
+            meta={"email": target.email},
+        )
+        return AdminMessageResponse(message="Почта отмечена как подтверждённая")
+
+    def send_password_reset(
+        self,
+        actor: User,
+        user_id: UUID,
+        *,
+        admin_password: str,
+    ) -> AdminMessageResponse:
+        self.require_admin_password(actor, admin_password)
+        target = self._get_target_user(user_id)
+        if not target.email:
+            raise AppError(
+                "У аккаунта нет почты — отправить сброс пароля нельзя",
+                code="email_missing",
+                status_code=400,
+            )
+        if not target.password_hash:
+            raise AppError(
+                "У аккаунта нет пароля входа — сброс пароля недоступен",
+                code="password_not_set",
+                status_code=400,
+            )
+
+        from app.repositories.password_reset import PasswordResetRepository
+        from app.services.mail import MailError, send_password_reset_email, smtp_configured
+
+        raw_token = secrets.token_urlsafe(32)
+        PasswordResetRepository(self.db).create(
+            user_id=target.id,
+            token_hash=_hash_token(raw_token),
+            expires_at=datetime.now(UTC)
+            + timedelta(minutes=settings.password_reset_ttl_minutes),
+        )
+        self.db.commit()
+
+        reset_url = f"{settings.app_public_url.rstrip('/')}/reset-password?token={raw_token}"
+        debug_url: str | None = None
+        if settings.auth_email_stub or not smtp_configured():
+            logger.info("Admin password reset stub for user %s", target.id)
+            if settings.auth_email_stub:
+                debug_url = reset_url
+            message = (
+                f"Ссылка сброса пароля готова "
+                f"(режим разработки — письмо на {target.email} не отправлялось)."
+            )
+        else:
+            try:
+                send_password_reset_email(to=target.email, reset_url=reset_url)
+            except MailError as exc:
+                raise AppError(
+                    "Не удалось отправить письмо. Попробуйте позже.",
+                    code="mail_send_failed",
+                    status_code=502,
+                ) from exc
+            message = f"Письмо со ссылкой сброса пароля отправлено на {target.email}."
+
+        self.write_audit(
+            actor_id=actor.id,
+            action=ACTION_PASSWORD_RESET_SENT,
+            target_type="user",
+            target_id=str(target.id),
+            meta={"email": target.email},
+        )
+        return AdminMessageResponse(
+            message=message,
+            stub=settings.auth_email_stub,
+            debug_url=debug_url if settings.auth_email_stub else None,
+        )
+
+    def revoke_session(
+        self,
+        actor: User,
+        user_id: UUID,
+        session_id: UUID,
+        *,
+        admin_password: str,
+    ) -> AdminMessageResponse:
+        self.require_admin_password(actor, admin_password)
+        target = self._get_target_user(user_id)
+        from app.services.auth import AuthService
+
+        result = AuthService(self.db).revoke_session(
+            target.id,
+            session_id,
+            current_session_id=None,
+        )
+        self.write_audit(
+            actor_id=actor.id,
+            action=ACTION_SESSION_REVOKED,
+            target_type="user",
+            target_id=str(target.id),
+            meta={"session_id": str(session_id), "revoked": result.revoked},
+        )
+        return AdminMessageResponse(message=result.message)
+
+    def revoke_all_sessions(
+        self,
+        actor: User,
+        user_id: UUID,
+        *,
+        admin_password: str,
+    ) -> AdminMessageResponse:
+        self.require_admin_password(actor, admin_password)
+        target = self._get_target_user(user_id)
+        from app.services.auth import AuthService
+
+        result = AuthService(self.db).revoke_all_sessions(target.id)
+        self.write_audit(
+            actor_id=actor.id,
+            action=ACTION_SESSIONS_REVOKED_ALL,
+            target_type="user",
+            target_id=str(target.id),
+            meta={"revoked": result.revoked},
+        )
+        return AdminMessageResponse(message=result.message)
+
+    def unlink_oauth(
+        self,
+        actor: User,
+        user_id: UUID,
+        *,
+        provider: str,
+        admin_password: str,
+    ) -> AdminMessageResponse:
+        self.require_admin_password(actor, admin_password)
+        target = self._get_target_user(user_id)
+        normalized = provider.strip().lower()
+        try:
+            auth_provider = AuthProvider(normalized)
+        except ValueError as exc:
+            raise AppError(
+                "Неподдерживаемый способ входа",
+                code="unsupported_provider",
+                status_code=400,
+            ) from exc
+
+        # Нельзя оставить аккаунт без способа входа: пароль или другой провайдер.
+        has_password = bool(target.password_hash) or any(
+            i.provider == AuthProvider.password for i in target.identities
+        )
+        oauth_others = [
+            i
+            for i in target.identities
+            if i.provider in {AuthProvider.yandex, AuthProvider.vk}
+            and i.provider != auth_provider
+        ]
+        if auth_provider in {AuthProvider.yandex, AuthProvider.vk}:
+            if not has_password and not oauth_others:
+                raise AppError(
+                    "Нельзя отвязать единственный способ входа — иначе человек потеряет доступ.",
+                    code="last_login_method",
+                    status_code=400,
+                )
+
+        from app.services.auth import AuthService
+
+        AuthService(self.db).unlink_oauth_provider(target, auth_provider)
+        label = "Яндекс" if auth_provider == AuthProvider.yandex else "VK"
+        self.write_audit(
+            actor_id=actor.id,
+            action=ACTION_OAUTH_UNLINKED,
+            target_type="user",
+            target_id=str(target.id),
+            meta={"provider": auth_provider.value},
+        )
+        return AdminMessageResponse(message=f"Способ входа «{label}» отвязан")
+
+    def block_user(
+        self,
+        actor: User,
+        user_id: UUID,
+        *,
+        admin_password: str,
+    ) -> AdminMessageResponse:
+        self.require_admin_password(actor, admin_password)
+        target = self._get_target_user(user_id)
+        self._assert_not_self_or_last_admin(actor, target, action="block")
+        if target.blocked_at is not None:
+            return AdminMessageResponse(message="Аккаунт уже заблокирован")
+
+        target.blocked_at = datetime.now(timezone.utc)
+        target.blocked_by = actor.id
+        self.db.add(target)
+        self.db.commit()
+
+        from app.services.auth import AuthService
+
+        revoked = AuthService(self.db).revoke_all_sessions(target.id)
+        self.write_audit(
+            actor_id=actor.id,
+            action=ACTION_USER_BLOCKED,
+            target_type="user",
+            target_id=str(target.id),
+            meta={"sessions_revoked": revoked.revoked},
+        )
+        return AdminMessageResponse(
+            message="Аккаунт заблокирован. Все сессии завершены.",
+        )
+
+    def unblock_user(
+        self,
+        actor: User,
+        user_id: UUID,
+        *,
+        admin_password: str,
+    ) -> AdminMessageResponse:
+        self.require_admin_password(actor, admin_password)
+        target = self._get_target_user(user_id)
+        if target.blocked_at is None:
+            return AdminMessageResponse(message="Аккаунт не был заблокирован")
+
+        target.blocked_at = None
+        target.blocked_by = None
+        self.db.add(target)
+        self.db.commit()
+        self.write_audit(
+            actor_id=actor.id,
+            action=ACTION_USER_UNBLOCKED,
+            target_type="user",
+            target_id=str(target.id),
+        )
+        return AdminMessageResponse(message="Аккаунт разблокирован")
+
+    def delete_user(
+        self,
+        actor: User,
+        user_id: UUID,
+        *,
+        confirm: str,
+        admin_password: str,
+    ) -> AdminMessageResponse:
+        self.require_admin_password(actor, admin_password)
+        target = self._get_target_user(user_id)
+        self._assert_not_self_or_last_admin(actor, target, action="delete")
+
+        confirm_value = confirm.strip()
+        if target.email:
+            if confirm_value.lower() != target.email.lower():
+                raise AppError(
+                    "Для подтверждения введите почту удаляемого аккаунта",
+                    code="delete_confirm_mismatch",
+                    status_code=400,
+                )
+        else:
+            name = (target.display_name or "").strip()
+            allowed = {n.lower() for n in (name, "удалить") if n}
+            if confirm_value.lower() not in allowed:
+                raise AppError(
+                    "Для подтверждения введите имя аккаунта или слово «удалить»",
+                    code="delete_confirm_mismatch",
+                    status_code=400,
+                )
+
+        stats = self._serialize_account(target)
+        chars_total = stats.characters.total
+        lobbies_owned = stats.lobbies.owned
+        target_id = target.id
+
+        from app.repositories.user import UserRepository
+        from app.services.avatar import delete_avatar_file, is_uploaded_avatar_url
+
+        if is_uploaded_avatar_url(target.avatar_url):
+            delete_avatar_file(target.id)
+
+        UserRepository(self.db).delete_user(target)
+        self.db.commit()
+        self.write_audit(
+            actor_id=actor.id,
+            action=ACTION_USER_DELETED,
+            target_type="user",
+            target_id=str(target_id),
+            meta={
+                "characters_total": chars_total,
+                "lobbies_owned": lobbies_owned,
+            },
+        )
+        return AdminMessageResponse(
+            message=(
+                f"Аккаунт удалён. Стерто персонажей: {chars_total}, "
+                f"своих лобби: {lobbies_owned}."
+            ),
         )
 
 

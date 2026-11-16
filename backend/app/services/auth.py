@@ -274,6 +274,8 @@ class AuthService:
         user_agent: str | None = None,
         ip_address: str | None = None,
     ) -> TokenResponse:
+        from app.services.admin import raise_if_blocked
+
         user = self.users.get_by_email(email)
         if user is None or not user.password_hash:
             raise UnauthorizedError("Неверный email или пароль")
@@ -285,6 +287,7 @@ class AuthService:
                 code="email_not_verified",
                 status_code=403,
             )
+        raise_if_blocked(user)
 
         loaded = self.users.get_by_id(user.id)
         assert loaded is not None
@@ -370,6 +373,10 @@ class AuthService:
             user = self.users.get_by_id(UUID(payload["sub"]))
             if user is None or user.id != session.user_id:
                 raise UnauthorizedError("Пользователь не найден")
+
+            from app.services.admin import raise_if_blocked
+
+            raise_if_blocked(user)
 
             if user_agent:
                 session.user_agent = user_agent[:512]
@@ -491,8 +498,11 @@ class AuthService:
         user_agent: str | None = None,
         ip_address: str | None = None,
     ) -> TokenResponse:
+        from app.services.admin import raise_if_blocked
+
         existing = self.users.get_by_identity(profile.provider, profile.provider_user_id)
         if existing is not None:
+            raise_if_blocked(existing)
             if profile.avatar_url and not existing.avatar_url:
                 existing.avatar_url = profile.avatar_url
                 self.db.commit()

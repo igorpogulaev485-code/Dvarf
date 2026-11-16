@@ -91,8 +91,19 @@ def test_alembic_single_head_and_adm01_in_history():
     revisions = {rev.revision for rev in script.walk_revisions()}
     assert "adm01framework01" in revisions
     assert "wapi08partych01" in revisions
-    # Не хардкодим голову: после этой пачки она должна быть adm01.
-    assert heads[0] == "adm01framework01"
+    # Голову не хардкодим — после ADM-02 она сдвигается; ADM-01 остаётся в цепочке.
+    ancestors: set[str] = {heads[0]}
+    cur = script.get_revision(heads[0])
+    while cur is not None:
+        down = cur.down_revision
+        if down is None:
+            break
+        if isinstance(down, (list, tuple, set)):
+            ancestors.update(down)
+            break
+        ancestors.add(down)
+        cur = script.get_revision(down)
+    assert "adm01framework01" in ancestors
 
 
 def test_upgrade_downgrade_idempotent(monkeypatch):
