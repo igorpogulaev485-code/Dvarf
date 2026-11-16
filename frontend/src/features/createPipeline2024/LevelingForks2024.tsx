@@ -551,9 +551,9 @@ export function LevelingForks2024({
                 <Text as="h3" className="create-pipeline__section-title">
                   Развилки по уровням
                 </Text>
-                {forks.map((fork) => (
+                {forks.map((fork, forkIndex) => (
                   <div
-                    key={`${fork.kind}-${fork.level}`}
+                    key={`${fork.kind}-${fork.level}-${forkIndex}`}
                     className="create-pipeline__hp-row"
                     data-testid={`p24-m03c-fork-${fork.kind}-${slug}-${fork.level}`}
                   >
