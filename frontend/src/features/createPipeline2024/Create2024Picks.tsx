@@ -8,8 +8,11 @@ import { PickChipGroup } from './PickChipGroup'
 import {
   DIVINE_ORDER_OPTIONS,
   DRAGONBORN_ANCESTRY_OPTIONS,
+  COMMON_LANGUAGE_NAME_RU,
   PRIMAL_ORDER_OPTIONS,
   itemNameRu,
+  languageKindLabelRu,
+  ruDice,
   sizeLabelRu,
   type ItemNameIndex,
 } from './create2024Labels'
@@ -27,10 +30,10 @@ import {
   backgroundAsiTrio,
   backgroundNeedsToolPick,
   classSkillNeed,
+  classStartingPacks,
   classToolChoice,
   findFeat,
   fightingStyleFeats,
-  humanOriginFeatOptions,
   l1Invocations,
   masteryWeaponOptions,
   setAsiFlat1,
@@ -38,14 +41,15 @@ import {
   speciesLineages,
   speciesNeedsAncestry,
   speciesNeedsLineage,
-  speciesNeedsOriginFeat,
   speciesSizeOptions,
   toolChoicePool,
   weaponMasteryLimit,
 } from './createPipeline2024State'
 import {
+  entryData,
   type Create2024CatalogBundle,
   type Create2024State,
+  type LanguagesBundle,
 } from './createPipeline2024Types'
 
 type PicksBase = {
@@ -110,6 +114,7 @@ export function ClassPicks({
   const masteryOptions = masteryWeaponOptions(classEntry, catalog.weapons)
   const styleFeats = fightingStyleFeats(catalog.feats)
   const toolChoice = classToolChoice(classEntry)
+  const packs = classStartingPacks(classEntry)
   const setOption = (key: string, value: unknown) =>
     patch({ classOptionPicks: { ...state.classOptionPicks, [key]: value } })
 
@@ -223,6 +228,22 @@ export function ClassPicks({
           onChange={(picked) => setOption('eldritch_invocations', picked)}
         />
       ) : null}
+      {packs.length ? (
+        <PickChipGroup
+          label="Снаряжение класса"
+          hint="Набор предметов или золото вместо него."
+          options={packs.map((p) => ({
+            id: p.id,
+            label: p.labelRu,
+            rest: p.isGold ? undefined : p.summaryRu,
+          }))}
+          selected={packs.some((p) => p.id === state.classEquipment) ? [state.classEquipment] : []}
+          max={1}
+          multi={false}
+          testIdPrefix="p24-m03-pick-class-equipment"
+          onChange={(picked) => patch({ classEquipment: picked[0] ?? state.classEquipment })}
+        />
+      ) : null}
     </Stack>
   )
 }
@@ -233,8 +254,13 @@ export function BackgroundPicks({
   catalog,
   items,
   backgroundEntry,
-}: PicksBase & { backgroundEntry: CatalogEntry }) {
+  languages,
+}: PicksBase & { backgroundEntry: CatalogEntry; languages: LanguagesBundle }) {
   const trio = backgroundAsiTrio(backgroundEntry)
+  const gear = entryData(backgroundEntry).equipment_or_gold as
+    | { pack_summary_ru?: string; gold_alternative_gp?: number }
+    | undefined
+  const gold = gear?.gold_alternative_gp ?? 50
   const toolPool = toolChoicePool(backgroundEntry)
   const featSlug = originFeatSlugOf(backgroundEntry)
   const feat = findFeat(catalog.feats, featSlug)
@@ -322,6 +348,37 @@ export function BackgroundPicks({
           testIdPrefix="p24-m03-pick-origin"
         />
       ) : null}
+      <PickChipGroup
+        label="Языки"
+        hint={`${COMMON_LANGUAGE_NAME_RU} вы уже знаете. Выберите ещё ${languages.choice_count}.`}
+        options={languages.languages.map((l) => ({
+          id: l.id,
+          label: l.name_ru,
+          rest: languageKindLabelRu(l.kind),
+        }))}
+        selected={state.languageIds}
+        max={languages.choice_count}
+        testIdPrefix="p24-m03-pick-language"
+        onChange={(languageIds) => patch({ languageIds })}
+      />
+      <PickChipGroup
+        label="Снаряжение предыстории"
+        options={[
+          {
+            id: 'pack',
+            label: 'Набор предыстории',
+            rest: gear?.pack_summary_ru ? ruDice(gear.pack_summary_ru) : undefined,
+          },
+          { id: 'gold', label: `Золото (${gold} зм)` },
+        ]}
+        selected={[state.backgroundEquipment]}
+        max={1}
+        multi={false}
+        testIdPrefix="p24-m03-pick-bg-equipment"
+        onChange={(picked) =>
+          patch({ backgroundEquipment: picked[0] === 'gold' ? 'gold' : 'pack' })
+        }
+      />
     </Stack>
   )
 }
@@ -335,12 +392,6 @@ export function SpeciesPicks({
 }: PicksBase & { speciesEntry: CatalogEntry }) {
   const sizes = speciesSizeOptions(speciesEntry)
   const lineages = speciesLineages(speciesEntry)
-  const ctx = pickContext(catalog, items)
-  const backgroundEntry = catalog.backgrounds.find((b) => b.slug === state.backgroundSlug) ?? null
-  const humanFeats = speciesNeedsOriginFeat(speciesEntry)
-    ? humanOriginFeatOptions(catalog.feats, originFeatSlugOf(backgroundEntry))
-    : []
-  const humanFeat = findFeat(catalog.feats, state.speciesFeatSlug)
   const speciesFields = speciesPickFields(speciesEntry.slug, speciesEntry, pickContext(catalog, items))
 
   return (
@@ -391,37 +442,31 @@ export function SpeciesPicks({
           testIdPrefix="p24-m03-pick-species"
         />
       ) : null}
-      {humanFeats.length ? (
-        <Stack gap={12}>
-          <PickChipGroup
-            label="Черта происхождения (Гибкий)"
-            hint="Человек получает ещё одну черту происхождения."
-            options={humanFeats.map((f) => ({ id: f.slug, label: f.name_ru }))}
-            selected={state.speciesFeatSlug ? [state.speciesFeatSlug] : []}
-            max={1}
-            multi={false}
-            testIdPrefix="p24-m03-pick-human-feat"
-            onChange={(picked) =>
-              patch({ speciesFeatSlug: picked[0] ?? null, speciesFeatPicks: {} })
-            }
-          />
-          {humanFeat ? (
-            <FeatPickFields
-              fieldsFor={(picks) => featPickFields(humanFeat.slug, humanFeat, picks, ctx)}
-              picks={state.speciesFeatPicks}
-              onChange={(speciesFeatPicks) => patch({ speciesFeatPicks })}
-              testIdPrefix="p24-m03-pick-human"
-            />
-          ) : null}
-        </Stack>
-      ) : null}
       {sizes.length <= 1 &&
       !lineages.length &&
       !speciesNeedsAncestry(speciesEntry) &&
-      !speciesFields.length &&
-      !humanFeats.length ? (
+      !speciesFields.length ? (
         <Text tone="muted">У этого вида нет дополнительных выборов.</Text>
       ) : null}
     </Stack>
+  )
+}
+
+/** Nested picks of the origin feat granted by the species (human «Гибкий»). */
+export function SpeciesFeatPicks({
+  state,
+  patch,
+  catalog,
+  items,
+  featEntry,
+}: PicksBase & { featEntry: CatalogEntry }) {
+  const ctx = pickContext(catalog, items)
+  return (
+    <FeatPickFields
+      fieldsFor={(picks) => featPickFields(featEntry.slug, featEntry, picks, ctx)}
+      picks={state.speciesFeatPicks}
+      onChange={(speciesFeatPicks) => patch({ speciesFeatPicks })}
+      testIdPrefix="p24-m03-pick-human"
+    />
   )
 }

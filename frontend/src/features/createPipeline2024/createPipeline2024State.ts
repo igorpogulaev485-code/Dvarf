@@ -30,6 +30,7 @@ import {
 import {
   classL1Spellcasting,
   entryData,
+  speciesGrantsOriginFeat,
   type Create2024CatalogBundle,
   type Create2024State,
   type Create2024StepId,
@@ -259,7 +260,7 @@ export function dragonbornDamageOptions(): readonly string[] {
 }
 
 export function speciesNeedsOriginFeat(species: CatalogEntry | null | undefined): boolean {
-  return Boolean(entryData(species).origin_feat_choice)
+  return speciesGrantsOriginFeat(species)
 }
 
 export function l1Invocations(): typeof ELDRITCH_INVOCATIONS_2024 {
@@ -309,164 +310,196 @@ function pickCtx(ctx: StepIssueCtx): FeatPickContext {
   return { spells: ctx.catalog?.spells ?? [], items: ctx.items ?? new Map() }
 }
 
+/** True when the chosen species grants an origin feat (human «Гибкий») → show the feat step. */
+export function speciesNeedsFeatStep(
+  state: Pick<Create2024State, 'speciesSlug'>,
+  catalog: Pick<Create2024CatalogBundle, 'species'> | null | undefined,
+): boolean {
+  if (!state.speciesSlug) return false
+  const entry = catalog?.species.find((row) => row.slug === state.speciesSlug) ?? null
+  return entry ? speciesGrantsOriginFeat(entry) : state.speciesSlug === 'human'
+}
+
+function speciesIssues(state: Create2024State, ctx: StepIssueCtx): string[] {
+  const { speciesEntry } = ctx
+  const issues: string[] = []
+  if (!state.speciesSlug || !speciesEntry) return ['Выберите вид']
+  const sizes = speciesSizeOptions(speciesEntry)
+  if (sizes.length > 1 && !state.speciesSize) issues.push('Выберите размер')
+  if (speciesNeedsLineage(speciesEntry) && !state.speciesLineageId) {
+    issues.push('Выберите родословную')
+  }
+  if (speciesNeedsAncestry(speciesEntry) && !state.speciesAncestryId) {
+    issues.push('Выберите наследие дракона')
+  }
+  const fields = speciesPickFields(state.speciesSlug, speciesEntry, pickCtx(ctx))
+  for (const field of pickFieldsMissing(fields, state.speciesPicks)) {
+    issues.push(`Вид — ${field.label.toLowerCase()}`)
+  }
+  return issues
+}
+
+function featIssues(state: Create2024State, ctx: StepIssueCtx): string[] {
+  if (!ctx.speciesEntry || !speciesGrantsOriginFeat(ctx.speciesEntry)) return []
+  const feat = findFeat(ctx.catalog?.feats ?? [], state.speciesFeatSlug)
+  if (!feat) return ['Выберите черту происхождения (Гибкий)']
+  const issues: string[] = []
+  const fields = featPickFields(feat.slug, feat, state.speciesFeatPicks, pickCtx(ctx))
+  for (const field of pickFieldsMissing(fields, state.speciesFeatPicks)) {
+    issues.push(`Черта «${feat.name_ru}» — ${field.label.toLowerCase()}`)
+  }
+  return issues
+}
+
+function backgroundIssues(state: Create2024State, ctx: StepIssueCtx): string[] {
+  const { backgroundEntry, languageChoiceCount } = ctx
+  const issues: string[] = []
+  if (!state.backgroundSlug || !backgroundEntry) return ['Выберите предысторию']
+  const trio = backgroundAsiTrio(backgroundEntry)
+  if (trio.length !== 3) return ['У предыстории нет тройки характеристик']
+  if (state.backgroundAsiMode === '+2/+1') {
+    const plus2 = trio.filter((k) => state.backgroundAsi[k] === 2)
+    const plus1 = trio.filter((k) => state.backgroundAsi[k] === 1)
+    if (plus2.length !== 1 || plus1.length !== 1) {
+      issues.push('Увеличение характеристик: выберите +2 и +1')
+    }
+  } else if (!trio.every((k) => state.backgroundAsi[k] === 1)) {
+    issues.push('Увеличение характеристик: +1 к каждой из трёх')
+  }
+  if (backgroundNeedsToolPick(backgroundEntry) && !state.backgroundToolId) {
+    issues.push('Выберите инструмент предыстории')
+  }
+  const featSlug = originFeatSlugOf(backgroundEntry)
+  const feat = findFeat(ctx.catalog?.feats ?? [], featSlug)
+  const fields = featPickFields(featSlug, feat, state.originFeatPicks, pickCtx(ctx))
+  for (const field of pickFieldsMissing(fields, state.originFeatPicks)) {
+    issues.push(`Черта происхождения — ${field.label.toLowerCase()}`)
+  }
+  if (
+    featSlug &&
+    state.speciesFeatSlug &&
+    normalizeSlug(state.speciesFeatSlug) === normalizeSlug(featSlug) &&
+    !entryData(feat).repeatable
+  ) {
+    issues.push('Черта вида совпадает с чертой предыстории — выберите другую на шаге «Черта»')
+  }
+  const langNeed = languageChoiceCount || 2
+  if (!uniqueCount(state.languageIds, langNeed)) {
+    issues.push(`Языки: выбрано ${state.languageIds.length} из ${langNeed}`)
+  }
+  if (state.backgroundEquipment !== 'pack' && state.backgroundEquipment !== 'gold') {
+    issues.push('Выберите снаряжение предыстории')
+  }
+  return issues
+}
+
+function classIssues(state: Create2024State, ctx: StepIssueCtx): string[] {
+  const { classEntry } = ctx
+  const issues: string[] = []
+  if (!state.classSlug || !classEntry) return ['Выберите класс']
+  const skills = classSkillNeed(classEntry)
+  if (
+    !uniqueCount(state.classSkillIds, skills.count) ||
+    !state.classSkillIds.every((id) => skills.from.includes(id))
+  ) {
+    issues.push(`Навыки класса: выбрано ${state.classSkillIds.length} из ${skills.count}`)
+  }
+  const wm = weaponMasteryLimit(state.classSlug)
+  if (wm > 0 && !uniqueCount(state.weaponMasteryIds, wm)) {
+    issues.push(`Мастерство оружия: выбрано ${state.weaponMasteryIds.length} из ${wm}`)
+  }
+  if (state.classSlug === 'fighter' && !state.fightingStyleSlug) {
+    issues.push('Выберите боевой стиль')
+  }
+  if (state.classSlug === 'cleric') {
+    const order = String(state.classOptionPicks.divine_order || '')
+    if (order !== 'protector' && order !== 'thaumaturge') {
+      issues.push('Выберите Божественный указ')
+    }
+  }
+  if (state.classSlug === 'druid') {
+    const order = String(state.classOptionPicks.primal_order || '')
+    if (order !== 'magician' && order !== 'warden') issues.push('Выберите Изначальный указ')
+  }
+  if (state.classSlug === 'rogue') {
+    const expertise = Array.isArray(state.classOptionPicks.expertise)
+      ? (state.classOptionPicks.expertise as string[])
+      : []
+    if (!uniqueCount(expertise, 2)) {
+      issues.push(`Компетентность: выбрано ${expertise.length} из 2`)
+    }
+  }
+  if (state.classSlug === 'warlock') {
+    const inv = Array.isArray(state.classOptionPicks.eldritch_invocations)
+      ? (state.classOptionPicks.eldritch_invocations as string[])
+      : []
+    if (!uniqueCount(inv, 1)) issues.push('Выберите мистическое воззвание')
+  }
+  const tools = classToolChoice(classEntry)
+  if (tools && !uniqueCount(state.classToolIds, tools.count)) {
+    issues.push(`Инструменты класса: выбрано ${state.classToolIds.length} из ${tools.count}`)
+  }
+  const packs = classStartingPacks(classEntry)
+  if (!packs.some((p) => p.id === state.classEquipment)) {
+    issues.push('Выберите снаряжение класса')
+  }
+  return issues
+}
+
+function abilitiesIssues(state: Create2024State): string[] {
+  const scores = ABILITY_ORDER.map((k) => state.baseAbilities[k])
+  if (scores.some((v) => !v || v < 3)) return ['Назначьте все характеристики']
+  if (state.abilityMethod === 'standard_array') {
+    const expected = [15, 14, 13, 12, 10, 8]
+    if ([...scores].sort((a, b) => b - a).join() !== expected.join()) {
+      return ['Массив: каждое число 15, 14, 13, 12, 10, 8 — один раз']
+    }
+  }
+  const overlay = backgroundAsiOverlay(state)
+  for (const key of ABILITY_ORDER) {
+    if (state.baseAbilities[key] + (overlay[key] ?? 0) > 20) {
+      return ['Характеристика после бонуса не может быть выше 20']
+    }
+  }
+  return []
+}
+
+function levelingIssues(state: Create2024State, ctx: StepIssueCtx): string[] {
+  const issues: string[] = []
+  const sc = classL1Spellcasting(ctx.classEntry)
+  if (sc) {
+    if (!uniqueCount(state.cantripIds, sc.cantrips)) {
+      issues.push(`Заговоры: выбрано ${state.cantripIds.length} из ${sc.cantrips}`)
+    }
+    if (!uniqueCount(state.preparedSpellIds, sc.prepared_spells)) {
+      issues.push(
+        `Заклинания 1 круга: выбрано ${state.preparedSpellIds.length} из ${sc.prepared_spells}`,
+      )
+    }
+  }
+  if (!state.characterName.trim()) issues.push('Введите имя персонажа')
+  return issues
+}
+
 /** Russian reasons why the step cannot advance yet (empty = ready). */
 export function create2024StepIssues(
   step: Create2024StepId,
   state: Create2024State,
   ctx: StepIssueCtx,
 ): string[] {
-  const { classEntry, backgroundEntry, speciesEntry, languageChoiceCount } = ctx
-  const issues: string[] = []
-
   switch (step) {
-    case 'class': {
-      if (!state.classSlug || !classEntry) return ['Выберите класс']
-      const skills = classSkillNeed(classEntry)
-      if (
-        !uniqueCount(state.classSkillIds, skills.count) ||
-        !state.classSkillIds.every((id) => skills.from.includes(id))
-      ) {
-        issues.push(`Навыки класса: выбрано ${state.classSkillIds.length} из ${skills.count}`)
-      }
-      const wm = weaponMasteryLimit(state.classSlug)
-      if (wm > 0 && !uniqueCount(state.weaponMasteryIds, wm)) {
-        issues.push(`Мастерство оружия: выбрано ${state.weaponMasteryIds.length} из ${wm}`)
-      }
-      if (state.classSlug === 'fighter' && !state.fightingStyleSlug) {
-        issues.push('Выберите боевой стиль')
-      }
-      if (state.classSlug === 'cleric') {
-        const order = String(state.classOptionPicks.divine_order || '')
-        if (order !== 'protector' && order !== 'thaumaturge') {
-          issues.push('Выберите Божественный указ')
-        }
-      }
-      if (state.classSlug === 'druid') {
-        const order = String(state.classOptionPicks.primal_order || '')
-        if (order !== 'magician' && order !== 'warden') issues.push('Выберите Изначальный указ')
-      }
-      if (state.classSlug === 'rogue') {
-        const expertise = Array.isArray(state.classOptionPicks.expertise)
-          ? (state.classOptionPicks.expertise as string[])
-          : []
-        if (!uniqueCount(expertise, 2)) {
-          issues.push(`Компетентность: выбрано ${expertise.length} из 2`)
-        }
-      }
-      if (state.classSlug === 'warlock') {
-        const inv = Array.isArray(state.classOptionPicks.eldritch_invocations)
-          ? (state.classOptionPicks.eldritch_invocations as string[])
-          : []
-        if (!uniqueCount(inv, 1)) issues.push('Выберите мистическое воззвание')
-      }
-      const tools = classToolChoice(classEntry)
-      if (tools && !uniqueCount(state.classToolIds, tools.count)) {
-        issues.push(`Инструменты класса: выбрано ${state.classToolIds.length} из ${tools.count}`)
-      }
-      return issues
-    }
-    case 'background': {
-      if (!state.backgroundSlug || !backgroundEntry) return ['Выберите предысторию']
-      const trio = backgroundAsiTrio(backgroundEntry)
-      if (trio.length !== 3) return ['У предыстории нет тройки характеристик']
-      if (state.backgroundAsiMode === '+2/+1') {
-        const plus2 = trio.filter((k) => state.backgroundAsi[k] === 2)
-        const plus1 = trio.filter((k) => state.backgroundAsi[k] === 1)
-        if (plus2.length !== 1 || plus1.length !== 1) {
-          issues.push('Увеличение характеристик: выберите +2 и +1')
-        }
-      } else if (!trio.every((k) => state.backgroundAsi[k] === 1)) {
-        issues.push('Увеличение характеристик: +1 к каждой из трёх')
-      }
-      if (backgroundNeedsToolPick(backgroundEntry) && !state.backgroundToolId) {
-        issues.push('Выберите инструмент предыстории')
-      }
-      const featSlug = originFeatSlugOf(backgroundEntry)
-      const feat = findFeat(ctx.catalog?.feats ?? [], featSlug)
-      const fields = featPickFields(featSlug, feat, state.originFeatPicks, pickCtx(ctx))
-      for (const field of pickFieldsMissing(fields, state.originFeatPicks)) {
-        issues.push(`Черта происхождения — ${field.label.toLowerCase()}`)
-      }
-      return issues
-    }
-    case 'species': {
-      if (!state.speciesSlug || !speciesEntry) return ['Выберите вид']
-      const sizes = speciesSizeOptions(speciesEntry)
-      if (sizes.length > 1 && !state.speciesSize) issues.push('Выберите размер')
-      if (speciesNeedsLineage(speciesEntry) && !state.speciesLineageId) {
-        issues.push('Выберите родословную')
-      }
-      if (speciesNeedsAncestry(speciesEntry) && !state.speciesAncestryId) {
-        issues.push('Выберите наследие дракона')
-      }
-      const fields = speciesPickFields(state.speciesSlug, speciesEntry, pickCtx(ctx))
-      for (const field of pickFieldsMissing(fields, state.speciesPicks)) {
-        issues.push(`Вид — ${field.label.toLowerCase()}`)
-      }
-      if (speciesNeedsOriginFeat(speciesEntry)) {
-        const feat = findFeat(ctx.catalog?.feats ?? [], state.speciesFeatSlug)
-        if (!feat) {
-          issues.push('Выберите черту происхождения (Гибкий)')
-        } else {
-          const featFields = featPickFields(
-            feat.slug,
-            feat,
-            state.speciesFeatPicks,
-            pickCtx(ctx),
-          )
-          for (const field of pickFieldsMissing(featFields, state.speciesFeatPicks)) {
-            issues.push(`Черта «${feat.name_ru}» — ${field.label.toLowerCase()}`)
-          }
-        }
-      }
-      return issues
-    }
-    case 'abilities': {
-      const scores = ABILITY_ORDER.map((k) => state.baseAbilities[k])
-      if (scores.some((v) => !v || v < 3)) return ['Назначьте все характеристики']
-      if (state.abilityMethod === 'standard_array') {
-        const expected = [15, 14, 13, 12, 10, 8]
-        if ([...scores].sort((a, b) => b - a).join() !== expected.join()) {
-          return ['Массив: каждое число 15, 14, 13, 12, 10, 8 — один раз']
-        }
-      }
-      const overlay = backgroundAsiOverlay(state)
-      for (const key of ABILITY_ORDER) {
-        if (state.baseAbilities[key] + (overlay[key] ?? 0) > 20) {
-          return ['Характеристика после бонуса не может быть выше 20']
-        }
-      }
-      return []
-    }
-    case 'languages':
-      return uniqueCount(state.languageIds, languageChoiceCount || 2)
-        ? []
-        : [`Языки: выбрано ${state.languageIds.length} из ${languageChoiceCount || 2}`]
-    case 'equipment': {
-      const packs = classStartingPacks(classEntry)
-      if (!packs.some((p) => p.id === state.classEquipment)) {
-        issues.push('Выберите снаряжение класса')
-      }
-      if (state.backgroundEquipment !== 'pack' && state.backgroundEquipment !== 'gold') {
-        issues.push('Выберите снаряжение предыстории')
-      }
-      return issues
-    }
-    case 'spells': {
-      const sc = classL1Spellcasting(classEntry)
-      if (!sc) return []
-      if (!uniqueCount(state.cantripIds, sc.cantrips)) {
-        issues.push(`Заговоры: выбрано ${state.cantripIds.length} из ${sc.cantrips}`)
-      }
-      if (!uniqueCount(state.preparedSpellIds, sc.prepared_spells)) {
-        issues.push(
-          `Заклинания 1 круга: выбрано ${state.preparedSpellIds.length} из ${sc.prepared_spells}`,
-        )
-      }
-      return issues
-    }
-    case 'summary':
-      return state.characterName.trim() ? [] : ['Введите имя персонажа']
+    case 'species':
+      return speciesIssues(state, ctx)
+    case 'feat':
+      return featIssues(state, ctx)
+    case 'background':
+      return backgroundIssues(state, ctx)
+    case 'class':
+      return classIssues(state, ctx)
+    case 'abilities':
+      return abilitiesIssues(state)
+    case 'leveling':
+      return levelingIssues(state, ctx)
     default:
       return ['Неизвестный шаг']
   }

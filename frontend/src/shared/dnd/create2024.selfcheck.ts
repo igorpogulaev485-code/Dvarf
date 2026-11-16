@@ -31,6 +31,7 @@ import {
   setAsiPlus2Plus1,
   speciesLineages,
   speciesNeedsAncestry,
+  speciesNeedsFeatStep,
   speciesNeedsOriginFeat,
   speciesSizeOptions,
   toolChoicePool,
@@ -56,18 +57,12 @@ assert.equal(RULES_EDITION_2024_OPEN, false, '2024 flag stays closed')
 
 assert.deepEqual(
   [...CREATE_2024_STEPS],
-  [
-    'class',
-    'background',
-    'species',
-    'abilities',
-    'languages',
-    'equipment',
-    'spells',
-    'summary',
-  ],
+  ['species', 'feat', 'background', 'class', 'abilities', 'leveling'],
+  'same step order as the 2014 pipeline (вид → черта* → предыстория → класс → характеристики → прокачка)',
 )
 assert.equal(CREATE_2024_STEP_LABELS.species, 'Вид')
+assert.equal(CREATE_2024_STEP_LABELS.feat, 'Черта')
+assert.equal(CREATE_2024_STEP_LABELS.leveling, 'Прокачка')
 
 const fixtures = buildCreate2024Fixtures()
 assert.ok(fixtures.classes.some((c) => c.slug === 'fighter' && c.name_ru === 'Воин'))
@@ -84,11 +79,29 @@ const fighter = fixtures.classes.find((c) => c.slug === 'fighter')!
 const wizard = fixtures.classes.find((c) => c.slug === 'wizard')!
 assert.equal(isCasterAtLevel1(fighter), false)
 assert.equal(isCasterAtLevel1(wizard), true)
-assert.ok(!visibleCreate2024Steps(fighter).includes('spells'))
-assert.ok(visibleCreate2024Steps(wizard).includes('spells'))
+const humanSpecies = fixtures.species.find((sp) => sp.slug === 'human')!
+const dwarfSpecies = fixtures.species.find((sp) => sp.slug === 'dwarf')!
+assert.deepEqual(
+  visibleCreate2024Steps(dwarfSpecies),
+  ['species', 'background', 'class', 'abilities', 'leveling'],
+  'feat step skipped without a species feat',
+)
+assert.deepEqual(
+  visibleCreate2024Steps(humanSpecies),
+  ['species', 'feat', 'background', 'class', 'abilities', 'leveling'],
+  'human shows the feat step',
+)
+assert.deepEqual(visibleCreate2024Steps(null), ['species', 'background', 'class', 'abilities', 'leveling'])
+assert.equal(speciesNeedsFeatStep({ speciesSlug: 'human' }, fixtures), true)
+assert.equal(speciesNeedsFeatStep({ speciesSlug: 'dwarf' }, fixtures), false)
+assert.equal(speciesNeedsFeatStep({ speciesSlug: null }, fixtures), false)
 
 const empty = createEmptyCreate2024State()
-assert.equal(empty.step, 'class')
+assert.equal(empty.step, 'species')
+assert.equal(empty.characterLevel, 1)
+assert.equal(empty.subclassSlug, null)
+assert.equal(empty.multiclassSlug, null)
+assert.equal(empty.multiclassLevel, 1)
 assert.equal(
   canAdvanceCreate2024Step('class', empty, {
     classEntry: null,
@@ -147,21 +160,61 @@ assert.equal(
 )
 assert.deepEqual(backgroundAsiOverlay(state), { str: 2, con: 1 })
 
+const issueCtx = {
+  classEntry: fighter,
+  backgroundEntry: soldier,
+  speciesEntry: dwarf,
+  languageChoiceCount: 2,
+  catalog: fixtures,
+}
+assert.ok(
+  create2024StepIssues('background', { ...state, languageIds: ['elvish'] }, issueCtx).some((x) =>
+    x.startsWith('Языки'),
+  ),
+  'languages are validated inside the background step',
+)
+assert.ok(
+  create2024StepIssues('class', { ...state, classEquipment: 'zzz' }, issueCtx).some((x) =>
+    x.includes('снаряжение класса'),
+  ),
+  'class equipment is validated inside the class step',
+)
+assert.deepEqual(create2024StepIssues('leveling', state, issueCtx), [])
+assert.ok(
+  create2024StepIssues('leveling', { ...state, characterName: ' ' }, issueCtx).length > 0,
+  'name required to finish',
+)
+assert.ok(create2024StepIssues('feat', { ...state, speciesSlug: 'human' }, { ...issueCtx, speciesEntry: humanSpecies }).length > 0)
+
 const req = toCreate2024Request(state, { isPreview: true })
 assert.equal(req.is_preview, true)
 assert.equal(req.subclass_slug, null)
+assert.equal(
+  toCreate2024Request({ ...state, characterLevel: 5, subclassSlug: 'champion' }).subclass_slug,
+  null,
+  'create API stays level 1: no subclass sent',
+)
 assert.equal(req.class_slug, 'fighter')
 assert.deepEqual(req.language_ids, ['elvish', 'dwarvish'])
 
-// Source contracts — 2014 page untouched; routes + API helpers present.
+// Source contracts — 2014 body untouched; same route gates 2024 via ?edition=2024.
 const here = dirname(fileURLToPath(import.meta.url))
-const create2014 = readFileSync(join(here, '../../pages/CreateCharacterPage.tsx'), 'utf8')
-assert.match(create2014, /createCharacter\('2014'/, '2014 create stays hardcoded')
-assert.doesNotMatch(create2014, /createCharacter2024/, '2014 page does not call 2024 create')
+const createPage = readFileSync(join(here, '../../pages/CreateCharacterPage.tsx'), 'utf8')
+assert.match(createPage, /createCharacter\('2014'/, '2014 create stays hardcoded')
+assert.match(createPage, /function CreateCharacterPage2014/, '2014 body is a separate function')
+assert.match(createPage, /edition'\) === '2024'/, 'same page branches on edition=2024')
+assert.match(createPage, /CreateCharacter2024Page/, '2024 wizard embedded from create page')
+const body2014 = createPage.slice(
+  createPage.indexOf('function CreateCharacterPage2014'),
+  createPage.indexOf('export function CreateCharacterPage'),
+)
+assert.doesNotMatch(body2014, /createCharacter2024\(/, '2014 body does not call 2024 create')
 
 const appSrc = readFileSync(join(here, '../../App.tsx'), 'utf8')
-assert.match(appSrc, /\/dev\/p24-m03-preview/, 'dev preview route')
-assert.match(appSrc, /\/characters\/create-2024/, 'create-2024 route')
+assert.match(appSrc, /\/characters\/create-2024/, 'legacy create-2024 path redirects')
+assert.match(appSrc, /edition=2024&preview=1/, 'redirect targets unified create route')
+assert.doesNotMatch(appSrc, /p24-m03-preview/, 'fixture preview route removed')
+assert.doesNotMatch(appSrc, /P24M03CreatePreviewPage/, 'fixture preview page removed')
 
 const apiSrc = readFileSync(join(here, '../api/characters.ts'), 'utf8')
 assert.match(apiSrc, /export async function createCharacter2024/)
@@ -185,16 +238,37 @@ assert.match(shellSrc, /stepLabels/, 'shell accepts custom step labels')
 const wizardSrc = readFileSync(join(here, '../../pages/CreateCharacter2024Page.tsx'), 'utf8')
 assert.match(wizardSrc, /p24-m03-next/)
 assert.match(wizardSrc, /p24-m03-finish/)
-assert.match(wizardSrc, /isPreview:\s*true/)
+assert.match(wizardSrc, /isPreview:\s*!RULES_EDITION_2024_OPEN/, 'preview flag follows the edition gate')
+assert.match(wizardSrc, /CreatePipelineShell/, 'wizard uses the shared 2014 shell')
+assert.match(wizardSrc, /CREATE_2024_STEP_LABELS/)
+assert.match(wizardSrc, /visibleCreate2024Steps\(speciesEntry\)/, 'feat step follows the species')
+assert.match(wizardSrc, /embedded/, 'wizard can be embedded without an own route')
+assert.match(wizardSrc, /RULES_EDITION_2024_OPEN/)
+for (const id of ['species', 'feat', 'background', 'class', 'abilities', 'leveling']) {
+  assert.match(wizardSrc, new RegExp(`p24-m03-step-${id}`), `step test id ${id}`)
+}
+for (const id of ['p24-m03-name', 'p24-m03-gender-', 'p24-m03-finish', 'p24-m03-next']) {
+  assert.ok(wizardSrc.includes(id), `test id ${id}`)
+}
+for (const old of ['languages', 'equipment', 'summary']) {
+  assert.doesNotMatch(wizardSrc, new RegExp(`step === '${old}'`), `no dedicated ${old} step`)
+}
+const picksSrc = readFileSync(join(here, '../../features/createPipeline2024/Create2024Picks.tsx'), 'utf8')
+assert.match(picksSrc, /p24-m03-pick-language/, 'languages live in background picks')
+assert.match(picksSrc, /p24-m03-pick-bg-equipment/, 'background equipment in background picks')
+assert.match(picksSrc, /p24-m03-pick-class-equipment/, 'class equipment in class picks')
 assert.match(wizardSrc, /createCharacter2024\(payload\)/, 'finish creates the character')
 assert.match(wizardSrc, /navigate\(`\/characters\/\$\{created\.id\}`\)/, 'finish opens the real sheet')
 assert.doesNotMatch(wizardSrc, /useFixtures|buildCreate2024Fixtures/, 'live wizard has no fixture fallback')
 assert.doesNotMatch(wizardSrc, /createPipeline2024Fixtures/, 'live wizard never imports fixtures')
 assert.match(wizardSrc, /Create2024DetailPanel/, 'rich detail panel')
-assert.match(wizardSrc, /Create2024SheetPreview/, 'summary renders sheet preview')
+assert.match(wizardSrc, /Create2024SheetPreview/, 'leveling renders sheet preview')
 
-const previewSrc = readFileSync(join(here, '../../pages/P24M03CreatePreviewPage.tsx'), 'utf8')
-assert.match(previewSrc, /import\.meta\.env\.DEV/, 'fixtures only behind DEV')
+assert.equal(
+  existsSync(join(here, '../../pages/P24M03CreatePreviewPage.tsx')),
+  false,
+  'P24M03CreatePreviewPage removed',
+)
 
 for (const id of CREATE_2024_STEPS) {
   assert.ok(CREATE_2024_STEP_LABELS[id as Create2024StepId])
@@ -354,7 +428,8 @@ function collectStrings(value: unknown, out: string[] = []): string[] {
 for (const [classEntry, bg, species] of combos) {
   const st = autoState(classEntry, bg, species)
   const label = `${classEntry.slug}/${bg.slug}/${species.slug}`
-  const steps = visibleCreate2024Steps(classEntry)
+  const steps = visibleCreate2024Steps(species)
+  assert.equal(steps.includes('feat'), speciesNeedsOriginFeat(species), `${label}: feat step`)
   for (const id of steps) {
     const issues = create2024StepIssues(id, st, {
       classEntry,

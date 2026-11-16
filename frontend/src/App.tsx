@@ -20,8 +20,6 @@ import { P24CoreRulesPreviewPage } from './pages/P24CoreRulesPreviewPage'
 import { P24WeaponMasteryPreviewPage } from './pages/P24WeaponMasteryPreviewPage'
 import { P24M02aClassesPreviewPage } from './pages/P24M02aClassesPreviewPage'
 import { P24M02bSubclassesPreviewPage } from './pages/P24M02bSubclassesPreviewPage'
-import { P24M03CreatePreviewPage } from './pages/P24M03CreatePreviewPage'
-import { CreateCharacter2024Page } from './pages/CreateCharacter2024Page'
 import { WorldImportHelpPage } from './pages/WorldImportHelpPage'
 import { RequireAuth } from './shared/auth/RequireAuth'
 import { getAccessToken } from './shared/api/client'
@@ -118,7 +116,6 @@ export default function App() {
             <Route path="/dev/p24-m01-preview" element={<P24WeaponMasteryPreviewPage />} />
             <Route path="/dev/p24-m02a-preview" element={<P24M02aClassesPreviewPage />} />
             <Route path="/dev/p24-m02b-preview" element={<P24M02bSubclassesPreviewPage />} />
-            <Route path="/dev/p24-m03-preview" element={<P24M03CreatePreviewPage />} />
             <Route
               path="/dev/consumables-tap-guard"
               element={
@@ -188,9 +185,7 @@ export default function App() {
         <Route
           path="/characters/create-2024"
           element={
-            <AuthLazy>
-              <CreateCharacter2024Page />
-            </AuthLazy>
+            <Navigate to="/characters/create?edition=2024&preview=1" replace />
           }
         />
         <Route

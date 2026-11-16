@@ -7,28 +7,28 @@ import type { CatalogEntry } from '../../shared/api/catalog'
 import type { CharacterCreate2024Request } from '../../shared/api/characters'
 import type { FeatPicks } from './create2024FeatPicks'
 
+/**
+ * Same shell order as the 2014 pipeline: вид → черта* → предыстория → класс →
+ * характеристики → прокачка. «Черта» only shows when the species grants an origin feat.
+ */
 export const CREATE_2024_STEPS = [
-  'class',
-  'background',
   'species',
+  'feat',
+  'background',
+  'class',
   'abilities',
-  'languages',
-  'equipment',
-  'spells',
-  'summary',
+  'leveling',
 ] as const
 
 export type Create2024StepId = (typeof CREATE_2024_STEPS)[number]
 
 export const CREATE_2024_STEP_LABELS: Record<Create2024StepId, string> = {
-  class: 'Класс',
-  background: 'Предыстория',
   species: 'Вид',
+  feat: 'Черта',
+  background: 'Предыстория',
+  class: 'Класс',
   abilities: 'Характеристики',
-  languages: 'Языки',
-  equipment: 'Снаряжение',
-  spells: 'Заклинания',
-  summary: 'Итог',
+  leveling: 'Прокачка',
 }
 
 export type AbilityKey = keyof AbilityScores
@@ -71,13 +71,22 @@ export type Create2024State = {
 
   classEquipment: string
 
+  /**
+   * Target level shown on the leveling stage. The create endpoint is level 1 only:
+   * levels above 1 (and subclass / multiclass) are applied later on the sheet.
+   */
+  characterLevel: number
+  subclassSlug: string | null
+  multiclassSlug: string | null
+  multiclassLevel: number
+
   cantripIds: string[]
   preparedSpellIds: string[]
 }
 
 export function createEmptyCreate2024State(): Create2024State {
   return {
-    step: 'class',
+    step: 'species',
     characterName: '',
     gender: null,
     classSlug: null,
@@ -103,6 +112,10 @@ export function createEmptyCreate2024State(): Create2024State {
     baseAbilities: applyStandardArrayByPriority(null),
     languageIds: [],
     classEquipment: 'a',
+    characterLevel: 1,
+    subclassSlug: null,
+    multiclassSlug: null,
+    multiclassLevel: 1,
     cantripIds: [],
     preparedSpellIds: [],
   }
@@ -157,11 +170,18 @@ export function isCasterAtLevel1(classEntry: CatalogEntry | null | undefined): b
   return Boolean(sc && (sc.cantrips > 0 || sc.prepared_spells > 0))
 }
 
+/** Species that grants an extra origin feat (human «Гибкий»). */
+export function speciesGrantsOriginFeat(species: CatalogEntry | null | undefined): boolean {
+  if (!species) return false
+  return species.slug === 'human' || Boolean(entryData(species).origin_feat_choice)
+}
+
+/** Steps for next/back: the feat step is skipped unless the species grants an origin feat. */
 export function visibleCreate2024Steps(
-  classEntry: CatalogEntry | null | undefined,
+  species: CatalogEntry | null | undefined,
 ): Create2024StepId[] {
-  const caster = isCasterAtLevel1(classEntry)
-  return CREATE_2024_STEPS.filter((id) => id !== 'spells' || caster)
+  const needsFeat = speciesGrantsOriginFeat(species)
+  return CREATE_2024_STEPS.filter((id) => id !== 'feat' || needsFeat)
 }
 
 export function toCreate2024Request(
@@ -202,6 +222,8 @@ export function toCreate2024Request(
       ...state.classOptionPicks,
       client_picks: clientPicks(state),
     },
+    // The API creates level 1 only (no subclass before level 3); state.subclassSlug /
+    // characterLevel / multiclass* stay client-side until level-up is wired to create.
     subclass_slug: null,
   }
 }
