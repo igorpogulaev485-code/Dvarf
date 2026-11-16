@@ -58,12 +58,20 @@ function WizardLevelCard({ level }: { level: number }) {
   )
   const sc = snap.spellcasting[0]
   const features = snap.features.filter((f) => f.source === 'class' || f.source === 'subclass')
-  const recovery = snap.desiredResources.find((r) => r.pool_id === 'arcane_recovery')
+  const recovery =
+    snap.desiredResources.find((r) => r.pool_id === 'arcane_recovery') ||
+    features.find((f) => f.resource?.pool_id === 'arcane_recovery')
   const scholar = features.find((f) => f.id === 'scholar')
   const memorize = features.find((f) => f.id === 'memorize_spell')
   const mastery = features.find((f) => f.id === 'spell_mastery')
   const signature = features.find((f) => f.id === 'signature_spells')
   const newTier = newSlotTiersGainedAtWizardLevel(level)
+  const recoveryLabel =
+    recovery && 'name_ru' in recovery
+      ? `${recovery.name_ru}: ${'max' in recovery ? recovery.max : recovery.resource?.uses ?? 1} (${'reset' in recovery ? recovery.reset : recovery.resource?.recharge ?? 'long'})`
+      : recovery
+        ? `Магическое восстановление: ${recovery.resource?.uses ?? 1}`
+        : 'без Магического восстановления'
 
   return (
     <Panel>
@@ -78,17 +86,13 @@ function WizardLevelCard({ level }: { level: number }) {
           {sc?.slots['6'] ? ` 6×${sc.slots['6']}` : ''}
           {sc?.slots['9'] ? ` 9×${sc.slots['9']}` : ''}
         </p>
-        <p data-testid={`p24-m02-wizard-l${level}-recovery`}>
-          {recovery
-            ? `${recovery.name_ru}: ${recovery.max} (${recovery.reset})`
-            : 'без Магического восстановления'}
-        </p>
+        <p data-testid={`p24-m02-wizard-l${level}-recovery`}>{recoveryLabel}</p>
         <ul data-testid={`p24-m02-wizard-l${level}-features`}>
           {features.slice(0, 16).map((f) => (
             <li key={`${f.id}-${f.level}`}>
               {f.name_ru}
               {f.choice ? ' · выбор' : ''}
-              {f.resource?.pool_id ? ` · пул ${f.resource.pool_id}` : ''}
+              {f.resource?.pool_id ? ' · ресурс' : ''}
             </li>
           ))}
         </ul>
