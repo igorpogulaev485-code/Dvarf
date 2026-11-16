@@ -871,6 +871,9 @@ button.play-desk-compact__more--btn:hover {
   overflow-y: auto;
   overscroll-behavior: contain;
   padding-right: 2px;
+  /* Fixed flex height + display:grid would stretch collapsed circle rows
+     (align-content: stretch). Pack headers to the top; scroll still works when expanded. */
+  align-content: start;
 }
 
 .play-desk-compact__combat-stats--dense {

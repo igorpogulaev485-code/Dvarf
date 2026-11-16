@@ -345,11 +345,14 @@ export function UiKitEtalonPreviewPage() {
                   <span className="passive-card__label">Прониц.</span>
                   <strong>11</strong>
                 </div>
-              </div>
-              <div className="darkvision-sense">
-                <button type="button" className="darkvision-sense__summary" title="Тёмное зрение 60 фт">
-                  <span className="darkvision-sense__label">Тёмное зрение</span>
-                  <strong className="darkvision-sense__value">60 фт</strong>
+                <button
+                  type="button"
+                  className="passive-card passive-card--sense"
+                  title="Тёмное зрение: 60 фт"
+                  aria-label="Тёмное зрение: 60 фт"
+                >
+                  <span className="passive-card__label">ТЗ</span>
+                  <strong>60 фт</strong>
                 </button>
               </div>
             </div>

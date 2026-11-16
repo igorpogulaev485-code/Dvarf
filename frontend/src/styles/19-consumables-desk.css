@@ -329,52 +329,7 @@
   letter-spacing: 0.04em;
 }
 
-/* LP-01: тёмное зрение рядом с пассивами */
-.darkvision-sense {
-  margin-top: 6px;
-  min-width: 0;
-}
-
-.darkvision-sense__summary {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  width: 100%;
-  margin: 0;
-  padding: 6px 8px;
-  border: 1px solid color-mix(in srgb, var(--accent) 22%, var(--line));
-  border-radius: 10px;
-  background: color-mix(in srgb, var(--accent-soft) 40%, white);
-  font: inherit;
-  cursor: pointer;
-  list-style: none;
-  color: var(--ink);
-}
-
-.darkvision-sense__summary::-webkit-details-marker {
-  display: none;
-}
-
-.darkvision-sense__summary:hover {
-  border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
-  background: color-mix(in srgb, var(--accent-soft) 60%, white);
-}
-
-.darkvision-sense__label {
-  font-size: 0.72rem;
-  font-weight: 600;
-  color: var(--muted);
-}
-
-.darkvision-sense__value {
-  font-family: var(--font-display);
-  font-size: 0.95rem;
-  font-weight: 700;
-  color: var(--accent);
-  font-variant-numeric: tabular-nums;
-}
-
+/* LP-01: ТЗ/СЗ/ИЗ/ЧВ — плитки в той же сетке, что Внимат./Анализ/Прониц. */
 .darkvision-sense__panel {
   min-width: min(16rem, calc(100vw - 24px));
   padding: 10px;
@@ -382,6 +337,8 @@
 
 .passive-grid--desk {
   gap: 4px;
+  /* Keep display:grid from .passive-grid; allow 4+ sense tiles in the same flow */
+  grid-template-columns: repeat(auto-fit, minmax(3.6rem, 1fr));
 }
 
 .passive-grid--desk .passive-card {
@@ -405,6 +362,66 @@
   font-family: var(--font-display);
   font-size: 1.05rem;
   color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Sense tiles = same face; button/details reset */
+.passive-grid--desk .passive-card--sense {
+  font: inherit;
+  color: inherit;
+  cursor: default;
+  margin: 0;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.passive-grid--desk button.passive-card--sense {
+  cursor: help;
+}
+
+.passive-grid--desk .passive-card--editable.ui-menu {
+  display: grid;
+  max-width: none;
+  width: auto;
+  min-width: 0;
+  cursor: pointer;
+  position: relative;
+}
+
+.passive-grid--desk .passive-card--editable > .ui-menu__summary.passive-card__sense-face {
+  display: grid;
+  gap: 1px;
+  justify-items: center;
+  align-items: center;
+  margin: 0;
+  padding: 0;
+  min-height: 0;
+  list-style: none;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  width: 100%;
+  box-shadow: none;
+}
+
+.passive-grid--desk .passive-card--editable > .ui-menu__summary.passive-card__sense-face::-webkit-details-marker {
+  display: none;
+}
+
+.passive-grid--desk .passive-card--editable.ui-menu[open] > .ui-menu__summary.passive-card__sense-face {
+  background: transparent;
+  border-color: transparent;
+}
+
+.passive-grid--desk .passive-card--editable:hover,
+.passive-grid--desk button.passive-card--sense:hover,
+.passive-grid--desk button.passive-card--sense:focus-visible,
+.passive-grid--desk .passive-card--editable:focus-within {
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
+  background: color-mix(in srgb, var(--accent-soft) 45%, white);
 }
 
 .play-desk__modes {
