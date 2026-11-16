@@ -1,47 +1,64 @@
 /**
  * P24-M03: D&D 2024 character creation wizard (level 1).
- * Entry: `/characters/create-2024?preview=1` or DEV `/dev/p24-m03-preview`.
+ * Live route: `/characters/create-2024?preview=1` (auth required, catalog from API).
+ * DEV/e2e: `/dev/p24-m03-preview` injects a full catalog through `harness`.
  * Does not open RULES_EDITION_2024_OPEN / player CTA.
  */
 
-import { useEffect, useMemo, useState, type ReactNode } from 'react'
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { AbilitiesStep } from '../features/createPipeline/AbilitiesStep'
-import { CatalogCardList } from '../features/createPipeline/CatalogCardList'
+import { CatalogCardList, type CatalogCardItem } from '../features/createPipeline/CatalogCardList'
 import { CreatePipelineShell } from '../features/createPipeline/CreatePipelineShell'
+import { Create2024DetailPanel } from '../features/createPipeline2024/Create2024DetailPanel'
 import {
-  buildCreate2024Fixtures,
-  FIXTURE_LANGUAGES,
-} from '../features/createPipeline2024/createPipeline2024Fixtures'
+  BackgroundPicks,
+  ClassPicks,
+  SpeciesPicks,
+} from '../features/createPipeline2024/Create2024Picks'
+import { Create2024SheetPreview } from '../features/createPipeline2024/Create2024SheetPreview'
+import {
+  buildItemNameIndex,
+  COMMON_LANGUAGE_NAME_RU,
+  hitDieLabel,
+  itemNameRu,
+  languageKindLabelRu,
+  ruDice,
+  spellSchoolLabelRu,
+  castingTimeLabelRu,
+  sizeLabelRu,
+} from '../features/createPipeline2024/create2024Labels'
+import {
+  originFeatNameOf,
+  originFeatSlugOf,
+  spellsByLevelForClass,
+} from '../features/createPipeline2024/create2024FeatPicks'
+import {
+  buildCreate2024SheetPreview,
+  overlayServerCombat,
+} from '../features/createPipeline2024/create2024SheetPreview'
 import {
   backgroundAsiOverlay,
   backgroundAsiTrio,
-  backgroundNeedsToolPick,
-  canAdvanceCreate2024Step,
-  classSkillNeed,
   classStartingPacks,
-  dragonbornDamageOptions,
-  fightingStyleFeats,
-  l1Invocations,
+  create2024StepIssues,
+  creatableSpecies,
+  findFeat,
+  humanOriginFeatOptions,
   nextCreate2024Step,
-  originFeatSlug,
   prevCreate2024Step,
-  setAsiFlat1,
   setAsiPlus2Plus1,
-  skillLabelRu,
   speciesLineages,
   speciesNeedsAncestry,
   speciesNeedsLineage,
   speciesSizeOptions,
-  toolChoicePool,
-  weaponMasteryLimit,
+  toggleUniquePick,
 } from '../features/createPipeline2024/createPipeline2024State'
 import {
   CREATE_2024_STEP_LABELS,
   classL1Spellcasting,
   createEmptyCreate2024State,
   entryData,
-  isCasterAtLevel1,
   toCreate2024Request,
   visibleCreate2024Steps,
   type Create2024CatalogBundle,
@@ -49,8 +66,8 @@ import {
   type Create2024StepId,
   type LanguagesBundle,
 } from '../features/createPipeline2024/createPipeline2024Types'
-import { PickChipGroup } from '../features/createPipeline2024/PickChipGroup'
-import { listCatalogEntries, type CatalogEntry } from '../shared/api/catalog'
+import { useIsPhone } from '../features/createPipeline2024/useIsPhone'
+import { listCatalogEntries, type CatalogEntry, type CatalogKind } from '../shared/api/catalog'
 import {
   createCharacter2024,
   listCreate2024Languages,
@@ -58,109 +75,143 @@ import {
   type CharacterCreate2024ValidateResponse,
 } from '../shared/api/characters'
 import { getAccessToken } from '../shared/api/client'
-import { RULES_EDITION_2024_OPEN } from '../shared/dnd/rulesEdition2024'
+import { catalogSourceLabelRu } from '../shared/dnd/catalogSourceLabelRu'
+import { CHARACTER_GENDER_LABELS, CHARACTER_GENDERS } from '../shared/dnd/characterGender'
 import { ABILITY_LABEL_RU, type AbilityKey } from '../shared/dnd/pointBuy'
-import { masteryPropertyNameRu } from '../shared/dnd/weaponMastery'
-import { Button, Field, Input, Stack, Text } from '../ui'
+import { RULES_EDITION_2024_OPEN } from '../shared/dnd/rulesEdition2024'
+import { Button, Dialog, Field, Input, Stack, Text, ToggleChip } from '../ui'
+
+export type Create2024Harness = {
+  catalog: Create2024CatalogBundle
+  languages: LanguagesBundle
+}
 
 export type CreateCharacter2024PageProps = {
-  /** Offline fixtures for DEV preview / e2e (no API). */
-  useFixtures?: boolean
+  /** DEV / e2e only: full catalog injected by the preview page (no API reads). */
+  harness?: Create2024Harness | null
   rootTestId?: string
 }
 
-function findBySlug(list: CatalogEntry[], slug: string | null): CatalogEntry | null {
+function findBySlug(list: readonly CatalogEntry[], slug: string | null): CatalogEntry | null {
   if (!slug) return null
   return list.find((e) => e.slug === slug) ?? null
 }
 
-function spellLevel(entry: CatalogEntry): number {
-  const raw = entryData(entry).level
-  return typeof raw === 'number' ? raw : Number(raw ?? -1)
+function byNameRu(list: readonly CatalogEntry[]): CatalogEntry[] {
+  return [...list].sort((a, b) => a.name_ru.localeCompare(b.name_ru, 'ru'))
 }
 
-function spellOnClassList(entry: CatalogEntry, classSlug: string): boolean {
-  const classes = entryData(entry).classes
-  if (!Array.isArray(classes)) return true
-  return classes.map((c) => String(c).toLowerCase()).includes(classSlug)
+function mergeItems(catalog: Create2024CatalogBundle): CatalogEntry[] {
+  const seen = new Set<string>()
+  const out: CatalogEntry[] = []
+  for (const row of [...catalog.items, ...catalog.weapons]) {
+    if (seen.has(row.id)) continue
+    seen.add(row.id)
+    out.push(row)
+  }
+  return out
 }
 
-/** Picks live under the catalog in `cards` so phone stage stays usable (390px). */
-function Stage({
-  testId,
-  catalog,
-  picks,
+async function loadLiveCatalog(
+  signal: AbortSignal,
+): Promise<{ catalog: Create2024CatalogBundle; languages: LanguagesBundle }> {
+  const q = (kind: CatalogKind) => listCatalogEntries({ kind, edition: '2024' }, signal)
+  const [classes, backgrounds, species, feats, weapons, armor, gear, spells, languages] =
+    await Promise.all([
+      q('class'),
+      q('background'),
+      q('race'),
+      q('feat'),
+      q('weapon'),
+      q('armor'),
+      q('item'),
+      q('spell'),
+      listCreate2024Languages(signal),
+    ])
+  return {
+    catalog: {
+      classes,
+      backgrounds,
+      species,
+      feats,
+      weapons,
+      spells,
+      items: [...armor, ...gear],
+    },
+    languages,
+  }
+}
+
+function CreateShellMessage({
+  rootTestId,
+  title,
+  children,
 }: {
-  testId: string
-  catalog: ReactNode
-  picks?: ReactNode
+  rootTestId?: string
+  title: string
+  children?: ReactNode
 }) {
   return (
-    <div data-testid={testId}>
-      <Stack gap={14}>
-        {catalog}
-        {picks}
+    <main
+      className="page page--app page--create-pipeline page--create-2024"
+      data-testid={rootTestId}
+    >
+      <Stack gap={12}>
+        <Text as="h1">{title}</Text>
+        {children}
+        <Link className="back-link" to="/characters">
+          ← К списку персонажей
+        </Link>
       </Stack>
-    </div>
+    </main>
   )
 }
 
-export function CreateCharacter2024Page({
-  useFixtures = false,
-  rootTestId,
-}: CreateCharacter2024PageProps) {
+export function CreateCharacter2024Page({ harness = null, rootTestId }: CreateCharacter2024PageProps) {
   const navigate = useNavigate()
   const [params] = useSearchParams()
+  const phone = useIsPhone()
   const previewQuery = params.get('preview') === '1'
-  const blocked = !useFixtures && !previewQuery && !RULES_EDITION_2024_OPEN
+  const blocked = !harness && !previewQuery && !RULES_EDITION_2024_OPEN
 
   const [state, setState] = useState<Create2024State>(() => createEmptyCreate2024State())
-  const [catalog, setCatalog] = useState<Create2024CatalogBundle | null>(
-    useFixtures ? buildCreate2024Fixtures() : null,
-  )
-  const [languages, setLanguages] = useState<LanguagesBundle | null>(
-    useFixtures ? FIXTURE_LANGUAGES : null,
-  )
+  const [catalog, setCatalog] = useState<Create2024CatalogBundle | null>(harness?.catalog ?? null)
+  const [languages, setLanguages] = useState<LanguagesBundle | null>(harness?.languages ?? null)
   const [loadError, setLoadError] = useState<string | null>(null)
+  const [reloadKey, setReloadKey] = useState(0)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [previewSheet, setPreviewSheet] = useState<CharacterCreate2024ValidateResponse | null>(
-    null,
-  )
-  const [createdId, setCreatedId] = useState<string | null>(null)
+  const [validated, setValidated] = useState<CharacterCreate2024ValidateResponse | null>(null)
+  const [setupOpen, setSetupOpen] = useState(false)
+  const [spellTab, setSpellTab] = useState<'cantrips' | 'level1'>('cantrips')
+  const [focusSpellSlug, setFocusSpellSlug] = useState<string | null>(null)
+  const [harnessDone, setHarnessDone] = useState(false)
 
   useEffect(() => {
-    if (useFixtures || blocked) return
+    if (harness || blocked) return
     const ac = new AbortController()
-    void (async () => {
-      try {
-        const [classes, backgrounds, species, feats, weapons, spells, langs] =
-          await Promise.all([
-            listCatalogEntries({ kind: 'class', edition: '2024' }, ac.signal),
-            listCatalogEntries({ kind: 'background', edition: '2024' }, ac.signal),
-            listCatalogEntries({ kind: 'race', edition: '2024' }, ac.signal),
-            listCatalogEntries({ kind: 'feat', edition: '2024' }, ac.signal),
-            listCatalogEntries({ kind: 'weapon', edition: '2024' }, ac.signal),
-            listCatalogEntries({ kind: 'spell', edition: '2024' }, ac.signal),
-            listCreate2024Languages(ac.signal),
-          ])
-        setCatalog({ classes, backgrounds, species, feats, weapons, spells })
-        setLanguages(langs)
-        setLoadError(null)
-      } catch (err) {
+    setLoadError(null)
+    void loadLiveCatalog(ac.signal)
+      .then((loaded) => {
+        setCatalog(loaded.catalog)
+        setLanguages(loaded.languages)
+      })
+      .catch((err: unknown) => {
         if (ac.signal.aborted) return
-        setCatalog(buildCreate2024Fixtures())
-        setLanguages(FIXTURE_LANGUAGES)
         setLoadError(
-          err instanceof Error
-            ? `Каталог API недоступен — локальные фикстуры. ${err.message}`
-            : 'Каталог API недоступен — локальные фикстуры.',
+          err instanceof Error && err.message
+            ? err.message
+            : 'Не удалось загрузить каталог правил 2024.',
         )
-      }
-    })()
+      })
     return () => ac.abort()
-  }, [useFixtures, blocked])
+  }, [harness, blocked, reloadKey])
 
+  const items = useMemo(() => buildItemNameIndex(catalog ? mergeItems(catalog) : []), [catalog])
+  const classNames = useMemo(
+    () => new Map((catalog?.classes ?? []).map((c) => [c.slug, c.name_ru])),
+    [catalog],
+  )
   const classEntry = findBySlug(catalog?.classes ?? [], state.classSlug)
   const backgroundEntry = findBySlug(catalog?.backgrounds ?? [], state.backgroundSlug)
   const speciesEntry = findBySlug(catalog?.species ?? [], state.speciesSlug)
@@ -173,52 +224,65 @@ export function CreateCharacter2024Page({
     }
   }, [steps, state.step])
 
-  const canNext = canAdvanceCreate2024Step(step, state, {
-    classEntry,
-    backgroundEntry,
-    speciesEntry,
-    languageChoiceCount: languages?.choice_count ?? 2,
-  })
+  const issues = catalog
+    ? create2024StepIssues(step, state, {
+        classEntry,
+        backgroundEntry,
+        speciesEntry,
+        languageChoiceCount: languages?.choice_count ?? 2,
+        catalog,
+        items,
+      })
+    : []
+  const canNext = issues.length === 0
 
-  function patch(partial: Partial<Create2024State>) {
+  const patch = useCallback((partial: Partial<Create2024State>) => {
     setState((prev) => ({ ...prev, ...partial }))
     setError(null)
-    setPreviewSheet(null)
-    setCreatedId(null)
-  }
+    setValidated(null)
+  }, [])
 
   function goToStep(nextStep: string) {
     if ((steps as readonly string[]).includes(nextStep)) {
+      setSetupOpen(false)
       patch({ step: nextStep as Create2024StepId })
     }
   }
 
+  const requestKey = useMemo(() => JSON.stringify(toCreate2024Request(state)), [state])
+  const liveValidate = Boolean(getAccessToken()) && !harness
+
+  useEffect(() => {
+    if (step !== 'summary' || !liveValidate || !catalog) return
+    const ac = new AbortController()
+    const payload = JSON.parse(requestKey) as ReturnType<typeof toCreate2024Request>
+    if (!state.characterName.trim()) return
+    void validateCreate2024(payload, ac.signal)
+      .then(setValidated)
+      .catch((err: unknown) => {
+        if (ac.signal.aborted) return
+        setError(err instanceof Error ? err.message : 'Не удалось проверить персонажа.')
+      })
+    return () => ac.abort()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step, requestKey, liveValidate, catalog])
+
   async function onFinish() {
-    if (!canNext) return
+    if (!canNext || !catalog) return
     setBusy(true)
     setError(null)
-    const payload = toCreate2024Request(state, { isPreview: true, isDraft: false })
     try {
-      if (getAccessToken() && !useFixtures) {
-        const validated = await validateCreate2024(payload)
-        setPreviewSheet(validated)
-        const created = await createCharacter2024(payload)
-        setCreatedId(created.id)
-      } else {
-        setPreviewSheet({
-          ok: true,
-          name: payload.name,
-          level: 1,
-          class_name: classEntry?.name_ru || payload.class_slug,
-          race_name: speciesEntry?.name_ru || payload.species_slug,
-          hp_max: 10,
-          sheet: {
-            meta: { rules_edition: '2024', preview_local: true },
-            create_2024: payload,
-          },
-          warnings: ['Локальный превью-итог (без записи в БД).'],
-        })
+      if (!getAccessToken()) {
+        if (harness) {
+          setHarnessDone(true)
+          return
+        }
+        setError('Войдите в аккаунт, чтобы создать персонажа.')
+        return
       }
+      const payload = toCreate2024Request(state, { isPreview: true, isDraft: false })
+      const created = await createCharacter2024(payload)
+      navigate(`/characters/${created.id}`)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Не удалось создать персонажа')
     } finally {
@@ -228,562 +292,338 @@ export function CreateCharacter2024Page({
 
   if (blocked) {
     return (
-      <main className="page page--app page--create-pipeline" data-testid={rootTestId}>
-        <Stack gap={12}>
-          <Text as="h1">Создание D&D 2024 закрыто</Text>
-          <p className="ui-text ui-text--muted" data-testid="p24-m03-flag">
-            Флаг RULES_EDITION_2024_OPEN = {String(RULES_EDITION_2024_OPEN)}. Откройте с
-            ?preview=1 или через /dev/p24-m03-preview.
-          </p>
-          <Link className="back-link" to="/characters">
-            ← К списку
-          </Link>
-        </Stack>
-      </main>
+      <CreateShellMessage rootTestId={rootTestId} title="Создание персонажа 2024 пока закрыто">
+        <Text tone="muted">Новая редакция правил ещё не открыта для игроков.</Text>
+      </CreateShellMessage>
+    )
+  }
+
+  if (loadError) {
+    return (
+      <CreateShellMessage rootTestId={rootTestId} title="Каталог правил 2024 недоступен">
+        <Text tone="danger" data-testid="p24-m03-load-error">
+          {loadError}
+        </Text>
+        <div>
+          <Button onClick={() => setReloadKey((k) => k + 1)}>Повторить</Button>
+        </div>
+      </CreateShellMessage>
     )
   }
 
   if (!catalog || !languages) {
     return (
-      <main className="page page--app page--create-pipeline" data-testid={rootTestId}>
-        <Text tone="muted">Загрузка каталога 2024…</Text>
+      <main
+        className="page page--app page--create-pipeline page--create-2024"
+        data-testid={rootTestId}
+      >
+        <Text tone="muted">Загрузка каталога правил 2024…</Text>
       </main>
     )
   }
 
-  const racialBonuses = backgroundAsiOverlay(state)
+  const catalogData = catalog
+  const bonuses = backgroundAsiOverlay(state)
   const next = nextCreate2024Step(step, steps)
   const prev = prevCreate2024Step(step, steps)
+
+  const issueNode =
+    issues.length > 0 ? (
+      <div className="create-2024__issues" data-testid="p24-m03-issues" role="status">
+        <Text tone="muted">Осталось выбрать:</Text>
+        <ul className="create-2024__list">
+          {issues.map((line) => (
+            <li key={line}>{line}</li>
+          ))}
+        </ul>
+      </div>
+    ) : null
+
+  function phoneSetupBar(title: string, name: string) {
+    return (
+      <div className="create-2024__setup-bar" data-testid="p24-m03-setup-bar">
+        <Text>
+          <strong>{name}</strong>
+        </Text>
+        <Text tone="muted">
+          {issues.length ? `Осталось выбрать: ${issues.length}` : 'Все выборы сделаны'}
+        </Text>
+        <Button
+          variant="secondary"
+          onClick={() => setSetupOpen(true)}
+          data-testid="p24-m03-setup-open"
+        >
+          {title}
+        </Button>
+      </div>
+    )
+  }
+
+  function catalogStep(options: {
+    testId: string
+    list: ReactNode
+    entry: CatalogEntry | null
+    kind: 'class' | 'background' | 'species'
+    emptyTitle: string
+    setupTitle: string
+    picks: ReactNode
+  }) {
+    const { testId, list, entry, kind, emptyTitle, setupTitle, picks } = options
+    const panel = (withPicks: boolean) => (
+      <Create2024DetailPanel
+        kind={kind}
+        entry={entry}
+        emptyTitle={emptyTitle}
+        feats={catalogData.feats}
+        items={items}
+      >
+        {withPicks && entry ? (
+          <div className="create-2024__setup" data-testid={`${testId}-setup`}>
+            <Text as="h3" className="create-pipeline__section-title">
+              Ваш выбор
+            </Text>
+            {picks}
+            {issueNode}
+          </div>
+        ) : null}
+      </Create2024DetailPanel>
+    )
+    return {
+      cards: (
+        <div data-testid={testId}>
+          <Stack gap={12}>
+            {list}
+            {phone && entry ? phoneSetupBar(setupTitle, entry.name_ru) : null}
+          </Stack>
+        </div>
+      ),
+      detail: panel(!phone),
+      setupDialog: (
+        <Dialog
+          open={phone && setupOpen && Boolean(entry)}
+          title={setupTitle}
+          size="wide"
+          primaryLabel="Готово"
+          onPrimary={() => setSetupOpen(false)}
+          onSecondary={() => setSetupOpen(false)}
+          closeOnBackdrop
+        >
+          <div data-testid={`${testId}-setup`}>{panel(true)}</div>
+        </Dialog>
+      ),
+    }
+  }
 
   let cards: ReactNode = null
   let detail: ReactNode = null
   let footer: ReactNode = null
+  let setupDialog: ReactNode = null
   let detailPrimary = false
 
   if (step === 'class') {
-    const skills = classSkillNeed(classEntry)
-    const wmLimit = weaponMasteryLimit(state.classSlug)
-    const styleFeats = fightingStyleFeats(catalog.feats)
-    cards = (
-      <Stage
-        testId="p24-m03-step-class"
-        catalog={
-          <CatalogCardList
-            resetToken={step}
-            selectedId={classEntry?.id ?? null}
-            items={catalog.classes.map((e) => ({
+    const built = catalogStep({
+      testId: 'p24-m03-step-class',
+      kind: 'class',
+      entry: classEntry,
+      emptyTitle: 'Класс',
+      setupTitle: 'Настроить класс',
+      picks: classEntry ? (
+        <ClassPicks
+          state={state}
+          patch={patch}
+          catalog={catalogData}
+          items={items}
+          classEntry={classEntry}
+        />
+      ) : null,
+      list: (
+        <CatalogCardList
+          resetToken={step}
+          selectedId={classEntry?.id ?? null}
+          cardTestIdPrefix="p24-m03-card"
+          searchPlaceholder="Поиск класса…"
+          items={byNameRu(catalogData.classes).map<CatalogCardItem>((e) => {
+            const data = entryData(e)
+            const primary = Array.isArray(data.primary_abilities)
+              ? (data.primary_abilities as string[])
+                  .map((a) => ABILITY_LABEL_RU[a as AbilityKey] ?? '')
+                  .filter(Boolean)
+                  .join(' / ')
+              : ''
+            return {
               id: e.id,
               title: e.name_ru,
-              subtitle: e.name_en ?? undefined,
-              source: e.source,
-              meta: Array.isArray(entryData(e).primary_abilities)
-                ? (entryData(e).primary_abilities as string[])
-                    .map((a) => ABILITY_LABEL_RU[a as AbilityKey] ?? a)
-                    .join('/')
-                : null,
-            }))}
-            onSelect={(id) => {
-              const entry = catalog.classes.find((e) => e.id === id)
-              if (!entry) return
-              const packs = classStartingPacks(entry)
-              patch({
-                classSlug: entry.slug,
-                classSkillIds: [],
-                weaponMasteryIds: [],
-                fightingStyleSlug: null,
-                classOptionPicks: {},
-                classEquipment: packs[0]?.id || 'a',
-                cantripIds: [],
-                preparedSpellIds: [],
-              })
-            }}
-          />
-        }
-        picks={
-          classEntry ? (
-            <Stack gap={14}>
-              <Text tone="muted">
-                Подкласс на 1 уровне недоступен. Выберите навыки и опции класса.
-              </Text>
-              {skills.count > 0 ? (
-                <PickChipGroup
-                  label="Навыки класса"
-                  options={skills.from.map((id) => ({ id, label: skillLabelRu(id) }))}
-                  selected={state.classSkillIds}
-                  max={skills.count}
-                  onChange={(classSkillIds) => patch({ classSkillIds })}
-                />
-              ) : null}
-              {wmLimit > 0 ? (
-                <PickChipGroup
-                  label="Мастерство оружия"
-                  options={catalog.weapons.map((w) => ({
-                    id: w.slug,
-                    label: w.name_ru,
-                    rest: masteryPropertyNameRu(String(entryData(w).mastery || '')),
-                  }))}
-                  selected={state.weaponMasteryIds}
-                  max={wmLimit}
-                  onChange={(weaponMasteryIds) => patch({ weaponMasteryIds })}
-                />
-              ) : null}
-              {state.classSlug === 'fighter' ? (
-                <PickChipGroup
-                  label="Боевой стиль"
-                  options={styleFeats.map((f) => ({ id: f.slug, label: f.name_ru }))}
-                  selected={state.fightingStyleSlug ? [state.fightingStyleSlug] : []}
-                  max={1}
-                  multi={false}
-                  onChange={(ids) => patch({ fightingStyleSlug: ids[0] ?? null })}
-                />
-              ) : null}
-              {state.classSlug === 'cleric' ? (
-                <PickChipGroup
-                  label="Божественный указ"
-                  options={[
-                    { id: 'protector', label: 'Защитник' },
-                    { id: 'thaumaturge', label: 'Чудотворец' },
-                  ]}
-                  selected={
-                    state.classOptionPicks.divine_order
-                      ? [String(state.classOptionPicks.divine_order)]
-                      : []
-                  }
-                  max={1}
-                  multi={false}
-                  onChange={(ids) =>
-                    patch({
-                      classOptionPicks: {
-                        ...state.classOptionPicks,
-                        divine_order: ids[0],
-                      },
-                    })
-                  }
-                />
-              ) : null}
-              {state.classSlug === 'druid' ? (
-                <PickChipGroup
-                  label="Изначальный указ"
-                  options={[
-                    { id: 'magician', label: 'Маг' },
-                    { id: 'warden', label: 'Страж' },
-                  ]}
-                  selected={
-                    state.classOptionPicks.primal_order
-                      ? [String(state.classOptionPicks.primal_order)]
-                      : []
-                  }
-                  max={1}
-                  multi={false}
-                  onChange={(ids) =>
-                    patch({
-                      classOptionPicks: {
-                        ...state.classOptionPicks,
-                        primal_order: ids[0],
-                      },
-                    })
-                  }
-                />
-              ) : null}
-              {state.classSlug === 'rogue' ? (
-                <PickChipGroup
-                  label="Компетентность"
-                  options={[
-                    ...state.classSkillIds.map((id) => ({
-                      id,
-                      label: skillLabelRu(id),
-                    })),
-                    { id: 'thieves-tools', label: 'Воровские инструменты' },
-                  ]}
-                  selected={
-                    Array.isArray(state.classOptionPicks.expertise)
-                      ? (state.classOptionPicks.expertise as string[])
-                      : []
-                  }
-                  max={2}
-                  onChange={(expertise) =>
-                    patch({
-                      classOptionPicks: { ...state.classOptionPicks, expertise },
-                    })
-                  }
-                />
-              ) : null}
-              {state.classSlug === 'warlock' ? (
-                <PickChipGroup
-                  label="Мистические воззвания"
-                  options={l1Invocations().map((row) => ({
-                    id: row.id,
-                    label: row.nameRu,
-                    rest: row.summaryRu,
-                  }))}
-                  selected={
-                    Array.isArray(state.classOptionPicks.eldritch_invocations)
-                      ? (state.classOptionPicks.eldritch_invocations as string[])
-                      : []
-                  }
-                  max={1}
-                  multi={false}
-                  onChange={(ids) =>
-                    patch({
-                      classOptionPicks: {
-                        ...state.classOptionPicks,
-                        eldritch_invocations: ids,
-                      },
-                    })
-                  }
-                />
-              ) : null}
-            </Stack>
-          ) : null
-        }
-      />
-    )
-    detail = (
-      <Stack gap={8}>
-        <Text as="h2">{classEntry?.name_ru || 'Класс'}</Text>
-        <Text tone="muted">{String(entryData(classEntry).summary_ru || 'Выберите класс слева.')}</Text>
-      </Stack>
-    )
+              source: catalogSourceLabelRu(e.source),
+              meta: [hitDieLabel(data.hit_die), primary].filter(Boolean).join(' · '),
+            }
+          })}
+          onSelect={(id) => {
+            const entry = catalogData.classes.find((e) => e.id === id)
+            if (!entry) return
+            const packs = classStartingPacks(entry)
+            patch({
+              classSlug: entry.slug,
+              classSkillIds: [],
+              weaponMasteryIds: [],
+              fightingStyleSlug: null,
+              classOptionPicks: {},
+              classToolIds: [],
+              classEquipment: packs[0]?.id || 'a',
+              cantripIds: [],
+              preparedSpellIds: [],
+            })
+            setSpellTab('cantrips')
+            setSetupOpen(true)
+          }}
+        />
+      ),
+    })
+    cards = built.cards
+    detail = built.detail
+    setupDialog = built.setupDialog
   }
 
   if (step === 'background') {
-    const trio = backgroundAsiTrio(backgroundEntry)
-    const feat = originFeatSlug(backgroundEntry)
-    const toolPool = toolChoicePool(backgroundEntry)
-    const featNote = backgroundEntry
-      ? String(
-          (entryData(backgroundEntry).origin_feat as { name_ru?: string } | undefined)
-            ?.name_ru ||
-            feat ||
-            '',
-        )
-      : ''
-    cards = (
-      <Stage
-        testId="p24-m03-step-background"
-        catalog={
-          <CatalogCardList
-            resetToken={step}
-            selectedId={backgroundEntry?.id ?? null}
-            items={catalog.backgrounds.map((e) => ({
+    const built = catalogStep({
+      testId: 'p24-m03-step-background',
+      kind: 'background',
+      entry: backgroundEntry,
+      emptyTitle: 'Предыстория',
+      setupTitle: 'Настроить предысторию',
+      picks: backgroundEntry ? (
+        <BackgroundPicks
+          state={state}
+          patch={patch}
+          catalog={catalogData}
+          items={items}
+          backgroundEntry={backgroundEntry}
+        />
+      ) : null,
+      list: (
+        <CatalogCardList
+          resetToken={step}
+          selectedId={backgroundEntry?.id ?? null}
+          cardTestIdPrefix="p24-m03-card"
+          searchPlaceholder="Поиск предыстории…"
+          items={byNameRu(catalogData.backgrounds).map<CatalogCardItem>((e) => {
+            const featName = originFeatNameOf(e)
+            const trio = backgroundAsiTrio(e)
+            return {
               id: e.id,
               title: e.name_ru,
-              source: e.source,
-              meta: originFeatSlug(e)
-                ? `черта происхождения: ${
-                    (entryData(e).origin_feat as { name_ru?: string } | undefined)
-                      ?.name_ru || originFeatSlug(e)
-                  }`
-                : null,
-            }))}
-            onSelect={(id) => {
-              const entry = catalog.backgrounds.find((e) => e.id === id)
-              if (!entry) return
-              const nextTrio = backgroundAsiTrio(entry)
-              patch({
-                backgroundSlug: entry.slug,
-                backgroundAsiMode: '+2/+1',
-                backgroundAsi:
-                  nextTrio.length >= 2
-                    ? setAsiPlus2Plus1(nextTrio, nextTrio[0]!, nextTrio[1]!)
-                    : {},
-                backgroundToolId: null,
-                backgroundEquipment: 'pack',
-                originFeatList: null,
-                originFeatCantrips: [],
-                originFeatSpellId: null,
-                originFeatSkilled: [],
-              })
-            }}
-          />
-        }
-        picks={
-          backgroundEntry ? (
-            <Stack gap={14}>
-              {featNote ? (
-                <Text>
-                  Черта происхождения: <strong>{featNote}</strong>
-                </Text>
-              ) : null}
-              {trio.length === 3 ? (
-                <Stack gap={8}>
-                  <Text tone="muted">
-                    ASI только из тройки{' '}
-                    {trio.map((k) => ABILITY_LABEL_RU[k]).join(' / ')}. Вид не даёт ASI.
-                  </Text>
-                  <PickChipGroup
-                    label="Режим ASI"
-                    options={[
-                      { id: '+2/+1', label: '+2 / +1' },
-                      { id: '+1/+1/+1', label: '+1 / +1 / +1' },
-                    ]}
-                    selected={[state.backgroundAsiMode]}
-                    max={1}
-                    multi={false}
-                    onChange={(ids) => {
-                      const mode = (ids[0] as '+2/+1' | '+1/+1/+1') || '+2/+1'
-                      patch({
-                        backgroundAsiMode: mode,
-                        backgroundAsi:
-                          mode === '+1/+1/+1'
-                            ? setAsiFlat1(trio)
-                            : setAsiPlus2Plus1(trio, trio[0]!, trio[1]!),
-                      })
-                    }}
-                  />
-                  {state.backgroundAsiMode === '+2/+1' ? (
-                    <>
-                      <PickChipGroup
-                        label="+2"
-                        options={trio.map((k) => ({
-                          id: k,
-                          label: ABILITY_LABEL_RU[k],
-                        }))}
-                        selected={trio.filter((k) => state.backgroundAsi[k] === 2)}
-                        max={1}
-                        multi={false}
-                        onChange={(ids) => {
-                          const plus2 = (ids[0] as AbilityKey) || trio[0]!
-                          const plus1 =
-                            (trio.find(
-                              (k) => k !== plus2 && state.backgroundAsi[k] === 1,
-                            ) as AbilityKey) ||
-                            (trio.find((k) => k !== plus2) as AbilityKey)
-                          patch({
-                            backgroundAsi: setAsiPlus2Plus1(trio, plus2, plus1),
-                          })
-                        }}
-                      />
-                      <PickChipGroup
-                        label="+1"
-                        options={trio
-                          .filter((k) => state.backgroundAsi[k] !== 2)
-                          .map((k) => ({ id: k, label: ABILITY_LABEL_RU[k] }))}
-                        selected={trio.filter((k) => state.backgroundAsi[k] === 1)}
-                        max={1}
-                        multi={false}
-                        onChange={(ids) => {
-                          const plus1 = (ids[0] as AbilityKey) || trio[1]!
-                          const plus2 =
-                            (trio.find((k) => state.backgroundAsi[k] === 2) as AbilityKey) ||
-                            trio[0]!
-                          if (plus1 === plus2) return
-                          patch({
-                            backgroundAsi: setAsiPlus2Plus1(trio, plus2, plus1),
-                          })
-                        }}
-                      />
-                    </>
-                  ) : null}
-                </Stack>
-              ) : null}
-              {backgroundNeedsToolPick(backgroundEntry) && toolPool ? (
-                <PickChipGroup
-                  label="Инструмент предыстории"
-                  options={toolPool.map((id) => ({ id, label: id }))}
-                  selected={state.backgroundToolId ? [state.backgroundToolId] : []}
-                  max={1}
-                  multi={false}
-                  onChange={(ids) => patch({ backgroundToolId: ids[0] ?? null })}
-                />
-              ) : null}
-              {feat === 'magic-initiate' ? (
-                <Stack gap={8}>
-                  <PickChipGroup
-                    label="Список Magic Initiate"
-                    options={[
-                      { id: 'cleric', label: 'Жрец' },
-                      { id: 'druid', label: 'Друид' },
-                      { id: 'wizard', label: 'Волшебник' },
-                    ]}
-                    selected={state.originFeatList ? [state.originFeatList] : []}
-                    max={1}
-                    multi={false}
-                    onChange={(ids) =>
-                      patch({
-                        originFeatList: ids[0] ?? null,
-                        originFeatCantrips: [],
-                        originFeatSpellId: null,
-                      })
-                    }
-                  />
-                  {state.originFeatList ? (
-                    <>
-                      <PickChipGroup
-                        label="Заговоры"
-                        options={catalog.spells
-                          .filter(
-                            (s) =>
-                              spellLevel(s) === 0 &&
-                              spellOnClassList(s, state.originFeatList || ''),
-                          )
-                          .map((s) => ({ id: s.slug, label: s.name_ru }))}
-                        selected={state.originFeatCantrips}
-                        max={2}
-                        onChange={(originFeatCantrips) => patch({ originFeatCantrips })}
-                      />
-                      <PickChipGroup
-                        label="Заклинание 1 круга"
-                        options={catalog.spells
-                          .filter(
-                            (s) =>
-                              spellLevel(s) === 1 &&
-                              spellOnClassList(s, state.originFeatList || ''),
-                          )
-                          .map((s) => ({ id: s.slug, label: s.name_ru }))}
-                        selected={
-                          state.originFeatSpellId ? [state.originFeatSpellId] : []
-                        }
-                        max={1}
-                        multi={false}
-                        onChange={(ids) =>
-                          patch({ originFeatSpellId: ids[0] ?? null })
-                        }
-                      />
-                    </>
-                  ) : null}
-                </Stack>
-              ) : null}
-              {feat === 'skilled' ? (
-                <PickChipGroup
-                  label="Умелый — 3 навыка/инструмента"
-                  options={[
-                    ...[
-                      'athletics',
-                      'stealth',
-                      'persuasion',
-                      'arcana',
-                      'insight',
-                      'perception',
-                    ].map((id) => ({ id, label: skillLabelRu(id) })),
-                    { id: 'thieves-tools', label: 'Воровские инструменты' },
-                    { id: 'herbalism-kit', label: 'Набор травника' },
-                  ]}
-                  selected={state.originFeatSkilled}
-                  max={3}
-                  onChange={(originFeatSkilled) => patch({ originFeatSkilled })}
-                />
-              ) : null}
-            </Stack>
-          ) : null
-        }
-      />
-    )
-    detail = (
-      <Stack gap={8}>
-        <Text as="h2">{backgroundEntry?.name_ru || 'Предыстория'}</Text>
-        <Text tone="muted">ASI и черта происхождения настраиваются под списком.</Text>
-      </Stack>
-    )
+              source: catalogSourceLabelRu(e.source),
+              meta: [
+                trio.length ? trio.map((k) => ABILITY_LABEL_RU[k]).join('/') : '',
+                featName ? `черта: ${featName}` : '',
+              ]
+                .filter(Boolean)
+                .join(' · '),
+            }
+          })}
+          onSelect={(id) => {
+            const entry = catalogData.backgrounds.find((e) => e.id === id)
+            if (!entry) return
+            const trio = backgroundAsiTrio(entry)
+            const humanOptions = humanOriginFeatOptions(
+              catalogData.feats,
+              originFeatSlugOf(entry),
+            )
+            const keepHumanFeat = humanOptions.some((f) => f.slug === state.speciesFeatSlug)
+            patch({
+              backgroundSlug: entry.slug,
+              backgroundAsiMode: '+2/+1',
+              backgroundAsi:
+                trio.length >= 2 ? setAsiPlus2Plus1(trio, trio[0]!, trio[1]!) : {},
+              backgroundToolId: null,
+              backgroundEquipment: 'pack',
+              originFeatPicks: {},
+              ...(keepHumanFeat ? {} : { speciesFeatSlug: null, speciesFeatPicks: {} }),
+            })
+            setSetupOpen(true)
+          }}
+        />
+      ),
+    })
+    cards = built.cards
+    detail = built.detail
+    setupDialog = built.setupDialog
   }
 
   if (step === 'species') {
-    const sizes = speciesSizeOptions(speciesEntry)
-    const lineages = speciesLineages(speciesEntry)
-    cards = (
-      <Stage
-        testId="p24-m03-step-species"
-        catalog={
-          <CatalogCardList
-            resetToken={step}
-            selectedId={speciesEntry?.id ?? null}
-            searchPlaceholder="Поиск вида…"
-            items={catalog.species.map((e) => ({
+    const built = catalogStep({
+      testId: 'p24-m03-step-species',
+      kind: 'species',
+      entry: speciesEntry,
+      emptyTitle: 'Вид',
+      setupTitle: 'Настроить вид',
+      picks: speciesEntry ? (
+        <SpeciesPicks
+          state={state}
+          patch={patch}
+          catalog={catalogData}
+          items={items}
+          speciesEntry={speciesEntry}
+        />
+      ) : null,
+      list: (
+        <CatalogCardList
+          resetToken={step}
+          selectedId={speciesEntry?.id ?? null}
+          cardTestIdPrefix="p24-m03-card"
+          searchPlaceholder="Поиск вида…"
+          items={byNameRu(creatableSpecies(catalogData.species)).map<CatalogCardItem>((e) => {
+            const sizes = speciesSizeOptions(e).map(sizeLabelRu).join(' / ')
+            const extra = speciesNeedsLineage(e)
+              ? 'родословная'
+              : speciesNeedsAncestry(e)
+                ? 'наследие дракона'
+                : ''
+            return {
               id: e.id,
               title: e.name_ru,
-              source: e.source,
-              meta: speciesNeedsLineage(e)
-                ? 'родословная'
-                : speciesNeedsAncestry(e)
-                  ? 'наследие дракона'
-                  : null,
-            }))}
-            onSelect={(id) => {
-              const entry = catalog.species.find((e) => e.id === id)
-              if (!entry) return
-              const nextSizes = speciesSizeOptions(entry)
-              patch({
-                speciesSlug: entry.slug,
-                speciesSize: nextSizes.length === 1 ? nextSizes[0]! : null,
-                speciesLineageId: null,
-                speciesAncestryId: null,
-              })
-            }}
-          />
-        }
-        picks={
-          speciesEntry ? (
-            <Stack gap={14}>
-              <Text tone="muted">
-                Вид не даёт ASI и языков — только размер / родословную / наследие при
-                необходимости.
-              </Text>
-              {sizes.length > 1 ? (
-                <PickChipGroup
-                  label="Размер"
-                  options={sizes.map((id) => ({
-                    id,
-                    label:
-                      id === 'small' ? 'Маленький' : id === 'medium' ? 'Средний' : id,
-                  }))}
-                  selected={state.speciesSize ? [state.speciesSize] : []}
-                  max={1}
-                  multi={false}
-                  onChange={(ids) => patch({ speciesSize: ids[0] ?? null })}
-                />
-              ) : null}
-              {speciesNeedsLineage(speciesEntry) ? (
-                <PickChipGroup
-                  label="Родословная"
-                  options={lineages.map((l) => ({
-                    id: l.id,
-                    label: l.name_ru,
-                    rest: l.summary_ru,
-                  }))}
-                  selected={state.speciesLineageId ? [state.speciesLineageId] : []}
-                  max={1}
-                  multi={false}
-                  onChange={(ids) => patch({ speciesLineageId: ids[0] ?? null })}
-                />
-              ) : null}
-              {speciesNeedsAncestry(speciesEntry) ? (
-                <PickChipGroup
-                  label="Драконье наследие (урон)"
-                  options={dragonbornDamageOptions().map((id) => ({
-                    id,
-                    label: id,
-                  }))}
-                  selected={state.speciesAncestryId ? [state.speciesAncestryId] : []}
-                  max={1}
-                  multi={false}
-                  onChange={(ids) => patch({ speciesAncestryId: ids[0] ?? null })}
-                />
-              ) : null}
-            </Stack>
-          ) : null
-        }
-      />
-    )
-    detail = (
-      <Stack gap={8}>
-        <Text as="h2">{speciesEntry?.name_ru || 'Вид'}</Text>
-        <Text tone="muted">{String(entryData(speciesEntry).traits_text || '')}</Text>
-      </Stack>
-    )
+              source: catalogSourceLabelRu(e.source),
+              meta: [sizes, extra].filter(Boolean).join(' · '),
+            }
+          })}
+          onSelect={(id) => {
+            const entry = catalogData.species.find((e) => e.id === id)
+            if (!entry) return
+            const sizes = speciesSizeOptions(entry)
+            patch({
+              speciesSlug: entry.slug,
+              speciesSize: sizes.length === 1 ? sizes[0]! : null,
+              speciesLineageId: null,
+              speciesAncestryId: null,
+              speciesPicks: {},
+              speciesFeatSlug: null,
+              speciesFeatPicks: {},
+            })
+            setSetupOpen(true)
+          }}
+        />
+      ),
+    })
+    cards = built.cards
+    detail = built.detail
+    setupDialog = built.setupDialog
   }
 
   if (step === 'abilities') {
     detailPrimary = true
+    const trio = backgroundAsiTrio(backgroundEntry)
     cards = (
       <Stack gap={8}>
-        <Text as="h3">Сводка ASI</Text>
-        <Text tone="muted">
-          Бонусы справа — от предыстории (не от вида). Потолок после бонусов: 20.
+        <Text as="h3" className="create-pipeline__section-title">
+          Бонусы предыстории
         </Text>
-        <ul>
-          {Object.entries(racialBonuses).map(([k, v]) => (
+        <Text tone="muted">
+          Бонусы даёт предыстория «{backgroundEntry?.name_ru ?? '—'}», вид характеристики не
+          меняет. Потолок после бонусов — 20.
+        </Text>
+        <ul className="create-2024__list">
+          {trio.map((k) => (
             <li key={k}>
-              {ABILITY_LABEL_RU[k as AbilityKey]} +{v}
+              {ABILITY_LABEL_RU[k]}: {bonuses[k] ? `+${bonuses[k]}` : 'без бонуса'}
             </li>
           ))}
         </ul>
@@ -791,214 +631,342 @@ export function CreateCharacter2024Page({
     )
     detail = (
       <div data-testid="p24-m03-step-abilities">
-        <AbilitiesStep
-          method={state.abilityMethod}
-          baseAbilities={state.baseAbilities}
-          racialBonuses={racialBonuses}
-          classSlug={state.classSlug}
-          bonusLabel="предыстория"
-          onMethodChange={(abilityMethod) => patch({ abilityMethod })}
-          onBaseChange={(baseAbilities) => patch({ baseAbilities })}
-        />
+        <Stack gap={12}>
+          <AbilitiesStep
+            method={state.abilityMethod}
+            baseAbilities={state.baseAbilities}
+            racialBonuses={bonuses}
+            classSlug={state.classSlug}
+            bonusLabel="предыстория"
+            onMethodChange={(abilityMethod) => patch({ abilityMethod })}
+            onBaseChange={(baseAbilities) => patch({ baseAbilities })}
+          />
+          {issueNode}
+        </Stack>
       </div>
     )
   }
 
   if (step === 'languages') {
+    const need = languages.choice_count
+    const langItems: CatalogCardItem[] = languages.languages.map((l) => ({
+      id: l.id,
+      title: l.name_ru,
+      subtitle: languageKindLabelRu(l.kind),
+    }))
+    const chosen = languages.languages.filter((l) => state.languageIds.includes(l.id))
     cards = (
-      <Stage
-        testId="p24-m03-step-languages"
-        catalog={
-          <Stack gap={8}>
-            <Text as="h3">Автоматически</Text>
-            <Text>Общий ({languages.common_id})</Text>
-          </Stack>
-        }
-        picks={
-          <PickChipGroup
-            label="Языки на выбор"
-            hint={`Общий уже есть. Выберите ровно ${languages.choice_count} (включая язык жестов).`}
-            options={languages.languages.map((l) => ({
-              id: l.id,
-              label: l.name_ru,
-              rest: l.kind,
-            }))}
-            selected={state.languageIds}
-            max={languages.choice_count}
-            onChange={(languageIds) => patch({ languageIds })}
-          />
-        }
-      />
+      <div data-testid="p24-m03-step-languages">
+        <CatalogCardList
+          resetToken={step}
+          selectedId={null}
+          selectedIds={state.languageIds}
+          cardTestIdPrefix="p24-m03-card"
+          searchPlaceholder="Поиск языка…"
+          items={langItems}
+          headerSlot={
+            <Stack gap={4}>
+              <Text>
+                <strong>{COMMON_LANGUAGE_NAME_RU}</strong> — уже известен
+              </Text>
+              <Text tone="muted">
+                Выбрано {state.languageIds.length} из {need}
+              </Text>
+            </Stack>
+          }
+          onSelect={(id) => patch({ languageIds: toggleUniquePick(state.languageIds, id, need) })}
+        />
+      </div>
     )
     detail = (
-      <Text tone="muted">Вид и предыстория языков не дают — только этот шаг (+ классовые).</Text>
+      <Stack gap={12}>
+        <Text as="h2">Языки персонажа</Text>
+        <Text tone="muted">
+          Вид и предыстория языков не дают. Вы знаете Общий и ещё {need} на выбор.
+        </Text>
+        <ul className="create-2024__list">
+          <li>{COMMON_LANGUAGE_NAME_RU}</li>
+          {chosen.map((l) => (
+            <li key={l.id}>
+              {l.name_ru} · {languageKindLabelRu(l.kind)}
+            </li>
+          ))}
+        </ul>
+        {issueNode}
+      </Stack>
     )
   }
 
   if (step === 'equipment') {
     const packs = classStartingPacks(classEntry)
-    const bgPack = entryData(backgroundEntry).equipment_or_gold as
+    const bgGear = entryData(backgroundEntry).equipment_or_gold as
       | { pack_summary_ru?: string; gold_alternative_gp?: number }
       | undefined
+    const bgGold = bgGear?.gold_alternative_gp ?? 50
+    const selectedPack = packs.find((p) => p.id === state.classEquipment) ?? null
     cards = (
-      <Stage
-        testId="p24-m03-step-equipment"
-        catalog={
-          <Text tone="muted">
-            {classEntry?.name_ru || '—'} / {backgroundEntry?.name_ru || '—'}
-          </Text>
-        }
-        picks={
-          <Stack gap={14}>
-            <PickChipGroup
-              label="Стартовый пакет класса"
-              options={packs.map((p) => ({
-                id: p.id,
-                label: p.label_ru || p.id,
-                rest: p.summary_ru,
-              }))}
-              selected={[state.classEquipment]}
-              max={1}
-              multi={false}
-              onChange={(ids) => patch({ classEquipment: ids[0] || 'a' })}
-            />
-            <PickChipGroup
-              label="Снаряжение предыстории"
-              options={[
-                {
-                  id: 'pack',
-                  label: 'Пакет',
-                  rest: bgPack?.pack_summary_ru || 'Стартовый набор предыстории',
-                },
-                {
-                  id: 'gold',
-                  label: 'Золото',
-                  rest: `${bgPack?.gold_alternative_gp ?? 50} зм`,
-                },
-              ]}
-              selected={[state.backgroundEquipment]}
-              max={1}
-              multi={false}
-              onChange={(ids) =>
-                patch({
-                  backgroundEquipment: (ids[0] as 'pack' | 'gold') || 'pack',
-                })
-              }
-            />
-          </Stack>
-        }
-      />
+      <div data-testid="p24-m03-step-equipment">
+        <Stack gap={14}>
+          <CatalogCardList
+            resetToken={step}
+            enableFilters={false}
+            selectedId={state.classEquipment}
+            cardTestIdPrefix="p24-m03-card-pack"
+            headerSlot={
+              <Text as="h3" className="create-pipeline__section-title">
+                Снаряжение класса
+              </Text>
+            }
+            items={packs.map<CatalogCardItem>((p) => ({
+              id: p.id,
+              title: p.labelRu,
+              subtitle: p.isGold ? undefined : p.summaryRu,
+            }))}
+            onSelect={(id) => patch({ classEquipment: id })}
+          />
+          <CatalogCardList
+            resetToken={step}
+            enableFilters={false}
+            selectedId={state.backgroundEquipment}
+            cardTestIdPrefix="p24-m03-card-bg"
+            headerSlot={
+              <Text as="h3" className="create-pipeline__section-title">
+                Снаряжение предыстории
+              </Text>
+            }
+            items={[
+              {
+                id: 'pack',
+                title: 'Набор предыстории',
+                subtitle: bgGear?.pack_summary_ru ? ruDice(bgGear.pack_summary_ru) : undefined,
+              },
+              { id: 'gold', title: `Золото (${bgGold} зм)` },
+            ]}
+            onSelect={(id) =>
+              patch({ backgroundEquipment: id === 'gold' ? 'gold' : 'pack' })
+            }
+          />
+        </Stack>
+      </div>
     )
-    detail = <Text tone="muted">Класс: a/b/gold · предыстория: pack или 50 зм.</Text>
+    detail = (
+      <Stack gap={14}>
+        <Text as="h2">Стартовое снаряжение</Text>
+        {selectedPack ? (
+          <div className="create-pipeline__detail-section">
+            <Text className="create-pipeline__detail-section-title">
+              {classEntry?.name_ru}: {selectedPack.labelRu}
+            </Text>
+            {selectedPack.isGold ? (
+              <Text>Вместо предметов вы получаете {selectedPack.coinsGp} зм.</Text>
+            ) : (
+              <ul className="create-pipeline__detail-list" data-testid="p24-m03-equipment-items">
+                {selectedPack.items.map((it, index) => (
+                  <li key={`${it.id ?? it.nameRu ?? 'item'}-${index}`}>
+                    {it.id
+                      ? itemNameRu(it.id, items)
+                      : (it.nameRu ?? 'Предмет на выбор')}
+                    {it.qty > 1 ? ` ×${it.qty}` : ''}
+                  </li>
+                ))}
+                {selectedPack.coinsGp > 0 ? <li>Монеты: {selectedPack.coinsGp} зм</li> : null}
+              </ul>
+            )}
+          </div>
+        ) : null}
+        <div className="create-pipeline__detail-section">
+          <Text className="create-pipeline__detail-section-title">
+            {backgroundEntry?.name_ru}:{' '}
+            {state.backgroundEquipment === 'gold' ? `золото (${bgGold} зм)` : 'набор предыстории'}
+          </Text>
+          {state.backgroundEquipment === 'gold' ? (
+            <Text>Вместо набора вы получаете {bgGold} зм.</Text>
+          ) : (
+            <Text>{bgGear?.pack_summary_ru ? ruDice(bgGear.pack_summary_ru) : 'Стартовый набор'}</Text>
+          )}
+        </div>
+        {issueNode}
+      </Stack>
+    )
   }
 
   if (step === 'spells') {
     const sc = classL1Spellcasting(classEntry)
     const classSlug = state.classSlug || ''
+    const cantrips = spellsByLevelForClass(catalogData.spells, 0, [classSlug])
+    const level1 = spellsByLevelForClass(catalogData.spells, 1, [classSlug])
+    const tab: 'cantrips' | 'level1' =
+      spellTab === 'cantrips' && (sc?.cantrips ?? 0) === 0 ? 'level1' : spellTab
+    const list = tab === 'cantrips' ? cantrips : level1
+    const selected = tab === 'cantrips' ? state.cantripIds : state.preparedSpellIds
+    const max = tab === 'cantrips' ? (sc?.cantrips ?? 0) : (sc?.prepared_spells ?? 0)
+    const focus =
+      catalogData.spells.find((s) => s.slug === focusSpellSlug) ??
+      list.find((s) => s.slug === selected[selected.length - 1]) ??
+      null
     cards = (
-      <Stage
-        testId="p24-m03-step-spells"
-        catalog={
-          <Text tone="muted">
-            Заговоры: {sc?.cantrips ?? 0}. Подготовлено: {sc?.prepared_spells ?? 0}.
-          </Text>
-        }
-        picks={
-          <Stack gap={14}>
-            {sc && sc.cantrips > 0 ? (
-              <PickChipGroup
-                label="Заговоры"
-                options={catalog.spells
-                  .filter((s) => spellLevel(s) === 0 && spellOnClassList(s, classSlug))
-                  .map((s) => ({ id: s.slug, label: s.name_ru }))}
-                selected={state.cantripIds}
-                max={sc.cantrips}
-                onChange={(cantripIds) => patch({ cantripIds })}
-              />
-            ) : null}
-            {sc && sc.prepared_spells > 0 ? (
-              <PickChipGroup
-                label="Подготовленные 1 круга"
-                options={catalog.spells
-                  .filter((s) => spellLevel(s) === 1 && spellOnClassList(s, classSlug))
-                  .map((s) => ({ id: s.slug, label: s.name_ru }))}
-                selected={state.preparedSpellIds}
-                max={sc.prepared_spells}
-                onChange={(preparedSpellIds) => patch({ preparedSpellIds })}
-              />
-            ) : null}
-          </Stack>
-        }
-      />
+      <div data-testid="p24-m03-step-spells">
+        <CatalogCardList
+          resetToken={`${step}-${tab}`}
+          selectedId={null}
+          selectedIds={selected}
+          cardTestIdPrefix="p24-m03-card"
+          searchPlaceholder="Поиск заклинания…"
+          items={list.map<CatalogCardItem>((s) => ({
+            id: s.slug,
+            title: s.name_ru,
+            source: catalogSourceLabelRu(s.source),
+            meta: `${spellSchoolLabelRu(s)} · ${castingTimeLabelRu(s)}`,
+          }))}
+          headerSlot={
+            <Stack gap={8}>
+              <div className="create-2024__tabs" role="tablist" aria-label="Тип заклинаний">
+                {(sc?.cantrips ?? 0) > 0 ? (
+                  <button
+                    type="button"
+                    role="tab"
+                    aria-selected={tab === 'cantrips'}
+                    className={`create-pipeline__chip${tab === 'cantrips' ? ' create-pipeline__chip--active' : ''}`}
+                    onClick={() => setSpellTab('cantrips')}
+                    data-testid="p24-m03-spell-tab-cantrips"
+                  >
+                    Заговоры {state.cantripIds.length}/{sc?.cantrips ?? 0}
+                  </button>
+                ) : null}
+                {(sc?.prepared_spells ?? 0) > 0 ? (
+                  <button
+                    type="button"
+                    role="tab"
+                    aria-selected={tab === 'level1'}
+                    className={`create-pipeline__chip${tab === 'level1' ? ' create-pipeline__chip--active' : ''}`}
+                    onClick={() => setSpellTab('level1')}
+                    data-testid="p24-m03-spell-tab-level1"
+                  >
+                    1 круг {state.preparedSpellIds.length}/{sc?.prepared_spells ?? 0}
+                  </button>
+                ) : null}
+              </div>
+              <Text tone="muted">
+                Выбрано {selected.length} из {max}
+              </Text>
+            </Stack>
+          }
+          onSelect={(slug) => {
+            setFocusSpellSlug(slug)
+            const nextList = toggleUniquePick(selected, slug, max)
+            if (tab === 'cantrips') patch({ cantripIds: nextList })
+            else patch({ preparedSpellIds: nextList })
+          }}
+        />
+      </div>
     )
-    detail = <Text tone="muted">Только если класс — кастер на 1 уровне.</Text>
+    detail = (
+      <Create2024DetailPanel
+        kind="spell"
+        entry={focus}
+        emptyTitle="Заклинания"
+        emptyHint="Нажмите на заклинание в списке, чтобы выбрать его и прочитать описание."
+        classNames={classNames}
+      >
+        {issueNode}
+      </Create2024DetailPanel>
+    )
   }
 
   if (step === 'summary') {
+    detailPrimary = true
+    const model =
+      classEntry && backgroundEntry && speciesEntry
+        ? overlayServerCombat(
+            buildCreate2024SheetPreview({
+              state: {
+                ...state,
+                characterName: state.characterName.trim() || 'Без имени',
+              },
+              catalog: catalogData,
+              languages,
+              classEntry,
+              backgroundEntry,
+              speciesEntry,
+              items,
+            }),
+            validated?.sheet,
+          )
+        : null
+    const humanFeat = findFeat(catalogData.feats, state.speciesFeatSlug)
+    const choices: Array<[string, string]> = [
+      ['Класс', classEntry?.name_ru ?? '—'],
+      ['Предыстория', backgroundEntry?.name_ru ?? '—'],
+      ['Вид', speciesEntry?.name_ru ?? '—'],
+      [
+        'Увеличение характеристик',
+        Object.entries(state.backgroundAsi)
+          .map(([k, v]) => `${ABILITY_LABEL_RU[k as AbilityKey]} +${v}`)
+          .join(', ') || '—',
+      ],
+    ]
+    if (humanFeat) choices.push(['Гибкий', humanFeat.name_ru])
+    const lineage = speciesLineages(speciesEntry).find((l) => l.id === state.speciesLineageId)
+    if (lineage) choices.push(['Родословная', lineage.name_ru])
+
     cards = (
-      <Stage
-        testId="p24-m03-step-summary"
-        catalog={
-          <Field label="Имя персонажа">
-            <Input
-              value={state.characterName}
-              onChange={(e) => patch({ characterName: e.target.value })}
-              placeholder="Имя"
-              data-testid="p24-m03-name"
-            />
-          </Field>
-        }
-        picks={
-          <Stack gap={8}>
-            <Text as="h3" className="create-pipeline__section-title">
-              Сводка выбора
-            </Text>
-            <ul>
-              <li>
-                Класс: {classEntry?.name_ru || '—'}
-                {isCasterAtLevel1(classEntry) ? ' (кастер L1)' : ''}
-              </li>
-              <li>Предыстория: {backgroundEntry?.name_ru || '—'}</li>
-              <li>Вид: {speciesEntry?.name_ru || '—'}</li>
-              <li>
-                ASI: {state.backgroundAsiMode}{' '}
-                {Object.entries(state.backgroundAsi)
-                  .map(([k, v]) => `${ABILITY_LABEL_RU[k as AbilityKey]}+${v}`)
-                  .join(', ')}
-              </li>
-              <li>Языки: common + {state.languageIds.join(', ')}</li>
-              <li>
-                Снаряжение: класс {state.classEquipment} / фон {state.backgroundEquipment}
-              </li>
-            </ul>
-            {previewSheet ? (
-              <ul>
-                <li>
-                  {previewSheet.name} · ур. {previewSheet.level} · хиты {previewSheet.hp_max}
-                </li>
-                <li>
-                  {previewSheet.class_name} / {previewSheet.race_name}
-                </li>
-                {previewSheet.warnings?.map((w) => (
-                  <li key={w}>{w}</li>
-                ))}
-              </ul>
-            ) : (
-              <Text tone="muted">«Готово» создаёт с is_preview: true.</Text>
-            )}
-            {createdId ? <Text>Создан id: {createdId}</Text> : null}
-          </Stack>
-        }
-      />
+      <Stack gap={8}>
+        <Text as="h3" className="create-pipeline__section-title">
+          Ваш выбор
+        </Text>
+        <ul className="create-2024__list">
+          {choices.map(([label, value]) => (
+            <li key={label}>
+              <strong>{label}:</strong> {value}
+            </li>
+          ))}
+        </ul>
+      </Stack>
     )
-    detail = <Text tone="muted">Превью листа после «Готово».</Text>
+    detail = (
+      <div data-testid="p24-m03-step-summary">
+        <Stack gap={16}>
+          <Stack gap={10} className="create-2024__identity">
+            <Field label="Имя персонажа">
+              <Input
+                value={state.characterName}
+                onChange={(e) => patch({ characterName: e.target.value })}
+                placeholder="Как зовут героя?"
+                data-testid="p24-m03-name"
+              />
+            </Field>
+            <div className="create-2024__gender" role="group" aria-label="Пол персонажа">
+              {CHARACTER_GENDERS.map((g) => (
+                <ToggleChip
+                  key={g}
+                  main={CHARACTER_GENDER_LABELS[g]}
+                  checked={state.gender === g}
+                  onChange={() => patch({ gender: state.gender === g ? null : g })}
+                  data-testid={`p24-m03-gender-${g}`}
+                />
+              ))}
+            </div>
+          </Stack>
+          {model ? <Create2024SheetPreview model={model} /> : null}
+          {validated?.warnings?.length ? (
+            <ul className="create-2024__list">
+              {validated.warnings.map((w) => (
+                <li key={w}>{w}</li>
+              ))}
+            </ul>
+          ) : null}
+          {issueNode}
+          {harnessDone ? (
+            <Text tone="muted" data-testid="p24-m03-harness-done">
+              Тестовый стенд: запись персонажа отключена.
+            </Text>
+          ) : null}
+        </Stack>
+      </div>
+    )
     footer = (
-      <Button
-        disabled={busy || !canNext}
-        onClick={() => void onFinish()}
-        data-testid="p24-m03-finish"
-      >
-        {busy ? '…' : 'Готово'}
+      <Button disabled={busy || !canNext} onClick={() => void onFinish()} data-testid="p24-m03-finish">
+        {busy ? 'Создаём…' : 'Готово'}
       </Button>
     )
   }
@@ -1016,36 +984,34 @@ export function CreateCharacter2024Page({
   }
 
   return (
-    <main className="page page--app page--create-pipeline" data-testid={rootTestId}>
+    <main
+      className="page page--app page--create-pipeline page--create-2024"
+      data-testid={rootTestId}
+    >
       <div className="create-pipeline__topbar">
         <Link className="back-link" to="/characters">
           ← К списку
         </Link>
-        <Text tone="muted">Создание · D&D 2024 (превью)</Text>
       </div>
-      <p className="ui-text ui-text--muted" data-testid="p24-m03-flag">
-        Флаг RULES_EDITION_2024_OPEN = {String(RULES_EDITION_2024_OPEN)}
-        {useFixtures ? ' · фикстуры' : ''}
-      </p>
-      {loadError ? <Text tone="muted">{loadError}</Text> : null}
-      {error ? <Text tone="danger">{error}</Text> : null}
+      {error ? (
+        <Text tone="danger" data-testid="p24-m03-error">
+          {error}
+        </Text>
+      ) : null}
       <CreatePipelineShell
         step={step}
         steps={steps}
         stepLabels={CREATE_2024_STEP_LABELS}
-        title="Создание персонажа 2024"
-        subtitle="Класс → предыстория → вид → характеристики → языки → снаряжение → заклинания* → итог"
+        title="Новый персонаж · правила 2024"
+        subtitle="Класс, предыстория, вид, характеристики, языки, снаряжение, заклинания, итог"
         cards={cards}
         detail={detail}
         footer={footer}
         detailPrimary={detailPrimary}
         onStepClick={goToStep}
-        onBack={
-          prev
-            ? () => goToStep(prev)
-            : () => navigate(useFixtures ? '/dev/p24-m03-preview' : '/characters')
-        }
+        onBack={prev ? () => goToStep(prev) : () => navigate('/characters')}
       />
+      {setupDialog}
     </main>
   )
 }

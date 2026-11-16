@@ -1,4 +1,5 @@
-import { Stack, Text, ToggleChip } from '../../ui'
+import { useState } from 'react'
+import { Input, Stack, Text, ToggleChip } from '../../ui'
 
 type PickChipGroupProps = {
   label: string
@@ -8,9 +9,13 @@ type PickChipGroupProps = {
   max: number
   onChange: (next: string[]) => void
   multi?: boolean
+  /** Prefix for data-testid on each chip: `p24-m03-pick-<id>`. */
+  testIdPrefix?: string
 }
 
-/** Multi/single select chips for class skills, languages, mastery, etc. */
+const SEARCH_FROM = 12
+
+/** Multi/single select chips for class skills, mastery, nested feat picks, etc. */
 export function PickChipGroup({
   label,
   hint,
@@ -19,7 +24,16 @@ export function PickChipGroup({
   max,
   onChange,
   multi = true,
+  testIdPrefix = 'p24-m03-pick',
 }: PickChipGroupProps) {
+  const [query, setQuery] = useState('')
+  const searchable = options.length >= SEARCH_FROM
+  const q = query.trim().toLowerCase()
+  const visible = q
+    ? options.filter((opt) => `${opt.label} ${opt.rest ?? ''}`.toLowerCase().includes(q))
+    : options
+  const dense = options.length >= SEARCH_FROM
+
   function toggle(id: string) {
     if (!multi || max <= 1) {
       onChange(selected.includes(id) ? [] : [id])
@@ -43,19 +57,30 @@ export function PickChipGroup({
         {max > 0 ? ` (${selected.length}/${max})` : null}
       </Text>
       {hint ? <Text tone="muted">{hint}</Text> : null}
-      <div role="group" aria-label={label}>
-        <Stack gap={8}>
-          {options.map((opt) => (
-            <ToggleChip
-              key={opt.id}
-              main={opt.label}
-              rest={opt.rest}
-              checked={selected.includes(opt.id)}
-              onChange={() => toggle(opt.id)}
-              data-testid={`p24-m03-pick-${opt.id}`}
-            />
-          ))}
-        </Stack>
+      {searchable ? (
+        <Input
+          value={query}
+          onChange={(event) => setQuery(event.target.value)}
+          placeholder="Поиск…"
+          aria-label={`Поиск: ${label}`}
+        />
+      ) : null}
+      <div
+        role="group"
+        aria-label={label}
+        className={`create-2024__pick-grid${dense ? ' create-2024__pick-grid--dense' : ''}`}
+      >
+        {visible.map((opt) => (
+          <ToggleChip
+            key={opt.id}
+            main={opt.label}
+            rest={opt.rest}
+            checked={selected.includes(opt.id)}
+            onChange={() => toggle(opt.id)}
+            data-testid={`${testIdPrefix}-${opt.id}`}
+          />
+        ))}
+        {visible.length === 0 ? <Text tone="muted">Ничего не найдено</Text> : null}
       </div>
     </Stack>
   )

@@ -46,13 +46,13 @@ const METHOD_CARDS: MethodCard[] = [
   },
   {
     id: 'point_buy',
-    title: 'Point buy',
+    title: 'Покупка очков',
     subtitle: `${POINT_BUY_BUDGET} очков · до ${POINT_BUY_MAX}`,
   },
   {
     id: 'roll',
     title: 'Бросок',
-    subtitle: '4d6, отбросить младший',
+    subtitle: '4к6, отбросить младший',
   },
   {
     id: 'manual',
@@ -140,7 +140,7 @@ export function AbilitiesStep({
         Характеристики
       </Text>
       <Text tone="muted">
-        База без бонусов ({bonusLabel}). Справа в сумме уже с бонусом. Point buy —{' '}
+        База без бонусов ({bonusLabel}). Справа в сумме уже с бонусом. Покупка очков —{' '}
         {POINT_BUY_BUDGET} очков, до бонуса максимум {POINT_BUY_MAX}.
       </Text>
 
@@ -179,7 +179,7 @@ export function AbilitiesStep({
       {method === 'roll' ? (
         <Stack gap={8}>
           <Text tone="muted">
-            Для каждой характеристики: 4d6, младший в скобках не считается. Можно перебросить одну
+            Для каждой характеристики: 4к6, младший в скобках не считается. Можно перебросить одну
             или все.
           </Text>
           <Button variant="secondary" onClick={rerollAll}>

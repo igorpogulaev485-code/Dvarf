@@ -1,0 +1,194 @@
+{
+  "meta": {
+    "pack": "P24-C20",
+    "rules_edition": "2024",
+    "source": "rtw",
+    "notes_ru": "4 предысторий RTW. ASI + origin_feat. RU: backgrounds.csv / ttg (структура) / next.dnd.su."
+  },
+  "entries": [
+    {
+      "kind": "background",
+      "slug": "haunted-one",
+      "name_ru": "Преследуемый",
+      "name_en": "Haunted One",
+      "source": "rtw",
+      "sort_order": 10,
+      "external_ref": {
+        "book": "RTW",
+        "url_dndsu": "https://next.dnd.su/backgrounds/950-haunted-one",
+        "url_ttg": "https://new.ttg.club/backgrounds/haunted-one-rhw"
+      },
+      "data": {
+        "asi": {
+          "abilities": [
+            "con",
+            "wis",
+            "cha"
+          ],
+          "options": [
+            "+2/+1",
+            "+1/+1/+1"
+          ],
+          "cap": 20
+        },
+        "origin_feat": {
+          "id": "survivor",
+          "slug": "survivor",
+          "name_ru": "Выживший",
+          "name_en": "Survivor"
+        },
+        "skill_proficiencies": [
+          "arcana",
+          "survival"
+        ],
+        "tool_proficiencies": [
+          "Игровой набор (на выбор)"
+        ],
+        "tool_choices": null,
+        "equipment_or_gold": {
+          "gold_alternative_gp": 50,
+          "pack_summary_ru": "(А); Игровой набор; Лом; Святая вода; Зеркало; Масло×2; Сигнальный свисток; Трутница; Одежда путешественника; Факел×5"
+        },
+        "traits_text": "Преследуемый (Равенлофт: Ужасы внутри): ТЕЛ/МУД/ХАР (+2/+1 или +1/+1/+1). Черта: Выживший. Навыки: тайная магия, выживание. Инструмент: игровой набор (на выбор). Снаряжение: (А); Игровой набор; Лом; Святая вода; Зеркало; Масло×2; Сигнальный свисток; Трутница; Одежда путешественника; Факел×5."
+      }
+    },
+    {
+      "kind": "background",
+      "slug": "investigator",
+      "name_ru": "Следователь",
+      "name_en": "Investigator",
+      "source": "rtw",
+      "sort_order": 20,
+      "external_ref": {
+        "book": "RTW",
+        "url_dndsu": "https://next.dnd.su/backgrounds/951-investigator",
+        "url_ttg": "https://new.ttg.club/backgrounds/investigator-rhw"
+      },
+      "data": {
+        "asi": {
+          "abilities": [
+            "int",
+            "wis",
+            "cha"
+          ],
+          "options": [
+            "+2/+1",
+            "+1/+1/+1"
+          ],
+          "cap": 20
+        },
+        "origin_feat": {
+          "id": "sharp-eye",
+          "slug": "sharp-eye",
+          "name_ru": "Остроглазый",
+          "name_en": "Sharp Eye"
+        },
+        "skill_proficiencies": [
+          "insight",
+          "investigation"
+        ],
+        "tool_proficiencies": [
+          "Набор для грима"
+        ],
+        "tool_choices": null,
+        "equipment_or_gold": {
+          "gold_alternative_gp": 50,
+          "pack_summary_ru": "(А); Набор для маскировки; Кандалы; Лопата; Одежда путешественника; Флакон×3; (Б)"
+        },
+        "traits_text": "Следователь (Равенлофт: Ужасы внутри): ИНТ/МУД/ХАР (+2/+1 или +1/+1/+1). Черта: Остроглазый. Навыки: проницательность, расследование. Инструмент: набор для грима. Снаряжение: (А); Набор для маскировки; Кандалы; Лопата; Одежда путешественника; Флакон×3; (Б)."
+      }
+    },
+    {
+      "kind": "background",
+      "slug": "mist-wanderer",
+      "name_ru": "Странник Туманов",
+      "name_en": "Mist Wanderer",
+      "source": "rtw",
+      "sort_order": 30,
+      "external_ref": {
+        "book": "RTW",
+        "url_dndsu": "https://next.dnd.su/backgrounds/952-mist-wanderer",
+        "url_ttg": "https://new.ttg.club/backgrounds/mist-wanderer-rhw"
+      },
+      "data": {
+        "asi": {
+          "abilities": [
+            "dex",
+            "con",
+            "wis"
+          ],
+          "options": [
+            "+2/+1",
+            "+1/+1/+1"
+          ],
+          "cap": 20
+        },
+        "origin_feat": {
+          "id": "mist-walker",
+          "slug": "mist-walker",
+          "name_ru": "Ходок Туманов",
+          "name_en": "Mist Walker"
+        },
+        "skill_proficiencies": [
+          "stealth",
+          "survival"
+        ],
+        "tool_proficiencies": [
+          "Ремесленные инструменты (на выбор)"
+        ],
+        "tool_choices": null,
+        "equipment_or_gold": {
+          "gold_alternative_gp": 50,
+          "pack_summary_ru": "(А); Инструменты ремесленников; Лампа; Масло×5; Сумка; Верёвка; Трутница; Одежда путешественника; (Б)"
+        },
+        "traits_text": "Странник Туманов (Равенлофт: Ужасы внутри): ЛОВ/ТЕЛ/МУД (+2/+1 или +1/+1/+1). Черта: Ходок Туманов. Навыки: скрытность, выживание. Инструмент: ремесленные инструменты (на выбор). Снаряжение: (А); Инструменты ремесленников; Лампа; Масло×5; Сумка; Верёвка; Трутница; Одежда путешественника; (Б)."
+      }
+    },
+    {
+      "kind": "background",
+      "slug": "spirit-medium",
+      "name_ru": "Медиум",
+      "name_en": "Spirit Medium",
+      "source": "rtw",
+      "sort_order": 40,
+      "external_ref": {
+        "book": "RTW",
+        "url_dndsu": "https://next.dnd.su/backgrounds/953-spirit-medium",
+        "url_ttg": "https://new.ttg.club/backgrounds/spirit-medium-rhw"
+      },
+      "data": {
+        "asi": {
+          "abilities": [
+            "con",
+            "int",
+            "wis"
+          ],
+          "options": [
+            "+2/+1",
+            "+1/+1/+1"
+          ],
+          "cap": 20
+        },
+        "origin_feat": {
+          "id": "gathered-whispers",
+          "slug": "gathered-whispers",
+          "name_ru": "Сонм голосов",
+          "name_en": "Gathered Whispers"
+        },
+        "skill_proficiencies": [
+          "insight",
+          "religion"
+        ],
+        "tool_proficiencies": [
+          "Набор инструментов (на выбор)"
+        ],
+        "tool_choices": null,
+        "equipment_or_gold": {
+          "gold_alternative_gp": 50,
+          "pack_summary_ru": "(А); Кинжал; Игровой набор; Корзина; Колокольчик; Свеча×8; Чернила; Писчее перо; Бумага×5; Трутница"
+        },
+        "traits_text": "Медиум (Равенлофт: Ужасы внутри): ТЕЛ/ИНТ/МУД (+2/+1 или +1/+1/+1). Черта: Сонм голосов. Навыки: проницательность, религия. Инструмент: набор инструментов (на выбор). Снаряжение: (А); Кинжал; Игровой набор; Корзина; Колокольчик; Свеча×8; Чернила; Писчее перо; Бумага×5; Трутница."
+      }
+    }
+  ]
+}

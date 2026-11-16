@@ -1,0 +1,102 @@
+{
+  "meta": {
+    "pack": "P24-C18",
+    "rules_edition": "2024",
+    "source": "lfl",
+    "notes_ru": "2 предысторий LFL. ASI + origin_feat. RU: backgrounds.csv / next.dnd.su."
+  },
+  "entries": [
+    {
+      "kind": "background",
+      "slug": "lorwyn-expert",
+      "name_ru": "Эксперт Лорвина",
+      "name_en": "Lorwyn Expert",
+      "source": "lfl",
+      "sort_order": 10,
+      "external_ref": {
+        "book": "LFL",
+        "url_dndsu": "https://next.dnd.su/backgrounds/931-lorwyn-expert",
+        "url_ttg": "https://new.ttg.club/backgrounds/lorwyn-expert-lfl"
+      },
+      "data": {
+        "asi": {
+          "abilities": [
+            "str",
+            "con",
+            "wis"
+          ],
+          "options": [
+            "+2/+1",
+            "+1/+1/+1"
+          ],
+          "cap": 20
+        },
+        "origin_feat": {
+          "id": "child-of-the-sun",
+          "slug": "child-of-the-sun",
+          "name_ru": "Дитя солнца",
+          "name_en": "Child of the Sun"
+        },
+        "skill_proficiencies": [
+          "athletics",
+          "nature"
+        ],
+        "tool_proficiencies": [
+          "Инструменты картографа"
+        ],
+        "tool_choices": null,
+        "equipment_or_gold": {
+          "gold_alternative_gp": 50,
+          "pack_summary_ru": "Выберите А или Б: (А) Боевой посох, Инструменты картографа, Рюкзак, Корзина, 4 листа Пергамента, Верёвка, Дорожная одежда, 29 ЗМ; или (Б) 5…"
+        },
+        "traits_text": "Эксперт Лорвина: СИЛ/ТЕЛ/МУД (+2/+1 или +1/+1/+1). Черта: Дитя солнца. Навыки: атлетика, природа. Инструмент: Инструменты картографа. Снаряжение: Выберите А или Б: (А) Боевой посох, Инструменты картографа, Рюкзак, Корзина, 4 листа Пергамента, Верёвка, Дорожная одежда, 29 ЗМ; или (Б) 5…."
+      }
+    },
+    {
+      "kind": "background",
+      "slug": "shadowmoor-expert",
+      "name_ru": "Эксперт Шэдоумура",
+      "name_en": "Shadowmoor Expert",
+      "source": "lfl",
+      "sort_order": 20,
+      "external_ref": {
+        "book": "LFL",
+        "url_dndsu": "https://next.dnd.su/backgrounds/930-shadowmoor-expert",
+        "url_ttg": "https://new.ttg.club/backgrounds/shadowmoor-expert-lfl"
+      },
+      "data": {
+        "asi": {
+          "abilities": [
+            "dex",
+            "int",
+            "cha"
+          ],
+          "options": [
+            "+2/+1",
+            "+1/+1/+1"
+          ],
+          "cap": 20
+        },
+        "origin_feat": {
+          "id": "shadowmoor-hexer",
+          "slug": "shadowmoor-hexer",
+          "name_ru": "Проклинатель Шэдоумура",
+          "name_en": "Shadowmoor Hexer"
+        },
+        "skill_proficiencies": [
+          "acrobatics",
+          "deception"
+        ],
+        "tool_proficiencies": [
+          "Инструменты стеклодува"
+        ],
+        "tool_choices": null,
+        "equipment_or_gold": {
+          "gold_alternative_gp": 50,
+          "pack_summary_ru": "Выберите А или Б: (А) Кинжал, Инструменты стеклодува, Рюкзак, Охотничий капкан, Лампа, 3 фляги Масла, Дорожная одежда, Бурдюк, 8 ЗМ; или (Б…"
+        },
+        "traits_text": "Эксперт Шэдоумура: ЛОВ/ИНТ/ХАР (+2/+1 или +1/+1/+1). Черта: Проклинатель Шэдоумура. Навыки: акробатика, обман. Инструмент: Инструменты стеклодува. Снаряжение: Выберите А или Б: (А) Кинжал, Инструменты стеклодува, Рюкзак, Охотничий капкан, Лампа, 3 фляги Масла, Дорожная одежда, Бурдюк, 8 ЗМ; или (Б…."
+      }
+    }
+  ]
+}

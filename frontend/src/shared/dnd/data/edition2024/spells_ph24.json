@@ -1,0 +1,2991 @@
+{
+  "meta": {
+    "pack": "P24-C10",
+    "rules_edition": "2024",
+    "source": "ph24",
+    "notes_ru": "69 заклинаний PHB 2024 сверх SRD (community_ref). Именные версии связаны с SRD-карточками через data.srd_alias. Короткие карточки по next.dnd.su; RU из spells.csv. Полный текст книги не копируем.",
+    "spell_count": 69,
+    "named_with_srd_alias": 17
+  },
+  "entries": [
+    {
+      "kind": "spell",
+      "slug": "blade-ward",
+      "name_ru": "Защита от оружия",
+      "name_en": "Blade Ward",
+      "source": "ph24",
+      "sort_order": 0,
+      "external_ref": {
+        "book": "PH24",
+        "url_dndsu": "https://next.dnd.su/spells/10444-blade-ward",
+        "url_ttg": "https://new.ttg.club/spells/blade-ward-phb"
+      },
+      "data": {
+        "schema_version": 1,
+        "level": 0,
+        "school": "abjuration",
+        "school_ru": "ограждение",
+        "casting_time": {
+          "unit": "action",
+          "amount": 1
+        },
+        "magic_action": true,
+        "range": "На себя",
+        "components": {
+          "v": true,
+          "s": false
+        },
+        "duration": ", вплоть до 1 минуты",
+        "concentration": true,
+        "ritual": false,
+        "classes": [
+          "bard",
+          "sorcerer",
+          "warlock",
+          "wizard"
+        ],
+        "attack_or_save": "атака",
+        "damage": null,
+        "summary_ru": "Подклассы: Наследник троицы (Плут) Пока заклинание действует, каждый раз, когда существо совершает по вам бросок атаки, оно вычитает 1к4 из результата это",
+        "description": "Подклассы: Наследник троицы (Плут) Пока заклинание действует, каждый раз, когда существо совершает по вам бросок атаки, оно вычитает 1к4 из результата это…",
+        "source_book": "PHB 2024"
+      }
+    },
+    {
+      "kind": "spell",
+      "slug": "friends",
+      "name_ru": "Дружба",
+      "name_en": "Friends",
+      "source": "ph24",
+      "sort_order": 1,
+      "external_ref": {
+        "book": "PH24",
+        "url_dndsu": "https://next.dnd.su/spells/10523-friends",
+        "url_ttg": "https://new.ttg.club/spells/friends-phb"
+      },
+      "data": {
+        "schema_version": 1,
+        "level": 0,
+        "school": "enchantment",
+        "school_ru": "очарование",
+        "casting_time": {
+          "unit": "action",
+          "amount": 1
+        },
+        "magic_action": true,
+        "range": "10 футов",
+        "components": {
+          "v": false,
+          "s": false,
+          "m": "немного грима"
+        },
+        "duration": ", вплоть до 1 минуты",
+        "concentration": true,
+        "ritual": false,
+        "classes": [
+          "bard",
+          "sorcerer",
+          "warlock",
+          "wizard"
+        ],
+        "attack_or_save": "атака",
+        "damage": null,
+        "summary_ru": "Вы магическим образом внушаете чувство дружелюбности в одно видимое вами в пределах дистанции существо. Цель должна преуспеть в спасброске Мудрости, иначе получит состояние Очарованный на время действия заклинания.",
+        "description": "Вы магическим образом внушаете чувство дружелюбности в одно видимое вами в пределах дистанции существо. Цель должна преуспеть в спасброске Мудрости, иначе получит состояние Очарованный на время действия заклинания.",
+        "source_book": "PHB 2024"
+      }
+    },
+    {
+      "kind": "spell",
+      "slug": "mind-sliver",
+      "name_ru": "Расщепление разума",
+      "name_en": "Mind Sliver",
+      "source": "ph24",
+      "sort_order": 2,
+      "external_ref": {
+        "book": "PH24",
+        "url_dndsu": "https://next.dnd.su/spells/10580-mind-sliver",
+        "url_ttg": "https://new.ttg.club/spells/mind-sliver-phb"
+      },
+      "data": {
+        "schema_version": 1,
+        "level": 0,
+        "school": "enchantment",
+        "school_ru": "очарование",
+        "casting_time": {
+          "unit": "action",
+          "amount": 1
+        },
+        "magic_action": true,
+        "range": "60 футов",
+        "components": {
+          "v": true,
+          "s": false
+        },
+        "duration": "1 раунд",
+        "concentration": false,
+        "ritual": false,
+        "classes": [
+          "sorcerer",
+          "warlock",
+          "wizard"
+        ],
+        "attack_or_save": null,
+        "damage": null,
+        "summary_ru": "Подклассы: Аберрантное чародейство (Чародей) Вы пытаетесь расщепить разум существа, видимого вами в пределах дистанции. Цель должна преуспеть в спасброске Интеллекта, иначе получит 1к6 Психического урона и вычтет 1к4 из результата своего следующего спасброска, если совершит",
+        "description": "Подклассы: Аберрантное чародейство (Чародей) Вы пытаетесь расщепить разум существа, видимого вами в пределах дистанции. Цель должна преуспеть в спасброске Интеллекта, иначе получит 1к6 Психического урона и вычтет 1к4 из результата своего следующего спасброска, если совершит е…",
+        "source_book": "PHB 2024"
+      }
+    },
+    {
+      "kind": "spell",
+      "slug": "thorn-whip",
+      "name_ru": "Терновый кнут",
+      "name_en": "Thorn Whip",
+      "source": "ph24",
+      "sort_order": 3,
+      "external_ref": {
+        "book": "PH24",
+        "url_dndsu": "https://next.dnd.su/spells/10677-thorn-whip",
+        "url_ttg": "https://new.ttg.club/spells/thorn-whip-phb"
+      },
+      "data": {
+        "schema_version": 1,
+        "level": 0,
+        "school": "transmutation",
+        "school_ru": "преобразование",
+        "casting_time": {
+          "unit": "action",
+          "amount": 1
+        },
+        "magic_action": true,
+        "range": "30 футов",
+        "components": {
+          "v": true,
+          "s": false,
+          "m": "стебель шипастого растения"
+        },
+        "duration": "Мгновенная",
+        "concentration": false,
+        "ritual": false,
+        "classes": [
+          "artificer",
+          "druid"
+        ],
+        "attack_or_save": "атака",
+        "damage": null,
+        "summary_ru": "Вы создаёте длинный, похожий на лозу и покрытый шипами кнут, бьющий по вашей команде существо в пределах дистанции. Совершите рукопашную атаку заклинанием по цели; при попадании цель получает 1к6 Колющего урона, и, если её размер Большой или меньше, вы можете притянуть её",
+        "description": "Вы создаёте длинный, похожий на лозу и покрытый шипами кнут, бьющий по вашей команде существо в пределах дистанции. Совершите рукопашную атаку заклинанием по цели; при попадании цель получает 1к6 Колющего урона, и, если её размер Большой или меньше, вы можете притянуть её…",
+        "source_book": "PHB 2024"
+      }
+    },
+    {
+      "kind": "spell",
+      "slug": "thunderclap",
+      "name_ru": "Раскат грома",
+      "name_en": "Thunderclap",
+      "source": "ph24",
+      "sort_order": 4,
+      "external_ref": {
+        "book": "PH24",
+        "url_dndsu": "https://next.dnd.su/spells/10678-thunderclap",
+        "url_ttg": "https://new.ttg.club/spells/thunderclap-phb"
+      },
+      "data": {
+        "schema_version": 1,
+        "level": 0,
+        "school": "evocation",
+        "school_ru": "воплощение",
+        "casting_time": {
+          "unit": "action",
+          "amount": 1
+        },
+        "magic_action": true,
+        "range": "На себя",
+        "components": {
+          "v": false,
+          "s": false
+        },
+        "duration": "Мгновенная",
+        "concentration": false,
+        "ritual": false,
+        "classes": [
+          "artificer",
+          "bard",
+          "druid",
+          "sorcerer",
+          "warlock",
+          "wizard"
+        ],
+        "attack_or_save": "ТЕЛ",
+        "damage": null,
+        "summary_ru": "Каждое существо в исходящей от вас Эманации радиусом 5 футов должно совершить спасбросок Телосложения, при провале получая 1к6 урона Звуком. Заклинание создаёт раскат грома, слышимый в пределах 100 футов.",
+        "description": "Каждое существо в исходящей от вас Эманации радиусом 5 футов должно совершить спасбросок Телосложения, при провале получая 1к6 урона Звуком. Заклинание создаёт раскат грома, слышимый в пределах 100 футов.",
+        "source_book": "PHB 2024"
+      }
+    },
+    {
+      "kind": "spell",
+      "slug": "toll-the-dead",
+      "name_ru": "Погребальный звон",
+      "name_en": "Toll the Dead",
+      "source": "ph24",
+      "sort_order": 5,
+      "external_ref": {
+        "book": "PH24",
+        "url_dndsu": "https://next.dnd.su/spells/10682-toll-the-dead",
+        "url_ttg": "https://new.ttg.club/spells/toll-the-dead-phb"
+      },
+      "data": {
+        "schema_version": 1,
+        "level": 0,
+        "school": "necromancy",
+        "school_ru": "некромантия",
+        "casting_time": {
+          "unit": "action",
+          "amount": 1
+        },
+        "magic_action": true,
+        "range": "60 футов",
+        "components": {
+          "v": true,
+          "s": false
+        },
+        "duration": "Мгновенная",
+        "concentration": false,
+        "ritual": false,
+        "classes": [
+          "cleric",
+          "warlock",
+          "wizard"
+        ],
+        "attack_or_save": null,
+        "damage": null,
+        "summary_ru": "Вы указываете на видимое вами в пределах дистанции существо, и в пределах 10 футов от цели слышится скорбный удар колокола. Цель должна преуспеть в спасброске Мудрости, иначе получит 1к8 Некротического урона.",
+        "description": "Вы указываете на видимое вами в пределах дистанции существо, и в пределах 10 футов от цели слышится скорбный удар колокола. Цель должна преуспеть в спасброске Мудрости, иначе получит 1к8 Некротического урона.",
+        "source_book": "PHB 2024"
+      }
+    },
+    {
+      "kind": "spell",
+      "slug": "word-of-radiance",
+      "name_ru": "Слово сияния",
+      "name_en": "Word of Radiance",
+      "source": "ph24",
+      "sort_order": 6,
+      "external_ref": {
+        "book": "PH24",
+        "url_dndsu": "https://next.dnd.su/spells/10705-word-of-radiance",
+        "url_ttg": "https://new.ttg.club/spells/word-of-radiance-phb"
+      },
+      "data": {
+        "schema_version": 1,
+        "level": 0,
+        "school": "evocation",
+        "school_ru": "воплощение",
+        "casting_time": {
+          "unit": "action",
+          "amount": 1
+        },
+        "magic_action": true,
+        "range": "На себя",
+        "components": {
+          "v": true,
+          "s": false,
+          "m": "предмет с изображением солнечных лучей"
+        },
+        "duration": "Мгновенная",
+        "concentration": false,
+        "ritual": false,
+        "classes": [
+          "cleric"
+        ],
+        "attack_or_save": null,
+        "damage": null,
+        "summary_ru": "Обжигающее сияние исходит от вас 5-футовой Эманацией; выберите видимых вами существ в этой Эманации. Каждое из выбранных существ должно преуспеть в спасброске Телосложения, иначе получит 1к6 урона Излучением.",
+        "description": "Обжигающее сияние исходит от вас 5-футовой Эманацией; выберите видимых вами существ в этой Эманации. Каждое из выбранных существ должно преуспеть в спасброске Телосложения, иначе получит 1к6 урона Излучением.",
+        "source_book": "PHB 2024"
+      }
+    },
+    {
+      "kind": "spell",
+      "slug": "armor-of-agathys",
+      "name_ru": "Доспех Агатиса",
+      "name_en": "Armor of Agathys",
+      "source": "ph24",
+      "sort_order": 1007,
+      "external_ref": {
+        "book": "PH24",
+        "url_dndsu": "https://next.dnd.su/spells/10431-armor-of-agathys",
+        "url_ttg": "https://new.ttg.club/spells/armor-of-agathys-phb"
+      },
+      "data": {
+        "schema_version": 1,
+        "level": 1,
+        "school": "abjuration",
+        "school_ru": "ограждение",
+        "casting_time": {
+          "unit": "bonus",
+          "amount": 1
+        },
+        "magic_action": false,
+        "range": "На себя",
+        "components": {
+          "v": true,
+          "s": false,
+          "m": "осколок синего стекла"
+        },
+        "duration": "1 час",
+        "concentration": false,
+        "ritual": false,
+        "classes": [
+          "warlock"
+        ],
+        "attack_or_save": null,
+        "damage": null,
+        "summary_ru": "Вас покрывает магический защитный иней. Вы получаете 5 Временных хитов.",
+        "description": "Вас покрывает магический защитный иней. Вы получаете 5 Временных хитов.",
+        "source_book": "PHB 2024",
+        "higher_levels": "И урон Холодом, и получаемые Временные хиты увеличиваются на 5 за каждый уровень ячейки выше 1-го."
+      }
+    },
+    {
+      "kind": "spell",
+      "slug": "arms-of-hadar",
+      "name_ru": "Руки Хадара",
+      "name_en": "Arms of Hadar",
+      "source": "ph24",
+      "sort_order": 1008,
+      "external_ref": {
+        "book": "PH24",
+        "url_dndsu": "https://next.dnd.su/spells/10432-arms-of-hadar",
+        "url_ttg": "https://new.ttg.club/spells/arms-of-hadar-phb"
+      },
+      "data": {
+        "schema_version": 1,
+        "level": 1,
+        "school": "conjuration",
+        "school_ru": "вызов",
+        "casting_time": {
+          "unit": "action",
+          "amount": 1
+        },
+        "magic_action": true,
+        "range": "На себя",
+        "components": {
+          "v": true,
+          "s": false
+        },
+        "duration": "Мгновенная",
+        "concentration": false,
+        "ritual": false,
+        "classes": [
+          "warlock"
+        ],
+        "attack_or_save": "СИЛ",
+        "damage": null,
+        "summary_ru": "Подклассы: Аберрантное чародейство (Чародей) Вы взываете к мощи Хадара, Тёмного Голода, и выпускаете плети тёмной энергии. Каждое существо в исходящей из вас 10-футовой Эманации должно совершить спасбросок Силы; при провале оно получает 2к6 Некротического урона и не может со",
+        "description": "Подклассы: Аберрантное чародейство (Чародей) Вы взываете к мощи Хадара, Тёмного Голода, и выпускаете плети тёмной энергии. Каждое существо в исходящей из вас 10-футовой Эманации должно совершить спасбросок Силы; при провале оно получает 2к6 Некротического урона и не может со…",
+        "source_book": "PHB 2024",
+        "higher_levels": "Урон увеличивается на 1к6 за каждый уровень ячейки выше 1-го."
+      }
+    },
+    {
+      "kind": "spell",
+      "slug": "compelled-duel",
+      "name_ru": "Вызов на дуэль",
+      "name_en": "Compelled Duel",
+      "source": "ph24",
+      "sort_order": 1009,
+      "external_ref": {
+        "book": "PH24",
+        "url_dndsu": "https://next.dnd.su/spells/10199-compelled-duel",
+        "url_ttg": "https://new.ttg.club/spells/compelled-duel-phb"
+      },
+      "data": {
+        "schema_version": 1,
+        "level": 1,
+        "school": "enchantment",
+        "school_ru": "очарование",
+        "casting_time": {
+          "unit": "bonus",
+          "amount": 1
+        },
+        "magic_action": false,
+        "range": "30 футов",
+        "components": {
+          "v": true,
+          "s": false
+        },
+        "duration": ", вплоть до 1 минуты",
+        "concentration": true,
+        "ritual": false,
+        "classes": [
+          "paladin"
+        ],
+        "attack_or_save": "МДР",
+        "damage": null,
+        "summary_ru": "Вы пытаетесь вызвать существо на дуэль. Одно существо, видимое вами в пределах дистанции, должно совершить спасбросок Мудрости.",
+        "description": "Вы пытаетесь вызвать существо на дуэль. Одно существо, видимое вами в пределах дистанции, должно совершить спасбросок Мудрости.",
+        "source_book": "PHB 2024"
+      }
+    },
+    {
+      "kind": "spell",
+      "slug": "hail-of-thorns",
+      "name_ru": "Град шипов",
+      "name_en": "Hail of Thorns",
+      "source": "ph24",
+      "sort_order": 1010,
+      "external_ref": {
+        "book": "PH24",
+        "url_dndsu": "https://next.dnd.su/spells/10287-hail-of-thorns",
+        "url_ttg": "https://new.ttg.club/spells/hail-of-thorns-phb"
+      },
+      "data": {
+        "schema_version": 1,
+        "level": 1,
+        "school": "conjuration",
+        "school_ru": "вызов",
+        "casting_time": {
+          "unit": "bonus",
+          "amount": 1
+        },
+        "magic_action": false,
+        "range": "На себя",
+        "components": {
+          "v": true,
+          "s": false
+        },
+        "duration": "Мгновенная",
+        "concentration": false,
+        "ritual": false,
+        "classes": [
+          "ranger"
+        ],
+        "attack_or_save": "ЛОВ",
+        "damage": null,
+        "summary_ru": "Когда вы попадаете по существу этой атакой, заклинание создаёт град шипов, вылетающий из вашего Дальнобойного оружия или боеприпаса. Цель атаки и каждое существо в пределах 5 футов от неё должно совершить спасбросок Ловкости, получая 1к10 Колющего урона при провале или половин",
+        "description": "Когда вы попадаете по существу этой атакой, заклинание создаёт град шипов, вылетающий из вашего Дальнобойного оружия или боеприпаса. Цель атаки и каждое существо в пределах 5 футов от неё должно совершить спасбросок Ловкости, получая 1к10 Колющего урона при провале или половин…",
+        "source_book": "PHB 2024",
+        "higher_levels": "Урон увеличивается на 1к10 за каждый уровень ячейки выше 1-го."
+      }
+    },
+    {
+      "kind": "spell",
+      "slug": "tashas-hideous-laughter",
+      "name_ru": "Жуткий смех Таши",
+      "name_en": "Tasha’s Hideous Laughter",
+      "source": "ph24",
+      "sort_order": 1011,
+      "external_ref": {
+        "book": "PH24",
+        "url_dndsu": "https://next.dnd.su/spells/10670-tashas-hideous-laughter",
+        "url_ttg": "https://new.ttg.club/spells/tasha-s-hideous-laughter-phb"
+      },
+      "data": {
+        "schema_version": 1,
+        "level": 1,
+        "school": "enchantment",
+        "school_ru": "очарование",
+        "casting_time": {
+          "unit": "action",
+          "amount": 1
+        },
+        "magic_action": true,
+        "range": "30 фт",
+        "components": {
+          "v": true,
+          "s": true,
+          "m": "пирожок и перо"
+        },
+        "duration": "концентрация, до 1 мин",
+        "concentration": true,
+        "ritual": false,
+        "classes": [
+          "bard",
+          "warlock",
+          "wizard"
+        ],
+        "attack_or_save": "МДР",
+        "damage": null,
+        "summary_ru": "Именная книжная версия («Жуткий смех Таши»); механика как у безымянной карточки «Жуткий смех». 1 круг, очарование; действие «Магия»; конц. спас МДР; бард/колдун/волшебник.",
+        "source_book": "PHB 2024",
+        "name_ru_pending": true,
+        "higher_levels": "Усиление при ячейке выше базового круга (см. кубы/цели в данных).",
+        "description": "Именная книжная версия («Жуткий смех Таши»); механика как у безымянной карточки «Жуткий смех». 1 круг, очарование; действие «Магия»; конц.; спас МДР; бард/колдун/волшебник.",
+        "srd_alias": "hideous-laughter"
+      }
+    },
+    {
+      "kind": "spell",
+      "slug": "tensers-floating-disk",
+      "name_ru": "Парящий диск Тензера",
+      "name_en": "Tenser’s Floating Disk",
+      "source": "ph24",
+      "sort_order": 1012,
+      "external_ref": {
+        "book": "PH24",
+        "url_dndsu": "https://next.dnd.su/spells/10675-tensers-floating-disk"
+      },
+      "data": {
+        "schema_version": 1,
+        "level": 1,
+        "school": "conjuration",
+        "school_ru": "вызов",
+        "casting_time": {
+          "unit": "action",
+          "amount": 1
+        },
+        "magic_action": true,
+        "range": "30 фт",
+        "components": {
+          "v": true,
+          "s": true,
+          "m": "капля ртути"
+        },
+        "duration": "1 ч",
+        "concentration": false,
+        "ritual": true,
+        "classes": [
+          "wizard"
+        ],
+        "attack_or_save": null,
+        "damage": null,
+        "summary_ru": "Именная книжная версия («Парящий диск Тензера»); механика как у безымянной карточки «Парящий диск». 1 круг, вызов; действие «Магия»; ритуал; волшебник.",
+        "source_book": "PHB 2024",
+        "name_ru_pending": true,
+        "description": "Именная книжная версия («Парящий диск Тензера»); механика как у безымянной карточки «Парящий диск». 1 круг, вызов; действие «Магия»; ритуал; волшебник.",
+        "srd_alias": "floating-disk"
+      }
+    },
+    {
+      "kind": "spell",
+      "slug": "thunderous-smite",
+      "name_ru": "Громовая кара",
+      "name_en": "Thunderous Smite",
+      "source": "ph24",
+      "sort_order": 1013,
+      "external_ref": {
+        "book": "PH24",
+        "url_dndsu": "https://next.dnd.su/spells/10679-thunderous-smite",
+        "url_ttg": "https://new.ttg.club/spells/thunderous-smite-phb"
+      },
+      "data": {
+        "schema_version": 1,
+        "level": 1,
+        "school": "evocation",
+        "school_ru": "воплощение",
+        "casting_time": {
+          "unit": "bonus",
+          "amount": 1
+        },
+        "magic_action": false,
+        "range": "На себя",
+        "components": {
+          "v": true,
+          "s": false
+        },
+        "duration": "Мгновенная",
+        "concentration": false,
+        "ritual": false,
+        "classes": [
+          "paladin"
+        ],
+        "attack_or_save": null,
+        "damage": null,
+        "summary_ru": "Подклассы: Клятва благородных гениев (Паладин) Ваш удар сопровождается громом, слышимым в пределах 300 футов от вас, и цель этой атаки получает 2к6 дополни… Кроме того, если цель — существо, оно должно преуспеть в спасброске Силы, иначе оно будет отброшено от вас на 10 футов",
+        "description": "Подклассы: Клятва благородных гениев (Паладин) Ваш удар сопровождается громом, слышимым в пределах 300 футов от вас, и цель этой атаки получает 2к6 дополни… Кроме того, если цель — существо, оно должно преуспеть в спасброске Силы, иначе оно будет отброшено от вас на 10 футов…",
+        "source_book": "PHB 2024",
+        "higher_levels": "Урон увеличивается на 1к6 за каждый уровень ячейки выше 1-го."
+      }
+    },
+    {
+      "kind": "spell",
+      "slug": "witch-bolt",
+      "name_ru": "Ведьмин снаряд",
+      "name_en": "Witch Bolt",
+      "source": "ph24",
+      "sort_order": 1014,
+      "external_ref": {
+        "book": "PH24",
+        "url_dndsu": "https://next.dnd.su/spells/10704-witch-bolt",
+        "url_ttg": "https://new.ttg.club/spells/witch-bolt-phb"
+      },
+      "data": {
+        "schema_version": 1,
+        "level": 1,
+        "school": "evocation",
+        "school_ru": "воплощение",
+        "casting_time": {
+          "unit": "action",
+          "amount": 1
+        },
+        "magic_action": true,
+        "range": "60 футов",
+        "components": {
+          "v": true,
+          "s": false,
+          "m": "ветка, поражённая молнией"
+        },
+        "duration": ", вплоть до 1 минуты",
+        "concentration": true,
+        "ritual": false,
+        "classes": [
+          "sorcerer",
+          "warlock",
+          "wizard"
+        ],
+        "attack_or_save": "атака",
+        "damage": null,
+        "summary_ru": "Подклассы: Реаниматор (Артефактор) Луч потрескивающей энергии устремляется к существу в пределах дистанции, формируя между вами и целью непрерывный дуговой… Совершите дальнобойную атаку заклинанием по этой цели.",
+        "description": "Подклассы: Реаниматор (Артефактор) Луч потрескивающей энергии устремляется к существу в пределах дистанции, формируя между вами и целью непрерывный дуговой… Совершите дальнобойную атаку заклинанием по этой цели.",
+        "source_book": "PHB 2024",
+        "higher_levels": "Урон изначальной атаки заклинанием увеличивается на 1к12 за каждый уровень ячейки выше 1-го."
+      }
+    },
+    {
+      "kind": "spell",
+      "slug": "wrathful-smite",
+      "name_ru": "Гневная кара",
+      "name_en": "Wrathful Smite",
+      "source": "ph24",
+      "sort_order": 1015,
+      "external_ref": {
+        "book": "PH24",
+        "url_dndsu": "https://next.dnd.su/spells/10707-wrathful-smite",
+        "url_ttg": "https://new.ttg.club/spells/wrathful-smite-phb"
+      },
+      "data": {
+        "schema_version": 1,
+        "level": 1,
+        "school": "necromancy",
+        "school_ru": "некромантия",
+        "casting_time": {
+          "unit": "bonus",
+          "amount": 1
+        },
+        "magic_action": false,
+        "range": "На себя",
+        "components": {
+          "v": true,
+          "s": false
+        },
+        "duration": "1 минута",
+        "concentration": false,
+        "ritual": false,
+        "classes": [
+          "paladin"
+        ],
+        "attack_or_save": null,
+        "damage": null,
+        "summary_ru": "Подклассы: Страж пустошей (Следопыт) Цель получает 1к6 дополнительного Некротического урона и должна преуспеть в спасброске Мудрости, иначе получит состоян… В конце каждого своего хода цель с этим состоянием повторяет спасбросок, при успехе оканчивая на себе это заклинание.",
+        "description": "Подклассы: Страж пустошей (Следопыт) Цель получает 1к6 дополнительного Некротического урона и должна преуспеть в спасброске Мудрости, иначе получит состоян… В конце каждого своего хода цель с этим состоянием повторяет спасбросок, при успехе оканчивая на себе это заклинание.",
+        "source_book": "PHB 2024",
+        "higher_levels": "Урон увеличивается на 1к6 за каждый уровень ячейки выше 1-го."
+      }
+    },
+    {
+      "kind": "spell",
+      "slug": "arcane-vigor",
+      "name_ru": "Мистическая бодрость",
+      "name_en": "Arcane Vigor",
+      "source": "ph24",
+      "sort_order": 2016,
+      "external_ref": {
+        "book": "PH24",
+        "url_dndsu": "https://next.dnd.su/spells/10430-arcane-vigor",
+        "url_ttg": "https://new.ttg.club/spells/arcane-vigor-phb"
+      },
+      "data": {
+        "schema_version": 1,
+        "level": 2,
+        "school": "abjuration",
+        "school_ru": "ограждение",
+        "casting_time": {
+          "unit": "bonus",
+          "amount": 1
+        },
+        "magic_action": false,
+        "range": "На себя",
+        "components": {
+          "v": true,
+          "s": false
+        },
+        "duration": "Мгновенная",
+        "concentration": false,
+        "ritual": false,
+        "classes": [
+          "artificer",
+          "sorcerer",
+          "wizard"
+        ],
+        "attack_or_save": null,
+        "damage": null,
+        "summary_ru": "Вы зачерпываете собственной жизненной силы, чтобы исцелиться. Бросьте одну или две из ваших непотраченных Костей хитов; вы восстанавливаете Хиты в количестве, равном результату этого броска + модификатор вашей заклинат",
+        "description": "Вы зачерпываете собственной жизненной силы, чтобы исцелиться. Бросьте одну или две из ваших непотраченных Костей хитов; вы восстанавливаете Хиты в количестве, равном результату этого броска + модификатор вашей заклинат…",
+        "source_book": "PHB 2024",
+        "higher_levels": "Максимальное число непотраченных Костей хитов, которые вы можете бросить, увеличивается на 2 за каждый уровень ячейки выше 2-го.",
+        "name_ru_pending": true
+      }
+    },
+    {
+      "kind": "spell",
+      "slug": "beast-sense",
+      "name_ru": "Животные чувства",
+      "name_en": "Beast Sense",
+      "source": "ph24",
+      "sort_order": 2017,
+      "external_ref": {
+        "book": "PH24",
+        "url_dndsu": "https://next.dnd.su/spells/10267-beast-sense",
+        "url_ttg": "https://new.ttg.club/spells/beast-sense-phb"
+      },
+      "data": {
+        "schema_version": 1,
+        "level": 2,
+        "school": "divination",
+        "school_ru": "прорицание",
+        "casting_time": {
+          "unit": "action",
+          "amount": 1
+        },
+        "magic_action": true,
+        "range": "Касание",
+        "components": {
+          "v": false,
+          "s": false
+        },
+        "duration": ", вплоть до 1 часа",
+        "concentration": true,
+        "ritual": true,
+        "classes": [
+          "druid",
+          "ranger"
+        ],
+        "attack_or_save": null,
+        "damage": null,
+        "summary_ru": "Подклассы: Путь дикого сердца (Варвар) Вы касаетесь согласного Зверя. Пока заклинание действует, вы можете ощущать мироокружение как своими чувствами, так и чувствами этого Зверя.",
+        "description": "Подклассы: Путь дикого сердца (Варвар) Вы касаетесь согласного Зверя. Пока заклинание действует, вы можете ощущать мироокружение как своими чувствами, так и чувствами этого Зверя.",
+        "source_book": "PHB 2024"
+      }
+    },
+    {
+      "kind": "spell",
+      "slug": "cloud-of-daggers",
+      "name_ru": "Облако кинжалов",
+      "name_en": "Cloud of Daggers",
+      "source": "ph24",
+      "sort_order": 2018,
+      "external_ref": {
+        "book": "PH24",
+        "url_dndsu": "https://next.dnd.su/spells/10463-cloud-of-daggers",
+        "url_ttg": "https://new.ttg.club/spells/cloud-of-daggers-phb"
+      },
+      "data": {
+        "schema_version": 1,
+        "level": 2,
+        "school": "conjuration",
+        "school_ru": "вызов",
+        "casting_time": {
+          "unit": "action",
+          "amount": 1
+        },
+        "magic_action": true,
+        "range": "60 футов",
+        "components": {
+          "v": true,
+          "s": false,
+          "m": "осколок стекла"
+        },
+        "duration": ", вплоть до 1 минуты",
+        "concentration": true,
+        "ritual": false,
+        "classes": [
+          "bard",
+          "sorcerer",
+          "warlock",
+          "wizard"
+        ],
+        "attack_or_save": null,
+        "damage": null,
+        "summary_ru": "Вы призываете крутящиеся кинжалы в области 5-футового Куба с центром в точке в пределах дистанции. Каждое существо в этой области получает 4к4 Рубящего урона.",
+        "description": "Вы призываете крутящиеся кинжалы в области 5-футового Куба с центром в точке в пределах дистанции. Каждое существо в этой области получает 4к4 Рубящего урона.",
+        "source_book": "PHB 2024",
+        "higher_levels": "Урон увеличивается на 2к4 за каждый уровень ячейки выше 2-го."
+      }
+    },
+    {
+      "kind": "spell",
+      "slug": "cordon-of-arrows",
+      "name_ru": "Завеса стрел",
+      "name_en": "Cordon of Arrows",
+      "source": "ph24",
+      "sort_order": 2019,
+      "external_ref": {
+        "book": "PH24",
+        "url_dndsu": "https://next.dnd.su/spells/10269-cordon-of-arrows",
+        "url_ttg": "https://new.ttg.club/spells/cordon-of-arrows-phb"
+      },
+      "data": {
+        "schema_version": 1,
+        "level": 2,
+        "school": "transmutation",
+        "school_ru": "преобразование",
+        "casting_time": {
+          "unit": "action",
+          "amount": 1
+        },
+        "magic_action": true,
+        "range": "Касание",
+        "components": {
+          "v": true,
+          "s": false,
+          "m": "декоративная тесьма"
+        },
+        "duration": "8 часов",
+        "concentration": false,
+        "ritual": false,
+        "classes": [
+          "ranger"
+        ],
+        "attack_or_save": null,
+        "damage": null,
+        "summary_ru": "Вы прикасаетесь к немагическим боеприпасам — до четырёх Стрел или Болтов — и втыкаете их в землю в вашем пространстве. Пока заклинание действует, боеприпасы не могут быть извлечены физически, и всякий раз, когда существо, отличное от вас, впервые за ход входит в пространство",
+        "description": "Вы прикасаетесь к немагическим боеприпасам — до четырёх Стрел или Болтов — и втыкаете их в землю в вашем пространстве. Пока заклинание действует, боеприпасы не могут быть извлечены физически, и всякий раз, когда существо, отличное от вас, впервые за ход входит в пространство…",
+        "source_book": "PHB 2024",
+        "higher_levels": "Количество боеприпасов, которые вы можете воткнуть при сотворении этого заклинания, увеличивается на два за каждый уровень ячейки выше 2-го."
+      }
+    },
+    {
+      "kind": "spell",
+      "slug": "crown-of-madness",
+      "name_ru": "Корона безумия",
+      "name_en": "Crown of Madness",
+      "source": "ph24",
+      "sort_order": 2020,
+      "external_ref": {
+        "book": "PH24",
+        "url_dndsu": "https://next.dnd.su/spells/10470-crown-of-madness",
+        "url_ttg": "https://new.ttg.club/spells/crown-of-madness-phb"
+      },
+      "data": {
+        "schema_version": 1,
+        "level": 2,
+        "school": "enchantment",
+        "school_ru": "очарование",
+        "casting_time": {
+          "unit": "action",
+          "amount": 1
+        },
+        "magic_action": true,
+        "range": "120 футов",
+        "components": {
+          "v": true,
+          "s": false
+        },
+        "duration": ", вплоть до 1 минуты",
+        "concentration": true,
+        "ritual": false,
+        "classes": [
+          "bard",
+          "sorcerer",
+          "warlock",
+          "wizard"
+        ],
+        "attack_or_save": null,
+        "damage": null,
+        "summary_ru": "Одно существо, видимое вами в пределах дистанции, должно преуспеть в спасброске Мудрости, иначе получит состояние Очарованный на время действия заклинания. Если цель не Гуманоид, она автоматически преуспевает в этом спасброске.",
+        "description": "Одно существо, видимое вами в пределах дистанции, должно преуспеть в спасброске Мудрости, иначе получит состояние Очарованный на время действия заклинания. Если цель не Гуманоид, она автоматически преуспевает в этом спасброске.",
+        "source_book": "PHB 2024"
+      }
+    },
+    {
+      "kind": "spell",
+      "slug": "melfs-acid-arrow",
+      "name_ru": "Кислотная стрела Мельфа",
+      "name_en": "Melf’s Acid Arrow",
+      "source": "ph24",
+      "sort_order": 2021,
+      "external_ref": {
+        "book": "PH24",
+        "url_dndsu": "https://next.dnd.su/spells/10575-melfs-acid-arrow",
+        "url_ttg": "https://new.ttg.club/spells/melf-s-acid-arrow-phb"
+      },
+      "data": {
+        "schema_version": 1,
+        "level": 2,
+        "school": "evocation",
+        "school_ru": "воплощение",
+        "casting_time": {
+          "unit": "action",
+          "amount": 1
+        },
+        "magic_action": true,
+        "range": "90 фт",
+        "components": {
+          "v": true,
+          "s": true,
+          "m": "порошок листа ревеня"
+        },
+        "duration": "мгновенно",
+        "concentration": false,
+        "ritual": false,
+        "classes": [
+          "wizard"
+        ],
+        "attack_or_save": "атака",
+        "damage": "4d4 кислота",
+        "summary_ru": "Именная книжная версия («Кислотная стрела Мельфа»); механика как у безымянной карточки «Кислотная стрела». 2 круг, воплощение; действие «Магия»; 4d4 кислота; атака заклинанием; волшебник.",
+        "source_book": "PHB 2024",
+        "name_ru_pending": true,
+        "damage_at_slot_level": {
+          "2": "4d4",
+          "3": "5d4",
+          "4": "6d4",
+          "5": "7d4",
+          "6": "8d4",
+          "7": "9d4",
+          "8": "10d4",
+          "9": "11d4"
+        },
+        "higher_levels": "Усиление ячейкой: на 4d4 на круге 2; выше — по таблице слотов (данные карточки).",
+        "description": "Именная книжная версия («Кислотная стрела Мельфа»); механика как у безымянной карточки «Кислотная стрела». 2 круг, воплощение; действие «Магия»; 4d4 кислота; атака заклинанием; волшебник.",
+        "srd_alias": "acid-arrow"
+      }
+    },
+    {
+      "kind": "spell",
+      "slug": "nystuls-magic-aura",
+      "name_ru": "Волшебная аура Нистула",
+      "name_en": "Nystul’s Magic Aura",
+      "source": "ph24",
+      "sort_order": 2022,
+      "external_ref": {
+        "book": "PH24",
+        "url_dndsu": "https://next.dnd.su/spells/10592-nystuls-magic-aura",
+        "url_ttg": "https://new.ttg.club/spells/nystul-s-magic-aura-phb"
+      },
+      "data": {
+        "schema_version": 1,
+        "level": 2,
+        "school": "illusion",
+        "school_ru": "иллюзия",
+        "casting_time": {
+          "unit": "action",
+          "amount": 1
+        },
+        "magic_action": true,
+        "range": "Касание",
+        "components": {
+          "v": true,
+          "s": true,
+          "m": "небольшой квадрат шёлка"
+        },
+        "duration": "24 ч",
+        "concentration": false,
+        "ritual": false,
+        "classes": [
+          "wizard"
+        ],
+        "attack_or_save": null,
+        "damage": null,
+        "summary_ru": "Именная книжная версия («Волшебная аура Нистула»); механика как у безымянной карточки «Аура чародея». 2 круг, иллюзия; действие «Магия»; волшебник.",
+        "source_book": "PHB 2024",
+        "name_ru_pending": true,
+        "description": "Именная книжная версия («Волшебная аура Нистула»); механика как у безымянной карточки «Аура чародея». 2 круг, иллюзия; действие «Магия»; волшебник.",
+        "srd_alias": "arcanists-magic-aura"
+      }
+    },
+    {
+      "kind": "spell",
+      "slug": "summon-beast",
+      "name_ru": "Вызов зверя",
+      "name_en": "Summon Beast",
+      "source": "ph24",
+      "sort_order": 2023,
+      "external_ref": {
+        "book": "PH24",
+        "url_dndsu": "https://next.dnd.su/spells/10304-summon-beast",
+        "url_ttg": "https://new.ttg.club/spells/summon-beast-phb"
+      },
+      "data": {
+        "schema_version": 1,
+        "level": 2,
+        "school": "conjuration",
+        "school_ru": "вызов",
+        "casting_time": {
+          "unit": "action",
+          "amount": 1
+        },
+        "magic_action": true,
+        "range": "90 футов",
+        "components": {
+          "v": true,
+          "s": false,
+          "m": "перо, пучок меха и рыбий хвост внутри позолоченного жёлудя стоимостью не менее 200 ЗМ"
+        },
+        "duration": ", вплоть до 1 часа",
+        "concentration": true,
+        "ritual": false,
+        "classes": [
+          "druid",
+          "ranger"
+        ],
+        "attack_or_save": null,
+        "damage": null,
+        "summary_ru": "Подклассы: Иллюзионист (Волшебник) Вы призываете духа зверя. Он появляется в видимом вами в пределах дистанции незанятом пространстве и использует блок статистики Духа зверя.",
+        "description": "Подклассы: Иллюзионист (Волшебник) Вы призываете духа зверя. Он появляется в видимом вами в пределах дистанции незанятом пространстве и использует блок статистики Духа зверя.",
+        "source_book": "PHB 2024",
+        "higher_levels": "Там, где блок статистики ссылается на уровень заклинания, используйте уровень ячейки заклинаний.",
+        "name_ru_pending": true
+      }
+    },
+    {
+      "kind": "spell",
+      "slug": "aura-of-vitality",
+      "name_ru": "Аура живучести",
+      "name_en": "Aura of Vitality",
+      "source": "ph24",
+      "sort_order": 3024,
+      "external_ref": {
+        "book": "PH24",
+        "url_dndsu": "https://next.dnd.su/spells/10437-aura-of-vitality",
+        "url_ttg": "https://new.ttg.club/spells/aura-of-vitality-phb"
+      },
+      "data": {
+        "schema_version": 1,
+        "level": 3,
+        "school": "abjuration",
+        "school_ru": "ограждение",
+        "casting_time": {
+          "unit": "action",
+          "amount": 1
+        },
+        "magic_action": true,
+        "range": "На себя",
+        "components": {
+          "v": true,
+          "s": false
+        },
+        "duration": ", вплоть до 1 минуты",
+        "concentration": true,
+        "ritual": false,
+        "classes": [
+          "cleric",
+          "druid",
+          "paladin"
+        ],
+        "attack_or_save": null,
+        "damage": null,
+        "summary_ru": "Подклассы: Боевой кузнец (Артефактор), Чародейство чаропламени (Чародей) Пока заклинание действует, вы излучаете ауру Эманацией радиусом 30 футов. Когда вы создаёте этот эффект и в начале каждого вашего хода, пока аура действует, вы можете восстановить 2к6 Хитов одному",
+        "description": "Подклассы: Боевой кузнец (Артефактор), Чародейство чаропламени (Чародей) Пока заклинание действует, вы излучаете ауру Эманацией радиусом 30 футов. Когда вы создаёте этот эффект и в начале каждого вашего хода, пока аура действует, вы можете восстановить 2к6 Хитов одному нах…",
+        "source_book": "PHB 2024"
+      }
+    },
+    {
+      "kind": "spell",
+      "slug": "blinding-smite",
+      "name_ru": "Ослепляющая кара",
+      "name_en": "Blinding Smite",
+      "source": "ph24",
+      "sort_order": 3025,
+      "external_ref": {
+        "book": "PH24",
+        "url_dndsu": "https://next.dnd.su/spells/10447-blinding-smite",
+        "url_ttg": "https://new.ttg.club/spells/blinding-smite-phb"
+      },
+      "data": {
+        "schema_version": 1,
+        "level": 3,
+        "school": "evocation",
+        "school_ru": "воплощение",
+        "casting_time": {
+          "unit": "bonus",
+          "amount": 1
+        },
+        "magic_action": false,
+        "range": "На себя",
+        "components": {
+          "v": true,
+          "s": false
+        },
+        "duration": "1 минута",
+        "concentration": false,
+        "ritual": false,
+        "classes": [
+          "paladin"
+        ],
+        "attack_or_save": "ТЕЛ",
+        "damage": null,
+        "summary_ru": "Цель этой атаки получает 3к8 дополнительного урона Излучением и состояние Ослеплённый на время действия заклинания. В конце каждого своего хода цель с этим состоянием совершает спасбросок Телосложения, при успехе оканчивая на себе это заклинание.",
+        "description": "Цель этой атаки получает 3к8 дополнительного урона Излучением и состояние Ослеплённый на время действия заклинания. В конце каждого своего хода цель с этим состоянием совершает спасбросок Телосложения, при успехе оканчивая на себе это заклинание.",
+        "source_book": "PHB 2024",
+        "higher_levels": "Дополнительный урон увеличивается на 1к8 за каждый уровень ячейки выше 3-го."
+      }
+    },
+    {
+      "kind": "spell",
+      "slug": "conjure-barrage",
+      "name_ru": "Призыв шквала снарядов",
+      "name_en": "Conjure Barrage",
+      "source": "ph24",
+      "sort_order": 3026,
+      "external_ref": {
+        "book": "PH24",
+        "url_dndsu": "https://next.dnd.su/spells/10205-conjure-barrage",
+        "url_ttg": "https://new.ttg.club/spells/conjure-barrage-phb"
+      },
+      "data": {
+        "schema_version": 1,
+        "level": 3,
+        "school": "conjuration",
+        "school_ru": "вызов",
+        "casting_time": {
+          "unit": "action",
+          "amount": 1
+        },
+        "magic_action": true,
+        "range": "На себя",
+        "components": {
+          "v": true,
+          "s": false,
+          "m": "Рукопашное или Дальнобойное оружие стоимостью не менее 1 ММ"
+        },
+        "duration": "Мгновенная",
+        "concentration": false,
+        "ritual": false,
+        "classes": [
+          "ranger"
+        ],
+        "attack_or_save": "ЛОВ",
+        "damage": null,
+        "summary_ru": "Подклассы: Боевой кузнец (Артефактор) Вы взмахиваете оружием, используемым для сотворения заклинания, и призываете оружие такого же вида (или боеприпасы, п… Выберите видимых вами существ в 60-футовом Конусе.",
+        "description": "Подклассы: Боевой кузнец (Артефактор) Вы взмахиваете оружием, используемым для сотворения заклинания, и призываете оружие такого же вида (или боеприпасы, п… Выберите видимых вами существ в 60-футовом Конусе.",
+        "source_book": "PHB 2024",
+        "higher_levels": "Урон увеличивается на 1к8 за каждый уровень ячейки выше 3-го.",
+        "name_ru_pending": true
+      }
+    },
+    {
+      "kind": "spell",
+      "slug": "crusaders-mantle",
+      "name_ru": "Ореол крестоносца",
+      "name_en": "Crusader’s Mantle",
+      "source": "ph24",
+      "sort_order": 3027,
+      "external_ref": {
+        "book": "PH24",
+        "url_dndsu": "https://next.dnd.su/spells/10471-crusaders-mantle",
+        "url_ttg": "https://new.ttg.club/spells/crusader-s-mantle-phb"
+      },
+      "data": {
+        "schema_version": 1,
+        "level": 3,
+        "school": "evocation",
+        "school_ru": "воплощение",
+        "casting_time": {
+          "unit": "action",
+          "amount": 1
+        },
+        "magic_action": true,
+        "range": "На себя",
+        "components": {
+          "v": true,
+          "s": false
+        },
+        "duration": ", вплоть до 1 минуты",
+        "concentration": true,
+        "ritual": false,
+        "classes": [
+          "paladin"
+        ],
+        "attack_or_save": null,
+        "damage": null,
+        "summary_ru": "Подклассы: Домен войны (Жрец) Вы излучаете магическую ауру Эманацией радиусом 30 футов. Находясь в этой ауре, вы и ваши союзники наносите 1к4 дополнительного урона Излучением при попадании оружием или Безоружным ударом.",
+        "description": "Подклассы: Домен войны (Жрец) Вы излучаете магическую ауру Эманацией радиусом 30 футов. Находясь в этой ауре, вы и ваши союзники наносите 1к4 дополнительного урона Излучением при попадании оружием или Безоружным ударом.",
+        "source_book": "PHB 2024",
+        "name_ru_pending": true
+      }
+    },
+    {
+      "kind": "spell",
+      "slug": "elemental-weapon",
+      "name_ru": "Стихийное оружие",
+      "name_en": "Elemental Weapon",
+      "source": "ph24",
+      "sort_order": 3028,
+      "external_ref": {
+        "book": "PH24",
+        "url_dndsu": "https://next.dnd.su/spells/10280-elemental-weapon",
+        "url_ttg": "https://new.ttg.club/spells/elemental-weapon-phb"
+      },
+      "data": {
+        "schema_version": 1,
+        "level": 3,
+        "school": "transmutation",
+        "school_ru": "преобразование",
+        "casting_time": {
+          "unit": "action",
+          "amount": 1
+        },
+        "magic_action": true,
+        "range": "Касание",
+        "components": {
+          "v": true,
+          "s": false
+        },
+        "duration": ", вплоть до 1 часа",
+        "concentration": true,
+        "ritual": false,
+        "classes": [
+          "artificer",
+          "druid",
+          "paladin",
+          "ranger"
+        ],
+        "attack_or_save": null,
+        "damage": null,
+        "summary_ru": "Немагическое оружие, которого вы касаетесь, становится магическим. Выберите один из следующих видов урона: Звук, Кислота, Огонь, Холод или Электричество.",
+        "description": "Немагическое оружие, которого вы касаетесь, становится магическим. Выберите один из следующих видов урона: Звук, Кислота, Огонь, Холод или Электричество.",
+        "source_book": "PHB 2024",
+        "higher_levels": "При использовании ячейки 5-го или 6-го уровней бонус к броскам атаки увеличивается до +2, а дополнительный урон — до 2к4. При использовании ячейки 7-го уровня или выше бонус к б…"
+      }
+    },
+    {
+      "kind": "spell",
+      "slug": "feign-death",
+      "name_ru": "Притворная смерть",
+      "name_en": "Feign Death",
+      "source": "ph24",
+      "sort_order": 3029,
+      "external_ref": {
+        "book": "PH24",
+        "url_dndsu": "https://next.dnd.su/spells/10507-feign-death",
+        "url_ttg": "https://new.ttg.club/spells/feign-death-phb"
+      },
+      "data": {
+        "schema_version": 1,
+        "level": 3,
+        "school": "necromancy",
+        "school_ru": "некромантия",
+        "casting_time": {
+          "unit": "action",
+          "amount": 1
+        },
+        "magic_action": true,
+        "range": "Касание",
+        "components": {
+          "v": true,
+          "s": false,
+          "m": "щепотка кладбищенской земли"
+        },
+        "duration": "1 час",
+        "concentration": false,
+        "ritual": true,
+        "classes": [
+          "bard",
+          "cleric",
+          "druid",
+          "wizard"
+        ],
+        "attack_or_save": null,
+        "damage": null,
+        "summary_ru": "Вы касаетесь согласного существа и погружаете его в каталептическое состояние, неотличимое от смерти. Пока заклинание действует, цель выглядит мёртвой для любого обследования и заклинаний, определяющих состояние цели.",
+        "description": "Вы касаетесь согласного существа и погружаете его в каталептическое состояние, неотличимое от смерти. Пока заклинание действует, цель выглядит мёртвой для любого обследования и заклинаний, определяющих состояние цели.",
+        "source_book": "PHB 2024",
+        "name_ru_pending": true
+      }
+    },
+    {
+      "kind": "spell",
+      "slug": "hunger-of-hadar",
+      "name_ru": "Голод Хадара",
+      "name_en": "Hunger of Hadar",
+      "source": "ph24",
+      "sort_order": 3030,
+      "external_ref": {
+        "book": "PH24",
+        "url_dndsu": "https://next.dnd.su/spells/10545-hunger-of-hadar",
+        "url_ttg": "https://new.ttg.club/spells/hunger-of-hadar-phb"
+      },
+      "data": {
+        "schema_version": 1,
+        "level": 3,
+        "school": "conjuration",
+        "school_ru": "вызов",
+        "casting_time": {
+          "unit": "action",
+          "amount": 1
+        },
+        "magic_action": true,
+        "range": "150 футов",
+        "components": {
+          "v": true,
+          "s": false,
+          "m": "маринованное щупальце"
+        },
+        "duration": ", вплоть до 1 минуты",
+        "concentration": true,
+        "ritual": false,
+        "classes": [
+          "warlock"
+        ],
+        "attack_or_save": null,
+        "damage": null,
+        "summary_ru": "Подклассы: Великий Древний (Колдун), Аберрантное чародейство (Чародей), Теневое чародейство (Чародей) Вы открываете врата в Дальний Предел, населённое… Эта Сфера — Труднопроходимая область, полная какофонии неясных шёпотов и хлюпающих шумов, слышимых в пределах 30 футов",
+        "description": "Подклассы: Великий Древний (Колдун), Аберрантное чародейство (Чародей), Теневое чародейство (Чародей) Вы открываете врата в Дальний Предел, населённое… Эта Сфера — Труднопроходимая область, полная какофонии неясных шёпотов и хлюпающих шумов, слышимых в пределах 30 футов…",
+        "source_book": "PHB 2024",
+        "higher_levels": "Урон Холодом или урон Кислотой (на ваш выбор) увеличивается на 1к6 за каждый уровень ячейки выше 3-го."
+      }
+    },
+    {
+      "kind": "spell",
+      "slug": "leomunds-tiny-hut",
+      "name_ru": "Хижина Леомунда",
+      "name_en": "Leomund’s Tiny Hut",
+      "source": "ph24",
+      "sort_order": 3031,
+      "external_ref": {
+        "book": "PH24",
+        "url_dndsu": "https://next.dnd.su/spells/10559-leomunds-tiny-hut",
+        "url_ttg": "https://new.ttg.club/spells/leomund-s-tiny-hut-phb"
+      },
+      "data": {
+        "schema_version": 1,
+        "level": 3,
+        "school": "evocation",
+        "school_ru": "воплощение",
+        "casting_time": {
+          "unit": "minute",
+          "amount": 1,
+          "or_ritual": true
+        },
+        "magic_action": false,
+        "range": "На себя",
+        "components": {
+          "v": true,
+          "s": true,
+          "m": "кристаллическая бусина"
+        },
+        "duration": "8 ч",
+        "concentration": false,
+        "ritual": true,
+        "classes": [
+          "bard",
+          "wizard"
+        ],
+        "attack_or_save": null,
+        "damage": null,
+        "summary_ru": "Именная книжная версия («Хижина Леомунда»); механика как у безымянной карточки «Крошечная хижина». 3 круг, воплощение; минуты; ритуал; бард/волшебник.",
+        "source_book": "PHB 2024",
+        "name_ru_pending": true,
+        "description": "Именная книжная версия («Хижина Леомунда»); механика как у безымянной карточки «Крошечная хижина». 3 круг, воплощение; минуты; ритуал; бард/волшебник.",
+        "srd_alias": "tiny-hut"
+      }
+    },
+    {
+      "kind": "spell",
+      "slug": "lightning-arrow",
+      "name_ru": "Молниевая стрела",
+      "name_en": "Lightning Arrow",
+      "source": "ph24",
+      "sort_order": 3032,
+      "external_ref": {
+        "book": "PH24",
+        "url_dndsu": "https://next.dnd.su/spells/10290-lightning-arrow",
+        "url_ttg": "https://new.ttg.club/spells/lightning-arrow-phb"
+      },
+      "data": {
+        "schema_version": 1,
+        "level": 3,
+        "school": "transmutation",
+        "school_ru": "преобразование",
+        "casting_time": {
+          "unit": "bonus",
+          "amount": 1
+        },
+        "magic_action": false,
+        "range": "На себя",
+        "components": {
+          "v": true,
+          "s": false
+        },
+        "duration": "Мгновенная",
+        "concentration": false,
+        "ritual": false,
+        "classes": [
+          "ranger"
+        ],
+        "attack_or_save": "ЛОВ",
+        "damage": null,
+        "summary_ru": "Когда вы попадаете или промахиваетесь этой атакой, используемое вами оружие или боеприпас превращаются в разряд молнии. Цель атаки не получает урон или иных эффектов от этой атаки; вместо этого цель получает 4к8 урона Электричеством при попадании или половину этого урона при",
+        "description": "Когда вы попадаете или промахиваетесь этой атакой, используемое вами оружие или боеприпас превращаются в разряд молнии. Цель атаки не получает урон или иных эффектов от этой атаки; вместо этого цель получает 4к8 урона Электричеством при попадании или половину этого урона при п…",
+        "source_book": "PHB 2024",
+        "higher_levels": "Урон обоих эффектов заклинания увеличивается на 1к8 за каждый уровень ячейки выше 3-го.",
+        "name_ru_pending": true
+      }
+    },
+    {
+      "kind": "spell",
+      "slug": "summon-fey",
+      "name_ru": "Вызов феи",
+      "name_en": "Summon Fey",
+      "source": "ph24",
+      "sort_order": 3033,
+      "external_ref": {
+        "book": "PH24",
+        "url_dndsu": "https://next.dnd.su/spells/10307-summon-fey",
+        "url_ttg": "https://new.ttg.club/spells/summon-fey-phb"
+      },
+      "data": {
+        "schema_version": 1,
+        "level": 3,
+        "school": "conjuration",
+        "school_ru": "вызов",
+        "casting_time": {
+          "unit": "action",
+          "amount": 1
+        },
+        "magic_action": true,
+        "range": "90 футов",
+        "components": {
+          "v": true,
+          "s": false,
+          "m": "позолоченный цветок стоимостью не менее 300 ЗМ"
+        },
+        "duration": ", вплоть до 1 часа",
+        "concentration": true,
+        "ritual": false,
+        "classes": [
+          "druid",
+          "ranger",
+          "warlock",
+          "wizard"
+        ],
+        "attack_or_save": null,
+        "damage": null,
+        "summary_ru": "Подклассы: Иллюзионист (Волшебник), Странник фей (Следопыт) Вы призываете духа феи. Он появляется в видимом вами в пределах дистанции незанятом пространстве и использует блок статистики Духа феи.",
+        "description": "Подклассы: Иллюзионист (Волшебник), Странник фей (Следопыт) Вы призываете духа феи. Он появляется в видимом вами в пределах дистанции незанятом пространстве и использует блок статистики Духа феи.",
+        "source_book": "PHB 2024",
+        "higher_levels": "Там, где блок статистики ссылается на уровень заклинания, используйте уровень ячейки заклинаний.",
+        "name_ru_pending": true
+      }
+    },
+    {
+      "kind": "spell",
+      "slug": "summon-undead",
+      "name_ru": "Вызов нежити",
+      "name_en": "Summon Undead",
+      "source": "ph24",
+      "sort_order": 3034,
+      "external_ref": {
+        "book": "PH24",
+        "url_dndsu": "https://next.dnd.su/spells/10664-summon-undead",
+        "url_ttg": "https://new.ttg.club/spells/summon-undead-phb"
+      },
+      "data": {
+        "schema_version": 1,
+        "level": 3,
+        "school": "necromancy",
+        "school_ru": "некромантия",
+        "casting_time": {
+          "unit": "action",
+          "amount": 1
+        },
+        "magic_action": true,
+        "range": "90 футов",
+        "components": {
+          "v": true,
+          "s": false,
+          "m": "позолоченный череп стоимостью не менее 300 ЗМ"
+        },
+        "duration": ", вплоть до 1 часа",
+        "concentration": true,
+        "ritual": false,
+        "classes": [
+          "warlock",
+          "wizard"
+        ],
+        "attack_or_save": null,
+        "damage": null,
+        "summary_ru": "Подклассы: Нежить (Колдун) Вы призываете духа нежити. Он появляется в видимом вами в пределах дистанции незанятом пространстве и использует блок статистики Духа нежити.",
+        "description": "Подклассы: Нежить (Колдун) Вы призываете духа нежити. Он появляется в видимом вами в пределах дистанции незанятом пространстве и использует блок статистики Духа нежити.",
+        "source_book": "PHB 2024",
+        "higher_levels": "Там, где блок статистики ссылается на уровень заклинания, используйте уровень ячейки заклинаний.",
+        "name_ru_pending": true
+      }
+    },
+    {
+      "kind": "spell",
+      "slug": "aura-of-purity",
+      "name_ru": "Аура очищения",
+      "name_en": "Aura of Purity",
+      "source": "ph24",
+      "sort_order": 4035,
+      "external_ref": {
+        "book": "PH24",
+        "url_dndsu": "https://next.dnd.su/spells/10436-aura-of-purity",
+        "url_ttg": "https://new.ttg.club/spells/aura-of-purity-phb"
+      },
+      "data": {
+        "schema_version": 1,
+        "level": 4,
+        "school": "abjuration",
+        "school_ru": "ограждение",
+        "casting_time": {
+          "unit": "action",
+          "amount": 1
+        },
+        "magic_action": true,
+        "range": "На себя",
+        "components": {
+          "v": true,
+          "s": false
+        },
+        "duration": ", вплоть до 10 минут",
+        "concentration": true,
+        "ritual": false,
+        "classes": [
+          "cleric",
+          "paladin"
+        ],
+        "attack_or_save": null,
+        "damage": null,
+        "summary_ru": "Подклассы: Боевой кузнец (Артефактор) Пока заклинание действует, от вас исходит аура Эманацией радиусом 30 футов. Находясь в пределах этой ауры, вы и ваши союзники получаете Сопротивление урону Ядом и совершаете с Преимуществом спасброски для избегания или окончания эффе",
+        "description": "Подклассы: Боевой кузнец (Артефактор) Пока заклинание действует, от вас исходит аура Эманацией радиусом 30 футов. Находясь в пределах этой ауры, вы и ваши союзники получаете Сопротивление урону Ядом и совершаете с Преимуществом спасброски для избегания или окончания эффе…",
+        "source_book": "PHB 2024"
+      }
+    },
+    {
+      "kind": "spell",
+      "slug": "evards-black-tentacles",
+      "name_ru": "Чёрные щупальца Эварда",
+      "name_en": "Evard’s Black Tentacles",
+      "source": "ph24",
+      "sort_order": 4036,
+      "external_ref": {
+        "book": "PH24",
+        "url_dndsu": "https://next.dnd.su/spells/10499-evards-black-tentacles",
+        "url_ttg": "https://new.ttg.club/spells/evard-s-black-tentacles-phb"
+      },
+      "data": {
+        "schema_version": 1,
+        "level": 4,
+        "school": "conjuration",
+        "school_ru": "вызов",
+        "casting_time": {
+          "unit": "action",
+          "amount": 1
+        },
+        "magic_action": true,
+        "range": "90 фт",
+        "components": {
+          "v": true,
+          "s": true,
+          "m": "щупальце"
+        },
+        "duration": "концентрация, до 1 мин",
+        "concentration": true,
+        "ritual": false,
+        "classes": [
+          "wizard"
+        ],
+        "attack_or_save": "СИЛ",
+        "damage": "3d6 дробящий",
+        "summary_ru": "Именная книжная версия («Чёрные щупальца Эварда»); механика как у безымянной карточки «Чёрные щупальца». 4 круг, вызов; действие «Магия»; конц. 3к6 дробящий; спас СИЛ; волшебник.",
+        "source_book": "PHB 2024",
+        "name_ru_pending": true,
+        "damage_at_slot_level": {
+          "4": "3d6"
+        },
+        "description": "Именная книжная версия («Чёрные щупальца Эварда»); механика как у безымянной карточки «Чёрные щупальца». 4 круг, вызов; действие «Магия»; конц.; 3d6 дробящий; спас СИЛ; волшебник.",
+        "srd_alias": "black-tentacles"
+      }
+    },
+    {
+      "kind": "spell",
+      "slug": "fount-of-moonlight",
+      "name_ru": "Источник лунного света",
+      "name_en": "Fount of Moonlight",
+      "source": "ph24",
+      "sort_order": 4037,
+      "external_ref": {
+        "book": "PH24",
+        "url_dndsu": "https://next.dnd.su/spells/10522-fount-of-moonlight",
+        "url_ttg": "https://new.ttg.club/spells/fount-of-moonlight-phb"
+      },
+      "data": {
+        "schema_version": 1,
+        "level": 4,
+        "school": "evocation",
+        "school_ru": "воплощение",
+        "casting_time": {
+          "unit": "action",
+          "amount": 1
+        },
+        "magic_action": true,
+        "range": "На себя",
+        "components": {
+          "v": true,
+          "s": false
+        },
+        "duration": ", вплоть до 10 минут",
+        "concentration": true,
+        "ritual": false,
+        "classes": [
+          "bard",
+          "druid"
+        ],
+        "attack_or_save": "ТЕЛ",
+        "damage": null,
+        "summary_ru": "Подклассы: Круг луны (Друид) Пока заклинание действует, ваше тело светится холодным светом, излучая Яркий свет в радиусе 20 футов и Тусклый свет ещё на 20… На время действия заклинания вы получаете Сопротивление урону Излучением, а ваши рукопашные атаки наносят при попадании",
+        "description": "Подклассы: Круг луны (Друид) Пока заклинание действует, ваше тело светится холодным светом, излучая Яркий свет в радиусе 20 футов и Тусклый свет ещё на 20… На время действия заклинания вы получаете Сопротивление урону Излучением, а ваши рукопашные атаки наносят при попадании…",
+        "source_book": "PHB 2024"
+      }
+    },
+    {
+      "kind": "spell",
+      "slug": "grasping-vine",
+      "name_ru": "Цепкая лоза",
+      "name_en": "Grasping Vine",
+      "source": "ph24",
+      "sort_order": 4038,
+      "external_ref": {
+        "book": "PH24",
+        "url_dndsu": "https://next.dnd.su/spells/10285-grasping-vine",
+        "url_ttg": "https://new.ttg.club/spells/grasping-vine-phb"
+      },
+      "data": {
+        "schema_version": 1,
+        "level": 4,
+        "school": "conjuration",
+        "school_ru": "вызов",
+        "casting_time": {
+          "unit": "bonus",
+          "amount": 1
+        },
+        "magic_action": false,
+        "range": "60 футов",
+        "components": {
+          "v": true,
+          "s": false
+        },
+        "duration": ", вплоть до 1 минуты",
+        "concentration": true,
+        "ritual": false,
+        "classes": [
+          "druid",
+          "ranger"
+        ],
+        "attack_or_save": "атака",
+        "damage": null,
+        "summary_ru": "Вы создаёте лозу, вырастающую из земли в видимом вами в пределах дистанции незанятом пространстве на ваш выбор. Лоза существует, пока действует заклинание.",
+        "description": "Вы создаёте лозу, вырастающую из земли в видимом вами в пределах дистанции незанятом пространстве на ваш выбор. Лоза существует, пока действует заклинание.",
+        "source_book": "PHB 2024",
+        "higher_levels": "Количество существ, которых лоза может одновременно держать Схваченными, увеличивается на 1 за каждый уровень ячейки выше 4-го."
+      }
+    },
+    {
+      "kind": "spell",
+      "slug": "leomunds-secret-chest",
+      "name_ru": "Потайной сундук Леомунда",
+      "name_en": "Leomund’s Secret Chest",
+      "source": "ph24",
+      "sort_order": 4039,
+      "external_ref": {
+        "book": "PH24",
+        "url_dndsu": "https://next.dnd.su/spells/10558-leomunds-secret-chest",
+        "url_ttg": "https://new.ttg.club/spells/leomund-s-secret-chest-phb"
+      },
+      "data": {
+        "schema_version": 1,
+        "level": 4,
+        "school": "conjuration",
+        "school_ru": "вызов",
+        "casting_time": {
+          "unit": "action",
+          "amount": 1
+        },
+        "magic_action": true,
+        "range": "Касание",
+        "components": {
+          "v": true,
+          "s": true,
+          "m": "сундук 3×2×2 фт из редких материалов (5 000+ зм) и крошечная копия из тех же материалов (50+ зм)",
+          "m_cost_gp": 5000
+        },
+        "duration": "пока не развеяно",
+        "concentration": false,
+        "ritual": false,
+        "classes": [
+          "artificer",
+          "wizard"
+        ],
+        "attack_or_save": null,
+        "damage": null,
+        "summary_ru": "Именная книжная версия («Потайной сундук Леомунда»); механика как у безымянной карточки «Потайной сундук». 4 круг, вызов; действие «Магия»; волшебник.",
+        "source_book": "PHB 2024",
+        "name_ru_pending": true,
+        "description": "Именная книжная версия («Потайной сундук Леомунда»); механика как у безымянной карточки «Потайной сундук». 4 круг, вызов; действие «Магия»; волшебник.",
+        "srd_alias": "secret-chest"
+      }
+    },
+    {
+      "kind": "spell",
+      "slug": "mordenkainens-faithful-hound",
+      "name_ru": "Верный пёс Морденкайнена",
+      "name_en": "Mordenkainen’s Faithful Hound",
+      "source": "ph24",
+      "sort_order": 4040,
+      "external_ref": {
+        "book": "PH24",
+        "url_dndsu": "https://next.dnd.su/spells/10587-mordenkainens-faithful-hound"
+      },
+      "data": {
+        "schema_version": 1,
+        "level": 4,
+        "school": "conjuration",
+        "school_ru": "вызов",
+        "casting_time": {
+          "unit": "action",
+          "amount": 1
+        },
+        "magic_action": true,
+        "range": "30 фт",
+        "components": {
+          "v": true,
+          "s": true,
+          "m": "серебряный свисток"
+        },
+        "duration": "8 ч",
+        "concentration": false,
+        "ritual": false,
+        "classes": [
+          "artificer",
+          "wizard"
+        ],
+        "attack_or_save": "ЛОВ",
+        "damage": "4d8 силовой",
+        "summary_ru": "Именная книжная версия («Верный пёс Морденкайнена»); механика как у безымянной карточки «Верный пёс». 4 круг, вызов; действие «Магия»; 4d8 силовой; спас ЛОВ; волшебник.",
+        "source_book": "PHB 2024",
+        "name_ru_pending": true,
+        "damage_at_slot_level": {
+          "4": "4d8"
+        },
+        "description": "Именная книжная версия («Верный пёс Морденкайнена»); механика как у безымянной карточки «Верный пёс». 4 круг, вызов; действие «Магия»; 4d8 силовой; спас ЛОВ; волшебник.",
+        "srd_alias": "faithful-hound"
+      }
+    },
+    {
+      "kind": "spell",
+      "slug": "mordenkainens-private-sanctum",
+      "name_ru": "Кабинет Морденкайнена",
+      "name_en": "Mordenkainen’s Private Sanctum",
+      "source": "ph24",
+      "sort_order": 4041,
+      "external_ref": {
+        "book": "PH24",
+        "url_dndsu": "https://next.dnd.su/spells/10589-mordenkainens-private-sanctum"
+      },
+      "data": {
+        "schema_version": 1,
+        "level": 4,
+        "school": "abjuration",
+        "school_ru": "ограждение",
+        "casting_time": {
+          "unit": "minute",
+          "amount": 1
+        },
+        "magic_action": false,
+        "range": "120 фт",
+        "components": {
+          "v": true,
+          "s": true,
+          "m": "тонкий лист свинца"
+        },
+        "duration": "24 ч",
+        "concentration": false,
+        "ritual": false,
+        "classes": [
+          "artificer",
+          "wizard"
+        ],
+        "attack_or_save": null,
+        "damage": null,
+        "summary_ru": "Именная книжная версия («Кабинет Морденкайнена»); механика как у безымянной карточки «Личный кабинет». 4 круг, ограждение; минуты; волшебник.",
+        "source_book": "PHB 2024",
+        "name_ru_pending": true,
+        "higher_levels": "Усиление при ячейке выше базового круга (см. кубы/цели в данных).",
+        "description": "Именная книжная версия («Кабинет Морденкайнена»); механика как у безымянной карточки «Личный кабинет». 4 круг, ограждение; минуты; волшебник.",
+        "srd_alias": "private-sanctum"
+      }
+    },
+    {
+      "kind": "spell",
+      "slug": "otilukes-resilient-sphere",
+      "name_ru": "Упругий шар Отилюка",
+      "name_en": "Otiluke’s Resilient Sphere",
+      "source": "ph24",
+      "sort_order": 4042,
+      "external_ref": {
+        "book": "PH24",
+        "url_dndsu": "https://next.dnd.su/spells/10594-otilukes-resilient-sphere",
+        "url_ttg": "https://new.ttg.club/spells/otiluke-s-resilient-sphere-phb"
+      },
+      "data": {
+        "schema_version": 1,
+        "level": 4,
+        "school": "abjuration",
+        "school_ru": "ограждение",
+        "casting_time": {
+          "unit": "action",
+          "amount": 1
+        },
+        "magic_action": true,
+        "range": "30 фт",
+        "components": {
+          "v": true,
+          "s": true,
+          "m": "стеклянная сфера"
+        },
+        "duration": "концентрация, до 1 мин",
+        "concentration": true,
+        "ritual": false,
+        "classes": [
+          "artificer",
+          "wizard"
+        ],
+        "attack_or_save": "ЛОВ",
+        "damage": null,
+        "summary_ru": "Именная книжная версия («Упругий шар Отилюка»); механика как у безымянной карточки «Упругий шар». 4 круг, ограждение; действие «Магия»; конц. спас ЛОВ; волшебник.",
+        "source_book": "PHB 2024",
+        "name_ru_pending": true,
+        "description": "Именная книжная версия («Упругий шар Отилюка»); механика как у безымянной карточки «Упругий шар». 4 круг, ограждение; действие «Магия»; конц.; спас ЛОВ; волшебник.",
+        "srd_alias": "resilient-sphere"
+      }
+    },
+    {
+      "kind": "spell",
+      "slug": "staggering-smite",
+      "name_ru": "Оглушающая кара",
+      "name_en": "Staggering Smite",
+      "source": "ph24",
+      "sort_order": 4043,
+      "external_ref": {
+        "book": "PH24",
+        "url_dndsu": "https://next.dnd.su/spells/10653-staggering-smite",
+        "url_ttg": "https://new.ttg.club/spells/staggering-smite-phb"
+      },
+      "data": {
+        "schema_version": 1,
+        "level": 4,
+        "school": "enchantment",
+        "school_ru": "очарование",
+        "casting_time": {
+          "unit": "bonus",
+          "amount": 1
+        },
+        "magic_action": false,
+        "range": "На себя",
+        "components": {
+          "v": true,
+          "s": false
+        },
+        "duration": "Мгновенная",
+        "concentration": false,
+        "ritual": false,
+        "classes": [
+          "paladin"
+        ],
+        "attack_or_save": null,
+        "damage": null,
+        "summary_ru": "Цель этой атаки получает 4к6 дополнительного Психического урона, а также должна преуспеть в спасброске Мудрости, иначе получит состояние Ошеломлённый до конц",
+        "description": "Цель этой атаки получает 4к6 дополнительного Психического урона, а также должна преуспеть в спасброске Мудрости, иначе получит состояние Ошеломлённый до конц…",
+        "source_book": "PHB 2024",
+        "higher_levels": "Дополнительный урон увеличивается на 1к6 за каждый уровень ячейки выше 4-го."
+      }
+    },
+    {
+      "kind": "spell",
+      "slug": "summon-aberration",
+      "name_ru": "Вызов аберрации",
+      "name_en": "Summon Aberration",
+      "source": "ph24",
+      "sort_order": 4044,
+      "external_ref": {
+        "book": "PH24",
+        "url_dndsu": "https://next.dnd.su/spells/10659-summon-aberration",
+        "url_ttg": "https://new.ttg.club/spells/summon-aberration-phb"
+      },
+      "data": {
+        "schema_version": 1,
+        "level": 4,
+        "school": "conjuration",
+        "school_ru": "вызов",
+        "casting_time": {
+          "unit": "action",
+          "amount": 1
+        },
+        "magic_action": true,
+        "range": "90 футов",
+        "components": {
+          "v": true,
+          "s": false,
+          "m": "заспиртованные щупальце и глазное яблоко в сосуде с платиновой инкрустацией стоимостью не менее 400 ЗМ"
+        },
+        "duration": ", вплоть до 1 часа",
+        "concentration": true,
+        "ritual": false,
+        "classes": [
+          "warlock",
+          "wizard"
+        ],
+        "attack_or_save": null,
+        "damage": null,
+        "summary_ru": "Подклассы: Великий Древний (Колдун), Аберрантное чародейство (Чародей) Вы призываете аберрантного духа. Он появляется в видимом вами в пределах дистанции незанятом пространстве и использует блок статистики Духа аберрации.",
+        "description": "Подклассы: Великий Древний (Колдун), Аберрантное чародейство (Чародей) Вы призываете аберрантного духа. Он появляется в видимом вами в пределах дистанции незанятом пространстве и использует блок статистики Духа аберрации.",
+        "source_book": "PHB 2024",
+        "higher_levels": "Там, где блок статистики ссылается на уровень заклинания, используйте уровень ячейки заклинаний.",
+        "name_ru_pending": true
+      }
+    },
+    {
+      "kind": "spell",
+      "slug": "summon-construct",
+      "name_ru": "Вызов конструкта",
+      "name_en": "Summon Construct",
+      "source": "ph24",
+      "sort_order": 4045,
+      "external_ref": {
+        "book": "PH24",
+        "url_dndsu": "https://next.dnd.su/spells/10661-summon-construct",
+        "url_ttg": "https://new.ttg.club/spells/summon-construct-phb"
+      },
+      "data": {
+        "schema_version": 1,
+        "level": 4,
+        "school": "conjuration",
+        "school_ru": "вызов",
+        "casting_time": {
+          "unit": "action",
+          "amount": 1
+        },
+        "magic_action": true,
+        "range": "90 футов",
+        "components": {
+          "v": true,
+          "s": false,
+          "m": "шкатулка стоимостью не менее 400 ЗМ"
+        },
+        "duration": ", вплоть до 1 часа",
+        "concentration": true,
+        "ritual": false,
+        "classes": [
+          "artificer",
+          "wizard"
+        ],
+        "attack_or_save": null,
+        "damage": null,
+        "summary_ru": "Подклассы: Заводное чародейство (Чародей) Вы призываете духа Конструкта. Он появляется в видимом вами в пределах дистанции незанятом пространстве и использует блок статистики Духа конструкта.",
+        "description": "Подклассы: Заводное чародейство (Чародей) Вы призываете духа Конструкта. Он появляется в видимом вами в пределах дистанции незанятом пространстве и использует блок статистики Духа конструкта.",
+        "source_book": "PHB 2024",
+        "higher_levels": "Там, где блок статистики ссылается на уровень заклинания, используйте уровень ячейки заклинаний.",
+        "name_ru_pending": true
+      }
+    },
+    {
+      "kind": "spell",
+      "slug": "summon-elemental",
+      "name_ru": "Вызов элементаля",
+      "name_en": "Summon Elemental",
+      "source": "ph24",
+      "sort_order": 4046,
+      "external_ref": {
+        "book": "PH24",
+        "url_dndsu": "https://next.dnd.su/spells/10305-summon-elemental",
+        "url_ttg": "https://new.ttg.club/spells/summon-elemental-phb"
+      },
+      "data": {
+        "schema_version": 1,
+        "level": 4,
+        "school": "conjuration",
+        "school_ru": "вызов",
+        "casting_time": {
+          "unit": "action",
+          "amount": 1
+        },
+        "magic_action": true,
+        "range": "90 футов",
+        "components": {
+          "v": true,
+          "s": false,
+          "m": "воздух, камешек, пепел и вода внутри флакона с золотой инкрустацией стоимостью не менее 400 ЗМ"
+        },
+        "duration": ", вплоть до 1 часа",
+        "concentration": true,
+        "ritual": false,
+        "classes": [
+          "druid",
+          "ranger",
+          "wizard"
+        ],
+        "attack_or_save": null,
+        "damage": null,
+        "summary_ru": "Подклассы: Клятва благородных гениев (Паладин) Вы призываете духа стихии. Он появляется в видимом вами в пределах дистанции незанятом пространстве и использует блок статистики Духа стихии.",
+        "description": "Подклассы: Клятва благородных гениев (Паладин) Вы призываете духа стихии. Он появляется в видимом вами в пределах дистанции незанятом пространстве и использует блок статистики Духа стихии.",
+        "source_book": "PHB 2024",
+        "higher_levels": "Там, где блок статистики ссылается на уровень заклинания, используйте уровень ячейки заклинаний.",
+        "name_ru_pending": true
+      }
+    },
+    {
+      "kind": "spell",
+      "slug": "banishing-smite",
+      "name_ru": "Изгоняющая кара",
+      "name_en": "Banishing Smite",
+      "source": "ph24",
+      "sort_order": 5047,
+      "external_ref": {
+        "book": "PH24",
+        "url_dndsu": "https://next.dnd.su/spells/10439-banishing-smite",
+        "url_ttg": "https://new.ttg.club/spells/banishing-smite-phb"
+      },
+      "data": {
+        "schema_version": 1,
+        "level": 5,
+        "school": "conjuration",
+        "school_ru": "вызов",
+        "casting_time": {
+          "unit": "bonus",
+          "amount": 1
+        },
+        "magic_action": false,
+        "range": "На себя",
+        "components": {
+          "v": true,
+          "s": false
+        },
+        "duration": ", вплоть до 1 минуты",
+        "concentration": true,
+        "ritual": false,
+        "classes": [
+          "paladin"
+        ],
+        "attack_or_save": null,
+        "damage": null,
+        "summary_ru": "Подклассы: Боевой кузнец (Артефактор), Клятва благородных гениев (Паладин) Цель этой атаки получает 5к10 дополнительного Силового урона. Если урон этой атаки опускает Хиты цели до 50 или ниже, то цель должна преуспеть в спасброске Харизмы, иначе будет перемещена в безвредн",
+        "description": "Подклассы: Боевой кузнец (Артефактор), Клятва благородных гениев (Паладин) Цель этой атаки получает 5к10 дополнительного Силового урона. Если урон этой атаки опускает Хиты цели до 50 или ниже, то цель должна преуспеть в спасброске Харизмы, иначе будет перемещена в безвредн…",
+        "source_book": "PHB 2024"
+      }
+    },
+    {
+      "kind": "spell",
+      "slug": "bigbys-hand",
+      "name_ru": "Длань Бигби",
+      "name_en": "Bigby’s Hand",
+      "source": "ph24",
+      "sort_order": 5048,
+      "external_ref": {
+        "book": "PH24",
+        "url_dndsu": "https://next.dnd.su/spells/10442-bigbys-hand"
+      },
+      "data": {
+        "schema_version": 1,
+        "level": 5,
+        "school": "evocation",
+        "school_ru": "воплощение",
+        "casting_time": {
+          "unit": "action",
+          "amount": 1
+        },
+        "magic_action": true,
+        "range": "120 фт",
+        "components": {
+          "v": true,
+          "s": true,
+          "m": "яичная скорлупа и перчатка"
+        },
+        "duration": "концентрация, до 1 мин",
+        "concentration": true,
+        "ritual": false,
+        "classes": [
+          "artificer",
+          "sorcerer",
+          "wizard"
+        ],
+        "attack_or_save": null,
+        "damage": null,
+        "summary_ru": "Именная книжная версия («Длань Бигби»); механика как у безымянной карточки «Чародейская длань». 5 круг, воплощение; действие «Магия»; конц. чародей/волшебник.",
+        "source_book": "PHB 2024",
+        "name_ru_pending": true,
+        "higher_levels": "Усиление при ячейке выше базового круга (см. кубы/цели в данных).",
+        "description": "Именная книжная версия («Длань Бигби»); механика как у безымянной карточки «Чародейская длань». 5 круг, воплощение; действие «Магия»; конц.; чародей/волшебник.",
+        "srd_alias": "arcane-hand"
+      }
+    },
+    {
+      "kind": "spell",
+      "slug": "circle-of-power",
+      "name_ru": "Круг силы",
+      "name_en": "Circle of Power",
+      "source": "ph24",
+      "sort_order": 5049,
+      "external_ref": {
+        "book": "PH24",
+        "url_dndsu": "https://next.dnd.su/spells/10460-circle-of-power",
+        "url_ttg": "https://new.ttg.club/spells/circle-of-power-phb"
+      },
+      "data": {
+        "schema_version": 1,
+        "level": 5,
+        "school": "abjuration",
+        "school_ru": "ограждение",
+        "casting_time": {
+          "unit": "action",
+          "amount": 1
+        },
+        "magic_action": true,
+        "range": "На себя",
+        "components": {
+          "v": true,
+          "s": false
+        },
+        "duration": ", вплоть до 10 минут",
+        "concentration": true,
+        "ritual": false,
+        "classes": [
+          "artificer",
+          "cleric",
+          "paladin",
+          "wizard"
+        ],
+        "attack_or_save": null,
+        "damage": null,
+        "summary_ru": "На время действия заклинания от вас исходит аура 30-футовой Эманацией. Находясь в ауре, вы совершаете с Преимуществом спасброски против заклинаний и прочих магических эффектов, а если совершаете спасбросок против заклинания или",
+        "description": "На время действия заклинания от вас исходит аура 30-футовой Эманацией. Находясь в ауре, вы совершаете с Преимуществом спасброски против заклинаний и прочих магических эффектов, а если совершаете спасбросок против заклинания или…",
+        "source_book": "PHB 2024"
+      }
+    },
+    {
+      "kind": "spell",
+      "slug": "conjure-volley",
+      "name_ru": "Призыв залпа",
+      "name_en": "Conjure Volley",
+      "source": "ph24",
+      "sort_order": 5050,
+      "external_ref": {
+        "book": "PH24",
+        "url_dndsu": "https://next.dnd.su/spells/10210-conjure-volley",
+        "url_ttg": "https://new.ttg.club/spells/conjure-volley-phb"
+      },
+      "data": {
+        "schema_version": 1,
+        "level": 5,
+        "school": "conjuration",
+        "school_ru": "вызов",
+        "casting_time": {
+          "unit": "action",
+          "amount": 1
+        },
+        "magic_action": true,
+        "range": "150 футов",
+        "components": {
+          "v": true,
+          "s": false,
+          "m": "Рукопашное или Дальнобойное оружие стоимостью не менее 1 ММ"
+        },
+        "duration": "Мгновенная",
+        "concentration": false,
+        "ritual": false,
+        "classes": [
+          "ranger"
+        ],
+        "attack_or_save": "ЛОВ",
+        "damage": null,
+        "summary_ru": "Вы взмахиваете оружием, используемым для сотворения заклинания, и выбираете точку в пределах дистанции. Сотни таких же призрачных оружий (или боеприпасов, подходящих этому оружию) падают залпом и потом исчезают.",
+        "description": "Вы взмахиваете оружием, используемым для сотворения заклинания, и выбираете точку в пределах дистанции. Сотни таких же призрачных оружий (или боеприпасов, подходящих этому оружию) падают залпом и потом исчезают.",
+        "source_book": "PHB 2024",
+        "name_ru_pending": true
+      }
+    },
+    {
+      "kind": "spell",
+      "slug": "destructive-wave",
+      "name_ru": "Разрушительная волна",
+      "name_en": "Destructive Wave",
+      "source": "ph24",
+      "sort_order": 5051,
+      "external_ref": {
+        "book": "PH24",
+        "url_dndsu": "https://next.dnd.su/spells/10477-destructive-wave",
+        "url_ttg": "https://new.ttg.club/spells/destructive-wave-phb"
+      },
+      "data": {
+        "schema_version": 1,
+        "level": 5,
+        "school": "evocation",
+        "school_ru": "воплощение",
+        "casting_time": {
+          "unit": "action",
+          "amount": 1
+        },
+        "magic_action": true,
+        "range": "На себя",
+        "components": {
+          "v": true,
+          "s": false
+        },
+        "duration": "Мгновенная",
+        "concentration": false,
+        "ritual": false,
+        "classes": [
+          "paladin"
+        ],
+        "attack_or_save": "ТЕЛ",
+        "damage": null,
+        "summary_ru": "Разрушительная энергия вырывается из вас 30-футовой Эманацией. Выберите существ в этой Эманации; каждая цель должна совершить спасбросок Телосложения, при провале получая состояние Опрокинутый, а также 5к6 урона Звуком",
+        "description": "Разрушительная энергия вырывается из вас 30-футовой Эманацией. Выберите существ в этой Эманации; каждая цель должна совершить спасбросок Телосложения, при провале получая состояние Опрокинутый, а также 5к6 урона Звуком…",
+        "source_book": "PHB 2024"
+      }
+    },
+    {
+      "kind": "spell",
+      "slug": "jallarzis-storm-of-radiance",
+      "name_ru": "Сияющий шторм Джалларзи",
+      "name_en": "Jallarzi’s Storm of Radiance",
+      "source": "ph24",
+      "sort_order": 5052,
+      "external_ref": {
+        "book": "PH24",
+        "url_dndsu": "https://next.dnd.su/spells/10556-jallarzis-storm-of-radiance",
+        "url_ttg": "https://new.ttg.club/spells/jallarzi-s-storm-of-radiance-phb"
+      },
+      "data": {
+        "schema_version": 1,
+        "level": 5,
+        "school": "evocation",
+        "school_ru": "воплощение",
+        "casting_time": {
+          "unit": "action",
+          "amount": 1
+        },
+        "magic_action": true,
+        "range": "120 футов",
+        "components": {
+          "v": true,
+          "s": false,
+          "m": "щепоть фосфора"
+        },
+        "duration": ", вплоть до 1 минуты",
+        "concentration": true,
+        "ritual": false,
+        "classes": [
+          "warlock",
+          "wizard"
+        ],
+        "attack_or_save": "ТЕЛ",
+        "damage": null,
+        "summary_ru": "Вы выпускаете бурю сияющего света и яростного грома в Цилиндре радиусом 10 футов и 40 футов высотой с центром на видимой вами в пределах дистанции точки. Существа в этом Цилиндре имеют состояния Ослеплённый и Оглохший и не могут сотворять заклинания с Вербальным компонентом.",
+        "description": "Вы выпускаете бурю сияющего света и яростного грома в Цилиндре радиусом 10 футов и 40 футов высотой с центром на видимой вами в пределах дистанции точки. Существа в этом Цилиндре имеют состояния Ослеплённый и Оглохший и не могут сотворять заклинания с Вербальным компонентом.",
+        "source_book": "PHB 2024",
+        "higher_levels": "И урон Излучением, и урон Звуком увеличиваются на 1к10 за каждый уровень ячейки выше 5-го."
+      }
+    },
+    {
+      "kind": "spell",
+      "slug": "rarys-telepathic-bond",
+      "name_ru": "Ментальная связь Рэри",
+      "name_en": "Rary’s Telepathic Bond",
+      "source": "ph24",
+      "sort_order": 5053,
+      "external_ref": {
+        "book": "PH24",
+        "url_dndsu": "https://next.dnd.su/spells/10618-rarys-telepathic-bond",
+        "url_ttg": "https://new.ttg.club/spells/rary-s-telepathic-bond-phb"
+      },
+      "data": {
+        "schema_version": 1,
+        "level": 5,
+        "school": "divination",
+        "school_ru": "прорицание",
+        "casting_time": {
+          "unit": "action",
+          "amount": 1
+        },
+        "magic_action": true,
+        "range": "30 фт",
+        "components": {
+          "v": true,
+          "s": true,
+          "m": "два яйца"
+        },
+        "duration": "1 ч",
+        "concentration": false,
+        "ritual": true,
+        "classes": [
+          "bard",
+          "wizard"
+        ],
+        "attack_or_save": null,
+        "damage": null,
+        "summary_ru": "Именная книжная версия («Ментальная связь Рэри»); механика как у безымянной карточки «Ментальная связь». 5 круг, прорицание; действие «Магия»; ритуал; бард/волшебник.",
+        "source_book": "PHB 2024",
+        "name_ru_pending": true,
+        "description": "Именная книжная версия («Ментальная связь Рэри»); механика как у безымянной карточки «Ментальная связь». 5 круг, прорицание; действие «Магия»; ритуал; бард/волшебник.",
+        "srd_alias": "telepathic-bond"
+      }
+    },
+    {
+      "kind": "spell",
+      "slug": "steel-wind-strike",
+      "name_ru": "Удар стального ветра",
+      "name_en": "Steel Wind Strike",
+      "source": "ph24",
+      "sort_order": 5054,
+      "external_ref": {
+        "book": "PH24",
+        "url_dndsu": "https://next.dnd.su/spells/10303-steel-wind-strike",
+        "url_ttg": "https://new.ttg.club/spells/steel-wind-strike-phb"
+      },
+      "data": {
+        "schema_version": 1,
+        "level": 5,
+        "school": "conjuration",
+        "school_ru": "вызов",
+        "casting_time": {
+          "unit": "action",
+          "amount": 1
+        },
+        "magic_action": true,
+        "range": "30 футов",
+        "components": {
+          "v": false,
+          "s": false,
+          "m": "Рукопашное оружие стоимостью не менее 1 СМ"
+        },
+        "duration": "Мгновенная",
+        "concentration": false,
+        "ritual": false,
+        "classes": [
+          "ranger",
+          "wizard"
+        ],
+        "attack_or_save": "атака",
+        "damage": null,
+        "summary_ru": "Подклассы: Домен войны (Жрец), Страж пустошей (Следопыт) Вы взмахиваете оружием, сотворяя заклинание, а затем исчезаете, ударяя подобно ветру. Выберите до пяти видимых вами в пределах дистанции существ.",
+        "description": "Подклассы: Домен войны (Жрец), Страж пустошей (Следопыт) Вы взмахиваете оружием, сотворяя заклинание, а затем исчезаете, ударяя подобно ветру. Выберите до пяти видимых вами в пределах дистанции существ.",
+        "source_book": "PHB 2024"
+      }
+    },
+    {
+      "kind": "spell",
+      "slug": "summon-celestial",
+      "name_ru": "Вызов небожителя",
+      "name_en": "Summon Celestial",
+      "source": "ph24",
+      "sort_order": 5055,
+      "external_ref": {
+        "book": "PH24",
+        "url_dndsu": "https://next.dnd.su/spells/10660-summon-celestial",
+        "url_ttg": "https://new.ttg.club/spells/summon-celestial-phb"
+      },
+      "data": {
+        "schema_version": 1,
+        "level": 5,
+        "school": "conjuration",
+        "school_ru": "вызов",
+        "casting_time": {
+          "unit": "action",
+          "amount": 1
+        },
+        "magic_action": true,
+        "range": "90 футов",
+        "components": {
+          "v": true,
+          "s": false,
+          "m": "реликварий стоимостью не менее 500 ЗМ"
+        },
+        "duration": ", вплоть до 1 часа",
+        "concentration": true,
+        "ritual": false,
+        "classes": [
+          "cleric",
+          "paladin"
+        ],
+        "attack_or_save": null,
+        "damage": null,
+        "summary_ru": "Подклассы: Небожитель (Колдун) Вы призываете духа Небожителя. Он появляется в видимом вами в пределах дистанции незанятом пространстве и использует блок статистики Духа небожителя.",
+        "description": "Подклассы: Небожитель (Колдун) Вы призываете духа Небожителя. Он появляется в видимом вами в пределах дистанции незанятом пространстве и использует блок статистики Духа небожителя.",
+        "source_book": "PHB 2024",
+        "higher_levels": "Там, где блок статистики ссылается на уровень заклинания, используйте уровень ячейки заклинаний.",
+        "name_ru_pending": true
+      }
+    },
+    {
+      "kind": "spell",
+      "slug": "swift-quiver",
+      "name_ru": "Быстрый колчан",
+      "name_en": "Swift Quiver",
+      "source": "ph24",
+      "sort_order": 5056,
+      "external_ref": {
+        "book": "PH24",
+        "url_dndsu": "https://next.dnd.su/spells/10308-swift-quiver",
+        "url_ttg": "https://new.ttg.club/spells/swift-quiver-phb"
+      },
+      "data": {
+        "schema_version": 1,
+        "level": 5,
+        "school": "transmutation",
+        "school_ru": "преобразование",
+        "casting_time": {
+          "unit": "bonus",
+          "amount": 1
+        },
+        "magic_action": false,
+        "range": "На себя",
+        "components": {
+          "v": true,
+          "s": false,
+          "m": "Колчан стоимостью не менее 1 ЗМ"
+        },
+        "duration": ", вплоть до 1 минуты",
+        "concentration": true,
+        "ritual": false,
+        "classes": [
+          "ranger"
+        ],
+        "attack_or_save": null,
+        "damage": null,
+        "summary_ru": "Когда вы сотворяете заклинание, а также Бонусным действием, пока оно действует, вы можете совершить две атаки оружием, стреляющим Стрелами или Болтами — таки… Заклинание магическим образом создает боеприпасы для этих атак.",
+        "description": "Когда вы сотворяете заклинание, а также Бонусным действием, пока оно действует, вы можете совершить две атаки оружием, стреляющим Стрелами или Болтами — таки… Заклинание магическим образом создает боеприпасы для этих атак.",
+        "source_book": "PHB 2024"
+      }
+    },
+    {
+      "kind": "spell",
+      "slug": "synaptic-static",
+      "name_ru": "Синаптический разряд",
+      "name_en": "Synaptic Static",
+      "source": "ph24",
+      "sort_order": 5057,
+      "external_ref": {
+        "book": "PH24",
+        "url_dndsu": "https://next.dnd.su/spells/10668-synaptic-static",
+        "url_ttg": "https://new.ttg.club/spells/synaptic-static-phb"
+      },
+      "data": {
+        "schema_version": 1,
+        "level": 5,
+        "school": "enchantment",
+        "school_ru": "очарование",
+        "casting_time": {
+          "unit": "action",
+          "amount": 1
+        },
+        "magic_action": true,
+        "range": "120 футов",
+        "components": {
+          "v": true,
+          "s": false
+        },
+        "duration": "Мгновенная",
+        "concentration": false,
+        "ritual": false,
+        "classes": [
+          "bard",
+          "sorcerer",
+          "warlock",
+          "wizard"
+        ],
+        "attack_or_save": "ИНТ",
+        "damage": null,
+        "summary_ru": "Подклассы: Домен знаний (Жрец) Вы вызываете взрыв психической энергии в точке в пределах дистанции. Каждое существо в Сфере радиусом 20 футов с центром в этой точке должно совершить спасбросок Интеллекта, получая 8к6 Психического урона при провале или полов",
+        "description": "Подклассы: Домен знаний (Жрец) Вы вызываете взрыв психической энергии в точке в пределах дистанции. Каждое существо в Сфере радиусом 20 футов с центром в этой точке должно совершить спасбросок Интеллекта, получая 8к6 Психического урона при провале или полов…",
+        "source_book": "PHB 2024"
+      }
+    },
+    {
+      "kind": "spell",
+      "slug": "yolandes-regal-presence",
+      "name_ru": "Царственное величие Йоланды",
+      "name_en": "Yolande’s Regal Presence",
+      "source": "ph24",
+      "sort_order": 5058,
+      "external_ref": {
+        "book": "PH24",
+        "url_dndsu": "https://next.dnd.su/spells/10257-yolandes-regal-presence",
+        "url_ttg": "https://new.ttg.club/spells/yolande-s-regal-presence-phb"
+      },
+      "data": {
+        "schema_version": 1,
+        "level": 5,
+        "school": "enchantment",
+        "school_ru": "очарование",
+        "casting_time": {
+          "unit": "action",
+          "amount": 1
+        },
+        "magic_action": true,
+        "range": "На себя",
+        "components": {
+          "v": true,
+          "s": false,
+          "m": "миниатюрная тиара"
+        },
+        "duration": ", вплоть до 1 минуты",
+        "concentration": true,
+        "ritual": false,
+        "classes": [
+          "bard",
+          "wizard"
+        ],
+        "attack_or_save": "МДР",
+        "damage": null,
+        "summary_ru": "Подклассы: Клятва славы (Паладин) Вы окружаете себя неземным ореолом в виде 10-футовой Эманации. Каждый раз, когда эта Эманация входит в пространство видимого вами существа, или когда видимое вами существо входит в Эманацию или заканчивает в ней ход, вы",
+        "description": "Подклассы: Клятва славы (Паладин) Вы окружаете себя неземным ореолом в виде 10-футовой Эманации. Каждый раз, когда эта Эманация входит в пространство видимого вами существа, или когда видимое вами существо входит в Эманацию или заканчивает в ней ход, вы…",
+        "source_book": "PHB 2024",
+        "name_ru_pending": true
+      }
+    },
+    {
+      "kind": "spell",
+      "slug": "arcane-gate",
+      "name_ru": "Магические врата",
+      "name_en": "Arcane Gate",
+      "source": "ph24",
+      "sort_order": 6059,
+      "external_ref": {
+        "book": "PH24",
+        "url_dndsu": "https://next.dnd.su/spells/10428-arcane-gate"
+      },
+      "data": {
+        "schema_version": 1,
+        "level": 6,
+        "school": "conjuration",
+        "school_ru": "вызов",
+        "casting_time": {
+          "unit": "action",
+          "amount": 1
+        },
+        "magic_action": true,
+        "range": "500 футов",
+        "components": {
+          "v": true,
+          "s": false
+        },
+        "duration": ", вплоть до 10 минут",
+        "concentration": true,
+        "ritual": false,
+        "classes": [
+          "sorcerer",
+          "warlock",
+          "wizard"
+        ],
+        "attack_or_save": null,
+        "damage": null,
+        "summary_ru": "Вы создаёте связанные порталы телепортации. Выберите два видимых вами на земле пространства Большого размера: одно в пределах 10 футов от вас, второе в пределах дистанции.",
+        "description": "Вы создаёте связанные порталы телепортации. Выберите два видимых вами на земле пространства Большого размера: одно в пределах 10 футов от вас, второе в пределах дистанции.",
+        "source_book": "PHB 2024"
+      }
+    },
+    {
+      "kind": "spell",
+      "slug": "drawmijs-instant-summons",
+      "name_ru": "Мгновенный вызов Дромиджа",
+      "name_en": "Drawmij’s Instant Summons",
+      "source": "ph24",
+      "sort_order": 6060,
+      "external_ref": {
+        "book": "PH24",
+        "url_dndsu": "https://next.dnd.su/spells/10490-drawmijs-instant-summons",
+        "url_ttg": "https://new.ttg.club/spells/drawmij-s-instant-summons-phb"
+      },
+      "data": {
+        "schema_version": 1,
+        "level": 6,
+        "school": "conjuration",
+        "school_ru": "вызов",
+        "casting_time": {
+          "unit": "minute",
+          "amount": 1,
+          "or_ritual": true
+        },
+        "magic_action": false,
+        "range": "Касание",
+        "components": {
+          "v": true,
+          "s": true,
+          "m": "сапфир стоимостью 1 000+ зм",
+          "m_cost_gp": 1000
+        },
+        "duration": "пока не развеяно",
+        "concentration": false,
+        "ritual": true,
+        "classes": [
+          "wizard"
+        ],
+        "attack_or_save": null,
+        "damage": null,
+        "summary_ru": "Именная книжная версия («Мгновенный вызов Дромиджа»); механика как у безымянной карточки «Мгновенный вызов». 6 круг, вызов; минуты; ритуал; волшебник.",
+        "source_book": "PHB 2024",
+        "name_ru_pending": true,
+        "description": "Именная книжная версия («Мгновенный вызов Дромиджа»); механика как у безымянной карточки «Мгновенный вызов». 6 круг, вызов; минуты; ритуал; волшебник.",
+        "srd_alias": "instant-summons"
+      }
+    },
+    {
+      "kind": "spell",
+      "slug": "otilukes-freezing-sphere",
+      "name_ru": "Ледяной шар Отилюка",
+      "name_en": "Otiluke’s Freezing Sphere",
+      "source": "ph24",
+      "sort_order": 6061,
+      "external_ref": {
+        "book": "PH24",
+        "url_dndsu": "https://next.dnd.su/spells/10593-otilukes-freezing-sphere",
+        "url_ttg": "https://new.ttg.club/spells/otiluke-s-freezing-sphere-phb"
+      },
+      "data": {
+        "schema_version": 1,
+        "level": 6,
+        "school": "evocation",
+        "school_ru": "воплощение",
+        "casting_time": {
+          "unit": "action",
+          "amount": 1
+        },
+        "magic_action": true,
+        "range": "300 фт",
+        "components": {
+          "v": true,
+          "s": true,
+          "m": "миниатюрная хрустальная сфера"
+        },
+        "duration": "мгновенно",
+        "concentration": false,
+        "ritual": false,
+        "classes": [
+          "sorcerer",
+          "wizard"
+        ],
+        "attack_or_save": "ТЕЛ",
+        "damage": "10d6 холод",
+        "summary_ru": "Именная книжная версия («Ледяной шар Отилюка»); механика как у безымянной карточки «Ледяной шар». 6 круг, воплощение; действие «Магия»; 10d6 холод; спас ТЕЛ; чародей/волшебник.",
+        "source_book": "PHB 2024",
+        "name_ru_pending": true,
+        "damage_at_slot_level": {
+          "6": "10d6"
+        },
+        "higher_levels": "Усиление при ячейке выше базового круга (см. кубы/цели в данных).",
+        "description": "Именная книжная версия («Ледяной шар Отилюка»); механика как у безымянной карточки «Ледяной шар». 6 круг, воплощение; действие «Магия»; 10d6 холод; спас ТЕЛ; чародей/волшебник.",
+        "srd_alias": "freezing-sphere"
+      }
+    },
+    {
+      "kind": "spell",
+      "slug": "ottos-irresistible-dance",
+      "name_ru": "Неудержимая пляска Отто",
+      "name_en": "Otto’s Irresistible Dance",
+      "source": "ph24",
+      "sort_order": 6062,
+      "external_ref": {
+        "book": "PH24",
+        "url_dndsu": "https://next.dnd.su/spells/10595-ottos-irresistible-dance",
+        "url_ttg": "https://new.ttg.club/spells/otto-s-irresistible-dance-phb"
+      },
+      "data": {
+        "schema_version": 1,
+        "level": 6,
+        "school": "enchantment",
+        "school_ru": "очарование",
+        "casting_time": {
+          "unit": "action",
+          "amount": 1
+        },
+        "magic_action": true,
+        "range": "30 фт",
+        "components": {
+          "v": true,
+          "s": false
+        },
+        "duration": "концентрация, до 1 мин",
+        "concentration": true,
+        "ritual": false,
+        "classes": [
+          "bard",
+          "wizard"
+        ],
+        "attack_or_save": "МДР",
+        "damage": null,
+        "summary_ru": "Именная книжная версия («Неудержимая пляска Отто»); механика как у безымянной карточки «Неудержимая пляска». 6 круг, очарование; действие «Магия»; конц. спас МДР; бард/волшебник.",
+        "source_book": "PHB 2024",
+        "name_ru_pending": true,
+        "description": "Именная книжная версия («Неудержимая пляска Отто»); механика как у безымянной карточки «Неудержимая пляска». 6 круг, очарование; действие «Магия»; конц.; спас МДР; бард/волшебник.",
+        "srd_alias": "irresistible-dance"
+      }
+    },
+    {
+      "kind": "spell",
+      "slug": "summon-fiend",
+      "name_ru": "Вызов исчадия",
+      "name_en": "Summon Fiend",
+      "source": "ph24",
+      "sort_order": 6063,
+      "external_ref": {
+        "book": "PH24",
+        "url_dndsu": "https://next.dnd.su/spells/10663-summon-fiend",
+        "url_ttg": "https://new.ttg.club/spells/summon-fiend-phb"
+      },
+      "data": {
+        "schema_version": 1,
+        "level": 6,
+        "school": "conjuration",
+        "school_ru": "вызов",
+        "casting_time": {
+          "unit": "action",
+          "amount": 1
+        },
+        "magic_action": true,
+        "range": "90 футов",
+        "components": {
+          "v": true,
+          "s": false,
+          "m": "окровавленный фиал стоимостью не менее 600 ЗМ"
+        },
+        "duration": ", вплоть до 1 часа",
+        "concentration": true,
+        "ritual": false,
+        "classes": [
+          "warlock",
+          "wizard"
+        ],
+        "attack_or_save": null,
+        "damage": null,
+        "summary_ru": "Вы призываете духа исчадия. Он появляется в видимом вами в пределах дистанции незанятом пространстве и использует блок статистики Духа исчадия.",
+        "description": "Вы призываете духа исчадия. Он появляется в видимом вами в пределах дистанции незанятом пространстве и использует блок статистики Духа исчадия.",
+        "source_book": "PHB 2024",
+        "higher_levels": "Там, где блок статистики ссылается на уровень заклинания, используйте уровень ячейки заклинаний.",
+        "name_ru_pending": true
+      }
+    },
+    {
+      "kind": "spell",
+      "slug": "tashas-bubbling-cauldron",
+      "name_ru": "Бурлящий котёл Таши",
+      "name_en": "Tasha’s Bubbling Cauldron",
+      "source": "ph24",
+      "sort_order": 6064,
+      "external_ref": {
+        "book": "PH24",
+        "url_dndsu": "https://next.dnd.su/spells/10669-tashas-bubbling-cauldron",
+        "url_ttg": "https://new.ttg.club/spells/tasha-s-bubbling-cauldron-phb"
+      },
+      "data": {
+        "schema_version": 1,
+        "level": 6,
+        "school": "conjuration",
+        "school_ru": "вызов",
+        "casting_time": {
+          "unit": "action",
+          "amount": 1
+        },
+        "magic_action": true,
+        "range": "5 футов",
+        "components": {
+          "v": true,
+          "s": false,
+          "m": "позолоченный черпак стоимостью не менее 500 ЗМ"
+        },
+        "duration": "10 минут",
+        "concentration": false,
+        "ritual": false,
+        "classes": [
+          "warlock",
+          "wizard"
+        ],
+        "attack_or_save": null,
+        "damage": null,
+        "summary_ru": "Вы сотворяете стоящий на когтистых ножках котёл, полный бурлящей жидкости. Котёл появляется в незанятом пространстве на земле в пределах 5 футов от вас и существует, пока действует заклинание.",
+        "description": "Вы сотворяете стоящий на когтистых ножках котёл, полный бурлящей жидкости. Котёл появляется в незанятом пространстве на земле в пределах 5 футов от вас и существует, пока действует заклинание.",
+        "source_book": "PHB 2024"
+      }
+    },
+    {
+      "kind": "spell",
+      "slug": "mordenkainens-magnificent-mansion",
+      "name_ru": "Великолепный особняк Морденкайнена",
+      "name_en": "Mordenkainen’s Magnificent Mansion",
+      "source": "ph24",
+      "sort_order": 7065,
+      "external_ref": {
+        "book": "PH24",
+        "url_dndsu": "https://next.dnd.su/spells/10588-mordenkainens-magnificent-mansion",
+        "url_ttg": "https://new.ttg.club/spells/mordenkainen-s-magnificent-mansion-phb"
+      },
+      "data": {
+        "schema_version": 1,
+        "level": 7,
+        "school": "conjuration",
+        "school_ru": "вызов",
+        "casting_time": {
+          "unit": "minute",
+          "amount": 1
+        },
+        "magic_action": false,
+        "range": "300 фт",
+        "components": {
+          "v": true,
+          "s": true,
+          "m": "миниатюрная дверь стоимостью 15+ зм",
+          "m_cost_gp": 15
+        },
+        "duration": "24 ч",
+        "concentration": false,
+        "ritual": false,
+        "classes": [
+          "bard",
+          "wizard"
+        ],
+        "attack_or_save": null,
+        "damage": null,
+        "summary_ru": "Именная книжная версия («Великолепный особняк Морденкайнена»); механика как у безымянной карточки «Великолепный особняк». 7 круг, вызов; минуты; бард/волшебник.",
+        "source_book": "PHB 2024",
+        "name_ru_pending": true,
+        "description": "Именная книжная версия («Великолепный особняк Морденкайнена»); механика как у безымянной карточки «Великолепный особняк». 7 круг, вызов; минуты; бард/волшебник.",
+        "srd_alias": "magnificent-mansion"
+      }
+    },
+    {
+      "kind": "spell",
+      "slug": "mordenkainens-sword",
+      "name_ru": "Меч Морденкайнена",
+      "name_en": "Mordenkainen’s Sword",
+      "source": "ph24",
+      "sort_order": 7066,
+      "external_ref": {
+        "book": "PH24",
+        "url_dndsu": "https://next.dnd.su/spells/10590-mordenkainens-sword",
+        "url_ttg": "https://new.ttg.club/spells/mordenkainen-s-sword-phb"
+      },
+      "data": {
+        "schema_version": 1,
+        "level": 7,
+        "school": "evocation",
+        "school_ru": "воплощение",
+        "casting_time": {
+          "unit": "action",
+          "amount": 1
+        },
+        "magic_action": true,
+        "range": "90 фт",
+        "components": {
+          "v": true,
+          "s": true,
+          "m": "миниатюрный меч стоимостью 250+ зм",
+          "m_cost_gp": 250
+        },
+        "duration": "концентрация, до 1 мин",
+        "concentration": true,
+        "ritual": false,
+        "classes": [
+          "bard",
+          "wizard"
+        ],
+        "attack_or_save": "атака",
+        "damage": "4d12 силовой",
+        "summary_ru": "Именная книжная версия («Меч Морденкайнена»); механика как у безымянной карточки «Чародейский меч». 7 круг, воплощение; действие «Магия»; конц. 4к12 силовой; атака заклинанием; бард/волшебник.",
+        "source_book": "PHB 2024",
+        "name_ru_pending": true,
+        "damage_at_slot_level": {
+          "7": "4d12"
+        },
+        "description": "Именная книжная версия («Меч Морденкайнена»); механика как у безымянной карточки «Чародейский меч». 7 круг, воплощение; действие «Магия»; конц.; 4d12 силовой; атака заклинанием; бард/волшебник.",
+        "srd_alias": "arcane-sword"
+      }
+    },
+    {
+      "kind": "spell",
+      "slug": "power-word-fortify",
+      "name_ru": "Слово силы: укрепление",
+      "name_en": "Power Word Fortify",
+      "source": "ph24",
+      "sort_order": 7067,
+      "external_ref": {
+        "book": "PH24",
+        "url_dndsu": "https://next.dnd.su/spells/10605-power-word-fortify",
+        "url_ttg": "https://new.ttg.club/spells/power-word-fortify-phb"
+      },
+      "data": {
+        "schema_version": 1,
+        "level": 7,
+        "school": "enchantment",
+        "school_ru": "очарование",
+        "casting_time": {
+          "unit": "action",
+          "amount": 1
+        },
+        "magic_action": true,
+        "range": "60 футов",
+        "components": {
+          "v": true,
+          "s": false
+        },
+        "duration": "Мгновенная",
+        "concentration": false,
+        "ritual": false,
+        "classes": [
+          "bard",
+          "cleric"
+        ],
+        "attack_or_save": null,
+        "damage": null,
+        "summary_ru": "Выберите вплоть до шести существ, находящихся в пределах дистанции. Заклинание дарует 120 Временных хитов, распределяемых по вашему усмотрению между этих существ.",
+        "description": "Выберите вплоть до шести существ, находящихся в пределах дистанции. Заклинание дарует 120 Временных хитов, распределяемых по вашему усмотрению между этих существ.",
+        "source_book": "PHB 2024"
+      }
+    },
+    {
+      "kind": "spell",
+      "slug": "telepathy",
+      "name_ru": "Телепатия",
+      "name_en": "Telepathy",
+      "source": "ph24",
+      "sort_order": 8068,
+      "external_ref": {
+        "book": "PH24",
+        "url_dndsu": "https://next.dnd.su/spells/10672-telepathy",
+        "url_ttg": "https://new.ttg.club/spells/telepathy-phb"
+      },
+      "data": {
+        "schema_version": 1,
+        "level": 8,
+        "school": "divination",
+        "school_ru": "прорицание",
+        "casting_time": {
+          "unit": "action",
+          "amount": 1
+        },
+        "magic_action": true,
+        "range": "Неограниченная",
+        "components": {
+          "v": true,
+          "s": false,
+          "m": "пара переплетённых колец из серебра"
+        },
+        "duration": "24 часов",
+        "concentration": false,
+        "ritual": false,
+        "classes": [
+          "wizard"
+        ],
+        "attack_or_save": null,
+        "damage": null,
+        "summary_ru": "Вы создаёте телепатическую связь между собой и знакомым вам согласным существом. Это существо может находиться где угодно на одном с вами плане бытия.",
+        "description": "Вы создаёте телепатическую связь между собой и знакомым вам согласным существом. Это существо может находиться где угодно на одном с вами плане бытия.",
+        "source_book": "PHB 2024"
+      }
+    }
+  ]
+}

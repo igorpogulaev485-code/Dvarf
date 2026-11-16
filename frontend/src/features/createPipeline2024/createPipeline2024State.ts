@@ -1,63 +1,53 @@
-/** P24-M03: client-side step validation + ASI overlay for AbilitiesStep. */
+/** P24-M03: client-side step validation + helpers for the 2024 create wizard. */
 
 import type { AbilityScores } from '../../shared/dnd/multiclassRules'
 import { ABILITY_ORDER, type AbilityKey } from '../../shared/dnd/pointBuy'
-import { WEAPON_MASTERY_CLASS_RULES, masteryLimitForClass } from '../../shared/dnd/weaponMastery'
+import {
+  WEAPON_MASTERY_CLASS_RULES,
+  masteryLimitForClass,
+  weaponAllowedForMastery,
+  type MasteryWeaponOption,
+  type WeaponMasteryId,
+} from '../../shared/dnd/weaponMastery'
 import { ELDRITCH_INVOCATIONS_2024 } from '../../shared/dnd/edition2024ClassOptions'
 import { SKILL_DEFS } from '../characters/sheetTypes'
 import type { CatalogEntry } from '../../shared/api/catalog'
 import {
+  ARTISAN_TOOL_IDS,
+  GAMING_SET_IDS,
+  MUSICAL_INSTRUMENT_IDS,
+  normalizeSlug,
+  type ItemNameIndex,
+} from './create2024Labels'
+import {
+  featPickFields,
+  isOriginFeatEntry,
+  originFeatSlugOf,
+  pickFieldsMissing,
+  speciesPickFields,
+  type FeatPickContext,
+} from './create2024FeatPicks'
+import {
   classL1Spellcasting,
   entryData,
+  type Create2024CatalogBundle,
   type Create2024State,
   type Create2024StepId,
 } from './createPipeline2024Types'
 
-const ARTISAN_TOOL_IDS = [
-  'alchemists-supplies',
-  'brewers-supplies',
-  'calligraphers-supplies',
-  'carpenters-tools',
-  'cartographers-tools',
-  'cobblers-tools',
-  'cooks-utensils',
-  'glassblowers-tools',
-  'jewelers-tools',
-  'leatherworkers-tools',
-  'masons-tools',
-  'painters-supplies',
-  'potters-tools',
-  'smiths-tools',
-  'tinkers-tools',
-  'weavers-tools',
-  'woodcarvers-tools',
-]
+export { skillLabelRu } from './create2024FeatPicks'
 
-const GAMING_SET_IDS = [
-  'dice-set',
-  'dragonchess-set',
-  'playing-card-set',
-  'three-dragon-ante-set',
-]
+/**
+ * Catalog species the server cannot create yet (slug with `__` is rewritten by the API
+ * normalizer to `--` and no longer matches the catalog row).
+ */
+export const UNSUPPORTED_SPECIES_SLUGS: readonly string[] = ['elf__lfl']
 
-const MUSICAL_INSTRUMENT_IDS = [
-  'bagpipes',
-  'drum',
-  'dulcimer',
-  'flute',
-  'horn',
-  'lute',
-  'lyre',
-  'pan-flute',
-  'shawm',
-  'viol',
-]
+export function creatableSpecies(species: readonly CatalogEntry[]): CatalogEntry[] {
+  return species.filter((row) => !UNSUPPORTED_SPECIES_SLUGS.includes(row.slug))
+}
 
 const DRAGONBORN_DAMAGE = ['acid', 'cold', 'fire', 'lightning', 'poison'] as const
-
-export function skillLabelRu(id: string): string {
-  return SKILL_DEFS.find((row) => row.key === id)?.label ?? id
-}
 
 export function backgroundAsiOverlay(state: Create2024State): Partial<AbilityScores> {
   const out: Partial<AbilityScores> = {}
@@ -79,13 +69,20 @@ export function backgroundAsiTrio(bg: CatalogEntry | null | undefined): AbilityK
 }
 
 export function originFeatSlug(bg: CatalogEntry | null | undefined): string | null {
-  const feat = entryData(bg).origin_feat
-  if (!feat || typeof feat !== 'object') return null
-  const row = feat as { slug?: string; id?: string }
-  return String(row.slug || row.id || '')
-    .trim()
-    .toLowerCase()
-    .replace(/_/g, '-') || null
+  return originFeatSlugOf(bg)
+}
+
+function categoryPool(category: string): string[] | null {
+  const value = category.toLowerCase()
+  if (value.includes('artisan') && (value.includes('musical') || value.includes('instrument'))) {
+    return [...ARTISAN_TOOL_IDS, ...MUSICAL_INSTRUMENT_IDS]
+  }
+  if (value.includes('artisan')) return [...ARTISAN_TOOL_IDS]
+  if (value.includes('gaming')) return [...GAMING_SET_IDS]
+  if (value.includes('musical') || value.includes('instrument')) {
+    return [...MUSICAL_INSTRUMENT_IDS]
+  }
+  return null
 }
 
 export function toolChoicePool(bg: CatalogEntry | null | undefined): string[] | null {
@@ -105,17 +102,24 @@ export function toolChoicePool(bg: CatalogEntry | null | undefined): string[] | 
   if (Array.isArray(row.from) && row.from.length) {
     return row.from.map((x) => String(x))
   }
-  const category = String(row.category || row.from_category || row.from_group || '').toLowerCase()
-  if (category.includes('artisan')) return [...ARTISAN_TOOL_IDS]
-  if (category.includes('gaming')) return [...GAMING_SET_IDS]
-  if (category.includes('musical') || category.includes('instrument')) {
-    return [...MUSICAL_INSTRUMENT_IDS]
-  }
-  return null
+  return categoryPool(String(row.category || row.from_category || row.from_group || ''))
 }
 
 export function backgroundNeedsToolPick(bg: CatalogEntry | null | undefined): boolean {
   return toolChoicePool(bg) != null
+}
+
+/** Class tool proficiencies the player picks (bard / monk / artificer). */
+export function classToolChoice(
+  classEntry: CatalogEntry | null | undefined,
+): { count: number; pool: string[] } | null {
+  const choices = entryData(classEntry).tool_choices
+  if (!choices || typeof choices !== 'object') return null
+  const row = choices as { count?: number; category?: string; from_group?: string }
+  const pool = categoryPool(String(row.from_group || row.category || ''))
+  const count = Number(row.count || 0)
+  if (!pool || count <= 0) return null
+  return { count, pool }
 }
 
 export function weaponMasteryLimit(classSlug: string | null): number {
@@ -123,6 +127,39 @@ export function weaponMasteryLimit(classSlug: string | null): number {
   const rule = WEAPON_MASTERY_CLASS_RULES[classSlug]
   if (!rule?.enabled) return 0
   return masteryLimitForClass(rule, 1)
+}
+
+export function masteryWeaponOptions(
+  classEntry: CatalogEntry | null | undefined,
+  weapons: readonly CatalogEntry[],
+): Array<{ entry: CatalogEntry; mastery: WeaponMasteryId }> {
+  const slug = classEntry?.slug
+  const rule = slug ? WEAPON_MASTERY_CLASS_RULES[slug] : undefined
+  if (!rule?.enabled) return []
+  const profs = entryData(classEntry).weapons
+  const prof = profs && typeof profs === 'object' ? (profs as Record<string, unknown>) : {}
+  const extras = Array.isArray(prof.extras) ? prof.extras.map((x) => normalizeSlug(String(x))) : []
+  const out: Array<{ entry: CatalogEntry; mastery: WeaponMasteryId }> = []
+  for (const entry of weapons) {
+    const data = entryData(entry)
+    const mastery = String(data.mastery || '') as WeaponMasteryId
+    if (!mastery) continue
+    const option: MasteryWeaponOption = {
+      slug: entry.slug,
+      nameRu: entry.name_ru,
+      mastery,
+      category: data.category === 'martial' ? 'martial' : 'simple',
+      rangeKind: data.range_kind === 'ranged' ? 'ranged' : 'melee',
+      properties: Array.isArray(data.properties) ? data.properties.map((p) => String(p)) : [],
+    }
+    const allowed = weaponAllowedForMastery(option, rule, {
+      hasSimpleProf: prof.simple !== false,
+      hasMartialProf: prof.martial === true,
+      proficientSlugs: extras,
+    })
+    if (allowed) out.push({ entry, mastery })
+  }
+  return out
 }
 
 export function classSkillNeed(classEntry: CatalogEntry | null | undefined): {
@@ -141,19 +178,45 @@ export function classSkillNeed(classEntry: CatalogEntry | null | undefined): {
   return { count, from }
 }
 
+export type ClassStartingPack = {
+  id: string
+  labelRu: string
+  summaryRu?: string
+  coinsGp: number
+  items: Array<{ id: string | null; qty: number; nameRu?: string; choice?: string }>
+  isGold: boolean
+}
+
 export function classStartingPacks(
   classEntry: CatalogEntry | null | undefined,
-): Array<{ id: string; label_ru?: string; summary_ru?: string; coins_gp?: number }> {
+): ClassStartingPack[] {
   const packs = entryData(classEntry).starting_equipment
   if (!Array.isArray(packs)) return []
   return packs
     .filter((p): p is Record<string, unknown> => Boolean(p && typeof p === 'object'))
-    .map((p) => ({
-      id: String(p.id || ''),
-      label_ru: typeof p.label_ru === 'string' ? p.label_ru : undefined,
-      summary_ru: typeof p.summary_ru === 'string' ? p.summary_ru : undefined,
-      coins_gp: typeof p.coins_gp === 'number' ? p.coins_gp : undefined,
-    }))
+    .map((p) => {
+      const id = String(p.id || '')
+      const coins = typeof p.coins_gp === 'number' ? p.coins_gp : 0
+      const rawItems = Array.isArray(p.items) ? p.items : []
+      const items = rawItems
+        .filter((it): it is Record<string, unknown> => Boolean(it && typeof it === 'object'))
+        .map((it) => ({
+          id: it.id ? String(it.id) : null,
+          qty: Number(it.qty || 1),
+          nameRu: typeof it.name_ru === 'string' ? it.name_ru : undefined,
+          choice: typeof it.choice === 'string' ? it.choice : undefined,
+        }))
+      const isGold = id === 'gold' || (items.length === 0 && coins > 0)
+      const baseLabel = typeof p.label_ru === 'string' && p.label_ru ? p.label_ru : 'Вариант'
+      return {
+        id,
+        labelRu: isGold ? `Золото (${coins} зм)` : baseLabel,
+        summaryRu: typeof p.summary_ru === 'string' ? p.summary_ru : undefined,
+        coinsGp: coins,
+        items,
+        isGold,
+      }
+    })
     .filter((p) => p.id)
 }
 
@@ -175,11 +238,8 @@ export function speciesLineages(
   return rows
     .filter((r): r is Record<string, unknown> => Boolean(r && typeof r === 'object'))
     .map((r) => ({
-      id: String(r.id || r.slug || '')
-        .trim()
-        .toLowerCase()
-        .replace(/_/g, '-'),
-      name_ru: String(r.name_ru || r.id || ''),
+      id: normalizeSlug(String(r.id || r.slug || '')),
+      name_ru: String(r.name_ru || ''),
       summary_ru: typeof r.summary_ru === 'string' ? r.summary_ru : undefined,
     }))
     .filter((r) => r.id)
@@ -198,129 +258,226 @@ export function dragonbornDamageOptions(): readonly string[] {
   return DRAGONBORN_DAMAGE
 }
 
+export function speciesNeedsOriginFeat(species: CatalogEntry | null | undefined): boolean {
+  return Boolean(entryData(species).origin_feat_choice)
+}
+
 export function l1Invocations(): typeof ELDRITCH_INVOCATIONS_2024 {
   return ELDRITCH_INVOCATIONS_2024.filter((row) => row.minLevel <= 1)
 }
 
 export function fightingStyleFeats(feats: CatalogEntry[]): CatalogEntry[] {
-  return feats.filter((f) => {
-    const cat = entryData(f).category
-    return cat === 'fighting_style'
-  })
+  return feats.filter((f) => entryData(f).category === 'fighting_style')
+}
+
+/** Origin feats a human may take via «Гибкий» (skip the background feat unless repeatable). */
+export function humanOriginFeatOptions(
+  feats: readonly CatalogEntry[],
+  backgroundFeatSlug: string | null,
+): CatalogEntry[] {
+  return feats
+    .filter((f) => isOriginFeatEntry(f))
+    .filter((f) => {
+      if (!backgroundFeatSlug || normalizeSlug(f.slug) !== backgroundFeatSlug) return true
+      return Boolean(entryData(f).repeatable)
+    })
+}
+
+export function findFeat(
+  feats: readonly CatalogEntry[],
+  slug: string | null | undefined,
+): CatalogEntry | null {
+  if (!slug) return null
+  const key = normalizeSlug(slug)
+  return feats.find((f) => normalizeSlug(f.slug) === key) ?? null
 }
 
 function uniqueCount(ids: string[], need: number): boolean {
   return ids.length === need && new Set(ids).size === need
 }
 
-export function canAdvanceCreate2024Step(
+export type StepIssueCtx = {
+  classEntry: CatalogEntry | null
+  backgroundEntry: CatalogEntry | null
+  speciesEntry: CatalogEntry | null
+  languageChoiceCount: number
+  catalog?: Pick<Create2024CatalogBundle, 'feats' | 'spells' | 'weapons'> | null
+  items?: ItemNameIndex
+}
+
+function pickCtx(ctx: StepIssueCtx): FeatPickContext {
+  return { spells: ctx.catalog?.spells ?? [], items: ctx.items ?? new Map() }
+}
+
+/** Russian reasons why the step cannot advance yet (empty = ready). */
+export function create2024StepIssues(
   step: Create2024StepId,
   state: Create2024State,
-  ctx: {
-    classEntry: CatalogEntry | null
-    backgroundEntry: CatalogEntry | null
-    speciesEntry: CatalogEntry | null
-    languageChoiceCount: number
-  },
-): boolean {
+  ctx: StepIssueCtx,
+): string[] {
   const { classEntry, backgroundEntry, speciesEntry, languageChoiceCount } = ctx
+  const issues: string[] = []
 
   switch (step) {
     case 'class': {
-      if (!state.classSlug || !classEntry) return false
+      if (!state.classSlug || !classEntry) return ['Выберите класс']
       const skills = classSkillNeed(classEntry)
-      if (!uniqueCount(state.classSkillIds, skills.count)) return false
-      if (!state.classSkillIds.every((id) => skills.from.includes(id))) return false
+      if (
+        !uniqueCount(state.classSkillIds, skills.count) ||
+        !state.classSkillIds.every((id) => skills.from.includes(id))
+      ) {
+        issues.push(`Навыки класса: выбрано ${state.classSkillIds.length} из ${skills.count}`)
+      }
       const wm = weaponMasteryLimit(state.classSlug)
-      if (wm > 0 && !uniqueCount(state.weaponMasteryIds, wm)) return false
-      if (state.classSlug === 'fighter' && !state.fightingStyleSlug) return false
+      if (wm > 0 && !uniqueCount(state.weaponMasteryIds, wm)) {
+        issues.push(`Мастерство оружия: выбрано ${state.weaponMasteryIds.length} из ${wm}`)
+      }
+      if (state.classSlug === 'fighter' && !state.fightingStyleSlug) {
+        issues.push('Выберите боевой стиль')
+      }
       if (state.classSlug === 'cleric') {
         const order = String(state.classOptionPicks.divine_order || '')
-        if (order !== 'protector' && order !== 'thaumaturge') return false
+        if (order !== 'protector' && order !== 'thaumaturge') {
+          issues.push('Выберите Божественный указ')
+        }
       }
       if (state.classSlug === 'druid') {
         const order = String(state.classOptionPicks.primal_order || '')
-        if (order !== 'magician' && order !== 'warden') return false
+        if (order !== 'magician' && order !== 'warden') issues.push('Выберите Изначальный указ')
       }
       if (state.classSlug === 'rogue') {
         const expertise = Array.isArray(state.classOptionPicks.expertise)
           ? (state.classOptionPicks.expertise as string[])
           : []
-        if (!uniqueCount(expertise, 2)) return false
+        if (!uniqueCount(expertise, 2)) {
+          issues.push(`Компетентность: выбрано ${expertise.length} из 2`)
+        }
       }
       if (state.classSlug === 'warlock') {
         const inv = Array.isArray(state.classOptionPicks.eldritch_invocations)
           ? (state.classOptionPicks.eldritch_invocations as string[])
           : []
-        if (!uniqueCount(inv, 1)) return false
+        if (!uniqueCount(inv, 1)) issues.push('Выберите мистическое воззвание')
       }
-      return true
+      const tools = classToolChoice(classEntry)
+      if (tools && !uniqueCount(state.classToolIds, tools.count)) {
+        issues.push(`Инструменты класса: выбрано ${state.classToolIds.length} из ${tools.count}`)
+      }
+      return issues
     }
     case 'background': {
-      if (!state.backgroundSlug || !backgroundEntry) return false
+      if (!state.backgroundSlug || !backgroundEntry) return ['Выберите предысторию']
       const trio = backgroundAsiTrio(backgroundEntry)
-      if (trio.length !== 3) return false
+      if (trio.length !== 3) return ['У предыстории нет тройки характеристик']
       if (state.backgroundAsiMode === '+2/+1') {
         const plus2 = trio.filter((k) => state.backgroundAsi[k] === 2)
         const plus1 = trio.filter((k) => state.backgroundAsi[k] === 1)
-        if (plus2.length !== 1 || plus1.length !== 1) return false
-      } else {
-        if (!trio.every((k) => state.backgroundAsi[k] === 1)) return false
+        if (plus2.length !== 1 || plus1.length !== 1) {
+          issues.push('Увеличение характеристик: выберите +2 и +1')
+        }
+      } else if (!trio.every((k) => state.backgroundAsi[k] === 1)) {
+        issues.push('Увеличение характеристик: +1 к каждой из трёх')
       }
-      if (backgroundNeedsToolPick(backgroundEntry) && !state.backgroundToolId) return false
-      const feat = originFeatSlug(backgroundEntry)
-      if (feat === 'magic-initiate') {
-        if (!state.originFeatList) return false
-        if (!uniqueCount(state.originFeatCantrips, 2)) return false
-        if (!state.originFeatSpellId) return false
+      if (backgroundNeedsToolPick(backgroundEntry) && !state.backgroundToolId) {
+        issues.push('Выберите инструмент предыстории')
       }
-      if (feat === 'skilled') {
-        if (!uniqueCount(state.originFeatSkilled, 3)) return false
+      const featSlug = originFeatSlugOf(backgroundEntry)
+      const feat = findFeat(ctx.catalog?.feats ?? [], featSlug)
+      const fields = featPickFields(featSlug, feat, state.originFeatPicks, pickCtx(ctx))
+      for (const field of pickFieldsMissing(fields, state.originFeatPicks)) {
+        issues.push(`Черта происхождения — ${field.label.toLowerCase()}`)
       }
-      return true
+      return issues
     }
     case 'species': {
-      if (!state.speciesSlug || !speciesEntry) return false
+      if (!state.speciesSlug || !speciesEntry) return ['Выберите вид']
       const sizes = speciesSizeOptions(speciesEntry)
-      if (sizes.length > 1 && !state.speciesSize) return false
-      if (speciesNeedsLineage(speciesEntry) && !state.speciesLineageId) return false
-      if (speciesNeedsAncestry(speciesEntry) && !state.speciesAncestryId) return false
-      return true
+      if (sizes.length > 1 && !state.speciesSize) issues.push('Выберите размер')
+      if (speciesNeedsLineage(speciesEntry) && !state.speciesLineageId) {
+        issues.push('Выберите родословную')
+      }
+      if (speciesNeedsAncestry(speciesEntry) && !state.speciesAncestryId) {
+        issues.push('Выберите наследие дракона')
+      }
+      const fields = speciesPickFields(state.speciesSlug, speciesEntry)
+      for (const field of pickFieldsMissing(fields, state.speciesPicks)) {
+        issues.push(`Вид — ${field.label.toLowerCase()}`)
+      }
+      if (speciesNeedsOriginFeat(speciesEntry)) {
+        const feat = findFeat(ctx.catalog?.feats ?? [], state.speciesFeatSlug)
+        if (!feat) {
+          issues.push('Выберите черту происхождения (Гибкий)')
+        } else {
+          const featFields = featPickFields(
+            feat.slug,
+            feat,
+            state.speciesFeatPicks,
+            pickCtx(ctx),
+          )
+          for (const field of pickFieldsMissing(featFields, state.speciesFeatPicks)) {
+            issues.push(`Черта «${feat.name_ru}» — ${field.label.toLowerCase()}`)
+          }
+        }
+      }
+      return issues
     }
     case 'abilities': {
       const scores = ABILITY_ORDER.map((k) => state.baseAbilities[k])
-      if (scores.some((v) => !v || v < 3)) return false
+      if (scores.some((v) => !v || v < 3)) return ['Назначьте все характеристики']
       if (state.abilityMethod === 'standard_array') {
         const expected = [15, 14, 13, 12, 10, 8]
-        if ([...scores].sort((a, b) => b - a).join() !== expected.join()) return false
+        if ([...scores].sort((a, b) => b - a).join() !== expected.join()) {
+          return ['Массив: каждое число 15, 14, 13, 12, 10, 8 — один раз']
+        }
       }
-      // Cap 20 after background ASI overlay.
       const overlay = backgroundAsiOverlay(state)
       for (const key of ABILITY_ORDER) {
-        if (state.baseAbilities[key] + (overlay[key] ?? 0) > 20) return false
+        if (state.baseAbilities[key] + (overlay[key] ?? 0) > 20) {
+          return ['Характеристика после бонуса не может быть выше 20']
+        }
       }
-      return true
+      return []
     }
     case 'languages':
       return uniqueCount(state.languageIds, languageChoiceCount || 2)
+        ? []
+        : [`Языки: выбрано ${state.languageIds.length} из ${languageChoiceCount || 2}`]
     case 'equipment': {
       const packs = classStartingPacks(classEntry)
-      if (!packs.some((p) => p.id === state.classEquipment)) return false
-      return state.backgroundEquipment === 'pack' || state.backgroundEquipment === 'gold'
+      if (!packs.some((p) => p.id === state.classEquipment)) {
+        issues.push('Выберите снаряжение класса')
+      }
+      if (state.backgroundEquipment !== 'pack' && state.backgroundEquipment !== 'gold') {
+        issues.push('Выберите снаряжение предыстории')
+      }
+      return issues
     }
     case 'spells': {
       const sc = classL1Spellcasting(classEntry)
-      if (!sc) return true
-      return (
-        uniqueCount(state.cantripIds, sc.cantrips) &&
-        uniqueCount(state.preparedSpellIds, sc.prepared_spells)
-      )
+      if (!sc) return []
+      if (!uniqueCount(state.cantripIds, sc.cantrips)) {
+        issues.push(`Заговоры: выбрано ${state.cantripIds.length} из ${sc.cantrips}`)
+      }
+      if (!uniqueCount(state.preparedSpellIds, sc.prepared_spells)) {
+        issues.push(
+          `Заклинания 1 круга: выбрано ${state.preparedSpellIds.length} из ${sc.prepared_spells}`,
+        )
+      }
+      return issues
     }
     case 'summary':
-      return Boolean(state.characterName.trim())
+      return state.characterName.trim() ? [] : ['Введите имя персонажа']
     default:
-      return false
+      return ['Неизвестный шаг']
   }
+}
+
+export function canAdvanceCreate2024Step(
+  step: Create2024StepId,
+  state: Create2024State,
+  ctx: StepIssueCtx,
+): boolean {
+  return create2024StepIssues(step, state, ctx).length === 0
 }
 
 export function nextCreate2024Step(
