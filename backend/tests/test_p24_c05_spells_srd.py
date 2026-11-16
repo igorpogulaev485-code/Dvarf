@@ -51,7 +51,8 @@ PLANNED_TOTAL = (
     + 87
     + 66  # +C15 EFA
     + 93  # +C17 FRHoF
-)  # +C07+C08+C09+C10+C11+C13+C14+C15+C17
+    + 43  # +C12 bastions
+)  # +C07+C08+C09+C10+C11+C13+C14+C15+C17+C12
 
 SRD_RENAMES = {
     "acid-arrow",

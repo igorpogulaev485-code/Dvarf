@@ -2423,3 +2423,48 @@ trident,weapons,Trident,Трезубец,PH24
 war-pick,weapons,War Pick,Клевец,PH24
 warhammer,weapons,Warhammer,Боевой молот,PH24
 whip,weapons,Whip,Кнут,PH24
+bastion-term-bastion,glossary,Bastion,Бастион,DMG24
+bastion-term-bastion-turn,glossary,Bastion Turn,Ход бастиона,DMG24
+bastion-term-special-facility,glossary,Special Facility,Особое помещение,DMG24
+bastion-term-basic-facility,glossary,Basic Facility,Базовое помещение,DMG24
+bastion-term-order,glossary,Order,Приказ,DMG24
+bastion-term-hireling,glossary,Hireling,Наёмный работник,DMG24
+bastion-term-defender,glossary,Defender,Защитник,DMG24
+bastion-term-cramped,glossary,Cramped,Тесное,DMG24
+bastion-term-roomy,glossary,Roomy,Просторное,DMG24
+bastion-term-vast,glossary,Vast,Обширное,DMG24
+bedroom,bastions,Bedroom,Спальня,DMG24
+dining-room,bastions,Dining Room,Столовая,DMG24
+parlor,bastions,Parlor,Гостиная,DMG24
+courtyard,bastions,Courtyard,Двор,DMG24
+kitchen,bastions,Kitchen,Кухня,DMG24
+storage,bastions,Storage,Кладовая,DMG24
+arcane-study,bastions,Arcane Study,Чародейский кабинет,DMG24
+armory,bastions,Armory,Оружейная,DMG24
+barrack,bastions,Barrack,Казарма,DMG24
+garden,bastions,Garden,Сад,DMG24
+library,bastions,Library,Библиотека,DMG24
+sanctuary,bastions,Sanctuary,Святилище,DMG24
+smithy,bastions,Smithy,Кузница,DMG24
+storehouse,bastions,Storehouse,Склад,DMG24
+workshop,bastions,Workshop,Мастерская,DMG24
+gaming-hall,bastions,Gaming Hall,Игорный зал,DMG24
+greenhouse,bastions,Greenhouse,Оранжерея,DMG24
+laboratory,bastions,Laboratory,Лаборатория,DMG24
+sacristy,bastions,Sacristy,Ризница,DMG24
+scriptorium,bastions,Scriptorium,Скрипторий,DMG24
+stable,bastions,Stable,Конюшня,DMG24
+teleportation-circle,bastions,Teleportation Circle,Круг телепортации,DMG24
+theater,bastions,Theater,Театр,DMG24
+training-area,bastions,Training Area,Тренировочная площадка,DMG24
+trophy-room,bastions,Trophy Room,Комната трофеев,DMG24
+archive,bastions,Archive,Архив,DMG24
+meditation-chamber,bastions,Meditation Chamber,Зал медитации,DMG24
+menagerie,bastions,Menagerie,Зверинец,DMG24
+observatory,bastions,Observatory,Обсерватория,DMG24
+pub,bastions,Pub,Трактир,DMG24
+reliquary,bastions,Reliquary,Реликварий,DMG24
+demiplane,bastions,Demiplane,Демиплан,DMG24
+guildhall,bastions,Guildhall,Гильдейский зал,DMG24
+sanctum,bastions,Sanctum,Святая обитель,DMG24
+war-room,bastions,War Room,Военный кабинет,DMG24

@@ -44,6 +44,7 @@
 | `spells_frhof.json` | P24-C17 | 19 заклинаний FRHoF (`source=frhof`) |
 | `equipment_frhof.json` | P24-C17 | 12 предметов снаряжения FRHoF (`kind=item`, `source=frhof`) |
 | `magic_items_frhof.json` | P24-C17 | 2 магических предмета FRHoF (`source=frhof`) |
+| `bastions_dmg24.json` | P24-C12 | бастионы DMG 2024: 6 базовых + 29 особых помещений, 7 приказов, 1 карточка правил (`kind=bastion`, `source=dmg24`) |
 
 ## Схема карточек (контракт)
 
@@ -61,5 +62,6 @@
 - отображаемые строки (`summary_ru`, `traits_text`, `components.m`, `casting_time.condition`, …) — по-русски; словари `spell_materials_ru.json` / `spell_reaction_conditions_ru.json`
 - `source` вида `srd-5.2` → `content_layer: srd`
 - `source` вида `ph24` / `dmg24` / `mm24` / `efa` / `frhof` → `content_layer: community_ref` (ярлык игроку не показываем)
+- бастион (`bastion`, C12): `facility_kind` (`basic` / `special` / `order` / `rules`), уровень, размер (тесное/просторное/обширное → 4/16/36 клеток), наёмники, приказы и краткие `order_effects_ru`; `name_ru_pending` у помещений/приказов; без онлайн-карты и UI
 
-Не сидить: Culture, Engineering, пустые заглушки. Книжный контент Ravenloft/AU/FRAiF — следующие пачки. Артефактор 2014 (Таша) не трогать. Черты и заклинания PHB сверх SRD — C10; предметы DMG сверх SRD — C11; MM сверх SRD — C13/C14; EFA — C15; FRHoF — C17 (C12 бастионы пропущены).
+Не сидить: Culture, Engineering, пустые заглушки. Книжный контент Ravenloft/AU/FRAiF — следующие пачки. Артефактор 2014 (Таша) не трогать. Черты и заклинания PHB сверх SRD — C10; предметы DMG сверх SRD — C11; MM сверх SRD — C13/C14; EFA — C15; FRHoF — C17; бастионы DMG — C12.

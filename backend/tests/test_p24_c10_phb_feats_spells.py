@@ -20,7 +20,7 @@ LIVE = REPO_ROOT / "backend" / "data" / "srd" / "2024" / "live"
 
 PH24_FEATS = 58
 PH24_SPELLS = 69
-PLANNED_TOTAL = 863 + 235 + 95 + 1 + 12 + 36 + PH24_FEATS + PH24_SPELLS + 196 + 86 + 87 + 66 + 93  # +C11 DMG24 +C13 MM24 w1 +C14 MM24 w2 +C15 EFA +C17 FRHoF
+PLANNED_TOTAL = 863 + 235 + 95 + 1 + 12 + 36 + PH24_FEATS + PH24_SPELLS + 196 + 86 + 87 + 66 + 93 + 43  # +C11 DMG24 +C13 MM24 w1 +C14 MM24 w2 +C15 EFA +C17 FRHoF +C12 bastions
 
 ORIGIN_FEATS_C09 = {
     "crafter",

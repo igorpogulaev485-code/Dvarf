@@ -27,7 +27,7 @@
         "magic_item_type": "ring",
         "magic_item_type_ru": "кольцо",
         "rarity": "common",
-        "rarity_ru": "авантюриста",
+        "rarity_ru": "обычный",
         "requires_attunement": false,
         "attunement_restriction_ru": null,
         "charges": null,

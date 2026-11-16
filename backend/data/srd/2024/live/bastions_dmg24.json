@@ -1,0 +1,2193 @@
+{
+  "meta": {
+    "pack": "P24-C12",
+    "source": "DMG 2024 Bastions (community_ref, own short RU)",
+    "count": 43,
+    "basic_facilities": 6,
+    "special_facilities": 29,
+    "orders": 7,
+    "notes": [
+      "kind=bastion; source=dmg24 → community_ref.",
+      "Свой краткий перевод; name_ru_pending=true у помещений и приказов.",
+      "Структура (уровни, размеры, наёмники, приказы) по открытым обзорам DMG 2024 / 5etools XDMG.",
+      "Без онлайн-карты и UI. SRD 5.2.1 бастионов не содержит."
+    ]
+  },
+  "entries": [
+    {
+      "kind": "bastion",
+      "slug": "bastion-rules",
+      "name_ru": "Правила бастиона",
+      "name_en": "Bastion Rules",
+      "source": "dmg24",
+      "sort_order": 1,
+      "external_ref": {
+        "book": "DMG24",
+        "chapter": "Bastions"
+      },
+      "data": {
+        "schema_version": 1,
+        "facility_kind": "rules",
+        "name_ru_pending": true,
+        "text_ru_pending": false,
+        "bastion_turn_days": 7,
+        "special_facility_totals_by_level": {
+          "5": 2,
+          "9": 4,
+          "13": 5,
+          "17": 6
+        },
+        "space_squares": {
+          "cramped": 4,
+          "roomy": 16,
+          "vast": 36
+        },
+        "space_ru": {
+          "cramped": "тесное",
+          "roomy": "просторное",
+          "vast": "обширное"
+        },
+        "basic_facility_costs": {
+          "add": {
+            "cramped": {
+              "gp": 500,
+              "days": 20
+            },
+            "roomy": {
+              "gp": 1000,
+              "days": 45
+            },
+            "vast": {
+              "gp": 3000,
+              "days": 125
+            }
+          },
+          "enlarge": {
+            "cramped_to_roomy": {
+              "gp": 500,
+              "days": 25
+            },
+            "roomy_to_vast": {
+              "gp": 2000,
+              "days": 80
+            }
+          }
+        },
+        "starting_basic": {
+          "count": 2,
+          "sizes": [
+            "cramped",
+            "roomy"
+          ],
+          "note_ru": "При получении бастиона на 5 уровне — одно тесное и одно просторное базовое помещение на выбор."
+        },
+        "starting_special_at_level_5": 2,
+        "summary_ru": "Опциональная подсистема DMG 2024: с 5 уровня персонаж может получить бастион. Ход бастиона — раз в 7 дней (мастер может замедлить). В ход выдаются приказы особым помещениям или «Содержать» всему бастиону. Особые помещения дают по уровням 5→2, 9→4, 13→5, 17→6; при повышении уровня можно заменить одно. Без онлайн-карты и UI — только справочник.",
+        "orders_ref": [
+          "order-craft",
+          "order-empower",
+          "order-harvest",
+          "order-maintain",
+          "order-recruit",
+          "order-research",
+          "order-trade"
+        ],
+        "events_on_maintain": [
+          {
+            "range": "01–50",
+            "name_en": "All Is Well",
+            "name_ru": "Всё спокойно",
+            "summary_ru": "Мелкий бытовой эпизод без механики (подтаблица)."
+          },
+          {
+            "range": "51–55",
+            "name_en": "Attack",
+            "name_ru": "Атака",
+            "summary_ru": "Налёт отбит. 6к6: каждая «1» — гибель защитника; без защитников случайное особое помещение повреждено до следующего хода."
+          },
+          {
+            "range": "56–58",
+            "name_en": "Criminal Hireling",
+            "name_ru": "Наёмник-преступник",
+            "summary_ru": "Взятка 1к6×100 зм или арест и замена; помещение простаивает до прибытия замены."
+          },
+          {
+            "range": "59–63",
+            "name_en": "Extraordinary Opportunity",
+            "name_ru": "Необычный шанс",
+            "summary_ru": "За 500 зм — новый бросок по таблице (без повтора этого события); отказ — без эффекта."
+          },
+          {
+            "range": "64–72",
+            "name_en": "Friendly Visitors",
+            "name_ru": "Дружелюбные гости",
+            "summary_ru": "Мирные посетители; польза по подтаблице."
+          },
+          {
+            "range": "73–76",
+            "name_en": "Guest",
+            "name_ru": "Гость",
+            "summary_ru": "Знаменитость, беженец с платой, наёмник-защитник или дружелюбное чудовище на время."
+          },
+          {
+            "range": "77–79",
+            "name_en": "Lost Hirelings",
+            "name_ru": "Пропавшие наёмники",
+            "summary_ru": "Часть наёмников уходит; помещение ослаблено, пока не наберёте новых."
+          },
+          {
+            "range": "80–83",
+            "name_en": "Magical Discovery",
+            "name_ru": "Магическая находка",
+            "summary_ru": "Необычное зелье или свиток без затрат."
+          },
+          {
+            "range": "84–91",
+            "name_en": "Refugees",
+            "name_ru": "Беженцы",
+            "summary_ru": "2к4 беженца платят 1к6×100 зм за кров до расселения или атаки."
+          },
+          {
+            "range": "92–98",
+            "name_en": "Request for Aid",
+            "name_ru": "Просьба о помощи",
+            "summary_ru": "Отправка защитников: риск потери при низком броске; награда по масштабу."
+          },
+          {
+            "range": "99–00",
+            "name_en": "Treasure",
+            "name_ru": "Сокровище",
+            "summary_ru": "Предмет искусства или магический предмет по таблицам сокровищ."
+          }
+        ],
+        "defenders_note_ru": "Защитники бастиона живут в казармах и гибнут при атаках по броскам потерь. Доспехи оружейной и лейтенанты военного кабинета снижают потери.",
+        "fall_note_ru": "Бастион теряется при отказе, заброшенности (нет приказов число ходов = уровень) или карте «Разорение» из колоды многих вещей; позже можно основать новый."
+      }
+    },
+    {
+      "kind": "bastion",
+      "slug": "order-craft",
+      "name_ru": "Изготовить",
+      "name_en": "Craft",
+      "source": "dmg24",
+      "sort_order": 10,
+      "external_ref": {
+        "book": "DMG24",
+        "chapter": "Bastions",
+        "order": "Craft"
+      },
+      "data": {
+        "schema_version": 1,
+        "facility_kind": "order",
+        "order_id": "craft",
+        "name_ru_pending": true,
+        "text_ru_pending": false,
+        "summary_ru": "Наёмники мастерят предмет, доступный этому помещению. Пока работа идёт, то же помещение нельзя снова использовать для Изготовить.",
+        "bastion_wide": false
+      }
+    },
+    {
+      "kind": "bastion",
+      "slug": "order-empower",
+      "name_ru": "Усилить",
+      "name_en": "Empower",
+      "source": "dmg24",
+      "sort_order": 20,
+      "external_ref": {
+        "book": "DMG24",
+        "chapter": "Bastions",
+        "order": "Empower"
+      },
+      "data": {
+        "schema_version": 1,
+        "facility_kind": "order",
+        "order_id": "empower",
+        "name_ru_pending": true,
+        "text_ru_pending": false,
+        "summary_ru": "Помещение даёт временное усиление владельцу или другому существу (см. карточку помещения).",
+        "bastion_wide": false
+      }
+    },
+    {
+      "kind": "bastion",
+      "slug": "order-harvest",
+      "name_ru": "Собрать",
+      "name_en": "Harvest",
+      "source": "dmg24",
+      "sort_order": 30,
+      "external_ref": {
+        "book": "DMG24",
+        "chapter": "Bastions",
+        "order": "Harvest"
+      },
+      "data": {
+        "schema_version": 1,
+        "facility_kind": "order",
+        "order_id": "harvest",
+        "name_ru_pending": true,
+        "text_ru_pending": false,
+        "summary_ru": "Наёмники собирают ресурс помещения. Пока сбор идёт, то же помещение нельзя снова использовать для Собрать.",
+        "bastion_wide": false
+      }
+    },
+    {
+      "kind": "bastion",
+      "slug": "order-maintain",
+      "name_ru": "Содержать",
+      "name_en": "Maintain",
+      "source": "dmg24",
+      "sort_order": 40,
+      "external_ref": {
+        "book": "DMG24",
+        "chapter": "Bastions",
+        "order": "Maintain"
+      },
+      "data": {
+        "schema_version": 1,
+        "facility_kind": "order",
+        "order_id": "maintain",
+        "name_ru_pending": true,
+        "text_ru_pending": false,
+        "summary_ru": "Приказ всему бастиону: другие приказы в этот ход бастиона нельзя. Мастер бросает по таблице событий бастиона.",
+        "bastion_wide": true
+      }
+    },
+    {
+      "kind": "bastion",
+      "slug": "order-recruit",
+      "name_ru": "Нанять",
+      "name_en": "Recruit",
+      "source": "dmg24",
+      "sort_order": 50,
+      "external_ref": {
+        "book": "DMG24",
+        "chapter": "Bastions",
+        "order": "Recruit"
+      },
+      "data": {
+        "schema_version": 1,
+        "facility_kind": "order",
+        "order_id": "recruit",
+        "name_ru_pending": true,
+        "text_ru_pending": false,
+        "summary_ru": "Наёмники привлекают существ в бастион, в том числе защитников бастиона.",
+        "bastion_wide": false
+      }
+    },
+    {
+      "kind": "bastion",
+      "slug": "order-research",
+      "name_ru": "Исследовать",
+      "name_en": "Research",
+      "source": "dmg24",
+      "sort_order": 60,
+      "external_ref": {
+        "book": "DMG24",
+        "chapter": "Bastions",
+        "order": "Research"
+      },
+      "data": {
+        "schema_version": 1,
+        "facility_kind": "order",
+        "order_id": "research",
+        "name_ru_pending": true,
+        "text_ru_pending": false,
+        "summary_ru": "Наёмники собирают сведения по теме или заданию помещения.",
+        "bastion_wide": false
+      }
+    },
+    {
+      "kind": "bastion",
+      "slug": "order-trade",
+      "name_ru": "Торговать",
+      "name_en": "Trade",
+      "source": "dmg24",
+      "sort_order": 70,
+      "external_ref": {
+        "book": "DMG24",
+        "chapter": "Bastions",
+        "order": "Trade"
+      },
+      "data": {
+        "schema_version": 1,
+        "facility_kind": "order",
+        "order_id": "trade",
+        "name_ru_pending": true,
+        "text_ru_pending": false,
+        "summary_ru": "Наёмники покупают или продают товары и услуги, связанные с помещением.",
+        "bastion_wide": false
+      }
+    },
+    {
+      "kind": "bastion",
+      "slug": "bedroom",
+      "name_ru": "Спальня",
+      "name_en": "Bedroom",
+      "source": "dmg24",
+      "sort_order": 100,
+      "external_ref": {
+        "book": "DMG24",
+        "chapter": "Bastions",
+        "facility_type": "basic"
+      },
+      "data": {
+        "schema_version": 1,
+        "facility_kind": "basic",
+        "level": null,
+        "space_options": [
+          "cramped",
+          "roomy",
+          "vast"
+        ],
+        "space_squares": {
+          "cramped": 4,
+          "roomy": 16,
+          "vast": 36
+        },
+        "space_ru": {
+          "cramped": "тесное",
+          "roomy": "просторное",
+          "vast": "обширное"
+        },
+        "hirelings": {
+          "default": 0
+        },
+        "orders": [],
+        "build_costs": {
+          "add": {
+            "cramped": {
+              "gp": 500,
+              "days": 20
+            },
+            "roomy": {
+              "gp": 1000,
+              "days": 45
+            },
+            "vast": {
+              "gp": 3000,
+              "days": 125
+            }
+          },
+          "enlarge": {
+            "cramped_to_roomy": {
+              "gp": 500,
+              "days": 25
+            },
+            "roomy_to_vast": {
+              "gp": 2000,
+              "days": 80
+            }
+          }
+        },
+        "name_ru_pending": true,
+        "text_ru_pending": false,
+        "summary_ru": "Базовое помещение «Спальня»: обстановка без игровой механики. Размер тесное/просторное/обширное (4/16/36 клеток). Строительство и расширение — по таблице стоимости базовых помещений.",
+        "order_effects_ru": []
+      }
+    },
+    {
+      "kind": "bastion",
+      "slug": "dining-room",
+      "name_ru": "Столовая",
+      "name_en": "Dining Room",
+      "source": "dmg24",
+      "sort_order": 110,
+      "external_ref": {
+        "book": "DMG24",
+        "chapter": "Bastions",
+        "facility_type": "basic"
+      },
+      "data": {
+        "schema_version": 1,
+        "facility_kind": "basic",
+        "level": null,
+        "space_options": [
+          "cramped",
+          "roomy",
+          "vast"
+        ],
+        "space_squares": {
+          "cramped": 4,
+          "roomy": 16,
+          "vast": 36
+        },
+        "space_ru": {
+          "cramped": "тесное",
+          "roomy": "просторное",
+          "vast": "обширное"
+        },
+        "hirelings": {
+          "default": 0
+        },
+        "orders": [],
+        "build_costs": {
+          "add": {
+            "cramped": {
+              "gp": 500,
+              "days": 20
+            },
+            "roomy": {
+              "gp": 1000,
+              "days": 45
+            },
+            "vast": {
+              "gp": 3000,
+              "days": 125
+            }
+          },
+          "enlarge": {
+            "cramped_to_roomy": {
+              "gp": 500,
+              "days": 25
+            },
+            "roomy_to_vast": {
+              "gp": 2000,
+              "days": 80
+            }
+          }
+        },
+        "name_ru_pending": true,
+        "text_ru_pending": false,
+        "summary_ru": "Базовое помещение «Столовая»: обстановка без игровой механики. Размер тесное/просторное/обширное (4/16/36 клеток). Строительство и расширение — по таблице стоимости базовых помещений.",
+        "order_effects_ru": []
+      }
+    },
+    {
+      "kind": "bastion",
+      "slug": "parlor",
+      "name_ru": "Гостиная",
+      "name_en": "Parlor",
+      "source": "dmg24",
+      "sort_order": 120,
+      "external_ref": {
+        "book": "DMG24",
+        "chapter": "Bastions",
+        "facility_type": "basic"
+      },
+      "data": {
+        "schema_version": 1,
+        "facility_kind": "basic",
+        "level": null,
+        "space_options": [
+          "cramped",
+          "roomy",
+          "vast"
+        ],
+        "space_squares": {
+          "cramped": 4,
+          "roomy": 16,
+          "vast": 36
+        },
+        "space_ru": {
+          "cramped": "тесное",
+          "roomy": "просторное",
+          "vast": "обширное"
+        },
+        "hirelings": {
+          "default": 0
+        },
+        "orders": [],
+        "build_costs": {
+          "add": {
+            "cramped": {
+              "gp": 500,
+              "days": 20
+            },
+            "roomy": {
+              "gp": 1000,
+              "days": 45
+            },
+            "vast": {
+              "gp": 3000,
+              "days": 125
+            }
+          },
+          "enlarge": {
+            "cramped_to_roomy": {
+              "gp": 500,
+              "days": 25
+            },
+            "roomy_to_vast": {
+              "gp": 2000,
+              "days": 80
+            }
+          }
+        },
+        "name_ru_pending": true,
+        "text_ru_pending": false,
+        "summary_ru": "Базовое помещение «Гостиная»: обстановка без игровой механики. Размер тесное/просторное/обширное (4/16/36 клеток). Строительство и расширение — по таблице стоимости базовых помещений.",
+        "order_effects_ru": []
+      }
+    },
+    {
+      "kind": "bastion",
+      "slug": "courtyard",
+      "name_ru": "Двор",
+      "name_en": "Courtyard",
+      "source": "dmg24",
+      "sort_order": 130,
+      "external_ref": {
+        "book": "DMG24",
+        "chapter": "Bastions",
+        "facility_type": "basic"
+      },
+      "data": {
+        "schema_version": 1,
+        "facility_kind": "basic",
+        "level": null,
+        "space_options": [
+          "cramped",
+          "roomy",
+          "vast"
+        ],
+        "space_squares": {
+          "cramped": 4,
+          "roomy": 16,
+          "vast": 36
+        },
+        "space_ru": {
+          "cramped": "тесное",
+          "roomy": "просторное",
+          "vast": "обширное"
+        },
+        "hirelings": {
+          "default": 0
+        },
+        "orders": [],
+        "build_costs": {
+          "add": {
+            "cramped": {
+              "gp": 500,
+              "days": 20
+            },
+            "roomy": {
+              "gp": 1000,
+              "days": 45
+            },
+            "vast": {
+              "gp": 3000,
+              "days": 125
+            }
+          },
+          "enlarge": {
+            "cramped_to_roomy": {
+              "gp": 500,
+              "days": 25
+            },
+            "roomy_to_vast": {
+              "gp": 2000,
+              "days": 80
+            }
+          }
+        },
+        "name_ru_pending": true,
+        "text_ru_pending": false,
+        "summary_ru": "Базовое помещение «Двор»: обстановка без игровой механики. Размер тесное/просторное/обширное (4/16/36 клеток). Строительство и расширение — по таблице стоимости базовых помещений.",
+        "order_effects_ru": []
+      }
+    },
+    {
+      "kind": "bastion",
+      "slug": "kitchen",
+      "name_ru": "Кухня",
+      "name_en": "Kitchen",
+      "source": "dmg24",
+      "sort_order": 140,
+      "external_ref": {
+        "book": "DMG24",
+        "chapter": "Bastions",
+        "facility_type": "basic"
+      },
+      "data": {
+        "schema_version": 1,
+        "facility_kind": "basic",
+        "level": null,
+        "space_options": [
+          "cramped",
+          "roomy",
+          "vast"
+        ],
+        "space_squares": {
+          "cramped": 4,
+          "roomy": 16,
+          "vast": 36
+        },
+        "space_ru": {
+          "cramped": "тесное",
+          "roomy": "просторное",
+          "vast": "обширное"
+        },
+        "hirelings": {
+          "default": 0
+        },
+        "orders": [],
+        "build_costs": {
+          "add": {
+            "cramped": {
+              "gp": 500,
+              "days": 20
+            },
+            "roomy": {
+              "gp": 1000,
+              "days": 45
+            },
+            "vast": {
+              "gp": 3000,
+              "days": 125
+            }
+          },
+          "enlarge": {
+            "cramped_to_roomy": {
+              "gp": 500,
+              "days": 25
+            },
+            "roomy_to_vast": {
+              "gp": 2000,
+              "days": 80
+            }
+          }
+        },
+        "name_ru_pending": true,
+        "text_ru_pending": false,
+        "summary_ru": "Базовое помещение «Кухня»: обстановка без игровой механики. Размер тесное/просторное/обширное (4/16/36 клеток). Строительство и расширение — по таблице стоимости базовых помещений.",
+        "order_effects_ru": []
+      }
+    },
+    {
+      "kind": "bastion",
+      "slug": "storage",
+      "name_ru": "Кладовая",
+      "name_en": "Storage",
+      "source": "dmg24",
+      "sort_order": 150,
+      "external_ref": {
+        "book": "DMG24",
+        "chapter": "Bastions",
+        "facility_type": "basic"
+      },
+      "data": {
+        "schema_version": 1,
+        "facility_kind": "basic",
+        "level": null,
+        "space_options": [
+          "cramped",
+          "roomy",
+          "vast"
+        ],
+        "space_squares": {
+          "cramped": 4,
+          "roomy": 16,
+          "vast": 36
+        },
+        "space_ru": {
+          "cramped": "тесное",
+          "roomy": "просторное",
+          "vast": "обширное"
+        },
+        "hirelings": {
+          "default": 0
+        },
+        "orders": [],
+        "build_costs": {
+          "add": {
+            "cramped": {
+              "gp": 500,
+              "days": 20
+            },
+            "roomy": {
+              "gp": 1000,
+              "days": 45
+            },
+            "vast": {
+              "gp": 3000,
+              "days": 125
+            }
+          },
+          "enlarge": {
+            "cramped_to_roomy": {
+              "gp": 500,
+              "days": 25
+            },
+            "roomy_to_vast": {
+              "gp": 2000,
+              "days": 80
+            }
+          }
+        },
+        "name_ru_pending": true,
+        "text_ru_pending": false,
+        "summary_ru": "Базовое помещение «Кладовая»: обстановка без игровой механики. Размер тесное/просторное/обширное (4/16/36 клеток). Строительство и расширение — по таблице стоимости базовых помещений.",
+        "order_effects_ru": []
+      }
+    },
+    {
+      "kind": "bastion",
+      "slug": "arcane-study",
+      "name_ru": "Чародейский кабинет",
+      "name_en": "Arcane Study",
+      "source": "dmg24",
+      "sort_order": 200,
+      "external_ref": {
+        "book": "DMG24",
+        "chapter": "Bastions",
+        "facility_type": "special",
+        "level": 5
+      },
+      "data": {
+        "schema_version": 1,
+        "facility_kind": "special",
+        "level": 5,
+        "space": "roomy",
+        "space_options": [
+          "roomy"
+        ],
+        "space_squares": {
+          "cramped": 4,
+          "roomy": 16,
+          "vast": 36
+        },
+        "space_ru": {
+          "cramped": "тесное",
+          "roomy": "просторное",
+          "vast": "обширное"
+        },
+        "hirelings": {
+          "default": 1
+        },
+        "orders": [
+          "craft"
+        ],
+        "prerequisite_ru": "Умение пользоваться магической фокусировкой или инструментом как фокусировкой заклинаний",
+        "name_ru_pending": true,
+        "text_ru_pending": false,
+        "summary_ru": "Тихий кабинет для исследований с столами и полками. После продолжительного отдыха в бастионе — временный талисман «Опознание» без ячейки и материалов (7 дней или до применения).",
+        "order_effects_ru": [
+          {
+            "order": "craft",
+            "summary_ru": "Фокусировка (7 дней, бесплатно); пустая книга (7 дней, 10 зм); с 9 ур. — обычный/необычный предмет из таблиц «Аркана» (время и цена по правилам создания)."
+          }
+        ],
+        "unique": true
+      }
+    },
+    {
+      "kind": "bastion",
+      "slug": "armory",
+      "name_ru": "Оружейная",
+      "name_en": "Armory",
+      "source": "dmg24",
+      "sort_order": 210,
+      "external_ref": {
+        "book": "DMG24",
+        "chapter": "Bastions",
+        "facility_type": "special",
+        "level": 5
+      },
+      "data": {
+        "schema_version": 1,
+        "facility_kind": "special",
+        "level": 5,
+        "space": "roomy",
+        "space_options": [
+          "roomy"
+        ],
+        "space_squares": {
+          "cramped": 4,
+          "roomy": 16,
+          "vast": 36
+        },
+        "space_ru": {
+          "cramped": "тесное",
+          "roomy": "просторное",
+          "vast": "обширное"
+        },
+        "hirelings": {
+          "default": 1
+        },
+        "orders": [
+          "trade"
+        ],
+        "prerequisite_ru": null,
+        "name_ru_pending": true,
+        "text_ru_pending": false,
+        "summary_ru": "Стойки для доспехов, щитов, оружия и боеприпасов.",
+        "order_effects_ru": [
+          {
+            "order": "trade",
+            "summary_ru": "Запас снаряжения: 100 зм + 100 зм за каждого защитника (половина при наличии кузницы). Пока запас есть, потери защитников считают к8 вместо к6; после события запас расходуется."
+          }
+        ],
+        "unique": true
+      }
+    },
+    {
+      "kind": "bastion",
+      "slug": "barrack",
+      "name_ru": "Казарма",
+      "name_en": "Barrack",
+      "source": "dmg24",
+      "sort_order": 220,
+      "external_ref": {
+        "book": "DMG24",
+        "chapter": "Bastions",
+        "facility_type": "special",
+        "level": 5
+      },
+      "data": {
+        "schema_version": 1,
+        "facility_kind": "special",
+        "level": 5,
+        "space": "roomy",
+        "space_options": [
+          "roomy",
+          "vast"
+        ],
+        "space_squares": {
+          "cramped": 4,
+          "roomy": 16,
+          "vast": 36
+        },
+        "space_ru": {
+          "cramped": "тесное",
+          "roomy": "просторное",
+          "vast": "обширное"
+        },
+        "hirelings": {
+          "default": 1
+        },
+        "orders": [
+          "recruit"
+        ],
+        "prerequisite_ru": null,
+        "name_ru_pending": true,
+        "text_ru_pending": false,
+        "summary_ru": "Спальни для защитников бастиона; можно иметь несколько казарм. Расширение до обширной: 2000 зм.",
+        "order_effects_ru": [
+          {
+            "order": "recruit",
+            "summary_ru": "До 4 защитников бесплатно, пока есть места (просторная — 12, обширная — 25)."
+          }
+        ],
+        "unique": true
+      }
+    },
+    {
+      "kind": "bastion",
+      "slug": "garden",
+      "name_ru": "Сад",
+      "name_en": "Garden",
+      "source": "dmg24",
+      "sort_order": 230,
+      "external_ref": {
+        "book": "DMG24",
+        "chapter": "Bastions",
+        "facility_type": "special",
+        "level": 5
+      },
+      "data": {
+        "schema_version": 1,
+        "facility_kind": "special",
+        "level": 5,
+        "space": "roomy",
+        "space_options": [
+          "roomy",
+          "vast"
+        ],
+        "space_squares": {
+          "cramped": 4,
+          "roomy": 16,
+          "vast": 36
+        },
+        "space_ru": {
+          "cramped": "тесное",
+          "roomy": "просторное",
+          "vast": "обширное"
+        },
+        "hirelings": {
+          "by_space": {
+            "roomy": 1,
+            "vast": 2
+          },
+          "default": 1
+        },
+        "orders": [
+          "harvest"
+        ],
+        "prerequisite_ru": null,
+        "name_ru_pending": true,
+        "text_ru_pending": false,
+        "summary_ru": "Сад одного типа: декоративный, пищевой, травяной или ядовитый; тип можно сменить за 21 день.",
+        "order_effects_ru": [
+          {
+            "order": "harvest",
+            "summary_ru": "Сбор по типу: букеты/духи/свечи; рационы; наборы целителя или зелье лечения; антитоксин или простой яд."
+          }
+        ],
+        "unique": true
+      }
+    },
+    {
+      "kind": "bastion",
+      "slug": "library",
+      "name_ru": "Библиотека",
+      "name_en": "Library",
+      "source": "dmg24",
+      "sort_order": 240,
+      "external_ref": {
+        "book": "DMG24",
+        "chapter": "Bastions",
+        "facility_type": "special",
+        "level": 5
+      },
+      "data": {
+        "schema_version": 1,
+        "facility_kind": "special",
+        "level": 5,
+        "space": "roomy",
+        "space_options": [
+          "roomy"
+        ],
+        "space_squares": {
+          "cramped": 4,
+          "roomy": 16,
+          "vast": 36
+        },
+        "space_ru": {
+          "cramped": "тесное",
+          "roomy": "просторное",
+          "vast": "обширное"
+        },
+        "hirelings": {
+          "default": 1
+        },
+        "orders": [
+          "research"
+        ],
+        "prerequisite_ru": null,
+        "name_ru_pending": true,
+        "text_ru_pending": false,
+        "summary_ru": "Книги, столы и места для чтения.",
+        "order_effects_ru": [
+          {
+            "order": "research",
+            "summary_ru": "За 7 дней — до трёх точных фактов по теме (легенда, место, личность, вид существ, известный предмет), которых вы не знали."
+          }
+        ],
+        "unique": true
+      }
+    },
+    {
+      "kind": "bastion",
+      "slug": "sanctuary",
+      "name_ru": "Святилище",
+      "name_en": "Sanctuary",
+      "source": "dmg24",
+      "sort_order": 250,
+      "external_ref": {
+        "book": "DMG24",
+        "chapter": "Bastions",
+        "facility_type": "special",
+        "level": 5
+      },
+      "data": {
+        "schema_version": 1,
+        "facility_kind": "special",
+        "level": 5,
+        "space": "roomy",
+        "space_options": [
+          "roomy"
+        ],
+        "space_squares": {
+          "cramped": 4,
+          "roomy": 16,
+          "vast": 36
+        },
+        "space_ru": {
+          "cramped": "тесное",
+          "roomy": "просторное",
+          "vast": "обширное"
+        },
+        "hirelings": {
+          "default": 1
+        },
+        "orders": [
+          "craft"
+        ],
+        "prerequisite_ru": "Умение пользоваться священным символом или друидической фокусировкой как фокусировкой заклинаний",
+        "name_ru_pending": true,
+        "text_ru_pending": false,
+        "summary_ru": "Место для молитв и священных обрядов. После продолжительного отдыха — временный талисман священного заговора (см. карточку; 7 дней или до применения).",
+        "order_effects_ru": [
+          {
+            "order": "craft",
+            "summary_ru": "Священная фокусировка (7 дней, бесплатно)."
+          }
+        ],
+        "unique": true
+      }
+    },
+    {
+      "kind": "bastion",
+      "slug": "smithy",
+      "name_ru": "Кузница",
+      "name_en": "Smithy",
+      "source": "dmg24",
+      "sort_order": 260,
+      "external_ref": {
+        "book": "DMG24",
+        "chapter": "Bastions",
+        "facility_type": "special",
+        "level": 5
+      },
+      "data": {
+        "schema_version": 1,
+        "facility_kind": "special",
+        "level": 5,
+        "space": "roomy",
+        "space_options": [
+          "roomy"
+        ],
+        "space_squares": {
+          "cramped": 4,
+          "roomy": 16,
+          "vast": 36
+        },
+        "space_ru": {
+          "cramped": "тесное",
+          "roomy": "просторное",
+          "vast": "обширное"
+        },
+        "hirelings": {
+          "default": 2
+        },
+        "orders": [
+          "craft"
+        ],
+        "prerequisite_ru": null,
+        "name_ru_pending": true,
+        "text_ru_pending": false,
+        "summary_ru": "Горн, наковальня и кузнечный инструмент.",
+        "order_effects_ru": [
+          {
+            "order": "craft",
+            "summary_ru": "Изделия инструментом кузнеца; с 9 ур. — обычный/необычный предмет из таблиц «Вооружение»."
+          }
+        ],
+        "unique": true
+      }
+    },
+    {
+      "kind": "bastion",
+      "slug": "storehouse",
+      "name_ru": "Склад",
+      "name_en": "Storehouse",
+      "source": "dmg24",
+      "sort_order": 270,
+      "external_ref": {
+        "book": "DMG24",
+        "chapter": "Bastions",
+        "facility_type": "special",
+        "level": 5
+      },
+      "data": {
+        "schema_version": 1,
+        "facility_kind": "special",
+        "level": 5,
+        "space": "roomy",
+        "space_options": [
+          "roomy"
+        ],
+        "space_squares": {
+          "cramped": 4,
+          "roomy": 16,
+          "vast": 36
+        },
+        "space_ru": {
+          "cramped": "тесное",
+          "roomy": "просторное",
+          "vast": "обширное"
+        },
+        "hirelings": {
+          "default": 1
+        },
+        "orders": [
+          "trade"
+        ],
+        "prerequisite_ru": null,
+        "name_ru_pending": true,
+        "text_ru_pending": false,
+        "summary_ru": "Прохладное хранилище для торговых товаров и снаряжения.",
+        "order_effects_ru": [
+          {
+            "order": "trade",
+            "summary_ru": "За 7 дней купить немагические товары до лимита (500/2000/5000 зм на 5/9/13 ур.) или продать со наценкой 10/20/50/100% на 5/9/13/17 ур."
+          }
+        ],
+        "unique": true
+      }
+    },
+    {
+      "kind": "bastion",
+      "slug": "workshop",
+      "name_ru": "Мастерская",
+      "name_en": "Workshop",
+      "source": "dmg24",
+      "sort_order": 280,
+      "external_ref": {
+        "book": "DMG24",
+        "chapter": "Bastions",
+        "facility_type": "special",
+        "level": 5
+      },
+      "data": {
+        "schema_version": 1,
+        "facility_kind": "special",
+        "level": 5,
+        "space": "roomy",
+        "space_options": [
+          "roomy",
+          "vast"
+        ],
+        "space_squares": {
+          "cramped": 4,
+          "roomy": 16,
+          "vast": 36
+        },
+        "space_ru": {
+          "cramped": "тесное",
+          "roomy": "просторное",
+          "vast": "обширное"
+        },
+        "hirelings": {
+          "by_space": {
+            "roomy": 3,
+            "vast": 5
+          },
+          "default": 3
+        },
+        "orders": [
+          "craft"
+        ],
+        "prerequisite_ru": null,
+        "name_ru_pending": true,
+        "text_ru_pending": false,
+        "summary_ru": "Творческое пространство с выбранными ремесленными инструментами (6 видов; +3 при расширении). Полный короткий отдых здесь даёт героическое вдохновение (раз за продолжительный отдых). Расширение: 2000 зм.",
+        "order_effects_ru": [
+          {
+            "order": "craft",
+            "summary_ru": "Снаряжение выбранными инструментами; с 9 ур. — обычный/необычный предмет из таблиц «Приспособления»."
+          }
+        ],
+        "unique": true
+      }
+    },
+    {
+      "kind": "bastion",
+      "slug": "gaming-hall",
+      "name_ru": "Игорный зал",
+      "name_en": "Gaming Hall",
+      "source": "dmg24",
+      "sort_order": 290,
+      "external_ref": {
+        "book": "DMG24",
+        "chapter": "Bastions",
+        "facility_type": "special",
+        "level": 9
+      },
+      "data": {
+        "schema_version": 1,
+        "facility_kind": "special",
+        "level": 9,
+        "space": "vast",
+        "space_options": [
+          "vast"
+        ],
+        "space_squares": {
+          "cramped": 4,
+          "roomy": 16,
+          "vast": 36
+        },
+        "space_ru": {
+          "cramped": "тесное",
+          "roomy": "просторное",
+          "vast": "обширное"
+        },
+        "hirelings": {
+          "default": 4
+        },
+        "orders": [
+          "trade"
+        ],
+        "prerequisite_ru": null,
+        "name_ru_pending": true,
+        "text_ru_pending": false,
+        "summary_ru": "Зал для игр и ставок.",
+        "order_effects_ru": [
+          {
+            "order": "trade",
+            "summary_ru": "Азартные игры приносят доход (случайная сумма по правилам зала) за ход бастиона."
+          }
+        ],
+        "unique": true
+      }
+    },
+    {
+      "kind": "bastion",
+      "slug": "greenhouse",
+      "name_ru": "Оранжерея",
+      "name_en": "Greenhouse",
+      "source": "dmg24",
+      "sort_order": 300,
+      "external_ref": {
+        "book": "DMG24",
+        "chapter": "Bastions",
+        "facility_type": "special",
+        "level": 9
+      },
+      "data": {
+        "schema_version": 1,
+        "facility_kind": "special",
+        "level": 9,
+        "space": "roomy",
+        "space_options": [
+          "roomy"
+        ],
+        "space_squares": {
+          "cramped": 4,
+          "roomy": 16,
+          "vast": 36
+        },
+        "space_ru": {
+          "cramped": "тесное",
+          "roomy": "просторное",
+          "vast": "обширное"
+        },
+        "hirelings": {
+          "default": 1
+        },
+        "orders": [
+          "harvest"
+        ],
+        "prerequisite_ru": null,
+        "name_ru_pending": true,
+        "text_ru_pending": false,
+        "summary_ru": "Закрытый климат для редких растений и грибов. Растение с тремя плодами «малое восстановление» (обновляются на рассвете; сорванные теряют силу через 24 часа).",
+        "order_effects_ru": [
+          {
+            "order": "harvest",
+            "summary_ru": "Большее зелье лечения из трав (7 дней, бесплатно) или одна доза выбранного яда (7 дней, бесплатно)."
+          }
+        ],
+        "unique": true
+      }
+    },
+    {
+      "kind": "bastion",
+      "slug": "laboratory",
+      "name_ru": "Лаборатория",
+      "name_en": "Laboratory",
+      "source": "dmg24",
+      "sort_order": 310,
+      "external_ref": {
+        "book": "DMG24",
+        "chapter": "Bastions",
+        "facility_type": "special",
+        "level": 9
+      },
+      "data": {
+        "schema_version": 1,
+        "facility_kind": "special",
+        "level": 9,
+        "space": "roomy",
+        "space_options": [
+          "roomy"
+        ],
+        "space_squares": {
+          "cramped": 4,
+          "roomy": 16,
+          "vast": 36
+        },
+        "space_ru": {
+          "cramped": "тесное",
+          "roomy": "просторное",
+          "vast": "обширное"
+        },
+        "hirelings": {
+          "default": 1
+        },
+        "orders": [
+          "craft"
+        ],
+        "prerequisite_ru": null,
+        "name_ru_pending": true,
+        "text_ru_pending": false,
+        "summary_ru": "Место для алхимии и смесей.",
+        "order_effects_ru": [
+          {
+            "order": "craft",
+            "summary_ru": "Изделия алхимическими припасами; или флакон выбранного яда за половину цены (7 дней)."
+          }
+        ],
+        "unique": true
+      }
+    },
+    {
+      "kind": "bastion",
+      "slug": "sacristy",
+      "name_ru": "Ризница",
+      "name_en": "Sacristy",
+      "source": "dmg24",
+      "sort_order": 320,
+      "external_ref": {
+        "book": "DMG24",
+        "chapter": "Bastions",
+        "facility_type": "special",
+        "level": 9
+      },
+      "data": {
+        "schema_version": 1,
+        "facility_kind": "special",
+        "level": 9,
+        "space": "roomy",
+        "space_options": [
+          "roomy"
+        ],
+        "space_squares": {
+          "cramped": 4,
+          "roomy": 16,
+          "vast": 36
+        },
+        "space_ru": {
+          "cramped": "тесное",
+          "roomy": "просторное",
+          "vast": "обширное"
+        },
+        "hirelings": {
+          "default": 1
+        },
+        "orders": [
+          "craft"
+        ],
+        "prerequisite_ru": "Умение пользоваться священным символом или друидической фокусировкой как фокусировкой заклинаний",
+        "name_ru_pending": true,
+        "text_ru_pending": false,
+        "summary_ru": "Хранилище священных принадлежностей. После продолжительного отдыха можно восстановить одну потраченную ячейку заклинаний 2 ур. или ниже.",
+        "order_effects_ru": [
+          {
+            "order": "craft",
+            "summary_ru": "Святая вода (7 дней, бесплатно); обычный/необычный предмет из таблиц «Реликвии»."
+          }
+        ],
+        "unique": true
+      }
+    },
+    {
+      "kind": "bastion",
+      "slug": "scriptorium",
+      "name_ru": "Скрипторий",
+      "name_en": "Scriptorium",
+      "source": "dmg24",
+      "sort_order": 330,
+      "external_ref": {
+        "book": "DMG24",
+        "chapter": "Bastions",
+        "facility_type": "special",
+        "level": 9
+      },
+      "data": {
+        "schema_version": 1,
+        "facility_kind": "special",
+        "level": 9,
+        "space": "roomy",
+        "space_options": [
+          "roomy"
+        ],
+        "space_squares": {
+          "cramped": 4,
+          "roomy": 16,
+          "vast": 36
+        },
+        "space_ru": {
+          "cramped": "тесное",
+          "roomy": "просторное",
+          "vast": "обширное"
+        },
+        "hirelings": {
+          "default": 1
+        },
+        "orders": [
+          "craft"
+        ],
+        "prerequisite_ru": null,
+        "name_ru_pending": true,
+        "text_ru_pending": false,
+        "summary_ru": "Мастерская переписчиков.",
+        "order_effects_ru": [
+          {
+            "order": "craft",
+            "summary_ru": "Копия немагической книги; свиток заклинания жреца/волшебника 3 ур. или ниже; до 50 копий листовки/памфлета."
+          }
+        ],
+        "unique": true
+      }
+    },
+    {
+      "kind": "bastion",
+      "slug": "stable",
+      "name_ru": "Конюшня",
+      "name_en": "Stable",
+      "source": "dmg24",
+      "sort_order": 340,
+      "external_ref": {
+        "book": "DMG24",
+        "chapter": "Bastions",
+        "facility_type": "special",
+        "level": 9
+      },
+      "data": {
+        "schema_version": 1,
+        "facility_kind": "special",
+        "level": 9,
+        "space": "roomy",
+        "space_options": [
+          "roomy",
+          "vast"
+        ],
+        "space_squares": {
+          "cramped": 4,
+          "roomy": 16,
+          "vast": 36
+        },
+        "space_ru": {
+          "cramped": "тесное",
+          "roomy": "просторное",
+          "vast": "обширное"
+        },
+        "hirelings": {
+          "default": 1
+        },
+        "orders": [
+          "trade"
+        ],
+        "prerequisite_ru": null,
+        "name_ru_pending": true,
+        "text_ru_pending": false,
+        "summary_ru": "Содержание ездовых и животных.",
+        "order_effects_ru": [
+          {
+            "order": "trade",
+            "summary_ru": "Купить или продать животных по правилам конюшни; обширная вмещает больше."
+          }
+        ],
+        "unique": true
+      }
+    },
+    {
+      "kind": "bastion",
+      "slug": "teleportation-circle",
+      "name_ru": "Круг телепортации",
+      "name_en": "Teleportation Circle",
+      "source": "dmg24",
+      "sort_order": 350,
+      "external_ref": {
+        "book": "DMG24",
+        "chapter": "Bastions",
+        "facility_type": "special",
+        "level": 9
+      },
+      "data": {
+        "schema_version": 1,
+        "facility_kind": "special",
+        "level": 9,
+        "space": "roomy",
+        "space_options": [
+          "roomy"
+        ],
+        "space_squares": {
+          "cramped": 4,
+          "roomy": 16,
+          "vast": 36
+        },
+        "space_ru": {
+          "cramped": "тесное",
+          "roomy": "просторное",
+          "vast": "обширное"
+        },
+        "hirelings": {
+          "default": 1
+        },
+        "orders": [
+          "recruit"
+        ],
+        "prerequisite_ru": null,
+        "name_ru_pending": true,
+        "text_ru_pending": false,
+        "summary_ru": "Постоянный круг телепортации в бастионе.",
+        "order_effects_ru": [
+          {
+            "order": "recruit",
+            "summary_ru": "Пригласить заклинателя с другого связанного круга (до 14 дней или пока не сотворит заклинание для владельца); в защите бастиона не участвует."
+          }
+        ],
+        "unique": true
+      }
+    },
+    {
+      "kind": "bastion",
+      "slug": "theater",
+      "name_ru": "Театр",
+      "name_en": "Theater",
+      "source": "dmg24",
+      "sort_order": 360,
+      "external_ref": {
+        "book": "DMG24",
+        "chapter": "Bastions",
+        "facility_type": "special",
+        "level": 9
+      },
+      "data": {
+        "schema_version": 1,
+        "facility_kind": "special",
+        "level": 9,
+        "space": "vast",
+        "space_options": [
+          "vast"
+        ],
+        "space_squares": {
+          "cramped": 4,
+          "roomy": 16,
+          "vast": 36
+        },
+        "space_ru": {
+          "cramped": "тесное",
+          "roomy": "просторное",
+          "vast": "обширное"
+        },
+        "hirelings": {
+          "default": 4
+        },
+        "orders": [
+          "empower"
+        ],
+        "prerequisite_ru": null,
+        "name_ru_pending": true,
+        "text_ru_pending": false,
+        "summary_ru": "Сцена для концертов и постановок.",
+        "order_effects_ru": [
+          {
+            "order": "empower",
+            "summary_ru": "Постановка/концерт: роли автора, режиссёра или исполнителя дают временные усиления участникам (см. карточку)."
+          }
+        ],
+        "unique": true
+      }
+    },
+    {
+      "kind": "bastion",
+      "slug": "training-area",
+      "name_ru": "Тренировочная площадка",
+      "name_en": "Training Area",
+      "source": "dmg24",
+      "sort_order": 370,
+      "external_ref": {
+        "book": "DMG24",
+        "chapter": "Bastions",
+        "facility_type": "special",
+        "level": 9
+      },
+      "data": {
+        "schema_version": 1,
+        "facility_kind": "special",
+        "level": 9,
+        "space": "vast",
+        "space_options": [
+          "vast"
+        ],
+        "space_squares": {
+          "cramped": 4,
+          "roomy": 16,
+          "vast": 36
+        },
+        "space_ru": {
+          "cramped": "тесное",
+          "roomy": "просторное",
+          "vast": "обширное"
+        },
+        "hirelings": {
+          "default": 4
+        },
+        "orders": [
+          "empower"
+        ],
+        "prerequisite_ru": null,
+        "name_ru_pending": true,
+        "text_ru_pending": false,
+        "summary_ru": "Площадка для боевой и физической подготовки.",
+        "order_effects_ru": [
+          {
+            "order": "empower",
+            "summary_ru": "Тренировка даёт выбранное временное усиление (скорость, спасброски, оружие и т.п. по карточке)."
+          }
+        ],
+        "unique": true
+      }
+    },
+    {
+      "kind": "bastion",
+      "slug": "trophy-room",
+      "name_ru": "Комната трофеев",
+      "name_en": "Trophy Room",
+      "source": "dmg24",
+      "sort_order": 380,
+      "external_ref": {
+        "book": "DMG24",
+        "chapter": "Bastions",
+        "facility_type": "special",
+        "level": 9
+      },
+      "data": {
+        "schema_version": 1,
+        "facility_kind": "special",
+        "level": 9,
+        "space": "roomy",
+        "space_options": [
+          "roomy"
+        ],
+        "space_squares": {
+          "cramped": 4,
+          "roomy": 16,
+          "vast": 36
+        },
+        "space_ru": {
+          "cramped": "тесное",
+          "roomy": "просторное",
+          "vast": "обширное"
+        },
+        "hirelings": {
+          "default": 1
+        },
+        "orders": [
+          "research"
+        ],
+        "prerequisite_ru": null,
+        "name_ru_pending": true,
+        "text_ru_pending": false,
+        "summary_ru": "Витрины с трофеями и редкостями.",
+        "order_effects_ru": [
+          {
+            "order": "research",
+            "summary_ru": "Сведения по теме или поиск полезной безделушки-трофея (7 дней)."
+          }
+        ],
+        "unique": true
+      }
+    },
+    {
+      "kind": "bastion",
+      "slug": "archive",
+      "name_ru": "Архив",
+      "name_en": "Archive",
+      "source": "dmg24",
+      "sort_order": 390,
+      "external_ref": {
+        "book": "DMG24",
+        "chapter": "Bastions",
+        "facility_type": "special",
+        "level": 13
+      },
+      "data": {
+        "schema_version": 1,
+        "facility_kind": "special",
+        "level": 13,
+        "space": "roomy",
+        "space_options": [
+          "roomy",
+          "vast"
+        ],
+        "space_squares": {
+          "cramped": 4,
+          "roomy": 16,
+          "vast": 36
+        },
+        "space_ru": {
+          "cramped": "тесное",
+          "roomy": "просторное",
+          "vast": "обширное"
+        },
+        "hirelings": {
+          "default": 1
+        },
+        "orders": [
+          "research"
+        ],
+        "prerequisite_ru": null,
+        "name_ru_pending": true,
+        "text_ru_pending": false,
+        "summary_ru": "Хранилище ценных книг и свитков, обычно за библиотекой. Одна справочная книга даёт преимущество на проверки Интеллекта выбранной области (магия, история, расследование, природа или религия).",
+        "order_effects_ru": [
+          {
+            "order": "research",
+            "summary_ru": "За 7 дней — сведения в духе «легендарного знания» по выбранной теме."
+          }
+        ],
+        "unique": true
+      }
+    },
+    {
+      "kind": "bastion",
+      "slug": "meditation-chamber",
+      "name_ru": "Зал медитации",
+      "name_en": "Meditation Chamber",
+      "source": "dmg24",
+      "sort_order": 400,
+      "external_ref": {
+        "book": "DMG24",
+        "chapter": "Bastions",
+        "facility_type": "special",
+        "level": 13
+      },
+      "data": {
+        "schema_version": 1,
+        "facility_kind": "special",
+        "level": 13,
+        "space": "cramped",
+        "space_options": [
+          "cramped"
+        ],
+        "space_squares": {
+          "cramped": 4,
+          "roomy": 16,
+          "vast": 36
+        },
+        "space_ru": {
+          "cramped": "тесное",
+          "roomy": "просторное",
+          "vast": "обширное"
+        },
+        "hirelings": {
+          "default": 1
+        },
+        "orders": [
+          "empower"
+        ],
+        "prerequisite_ru": null,
+        "name_ru_pending": true,
+        "text_ru_pending": false,
+        "summary_ru": "Уединённое место для сосредоточения. 7 дней непрерывной медитации — преимущество на два случайных спасброска на 7 дней.",
+        "order_effects_ru": [
+          {
+            "order": "empower",
+            "summary_ru": "«Внутренний покой»: при следующем событии бастиона бросайте дважды и выберите результат."
+          }
+        ],
+        "unique": true
+      }
+    },
+    {
+      "kind": "bastion",
+      "slug": "menagerie",
+      "name_ru": "Зверинец",
+      "name_en": "Menagerie",
+      "source": "dmg24",
+      "sort_order": 410,
+      "external_ref": {
+        "book": "DMG24",
+        "chapter": "Bastions",
+        "facility_type": "special",
+        "level": 13
+      },
+      "data": {
+        "schema_version": 1,
+        "facility_kind": "special",
+        "level": 13,
+        "space": "vast",
+        "space_options": [
+          "vast"
+        ],
+        "space_squares": {
+          "cramped": 4,
+          "roomy": 16,
+          "vast": 36
+        },
+        "space_ru": {
+          "cramped": "тесное",
+          "roomy": "просторное",
+          "vast": "обширное"
+        },
+        "hirelings": {
+          "default": 2
+        },
+        "orders": [
+          "recruit"
+        ],
+        "prerequisite_ru": null,
+        "name_ru_pending": true,
+        "text_ru_pending": false,
+        "summary_ru": "Вольеры для существ.",
+        "order_effects_ru": [
+          {
+            "order": "recruit",
+            "summary_ru": "Привлечь существо в зверинец; по желанию считать его защитником или оставить по своему блоку статов."
+          }
+        ],
+        "unique": true
+      }
+    },
+    {
+      "kind": "bastion",
+      "slug": "observatory",
+      "name_ru": "Обсерватория",
+      "name_en": "Observatory",
+      "source": "dmg24",
+      "sort_order": 420,
+      "external_ref": {
+        "book": "DMG24",
+        "chapter": "Bastions",
+        "facility_type": "special",
+        "level": 13
+      },
+      "data": {
+        "schema_version": 1,
+        "facility_kind": "special",
+        "level": 13,
+        "space": "roomy",
+        "space_options": [
+          "roomy"
+        ],
+        "space_squares": {
+          "cramped": 4,
+          "roomy": 16,
+          "vast": 36
+        },
+        "space_ru": {
+          "cramped": "тесное",
+          "roomy": "просторное",
+          "vast": "обширное"
+        },
+        "hirelings": {
+          "default": 1
+        },
+        "orders": [
+          "empower"
+        ],
+        "prerequisite_ru": "Умение пользоваться фокусировкой заклинаний",
+        "name_ru_pending": true,
+        "text_ru_pending": false,
+        "summary_ru": "Место для наблюдения за небом и знамениями. После продолжительного отдыха — временный талисман обсерватории.",
+        "order_effects_ru": [
+          {
+            "order": "empower",
+            "summary_ru": "Тайное открытие — временный талисман или сведения по астрологии/магии (см. карточку)."
+          }
+        ],
+        "unique": true
+      }
+    },
+    {
+      "kind": "bastion",
+      "slug": "pub",
+      "name_ru": "Трактир",
+      "name_en": "Pub",
+      "source": "dmg24",
+      "sort_order": 430,
+      "external_ref": {
+        "book": "DMG24",
+        "chapter": "Bastions",
+        "facility_type": "special",
+        "level": 13
+      },
+      "data": {
+        "schema_version": 1,
+        "facility_kind": "special",
+        "level": 13,
+        "space": "roomy",
+        "space_options": [
+          "roomy",
+          "vast"
+        ],
+        "space_squares": {
+          "cramped": 4,
+          "roomy": 16,
+          "vast": 36
+        },
+        "space_ru": {
+          "cramped": "тесное",
+          "roomy": "просторное",
+          "vast": "обширное"
+        },
+        "hirelings": {
+          "by_space": {
+            "roomy": 1,
+            "vast": 4
+          },
+          "default": 1
+        },
+        "orders": [
+          "research"
+        ],
+        "prerequisite_ru": null,
+        "name_ru_pending": true,
+        "text_ru_pending": false,
+        "summary_ru": "Таверна, гостиница или кофейня при бастионе. «Специаль трактира» — напиток с магическим эффектом на 24 часа; смена раз в 7 дней; обширная даёт два варианта.",
+        "order_effects_ru": [
+          {
+            "order": "research",
+            "summary_ru": "Сбор слухов: важные события в радиусе 10 миль и перемещения знакомых существ в радиусе 50 миль (если не скрыты магией)."
+          }
+        ],
+        "unique": true
+      }
+    },
+    {
+      "kind": "bastion",
+      "slug": "reliquary",
+      "name_ru": "Реликварий",
+      "name_en": "Reliquary",
+      "source": "dmg24",
+      "sort_order": 440,
+      "external_ref": {
+        "book": "DMG24",
+        "chapter": "Bastions",
+        "facility_type": "special",
+        "level": 13
+      },
+      "data": {
+        "schema_version": 1,
+        "facility_kind": "special",
+        "level": 13,
+        "space": "cramped",
+        "space_options": [
+          "cramped"
+        ],
+        "space_squares": {
+          "cramped": 4,
+          "roomy": 16,
+          "vast": 36
+        },
+        "space_ru": {
+          "cramped": "тесное",
+          "roomy": "просторное",
+          "vast": "обширное"
+        },
+        "hirelings": {
+          "default": 1
+        },
+        "orders": [
+          "harvest"
+        ],
+        "prerequisite_ru": "Умение пользоваться священным символом или друидической фокусировкой как фокусировкой заклинаний",
+        "name_ru_pending": true,
+        "text_ru_pending": false,
+        "summary_ru": "Хранилище священных реликвий. После продолжительного отдыха — временный талисман реликвария.",
+        "order_effects_ru": [
+          {
+            "order": "harvest",
+            "summary_ru": "Создать талисман (временный магический амулет по карточке) за 7 дней."
+          }
+        ],
+        "unique": true
+      }
+    },
+    {
+      "kind": "bastion",
+      "slug": "demiplane",
+      "name_ru": "Демиплан",
+      "name_en": "Demiplane",
+      "source": "dmg24",
+      "sort_order": 450,
+      "external_ref": {
+        "book": "DMG24",
+        "chapter": "Bastions",
+        "facility_type": "special",
+        "level": 17
+      },
+      "data": {
+        "schema_version": 1,
+        "facility_kind": "special",
+        "level": 17,
+        "space": "vast",
+        "space_options": [
+          "vast"
+        ],
+        "space_squares": {
+          "cramped": 4,
+          "roomy": 16,
+          "vast": 36
+        },
+        "space_ru": {
+          "cramped": "тесное",
+          "roomy": "просторное",
+          "vast": "обширное"
+        },
+        "hirelings": {
+          "default": 1
+        },
+        "orders": [
+          "empower"
+        ],
+        "prerequisite_ru": "Умение пользоваться магической фокусировкой или инструментом как фокусировкой заклинаний",
+        "name_ru_pending": true,
+        "text_ru_pending": false,
+        "summary_ru": "Дверь в личный демиплан внутри другого помещения бастиона; можно переносить в ход бастиона, если вы на месте. Действием «Магия» создать немагический предмет до 5 футов и до 5 зм из обычных материалов.",
+        "order_effects_ru": [
+          {
+            "order": "empower",
+            "summary_ru": "«Чародейская стойкость» на 7 дней: продолжительный отдых в демиплане даёт временные хиты = 5×уровень."
+          }
+        ],
+        "unique": true
+      }
+    },
+    {
+      "kind": "bastion",
+      "slug": "guildhall",
+      "name_ru": "Гильдейский зал",
+      "name_en": "Guildhall",
+      "source": "dmg24",
+      "sort_order": 460,
+      "external_ref": {
+        "book": "DMG24",
+        "chapter": "Bastions",
+        "facility_type": "special",
+        "level": 17
+      },
+      "data": {
+        "schema_version": 1,
+        "facility_kind": "special",
+        "level": 17,
+        "space": "vast",
+        "space_options": [
+          "vast"
+        ],
+        "space_squares": {
+          "cramped": 4,
+          "roomy": 16,
+          "vast": 36
+        },
+        "space_ru": {
+          "cramped": "тесное",
+          "roomy": "просторное",
+          "vast": "обширное"
+        },
+        "hirelings": {
+          "default": 1
+        },
+        "orders": [
+          "recruit"
+        ],
+        "prerequisite_ru": "Экспертиза в навыке",
+        "name_ru_pending": true,
+        "text_ru_pending": false,
+        "summary_ru": "Зал заседаний вашей гильдии; вы — мастер гильдии выбранного типа.",
+        "order_effects_ru": [
+          {
+            "order": "recruit",
+            "summary_ru": "Поручение членам гильдии (задание по типу гильдии, выгода по карточке)."
+          }
+        ],
+        "unique": true
+      }
+    },
+    {
+      "kind": "bastion",
+      "slug": "sanctum",
+      "name_ru": "Святая обитель",
+      "name_en": "Sanctum",
+      "source": "dmg24",
+      "sort_order": 470,
+      "external_ref": {
+        "book": "DMG24",
+        "chapter": "Bastions",
+        "facility_type": "special",
+        "level": 17
+      },
+      "data": {
+        "schema_version": 1,
+        "facility_kind": "special",
+        "level": 17,
+        "space": "roomy",
+        "space_options": [
+          "roomy"
+        ],
+        "space_squares": {
+          "cramped": 4,
+          "roomy": 16,
+          "vast": 36
+        },
+        "space_ru": {
+          "cramped": "тесное",
+          "roomy": "просторное",
+          "vast": "обширное"
+        },
+        "hirelings": {
+          "default": 4
+        },
+        "orders": [
+          "empower"
+        ],
+        "prerequisite_ru": "Умение пользоваться священным символом или друидической фокусировкой как фокусировкой заклинаний",
+        "name_ru_pending": true,
+        "text_ru_pending": false,
+        "summary_ru": "Высшее священное убежище. Талисман обители; возможность вспомнить/вернуться в обитель по правилам карточки.",
+        "order_effects_ru": [
+          {
+            "order": "empower",
+            "summary_ru": "Укрепляющие обряды — временная защита/усиление для вас или бастиона (см. карточку)."
+          }
+        ],
+        "unique": true
+      }
+    },
+    {
+      "kind": "bastion",
+      "slug": "war-room",
+      "name_ru": "Военный кабинет",
+      "name_en": "War Room",
+      "source": "dmg24",
+      "sort_order": 480,
+      "external_ref": {
+        "book": "DMG24",
+        "chapter": "Bastions",
+        "facility_type": "special",
+        "level": 17
+      },
+      "data": {
+        "schema_version": 1,
+        "facility_kind": "special",
+        "level": 17,
+        "space": "vast",
+        "space_options": [
+          "vast"
+        ],
+        "space_squares": {
+          "cramped": 4,
+          "roomy": 16,
+          "vast": 36
+        },
+        "space_ru": {
+          "cramped": "тесное",
+          "roomy": "просторное",
+          "vast": "обширное"
+        },
+        "hirelings": {
+          "default": 2,
+          "min": 2
+        },
+        "orders": [
+          "recruit"
+        ],
+        "prerequisite_ru": "Умение «Боевой стиль» или «Защита без доспехов»",
+        "name_ru_pending": true,
+        "text_ru_pending": false,
+        "summary_ru": "Штаб с картой и верными лейтенантами-ветеранами. Каждый лейтенант на месте снижает число костей потерь защитников при атаке на 1.",
+        "order_effects_ru": [
+          {
+            "order": "recruit",
+            "summary_ru": "Новый лейтенант (до 10) или сбор малого войска лейтенантами (кормление и командование обязательны)."
+          }
+        ],
+        "unique": true
+      }
+    }
+  ]
+}

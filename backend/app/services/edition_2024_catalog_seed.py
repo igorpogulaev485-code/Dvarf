@@ -40,7 +40,10 @@ Schema contract for later packs (P24-00 lists → data packs):
 - FRHoF (C17): ``subclasses_frhof`` / ``backgrounds_frhof`` /
   ``feats_frhof`` / ``spells_frhof`` / ``equipment_frhof`` /
   ``magic_items_frhof``; ``source`` ``frhof`` → ``community_ref``.
-  C12 bastions skipped. Species/creatures FRHoF = 0 in reference CSV.
+  Species/creatures FRHoF = 0 in reference CSV.
+- Bastions (C12): ``bastions_dmg24``; ``kind=bastion``, ``source`` ``dmg24``
+  → ``community_ref``; basic/special facilities, orders, rules card.
+  Own short RU; ``name_ru_pending`` on facility/order names.
 - ``source`` ``srd-5.2`` / ``srd-5.2.1`` stamps ``content_layer=srd``
 """
 
@@ -116,6 +119,8 @@ EDITION_2024_CATALOG_WAVES: tuple[WaveSpec, ...] = (
     WaveSpec("spells_frhof.json"),
     WaveSpec("equipment_frhof.json"),
     WaveSpec("magic_items_frhof.json"),
+    # P24-C12 — DMG 2024 Bastions (community_ref; own short RU)
+    WaveSpec("bastions_dmg24.json"),
 )
 
 WEAPON_MASTERY_FILENAME = "weapon_mastery_srd.json"
@@ -395,6 +400,32 @@ def normalize_bestiary_data(data: Mapping[str, Any] | None) -> dict[str, Any]:
     return out
 
 
+def normalize_bastion_data(data: Mapping[str, Any] | None) -> dict[str, Any]:
+    """2024 bastion card: facility / order / rules (data only, no map UI)."""
+    out = dict(data) if isinstance(data, dict) else {}
+    if out.get("schema_version") is None:
+        out["schema_version"] = 1
+    out.setdefault("facility_kind", None)  # basic | special | order | rules
+    out.setdefault("level", None)
+    out.setdefault("space", None)
+    out.setdefault("space_options", [])
+    out.setdefault("space_squares", {"cramped": 4, "roomy": 16, "vast": 36})
+    out.setdefault("hirelings", {})
+    out.setdefault("orders", [])
+    out.setdefault("prerequisite_ru", None)
+    out.setdefault("order_effects_ru", [])
+    out.setdefault("summary_ru", None)
+    if out.get("name_ru_pending") is None:
+        out["name_ru_pending"] = False
+    else:
+        out["name_ru_pending"] = bool(out["name_ru_pending"])
+    if out.get("text_ru_pending") is None:
+        out["text_ru_pending"] = False
+    else:
+        out["text_ru_pending"] = bool(out["text_ru_pending"])
+    return out
+
+
 def load_weapon_mastery_dictionary() -> list[dict[str, Any]]:
     """Eight mastery property cards (reference only — not catalog_entries)."""
     path = _data_dir() / WEAPON_MASTERY_FILENAME
@@ -457,6 +488,8 @@ def normalize_entry_payload(item: Mapping[str, Any]) -> dict[str, Any] | None:
         data = normalize_spell_data(data_raw)
     elif kind == "bestiary":
         data = normalize_bestiary_data(data_raw)
+    elif kind == "bastion":
+        data = normalize_bastion_data(data_raw)
     else:
         data = dict(data_raw)
 

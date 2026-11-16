@@ -22,7 +22,7 @@ SRD 5.2.1 PDF: [SRD_CC_v5.2.1.pdf](https://media.dndbeyond.com/compendium-images
 
 - next.dnd.su: URL [`/bastion/`](https://next.dnd.su/bastion/) отвечает 200, но **списка сооружений нет** (пустая оболочка). В глоссарии отдельных карточек помещений бастиона тоже не найдено.
 - new.ttg.club: раздел [`/bastions`](https://new.ttg.club/bastions) на дату опроса в состоянии ошибки/заглушки; `GET /api/v2/bastions/search` вернул **пустой список**.
-- Файл `bastions.csv` заведён с заголовком, записей **0**. Пачку P24-C12 не снимать: пробел источника.
+- **P24-C12 (2026-11-16):** свой краткий перевод по DMG 2024 (глава Bastions). Эталон `bastions.csv` — **35** помещений (6 базовых + 29 особых), `book=DMG24`, без url сайтов. Живой сид `bastions_dmg24.json` — 43 карточки (`kind=bastion`, `source=dmg24`): помещения + 7 приказов + правила. `name_ru_pending=true`. SRD 5.2.1 бастионов не содержит.
 
 ## Чего нет ни на одном сайте (из книг плана)
 

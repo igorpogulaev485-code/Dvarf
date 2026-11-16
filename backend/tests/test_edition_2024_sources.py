@@ -79,6 +79,9 @@ def test_book_and_source_link(category: str) -> None:
     rows = _read_csv(category)
     for row in rows:
         assert (row.get("book") or "").strip(), f"{category}/{row.get('id')}: empty book"
+        # P24-C12: bastions absent on next.dnd.su / ttg — own DMG24 translation, links optional.
+        if category == "bastions":
+            continue
         has_link = bool((row.get("url_dndsu") or "").strip() or (row.get("url_ttg") or "").strip())
         assert has_link, f"{category}/{row.get('id')}: need url_dndsu or url_ttg"
 
