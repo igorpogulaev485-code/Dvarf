@@ -48,6 +48,14 @@ from app.schemas.admin import (
 METRICS_TZ = ZoneInfo("Asia/Yekaterinburg")
 METRICS_PERIODS = frozenset({1, 7, 30})
 
+
+def _to_metrics_local_day(value: datetime | None) -> str | None:
+    """Календарный день Asia/Yekaterinburg для метрик. Naive → UTC."""
+    if value is None:
+        return None
+    aware = value if value.tzinfo is not None else value.replace(tzinfo=UTC)
+    return aware.astimezone(METRICS_TZ).date().isoformat()
+
 logger = logging.getLogger(__name__)
 
 ADMIN_PASSWORD_MAX_ATTEMPTS = 5
@@ -965,8 +973,10 @@ class AdminService:
             or 0
         )
 
-        # Дневные ряды за последние 30 календарных дней (Asia/Yekaterinburg).
-        daily_start_local = (now_local.date() - timedelta(days=29))
+        # Дневные ряды за 30 календарных дней (Asia/Yekaterinburg).
+        # Источник сущностей — живые таблицы (иначе график пустой до журнала событий).
+        # Уникальные входы: сессии входа + журнал product_events.login.
+        daily_start_local = now_local.date() - timedelta(days=29)
         daily_start_utc = datetime(
             daily_start_local.year,
             daily_start_local.month,
@@ -974,17 +984,6 @@ class AdminService:
             tzinfo=METRICS_TZ,
         ).astimezone(UTC)
 
-        events = list(
-            self.db.execute(
-                select(
-                    ProductEvent.event_type,
-                    ProductEvent.user_id,
-                    ProductEvent.created_at,
-                ).where(ProductEvent.created_at >= daily_start_utc)
-            ).all()
-        )
-
-        # date -> counters (логины — уникальные user_id за день)
         buckets: dict[str, dict[str, Any]] = {}
         for i in range(30):
             d = (daily_start_local + timedelta(days=i)).isoformat()
@@ -996,25 +995,60 @@ class AdminService:
                 "play_started": 0,
             }
 
-        for event_type, user_id, created_at in events:
-            if created_at is None:
-                continue
-            local_day = created_at.astimezone(METRICS_TZ).date().isoformat()
-            bucket = buckets.get(local_day)
+        def _bump(day: str | None, key: str) -> None:
+            if day is None:
+                return
+            bucket = buckets.get(day)
             if bucket is None:
-                continue
+                return
+            bucket[key] = int(bucket[key]) + 1
+
+        def _bump_login(day: str | None, user_id: UUID | None) -> None:
+            if day is None or user_id is None:
+                return
+            bucket = buckets.get(day)
+            if bucket is None:
+                return
+            bucket["login_users"].add(user_id)
+
+        for (created_at,) in self.db.execute(
+            select(User.created_at).where(User.created_at >= daily_start_utc)
+        ).all():
+            _bump(_to_metrics_local_day(created_at), "signups")
+
+        for (created_at,) in self.db.execute(
+            select(Character.created_at).where(Character.created_at >= daily_start_utc)
+        ).all():
+            _bump(_to_metrics_local_day(created_at), "characters_created")
+
+        for (created_at,) in self.db.execute(
+            select(Lobby.created_at).where(Lobby.created_at >= daily_start_utc)
+        ).all():
+            _bump(_to_metrics_local_day(created_at), "lobbies_created")
+
+        for (created_at,) in self.db.execute(
+            select(PlaySession.created_at).where(PlaySession.created_at >= daily_start_utc)
+        ).all():
+            _bump(_to_metrics_local_day(created_at), "play_started")
+
+        for user_id, created_at in self.db.execute(
+            select(AuthSession.user_id, AuthSession.created_at).where(
+                AuthSession.created_at >= daily_start_utc
+            )
+        ).all():
+            _bump_login(_to_metrics_local_day(created_at), user_id)
+
+        for event_type, user_id, created_at in self.db.execute(
+            select(
+                ProductEvent.event_type,
+                ProductEvent.user_id,
+                ProductEvent.created_at,
+            ).where(ProductEvent.created_at >= daily_start_utc)
+        ).all():
             kind = getattr(event_type, "value", event_type)
-            if kind == ProductEventType.signup.value:
-                bucket["signups"] = int(bucket["signups"]) + 1
-            elif kind == ProductEventType.login.value:
-                if user_id is not None:
-                    bucket["login_users"].add(user_id)
-            elif kind == ProductEventType.character_created.value:
-                bucket["characters_created"] = int(bucket["characters_created"]) + 1
-            elif kind == ProductEventType.lobby_created.value:
-                bucket["lobbies_created"] = int(bucket["lobbies_created"]) + 1
-            elif kind == ProductEventType.play_started.value:
-                bucket["play_started"] = int(bucket["play_started"]) + 1
+            if kind != ProductEventType.login.value:
+                continue
+            _bump_login(_to_metrics_local_day(created_at), user_id)
 
         daily: list[AdminMetricsDayPoint] = []
         for i in range(30):

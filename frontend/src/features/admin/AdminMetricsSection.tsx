@@ -76,8 +76,8 @@ export function AdminMetricsSection({ onToast }: Props) {
       >
         <Stack gap={12}>
           <Text tone="muted">
-            Итоговые числа — из таблиц. Дневные ряды — из журнала событий и начинаются со дня
-            выкладки (раньше данных нет).
+            Итоговые числа и дневные ряды — из таблиц. Уникальные входы по дням — из сессий
+            входа и журнала событий. Время — Екатеринбург (UTC+5).
           </Text>
           <SegmentedControl
             aria-label="Период метрик"
@@ -144,13 +144,13 @@ export function AdminMetricsSection({ onToast }: Props) {
 
           <Panel title="По дням (30 дней)">
             <Stack gap={16}>
-              <Text tone="muted">Время — Екатеринбург (UTC+5). Дни без событий = 0.</Text>
+              <Text tone="muted">Дни без событий = 0. Наведите или нажмите на столбец — подсказка.</Text>
               <BarChart
                 caption="Регистрации"
                 items={data.daily.map((d) => ({
                   label: formatDayLabel(d.date),
                   value: d.signups,
-                  title: `${d.date}: регистрации ${d.signups}`,
+                  title: `${formatDayLabel(d.date)} — ${d.signups} регистрации`,
                 }))}
               />
               <BarChart
@@ -158,7 +158,7 @@ export function AdminMetricsSection({ onToast }: Props) {
                 items={data.daily.map((d) => ({
                   label: formatDayLabel(d.date),
                   value: d.logins_unique,
-                  title: `${d.date}: входы ${d.logins_unique}`,
+                  title: `${formatDayLabel(d.date)} — ${d.logins_unique} входа`,
                 }))}
               />
               <BarChart
@@ -166,7 +166,7 @@ export function AdminMetricsSection({ onToast }: Props) {
                 items={data.daily.map((d) => ({
                   label: formatDayLabel(d.date),
                   value: d.characters_created,
-                  title: `${d.date}: персонажи ${d.characters_created}`,
+                  title: `${formatDayLabel(d.date)} — ${d.characters_created} персонажа`,
                 }))}
               />
               <BarChart
@@ -174,7 +174,7 @@ export function AdminMetricsSection({ onToast }: Props) {
                 items={data.daily.map((d) => ({
                   label: formatDayLabel(d.date),
                   value: d.lobbies_created,
-                  title: `${d.date}: лобби ${d.lobbies_created}`,
+                  title: `${formatDayLabel(d.date)} — ${d.lobbies_created} лобби`,
                 }))}
               />
               <BarChart
@@ -182,7 +182,7 @@ export function AdminMetricsSection({ onToast }: Props) {
                 items={data.daily.map((d) => ({
                   label: formatDayLabel(d.date),
                   value: d.play_started,
-                  title: `${d.date}: партии ${d.play_started}`,
+                  title: `${formatDayLabel(d.date)} — ${d.play_started} партии`,
                 }))}
               />
             </Stack>

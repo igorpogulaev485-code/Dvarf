@@ -285,6 +285,8 @@ class FeedbackService:
                 raise AppError("Неизвестная тема", code="feedback_bad_topic", status_code=422)
             filters.append(FeedbackMessage.topic == topic)
 
+        page = max(1, int(page))
+        page_size = min(max(1, int(page_size)), 100)
         total = int(
             self.db.scalar(
                 select(func.count()).select_from(FeedbackMessage).where(*filters)

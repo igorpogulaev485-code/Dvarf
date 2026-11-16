@@ -95,7 +95,7 @@ test.describe('ADM-03 metrics', () => {
     await expect(page.getByRole('heading', { name: 'Лобби и партии', exact: true })).toBeVisible()
     await expect(page.getByText('12').first()).toBeVisible()
     await expect(page.getByText('Почта подтверждена')).toBeVisible()
-    await expect(page.getByText(/Дневные ряды/)).toBeVisible()
+    await expect(page.getByText(/дневные ряды/i)).toBeVisible()
     await expect(page.getByText('Екатеринбург (UTC+5)')).toBeVisible()
     await expect(page.getByText('Asia/Yekaterinburg')).toHaveCount(0)
     await expect(page.getByText('Регистрации')).toBeVisible()

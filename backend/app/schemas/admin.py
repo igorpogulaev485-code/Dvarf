@@ -207,8 +207,8 @@ class AdminMetricsResponse(BaseModel):
     period_days: int
     timezone: str = "Asia/Yekaterinburg"
     note: str = (
-        "Итоговые числа — из таблиц. Дневные ряды — из журнала событий "
-        "и начинаются со дня выкладки (раньше данных нет)."
+        "Итоговые числа и дневные ряды — из таблиц. Уникальные входы по дням — "
+        "из сессий входа и журнала событий. Время — Екатеринбург (UTC+5)."
     )
     accounts: AdminMetricsAccounts
     active: AdminMetricsActive

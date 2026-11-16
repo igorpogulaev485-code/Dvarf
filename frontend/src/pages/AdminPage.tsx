@@ -4,6 +4,7 @@ import { AdminCatalogSection } from '../features/admin/AdminCatalogSection'
 import { AdminFeedbackSection } from '../features/admin/AdminFeedbackSection'
 import { AdminHelpSection } from '../features/admin/AdminHelpSection'
 import { AdminMetricsSection } from '../features/admin/AdminMetricsSection'
+import { useAdminPaging } from '../features/admin/useAdminPaging'
 import {
   changeAdminPassword,
   getAdminStatus,
@@ -22,6 +23,7 @@ import {
   EmptyState,
   Field,
   Input,
+  Pagination,
   Panel,
   PasswordInput,
   SegmentedControl,
@@ -111,7 +113,7 @@ export function AdminPage() {
 
   const [accounts, setAccounts] = useState<AdminAccountItem[]>([])
   const [total, setTotal] = useState(0)
-  const [page, setPage] = useState(1)
+  const { page, pageSize, setPage, setPageSize, resetPage } = useAdminPaging()
   const [query, setQuery] = useState('')
   const [searchDraft, setSearchDraft] = useState('')
   const [accountsLoading, setAccountsLoading] = useState(false)
@@ -186,17 +188,17 @@ export function AdminPage() {
   }
 
   const loadAccounts = useCallback(
-    async (q: string, pageNum: number) => {
+    async (q: string, pageNum: number, size: number) => {
       setAccountsLoading(true)
       try {
         const data = await listAdminAccounts({
           q: q || undefined,
           page: pageNum,
-          page_size: 20,
+          page_size: size,
         })
         setAccounts(data.items)
         setTotal(data.total)
-        setPage(data.page)
+        if (data.page !== pageNum) setPage(data.page)
       } catch (err: unknown) {
         if (err instanceof ApiRequestError && err.status === 401) {
           navigate('/login', { replace: true })
@@ -207,13 +209,13 @@ export function AdminPage() {
         setAccountsLoading(false)
       }
     },
-    [navigate],
+    [navigate, setPage],
   )
 
   useEffect(() => {
     if (!status || section !== 'accounts') return
-    void loadAccounts(query, page)
-  }, [status, section, query, page, loadAccounts])
+    void loadAccounts(query, page, pageSize)
+  }, [status, section, query, page, pageSize, loadAccounts])
 
   if (denied === 'missing') {
     return <Navigate to="/" replace />
@@ -241,7 +243,6 @@ export function AdminPage() {
     )
   }
 
-  const pageSize = 20
   const totalPages = Math.max(1, Math.ceil(total / pageSize))
   const allowedSections = new Set(
     status.sections?.length
@@ -398,7 +399,7 @@ export function AdminPage() {
                       placeholder="Почта, имя или идентификатор"
                       onKeyDown={(e) => {
                         if (e.key === 'Enter') {
-                          setPage(1)
+                          resetPage()
                           setQuery(searchDraft.trim())
                         }
                       }}
@@ -408,7 +409,7 @@ export function AdminPage() {
                 <Button
                   variant="secondary"
                   onClick={() => {
-                    setPage(1)
+                    resetPage()
                     setQuery(searchDraft.trim())
                   }}
                 >
@@ -487,28 +488,15 @@ export function AdminPage() {
                 })}
               </Stack>
 
-              {totalPages > 1 ? (
-                <Stack gap={8}>
-                  <Text tone="muted">
-                    Страница {page} из {totalPages} · всего {total}
-                  </Text>
-                  <ChipStack>
-                    <Button
-                      variant="secondary"
-                      disabled={page <= 1}
-                      onClick={() => setPage((p) => Math.max(1, p - 1))}
-                    >
-                      Назад
-                    </Button>
-                    <Button
-                      variant="secondary"
-                      disabled={page >= totalPages}
-                      onClick={() => setPage((p) => p + 1)}
-                    >
-                      Вперёд
-                    </Button>
-                  </ChipStack>
-                </Stack>
+              {total > 0 ? (
+                <Pagination
+                  page={page}
+                  totalPages={totalPages}
+                  total={total}
+                  pageSize={pageSize}
+                  onPageChange={setPage}
+                  onPageSizeChange={setPageSize}
+                />
               ) : null}
             </Stack>
           </Panel>
