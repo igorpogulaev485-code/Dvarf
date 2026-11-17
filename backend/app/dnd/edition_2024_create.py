@@ -1993,18 +1993,34 @@ def _build_sheet(
         cat_data = cat.get("data") if isinstance(cat.get("data"), dict) else {}
         name_ru = str(cat.get("name_ru") or item_id or "Предмет")
         weight = cat_data.get("weight_lb")
-        items.append(
-            {
-                "id": f"start-{item_id or 'item'}-{len(items)}",
-                "slug": item_id or None,
-                "name": name_ru,
-                "name_ru": name_ru,
-                "qty": max(1, int(qty or 1)),
-                "weight_lb": float(weight) if weight is not None else None,
-                "notes": notes,
-                "equipped": False,
-            }
-        )
+        # Copy armor fields so the sheet AC formula sees real gear (2024 create only).
+        armor_kind = cat_data.get("armor_kind")
+        base_ac = cat_data.get("base_ac")
+        row: dict[str, Any] = {
+            "id": f"start-{item_id or 'item'}-{len(items)}",
+            "slug": item_id or None,
+            "name": name_ru,
+            "name_ru": name_ru,
+            "qty": max(1, int(qty or 1)),
+            "weight_lb": float(weight) if weight is not None else None,
+            "notes": notes,
+            "equipped": False,
+        }
+        if armor_kind:
+            row["armor_kind"] = str(armor_kind)
+        if base_ac is not None:
+            try:
+                row["base_ac"] = int(base_ac)
+            except (TypeError, ValueError):
+                pass
+        # Weapon damage for attack cards (sickle etc.).
+        damage = cat_data.get("damage")
+        damage_type = cat_data.get("damage_type")
+        if damage:
+            row["damage"] = damage
+        if damage_type:
+            row["damage_type"] = damage_type
+        items.append(row)
 
     class_pack = gear["class_pack"]
     for entry in class_pack.get("items") or []:
@@ -2104,18 +2120,34 @@ def _build_sheet(
     }
     for item in items:
         slug = str(item.get("slug") or "")
-        if slug in armor_slug_bonus:
-            base = armor_slug_bonus[slug]
-            if slug in {"padded", "leather", "leather-armor", "studded-leather", "studded-leather-armor"}:
+        kind = str(item.get("armor_kind") or "").lower()
+        if slug in armor_slug_bonus or kind in {"light", "medium", "heavy"}:
+            base = int(item.get("base_ac") or armor_slug_bonus.get(slug) or 10)
+            if kind == "light" or slug in {
+                "padded",
+                "leather",
+                "leather-armor",
+                "studded-leather",
+                "studded-leather-armor",
+            }:
                 ac = base + dex_mod
-            elif slug in {"hide", "chain-shirt", "scale-mail", "breastplate", "half-plate"}:
+            elif kind == "medium" or slug in {
+                "hide",
+                "chain-shirt",
+                "scale-mail",
+                "breastplate",
+                "half-plate",
+            }:
                 ac = base + min(dex_mod, 2)
             else:
                 ac = base
             item["equipped"] = True
             break
-    if any(str(i.get("slug")) == "shield" for i in items):
-        ac += 2
+    for item in items:
+        if str(item.get("slug")) == "shield" or str(item.get("armor_kind") or "") == "shield":
+            item["equipped"] = True
+            ac += int(item.get("base_ac") or 2)
+            break
     # Unarmored defense
     if payload.class_slug == "barbarian" and not any(
         str(i.get("slug")) in armor_slug_bonus for i in items

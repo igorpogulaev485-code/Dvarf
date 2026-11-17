@@ -416,6 +416,7 @@ export function PlayDeskTop({ model }: { model: SheetModel }) {
             play={model.draft.play}
             autoAc={model.armorClass.ac}
             acHint={model.armorClass.summary}
+            formVitalLabel={model.wildShapeFormLabel2024 ?? null}
             onOpenAc={() => model.setAcBreakdownOpen(true)}
             shieldInHand={Boolean(equippedArmorPieces(model.draft.inventory.items).shield)}
             shieldAvailable={listShieldItems(model.draft.inventory.items).length > 0}
@@ -628,6 +629,7 @@ export function PlayDeskTop({ model }: { model: SheetModel }) {
           autoAc={model.armorClass.ac}
           acOverride={model.draft.ac}
           acHint={model.armorClass.summary}
+          formVitalLabel={model.wildShapeFormLabel2024 ?? null}
           onOpenAc={() => model.setAcBreakdownOpen(true)}
           shieldInHand={Boolean(equippedArmorPieces(model.draft.inventory.items).shield)}
           shieldAvailable={listShieldItems(model.draft.inventory.items).length > 0}

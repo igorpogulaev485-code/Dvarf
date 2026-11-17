@@ -45,6 +45,7 @@ import {
   wardenGrants2024,
   wildResurgenceSlotUsed2024,
   wildShapeArmorClass2024,
+  wildShapeHeaderVitals2024,
   wildShapeLimits2024,
   wildShapeTempHp2024,
   wildShapeUsesMax2024,
@@ -579,6 +580,27 @@ assert.equal(druid.trimKnownFormsOnLevelDown2024(forms, 8).length, 6)
 assert.equal(
   druid.moonConSaveBonusInForm2024({
     rulesEdition: '2024',
+    druidLevel: 3,
+    subclassSlug: MOON,
+    wisMod: 3,
+    inBeastForm: true,
+  }),
+  3,
+  'Moon Con save +Wis from circle level 3',
+)
+assert.equal(
+  druid.moonConSaveBonusInForm2024({
+    rulesEdition: '2024',
+    druidLevel: 2,
+    subclassSlug: MOON,
+    wisMod: 3,
+    inBeastForm: true,
+  }),
+  0,
+)
+assert.equal(
+  druid.moonConSaveBonusInForm2024({
+    rulesEdition: '2024',
     druidLevel: 6,
     subclassSlug: MOON,
     wisMod: 3,
@@ -595,6 +617,20 @@ assert.equal(
     inBeastForm: true,
   }),
   0,
+)
+assert.equal(
+  wildShapeHeaderVitals2024({
+    rulesEdition: '2024',
+    formStats: { ac: 16, speed: 40, speed_swim: 0, speed_fly: null },
+  })?.ac,
+  16,
+)
+assert.equal(
+  wildShapeHeaderVitals2024({
+    rulesEdition: '2014',
+    formStats: { ac: 16, speed: 40 },
+  }),
+  null,
 )
 assert.equal(
   druid.moonConSaveBonusInForm2024({

@@ -84,7 +84,10 @@ import {
   hasFortifiedHalfCover,
 } from '../../../shared/dnd/o08ActionsCoverConditions'
 import { activeBeastWildShape, beastPhysicalOverlay } from '../wildShape'
-import { moonConSaveBonusInForm2024 } from '../../../shared/dnd/druid2024Features'
+import {
+  moonConSaveBonusInForm2024,
+  wildShapeHeaderVitals2024,
+} from '../../../shared/dnd/druid2024Features'
 import { syncPactBladeAttack } from '../pactBladeAttack'
 import { syncRangerConclaveSpells } from '../rangerConclaveSpells'
 import { syncPrimalAwarenessSpells } from '../primalAwarenessSpells'
@@ -1047,7 +1050,7 @@ export function useSheetEditorPart3(model: SheetModel) {
     const shieldBonus = pieces.shield
       ? Math.max(0, Math.floor(pieces.shield.baseAc || 2))
       : Math.max(0, Math.floor(spareShield?.base_ac ?? 2))
-    return {
+    const characterAc = {
       ac: stacked.total,
       summary,
       gearSummary,
@@ -1058,6 +1061,19 @@ export function useSheetEditorPart3(model: SheetModel) {
       formulaLabel: base.formulaLabel,
       candidates: base.candidates,
       floorApplied: base.floorApplied,
+    }
+    // 2024 Wild Shape: header shows form AC (Moon: max(beast, 13+Wis) already on companion).
+    const formVitals = wildShapeHeaderVitals2024({
+      rulesEdition: model.rulesEdition ?? model.baseCharacter?.rules_edition,
+      formStats: activeBeastWildShape(model.draft.companions)?.stats ?? null,
+    })
+    if (!formVitals) return characterAc
+    return {
+      ...characterAc,
+      ac: formVitals.ac,
+      summary: `${characterAc.summary} · ${formVitals.labelRu} ${formVitals.ac}`,
+      gearSummary: `${formVitals.labelRu}: КД ${formVitals.ac}`,
+      baseLabel: `${formVitals.labelRu} · КД ${formVitals.ac}`,
     }
   }, [
     effectiveAbilities,
@@ -1081,6 +1097,9 @@ export function useSheetEditorPart3(model: SheetModel) {
     model.baseCharacter.sheet,
     model.proficiencyBonus,
     model.characterLevel,
+    model.rulesEdition,
+    model.baseCharacter?.rules_edition,
+    model.draft.companions,
   ])
   model.armorClass = armorClass
 

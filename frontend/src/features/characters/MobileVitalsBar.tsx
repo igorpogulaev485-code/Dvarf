@@ -44,7 +44,7 @@ import {
 import type { IncomingDamageProfile } from '../../shared/dnd/damageTypes'
 import { absorbDamageWithArcaneWard } from '../../shared/dnd/wizardTradition'
 import type { NeedsSetupItem } from './needsSetup'
-import { VitalTile, VitalTileMenu } from '../../ui'
+import { Chip, VitalTile, VitalTileMenu } from '../../ui'
 import { SpeedModesMenuBody } from './SpeedModesMenuBody'
 
 /** v2: M-02 / Q1 defaults to collapsed; old key often stored «0» from M-01 mounts. */
@@ -97,6 +97,8 @@ type MobileVitalsBarProps = {
   shieldInHand?: boolean
   shieldAvailable?: boolean
   onToggleShield?: () => void
+  /** 2024 Wild Shape: AC/speed tiles show form values; omit outside form. */
+  formVitalLabel?: string | null
   speed: number | null
   movementHint?: string | null
   /** Alt speeds — phone: +N badge + DetailsMenu (kit VitalTileMenu). */
@@ -194,6 +196,7 @@ export function MobileVitalsBar({
   shieldInHand = false,
   shieldAvailable = false,
   onToggleShield,
+  formVitalLabel = null,
   speed,
   movementHint: _movementHint = null,
   climbSpeed = null,
@@ -603,18 +606,19 @@ export function MobileVitalsBar({
             showValueTips
               ? undefined
               : onOpenAc
-                ? `Класс доспеха ${ac}. Открыть разборку`
+                ? `Класс доспеха ${ac}${formVitalLabel ? ` (${formVitalLabel})` : ''}. Открыть разборку`
                 : acOverride == null
-                  ? `Класс доспеха ${ac}. ${acHint}`
+                  ? `Класс доспеха ${ac}${formVitalLabel ? ` (${formVitalLabel})` : ''}. ${acHint}`
                   : `Класс доспеха ${ac} (вручную)`
           }
           aria-label={
             onOpenAc
-              ? `Класс доспеха ${ac}. Открыть разборку`
-              : `Класс доспеха ${ac}`
+              ? `Класс доспеха ${ac}${formVitalLabel ? `, ${formVitalLabel}` : ''}. Открыть разборку`
+              : `Класс доспеха ${ac}${formVitalLabel ? `, ${formVitalLabel}` : ''}`
           }
           onClick={() => onOpenAc?.()}
         >
+          {formVitalLabel ? <Chip>{formVitalLabel}</Chip> : null}
           {showValueTips ? <HoverTipCard tip={VITAL_TIPS.ac} /> : null}
         </VitalTile>
         <VitalTileMenu

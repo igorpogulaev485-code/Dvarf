@@ -566,7 +566,10 @@ export function moonImprovedFormsActive2024(input: {
   )
 }
 
-/** Moon L6+: add Wisdom to Constitution saves while in Wild Shape (0 otherwise). */
+/**
+ * Moon in Wild Shape: Wisdom to Constitution saves.
+ * Доправка 1: с 3-го уровня круга (не только с «Улучшенных обликов» 6).
+ */
 export function moonConSaveBonusInForm2024(input: {
   rulesEdition: string | null | undefined
   druidLevel: number
@@ -574,8 +577,58 @@ export function moonConSaveBonusInForm2024(input: {
   wisMod: number
   inBeastForm: boolean
 }): number {
-  if (!input.inBeastForm || !moonImprovedFormsActive2024(input)) return 0
+  if (
+    !input.inBeastForm ||
+    String(input.rulesEdition ?? '2014').trim() !== '2024' ||
+    !isMoonSubclass(input.subclassSlug) ||
+    lvl(input.druidLevel) < DRUID_SUBCLASS_MIN_LEVEL_2024
+  ) {
+    return 0
+  }
   return mod(input.wisMod)
+}
+
+/** UI-kit caption on AC/speed tiles while in 2024 Wild Shape. */
+export const WILD_SHAPE_FORM_LABEL_RU = 'форма'
+
+/** Header vitals while in 2024 Wild Shape — form AC / walk (+ alt speeds). */
+export type WildShapeHeaderVitals2024 = {
+  ac: number
+  speedWalk: number
+  speedClimb: number | null
+  speedSwim: number | null
+  speedFly: number | null
+  labelRu: typeof WILD_SHAPE_FORM_LABEL_RU
+}
+
+export function wildShapeHeaderVitals2024(input: {
+  rulesEdition: string | null | undefined
+  formStats: {
+    ac?: number | null
+    speed?: number | null
+    speed_climb?: number | null
+    speed_swim?: number | null
+    speed_fly?: number | null
+  } | null
+}): WildShapeHeaderVitals2024 | null {
+  if (String(input.rulesEdition ?? '2014').trim() !== '2024') return null
+  const stats = input.formStats
+  if (!stats) return null
+  const ac = Number(stats.ac)
+  const walk = Number(stats.speed)
+  if (!Number.isFinite(ac) || !Number.isFinite(walk)) return null
+  const alt = (v: number | null | undefined) => {
+    const n = Number(v)
+    return Number.isFinite(n) && n > 0 ? n : null
+  }
+  return {
+    ac: Math.floor(ac),
+    speedWalk: Math.floor(walk),
+    speedClimb: alt(stats.speed_climb),
+    speedSwim: alt(stats.speed_swim),
+    speedFly: alt(stats.speed_fly),
+    labelRu: WILD_SHAPE_FORM_LABEL_RU,
+  }
 }
 
 /** Moon L3+: an always-prepared circle spell may be cast in Wild Shape. */

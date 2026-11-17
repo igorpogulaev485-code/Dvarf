@@ -27,6 +27,8 @@ import {
   speedModsFromActiveEffects,
 } from '../../../shared/dnd/activeEffects'
 import { withSpeedBonus } from '../modifiers'
+import { wildShapeHeaderVitals2024 } from '../../../shared/dnd/druid2024Features'
+import { activeBeastWildShape } from '../wildShape'
 import { applyFeatureSaveProficiencies, ironMindSaveKey, wisdomSaveAlreadyGranted } from '../../../shared/dnd/featureSaveProficiency'
 import { revokeFalseSubclassCompanions } from '../companions'
 import { backfillCompanionStatsFromTemplates } from '../companionBackfill'
@@ -937,34 +939,66 @@ export function useSheetEditorPart2(model: SheetModel) {
   ])
   model.displaySpeedAuto = displaySpeedAuto
 
+  const formHeaderVitals = useMemo(
+    () =>
+      wildShapeHeaderVitals2024({
+        rulesEdition: model.rulesEdition ?? model.baseCharacter?.rules_edition,
+        formStats: activeBeastWildShape(model.draft.companions)?.stats ?? null,
+      }),
+    [
+      model.rulesEdition,
+      model.baseCharacter?.rules_edition,
+      model.draft.companions,
+    ],
+  )
+  model.wildShapeFormLabel2024 = formHeaderVitals?.labelRu ?? null
+
   const displaySpeed = useMemo(() => {
+    if (formHeaderVitals) return formHeaderVitals.speedWalk
     return withSpeedBonus({
       core: displaySpeedAuto,
       target: 'speed',
       modifiers: model.draft.modifiers,
       vars: model.formulaVarsBase ?? {},
     })
-  }, [displaySpeedAuto, model.draft.modifiers, model.formulaVarsBase])
+  }, [
+    formHeaderVitals,
+    displaySpeedAuto,
+    model.draft.modifiers,
+    model.formulaVarsBase,
+  ])
   model.displaySpeed = displaySpeed
 
   const displayClimbSpeed = useMemo(() => {
+    if (formHeaderVitals) return formHeaderVitals.speedClimb
     return withSpeedBonus({
       core: model.draft.climbSpeed,
       target: 'speed_climb',
       modifiers: model.draft.modifiers,
       vars: model.formulaVarsBase ?? {},
     })
-  }, [model.draft.climbSpeed, model.draft.modifiers, model.formulaVarsBase])
+  }, [
+    formHeaderVitals,
+    model.draft.climbSpeed,
+    model.draft.modifiers,
+    model.formulaVarsBase,
+  ])
   model.displayClimbSpeed = displayClimbSpeed
 
   const displaySwimSpeed = useMemo(() => {
+    if (formHeaderVitals) return formHeaderVitals.speedSwim
     return withSpeedBonus({
       core: model.draft.swimSpeed,
       target: 'speed_swim',
       modifiers: model.draft.modifiers,
       vars: model.formulaVarsBase ?? {},
     })
-  }, [model.draft.swimSpeed, model.draft.modifiers, model.formulaVarsBase])
+  }, [
+    formHeaderVitals,
+    model.draft.swimSpeed,
+    model.draft.modifiers,
+    model.formulaVarsBase,
+  ])
   model.displaySwimSpeed = displaySwimSpeed
 
   const displayFlySpeedAuto = useMemo(() => {
@@ -993,13 +1027,19 @@ export function useSheetEditorPart2(model: SheetModel) {
   model.displayFlySpeedAuto = displayFlySpeedAuto
 
   const displayFlySpeed = useMemo(() => {
+    if (formHeaderVitals) return formHeaderVitals.speedFly
     return withSpeedBonus({
       core: displayFlySpeedAuto,
       target: 'speed_fly',
       modifiers: model.draft.modifiers,
       vars: model.formulaVarsBase ?? {},
     })
-  }, [displayFlySpeedAuto, model.draft.modifiers, model.formulaVarsBase])
+  }, [
+    formHeaderVitals,
+    displayFlySpeedAuto,
+    model.draft.modifiers,
+    model.formulaVarsBase,
+  ])
   model.displayFlySpeed = displayFlySpeed
 
   model.raceSaveAdvantageNotes = useMemo(() => {
