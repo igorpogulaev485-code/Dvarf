@@ -800,11 +800,11 @@ function channelOptionFeed(fid: string, level: number): string {
     case 'abjure-foes':
       return `${CHANNEL_DIVINITY_NAME_RU}: ${name} — выбранные враги в 60 фт., спас Мдр; провал: Испуганы и скорость 0 (1 мин.)`
     case 'sacred-weapon':
-      return `${CHANNEL_DIVINITY_NAME_RU}: ${name} — оружие на 10 мин. (бонус Хар к атаке; опционально урон излучением и свет)`
+      return `${CHANNEL_DIVINITY_NAME_RU}: ${name} — при действии Атака: оружие на 10 мин. (бонус Хар к атаке, мин. +1; опционально урон излучением и свет)`
     case 'natures-wrath':
       return `${CHANNEL_DIVINITY_NAME_RU}: ${name} — призрачные лозы опутывают врагов (спас Силы)`
     case 'vow-of-enmity':
-      return `${CHANNEL_DIVINITY_NAME_RU}: ${name} — преимущество к атакам по одной цели (1 мин., бонусное)`
+      return `${CHANNEL_DIVINITY_NAME_RU}: ${name} — при действии Атака: преимущество к атакам по одной цели в 30 фт. (1 мин.)`
     case 'inspiring-smite':
       return `${CHANNEL_DIVINITY_NAME_RU}: ${name} — после «${DIVINE_SMITE_SPELL_NAME_RU}» раздай врем. хиты ${inspiringSmiteTempHpFormulaRu2024(level)} существам в 30 фт. (бонусное)`
     case 'peerless-athlete':
