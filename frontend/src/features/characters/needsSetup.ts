@@ -20,6 +20,13 @@ import {
   countPreparedLeveledBySlug,
   type SheetSpell,
 } from './spells'
+import {
+  listMissingRaceSpellChoiceLabels,
+  raceGrantDefFromCatalog,
+  readRaceGrantPicks,
+  type RaceGrantDef,
+  type RaceGrantPicks,
+} from '../../shared/dnd/raceGrants'
 
 export type NeedsSetupKind =
   | 'feature_choice'
@@ -27,6 +34,7 @@ export type NeedsSetupKind =
   | 'spells'
   | 'alignment'
   | 'companion'
+  | 'race_spell'
 
 export type NeedsSetupItem = {
   id: string
@@ -156,6 +164,36 @@ export function listSpellSetupItems(input: {
   return items
 }
 
+export function listRaceSpellSetupItems(input: {
+  raceGrantDef: RaceGrantDef | null
+  picks: RaceGrantPicks | null
+  raceCatalogId: string | null
+}): NeedsSetupItem[] {
+  const def = input.raceGrantDef
+  const picks = input.picks ?? readRaceGrantPicks(null)
+  if (!def || !input.raceCatalogId || def.spellChoices.length === 0) return []
+  const missing = listMissingRaceSpellChoiceLabels({ def, picks })
+  return missing.map((label) => ({
+    id: `race-spell:${def.slug}:${label}`,
+    kind: 'race_spell' as const,
+    label: `${label} · нужен выбор`,
+    targetId: def.slug,
+  }))
+}
+
+/** Resolve catalog def for needsSetup when live catalog row is available. */
+export function raceGrantDefFromCatalogRow(input: {
+  slug: string
+  nameRu: string
+  data: Record<string, unknown>
+}): RaceGrantDef | null {
+  return raceGrantDefFromCatalog({
+    slug: input.slug,
+    nameRu: input.nameRu,
+    data: input.data,
+  })
+}
+
 export function listCompanionSetupItems(
   companions: CompanionEntry[],
 ): NeedsSetupItem[] {
@@ -178,6 +216,7 @@ export function buildNeedsSetupItems(input: {
   alignment: string
   alignmentText: string
   companions: CompanionEntry[]
+  raceSpellItems?: NeedsSetupItem[]
 }): NeedsSetupItem[] {
   const items: NeedsSetupItem[] = [
     ...listPendingFeatureSetupItems({
@@ -189,6 +228,7 @@ export function buildNeedsSetupItems(input: {
       learnBudgets: input.learnBudgets,
       known: input.known,
     }),
+    ...(input.raceSpellItems ?? []),
   ]
   if (
     isAlignmentEmptyForSetup({

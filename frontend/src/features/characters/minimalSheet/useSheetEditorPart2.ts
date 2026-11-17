@@ -20,6 +20,8 @@ import { hydrateSwordsFightingStyleFromGrants } from '../../../shared/dnd/swords
 import { knowledgeBlessingSkillIds } from '../../../shared/dnd/expertise'
 import { applyFeatGrantToDraft, ensureFeatSpellsFromLedger, featSpellsMissingFromKnown } from '../featEffects'
 import { syncFeatureResources } from '../../../shared/dnd/featureResources'
+import { desiredRaceResources, syncRaceResources } from '../../../shared/dnd/raceResources'
+import { proficiencyBonusForTotalLevel } from '../../../shared/dnd/classFeatures'
 import { classWalkSpeedBonusFt, resolveWalkSpeedFt } from '../../../shared/dnd/classMovement'
 import {
   applySpeedModsToWalk,
@@ -144,6 +146,9 @@ export function useSheetEditorPart2(model: SheetModel) {
             // Always refresh from catalog so trait renames/copy fixes (e.g. Hungry Jaws)
             // reach sheets that already snapshotted an older trait_cards blob.
             nextGrant = { ...nextGrant, traitCards: catalogDef.traitCards }
+          }
+          if (catalogDef?.racialResources && catalogDef.racialResources.length > 0) {
+            nextGrant = { ...nextGrant, racialResources: catalogDef.racialResources }
           }
           if (catalogDef?.traitsText && !nextGrant.traitsText?.trim()) {
             nextGrant = { ...nextGrant, traitsText: catalogDef.traitsText }
@@ -271,6 +276,43 @@ export function useSheetEditorPart2(model: SheetModel) {
       }
     })
   }, [model.featureDesiredResources])
+
+  // Keep race-res:* pools aligned with racialResources + PB.
+  useEffect(() => {
+    model.setDraft((prev) => {
+      const desired = desiredRaceResources({
+        racialResources: prev.raceGrant?.racialResources ?? [],
+        proficiencyBonus: proficiencyBonusForTotalLevel(
+          totalCharacterLevel(prev.classes),
+        ),
+      })
+      const nextResources = syncRaceResources(prev.play.resources, desired)
+      if (
+        nextResources.length === prev.play.resources.length &&
+        nextResources.every((row, index) => {
+          const cur = prev.play.resources[index]
+          return (
+            cur &&
+            cur.id === row.id &&
+            cur.name === row.name &&
+            cur.max === row.max &&
+            cur.used === row.used &&
+            cur.reset === row.reset
+          )
+        })
+      ) {
+        return prev
+      }
+      return {
+        ...prev,
+        play: { ...prev.play, resources: nextResources },
+      }
+    })
+  }, [
+    model.draft.raceGrant?.racialResources,
+    model.characterLevel,
+    model.draft.classes,
+  ])
 
   // Diamond Soul (and similar): force-enable save proficiencies from features.
   useEffect(() => {

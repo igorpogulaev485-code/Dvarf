@@ -724,6 +724,15 @@
         "Короткий лук",
         "Длинный лук"
       ],
+      "spell_choices": [
+        {
+          "id": "wizard_cantrip",
+          "label_ru": "Заговор волшебника",
+          "pick": 1,
+          "casting_ability": "int",
+          "options_from": "wizard_cantrips"
+        }
+      ],
       "content_layer": "community_ref"
     },
     {
@@ -787,6 +796,36 @@
         "Ручной арбалет"
       ],
       "traits_text": "Дроу (2014): +2 Лов, +1 Хар. Тёмное зрение 120 фт. Эльфийские черты. Чувствительность к солнцу. Наследие дроу (пляшущие огоньки / огонь фей / тьма — по уровню). Владение рапирой, коротким мечом, ручным арбалетом.",
+      "racial_spells": [
+        {
+          "id": "dancing_lights",
+          "spell_slug": "dancing_lights",
+          "name_ru": "Пляшущие огоньки",
+          "level": 0,
+          "grant": "innate",
+          "unlock_level": 1,
+          "casting_ability": "cha",
+          "notes_ru": "Наследие дроу"
+        },
+        {
+          "id": "faerie_fire",
+          "spell_slug": "faerie_fire",
+          "name_ru": "Огонь фей",
+          "level": 1,
+          "grant": "innate",
+          "unlock_level": 3,
+          "casting_ability": "cha"
+        },
+        {
+          "id": "darkness",
+          "spell_slug": "darkness",
+          "name_ru": "Тьма",
+          "level": 2,
+          "grant": "innate",
+          "unlock_level": 5,
+          "casting_ability": "cha"
+        }
+      ],
       "naming": {
         "patterns": [
           {
@@ -1208,6 +1247,49 @@
         "perception"
       ],
       "traits_text": "Эльф (астральный, AAG/SAS): ASI +2/+1 или +1/+1/+1 (в попапе — +1 к трём). Считается эльфом. Астральное пламя (пляшущие огоньки / свет / священное пламя — на выбор). Тёмное зрение 60. Восприятие. Наследие фей. Звёздный шаг (телепорт 30 фт, ПБ раз / длинный отдых). Астральный транс (4 ч; после транса — навык + оружие/инструмент до след. транса). Язык на выбор.",
+      "trait_cards": [
+        {
+          "id": "fey_ancestry",
+          "name_ru": "Наследие фей",
+          "summary_ru": "Преимущество на спасброски от очарования; магия не может усыпить вас."
+        },
+        {
+          "id": "astral_fire",
+          "name_ru": "Астральное пламя",
+          "summary_ru": "Заговор на выбор: пляшущие огоньки, свет или священное пламя; базовая характеристика — Инт, Муд или Хар (на выбор)."
+        },
+        {
+          "id": "starlight_step",
+          "name_ru": "Звёздный шаг",
+          "summary_ru": "Бонусным действием телепортируетесь до 30 фт в незанятое видимое пространство. Число использований = бонус мастерства, восстановление после длинного отдыха."
+        },
+        {
+          "id": "astral_trance",
+          "name_ru": "Астральный транс и обучение",
+          "summary_ru": "Транс 4 ч вместо сна. После транса вспоминаете один навык, оружие или инструмент до следующего транса."
+        }
+      ],
+      "spell_choices": [
+        {
+          "id": "astral_fire",
+          "label_ru": "Астральное пламя",
+          "pick": 1,
+          "casting_ability_choices": ["int", "wis", "cha"],
+          "options": [
+            { "spell_slug": "dancing_lights", "name_ru": "Пляшущие огоньки" },
+            { "spell_slug": "light", "name_ru": "Свет" },
+            { "spell_slug": "sacred_flame", "name_ru": "Священное пламя" }
+          ]
+        }
+      ],
+      "racial_resources": [
+        {
+          "id": "starlight_step",
+          "name_ru": "Звёздный шаг",
+          "max_from": "proficiency_bonus",
+          "reset": "long"
+        }
+      ],
       "content_layer": "community_ref"
     },
     {
@@ -3504,6 +3586,15 @@
         "Длинный лук"
       ],
       "traits_text": "Полуэльф (высший / лунный-солнечный, SCAG): +2 Хар и +1 к двум другим. Вместо универсальности навыков — эльфийское оружие или заговор волшебника (ИНТ). Наследие фей. Язык на выбор.",
+      "spell_choices": [
+        {
+          "id": "wizard_cantrip",
+          "label_ru": "Заговор волшебника",
+          "pick": 1,
+          "casting_ability": "int",
+          "options_from": "wizard_cantrips"
+        }
+      ],
       "content_layer": "community_ref"
     },
     {

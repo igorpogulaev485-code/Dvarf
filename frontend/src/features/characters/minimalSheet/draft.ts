@@ -13,7 +13,11 @@ import { readKnownForms, type KnownForm } from '../knownForms'
 import { readModifiers, type BonusLine } from '../modifiers'
 import { type ToastInput } from '../../../ui'
 import { type CatalogEntry } from '../../../shared/api/catalog'
-import { type AppliedRaceGrant } from '../../../shared/dnd/raceGrants'
+import {
+  readRaceGrantPicks,
+  type AppliedRaceGrant,
+  type RaceGrantPicks,
+} from '../../../shared/dnd/raceGrants'
 import { readCustomFeatures, type CustomFeature } from '../customFeatures'
 import {
   syncAttacksHeldFromInventory,
@@ -123,6 +127,8 @@ export type Draft = {
   subclassGrants: AppliedSubclassGrant[]
   subclassTransitions: SubclassTransition[]
   raceGrant: AppliedRaceGrant | null
+  /** Picks persisted on sheet.race_grant.picks (spell choices, ASI forks, …). */
+  raceGrantPicks: RaceGrantPicks | null
   backgroundGrant: AppliedBackgroundGrant | null
   backgroundCatalogId: string | null
   companions: CompanionEntry[]
@@ -338,6 +344,7 @@ export function buildDraft(character: CharacterDetail): Draft {
         })
 
   const raceGrant = readAppliedRaceGrant(sheet.race_grant)
+  const raceGrantPicks = readRaceGrantPicks(asRecord(sheet.race_grant).picks)
   // Un-bake Fast Movement / Unarmored Movement (+ optional Mobile) that create
   // wrote into combat.speed so armor-aware display can add the bonus live.
   let speed = readNullableNumber(combat.speed)
@@ -444,6 +451,7 @@ export function buildDraft(character: CharacterDetail): Draft {
     subclassGrants: readAppliedSubclassGrants(sheet.subclass_grants),
     subclassTransitions: readSubclassTransitions(sheet.subclass_transitions),
     raceGrant,
+    raceGrantPicks: raceGrant ? raceGrantPicks : null,
     backgroundGrant: readAppliedBackgroundGrant(sheet.background_grant),
     backgroundCatalogId:
       typeof identity.background_catalog_id === 'string'

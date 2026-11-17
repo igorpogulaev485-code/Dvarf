@@ -124,6 +124,7 @@ export function installSheetActions2(model: SheetModel) {
       // Race spells replace known list — re-attach focus flags from current inventory.
       spells: withSpellFocusFlags(slice.spells, prev.inventory.items),
       raceGrant: slice.raceGrant,
+      raceGrantPicks: slice.raceGrant ? slice.raceGrantPicks : null,
     }
     const restoredBg = reapplyBackgroundOverlays(model.backgroundSliceFrom(merged))
     return model.mergeBackgroundSlice(merged, restoredBg)
