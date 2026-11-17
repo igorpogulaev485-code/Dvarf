@@ -1,15 +1,48 @@
 # P24-M02-paladin — вердикт независимого проверяющего
 
-Ветка: `cursor/edition-p24-m02-paladin` (поверх `cursor/edition-p24-m02-bard`, tip bard `57a970b1`). Tip пачки: `d8b05c73`. Проверяющий — **не автор**.
+Ветка: `cursor/edition-p24-m02-paladin` (поверх `cursor/edition-p24-m02-bard`, tip bard `57a970b1`). Tip пачки (продукт под ревью): `fecb9dd7`. Проверяющий — **не автор**.
 ТЗ: `pack-P24-M02-common.md` + `pack-P24-M02-paladin.md` (блок **ИТОГОВЫЕ ИМЕНА**). Отчёт автора: [`p24-m02-paladin-REPORT.md`](./p24-m02-paladin-REPORT.md). PR не мержил, не деплоил, не закрывал.
 
 ## Вердикт: **принято**
 
-Доправка 1b закрыла обе оставшиеся дыры Доправки 1. Блокеров нет. PR **не мержить и не деплоить** здесь; вливать после **#511**.
+Доправка 1 к PR #512 (Blessed Warrior → лист + «Оружейное мастерство» + артефакты) закрыта. Блокеров нет. PR **не мержить и не деплоить** здесь; вливать после **#511**.
 
 ---
 
-## Повторное ревью (Доправка 1b)
+## Повторное ревью (Доправка 1 к PR #512)
+
+Проверяющий снова **не автор**. Источник: коммиты `b04ccd9e` / `fecb9dd7` (fix + e2e shots/REPORT). Задача: приёмка трёх пунктов Доправки 1 к #512.
+
+### Вердикт: **принято**
+
+### Чек-лист трёх пунктов
+
+| # | Тема | Статус | Как проверил сейчас |
+|---|------|--------|---------------------|
+| 1 | Артефакты `artifacts/p24-m02-paladin/` 1440+390 | **ok** | Пары create-at-1/5/11; levelup 4→5 и 10→11 (модал «Повышение уровня» + sheet-after); leveldown 20→19 / 11→10 / 3→2; Glory@7 «Аура рвения»; Ancients@7 «Аура опеки»; Devotion@20 «Священный нимб»; LoH «Восстанавливающее касание»; Radiant «+ 1к8 излучением»; regression-2014 before/after md5 — **хеши PNG совпадают** (before==after content); top-level 63 базы, 0 неполных пар |
+| 2 | Blessed Warrior end-to-end | **ok** | `edition_2024_create.py`: validate ровно 2 cleric cantrips; `_sync_blessed_warrior_picks` зеркалит `fighting_style_paladin` + cantrips (underscore+kebab); known spells always-prepared CHA; pytest `test_create_paladin_blessed_warrior_*` ассертит **sheet** (не только wizard); e2e `create-at-5 blessed warrior` — feature_picks + known Указание/Священное пламя; `blessedWarrior.ts` sync |
+| 3 | Паладин-only «Оружейное мастерство» | **ok** | Create2024Picks / preview / DetailPanel / validation (`createPipeline2024State`) / LevelingForks: `slug === 'paladin'` → «Оружейное мастерство», иначе «Мастерство оружия»; OCR step3 create-at-1: «Оружейное мастерство (2/2)»; e2e expect на create |
+
+### Что закрыто (подтверждено лично)
+
+1. **Артефакты** — все требуемые пары на месте; PNG OCR: Glory «Аура рвения», Ancients «Аура опеки», Devotion@20 «Священный нимб» (390), LoH Restoring Touch, Radiant +1к8, levelup modal «Повышение уровня».
+2. **Blessed Warrior** — create валидирует 2 cantrips; feature_picks оба spelling; sheet.known prepared/locked CHA; тесты смотрят sheet.
+3. **Мастерство** — create UI паладин ≠ fighter/ranger/barbarian label.
+
+### Запущено в этом проходе
+
+- `cd backend && python3 -m pytest tests/test_p24_m02_paladin.py -q` → **57 passed**
+- `cd frontend && P24_E2E_PORT=5191 npm run test:e2e:p24-m02-paladin` → **40 passed** (0 failed), ~8.6m; desktop-1440 + phone-390, в т.ч. blessed warrior / create-at-1/5/11 / Glory / Ancients / levelup / leveldown / Radiant / Restoring / 2014
+- Личный просмотр PNG (Read/OCR): glory-aura-alacrity-1440, create-at-1-step3-mastery-1440, ancients-features-1440, loh-restoring-touch-1440, radiant-formula-1440, devotion-capstone-390, levelup-4to5-features-1440
+- Регенерацию PNG от прогона e2e **не коммитил** (откат `git checkout -- artifacts/…`); в коммите только этот REVIEW
+
+### Итог
+
+Дыр из минимума Доправки 1 к #512 нет. Приёмка — **принята** (мерж по-прежнему после #511, не этим агентом).
+
+---
+
+## Повторное ревью (Доправка 1b) — архив
 
 Проверяющий снова **не автор**. Источник: REPORT §«Доправка 1» строки 7–8 + коммит `d8b05c73`. Playwright заново не гонял; лично сверил код, PNG (OCR) и pytest.
 
