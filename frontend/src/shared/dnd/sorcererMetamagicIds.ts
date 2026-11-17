@@ -11,23 +11,38 @@ import {
   type FeaturePicksState,
 } from './featurePicks'
 
+function isSorcererClassRow(row: ClassLevelEntry): boolean {
+  const byName =
+    resolveClassCasterSlug(row.name) === 'sorcerer' ||
+    resolveClassFeatureSlug(row.name) === 'sorcerer'
+  const catalog = (row.catalog_id ?? '').trim().toLowerCase()
+  // Seed/scripts may store slug; live sheets usually store a catalog UUID + Russian name.
+  const byCatalog = catalog === 'sorcerer'
+  return byName || byCatalog
+}
+
+/** Live class-entry ids that should own metamagic picks. */
+export function listSorcererClassEntryIds(
+  classes: ClassLevelEntry[],
+  unlockedFeatures?: Array<{ id: string; classEntryId?: string | null }>,
+): string[] {
+  const entryIds = new Set<string>()
+  for (const row of classes) {
+    if (isSorcererClassRow(row)) entryIds.add(row.id)
+  }
+  for (const feat of unlockedFeatures ?? []) {
+    if (feat.id === 'metamagic' && feat.classEntryId) entryIds.add(feat.classEntryId)
+  }
+  return [...entryIds]
+}
+
 export function collectSorcererMetamagicIds(input: {
   classes: ClassLevelEntry[]
   featurePicks: FeaturePicksState
   unlockedFeatures?: Array<{ id: string; classEntryId?: string | null }>
 }): string[] {
   const ids: string[] = []
-  const entryIds = new Set<string>()
-  for (const row of input.classes) {
-    const byName =
-      resolveClassCasterSlug(row.name) === 'sorcerer' ||
-      resolveClassFeatureSlug(row.name) === 'sorcerer'
-    const byCatalog = (row.catalog_id ?? '').trim().toLowerCase() === 'sorcerer'
-    if (byName || byCatalog) entryIds.add(row.id)
-  }
-  for (const feat of input.unlockedFeatures ?? []) {
-    if (feat.id === 'metamagic' && feat.classEntryId) entryIds.add(feat.classEntryId)
-  }
+  const entryIds = listSorcererClassEntryIds(input.classes, input.unlockedFeatures)
   for (const entryId of entryIds) {
     ids.push(
       ...getFeatureChoicePickList(input.featurePicks, entryId, 'metamagic', 'metamagic'),

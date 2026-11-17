@@ -39,6 +39,12 @@ import { characterHasCasterClass } from '../../../shared/dnd/casterProgression'
 import { freeBookSlotsAtLevel } from '../../../shared/dnd/wizardSpellbook'
 import { ABILITY_LABELS, type AbilityKey } from '../sheetTypes'
 import { buildDraft, grantedFeatSlugFromCatalog, subclassSlugMapFromLedger, subclassTransitionMapFromLedger, type Draft } from './draft'
+import {
+  mergeFeaturePicksPreservingNonEmpty,
+  readFeaturePicks,
+  rebindStaleMetamagicPicks,
+} from '../../../shared/dnd/featurePicks'
+import { listSorcererClassEntryIds } from '../../../shared/dnd/sorcererMetamagicIds'
 
 export function installSheetActions3(model: SheetModel) {
   model.requestOrApplyRaceGrant = async function requestOrApplyRaceGrant(selected: CatalogEntry) {
@@ -615,6 +621,23 @@ export function installSheetActions3(model: SheetModel) {
       model.setSheetVersion(fresh.sheet_version)
       model.setConflictOpen(false)
       model.conflictOpenRef.current = false
+      // Preserve server metamagic (and other non-empty picks) if this tab never had them.
+      const liveDraft = model.draftRef.current
+      const liveIds = listSorcererClassEntryIds(liveDraft.classes)
+      const localPicks = rebindStaleMetamagicPicks({
+        featurePicks: liveDraft.featurePicks,
+        liveClassEntryIds: liveIds,
+      })
+      const serverPicks = rebindStaleMetamagicPicks({
+        featurePicks: readFeaturePicks(
+          (fresh.sheet as Record<string, unknown> | undefined)?.feature_picks,
+        ),
+        liveClassEntryIds: liveIds,
+      })
+      const mergedPicks = mergeFeaturePicksPreservingNonEmpty(localPicks, serverPicks)
+      const nextDraft = { ...liveDraft, featurePicks: mergedPicks }
+      model.draftRef.current = nextDraft
+      model.setDraft(nextDraft)
       const ok = await model.persistDraft({ quiet: true, conflictRetry: true })
       if (ok) {
         model.onToastRef.current('Твои правки сохранены')

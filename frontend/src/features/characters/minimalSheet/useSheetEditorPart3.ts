@@ -59,7 +59,13 @@ import {
 } from '../../../shared/dnd/b07FeatCombat'
 import { proficiencyBonusForTotalLevel } from '../../../shared/dnd/classFeatures'
 import { classWalkSpeedBonusFt } from '../../../shared/dnd/classMovement'
-import { featurePicksToSheet } from '../../../shared/dnd/featurePicks'
+import {
+  featurePicksToSheet,
+  mergeFeaturePicksPreservingNonEmpty,
+  readFeaturePicks,
+  rebindStaleMetamagicPicks,
+} from '../../../shared/dnd/featurePicks'
+import { listSorcererClassEntryIds } from '../../../shared/dnd/sorcererMetamagicIds'
 import { fightingStyleAcBonusFromIds } from '../../../shared/dnd/fightingStyles'
 import {
   elegantCourtierPersuasionBonus,
@@ -1133,6 +1139,8 @@ export function useSheetEditorPart3(model: SheetModel) {
     } catch (err) {
       if (err instanceof ApiRequestError && err.code === 'sheet_version_conflict') {
         // Common race: two autosaves with the same version. Rebase once and retry silently.
+        // Critical: merge server feature_picks into the live draft so an older tab
+        // (rest / cast / HP) cannot wipe metamagic chosen on phone or another desk.
         if (!options?.conflictRetry) {
           try {
             const fresh = await getCharacter(baseSnap.id)
@@ -1140,6 +1148,24 @@ export function useSheetEditorPart3(model: SheetModel) {
             model.sheetVersionRef.current = fresh.sheet_version
             model.setBaseCharacter(fresh)
             model.setSheetVersion(fresh.sheet_version)
+            const liveDraft = model.draftRef.current
+            const liveIds = listSorcererClassEntryIds(liveDraft.classes)
+            const localPicks = rebindStaleMetamagicPicks({
+              featurePicks: liveDraft.featurePicks,
+              liveClassEntryIds: liveIds,
+            })
+            const serverPicks = rebindStaleMetamagicPicks({
+              featurePicks: readFeaturePicks(
+                (fresh.sheet as Record<string, unknown> | undefined)?.feature_picks,
+              ),
+              liveClassEntryIds: liveIds,
+            })
+            const mergedPicks = mergeFeaturePicksPreservingNonEmpty(localPicks, serverPicks)
+            if (mergedPicks !== liveDraft.featurePicks) {
+              const nextDraft = { ...liveDraft, featurePicks: mergedPicks }
+              model.draftRef.current = nextDraft
+              model.setDraft(nextDraft)
+            }
             return await persistDraft({ quiet, conflictRetry: true })
           } catch {
             // Fall through to the dialog.

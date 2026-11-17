@@ -34,7 +34,12 @@ import { readPassiveHpBonuses } from '../../../shared/dnd/hpPassiveBonuses'
 import { migrateLegacyHitDice, syncHitDicePools } from '../../../shared/dnd/classHitDice'
 import { withSyncedHitDiceSummary } from '../play'
 import { classWalkSpeedBonusFt } from '../../../shared/dnd/classMovement'
-import { readFeaturePicks, type FeaturePicksState } from '../../../shared/dnd/featurePicks'
+import {
+  readFeaturePicks,
+  rebindStaleMetamagicPicks,
+  type FeaturePicksState,
+} from '../../../shared/dnd/featurePicks'
+import { listSorcererClassEntryIds } from '../../../shared/dnd/sorcererMetamagicIds'
 import { bridgeOriginPicks } from '../../../shared/dnd/pack04SorcererWarlock'
 import {
   emptySubclassPicks,
@@ -459,11 +464,14 @@ export function buildDraft(character: CharacterDetail): Draft {
         : null,
     companions: readCompanions(sheet.companions),
     knownForms: readKnownForms(sheet.known_forms),
-    featurePicks: bridgeFeaturePicksFromSubclassSetups(
-      readFeaturePicks(sheet.feature_picks),
-      classes,
-      sheet,
-    ),
+    featurePicks: rebindStaleMetamagicPicks({
+      featurePicks: bridgeFeaturePicksFromSubclassSetups(
+        readFeaturePicks(sheet.feature_picks),
+        classes,
+        sheet,
+      ),
+      liveClassEntryIds: listSorcererClassEntryIds(classes),
+    }),
     classAsi: readClassAsiLedger(sheet.class_asi),
     primalChampion: readPrimalChampion(sheet.primal_champion),
     piety: readPiety(sheet.piety),

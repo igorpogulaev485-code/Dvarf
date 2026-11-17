@@ -91,6 +91,7 @@
     "selfcheck:dice-roll": "tsx --tsconfig tsconfig.app.json src/features/diceRoller/rollFormula.selfcheck.ts",
     "selfcheck:dice-record": "tsx --tsconfig tsconfig.app.json src/features/diceRoller/recordDigitalRoll.selfcheck.ts",
     "selfcheck:hp-passive-bonuses": "tsx src/shared/dnd/hpPassiveBonuses.selfcheck.ts",
+    "selfcheck:metamagic-persist": "tsx src/shared/dnd/featurePicks.metamagicPersist.selfcheck.ts",
     "test:e2e:onboarding": "playwright test --config=playwright.onboarding.config.ts",
     "test:e2e:admin": "playwright test --config=playwright.admin.config.ts",
     "test:e2e:dice": "playwright test --config=playwright.dice.config.ts"
