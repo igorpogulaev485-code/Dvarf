@@ -3,7 +3,7 @@ import path from 'node:path'
 
 const PORT = Number(process.env.P24_E2E_PORT || 5188)
 const BASE = process.env.P24_E2E_BASE || `http://127.0.0.1:${PORT}`
-const ARTIFACTS = '/opt/cursor/artifacts/p24-m02-paladin'
+const ARTIFACTS = path.resolve(__dirname, '../artifacts/p24-m02-paladin')
 
 /**
  * P24-M02-paladin e2e — real 2024 create pipeline (wizard clicked) + sheet + 2014 regression.

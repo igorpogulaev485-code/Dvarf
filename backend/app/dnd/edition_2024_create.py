@@ -45,6 +45,9 @@ FIGHTING_STYLE_AT_L1 = frozenset({"fighter"})
 # Paladin / Ranger gain Fighting Style at class level 2+.
 FIGHTING_STYLE_AT_L2 = frozenset({"paladin", "ranger"})
 BLESSED_WARRIOR_STYLE_SLUG = "blessed-warrior"
+BLESSED_WARRIOR_CANTRIPS_KEY = "blessed_warrior_cantrips"
+BLESSED_WARRIOR_CANTRIP_COUNT = 2
+BLESSED_WARRIOR_NAME_RU = "Благословенный воин"
 
 # Origin feats with structured picks (others are grant-only).
 ORIGIN_FEATS_WITH_SPELL_LIST = frozenset({"magic-initiate"})
@@ -892,6 +895,58 @@ def _class_spell_list_slugs(class_slug: str) -> set[str]:
     return out
 
 
+@lru_cache(maxsize=1)
+def cleric_cantrip_slugs_2024() -> frozenset[str]:
+    """PHB/SRD 2024 Cleric cantrips (level 0 on the cleric list)."""
+    out: set[str] = set()
+    for slug in _class_spell_list_slugs("cleric"):
+        row = load_spell_catalog().get(slug) or {}
+        if _spell_level(row) == 0:
+            out.add(slug)
+    return frozenset(out)
+
+
+def _validate_blessed_warrior_cantrips(raw: Any) -> list[str]:
+    """Exactly two distinct Cleric cantrip slugs for Blessed Warrior."""
+    if not isinstance(raw, list):
+        raise Create2024Error(
+            f"{BLESSED_WARRIOR_NAME_RU}: выберите {BLESSED_WARRIOR_CANTRIP_COUNT} заговора жреца",
+            code="create_2024_class_options",
+        )
+    picks = [_normalize_slug(str(x)) for x in raw if str(x).strip()]
+    if len(picks) != BLESSED_WARRIOR_CANTRIP_COUNT or len(set(picks)) != BLESSED_WARRIOR_CANTRIP_COUNT:
+        raise Create2024Error(
+            f"{BLESSED_WARRIOR_NAME_RU}: выберите ровно {BLESSED_WARRIOR_CANTRIP_COUNT} разных заговора жреца",
+            code="create_2024_class_options",
+        )
+    allowed = cleric_cantrip_slugs_2024()
+    for slug in picks:
+        if slug not in allowed:
+            raise Create2024Error(
+                f"{BLESSED_WARRIOR_NAME_RU}: «{slug}» не заговор жреца 2024",
+                code="create_2024_class_options",
+            )
+    return picks
+
+
+def _validate_paladin_options_2024(
+    payload: Create2024Payload,
+    picks: Mapping[str, Any],
+    *,
+    fighting_style: str | None,
+) -> dict[str, Any]:
+    """Keep Blessed Warrior cantrips when the style is chosen; drop them otherwise."""
+    out: dict[str, Any] = {}
+    style = (fighting_style or payload.fighting_style_slug or "").strip().lower()
+    raw_cantrips = picks.get(BLESSED_WARRIOR_CANTRIPS_KEY) or picks.get("blessed-warrior-cantrips")
+    if style == BLESSED_WARRIOR_STYLE_SLUG:
+        out[BLESSED_WARRIOR_CANTRIPS_KEY] = _validate_blessed_warrior_cantrips(raw_cantrips)
+    elif raw_cantrips:
+        # Stale picks from a previous UI choice — ignore rather than fail.
+        pass
+    return out
+
+
 def _validate_spells(payload: Create2024Payload) -> dict[str, Any]:
     snap = e24.compute_progression(
         [{"slug": payload.class_slug, "level": 1}],
@@ -1367,6 +1422,98 @@ def _sync_land_choice_pick(sheet: dict[str, Any]) -> None:
         return
 
 
+def _blessed_warrior_cantrip_slugs_from_sheet(
+    sheet: Mapping[str, Any],
+    class_options: Mapping[str, Any],
+) -> list[str]:
+    """Resolve Blessed Warrior cantrip slugs from create picks or class_options."""
+    create = sheet.get("create_2024") if isinstance(sheet.get("create_2024"), dict) else {}
+    create_picks = create.get("class_option_picks") if isinstance(create, dict) else {}
+    raw = (
+        class_options.get(BLESSED_WARRIOR_CANTRIPS_KEY)
+        or (create_picks or {}).get(BLESSED_WARRIOR_CANTRIPS_KEY)
+        or (create_picks or {}).get("blessed-warrior-cantrips")
+        or []
+    )
+    if not isinstance(raw, list):
+        return []
+    return [_normalize_slug(str(x)) for x in raw if str(x).strip()]
+
+
+def _append_blessed_warrior_cantrips_to_known(
+    sheet: dict[str, Any],
+    cantrips: Sequence[str],
+    *,
+    class_entry_id: str,
+) -> None:
+    """Always-prepared CHA cantrips for Blessed Warrior (do not spend paladin budget)."""
+    spells = sheet.get("spells")
+    if not isinstance(spells, dict):
+        spells = {"known": [], "slots": {}, "casting_ability": "cha"}
+        sheet["spells"] = spells
+    known = list(spells.get("known") or [])
+    # Drop previous Blessed Warrior rows so re-sync is idempotent.
+    prefix = f"feature-spell:{BLESSED_WARRIOR_CANTRIPS_KEY}:"
+    known = [row for row in known if not str((row or {}).get("id") or "").startswith(prefix)]
+    for slug in cantrips[:BLESSED_WARRIOR_CANTRIP_COUNT]:
+        row = _spell_sheet_row(
+            slug,
+            prepared=True,
+            class_slug="paladin",
+            locked_label=BLESSED_WARRIOR_NAME_RU,
+            source_kind="feature",
+            id_prefix=f"feature-spell:{BLESSED_WARRIOR_CANTRIPS_KEY}:{class_entry_id}",
+        )
+        row["class_entry_id"] = class_entry_id
+        row["always_prepared"] = True
+        known.append(row)
+    spells["known"] = known
+    # Blessed Warrior cantrips are paladin spells — Charisma, even if the L1
+    # sheet fragment briefly carried a wrong ability before materialize.
+    spells["casting_ability"] = "cha"
+
+
+def _sync_blessed_warrior_picks(
+    sheet: dict[str, Any],
+    class_options: Mapping[str, Any],
+    *,
+    fighting_style: str | None,
+) -> None:
+    """Mirror Blessed Warrior style + cantrips into feature_picks (both id spellings)."""
+    style = (fighting_style or "").strip().lower()
+    create = sheet.get("create_2024") if isinstance(sheet.get("create_2024"), dict) else {}
+    if not style and isinstance(create, dict):
+        style = _normalize_slug(str(create.get("fighting_style") or ""))
+    if style != BLESSED_WARRIOR_STYLE_SLUG:
+        return
+    cantrips = _blessed_warrior_cantrip_slugs_from_sheet(sheet, class_options)
+    if len(cantrips) != BLESSED_WARRIOR_CANTRIP_COUNT:
+        return
+    for row in sheet.get("classes") or []:
+        if not isinstance(row, dict):
+            continue
+        if e24.normalize_class_slug(str(row.get("slug") or "")) != "paladin":
+            continue
+        if int(row.get("level") or 0) < 2:
+            return
+        entry_id = str(row.get("id") or "class-paladin")
+        picks = sheet.get("feature_picks")
+        values = dict(picks.get("values") or {}) if isinstance(picks, dict) else {}
+        # Sheet sync expects underscore id; create/catalog use kebab. Mirror both.
+        values[f"{entry_id}:fighting_style_paladin"] = "blessed_warrior"
+        values[f"{entry_id}:fighting-style-paladin"] = BLESSED_WARRIOR_STYLE_SLUG
+        joined = ",".join(cantrips)
+        values[f"{entry_id}:{BLESSED_WARRIOR_CANTRIPS_KEY}"] = joined
+        values[f"{entry_id}:blessed-warrior-cantrips"] = joined
+        sheet["feature_picks"] = {"values": values}
+        _append_blessed_warrior_cantrips_to_known(
+            sheet,
+            cantrips,
+            class_entry_id=entry_id,
+        )
+        return
+
+
 _KNOWN_FORM_TAGS = frozenset({"swim", "fly", "elemental", "custom"})
 
 
@@ -1480,9 +1627,21 @@ def _sync_known_forms(sheet: dict[str, Any], class_options: Mapping[str, Any]) -
         sheet["known_forms"] = [dict(row) for row in forms if isinstance(row, Mapping)]
 
 
-def _validate_class_options(payload: Create2024Payload) -> dict[str, Any]:
+def _validate_class_options(
+    payload: Create2024Payload,
+    *,
+    fighting_style: str | None = None,
+) -> dict[str, Any]:
     picks = dict(payload.class_option_picks or {})
     out: dict[str, Any] = {}
+    if payload.class_slug == "paladin":
+        out.update(
+            _validate_paladin_options_2024(
+                payload,
+                picks,
+                fighting_style=fighting_style,
+            )
+        )
     if payload.class_slug == "cleric":
         order = str(picks.get("divine_order") or "").lower()
         if order not in DIVINE_ORDER_OPTIONS:
@@ -1744,7 +1903,7 @@ def validate_create_2024(payload: Create2024Payload) -> Create2024Result:
                             + extra_book
                         )
                     )
-        class_options = _validate_class_options(payload)
+        class_options = _validate_class_options(payload, fighting_style=fighting_style)
     else:
         if payload.subclass_slug:
             raise Create2024Error(
@@ -1753,7 +1912,7 @@ def validate_create_2024(payload: Create2024Payload) -> Create2024Result:
             )
         mastery = _validate_weapon_mastery(payload)
         spell_info = _validate_spells(payload)
-        class_options = _validate_class_options(payload)
+        class_options = _validate_class_options(payload, fighting_style=fighting_style)
 
     tool_id = _validate_background_tool(payload, bg_data)
     origin_picks = _validate_origin_feat(payload, bg_data)
@@ -1806,6 +1965,7 @@ def validate_create_2024(payload: Create2024Payload) -> Create2024Result:
     _sync_land_choice_pick(sheet)
     _sync_known_forms(sheet, class_options)
     _sync_bard_picks(sheet, class_options)
+    _sync_blessed_warrior_picks(sheet, class_options, fighting_style=fighting_style)
     # Magical Secrets: create-at-N prepared may use Wizard/Druid/Cleric lists from bard 10+.
     _validate_bard_magical_secrets_prepared_2024(payload)
 

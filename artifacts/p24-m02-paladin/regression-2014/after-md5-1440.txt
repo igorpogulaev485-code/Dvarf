@@ -1,0 +1,4 @@
+9830fb7a6c0acc068819fff2aeb16b0e  after-create-2014-race-marker-1440.png
+3a87e130c9c37eb4a79fb8946aa12664  after-create-2014-paladin-class-1440.png
+78c5b7d2df02ee0c9097f05d5b4d44cc  after-sheet-2014-paladin-1440.png
+7bc49d152b85cb77f550658445dc73c8  after-sheet-2014-paladin-features-1440.png

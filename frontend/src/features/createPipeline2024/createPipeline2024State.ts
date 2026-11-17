@@ -426,7 +426,9 @@ function classIssues(state: Create2024State, ctx: StepIssueCtx): string[] {
   }
   const wm = weaponMasteryLimit(state.classSlug)
   if (wm > 0 && !uniqueCount(state.weaponMasteryIds, wm)) {
-    issues.push(`Мастерство оружия: выбрано ${state.weaponMasteryIds.length} из ${wm}`)
+    const masteryLabel =
+      state.classSlug === 'paladin' ? 'Оружейное мастерство' : 'Мастерство оружия'
+    issues.push(`${masteryLabel}: выбрано ${state.weaponMasteryIds.length} из ${wm}`)
   }
   if (state.classSlug === 'fighter' && !state.fightingStyleSlug) {
     issues.push('Выберите боевой стиль')

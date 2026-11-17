@@ -416,15 +416,68 @@ def test_create_paladin_fighting_style_from_level_2():
 
 
 def test_create_paladin_blessed_warrior_allowed():
-    payload = build_valid_payload("paladin", ability_method="manual", base_abilities=_ABILITIES)
-    payload["level"] = 2
-    payload["fighting_style_slug"] = "blessed-warrior"
+    payload = build_valid_payload(
+        "paladin",
+        ability_method="manual",
+        base_abilities=_ABILITIES,
+        class_levels=[{"slug": "paladin", "level": 2}],
+        fighting_style_slug="blessed-warrior",
+    )
     payload["class_option_picks"] = {
         **(payload.get("class_option_picks") or {}),
         "blessed_warrior_cantrips": ["guidance", "sacred-flame"],
     }
     result = create24.validate_create_2024(create24.payload_from_dict(payload))
-    assert result.sheet is not None
+    sheet = result.sheet
+    assert sheet is not None
+    assert sum(int(r["level"]) for r in sheet["classes"]) == 2
+
+    create_picks = (sheet.get("create_2024") or {}).get("class_option_picks") or {}
+    assert create_picks.get("blessed_warrior_cantrips") == ["guidance", "sacred-flame"]
+
+    values = (sheet.get("feature_picks") or {}).get("values") or {}
+    entry = next(
+        str(row.get("id") or "class-paladin")
+        for row in sheet["classes"]
+        if str(row.get("slug") or "") == "paladin"
+    )
+    assert values.get(f"{entry}:fighting_style_paladin") == "blessed_warrior"
+    assert values.get(f"{entry}:blessed_warrior_cantrips") == "guidance,sacred-flame"
+    assert values.get(f"{entry}:blessed-warrior-cantrips") == "guidance,sacred-flame"
+
+    known = (sheet.get("spells") or {}).get("known") or []
+    bw = [
+        row
+        for row in known
+        if str(row.get("id") or "").startswith("feature-spell:blessed_warrior_cantrips:")
+    ]
+    assert {row.get("name") for row in bw} >= {"Указание", "Священное пламя"}
+    for row in bw:
+        assert row.get("level") == 0
+        assert row.get("prepared") is True
+        assert row.get("prepared_locked") is True
+        assert row.get("class_slug") == "paladin"
+        assert "Благословенный воин" in str(
+            row.get("prepare_source_label") or row.get("notes") or ""
+        )
+    # Paladin casting ability is Charisma; Blessed Warrior cantrips use it.
+    assert (sheet.get("spells") or {}).get("casting_ability") == "cha"
+
+
+def test_create_paladin_blessed_warrior_requires_two_cleric_cantrips():
+    payload = build_valid_payload(
+        "paladin",
+        ability_method="manual",
+        base_abilities=_ABILITIES,
+        class_levels=[{"slug": "paladin", "level": 2}],
+        fighting_style_slug="blessed-warrior",
+    )
+    payload["class_option_picks"] = {
+        **(payload.get("class_option_picks") or {}),
+        "blessed_warrior_cantrips": ["guidance"],
+    }
+    with pytest.raises(create24.Create2024Error, match="Благословенный воин"):
+        create24.validate_create_2024(create24.payload_from_dict(payload))
 
 
 @pytest.mark.parametrize(

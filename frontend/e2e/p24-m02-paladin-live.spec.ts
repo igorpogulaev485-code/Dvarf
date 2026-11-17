@@ -358,7 +358,7 @@ test.describe('P24-M02 paladin — Channel / LoH rests and LoH dialog', () => {
     await cancelDialog(page, dlg)
   })
 
-  test('create-at-5 blessed warrior: cleric cantrips picks', async ({ page }, testInfo) => {
+  test('create-at-5 blessed warrior: cleric cantrips on sheet', async ({ page }, testInfo) => {
     const project = projectOf(testInfo)
     const { store, sheet } = await createAt(page, project, {
       name: 'Благословенный воин 5',
@@ -369,19 +369,47 @@ test.describe('P24-M02 paladin — Channel / LoH rests and LoH dialog', () => {
       shotPrefix: `${SHOT}-blessed-warrior-`,
     })
     const payload = (store.lastCreatePayload ?? {}) as Record<string, any>
-    const fromPayload =
-      payload.class_option_picks?.blessed_warrior_cantrips ??
-      payload.class_option_picks?.['blessed-warrior-cantrips']
-    const picks = sheet.create_2024?.class_option_picks ?? sheet.class_option_picks ?? {}
-    const fromSheet = picks.blessed_warrior_cantrips ?? picks['blessed-warrior-cantrips']
-    const cantrips = (fromPayload ?? fromSheet ?? []) as string[]
     expect(payload.fighting_style_slug ?? sheet.create_2024?.fighting_style).toMatch(
       /blessed-warrior/,
     )
-    expect(Array.isArray(cantrips) ? cantrips.length : 0).toBeGreaterThanOrEqual(2)
+    const createPicks = sheet.create_2024?.class_option_picks ?? {}
+    const cantrips = (createPicks.blessed_warrior_cantrips ??
+      createPicks['blessed-warrior-cantrips'] ??
+      []) as string[]
+    expect(cantrips).toEqual(expect.arrayContaining(['guidance', 'sacred-flame']))
+    expect(cantrips).toHaveLength(2)
+
+    const entryId = String(sheet.classes?.[0]?.id || 'class-paladin')
+    const values = sheet.feature_picks?.values ?? {}
+    expect(values[`${entryId}:fighting_style_paladin`]).toMatch(/blessed[_-]warrior/)
+    expect(String(values[`${entryId}:blessed_warrior_cantrips`] || '')).toContain('guidance')
+    expect(String(values[`${entryId}:blessed_warrior_cantrips`] || '')).toContain('sacred-flame')
+
+    const known = (sheet.spells?.known ?? []) as Array<Record<string, unknown>>
+    const bw = known.filter((row) =>
+      String(row.id || '').includes('blessed_warrior_cantrips'),
+    )
+    const names = bw.map((row) => String(row.name || ''))
+    expect(names).toEqual(expect.arrayContaining(['Указание', 'Священное пламя']))
+    for (const row of bw) {
+      expect(row.level).toBe(0)
+      expect(row.prepared).toBe(true)
+      expect(row.prepared_locked).toBe(true)
+      expect(row.class_slug).toBe('paladin')
+    }
+    expect(sheet.spells?.casting_ability).toBe('cha')
+
     await openFeaturesScene(page, project)
     await expectFeatureNames(page, [LAY_ON_HANDS, FIGHTING_STYLE_CARD])
     await tallShot(page, ARTIFACTS, `${SHOT}-blessed-warrior-features`, project)
+    // Spells scene: always-prepared Blessed Warrior cantrips visible.
+    const spellsNav = page.getByRole('button', { name: /Заклинания|Spells/i }).first()
+    if (await spellsNav.count()) {
+      await spellsNav.click()
+      await expect(page.getByText('Указание').first()).toBeVisible()
+      await expect(page.getByText('Священное пламя').first()).toBeVisible()
+      await tallShot(page, ARTIFACTS, `${SHOT}-blessed-warrior-spells`, project)
+    }
     expect(store.unmatched).toEqual([])
   })
 })

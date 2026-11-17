@@ -10,7 +10,8 @@ import {
   type HarnessStore,
 } from './paladin2024Harness'
 
-export const ARTIFACTS = '/opt/cursor/artifacts/p24-m02-paladin'
+/** Repo-committed shots (also mirrored under /opt/cursor/artifacts for local runs). */
+export const ARTIFACTS = path.resolve(process.cwd(), '../artifacts/p24-m02-paladin')
 export const CREATE_LIVE = '/characters/create?edition=2024&preview=1'
 
 export function projectOf(testInfo: { project: { name: string } }): '390' | '1440' {

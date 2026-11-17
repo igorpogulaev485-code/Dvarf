@@ -41,6 +41,7 @@ import {
   BLESSED_WARRIOR_NAME_RU,
   FIGHTING_STYLE_MIN_LEVEL_2024,
   FIGHTING_STYLE_NAME_RU,
+  WEAPON_MASTERY_NAME_RU,
   isBlessedWarriorStyleId,
 } from '../../shared/dnd/paladin2024Features'
 import {
@@ -190,7 +191,9 @@ export function ClassPicks({
       ) : null}
       {masteryLimit > 0 ? (
         <PickChipGroup
-          label="Мастерство оружия"
+          label={
+            state.classSlug === 'paladin' ? WEAPON_MASTERY_NAME_RU : 'Мастерство оружия'
+          }
           hint={`Выберите ${masteryLimit}. Свойство применяется, пока оружие в руках.`}
           options={masteryOptions.map(({ entry, mastery }) => ({
             id: entry.slug,

@@ -11,7 +11,8 @@ import { sampleClassic2014Character } from '../../src/features/classicSheet/samp
 
 const here = path.dirname(fileURLToPath(import.meta.url))
 export const ARTIFACTS_2014 =
-  process.env.P24_M02_PALADIN_REG_DIR || '/opt/cursor/artifacts/p24-m02-paladin/regression-2014'
+  process.env.P24_M02_PALADIN_REG_DIR ||
+  path.resolve(process.cwd(), '../artifacts/p24-m02-paladin/regression-2014')
 const CATALOG_2014 = JSON.parse(
   fs.readFileSync(path.join(here, '../fixtures/p24-m03c-2014-catalog.json'), 'utf8'),
 ) as Record<string, any[]>

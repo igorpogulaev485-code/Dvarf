@@ -162,7 +162,12 @@ function ClassDetail({
               Навыки: выбрать {skills.count} из {skills.from.map(skillLabelRu).join(', ')}
             </li>
           ) : null}
-          {mastery > 0 ? <li>Мастерство оружия: {mastery} вида</li> : null}
+          {mastery > 0 ? (
+            <li>
+              {entry.slug === 'paladin' ? 'Оружейное мастерство' : 'Мастерство оружия'}:{' '}
+              {mastery} вида
+            </li>
+          ) : null}
         </ul>
       </DetailSection>
       {sc ? (
