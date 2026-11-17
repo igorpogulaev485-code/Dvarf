@@ -1,2 +1,6 @@
+9830fb7a6c0acc068819fff2aeb16b0e  after-create-2014-race-marker-1440.png
+1307038540c60d98466d7666e5b46de0  after-create-2014-ranger-class-1440.png
+e63fb833ef52fbcbdf5ae281a4a7b0c5  after-sheet-2014-ranger-1440.png
+9eb72ebfe5783ec8fd275db7b8019478  after-sheet-2014-ranger-features-1440.png
 000140958dca5447b546d6083e79b315  after-sheet-2014-ranger-l6-speed-1440.png
 f11636a2a952ec0fb248ce98f74a43bb  after-sheet-2014-ranger-l8-speed-1440.png
