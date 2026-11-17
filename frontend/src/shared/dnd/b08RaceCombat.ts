@@ -213,13 +213,17 @@ export function formatRaceSaveAdvantageNote(rows: RaceSaveAdvantage[]): string {
 }
 
 /** Halfling Lucky: offer reroll when natural 1 on attack/check/save. */
-export function isHalflingLuckyRace(slug: string | null | undefined): boolean {
-  if (!slug) return false
-  return (
-    slug === 'halfling' ||
-    slug.startsWith('halfling_') ||
-    slug.endsWith('_halfling') ||
-    slug.includes('halfling')
+export function isHalflingLuckyRace(
+  slug: string | null | undefined,
+  parentSlug?: string | null,
+): boolean {
+  const keys = [slug, parentSlug].filter(Boolean).map((s) => String(s))
+  return keys.some(
+    (key) =>
+      key === 'halfling' ||
+      key.startsWith('halfling_') ||
+      key.endsWith('_halfling') ||
+      key.includes('halfling'),
   )
 }
 

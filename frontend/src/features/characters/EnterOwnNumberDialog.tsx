@@ -7,6 +7,8 @@ type Props = {
   /** Подпись поля: итог или выпавшее на d20. */
   mode?: 'total' | 'd20'
   modifier?: number
+  /** Mark d4 / Bless — shown as a hint; rolled into total on confirm by host. */
+  bonusDice?: Array<{ dice: string; label: string }> | null
   busy?: boolean
   onClose: () => void
   onConfirm: (payload: { total: number; d20?: number; physical_dice: true }) => void
@@ -22,6 +24,7 @@ export function EnterOwnNumberDialog({
   title = 'Ввести своё число',
   mode = 'total',
   modifier = 0,
+  bonusDice = null,
   busy = false,
   onClose,
   onConfirm,
@@ -76,6 +79,19 @@ export function EnterOwnNumberDialog({
           <Text tone="muted">
             Модификатор {modifier >= 0 ? `+${modifier}` : modifier}
             {value != null ? ` → итог ${total}` : ''}
+          </Text>
+        ) : null}
+        {bonusDice?.length ? (
+          <Text tone="muted">
+            Доп. кости:{' '}
+            {bonusDice
+              .map((row) => {
+                const m = String(row.dice).trim().match(/^(\d*)[dк](\d+)$/i)
+                const expr = m ? `+${m[1] || 1}к${m[2]}` : row.dice
+                return `${expr} (${row.label})`
+              })
+              .join(' · ')}
+            {' '}— добавятся к итогу автоматически
           </Text>
         ) : null}
       </Stack>

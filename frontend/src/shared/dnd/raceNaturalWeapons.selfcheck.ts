@@ -162,7 +162,9 @@ function emptyGrant(
     activatedMovement: [],
     damageResistances: [],
     combatBonuses: { initiative: null },
+    rollBonuses: [],
     racialSpells: [],
+    racialResources: [],
   }
 }
 

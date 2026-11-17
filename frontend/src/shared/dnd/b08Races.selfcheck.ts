@@ -102,6 +102,11 @@ assert(!racialFlyBlockedByArmor('light'), 'light ok')
 
 // —— B31: Lucky / Relentless / spends ——
 assert(isHalflingLuckyRace('lightfoot_halfling'), 'halfling lucky')
+assert(
+  isHalflingLuckyRace('mark_of_healing', 'halfling'),
+  'mark healing inherits Lucky via parent',
+)
+assert(!isHalflingLuckyRace('mark_of_shadow', 'elf'), 'shadow elf no Lucky')
 assert(hasRelentlessEndurance('half_orc'), 'half-orc relentless')
 assert(hasRelentlessEndurance('orc'), 'orc relentless')
 {

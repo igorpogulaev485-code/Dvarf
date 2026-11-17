@@ -43,6 +43,7 @@ import {
 import { InitiativeRollDialog } from '../lobby/InitiativeRollDialog'
 import { EnterOwnNumberDialog } from './EnterOwnNumberDialog'
 import { SKILL_DEFS } from './sheetTypes'
+import { rollBonusDiceParts, type BonusDiePart } from './deskRolls'
 import { Button, Dialog, Stack, Text } from '../../ui'
 type Props = {
   model: SheetModel
@@ -63,6 +64,7 @@ export function TurnEconomyDeskHost({ model, children }: Props) {
     title: string
     mode: 'total' | 'd20'
     modifier: number
+    bonusDice?: BonusDiePart[] | null
     onDone?: (total: number) => void
   } | null>(null)
   const [tableSaveOpen, setTableSaveOpen] = useState(false)
@@ -271,6 +273,7 @@ export function TurnEconomyDeskHost({ model, children }: Props) {
           title: opts.title,
           mode: opts.mode ?? 'total',
           modifier: opts.modifier ?? 0,
+          bonusDice: opts.bonusDice ?? null,
           onDone: opts.onDone,
         })
         setEnterOpen(true)
@@ -317,20 +320,11 @@ export function TurnEconomyDeskHost({ model, children }: Props) {
       const rollSkill = model.rollModeSkill as
         | ((s: { key: string; label: string; mod: number }) => void)
         | undefined
-      if (diceOnTable) {
-        setEnterCtx({
-          title: `Проверка: ${label}`,
-          mode: 'd20',
-          modifier: mod,
-        })
-        setEnterOpen(true)
-        setSkillOffer(null)
-        return
-      }
+      // Prefer sheet path so race mark d4 / buff dice apply (incl. enter-own-number).
       rollSkill?.({ key, label, mod })
       setSkillOffer(null)
     },
-    [diceOnTable, model],
+    [model],
   )
 
   return (
@@ -379,19 +373,36 @@ export function TurnEconomyDeskHost({ model, children }: Props) {
         title={enterCtx?.title ?? 'Ввести своё число'}
         mode={enterCtx?.mode ?? 'total'}
         modifier={enterCtx?.modifier ?? 0}
+        bonusDice={enterCtx?.bonusDice ?? null}
         onClose={() => setEnterOpen(false)}
         onConfirm={({ total }) => {
-          enterCtx?.onDone?.(total)
+          const bonus = rollBonusDiceParts(enterCtx?.bonusDice)
+          const finalTotal = total + bonus.total
+          enterCtx?.onDone?.(finalTotal)
+          const bonusNote = bonus.text
           if (characterId) {
             void postSheetRollToSession({
               openSessionId,
               characterId,
               title: enterCtx?.title ?? 'Бросок',
-              total,
+              total: finalTotal,
+              formula: bonus.rolls.length
+                ? bonus.rolls
+                    .map((row) => {
+                      const m = String(row.dice).trim().match(/^(\d*)[dк](\d+)$/i)
+                      if (!m) return null
+                      return `+${m[1] || 1}к${m[2]} (${row.label})`
+                    })
+                    .filter(Boolean)
+                    .join(' ')
+                : null,
+              breakdown: bonusNote || null,
               physicalDice: true,
             })
           }
-          model.onToast?.(`${enterCtx?.title ?? 'Бросок'}: ${total} 🎲 (кубик на столе)`)
+          model.onToast?.(
+            `${enterCtx?.title ?? 'Бросок'}: ${finalTotal}${bonusNote} 🎲 (кубик на столе)`,
+          )
           setEnterOpen(false)
         }}
       />

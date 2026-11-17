@@ -30,6 +30,10 @@ import {
   type DeskRollMode,
 } from '../deskRolls'
 import {
+  raceAdvantageSkillKeys,
+  raceBonusDiceForCheck,
+} from '../../../shared/dnd/raceRollBonuses'
+import {
   recordDigitalRoll,
   shouldPostRollToSession,
 } from '../../diceRoller/recordDigitalRoll'
@@ -1275,9 +1279,15 @@ export function installSheetActions4(model: SheetModel) {
       hearingOnlyCheck: isHearingReliantSkill(skillKey),
       fearSourceVisible: true,
     })
+    const raceAdvSkills = raceAdvantageSkillKeys({
+      rollBonuses: model.draft.raceGrant?.rollBonuses,
+      rulesEdition: model.rulesEdition,
+    })
+    const fromRace =
+      skillKey && raceAdvSkills.has(skillKey) ? ('advantage' as const) : ('normal' as const)
     const withFx = mergeDeskRollMode(
-      mergeDeskRollMode(model.deskRollMode, fromFx),
-      fromCond.mode,
+      mergeDeskRollMode(mergeDeskRollMode(model.deskRollMode, fromFx), fromCond.mode),
+      fromRace,
     )
     const base = resolveRollMode(withFx, armor || exhaustion)
     const withSong = !song
@@ -1373,7 +1383,7 @@ export function installSheetActions4(model: SheetModel) {
         (feature: { id?: string }) => feature.id === 'silver_tongue',
       ),
     )
-    const bonusDice = buffDiceFor('check')
+    const bonusDice = buffDiceFor('check', { skillKey: skill.key })
     const homebrew = normalizeCampaignRules(model.campaignRulesRaw).homebrew
     const skillProficient = Boolean(
       (model.draft.skills as Record<string, { is_proficient?: boolean }>)[skill.key]
@@ -1409,6 +1419,7 @@ export function installSheetActions4(model: SheetModel) {
             title: string
             mode?: 'total' | 'd20'
             modifier?: number
+            bonusDice?: BonusDiePart[] | null
             onDone?: (total: number) => void
           }) => void
           postRoll?: (o: { title: string; total: number; physicalDice?: boolean }) => void
@@ -1420,6 +1431,7 @@ export function installSheetActions4(model: SheetModel) {
         title: `Проверка: ${skill.label}`,
         mode: 'd20',
         modifier: skill.mod,
+        bonusDice,
       })
       if (profNote) model.emitToast(`${skill.label}${profNote}`)
     } else {
@@ -1433,11 +1445,20 @@ export function installSheetActions4(model: SheetModel) {
       if (atTable) {
         const bonusExpr = bonusDice
           ?.map((row) => {
-            const m = String(row.dice).trim().match(/^(\d*)d(\d+)$/i)
+            const m = String(row.dice).trim().match(/^(\d*)[dк](\d+)$/i)
             if (!m) return ''
-            return `+${m[1] || 1}d${m[2]}`
+            return `+${m[1] || 1}к${m[2]}`
           })
           .join('') ?? ''
+        const bonusLabels =
+          bonusDice
+            ?.map((row) => {
+              const m = String(row.dice).trim().match(/^(\d*)[dк](\d+)$/i)
+              if (!m) return ''
+              return `+${m[1] || 1}к${m[2]} (${row.label})`
+            })
+            .filter(Boolean)
+            .join(' · ') ?? ''
         // Режим преимущества/помехи — отдельным полем; в формуле одна d20.
         const expression = `${checkExpression(rollMod, 'normal')}${bonusExpr}`
         const advMode =
@@ -1460,7 +1481,8 @@ export function installSheetActions4(model: SheetModel) {
             model.emitToast(result.error)
             return
           }
-          model.emitToast(`${result.entry.toastText ?? ''}${suffix}`)
+          const labelBit = bonusLabels ? ` · ${bonusLabels}` : ''
+          model.emitToast(`${result.entry.toastText ?? ''}${labelBit}${suffix}`)
         })
       } else {
         const payload = rollSkillCheck(
@@ -1510,11 +1532,20 @@ export function installSheetActions4(model: SheetModel) {
 
   function buffDiceFor(
     rollKind: 'attack' | 'save' | 'check' | 'initiative',
+    opts?: { skillKey?: string | null; toolName?: string | null },
   ): BonusDiePart[] {
-    return listRollDieChips(model.draft.play.effects ?? [], rollKind).map((chip) => ({
+    const fromFx = listRollDieChips(model.draft.play.effects ?? [], rollKind).map((chip) => ({
       dice: chip.dice,
       label: chip.name,
     }))
+    if (rollKind !== 'check') return fromFx
+    const fromRace = raceBonusDiceForCheck({
+      rollBonuses: model.draft.raceGrant?.rollBonuses,
+      skillKey: opts?.skillKey,
+      toolName: opts?.toolName,
+      rulesEdition: model.rulesEdition,
+    })
+    return [...fromFx, ...fromRace]
   }
 
   function consumeOnceBuffDice(rollKind: 'attack' | 'save' | 'check' | 'initiative') {

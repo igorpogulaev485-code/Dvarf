@@ -415,6 +415,7 @@ export function applyRaceGrantToDraft(input: {
       return base
     })(),
     combatBonuses: { ...def.combatBonuses },
+    rollBonuses: [...(def.rollBonuses ?? [])],
     racialSpells,
     racialResources: [...def.racialResources],
   }
