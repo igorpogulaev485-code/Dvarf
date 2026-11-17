@@ -282,6 +282,10 @@ export async function walk2014ToRangerClass(page: Page) {
     .click()
   await chipByText(raceDlg, /^Мужской$/).click()
   await raceDlg.getByRole('textbox').first().fill('Торин')
+  const smith = chipByText(raceDlg, /Инструменты кузнеца/)
+  if (await smith.count()) {
+    await smith.click()
+  }
   await applyDialog(page, /настройка расы/i)
 
   await cardByTitle(page, 'Солдат').click()
@@ -299,7 +303,7 @@ export async function walk2014ToRangerClass(page: Page) {
     /настройка класса/i,
     /Выбрать и настроить|Настроить класс/,
   )
-  for (const label of [/^Восприятие$/, /^Выживание$/, /^Природа$/]) {
+  for (const label of [/^Внимательность$/, /^Выживание$/, /^Природа$/]) {
     await chipByText(classDlg, label).click()
   }
   return classDlg

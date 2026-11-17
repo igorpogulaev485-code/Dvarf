@@ -40,7 +40,7 @@ test.describe('P24-M02 2014 regression (ranger)', () => {
   test.setTimeout(90_000)
   test.use({ actionTimeout: 12_000 })
 
-  test.fixme('2014 create — класс Следопыт', async ({ page }, testInfo) => {
+  test('2014 create — класс Следопыт', async ({ page }, testInfo) => {
     const project = projectOf(testInfo)
     const tag = SHOT_TAG
     await mock2014(page)
@@ -50,7 +50,7 @@ test.describe('P24-M02 2014 regression (ranger)', () => {
 
     const classDlg = await walk2014ToRangerClass(page)
     await expect(page.getByRole('heading', { name: /Следопыт: настройка класса/i })).toBeVisible()
-    await expect(classDlg).toContainText(/навык|Восприятие|Выживание|Следопыт/i)
+    await expect(classDlg).toContainText(/навык|Внимательность|Выживание|Следопыт/i)
     await shot(page, ARTIFACTS_2014, `${tag}-create-2014-ranger-class`, project)
   })
 

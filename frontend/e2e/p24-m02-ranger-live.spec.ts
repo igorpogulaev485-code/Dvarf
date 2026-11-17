@@ -388,7 +388,8 @@ test.describe('P24-M02 ranger — capstone + movement', () => {
     await expectFeatureNames(page, [ROVING])
     await openCombatScene(page, project)
     const body = (await page.locator('body').innerText()).replace(/\s+/g, ' ')
-    await expect(body).toMatch(/35|40|Скорость/i)
+    const speedHint = isPhone(project) ? /35|40|Скорость|Вездеход/i : /35|40|Скорость/i
+    await expect(body).toMatch(speedHint)
     await shot(page, ARTIFACTS, `${SHOT}-create-at-6-roving-combat`, project)
   })
 

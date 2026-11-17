@@ -47,7 +47,7 @@ test.describe('P24-M02 paladin fixup shots (ranger pack)', () => {
     expect(PALADIN_ARTIFACTS).toBeTruthy()
   })
 
-  test.fixme('step3 mastery header visible (2/2)', async ({ page }, testInfo) => {
+  test('step3 mastery header visible (2/2)', async ({ page }, testInfo) => {
     const project = projectOf(testInfo)
     const store = createStore()
     await walkLivePaladinCreate(page, store, {
@@ -58,11 +58,12 @@ test.describe('P24-M02 paladin fixup shots (ranger pack)', () => {
       project,
       stepShots: true,
       shotPrefix: `${PALADIN_SHOT}-step3-mastery-header-fix-`,
-      stopAfterForks: true,
+      stopAfterClassStep: true,
       fightingStyle: null,
     })
-    await expect(page.getByText(/Оружейное мастерство/i).first()).toBeVisible()
+    await expect(page.getByText(/Оружейное мастерство.*\(2\/2\)/i).first()).toBeVisible()
     await page.getByTestId('p24-m03-pick-mastery-longsword').scrollIntoViewIfNeeded()
     await tallShot(page, PALADIN_DIR, `${PALADIN_SHOT}-step3-mastery-header-fix`, project)
+    expect(store.unmatched).toEqual([])
   })
 })
