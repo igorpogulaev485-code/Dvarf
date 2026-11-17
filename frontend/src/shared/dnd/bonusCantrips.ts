@@ -84,7 +84,6 @@ const CANTRIP_LABEL_RU: Record<string, string> = {
   Elementalism: 'Элементализм',
   Thaumaturgy: 'Чудотворство',
   Guidance: 'Указание',
-  Message: 'Сообщение',
   'Produce Flame': 'Сотворение пламени',
   Resistance: 'Сопротивление',
   Shillelagh: 'Дубинка',
