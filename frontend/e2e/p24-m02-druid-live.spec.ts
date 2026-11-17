@@ -251,6 +251,21 @@ type LiveDruidOpts = {
   asiPlan?: 'plus2' | 'feat'
 }
 
+async function pickKnownForms(page: Page, level: number) {
+  const budget = level >= 8 ? 8 : level >= 4 ? 6 : 4
+  const picker = page.getByTestId('p24-m02-known-forms-pick')
+  await picker.scrollIntoViewIfNeeded()
+  await expect(picker).toContainText(new RegExp(`0/${budget}`))
+  await picker.getByRole('textbox').first().fill('Волк')
+  await page.waitForTimeout(300)
+  await picker.getByRole('button', { name: /^\+ Волк · CR 1\/4/ }).first().click()
+  await picker.getByRole('textbox').first().fill('')
+  for (let i = 1; i < budget; i += 1) {
+    await picker.getByRole('button', { name: /^\+ / }).first().click()
+  }
+  await expect(picker).toContainText(new RegExp(`${budget}/${budget}`))
+}
+
 async function walkLiveDruidCreate(page: Page, store: HarnessStore, opts: LiveDruidOpts) {
   const prefix = opts.shotPrefix ?? ''
   const order = opts.order ?? 'magician'
@@ -335,6 +350,7 @@ async function walkLiveDruidCreate(page: Page, store: HarnessStore, opts: LiveDr
   await expect(forkList).toBeVisible()
   await forkList.scrollIntoViewIfNeeded()
 
+  if (opts.level >= 2) await pickKnownForms(page, opts.level)
   if (opts.level >= 3 && opts.subclassSlug === SUB.land) {
     const picker = page.getByTestId('p24-m02-land-terrain-pick')
     await picker.scrollIntoViewIfNeeded()
@@ -554,15 +570,9 @@ async function enterWildShape(
   await expect(dlg).toContainText(/Известных обликов:/)
   if (opts.shotPrefix) await shot(page, ARTIFACTS, `${opts.shotPrefix}-fork-dialog`, project)
   await dlg.getByRole('button', { name: /Дикий облик \(бонусным\)/ }).click()
-  await expect(dlg).toContainText(/Бестиарий \(\d+\)/)
+  await expect(dlg).toContainText(/Известные облики: \d+\/\d+/)
   if (opts.shotPrefix) await shot(page, ARTIFACTS, `${opts.shotPrefix}-beast-filter-all`, project)
-  await dlg.getByRole('textbox').first().fill(opts.query)
-  await page.waitForTimeout(300)
   await dlg.getByRole('button', { name: opts.name }).first().click()
-  const replace = dlg.getByText(/Список известных обликов полон/)
-  if (await replace.isVisible({ timeout: 1_500 }).catch(() => false)) {
-    await dlg.getByRole('button', { name: /^Забыть:/ }).first().click()
-  }
   await expect(dlg).toContainText(/Снаряжение в облике/)
   if (opts.shotPrefix) await shot(page, ARTIFACTS, `${opts.shotPrefix}-equipment-step`, project)
   await dlg.getByRole('button', { name: opts.equipment ?? /Надето на облик/ }).click()

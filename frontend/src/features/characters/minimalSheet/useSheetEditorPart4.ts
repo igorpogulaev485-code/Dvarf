@@ -379,7 +379,7 @@ export function useSheetEditorPart4(model: SheetModel) {
   model.pendingSpellSelfForm = pendingSpellSelfForm
   model.setPendingSpellSelfForm = setPendingSpellSelfForm
   const [pendingFamiliar, setPendingFamiliar] = useState<{
-    spell: SheetSpell
+    spell: SheetSpell | null
     mode: FamiliarCastMode
     slotLevel: number
   } | null>(null)
@@ -1013,6 +1013,7 @@ export function useSheetEditorPart4(model: SheetModel) {
         : undefined,
     [sheetIs2024, model.draft.classOptions2024, model.draft.featurePicks],
   )
+  model.primalOrderExtraCantrips = primalOrderExtraCantrips
   const spellLearnBudget = useMemo(() => {
     const rows = model.draft.classes.filter((row) => row.name.trim() && row.level > 0)
     if (rows.length === 0) return null

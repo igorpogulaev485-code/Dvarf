@@ -20,8 +20,10 @@ import {
   blessedStrikesChoice2024,
 } from './cleric2024Features'
 import {
+  DRUID_SUBCLASS_MIN_LEVEL_2024,
   ELEMENTAL_FURY_MIN_LEVEL_2024,
   elementalFuryChoice2024,
+  knownFormsBudget2024,
 } from './druid2024Features'
 import { metamagicPickGainAtLevel2024 } from './sorcerer2024Features'
 import { invocationPickGainAtLevel2024 } from './warlock2024Features'
@@ -95,6 +97,11 @@ export type PendingWizardInput2024 = {
   /** Used to skip a Scholar step that already has its Expertise pick. */
   featurePicks?: FeaturePicksState
   classOptions?: ClassOptions2024State
+  /**
+   * Druid: beast forms already in `known_forms` (elemental ones excluded). Omitted means
+   * the caller does not track forms, so no Wild Shape known-forms step is queued.
+   */
+  knownFormsCount?: number
 }
 
 export const SCHOLAR_FEATURE_ID_2024 = 'scholar'
@@ -103,6 +110,10 @@ export const SCHOLAR_LEVEL_2024 = 2
 export const BLESSED_STRIKES_FEATURE_ID_2024 = 'blessed_strikes'
 
 export const ELEMENTAL_FURY_FEATURE_ID_2024 = 'elemental_fury'
+
+export function knownFormsStepId2024(classEntryId: string, budget: number): string {
+  return `known-forms:${classEntryId}:${budget}`
+}
 
 export function elementalFuryStepId2024(classEntryId: string): string {
   return `feature_choice:${classEntryId}:${ELEMENTAL_FURY_FEATURE_ID_2024}`
@@ -241,6 +252,21 @@ export function buildPendingWizardSteps2024(input: PendingWizardInput2024): Guid
         featureNameRu: blessedStrikesChoice2024.label_ru,
         featureLevel: BLESSED_STRIKES_MIN_LEVEL_2024,
         choice: blessedStrikesChoice2024,
+      })
+    }
+  }
+
+  if (slug === 'druid' && input.knownFormsCount != null) {
+    const budget = knownFormsBudget2024(level)
+    if (budget > 0 && input.knownFormsCount < budget) {
+      steps.push({
+        id: knownFormsStepId2024(input.classEntryId, budget),
+        kind: 'known_forms',
+        classEntryId: input.classEntryId,
+        className: input.className,
+        classLevel: level,
+        budget,
+        subclassSlug: input.subclassSlug ?? null,
       })
     }
   }
@@ -420,6 +446,14 @@ export function trimClassOptionsForLevel2024(input: {
     const cap = metamagicKnownLimit2024(level)
     if (classOptions.metamagic.length > cap) {
       classOptions = { ...classOptions, metamagic: classOptions.metamagic.slice(0, cap) }
+    }
+  }
+  if (input.slug === 'druid') {
+    if (level < ELEMENTAL_FURY_MIN_LEVEL_2024 && classOptions.elemental_fury) {
+      classOptions = { ...classOptions, elemental_fury: null }
+    }
+    if (level < DRUID_SUBCLASS_MIN_LEVEL_2024 && classOptions.land_choice) {
+      classOptions = { ...classOptions, land_choice: null }
     }
   }
   let weaponMastery = input.weaponMastery

@@ -24,6 +24,8 @@ import { BardicInspirationSpendDialog } from '../BardicInspirationSpendDialog'
 import { LayOnHandsSpendDialog } from '../LayOnHandsSpendDialog'
 import { SuperiorityDiceSpendDialog } from '../SuperiorityDiceSpendDialog'
 import { ArcaneRecoverySpendDialog } from '../ArcaneRecoverySpendDialog'
+import type { Druid2024RestPanelProps } from '../Druid2024RestPanel'
+import type { LandTerrain2024 } from '../../../shared/dnd/druid2024Features'
 import { WizardFeatureUseDialog } from '../WizardFeatureUseDialog'
 import { Wizard2024UseDialog } from '../Wizard2024UseDialog'
 import { Sorcerer2024UseDialog } from '../Sorcerer2024UseDialog'
@@ -370,6 +372,13 @@ export function SheetDialogsResources({ model }: { model: SheetModel }) {
     }
     model.onToast(result.feedLineRu)
     model.setDruidFeatureUse(null)
+    if (patches?.wildCompanion) {
+      model.setPendingFamiliar({
+        spell: null,
+        mode: 'wild_companion',
+        slotLevel: patches.wildCompanion.slotLevel,
+      })
+    }
   }
 
   const [wizardCantripCatalog, setWizardCantripCatalog] = useState<SheetSpell[]>([])
@@ -588,6 +597,34 @@ export function SheetDialogsResources({ model }: { model: SheetModel }) {
     }
   })()
 
+  const druid2024Rest: Omit<Druid2024RestPanelProps, 'kind'> | null = (() => {
+    const row = model.druidClassRow
+    if (model.rulesEdition !== '2024' || !row) return null
+    const natural = model.draft.play.resources.find(
+      (res) => res.id.startsWith('feat:druid:') && res.id.includes(':natural_recovery:'),
+    )
+    return {
+      classEntryId: row.id,
+      druidLevel: row.level,
+      subclassSlug: model.druidSubclassSlug,
+      featurePicks: model.draft.featurePicks,
+      onFeaturePicksChange: (featurePicks) => model.setDraft((prev) => ({ ...prev, featurePicks })),
+      landChoice: model.draft.classOptions2024?.land_choice ?? null,
+      onLandChoiceChange: (terrain) =>
+        model.setDraft((prev) => ({
+          ...prev,
+          classOptions2024: { ...(prev.classOptions2024 ?? {}), land_choice: terrain as LandTerrain2024 },
+        })),
+      knownForms: model.draft.knownForms,
+      onKnownFormsChange: (knownForms) => model.setDraft((prev) => ({ ...prev, knownForms })),
+      naturalRecovery: natural
+        ? { id: natural.id, used: natural.used, max: natural.max }
+        : null,
+      onOpenNaturalRecovery: (id) => model.setArcaneRecoverySpendId(id),
+      onToast: model.onToast,
+    }
+  })()
+
   const wizard2024Use =
     model.rulesEdition === '2024' &&
     model.wizardFeatureUse != null &&
@@ -697,6 +734,7 @@ export function SheetDialogsResources({ model }: { model: SheetModel }) {
         preferKind={model.restPreferKind ?? null}
         wizard2024Rest={wizard2024Rest}
         warlock2024Rest={warlock2024Rest}
+        druid2024Rest={druid2024Rest}
         cantripFormulas={(() => {
           const tceOn =
             model.campaignRulesRaw != null &&
@@ -763,7 +801,9 @@ export function SheetDialogsResources({ model }: { model: SheetModel }) {
         onCompanionRest={(kind) => {
           let dismissed: string[] = []
           model.setDraft((prev) => {
-            const result = dismissSelfFormsOnRest(prev.companions, kind)
+            const result = dismissSelfFormsOnRest(prev.companions, kind, {
+              edition: model.baseCharacter?.rules_edition ?? model.rulesEdition ?? '2014',
+            })
             dismissed = result.dismissedNames
             // C-02 Н9: heal companions after resource reset / form dismiss (Р26 effects untouched).
             const companions = healCompanionsOnRest(result.companions, kind)
@@ -1010,6 +1050,9 @@ export function SheetDialogsResources({ model }: { model: SheetModel }) {
           edition={model.rulesEdition === '2024' ? '2024' : '2014'}
           wisMod={abilityModifier(model.draft.abilities.wis)}
           featurePicks={model.draft.featurePicks}
+          onKnownFormsChange={(knownForms) =>
+            model.setDraft((prev) => ({ ...prev, knownForms }))
+          }
           onConfirm={(result) => {
             model.applyWildShapeResult(result)
             model.setWildShapeFork(null)
@@ -1182,8 +1225,13 @@ export function SheetDialogsResources({ model }: { model: SheetModel }) {
           edition={model.rulesEdition === '2024' ? '2024' : '2014'}
           onConfirm={model.applyFamiliarPickResult}
           onClose={() => {
+            const wildCompanion = model.pendingFamiliar?.mode === 'wild_companion'
             model.setPendingFamiliar(null)
-            model.onToast('Фамильяр не выбран — каст уже списан; можно кастануть снова')
+            model.onToast(
+              wildCompanion
+                ? 'Фамильяр не выбран — расход «Дикого спутника» уже списан'
+                : 'Фамильяр не выбран — каст уже списан; можно кастануть снова',
+            )
           }}
         />
       ) : null}

@@ -19,6 +19,10 @@ import {
   isPotentSpellcastingCantrip2024,
 } from '../../shared/dnd/cleric2024Features'
 import {
+  potentSpellcastingRangeApplies2024,
+  potentSpellcastingRangeText2024,
+} from '../../shared/dnd/druid2024Features'
+import {
   availableCastSlotLevels,
   canSpendPactSlot,
   levelLabel,
@@ -263,6 +267,8 @@ type CastSpellDialogProps = {
   potentSpellcastingBonus?: number
   /** Class that holds Potent Spellcasting (cleric by default, druid for Elemental Fury). */
   potentSpellcastingClass?: 'cleric' | 'druid'
+  /** 2024 Druid L15 Potent Spellcasting: +ft to druid cantrip range (0 = off). */
+  potentSpellcastingRangeBonusFt?: number
   /** Feature / ki pools, for cards that do not spend a spell slot. */
   resources?: SheetResource[]
   /** T-02: выбранные варианты метамагии чародея (id из sorcererMetamagic). */
@@ -314,6 +320,7 @@ export function CastSpellDialog({
   warlockLevel,
   potentSpellcastingBonus = 0,
   potentSpellcastingClass = 'cleric',
+  potentSpellcastingRangeBonusFt = 0,
   resources,
   metamagicIds = [],
   initialMetamagicId = null,
@@ -919,11 +926,24 @@ export function CastSpellDialog({
         rulesEdition,
       })
     : null
+  const baseSpellRange = rulesSpell?.range || spell.range
+  const potentRangeBonusFt =
+    potentSpellcastingRangeBonusFt > 0 &&
+    !isEbMeta &&
+    isPotentSpellcastingCantrip2024(
+      { level: rulesSpell?.level ?? spell.level, class_slug: spell.class_slug },
+      'druid',
+    ) &&
+    potentSpellcastingRangeApplies2024(baseSpellRange, potentSpellcastingRangeBonusFt)
+      ? potentSpellcastingRangeBonusFt
+      : 0
+  const spellRangeText =
+    potentRangeBonusFt > 0
+      ? potentSpellcastingRangeText2024(baseSpellRange, potentRangeBonusFt)
+      : baseSpellRange
   const metaPartsBase = [
     rulesSpell?.casting_time || spell.casting_time,
-    spearRangeFt != null
-      ? formatEldritchSpearRangeRu(spearRangeFt)
-      : rulesSpell?.range || spell.range,
+    spearRangeFt != null ? formatEldritchSpearRangeRu(spearRangeFt) : spellRangeText,
     (rulesSpell?.duration || spell.duration)
       ? `длится ${rulesSpell?.duration || spell.duration}`
       : '',
@@ -994,7 +1014,12 @@ export function CastSpellDialog({
         casting_time: spell?.casting_time ?? '',
       },
     })
-  const metaPreview = applyMetamagicToCastParams(rulesSpell ?? spell, metaFlags, rulesEdition)
+  const metaSpellSource = rulesSpell ?? spell
+  const metaPreview = applyMetamagicToCastParams(
+    potentRangeBonusFt > 0 ? { ...metaSpellSource, range: spellRangeText } : metaSpellSource,
+    metaFlags,
+    rulesEdition,
+  )
   const metaActive = metaCost > 0 || Boolean(metaFlags.transmutedType)
   const metaSelectedLabels = knownMetamagic
     .filter((def) => {

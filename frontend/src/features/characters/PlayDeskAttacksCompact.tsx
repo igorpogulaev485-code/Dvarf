@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
 
 /** Features with bespoke turn chips — skip generic personal wiring. */
 const TURN_SPECIAL_FEATURE_IDS = new Set([
@@ -332,6 +332,8 @@ type PlayDeskAttacksCompactProps = {
   favoriteConsumableIds?: string[]
   /** Combat-desk class features (e.g. Reckless Attack). */
   combatFeatures?: UnlockedFeature[]
+  /** 2024 druid in Wild Shape: show form attacks + Primal Strike / Moon radiant riders. */
+  wildShapeFormAttacks?: { primalStrikeDice: number; radiant: boolean } | null
   /** T-02: «Хитрое действие» — Засада бонусным. */
   hasCunningAction?: boolean
   /** O-01: TCE book on in lobby (table buttons). */
@@ -519,6 +521,7 @@ export function PlayDeskAttacksCompact({
   inventoryItems,
   favoriteConsumableIds = [],
   combatFeatures = [],
+  wildShapeFormAttacks = null,
   hasCunningAction = false,
   tceAllowed = false,
   masterRules = {},
@@ -817,9 +820,11 @@ export function PlayDeskAttacksCompact({
         characterLevel,
         spellMod,
         proficiencyBonus,
+        selfFormAttacks: Boolean(wildShapeFormAttacks),
       }),
-    [companions, characterLevel, spellMod, proficiencyBonus],
+    [companions, characterLevel, spellMod, proficiencyBonus, wildShapeFormAttacks],
   )
+  const [formRadiant, setFormRadiant] = useState(false)
   const [attackBreakdown, setAttackBreakdown] = useState<{
     attackId: string
     name: string
@@ -4193,8 +4198,12 @@ export function PlayDeskAttacksCompact({
           })
         )}
 
-        {companionAttacks.map((atk) => (
-          <div key={atk.id} className="play-desk-compact__row is-dense">
+        {companionAttacks.map((atk) => {
+          const radiantOn = Boolean(atk.selfForm && wildShapeFormAttacks?.radiant && formRadiant)
+          const atkDamageType = radiantOn ? 'излучением' : atk.damageType
+          return (
+          <Fragment key={atk.id}>
+          <div className="play-desk-compact__row is-dense">
             <button
               type="button"
               className="play-desk-compact__hit"
@@ -4227,7 +4236,7 @@ export function PlayDeskAttacksCompact({
                   name: `${atk.companionName}: ${atk.name}`,
                   attackBonus: atk.attackBonus,
                   damageExpr: atk.damageExpr,
-                  damageType: atk.damageType,
+                  damageType: atkDamageType,
                   mode: rollMode,
                 })
                 turnEco?.spendAttack()
@@ -4256,11 +4265,58 @@ export function PlayDeskAttacksCompact({
               </span>
               <span className="play-desk-compact__dmg">
                 {atk.damageExpr}
-                {atk.damageType ? ` ${atk.damageType}` : ''}
+                {atkDamageType ? ` ${atkDamageType}` : ''}
               </span>
             </button>
           </div>
-        ))}
+          {atk.selfForm && wildShapeFormAttacks ? (
+            <div className="play-desk-compact__row is-dense" data-testid="p24-form-attack-riders">
+              {wildShapeFormAttacks.primalStrikeDice > 0 ? (
+                <button
+                  type="button"
+                  className="play-desk-compact__dmg play-desk-compact__dmg--roll"
+                  title="Природный удар: раз за ход при попадании"
+                  onClick={() => {
+                    const expr = `${wildShapeFormAttacks.primalStrikeDice}к8`
+                    const rolled = rollDamage(expr)
+                    onToast?.(
+                      rolled
+                        ? `Природный удар: ${rolled.total} холодом, огнём, электричеством или звуком (${rolled.detail})`
+                        : `Природный удар: ${expr}`,
+                    )
+                    if (characterId && rolled) {
+                      void postSheetRollToSession({
+                        openSessionId: openSessionId ?? turnEco?.openSessionId,
+                        characterId,
+                        title: 'Природный удар',
+                        total: rolled.total,
+                        formula: expr,
+                        breakdown: rolled.detail,
+                        physicalDice: Boolean(turnEco?.diceOnTable),
+                        targetName: null,
+                      })
+                    }
+                  }}
+                >
+                  Природный удар +{wildShapeFormAttacks.primalStrikeDice}к8 (раз за ход)
+                </button>
+              ) : null}
+              {wildShapeFormAttacks.radiant ? (
+                <button
+                  type="button"
+                  className="play-desk-compact__tag"
+                  aria-pressed={formRadiant}
+                  title="Улучшенные формы круга: урон облика может быть излучением"
+                  onClick={() => setFormRadiant((v) => !v)}
+                >
+                  Излучение: {formRadiant ? 'вкл' : 'выкл'}
+                </button>
+              ) : null}
+            </div>
+          ) : null}
+          </Fragment>
+          )
+        })}
 
         {combatResources.map((row) => {
           const remaining = resourceShownCurrent(row)

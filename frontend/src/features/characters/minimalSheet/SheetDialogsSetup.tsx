@@ -322,6 +322,10 @@ export function SheetDialogsSetup({ model }: { model: SheetModel }) {
           })
         }}
         classOptions2024={model.draft.classOptions2024}
+        knownForms={model.draft.knownForms}
+        onKnownFormsChange={(knownForms) =>
+          model.setDraft((prev) => ({ ...prev, knownForms }))
+        }
         onClassOptions2024Change={(classOptions2024) =>
           model.setDraft((prev) => ({ ...prev, classOptions2024 }))
         }

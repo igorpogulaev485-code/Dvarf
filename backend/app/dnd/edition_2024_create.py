@@ -1056,6 +1056,25 @@ def _sync_elemental_fury_pick(sheet: dict[str, Any]) -> None:
         return
 
 
+def _sync_primal_order_pick(sheet: dict[str, Any]) -> None:
+    """Mirror class_options_2024.primal_order into feature_picks so the Primal Order card shows it."""
+    options = sheet.get("class_options_2024")
+    pick = str((options or {}).get("primal_order") or "").strip().lower()
+    if pick not in PRIMAL_ORDER_OPTIONS:
+        return
+    for row in sheet.get("classes") or []:
+        if not isinstance(row, dict):
+            continue
+        if e24.normalize_class_slug(str(row.get("slug") or "")) != "druid":
+            continue
+        entry_id = str(row.get("id") or "class-druid")
+        picks = sheet.get("feature_picks")
+        values = dict(picks.get("values") or {}) if isinstance(picks, dict) else {}
+        values[f"{entry_id}:primal_order"] = pick
+        sheet["feature_picks"] = {"values": values}
+        return
+
+
 def _sync_land_choice_pick(sheet: dict[str, Any]) -> None:
     """Mirror class_options_2024.land_choice into feature_picks (circle_spells_land)."""
     options = sheet.get("class_options_2024")
@@ -1075,6 +1094,119 @@ def _sync_land_choice_pick(sheet: dict[str, Any]) -> None:
         values[f"{entry_id}:circle_spells_land"] = land
         sheet["feature_picks"] = {"values": values}
         return
+
+
+_KNOWN_FORM_TAGS = frozenset({"swim", "fly", "elemental", "custom"})
+
+
+def known_forms_budget_2024(druid_level: int) -> int:
+    """Wild Shape known forms: 4 at L2, 6 at L4, 8 at L8."""
+    if druid_level >= 8:
+        return 8
+    if druid_level >= 4:
+        return 6
+    if druid_level >= 2:
+        return 4
+    return 0
+
+
+def _parse_cr(raw: Any) -> float | None:
+    text = str(raw if raw is not None else "").strip()
+    if not text:
+        return None
+    try:
+        if "/" in text:
+            num, den = text.split("/", 1)
+            return float(num) / float(den)
+        return float(text)
+    except (ValueError, ZeroDivisionError):
+        return None
+
+
+def _validate_known_forms(raw: Any, druid_level: int) -> list[dict[str, Any]]:
+    """Druid Wild Shape known forms picked at create (stored as `sheet.known_forms`)."""
+    if raw in (None, [], ()):
+        return []
+    budget = known_forms_budget_2024(druid_level)
+    if not isinstance(raw, list):
+        raise Create2024Error(
+            "Друид: известные облики должны быть списком",
+            code="create_2024_class_options",
+        )
+    if budget <= 0:
+        raise Create2024Error(
+            "Друид: известные облики доступны со 2 уровня",
+            code="create_2024_class_options",
+        )
+    out: list[dict[str, Any]] = []
+    seen: set[str] = set()
+    max_cr = max(1.0, float(druid_level // 3))
+    for item in raw:
+        if not isinstance(item, Mapping):
+            raise Create2024Error(
+                "Друид: некорректная запись известного облика",
+                code="create_2024_class_options",
+            )
+        slug = str(item.get("bestiary_slug") or "").strip()
+        name = str(item.get("name_ru") or "").strip()
+        if not slug or not name:
+            raise Create2024Error(
+                "Друид: у известного облика нужны bestiary_slug и name_ru",
+                code="create_2024_class_options",
+            )
+        if slug in seen:
+            raise Create2024Error(
+                f"Друид: облик «{name}» выбран дважды",
+                code="create_2024_class_options",
+            )
+        seen.add(slug)
+        cr_text = str(item.get("cr") if item.get("cr") is not None else "0").strip() or "0"
+        cr_value = _parse_cr(cr_text)
+        if cr_value is None or cr_value > max_cr:
+            raise Create2024Error(
+                f"Друид: облик «{name}» превышает лимит опасности",
+                code="create_2024_class_options",
+            )
+        tags = [
+            str(tag)
+            for tag in (item.get("tags") or [])
+            if isinstance(tag, str) and tag in _KNOWN_FORM_TAGS
+        ]
+        row: dict[str, Any] = {
+            "id": str(item.get("id") or "").strip() or f"known-form-{slug}",
+            "bestiary_ref": (
+                str(item["bestiary_ref"]) if isinstance(item.get("bestiary_ref"), str) else None
+            ),
+            "bestiary_slug": slug,
+            "name_ru": name,
+            "cr": cr_text,
+            "tags": tags,
+        }
+        stats = item.get("stats_override")
+        if isinstance(stats, Mapping):
+            try:
+                row["stats_override"] = {
+                    "hp": int(stats.get("hp") or 0),
+                    "ac": int(stats.get("ac") or 0),
+                    "speed": int(stats.get("speed") or 0),
+                    "actions": str(stats.get("actions") or ""),
+                }
+            except (TypeError, ValueError):
+                pass
+        out.append(row)
+    if len(out) > budget:
+        raise Create2024Error(
+            f"Друид: известных обликов не больше {budget} (выбрано {len(out)})",
+            code="create_2024_class_options",
+        )
+    return out
+
+
+def _sync_known_forms(sheet: dict[str, Any], class_options: Mapping[str, Any]) -> None:
+    """Druid create: mirror the validated Wild Shape known forms onto the sheet."""
+    forms = class_options.get("known_forms")
+    if isinstance(forms, list) and forms:
+        sheet["known_forms"] = [dict(row) for row in forms if isinstance(row, Mapping)]
 
 
 def _validate_class_options(payload: Create2024Payload) -> dict[str, Any]:
@@ -1122,6 +1254,9 @@ def _validate_class_options(payload: Create2024Payload) -> dict[str, Any]:
             and land in e24opt.LAND_TERRAINS_2024
         ):
             out["land_choice"] = land
+        known_forms = _validate_known_forms(picks.get("known_forms"), druid_level)
+        if known_forms:
+            out["known_forms"] = known_forms
     if payload.class_slug == "rogue":
         expertise = [str(x) for x in (picks.get("expertise") or [])]
         if len(expertise) != 2 or len(set(expertise)) != 2:
@@ -1393,8 +1528,10 @@ def validate_create_2024(payload: Create2024Payload) -> Create2024Result:
         )
         final_level = sum(r.level for r in levels_plan.class_levels)
     _sync_blessed_strikes_pick(sheet)
+    _sync_primal_order_pick(sheet)
     _sync_elemental_fury_pick(sheet)
     _sync_land_choice_pick(sheet)
+    _sync_known_forms(sheet, class_options)
 
     # Class name line: primary + multiclass summary.
     class_name = str(class_row.get("name_ru") or class_slug)

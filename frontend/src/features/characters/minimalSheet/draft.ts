@@ -30,6 +30,7 @@ import { migrateLegacyHitDice, syncHitDicePools } from '../../../shared/dnd/clas
 import { withSyncedHitDiceSummary } from '../play'
 import { classWalkSpeedBonusFt } from '../../../shared/dnd/classMovement'
 import { readFeaturePicks, type FeaturePicksState } from '../../../shared/dnd/featurePicks'
+import { mirrorPrimalOrderPick2024 } from '../../../shared/dnd/druid2024Features'
 import {
   emptyWeaponMasteryState,
   readWeaponMasteryState,
@@ -497,10 +498,10 @@ export function buildDraft(character: CharacterDetail): Draft {
         : null,
     companions: readCompanions(sheet.companions),
     knownForms: readKnownForms(sheet.known_forms),
-    featurePicks: bridgeFeaturePicksFromSubclassSetups(
-      readFeaturePicks(sheet.feature_picks),
+    featurePicks: mirrorPrimalOrderPick2024(
+      bridgeFeaturePicksFromSubclassSetups(readFeaturePicks(sheet.feature_picks), classes, sheet),
       classes,
-      sheet,
+      sheet.class_options_2024,
     ),
     weaponMastery: readWeaponMasteryState(sheet.weapon_mastery) ?? emptyWeaponMasteryState(),
     classOptions2024: readClassOptions2024(sheet.class_options_2024),

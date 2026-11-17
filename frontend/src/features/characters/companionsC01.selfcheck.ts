@@ -306,4 +306,26 @@ function emptyDraft(): SubclassGrantDraftSlice {
   console.log('C01 artillerist cannon grant: ok')
 }
 
+
+{
+  const form = {
+    ...createCompanion({ name: 'Волк' }),
+    role: 'self_form' as const,
+    kind: 'transformed_self' as const,
+    active: true,
+    actions: 'Укус +4 2к4+2 колющий · Природный удар: +1к8 урона',
+    form: {
+      form_source: 'wild_shape' as const,
+      form_source_ref: 'wolf',
+      host_hp_at_enter: null,
+      host_hp_max_at_enter: null,
+      duration_minutes: null,
+      entered_at: null,
+    },
+  }
+  assert(parseCompanionActionAttacks(form, { characterLevel: 5 }).length === 0, 'self form hidden by default')
+  const rows = parseCompanionActionAttacks(form, { characterLevel: 5, selfFormAttacks: true })
+  assert(rows.length === 1 && rows[0]!.damageExpr === '2к4+2' && rows[0]!.selfForm === true, 'wild shape form attack')
+}
+
 console.log('companionsC01.selfcheck: all ok')

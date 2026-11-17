@@ -302,6 +302,7 @@ export function SheetDialogsRolls({ model }: { model: SheetModel }) {
         }
         potentSpellcastingBonus={potentSheet.bonus}
         potentSpellcastingClass={potentSheet.classSlug}
+        potentSpellcastingRangeBonusFt={potentSheet.rangeBonusFt}
         abilities={model.effectiveAbilities}
         proficiencyBonus={model.proficiencyBonus}
         castProfiles={model.spellcastingSync.castProfiles}

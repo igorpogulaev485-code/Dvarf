@@ -21,7 +21,11 @@ import {
   DIVINE_SPARK_FEATURE_ID,
   divineSparkFormulaRu2024,
 } from './cleric2024Features'
-import { elementalFuryChoice2024, landTerrainChoice2024 } from './druid2024Features'
+import {
+  elementalFuryChoice2024,
+  landTerrainChoice2024,
+  primalOrderChoice2024,
+} from './druid2024Features'
 import {
   alwaysPreparedForSubclass2024,
   buildPermanentBonuses2024,
@@ -812,6 +816,9 @@ export function computeProgression2024(input: {
             : {}),
           ...(fid === 'elemental_fury' && cls.slug === 'druid'
             ? { choice: elementalFuryChoice2024 }
+            : {}),
+          ...(fid === 'primal_order' && cls.slug === 'druid'
+            ? { choice: primalOrderChoice2024 }
             : {}),
           // Disciplined Survivor (2024): proficiency in all saving throws (like Diamond Soul 2014).
           ...(fid === 'disciplined_survivor' ? { save_proficiency: 'all' as const } : {}),

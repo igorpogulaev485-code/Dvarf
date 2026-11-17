@@ -54,7 +54,7 @@ import {
   WILD_SHAPE_NAME_RU,
 } from './druid2024Features'
 import { featureChoiceOptionLabel } from './featureChoiceOptionLabel'
-import { emptyFeaturePicks, getFeatureChoicePick, setFeaturePick } from './featurePicks'
+import { emptyFeaturePicks, getFeatureChoicePick, getFeaturePick, setFeaturePick } from './featurePicks'
 import type { SheetResource } from './rest'
 
 const ENTRY = 'entry-druid'
@@ -509,7 +509,7 @@ assert.deepEqual(
     featurePicks: setFeaturePick({ values: {} }, ENTRY, 'elemental_fury', 'potent_spellcasting'),
     wisScore: 16,
   }),
-  { bonus: 3, classSlug: 'druid' },
+  { bonus: 3, classSlug: 'druid', rangeBonusFt: 0 },
 )
 assert.equal(
   potentSpellcastingForSheet2024({
@@ -519,6 +519,114 @@ assert.equal(
     wisScore: 16,
   }).bonus,
   0,
+)
+
+
+/* Доправка 1: range +300, known forms, wild companion, moon form */
+assert.equal(druid.potentSpellcastingRangeText2024('120 фт', 300), '420 фт (+300, Мощные заклинания)')
+assert.equal(druid.potentSpellcastingRangeText2024('120 фт', 300, true), '420 фт (+300)')
+assert.equal(druid.potentSpellcastingRangeText2024('Касание', 300), 'Касание')
+assert.equal(druid.potentSpellcastingRangeText2024('5 фт', 300), '5 фт')
+assert.equal(druid.potentSpellcastingRangeText2024('120 фт', 0), '120 фт')
+
+const forms = [
+  { id: 'a', tags: [] as string[] },
+  { id: 'b', tags: [] as string[] },
+  { id: 'c', tags: [] as string[] },
+  { id: 'd', tags: [] as string[] },
+  { id: 'f', tags: [] as string[] },
+  { id: 'e', tags: ['elemental'] },
+]
+assert.deepEqual(
+  druid.trimKnownFormsOnLevelDown2024(forms, 2).map((row) => row.id),
+  ['a', 'b', 'c', 'd', 'e'],
+)
+assert.equal(druid.trimKnownFormsOnLevelDown2024(forms, 8).length, 6)
+
+{
+  let picks = setFeaturePick({ values: {} }, ENTRY, 'elemental_fury', 'primal_strike')
+  picks = setFeaturePick(picks, ENTRY, 'wild_resurgence_slot_used', 'on')
+  const trimmed = druid.trimDruid2024PicksOnLevelDown(picks, ENTRY, 6)
+  assert.equal(getFeaturePick(trimmed, ENTRY, 'elemental_fury'), null)
+  assert.equal(getFeaturePick(trimmed, ENTRY, 'wild_resurgence_slot_used'), 'on')
+  const trimmed4 = druid.trimDruid2024PicksOnLevelDown(picks, ENTRY, 4)
+  assert.equal(getFeaturePick(trimmed4, ENTRY, 'wild_resurgence_slot_used'), null)
+  const swapped = setFeaturePick({ values: {} }, ENTRY, druid.KNOWN_FORM_SWAPPED_PICK_ID_2024, 'on')
+  assert.equal(
+    druid.knownFormSwapped2024(druid.resetDruid2024PicksOnLongRestAll(swapped), ENTRY),
+    false,
+  )
+}
+
+{
+  const slot = applyDruid2024FeatureUse(
+    base({ featureId: 'wild-companion', mode: 'slot', slotLevel: 1, druidLevel: 2 }),
+  )
+  assert.ok(slot.ok)
+  assert.equal(slot.patches?.spendSlotLevel, 1)
+  assert.deepEqual(slot.patches?.wildCompanion, { paidWith: 'slot', slotLevel: 1 })
+  const shape = applyDruid2024FeatureUse(base({ featureId: 'wild-companion', druidLevel: 2 }))
+  assert.ok(shape.ok)
+  assert.equal(usedOf(shape.resources, 'wild_shape'), 1)
+  assert.equal(shape.patches?.wildCompanion?.paidWith, 'wild-shape')
+  assert.ok(shape.feedLineRu.includes('Обретение фамильяра'))
+  assert.equal(
+    applyDruid2024FeatureUse(base({ featureId: 'wild-companion', mode: 'slot', druidLevel: 2 })).ok,
+    false,
+  )
+}
+
+assert.equal(
+  druid.moonConSaveBonusInForm2024({
+    rulesEdition: '2024',
+    druidLevel: 6,
+    subclassSlug: MOON,
+    wisMod: 3,
+    inBeastForm: true,
+  }),
+  3,
+)
+assert.equal(
+  druid.moonConSaveBonusInForm2024({
+    rulesEdition: '2014',
+    druidLevel: 6,
+    subclassSlug: MOON,
+    wisMod: 3,
+    inBeastForm: true,
+  }),
+  0,
+)
+assert.equal(
+  druid.moonConSaveBonusInForm2024({
+    rulesEdition: '2024',
+    druidLevel: 6,
+    subclassSlug: MOON,
+    wisMod: 3,
+    inBeastForm: false,
+  }),
+  0,
+)
+assert.equal(
+  druid.moonCircleSpellCastableInForm2024({
+    rulesEdition: '2024',
+    druidLevel: 3,
+    subclassSlug: MOON,
+    spell: { prepared_locked: true, source_kind: 'subclass' },
+  }),
+  true,
+)
+assert.equal(
+  druid.moonCircleSpellCastableInForm2024({
+    rulesEdition: '2024',
+    druidLevel: 3,
+    subclassSlug: LAND,
+    spell: { prepared_locked: true, source_kind: 'subclass' },
+  }),
+  false,
+)
+assert.deepEqual(
+  druid.formAttackRiders2024({ druidLevel: 11, elementalFury: 'primal_strike', moonImproved: true }),
+  { primalStrikeDice: 1, radiant: true },
 )
 
 console.log('druid2024Features.selfcheck: ok')

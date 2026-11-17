@@ -44,6 +44,10 @@ import { syncHitDicePools } from '../../../shared/dnd/classHitDice'
 import { trimLevelUpSpellbookRows } from '../../../shared/dnd/wizardSpellbook'
 import { trimSavantSpellsOnLevelDown2024 } from '../../../shared/dnd/wizard2024Features'
 import { averageHpGain, hitDieForClass } from '../../../shared/dnd/multiclassRules'
+import {
+  trimDruid2024PicksOnLevelDown,
+  trimKnownFormsOnLevelDown2024,
+} from '../../../shared/dnd/druid2024Features'
 import { draconicResilienceHpDelta2024 } from '../../../shared/dnd/sorcerer2024Features'
 import { dwarvenToughnessHpDelta2024 } from '../../../shared/dnd/speciesHpBonus2024'
 import { withSyncedHitDiceSummary } from '../play'
@@ -101,6 +105,13 @@ function levelDownClassState2024(
       newLevel,
     )
     if (known !== next.spells.known) next = { ...next, spells: { ...next.spells, known } }
+  }
+  if (slug === 'druid') {
+    const featurePicks = trimDruid2024PicksOnLevelDown(next.featurePicks, row.id, newLevel)
+    const knownForms = trimKnownFormsOnLevelDown2024(next.knownForms, newLevel)
+    if (featurePicks !== next.featurePicks || knownForms !== next.knownForms) {
+      next = { ...next, featurePicks, knownForms }
+    }
   }
   const hasSubclass = Boolean(row.subclass_catalog_id || row.subclass_name.trim())
   if (hasSubclass && subclassDropsOnLevelDown2024(slug, beforeLevel)) {

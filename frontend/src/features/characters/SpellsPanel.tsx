@@ -152,6 +152,10 @@ type SpellsPanelProps = {
   voiceOfAuthority?: boolean
   ritualBookLabel?: string | null
   onOpenRitualBook?: () => void
+  /** 2024 only: extra cantrips per class slug (Druid Magician +1), same value as the Play Desk budget. */
+  extraCantripsBySlug?: Record<string, number>
+  /** 2024 Circle of the Moon L3+: always-prepared circle spells may be cast in Wild Shape. */
+  moonFormSpells?: boolean
 }
 
 export function SpellsPanel({
@@ -188,6 +192,8 @@ export function SpellsPanel({
   voiceOfAuthority = false,
   ritualBookLabel = null,
   onOpenRitualBook,
+  extraCantripsBySlug,
+  moonFormSpells,
 }: SpellsPanelProps) {
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [prepareOpen, setPrepareOpen] = useState(false)
@@ -236,8 +242,10 @@ export function SpellsPanel({
       subclassCasters,
       abilityModFor: (ability) => abilityModifier(abilities[ability]),
     })
-    return is2024Edition(edition) ? overlayLearnBudget2024(budget, rows) : budget
-  }, [classes, subclassCasters, abilities, edition])
+    return is2024Edition(edition)
+      ? overlayLearnBudget2024(budget, rows, extraCantripsBySlug)
+      : budget
+  }, [classes, subclassCasters, abilities, edition, extraCantripsBySlug])
 
   const learnBudgets = useMemo(() => {
     const rows = classes?.filter((row) => row.name.trim() && row.level > 0) ?? []
@@ -248,8 +256,10 @@ export function SpellsPanel({
       abilityModFor: (ability) => abilityModifier(abilities[ability]),
       proficiencyBonus,
     })
-    return is2024Edition(edition) ? overlayLearnBudgets2024(budgets, rows) : budgets
-  }, [classes, subclassCasters, abilities, proficiencyBonus, edition])
+    return is2024Edition(edition)
+      ? overlayLearnBudgets2024(budgets, rows, extraCantripsBySlug)
+      : budgets
+  }, [classes, subclassCasters, abilities, proficiencyBonus, edition, extraCantripsBySlug])
 
   const castProfiles = useMemo(() => {
     const rows = classes?.filter((row) => row.name.trim() && row.level > 0) ?? []
@@ -536,6 +546,10 @@ export function SpellsPanel({
       classes: classes ?? [],
       classSlug: castSpell.class_slug,
       material: castSpell.components?.m,
+      moonCircleSpell:
+        Boolean(moonFormSpells) &&
+        Boolean(castSpell.prepared_locked) &&
+        castSpell.source_kind === 'subclass',
     })
     if (wildBlock) {
       onToast?.(wildBlock)

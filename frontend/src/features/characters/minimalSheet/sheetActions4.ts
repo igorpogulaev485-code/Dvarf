@@ -20,6 +20,7 @@ import { isConjurePickSpell } from '../conjureCompanions'
 import { isFindSteedSpellSlug } from '../steedCompanions'
 import { isFindFamiliarSpell, resolveFamiliarCastMode } from '../familiarForms'
 import { wildShapeCastBlock } from '../wildShape'
+import { moonCircleSpellCastableInForm2024 } from '../../../shared/dnd/druid2024Features'
 import { type AttunementSlot } from '../attunement'
 import { isPactChainActive, isPactChainSpellId, pactChainFamiliarSpellId, syncPactChainFamiliar } from '../pactChainEffects'
 import { isWarlockClassName } from '../pactTomeEffects'
@@ -780,6 +781,12 @@ export function installSheetActions4(model: SheetModel) {
       classes: model.draft.classes,
       classSlug: spell.class_slug,
       material: spell.components?.m,
+      moonCircleSpell: moonCircleSpellCastableInForm2024({
+        rulesEdition: model.rulesEdition,
+        druidLevel: model.druidLevel,
+        subclassSlug: model.druidSubclassSlug,
+        spell,
+      }),
     })
     if (wildBlock) {
       model.onToast(wildBlock)

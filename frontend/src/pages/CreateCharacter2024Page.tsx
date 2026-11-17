@@ -9,6 +9,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { LAND_TERRAINS_2024, type LandTerrain2024 } from '../shared/dnd/druid2024Features'
+import { readKnownForms } from '../features/characters/knownForms'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { AbilitiesStep } from '../features/createPipeline/AbilitiesStep'
 import { CatalogCardList, type CatalogCardItem } from '../features/createPipeline/CatalogCardList'
@@ -1225,6 +1226,10 @@ export function CreateCharacter2024Page({
             }
             onLandChoiceChange={(pick) =>
               patch({ classOptionPicks: { ...state.classOptionPicks, land_choice: pick } })
+            }
+            knownFormsPick={readKnownForms(state.classOptionPicks.known_forms)}
+            onKnownFormsChange={(forms) =>
+              patch({ classOptionPicks: { ...state.classOptionPicks, known_forms: forms } })
             }
             onOpenSpells={() => {
               setSpellTab(wizardBook ? 'book' : 'cantrips')

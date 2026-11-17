@@ -36,6 +36,7 @@ import { type IdentityExtras } from '../identity'
 import { revokeRaceGrant, syncRaceSpellsForSheetState } from '../raceEffects'
 import { characterHasCasterClass } from '../../../shared/dnd/casterProgression'
 import { freeBookSlotsAtLevel } from '../../../shared/dnd/wizardSpellbook'
+import { isCountedKnownForm2024 } from '../../../shared/dnd/druid2024Features'
 import {
   buildPendingWizardSteps2024,
   resolveClassSlug2024,
@@ -422,6 +423,7 @@ export function installSheetActions3(model: SheetModel) {
           subclassSlug: model.subclassSlugByEntryId[leveledRow.id] || leveledRow.subclass_catalog_id,
           featurePicks: model.draft.featurePicks,
           classOptions: model.draft.classOptions2024,
+          knownFormsCount: model.draft.knownForms.filter(isCountedKnownForm2024).length,
         })
         if (steps.length > 0) {
           model.openGuidedWizard({ steps, index: 0 })

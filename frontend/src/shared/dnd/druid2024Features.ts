@@ -27,6 +27,8 @@ export const PRIMAL_ORDER_MAGICIAN_NAME_RU = 'Ведун'
 export const PRIMAL_ORDER_WARDEN_NAME_RU = 'Страж'
 export const WILD_SHAPE_NAME_RU = 'Дикий облик'
 export const WILD_COMPANION_NAME_RU = 'Дикий спутник'
+/** 2024 catalog name (next.dnd.su) of the spell cast by Wild Companion. */
+export const FIND_FAMILIAR_NAME_RU_2024 = 'Обретение фамильяра'
 export const WILD_RESURGENCE_NAME_RU = 'Дикое восстановление'
 export const ELEMENTAL_FURY_NAME_RU = 'Ярость стихий'
 export const POTENT_SPELLCASTING_NAME_RU = 'Мощные заклинания'
@@ -48,6 +50,7 @@ export const DRUID_CLASS_SLUG_2024 = 'druid'
 
 export const PRIMAL_ORDER_FEATURE_ID = 'primal-order'
 export const WILD_SHAPE_FEATURE_ID = 'wild-shape'
+export const WILD_COMPANION_FEATURE_ID = 'wild-companion'
 export const WILD_RESURGENCE_FEATURE_ID = 'wild-resurgence'
 export const ELEMENTAL_FURY_FEATURE_ID = 'elemental-fury'
 export const BEAST_SPELLS_FEATURE_ID = 'beast-spells'
@@ -144,6 +147,18 @@ export const PRIMAL_ORDER_OPTIONS_2024: ReadonlyArray<{
   },
 ]
 
+/** FeatureChoice shape for the Primal Order card (`{classEntryId}:primal_order`). */
+export const primalOrderChoice2024: FeatureChoiceDef = {
+  id: PRIMAL_ORDER_PICK_ID_2024,
+  label_ru: PRIMAL_ORDER_NAME_RU,
+  options: [PRIMAL_ORDER_MAGICIAN, PRIMAL_ORDER_WARDEN],
+  option_labels_ru: {
+    [PRIMAL_ORDER_MAGICIAN]: PRIMAL_ORDER_MAGICIAN_NAME_RU,
+    [PRIMAL_ORDER_WARDEN]: PRIMAL_ORDER_WARDEN_NAME_RU,
+  },
+  max_picks: 1,
+}
+
 function normalizePrimalOrder(raw: unknown): PrimalOrder2024 | null {
   const key = String(raw ?? '').trim().toLowerCase()
   if (key === PRIMAL_ORDER_MAGICIAN) return PRIMAL_ORDER_MAGICIAN
@@ -178,6 +193,23 @@ export function readPrimalOrder2024(
     return null
   }
   return normalizePrimalOrder((source as Record<string, unknown>).primal_order)
+}
+
+/**
+ * Sheets created through the 2024 wizard store Primal Order in `class_options_2024`; mirror it into
+ * the druid row's feature picks so the Primal Order card shows the choice (and no pending prompt).
+ */
+export function mirrorPrimalOrderPick2024(
+  picks: FeaturePicksState,
+  classes: ReadonlyArray<{ id: string; name: string; level?: number }>,
+  classOptions: unknown,
+): FeaturePicksState {
+  const order = readPrimalOrder2024(classOptions)
+  if (!order) return picks
+  const druid = classes.find((row) => isDruidClassSlug(row.name) && (row.level ?? 1) > 0)
+  if (!druid) return picks
+  if (readPrimalOrder2024(picks, druid.id)) return picks
+  return setFeaturePick(picks, druid.id, PRIMAL_ORDER_PICK_ID_2024, order)
 }
 
 /**
@@ -396,6 +428,64 @@ export function potentSpellcastingRangeBonusFt2024(druidLevel: number): number {
   return lvl(druidLevel) >= IMPROVED_ELEMENTAL_FURY_MIN_LEVEL_2024 ? 300 : 0
 }
 
+const SPELL_RANGE_FT_RE = /(\d+)\s*(фт\.?|фут(?:ов|а)?|ft\.?|feet)/i
+
+/** Numeric range in feet from a spell range line (`120 фт`, `30 футов`); null for Touch / Self / Sight. */
+export function spellRangeFt2024(range: string | null | undefined): number | null {
+  const match = SPELL_RANGE_FT_RE.exec(String(range ?? ''))
+  if (!match) return null
+  const value = Number(match[1])
+  return Number.isFinite(value) ? value : null
+}
+
+/** Potent Spellcasting (L15) needs a numeric range of at least 10 ft. */
+export function potentSpellcastingRangeApplies2024(
+  range: string | null | undefined,
+  bonusFt: number,
+): boolean {
+  if (bonusFt <= 0) return false
+  const base = spellRangeFt2024(range)
+  return base != null && base >= 10
+}
+
+/**
+ * Cantrip range with the L15 bonus: `120 фт` → `420 фт (+300)`. Ranges under 10 ft, Touch and
+ * Self stay untouched. `compact` drops the source note, for the one-line spell meta.
+ */
+export function potentSpellcastingRangeText2024(
+  range: string | null | undefined,
+  bonusFt: number,
+  compact = false,
+): string {
+  const raw = String(range ?? '')
+  if (!potentSpellcastingRangeApplies2024(raw, bonusFt)) return raw
+  const base = spellRangeFt2024(raw) as number
+  const note = compact ? `+${bonusFt}` : `+${bonusFt}, ${POTENT_SPELLCASTING_NAME_RU}`
+  return raw.replace(SPELL_RANGE_FT_RE, `${base + bonusFt} фт (${note})`)
+}
+
+/**
+ * Range bonus (ft) for druid cantrips on a sheet: 300 for a 2024 druid L15+ holding Potent
+ * Spellcasting, else 0.
+ */
+export function druidPotentSpellcastingRangeBonusForSheet2024(input: {
+  rulesEdition: string | null | undefined
+  classes: ReadonlyArray<{ id: string; name: string; level: number }>
+  featurePicks: FeaturePicksState
+  classOptions?: unknown
+}): number {
+  if (String(input.rulesEdition ?? '2014').trim() !== '2024') return 0
+  const druid = input.classes.find((row) => /друид|druid/i.test(row.name))
+  if (!druid) return 0
+  if (
+    readElementalFury2024(input.featurePicks, druid.id, input.classOptions) !==
+    ELEMENTAL_FURY_POTENT_SPELLCASTING
+  ) {
+    return 0
+  }
+  return potentSpellcastingRangeBonusFt2024(druid.level)
+}
+
 /**
  * Wis-mod cantrip damage bonus for a sheet, or 0 when the character is not a 2024
  * druid (L7+) with the Potent Spellcasting pick.
@@ -420,7 +510,12 @@ export function druidPotentSpellcastingBonusForSheet2024(input: {
   return potentSpellcastingCantripBonus2024(wisMod, druid.level)
 }
 
-export type PotentSpellcastingSheet2024 = { bonus: number; classSlug: 'cleric' | 'druid' }
+export type PotentSpellcastingSheet2024 = {
+  bonus: number
+  classSlug: 'cleric' | 'druid'
+  /** Druid L15 Improved Potent Spellcasting: +ft to the range of druid cantrips (0 otherwise). */
+  rangeBonusFt: number
+}
 
 /** Cantrip damage bonus from Potent Spellcasting, whichever class (cleric / druid) holds the pick. */
 export function potentSpellcastingForSheet2024(input: {
@@ -431,9 +526,11 @@ export function potentSpellcastingForSheet2024(input: {
   wisScore: number | null | undefined
 }): PotentSpellcastingSheet2024 {
   const cleric = potentSpellcastingBonusForSheet2024(input)
-  if (cleric > 0) return { bonus: cleric, classSlug: 'cleric' }
+  const rangeBonusFt = druidPotentSpellcastingRangeBonusForSheet2024(input)
+  if (cleric > 0) return { bonus: cleric, classSlug: 'cleric', rangeBonusFt }
   const druid = druidPotentSpellcastingBonusForSheet2024(input)
-  return druid > 0 ? { bonus: druid, classSlug: 'druid' } : { bonus: 0, classSlug: 'cleric' }
+  if (druid > 0 || rangeBonusFt > 0) return { bonus: druid, classSlug: 'druid', rangeBonusFt }
+  return { bonus: 0, classSlug: 'cleric', rangeBonusFt: 0 }
 }
 
 export function primalStrikeAttackRiderRu2024(druidLevel: number): string {
@@ -448,6 +545,73 @@ export function potentSpellcastingCantripRiderRu2024(wisMod: number, druidLevel:
   const range = potentSpellcastingRangeBonusFt2024(druidLevel)
   const tail = range > 0 ? `; дальность заговоров от 10 фт. +${range} фт.` : ''
   return `${POTENT_SPELLCASTING_NAME_RU}: +${bonus} к урону заговоров друида${tail}`
+}
+
+/* ------------------------------------------------------------------ */
+/* Circle of the Moon in Wild Shape                                    */
+/* ------------------------------------------------------------------ */
+
+export const MOON_IMPROVED_CIRCLE_FORMS_MIN_LEVEL_2024 = 6
+
+/** 2024 Moon druid L6 Improved Circle Forms: «Лунное сияние» (radiant) and «Повышенная стойкость». */
+export function moonImprovedFormsActive2024(input: {
+  rulesEdition: string | null | undefined
+  druidLevel: number
+  subclassSlug: string | null | undefined
+}): boolean {
+  return (
+    String(input.rulesEdition ?? '2014').trim() === '2024' &&
+    isMoonSubclass(input.subclassSlug) &&
+    lvl(input.druidLevel) >= MOON_IMPROVED_CIRCLE_FORMS_MIN_LEVEL_2024
+  )
+}
+
+/** Moon L6+: add Wisdom to Constitution saves while in Wild Shape (0 otherwise). */
+export function moonConSaveBonusInForm2024(input: {
+  rulesEdition: string | null | undefined
+  druidLevel: number
+  subclassSlug: string | null | undefined
+  wisMod: number
+  inBeastForm: boolean
+}): number {
+  if (!input.inBeastForm || !moonImprovedFormsActive2024(input)) return 0
+  return mod(input.wisMod)
+}
+
+/** Moon L3+: an always-prepared circle spell may be cast in Wild Shape. */
+export function moonCircleSpellCastableInForm2024(input: {
+  rulesEdition: string | null | undefined
+  druidLevel: number
+  subclassSlug: string | null | undefined
+  spell: { prepared_locked?: boolean; source_kind?: string | null }
+}): boolean {
+  return (
+    String(input.rulesEdition ?? '2014').trim() === '2024' &&
+    isMoonSubclass(input.subclassSlug) &&
+    lvl(input.druidLevel) >= DRUID_SUBCLASS_MIN_LEVEL_2024 &&
+    Boolean(input.spell.prepared_locked) &&
+    input.spell.source_kind === 'subclass'
+  )
+}
+
+/** Riders shown on Wild Shape attack rows (2024). */
+export type FormAttackRiders2024 = {
+  primalStrikeDice: number
+  radiant: boolean
+}
+
+export function formAttackRiders2024(input: {
+  druidLevel: number
+  elementalFury: ElementalFuryPick2024 | null
+  moonImproved: boolean
+}): FormAttackRiders2024 {
+  return {
+    primalStrikeDice:
+      input.elementalFury === ELEMENTAL_FURY_PRIMAL_STRIKE
+        ? primalStrikeDice2024(input.druidLevel)
+        : 0,
+    radiant: input.moonImproved,
+  }
 }
 
 /* ------------------------------------------------------------------ */
@@ -576,6 +740,8 @@ export const DRUID_2024_CARD_BUTTONS: Record<string, string> = {
   archdruid: 'Архидруид…',
   'wild-shape': 'Облик…',
   wild_shape: 'Облик…',
+  'wild-companion': 'Дикий спутник…',
+  wild_companion: 'Дикий спутник…',
   'wild-resurgence': 'Восстановление…',
   wild_resurgence: 'Восстановление…',
   'evergreen-wild-shape': 'Неувядающий дикий облик',
@@ -593,6 +759,7 @@ export const DRUID_2024_CARD_BUTTONS: Record<string, string> = {
 const DRUID_USE_FEATURE_IDS = new Set([
   'archdruid',
   'wild-shape',
+  'wild-companion',
   'wild-resurgence',
   'evergreen-wild-shape',
   'nature-magician',
@@ -730,6 +897,13 @@ export function wildResurgenceSlotUsed2024(picks: FeaturePicksState, classEntryI
 
 export const NATURE_MAGICIAN_SPENT_PICK_ID_2024 = 'nature_magician_spent'
 
+/** Long rest: one known Wild Shape form may be swapped (flag cleared by the next long rest). */
+export const KNOWN_FORM_SWAPPED_PICK_ID_2024 = 'known_form_swapped'
+
+export function knownFormSwapped2024(picks: FeaturePicksState, classEntryId: string): boolean {
+  return getFeaturePick(picks, classEntryId, KNOWN_FORM_SWAPPED_PICK_ID_2024) === 'on'
+}
+
 export function natureMagicianSpent2024(picks: FeaturePicksState, classEntryId: string): boolean {
   return getFeaturePick(picks, classEntryId, NATURE_MAGICIAN_SPENT_PICK_ID_2024) === 'on'
 }
@@ -746,6 +920,67 @@ export function resetDruid2024PicksOnLongRest(
   if (natureMagicianSpent2024(next, classEntryId)) {
     next = setFeaturePick(next, classEntryId, NATURE_MAGICIAN_SPENT_PICK_ID_2024, null)
   }
+  if (knownFormSwapped2024(next, classEntryId)) {
+    next = setFeaturePick(next, classEntryId, KNOWN_FORM_SWAPPED_PICK_ID_2024, null)
+  }
+  return next
+}
+
+/** Wild Shape known-form rows that count against the budget (elemental forms are separate). */
+export function isCountedKnownForm2024(form: { tags?: ReadonlyArray<string> }): boolean {
+  return !(form.tags ?? []).includes('elemental')
+}
+
+/**
+ * Level down: keep at most `knownFormsBudget2024(newLevel)` beast forms (the oldest ones stay;
+ * elemental forms are never counted or trimmed).
+ */
+export function trimKnownFormsOnLevelDown2024<T extends { tags?: ReadonlyArray<string> }>(
+  forms: T[],
+  newLevel: number,
+): T[] {
+  const budget = knownFormsBudget2024(newLevel)
+  let counted = 0
+  const kept: T[] = []
+  for (const form of forms) {
+    if (!isCountedKnownForm2024(form)) {
+      kept.push(form)
+      continue
+    }
+    if (counted >= budget) continue
+    counted += 1
+    kept.push(form)
+  }
+  return kept.length === forms.length ? forms : kept
+}
+
+/** Feature-pick ids that only exist from a given druid level (and are cleared on level down). */
+const DRUID_PICKS_MIN_LEVEL_2024: ReadonlyArray<{ pickId: string; minLevel: number }> = [
+  { pickId: 'elemental_fury', minLevel: ELEMENTAL_FURY_MIN_LEVEL_2024 },
+  { pickId: ELEMENTAL_FURY_PICK_ID_2024, minLevel: ELEMENTAL_FURY_MIN_LEVEL_2024 },
+  { pickId: WILD_RESURGENCE_SLOT_USED_PICK_ID_2024, minLevel: WILD_RESURGENCE_MIN_LEVEL_2024 },
+  { pickId: NATURE_MAGICIAN_SPENT_PICK_ID_2024, minLevel: ARCHDRUID_MIN_LEVEL_2024 },
+  { pickId: KNOWN_FORM_SWAPPED_PICK_ID_2024, minLevel: WILD_SHAPE_MIN_LEVEL_2024 },
+  { pickId: WILD_SHAPE_TEMP_HP_PICK_ID_2024, minLevel: WILD_SHAPE_MIN_LEVEL_2024 },
+  { pickId: LAND_TERRAIN_PICK_ID_2024, minLevel: DRUID_SUBCLASS_MIN_LEVEL_2024 },
+  { pickId: STARRY_FORM_ACTIVE_PICK_ID_2024, minLevel: DRUID_SUBCLASS_MIN_LEVEL_2024 },
+  { pickId: 'starry_form', minLevel: DRUID_SUBCLASS_MIN_LEVEL_2024 },
+]
+
+/** Level down: drop druid picks (Elemental Fury, Wild Resurgence flag, terrain, …) above the new level. */
+export function trimDruid2024PicksOnLevelDown(
+  picks: FeaturePicksState,
+  classEntryId: string,
+  newLevel: number,
+): FeaturePicksState {
+  const level = lvl(newLevel)
+  let next = picks
+  for (const row of DRUID_PICKS_MIN_LEVEL_2024) {
+    if (level >= row.minLevel) continue
+    if (getFeaturePick(next, classEntryId, row.pickId) != null) {
+      next = setFeaturePick(next, classEntryId, row.pickId, null)
+    }
+  }
   return next
 }
 
@@ -755,6 +990,7 @@ export function resetDruid2024PicksOnLongRestAll(picks: FeaturePicksState): Feat
   const suffixes = [
     `:${WILD_RESURGENCE_SLOT_USED_PICK_ID_2024}`,
     `:${NATURE_MAGICIAN_SPENT_PICK_ID_2024}`,
+    `:${KNOWN_FORM_SWAPPED_PICK_ID_2024}`,
   ]
   for (const key of Object.keys(picks.values)) {
     const suffix = suffixes.find((item) => key.endsWith(item))
@@ -778,13 +1014,14 @@ export type Druid2024UseInput = {
   wisMod?: number
   /**
    * wild-resurgence: slot-to-shape | shape-to-slot
+   * wild-companion: wild-shape | slot (cost of the free Find Familiar)
    * lands-aid: damage | heal
    * starry-form: archer | chalice | dragon
    */
   mode?: string | null
   /** wild-shape: AC of the chosen beast form (Moon: AC = max(beast AC, 13 + Wis)). */
   beastAc?: number
-  /** wild-resurgence slot-to-shape: circle of the spell slot spent. */
+  /** wild-resurgence slot-to-shape / wild-companion slot: circle of the spell slot spent. */
   slotLevel?: number
   /** nature-magician: Wild Shape uses converted (2 slot levels per use). */
   usesToConvert?: number
@@ -810,6 +1047,8 @@ export type Druid2024Patches = {
   gainSlotLevel?: number
   /** Caller should mark this Nature Magician use as spent until long rest. */
   natureMagicianSpent?: boolean
+  /** Wild Companion paid: caller opens the familiar picker (Find Familiar as a fey). */
+  wildCompanion?: { paidWith: 'wild-shape' | 'slot'; slotLevel: number }
 }
 
 export type Druid2024UseResult = {
@@ -897,6 +1136,30 @@ export function applyDruid2024FeatureUse(input: Druid2024UseInput): Druid2024Use
         `${WILD_SHAPE_NAME_RU} (бонусное действие): известный облик зверя опасность ≤ ${limits.crLabelRu}${limits.flyAllowed ? '' : ', без скорости полёта'}; плавание разрешено; временные хиты ${limits.tempHp}; свои хиты сохраняются${ac}`,
         { resources: spent.resources, patches },
       )
+    }
+
+    case 'wild-companion': {
+      if (level < WILD_SHAPE_MIN_LEVEL_2024) {
+        return refuse(input, `${WILD_COMPANION_NAME_RU} со 2 уровня друида`)
+      }
+      const feed = (cost: string) =>
+        `${WILD_COMPANION_NAME_RU}: «${FIND_FAMILIAR_NAME_RU_2024}» без материальных компонентов, ${cost}; фамильяр — фея и исчезает после долгого отдыха`
+      if (input.mode === 'slot') {
+        const slotLevel = Math.floor(input.slotLevel ?? 0)
+        if (slotLevel < 1) return refuse(input, `${WILD_COMPANION_NAME_RU}: выбери ячейку заклинаний`)
+        return ok(input, feed(`ячейка ${slotLevel} круга`), {
+          patches: {
+            spendSlotLevel: slotLevel,
+            wildCompanion: { paidWith: 'slot', slotLevel },
+          },
+        })
+      }
+      const spent = spendWildShape(input)
+      if (!spent.ok) return spent.result
+      return ok(input, feed(`использование «${WILD_SHAPE_NAME_RU}»`), {
+        resources: spent.resources,
+        patches: { wildCompanion: { paidWith: 'wild-shape', slotLevel: 0 } },
+      })
     }
 
     case 'wild-resurgence': {

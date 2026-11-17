@@ -1,6 +1,7 @@
 /**
  * 2024 Druid feature «use» dialog — edition branch only (`rules_edition === '2024'`).
- * Wild Resurgence, Land's Aid, Wrath of the Sea, Starry Form, Archdruid (Evergreen / Nature Magician).
+ * Wild Resurgence, Wild Companion, Land's Aid, Wrath of the Sea, Starry Form, Archdruid
+ * (Evergreen Wild Shape, Nature Magician and Longevity are all shown at once).
  * UI kit only.
  */
 
@@ -13,15 +14,18 @@ import {
   applyDruid2024FeatureUse,
   druid2024UseFeatureId,
   EVERGREEN_WILD_SHAPE_NAME_RU,
+  FIND_FAMILIAR_NAME_RU_2024,
   findWildShapeResource2024,
   LANDS_AID_NAME_RU,
   landsAidFormulaRu2024,
+  LONGEVITY_NAME_RU,
   natureMagicianSlotLevel2024,
   natureMagicianSpent2024,
   NATURE_MAGICIAN_NAME_RU,
   STARRY_FORM_NAME_RU,
   STARRY_FORMS_2024,
   starryFormFormulaRu2024,
+  WILD_COMPANION_NAME_RU,
   WILD_RESURGENCE_NAME_RU,
   wildResurgenceSlotUsed2024,
   WILD_SHAPE_NAME_RU,
@@ -39,7 +43,7 @@ export type DruidFeatureRequest = {
 }
 
 export type Druid2024ConfirmResult = Druid2024UseResult & {
-  /** Resolved feature id (`archdruid` becomes the picked sub-feature). */
+  /** Resolved feature id (`archdruid` resolves to the sub-feature that was used). */
   featureId: string
   /** starry-form: chosen constellation. */
   starryForm?: string
@@ -101,11 +105,11 @@ export function Druid2024UseDialog({
   const [mode, setMode] = useState('')
   const [slotLevel, setSlotLevel] = useState(0)
   const [uses, setUses] = useState(1)
-  const [archdruidPick, setArchdruidPick] = useState('nature-magician')
+  const [companionPay, setCompanionPay] = useState<'wild-shape' | 'slot'>('wild-shape')
 
   const baseId =
     druid2024UseFeatureId(request?.featureId) ?? request?.featureId.replace(/_/g, '-') ?? ''
-  const featureId = baseId === 'archdruid' ? archdruidPick : baseId
+  const featureId = baseId === 'archdruid' ? 'nature-magician' : baseId
 
   const wild = useMemo(
     () => findWildShapeResource2024(resources, request?.classEntryId),
@@ -134,12 +138,14 @@ export function Druid2024UseDialog({
         : null
 
   const wildAtZero = wild != null && wild.used >= wild.max
+  const companionSlot = featureId === 'wild-companion' && companionPay === 'slot'
   const needsSlotPick =
     (featureId === 'wild-resurgence' && resurgenceMode === 'slot-to-shape') ||
     featureId === 'nature-magician' ||
-    (featureId === 'wild-resurgence' && resurgenceMode === 'shape-to-slot')
+    (featureId === 'wild-resurgence' && resurgenceMode === 'shape-to-slot') ||
+    companionSlot
   const pickLevels =
-    featureId === 'wild-resurgence' && resurgenceMode === 'slot-to-shape'
+    (featureId === 'wild-resurgence' && resurgenceMode === 'slot-to-shape') || companionSlot
       ? freeSlotLevels
       : featureId === 'wild-resurgence'
         ? spentSlotLevels.filter((level) => level === 1)
@@ -150,13 +156,31 @@ export function Druid2024UseDialog({
     Boolean(lockedNote) ||
     (needsSlotPick && effectiveSlot <= 0) ||
     (featureId === 'wild-resurgence' && resurgenceMode === 'slot-to-shape' && !wildAtZero) ||
+    (featureId === 'wild-companion' && companionPay === 'wild-shape' && wildLeft <= 0) ||
     (featureId === 'starry-form' && !STARRY_FORMS_2024.some((row) => row.id === mode))
+
+  function applyEvergreen() {
+    const result = applyDruid2024FeatureUse({
+      featureId: 'evergreen-wild-shape',
+      resourceId: request!.resourceId,
+      resources,
+      classEntryId: request!.classEntryId,
+      druidLevel,
+      subclassSlug,
+      wisMod,
+      onInitiative: true,
+      featurePicks,
+    })
+    onConfirm({ ...result, featureId: 'evergreen-wild-shape' })
+  }
 
   function confirm() {
     const useMode =
       featureId === 'wild-resurgence'
         ? resurgenceMode
-        : featureId === 'lands-aid'
+        : featureId === 'wild-companion'
+          ? companionPay
+          : featureId === 'lands-aid'
           ? mode === 'heal'
             ? 'heal'
             : 'damage'
@@ -189,7 +213,7 @@ export function Druid2024UseDialog({
     <Dialog
       open={open}
       title={request.name}
-      primaryLabel="Применить"
+      primaryLabel={featureId === 'wild-companion' ? 'Выбрать фамильяра' : baseId === 'archdruid' ? `${NATURE_MAGICIAN_NAME_RU}: применить` : 'Применить'}
       secondaryLabel="Отмена"
       primaryDisabled={primaryDisabled}
       onPrimary={confirm}
@@ -201,18 +225,58 @@ export function Druid2024UseDialog({
         </Text>
 
         {baseId === 'archdruid' ? (
-          <SegmentedControl
-            aria-label="Умение архидруида"
-            value={archdruidPick}
-            onChange={(value) => {
-              setArchdruidPick(value)
-              setMode('')
-            }}
-            options={[
-              { id: 'nature-magician', label: NATURE_MAGICIAN_NAME_RU },
-              { id: 'evergreen-wild-shape', label: EVERGREEN_WILD_SHAPE_NAME_RU },
-            ]}
-          />
+          <Stack gap={8}>
+            <Text>
+              <strong>{EVERGREEN_WILD_SHAPE_NAME_RU}</strong> — при броске инициативы, если
+              использований «{WILD_SHAPE_NAME_RU}» не осталось, верни одно использование.
+            </Text>
+            <Button
+              type="button"
+              variant="secondary"
+              disabled={!wildAtZero}
+              onClick={applyEvergreen}
+            >
+              Бросок инициативы: вернуть использование
+            </Button>
+            {!wildAtZero ? (
+              <Text tone="muted">Сработает, только когда использований облика не осталось.</Text>
+            ) : null}
+            <Text>
+              <strong>{LONGEVITY_NAME_RU}</strong> — ты стареешь в 10 раз медленнее: один год
+              возраста за каждые 10 лет.
+            </Text>
+            <Text>
+              <strong>{NATURE_MAGICIAN_NAME_RU}</strong> — настрой ниже, затем «
+              {NATURE_MAGICIAN_NAME_RU}: применить».
+            </Text>
+          </Stack>
+        ) : null}
+
+        {featureId === 'wild-companion' ? (
+          <>
+            <Text>
+              Потрать использование «{WILD_SHAPE_NAME_RU}» или ячейку заклинаний: ты накладываешь «
+              {FIND_FAMILIAR_NAME_RU_2024}» без материальных компонентов. Фамильяр — фея и исчезает,
+              когда ты завершаешь долгий отдых.
+            </Text>
+            <SegmentedControl
+              aria-label={WILD_COMPANION_NAME_RU}
+              value={companionPay}
+              onChange={(value) => {
+                setCompanionPay(value === 'slot' ? 'slot' : 'wild-shape')
+                setSlotLevel(0)
+              }}
+              options={[
+                { id: 'wild-shape', label: `Облик (−1, осталось ${wildLeft})` },
+                { id: 'slot', label: 'Ячейка заклинаний' },
+              ]}
+            />
+            {companionSlot ? (
+              <Field label="Потратить ячейку">
+                <SlotLevelPicker levels={pickLevels} value={effectiveSlot} onPick={setSlotLevel} />
+              </Field>
+            ) : null}
+          </>
         ) : null}
 
         {featureId === 'wild-resurgence' ? (
@@ -296,7 +360,7 @@ export function Druid2024UseDialog({
           </>
         ) : null}
 
-        {featureId === 'evergreen-wild-shape' ? (
+        {featureId === 'evergreen-wild-shape' && baseId !== 'archdruid' ? (
           <Text>
             При броске инициативы, если использований «{WILD_SHAPE_NAME_RU}» не осталось, верни одно
             использование.

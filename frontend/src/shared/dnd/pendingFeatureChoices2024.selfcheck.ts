@@ -82,6 +82,25 @@ const epicLedger: AppliedClassAsi = {
 assert.equal(steps(19, { hasSubclass: true, classAsi: [epicLedger] }).length, 0)
 assert.deepEqual(steps(16, { hasSubclass: true }).map((s) => s.kind), ['asi'])
 
+
+// druid: known forms step (Доправка 1)
+{
+  const druidSteps = (count: number | undefined, level: number) =>
+    buildPendingWizardSteps2024({
+      classEntryId: 'druid-1',
+      className: 'Друид',
+      classSlug: 'druid',
+      classLevel: level,
+      hasSubclass: true,
+      classAsi: [],
+      knownFormsCount: count,
+    }).filter((step) => step.kind === 'known_forms')
+  assert.equal(druidSteps(1, 2).length, 1)
+  assert.equal(druidSteps(4, 2).length, 0)
+  assert.equal(druidSteps(undefined, 2).length, 0)
+  assert.equal(druidSteps(0, 1).length, 0)
+}
+
 // unknown class → nothing
 assert.equal(
   buildPendingWizardSteps2024({

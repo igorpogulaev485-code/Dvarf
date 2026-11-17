@@ -99,6 +99,16 @@ export type GuidedWizardStep =
       classLevel: number
       picksNeeded: number
     }
+  | {
+      id: string
+      kind: 'known_forms'
+      classEntryId: string
+      className: string
+      classLevel: number
+      /** Wild Shape known-form budget at this druid level (2024). */
+      budget: number
+      subclassSlug: string | null
+    }
 
 export function backgroundWizardStep(): GuidedWizardStep {
   return {

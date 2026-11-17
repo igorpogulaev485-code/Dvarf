@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useState } from 'react'
-import { listCatalogEntries, type CatalogEntry } from '../../shared/api/catalog'
-import { parseBestiaryData } from '../../shared/dnd/bestiaryCatalog'
+import { listCatalogEntries } from '../../shared/api/catalog'
 import { getFeaturePick, setFeaturePick, type FeaturePicksState } from '../../shared/dnd/featurePicks'
 import {
   ELEMENTAL_FURY_PRIMAL_STRIKE,
   isBeastFormAllowed2024,
+  isCountedKnownForm2024,
   primalStrikeAttackRiderRu2024,
   readElementalFury2024,
   WILD_SHAPE_EQUIPMENT_2024,
@@ -13,7 +13,7 @@ import {
   type WildShapeEquipment2024,
 } from '../../shared/dnd/druid2024Features'
 import { SYMBIOTIC_ACTIVE_PREFIX } from './featureCombatBonuses'
-import { bestiaryDataToPick } from './bestiaryCompanionStats'
+import { catalogEntryToBeastPick, KnownFormsPicker } from './KnownFormsPicker'
 import type { UnlockedFeature } from '../../shared/dnd/classFeatures'
 import type { SheetResource } from '../../shared/dnd/rest'
 import { Button, Dialog, Field, Input, Stack, Text } from '../../ui'
@@ -72,18 +72,9 @@ type WildShapeDialogProps = {
   /** 2024: Wisdom modifier (Circle of the Moon AC = max(beast AC, 13 + Wis)). */
   wisMod?: number
   featurePicks?: FeaturePicksState
+  /** 2024: learn known forms from the dialog (existing sheets that never picked them). */
+  onKnownFormsChange?: (forms: KnownForm[]) => void
   onConfirm: (result: WildShapeDialogResult) => void
-}
-
-function catalogToPick(entry: CatalogEntry): BestiaryFormPick | null {
-  const data = parseBestiaryData(entry.data)
-  if (!data) return null
-  return bestiaryDataToPick({
-    slug: entry.slug,
-    name_ru: entry.name_ru,
-    catalog_id: entry.id,
-    data,
-  })
 }
 
 function knownToPick(form: KnownForm): BestiaryFormPick | null {
@@ -119,14 +110,14 @@ export function WildShapeDialog({
   edition,
   wisMod = 0,
   featurePicks,
+  onKnownFormsChange,
   onConfirm,
 }: WildShapeDialogProps) {
   const is2024 = edition === '2024'
   const [step, setStep] = useState<
-    'fork' | 'beast' | 'familiar' | 'starry' | 'elemental' | 'replace' | 'equipment'
+    'fork' | 'beast' | 'familiar' | 'starry' | 'elemental' | 'learn' | 'equipment'
   >('fork')
   const [pendingBeast, setPendingBeast] = useState<BestiaryFormPick | null>(null)
-  const [replaceFormId, setReplaceFormId] = useState<string | null>(null)
   const [query, setQuery] = useState('')
   const [catalogPicks, setCatalogPicks] = useState<BestiaryFormPick[]>([])
   const [catalogError, setCatalogError] = useState<string | null>(null)
@@ -145,7 +136,7 @@ export function WildShapeDialog({
 
   const budget2024 = limits.knownForms ?? 0
   const knownBeasts2024 = useMemo(
-    () => knownForms.filter((row) => !row.tags.includes('elemental')),
+    () => knownForms.filter(isCountedKnownForm2024),
     [knownForms],
   )
 
@@ -172,8 +163,8 @@ export function WildShapeDialog({
         resources,
         classSlug,
         classEntryId,
-      }),
-    [features, resources, classSlug, classEntryId],
+      }).filter((row) => !(is2024 && row.id === 'wild_companion')),
+    [features, resources, classSlug, classEntryId, is2024],
   )
 
   const elementalPreview = useMemo(() => {
@@ -189,7 +180,6 @@ export function WildShapeDialog({
       setStep('fork')
       setQuery('')
       setPendingBeast(null)
-      setReplaceFormId(null)
       return
     }
     const saved = featurePicks
@@ -209,7 +199,7 @@ export function WildShapeDialog({
       .then((entries) => {
         if (cancelled) return
         const picks = entries
-          .map(catalogToPick)
+          .map(catalogEntryToBeastPick)
           .filter((p): p is BestiaryFormPick => Boolean(p))
         setCatalogPicks(picks)
       })
@@ -339,18 +329,8 @@ export function WildShapeDialog({
     }
   }
 
-  function isKnownBeast(pick: BestiaryFormPick): boolean {
-    return knownForms.some(
-      (row) =>
-        (row.bestiary_slug && row.bestiary_slug === pick.slug) ||
-        (pick.catalog_id && row.bestiary_ref === pick.catalog_id),
-    )
-  }
-
   function confirmBeast2024(pick: BestiaryFormPick, equipment: WildShapeEquipment2024) {
-    const base = replaceFormId
-      ? knownForms.filter((row) => row.id !== replaceFormId)
-      : knownForms
+    const base = knownForms
     const tempHp = limits.tempHp ?? 0
     const equipNote =
       WILD_SHAPE_EQUIPMENT_2024.find((row) => row.id === equipment)?.noteRu ?? ''
@@ -391,12 +371,7 @@ export function WildShapeDialog({
   function confirmBeast(pick: BestiaryFormPick) {
     if (is2024) {
       setPendingBeast(pick)
-      setReplaceFormId(null)
-      if (!isKnownBeast(pick) && budget2024 > 0 && knownBeasts2024.length >= budget2024) {
-        setStep('replace')
-      } else {
-        setStep('equipment')
-      }
+      setStep('equipment')
       return
     }
     spendAnd('Дикий облик', 1, () => {
@@ -503,8 +478,8 @@ export function WildShapeDialog({
           ? 'Дикий спутник — выбери форму'
           : step === 'starry'
             ? 'Звёздная форма'
-            : step === 'replace'
-              ? 'Заменить известный облик'
+            : step === 'learn'
+              ? 'Известные облики'
               : step === 'equipment'
                 ? 'Снаряжение в облике'
                 : 'Элементальный облик'
@@ -517,7 +492,7 @@ export function WildShapeDialog({
       secondaryLabel={step === 'fork' ? 'Отмена' : 'Назад'}
       onSecondary={() => {
         if (step === 'fork') onClose()
-        else if (step === 'replace' || step === 'equipment') setStep('beast')
+        else if (step === 'equipment' || step === 'learn') setStep('beast')
         else setStep('fork')
       }}
       primaryLabel={
@@ -528,7 +503,7 @@ export function WildShapeDialog({
             : 'Закрыть'
       }
       primaryDisabled={
-        step === 'beast' || step === 'familiar' || step === 'replace' || step === 'equipment'
+        step === 'beast' || step === 'familiar' || step === 'equipment'
       }
       onPrimary={() => {
         if (step === 'starry') confirmStarry()
@@ -569,8 +544,9 @@ export function WildShapeDialog({
               ))}
             </Stack>
             <Text tone="muted">
-              Альтернативы кругов видны, если архетип разблокировал умение. Дикий спутник
-              (TCE) — на этой же развилке.
+              {is2024
+                ? 'Дикий спутник — отдельная кнопка на карточке умения (облик или ячейка).'
+                : 'Альтернативы кругов видны, если архетип разблокировал умение. Дикий спутник (TCE) — на этой же развилке.'}
             </Text>
           </>
         ) : null}
@@ -607,85 +583,101 @@ export function WildShapeDialog({
         ) : null}
 
         {step === 'beast' ? (
-          <>
-            {is2024 ? (
+          is2024 ? (
+            <>
               <Text tone="muted">
-                Известные облики: {knownBeasts2024.length}/{budget2024}. Новый облик из бестиария
-                {knownBeasts2024.length >= budget2024
-                  ? ' заменит один из известных.'
-                  : ' пополнит список известных.'}{' '}
-                Хиты зверя не используются.
+                Известные облики: {knownBeasts2024.length}/{budget2024}. Войти в Дикий облик можно
+                только в известную форму. Хиты зверя не используются.
               </Text>
-            ) : null}
-            <Field label="Поиск">
-              <Input
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="волк, медведь…"
-              />
-            </Field>
-            {loading ? <Text tone="muted">Загрузка бестиария…</Text> : null}
-            {catalogError ? <Text tone="danger">{catalogError}</Text> : null}
-            {!loading && filteredBeasts.length === 0 && knownPicks.length === 0 ? (
-              <Text tone="muted">
-                Бестиарий пуст или нет зверей в лимите. После «Залей» B1 (MM) список появится.
-              </Text>
-            ) : null}
-            {knownPicks.length > 0 ? (
-              <Stack gap={6}>
-                <Text>Известные</Text>
-                {knownPicks.map((p) => (
-                  <Button
-                    key={`known-${p.slug}`}
-                    type="button"
-                    variant="secondary"
-                    onClick={() => confirmBeast(p)}
-                  >
-                    {p.name_ru} · CR {p.cr} · КД {p.ac} · хиты {p.hp}
-                  </Button>
-                ))}
-              </Stack>
-            ) : null}
-            {filteredBeasts.length > 0 ? (
-              <Stack gap={6}>
-                <Text>Бестиарий ({filteredBeasts.length})</Text>
-                {filteredBeasts.slice(0, 50).map((p) => (
-                  <Button
-                    key={p.slug}
-                    type="button"
-                    variant="secondary"
-                    onClick={() => confirmBeast(p)}
-                  >
-                    {p.name_ru} · CR {p.cr} · КД {p.ac} · хиты {p.hp}
-                    {(p.speed_fly ?? 0) > 0 ? ' · полёт' : ''}
-                    {(p.speed_swim ?? 0) > 0 ? ' · плав.' : ''}
-                  </Button>
-                ))}
-              </Stack>
-            ) : null}
-          </>
+              {knownPicks.length === 0 ? (
+                <Text tone="muted">
+                  {knownBeasts2024.length === 0
+                    ? 'Известных обликов пока нет — выбери их кнопкой ниже.'
+                    : 'Ни одна известная форма не проходит лимит твоего уровня.'}
+                </Text>
+              ) : (
+                <Stack gap={6}>
+                  {knownPicks.map((p) => (
+                    <Button
+                      key={`known-${p.slug}`}
+                      type="button"
+                      variant="secondary"
+                      onClick={() => confirmBeast(p)}
+                    >
+                      {p.name_ru} · CR {p.cr} · КД {p.ac}
+                      {(p.speed_fly ?? 0) > 0 ? ' · полёт' : ''}
+                      {(p.speed_swim ?? 0) > 0 ? ' · плав.' : ''}
+                    </Button>
+                  ))}
+                </Stack>
+              )}
+              {onKnownFormsChange && knownBeasts2024.length < budget2024 ? (
+                <Button type="button" variant="secondary" onClick={() => setStep('learn')}>
+                  Выбрать известные облики ({knownBeasts2024.length}/{budget2024})
+                </Button>
+              ) : null}
+            </>
+          ) : (
+            <>
+              <Field label="Поиск">
+                <Input
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder="волк, медведь…"
+                />
+              </Field>
+              {loading ? <Text tone="muted">Загрузка бестиария…</Text> : null}
+              {catalogError ? <Text tone="danger">{catalogError}</Text> : null}
+              {!loading && filteredBeasts.length === 0 && knownPicks.length === 0 ? (
+                <Text tone="muted">
+                  Бестиарий пуст или нет зверей в лимите. После «Залей» B1 (MM) список появится.
+                </Text>
+              ) : null}
+              {knownPicks.length > 0 ? (
+                <Stack gap={6}>
+                  <Text>Известные</Text>
+                  {knownPicks.map((p) => (
+                    <Button
+                      key={`known-${p.slug}`}
+                      type="button"
+                      variant="secondary"
+                      onClick={() => confirmBeast(p)}
+                    >
+                      {p.name_ru} · CR {p.cr} · КД {p.ac} · хиты {p.hp}
+                    </Button>
+                  ))}
+                </Stack>
+              ) : null}
+              {filteredBeasts.length > 0 ? (
+                <Stack gap={6}>
+                  <Text>Бестиарий ({filteredBeasts.length})</Text>
+                  {filteredBeasts.slice(0, 50).map((p) => (
+                    <Button
+                      key={p.slug}
+                      type="button"
+                      variant="secondary"
+                      onClick={() => confirmBeast(p)}
+                    >
+                      {p.name_ru} · CR {p.cr} · КД {p.ac} · хиты {p.hp}
+                      {(p.speed_fly ?? 0) > 0 ? ' · полёт' : ''}
+                      {(p.speed_swim ?? 0) > 0 ? ' · плав.' : ''}
+                    </Button>
+                  ))}
+                </Stack>
+              ) : null}
+            </>
+          )
         ) : null}
 
-        {step === 'replace' && pendingBeast ? (
-          <>
-            <Text tone="muted">
-              Список известных обликов полон ({knownBeasts2024.length}/{budget2024}). Выбери облик,
-              который забудешь ради «{pendingBeast.name_ru}».
-            </Text>
-            {knownBeasts2024.map((row) => (
-              <Button
-                key={row.id}
-                type="button"
-                variant="secondary"
-                onClick={() => {
-                  setReplaceFormId(row.id)
-                  setStep('equipment')
-                }}
-              >
-                Забыть: {row.name_ru} · CR {row.cr}
-              </Button>
-            ))}
-          </>
+        {step === 'learn' && onKnownFormsChange ? (
+          <KnownFormsPicker
+            druidLevel={druidLevel}
+            subclassSlug={subclassSlug}
+            budget={budget2024}
+            forms={knownForms}
+            lockedIds={knownForms.map((row) => row.id)}
+            onChange={onKnownFormsChange}
+          />
         ) : null}
 
         {step === 'equipment' && pendingBeast ? (

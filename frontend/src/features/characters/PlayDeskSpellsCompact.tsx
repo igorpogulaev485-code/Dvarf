@@ -62,6 +62,7 @@ import {
 } from '../../shared/dnd/spells'
 import type { RulesEdition } from '../../shared/api/characters'
 import { type BonusLine, withSpellCastBonuses } from './modifiers'
+import { potentSpellcastingRangeText2024 } from '../../shared/dnd/druid2024Features'
 import {
   applyPotentSpellcastingToDamage2024,
   isPotentSpellcastingCantrip2024,
@@ -105,6 +106,8 @@ type PlayDeskSpellsCompactProps = {
   potentSpellcastingBonus?: number
   /** Class holding Potent Spellcasting (cleric by default, druid for Elemental Fury). */
   potentSpellcastingClass?: 'cleric' | 'druid'
+  /** 2024 Druid L15 Potent Spellcasting: +ft to druid cantrip range (0 = off). */
+  potentSpellcastingRangeBonusFt?: number
   /** 2024 Illusionist: show Improved Illusions range on the spell card. */
   improvedIllusions?: boolean
   pinned?: boolean
@@ -161,6 +164,7 @@ export function PlayDeskSpellsCompact({
   warlockLevel,
   potentSpellcastingBonus = 0,
   potentSpellcastingClass = 'cleric',
+  potentSpellcastingRangeBonusFt = 0,
   improvedIllusions = false,
   pinned = false,
   concentration = null,
@@ -774,6 +778,7 @@ export function PlayDeskSpellsCompact({
                           edition={edition}
                           potentSpellcastingBonus={potentSpellcastingBonus}
                           potentSpellcastingClass={potentSpellcastingClass}
+                          potentSpellcastingRangeBonusFt={potentSpellcastingRangeBonusFt}
                           learnMode={learnMode}
                           hasSpellbook={hasSpellbook}
                           activeConcentration={isActiveConc}
@@ -1000,6 +1005,7 @@ function compactSpellMeta(
     knownInvocationIds?: string[]
     warlockLevel?: number
     edition?: string | null
+    potentRangeBonusFt?: number
   },
 ): string {
   const parts: string[] = []
@@ -1020,10 +1026,21 @@ function compactSpellMeta(
         rulesEdition: '2024',
       })
     : null
+  const baseRange = rules.range || spell.range
+  const potentRangeFt =
+    opts?.potentRangeBonusFt &&
+    spearFt == null &&
+    isPotentSpellcastingCantrip2024({ level: rules.level, class_slug: spell.class_slug }, 'druid')
+      ? opts.potentRangeBonusFt
+      : 0
   const range =
     spearFt != null
       ? formatEldritchSpearRangeRu(spearFt)
-      : shortRange(rules.range || spell.range)
+      : shortRange(
+          potentRangeFt > 0
+            ? potentSpellcastingRangeText2024(baseRange, potentRangeFt, true)
+            : baseRange,
+        )
   parts.push(range || '—')
   const atk = (rules.attack_or_save || spell.attack_or_save)?.trim()
   parts.push(atk && atk !== '—' ? atk : '—')
@@ -1059,9 +1076,11 @@ function SpellRow({
   onToggleMeta,
   potentSpellcastingBonus = 0,
   potentSpellcastingClass = 'cleric',
+  potentSpellcastingRangeBonusFt = 0,
 }: {
   potentSpellcastingBonus?: number
   potentSpellcastingClass?: 'cleric' | 'druid'
+  potentSpellcastingRangeBonusFt?: number
   spell: SheetSpell
   characterLevel: number
   affinity?: { damageType: string; amount: number } | null
@@ -1102,6 +1121,7 @@ function SpellRow({
     knownInvocationIds,
     warlockLevel,
     edition,
+    potentRangeBonusFt: potentSpellcastingRangeBonusFt,
   })
   const modStats = resolveSpellCastStats({
     spell,

@@ -83,7 +83,8 @@ import {
   coverBonusBeyondEffects,
   hasFortifiedHalfCover,
 } from '../../../shared/dnd/o08ActionsCoverConditions'
-import { beastPhysicalOverlay } from '../wildShape'
+import { activeBeastWildShape, beastPhysicalOverlay } from '../wildShape'
+import { moonConSaveBonusInForm2024 } from '../../../shared/dnd/druid2024Features'
 import { syncPactBladeAttack } from '../pactBladeAttack'
 import { syncRangerConclaveSpells } from '../rangerConclaveSpells'
 import { syncPrimalAwarenessSpells } from '../primalAwarenessSpells'
@@ -836,8 +837,24 @@ export function useSheetEditorPart3(model: SheetModel) {
       const n = abilitySaveBonus(key, model.draft.modifiers, formulaVarsBase)
       if (n) out[key] = n
     }
+    const moonCon = moonConSaveBonusInForm2024({
+      rulesEdition: model.rulesEdition,
+      druidLevel: model.druidLevel,
+      subclassSlug: model.druidSubclassSlug,
+      wisMod: abilityModifier(effectiveAbilities.wis),
+      inBeastForm: activeBeastWildShape(model.draft.companions) != null,
+    })
+    if (moonCon) out.con = (out.con ?? 0) + moonCon
     return out
-  }, [model.draft.modifiers, formulaVarsBase])
+  }, [
+    model.draft.modifiers,
+    formulaVarsBase,
+    model.rulesEdition,
+    model.druidLevel,
+    model.druidSubclassSlug,
+    model.draft.companions,
+    effectiveAbilities.wis,
+  ])
   model.abilitySaveExtras = abilitySaveExtras
 
   const armorClass = useMemo(() => {

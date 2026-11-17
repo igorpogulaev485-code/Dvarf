@@ -51,7 +51,7 @@ import { isFindFamiliarSpell } from '../familiarForms'
 import { isFindSteedSpellSlug } from '../steedCompanions'
 import { resolveSpellNaparnikSlug } from '../spellCompanions'
 import type { WildShapeForkRequest } from '../ClassFeaturesPanel'
-import { healSelfForm, rollDice, starryFormDice } from '../wildShape'
+import { activeBeastWildShape, healSelfForm, rollDice, starryFormDice } from '../wildShape'
 import { TextBlocksPanel } from '../TextBlocksPanel'
 import { PlayDeskAttacksCompact } from '../PlayDeskAttacksCompact'
 import { formatCheckRoll, rollCheck } from '../deskRolls'
@@ -118,7 +118,13 @@ import {
   wizard2024Flags,
 } from '../../../shared/dnd/wizard2024Features'
 import { getFeaturePick } from '../../../shared/dnd/featurePicks'
-import { potentSpellcastingForSheet2024 } from '../../../shared/dnd/druid2024Features'
+import {
+  DRUID_SUBCLASS_SLUGS_2024,
+  formAttackRiders2024,
+  moonImprovedFormsActive2024,
+  potentSpellcastingForSheet2024,
+  readElementalFury2024,
+} from '../../../shared/dnd/druid2024Features'
 import { elementalAffinityPreview } from '../../../shared/dnd/pack04SorcererWarlock'
 import { collectWarlockInvocationIds } from '../../../shared/dnd/o06StylesBreathInvocations'
 import { totalCharacterLevel } from '../../../shared/dnd/classLevels'
@@ -323,6 +329,25 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
             inventoryItems={model.draft.inventory.items}
             favoriteConsumableIds={model.draft.sheetUi.combatConsumableFavoriteIds}
             combatFeatures={model.playActiveFeatures}
+            wildShapeFormAttacks={
+              model.rulesEdition === '2024' &&
+              model.druidClassRow &&
+              activeBeastWildShape(model.draft.companions)
+                ? formAttackRiders2024({
+                    druidLevel: model.druidLevel,
+                    elementalFury: readElementalFury2024(
+                      model.draft.featurePicks,
+                      model.druidClassRow.id,
+                      model.draft.classOptions2024,
+                    ),
+                    moonImproved: moonImprovedFormsActive2024({
+                      rulesEdition: model.rulesEdition,
+                      druidLevel: model.druidLevel,
+                      subclassSlug: model.druidSubclassSlug,
+                    }),
+                  })
+                : null
+            }
             onFeatureBuffApply={(input) => {
               const b04 = resolveB04FeatureSpend({
                 featureId: input.featureId,
@@ -1653,6 +1678,7 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
             }
             potentSpellcastingBonus={potentSheet.bonus}
             potentSpellcastingClass={potentSheet.classSlug}
+            potentSpellcastingRangeBonusFt={potentSheet.rangeBonusFt}
             improvedIllusions={
               model.rulesEdition === '2024' &&
               wizard2024Flags(
@@ -1790,6 +1816,12 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
           onKnownFormsChange={(knownForms) =>
             model.setDraft((prev) => ({ ...prev, knownForms }))
           }
+          extraCantripsBySlug={model.primalOrderExtraCantrips}
+          moonFormSpells={
+            model.rulesEdition === '2024' &&
+            model.druidSubclassSlug === DRUID_SUBCLASS_SLUGS_2024.moon &&
+            model.druidLevel >= 3
+          }
           hostHp={model.draft.hpCurrent}
           hostHpMax={model.draft.hpMax}
           abilities={model.effectiveAbilities}
@@ -1864,6 +1896,7 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
       <div className="play-desk__stage-panel" hidden={model.stageHidden('companions')}>
       {/* Companions: CompanionsPanel glance→expand — no compact/full flip. */}
       <CompanionsPanel
+        rulesEdition={model.rulesEdition}
         companions={model.draft.companions}
         onChange={(companions) => model.setDraft((prev) => ({ ...prev, companions }))}
         focusCompanionId={model.focusCompanionId}

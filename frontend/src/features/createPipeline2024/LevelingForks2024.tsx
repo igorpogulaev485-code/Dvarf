@@ -44,12 +44,16 @@ import {
   type LandTerrain2024,
   ELEMENTAL_FURY_MIN_LEVEL_2024,
   ELEMENTAL_FURY_NAME_RU,
+  knownFormsBudget2024,
+  WILD_SHAPE_MIN_LEVEL_2024,
   ELEMENTAL_FURY_POTENT_SPELLCASTING,
   ELEMENTAL_FURY_PRIMAL_STRIKE,
   POTENT_SPELLCASTING_NAME_RU as DRUID_POTENT_SPELLCASTING_NAME_RU,
   PRIMAL_STRIKE_NAME_RU,
   type ElementalFuryPick2024,
 } from '../../shared/dnd/druid2024Features'
+import { KnownFormsPicker } from '../characters/KnownFormsPicker'
+import type { KnownForm } from '../characters/knownForms'
 import { hitDieForClass, type AbilityScores } from '../../shared/dnd/multiclassRules'
 import { hitDieSides, type HitDie } from '../../shared/dnd/hitDice'
 import { WEAPON_MASTERY_CLASS_RULES } from '../../shared/dnd/weaponMastery'
@@ -106,6 +110,9 @@ export type LevelingForks2024Props = {
   /** Druid 2024 Circle of the Land terrain (required from druid level 3 with the Land subclass). */
   landChoicePick?: LandTerrain2024 | null
   onLandChoiceChange?: (pick: LandTerrain2024) => void
+  /** Druid 2024 Wild Shape known forms (required from druid level 2). */
+  knownFormsPick?: KnownForm[]
+  onKnownFormsChange?: (forms: KnownForm[]) => void
 }
 
 function averageFace(die: HitDie): number {
@@ -143,6 +150,8 @@ export function LevelingForks2024({
   onElementalFuryChange,
   landChoicePick = null,
   onLandChoiceChange,
+  knownFormsPick = [],
+  onKnownFormsChange,
 }: LevelingForks2024Props) {
   const [mcOpen, setMcOpen] = useState(false)
   const [cascadeWarn, setCascadeWarn] = useState<{
@@ -749,6 +758,22 @@ export function LevelingForks2024({
                   {!landChoicePick ? (
                     <Text tone="muted">Не выбрано — выберите, чтобы продолжить.</Text>
                   ) : null}
+                </Stack>
+              </div>
+            ) : null}
+            {slug === 'druid' && isPrimary && row.level >= WILD_SHAPE_MIN_LEVEL_2024 ? (
+              <div data-testid="p24-m02-known-forms-pick">
+                <Stack gap={8}>
+                  <Text as="h3" className="create-pipeline__section-title">
+                    Известные облики Дикого облика — обязательный выбор
+                  </Text>
+                  <KnownFormsPicker
+                    druidLevel={row.level}
+                    subclassSlug={subclassByEntryId[row.id]}
+                    budget={knownFormsBudget2024(row.level)}
+                    forms={knownFormsPick}
+                    onChange={(forms) => onKnownFormsChange?.(forms)}
+                  />
                 </Stack>
               </div>
             ) : null}

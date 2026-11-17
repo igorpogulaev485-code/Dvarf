@@ -57,6 +57,8 @@ export type Create2024State = {
     elemental_fury?: 'potent_spellcasting' | 'primal_strike' | null
     /** Druid 2024 Круг земли (3+): arid | polar | temperate | tropical. */
     land_choice?: 'arid' | 'polar' | 'temperate' | 'tropical' | null
+    /** Druid 2024 L2+ Wild Shape known forms (`KnownForm[]`); written to `sheet.known_forms`. */
+    known_forms?: unknown[]
   }
   /** Class tool proficiencies the player chooses (bard instruments, monk, artificer). */
   classToolIds: string[]

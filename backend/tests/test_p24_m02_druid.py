@@ -435,3 +435,28 @@ def test_sea_wrath_shared_option():
     opts = {o.feature_id: o for o in sub24.shared_options_for_subclass("druid__sea", 3)}
     assert "wrath-of-the-sea" in opts
     assert opts["wrath-of-the-sea"].spend_pool == "wild_shape"
+
+
+def _known_form(slug: str, cr: str = "1/4", **extra):
+    return {"bestiary_slug": slug, "name_ru": slug.title(), "cr": cr, **extra}
+
+
+def test_known_forms_budget():
+    assert create24.known_forms_budget_2024(1) == 0
+    assert create24.known_forms_budget_2024(2) == 4
+    assert create24.known_forms_budget_2024(4) == 6
+    assert create24.known_forms_budget_2024(8) == 8
+
+
+def test_known_forms_validation():
+    ok = create24._validate_known_forms([_known_form("wolf"), _known_form("cat")], 2)
+    assert [row["bestiary_slug"] for row in ok] == ["wolf", "cat"]
+    assert create24._validate_known_forms(None, 2) == []
+    with pytest.raises(create24.Create2024Error):
+        create24._validate_known_forms([_known_form("wolf"), _known_form("wolf")], 2)
+    with pytest.raises(create24.Create2024Error):
+        create24._validate_known_forms([_known_form(f"b{i}") for i in range(5)], 2)
+    with pytest.raises(create24.Create2024Error):
+        create24._validate_known_forms([_known_form("wolf")], 1)
+    with pytest.raises(create24.Create2024Error):
+        create24._validate_known_forms([_known_form("t-rex", cr="8")], 2)

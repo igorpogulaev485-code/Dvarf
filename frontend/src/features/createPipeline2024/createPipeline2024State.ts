@@ -12,7 +12,13 @@ import {
 } from '../../shared/dnd/weaponMastery'
 import { ELDRITCH_INVOCATIONS_2024 } from '../../shared/dnd/edition2024ClassOptions'
 import { SKILL_DEFS } from '../characters/sheetTypes'
-import { DRUID_SUBCLASS_SLUGS_2024, LAND_TERRAINS_2024 } from '../../shared/dnd/druid2024Features'
+import {
+  DRUID_SUBCLASS_SLUGS_2024,
+  isCountedKnownForm2024,
+  knownFormsBudget2024,
+  LAND_TERRAINS_2024,
+} from '../../shared/dnd/druid2024Features'
+import { readKnownForms } from '../characters/knownForms'
 import type { CatalogEntry } from '../../shared/api/catalog'
 import {
   ARTISAN_TOOL_IDS,
@@ -510,6 +516,15 @@ function levelingIssues(state: Create2024State, ctx: StepIssueCtx): string[] {
       pick !== 'primal_strike'
     ) {
       issues.push('Выберите Ярость стихий (с 7 ур. друида)')
+    }
+    const formsBudget = knownFormsBudget2024(druidLevel)
+    if (formsBudget > 0) {
+      const picked = readKnownForms(state.classOptionPicks.known_forms).filter(
+        isCountedKnownForm2024,
+      ).length
+      if (picked !== formsBudget) {
+        issues.push(`Известные облики Дикого облика: выбрано ${picked} из ${formsBudget}`)
+      }
     }
     const subclass = (primary && state.subclassByEntryId[primary.id]) || state.subclassSlug || ''
     if (druidLevel >= 3 && subclass === DRUID_SUBCLASS_SLUGS_2024.land) {

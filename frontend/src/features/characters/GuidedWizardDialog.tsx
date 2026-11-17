@@ -74,6 +74,9 @@ import {
   unlearnInfusionPick,
 } from '../../shared/dnd/infusionsActive'
 import type { GuidedWizardStep } from '../../shared/dnd/pendingFeatureChoices'
+import { isCountedKnownForm2024 } from '../../shared/dnd/druid2024Features'
+import { KnownFormsPicker } from './KnownFormsPicker'
+import type { KnownForm } from './knownForms'
 import type { RulesEdition } from '../../shared/api/characters'
 import { listCatalogEntries, type CatalogEntry } from '../../shared/api/catalog'
 import {
@@ -177,6 +180,9 @@ type GuidedWizardDialogProps = {
   onConfirmSpellbookPicks?: (entries: CatalogEntry[]) => void
   classOptions2024?: ClassOptions2024State
   onClassOptions2024Change?: (next: ClassOptions2024State) => void
+  /** 2024 druid: Wild Shape known forms (`known_forms`) for the `known_forms` step. */
+  knownForms?: KnownForm[]
+  onKnownFormsChange?: (forms: KnownForm[]) => void
 }
 
 function skillLabel(key: string): string {
@@ -836,6 +842,8 @@ export function GuidedWizardDialog({
   onConfirmSpellbookPicks,
   classOptions2024,
   onClassOptions2024Change,
+  knownForms,
+  onKnownFormsChange,
 }: GuidedWizardDialogProps) {
   const step = session?.steps[session.index] ?? null
   const total = session?.steps.length ?? 0
@@ -978,6 +986,10 @@ export function GuidedWizardDialog({
     step?.kind === 'invocation_picks' &&
     invocationCount >= Math.min(step.picksNeeded, invocationLimit)
 
+  const knownFormsCount =
+    step?.kind === 'known_forms' ? (knownForms ?? []).filter(isCountedKnownForm2024).length : 0
+  const knownFormsReady = step?.kind === 'known_forms' && knownFormsCount >= step.budget
+
   const primaryDisabled =
     step?.kind === 'class_grant'
       ? !grantReady
@@ -997,7 +1009,9 @@ export function GuidedWizardDialog({
                     ? !metamagicReady
                     : step?.kind === 'invocation_picks'
                       ? !invocationReady
-                      : false
+                      : step?.kind === 'known_forms'
+                        ? !knownFormsReady
+                        : false
 
   const title = !step
     ? 'Настройка персонажа'
@@ -1019,7 +1033,9 @@ export function GuidedWizardDialog({
                     ? `Метамагия · ${step.className} ${step.classLevel}`
                     : step.kind === 'invocation_picks'
                       ? `Воззвания · ${step.className} ${step.classLevel}`
-                      : step.kind === 'feature_choice'
+                      : step.kind === 'known_forms'
+                        ? `Известные облики · ${step.className} ${step.classLevel}`
+                        : step.kind === 'feature_choice'
                         ? `${step.choice.label_ru} · ${step.className}`
                         : 'Настройка персонажа'
 
@@ -1154,6 +1170,16 @@ export function GuidedWizardDialog({
         return
       }
       onToast?.('Воззвания: готово')
+      onAdvance(index + 1)
+      return
+    }
+
+    if (step.kind === 'known_forms') {
+      if (!knownFormsReady) {
+        onToast?.(`Выбери ещё ${Math.max(0, step.budget - knownFormsCount)} известных обликов`)
+        return
+      }
+      onToast?.('Известные облики: готово')
       onAdvance(index + 1)
     }
   }
@@ -1451,6 +1477,22 @@ export function GuidedWizardDialog({
                 )
               })}
             </div>
+          </Stack>
+        ) : null}
+        {step.kind === 'known_forms' ? (
+          <Stack gap={12}>
+            <Text tone="muted">
+              Дикий облик · {step.className} {step.classLevel}: выбери известные облики
+              ({knownFormsCount}/{step.budget}).
+            </Text>
+            <KnownFormsPicker
+              druidLevel={step.classLevel}
+              subclassSlug={step.subclassSlug}
+              budget={step.budget}
+              forms={knownForms ?? []}
+              onChange={(forms) => onKnownFormsChange?.(forms)}
+              onToast={onToast}
+            />
           </Stack>
         ) : null}
         {step.kind === 'pact_tome_cantrips' ? (

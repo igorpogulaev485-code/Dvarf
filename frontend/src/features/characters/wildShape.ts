@@ -472,22 +472,33 @@ export function wildShapeCastBlock(input: {
   classes: Array<{ name: string; level: number }>
   classSlug?: string | null
   material?: string | null
+  /** 2024 Circle of the Moon: an always-prepared circle spell may be cast in Wild Shape. */
+  moonCircleSpell?: boolean
 }): string | null {
   if (!activeBeastWildShape(input.companions)) return null
   const level = druidLevelFromClasses(input.classes)
   if (level <= 0) return null
   const slug = (input.classSlug || '').toLowerCase()
   const druidSpell = slug === '' || slug === 'druid'
-  if (level < 18 || !druidSpell) {
+  const moonCircle = Boolean(input.moonCircleSpell)
+  if (!moonCircle && (level < 18 || !druidSpell)) {
     return 'В Диком облике нельзя накладывать заклинания до «Звериных заклинаний» (18). Форма не сброшена, ячейка не списана.'
   }
   const material = input.material?.trim() || ''
   if (!material) return null
-  if (level >= 20 && !materialHasGpCost(material)) return null
+  const costly = materialHasGpCost(material)
+  if (level >= 20 && !costly) return null
   if (level >= 20) {
     return 'Архидруид не отменяет материальный компонент с указанной ценой. Каст не выполнен.'
   }
-  return 'Заклинания зверя: в облике нельзя предоставить материальный компонент. Каст не выполнен.'
+  if (moonCircle && level < 18) {
+    return costly
+      ? 'Круг луны: в облике нельзя предоставить дорогой материальный компонент. Каст не выполнен.'
+      : 'Круг луны: в облике нельзя предоставить материальный компонент. Каст не выполнен.'
+  }
+  return costly
+    ? 'Заклинания зверя: в облике нельзя предоставить дорогой материальный компонент. Каст не выполнен.'
+    : 'Заклинания зверя: в облике нельзя предоставить материальный компонент. Каст не выполнен.'
 }
 
 function dismissActiveSelfForm(companions: CompanionEntry[]): CompanionEntry[] {
