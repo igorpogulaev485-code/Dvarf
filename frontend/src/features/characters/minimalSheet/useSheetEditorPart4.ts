@@ -24,7 +24,7 @@ import {
 } from '../consumableSpend'
 import { jumpDistances } from '../../../shared/dnd/jumpDistance'
 import { useSpellcastingSheetSync } from '../useSpellcastingSheetSync'
-import { getFeaturePickList } from '../../../shared/dnd/featurePicks'
+import { collectSorcererMetamagicIds } from '../../../shared/dnd/sorcererMetamagicIds'
 import { isPactChainActive } from '../pactChainEffects'
 import { isWarlockClassName } from '../pactTomeEffects'
 import { parseInfusionSlotsResourceId } from '../InfusionsActiveDialog'
@@ -59,7 +59,7 @@ import {
   type UnlockedFeature,
 } from '../../../shared/dnd/classFeatures'
 import { resolveSpellLearnBudgets } from '../../../shared/dnd/castProfiles'
-import { resolveClassCasterSlug, resolveSpellLearnBudget } from '../../../shared/dnd/casterProgression'
+import { resolveSpellLearnBudget } from '../../../shared/dnd/casterProgression'
 import { equippedArmorPieces } from '../inventory'
 import { type CastChoice } from '../CastSpellDialog'
 import { isCastableSpellScroll } from '../spellScroll'
@@ -1083,14 +1083,15 @@ export function useSheetEditorPart4(model: SheetModel) {
   })
   model.spellcastingSync = spellcastingSync
 
-  const sorcererMetamagicIds = useMemo(() => {
-    const ids: string[] = []
-    for (const row of model.draft.classes) {
-      if (resolveClassCasterSlug(row.name) !== 'sorcerer') continue
-      ids.push(...getFeaturePickList(model.draft.featurePicks, row.id, 'metamagic'))
-    }
-    return [...new Set(ids)]
-  }, [model.draft.classes, model.draft.featurePicks])
+  const sorcererMetamagicIds = useMemo(
+    () =>
+      collectSorcererMetamagicIds({
+        classes: model.draft.classes,
+        featurePicks: model.draft.featurePicks,
+        unlockedFeatures: model.unlockedFeatures,
+      }),
+    [model.draft.classes, model.draft.featurePicks, model.unlockedFeatures],
+  )
   model.sorcererMetamagicIds = sorcererMetamagicIds
 
   const sorceryResource =

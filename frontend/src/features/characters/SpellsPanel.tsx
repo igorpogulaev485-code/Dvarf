@@ -145,6 +145,8 @@ type SpellsPanelProps = {
   masterySpellIds?: string[]
   offerPowerSurge?: boolean
   voiceOfAuthority?: boolean
+  /** Known sorcerer metamagic option ids (MAG-01 cast dialog). */
+  metamagicIds?: string[]
   ritualBookLabel?: string | null
   onOpenRitualBook?: () => void
 }
@@ -181,6 +183,7 @@ export function SpellsPanel({
   masterySpellIds = [],
   offerPowerSurge = false,
   voiceOfAuthority = false,
+  metamagicIds = [],
   ritualBookLabel = null,
   onOpenRitualBook,
 }: SpellsPanelProps) {
@@ -1520,6 +1523,7 @@ export function SpellsPanel({
         }
         voiceOfAuthority={voiceOfAuthority}
         resources={resources}
+        metamagicIds={metamagicIds}
         abilities={abilities}
         proficiencyBonus={proficiencyBonus}
         castProfiles={castProfiles}
