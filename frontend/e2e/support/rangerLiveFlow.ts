@@ -206,13 +206,32 @@ export async function liveLevelUp(
   await shot(page, ARTIFACTS, `${shotName}-features`, project)
   await raise.getByRole('button', { name: /^Повысить$/ }).click()
   await expect(raise).toBeHidden({ timeout: 15_000 })
-  for (let i = 0; i < 8; i += 1) {
+  // Outstanding feature choices (e.g. «Ловкий исследователь») open after raise —
+  // pick a skill chip then Далее, or dismiss with Позже so the flow does not hang.
+  for (let i = 0; i < 12; i += 1) {
     const dlg = page.getByRole('dialog').last()
     if (!(await dlg.isVisible({ timeout: 2_500 }).catch(() => false))) break
+    const title = ((await dlg.locator('h2, h3, [role="heading"]').first().textContent()) || '').trim()
+    if (/Ловкий исследователь|Компетентность|Добыча|Оборонительн|Первичн|Иной блеск|Железный/i.test(title)) {
+      const chip = dlg.locator('[role="checkbox"], button.ui-chip, .create-2024__pick-grid button').first()
+      if (await chip.isVisible().catch(() => false)) {
+        await chip.click()
+        await page.waitForTimeout(200)
+      }
+    }
     const primary = dlg.getByRole('button', { name: /^Далее$|^Готово$/ })
-    if (await primary.isEnabled({ timeout: 2_000 }).catch(() => false)) await primary.click()
-    else break
-    await page.waitForTimeout(400)
+    if (await primary.isEnabled({ timeout: 1_500 }).catch(() => false)) {
+      await primary.click()
+      await page.waitForTimeout(400)
+      continue
+    }
+    const later = dlg.getByRole('button', { name: /^Позже$|^Пропустить$|^Закрыть$/ })
+    if (await later.isVisible().catch(() => false)) {
+      await later.click()
+      await page.waitForTimeout(300)
+      continue
+    }
+    break
   }
 }
 

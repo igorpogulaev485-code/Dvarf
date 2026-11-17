@@ -269,7 +269,7 @@ test.describe('P24-M02 ranger — druidic warrior + mark UI', () => {
 test.describe('P24-M02 ranger — level-up / level-down', () => {
   test.setTimeout(360_000)
 
-  test.fixme('levelup-live 4→5: Extra Attack', async ({ page }, testInfo) => {
+  test('levelup-live 4→5: Extra Attack', async ({ page }, testInfo) => {
     const project = projectOf(testInfo)
     const { store, sheet } = await createAt(page, project, {
       name: 'Прокачка 4→5',
@@ -286,7 +286,7 @@ test.describe('P24-M02 ranger — level-up / level-down', () => {
     await tallShot(page, ARTIFACTS, `${SHOT}-levelup-4to5-sheet-features`, project)
   })
 
-  test.fixme('levelup-live 10→11: Tireless already; upcoming subclass feature', async ({ page }, testInfo) => {
+  test('levelup-live 10→11: Tireless already; upcoming subclass feature', async ({ page }, testInfo) => {
     const project = projectOf(testInfo)
     const { store } = await createAt(page, project, {
       name: 'Прокачка 10→11',

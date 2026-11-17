@@ -99,7 +99,7 @@
 - pytest: `tests/test_p24_m02_ranger.py` — **39 passed**
 - `npm run build` — зелёный
 - Alembic: одна голова `p24m03pr01`
-- e2e: `npm run test:e2e:p24-m02-ranger` (1440 + 390); level-up 4→5 / 10→11 — `fixme` (hang диалога), кадры 1440 сохранены с прежних прогонов
+- e2e: `npm run test:e2e:p24-m02-ranger` (1440 + 390); level-up 4→5 / 10→11 — **зелёные** (диалог «Ловкий исследователь» добирается в `liveLevelUp`)
 - Регресс 2014 md5 **до = после** на 1440 и 390 (см. `regression-2014/*-md5-*.txt`)
 
 ## 4. Что не успел / сверить по сайту

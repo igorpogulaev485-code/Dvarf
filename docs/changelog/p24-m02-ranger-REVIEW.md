@@ -3,13 +3,9 @@
 Ветка: `cursor/edition-p24-m02-ranger` (поверх принятого паладина #512, точка «до» в REPORT: `9508fe86`). Tip пачки (продукт под ревью): `5f791033`. Проверяющий — **не автор**.
 ТЗ: `pack-P24-M02-common.md` + `pack-P24-M02-ranger.md` (блок **ИТОГОВЫЕ ИМЕНА** в конце TZ). Отчёт автора: [`p24-m02-ranger-REPORT.md`](./p24-m02-ranger-REPORT.md). PR не мержил, не деплоил, не закрывал.
 
-## Вердикт: **нужна доправка**
+## Вердикт: **принято**
 
-Один блокер по минимуму ТЗ: **живая прокачка 4→5 и 10→11** в e2e всё ещё `test.fixme` (hang диалога «Основное» / level-up), в этом проходе Playwright их **не гонял**. Остальное по чек-листу минимума выглядит собранным (pytest, create-at-1/5/11, откаты, регресс 2014, ключевые PNG, spot-check кода). После снятия `fixme` и пересъёмки live level-up — повторная приёмка.
-
-### Блокеры
-
-1. **Live прокачка 4→5 и 10→11** — `frontend/e2e/p24-m02-ranger-live.spec.ts`: оба теста `test.fixme`; ТЗ §доказательства требует живой UI прокачки. В артефактах лежат кадры `levelup-4to5-features-1440.png` (на PNG видна модал «Повышение уровня» и «Дополнительная атака»), но **независимый прогон e2e их не подтвердил**.
+Блокер live прокачки 4→5 / 10→11 снят: `liveLevelUp` добирает диалог «Ловкий исследователь» (чип → Далее / Позже). e2e `levelup-live` зелёный на **desktop-1440 и phone-390**; кадры `2024-ranger-levelup-{4to5,10to11}-*-{1440,390}.png` пересняты. Остальной чек-лист минимума ТЗ закрыт (pytest, create-at, откаты, регресс 2014 md5, ключевые PNG, spot-check). PR **не мержить и не деплоить** здесь; вливать после **#512**.
 
 ---
 
@@ -30,7 +26,7 @@
 | 11 | Gloom: без доп. атаки 2014 в 1-й ход | **ok** | pytest `test_gloom_stalker_dread_ambusher_not_2014_extra_attack`; REPORT согласован |
 | 12 | «Оружейное мастерство» 2024 (мастер + лист) | **ok** | PNG step3/create-at-1/5; e2e expect; `WEAPON_MASTERY_NAME_RU` |
 | 13 | Live откаты 20→19 / 11→10 / 3→2 | **ok** | e2e leveldown + Read before/after/sheet-after 1440; sheet L20→19 без «Истребитель врагов» |
-| 14 | Live прокачка 4→5 / 10→11 | **дыра** | e2e `test.fixme`; verifier **не** прогонял |
+| 14 | Live прокачка 4→5 / 10→11 | **ok** | `npm run test:e2e:p24-m02-ranger -- -g levelup-live` → **2 passed** на 1440 и на 390; PNG features + sheet-features |
 | 15 | PHB четыре в пикере; книжные не в пачке | **ok** | REPORT §книжные; pytest `test_phb_ranger_subclasses_present_and_named`, `test_out_of_pack_ranger_subclasses_not_in_phb_files` |
 | 16 | Повелитель зверей / спутник | **частично, не блокер** | REPORT §2: «Первичный спутник» частично; e2e create-at-5 beastmaster прошёл в полном наборе (в subset не гонял) |
 
