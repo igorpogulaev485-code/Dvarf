@@ -143,6 +143,42 @@ assert.equal(getFeaturePick(picks, ENTRY, bard.BARD_PREPARED_SWAP_PICK_ID_2024),
 const rebuilt = known.map((spell) => ({ ...spell, prepared: false }))
 assert.ok(step(rebuilt, 11).blockedRu)
 
+/* guard: one cantrip replacement per bard level */
+const cantripA = row('vicious-mockery', { level: 0, prepared: true })
+const cantripB = row('mage-hand', { level: 0, prepared: true })
+const cantripC = row('friends', { level: 0, prepared: true })
+let cantripKnown = [cantripA, cantripB, ...known.filter((s) => s.level > 0)]
+let cantripPicks = emptyFeaturePicks()
+const cantripStep = (next: SheetSpell[], level = 4) => {
+  const out = guardBardSpellsChange2024({
+    edition: '2024',
+    classes: [bardClass(level)],
+    prevSpells: spellsOf(cantripKnown),
+    nextSpells: spellsOf(next),
+    featurePicks: cantripPicks,
+  })
+  if (!out.blockedRu) {
+    cantripKnown = out.spells.known
+    cantripPicks = out.featurePicks
+  }
+  return out
+}
+assert.equal(
+  cantripStep(cantripKnown.filter((s) => s.id !== cantripA.id)).blockedRu,
+  null,
+  'first cantrip drop spends the level token',
+)
+assert.ok(getFeaturePick(cantripPicks, ENTRY, bard.BARD_CANTRIP_SWAP_PICK_ID_2024)?.startsWith('4:'))
+assert.ok(
+  cantripStep(cantripKnown.filter((s) => s.id !== cantripB.id)).blockedRu?.includes('уже использована'),
+  'second cantrip drop at same level blocked',
+)
+assert.equal(
+  cantripStep([...cantripKnown, cantripC], 4).blockedRu,
+  null,
+  'refill / new cantrip under column is free',
+)
+
 /* guard: 2014 and non-bard sheets are untouched */
 const free2014 = guardBardSpellsChange2024({
   edition: '2014',

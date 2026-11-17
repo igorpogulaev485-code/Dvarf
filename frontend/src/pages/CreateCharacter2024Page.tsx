@@ -1041,11 +1041,17 @@ export function CreateCharacter2024Page({
     )
     const cantrips = spellsByLevelForClass(catalogData.spells, 0, [classSlug])
     const bookPool = spellsUpToLevelForClass(catalogData.spells, maxBookCircle, [classSlug])
+    // Magical Secrets (bard 10+): prepared picker unions Bard + Wizard + Druid + Cleric
+    // (same extra lists as GrimoireDialog extraListSlugs).
+    const preparedListSlugs =
+      classSlug === 'bard' && wizardLevel >= 10
+        ? (['bard', 'wizard', 'druid', 'cleric'] as const)
+        : ([classSlug] as const)
     // Prepared casters (sorcerer 2024 etc.): same circle cap as slots — not L1-only.
     const preparedPool = spellsUpToLevelForClass(
       catalogData.spells,
       maxBookCircle,
-      [classSlug],
+      preparedListSlugs,
     )
     const wizardBook = usesSpellbook(classSlug)
     const bookSlugs = new Set(state.spellbookSpellIds)
@@ -1321,7 +1327,9 @@ export function CreateCharacter2024Page({
                         ? `. Книга: ≥6 первого круга, далее любой доступный · круги 1–${maxBookCircle}.`
                         : null}
                       {!wizardBook && tab === 'level1' && maxBookCircle > 0
-                        ? `. Подготовка из списка класса · круги 1–${maxBookCircle} (по ячейкам).`
+                        ? classSlug === 'bard' && wizardLevel >= 10
+                          ? `. Магические тайны: списки Барда, Волшебника, Друида, Жреца · круги 1–${maxBookCircle}.`
+                          : `. Подготовка из списка класса · круги 1–${maxBookCircle} (по ячейкам).`
                         : null}
                     </p>
                   </Stack>

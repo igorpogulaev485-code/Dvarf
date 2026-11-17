@@ -141,6 +141,14 @@ export const BARD_PREPARED_COLUMN_2024: readonly number[] = [
   4, 5, 6, 7, 9, 10, 11, 12, 14, 15, 16, 16, 17, 17, 18, 18, 19, 20, 21, 22,
 ]
 
+/** Cantrips known from the 2024 bard table (2 → 3 at 4, → 4 at 10). */
+export function bardCantrips2024(bardLevel: number): number {
+  const level = Math.min(20, lvl(bardLevel))
+  if (level >= 10) return 4
+  if (level >= 4) return 3
+  return 2
+}
+
 export function bardPreparedSpells2024(bardLevel: number): number {
   const level = Math.min(20, lvl(bardLevel))
   return level < 1 ? 0 : BARD_PREPARED_COLUMN_2024[level - 1]!
@@ -372,12 +380,17 @@ export function magicalSecretsOffListHintRu2024(input: {
 export const BARD_PREPARED_SWAP_PICK_ID_2024 = 'prepared_swap'
 /** Same for the College of Lore discoveries replacement. */
 export const BARD_DISCOVERIES_SWAP_PICK_ID_2024 = 'discoveries_swap'
+/** One cantrip replacement per bard level gained (2024 sheet). */
+export const BARD_CANTRIP_SWAP_PICK_ID_2024 = 'cantrip_swap'
 
 /** Bard prepares from a fixed list; a long rest never rebuilds it (cleric / druid / wizard do). */
 export const BARD_LONG_REST_REBUILDS_PREPARED_2024 = false
 
 export const BARD_PREPARED_SWAP_RULE_RU_2024 =
   'Барду можно заменить одно подготовленное заклинание при получении уровня барда (длинный отдых список не пересобирает)'
+
+export const BARD_CANTRIP_SWAP_RULE_RU_2024 =
+  'Барду можно заменить один заговор при получении уровня барда'
 
 export type BardSwapToken2024 = { level: number; releasedKey: string }
 
@@ -499,6 +512,81 @@ export function evaluateBardPreparedChange2024(input: {
 /** Long rest touches resources and slots only; the bard prepared list is returned as is. */
 export function bardPreparedAfterLongRest2024<T>(known: T[]): T[] {
   return BARD_LONG_REST_REBUILDS_PREPARED_2024 ? [] : known
+}
+
+export type BardCantripRow2024 = {
+  id: string
+  level: number
+  catalog_id?: string | null
+  class_slug?: string | null
+  prepared_locked?: boolean
+  source_kind?: string | null
+}
+
+export function bardCantripKey2024(row: Pick<BardCantripRow2024, 'id' | 'catalog_id'>): string {
+  return row.catalog_id || row.id
+}
+
+/** Cantrips that spend the bard cantrip column (not granted / locked). */
+export function isBardCantripBudgetRow2024(
+  row: BardCantripRow2024,
+  defaultClassSlug: string | null = BARD_CLASS_SLUG_2024,
+): boolean {
+  if (row.level > 0 || row.prepared_locked) return false
+  if (row.source_kind && row.source_kind !== 'catalog' && row.source_kind !== 'custom') return false
+  const slug = (row.class_slug ?? defaultClassSlug ?? '').trim().toLowerCase()
+  return slug === BARD_CLASS_SLUG_2024 || slug === ''
+}
+
+/**
+ * One cantrip replacement per bard level gained — same token model as prepared_swap.
+ * New cantrips are free while under the column; dropping one spends the level token.
+ */
+export function evaluateBardCantripChange2024(input: {
+  prev: BardCantripRow2024[]
+  next: BardCantripRow2024[]
+  bardLevel: number
+  maxCantrips: number | null
+  swapRaw: string | null
+  defaultClassSlug?: string | null
+}): BardPreparedChange2024 {
+  const level = lvl(input.bardLevel)
+  const slug = input.defaultClassSlug ?? BARD_CLASS_SLUG_2024
+  const pick = (rows: BardCantripRow2024[]) =>
+    new Map(
+      rows
+        .filter((row) => isBardCantripBudgetRow2024(row, slug))
+        .map((row) => [bardCantripKey2024(row), row] as const),
+    )
+  const before = pick(input.prev)
+  const after = pick(input.next)
+  const removed = [...before.keys()].filter((key) => !after.has(key))
+  const added = [...after.keys()].filter((key) => !before.has(key))
+  if (removed.length === 0 && added.length === 0) return { ok: true, swapRaw: input.swapRaw }
+
+  if (input.maxCantrips != null && after.size > input.maxCantrips && after.size > before.size) {
+    return { ok: false, reasonRu: `Лимит заговоров барда: ${before.size}/${input.maxCantrips}` }
+  }
+
+  const overCap = input.maxCantrips != null && before.size > input.maxCantrips
+  if (removed.length === 0) {
+    const token = parseBardSwapToken2024(input.swapRaw)
+    if (token && token.level === level && token.releasedKey && added.includes(token.releasedKey)) {
+      return { ok: true, swapRaw: null }
+    }
+    return { ok: true, swapRaw: input.swapRaw }
+  }
+  if (overCap && after.size >= (input.maxCantrips ?? 0)) return { ok: true, swapRaw: input.swapRaw }
+  if (removed.length > 1) {
+    return { ok: false, reasonRu: BARD_CANTRIP_SWAP_RULE_RU_2024 }
+  }
+  if (!bardSwapAvailable2024(input.swapRaw, level)) {
+    return {
+      ok: false,
+      reasonRu: `Замена заговора на ${level} уровне барда уже использована. ${BARD_CANTRIP_SWAP_RULE_RU_2024}`,
+    }
+  }
+  return { ok: true, swapRaw: formatBardSwapToken2024(level, removed[0]!) }
 }
 
 /* ------------------------------------------------------------------ */
@@ -915,6 +1003,19 @@ export function trimBard2024PicksOnLevelDown(
   }
   if (lvl(newLevel) < MAGICAL_SECRETS_MIN_LEVEL_2024) {
     next = setFeaturePick(next, classEntryId, BARD_PREPARED_SWAP_PICK_ID_2024, null)
+  }
+  // Broken store: four Expertise skills in the L2 pick — keep two below L9.
+  if (lvl(newLevel) < EXPERTISE_9_MIN_LEVEL_2024) {
+    const raw = getFeaturePick(next, classEntryId, 'expertise')
+    if (raw) {
+      const parts = raw
+        .split(',')
+        .map((row) => row.trim())
+        .filter(Boolean)
+      if (parts.length > 2) {
+        next = setFeaturePick(next, classEntryId, 'expertise', parts.slice(0, 2).join(','))
+      }
+    }
   }
   return next
 }

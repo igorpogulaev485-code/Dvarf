@@ -635,3 +635,160 @@ def test_rollback_10_to_9_drops_off_list_prepared_spells():
         and not str(s.get("id") or "").startswith("feature-spell:")
         for s in known_after
     )
+
+
+def _bard_with_expertise(level: int, subclass: str | None = None, **extra) -> dict:
+    base = _bard_payload(level, subclass, **extra)
+    skills = list(base["class_skill_ids"])
+    need = 4 if level >= 9 else 2 if level >= 2 else 0
+    if need:
+        picks = [*skills[: min(3, need)], "performance"][:need]
+        base["class_option_picks"] = {**base["class_option_picks"], "expertise": picks}
+    return base
+
+
+def test_create_at_11_allows_wizard_spell_via_magical_secrets():
+    """Create-at-11: Magical Secrets opens Wizard/Druid/Cleric prepared picks."""
+    base = _bard_with_expertise(11, "bard__glamour")
+    prepared = list(base["prepared_spell_ids"])
+    assert prepared
+    prepared[0] = "shield"  # wizard-only
+    sheet = _create({**base, "prepared_spell_ids": prepared}).sheet
+    known = (sheet.get("spells") or {}).get("known") or []
+    assert any(
+        isinstance(s, dict)
+        and (
+            "shield" in str(s.get("id") or "").lower()
+            or "shield" in str(s.get("slug") or "").lower()
+            or str(s.get("name") or "") == "Щит"
+        )
+        for s in known
+    )
+
+
+def test_create_at_9_rejects_wizard_spell_without_magical_secrets():
+    """Create-at-9: off-list prepared spells are rejected (Magical Secrets from 10)."""
+    base = _bard_with_expertise(9, "bard__glamour")
+    prepared = list(base["prepared_spell_ids"])
+    assert prepared
+    prepared[0] = "shield"
+    with pytest.raises(create24.Create2024Error, match="не из списка класса"):
+        _create({**base, "prepared_spell_ids": prepared})
+
+
+def test_dwarf_bard_hp_includes_dwarven_toughness():
+    """Dwarf species: +1 max HP per character level on a bard create-at-N."""
+    from tests.test_p24_m03_create import _species_client_picks, _species_picks
+
+    def _make(species: str, level: int):
+        payload = _bard_with_expertise(level, "bard__lore" if level >= 3 else None)
+        if level >= 6:
+            payload["class_option_picks"] = {
+                **payload["class_option_picks"],
+                "lore_skills": ["stealth", "history", "religion"],
+                "magical_discoveries": ["guidance", "fireball"],
+            }
+        elif level >= 3:
+            payload["class_option_picks"] = {
+                **payload["class_option_picks"],
+                "lore_skills": ["stealth", "history", "religion"],
+            }
+        payload["species_slug"] = species
+        payload.update(_species_picks(species))
+        client = dict((payload.get("class_option_picks") or {}).get("client_picks") or {})
+        client.update(_species_client_picks(species))
+        data = (create24.load_species_catalog().get(species) or {}).get("data") or {}
+        if not data.get("lineages"):
+            payload.pop("species_lineage_id", None)
+        payload.setdefault("class_option_picks", {})["client_picks"] = client
+        return _create(payload)
+
+    for level in (1, 5, 11):
+        dwarf = _make("dwarf", level)
+        other = _make("tiefling", level)
+        assert (
+            int(dwarf.sheet["combat"]["hp_max"]) - int(other.sheet["combat"]["hp_max"]) == level
+        ), f"L{level}: dwarf should be +{level} vs tiefling"
+
+
+@pytest.mark.parametrize("level,pb", [(1, 2), (5, 3), (11, 4), (20, 6)])
+def test_bard_proficiency_bonus_by_level(level: int, pb: int):
+    assert e24.proficiency_bonus_for_level(level) == pb
+    sheet = _create(_bard_with_expertise(level, "bard__glamour" if level >= 3 else None)).sheet
+    combat_pb = (sheet.get("combat") or {}).get("proficiency_bonus")
+    progress_pb = (sheet.get("class_progress_2024") or {}).get("proficiency_bonus")
+    assert int(combat_pb if combat_pb is not None else progress_pb) == pb
+
+
+def test_bardic_inspiration_distinct_from_heroic():
+    """Bardic Inspiration pool is not Heroic Inspiration (separate module / flag)."""
+    snap = _snapshot(5)
+    bi = next(r for r in snap.resources if r.pool_id == "bardic_inspiration")
+    assert bi.distinct_from_heroic is True
+    assert bi.pool_id != "heroic_inspiration"
+    assert "heroic" not in bi.pool_id
+    row = next(
+        r for r in e24.resource_pools_to_sheet(snap.resources) if r["pool_id"] == "bardic_inspiration"
+    )
+    assert row.get("distinct_from_heroic") is True
+
+
+def test_multiclass_bard3_wizard2_spell_slots():
+    """Full casters bard 3 + wizard 2 → caster level 5 slots (4/3/2)."""
+    snap = e24.compute_progression(
+        [{"slug": "bard", "level": 3}, {"slug": "wizard", "level": 2}],
+        abilities={**_ABILITIES, "int": 14},
+    )
+    assert snap.multiclass_slots == {
+        "1": 4,
+        "2": 3,
+        "3": 2,
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0,
+        "8": 0,
+        "9": 0,
+    }
+
+
+def test_always_prepared_checklists_glamour_and_words():
+    """Always-prepared: Glamour college spells + Words of Creation at 20."""
+    assert set(sub24.always_prepared_for_subclass("bard__glamour", 3)) == {
+        "charm-person",
+        "mirror-image",
+    }
+    assert set(sub24.always_prepared_for_subclass("bard__glamour", 6)) == {
+        "charm-person",
+        "mirror-image",
+        "command",
+    }
+    for college in ("bard__lore", "bard__valor", "bard__dance"):
+        assert sub24.always_prepared_for_subclass(college, 20) == []
+    block20 = _snapshot(20, "bard__glamour").spellcasting[0]
+    assert {"charm-person", "mirror-image", "command", "power-word-heal", "power-word-kill"} <= set(
+        block20.always_prepared
+    )
+    block19 = _snapshot(19, "bard__glamour").spellcasting[0]
+    assert "power-word-heal" not in block19.always_prepared
+    assert "power-word-kill" not in block19.always_prepared
+
+
+def test_rollback_9_to_8_auto_trims_broken_expertise_pick():
+    """If Expertise L2 pick illegally holds 4 skills, 9→8 keeps only two."""
+    base = _bard_with_expertise(9, "bard__valor")
+    sheet = deepcopy(_create(base).sheet)
+    values = sheet["feature_picks"]["values"]
+    entry = sheet["classes"][0]["id"]
+    four = [*base["class_skill_ids"][:3], "performance"]
+    values[f"{entry}:expertise"] = ",".join(four)
+    values.pop(f"{entry}:expertise_9", None)
+    for key in four:
+        sheet["skills"][key] = {"is_proficient": True, "is_expertise": True}
+    levels.rollback_last_level_gain(sheet)  # 9 -> 8
+    values = sheet["feature_picks"]["values"]
+    kept = [x for x in str(values.get(f"{entry}:expertise") or "").split(",") if x]
+    assert len(kept) == 2
+    assert f"{entry}:expertise_9" not in values
+    assert sum(1 for v in sheet["skills"].values() if v.get("is_expertise")) == 2
+

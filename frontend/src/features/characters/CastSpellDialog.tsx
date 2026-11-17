@@ -58,6 +58,11 @@ import {
   STACKABLE_METAMAGIC_IDS,
   type MetamagicCastFlags,
 } from '../../shared/dnd/metamagicCast'
+import {
+  WORDS_OF_CREATION_SECOND_TARGET_NOTE_RU_2024,
+  isWordsOfCreationSpell2024,
+  wordsOfCreationSecondTarget2024,
+} from '../../shared/dnd/bard2024Features'
 import { Button, Dialog, Stack, Text, ToggleChip } from '../../ui'
 import { AllyTargetFields } from '../lobby/AllyTargetFields'
 import { useLobbyParty, type AllyPickDemo } from '../lobby/useLobbyParty'
@@ -264,6 +269,8 @@ type CastSpellDialogProps = {
   knownInvocationIds?: string[]
   /** Warlock class level — EB beams / Eldritch Spear 2024. */
   warlockLevel?: number
+  /** Bard class level — Words of Creation second target (2024 L20). */
+  bardLevel?: number
   /** 2024 Cleric Potent Spellcasting: +Wis to cleric cantrip damage (0 = off). */
   potentSpellcastingBonus?: number
   /** Class that holds Potent Spellcasting (cleric by default, druid for Elemental Fury). */
@@ -324,6 +331,7 @@ export function CastSpellDialog({
   elementalAffinity = null,
   knownInvocationIds = [],
   warlockLevel,
+  bardLevel = 0,
   potentSpellcastingBonus = 0,
   potentSpellcastingClass = 'cleric',
   potentSpellcastingRangeBonusFt = 0,
@@ -473,10 +481,31 @@ export function CastSpellDialog({
     /огненн[\p{L}]*\s*щит/iu.test(spell?.name ?? '')
 
   const appliesToAllies = Boolean(spell && castSpellAppliesToAllies(spell))
+  const wordsSpellSlug = (() => {
+    if (!spell) return ''
+    const catalog = String(spell.catalog_id ?? '')
+      .trim()
+      .toLowerCase()
+      .replace(/^seed-spell-/, '')
+      .replace(/_/g, '-')
+    if (catalog) return catalog
+    return String(spell.id ?? '')
+      .trim()
+      .toLowerCase()
+      .replace(/^seed-spell-/, '')
+      .replace(/_/g, '-')
+  })()
+  const wordsOfCreationSecond =
+    String(rulesEdition ?? '2014') === '2024' &&
+    wordsOfCreationSecondTarget2024({
+      bardLevel,
+      spellSlug: wordsSpellSlug,
+    }).available &&
+    isWordsOfCreationSpell2024(wordsSpellSlug)
   /** Показываем блок целей всегда для ally-баффов: в лобби — select, иначе подсказка. */
-  const showTargets = appliesToAllies
+  const showTargets = appliesToAllies || wordsOfCreationSecond
   const targetCount = Math.max(
-    1,
+    wordsOfCreationSecond ? 2 : 1,
     Math.min(6, spell ? castSpellAllyTargetCount(spell) : 1),
   )
   const [targetSlots, setTargetSlots] = useState<string[]>(() =>
@@ -2014,6 +2043,9 @@ export function CastSpellDialog({
 
         {showTargets ? (
           <>
+            {wordsOfCreationSecond ? (
+              <Text tone="muted">{WORDS_OF_CREATION_SECOND_TARGET_NOTE_RU_2024}</Text>
+            ) : null}
             <AllyTargetFields
               count={targetCount}
               values={targetSlots}

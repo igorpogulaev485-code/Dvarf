@@ -316,6 +316,9 @@ export function SheetDialogsRolls({ model }: { model: SheetModel }) {
           model.draft.classes.find((row) => /колдун|warlock/i.test(row.name))?.level ??
           model.characterLevel
         }
+        bardLevel={
+          model.draft.classes.find((row) => /бард|bard/i.test(row.name))?.level ?? 0
+        }
         potentSpellcastingBonus={potentSheet.bonus}
         potentSpellcastingClass={potentSheet.classSlug}
         potentSpellcastingRangeBonusFt={potentSheet.rangeBonusFt}
