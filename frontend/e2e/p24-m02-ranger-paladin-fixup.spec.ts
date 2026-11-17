@@ -37,12 +37,24 @@ test.describe('P24-M02 paladin fixup shots (ranger pack)', () => {
     })
     await openFeaturesScene(page, project)
     await page.getByRole('button', { name: /Развернуть все/ }).last().click().catch(() => {})
-    await tallShot(
-      page,
-      PALADIN_DIR,
-      `${PALADIN_SHOT}-create-at-20-devotion-capstone`,
-      project,
-    )
+    // Capstone list is long: grow viewport enough that «Священный нимб» fits with «Эпический дар».
+    const viewport = page.viewportSize()
+    if (viewport) {
+      await page.setViewportSize({
+        width: viewport.width,
+        height: project === '390' ? 5200 : 5600,
+      })
+    }
+    const nimbus = page.getByText(/^Священный нимб$/).first()
+    await nimbus.scrollIntoViewIfNeeded()
+    await expect(nimbus).toBeVisible()
+    await expect(page.getByText(/^Эпический дар$/).first()).toBeVisible()
+    await page.waitForTimeout(400)
+    await page.screenshot({
+      path: `${PALADIN_DIR}/${PALADIN_SHOT}-create-at-20-devotion-capstone-${project}.png`,
+      fullPage: false,
+    })
+    if (viewport) await page.setViewportSize(viewport)
     expect(store.unmatched).toEqual([])
     expect(PALADIN_ARTIFACTS).toBeTruthy()
   })
