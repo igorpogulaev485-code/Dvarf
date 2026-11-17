@@ -282,6 +282,11 @@ type CastSpellDialogProps = {
   sorcererLevel?: number
   innateSorceryActive?: boolean
   /**
+   * 2024 Wild Shape (Beast Spells / Moon circle): free non-consumed M may be cast
+   * without a focus, pouch, or the component itself.
+   */
+  waiveFreeMaterialComponents?: boolean
+  /**
    * Spell scroll: these numbers replace the character's attack and DC.
    * Item bonuses from the sheet are not added.
    */
@@ -327,6 +332,7 @@ export function CastSpellDialog({
   initialMetamagicId = null,
   magicalInspirationAvailable = false,
   rulesEdition = '2014',
+  waiveFreeMaterialComponents = false,
   sorcererLevel = 1,
   innateSorceryActive = false,
   statLock = null,
@@ -861,8 +867,16 @@ export function CastSpellDialog({
     return null
   }
 
+  const freeMaterialWaived = Boolean(
+    waiveFreeMaterialComponents &&
+      materialCheck.requirement &&
+      materialCheck.requirement.minCostGp <= 0 &&
+      !/расход|поглощ|consumed|consumes/i.test(materialCheck.requirement.raw || ''),
+  )
   const materialsOk =
-    borne || ((materialCheck.ok || haveMaterial) && focusGate.ok)
+    borne ||
+    freeMaterialWaived ||
+    ((materialCheck.ok || haveMaterial) && focusGate.ok)
   const chargePool = itemCast?.resourceId
     ? resources?.find((row) => row.id === itemCast.resourceId) ?? null
     : null
@@ -1538,7 +1552,11 @@ export function CastSpellDialog({
         {materialCheck.requirement ? (
           <div className="cast-material-box">
             <Text tone={materialsOk ? 'muted' : 'danger'}>
-              {focusGate.ok ? materialCheck.message : focusGate.message}
+              {freeMaterialWaived
+                ? 'Дикий облик: свободный материальный компонент не требуется'
+                : focusGate.ok
+                  ? materialCheck.message
+                  : focusGate.message}
             </Text>
             {materialCheck.requirement.raw ? (
               <Text tone="muted">М: {materialCheck.requirement.raw}</Text>

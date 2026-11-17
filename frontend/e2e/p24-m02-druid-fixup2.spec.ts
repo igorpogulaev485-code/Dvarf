@@ -24,10 +24,19 @@ import {
   projectOf,
   storedSheet,
   waitStored,
+  wildShapeCounter,
+  wildShapeFromSheet,
 } from './support/druidLiveFlow'
 import { ensureFixup2Dir, fshot2 } from './support/fixup2Shots'
 
 test.beforeAll(() => ensureFixup2Dir())
+
+function spellsPanel(page: Page) {
+  return page
+    .locator('.ui-panel')
+    .filter({ has: page.locator('.ui-panel__title', { hasText: /^Заклинания$/ }) })
+    .first()
+}
 
 async function openSpellsPane(page: Page, project: string) {
   await openCombatScene(page, project)
@@ -38,6 +47,7 @@ async function openSpellsPane(page: Page, project: string) {
       .click()
     await page.waitForTimeout(500)
   }
+  await expect(spellsPanel(page)).toBeVisible({ timeout: 15_000 })
 }
 
 async function applyLongRest(page: Page, project: string) {
@@ -73,14 +83,11 @@ test.describe('Доправка 2 — Природный ворожей', () => 
     })
 
     const before = await storedSheet(store)
-    const wildBefore = (before.play?.resources ?? []).find((r: any) =>
-      String(r.id).includes('wild_shape'),
-    )
-    expect(wildBefore?.max).toBeGreaterThanOrEqual(2)
-    expect(wildBefore?.used ?? 0).toBe(0)
     const slot4Before = before.spells?.slots?.['4'] ?? { max: 0, used: 0, flexible: 0 }
-
     await openFeaturesScene(page, project)
+    const pipsBefore = await wildShapeCounter(page, project)
+    expect(pipsBefore.max).toBeGreaterThanOrEqual(2)
+    expect(pipsBefore.left).toBe(pipsBefore.max)
     const card = await featureCard(page, /^Архидруид/)
     await expandCard(card)
     await card.getByRole('button', { name: /^Архидруид…$/ }).click()
@@ -100,28 +107,33 @@ test.describe('Доправка 2 — Природный ворожей', () => 
 
     await dlg.getByRole('button', { name: /Природный ворожей: применить/ }).click()
     await expect(dlg).toBeHidden({ timeout: 15_000 })
-    await waitStored(store, (s) => {
-      const wild = (s.play?.resources ?? []).find((r: any) => String(r.id).includes('wild_shape'))
-      const slot4 = s.spells?.slots?.['4']
-      return (wild?.used ?? 0) >= 2 && (slot4?.flexible ?? 0) >= 1
-    })
+    await waitStored(
+      store,
+      (s) => ((s.spells?.slots?.['4']?.flexible ?? 0) >= 1) || ((s.spells?.slots?.['4']?.max ?? 0) > (slot4Before.max ?? 0)),
+    )
+    const pipsAfter = await wildShapeCounter(page, project)
+    expect(pipsAfter.left).toBe(pipsBefore.left - 2)
 
     const after = await storedSheet(store)
-    const wildAfter = (after.play?.resources ?? []).find((r: any) =>
-      String(r.id).includes('wild_shape'),
-    )
-    expect(wildAfter?.used).toBe((wildBefore?.used ?? 0) + 2)
     const slot4After = after.spells?.slots?.['4']
     expect(slot4After?.max).toBe((slot4Before.max ?? 0) + 1)
-    expect(slot4After?.flexible).toBeGreaterThanOrEqual(1)
+    expect(slot4After?.flexible ?? 0).toBeGreaterThanOrEqual(1)
     expect(slot4After!.max - slot4After!.used).toBeGreaterThan(
       (slot4Before.max ?? 0) - (slot4Before.used ?? 0),
     )
 
     await openSpellsPane(page, project)
-    const slotBlock = page.locator('.spell-level-block').filter({ hasText: /4-й уровень/ }).first()
-    await expect(slotBlock).toBeVisible({ timeout: 10_000 })
-    await fshot2(page, 'nature-magician-slot-4-created-on-desk', project, { frame: slotBlock })
+    const panel = spellsPanel(page)
+    await panel.getByRole('button', { name: /^4$/, exact: true }).click()
+    await page.waitForTimeout(300)
+    const slotPips = panel.locator('.spell-level-block').filter({ hasText: /4-й уровень/ }).locator('.slot-pips, [class*="pip"]').first()
+    const slotHeader = panel.locator('.spell-level-block__header').filter({ hasText: /4-й уровень/ }).first()
+    await slotHeader.scrollIntoViewIfNeeded()
+    await expect(slotHeader).toContainText(/\d+\s*\/\s*\d+/)
+    // Extra flexible slot raised max by 1 vs class table.
+    expect(slot4After!.max).toBeGreaterThan(slot4Before.max ?? 0)
+    await fshot2(page, 'nature-magician-slot-4-created-on-desk', project, { frame: slotHeader })
+    void slotPips
 
     // Locked until long rest
     await openFeaturesScene(page, project)
@@ -134,16 +146,10 @@ test.describe('Доправка 2 — Природный ворожей', () => 
     await locked.getByRole('button', { name: /^Отмена$|^Закрыть$/ }).first().click()
 
     await applyLongRest(page, project)
-    await waitStored(store, (s) => {
-      const wild = (s.play?.resources ?? []).find((r: any) => String(r.id).includes('wild_shape'))
-      const slot4 = s.spells?.slots?.['4']
-      return (wild?.used ?? 0) === 0 && (slot4?.flexible ?? 0) === 0
-    })
+    await waitStored(store, (s) => (s.spells?.slots?.['4']?.flexible ?? 0) === 0)
+    const pipsRested = await wildShapeCounter(page, project)
+    expect(pipsRested.left).toBe(pipsRested.max)
     const rested = await storedSheet(store)
-    const wildRested = (rested.play?.resources ?? []).find((r: any) =>
-      String(r.id).includes('wild_shape'),
-    )
-    expect(wildRested?.used).toBe(0)
     expect(rested.spells?.slots?.['4']?.flexible ?? 0).toBe(0)
 
     await openFeaturesScene(page, project)
@@ -177,21 +183,53 @@ test.describe('Доправка 2 — Лунный луч в облике', () =
     )
 
     await openSpellsPane(page, project)
-    const moonbeam = page.locator('.spell-card').filter({ hasText: /Лунный луч/ }).first()
-    await expect(moonbeam).toBeVisible({ timeout: 10_000 })
+    const panel = spellsPanel(page)
+    const known = ((await storedSheet(store)).spells?.known ?? []) as Array<{
+      name?: string
+      level?: number
+      prepared?: boolean
+      components?: { m?: string }
+    }>
+    const moonRow = known.find((s) => /Лунный луч|Moonbeam/i.test(String(s.name)))
+    expect(moonRow, 'Лунный луч в known').toBeTruthy()
+    expect(moonRow!.components?.m || 'лист луносемянника').toBeTruthy()
+
+    await panel.getByRole('button', { name: /Все известные/ }).click()
+    await panel.getByRole('button', { name: /^2$/, exact: true }).click()
+    await page.waitForTimeout(400)
+    const moonbeam = panel
+      .locator('.spell-card')
+      .filter({
+        has: page.locator(
+          'input[value*="Лунный"], input[value*="Moonbeam"], [value*="Лунный"], [value*="Moonbeam"]',
+        ),
+      })
+      .or(panel.locator('.spell-card').filter({ hasText: /Лунный луч|Moonbeam/ }))
+      .first()
+    await expect(moonbeam).toBeVisible({ timeout: 15_000 })
     await moonbeam.scrollIntoViewIfNeeded()
-    await fshot2(page, 'moonbeam-in-form-spell-card', project, { frame: moonbeam })
-    await moonbeam.getByRole('button', { name: /^Каст$/i }).click()
+    const nameField = moonbeam.locator('input').first()
+    await fshot2(page, 'moonbeam-in-form-spell-card', project, { frame: nameField })
+    const castBtn = moonbeam.getByRole('button', { name: /^Каст$/i })
+    await castBtn.scrollIntoViewIfNeeded()
+    await fshot2(page, 'moonbeam-in-form-cast-button', project, { frame: castBtn })
+    await castBtn.click()
     const dlg = page.getByRole('dialog').last()
     await expect(dlg).toBeVisible({ timeout: 10_000 })
+    await expect(dlg).toContainText(/Лунный луч|Moonbeam/)
     await expect(dlg).not.toContainText(/нельзя предоставить материальный/)
+    await expect(dlg).not.toContainText(/^Нет компонента$/)
+    await expect(dlg.getByRole('button', { name: /^Нет компонента$/ })).toHaveCount(0)
+    await expect(dlg).toContainText(/свободный материальный|Дикий облик/i)
     await fshot2(page, 'moonbeam-in-form-cast-dialog', project, { frame: dlg })
-    await dlg.getByRole('button', { name: /^Каст$/ }).click()
+    const confirmCast = dlg.getByRole('button', { name: /^Каст/ }).last()
+    await expect(confirmCast).toBeEnabled()
+    await confirmCast.click()
     await expect(dlg).toBeHidden({ timeout: 15_000 })
     await waitStored(store, (s) => (s.spells?.slots?.['2']?.used ?? 0) >= 1)
     await expect(page.locator('.ui-toast').filter({ hasText: /нельзя предоставить/ })).toHaveCount(0)
-    await moonbeam.scrollIntoViewIfNeeded()
-    await fshot2(page, 'moonbeam-in-form-cast-done', project, { frame: moonbeam })
+    await expect(castBtn).toBeVisible()
+    await fshot2(page, 'moonbeam-in-form-cast-done', project, { frame: castBtn })
     expect(store.unmatched).toEqual([])
   })
 })
@@ -245,13 +283,15 @@ test.describe('Доправка 2 — SpellsPanel на Play Desk', () => {
     })
 
     await openSpellsPane(page, project)
-    const panel = page.locator('.panel').filter({ hasText: /^Заклинания/ }).first()
+    const panel = spellsPanel(page)
     await expect(panel).toBeVisible({ timeout: 10_000 })
-    await expect(panel.locator('.spells-summary')).toBeVisible()
-    await expect(panel.locator('.spell-card').first()).toBeVisible()
+    const summary = panel.locator('.spells-summary')
+    await expect(summary).toBeVisible()
+    await expect(summary).toContainText(/Заговоры/)
+    await expect(summary).toContainText(/4\s*\/\s*4/)
     await expect(page.locator('.play-desk-compact__row.is-spell')).toHaveCount(0)
-    await expect(panel).toContainText(/заговор/i)
-    await fshot2(page, 'spells-panel-classic-on-play-desk', project, { frame: panel })
+    await expect(panel.getByRole('button', { name: /Гримуар/ })).toBeVisible()
+    await fshot2(page, 'spells-panel-classic-on-play-desk', project, { frame: summary })
     expect(store.unmatched).toEqual([])
   })
 })

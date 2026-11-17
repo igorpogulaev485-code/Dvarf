@@ -45,8 +45,12 @@ import {
 import { ignoresClassRaceLevel } from '../attunementRules'
 import { abilityModifier } from '../sheetTypes'
 import { getFeaturePick } from '../../../shared/dnd/featurePicks'
-import { potentSpellcastingForSheet2024 } from '../../../shared/dnd/druid2024Features'
+import {
+  moonCircleSpellCastableInForm2024,
+  potentSpellcastingForSheet2024,
+} from '../../../shared/dnd/druid2024Features'
 import { elementalAffinityPreview } from '../../../shared/dnd/pack04SorcererWarlock'
+import { activeBeastWildShape } from '../wildShape'
 
 function infusedItemIdsFor(model: SheetModel): string[] {
   const ids: string[] = []
@@ -270,6 +274,18 @@ export function SheetDialogsRolls({ model }: { model: SheetModel }) {
         resources={model.draft.play.resources}
         metamagicIds={model.sorcererMetamagicIds ?? []}
         rulesEdition={model.rulesEdition ?? model.baseCharacter?.rules_edition ?? '2014'}
+        waiveFreeMaterialComponents={Boolean(
+          (model.rulesEdition ?? model.baseCharacter?.rules_edition) === '2024' &&
+            activeBeastWildShape(model.draft.companions) &&
+            model.deskCastSpell &&
+            (model.druidLevel >= 18 ||
+              moonCircleSpellCastableInForm2024({
+                rulesEdition: model.rulesEdition,
+                druidLevel: model.druidLevel,
+                subclassSlug: model.druidSubclassSlug,
+                spell: model.deskCastSpell,
+              })),
+        )}
         sorcererLevel={model.draft.classes.reduce((sum, row) => {
           if (!/чародей|sorcerer/i.test(row.name)) return sum
           return sum + Math.max(0, row.level || 0)

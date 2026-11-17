@@ -263,6 +263,14 @@ export async function installDruidHarness(page: Page, store: HarnessStore) {
         return json(route, { detail: 'not mocked' }, 404)
       }
 
+      const effectsMatch =
+        /^\/characters\/([0-9a-f-]{36})\/effects\/(clear-concentration|.*)$/i.exec(pathname)
+      if (effectsMatch) {
+        const row = store.characters.get(effectsMatch[1]!)
+        if (!row) return json(route, { detail: 'Персонаж не найден' }, 404)
+        return json(route, { ok: true })
+      }
+
       const match = /^\/characters\/([0-9a-f-]{36})$/i.exec(pathname)
       if (match) {
         const row = store.characters.get(match[1]!)

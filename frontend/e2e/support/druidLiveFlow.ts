@@ -495,10 +495,23 @@ export function wisModOf(sheet: Record<string, any>): number {
   return Math.floor((Number(sheet.abilities?.wis?.score ?? 10) - 10) / 2)
 }
 
-export function wildShapeFromSheet(sheet: Record<string, any>) {
-  const row = ((sheet.resources ?? []) as Array<Record<string, any>>).find((r) =>
-    /wild_shape:wild_shape$/.test(String(r.id)),
+function isWildShapeResource(r: Record<string, any>): boolean {
+  const id = String(r.id ?? '')
+  const pool = String(r.pool_id ?? '')
+  return (
+    pool === 'wild_shape' ||
+    /:wild_shape:/.test(id) ||
+    /wild_shape:wild_shape$/.test(id) ||
+    (/дикий облик/i.test(String(r.name ?? '')) && !/спутник|companion/i.test(String(r.name ?? '')))
   )
+}
+
+export function wildShapeFromSheet(sheet: Record<string, any>) {
+  const pools = [
+    ...((sheet.resources ?? []) as Array<Record<string, any>>),
+    ...((sheet.play?.resources ?? []) as Array<Record<string, any>>),
+  ]
+  const row = pools.find(isWildShapeResource)
   return row as { id: string; max: number; used: number; shortRestRegain?: number } | undefined
 }
 
