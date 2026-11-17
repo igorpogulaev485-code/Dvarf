@@ -12,7 +12,12 @@ const ARTIFACTS = '/opt/cursor/artifacts/p24-m02-druid'
  */
 export default defineConfig({
   testDir: './e2e',
-  testMatch: ['**/p24-m02-druid-live.spec.ts', '**/p24-m02-druid-regression-2014.spec.ts'],
+  testMatch: [
+    '**/p24-m02-druid-live.spec.ts',
+    '**/p24-m02-druid-fixup1.spec.ts',
+    '**/p24-m02-druid-regression-2014.spec.ts',
+    '**/p24-m02-druid-regression-2014-form-active.spec.ts',
+  ],
   fullyParallel: false,
   forbidOnly: Boolean(process.env.CI),
   retries: 0,
