@@ -685,8 +685,16 @@ export function LevelingForks2024({
                   <SegmentedControl<BlessedStrikesPick2024>
                     aria-label={BLESSED_STRIKES_NAME_RU}
                     options={[
-                      { id: BLESSED_STRIKES_DIVINE_STRIKE, label: DIVINE_STRIKE_NAME_RU },
-                      { id: BLESSED_STRIKES_POTENT_SPELLCASTING, label: POTENT_SPELLCASTING_NAME_RU },
+                      {
+                        id: BLESSED_STRIKES_DIVINE_STRIKE,
+                        label: DIVINE_STRIKE_NAME_RU,
+                        testId: `p24-m02-blessed-strikes-${BLESSED_STRIKES_DIVINE_STRIKE}`,
+                      },
+                      {
+                        id: BLESSED_STRIKES_POTENT_SPELLCASTING,
+                        label: POTENT_SPELLCASTING_NAME_RU,
+                        testId: `p24-m02-blessed-strikes-${BLESSED_STRIKES_POTENT_SPELLCASTING}`,
+                      },
                     ]}
                     value={(blessedStrikesPick ?? '') as BlessedStrikesPick2024}
                     onChange={(pick) => onBlessedStrikesChange?.(pick)}

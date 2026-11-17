@@ -235,6 +235,13 @@ type LiveClericOpts = {
   shotPrefix?: string
   duringLeveling?: (page: Page) => Promise<void>
   stopAfterForks?: boolean
+  /** Blessed Strikes pick for cleric L7+ (default divine_strike). */
+  blessedStrikes?: 'divine_strike' | 'potent_spellcasting'
+  /** When set, screenshot the picker after the chip is chosen (name without project suffix). */
+  blessedPickShot?: string
+  classEquipment?: 'a' | 'gold'
+  /** Optional hook after Blessed Strikes was picked, before spells. */
+  afterBlessedPick?: (page: Page) => Promise<void>
 }
 
 async function walkLiveClericCreate(page: Page, store: HarnessStore, opts: LiveClericOpts) {
@@ -270,7 +277,7 @@ async function walkLiveClericCreate(page: Page, store: HarnessStore, opts: LiveC
   await selectCatalogCard(page, 'Жрец')
   await pickPrefixed(page, 'p24-m03-pick-skill', ['history', 'religion'])
   await pickPrefixed(page, 'p24-m03-pick-order', [order])
-  await pickPrefixed(page, 'p24-m03-pick-class-equipment', ['a'])
+  await pickPrefixed(page, 'p24-m03-pick-class-equipment', [opts.classEquipment ?? 'a'])
   await fillUnderfilledPicks(page)
   if (opts.stepShots) {
     await page.getByTestId(`p24-m03-pick-order-${order}`).scrollIntoViewIfNeeded()
@@ -320,6 +327,23 @@ async function walkLiveClericCreate(page: Page, store: HarnessStore, opts: LiveC
   const forkList = page.getByTestId('p24-m03c-fork-list-cleric')
   await expect(forkList).toBeVisible()
   await forkList.scrollIntoViewIfNeeded()
+  if (opts.level >= 7) {
+    const pick = opts.blessedStrikes ?? 'divine_strike'
+    const picker = page.getByTestId('p24-m02-blessed-strikes-pick')
+    await picker.scrollIntoViewIfNeeded()
+    await expect(picker).toBeVisible()
+    await expect(picker).toContainText('Не выбрано')
+    const chip = page.getByTestId(`p24-m02-blessed-strikes-${pick}`)
+    await chip.scrollIntoViewIfNeeded()
+    await chip.click()
+    await expect(chip).toHaveAttribute('aria-selected', 'true')
+    await expect(picker).not.toContainText('Не выбрано')
+    if (opts.blessedPickShot) {
+      await picker.scrollIntoViewIfNeeded()
+      await shot(page, opts.shotDir, opts.blessedPickShot, opts.project)
+    }
+    if (opts.afterBlessedPick) await opts.afterBlessedPick(page)
+  }
   if (opts.duringLeveling) await opts.duringLeveling(page)
   if (opts.stopAfterForks) return null
 
@@ -608,8 +632,8 @@ test.describe('P24-M02 cleric — LIVE create (wizard clicked, no e2eSeed)', () 
     const known = (sheet.spells?.known ?? []) as Array<{ level: number }>
     expect(known.filter((x) => x.level === 0).length).toBe(5)
 
-    const sawBlessedChoice = await resolveBlessedStrikes(page, project, `${SHOT}-create-at-11-blessed-strikes`)
-    console.log('create-at-11 blessed strikes choice dialog:', sawBlessedChoice)
+    // Blessed Strikes is picked in the wizard now (no pending-choice dialog after create).
+    await expect(page.getByRole('dialog').filter({ hasText: /Благословленные удары/ })).toHaveCount(0)
     if (isPhone(project)) await ensureMobileVitalsExpanded(page)
     await shot(page, ARTIFACTS, `${SHOT}-create-at-11-sheet`, project)
 
@@ -625,7 +649,8 @@ test.describe('P24-M02 cleric — LIVE create (wizard clicked, no e2eSeed)', () 
 
     const blessed = await featureCard(page, /^Благословленные удары$/)
     await expandCard(blessed)
-    await expect(blessed).toContainText(/1к8|излучение|Некротическ/i)
+    await expect(blessed).toContainText(/Божественный удар/)
+    await expect(blessed).not.toContainText(/не выбрано|divine_strike/i)
     await shot(page, ARTIFACTS, `${SHOT}-create-at-11-blessed-strikes`, project)
 
     const di = await openCardUse(page, /^Божественное вмешательство$/, /Вмешательство…/)
@@ -1034,3 +1059,380 @@ test.describe('P24-M02 cleric — level down in create wizard (rollback UI)', ()
   }
 })
 
+
+/* ------------------------------------------------------------------ */
+/* Доправка 1 (PR #502) — shots in `fixup1/`                            */
+/* ------------------------------------------------------------------ */
+
+const FIX1 = path.join(ARTIFACTS, 'fixup1')
+
+test.beforeAll(() => {
+  fs.mkdirSync(FIX1, { recursive: true })
+})
+
+async function f1shot(page: Page, name: string, project: string) {
+  await shot(page, FIX1, `fixup1-${name}`, project)
+}
+
+async function f1tall(page: Page, name: string, project: string) {
+  await tallShot(page, FIX1, `fixup1-${name}`, project)
+}
+
+async function f1el(target: Locator, name: string, project: string) {
+  await target.scrollIntoViewIfNeeded()
+  await target.page().mouse.move(2, 2)
+  await target.page().waitForTimeout(350)
+  await target.screenshot({ path: path.join(FIX1, `fixup1-${name}-${project}.png`) })
+}
+
+async function openExploreScene(page: Page, project: string) {
+  if (isPhone(project)) await page.getByText('Исслед.', { exact: true }).last().click()
+  else await page.getByRole('button', { name: /^Исследование$/ }).first().click()
+  await page.waitForTimeout(600)
+}
+
+async function openInventoryItem(page: Page, name: RegExp) {
+  const card = page.locator('.inventory-card').filter({ hasText: name }).first()
+  await expect(card).toBeVisible({ timeout: 10_000 })
+  await card.scrollIntoViewIfNeeded()
+  return card
+}
+
+/** Add an item through the live «Из справочника» picker (infrastructure mock only serves the catalog). */
+async function addGearFromPicker(page: Page, project: string, query: string, optionName: RegExp) {
+  await openExploreScene(page, project)
+  const open = page.getByRole('button', { name: /Из справочника/ }).first()
+  await open.scrollIntoViewIfNeeded()
+  await open.click()
+  const dlg = page.getByRole('dialog').last()
+  await dlg.getByPlaceholder('Название, slug…').fill(query)
+  await page.waitForTimeout(400)
+  await dlg.getByRole('option').filter({ hasText: optionName }).first().click()
+  await dlg.getByRole('button', { name: 'Добавить' }).click()
+  await expect(dlg).toBeHidden({ timeout: 10_000 })
+  await page.waitForTimeout(400)
+}
+
+async function expectVisibleNoRawIds(page: Page) {
+  const text = await page.locator('body').innerText()
+  expect(text).not.toMatch(/divine_strike|potent_spellcasting/)
+}
+
+/** Primary actions on a resource feature card: exactly one `.ui-button` (pips are `slot-pip`). */
+async function expectSingleButton(card: Locator, label: RegExp) {
+  await expect(card.locator('.ui-button')).toHaveCount(1)
+  await expect(card.locator('.ui-button').first()).toHaveText(label)
+  await expect(card.locator('.feature-resource__actions .ui-button')).toHaveCount(1)
+}
+
+async function blessedCard(page: Page) {
+  const card = await featureCard(page, /^Благословленные удары$/)
+  await expandCard(card)
+  return card
+}
+
+async function createAndOpenFeatures(
+  page: Page,
+  project: string,
+  opts: Omit<LiveClericOpts, 'shotDir' | 'project'>,
+) {
+  const store = createStore()
+  const sheet = await walkLiveClericCreate(page, store, { ...opts, shotDir: FIX1, project })
+  await dismissGuided(page)
+  return { store, sheet: sheet as Record<string, any> }
+}
+
+test.describe('P24-M02 cleric — Доправка 1 (PR #502) live evidence', () => {
+  test.setTimeout(300_000)
+  test.use({ actionTimeout: 15_000 })
+
+  for (const pick of ['divine_strike', 'potent_spellcasting'] as const) {
+    const slug = pick.replace('_', '-')
+    const label = pick === 'divine_strike' ? 'Божественный удар' : 'Могущественные заклинания'
+    test(`fixup1-1 create-at-11 Blessed Strikes picked in wizard: ${pick}`, async ({ page }, testInfo) => {
+      const project = projectOf(testInfo)
+      const { store, sheet } = await createAndOpenFeatures(page, project, {
+        name: `Удары 11 ${slug}`,
+        level: 11,
+        order: 'protector',
+        subclassSlug: SUBCLASS.life,
+        blessedStrikes: pick,
+        blessedPickShot: `fixup1-create11-blessed-strikes-pick-${slug}`,
+      })
+      expect(store.lastCreatePayload).toMatchObject({ class_option_picks: { blessed_strikes: pick } })
+      expect(sheet.feature_picks?.values?.['class-cleric:blessed_strikes']).toBe(pick)
+      expect(sheet.class_options_2024?.blessed_strikes).toBe(pick)
+
+      await expect(page.getByRole('dialog').filter({ hasText: /Благословленные удары/ })).toHaveCount(0)
+      await openFeaturesScene(page, project)
+      const card = await blessedCard(page)
+      await expect(card).toContainText(`Благословленные удары: ${label}`)
+      await expect(card).not.toContainText(/не выбрано/i)
+      await expect(card).not.toContainText(/divine_strike|potent_spellcasting/)
+      await f1el(card, `create11-blessed-card-${slug}`, project)
+      expect(store.unmatched).toEqual([])
+    })
+  }
+
+  test('fixup1-2/5/8 life-17: no raw ids, Divine Spark 3к8+3, Supreme Healing card', async ({ page }, testInfo) => {
+    const project = projectOf(testInfo)
+    const { store } = await createAndOpenFeatures(page, project, {
+      name: 'Жизнь 17',
+      level: 17,
+      order: 'protector',
+      subclassSlug: SUBCLASS.life,
+      blessedStrikes: 'divine_strike',
+    })
+    await openFeaturesScene(page, project)
+    await expandAllFeatures(page)
+    await expectFeatureNames(page, [
+      /Благословленные удары/,
+      /Высшее исцеление/,
+      /Божественная искра/,
+      /Сохранение жизни/,
+    ])
+    await expectVisibleNoRawIds(page)
+    const blessed = await blessedCard(page)
+    await expect(blessed).toContainText('Божественный удар')
+    await f1tall(page, 'life-17-no-raw-ids', project)
+
+    const supreme = await featureCard(page, /^Высшее исцеление$/)
+    await expandCard(supreme)
+    await expect(supreme).toContainText(/Кости лечения заклинаний и Проведения божественности дают максимум/)
+    await f1el(supreme, 'life-17-supreme-healing', project)
+
+    const sparkCard = await featureCard(page, /^Божественная искра$/)
+    await expandCard(sparkCard)
+    await expect(sparkCard).toContainText(/3к8\+3/)
+    await expect(sparkCard).not.toContainText(/\(\+2\/3\/4к8|1к8\(/)
+    const spark = await openCardUse(page, /^Божественная искра$/, /Искра…/)
+    await expect(spark).toContainText(/3к8\+3/)
+    await expect(spark).not.toContainText(/\+2\/3\/4к8/)
+    await f1shot(page, 'spark-formula-17', project)
+    await cancelDialog(page, spark)
+    await expectVisibleNoRawIds(page)
+    expect(store.unmatched).toEqual([])
+  })
+
+  test('fixup1-5/6 L11: Divine Spark 2к8+3 (not ladder), single button on spark/turn/preserve/intervention', async ({ page }, testInfo) => {
+    const project = projectOf(testInfo)
+    const { store } = await createAndOpenFeatures(page, project, {
+      name: 'Искра 11',
+      level: 11,
+      order: 'protector',
+      subclassSlug: SUBCLASS.life,
+      blessedStrikes: 'divine_strike',
+    })
+    await openFeaturesScene(page, project)
+    await expandAllFeatures(page)
+
+    const sparkCard = await featureCard(page, /^Божественная искра$/)
+    await expandCard(sparkCard)
+    await expect(sparkCard).toContainText(/2к8\+3/)
+    await expect(sparkCard).not.toContainText(/\(\+2\/3\/4к8|1к8\(/)
+    const spark = await openCardUse(page, /^Божественная искра$/, /Искра…/)
+    await expect(spark).toContainText(/2к8\+3/)
+    await expect(spark).not.toContainText(/\+2\/3\/4к8|1к8\(/)
+    await f1shot(page, 'spark-formula-11', project)
+    await cancelDialog(page, spark)
+    await f1el(sparkCard, 'spark-formula-11-card', project)
+
+    const turnCard = await featureCard(page, /^Изгнание нежити$/)
+    const lifeCard = await featureCard(page, /^Сохранение жизни$/)
+    const diCard = await featureCard(page, /^Божественное вмешательство$/)
+    for (const [card, label] of [
+      [sparkCard, /^Искра…$/],
+      [turnCard, /^Изгнать…$/],
+      [lifeCard, /^Сохранить жизнь…$/],
+      [diCard, /^Вмешательство…$/],
+    ] as const) {
+      await expandCard(card)
+      await expectSingleButton(card, label)
+    }
+    await f1el(sparkCard, 'single-button-spark', project)
+    await f1el(turnCard, 'single-button-turn-undead', project)
+    await f1el(lifeCard, 'single-button-preserve-life', project)
+    await f1el(diCard, 'single-button-divine-intervention', project)
+    await f1tall(page, 'single-button-features', project)
+    expect(store.unmatched).toEqual([])
+  })
+
+  test('fixup1-3 divine strike on weapon attack (protector L11, +1к8 radiant/necrotic)', async ({ page }, testInfo) => {
+    const project = projectOf(testInfo)
+    const { store } = await createAndOpenFeatures(page, project, {
+      name: 'Божественный удар 11',
+      level: 11,
+      order: 'protector',
+      subclassSlug: SUBCLASS.life,
+      blessedStrikes: 'divine_strike',
+    })
+    await addGearFromPicker(page, project, 'Длинный меч', /^Длинный меч/)
+    const sword = await openInventoryItem(page, /Длинный меч/)
+    await sword.locator('.inventory-equip').first().click()
+    await page.waitForTimeout(500)
+    await openCombatScene(page, project)
+    const attacks = page.locator('.attack-row, .attack-card, [class*="attack"]').filter({ hasText: /Длинный меч/ }).first()
+    await expect(attacks).toBeVisible({ timeout: 10_000 })
+    await expect(attacks).toContainText(/1к8 излучением или некротическим, раз в ход/)
+    if (!isPhone(project)) {
+      const hide = page.getByRole('button', { name: /^магия$/ }).first()
+      if (await hide.isVisible().catch(() => false)) await hide.click()
+      await page.waitForTimeout(400)
+    }
+    await attacks.scrollIntoViewIfNeeded()
+    await page.mouse.move(2, 2)
+    await f1shot(page, 'divine-strike-attack', project)
+    await f1el(attacks, 'divine-strike-attack-card', project)
+    await expectVisibleNoRawIds(page)
+    expect(store.unmatched).toEqual([])
+  })
+
+  test('fixup1-4 Potent Spellcasting on Sacred Flame (L11, Wis 17 → 3к8+3)', async ({ page }, testInfo) => {
+    const project = projectOf(testInfo)
+    const { store, sheet } = await createAndOpenFeatures(page, project, {
+      name: 'Могущественные 11',
+      level: 11,
+      order: 'protector',
+      subclassSlug: SUBCLASS.life,
+      blessedStrikes: 'potent_spellcasting',
+    })
+    expect(Math.floor((Number(sheet.abilities?.wis?.score) - 10) / 2)).toBe(3)
+    expect(sheet.feature_picks?.values?.['class-cleric:blessed_strikes']).toBe('potent_spellcasting')
+    await openCombatScene(page, project)
+    if (isPhone(project)) {
+      await page
+        .locator(':is(button,[role=tab],[role=button]):visible', { hasText: /^Заклинания$/ })
+        .first()
+        .click()
+      await page.waitForTimeout(500)
+    }
+    const flameName = page.getByText('Священное пламя', { exact: true }).first()
+    await expect(flameName).toBeVisible({ timeout: 10_000 })
+    await flameName.scrollIntoViewIfNeeded()
+    const row = page.locator('.play-desk-compact__row.is-spell').filter({ hasText: /Священное пламя/ }).first()
+    await expect(row).toContainText(/3[dк]8\+3/)
+    await page.mouse.move(2, 2)
+    await f1shot(page, 'potent-sacred-flame', project)
+    await f1el(row, 'potent-sacred-flame-row', project)
+
+    await row.getByRole('button', { name: /^Каст$/i }).click()
+    const dlg = page.getByRole('dialog').last()
+    await expect(dlg).toBeVisible({ timeout: 10_000 })
+    await expect(dlg).toContainText(/3[dк]8\+3/)
+    await f1shot(page, 'potent-sacred-flame-cast-dialog', project)
+    await dlg.getByRole('button', { name: /^Отмена$|^Закрыть$/ }).first().click()
+    await expectVisibleNoRawIds(page)
+    expect(store.unmatched).toEqual([])
+  })
+
+  test('fixup1-7 protector heavy armor: chain mail + shield → AC 18, martial weapon attack', async ({ page }, testInfo) => {
+    const project = projectOf(testInfo)
+    const { store, sheet } = await createAndOpenFeatures(page, project, {
+      name: 'Защитник AC18',
+      level: 5,
+      order: 'protector',
+      subclassSlug: SUBCLASS.life,
+    })
+    expect(sheet.proficiency?.armor?.heavy ?? sheet.proficiency?.armor?.includes?.('heavy')).toBeTruthy()
+    expect(sheet.proficiency?.weapons?.martial).toBe(true)
+    // Option A starting gear is a chain SHIRT; chain mail comes from the live gear picker.
+    expect((sheet.inventory?.items ?? []).some((i: any) => i.slug === 'chain-mail')).toBe(false)
+
+    await addGearFromPicker(page, project, 'Кольчуж', /^Кольчужный доспех/)
+    await addGearFromPicker(page, project, 'Щит', /^Щит/)
+    await addGearFromPicker(page, project, 'Длинный меч', /^Длинный меч/)
+    await openExploreScene(page, project)
+    for (const [name, kind] of [
+      [/Кольчужный доспех/, 'armor'],
+      [/^Щит.*Щит/, 'shield'],
+      [/Длинный меч/, 'weapon'],
+    ] as const) {
+      const card = await openInventoryItem(page, name)
+      const equip = card.locator('.inventory-equip').first()
+      if (!(await equip.evaluate((el) => el.classList.contains('is-on')))) await equip.click()
+      await page.waitForTimeout(300)
+      void kind
+    }
+    await expect(page.getByText(/^КД 18$/).first()).toBeVisible({ timeout: 10_000 })
+    await page.getByRole('tablist', { name: 'Фильтр инвентаря' }).getByText('Надето', { exact: true }).click()
+    await page.waitForTimeout(400)
+    const worn = page.locator('.inventory-card').filter({ hasText: /Кольчужный доспех/ }).first()
+    await expect(worn).toBeVisible()
+    await expect(worn.locator('.inventory-equip.is-on')).toHaveCount(1)
+    await expect(page.locator('.inventory-card').filter({ hasText: /^Щит/ }).first().locator('.inventory-equip.is-on')).toHaveCount(1)
+    if (isPhone(project)) await ensureMobileVitalsExpanded(page)
+    await expect(page.getByText(/^КД 18$/).first()).toBeVisible()
+    await page.mouse.move(2, 2)
+    await worn.scrollIntoViewIfNeeded()
+    await f1shot(page, 'protector-ac18-equipped-list', project)
+    await page.evaluate(() => {
+      window.scrollTo(0, 0)
+      document.querySelectorAll<HTMLElement>('*').forEach((el) => {
+        if (el.scrollTop > 0) el.scrollTop = 0
+      })
+    })
+    await page.getByText(/^КД 18$/).first().scrollIntoViewIfNeeded()
+    await f1shot(page, 'protector-ac18', project)
+
+    await openCombatScene(page, project)
+    const str = Math.floor((Number(sheet.abilities?.str?.score) - 10) / 2)
+    const expected = str + 3
+    const sword = page.locator('[class*="attack"]').filter({ hasText: /Длинный меч/ }).first()
+    await expect(sword).toBeVisible({ timeout: 10_000 })
+    await expect(sword.locator('button').filter({ hasText: /^\+\d+$/ }).first()).toHaveText(`+${expected}`)
+    await expect(sword).toContainText(/1к8\+1 slashing/)
+    await expect(sword).toContainText(/в руках/)
+    await sword.scrollIntoViewIfNeeded()
+    await page.mouse.move(2, 2)
+    await f1shot(page, 'protector-martial-attack', project)
+    await f1el(sword, 'protector-martial-attack-card', project)
+    expect(store.unmatched).toEqual([])
+  })
+
+  for (const pick of ['divine_strike', 'potent_spellcasting'] as const) {
+    const slug = pick.replace('_', '-')
+    test(`fixup1-9 Improved Blessed Strikes L14: ${pick}`, async ({ page }, testInfo) => {
+      const project = projectOf(testInfo)
+      const { store } = await createAndOpenFeatures(page, project, {
+        name: `Улучшенные 14 ${slug}`,
+        level: 14,
+        order: 'protector',
+        subclassSlug: SUBCLASS.life,
+        blessedStrikes: pick,
+      })
+      if (pick === 'divine_strike') {
+        await addGearFromPicker(page, project, 'Длинный меч', /^Длинный меч/)
+        const sword = await openInventoryItem(page, /Длинный меч/)
+        await sword.locator('.inventory-equip').first().click()
+        await page.waitForTimeout(500)
+        await openCombatScene(page, project)
+        if (!isPhone(project)) {
+          const hide = page.getByRole('button', { name: /^магия$/ }).first()
+          if (await hide.isVisible().catch(() => false)) await hide.click()
+          await page.waitForTimeout(400)
+        }
+        const attack = page.locator('[class*="attack"]').filter({ hasText: /Длинный меч/ }).first()
+        await expect(attack).toBeVisible({ timeout: 10_000 })
+        await expect(attack).toContainText(/2к8 излучением или некротическим, раз в ход/)
+        await page.mouse.move(2, 2)
+        await f1shot(page, `improved-blessed-14-${slug}-weapon`, project)
+        await f1el(attack, `improved-blessed-14-${slug}-weapon-card`, project)
+      }
+      await openFeaturesScene(page, project)
+      await expandAllFeatures(page)
+      const improved = await featureCard(page, /^Улучшенные Благословленные удары$/)
+      await expandCard(improved)
+      await expect(improved).toContainText(
+        pick === 'divine_strike' ? /Божественный удар → 2к8/ : /временные хиты \(Мудрость × 2\)/,
+      )
+      const blessed = await blessedCard(page)
+      await expect(blessed).toContainText(
+        `Благословленные удары: ${pick === 'divine_strike' ? 'Божественный удар' : 'Могущественные заклинания'}`,
+      )
+      await f1el(improved, `improved-blessed-14-${slug}-card`, project)
+      await f1tall(page, `improved-blessed-14-${slug}-features`, project)
+      await expectVisibleNoRawIds(page)
+      expect(store.unmatched).toEqual([])
+    })
+  }
+})

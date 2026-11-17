@@ -459,6 +459,7 @@ test.describe('P24-M02 cleric — offline create2024_bridge tables', () => {
       asi_choices: asi,
       class_option_picks: {
         divine_order: order,
+        ...(level >= 7 ? { blessed_strikes: 'divine_strike' } : {}),
         client_picks: { class_tools: [], origin_feat_picks: {}, species_picks: {} },
       },
     }
@@ -482,6 +483,25 @@ test.describe('P24-M02 cleric — offline create2024_bridge tables', () => {
       expect(sheet.class_options_2024.weapon_mastery ?? []).toEqual([])
     })
   }
+
+  test('bridge L11: Blessed Strikes pick is required and lands in feature_picks + class_options_2024', async () => {
+    const payload = bridgePayload(11, 5, 16, 'protector') as Record<string, any>
+    const missing = runCreate2024Bridge({
+      ...payload,
+      class_option_picks: { ...payload.class_option_picks, blessed_strikes: undefined },
+    })
+    expect(missing.ok).toBe(false)
+    for (const pick of ['divine_strike', 'potent_spellcasting']) {
+      const ok = runCreate2024Bridge({
+        ...payload,
+        class_option_picks: { ...payload.class_option_picks, blessed_strikes: pick },
+      })
+      if (!ok.ok) throw new Error(`${ok.code}: ${ok.message}`)
+      const sheet = ok.sheet as Record<string, any>
+      expect(sheet.class_options_2024.blessed_strikes).toBe(pick)
+      expect(sheet.feature_picks.values['class-cleric:blessed_strikes']).toBe(pick)
+    }
+  })
 
   test('bridge thaumaturge L1: needs table+1 cantrips, no heavy armor, no martial', async () => {
     const short = runCreate2024Bridge(bridgePayload(1, 3, 4, 'thaumaturge'))

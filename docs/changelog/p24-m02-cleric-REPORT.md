@@ -93,8 +93,8 @@
 ## 7. Скрины / тесты / Alembic
 
 - Артефакты: `/opt/cursor/artifacts/p24-m02-cleric/` (1440 и 390)
-- pytest `tests/test_p24_m02_cleric.py` — **44 passed**
-- e2e `npm run test:e2e:p24-m02-cleric` — **64 passed** (32 × 2 viewport)
+- pytest `tests/test_p24_m02_cleric.py` — **49 passed**
+- e2e `npm run test:e2e:p24-m02-cleric` — **84 passed** (42 × 2 viewport; было 64 до Доправки 1)
 - selfcheck `cleric2024Features` — ok; `npm run build` — ok
 - Alembic: одна голова `p24m03pr01` (миграции не было)
 
@@ -114,3 +114,33 @@
 ## 11. PR
 
 **Вливать после #501.** PR не мержить, не деплоить.
+
+## 12. Доправка 1 (PR #502)
+
+Живые доказательства (`/characters/create?edition=2024&preview=1`, без e2eSeed): `frontend/e2e/p24-m02-cleric-live.spec.ts`, блок «Доправка 1». Скрины — `/opt/cursor/artifacts/p24-m02-cleric/fixup1/` (каждый в 1440 и 390, 29 имён × 2 = 58 файлов, префикс `fixup1-`).
+
+| # | Что проверяем | Тест | Скрины |
+|---|---------------|------|--------|
+| 1 | Create-at-11: в мастере (шаг «Прокачка») виден выбор Благословленных ударов (`data-testid="p24-m02-blessed-strikes-divine_strike"` / `…-potent_spellcasting`), без выбора «Готово» заблокировано; на листе карточка «Благословленные удары: Божественный удар» / «Могущественные заклинания» (не «не выбрано», не `divine_strike`); payload `class_option_picks.blessed_strikes`, `feature_picks` и `class_options_2024` совпадают | `fixup1-1 create-at-11 … divine_strike` / `… potent_spellcasting` | `create11-blessed-strikes-pick-{divine-strike,potent-spellcasting}`, `create11-blessed-card-{…}` |
+| 2 | Жизнь L17: в видимом тексте страницы нет `divine_strike` / `potent_spellcasting` | `fixup1-2/5/8 life-17` | `life-17-no-raw-ids` |
+| 3 | Божественный удар на оружии: Защитник L11 + Длинный меч «в руках» → `+1к8 излучением или некротическим, раз в ход` | `fixup1-3` | `divine-strike-attack`, `divine-strike-attack-card` |
+| 4 | Могущественные заклинания: L11, Мудрость 17 (+3) → «Священное пламя» `3d8+3`, диалог Каст тоже `3d8+3` | `fixup1-4` | `potent-sacred-flame`, `…-row`, `…-cast-dialog` |
+| 5 | Божественная искра: L11 `2к8+3`, L17 `3к8+3`; нет лестницы `1к8(+2/3/4к8` | `fixup1-5/6 L11`, `fixup1-2/5/8 life-17` | `spark-formula-11`, `spark-formula-11-card`, `spark-formula-17` |
+| 6 | Одна кнопка на карточках Искра / Изгнание / Сохранение жизни / Вмешательство (`.ui-button` ровно 1, плюс `.feature-resource__actions .ui-button` = 1) | `fixup1-5/6 L11` | `single-button-{spark,turn-undead,preserve-life,divine-intervention,features}` |
+| 7 | Защитник L5: Кольчужный доспех + Щит + Длинный меч надеты → КД 18 (шапка и пилюля «КД 18»); бонус атаки мечом = мод. Силы + БМ (воинское владение) | `fixup1-7` | `protector-ac18`, `protector-ac18-equipped-list`, `protector-martial-attack`, `…-card` |
+| 8 | Высшее исцеление (Жизнь L17) видна | `fixup1-2/5/8 life-17` | `life-17-supreme-healing` |
+| 9 | Улучшенные Благословленные удары L14: Божественный удар → у меча `2к8`; Могущественные → карточка «временные хиты (Мудрость × 2)» | `fixup1-9 …divine_strike` / `…potent_spellcasting` | `improved-blessed-14-{divine-strike,potent-spellcasting}-{weapon,weapon-card,card,features}` |
+
+Правки кода под эвиденс: у `SegmentedControl` добавлен необязательный `testId` у опции (CSS не менялся); `LevelingForks2024` ставит `p24-m02-blessed-strikes-*` на чипы. Старые live-тесты (`create-live-at-11`, bridge L11/L20) обновлены: выбор Благословленных ударов делается в мастере; добавлен bridge-тест «выбор обязателен и попадает в `feature_picks`».
+
+**Тесты:** e2e `npm run test:e2e:p24-m02-cleric` — **84 passed** (42 × 2 viewport: 1440 и 390; из них Доправка 1 — 9 × 2 = 18). pytest `tests/test_p24_m02_cleric.py` — **49 passed**. selfcheck `cleric2024Features` — ok. `npm run build` — ok. Alembic: одна голова `p24m03pr01`.
+
+**Регрессия 2014:** `REGRESSION_2014.md` обновлён — **11/11 md5 IDENTICAL** (before `44f1244e` ↔ after после Доправки 1).
+
+**Известные пробелы (не чинили в этой доправке):**
+
+- Стартовое снаряжение 2024 (вариант A Жреца: кольчужная рубаха, щит, булава) в листе — «Предмет» без `armor_kind`: шапка показывает КД 11 вместо 16 из мастера, пока не добавить доспех/щит из справочника. Кольчуга «Кольчужный доспех» в стартовый набор Жреца не входит (A = кольчужная **рубаха**) — в тесте она и щит берутся через «Из справочника» и надеваются.
+- Рубаха из стартового набора остаётся «Надето» без кнопки снять; КД считается по лучшему надетому.
+- Справочник снаряжения в листе по-прежнему подписан «2014», у «Длинного меча» урон «slashing» по-английски.
+- 390: строки форков мастера шире экрана (было до этой доправки), чипы выбора Благословленных ударов тоже обрезаются справа.
+- Врем. хиты Могущественных заклинаний на L14 — только текст карточки (без кнопки применения).
