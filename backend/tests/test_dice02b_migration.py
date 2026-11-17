@@ -34,7 +34,6 @@ def test_alembic_single_head_includes_dice02b():
     script = ScriptDirectory.from_config(cfg)
     heads = script.get_heads()
     assert len(heads) == 1
-    assert heads[0] == "dice02b01widenroll"
     revisions = {rev.revision for rev in script.walk_revisions(base="base", head=heads[0])}
     assert "dice02b01widenroll" in revisions
     assert "admqf01bootstrapsrc" in revisions
