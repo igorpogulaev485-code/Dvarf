@@ -101,14 +101,19 @@
 | astral-elf-desk-1440 / 390 | астральный заговор, Звёздный шаг, посох, КД 12 |
 | crossbow-plus1-1440 / 390 | атака **+4**, урон 1к8+1 |
 | longsword-plus1-1440 / 390 | воин, меч +1 атака **+6** |
-| staff-unattuned-hint-1440 / 390 | «настройте, чтобы получить бонусы», КД без +2 посоха |
-| staff-unequipped-bonuses-gone-1440 | снял из рук → КД **10**, нет gear-spell |
+| staff-unattuned-hint-1440 / 390 | «настройте, чтобы получить бонусы», Настр. 0/3 |
+| staff-attuned-after-1440 | после настройки — hint исчез |
+| staff-charge-spent-1440 / 390 | **19/20** зарядов; ячейки 1/2/3 ур. без `used` |
+| staff-recharge-2d8-1440 / 390 | `rechargeDice` **2к8+4** на ресурсе посоха |
+| staff-unequipped-bonuses-gone-1440 / 390 | снял из рук → КД **10**, атака заклин. без +2 посоха |
+| starlight-spent / restored (+390) | Звёздный шаг 2/3 → 3/3 после long rest (`reset: long`) |
 | needs-choice-astral-1440 / 390 | banner «Астральное пламя · нужен выбор» |
-| needs-choice-after-pick-1440 | Священное пламя · астральный, Звёздный шаг 2/2, banner нет |
-| create-astral-cantrip-step-1440 | RaceSetup: Пляшущие/Свет/Священное пламя |
-| staff-recharge-2d8-1440 | инвентарь посоха, заряды×20, attuned+в руках |
-| starlight-spent / restored | ресурс Звёздный шаг |
+| needs-choice-after-pick-1440 / 390 | Священное пламя · астральный; banner нет |
+| create-astral-cantrip-step-1440 / 390 | RaceSetup: Пляшущие / Свет / Священное пламя |
+| create-astral-result-1440 / 390 | выбран выбран (Священное пламя / Свет) |
 | regression-before/after-baseline-1440/390 | md5 **совпали** (worktree main :5174 vs ветка :5173) |
+
+Расход заряда посоха: поле `resources[].used` у `gear-res:…:staff_of_power` (0→1 ⇒ 19/20), `spells.slots.*.used` остаются 0. Заклинание в листе — `gear-spell:…:magic_missile` с пометкой «Посох силы».
 
 ### Регресс md5 (один персонаж «Обычный Воин», scrollTop=0)
 
