@@ -1751,6 +1751,7 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
           <SpellsSettingsDialog
             open={model.spellsSettingsOpen}
             edition={model.rulesEdition}
+            extraCantripsBySlug={model.primalOrderExtraCantrips}
             className={model.classSummary || model.primaryClass?.name || ''}
             level={model.characterLevel}
             classes={model.draft.classes}

@@ -438,30 +438,51 @@ export function spellRangeFt2024(range: string | null | undefined): number | nul
   return Number.isFinite(value) ? value : null
 }
 
-/** Potent Spellcasting (L15) needs a numeric range of at least 10 ft. */
+/** Produce Flame is «На себя», but the hurled flame reaches 60 ft — that is the range Potent Spellcasting extends. */
+export const PRODUCE_FLAME_HURL_FT_2024 = 60
+
+export function produceFlameHurlFt2024(spell: {
+  name?: string | null
+  slug?: string | null
+  catalog_id?: string | null
+}): number | null {
+  const key = `${spell.name ?? ''} ${spell.slug ?? ''} ${spell.catalog_id ?? ''}`.toLowerCase()
+  return /сотворение пламени|produce[-_ ]flame/.test(key) ? PRODUCE_FLAME_HURL_FT_2024 : null
+}
+
+function potentBaseRangeFt(range: string | null | undefined, hurlFt?: number | null): number | null {
+  return spellRangeFt2024(range) ?? (hurlFt != null && hurlFt > 0 ? hurlFt : null)
+}
+
+/** Potent Spellcasting (L15) needs a numeric range (or a hurl range) of at least 10 ft. */
 export function potentSpellcastingRangeApplies2024(
   range: string | null | undefined,
   bonusFt: number,
+  hurlFt?: number | null,
 ): boolean {
   if (bonusFt <= 0) return false
-  const base = spellRangeFt2024(range)
+  const base = potentBaseRangeFt(range, hurlFt)
   return base != null && base >= 10
 }
 
 /**
  * Cantrip range with the L15 bonus: `120 фт` → `420 фт (+300)`. Ranges under 10 ft, Touch and
- * Self stay untouched. `compact` drops the source note, for the one-line spell meta.
+ * Self stay untouched, except a hurl range (Produce Flame): `На себя` → `На себя · бросок 360 фт (+300)`.
+ * `compact` drops the source note, for the one-line spell meta.
  */
 export function potentSpellcastingRangeText2024(
   range: string | null | undefined,
   bonusFt: number,
   compact = false,
+  hurlFt?: number | null,
 ): string {
   const raw = String(range ?? '')
-  if (!potentSpellcastingRangeApplies2024(raw, bonusFt)) return raw
-  const base = spellRangeFt2024(raw) as number
+  if (!potentSpellcastingRangeApplies2024(raw, bonusFt, hurlFt)) return raw
   const note = compact ? `+${bonusFt}` : `+${bonusFt}, ${POTENT_SPELLCASTING_NAME_RU}`
-  return raw.replace(SPELL_RANGE_FT_RE, `${base + bonusFt} фт (${note})`)
+  const numeric = spellRangeFt2024(raw)
+  if (numeric != null) return raw.replace(SPELL_RANGE_FT_RE, `${numeric + bonusFt} фт (${note})`)
+  const hurl = hurlFt as number
+  return `${raw} · бросок ${hurl + bonusFt} фт (${note})`
 }
 
 /**

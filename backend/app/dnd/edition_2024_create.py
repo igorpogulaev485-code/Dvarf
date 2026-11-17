@@ -2020,6 +2020,9 @@ def _build_sheet(
             row["damage"] = damage
         if damage_type:
             row["damage_type"] = damage_type
+        if str(cat.get("kind") or "") == "weapon":
+            props = [str(p).lower() for p in (cat_data.get("properties") or [])]
+            row["weapon_grip"] = "two_hand" if "two_handed" in props else "one_hand"
         items.append(row)
 
     class_pack = gear["class_pack"]

@@ -137,6 +137,20 @@ const CIRCLE_SPELLS: Record<string, { labelRu: string; spells: DruidCircleSpell[
   },
 }
 
+/**
+ * PHB 2024 Circle of the Moon spells (leveled; Starry Wisp is a cantrip and is not synced,
+ * Fount of Moonlight is not in the SRD 5.2 catalog). Slug is the 2024 catalog subclass.
+ */
+export const MOON_2024_CIRCLE_SPELLS: DruidCircleSpell[] = [
+  { name: 'Cure Wounds', level: 1, fromClassLevel: 3 },
+  { name: 'Moonbeam', level: 2, fromClassLevel: 3 },
+  { name: 'Conjure Animals', level: 3, fromClassLevel: 5 },
+  { name: 'Mass Cure Wounds', level: 5, fromClassLevel: 9 },
+]
+
+const MOON_2024_SLUG = 'druid__moon'
+const MOON_2024_PACK = { slug: MOON_2024_SLUG, labelRu: 'Круг луны', spells: MOON_2024_CIRCLE_SPELLS }
+
 export type DruidLandGrantPick = {
   classEntryId: string
   slug?: string | null
@@ -185,6 +199,7 @@ function managedCircleSpellIds(classEntryId: string): Set<string> {
   for (const [slug, pack] of Object.entries(CIRCLE_SPELLS)) {
     for (const row of pack.spells) ids.add(spellId(classEntryId, slug, row.name))
   }
+  for (const row of MOON_2024_CIRCLE_SPELLS) ids.add(spellId(classEntryId, MOON_2024_SLUG, row.name))
   for (const rows of Object.values(LAND_CIRCLE_SPELLS)) {
     for (const row of rows) ids.add(spellId(classEntryId, 'circle_of_the_land', row.name))
   }
@@ -273,6 +288,8 @@ export function syncDruidCircleSpells(input: {
   subclassSlugByEntryId?: Record<string, string | null | undefined>
   featurePicks?: FeaturePicksState | null
   subclassGrants?: DruidLandGrantPick[] | null
+  /** 2024 adds the Moon circle spells; 2014 sheets are untouched. */
+  rulesEdition?: string | null
 }): { spells: SpellsState; changed: boolean } {
   let known = [...input.spells.known]
   let changed = false
@@ -287,7 +304,10 @@ export function syncDruidCircleSpells(input: {
       resolveSubclassFeatureSlug(row.subclass_name) ||
       null
     const grant = grants.find((item) => item.classEntryId === row.id)
-    const pack = druidCircleSpellsForSlug(slug)
+    const moon2024 =
+      String(input.rulesEdition ?? '2014').trim() === '2024' &&
+      (slug === MOON_2024_SLUG || slug === 'circle_of_the_moon')
+    const pack = moon2024 ? MOON_2024_PACK : druidCircleSpellsForSlug(slug)
     const managed = managedCircleSpellIds(row.id)
     const before = known.length
     known = known.filter((spell) => !managed.has(spell.id))

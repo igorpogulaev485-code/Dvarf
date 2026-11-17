@@ -1,5 +1,10 @@
 import { useEffect, useMemo, useState } from 'react'
 import { CatalogCombobox } from '../catalog'
+import {
+  is2024Edition,
+  overlayLearnBudget2024,
+  overlayLearnBudgets2024,
+} from '../../shared/dnd/spellBudgets2024'
 import type { CatalogEntry } from '../../shared/api/catalog'
 import type { RulesEdition } from '../../shared/api/characters'
 import {
@@ -91,6 +96,8 @@ type SpellsSettingsDialogProps = {
   /** Mobile kit M1.1: «Книга заклинаний»; desk keeps default. */
   title?: string
   featurePicks?: import('../../shared/dnd/featurePicks').FeaturePicksState | null
+  /** 2024 only: extra cantrips per class slug (Druid Magician +1), same value as the Play Desk budget. */
+  extraCantripsBySlug?: Record<string, number>
 }
 
 export function SpellsSettingsDialog({
@@ -118,6 +125,7 @@ export function SpellsSettingsDialog({
   onToast,
   title = 'Магия',
   featurePicks = null,
+  extraCantripsBySlug,
 }: SpellsSettingsDialogProps) {
   const [prepareOpen, setPrepareOpen] = useState(false)
   const [grimoireOpen, setGrimoireOpen] = useState(false)
@@ -151,26 +159,32 @@ export function SpellsSettingsDialog({
     return null
   }, [suggestion, warlockLvl])
 
-  const learnBudget = useMemo(
-    () =>
-      resolveSpellLearnBudget({
-        classes: classRows,
-        subclassCasters,
-        abilityModFor: (ability) => abilityModifier(abilities[ability]),
-      }),
-    [classRows, subclassCasters, abilities],
-  )
+  const hasExtraCantrips =
+    is2024Edition(edition) &&
+    Object.values(extraCantripsBySlug ?? {}).some((count) => count > 0)
 
-  const learnBudgets = useMemo(
-    () =>
-      resolveSpellLearnBudgets({
-        classes: classRows,
-        subclassCasters,
-        abilityModFor: (ability) => abilityModifier(abilities[ability]),
-        proficiencyBonus,
-      }),
-    [classRows, subclassCasters, abilities, proficiencyBonus],
-  )
+  const learnBudget = useMemo(() => {
+    const budget = resolveSpellLearnBudget({
+      classes: classRows,
+      subclassCasters,
+      abilityModFor: (ability) => abilityModifier(abilities[ability]),
+    })
+    return hasExtraCantrips
+      ? overlayLearnBudget2024(budget, classRows, extraCantripsBySlug)
+      : budget
+  }, [classRows, subclassCasters, abilities, hasExtraCantrips, extraCantripsBySlug])
+
+  const learnBudgets = useMemo(() => {
+    const budgets = resolveSpellLearnBudgets({
+      classes: classRows,
+      subclassCasters,
+      abilityModFor: (ability) => abilityModifier(abilities[ability]),
+      proficiencyBonus,
+    })
+    return hasExtraCantrips
+      ? overlayLearnBudgets2024(budgets, classRows, extraCantripsBySlug)
+      : budgets
+  }, [classRows, subclassCasters, abilities, proficiencyBonus, hasExtraCantrips, extraCantripsBySlug])
 
   const abilityKey = spells.casting_ability
   const abilityMod = abilityKey ? abilityModifier(abilities[abilityKey]) : 0
@@ -921,6 +935,7 @@ export function SpellsSettingsDialog({
         spells={spells}
         knownCaster={knownCaster}
         learnBudget={learnBudget}
+        extraCantripsBySlug={extraCantripsBySlug}
         abilityModFor={(ability) => abilityModifier(abilities[ability])}
         classes={classRows}
         subclassCasters={subclassCasters}

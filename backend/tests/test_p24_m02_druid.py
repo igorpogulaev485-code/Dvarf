@@ -460,3 +460,15 @@ def test_known_forms_validation():
         create24._validate_known_forms([_known_form("wolf")], 1)
     with pytest.raises(create24.Create2024Error):
         create24._validate_known_forms([_known_form("t-rex", cr="8")], 2)
+
+
+def test_create_druid_starting_gear_carries_armor_and_weapon_fields():
+    payload = build_valid_payload("druid", ability_method="manual", base_abilities=_ABILITIES)
+    sheet = create24.validate_create_2024(create24.payload_from_dict(payload)).sheet
+    items = {row["slug"]: row for row in sheet["inventory"]["items"] if row.get("slug")}
+    assert items["leather-armor"]["armor_kind"] == "light"
+    assert items["leather-armor"]["base_ac"] == 11
+    assert items["shield"]["armor_kind"] == "shield"
+    assert items["sickle"]["damage"] == "1d4"
+    assert items["sickle"]["weapon_grip"] == "one_hand"
+    assert "weapon_grip" not in items["leather-armor"]

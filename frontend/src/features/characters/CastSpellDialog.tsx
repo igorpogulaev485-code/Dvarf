@@ -21,6 +21,7 @@ import {
 import {
   potentSpellcastingRangeApplies2024,
   potentSpellcastingRangeText2024,
+  produceFlameHurlFt2024,
 } from '../../shared/dnd/druid2024Features'
 import {
   availableCastSlotLevels,
@@ -927,6 +928,11 @@ export function CastSpellDialog({
       })
     : null
   const baseSpellRange = rulesSpell?.range || spell.range
+  const potentHurlFt = produceFlameHurlFt2024({
+    name: spell.name,
+    slug: (rulesSpell as { slug?: string } | null | undefined)?.slug,
+    catalog_id: spell.catalog_id,
+  })
   const potentRangeBonusFt =
     potentSpellcastingRangeBonusFt > 0 &&
     !isEbMeta &&
@@ -934,12 +940,16 @@ export function CastSpellDialog({
       { level: rulesSpell?.level ?? spell.level, class_slug: spell.class_slug },
       'druid',
     ) &&
-    potentSpellcastingRangeApplies2024(baseSpellRange, potentSpellcastingRangeBonusFt)
+    potentSpellcastingRangeApplies2024(
+      baseSpellRange,
+      potentSpellcastingRangeBonusFt,
+      potentHurlFt,
+    )
       ? potentSpellcastingRangeBonusFt
       : 0
   const spellRangeText =
     potentRangeBonusFt > 0
-      ? potentSpellcastingRangeText2024(baseSpellRange, potentRangeBonusFt)
+      ? potentSpellcastingRangeText2024(baseSpellRange, potentRangeBonusFt, false, potentHurlFt)
       : baseSpellRange
   const metaPartsBase = [
     rulesSpell?.casting_time || spell.casting_time,

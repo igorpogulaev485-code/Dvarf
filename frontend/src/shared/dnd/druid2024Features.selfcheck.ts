@@ -529,6 +529,13 @@ assert.equal(druid.potentSpellcastingRangeText2024('120 фт', 300, true), '420 
 assert.equal(druid.potentSpellcastingRangeText2024('Касание', 300), 'Касание')
 assert.equal(druid.potentSpellcastingRangeText2024('5 фт', 300), '5 фт')
 assert.equal(druid.potentSpellcastingRangeText2024('120 фт', 0), '120 фт')
+assert.equal(druid.produceFlameHurlFt2024({ name: 'Сотворение пламени' }), 60)
+assert.equal(druid.produceFlameHurlFt2024({ slug: 'thorn-whip' }), null)
+assert.equal(
+  druid.potentSpellcastingRangeText2024('На себя', 300, false, 60),
+  'На себя · бросок 360 фт (+300, Мощные заклинания)',
+)
+assert.equal(druid.potentSpellcastingRangeText2024('На себя', 300), 'На себя')
 
 const forms = [
   { id: 'a', tags: [] as string[] },

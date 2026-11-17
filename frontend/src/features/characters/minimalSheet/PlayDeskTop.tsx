@@ -627,7 +627,7 @@ export function PlayDeskTop({ model }: { model: SheetModel }) {
           maxHpExtraBonuses={maxHpExtraBonuses}
           play={model.draft.play}
           autoAc={model.armorClass.ac}
-          acOverride={model.draft.ac}
+          acOverride={model.wildShapeFormLabel2024 ? null : model.draft.ac}
           acHint={model.armorClass.summary}
           formVitalLabel={model.wildShapeFormLabel2024 ?? null}
           onOpenAc={() => model.setAcBreakdownOpen(true)}

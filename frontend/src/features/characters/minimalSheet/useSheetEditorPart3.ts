@@ -487,6 +487,7 @@ export function useSheetEditorPart3(model: SheetModel) {
         subclassSlugByEntryId: model.subclassSlugByEntryId,
         featurePicks: prev.featurePicks,
         subclassGrants: prev.subclassGrants,
+        rulesEdition: model.rulesEdition ?? model.baseCharacter?.rules_edition,
       })
       if (!synced.changed) return prev
       return { ...prev, spells: synced.spells }
@@ -496,6 +497,8 @@ export function useSheetEditorPart3(model: SheetModel) {
     model.draft.featurePicks,
     model.draft.subclassGrants,
     model.subclassSlugByEntryId,
+    model.rulesEdition,
+    model.baseCharacter?.rules_edition,
   ])
 
   useEffect(() => {

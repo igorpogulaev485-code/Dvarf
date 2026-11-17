@@ -62,7 +62,10 @@ import {
 } from '../../shared/dnd/spells'
 import type { RulesEdition } from '../../shared/api/characters'
 import { type BonusLine, withSpellCastBonuses } from './modifiers'
-import { potentSpellcastingRangeText2024 } from '../../shared/dnd/druid2024Features'
+import {
+  potentSpellcastingRangeText2024,
+  produceFlameHurlFt2024,
+} from '../../shared/dnd/druid2024Features'
 import {
   applyPotentSpellcastingToDamage2024,
   isPotentSpellcastingCantrip2024,
@@ -1038,7 +1041,16 @@ function compactSpellMeta(
       ? formatEldritchSpearRangeRu(spearFt)
       : shortRange(
           potentRangeFt > 0
-            ? potentSpellcastingRangeText2024(baseRange, potentRangeFt, true)
+            ? potentSpellcastingRangeText2024(
+                baseRange,
+                potentRangeFt,
+                true,
+                produceFlameHurlFt2024({
+                  name: spell.name,
+                  slug: (rules as { slug?: string }).slug,
+                  catalog_id: spell.catalog_id,
+                }),
+              )
             : baseRange,
         )
   parts.push(range || '—')

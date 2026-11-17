@@ -1,4 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
+import {
+  is2024Edition,
+  overlayLearnBudgets2024,
+} from '../../shared/dnd/spellBudgets2024'
 import { listCatalogEntries, type CatalogEntry } from '../../shared/api/catalog'
 import type { RulesEdition } from '../../shared/api/characters'
 import {
@@ -112,6 +116,8 @@ type GrimoireDialogProps = {
   knownCaster?: boolean
   /** Override learn budget (create pipeline passes fresh compute). */
   learnBudget?: SpellLearnBudget | null
+  /** 2024 only: extra cantrips per class slug (Druid Magician +1), same value as the Play Desk budget. */
+  extraCantripsBySlug?: Record<string, number>
   abilityModFor?: (ability: 'int' | 'wis' | 'cha') => number
   /** Character classes — restrict list to their spell lists + slot level. */
   classes?: ClassLevelEntry[]
@@ -184,6 +190,7 @@ export function GrimoireDialog({
   spells,
   knownCaster = false,
   learnBudget: learnBudgetProp = null,
+  extraCantripsBySlug,
   abilityModFor,
   classes = [],
   subclassCasters = [],
@@ -221,6 +228,9 @@ export function GrimoireDialog({
       ? null
       : (customOnSheet.find((spell) => spell.id === editingCustomId) ?? null)
 
+  const hasExtraCantrips =
+    is2024Edition(edition) &&
+    Object.values(extraCantripsBySlug ?? {}).some((count) => count > 0)
   const access = useMemo(() => {
     const activeClasses = classes.filter((row) => row.name.trim() && row.level > 0)
     const classSlugs = characterSpellListSlugs(activeClasses, subclassCasters)
@@ -251,7 +261,7 @@ export function GrimoireDialog({
             proficiencyBonus: 0,
           })
         : []
-    const budgets =
+    const baseBudgets =
       activeClasses.length > 0
         ? resolveSpellLearnBudgets({
             classes: activeClasses,
@@ -260,6 +270,9 @@ export function GrimoireDialog({
             proficiencyBonus: 0,
           })
         : []
+    const budgets = hasExtraCantrips
+      ? overlayLearnBudgets2024(baseBudgets, activeClasses, extraCantripsBySlug)
+      : baseBudgets
     // Access circle from character rules — sheet slots must not open higher circles.
     const maxSpellLevel = suggestion
       ? highestSpellSlotLevel(suggestion.slots, suggestion.pact_slots)
@@ -275,7 +288,7 @@ export function GrimoireDialog({
       profiles,
       suggestion,
     }
-  }, [classes, subclassCasters, learnBudgetProp, abilityModFor])
+  }, [classes, subclassCasters, learnBudgetProp, abilityModFor, hasExtraCantrips, extraCantripsBySlug])
 
   const mode = access.budget?.mode ?? (knownCaster ? 'known' : 'prepared_list')
   const maxPrepared = access.budget?.maxPrepared ?? spells.max_prepared
