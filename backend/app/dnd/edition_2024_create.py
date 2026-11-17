@@ -1019,6 +1019,85 @@ BARD_LORE_SKILL_PICKS_2024 = 3
 BARD_LORE_DISCOVERIES_LEVEL_2024 = 6
 BARD_LORE_DISCOVERIES_PICKS_2024 = 2
 BARD_LORE_DISCOVERY_LISTS_2024 = ("wizard", "druid", "cleric")
+BARD_MAGICAL_SECRETS_LEVEL_2024 = 10
+BARD_MAGICAL_SECRETS_LISTS_2024 = ("bard", "wizard", "druid", "cleric")
+
+
+def _bard_prepared_column_2024(bard_level: int) -> int:
+    """Prepared-spells column for a single-class bard (table, no subclass free spells)."""
+    level = max(1, min(20, int(bard_level or 1)))
+    snap = e24.compute_progression([{"slug": "bard", "level": level}])
+    blocks = list(snap.spellcasting or [])
+    return int(blocks[0].prepared_spells or 0) if blocks else 0
+
+
+def _bard_prepared_column_grows_2024(bard_level: int) -> bool:
+    level = max(1, min(20, int(bard_level or 1)))
+    if level < 2:
+        return False
+    return _bard_prepared_column_2024(level) > _bard_prepared_column_2024(level - 1)
+
+
+def magical_secrets_off_list_cap_2024(bard_level: int) -> int:
+    """Off-Bard-list prepared slots Magical Secrets opens (mirror frontend)."""
+    level = max(0, min(20, int(bard_level or 0)))
+    cap = 0
+    for at in range(BARD_MAGICAL_SECRETS_LEVEL_2024, level + 1):
+        cap += 1 + (1 if _bard_prepared_column_grows_2024(at) else 0)
+    return cap
+
+
+def _validate_bard_magical_secrets_prepared_2024(payload: Create2024Payload) -> None:
+    """Create-at-N: Magical Secrets four lists from 10; below 10 reject off-list."""
+    if payload.class_slug != "bard":
+        return
+    bard_level = _planned_class_level(payload, "bard")
+    prepared = [_normalize_slug(x) for x in payload.prepared_spell_ids]
+    if not prepared:
+        return
+    subclass = _planned_primary_subclass(payload) or None
+    row: dict[str, Any] = {"slug": "bard", "level": max(1, bard_level)}
+    if subclass:
+        row["subclass_slug"] = subclass
+    snap = e24.compute_progression([row], abilities=payload.base_abilities)
+    always: set[str] = set()
+    for block in snap.spellcasting or []:
+        always |= {_normalize_slug(x) for x in (block.always_prepared or ())}
+    bard_list = _class_spell_list_slugs("bard")
+    extra_lists = (
+        BARD_LORE_DISCOVERY_LISTS_2024 if bard_level >= BARD_MAGICAL_SECRETS_LEVEL_2024 else ()
+    )
+    extra_slugs: set[str] = set()
+    for cls in extra_lists:
+        extra_slugs |= _class_spell_list_slugs(cls)
+    catalog = load_spell_catalog()
+    off: list[str] = []
+    for sid in prepared:
+        if sid in always:
+            continue
+        spell_row = catalog.get(sid)
+        if spell_row is None:
+            raise Create2024Error(f"Неизвестное заклинание: {sid}", code="create_2024_spells")
+        if _spell_level(spell_row) < 1:
+            raise Create2024Error(
+                f"{sid} не подготовленное заклинание (заговоры выбираются отдельно)",
+                code="create_2024_spells",
+            )
+        if bard_list and sid in bard_list:
+            continue
+        if bard_level >= BARD_MAGICAL_SECRETS_LEVEL_2024 and sid in extra_slugs:
+            off.append(sid)
+            continue
+        raise Create2024Error(
+            f"Заклинание {sid} не из списка класса",
+            code="create_2024_spells",
+        )
+    cap = magical_secrets_off_list_cap_2024(bard_level)
+    if len(off) > cap:
+        raise Create2024Error(
+            f"Магические тайны: вне списка Барда {len(off)}/{cap}",
+            code="create_2024_spells",
+        )
 
 
 def _bard_expertise_need_2024(bard_level: int) -> int:
@@ -1699,6 +1778,8 @@ def validate_create_2024(payload: Create2024Payload) -> Create2024Result:
     _sync_land_choice_pick(sheet)
     _sync_known_forms(sheet, class_options)
     _sync_bard_picks(sheet, class_options)
+    # Magical Secrets: create-at-N prepared may use Wizard/Druid/Cleric lists from bard 10+.
+    _validate_bard_magical_secrets_prepared_2024(payload)
 
     # Class name line: primary + multiclass summary.
     class_name = str(class_row.get("name_ru") or class_slug)

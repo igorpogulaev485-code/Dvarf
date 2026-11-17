@@ -1121,6 +1121,12 @@ def _rollback_bard_state(sheet: dict[str, Any], classes: Sequence[Mapping[str, A
     values = dict(picks.get("values") or {}) if isinstance(picks, dict) else {}
     if level < 9 and f"{entry}:expertise_9" in values:
         unset_expertise([x for x in str(values.pop(f"{entry}:expertise_9")).split(",") if x])
+    # Broken create/store: all four Expertise skills in the L2 pick — keep two below L9.
+    if level < 9 and f"{entry}:expertise" in values:
+        exp2 = [x for x in str(values.get(f"{entry}:expertise") or "").split(",") if x]
+        if len(exp2) > 2:
+            unset_expertise(exp2[2:])
+            values[f"{entry}:expertise"] = ",".join(exp2[:2])
     if level < 2 and f"{entry}:expertise" in values:
         unset_expertise([x for x in str(values.pop(f"{entry}:expertise")).split(",") if x])
     if level < 6:
