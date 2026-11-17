@@ -27,6 +27,7 @@ import { type LevelUpChoice } from '../LevelUpDialog'
 import { applyClassAsiBonuses, asiAlreadyApplied, isAsiFeature, type AppliedClassAsi } from '../../../shared/dnd/classAsi'
 import { buildPendingWizardSteps, isWizardClassName, withWizardSpellbookPicksStep, type GuidedWizardStep } from '../../../shared/dnd/pendingFeatureChoices'
 import { sumFeatHpPerLevel, type AppliedFeatGrant } from '../../../shared/dnd/featGrants'
+import { expectedPassiveHpBonuses } from '../../../shared/dnd/hpPassiveBonuses'
 import { applyFeatGrantToDraft, revokeFeatGrantsForBackground, syncFeatProficiencyResources } from '../featEffects'
 import { syncHitDicePools } from '../../../shared/dnd/classHitDice'
 import { withSyncedHitDiceSummary } from '../play'
@@ -373,7 +374,18 @@ export function installSheetActions3(model: SheetModel) {
         slice: model.subclassSliceFrom(withRaceSpells),
       })
       tableChanged = reconciled.tableChanged
-      return model.mergeSubclassSlice(withRaceSpells, reconciled.slice)
+      const merged = model.mergeSubclassSlice(withRaceSpells, reconciled.slice)
+      const draconicResilience = (model.unlockedFeatures ?? []).some(
+        (f: { id?: string }) => f.id === 'draconic_resilience',
+      )
+      return {
+        ...merged,
+        passiveHpBonuses: expectedPassiveHpBonuses({
+          classes: nextClasses,
+          draconicResilience,
+          raceSlug: merged.raceGrant?.slug ?? null,
+        }),
+      }
     })
     model.setLevelUpOpen(false)
     const hpNote = ` · хиты +${Math.max(0, Math.floor(choice.hpGain))}`

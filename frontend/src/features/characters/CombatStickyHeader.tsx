@@ -20,6 +20,10 @@ type CombatStickyHeaderProps = {
   classes: ClassLevelEntry[]
   hitDie: HitDie | null
   constitutionMod: number
+  /** Draconic Resilience +1 / sorcerer level. */
+  draconicResilience?: boolean
+  /** Hill/Gold Dwarf +1 / character level. */
+  dwarvenToughness?: boolean
   hpCurrent: number | null
   hpMax: number | null
   hpTemp: number
@@ -61,6 +65,8 @@ export function CombatStickyHeader({
   classes,
   hitDie,
   constitutionMod,
+  draconicResilience = false,
+  dwarvenToughness = false,
   hpCurrent,
   hpMax,
   hpTemp,
@@ -305,6 +311,8 @@ export function CombatStickyHeader({
         hitDie={hitDie}
         hpMax={hpMax}
         hpCurrent={hpCurrent}
+        draconicResilience={draconicResilience}
+        dwarvenToughness={dwarvenToughness}
         onClose={() => setMaxDialogOpen(false)}
         onApply={({ hpMax: nextMax, hpCurrent: nextCurrent }) => {
           onChange({ hpMax: nextMax, hpCurrent: nextCurrent })

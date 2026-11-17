@@ -27,6 +27,12 @@ import {
 import { resolveRaceGrantDef } from '../../../shared/dnd/raceGrants'
 import { DEFAULT_ABILITY_SCORE_MAX, clampAbilityScore, resolveAbilityMaxes } from '../../../shared/dnd/abilityScoreCaps'
 import { applyHpDelta, constitutionHpDelta } from '../../../shared/dnd/constitutionHp'
+import {
+  applyPassiveHpReconcile,
+  expectedPassiveHpBonuses,
+  hasDwarvenToughness,
+  passiveHpBonusesEqual,
+} from '../../../shared/dnd/hpPassiveBonuses'
 import { syncPrimalChampion } from '../../../shared/dnd/primalChampion'
 import { pietyAbilityMaxes, syncPietyChampion } from '../../../shared/dnd/therosPiety'
 import { customFeaturesToSheet } from '../customFeatures'
@@ -46,7 +52,7 @@ import { syncArtifactSetBonuses } from '../artifactGear'
 import { listShieldItems } from '../heldEquip'
 import { attunementsToSheet } from '../attunement'
 import { classLevelsToSheet } from '../classLevels'
-import { naturalArmorFromFeatGrants } from '../../../shared/dnd/featGrants'
+import { naturalArmorFromFeatGrants, sumFeatHpPerLevel } from '../../../shared/dnd/featGrants'
 import {
   applyMediumArmorMasterCap,
   dualWielderAcBonus,
@@ -1005,6 +1011,11 @@ export function useSheetEditorPart3(model: SheetModel) {
       sheet.primal_champion = draftSnap.primalChampion
       sheet.piety = draftSnap.piety
       sheet.feat_grants = draftSnap.featGrants
+      if (draftSnap.passiveHpBonuses) {
+        sheet.passive_hp_bonuses = draftSnap.passiveHpBonuses
+      } else {
+        delete sheet.passive_hp_bonuses
+      }
       Object.assign(sheet, customFeaturesToSheet(draftSnap.customFeatures))
 
       for (const key of ABILITY_KEYS) {
@@ -1194,6 +1205,85 @@ export function useSheetEditorPart3(model: SheetModel) {
         : `Телосложение: максимум хитов ${delta} за все уровни`,
     )
   }, [model.gearAbilities, model.draft.abilities.con, model.draft.classes, model.draft.hpMax])
+
+  // Draconic Resilience / Dwarven Toughness:
+  // - ledger null → safe bootstrap (average-without match → add missing bonus)
+  // - ledger set → apply only real deltas (subclass/race/level vs ledger)
+  // Level-up/create paths bake +1 into hpMax and set ledger = expected, so this
+  // is a no-op after those writes.
+  const passiveHpToastRef = useRef(false)
+  useEffect(() => {
+    if (model.draft.hpMax == null) return
+    const draconicResilience = (model.unlockedFeatures ?? []).some(
+      (f: { id?: string }) => f.id === 'draconic_resilience',
+    )
+    const raceSlug = model.draft.raceGrant?.slug ?? null
+    const expected = expectedPassiveHpBonuses({
+      classes: model.draft.classes,
+      draconicResilience,
+      raceSlug,
+    })
+    if (
+      model.draft.passiveHpBonuses &&
+      passiveHpBonusesEqual(model.draft.passiveHpBonuses, expected)
+    ) {
+      return
+    }
+
+    const conMod = abilityModifier(model.gearAbilities?.con ?? model.draft.abilities.con)
+    const featHpPerLevel = sumFeatHpPerLevel(model.draft.featGrants)
+    let appliedDelta = 0
+    model.setDraft((current) => {
+      if (current.hpMax == null) return current
+      const reconciled = applyPassiveHpReconcile({
+        hpMax: current.hpMax,
+        hpCurrent: current.hpCurrent,
+        classes: current.classes,
+        constitutionMod: conMod,
+        draconicResilience,
+        raceSlug: current.raceGrant?.slug ?? raceSlug,
+        featHpPerLevel,
+        ledger: current.passiveHpBonuses,
+      })
+      appliedDelta = reconciled.delta
+      if (
+        reconciled.delta === 0 &&
+        passiveHpBonusesEqual(current.passiveHpBonuses, reconciled.ledger)
+      ) {
+        return current
+      }
+      return {
+        ...current,
+        hpMax: reconciled.hpMax,
+        hpCurrent: reconciled.hpCurrent,
+        passiveHpBonuses: reconciled.ledger,
+      }
+    })
+    if (appliedDelta !== 0 && !passiveHpToastRef.current) {
+      passiveHpToastRef.current = true
+      const parts: string[] = []
+      if (draconicResilience) parts.push('Драконья стойкость')
+      if (hasDwarvenToughness(raceSlug)) parts.push('Дварфийская стойкость')
+      const label = parts.join(' + ') || 'пассивные бонусы'
+      model.onToast(
+        appliedDelta > 0
+          ? `${label}: максимум хитов +${appliedDelta}`
+          : `${label}: максимум хитов ${appliedDelta}`,
+      )
+      queueMicrotask(() => {
+        passiveHpToastRef.current = false
+      })
+    }
+  }, [
+    model.unlockedFeatures,
+    model.draft.raceGrant?.slug,
+    model.draft.classes,
+    model.draft.hpMax,
+    model.draft.passiveHpBonuses,
+    model.draft.featGrants,
+    model.gearAbilities?.con,
+    model.draft.abilities.con,
+  ])
 
   useEffect(() => {
     const exhaustion = model.draft.play.exhaustion ?? 0

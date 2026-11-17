@@ -6,13 +6,17 @@ import {
   type CatalogKind,
 } from '../../shared/api/catalog'
 import type { AbilityScores } from '../../shared/dnd/multiclassRules'
-import { hitDieForClass } from '../../shared/dnd/multiclassRules'
+import { hitDieForClass, isDraconicSorcererClass } from '../../shared/dnd/multiclassRules'
 import {
   formatClassSummary,
   totalCharacterLevel,
   type ClassLevelEntry,
 } from '../../shared/dnd/classLevels'
 import { hitDieSides, type HitDie } from '../../shared/dnd/hitDice'
+import {
+  expectedPassiveHpBonuses,
+  hasDwarvenToughness,
+} from '../../shared/dnd/hpPassiveBonuses'
 import { syncHitDicePools } from '../../shared/dnd/classHitDice'
 import { xpToReachLevel } from '../../shared/dnd/experience'
 import { mergeRacialBonuses } from '../../shared/dnd/pointBuy'
@@ -200,6 +204,7 @@ type WorkingDraft = {
   playHitDie: HitDie | null
   hpMax: number | null
   hpCurrent: number | null
+  passiveHpBonuses: { draconic: number; dwarven: number } | null
   speed: number | null
   climbSpeed: number | null
   swimSpeed: number | null
@@ -278,6 +283,7 @@ function createWorkingDraft(baseAbilities: AbilityScores): WorkingDraft {
     playHitDie: null,
     hpMax: null,
     hpCurrent: null,
+    passiveHpBonuses: null,
     speed: null,
     climbSpeed: null,
     swimSpeed: null,
@@ -362,6 +368,10 @@ function computeHpFromChoices(input: {
   primaryClassEntryId: string
   hpChoices: HpLevelChoice[]
   constitutionScore: number
+  /** Draconic Bloodline / Resilience unlocked for this create. */
+  draconicResilience?: boolean
+  /** Hill/Gold Dwarf toughness. */
+  dwarvenToughness?: boolean
 }): number {
   const conMod = abilityModifier(input.constitutionScore)
   const choices = ensureHpChoices(input.classes, input.hpChoices)
@@ -374,17 +384,30 @@ function computeHpFromChoices(input: {
     const isOriginFirst =
       choice.classLevel === 1 &&
       (choice.classEntryId === input.primaryClassEntryId || classIndex === 0)
+    const dragon =
+      Boolean(input.draconicResilience) && isDraconicSorcererClass(classRow.name) ? 1 : 0
+    const dwarf = input.dwarvenToughness ? 1 : 0
     let gain: number
     if (isOriginFirst) {
-      gain = hitDieSides(die) + conMod
+      gain = hitDieSides(die) + conMod + dragon + dwarf
     } else if (choice.mode === 'roll' && typeof choice.rolled === 'number') {
-      gain = choice.rolled + conMod
+      gain = choice.rolled + conMod + dragon + dwarf
     } else {
-      gain = averageFace(die) + conMod
+      gain = averageFace(die) + conMod + dragon + dwarf
     }
     total += Math.max(1, gain)
   }
   return Math.max(1, total)
+}
+
+function subclassIsDraconicBloodline(setup: {
+  entry?: { slug?: string; name_ru?: string; data?: Record<string, unknown> }
+} | null | undefined): boolean {
+  if (!setup?.entry) return false
+  const slug = (setup.entry.slug || '').trim().toLowerCase()
+  if (slug === 'draconic_bloodline' || slug.includes('draconic')) return true
+  const name = (setup.entry.name_ru || '').trim().toLowerCase()
+  return name.includes('дракон')
 }
 
 function normalizeBackgroundPicks(raw: unknown): BackgroundGrantPicks {
@@ -783,6 +806,9 @@ function serializeSheet(input: {
   sheet.race_grant = draft.raceGrant
   sheet.background_grant = draft.backgroundGrant
   sheet.feat_grants = draft.featGrants
+  if (draft.passiveHpBonuses) {
+    sheet.passive_hp_bonuses = draft.passiveHpBonuses
+  }
   sheet.companions = draft.companions
   sheet.feature_picks = featurePicksToSheet(input.featurePicks)
   sheet.class_asi = input.classAsi
@@ -1325,14 +1351,25 @@ export async function applyPipelineToSheet(input: {
   })
 
   // 6) HP from pipeline choices (override class L1 max; after ASI so CON is final)
+  const draconicResilience = Object.values(state.subclassSetups ?? {}).some((setup) =>
+    subclassIsDraconicBloodline(setup),
+  )
+  const dwarvenToughness = hasDwarvenToughness(draft.raceGrant?.slug)
   const hp = computeHpFromChoices({
     classes,
     primaryClassEntryId: state.classEntryId,
     hpChoices: state.hpChoices,
     constitutionScore: draft.abilities.con,
+    draconicResilience,
+    dwarvenToughness,
   })
   draft.hpMax = hp
   draft.hpCurrent = hp
+  draft.passiveHpBonuses = expectedPassiveHpBonuses({
+    classes,
+    draconicResilience,
+    raceSlug: draft.raceGrant?.slug ?? null,
+  })
 
   // 7) Spells merge — re-inject race + feat + subclass rows from draft
   // (player/sheetDraft known must not drop Magic Initiate etc.).

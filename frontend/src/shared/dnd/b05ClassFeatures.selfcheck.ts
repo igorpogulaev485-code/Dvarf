@@ -93,7 +93,7 @@ assert(tombOfLevistusTempHp(3) === 30, 'tomb 30')
   assert(hit2.remaining === 10, 'remaining 10 after ward 5')
 }
 
-// Draconic Resilience HP: sorcerer 1 CON 14 → 6+2+1 = 9; level 3 → 23.
+// Draconic Resilience HP: sorcerer 1 CON 14 → 6+2+1 = 9; level 3 → 23; level 8 → 58.
 {
   const L1 = buildMaxHpByLevels({
     classes: [{ name: 'Чародей', level: 1 }],
@@ -109,6 +109,13 @@ assert(tombOfLevistusTempHp(3) === 30, 'tomb 30')
     draconicResilience: true,
   })!
   assert(L3.total === 23, `draconic L3 23 got ${L3.total}`)
+  const L8 = buildMaxHpByLevels({
+    classes: [{ name: 'Чародей', level: 8 }],
+    constitutionMod: 2,
+    fallbackDie: 'd6',
+    draconicResilience: true,
+  })!
+  assert(L8.total === 58, `draconic L8 58 got ${L8.total}`)
 }
 
 // Dread Ambusher first-turn: +10 speed + 1d8 chip.
