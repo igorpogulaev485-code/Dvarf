@@ -498,7 +498,10 @@ export function PlayDeskTop({ model }: { model: SheetModel }) {
                 ...patch,
               }))
             }
-            onInitiativeRoll={() => model.emitToast(formatInitiativeToast(model))}
+            onInitiativeRoll={() => {
+              model.emitToast(formatInitiativeToast(model))
+              model.applyBardInitiativeInspiration()
+            }}
             onPlayChange={(play) => model.setDraft((prev) => ({ ...prev, play }))}
             onCoinsChange={(coins) =>
               model.setDraft((prev) => ({

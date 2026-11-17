@@ -107,7 +107,11 @@ import { syncCastWithoutSlotGrants } from '../castWithoutSlots'
 import { syncPactTomeCantrips } from '../pactTomeEffects'
 import { syncMagicalSecrets } from '../bardSecretsSync'
 import { ensureBardSpells2024 } from '../bardSpellCatalog2024'
-import { danceAcFormula2024, hasDazzlingFootwork2024 } from '../../../shared/dnd/bard2024Features'
+import {
+  danceAcFormula2024,
+  hasDazzlingFootwork2024,
+  jackOfAllTradesBonus2024,
+} from '../../../shared/dnd/bard2024Features'
 import {
   isMantleCommandSpell,
   MANTLE_CONCENTRATION_ID,
@@ -827,9 +831,22 @@ export function useSheetEditorPart3(model: SheetModel) {
             return magicianSkillBonus2024(wisMod)
           })()
         : null
+    const bardLevel2024 =
+      model.rulesEdition === '2024'
+        ? model.draft.classes
+            .filter((row) => resolveClassFeatureSlug(row.name) === 'bard')
+            .reduce((sum, row) => sum + Math.max(0, Math.floor(row.level) || 0), 0)
+        : 0
     for (const skill of SKILL_DEFS) {
       const state = model.draft.skills[skill.key]
       const proficient = Boolean(state?.is_proficient || state?.is_expertise)
+      const jack = jackOfAllTradesBonus2024({
+        bardLevel: bardLevel2024,
+        proficiencyBonus: model.proficiencyBonus,
+        isSkillCheck: true,
+        skillProficient: Boolean(state?.is_proficient),
+        skillExpertise: Boolean(state?.is_expertise),
+      })
       const athlete = remarkableAthleteCheckBonus({
         features: model.unlockedFeatures,
         proficiencyBonus: model.proficiencyBonus,
@@ -850,7 +867,7 @@ export function useSheetEditorPart3(model: SheetModel) {
         if (skill.key === 'arcana') thaum += magicianBonus.arcana
         if (skill.key === 'nature') thaum += magicianBonus.nature
       }
-      const total = athlete + courtier + thaum
+      const total = athlete + courtier + thaum + jack
       if (total) out[skill.key] = total
     }
     return out
@@ -862,6 +879,7 @@ export function useSheetEditorPart3(model: SheetModel) {
     model.rulesEdition,
     model.draft.classOptions2024,
     model.draft.featurePicks,
+    model.draft.classes,
   ])
   model.featureSkillBonuses = featureSkillBonuses
 

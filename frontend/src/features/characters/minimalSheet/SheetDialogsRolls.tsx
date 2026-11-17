@@ -865,6 +865,7 @@ export function SheetDialogsRolls({ model }: { model: SheetModel }) {
               bonus,
             ),
           )
+          model.applyBardInitiativeInspiration()
         }}
         onClose={() => model.setInitiativeBreakdownOpen(false)}
       />

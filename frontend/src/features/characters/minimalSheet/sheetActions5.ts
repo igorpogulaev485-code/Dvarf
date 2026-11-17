@@ -5,7 +5,11 @@ import { sorcerer2024UseFeatureId } from '../../../shared/dnd/sorcerer2024Featur
 import { monk2024UseFeatureId } from '../../../shared/dnd/monk2024Features'
 import { warlock2024UseFeatureId } from '../../../shared/dnd/warlock2024Features'
 import { cleric2024UseFeatureId } from '../../../shared/dnd/cleric2024Features'
-import { bard2024UseFeatureId } from '../../../shared/dnd/bard2024Features'
+import {
+  applySuperiorInspirationOnInitiative2024,
+  bard2024UseFeatureId,
+} from '../../../shared/dnd/bard2024Features'
+import { resolveClassFeatureSlug } from '../../../shared/dnd/classFeatures'
 import { wizardResolvedFeatureId } from '../../../shared/dnd/wizardTradition'
 import { guardBardSpellsChange2024 } from '../bardPreparedGuard'
 import type { SpellsState } from '../spells'
@@ -29,6 +33,23 @@ export function installSheetActions5(model: SheetModel) {
       spells: guarded.spells,
       featurePicks: guarded.featurePicks,
     }))
+  }
+
+  /** 2024 Superior Inspiration: rolling initiative tops Bardic Inspiration up to 2 uses. */
+  model.applyBardInitiativeInspiration = function applyBardInitiativeInspiration() {
+    if (model.rulesEdition !== '2024') return
+    const bard = model.draft.classes.find(
+      (row) => resolveClassFeatureSlug(row.name) === 'bard' && row.level >= 18,
+    )
+    if (!bard) return
+    const top = applySuperiorInspirationOnInitiative2024({
+      bardLevel: bard.level,
+      resources: model.draft.play.resources,
+      classEntryId: bard.id,
+    })
+    if (!top.ok) return
+    model.setDraft((prev) => ({ ...prev, play: { ...prev.play, resources: top.resources } }))
+    model.onToast?.(top.message)
   }
 
   model.isArcaneRecoveryResource = function isArcaneRecoveryResource(row: { id: string; name: string }): boolean {
