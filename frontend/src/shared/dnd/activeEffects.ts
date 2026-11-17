@@ -213,6 +213,8 @@ const MOD_REGISTRY: Record<string, ModApplicator> = {
   },
   roll_die: {
     rollChip: (mod, effect, rollKind) => {
+      // 2024 Bardic Inspiration: spend only after a failed d20 — not auto-added.
+      if (String(mod.condition || '') === 'after_failed_d20') return null
       const dice = typeof mod.dice === 'string' && mod.dice.trim() ? mod.dice.trim() : '1d4'
       const target = String(mod.target || '')
       if (target === 'attack' && rollKind !== 'attack') return null
@@ -244,6 +246,13 @@ const MOD_REGISTRY: Record<string, ModApplicator> = {
     rollChip: (mod, effect, rollKind) => {
       if (rollKind !== 'damage') return null
       if (mod.op !== 'roll_die' && !(typeof mod.dice === 'string' && mod.dice.trim())) {
+        return null
+      }
+      // 2024 Valor: combat damage spend is a deliberate chip action, not an auto rider.
+      if (
+        String(mod.condition || '') === 'combat_inspiration_damage' &&
+        (effect.mods ?? []).some((m) => String(m.condition || '') === 'after_failed_d20')
+      ) {
         return null
       }
       const optional = isOptionalRiderCondition(mod.condition)
@@ -1431,6 +1440,19 @@ export function formatEffectChipFace(effect: ActiveEffect): string {
       }
     }
   }
+  // Bardic / Combat Inspiration: show die size on the chip (1к6…1к12).
+  if (
+    !buff &&
+    (effect.slug === 'bardic_inspiration' || effect.slug === 'combat_inspiration') &&
+    effect.mods
+  ) {
+    for (const mod of effect.mods) {
+      if (typeof mod.dice === 'string' && mod.dice.trim()) {
+        buff = mod.dice.trim().replace(/d/gi, 'к')
+        break
+      }
+    }
+  }
   return buff ? `${title} ${buff}` : title
 }
 
@@ -1450,6 +1472,12 @@ export function formatEffectChipDetails(effect: ActiveEffect): string[] {
   if (remaining) lines.push(remaining)
   if (effect.slug === 'heroism') {
     lines.push('в начале хода: вр. хиты = модификатор заклинателя')
+  }
+  if (
+    (effect.slug === 'bardic_inspiration' || effect.slug === 'combat_inspiration') &&
+    (effect.mods ?? []).some((m) => String(m.condition || '') === 'after_failed_d20')
+  ) {
+    lines.push('после провала Теста к20: брось кость и прибавь (1 раз)')
   }
   if (typeof effect.charges === 'number') {
     if (effect.slug === 'mirror_image') lines.push(`двойники ${effect.charges}`)
@@ -1644,6 +1672,8 @@ export function buildBuffEffect(input: {
   casterMod?: number | null
   classLevel?: number | null
   option?: string | null
+  edition?: string | null
+  combatInspiration?: boolean | null
 }): ActiveEffect | null {
   let slug =
     input.slug ||
@@ -1681,6 +1711,8 @@ export function buildBuffEffect(input: {
     casterMod: input.casterMod,
     classLevel: input.classLevel,
     option: input.option,
+    edition: input.edition,
+    combatInspiration: input.combatInspiration,
   }
   const spec =
     B01_BUFF_SPECS[slug] ??

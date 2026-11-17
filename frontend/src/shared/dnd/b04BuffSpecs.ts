@@ -290,48 +290,79 @@ export const B04_BUFF_SPEC_BUILDERS: Record<string, SpecBuilder> = {
 
   bardic_inspiration: (ctx) => {
     const die = normalizeInspirationDie(ctx.option)
+    const is2024 = String(ctx.edition || '') === '2024'
+    const mods: EffectMod[] = [
+      {
+        target: 'attack_save',
+        op: 'roll_die',
+        dice: die,
+        once: true,
+        ...(is2024 ? { condition: 'after_failed_d20' } : {}),
+      },
+      {
+        target: 'check',
+        op: 'roll_die',
+        dice: die,
+        once: true,
+        ...(is2024 ? { condition: 'after_failed_d20' } : {}),
+      },
+    ]
+    // Valor Combat Inspiration 2024: same granted die also covers AC / damage spends.
+    if (is2024 && ctx.combatInspiration) {
+      mods.push(
+        {
+          target: 'weapon_damage',
+          op: 'roll_die',
+          dice: die,
+          once: true,
+          condition: 'combat_inspiration_damage',
+        },
+        {
+          target: 'ac',
+          op: 'roll_die',
+          dice: die,
+          once: true,
+          condition: 'combat_inspiration_ac',
+        },
+        {
+          target: 'label',
+          op: 'set',
+          condition: 'combat_inspiration',
+        },
+      )
+    }
     return {
       name: 'Бардовское вдохновение',
       slug: 'bardic_inspiration',
       kind: 'feature',
       concentration: false,
-      duration: minutes(10),
-      mods: [
-        {
-          target: 'attack_save',
-          op: 'roll_die',
-          dice: die,
-          once: true,
-        },
-        {
-          target: 'check',
-          op: 'roll_die',
-          dice: die,
-          once: true,
-        },
-      ],
+      duration: is2024 ? hours(1) : minutes(10),
+      mods,
     }
   },
   combat_inspiration: (ctx) => {
     const die = normalizeInspirationDie(ctx.option)
+    const is2024 = String(ctx.edition || '') === '2024'
     return {
       name: 'Боевое вдохновение',
       slug: 'combat_inspiration',
       kind: 'feature',
       concentration: false,
-      duration: minutes(10),
+      duration: is2024 ? hours(1) : minutes(10),
       mods: [
         {
           target: 'attack_save',
           op: 'roll_die',
           dice: die,
           once: true,
+          ...(is2024 ? { condition: 'after_failed_d20' } : {}),
         },
         {
           target: 'check',
           op: 'roll_die',
           dice: die,
           once: true,
+          ...(is2024 ? { condition: 'after_failed_d20' } : {}),
         },
         {
           target: 'weapon_damage',

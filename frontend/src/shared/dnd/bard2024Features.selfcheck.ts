@@ -266,6 +266,29 @@ assert.equal(
   }).ok,
   false,
 )
+assert.equal(
+  bard.applyBard2024FeatureUse({
+    featureId: 'bardic-inspiration',
+    resourceId: null,
+    resources: [biPool(3, 0)],
+    classEntryId: ENTRY,
+    bardLevel: 10,
+    targetHasBardicDie: true,
+  }).ok,
+  false,
+  'one die per target',
+)
+assert.equal(
+  bard.applyBard2024FeatureUse({
+    featureId: 'bardic-inspiration',
+    resourceId: null,
+    resources: [biPool(3, 3)],
+    classEntryId: ENTRY,
+    bardLevel: 10,
+  }).ok,
+  false,
+  'grant spends pool — empty pool refused',
+)
 
 /* Colleges */
 assert.equal(bard.danceUnarmoredAc2024({ dexMod: 3, chaMod: 4, wearingArmor: false, wearingShield: false }), 17)
