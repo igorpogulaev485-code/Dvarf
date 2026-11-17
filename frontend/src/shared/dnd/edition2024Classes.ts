@@ -1148,6 +1148,11 @@ export function computeProgression2024(input: {
       if (unlockedIds.has('druidic') && !free.includes('speak-with-animals')) {
         free.push('speak-with-animals')
       }
+      if (cls.slug === 'bard' && unlockedIds.has('words-of-creation')) {
+        for (const spellId of ['power-word-heal', 'power-word-kill']) {
+          if (!free.includes(spellId)) free.push(spellId)
+        }
+      }
 
       spellcasting.push({
         class_slug: cls.slug,

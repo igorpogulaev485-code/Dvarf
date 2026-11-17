@@ -229,10 +229,11 @@ const SHARED_OPTIONS_2024: Record<string, SharedPoolOption2024[]> = {
     { feature_id: 'elemental-smite', name_ru: 'Стихийная кара', spend_pool: 'channel_divinity', cost: 1, kind: 'bonus', min_level: 3 },
   ],
   'bard__lore': [
-    { feature_id: 'cutting-words', name_ru: 'Острое словцо', spend_pool: 'bardic_inspiration', cost: 1, kind: 'reaction', min_level: 3 },
+    { feature_id: 'cutting-words', name_ru: 'Острые слова', spend_pool: 'bardic_inspiration', cost: 1, kind: 'reaction', min_level: 3 },
+    { feature_id: 'peerless-skill', name_ru: 'Бесподобный навык', spend_pool: 'bardic_inspiration', cost: 1, kind: 'passive', min_level: 14 },
   ],
   'bard__glamour': [
-    { feature_id: 'mantle-of-inspiration', name_ru: 'Ореол вдохновения', spend_pool: 'bardic_inspiration', cost: 1, kind: 'bonus', min_level: 3 },
+    { feature_id: 'mantle-of-inspiration', name_ru: 'Мантия вдохновения', spend_pool: 'bardic_inspiration', cost: 1, kind: 'bonus', min_level: 3 },
   ],
   'bard__valor': [
     { feature_id: 'combat-inspiration', name_ru: 'Боевое вдохновение', spend_pool: 'bardic_inspiration', cost: 1, kind: 'passive', min_level: 3 },
@@ -369,6 +370,16 @@ export function buildPermanentBonuses2024(input: {
     add('improved-critical', 'Улучшенные критические попадания', 'crit_threshold', 19)
     if (classLevel >= 15) add('superior-critical', 'Превосходные критические попадания', 'crit_threshold', 18, 15)
     add('remarkable-athlete', 'Выдающийся атлет', 'initiative_advantage', true)
+  }
+  if (subclassSlug === 'bard__dance') {
+    add(
+      'dazzling-footwork',
+      'Ослепительные фуэте: Защита без доспехов',
+      'ac_formula',
+      { base: 10, mods: ['dex', 'cha'], allows_shield: false, requires_no_armor: true },
+      3,
+      'КД 10+Лов+Хар без доспеха и щита',
+    )
   }
   if (subclassSlug === 'sorcerer__draconic-sorcery') {
     add('draconic-resilience', 'Драконья устойчивость', 'ac_formula', {
@@ -726,8 +737,10 @@ export function buildSubclassResources2024(input: {
   } else if (subclassSlug === 'barbarian__zealot') {
     if (classLevel >= 6) push('fanatical_focus', 'Фанатичная сосредоточенность', 1, 'long', 'fanatical-focus')
     if (classLevel >= 10) push('zealous_presence', 'Рьяное присутствие', 1, 'long', 'zealous-presence')
-  } else if (subclassSlug === 'bard__glamour' && classLevel >= 6) {
-    push('mantle_of_majesty', 'Мантия величества', 1, 'long', 'mantle-of-majesty')
+  } else if (subclassSlug === 'bard__glamour') {
+    push('beguiling_magic', 'Чарующая магия', 1, 'long', 'beguiling-magic')
+    if (classLevel >= 6) push('mantle_of_majesty', 'Мантия величия', 1, 'long', 'mantle-of-majesty')
+    if (classLevel >= 14) push('unbreakable_majesty', 'Несокрушимое величие', 1, 'short', 'unbreakable-majesty')
   }
   return out
 }
