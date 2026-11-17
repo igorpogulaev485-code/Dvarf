@@ -76,6 +76,11 @@ import {
 import type { GuidedWizardStep } from '../../shared/dnd/pendingFeatureChoices'
 import { isCountedKnownForm2024 } from '../../shared/dnd/druid2024Features'
 import { KnownFormsPicker } from './KnownFormsPicker'
+import { LoreDiscoveriesPicker } from './LoreDiscoveriesPicker'
+import {
+  LORE_DISCOVERIES_FEATURE_ID_2024,
+  LORE_MAGICAL_DISCOVERIES_PICKS_2024,
+} from '../../shared/dnd/bard2024Features'
 import type { KnownForm } from './knownForms'
 import type { RulesEdition } from '../../shared/api/characters'
 import { listCatalogEntries, type CatalogEntry } from '../../shared/api/catalog'
@@ -990,6 +995,17 @@ export function GuidedWizardDialog({
     step?.kind === 'known_forms' ? (knownForms ?? []).filter(isCountedKnownForm2024).length : 0
   const knownFormsReady = step?.kind === 'known_forms' && knownFormsCount >= step.budget
 
+  const loreDiscoveriesCount =
+    step?.kind === 'lore_discoveries'
+      ? getFeaturePickList(
+          featurePicks,
+          step.classEntryId,
+          LORE_DISCOVERIES_FEATURE_ID_2024,
+        ).length
+      : 0
+  const loreDiscoveriesReady =
+    step?.kind === 'lore_discoveries' && loreDiscoveriesCount >= LORE_MAGICAL_DISCOVERIES_PICKS_2024
+
   const primaryDisabled =
     step?.kind === 'class_grant'
       ? !grantReady
@@ -1011,7 +1027,9 @@ export function GuidedWizardDialog({
                       ? !invocationReady
                       : step?.kind === 'known_forms'
                         ? !knownFormsReady
-                        : false
+                        : step?.kind === 'lore_discoveries'
+                          ? !loreDiscoveriesReady
+                          : false
 
   const title = !step
     ? 'Настройка персонажа'
@@ -1033,6 +1051,8 @@ export function GuidedWizardDialog({
                     ? `Метамагия · ${step.className} ${step.classLevel}`
                     : step.kind === 'invocation_picks'
                       ? `Воззвания · ${step.className} ${step.classLevel}`
+                      : step.kind === 'lore_discoveries'
+                        ? `Доп. магические тайны · ${step.className} ${step.classLevel}`
                       : step.kind === 'known_forms'
                         ? `Известные облики · ${step.className} ${step.classLevel}`
                         : step.kind === 'feature_choice'
@@ -1170,6 +1190,18 @@ export function GuidedWizardDialog({
         return
       }
       onToast?.('Воззвания: готово')
+      onAdvance(index + 1)
+      return
+    }
+
+    if (step.kind === 'lore_discoveries') {
+      if (!loreDiscoveriesReady) {
+        onToast?.(
+          `Выбери ещё ${Math.max(0, LORE_MAGICAL_DISCOVERIES_PICKS_2024 - loreDiscoveriesCount)} тайн(ы)`,
+        )
+        return
+      }
+      onToast?.('Доп. магические тайны: готово')
       onAdvance(index + 1)
       return
     }
@@ -1477,6 +1509,21 @@ export function GuidedWizardDialog({
                 )
               })}
             </div>
+          </Stack>
+        ) : null}
+        {step.kind === 'lore_discoveries' ? (
+          <Stack gap={12}>
+            <Text tone="muted">
+              Коллегия Знаний · {step.className} {step.classLevel}: выбери два заклинания Волшебника,
+              Друида или Жреца ({loreDiscoveriesCount}/{LORE_MAGICAL_DISCOVERIES_PICKS_2024}).
+            </Text>
+            <LoreDiscoveriesPicker
+              classEntryId={step.classEntryId}
+              bardLevel={step.classLevel}
+              featurePicks={featurePicks}
+              onFeaturePicksChange={onFeaturePicksChange}
+              onToast={onToast}
+            />
           </Stack>
         ) : null}
         {step.kind === 'known_forms' ? (

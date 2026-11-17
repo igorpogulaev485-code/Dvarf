@@ -7,6 +7,7 @@ import * as bard from '../../shared/dnd/bard2024Features'
 import { applyLongRest } from '../../shared/dnd/rest'
 import { emptyFeaturePicks, getFeaturePick, setFeaturePick } from '../../shared/dnd/featurePicks'
 import { buildGrimoireShelfSources, catalogSpellMatchesShelf } from '../../shared/dnd/castProfiles'
+import { buildPendingWizardSteps2024 } from '../../shared/dnd/pendingFeatureChoices2024'
 import { guardBardSpellsChange2024 } from './bardPreparedGuard'
 import { syncMagicalSecrets, MAGICAL_DISCOVERIES_ID_2024 } from './bardSecretsSync'
 import {
@@ -247,6 +248,30 @@ assert.equal(
     subclassSlugByEntryId: lore,
   }).spells.known.length,
   0,
+)
+
+const pendingBase = {
+  classEntryId: ENTRY,
+  className: 'Бард',
+  classSlug: 'bard',
+  hasSubclass: true,
+  classAsi: [],
+  subclassSlug: 'bard__lore',
+}
+const loreStep = (level: number, picks: ReturnType<typeof emptyFeaturePicks>, sub = 'bard__lore') =>
+  buildPendingWizardSteps2024({
+    ...pendingBase,
+    classLevel: level,
+    subclassSlug: sub,
+    featurePicks: picks,
+  }).find((step) => step.kind === 'lore_discoveries')
+assert.equal(loreStep(5, emptyFeaturePicks()), undefined, 'no discoveries step below 6')
+assert.equal(loreStep(6, emptyFeaturePicks(), 'bard__valor'), undefined, 'only Lore')
+assert.equal(loreStep(6, emptyFeaturePicks())?.kind, 'lore_discoveries')
+assert.equal(
+  loreStep(6, setFeaturePick(emptyFeaturePicks(), ENTRY, MAGICAL_DISCOVERIES_ID_2024, 'entangle,guidance')),
+  undefined,
+  'step done after two picks',
 )
 
 console.log('bardSecrets2024.selfcheck ok')
