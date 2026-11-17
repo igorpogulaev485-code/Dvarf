@@ -385,7 +385,13 @@ export function toCreate2024Request(
     prepared_spell_ids: [...state.preparedSpellIds],
     spellbook_spell_ids: [...state.spellbookSpellIds],
     class_option_picks: {
-      ...state.classOptionPicks,
+      ...Object.fromEntries(
+        Object.entries(state.classOptionPicks).filter(
+          ([key]) =>
+            key !== 'magical_discoveries' ||
+            (primarySlug === 'bard' && primarySubclass === 'bard__lore' && classLevels[0]?.level >= 6),
+        ),
+      ),
       client_picks: clientPicks(state),
     },
     subclass_slug: total >= 3 ? primarySubclass : null,

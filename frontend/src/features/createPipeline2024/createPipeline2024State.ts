@@ -484,8 +484,10 @@ export function bardCreatePicksNeed2024(state: Create2024State): {
   bardLevel: number
   expertise: number
   lore: number
+  /** College of Lore level 6: two Wizard/Druid/Cleric spells (Magical Discoveries). */
+  discoveries: number
 } {
-  if (state.classSlug !== 'bard') return { bardLevel: 0, expertise: 0, lore: 0 }
+  if (state.classSlug !== 'bard') return { bardLevel: 0, expertise: 0, lore: 0, discoveries: 0 }
   const primary =
     state.classes.find((row) => row.id === state.primaryClassEntryId) ?? state.classes[0]
   const bardLevel = Math.max(1, primary?.level ?? state.characterLevel ?? 1)
@@ -494,6 +496,7 @@ export function bardCreatePicksNeed2024(state: Create2024State): {
     bardLevel,
     expertise: bardLevel >= 9 ? 4 : bardLevel >= 2 ? 2 : 0,
     lore: bardLevel >= 3 && subclass === 'bard__lore' ? 3 : 0,
+    discoveries: bardLevel >= 6 && subclass === 'bard__lore' ? 2 : 0,
   }
 }
 
@@ -536,6 +539,12 @@ function levelingIssues(state: Create2024State, ctx: StepIssueCtx): string[] {
       : []
     if (need.lore > 0 && !uniqueCount(lore, need.lore)) {
       issues.push(`Доп. навыки Коллегии знаний: выбрано ${lore.length} из ${need.lore}`)
+    }
+    const discoveries = Array.isArray(state.classOptionPicks.magical_discoveries)
+      ? (state.classOptionPicks.magical_discoveries as string[])
+      : []
+    if (need.discoveries > 0 && !uniqueCount(discoveries, need.discoveries)) {
+      issues.push(`Доп. магические тайны: выбрано ${discoveries.length} из ${need.discoveries}`)
     }
   }
   if (state.classSlug === 'druid') {

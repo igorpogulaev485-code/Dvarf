@@ -5,6 +5,13 @@ import type { CatalogEntry } from '../../shared/api/catalog'
 import { ABILITY_LABEL_RU, type AbilityKey } from '../../shared/dnd/pointBuy'
 import { masteryPropertyNameRu } from '../../shared/dnd/weaponMastery'
 import { PickChipGroup } from './PickChipGroup'
+import { LoreDiscoveriesPicker } from '../characters/LoreDiscoveriesPicker'
+import { LORE_DISCOVERIES_FEATURE_ID_2024 } from '../../shared/dnd/bard2024Features'
+import {
+  emptyFeaturePicks,
+  getFeaturePickList,
+  setFeaturePick,
+} from '../../shared/dnd/featurePicks'
 import {
   DIVINE_ORDER_OPTIONS,
   DRAGONBORN_ANCESTRY_OPTIONS,
@@ -249,6 +256,8 @@ export function ClassPicks({
   )
 }
 
+const BARD_CREATE_ENTRY_ID = 'create-bard'
+
 /** Bard 2024 leveling picks: Expertise (2 / 9) and College of Lore bonus skills. */
 export function BardLevelingPicks({
   state,
@@ -262,7 +271,7 @@ export function BardLevelingPicks({
   allSkillIds: readonly string[]
 }) {
   const need = bardCreatePicksNeed2024(state)
-  if (need.expertise === 0 && need.lore === 0) return null
+  if (need.expertise === 0 && need.lore === 0 && need.discoveries === 0) return null
   const lore = ids(state.classOptionPicks.lore_skills)
   const expertise = ids(state.classOptionPicks.expertise)
   const setPicks = (partial: Record<string, unknown>) =>
@@ -284,6 +293,27 @@ export function BardLevelingPicks({
             setPicks({
               lore_skills: next,
               expertise: expertise.filter((id) => proficient.has(id) || next.includes(id)),
+            })
+          }
+        />
+      ) : null}
+      {need.discoveries > 0 ? (
+        <LoreDiscoveriesPicker
+          classEntryId={BARD_CREATE_ENTRY_ID}
+          bardLevel={need.bardLevel}
+          featurePicks={setFeaturePick(
+            emptyFeaturePicks(),
+            BARD_CREATE_ENTRY_ID,
+            LORE_DISCOVERIES_FEATURE_ID_2024,
+            ids(state.classOptionPicks.magical_discoveries).join(',') || null,
+          )}
+          onFeaturePicksChange={(next) =>
+            setPicks({
+              magical_discoveries: getFeaturePickList(
+                next,
+                BARD_CREATE_ENTRY_ID,
+                LORE_DISCOVERIES_FEATURE_ID_2024,
+              ),
             })
           }
         />
