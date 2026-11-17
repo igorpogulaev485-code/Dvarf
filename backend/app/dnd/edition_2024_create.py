@@ -1082,8 +1082,6 @@ def _validate_bard_options_2024(payload: Create2024Payload, picks: Mapping[str, 
 
 def _sync_bard_picks(sheet: dict[str, Any], class_options: Mapping[str, Any]) -> None:
     """Mirror Expertise picks into feature_picks and record the College grants ledger."""
-    from app.services.edition_2024_catalog_seed import entry_id
-
     for row in sheet.get("classes") or []:
         if not isinstance(row, dict):
             continue
@@ -1116,7 +1114,7 @@ def _sync_bard_picks(sheet: dict[str, Any], class_options: Mapping[str, Any]) ->
             ledger.append(
                 {
                     "classEntryId": class_entry,
-                    "catalogId": entry_id(kind="subclass", slug=subclass),
+                    "catalogId": subclass,
                     "slug": subclass,
                     "parentSlug": "bard",
                     "weaponExtras": [],
