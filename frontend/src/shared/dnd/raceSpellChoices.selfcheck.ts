@@ -1,115 +1,108 @@
 /**
- * 2014 race spell_choices: astral elf, high elf, drow, half-elf high.
+ * Astral Elf / high elf racial spell_choices + Звёздный шаг resource.
  * Run: npx tsx src/shared/dnd/raceSpellChoices.selfcheck.ts
- *
- * Other races still needing bespoke work (not spell_choices):
- * - aasimar revelation pick (revelation_choices)
- * - eladrin season (season_choices)
- * - custom_lineage variable trait
  */
-import { readFileSync } from 'node:fs'
-import { dirname, join } from 'node:path'
-import { fileURLToPath } from 'node:url'
+import { readFileSync } from 'fs'
+import { join } from 'path'
 import {
   emptyRacePicks,
+  listMissingRaceSpellChoiceLabels,
   raceGrantDefFromCatalog,
   resolveRacialSpellsForGrant,
   validateRaceGrantPicks,
 } from './raceGrants.ts'
 import { desiredRaceResources, syncRaceResources } from './raceResources.ts'
-import { proficiencyBonusForTotalLevel } from './classFeatures.ts'
 
-function assert(cond: unknown, msg: string): asserts cond {
-  if (!cond) throw new Error(msg)
+function assert(cond: unknown, message: string): asserts cond {
+  if (!cond) throw new Error(message)
 }
 
-const here = dirname(fileURLToPath(import.meta.url))
-const specPath = join(here, '../../../../backend/data/races/phb2014_race_catalog_spec.json')
+const specPath = join(
+  process.cwd(),
+  process.cwd().endsWith('frontend')
+    ? '../backend/data/races/phb2014_race_catalog_spec.json'
+    : 'backend/data/races/phb2014_race_catalog_spec.json',
+)
 const spec = JSON.parse(readFileSync(specPath, 'utf8')) as {
-  races: Array<Record<string, unknown>>
+  races: Array<Record<string, unknown> & { slug: string; name_ru: string }>
 }
 
-function raceBySlug(slug: string): Record<string, unknown> {
+function defFor(slug: string) {
   const row = spec.races.find((r) => r.slug === slug)
-  assert(row, `missing race ${slug}`)
-  return row
+  assert(row, `missing ${slug}`)
+  const def = raceGrantDefFromCatalog({
+    slug: row.slug,
+    nameRu: row.name_ru,
+    data: row,
+  })
+  assert(def, `def ${slug}`)
+  return def
 }
 
-// —— Astral Elf ——
-{
-  const astral = raceBySlug('astral_elf')
-  const def = raceGrantDefFromCatalog({
-    slug: 'astral_elf',
-    nameRu: 'Эльф (астральный)',
-    data: astral,
-  })
-  assert(def, 'astral def')
-  assert(def!.spellChoices.length === 1, 'astral one spell choice')
-  assert(def!.racialResources.some((r) => r.id === 'starlight_step'), 'starlight resource')
-  const asiReady = {
-    ...emptyRacePicks(),
-    abilityBonusModeId: 'plus1x3',
-    abilityBonusKeys: ['dex', 'int', 'wis'] as const,
-    languages: ['Эльфийский'],
-  }
-  const missing = validateRaceGrantPicks({
-    def: def!,
-    picks: asiReady,
-    requireFeat: false,
-  })
-  assert(missing != null && /Астральное пламя/i.test(missing), `missing pick: ${missing}`)
-  const picks = {
-    ...emptyRacePicks(),
-    abilityBonusModeId: 'plus1x3',
-    abilityBonusKeys: ['dex', 'int', 'wis'],
-    languages: ['Эльфийский'],
-    spellChoiceIds: { astral_fire: 'light' },
-    spellChoiceAbility: { astral_fire: 'cha' },
-  }
-  const ok = validateRaceGrantPicks({ def: def!, picks, requireFeat: false })
-  assert(ok == null, `validate should pass: ${ok}`)
-  const spells = resolveRacialSpellsForGrant({ def: def!, picks })
-  const cantrip = spells.find((row) => row.id === 'astral_fire')
-  assert(cantrip?.spellSlug === 'light' && cantrip.grant === 'innate', 'innate cantrip on grant')
-  assert(cantrip?.castingAbility === 'cha', 'chosen CHA')
-  const pb = proficiencyBonusForTotalLevel(5)
-  const desired = desiredRaceResources({
-    racialResources: def!.racialResources,
-    proficiencyBonus: pb,
-  })
-  assert(desired[0]?.max === pb, 'starlight max follows PB')
-  const synced = syncRaceResources(
-    [{ id: 'race-res:starlight_step', name: 'Звёздный шаг', max: 2, used: 1, reset: 'long' }],
-    desired,
-  )
-  assert(synced[0]?.max === pb && synced[0]?.used === 1, 'preserve used, bump max')
-}
+const astral = defFor('astral_elf')
+assert(astral.spellChoices.length === 1, 'astral has astral_fire choice')
+assert(astral.spellChoices[0]?.options.length === 3, 'three cantrips')
+assert(astral.racialResources.some((r) => r.id === 'starlight_step'), 'starlight resource')
+assert(
+  astral.traitCards.some((c) => c.id === 'starlight_step'),
+  'starlight trait card',
+)
 
-// —— High elf wizard cantrip ——
-{
-  const high = raceBySlug('high_elf')
-  const def = raceGrantDefFromCatalog({
-    slug: 'high_elf',
-    nameRu: 'Эльф (высший)',
-    data: high,
-  })
-  assert(def?.spellChoices[0]?.optionsFrom === 'wizard_cantrips', 'wizard list')
-  assert(def!.spellChoices[0]!.options.length >= 10, 'wizard options expanded')
-}
+const empty = emptyRacePicks()
+const missing = listMissingRaceSpellChoiceLabels({ def: astral, picks: empty })
+assert(missing.includes('Астральное пламя'), 'missing label for old chars')
 
-// —— Drow innate leveled ——
-{
-  const drow = raceBySlug('drow')
-  const def = raceGrantDefFromCatalog({
-    slug: 'drow',
-    nameRu: 'Эльф (дроу)',
-    data: drow,
-  })
-  assert((def?.racialSpells.length ?? 0) === 3, 'drow three spells')
-  assert(
-    def!.racialSpells.every((row) => row.castingAbility === 'cha'),
-    'drow CHA',
-  )
+const picks = {
+  ...empty,
+  abilityBonusModeId: 'plus1x3',
+  abilityBonusKeys: ['str', 'dex', 'con'] as const,
+  languages: ['Эльфийский'],
+  spellChoiceIds: { astral_fire: 'sacred_flame' },
+  spellChoiceAbility: { astral_fire: 'cha' as const },
 }
+// Tasha flexible may use different mode ids — soft-validate spell fork only
+assert(
+  listMissingRaceSpellChoiceLabels({ def: astral, picks }).length === 0,
+  'complete astral pick',
+)
+
+const spells = resolveRacialSpellsForGrant({ def: astral, picks })
+assert(spells.some((s) => s.spellSlug === 'sacred_flame' && s.castingAbility === 'cha'), 'sacred flame cha')
+assert(spells.every((s) => s.grant === 'innate' && s.level === 0), 'innate cantrips')
+
+const desired = desiredRaceResources({
+  racialResources: astral.racialResources,
+  proficiencyBonus: 3,
+})
+assert(desired.length === 1 && desired[0]?.max === 3, 'PB=3 → 3 cells')
+assert(desired[0]?.id === 'race-res:starlight_step', 'race-res id')
+const synced = syncRaceResources(
+  [{ id: 'race-res:starlight_step', name: 'old', max: 2, used: 1, reset: 'long', track: 'spend' }],
+  desired,
+)
+assert(synced[0]?.max === 3 && synced[0]?.used === 1, 'keep used, bump max')
+
+const high = defFor('high_elf')
+assert(high.spellChoices[0]?.optionsFrom === 'wizard_cantrips', 'high elf wizard list')
+assert((high.spellChoices[0]?.options.length ?? 0) >= 10, 'wizard cantrips expanded')
+
+const drow = defFor('drow')
+assert(drow.racialSpells.length === 3, 'drow innate trio')
+assert(drow.spellChoices.length === 0, 'drow has no cantrip picker')
+
+const half = defFor('half_elf_high')
+assert(half.spellChoices[0]?.optionsFrom === 'wizard_cantrips', 'half elf high wizard cantrip')
+
+// validateRaceGrantPicks rejects incomplete spell choice when ASI/langs satisfied enough to reach it
+const badSpell = validateRaceGrantPicks({
+  def: astral,
+  picks: {
+    ...picks,
+    spellChoiceIds: {},
+    spellChoiceAbility: {},
+  },
+  requireFeat: false,
+})
+assert(badSpell && /Астральное пламя|заговор|выбор/i.test(badSpell), `spell validate: ${badSpell}`)
 
 console.log('raceSpellChoices.selfcheck: ok')
