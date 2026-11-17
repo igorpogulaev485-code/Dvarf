@@ -1,5 +1,6 @@
 import { formatModifier } from './sheetTypes'
 import { applyGreatWeaponFightingReroll } from '../../shared/dnd/o06StylesBreathInvocations'
+import { rollFairDie } from '../diceRoller/fairRandom'
 
 export type DeskRollMode = 'normal' | 'advantage' | 'disadvantage'
 
@@ -32,10 +33,21 @@ export type DamageRoll = {
   modifier: number
 }
 
-/** Cryptographically strong when available; falls back to Math.random. */
-export function rollDie(sides: number, rng: () => number = Math.random): number {
+/**
+ * Fair die face 1…sides.
+ * Without `rng` — crypto rejection sampling (`rollFairDie`).
+ * With `rng` — legacy unit-interval hook for deterministic tests: 1+floor(rng()*n).
+ */
+export function rollDie(sides: number, rng?: () => number): number {
   const n = Math.max(2, Math.floor(sides))
-  return 1 + Math.floor(rng() * n)
+  if (rng) return 1 + Math.floor(rng() * n)
+  return rollFairDie(n)
+}
+
+/** Unit-interval stand-in for call sites that must pass `() => number` into helpers. */
+export function fairDeskUnitRng(sidesHint = 20): () => number {
+  const sides = Math.max(2, Math.floor(sidesHint))
+  return () => (rollFairDie(sides) - 1) / sides
 }
 
 /**
@@ -54,7 +66,7 @@ export function resolveRollMode(
 export function rollCheck(
   modifier: number,
   mode: DeskRollMode = 'normal',
-  rng: () => number = Math.random,
+  rng?: () => number,
 ): CheckRoll {
   const mod = Math.trunc(modifier)
   const first = rollDie(20, rng)
@@ -89,7 +101,7 @@ export function rollCheck(
  */
 export function rollCheckElvenAccuracy(
   modifier: number,
-  rng: () => number = Math.random,
+  rng?: () => number,
 ): CheckRoll {
   const mod = Math.trunc(modifier)
   const dice = [rollDie(20, rng), rollDie(20, rng), rollDie(20, rng)]
@@ -115,7 +127,7 @@ export function rollCheckElvenAccuracy(
 export function rollCheckWithLucky(
   modifier: number,
   mode: DeskRollMode = 'normal',
-  rng: () => number = Math.random,
+  rng?: () => number,
 ): CheckRoll {
   const mod = Math.trunc(modifier)
   if (mode === 'normal') {
@@ -157,7 +169,7 @@ export function rollCheckWithLucky(
  */
 export function applyHalflingLuckyReroll(
   roll: CheckRoll,
-  rng: () => number = Math.random,
+  rng?: () => number,
 ): CheckRoll {
   if (roll.die !== 1) return roll
   const next = rollDie(20, rng)
@@ -216,7 +228,7 @@ export function parseDamageExpression(raw: string): {
 
 export function rollDamage(
   expression: string,
-  rng: () => number = Math.random,
+  rng?: () => number,
   options?: { crit?: boolean },
 ): DamageRoll | null {
   const parsed = parseDamageExpression(expression)
@@ -329,7 +341,7 @@ export type AttackStrike = {
 
 function formatExtraDamage(
   extra: AttackExtraDamage,
-  rng: () => number,
+  rng: (() => number) | undefined,
   crit: boolean,
 ): { text: string; total: number } {
   const extraRoll = rollDamage(extra.expression, rng, { crit })
@@ -369,7 +381,7 @@ export function resolveAttackRoll(input: {
    */
   greatWeaponFighting?: boolean
 }): AttackStrike {
-  const rng = input.rng ?? Math.random
+  const rng = input.rng
   const mode = input.mode ?? 'normal'
   let hit: CheckRoll
   if (input.lucky) {
@@ -390,7 +402,7 @@ export function resolveAttackRoll(input: {
     const gwf = applyGreatWeaponFightingReroll({
       parts: dmg.parts,
       sides,
-      rng,
+      rng: rng ?? fairDeskUnitRng(sides),
     })
     if (gwf.changed) {
       const sum = gwf.parts.reduce((a, b) => a + b, 0) + dmg.modifier
@@ -513,7 +525,7 @@ export type BonusDiePart = {
 /** Roll optional buff dice (Bless / Guidance / …) and format as `+N (1d4 Label)`. */
 export function rollBonusDiceParts(
   parts: BonusDiePart[] | null | undefined,
-  rng: () => number = Math.random,
+  rng?: () => number,
 ): { total: number; text: string; rolls: Array<{ label: string; value: number; dice: string }> } {
   if (!parts?.length) return { total: 0, text: '', rolls: [] }
   const rolls: Array<{ label: string; value: number; dice: string }> = []
@@ -532,7 +544,60 @@ export function rollBonusDiceParts(
   return { total, text, rolls }
 }
 
-export function formatSkillRoll(
+export type SkillRollPayload = {
+  text: string
+  roll: CheckRoll
+  total: number
+  modifier: number
+  mode: DeskRollMode
+  /** Canonical expression for journal / «Повторить», e.g. `1d20+5` or `2d20kh1+3`. */
+  expression: string
+  /** Face chips for the journal (kept + dropped). */
+  diceFaces: Array<{
+    sides: number
+    value: number
+    dropped: boolean
+    nat?: '20' | '1'
+  }>
+  modifierTotal: number
+  advantageMode: 'none' | 'advantage' | 'disadvantage'
+}
+
+function natOfD20(value: number): '20' | '1' | undefined {
+  if (value === 20) return '20'
+  if (value === 1) return '1'
+  return undefined
+}
+
+/** Map a CheckRoll to journal face chips (dropped = unused adv/dis / lucky extras). */
+export function checkRollToDiceFaces(roll: CheckRoll): SkillRollPayload['diceFaces'] {
+  const all = roll.allDice?.filter((n) => Number.isFinite(n)) ?? [roll.die]
+  if (all.length <= 1) {
+    return [{ sides: 20, value: roll.die, dropped: false, nat: natOfD20(roll.die) }]
+  }
+  let keptUsed = false
+  return all.map((value) => {
+    const isKept = !keptUsed && value === roll.die
+    if (isKept) keptUsed = true
+    return {
+      sides: 20,
+      value,
+      dropped: !isKept,
+      nat: natOfD20(value),
+    }
+  })
+}
+
+export function checkExpression(modifier: number, mode: DeskRollMode): string {
+  const mod = Math.trunc(modifier)
+  const modBit = mod === 0 ? '' : mod > 0 ? `+${mod}` : String(mod)
+  if (mode === 'advantage') return `2d20kh1${modBit}`
+  if (mode === 'disadvantage') return `2d20kl1${modBit}`
+  return `1d20${modBit}`
+}
+
+/** Structured skill / save / ability check — same math as `formatSkillRoll`. */
+export function rollSkillCheck(
   label: string,
   modifier: number,
   mode: DeskRollMode = 'normal',
@@ -541,8 +606,8 @@ export function formatSkillRoll(
   dieFloor?: { value: number; label: string } | null,
   bonusDice?: BonusDiePart[] | null,
   opts?: { lucky?: boolean; elvenAccuracy?: boolean },
-): string {
-  const roller = rng ?? Math.random
+): SkillRollPayload {
+  const roller = rng
   let rolled: CheckRoll
   if (opts?.lucky) {
     rolled = rollCheckWithLucky(modifier, mode, roller)
@@ -554,9 +619,44 @@ export function formatSkillRoll(
   const withDie = dieFloor ? raiseNaturalDie(rolled, dieFloor.value, dieFloor.label) : rolled
   const roll = floor ? raiseCheckToFloor(withDie, floor.value, floor.label) : withDie
   const bonus = rollBonusDiceParts(bonusDice, roller)
-  if (!bonus.total) return formatCheckRoll(label, roll)
-  const base = formatCheckRoll(label, { ...roll, total: roll.total + bonus.total })
-  return `${base}${bonus.text}`
+  const total = roll.total + bonus.total
+  const text = bonus.total
+    ? `${formatCheckRoll(label, { ...roll, total })}${bonus.text}`
+    : formatCheckRoll(label, roll)
+  const modBit = Math.trunc(modifier)
+  const expressionBase = checkExpression(modBit, mode)
+  const bonusExpr = bonus.rolls
+    .map((row) => {
+      const m = String(row.dice).trim().match(/^(\d*)d(\d+)$/i)
+      if (!m) return ''
+      return `+${m[1] || 1}d${m[2]}`
+    })
+    .join('')
+  return {
+    text,
+    roll,
+    total,
+    modifier: Math.trunc(modifier),
+    mode,
+    expression: `${expressionBase}${bonusExpr}`,
+    diceFaces: checkRollToDiceFaces(roll),
+    modifierTotal: Math.trunc(modifier) + bonus.total,
+    advantageMode:
+      mode === 'advantage' ? 'advantage' : mode === 'disadvantage' ? 'disadvantage' : 'none',
+  }
+}
+
+export function formatSkillRoll(
+  label: string,
+  modifier: number,
+  mode: DeskRollMode = 'normal',
+  rng?: () => number,
+  floor?: { value: number; label: string } | null,
+  dieFloor?: { value: number; label: string } | null,
+  bonusDice?: BonusDiePart[] | null,
+  opts?: { lucky?: boolean; elvenAccuracy?: boolean },
+): string {
+  return rollSkillCheck(label, modifier, mode, rng, floor, dieFloor, bonusDice, opts).text
 }
 
 /** PHB: padded, scale mail, half plate, all heavy — stealth disadvantage. */

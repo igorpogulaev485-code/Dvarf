@@ -22,6 +22,7 @@ import { TurnEconomyDeskHost } from '../TurnEconomyDeskHost'
 import { TurnEconomyStrip } from '../TurnEconomyStrip'
 import { SceneTurnControls } from '../SceneTurnControls'
 import { usePlayDeskRailCap } from './usePlayDeskRailCap'
+import { openDiceJournal } from '../../diceRoller'
 
 export function PlayDeskLayout({ model }: { model: SheetModel }) {
   const { leftRef, stageRef } = usePlayDeskRailCap(Boolean(model.isPlayDesk))
@@ -165,7 +166,7 @@ export function PlayDeskLayout({ model }: { model: SheetModel }) {
                     type="button"
                     className="play-desk__roll-mode-btn"
                     title="История бросков на этом листе"
-                    onClick={() => model.setRollHistoryOpen(true)}
+                    onClick={() => openDiceJournal(model.character.id)}
                   >
                     броски
                     {model.draft.sheetUi.rollHistory.length > 0
@@ -387,7 +388,7 @@ export function PlayDeskLayout({ model }: { model: SheetModel }) {
                   type="button"
                   className="mobile-combat-roll__btn mobile-combat-roll__btn--history"
                   title="История бросков на этом листе"
-                  onClick={() => model.setRollHistoryOpen(true)}
+                  onClick={() => openDiceJournal(model.character.id)}
                 >
                   броски
                   {model.draft.sheetUi.rollHistory.length > 0
@@ -485,7 +486,7 @@ export function PlayDeskLayout({ model }: { model: SheetModel }) {
                 type="button"
                 className="mobile-combat-roll__btn mobile-combat-roll__btn--history"
                 title="История бросков на этом листе"
-                onClick={() => model.setRollHistoryOpen(true)}
+                onClick={() => openDiceJournal(model.character.id)}
               >
                 броски
                 {model.draft.sheetUi.rollHistory.length > 0
@@ -581,7 +582,7 @@ export function PlayDeskLayout({ model }: { model: SheetModel }) {
                 type="button"
                 className="mobile-combat-roll__btn mobile-combat-roll__btn--history"
                 title="История бросков на этом листе"
-                onClick={() => model.setRollHistoryOpen(true)}
+                onClick={() => openDiceJournal(model.character.id)}
               >
                 броски
                 {model.draft.sheetUi.rollHistory.length > 0

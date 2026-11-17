@@ -29,6 +29,10 @@ export { Combobox } from './Combobox'
 export type { ComboboxOption } from './Combobox'
 export { Dialog } from './Dialog'
 export { DiceFab } from './DiceFab'
+export {
+  intentionalActivateProps,
+  INTENTIONAL_ACTIVATE_THRESHOLD_PX,
+} from './intentionalActivate'
 export { FloatingPanel } from './FloatingPanel'
 export type { FloatingPanelCoords } from './FloatingPanel'
 export { BottomSheet } from './BottomSheet'

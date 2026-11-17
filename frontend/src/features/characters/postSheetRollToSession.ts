@@ -16,6 +16,8 @@ export async function postSheetRollToSession(opts: {
   /** Цель для строки журнала (имя). */
   targetName?: string | null
   advantage?: boolean
+  /** Default `sheet`; free panel may use `roll`. */
+  category?: 'sheet' | 'roll' | string | null
 }): Promise<void> {
   const sessionId = opts.openSessionId?.trim()
   if (!sessionId) return
@@ -31,7 +33,7 @@ export async function postSheetRollToSession(opts: {
       formula: opts.formula ?? null,
       breakdown: opts.breakdown ?? null,
       physical_dice: physical,
-      category: 'sheet',
+      category: opts.category ?? 'sheet',
       ...(opts.advantage ? { advantage: true } : {}),
     })
   } catch {

@@ -1,5 +1,5 @@
 import { ABILITY_TIPS, HoverTipCard } from '../onboarding'
-import { NumberInput, Text } from '../../ui'
+import { NumberInput, Text, intentionalActivateProps } from '../../ui'
 import {
   ABILITY_KEYS,
   ABILITY_NAMES,
@@ -273,10 +273,11 @@ export function AbilitySkillsColumn({
                             ? 'Проверка — открыть разборку'
                             : 'Проверка характеристики'
                       }
-                      onClick={() => {
-                        if (onRollCheck) onRollCheck(key, check)
-                        else onOpenAbility?.(key)
-                      }}
+                      {...(onRollCheck
+                        ? intentionalActivateProps(() => onRollCheck(key, check))
+                        : {
+                            onClick: () => onOpenAbility?.(key),
+                          })}
                     >
                       <span className="abil-mod__tag">Пр</span>
                       <span className="abil-mod__num">{formatModifier(check)}</span>
@@ -314,10 +315,11 @@ export function AbilitySkillsColumn({
                               ? 'Спасбросок · владение'
                               : 'Спасбросок'
                         }
-                        onClick={() => {
-                          if (onRollSave) onRollSave(key, saveMod)
-                          else onSaveToggle(key)
-                        }}
+                        {...(onRollSave
+                          ? intentionalActivateProps(() => onRollSave(key, saveMod))
+                          : {
+                              onClick: () => onSaveToggle(key),
+                            })}
                       >
                         <span className="abil-mod__tag">Сп</span>
                         <span className="abil-mod__num">{formatModifier(saveMod)}</span>
@@ -386,13 +388,15 @@ export function AbilitySkillsColumn({
                                   }`
                                 : `${formatModifier(mod)} · ${skillProfHint(state)}`
                             }
-                            onClick={() =>
-                              onRollSkill?.({
-                                key: skill.key,
-                                label: skill.label,
-                                mod,
-                              })
-                            }
+                            {...(onRollSkill
+                              ? intentionalActivateProps(() =>
+                                  onRollSkill({
+                                    key: skill.key,
+                                    label: skill.label,
+                                    mod,
+                                  }),
+                                )
+                              : {})}
                           >
                             {formatModifier(mod)}
                           </button>

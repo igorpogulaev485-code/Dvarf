@@ -2096,6 +2096,18 @@ body:has(.ui-dice-fab-slot) .play-desk__stage .play-desk-compact__list {
     left: auto;
     bottom: calc(72px + env(safe-area-inset-bottom, 0px));
   }
+
+  /*
+   * Характеристики (z=70) covers the FAB — after save/check there is no journal.
+   * Lift FAB + sheet above that page only; CAST on combat scene stays clear
+   * (abil page closed; FAB still padded via --dice-fab-clearance).
+   */
+  body:has(.mobile-abil-page) .ui-dice-fab-slot {
+    z-index: 72;
+  }
+  body:has(.mobile-abil-page) .ui-bottom-sheet-root {
+    z-index: 74;
+  }
 }
 
 .ui-floating-root {
@@ -2381,6 +2393,53 @@ body:has(.ui-dice-fab-slot) .play-desk__stage .play-desk-compact__list {
   gap: 8px;
 }
 
+.dice-roller-panel__adv--with-only-me {
+  grid-template-columns: 1fr 1fr;
+}
+
+.dice-roller-panel__only-me {
+  grid-column: 1 / -1;
+}
+
+@media (min-width: 960px) {
+  .dice-roller-panel__adv--with-only-me {
+    grid-template-columns: 1fr 1fr auto;
+  }
+
+  .dice-roller-panel__only-me {
+    grid-column: auto;
+  }
+}
+
+.dice-roller-panel__tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.dice-roller-panel__tab {
+  border: 1px solid var(--line);
+  background: var(--card);
+  color: var(--ink);
+  border-radius: 999px;
+  padding: 4px 12px;
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.dice-roller-panel__tab.is-on {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+.dice-roller-panel__log-formula {
+  margin: 0 0 6px;
+  font-size: 0.85rem;
+}
+
 .dice-roller-panel__adv-hit {
   display: grid;
   min-width: 0;
@@ -2474,6 +2533,13 @@ body:has(.ui-dice-fab-slot) .play-desk__stage .play-desk-compact__list {
   display: grid;
   gap: 8px;
   padding: 0 10px 10px;
+}
+
+.dice-roller-panel__log-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
 }
 
 .dice-roller-panel__faces {

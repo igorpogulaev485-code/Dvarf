@@ -40,6 +40,24 @@ import {
   splitSecondaryPanel,
   type PlayDeskPanelId,
 } from '../playDeskUi'
+import {
+  openDiceJournal,
+  registerStrokeOfLuckHandler,
+  setStrokeOfLuckAvailable,
+  subscribeDiceLogCleared,
+} from '../../diceRoller/journalBridge'
+import { applyStrokeOfLuckInJournal } from '../../diceRoller/strokeOfLuckJournal'
+import { ensureUnifiedJournal } from '../../diceRoller/unifiedJournal'
+import { applyStrokeOfLuck, strokeOfLuckKind } from '../../../shared/dnd/strokeOfLuck'
+import {
+  findFeatureResource,
+  spendFeatureUse,
+  spendRemaining,
+} from '../../../shared/dnd/featureResources'
+import {
+  resolveClassFeatureSlug,
+  type UnlockedFeature,
+} from '../../../shared/dnd/classFeatures'
 import { resolveSpellLearnBudgets } from '../../../shared/dnd/castProfiles'
 import { resolveClassCasterSlug, resolveSpellLearnBudget } from '../../../shared/dnd/casterProgression'
 import { equippedArmorPieces } from '../inventory'
@@ -505,14 +523,110 @@ export function useSheetEditorPart4(model: SheetModel) {
         0,
       )
   }
-  const [rollHistoryOpen, setRollHistoryOpen] = useState(false)
-  model.rollHistoryOpen = rollHistoryOpen
-  model.setRollHistoryOpen = setRollHistoryOpen
+  // Legacy dialog removed — «броски» / setRollHistoryOpen → единый журнал панели.
+  model.rollHistoryOpen = false
+  model.setRollHistoryOpen = (open: boolean) => {
+    if (open) openDiceJournal(model.character.id)
+  }
   const [isPlayDesk, setIsPlayDesk] = useState(
     () => typeof window !== 'undefined' && window.matchMedia('(min-width: 960px)').matches,
   )
   model.isPlayDesk = isPlayDesk
   model.setIsPlayDesk = setIsPlayDesk
+
+  useEffect(() => {
+    // One-time merge of sheet toast history into the panel journal (no draft rewrite).
+    ensureUnifiedJournal(model.character.id, model.draft.sheetUi.rollHistory)
+  }, [model.character.id])
+
+  useEffect(() => {
+    return subscribeDiceLogCleared((characterId) => {
+      if (characterId !== model.character.id) return
+      model.setDraft((prev) => ({
+        ...prev,
+        sheetUi: {
+          ...prev.sheetUi,
+          rollHistory: [],
+        },
+      }))
+    })
+  }, [model.character.id])
+
+  useEffect(() => {
+    const characterId = model.character.id
+    const feature = ((model.unlockedFeatures ?? []) as UnlockedFeature[]).find(
+      (item) => item.id === 'stroke_of_luck',
+    )
+    let available = false
+    if (feature?.resource?.pool_id) {
+      const classSlug =
+        resolveClassFeatureSlug(feature.className ?? 'плут') ?? 'rogue'
+      const pool = findFeatureResource(
+        model.draft.play.resources,
+        classSlug,
+        feature.resource.pool_id,
+        feature.classEntryId,
+      )
+      available = spendRemaining(pool) >= 1
+    }
+    setStrokeOfLuckAvailable(characterId, available)
+
+    registerStrokeOfLuckHandler((req) => {
+      if (req.characterId !== characterId) {
+        return { ok: false, message: 'Удача недоступна' }
+      }
+      if (!feature) {
+        const message = 'Удача доступна плуту 20-го уровня'
+        model.onToast?.(message)
+        return { ok: false, message }
+      }
+      const kind = strokeOfLuckKind(req.text)
+      const nextText = applyStrokeOfLuck(req.text)
+      if (!kind || !nextText) {
+        const message = 'Этот бросок уже нельзя заменить Удачей'
+        model.onToast?.(message)
+        return { ok: false, message }
+      }
+      const classSlug =
+        resolveClassFeatureSlug(feature.className ?? 'плут') ?? 'rogue'
+      const spent = spendFeatureUse({
+        resources: model.draft.play.resources,
+        feature,
+        classSlug,
+      })
+      if (!spent.ok) {
+        model.onToast?.(spent.message)
+        return { ok: false, message: spent.message }
+      }
+      const applied = applyStrokeOfLuckInJournal(req.characterId, req.entryId)
+      if (!applied.ok) {
+        model.onToast?.(applied.message)
+        return { ok: false, message: applied.message }
+      }
+      model.setDraft((prev) => ({
+        ...prev,
+        play: { ...prev.play, resources: spent.resources },
+        sheetUi: {
+          ...prev.sheetUi,
+          rollHistory: prev.sheetUi.rollHistory.map((item) =>
+            item.text === req.text ? { ...item, text: nextText } : item,
+          ),
+        },
+      }))
+      // Hide «Удача» until short/long rest restores the pool.
+      setStrokeOfLuckAvailable(characterId, false)
+      model.onToast?.(
+        kind === 'attack'
+          ? 'Удача: промах становится попаданием'
+          : 'Удача: d20 проверки считается как 20',
+      )
+      return { ok: true, nextText, kind }
+    })
+    return () => {
+      registerStrokeOfLuckHandler(null)
+      setStrokeOfLuckAvailable(characterId, false)
+    }
+  }, [model.character.id, model.unlockedFeatures, model.draft.play.resources])
 
   const emitToast = useCallback(
     (message: ToastInput) => {

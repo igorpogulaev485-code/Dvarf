@@ -159,6 +159,16 @@ Selfcheck: `npm run selfcheck:abilities-rail-cap` (рядом `selfcheck:abiliti
 `.play-desk__left` / рельса — LOCK §2a). Before-скрины 2014: `scripts/dice-before-from-main.sh`.
 Фича: `frontend/src/features/diceRoller/`. Без page-level CSS и без правок `index.css`.
 
+### intentionalActivate + «Только себе» (DICE-02a)
+
+| Kit / helper | Файл | Лицо |
+|--------------|------|------|
+| `intentionalActivateProps` | `ui/intentionalActivate.ts` | pointer down/move/click: бросок только если сдвиг ≤10px (тап ≠ прокрутка) |
+| `ToggleChip` «Только себе» | панель `DiceRollerPanel` | рядом с преим./помехой; виден только за открытым столом; on = броски не уходят в ленту |
+
+Журнал панели — вкладка «Мои» (рядом место под «Стол» в 02b). Кнопка «броски» на листе
+открывает тот же журнал через `openDiceJournal`.
+
 ### Эталон 14.11.2026 — kit atoms (не менять вид без ok)
 
 | Kit | Файл | Лицо |
