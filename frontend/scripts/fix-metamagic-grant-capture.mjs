@@ -1,8 +1,13 @@
 /**
- * FIX metamagic-on-grant evidence: live sorcerer 7 (not MAG-01 seed ids).
- * Requires API :8000 + vite :5173.
+ * FIX metamagic-on-grant evidence (v2): clean live sorcerer 7 — one Shadow Touched
+ * via feat_grants ledger only (no duplicate manual feat spell rows).
  *
- * Shots → /opt/cursor/artifacts/
+ * Chain per viewport (resources reset between):
+ *   SP 7/7 → grant + Empowered → SP 6/7, grant 0/1, slots untouched
+ *   → slot + Quickened → SP 4/7, L1 slot spent, bonus action
+ * Plus item (staff) cast with metamagic block.
+ *
+ * Requires API :8000 + vite :5173. Shots → /opt/cursor/artifacts/
  */
 import { createHash } from 'node:crypto'
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
@@ -11,9 +16,10 @@ import { chromium } from 'playwright'
 const ART = '/opt/cursor/artifacts'
 const BASE = process.env.FIX_BASE || 'http://127.0.0.1:5173'
 const API = process.env.FIX_API || 'http://127.0.0.1:8000'
-const EMAIL = `meta-grant-${Date.now()}@example.com`
+const EMAIL = `meta-grant-v2-${Date.now()}@example.com`
 const PASS = 'meta-grant-dev'
 const CLASS_ID = 'live-sorc-7-entry'
+const STAFF_RES = 'item:staff-of-swarming:charges'
 
 mkdirSync(ART, { recursive: true })
 const out = (name) => `${ART}/${name}`
@@ -40,6 +46,7 @@ function spell(partial) {
   }
 }
 
+/** Class spells only — feat spells come from feat_grants ledger sync. */
 function sorcerer7Sheet() {
   const known = [
     spell({
@@ -84,7 +91,29 @@ function sorcerer7Sheet() {
       school: 'ограждение',
     }),
     spell({
-      id: 'feat-spell:shadow_touched:ray_of_sickness',
+      id: 'sorc:scorch',
+      name: 'Палящий луч',
+      level: 2,
+      class_slug: 'sorcerer',
+      damage: '2к6 огонь',
+      attack_or_save: 'атака',
+      school: 'воплощение',
+    }),
+    spell({
+      id: 'sorc:fireball',
+      name: 'Огненный шар',
+      level: 3,
+      class_slug: 'sorcerer',
+      damage: '8к6 огонь',
+      attack_or_save: 'спас Ловкости',
+      range: '150 футов',
+      school: 'воплощение',
+    }),
+    // Single Shadow Touched spell row — id matches feat_grants ledger
+    // (`feat-spell:${grantId}:${spellId}`) so ensureFeatSpellsFromLedger
+    // does not create a second copy (unlike a parallel manual feat-spell:* id).
+    spell({
+      id: 'feat-spell:grant-shadow-touched-live:ray_of_sickness',
       name: 'Луч болезни',
       level: 1,
       source_kind: 'feat',
@@ -107,7 +136,7 @@ function sorcerer7Sheet() {
       },
     }),
     spell({
-      id: 'feat-spell:shadow_touched:invisibility',
+      id: 'feat-spell:grant-shadow-touched-live:invisibility',
       name: 'Невидимость',
       level: 2,
       source_kind: 'feat',
@@ -125,24 +154,24 @@ function sorcerer7Sheet() {
         reset: 'long',
       },
     }),
+    // Staff-borne spell (item_cast) — one charge from the staff pool.
     spell({
-      id: 'sorc:scorch',
-      name: 'Палящий луч',
-      level: 2,
-      class_slug: 'sorcerer',
-      damage: '2к6 огонь',
-      attack_or_save: 'атака',
+      id: 'gear:staff-of-swarming:magic_missile',
+      name: 'Волшебная стрела',
+      level: 1,
+      source_kind: 'feature',
+      prepared_locked: true,
+      prepare_source_label: 'Посох роя',
+      damage: '3к4+3 силовое',
       school: 'воплощение',
-    }),
-    spell({
-      id: 'sorc:fireball',
-      name: 'Огненный шар',
-      level: 3,
-      class_slug: 'sorcerer',
-      damage: '8к6 огонь',
-      attack_or_save: 'спас Ловкости',
-      range: '150 футов',
-      school: 'воплощение',
+      notes: '1 ур. · 1 зарядов',
+      item_cast: {
+        slug: 'magic_missile',
+        resourceId: STAFF_RES,
+        charges: 1,
+        castLevel: 1,
+        itemName: 'Посох роя',
+      },
     }),
   ]
   return {
@@ -187,16 +216,10 @@ function sorcerer7Sheet() {
       concentration: null,
       effects: [],
       hit_die: 'd6',
-      hp_dice_current: 7,
-      is_dying: false,
-      death_successes: 0,
-      death_fails: 0,
       turn_economy: {
         action: false,
         bonus: false,
         reaction: false,
-        free_object: false,
-        interacted: false,
         moved: false,
         dashed: false,
         disengaged: false,
@@ -213,6 +236,14 @@ function sorcerer7Sheet() {
       {
         id: `feat:sorcery_points:${CLASS_ID}`,
         name: 'Очки чародейства',
+        max: 7,
+        used: 0,
+        reset: 'long',
+        track: 'pool',
+      },
+      {
+        id: STAFF_RES,
+        name: 'Посох роя',
         max: 7,
         used: 0,
         reset: 'long',
@@ -248,14 +279,22 @@ function sorcerer7Sheet() {
           qty: 1,
           spell_tooling: 'component_pouch',
         },
+        {
+          id: 'live-staff-swarming',
+          name: 'Посох роя',
+          qty: 1,
+          equipped: true,
+          notes: '7 зарядов · Волшебная стрела',
+        },
       ],
     },
     feature_picks: {
       values: {
         [`${CLASS_ID}:dragon_ancestor`]: 'red',
-        [`${CLASS_ID}:metamagic`]: 'empowered,quickened,twinned',
+        [`${CLASS_ID}:metamagic`]: 'empowered,quickened,twinned,careful',
       },
     },
+    // Single Shadow Touched grant — sheet sync adds one spell row per spell.
     feat_grants: [
       {
         id: 'grant-shadow-touched-live',
@@ -308,7 +347,7 @@ function sorcerer7Sheet() {
         },
       },
     ],
-    notes: 'LIVE FIX metamagic-on-grant · чародей 7 · Отмеченный тенями',
+    notes: 'LIVE FIX v2 metamagic-on-grant · одна черта · посох',
   }
 }
 
@@ -350,16 +389,10 @@ function wizard5Sheet() {
       concentration: null,
       effects: [],
       hit_die: 'd6',
-      hp_dice_current: 5,
-      is_dying: false,
-      death_successes: 0,
-      death_fails: 0,
       turn_economy: {
         action: false,
         bonus: false,
         reaction: false,
-        free_object: false,
-        interacted: false,
         moved: false,
         dashed: false,
         disengaged: false,
@@ -391,33 +424,32 @@ function wizard5Sheet() {
       pact_slots: null,
       known: [
         spell({
-          id: 'w:fire-bolt',
-          name: 'Огненный снаряд',
-          level: 0,
-          class_slug: 'wizard',
-          damage: '2к10 огонь',
-          attack_or_save: 'атака',
-        }),
-        spell({
-          id: 'w:mm',
+          id: 'wiz:mm',
           name: 'Волшебная стрела',
           level: 1,
           class_slug: 'wizard',
-          prepared: true,
-          in_spellbook: true,
-          spellbook_acquisition: 'starting',
           damage: '3к4+3 силовое',
+          school: 'воплощение',
+          prepared: true,
+        }),
+        spell({
+          id: 'wiz:shield',
+          name: 'Щит',
+          level: 1,
+          class_slug: 'wizard',
+          casting_time: '1 реакция',
+          school: 'ограждение',
+          prepared: true,
         }),
       ],
       has_spell_focus: true,
       has_component_pouch: true,
-      wizard_spellbook: { bookLost: false, primaryBookItemId: null },
     },
     inventory: {
       coins: { cp: 0, sp: 0, ep: 0, gp: 20, pp: 0 },
       items: [
         {
-          id: 'wiz-pouch',
+          id: 'live-wiz-pouch',
           name: 'Мешочек с компонентами',
           qty: 1,
           spell_tooling: 'component_pouch',
@@ -425,7 +457,8 @@ function wizard5Sheet() {
       ],
     },
     feature_picks: { values: {} },
-    notes: 'LIVE FIX regression wizard 5 · без метамагии',
+    feat_grants: [],
+    notes: 'LIVE FIX wizard control',
   }
 }
 
@@ -445,7 +478,7 @@ async function api(path, { method = 'GET', token, body } = {}) {
   } catch {
     json = { raw: text }
   }
-  if (!res.ok) throw new Error(`${method} ${path} → ${res.status} ${text.slice(0, 300)}`)
+  if (!res.ok) throw new Error(`${method} ${path} → ${res.status} ${text.slice(0, 400)}`)
   return json
 }
 
@@ -504,165 +537,330 @@ async function showSpellsMobile(page) {
   await page.waitForTimeout(300)
 }
 
-async function openRayCast(page) {
+async function dismissToasts(page) {
+  await page.evaluate(() => {
+    document.querySelectorAll('.toast, .ui-toast, [class*="toast"]').forEach((el) => {
+      if (el instanceof HTMLElement) el.remove()
+    })
+  })
+  await page.waitForTimeout(150)
+}
+
+async function waitToastsGone(page) {
+  await page.waitForTimeout(1200)
+  await dismissToasts(page)
+  await page.waitForTimeout(200)
+}
+
+async function shot(page, name) {
+  await dismissToasts(page)
+  await page.screenshot({ path: out(name), fullPage: false })
+  return out(name)
+}
+
+async function readSpAndSlots(page) {
+  return page.evaluate(() => {
+    const t = document.body.innerText
+    const sp = t.match(/Очки чародейства[^\d]*(\d+)\s*\/\s*(\d+)/i)
+    const slot1 = t.match(/1[^\n]{0,40}?(\d+)\s*\/\s*(\d+)/) // fragile; prefer API
+    return {
+      bodySp: sp ? { left: sp[1], max: sp[2], raw: sp[0] } : null,
+      slotHint: slot1 ? slot1[0] : null,
+    }
+  })
+}
+
+async function resetSorcResources(token, sorcId) {
+  const char = await api(`/characters/${sorcId}`, { token })
+  const sheet = structuredClone(char.sheet)
+  const resKey = sheet.resources ? 'resources' : null
+  const playRes = sheet.play?.resources
+  const pools = playRes?.length ? playRes : sheet.resources || []
+  for (const row of pools) {
+    if (/sorcery|чародейств/i.test(row.name || '') || /sorcery_points/i.test(row.id || '')) {
+      row.used = 0
+      row.max = Math.max(row.max || 7, 7)
+    }
+    if (row.id === STAFF_RES) row.used = 0
+  }
+  if (playRes?.length) sheet.play.resources = pools
+  else sheet.resources = pools
+  // Reset slots
+  for (const key of Object.keys(sheet.spells?.slots || {})) {
+    sheet.spells.slots[key].used = 0
+  }
+  // Reset grant_cast on feat spells
+  for (const s of sheet.spells?.known || []) {
+    if (s.grant_cast) s.grant_cast.used = 0
+  }
+  // Clear turn economy
+  if (sheet.combat?.turn_economy) {
+    for (const k of Object.keys(sheet.combat.turn_economy)) {
+      if (typeof sheet.combat.turn_economy[k] === 'boolean') sheet.combat.turn_economy[k] = false
+      if (k === 'notes') sheet.combat.turn_economy[k] = ''
+    }
+  }
+  return api(`/characters/${sorcId}`, {
+    method: 'PATCH',
+    token,
+    body: { sheet, sheet_version: char.sheet_version },
+  })
+}
+
+async function expandSpells(page) {
   const root = page.locator('.play-desk-compact--spells').first()
   await root.waitFor({ timeout: 30_000 })
-  await page.waitForFunction(
-    () => {
-      const el = document.querySelector('.play-desk-compact--spells')
-      return Boolean(el && /Луч болезни/.test(el.innerText || ''))
-    },
-    null,
-    { timeout: 30_000 },
-  )
   const expand = root.getByRole('button', { name: /Развернуть все/i })
   if (await expand.count()) await expand.first().click().catch(() => {})
-  await page.waitForTimeout(400)
-  const clicked = await page.evaluate(() => {
-    const rootEl = document.querySelector('.play-desk-compact--spells')
-    if (!rootEl) return 'no-root'
-    const row = [...rootEl.querySelectorAll('.play-desk-compact__row.is-spell')].find((r) => {
-      const t = r.textContent || ''
-      return t.includes('Луч болезни') && /Отмеченный/.test(t)
-    })
-    if (!row) return 'no-row'
-    const btn = [...row.querySelectorAll('button')].find((b) =>
-      /каст/i.test((b.textContent || '').trim()),
-    )
-    if (!btn) return 'no-button'
-    btn.click()
-    return 'ok'
-  })
-  if (clicked !== 'ok') throw new Error(`openRayCast click failed: ${clicked}`)
-  await page.getByRole('heading', { name: /Кастовать заклинание/i }).waitFor({ timeout: 15_000 })
+  await page.waitForTimeout(350)
+}
+
+async function clickSpellCast(page, { nameIncludes, sourceHint }) {
+  await expandSpells(page)
   await page
-    .locator('.ui-dialog')
-    .filter({ hasText: /Луч болезни/i })
-    .first()
-    .waitFor({ timeout: 10_000 })
-  await page.waitForTimeout(300)
+    .waitForFunction(
+      (name) => {
+        const root = document.querySelector('.play-desk-compact--spells')
+        return Boolean(root && root.textContent?.includes(name))
+      },
+      nameIncludes,
+      { timeout: 30_000 },
+    )
+    .catch(() => {})
+  const clicked = await page.evaluate(
+    ({ nameIncludes, sourceHint }) => {
+      const rootEl = document.querySelector('.play-desk-compact--spells')
+      if (!rootEl) return 'no-root'
+      const row = [...rootEl.querySelectorAll('.play-desk-compact__row.is-spell')].find((r) => {
+        const t = r.textContent || ''
+        if (!t.includes(nameIncludes)) return false
+        if (sourceHint && !new RegExp(sourceHint, 'i').test(t)) return false
+        return true
+      })
+      if (!row) return 'no-row'
+      const btn = [...row.querySelectorAll('button')].find((b) =>
+        /каст/i.test((b.textContent || '').trim()),
+      )
+      if (!btn) return 'no-button'
+      btn.click()
+      return 'ok'
+    },
+    { nameIncludes, sourceHint },
+  )
+  if (clicked !== 'ok') throw new Error(`clickSpellCast(${nameIncludes}): ${clicked}`)
+  await page.getByRole('heading', { name: /Кастовать заклинание/i }).waitFor({ timeout: 15_000 })
+  await page.waitForTimeout(250)
 }
 
-async function shotDialog(page, name) {
-  const path = out(name)
-  await page.screenshot({ path, fullPage: false })
-  return path
+async function grantChipCount(dialog) {
+  return dialog.locator('.cast-source-chip').filter({ hasText: /Отмеченный тенями/i }).count()
 }
 
-async function sheetTopShot(page, name) {
-  await page.evaluate(() => {
-    window.scrollTo(0, 0)
-    document.querySelector('.play-desk')?.scrollTo?.(0, 0)
-    document.scrollingElement && (document.scrollingElement.scrollTop = 0)
-  })
-  await page.waitForTimeout(200)
-  return shotDialog(page, name)
-}
+async function captureViewport(browser, { access, refresh, token, sorcId, wizId, width, height, tag }) {
+  await resetSorcResources(token, sorcId)
 
-async function captureViewport(browser, { access, refresh, sorcId, wizId, width, height, tag }) {
-  const page = await browser.newPage({
-    viewport: { width, height },
-    deviceScaleFactor: 1,
-  })
+  const page = await browser.newPage({ viewport: { width, height }, deviceScaleFactor: 1 })
   await login(page, access, refresh)
   await openSheet(page, sorcId)
   await openCombat(page, width)
   if (width < 960) await showSpellsMobile(page)
 
-  // Grant path
-  await openRayCast(page)
+  // --- before: SP 7/7 ---
+  await waitToastsGone(page)
+  const beforeUi = await readSpAndSlots(page)
+  writeFileSync(out(`live-sorc7-sp-before-${tag}.json`), JSON.stringify(beforeUi, null, 2))
+  await shot(page, `live-sorc7-sp-before-${tag}.png`)
+
+  // --- grant + Empowered ---
+  await clickSpellCast(page, { nameIncludes: 'Луч болезни', sourceHint: 'Отмеченный' })
   const dialog = page.locator('.ui-dialog').filter({ hasText: /Кастовать заклинание/i })
-  await dialog.waitFor()
-  // Prefer an available grant chip (duplicates may exist from ledger + manual rows).
+  const nGrant = await grantChipCount(dialog)
+  writeFileSync(out(`live-sorc7-grant-chip-count-${tag}.json`), JSON.stringify({ count: nGrant }, null, 2))
+  if (nGrant !== 1) throw new Error(`expected 1 Shadow Touched chip, got ${nGrant} (${tag})`)
+
   const grantChip = dialog
     .locator('.cast-source-chip:not(.is-disabled)')
     .filter({ hasText: /Отмеченный тенями/i })
   if (await grantChip.count()) await grantChip.first().click()
-  await page.waitForTimeout(200)
-  const meta = dialog.locator('[data-testid="cast-metamagic-block"]')
-  if (!(await meta.count())) {
-    throw new Error(`metamagic block missing on grant (${tag})`)
-  }
-  await shotDialog(page, `live-sorc7-cast-grant-meta-collapsed-${tag}.png`)
+  await page.waitForTimeout(150)
 
-  // Expand + pick empowered
+  const meta = dialog.locator('[data-testid="cast-metamagic-block"]')
+  if (!(await meta.count())) throw new Error(`metamagic missing on grant (${tag})`)
+  await shot(page, `live-sorc7-cast-grant-meta-collapsed-${tag}.png`)
+
   await meta.locator('button.cast-metamagic-block__toggle').click()
   await page.waitForTimeout(200)
+  // Careful disabled reason
+  const metaText = await meta.innerText()
+  writeFileSync(out(`live-sorc7-meta-text-grant-${tag}.txt`), metaText)
+  if (!/нет спасброска/i.test(metaText)) {
+    throw new Error(`Careful disable reason missing (${tag})`)
+  }
   const empowered = dialog.locator('.ui-toggle-chip').filter({ hasText: /Усиленн/i })
-  if (await empowered.count()) await empowered.first().click()
+  await empowered.first().click()
   await page.waitForTimeout(200)
-  await shotDialog(page, `live-sorc7-cast-grant-meta-open-${tag}.png`)
+  await shot(page, `live-sorc7-cast-grant-meta-open-${tag}.png`)
 
-  // Slot path first (do not spend grant yet — keep charges for both viewports).
-  const slotChip = dialog.locator('.cast-source-chip').filter({ hasText: /Обычная 1/i })
-  if (await slotChip.count()) await slotChip.first().click()
-  await page.waitForTimeout(200)
-  if (!(await dialog.locator('[data-testid="cast-metamagic-block"]').count())) {
-    throw new Error(`metamagic block missing on slot (${tag})`)
-  }
-  await shotDialog(page, `live-sorc7-cast-slot-meta-${tag}.png`)
-
-  // Back to grant + cast once (only on 1440 to spend SP / prove toast).
-  if (tag === '1440') {
-    if (await grantChip.count()) await grantChip.first().click()
-    await page.waitForTimeout(150)
-    const beforePts = await page.evaluate(() => {
-      const t = document.body.innerText
-      const m = t.match(/Очки чародейства[^\d]*(\d+)\s*\/\s*(\d+)/i)
-      return m ? { usedLeft: m[1], max: m[2], raw: m[0] } : { raw: 'not-found' }
-    })
-    writeFileSync(out(`live-sorc7-sp-before-${tag}.json`), JSON.stringify(beforePts, null, 2))
-    const primary = dialog
-      .locator('.ui-dialog__actions .ui-button--primary, .ui-dialog__actions button')
-      .filter({ hasText: /Каст/i })
-    await primary.last().click()
-    await page.waitForTimeout(900)
-    await shotDialog(page, `live-sorc7-cast-grant-after-${tag}.png`)
-    const afterPts = await page.evaluate(() => {
-      const t = document.body.innerText
-      const m = t.match(/Очки чародейства[^\d]*(\d+)\s*\/\s*(\d+)/i)
-      return m ? { usedLeft: m[1], max: m[2], raw: m[0] } : { raw: 'not-found' }
-    })
-    writeFileSync(out(`live-sorc7-sp-after-${tag}.json`), JSON.stringify(afterPts, null, 2))
-  } else {
-    await dialog.getByRole('button', { name: /^Отмена$/i }).click()
+  // header should still show 7 before cast
+  const openHeader = await meta.locator('button.cast-metamagic-block__toggle').innerText()
+  if (!/очки\s*7/i.test(openHeader)) {
+    throw new Error(`expected очки 7 before grant cast (${tag}): ${openHeader}`)
   }
 
-  // Wizard regression (no metamagic)
+  const primary = dialog
+    .locator('.ui-dialog__actions .ui-button--primary, .ui-dialog__actions button')
+    .filter({ hasText: /Каст/i })
+  await primary.last().click()
+  await waitToastsGone(page)
+  await shot(page, `live-sorc7-cast-grant-after-${tag}.png`)
+  const afterGrant = await readSpAndSlots(page)
+  writeFileSync(out(`live-sorc7-sp-after-grant-${tag}.json`), JSON.stringify(afterGrant, null, 2))
+
+  // Verify in UI (draft may autosave later): SP 6/7, grant 0/1 on row, L1 slots still 4/4
+  await openCombat(page, width)
+  if (width < 960) await showSpellsMobile(page)
+  await expandSpells(page)
+  await waitToastsGone(page)
+  const midSnap = await page.evaluate(() => {
+    const t = document.body.innerText
+    const sp = t.match(/Очки чародейства[^\d]*(\d+)\s*\/\s*(\d+)/i)
+    const root = document.querySelector('.play-desk-compact--spells')
+    const ray = [...(root?.querySelectorAll('.play-desk-compact__row.is-spell') || [])].find((r) =>
+      /Луч болезни/.test(r.textContent || ''),
+    )
+    const rayText = ray?.textContent || ''
+    const grant = rayText.match(/Отмеченный тенями\s*(\d+)\s*\/\s*(\d+)/i)
+    const slots = (root?.textContent || '').match(/Ячейки\s*(\d+)\s*\/\s*(\d+)/)
+    return {
+      spLeft: sp?.[1] ?? null,
+      spMax: sp?.[2] ?? null,
+      grantLeft: grant?.[1] ?? null,
+      grantMax: grant?.[2] ?? null,
+      slotsHint: slots?.[0] ?? null,
+      rayRows: [...(root?.querySelectorAll('.play-desk-compact__row.is-spell') || [])].filter((r) =>
+        /Луч болезни/.test(r.textContent || ''),
+      ).length,
+    }
+  })
+  writeFileSync(out(`live-sorc7-ui-after-grant-${tag}.json`), JSON.stringify(midSnap, null, 2))
+  if (
+    midSnap.spLeft !== '6' ||
+    midSnap.grantLeft !== '0' ||
+    midSnap.rayRows !== 1 ||
+    (midSnap.slotsHint && !/4\s*\/\s*4/.test(midSnap.slotsHint))
+  ) {
+    throw new Error(`grant chain UI check failed (${tag}): ${JSON.stringify(midSnap)}`)
+  }
+
+  // --- slot + Quickened ---
+  // Fresh sheet open avoids desk-split / dialog leftovers after grant cast.
+  await page.keyboard.press('Escape').catch(() => {})
+  await openSheet(page, sorcId)
+  await openCombat(page, width)
+  if (width < 960) await showSpellsMobile(page)
+  await clickSpellCast(page, { nameIncludes: 'Луч болезни', sourceHint: 'Отмеченный' })
+  const dialog2 = page.locator('.ui-dialog').filter({ hasText: /Кастовать заклинание/i }).last()
+  await dialog2.waitFor({ timeout: 15_000 })
+  const slotChip = dialog2.locator('.cast-source-chip').filter({ hasText: /Обычная 1/i })
+  await slotChip.first().click()
+  await page.waitForTimeout(200)
+  const meta2 = dialog2.locator('[data-testid="cast-metamagic-block"]')
+  if (!(await meta2.count())) throw new Error(`metamagic missing on slot (${tag})`)
+  const toggle2 = meta2.locator('button.cast-metamagic-block__toggle')
+  if ((await toggle2.getAttribute('aria-expanded')) !== 'true') {
+    await toggle2.click()
+  }
+  await page.waitForTimeout(250)
+  const empowered2 = meta2.locator('.ui-toggle-chip.is-on').filter({ hasText: /Усиленн/i })
+  if (await empowered2.count()) await empowered2.first().click()
+  await page.waitForTimeout(100)
+  // Prefer role=checkbox; fall back to text chip if role missing in kit.
+  let quickened = meta2.getByRole('checkbox', { name: /Ускоренн/i })
+  if (!(await quickened.count())) {
+    quickened = meta2.locator('.ui-toggle-chip').filter({ hasText: /Ускоренн/i })
+  }
+  if (!(await quickened.count())) {
+    const dump = await meta2.innerText()
+    writeFileSync(out(`debug-meta2-${tag}.txt`), dump)
+    await shot(page, `debug-meta2-${tag}.png`)
+    throw new Error(`Quickened chip missing (${tag})`)
+  }
+  await quickened.first().scrollIntoViewIfNeeded()
+  await quickened.first().click({ timeout: 10_000 })
+  await page.waitForTimeout(200)
+  const preview = await dialog2.locator('[data-testid="cast-metamagic-params"]').innerText().catch(() => '')
+  writeFileSync(out(`live-sorc7-quickened-preview-${tag}.txt`), preview)
+  if (!/бонус/i.test(preview)) {
+    throw new Error(`Quickened preview missing bonus action (${tag}): ${preview}`)
+  }
+  await shot(page, `live-sorc7-cast-slot-quickened-open-${tag}.png`)
+  await dialog2
+    .locator('.ui-dialog__actions .ui-button--primary, .ui-dialog__actions button')
+    .filter({ hasText: /Каст/i })
+    .last()
+    .click()
+  await waitToastsGone(page)
+  await shot(page, `live-sorc7-cast-slot-quickened-after-${tag}.png`)
+  await openCombat(page, width)
+  if (width < 960) await showSpellsMobile(page)
+  await expandSpells(page)
+  await waitToastsGone(page)
+  const slotSnap = await page.evaluate(() => {
+    const t = document.body.innerText
+    const sp = t.match(/Очки чародейства[^\d]*(\d+)\s*\/\s*(\d+)/i)
+    const root = document.querySelector('.play-desk-compact--spells')
+    const level1 = [...(root?.querySelectorAll('*') || [])].find((el) =>
+      /^1-й уровень/i.test((el.textContent || '').trim().slice(0, 20)),
+    )
+    // Prefer the slots line near 1st level
+    const slotsMatch = (root?.textContent || '').match(/1-й уровень[\s\S]{0,80}?Ячейки\s*(\d+)\s*\/\s*(\d+)/i)
+    return {
+      spLeft: sp?.[1] ?? null,
+      spMax: sp?.[2] ?? null,
+      slot1left: slotsMatch?.[1] ?? null,
+      slot1max: slotsMatch?.[2] ?? null,
+      slotsRaw: slotsMatch?.[0]?.replace(/\s+/g, ' ') ?? null,
+    }
+  })
+  writeFileSync(out(`live-sorc7-ui-after-slot-${tag}.json`), JSON.stringify(slotSnap, null, 2))
+  // 7 - 1 (empowered) - 2 (quickened) = 4 left; L1 slots 3/4
+  if (slotSnap.spLeft !== '4' || slotSnap.slot1left !== '3') {
+    throw new Error(`slot+quickened UI check failed (${tag}): ${JSON.stringify(slotSnap)}`)
+  }
+
+  // --- item (staff) cast + metamagic ---
+  await resetSorcResources(token, sorcId)
+  await openSheet(page, sorcId)
+  await openCombat(page, width)
+  if (width < 960) await showSpellsMobile(page)
+  await clickSpellCast(page, { nameIncludes: 'Волшебная стрела', sourceHint: 'Посох|заряд|предмет|роя' })
+  const dialog3 = page.locator('.ui-dialog').filter({ hasText: /Кастовать заклинание/i })
+  const meta3 = dialog3.locator('[data-testid="cast-metamagic-block"]')
+  if (!(await meta3.count())) throw new Error(`metamagic missing on item cast (${tag})`)
+  await meta3.locator('button.cast-metamagic-block__toggle').click()
+  await page.waitForTimeout(150)
+  const emp3 = dialog3.locator('.ui-toggle-chip').filter({ hasText: /Усиленн/i })
+  if (await emp3.count()) await emp3.first().click()
+  await page.waitForTimeout(150)
+  await shot(page, `live-sorc7-cast-item-meta-open-${tag}.png`)
+  await dialog3.getByRole('button', { name: /^Отмена$/i }).click()
+
+  // Wizard cast unchanged (no metamagic)
   await openSheet(page, wizId)
   await openCombat(page, width)
   if (width < 960) await showSpellsMobile(page)
-  await sheetTopShot(page, `live-wiz5-combat-top-${tag}.png`)
-  const wizRoot = page.locator('.play-desk-compact--spells').first()
-  await wizRoot.waitFor({ timeout: 20_000 })
-  const expandWiz = wizRoot.getByRole('button', { name: /Развернуть все/i })
-  if (await expandWiz.count()) await expandWiz.first().click().catch(() => {})
-  await page.waitForTimeout(350)
-  const wizClicked = await page.evaluate(() => {
-    const rootEl = document.querySelector('.play-desk-compact--spells')
-    if (!rootEl) return 'no-root'
-    const row = [...rootEl.querySelectorAll('.play-desk-compact__row.is-spell')].find((r) =>
-      (r.textContent || '').includes('Волшебная стрела'),
-    )
-    if (!row) return 'no-row'
-    const btn = [...row.querySelectorAll('button')].find((b) =>
-      /каст/i.test((b.textContent || '').trim()),
-    )
-    if (!btn) return 'no-button'
-    btn.click()
-    return 'ok'
+  await page.evaluate(() => {
+    window.scrollTo(0, 0)
+    document.querySelector('.play-desk')?.scrollTo?.(0, 0)
+    if (document.scrollingElement) document.scrollingElement.scrollTop = 0
   })
-  if (wizClicked !== 'ok') throw new Error(`wizard cast click failed: ${wizClicked}`)
-  await page.getByRole('heading', { name: /Кастовать заклинание/i }).waitFor({ timeout: 15_000 })
-  await page.waitForTimeout(250)
+  await shot(page, `live-wiz5-combat-top-${tag}.png`)
+  await clickSpellCast(page, { nameIncludes: 'Волшебная стрела' })
   const wizDialog = page.locator('.ui-dialog').filter({ hasText: /Кастовать заклинание/i })
   const wizMeta = await wizDialog.locator('[data-testid="cast-metamagic-block"]').count()
-  writeFileSync(
-    out(`live-wiz5-cast-meta-count-${tag}.json`),
-    JSON.stringify({ metamagicBlocks: wizMeta }, null, 2),
-  )
-  if (wizMeta !== 0) throw new Error(`wizard unexpectedly has metamagic block (${tag})`)
-  await shotDialog(page, `live-wiz5-cast-${tag}.png`)
+  writeFileSync(out(`live-wiz5-cast-meta-count-${tag}.json`), JSON.stringify({ metamagicBlocks: wizMeta }, null, 2))
+  if (wizMeta !== 0) throw new Error(`wizard has metamagic (${tag})`)
+  await shot(page, `live-wiz5-cast-${tag}.png`)
   await wizDialog.getByRole('button', { name: /^Отмена$/i }).click()
 
   await page.close()
@@ -672,9 +870,8 @@ const browser = await chromium.launch({ headless: true })
 try {
   await api('/auth/register', {
     method: 'POST',
-    body: { email: EMAIL, password: PASS, display_name: 'Meta Grant Live' },
+    body: { email: EMAIL, password: PASS, display_name: 'Meta Grant Live V2' },
   })
-  // Dev DB may require email_verified_at before login.
   const verifyRes = await fetch(`${API}/auth/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -691,27 +888,18 @@ print("verified")
 `
     execFileSync('python3', ['-c', py], { stdio: 'inherit' })
   }
-  const auth = await api('/auth/login', {
-    method: 'POST',
-    body: { email: EMAIL, password: PASS },
-  })
+  const auth = await api('/auth/login', { method: 'POST', body: { email: EMAIL, password: PASS } })
   const access = auth.access_token
   const refresh = auth.refresh_token
   const sorc = await api('/characters', {
     method: 'POST',
     token: access,
-    body: {
-      name: 'Лира Теневая',
-      rules_edition: '2014',
-    },
+    body: { name: 'Лира Теневая', rules_edition: '2014' },
   })
   const wiz = await api('/characters', {
     method: 'POST',
     token: access,
-    body: {
-      name: 'Элдар Книжный',
-      rules_edition: '2014',
-    },
+    body: { name: 'Элдар Книжный', rules_edition: '2014' },
   })
   const sorcPatched = await api(`/characters/${sorc.id}`, {
     method: 'PATCH',
@@ -742,15 +930,50 @@ print("verified")
         email: EMAIL,
         sorcId: sorcPatched.id,
         wizId: wizPatched.id,
-        sheetVersions: {
-          sorc: sorcPatched.sheet_version,
-          wiz: wizPatched.sheet_version,
-        },
+        sheetVersions: { sorc: sorcPatched.sheet_version, wiz: wizPatched.sheet_version },
+        note: 'v2: single Shadow Touched via feat_grants only',
       },
       null,
       2,
     ),
   )
+
+  // Ledger sync materializes feat spells in the client draft (may not flush to API yet).
+  // Verify exactly one Ray + one Shadow Touched chip in the UI.
+  {
+    const page = await browser.newPage({ viewport: { width: 1440, height: 900 } })
+    await login(page, access, refresh)
+    await openSheet(page, sorc.id)
+    await openCombat(page, 1440)
+    // Wait for one-shot feat-spell hydrate toast / draft patch.
+    await page.waitForFunction(
+      () => {
+        const root = document.querySelector('.play-desk-compact--spells')
+        return Boolean(root && /Луч болезни/.test(root.textContent || ''))
+      },
+      null,
+      { timeout: 30_000 },
+    ).catch(() => {})
+    await expandSpells(page)
+    const syncInfo = await page.evaluate(() => {
+      const root = document.querySelector('.play-desk-compact--spells')
+      const text = root?.textContent || ''
+      const rayRows = [...(root?.querySelectorAll('.play-desk-compact__row.is-spell') || [])].filter(
+        (r) => /Луч болезни/.test(r.textContent || ''),
+      )
+      return {
+        rayRows: rayRows.length,
+        rayLabels: rayRows.map((r) => (r.textContent || '').replace(/\s+/g, ' ').slice(0, 120)),
+        hasShadow: /Отмеченный тенями/.test(text),
+      }
+    })
+    writeFileSync(out('live-sorc7-ray-rows.json'), JSON.stringify(syncInfo, null, 2))
+    if (syncInfo.rayRows !== 1) {
+      await page.screenshot({ path: out('debug-feat-sync-fail.png'), fullPage: false })
+      throw new Error(`expected 1 Ray of Sickness in UI, got ${syncInfo.rayRows}`)
+    }
+    await page.close()
+  }
 
   for (const vp of [
     { width: 1440, height: 900, tag: '1440' },
@@ -759,34 +982,32 @@ print("verified")
     await captureViewport(browser, {
       access,
       refresh,
+      token: access,
       sorcId: sorc.id,
       wizId: wiz.id,
       ...vp,
     })
   }
 
-  // md5 summary for wizard frames (same char, both viewports)
-  const summary = {
-    live: { email: EMAIL, sorcId: sorc.id, wizId: wiz.id },
-    md5: {},
-  }
+  const summary = { live: JSON.parse(readFileSync(out('live-meta-grant-ids.json'), 'utf8')), md5: {} }
   for (const name of [
-    'live-sorc7-cast-grant-meta-collapsed-1440.png',
+    'live-sorc7-sp-before-1440.png',
     'live-sorc7-cast-grant-meta-open-1440.png',
     'live-sorc7-cast-grant-after-1440.png',
-    'live-sorc7-cast-slot-meta-1440.png',
-    'live-sorc7-cast-grant-meta-collapsed-390.png',
+    'live-sorc7-cast-slot-quickened-open-1440.png',
+    'live-sorc7-cast-slot-quickened-after-1440.png',
+    'live-sorc7-cast-item-meta-open-1440.png',
+    'live-sorc7-sp-before-390.png',
     'live-sorc7-cast-grant-meta-open-390.png',
-    'live-sorc7-cast-slot-meta-390.png',
-    'live-wiz5-cast-1440.png',
-    'live-wiz5-cast-390.png',
-    'live-wiz5-combat-top-1440.png',
-    'live-wiz5-combat-top-390.png',
+    'live-sorc7-cast-grant-after-390.png',
+    'live-sorc7-cast-slot-quickened-open-390.png',
+    'live-sorc7-cast-slot-quickened-after-390.png',
+    'live-sorc7-cast-item-meta-open-390.png',
   ]) {
     summary.md5[name] = md5(out(name))
   }
   writeFileSync(out('live-meta-grant-md5.json'), JSON.stringify(summary, null, 2))
-  console.log('fix-metamagic-grant-capture done', summary)
+  console.log('fix-metamagic-grant-capture v2 done', summary)
 } finally {
   await browser.close()
 }
