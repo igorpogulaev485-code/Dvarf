@@ -91,7 +91,7 @@ export function Bard2024CombatBlock({
       ) : null}
       {valorExtraAttack ? (
         <Text tone="muted" data-testid="bard-valor-extra-attack">
-          Дополнительная атака (Доблесть): {VALOR_EXTRA_ATTACK_RULE_RU_2024}
+          Доп. атака (Доблесть): {VALOR_EXTRA_ATTACK_RULE_RU_2024}
         </Text>
       ) : null}
       {dance ? (

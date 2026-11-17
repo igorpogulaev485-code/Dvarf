@@ -853,8 +853,8 @@ export const VALOR_EXTRA_ATTACK_RULE_RU_2024 =
   'Действие Атака — две атаки; вместо одной можно сотворить заговор Барда со временем сотворения «действие».'
 
 export const VALOR_COMBAT_INSPIRATION_MODES_2024 = [
-  { id: 'defense', labelRu: 'Защита: кость к КД реакцией', reaction: true },
-  { id: 'offense', labelRu: 'Нападение: кость к урону попавшей атаки', reaction: false },
+  { id: 'defense', labelRu: 'КД (реакция)', reaction: true },
+  { id: 'offense', labelRu: 'Урон атаки', reaction: false },
 ] as const
 
 /* ------------------------------------------------------------------ */

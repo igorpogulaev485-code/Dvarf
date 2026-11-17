@@ -235,6 +235,10 @@ const noCollege = syncMagicalSecrets({
 })
 assert.equal(noCollege.spells.known.some((spell) => spell.id.includes('magical_discoveries')), false)
 /* trim helper clears the picks below level 6 */
+/* Magical Secrets off-list rows must be droppable below L10 (sheet uses isOffBardList2024). */
+assert.equal(isOffBardList2024(row('fireball')), true)
+assert.equal(isOffBardList2024(row('cure-wounds')), false)
+
 const trimmed = bard.trimBard2024PicksOnLevelDown(discoveryPicks, ENTRY, 5)
 assert.equal(getFeaturePick(trimmed, ENTRY, MAGICAL_DISCOVERIES_ID_2024), null)
 assert.equal(getFeaturePick(bard.trimBard2024PicksOnLevelDown(discoveryPicks, ENTRY, 6), ENTRY, MAGICAL_DISCOVERIES_ID_2024), 'entangle,guidance')

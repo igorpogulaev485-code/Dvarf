@@ -600,3 +600,38 @@ def test_frontend_bard_selfcheck_passes(selfcheck: str):
     )
     assert proc.returncode == 0, proc.stdout + proc.stderr
     assert "ok" in proc.stdout
+
+
+def test_rollback_10_to_9_drops_off_list_prepared_spells():
+    """Magical Secrets off-list prepared rows must leave when bard falls below 10."""
+    base = _lore6_payload(magical_discoveries=["guidance", "fireball"])
+    base["class_levels"] = [{"slug": "bard", "level": 10, "subclass_slug": "bard__lore"}]
+    skills = base["class_skill_ids"]
+    expertise = [*skills[:3], "performance"]
+    base["class_option_picks"] = {
+        **base["class_option_picks"],
+        "expertise": expertise,
+    }
+    sheet = deepcopy(_create(base).sheet)
+    spells = sheet.setdefault("spells", {})
+    known = list(spells.get("known") or [])
+    known.append(
+        {
+            "id": "seed-spell-shield",
+            "slug": "shield",
+            "catalog_id": "seed-spell-shield",
+            "name": "Щит",
+            "level": 1,
+            "prepared": True,
+        }
+    )
+    spells["known"] = known
+    levels.rollback_last_level_gain(sheet)  # 10 -> 9
+    assert sheet["classes"][0]["level"] == 9
+    known_after = (sheet.get("spells") or {}).get("known") or []
+    assert not any(
+        isinstance(s, dict)
+        and "shield" in str(s.get("slug") or s.get("catalog_id") or s.get("id") or "")
+        and not str(s.get("id") or "").startswith("feature-spell:")
+        for s in known_after
+    )

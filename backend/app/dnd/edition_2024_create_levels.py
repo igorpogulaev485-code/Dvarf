@@ -1128,6 +1128,34 @@ def _rollback_bard_state(sheet: dict[str, Any], classes: Sequence[Mapping[str, A
         values.pop(f"{entry}:discoveries_swap", None)
     if level < 10:
         values.pop(f"{entry}:prepared_swap", None)
+        # Magical Secrets: drop prepared spells that are not on the Bard list.
+        bard_list = create24._class_spell_list_slugs("bard")
+        spells = sheet.get("spells") if isinstance(sheet.get("spells"), dict) else {}
+        known = spells.get("known")
+        if isinstance(known, list) and bard_list:
+            kept_known: list[Any] = []
+            for spell in known:
+                if not isinstance(spell, dict):
+                    kept_known.append(spell)
+                    continue
+                if int(spell.get("level") or 0) <= 0:
+                    kept_known.append(spell)
+                    continue
+                if spell.get("prepared_locked"):
+                    kept_known.append(spell)
+                    continue
+                sid = str(spell.get("id") or "")
+                if sid.startswith("feature-spell:"):
+                    kept_known.append(spell)
+                    continue
+                slug = create24._normalize_slug(
+                    str(spell.get("slug") or spell.get("catalog_id") or sid)
+                )
+                slug = slug.replace("seed-spell-", "")
+                if slug and slug not in bard_list:
+                    continue
+                kept_known.append(spell)
+            sheet["spells"] = {**spells, "known": kept_known}
     if isinstance(picks, dict):
         sheet["feature_picks"] = {**picks, "values": values}
 

@@ -49,6 +49,7 @@ import {
   trimKnownFormsOnLevelDown2024,
 } from '../../../shared/dnd/druid2024Features'
 import { trimBard2024PicksOnLevelDown } from '../../../shared/dnd/bard2024Features'
+import { isOffBardList2024 } from '../bardSpellCatalog2024'
 import { draconicResilienceHpDelta2024 } from '../../../shared/dnd/sorcerer2024Features'
 import { dwarvenToughnessHpDelta2024 } from '../../../shared/dnd/speciesHpBonus2024'
 import { withSyncedHitDiceSummary } from '../play'
@@ -117,6 +118,19 @@ function levelDownClassState2024(
   if (slug === 'bard') {
     const featurePicks = trimBard2024PicksOnLevelDown(next.featurePicks, row.id, newLevel)
     if (featurePicks !== next.featurePicks) next = { ...next, featurePicks }
+    // Magical Secrets (L10+): drop off-list prepared spells when falling below 10.
+    // Always-prepared Lore discoveries (`feature-spell:…`, prepared_locked) stay until sync drops them.
+    if (newLevel < 10) {
+      const known = next.spells.known.filter((spell) => {
+        if (spell.level <= 0) return true
+        if (spell.prepared_locked) return true
+        if (String(spell.id || '').startsWith('feature-spell:')) return true
+        return !isOffBardList2024(spell)
+      })
+      if (known.length !== next.spells.known.length) {
+        next = { ...next, spells: { ...next.spells, known } }
+      }
+    }
   }
   const hasSubclass = Boolean(row.subclass_catalog_id || row.subclass_name.trim())
   if (hasSubclass && subclassDropsOnLevelDown2024(slug, beforeLevel)) {
