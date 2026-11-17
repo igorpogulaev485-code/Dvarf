@@ -83,6 +83,25 @@ def _spell_pick(class_slug: str, level: int, n: int) -> list[str]:
     return out
 
 
+def wizard_book_for_level(level: int, *, include_circle: int | None = None) -> list[str]:
+    """Wizard create-at-N book: 6 first-circle starters + 2×(n−1) higher picks."""
+    need = 6 + 2 * max(0, int(level) - 1)
+    l1 = _spell_pick("wizard", 1, max(12, need))
+    book = list(l1[:6])
+    if include_circle and include_circle > 1:
+        higher = _spell_pick("wizard", include_circle, 4)
+        book.extend(higher[:2])
+    circle = 2
+    while len(book) < need and circle <= 9:
+        for slug in _spell_pick("wizard", circle, 8):
+            if slug not in book:
+                book.append(slug)
+            if len(book) >= need:
+                break
+        circle += 1
+    return book[:need]
+
+
 def _melee_weapons(n: int) -> list[str]:
     out: list[str] = []
     for slug, row in wm.load_weapon_catalog_index().items():
@@ -344,7 +363,23 @@ def build_valid_payload(class_slug: str, **overrides) -> dict:
             payload["spellbook_spell_ids"] = book
             payload["prepared_spell_ids"] = book[: int(block.prepared_spells or 0)]
 
+    book_overridden = "spellbook_spell_ids" in overrides
     payload.update(overrides)
+    # Wizard create-at-N expects 6 + 2×(n−1) book spells unless the caller set the book.
+    if payload.get("class_slug") == "wizard" and not book_overridden:
+        wizard_lv = 1
+        for row in payload.get("class_levels") or []:
+            if isinstance(row, dict) and str(row.get("slug") or "") == "wizard":
+                wizard_lv = int(row.get("level") or 1)
+                break
+        need = 6 + 2 * max(0, wizard_lv - 1)
+        book = list(payload.get("spellbook_spell_ids") or [])
+        if len(book) < need:
+            book = wizard_book_for_level(wizard_lv)
+            payload["spellbook_spell_ids"] = book
+            prep_n = len(payload.get("prepared_spell_ids") or [])
+            if prep_n:
+                payload["prepared_spell_ids"] = book[:prep_n]
     # Drop None optional fields
     return {k: v for k, v in payload.items() if v is not None}
 

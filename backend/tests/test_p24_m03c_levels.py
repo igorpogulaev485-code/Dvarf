@@ -9,7 +9,7 @@ import pytest
 from app.dnd import edition_2024_classes as e24
 from app.dnd import edition_2024_create as create24
 from app.dnd import edition_2024_create_levels as levels
-from tests.test_p24_m03_create import build_valid_payload
+from tests.test_p24_m03_create import build_valid_payload, wizard_book_for_level
 
 
 def _base_wizard(**overrides):
@@ -113,12 +113,17 @@ def test_multiclass_requirements_ge_13():
 
 def test_create_wizard_5_equivalence():
     """create@5 == create@1 then four level gains (same average HP path)."""
-    book_extra = ["invisibility", "misty-step", "web", "scorching-ray"]
+    book = wizard_book_for_level(5)
+    assert len(book) == 14
+    book_l1, book_extra = book[:6], book[6:]
+    assert len(book_extra) == 8
     direct = create24.validate_create_2024(
         create24.payload_from_dict(
             _base_wizard(
                 subclass_slug="wizard__evoker",
                 class_levels=[{"slug": "wizard", "level": 5, "subclass_slug": "wizard__evoker"}],
+                spellbook_spell_ids=book,
+                prepared_spell_ids=book_l1[:4],
                 asi_choices=[
                     {
                         "class_slug": "wizard",
@@ -144,15 +149,22 @@ def test_create_wizard_5_equivalence():
                             "kind": "asi_plus2",
                             "abilities": {"int": 2},
                         },
+                        "add_spellbook": book_extra[4:6],
                     },
-                    {"class_slug": "wizard", "hp_mode": "average"},
+                    {
+                        "class_slug": "wizard",
+                        "hp_mode": "average",
+                        "add_spellbook": book_extra[6:8],
+                    },
                 ],
             )
         )
     )
     assert direct.level == 5
 
-    sequential = create24.validate_create_2024(create24.payload_from_dict(_base_wizard()))
+    sequential = create24.validate_create_2024(
+        create24.payload_from_dict(_base_wizard(spellbook_spell_ids=book_l1, prepared_spell_ids=book_l1[:4]))
+    )
     sheet = deepcopy(sequential.sheet)
     primary = "wizard"
     steps = [
@@ -172,8 +184,13 @@ def test_create_wizard_5_equivalence():
                 kind="asi_plus2",
                 abilities={"int": 2},
             ),
+            add_spellbook=book_extra[4:6],
         ),
-        levels.LevelGainStep(class_slug="wizard", hp_mode="average"),
+        levels.LevelGainStep(
+            class_slug="wizard",
+            hp_mode="average",
+            add_spellbook=book_extra[6:8],
+        ),
     ]
     for step in steps:
         levels.apply_level_gain_2024(sheet, step, primary_slug=primary)
@@ -302,7 +319,8 @@ def test_level1_path_unchanged():
 
 def test_create_at_n_hit_dice_and_no_duplicate_spell_rows():
     cantrips = ["fire-bolt", "mage-hand", "prestidigitation"]
-    book = ["shield", "magic-missile", "mage-armor", "detect-magic", "sleep", "identify"]
+    book = wizard_book_for_level(3)
+    assert len(book) == 10
     result = create24.validate_create_2024(
         create24.payload_from_dict(
             _base_wizard(
