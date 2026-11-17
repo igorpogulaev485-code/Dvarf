@@ -31,6 +31,10 @@ import { clearFeaturePicksAboveClassLevel, listUnlockedExpertiseKeys } from '../
 import { revokeFeatGrantFromDraft, revokeFeatGrantsForAsi, revokeFeatGrantsForBackground, syncFeatProficiencyResources } from '../featEffects'
 import { syncHitDicePools } from '../../../shared/dnd/classHitDice'
 import { averageHpGain, hitDieForClass } from '../../../shared/dnd/multiclassRules'
+import {
+  expectedPassiveHpBonuses,
+  hasDwarvenToughness,
+} from '../../../shared/dnd/hpPassiveBonuses'
 import { withSyncedHitDiceSummary } from '../play'
 import { unlockFeaturesForClasses } from '../../../shared/dnd/classFeatures'
 import { clearFeaturePicksForClass } from '../../../shared/dnd/featurePicks'
@@ -228,7 +232,18 @@ export function SheetIdentityDialog({ model }: { model: SheetModel }) {
                                 hitDieForClass({ className: row.name, catalogData: null }) ??
                                 'd8'
                               const conMod = abilityModifier(prev.abilities.con)
-                              const hpLoss = averageHpGain(die, conMod)
+                              const draconicResilience = (model.unlockedFeatures ?? []).some(
+                                (f: { id?: string }) => f.id === 'draconic_resilience',
+                              )
+                              const dwarvenToughness = hasDwarvenToughness(
+                                prev.raceGrant?.slug,
+                              )
+                              const hpLoss = averageHpGain(die, conMod, {
+                                draconicResilience:
+                                  draconicResilience &&
+                                  /чародей|sorcerer/i.test(row.name),
+                                dwarvenToughness,
+                              })
                               const nextClasses = reduceClassLevel(prev.classes, row.id)
                               const removed = !nextClasses.some((item) => item.id === row.id)
                               const hitDiceByClass = syncHitDicePools({
@@ -243,6 +258,11 @@ export function SheetIdentityDialog({ model }: { model: SheetModel }) {
                                 prev.hpCurrent == null || nextHpMax == null
                                   ? prev.hpCurrent
                                   : Math.min(prev.hpCurrent, nextHpMax)
+                              const nextPassiveHpBonuses = expectedPassiveHpBonuses({
+                                classes: nextClasses,
+                                draconicResilience,
+                                raceSlug: prev.raceGrant?.slug ?? null,
+                              })
 
                               // Drop ASI ledger entries for this class above new level
                               const keptAsi = prev.classAsi.filter((entry) => {
@@ -264,6 +284,7 @@ export function SheetIdentityDialog({ model }: { model: SheetModel }) {
                                 classAsi: keptAsi,
                                 hpMax: nextHpMax,
                                 hpCurrent: nextHpCurrent,
+                                passiveHpBonuses: nextPassiveHpBonuses,
                               }
                               for (const entry of revokedAsi) {
                                 featBase = model.mergeFeatSlice(

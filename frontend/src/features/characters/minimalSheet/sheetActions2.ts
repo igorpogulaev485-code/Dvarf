@@ -30,6 +30,10 @@ import { newFeatGrantId, type AppliedFeatGrant } from '../../../shared/dnd/featG
 import { applyFeatGrantToDraft, revokeFeatGrantsForRace } from '../featEffects'
 import { syncHitDicePools } from '../../../shared/dnd/classHitDice'
 import { buildMaxHpByLevels } from '../../../shared/dnd/multiclassRules'
+import {
+  expectedPassiveHpBonuses,
+  hasDwarvenToughness,
+} from '../../../shared/dnd/hpPassiveBonuses'
 import { clampCharacterLevel, xpToReachLevel } from '../../../shared/dnd/experience'
 import { withSyncedHitDiceSummary } from '../play'
 import { proficiencyBonusForTotalLevel, unlockFeaturesForClasses } from '../../../shared/dnd/classFeatures'
@@ -225,10 +229,12 @@ export function installSheetActions2(model: SheetModel) {
     const draconicResilience = nextClasses.some((row) =>
       /дракон|draconic/i.test(row.subclass_name || ''),
     )
+    const dwarvenToughness = hasDwarvenToughness(prev.raceGrant?.slug)
     const hpBuilt = buildMaxHpByLevels({
       classes: nextClasses.map((row) => ({ name: row.name, level: row.level })),
       constitutionMod: conMod,
       draconicResilience,
+      dwarvenToughness,
     })
     const hitDiceByClass = syncHitDicePools({
       classes: nextClasses,
@@ -240,6 +246,11 @@ export function installSheetActions2(model: SheetModel) {
       classes: nextClasses,
       hpMax: hpBuilt?.total ?? prev.hpMax,
       hpCurrent: hpBuilt?.total ?? prev.hpCurrent,
+      passiveHpBonuses: expectedPassiveHpBonuses({
+        classes: nextClasses,
+        draconicResilience,
+        raceSlug: prev.raceGrant?.slug ?? null,
+      }),
       identity: {
         ...prev.identity,
         experience: xpToReachLevel(totalLevel),

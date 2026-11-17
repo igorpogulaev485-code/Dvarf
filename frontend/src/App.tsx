@@ -4,6 +4,7 @@ import { AuthDebugPage } from './pages/AuthDebugPage'
 import { CharactersPage } from './pages/CharactersPage'
 import { ConsumablesTapGuardPreviewPage } from './pages/ConsumablesTapGuardPreviewPage'
 import { DiceRollerPreviewPage } from './pages/DiceRollerPreviewPage'
+import { DraconicHpPreviewPage } from './pages/DraconicHpPreviewPage'
 import { LegalPage } from './pages/LegalPage'
 import { ClassicBlankSheetPage } from './pages/ClassicBlankSheetPage'
 import { ClassicSheetPreviewPage } from './pages/ClassicSheetPreviewPage'
@@ -103,6 +104,7 @@ export default function App() {
             />
             <Route path="/dev/classic-sheet-preview" element={<ClassicSheetPreviewPage />} />
             <Route path="/dev/dice-roller-preview" element={<DiceRollerPreviewPage />} />
+            <Route path="/dev/draconic-hp-preview" element={<DraconicHpPreviewPage />} />
             <Route path="/dev/sc04-live-table-preview" element={<Sc04LiveTablePreviewPage />} />
             <Route path="/dev/sc05-gm-toolbar-preview" element={<Sc05GmToolbarPreviewPage />} />
             <Route path="/dev/ui-kit-etalon" element={<UiKitEtalonPreviewPage />} />

@@ -86,25 +86,39 @@ export function hitDieForClass(input: {
   return CLASS_HIT_DIE[slug] ?? null
 }
 
-/** PHB «Hit Points at Higher Levels» average: floor(die/2)+1 + CON. */
+export type HpGainExtras = {
+  /** Draconic Resilience: +1 HP on this sorcerer level. */
+  draconicResilience?: boolean
+  /** Dwarven Toughness (hill/gold dwarf): +1 HP on every character level. */
+  dwarvenToughness?: boolean
+}
+
+function passiveHpExtra(extras?: HpGainExtras): number {
+  const dragon = extras?.draconicResilience ? 1 : 0
+  const dwarf = extras?.dwarvenToughness ? 1 : 0
+  return dragon + dwarf
+}
+
+/** PHB «Hit Points at Higher Levels» average: floor(die/2)+1 + CON (+ passives). */
 export function averageHpGain(
   die: HitDie,
   constitutionMod: number,
-  extras?: { draconicResilience?: boolean },
+  extras?: HpGainExtras,
 ): number {
   const avg = Math.floor(hitDieSides(die) / 2) + 1
-  const dragon = extras?.draconicResilience ? 1 : 0
-  return avg + Math.floor(constitutionMod) + dragon
+  return avg + Math.floor(constitutionMod) + passiveHpExtra(extras)
 }
 
-/** PHB level 1: maximum of hit die + CON (min 1). */
+/** PHB level 1: maximum of hit die + CON (min 1) (+ passives). */
 export function firstLevelHpMax(
   die: HitDie,
   constitutionMod: number,
-  extras?: { draconicResilience?: boolean },
+  extras?: HpGainExtras,
 ): number {
-  const dragon = extras?.draconicResilience ? 1 : 0
-  return Math.max(1, hitDieSides(die) + Math.floor(constitutionMod) + dragon)
+  return Math.max(
+    1,
+    hitDieSides(die) + Math.floor(constitutionMod) + passiveHpExtra(extras),
+  )
 }
 
 /** +1 HP per sorcerer level with Draconic Resilience (PHB). */
@@ -134,14 +148,18 @@ export function buildMaxHpByLevels(input: {
   fallbackDie?: HitDie | null
   /** B-05: +1 HP per sorcerer level when Draconic Resilience is unlocked. */
   draconicResilience?: boolean
+  /** Hill/Gold Dwarf: +1 HP per character level. */
+  dwarvenToughness?: boolean
 }): { rows: MaxHpLevelRow[]; total: number } | null {
   const rows: MaxHpLevelRow[] = []
   const named = input.classes.filter((row) => row.name.trim() && row.level > 0)
+  const dwarven = Boolean(input.dwarvenToughness)
   if (named.length === 0) {
     const die = input.fallbackDie ?? null
     if (!die) return null
     const gain = firstLevelHpMax(die, input.constitutionMod, {
       draconicResilience: Boolean(input.draconicResilience),
+      dwarvenToughness: dwarven,
     })
     rows.push({ label: 'Ур. 1', die, gain, kind: 'max' })
     return { rows, total: gain }
@@ -156,7 +174,10 @@ export function buildMaxHpByLevels(input: {
       Boolean(input.draconicResilience) && isDraconicSorcererClass(cls.name)
     for (let lvl = 1; lvl <= levels; lvl += 1) {
       const isOriginFirst = classIndex === 0 && lvl === 1
-      const extras = { draconicResilience: dragon }
+      const extras: HpGainExtras = {
+        draconicResilience: dragon,
+        dwarvenToughness: dwarven,
+      }
       const gain = isOriginFirst
         ? firstLevelHpMax(die, input.constitutionMod, extras)
         : averageHpGain(die, input.constitutionMod, extras)

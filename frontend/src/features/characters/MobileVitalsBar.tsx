@@ -86,6 +86,7 @@ type MobileVitalsBarProps = {
   mountName?: string | null
   onRedirectDamageToMount?: (amount: number, note: string) => void
   draconicResilience?: boolean
+  dwarvenToughness?: boolean
   play: PlayState
   autoAc: number
   acOverride: number | null
@@ -181,6 +182,7 @@ export function MobileVitalsBar({
   onRedirectDamageToMount,
   hasShieldMasterEvasion = false,
   draconicResilience = false,
+  dwarvenToughness = false,
   play,
   autoAc,
   acOverride,
@@ -807,6 +809,7 @@ export function MobileVitalsBar({
           hpMax={hpMax}
           hpCurrent={hpCurrent}
           draconicResilience={draconicResilience}
+          dwarvenToughness={dwarvenToughness}
           onClose={() => setMaxDialogOpen(false)}
           onApply={({ hpMax: nextMax, hpCurrent: nextCurrent }) => {
             onCombatChange({ hpMax: nextMax, hpCurrent: nextCurrent })

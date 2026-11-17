@@ -9,6 +9,7 @@ import {
   isClassEligibleForMulticlass,
   type AbilityScores,
 } from '../../shared/dnd/multiclassRules'
+import { formatAverageHpLabel } from '../../shared/dnd/hpPassiveBonuses'
 import type { HitDie } from '../../shared/dnd/hitDice'
 import { CatalogCombobox } from '../catalog'
 import { Dialog, Field, NumberInput, Stack, Text } from '../../ui'
@@ -40,6 +41,8 @@ type LevelUpDialogProps = {
   constitutionMod: number
   /** B-05: +1 HP per sorcerer level (Draconic Resilience). */
   draconicResilience?: boolean
+  /** Hill/Gold Dwarf: +1 HP every level. */
+  dwarvenToughness?: boolean
   /** L-08: разрешить мультикласс (дефолт true). */
   allowMulticlass?: boolean
   /** L-08: среднее | бросок — стартовый режим хитов кампании. */
@@ -55,6 +58,7 @@ export function LevelUpDialog({
   abilities,
   constitutionMod,
   draconicResilience = false,
+  dwarvenToughness = false,
   allowMulticlass = true,
   defaultHpMode = 'average',
   onConfirm,
@@ -118,6 +122,7 @@ export function LevelUpDialog({
         draconicResilience:
           draconicResilience &&
           /чародей|sorcerer/i.test(targetClass.name),
+        dwarvenToughness,
       })
     : null
 
@@ -275,7 +280,15 @@ export function LevelUpDialog({
         {hpMode === 'average' ? (
           <Text tone="muted">
             {hitDie && averageGain != null
-              ? `Среднее по ${hitDie}: ⌊${hitDie.slice(1)}/2⌋+1 + ТЕЛ (${constitutionMod >= 0 ? '+' : ''}${constitutionMod}) = +${averageGain} к макс. хитам`
+              ? formatAverageHpLabel({
+                  hitDie,
+                  constitutionMod,
+                  averageGain,
+                  draconicResilience:
+                    draconicResilience &&
+                    /чародей|sorcerer/i.test(targetClass.name),
+                  dwarvenToughness,
+                })
               : 'Не удалось определить кость хитов класса — выбери класс из справочника или введи хиты вручную.'}
           </Text>
         ) : (

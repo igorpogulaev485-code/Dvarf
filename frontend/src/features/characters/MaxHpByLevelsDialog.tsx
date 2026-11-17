@@ -17,6 +17,8 @@ type MaxHpByLevelsDialogProps = {
   hpCurrent: number | null
   /** B-05: Draconic Resilience +1 HP per sorcerer level. */
   draconicResilience?: boolean
+  /** Hill/Gold Dwarf Dwarven Toughness +1 HP per level. */
+  dwarvenToughness?: boolean
   onApply: (next: { hpMax: number; hpCurrent: number }) => void
   onClose: () => void
 }
@@ -31,6 +33,7 @@ export function MaxHpByLevelsDialog({
   hpMax,
   hpCurrent,
   draconicResilience = false,
+  dwarvenToughness = false,
   onApply,
   onClose,
 }: MaxHpByLevelsDialogProps) {
@@ -45,8 +48,9 @@ export function MaxHpByLevelsDialog({
         constitutionMod,
         fallbackDie: hitDie,
         draconicResilience,
+        dwarvenToughness,
       }),
-    [classes, constitutionMod, hitDie, draconicResilience],
+    [classes, constitutionMod, hitDie, draconicResilience, dwarvenToughness],
   )
 
   useEffect(() => {
@@ -93,8 +97,10 @@ export function MaxHpByLevelsDialog({
       <Stack gap={12}>
         <Text tone="muted">
           Собрать максимум хитов по PHB: ур. 1 исходного класса — максимум кости + ТЕЛ ({conLabel});
-          каждый следующий уровень (и 1-й уровень мультикласса) — среднее кости + ТЕЛ. Сейчас персонаж
-          ур. {level}.
+          каждый следующий уровень (и 1-й уровень мультикласса) — среднее кости + ТЕЛ
+          {draconicResilience ? '; Драконья стойкость +1 за уровень чародея' : ''}
+          {dwarvenToughness ? '; Дварфийская стойкость +1 за уровень' : ''}. Сейчас персонаж ур.{' '}
+          {level}.
         </Text>
 
         <div className="chip-row">
