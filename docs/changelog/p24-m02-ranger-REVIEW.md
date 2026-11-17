@@ -62,3 +62,55 @@
 ### Итог
 
 Закрыть блокер **live 4→5 и 10→11** (снять `fixme`, переснять 1440+390), затем повторить приёмку. Мерж по-прежнему после #512, не этим агентом.
+
+## Доправка 1 — вердикт независимого проверяющего
+
+Ветка: `cursor/edition-p24-m02-ranger`. Tip под ревью: `63add9090643e57d591b7369238bff2ee83eeaea` (`63add909`). Проверяющий — **не автор**. Отчёт: секция «Доправка 1» в [`p24-m02-ranger-REPORT.md`](./p24-m02-ranger-REPORT.md). PR не мержил, не деплоил, не закрывал, ветки не удалял. Старые секции этого файла не переписывал.
+
+## Вердикт: **нужна доправка**
+
+Один блокер: **`npm run build` красный**. Живые проверки Доправки 1 (Roving только 2024, сумрачное зрение +60/+30, чип без вложенной кнопки, заголовок мастерства, имя «Оружейное мастерство», спутник land/sea/sky, заговоры воина-друида, live 4→5 и 10→11, регресс 2014 L6/L8 = 30) на этом tip сходятся. Пока `tsc -b` не зелёный, пачку не принимать.
+
+### Блокеры
+
+1. **Сборка фронта.** `cd frontend && npm run build` (`tsc -b && vite build`) падает: `src/shared/dnd/bonusCantrips.ts(87,3): error TS1117: An object literal cannot have multiple properties with the same name.` В `CANTRIP_LABEL_RU` ключ `Message` стоит дважды (стр. 76 и 87). Дубль пришёл коммитом `b1d36ab3` (рядом со «Звёздный светлячок» / `Elementalism`); на `main` ключ один. Отчёт пишет, что build зелёный — на tip `63add909` это не так.
+
+---
+
+## Чек-лист
+
+| # | Тема | Статус | Как проверил |
+|---|------|--------|----------------|
+| 1 | Pytest `test_p24_m02_ranger.py` | **ok** | `cd backend && python3 -m pytest tests/test_p24_m02_ranger.py -q --tb=line` → **43 passed** (0.54s) |
+| 2 | `npm run build` | **блокер** | TS1117, дубль `Message` в `bonusCantrips.ts`; `vite build` не стартовал |
+| 3 | Playwright subset 1440+390 | **ok** | 20 тестов, **20 passed** (3.4m), exit 0. Состав ниже |
+| 4 | create-at-5 hunter | **ok** | e2e `create-live-at-5 hunter` на desktop-1440 и phone-390 |
+| 5 | Beastmaster land / sea / sky | **ok** | e2e три типа × 2 вьюпорта. Read 1440: «Зверь земли · Земной» КД 15, 30/30, заряд; «Зверь моря · Морской» амфибия; «Зверь неба · Небесный» 24/24, полёт |
+| 6 | Воин-друид: заговоры | **ok** | e2e cantrips on sheet payload. Read `2024-ranger-druidic-warrior-spells-1440.png`: «Указание» и «Звёздный светлячок», ур. 0 |
+| 7 | Шаг 3 «Оружейное мастерство (2/2)» | **ok** | e2e `step3 mastery header visible (2/2)` 1440+390. Read paladin `…-step3-mastery-header-fix-{1440,390}.png`: заголовок над сеткой оружия |
+| 8 | Live 4→5 и 10→11 | **ok** | `fixme` нет. Оба `levelup-live` зелёные на 1440 и 390. Кроп шапки: L5 скорость **30**; L11 **40**, лаз. 40, плав. 40. На листе L11 видна «Добыча превосходного охотника» |
+| 9 | Регресс 2014 L6/L8 скорость | **ok** | e2e «скорость без „Вездеходности“» 1440+390. Read after-кадры: «Скор.» **30**, не 40 (L6 и L8, оба вьюпорта) |
+| 10 | md5 before/after, общие стемы | **ok** | Хеши сайдкаров совпали с байтами PNG. Общие стемы before = after: 1440 — 4, 390 — 5. L6/L8 только в after (в before их не было). Повторный прогон с `SHOT_TAG=verify` дал те же md5, что записаны в after для L6/L8 |
+| 11 | `classWalkSpeedBonusFt` только 2024 | **ok** | `classMovement.ts`: Roving при `rulesEdition === '2024'`. Call sites передают редакцию; `pipelineApply.ts` жёстко `'2014'`; climb/swim в `useSheetEditorPart2` не зовут `applyRovingClimbSwim` на 2014 |
+| 12 | Сумрачное зрение +60 / +30 | **ok** | `darkvisionFtFromFeatures`: база 0 → 60; уже есть DV и 2024 → +60; иначе +30. Лист передаёт `rulesEdition`. Selfcheck: 60 / 90 / 120 |
+| 13 | «нужен выбор» без вложенной кнопки | **ok** | `ClassFeaturesPanel`: `needChoiceChip` — `span.ui-chip`, не `<button>`, внутри glance |
+| 14 | «Мастерство оружия» нет в каталогах 2024 | **ok** | `rg` по `*.ts/tsx/py/json`: точной строки «Мастерство оружия» нет. В UI/каталогах — «Оружейное мастерство» (`WEAPON_MASTERY_NAME_RU`, `classes_srd.json`). В `backend/scripts/build_p24_c09_phb_origins.py` остаётся строчная «мастерство оружия» в описании Martial Training — как в отчёте, не заголовок умения |
+
+---
+
+## Что запущено в этом проходе
+
+- `cd backend && python3 -m pytest tests/test_p24_m02_ranger.py -q --tb=line` → **43 passed**
+- `cd frontend && npm run build` → **fail** TS1117 (`bonusCantrips.ts:87`)
+- `cd frontend && P24_M02_RANGER_SHOT_TAG=verify npm run test:e2e:p24-m02-ranger -- --project=desktop-1440 --project=phone-390 -g 'create-live-at-5 hunter|create-at-5 beastmaster|druidic warrior: cantrips|step3 mastery header|levelup-live|скорость без'` → **20 passed**, 0 failed, ~3.4m
+- Read PNG: paladin step3 mastery 1440 и 390; beastmaster land/sea/sky companion 1440; druidic-warrior-spells 1440; 2014 L6/L8 speed 1440 и 390; кроп шапки level-up L5 и L11 и create-at-6 (скорость 40)
+- md5: сверка сайдкаров с файлами и общих стемов before/after; verify-прогон L6/L8 совпал с after
+- Spot-check: `classMovement.ts` + call sites, `featureCombatBonuses.ts` `darkvisionFtFromFeatures`, `ClassFeaturesPanel` need-choice, каталоги 2024
+
+Переснятые e2e PNG и `verify-*` в коммит **не** входили (`git checkout` артефактов). В коммите только эта секция REVIEW.
+
+### Заметки (не блокеры)
+
+- Прокси Vite на `:8000` в логе e2e даёт `ECONNREFUSED` — тесты на моках, на вердикт не влияет.
+- Полный бой спутника и два языка «Ловкого исследователя» в мастере по-прежнему «сверить» в REPORT; в минимум Доправки 1 не входили.
+- Мерж по-прежнему после #512, не этим агентом. Сначала убрать дубль `Message`, чтобы `npm run build` прошёл, затем повторная приёмка.
