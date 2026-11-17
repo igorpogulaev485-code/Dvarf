@@ -284,15 +284,13 @@ test.describe('P24-M02 ranger — druidic warrior + mark UI', () => {
     await expectFeatureNames(page, [FAVORED, /Воин-друид/])
     await tallShot(page, ARTIFACTS, `${SHOT}-druidic-warrior-features`, project)
     await openSpellsPane(page, project)
-    // Full SpellsPanel: CatalogCombobox value; compact: plain text.
-    const guidanceBox = page.getByRole('combobox', { name: 'Заклинание' }).and(page.getByDisplayValue('Указание'))
-    const starryBox = page
-      .getByRole('combobox', { name: 'Заклинание' })
-      .and(page.getByDisplayValue(/Звёздный светлячок/))
-    if (await guidanceBox.count()) {
-      await expect(guidanceBox.first()).toBeVisible({ timeout: 10_000 })
-      await expect(starryBox.first()).toBeVisible()
-      await guidanceBox.first().scrollIntoViewIfNeeded()
+    // Full SpellsPanel: CatalogCombobox inputs; compact: plain text rows.
+    const guidanceInput = page.locator('input[value="Указание"]')
+    const starryInput = page.locator('input[value="Звёздный светлячок"]')
+    if (await guidanceInput.count()) {
+      await expect(guidanceInput.first()).toBeVisible({ timeout: 10_000 })
+      await expect(starryInput.first()).toBeVisible()
+      await guidanceInput.first().scrollIntoViewIfNeeded()
     } else {
       await expect(page.getByText('Указание').first()).toBeVisible({ timeout: 15_000 })
       await expect(page.getByText(/Звёздный светлячок/).first()).toBeVisible()
