@@ -20,9 +20,11 @@ function groupLabel(item: NeedsSetupItem): string {
       ? 'Способности'
       : item.kind === 'spells'
         ? 'Магия'
-        : item.kind === 'alignment'
-          ? 'Основное'
-          : 'Напарники'
+        : item.kind === 'race_spell'
+          ? 'Раса'
+          : item.kind === 'alignment'
+            ? 'Основное'
+            : 'Напарники'
 }
 
 /** B20: one header chip «Нужно настроить: N» with a short jump list. */

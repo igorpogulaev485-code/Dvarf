@@ -3,8 +3,10 @@ import {
   buildNeedsSetupItems,
   isAlignmentEmptyForSetup,
   isIncompleteCompanionForSetup,
+  listRaceSpellSetupItems,
   listSpellSetupItems,
 } from './needsSetup'
+import type { RaceGrantDef } from '../../shared/dnd/raceGrants'
 import { createCompanion } from './companions'
 import type { SheetSpell } from './spells'
 import type { SpellLearnBudget } from '../../shared/dnd/casterProgression'
@@ -117,5 +119,42 @@ assert.equal(
   'complete companion skipped',
 )
 assert.ok(items.length >= 4, `expected several items, got ${items.length}`)
+
+const raceDef = {
+  slug: 'astral_elf',
+  nameRu: 'Эльф (астральный)',
+  spellChoices: [
+    {
+      id: 'astral_fire',
+      nameRu: 'Астральное пламя',
+      pool: 'wizard_cantrips',
+      castingAbility: 'int',
+    },
+  ],
+} as unknown as RaceGrantDef
+const raceItems = listRaceSpellSetupItems({
+  raceGrantDef: raceDef,
+  picks: null,
+  raceCatalogId: 'astral-catalog-id',
+})
+assert.equal(raceItems.length, 1, 'missing race cantrip choice')
+assert.match(raceItems[0].label, /нужен выбор/)
+assert.equal(raceItems[0].kind, 'race_spell')
+
+const withRace = buildNeedsSetupItems({
+  unlocked: [],
+  featurePicks: { values: {} },
+  classAsi: [],
+  learnBudgets: [],
+  known: [],
+  alignment: 'lawful_good',
+  alignmentText: '',
+  companions: [],
+  raceSpellItems: raceItems,
+})
+assert.ok(
+  withRace.some((row) => row.kind === 'race_spell' && row.label.includes('нужен выбор')),
+  'race_spell folded into needsSetup list',
+)
 
 console.log('needsSetup.selfcheck: ok')

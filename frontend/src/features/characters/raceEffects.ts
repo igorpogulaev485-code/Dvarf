@@ -12,6 +12,7 @@ import {
   resolveRaceMovement,
   resolveRaceSize,
   selectActiveRacialSpells,
+  resolveRacialSpellsForGrant,
   validateRaceGrantPicks,
   type AbilityKey,
   type AppliedRaceGrant,
@@ -54,6 +55,7 @@ export type RaceGrantDraftSlice = {
   weapons: WeaponAttack[]
   spells: SpellsState
   raceGrant: AppliedRaceGrant | null
+  raceGrantPicks: RaceGrantPicks | null
   /** Still covered by class grants — do not strip on race revoke. */
   classGrantedSkills: Set<string>
   classGrantedTools: Set<string>
@@ -257,6 +259,7 @@ export function revokeRaceGrant(draft: RaceGrantDraftSlice): RaceGrantDraftSlice
   return {
     ...draft,
     raceGrant: null,
+    raceGrantPicks: null,
     abilities,
     skills,
     speed: null,
@@ -362,7 +365,7 @@ export function applyRaceGrantToDraft(input: {
     raceSlug: def.slug,
     naturalWeapons,
   })
-  const racialSpells = def.racialSpells
+  const racialSpells = resolveRacialSpellsForGrant({ def, picks })
   const characterLevel = Math.max(1, Math.floor(input.characterLevel ?? 1))
   const hasCasterClass = Boolean(input.hasCasterClass)
   const spells = syncRaceRacialSpells({
@@ -413,11 +416,13 @@ export function applyRaceGrantToDraft(input: {
     })(),
     combatBonuses: { ...def.combatBonuses },
     racialSpells,
+    racialResources: [...def.racialResources],
   }
 
   const draft: RaceGrantDraftSlice = {
     ...cleared,
     raceGrant: nextGrant,
+    raceGrantPicks: picks,
     abilities,
     skills,
     speed: def.speed,

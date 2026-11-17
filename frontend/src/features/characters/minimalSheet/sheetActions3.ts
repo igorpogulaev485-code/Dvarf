@@ -98,6 +98,49 @@ export function installSheetActions3(model: SheetModel) {
     })
   }
 
+  model.openRaceSetupFromNeedsSetup = async function openRaceSetupFromNeedsSetup() {
+    const raceCatalogId = model.draft.raceCatalogId
+    const grant = model.draft.raceGrant
+    if (!raceCatalogId && !grant) {
+      model.setIdentityOpen(true)
+      return
+    }
+    let allRaces = model.raceCatalogCacheRef.current
+    if (!allRaces) {
+      try {
+        allRaces = await listCatalogEntries({
+          kind: 'race',
+          edition: model.rulesEdition,
+        })
+        model.raceCatalogCacheRef.current = allRaces
+      } catch {
+        model.onToast('Не удалось загрузить справочник рас')
+        return
+      }
+    }
+    const selected =
+      allRaces.find((row: { id: string }) => row.id === raceCatalogId) ??
+      allRaces.find((row: { slug: string }) => row.slug === grant?.slug) ??
+      null
+    if (!selected) {
+      model.setIdentityOpen(true)
+      return
+    }
+    const root =
+      selected.parent_id != null
+        ? allRaces.find((row: { id: string }) => row.id === selected.parent_id) ?? selected
+        : selected
+    const subraces = allRaces
+      .filter((row: { parent_id: string | null }) => row.parent_id === root.id)
+      .sort((a: { sort_order: number; name_ru: string }, b: { sort_order: number; name_ru: string }) => a.sort_order - b.sort_order || a.name_ru.localeCompare(b.name_ru, 'ru'))
+    model.setIdentityOpen(false)
+    model.setRaceGrantPicker({
+      root,
+      subraces,
+      subraceRequired: raceSubraceRequired(root.data),
+    })
+  }
+
   model.applyHomebrewRace = function applyHomebrewRace(name: string) {
     model.setDraft((prev) => {
       const cleared = revokeRaceGrant(model.raceSliceFrom(prev))

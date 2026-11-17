@@ -1,115 +1,129 @@
-# DICE-02b — отчёт (доправка 1 к PR #504)
+# Отчёт: астральный эльф + магпредметы 2014 (доправка 1)
 
-## PR / ветка
+## Прод: причина
 
-- Ветка: `cursor/dice-roller-v2b-905d` (от `main` после DICE-02a / #499).
-- PR: #504 → `main`. **Не мержить, не деплоить.**
-- Зависимость: DICE-02a уже в `main`.
+Проверка БД creed20.tech — **только SELECT**, без UPDATE/DELETE/миграций. Секреты/почты/личные данные не выгружались.
 
-## Что сделано
+### Астральный эльф
 
-### 1. Цифровой бросок на сервере
+| character_id | edition | level | class | race_catalog_id | raceGrant | racialSpells / traitCards | Звёздный шаг |
+|---|---|---|---|---|---|---|---|
+| `4e11a57d-866e-4651-874a-a97a11f2b3e7` | 2014 | 8 | Чародей | astral_elf | **нет** | 0 / 0 | 0 |
 
-- `POST /sessions/{session_id}/rolls/digital` — формула + режим + подпись + `character_id` + `master_hidden`.
-- Итог/кости считает сервер (`app/services/dice_formula.py`, `secrets.randbelow`); `total`/`breakdown` с клиента не принимаются.
-- Единый клиентский путь: `postSheetRollToSession` / `recordDigitalRoll` (за столом ждёт ответ сервера).
-- Вне сессии / «Только себе» — клиентский `fairRandom`, как в 02a.
-- Анти-спам: ≤15 / 10 с и ≤300 / час на пользователя в сессии → 429 «Слишком много бросков, подождите немного» (digital и живой куб).
-- Обрезка: если `roll`-событий > 1000 — удаляются самые старые `roll` в той же транзакции.
+На проде есть catalog id расы, но нет выдачи `raceGrant` / заговора / trait cards.
 
-### 2. Общий лог партии
+### Посох силы
 
-- Та же `SessionEventFeed` + WS `session_event`.
-- У цифровых — плашки костей (`DiceFaces`); живой куб — 🎲.
-- В панели d20 вкладка **«Стол»** при `open_session_id`.
-- На странице сессии — `SessionDigitalRollPanel` (у ведущих — «Скрытый бросок»).
+| character_id | item_id | source | equipped | wear_slot | attuned | effects | resource | grant_spell |
+|---|---|---|---|---|---|---|---|---|
+| `4e11a57d-…` | `80d1962e-…` | catalog `staff_of_power` | true | held_main | **false** | 16 (I05 полный) | max 20, `2d8+4` | 9 |
+| `0ac3fee8-…` | `75d2e307-…` | catalog тот же | true | held_main | **false** | 16 | max 20, `2d8+4` | 9 |
 
-### 3. Скрытый бросок мастера и раскрытие
+**Вердикт бага посоха в коде:** не регрессия после I05, не устаревшая копия effects (I23), не free-text. Данные полные. Свойства молчат, потому что **`isGearEffectActive` требует equipped ∧ attuned**, а `attunements=[]`.
 
-- `master_hidden` в payload; скрытый → заглушка «Мастер бросил скрыто».
-- `POST /sessions/{session_id}/events/{event_id}/reveal` — только ведущие.
-- `event_history`: Активно / Без бросков мастера / Выключено — как в ТЗ (раскрытый виден даже при hide_master_rolls).
-- До раскрытия игрок **не** получает число/формулу/кости в HTTP `GET …/events` и в WS (stub payload).
+Поведение без настройки: подсказка на карточке инвентаря  
+`свойства не действуют · настройте, чтобы получить бонусы`  
+(см. `staff-unattuned-hint-1440.png` / `390`). После настройки — КД+2, спас+2, атака заклин.+2, заряды и grant_spell.
 
-### 4. Хранение / миграция
+### Арбалеты на проде (тот же астральный)
 
-- Alembic `dice02b01widenroll` ← `admqf01bootstrapsrc`: `formula` 200, `breakdown` 500.
-- Одна голова: `python -m alembic heads` → `dice02b01widenroll (head)`.
+| item_id | source | комментарий |
+|---|---|---|
+| `807cc5be-…` | free_text | «Лёгкий арбалет» без +1 |
+| `9075a981-…` | free_text | «Болты арбалета» |
 
-## Скрины (`/opt/cursor/artifacts/dice-v2/`)
+---
 
-Снято живьём: API `:8000` + Vite `:5173`, сессия из `/tmp/dice02b-live.json`.  
-Два игрока + мастер — отдельные `browser.newContext()` (токены через `storageState`/initScript), без ручного переключения окон.  
-Вьюпорты: **1440×900** и **390×844**, `deviceScaleFactor=1`, `screenshot scale=css`. Тур «За столом N из 4» закрыт перед съёмкой (onboarding done + Пропустить + снятие backdrop).
+## Баг атаки «Лёгкий арбалет +1» (+1 вместо +4)
+
+**Симптом:** волшебник 5, Лов 10, БМ +3, арбалет +1 → на Play Desk было **+1**, ожидалось **+4**.
+
+**Причины (две):**
+
+1. Play Desk брал только `attack.is_proficient`, не пересчитывал через `isWeaponProficient` (в отличие от AttacksPanel).
+2. `reconcileDruidStartWeapons` при **пустых** `classGrants` сбрасывал `proficiency.weapons.simple` в `false` и автосейв затирал лист — владение «Простое» пропадало.
+
+**Фикс:** live-пересчёт PB на Play Desk + не трогать weapons, если друид-grant не переписывался. Selfcheck: wizard crossbow +1 → +4; fighter longsword +1 → +6.
+
+---
+
+## Что сделано в PR
+
+### Баг 2 — без второго механизма I05
+
+Авто-attune при экипировке; hint «настройте, чтобы получить бонусы»; held_main «В руках»; I23 client refresh; selfcheck посоха.
+
+### Баг 1 — астральный эльф
+
+`spell_choices` / trait_cards / `race-res:starlight_step`; banner «… · нужен выбор»; high_elf / half_elf_high / drow; миграция `n0a1b2c3d4e5` ← `dice02b01widenroll` (одна голова).
+
+### Merge
+
+`origin/main` (#498/#499/#504) merge-коммитом, без force-push.
+
+---
+
+## Аудит рас 2014 с расовыми заклинаниями
+
+| Раса | Было | В PR |
+|---|---|---|
+| astral_elf | prose | spell_choices + resource Звёздный шаг |
+| high_elf | prose | spell_choices wizard_cantrips |
+| half_elf_high | prose | spell_choices wizard_cantrips |
+| drow | prose | fixed racial_spells |
+| forest_gnome, pale_elf, tiefling*, mark_*, aasimar… | уже racial_spells | без изменений |
+| kobold_draconic_sorcery | мёртвое `cantrip_note_ru` | **не** этот механизм |
+
+---
+
+## Таблица предметов каталога (заряды / заклинания)
+
+Движок один (I03/I05): `resource` + `grant_spell` (+ бонусы). Работают при **equipped ∧ attuned** (если attunement required).
+
+| slug | grant_spell | resource | attune | заметка |
+|---|---|---|---|---|
+| staff_of_power | 9 | 20 / 2d8+4 | да | чинили активацию |
+| staff_of_the_magi | 19 | да | да | тот же движок |
+| staff_of_fire / frost / healing / woodlands / … | 2–8 | да | да | тот же |
+| wand_of_magic_missiles / fireballs / … | 1+ | да | чаще да | тот же |
+| weapon_1 / _2 / _3 | 0 | нет | нет | attack/damage +N после base choice |
+
+Полный список staff_/wand_ с `grant_spell`/`resource` — в локальном каталоге (десятки строк); отдельного второго движка нет.
+
+---
+
+## Доказательства (живые, не seed)
+
+Артефакты: `/opt/cursor/artifacts/`.
 
 | Файл | Что видно |
-|------|-----------|
-| `skill-to-feed-{1440,390}.png` | Клик навыка «Магия» на листе Торина → строка «Магия» в ленте у мастера (итог + кости). |
-| `attack-to-feed-{1440,390}.png` | Атака/урон «Урон: Боевой посох» в ленте мастера (формула `1d6+2`, кости). |
-| `party-log-master-{1440,390}.png` | Лента у мастера: несколько бросков партии (в т.ч. «Сводка стола», навык Элары). |
-| `party-log-player-{1440,390}.png` | Та же лента у второго игрока (отдельный browser context). |
-| `sheet-tab-table-{1440,390}.png` | Панель d20 на листе, вкладка **«Стол»**, лог бросков за столом. |
-| `dice-on-table-{1440,390}.png` | Режим «Кубики на столе» + запись **Живой куб** с итогом 17 и 🎲. |
-| `hidden-master-{1440,390}.png` | Скрытый бросок у мастера: полный итог/формула/кости + кнопка «Раскрыть». |
-| `hidden-player-{1440,390}.png` | У игрока заглушка «Мастер бросил скрыто», без числа; **без** оверлея тура. |
-| `revealed-player-{1440,390}.png` | После «Раскрыть»: та же строка «Скрытая проверка» с тем же итогом/костями, что у мастера. |
-| `sheet-2014-before-{1440,390}.png` | `origin/main` worktree, sample Торин Камнебород волшебник 5, без FAB, scrollTop=0. |
-| `sheet-2014-after-{1440,390}.png` | Та же ветка/тот же sample (`/dev/dice-roller-preview?edition=2014&clean=1`), scrollTop=0. |
-| `sheet-2014-diff-{1440,390}.png` | Попиксельный diff before↔after. |
+|---|---|
+| astral-elf-desk-1440 / 390 | астральный заговор, Звёздный шаг, посох, КД 12 |
+| crossbow-plus1-1440 / 390 | атака **+4**, урон 1к8+1 |
+| longsword-plus1-1440 / 390 | воин, меч +1 атака **+6** |
+| staff-unattuned-hint-1440 / 390 | «настройте, чтобы получить бонусы», Настр. 0/3 |
+| staff-attuned-after-1440 | после настройки — hint исчез |
+| staff-charge-spent-1440 / 390 | **19/20** зарядов; ячейки 1/2/3 ур. без `used` |
+| staff-recharge-2d8-1440 / 390 | `rechargeDice` **2к8+4** на ресурсе посоха |
+| staff-unequipped-bonuses-gone-1440 / 390 | снял из рук → КД **10**, атака заклин. без +2 посоха |
+| starlight-spent / restored (+390) | Звёздный шаг 2/3 → 3/3 после long rest (`reset: long`) |
+| needs-choice-astral-1440 / 390 | banner «Астральное пламя · нужен выбор» |
+| needs-choice-after-pick-1440 / 390 | Священное пламя · астральный; banner нет |
+| create-astral-cantrip-step-1440 / 390 | RaceSetup: Пляшущие / Свет / Священное пламя |
+| create-astral-result-1440 / 390 | выбран выбран (Священное пламя / Свет) |
+| regression-before/after-baseline-1440/390 | md5 **совпали** (worktree main :5174 vs ветка :5173) |
 
-`CAPTURE_REPORT.md` удалён (противоречил файлам). Дублирующие/лишние кадры убраны. Все перечисленные live-кадры имеют **разные md5**.
+Расход заряда посоха: поле `resources[].used` у `gear-res:…:staff_of_power` (0→1 ⇒ 19/20), `spells.slots.*.used` остаются 0. Заклинание в листе — `gear-spell:…:magic_missile` с пометкой «Посох силы».
 
-### Регресс 2014
+### Регресс md5 (один персонаж «Обычный Воин», scrollTop=0)
 
 | | 1440 | 390 |
-|--|------|-----|
-| размер | 1440×900 | 390×844 |
-| before md5 | `9018e0090c2687192bd9fa2ec76294e2` | `8d2954ce950489d6a7bb11ed6cd268c6` |
-| after md5 | `b84e94dd759d708f110e7107734e362d` | `0490b44fc8ec93e6a259f5705b669859` |
-| DIFF | да, ~0.81% пикселей | да, ~6.36% пикселей |
+|---|---|---|
+| before (main worktree) | `edb6546b629dde8564e3b692c1cafe83` | `ed18d644e9366e85885ee59237e12a51` |
+| after (ветка) | тот же | тот же |
+| diff | нет | нет |
 
-**Объяснение DIFF:** один и тот же персонаж (Торин Камнебород, волшебник 5, sample classic 2014). Before снят с `origin/main` без FAB; after — с ветки DICE (`DiceRollerHost`). Попиксельный diff на 1440 сосредоточен в нижней полосе (~y 832–899): зона FAB/hot-bar, не шапка и не колонка характеристик. Шапка/создание/level-up не трогались. Ожидаемый визуальный diff из DICE UI, не поломка бланка 2014.
+UI kit lock md5 = main: `index.css` `31936aa1…`, `26-lobby-hub-lock.css` `0e69be02…`.
 
-Before: `scripts/dice-before-from-main.sh` + `e2e/dice-before-from-main.spec.ts` (Pixel5 `deviceScaleFactor` принудительно 1, `scale: 'css'`).
-
-### Скрытый payload (без токенов)
-
-Файл: `/opt/cursor/artifacts/dice-v2/hidden-payload-proof.json`.
-
-До раскрытия игрок получает:
-
-```json
-{
-  "title": "Мастер бросил скрыто",
-  "total": null,
-  "formula": null,
-  "breakdown": null,
-  "payload": {
-    "master_hidden": true,
-    "revealed": false,
-    "hidden_stub": true,
-    "category": "roll",
-    "digital": true
-  }
-}
-```
-
-После раскрытия — тот же `total` / `dice`, что у мастера (в proof: total `9`, d20=`7`).
-
-## Тесты
-
-| Проверка | Результат |
-|----------|-----------|
-| `pytest` `test_dice_02b_digital_rolls.py` + `test_dice02b_migration.py` | 16 passed |
-| в т.ч. `test_player_api_payload_has_no_total_before_reveal` | stub без total/dice/formula |
-| `test_master_hidden_broadcasts_stub` | WS stub игроку |
-| анти-спам `test_rate_limit_burst` | 429 |
-| `alembic heads` | одна голова `dice02b01widenroll` |
-| frontend build | см. CI / локальный `npm run build` |
-| live capture | multi-context Playwright, кадры выше |
-
-Замечание: тост атаки на листе при бою со столом может кратко показать локальный расчёт до ответа сервера; навыки/панель/урон в ленте — серверные.
-
-## Вопросы
-
-Нет блокирующих. Не мержить и не деплоить по запросу.
+Selfcheck: `staffOfPower`, `gearCatalogRefresh`, `raceSpellChoices`, `needsSetup`, `equipmentProficiency` (+ reconcileDruid).  
+`npm run build` — ok. Alembic: одна голова `n0a1b2c3d4e5`.

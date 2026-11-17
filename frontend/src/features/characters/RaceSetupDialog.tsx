@@ -21,6 +21,7 @@ import {
   type RaceGrantDef,
   type RaceGrantPicks,
   type RaceSize,
+  type RaceSpellChoiceDef,
 } from '../../shared/dnd/raceGrants'
 import {
   raceRequiresFeatPick,
@@ -75,6 +76,10 @@ type RaceSetupDialogProps = {
   gender?: CharacterGender | null
   /** Name dice only in create-pipeline; sheet race re-pick keeps manual name. */
   enableNameGeneration?: boolean
+  /** Pre-fill picks when reopening setup from the sheet. */
+  initialPicks?: RaceGrantPicks | null
+  /** Pre-select subrace when fixing picks on an existing sheet. */
+  initialSubraceId?: string | null
   onConfirm: (result: RaceSetupConfirm) => void
   onClose: () => void
 }
@@ -114,6 +119,8 @@ export function RaceSetupDialog({
   deferFeatPick = false,
   gender: genderProp = null,
   enableNameGeneration = false,
+  initialPicks = null,
+  initialSubraceId = null,
   onConfirm,
   onClose,
 }: RaceSetupDialogProps) {
@@ -195,8 +202,16 @@ export function RaceSetupDialog({
   const [skills, setSkills] = useState<string[]>([])
   const [tools, setTools] = useState<string[]>([])
   const [ancestryId, setAncestryId] = useState<string | null>(null)
+  const [spellChoiceIds, setSpellChoiceIds] = useState<Record<string, string>>({})
+  const [spellChoiceAbility, setSpellChoiceAbility] = useState<
+    Partial<Record<string, AbilityKey>>
+  >({})
+  const [spellQueryByChoice, setSpellQueryByChoice] = useState<Record<string, string>>(
+    {},
+  )
 
   const sizeChoices = def?.sizeChoices ?? []
+  const spellChoices = def?.spellChoices ?? []
   const sizeNeed = sizeChoices.length > 1
   const variableTraitChoices = def?.variableTraitChoices ?? []
   const variableTraitNeed = variableTraitChoices.length > 0
@@ -243,7 +258,14 @@ export function RaceSetupDialog({
 
   useEffect(() => {
     if (!open) return
-    setSubraceKey(hasSubraceFork ? null : SKIP_SUBRACE)
+  if (
+      initialSubraceId &&
+      subraces.some((row) => row.id === initialSubraceId)
+    ) {
+      setSubraceKey(initialSubraceId)
+    } else {
+      setSubraceKey(hasSubraceFork ? null : SKIP_SUBRACE)
+    }
     setCharacterName(characterNameProp)
     const empty = emptyRacePicks()
     setAbilityBonusModeId(empty.abilityBonusModeId)
@@ -256,8 +278,20 @@ export function RaceSetupDialog({
     setSkills(empty.skills)
     setTools(empty.tools)
     setAncestryId(empty.ancestryId)
+    setSpellChoiceIds(initialPicks?.spellChoiceIds ?? {})
+    setSpellChoiceAbility(initialPicks?.spellChoiceAbility ?? {})
+    setSpellQueryByChoice({})
     setGender(genderProp)
-  }, [open, root?.id, hasSubraceFork, characterNameProp, genderProp])
+  }, [
+    open,
+    root?.id,
+    hasSubraceFork,
+    characterNameProp,
+    genderProp,
+    initialPicks,
+    initialSubraceId,
+    subraces,
+  ])
 
   useEffect(() => {
     // Reset fork picks when subrace changes.
@@ -272,6 +306,9 @@ export function RaceSetupDialog({
     setSkills(empty.skills)
     setTools(empty.tools)
     setAncestryId(empty.ancestryId)
+    setSpellChoiceIds({})
+    setSpellChoiceAbility({})
+    setSpellQueryByChoice({})
   }, [subraceKey])
 
   useEffect(() => {
@@ -368,6 +405,18 @@ export function RaceSetupDialog({
   const featNeed = Boolean(def && raceRequiresFeatPick(def) && !deferFeatPick)
   const featOk = !featNeed || Boolean(featResult)
 
+  function spellChoiceComplete(choice: RaceSpellChoiceDef): boolean {
+    const slug = spellChoiceIds[choice.id]?.trim()
+    if (!slug) return false
+    if (!choice.options.some((row) => row.spellSlug === slug)) return false
+    if (choice.castingAbilityChoices.length <= 1) return true
+    const ability = spellChoiceAbility[choice.id]
+    return Boolean(ability && choice.castingAbilityChoices.includes(ability))
+  }
+
+  const spellChoicesOk =
+    spellChoices.length === 0 || spellChoices.every((choice) => spellChoiceComplete(choice))
+
   const nameOk = characterName.trim().length > 0
   const genderOk = gender != null
   const canConfirm =
@@ -382,7 +431,8 @@ export function RaceSetupDialog({
     skills.length === skillNeed &&
     tools.length === toolNeed &&
     ancestryOk &&
-    featOk
+    featOk &&
+    spellChoicesOk
 
   /** Concrete reason Apply stays off — generic «развилки» confused players (Human variant ASI). */
   const blockingReason = ((): string | null => {
@@ -418,6 +468,12 @@ export function RaceSetupDialog({
     }
     if (!ancestryOk) return 'Выбери драконье происхождение.'
     if (!featOk) return 'Выбери черту, чтобы продолжить.'
+    if (!spellChoicesOk) {
+      const pending = spellChoices.find((choice) => !spellChoiceComplete(choice))
+      return pending
+        ? `Выбери заклинание: ${pending.labelRu}`
+        : 'Выбери расовые заклинания.'
+    }
     return 'Отметь все обязательные развилки, чтобы продолжить.'
   })()
 
@@ -469,6 +525,8 @@ export function RaceSetupDialog({
             tools,
             ancestryId,
             featCatalogId: deferFeatPick ? null : (featResult?.entry.id ?? null),
+            spellChoiceIds,
+            spellChoiceAbility: spellChoiceAbility as Record<string, AbilityKey>,
           },
           featResult: deferFeatPick ? null : featResult,
           characterName: characterName.trim(),
@@ -797,6 +855,80 @@ export function RaceSetupDialog({
                 </div>
               </Field>
             ) : null}
+
+            {spellChoices.map((choice) => {
+              const currentSlug = spellChoiceIds[choice.id] ?? ''
+              const query = (spellQueryByChoice[choice.id] ?? '').trim().toLowerCase()
+              const visible = query
+                ? choice.options.filter(
+                    (opt) =>
+                      opt.nameRu.toLowerCase().includes(query) ||
+                      opt.spellSlug.toLowerCase().includes(query),
+                  )
+                : choice.options
+              return (
+                <Stack key={choice.id} gap={10}>
+                  <Field label={choice.labelRu}>
+                    {choice.options.length > 12 ? (
+                      <Input
+                        value={spellQueryByChoice[choice.id] ?? ''}
+                        onChange={(event) =>
+                          setSpellQueryByChoice((prev) => ({
+                            ...prev,
+                            [choice.id]: event.target.value,
+                          }))
+                        }
+                        placeholder="Поиск заговора…"
+                      />
+                    ) : null}
+                    <div className="chip-row" role="group">
+                      {visible.map((opt) => {
+                        const on = currentSlug === opt.spellSlug
+                        return (
+                          <button
+                            key={opt.spellSlug}
+                            type="button"
+                            className={`sheet-chip${on ? ' is-on' : ''}`}
+                            onClick={() =>
+                              setSpellChoiceIds((prev) => ({
+                                ...prev,
+                                [choice.id]: opt.spellSlug,
+                              }))
+                            }
+                          >
+                            {opt.nameRu}
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </Field>
+                  {choice.castingAbilityChoices.length > 1 ? (
+                    <Field label="Базовая характеристика заклинаний">
+                      <div className="chip-row">
+                        {choice.castingAbilityChoices.map((key) => {
+                          const on = spellChoiceAbility[choice.id] === key
+                          return (
+                            <button
+                              key={key}
+                              type="button"
+                              className={`sheet-chip${on ? ' is-on' : ''}`}
+                              onClick={() =>
+                                setSpellChoiceAbility((prev) => ({
+                                  ...prev,
+                                  [choice.id]: key,
+                                }))
+                              }
+                            >
+                              {ABILITY_LABELS[key]}
+                            </button>
+                          )
+                        })}
+                      </div>
+                    </Field>
+                  ) : null}
+                </Stack>
+              )
+            })}
 
             {def.ancestryChoices.length > 0 ? (
               <Field label="Драконье происхождение">

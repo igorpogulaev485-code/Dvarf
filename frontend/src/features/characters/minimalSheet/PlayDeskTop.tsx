@@ -41,6 +41,8 @@ import { ActiveEffectsPanel } from '../ActiveEffectsPanel'
 import { IconCompanions } from '../deskIcons'
 import {
   buildNeedsSetupItems,
+  listRaceSpellSetupItems,
+  raceGrantDefFromCatalogRow,
   type NeedsSetupItem,
 } from '../needsSetup'
 import { normalizeCampaignRules } from '../../lobby/campaignRules'
@@ -236,6 +238,35 @@ export function PlayDeskTop({ model }: { model: SheetModel }) {
       row.id === 'race_updated_mpmm' && !row.dismissed,
   )
 
+  const raceSpellSetupItems = useMemo(() => {
+    // Prod may have race_catalog_id without raceGrant (astral elf gap) — still prompt.
+    const catalogId = model.draft.raceCatalogId
+    if (!catalogId) return []
+    const grant = model.draft.raceGrant
+    const row =
+      model.raceCatalogRows.find((entry) => entry.id === catalogId) ??
+      (grant
+        ? model.raceCatalogRows.find((entry) => entry.slug === grant.slug)
+        : null) ??
+      null
+    if (!row) return []
+    const def = raceGrantDefFromCatalogRow({
+      slug: row.slug,
+      nameRu: row.name_ru,
+      data: row.data,
+    })
+    return listRaceSpellSetupItems({
+      raceGrantDef: def,
+      picks: model.draft.raceGrantPicks,
+      raceCatalogId: catalogId,
+    })
+  }, [
+    model.draft.raceGrant,
+    model.draft.raceCatalogId,
+    model.draft.raceGrantPicks,
+    model.raceCatalogRows,
+  ])
+
   const needsSetupItems = useMemo(
     () =>
       buildNeedsSetupItems({
@@ -247,6 +278,7 @@ export function PlayDeskTop({ model }: { model: SheetModel }) {
         alignment: model.draft.identity.alignment ?? '',
         alignmentText: model.draft.identity.alignmentText ?? '',
         companions: model.draft.companions,
+        raceSpellItems: raceSpellSetupItems,
       }),
     [
       model.unlockedFeatures,
@@ -257,6 +289,7 @@ export function PlayDeskTop({ model }: { model: SheetModel }) {
       model.draft.identity.alignment,
       model.draft.identity.alignmentText,
       model.draft.companions,
+      raceSpellSetupItems,
     ],
   )
 
@@ -275,6 +308,10 @@ export function PlayDeskTop({ model }: { model: SheetModel }) {
     }
     if (item.kind === 'alignment') {
       model.setIdentityOpen(true)
+      return
+    }
+    if (item.kind === 'race_spell') {
+      void model.openRaceSetupFromNeedsSetup()
       return
     }
     if (item.kind === 'companion' && item.targetId) {
@@ -323,6 +360,29 @@ export function PlayDeskTop({ model }: { model: SheetModel }) {
               }}
             >
               Закрыть
+            </button>
+          </div>
+        </div>
+      ) : null}
+      {/* Header chip UIKIT-02 off; banner so old astral (catalog id, no picks) still see «нужен выбор». */}
+      {raceSpellSetupItems.length > 0 ? (
+        <div
+          className="sheet-banner"
+          role="status"
+          data-testid="race-spell-needs-setup"
+        >
+          <span>
+            {raceSpellSetupItems.map((item) => item.label).join(' · ')}
+          </span>
+          <div className="sheet-banner__actions">
+            <button
+              type="button"
+              className="sheet-chip"
+              onClick={() => {
+                void model.openRaceSetupFromNeedsSetup()
+              }}
+            >
+              Выбрать
             </button>
           </div>
         </div>

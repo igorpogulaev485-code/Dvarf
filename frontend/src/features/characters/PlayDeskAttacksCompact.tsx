@@ -266,6 +266,8 @@ import {
   type AbilityKey,
 } from './sheetTypes'
 import { artifactAttackDamage, artifactRequirementMet, type WeaponAttack } from './AttacksPanel'
+import { isWeaponProficient } from './equipmentProficiency'
+import type { WeaponProficiency } from './identity'
 import {
   buildAttackBonusParts,
 } from './attackBonusBreakdown'
@@ -302,6 +304,8 @@ type PlayDeskAttacksCompactProps = {
   characterLevel?: number
   abilities: Record<AbilityKey, number>
   proficiencyBonus: number
+  /** Sheet weapon training — recompute PB live (magic +1 names / base_weapon_slug). */
+  weaponProficiency?: WeaponProficiency
   gearBonusesByItem?: Record<string, { attackBonus: number; damageBonus: number }>
   /** B-02: magic weapon / elemental weapon flat bonuses from active effects. */
   effectWeaponBonus?: { attack: number; damage: number }
@@ -496,6 +500,7 @@ export function PlayDeskAttacksCompact({
   characterLevel = 1,
   abilities,
   proficiencyBonus,
+  weaponProficiency = { simple: false, martial: false, extras: [] },
   gearBonusesByItem = {},
   effectWeaponBonus = { attack: 0, damage: 0 },
   activeEffects = null,
@@ -2699,7 +2704,18 @@ export function PlayDeskAttacksCompact({
                   ),
                 )
             const fxAttackFlat = attackBonusFromActiveEffects(activeEffects ?? [])
-            const proficient = Boolean(attack.is_proficient || unarmed)
+            const weaponItemForProf = attack.inventory_item_id
+              ? inventoryItems.find((row) => row.id === attack.inventory_item_id)
+              : undefined
+            const proficient =
+              unarmed ||
+              isWeaponProficient({
+                name: attack.name,
+                weapons: weaponProficiency,
+                baseWeaponSlug: weaponItemForProf?.base_weapon_slug,
+                sourceKind: attack.source_kind,
+                attackId: attack.id,
+              })
             const magicAtk = gear?.attackBonus ?? 0
             const effectAtk = flatFxAttack + fxAttackFlat
             const attackParts = buildAttackBonusParts({

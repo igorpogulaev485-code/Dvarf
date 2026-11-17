@@ -1,5 +1,9 @@
 /** PHB 2014 race grants: catalog.data → picks → ledger (mirrors classGrants). */
 
+import {
+  bonusCantripLabelRu,
+  WIZARD_CANTRIP_NAMES,
+} from './bonusCantrips'
 import type { NaturalArmor } from './armor'
 import { canonicalLanguageList } from './languages'
 import {
@@ -167,6 +171,32 @@ export type RaceMovementResolved = {
 }
 
 /** Temporary / activated movement (action → fly 1 min, etc.). Not sheet flySpeed. */
+export type RaceSpellChoiceOption = {
+  spellSlug: string
+  nameRu: string
+}
+
+/** Player picks one innate cantrip (and sometimes casting ability) from catalog spell_choices. */
+export type RaceSpellChoiceDef = {
+  id: string
+  labelRu: string
+  pick: number
+  castingAbilityChoices: AbilityKey[]
+  castingAbilityFixed: AbilityKey | null
+  options: RaceSpellChoiceOption[]
+  /** e.g. wizard_cantrips — expanded at parse/UI time */
+  optionsFrom: string | null
+}
+
+/** PB / fixed pools for activatable racial traits (Звёздный шаг, …). */
+export type RaceRacialResourceDef = {
+  id: string
+  nameRu: string
+  maxFrom: 'proficiency_bonus' | 'fixed'
+  maxFixed: number
+  reset: 'short' | 'long'
+}
+
 export type RaceActivatedMovement = {
   id: string
   nameRu: string
@@ -222,6 +252,8 @@ export type RaceGrantDef = {
   damageResistances: string[]
   combatBonuses: RaceCombatBonuses
   racialSpells: RaceRacialSpell[]
+  spellChoices: RaceSpellChoiceDef[]
+  racialResources: RaceRacialResourceDef[]
   variableTraitChoices: VariableTraitChoice[]
 }
 
@@ -243,6 +275,10 @@ export type RaceGrantPicks = {
   ancestryId: string | null
   /** Feat catalog id when race grants a feat (Custom Lineage). */
   featCatalogId: string | null
+  /** spell_choices: choice id → spell_slug */
+  spellChoiceIds: Record<string, string>
+  /** spell_choices with multiple casting abilities: choice id → ability */
+  spellChoiceAbility: Record<string, AbilityKey>
 }
 
 export type AppliedRaceGrant = {
@@ -269,6 +305,7 @@ export type AppliedRaceGrant = {
   damageResistances: string[]
   combatBonuses: RaceCombatBonuses
   racialSpells: RaceRacialSpell[]
+  racialResources: RaceRacialResourceDef[]
   /** B-08 / MPMM aasimar: chosen celestial revelation id. */
   revelationId?: string | null
   /** True when revelation is pre-filled but level < 3. */
@@ -734,6 +771,122 @@ function readRaceSpellGrant(raw: unknown): RaceSpellGrant {
   return 'innate'
 }
 
+function englishCantripToSlug(nameEn: string): string {
+  return nameEn.trim().toLowerCase().replace(/\s+/g, '_')
+}
+
+function expandWizardCantripOptions(): RaceSpellChoiceOption[] {
+  const out: RaceSpellChoiceOption[] = []
+  const seen = new Set<string>()
+  for (const nameEn of WIZARD_CANTRIP_NAMES) {
+    const spellSlug = englishCantripToSlug(nameEn)
+    if (!spellSlug || seen.has(spellSlug)) continue
+    seen.add(spellSlug)
+    out.push({
+      spellSlug,
+      nameRu: bonusCantripLabelRu(nameEn) ?? nameEn,
+    })
+  }
+  out.sort((a, b) => a.nameRu.localeCompare(b.nameRu, 'ru'))
+  return out
+}
+
+function readSpellChoiceOptions(raw: unknown): RaceSpellChoiceOption[] {
+  if (!Array.isArray(raw)) return []
+  const out: RaceSpellChoiceOption[] = []
+  const seen = new Set<string>()
+  for (const item of raw) {
+    const row = asRecord(item)
+    const slugRaw = row.spell_slug ?? row.spellSlug ?? row.slug
+    const spellSlug =
+      typeof slugRaw === 'string' && slugRaw.trim() ? slugRaw.trim() : ''
+    const nameRu =
+      typeof row.name_ru === 'string'
+        ? row.name_ru.trim()
+        : typeof row.nameRu === 'string'
+          ? row.nameRu.trim()
+          : ''
+    if (!spellSlug || !nameRu || seen.has(spellSlug)) continue
+    seen.add(spellSlug)
+    out.push({ spellSlug, nameRu })
+  }
+  return out
+}
+
+function readSpellChoices(raw: unknown): RaceSpellChoiceDef[] {
+  if (!Array.isArray(raw)) return []
+  const out: RaceSpellChoiceDef[] = []
+  const seen = new Set<string>()
+  for (const item of raw) {
+    const row = asRecord(item)
+    const id = typeof row.id === 'string' ? row.id.trim() : ''
+    if (!id || seen.has(id)) continue
+    const labelRu =
+      typeof row.label_ru === 'string'
+        ? row.label_ru.trim()
+        : typeof row.labelRu === 'string'
+          ? row.labelRu.trim()
+          : id
+    const pick = Math.max(1, Math.floor(readNumber(row.pick, 1)))
+    const abilityFixedRaw = row.casting_ability ?? row.castingAbility
+    const castingAbilityFixed = isAbilityKey(abilityFixedRaw) ? abilityFixedRaw : null
+    const abilityChoicesRaw = row.casting_ability_choices ?? row.castingAbilityChoices
+    let castingAbilityChoices: AbilityKey[] = []
+    if (Array.isArray(abilityChoicesRaw)) {
+      castingAbilityChoices = abilityChoicesRaw.filter(isAbilityKey)
+    }
+    const optionsFromRaw = row.options_from ?? row.optionsFrom
+    const optionsFrom =
+      typeof optionsFromRaw === 'string' && optionsFromRaw.trim()
+        ? optionsFromRaw.trim()
+        : null
+    let options = readSpellChoiceOptions(row.options)
+    if (options.length === 0 && optionsFrom === 'wizard_cantrips') {
+      options = expandWizardCantripOptions()
+    }
+    if (options.length === 0) continue
+    seen.add(id)
+    out.push({
+      id,
+      labelRu,
+      pick,
+      castingAbilityChoices,
+      castingAbilityFixed,
+      options,
+      optionsFrom,
+    })
+  }
+  return out
+}
+
+function readRacialResources(raw: unknown): RaceRacialResourceDef[] {
+  if (!Array.isArray(raw)) return []
+  const out: RaceRacialResourceDef[] = []
+  const seen = new Set<string>()
+  for (const item of raw) {
+    const row = asRecord(item)
+    const id = typeof row.id === 'string' ? row.id.trim() : ''
+    if (!id || seen.has(id)) continue
+    const nameRu =
+      typeof row.name_ru === 'string'
+        ? row.name_ru.trim()
+        : typeof row.nameRu === 'string'
+          ? row.nameRu.trim()
+          : id
+    const maxFromRaw = row.max_from ?? row.maxFrom
+    const maxFrom =
+      maxFromRaw === 'proficiency_bonus' || maxFromRaw === 'proficiencyBonus'
+        ? 'proficiency_bonus'
+        : 'fixed'
+    const maxFixed = Math.max(0, Math.floor(readNumber(row.max ?? row.max_fixed, 0)))
+    const resetRaw = row.reset
+    const reset = resetRaw === 'short' || resetRaw === 'short_rest' ? 'short' : 'long'
+    seen.add(id)
+    out.push({ id, nameRu, maxFrom, maxFixed, reset })
+  }
+  return out
+}
+
 function readRacialSpells(raw: unknown): RaceRacialSpell[] {
   if (!Array.isArray(raw)) return []
   const out: RaceRacialSpell[] = []
@@ -942,6 +1095,10 @@ export function raceGrantDefFromCatalog(input: {
       data.combat_bonuses ?? data.combatBonuses,
     ),
     racialSpells: readRacialSpells(data.racial_spells ?? data.racialSpells),
+    spellChoices: readSpellChoices(data.spell_choices ?? data.spellChoices),
+    racialResources: readRacialResources(
+      data.racial_resources ?? data.racialResources,
+    ),
     variableTraitChoices: readVariableTraitChoices(
       data.variable_trait_choices ?? data.variableTraitChoices,
     ),
@@ -981,6 +1138,62 @@ export function emptyRacePicks(): RaceGrantPicks {
     tools: [],
     ancestryId: null,
     featCatalogId: null,
+    spellChoiceIds: {},
+    spellChoiceAbility: {},
+  }
+}
+
+export function readRaceGrantPicks(raw: unknown): RaceGrantPicks {
+  if (!raw || typeof raw !== 'object') return emptyRacePicks()
+  const row = raw as Partial<RaceGrantPicks>
+  const base = emptyRacePicks()
+  const spellChoiceIds: Record<string, string> = {}
+  if (row.spellChoiceIds && typeof row.spellChoiceIds === 'object') {
+    for (const [key, value] of Object.entries(row.spellChoiceIds)) {
+      if (typeof value === 'string' && value.trim()) {
+        spellChoiceIds[key] = value.trim()
+      }
+    }
+  }
+  const spellChoiceAbility: Partial<Record<string, AbilityKey>> = {}
+  if (row.spellChoiceAbility && typeof row.spellChoiceAbility === 'object') {
+    for (const [key, value] of Object.entries(row.spellChoiceAbility)) {
+      if (isAbilityKey(value)) spellChoiceAbility[key] = value
+    }
+  }
+  return {
+    abilityBonusModeId:
+      typeof row.abilityBonusModeId === 'string'
+        ? row.abilityBonusModeId
+        : base.abilityBonusModeId,
+    abilityBonusKeys: Array.isArray(row.abilityBonusKeys)
+      ? row.abilityBonusKeys.filter(isAbilityKey)
+      : base.abilityBonusKeys,
+    size:
+      row.size === 'tiny' ||
+      row.size === 'small' ||
+      row.size === 'medium' ||
+      row.size === 'large' ||
+      row.size === 'huge' ||
+      row.size === 'gargantuan'
+        ? row.size
+        : base.size,
+    variableTraitId:
+      typeof row.variableTraitId === 'string' ? row.variableTraitId : base.variableTraitId,
+    languages: Array.isArray(row.languages)
+      ? row.languages.filter((v): v is string => typeof v === 'string')
+      : base.languages,
+    skills: Array.isArray(row.skills)
+      ? row.skills.filter((v): v is string => typeof v === 'string')
+      : base.skills,
+    tools: Array.isArray(row.tools)
+      ? row.tools.filter((v): v is string => typeof v === 'string')
+      : base.tools,
+    ancestryId: typeof row.ancestryId === 'string' ? row.ancestryId : base.ancestryId,
+    featCatalogId:
+      typeof row.featCatalogId === 'string' ? row.featCatalogId : base.featCatalogId,
+    spellChoiceIds,
+    spellChoiceAbility: spellChoiceAbility as Record<string, AbilityKey>,
   }
 }
 
@@ -1013,6 +1226,77 @@ export function resolveRaceDarkvision(input: {
   return input.def.darkvision
 }
 
+export function castingAbilityForSpellChoice(
+  choice: RaceSpellChoiceDef,
+  picks: Pick<RaceGrantPicks, 'spellChoiceAbility'>,
+): AbilityKey | null {
+  if (choice.castingAbilityFixed) return choice.castingAbilityFixed
+  const picked = picks.spellChoiceAbility[choice.id]
+  if (picked && choice.castingAbilityChoices.includes(picked)) return picked
+  if (choice.castingAbilityChoices.length === 1) {
+    return choice.castingAbilityChoices[0] ?? null
+  }
+  return null
+}
+
+/** Merge fixed racial_spells with spell_choices picks (innate cantrips). */
+export function resolveRaceSpellChoicesToRacialSpells(input: {
+  def: Pick<RaceGrantDef, 'spellChoices'>
+  picks: Pick<RaceGrantPicks, 'spellChoiceIds' | 'spellChoiceAbility'>
+}): RaceRacialSpell[] {
+  const out: RaceRacialSpell[] = []
+  for (const choice of input.def.spellChoices) {
+    const spellSlug = input.picks.spellChoiceIds[choice.id]?.trim()
+    if (!spellSlug) continue
+    const option = choice.options.find((row) => row.spellSlug === spellSlug)
+    const nameRu = option?.nameRu ?? spellSlug
+    const castingAbility = castingAbilityForSpellChoice(choice, input.picks)
+    out.push({
+      id: choice.id,
+      spellSlug,
+      nameRu,
+      level: 0,
+      castingAbility,
+      notesRu: choice.labelRu,
+      unlockLevel: 1,
+      grant: 'innate',
+    })
+  }
+  return out
+}
+
+export function resolveRacialSpellsForGrant(input: {
+  def: RaceGrantDef
+  picks: RaceGrantPicks
+}): RaceRacialSpell[] {
+  const chosen = resolveRaceSpellChoicesToRacialSpells(input)
+  return [...input.def.racialSpells, ...chosen]
+}
+
+export function listMissingRaceSpellChoiceLabels(input: {
+  def: RaceGrantDef
+  picks: Pick<RaceGrantPicks, 'spellChoiceIds' | 'spellChoiceAbility'>
+}): string[] {
+  const missing: string[] = []
+  for (const choice of input.def.spellChoices) {
+    const slug = input.picks.spellChoiceIds[choice.id]?.trim()
+    if (!slug) {
+      missing.push(choice.labelRu)
+      continue
+    }
+    if (
+      !choice.options.some((row) => row.spellSlug === slug)
+    ) {
+      missing.push(choice.labelRu)
+      continue
+    }
+    if (choice.castingAbilityChoices.length > 1 && !castingAbilityForSpellChoice(choice, input.picks)) {
+      missing.push(choice.labelRu)
+    }
+  }
+  return missing
+}
+
 export function raceGrantNeedsSetupDialog(def: RaceGrantDef): boolean {
   if (def.sizeChoices.length > 1) return true
   if (def.variableTraitChoices.length > 0) return true
@@ -1021,6 +1305,7 @@ export function raceGrantNeedsSetupDialog(def: RaceGrantDef): boolean {
   if ((def.skillChoices?.count ?? 0) > 0) return true
   if ((def.toolChoices?.count ?? 0) > 0) return true
   if (def.ancestryChoices.length > 0) return true
+  if (def.spellChoices.length > 0) return true
   if (def.featPick || def.slug === 'custom_lineage' || def.slug === 'human_variant') {
     return true
   }
@@ -1132,6 +1417,36 @@ export function validateRaceGrantPicks(input: {
   }
   if (!needsFeat && picks.featCatalogId) {
     return 'Лишний выбор черты'
+  }
+
+  for (const choice of def.spellChoices) {
+    const slug = picks.spellChoiceIds[choice.id]?.trim()
+    if (!slug) {
+      return `Выбери: ${choice.labelRu}`
+    }
+    if (!choice.options.some((row) => row.spellSlug === slug)) {
+      return `Заклинание вне списка: ${choice.labelRu}`
+    }
+    if (choice.castingAbilityChoices.length > 1) {
+      const ability = castingAbilityForSpellChoice(choice, picks)
+      if (!ability) {
+        return `Выбери базовую характеристику: ${choice.labelRu}`
+      }
+    }
+  }
+  const spellChoiceKeys = Object.keys(picks.spellChoiceIds).filter(
+    (key) => picks.spellChoiceIds[key]?.trim(),
+  )
+  if (
+    spellChoiceKeys.length > 0 &&
+    def.spellChoices.length === 0
+  ) {
+    return 'Лишний выбор расового заклинания'
+  }
+  for (const key of spellChoiceKeys) {
+    if (!def.spellChoices.some((row) => row.id === key)) {
+      return 'Лишний выбор расового заклинания'
+    }
   }
 
   return null
@@ -1251,6 +1566,9 @@ export function readAppliedRaceGrant(raw: unknown): AppliedRaceGrant | null {
     ),
     combatBonuses: readCombatBonuses(row.combatBonuses ?? row.combat_bonuses),
     racialSpells: readRacialSpells(row.racialSpells ?? row.racial_spells),
+    racialResources: readRacialResources(
+      row.racialResources ?? row.racial_resources,
+    ),
     revelationId:
       typeof row.revelationId === 'string'
         ? row.revelationId

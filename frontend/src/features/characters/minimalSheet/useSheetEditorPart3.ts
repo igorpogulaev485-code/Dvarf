@@ -1001,6 +1001,13 @@ export function useSheetEditorPart3(model: SheetModel) {
       sheet.subclass_grants = draftSnap.subclassGrants
       sheet.subclass_transitions = draftSnap.subclassTransitions
       sheet.race_grant = draftSnap.raceGrant
+        ? {
+            ...draftSnap.raceGrant,
+            ...(draftSnap.raceGrantPicks
+              ? { picks: draftSnap.raceGrantPicks }
+              : {}),
+          }
+        : null
       sheet.migrations = draftSnap.migrations
       sheet.ui_notices = draftSnap.uiNotices
       sheet.background_grant = draftSnap.backgroundGrant

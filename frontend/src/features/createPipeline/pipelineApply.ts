@@ -200,6 +200,7 @@ type WorkingDraft = {
   companions: SubclassGrantDraftSlice['companions']
   backgroundGrant: BackgroundGrantDraftSlice['backgroundGrant']
   raceGrant: RaceGrantDraftSlice['raceGrant']
+  raceGrantPicks: RaceGrantDraftSlice['raceGrantPicks']
   featGrants: AppliedFeatGrant[]
   playHitDie: HitDie | null
   hpMax: number | null
@@ -279,6 +280,7 @@ function createWorkingDraft(baseAbilities: AbilityScores): WorkingDraft {
     companions: [],
     backgroundGrant: null,
     raceGrant: null,
+    raceGrantPicks: null,
     featGrants: [],
     playHitDie: null,
     hpMax: null,
@@ -469,6 +471,26 @@ function normalizeRacePicks(raw: unknown): RaceGrantPicks {
     tools: Array.isArray(row.tools) ? row.tools.filter((v) => typeof v === 'string') : empty.tools,
     ancestryId: typeof row.ancestryId === 'string' ? row.ancestryId : empty.ancestryId,
     featCatalogId: typeof row.featCatalogId === 'string' ? row.featCatalogId : empty.featCatalogId,
+    spellChoiceIds:
+      row.spellChoiceIds && typeof row.spellChoiceIds === 'object'
+        ? Object.fromEntries(
+            Object.entries(row.spellChoiceIds).filter(
+              (entry): entry is [string, string] =>
+                typeof entry[0] === 'string' &&
+                typeof entry[1] === 'string' &&
+                entry[1].trim().length > 0,
+            ),
+          )
+        : empty.spellChoiceIds,
+    spellChoiceAbility:
+      row.spellChoiceAbility && typeof row.spellChoiceAbility === 'object'
+        ? Object.fromEntries(
+            Object.entries(row.spellChoiceAbility).filter(
+              (entry): entry is [string, AbilityKey] =>
+                typeof entry[0] === 'string' && ABILITY_KEYS.includes(entry[1] as AbilityKey),
+            ),
+          )
+        : empty.spellChoiceAbility,
   }
 }
 
@@ -660,6 +682,7 @@ function raceSlice(draft: WorkingDraft): RaceGrantDraftSlice {
     weapons: draft.weapons,
     spells: draft.spells,
     raceGrant: draft.raceGrant,
+    raceGrantPicks: draft.raceGrantPicks,
     classGrantedSkills: classSkills,
     classGrantedTools: classTools,
     classGrantedArmor: classArmor,
@@ -709,6 +732,7 @@ function mergeRace(draft: WorkingDraft, slice: RaceGrantDraftSlice): WorkingDraf
     weapons: slice.weapons,
     spells: slice.spells,
     raceGrant: slice.raceGrant,
+    raceGrantPicks: slice.raceGrant ? slice.raceGrantPicks : null,
   }
 }
 
@@ -804,6 +828,11 @@ function serializeSheet(input: {
   sheet.subclass_grants = draft.subclassGrants
   sheet.subclass_transitions = draft.subclassTransitions
   sheet.race_grant = draft.raceGrant
+    ? {
+        ...draft.raceGrant,
+        ...(draft.raceGrantPicks ? { picks: draft.raceGrantPicks } : {}),
+      }
+    : null
   sheet.background_grant = draft.backgroundGrant
   sheet.feat_grants = draft.featGrants
   if (draft.passiveHpBonuses) {

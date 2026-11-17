@@ -17,7 +17,15 @@ import {
   itemNeedsBaseChoice,
 } from './gearBaseChoice'
 import { syncAttacksHeldFromInventory, type WeaponAttack } from './AttacksPanel'
-import { MAX_ATTUNEMENTS } from './attunement'
+import {
+  MAX_ATTUNEMENTS,
+  type AttunementSlot,
+} from './attunement'
+import type { ClassLevelEntry } from '../../shared/dnd/classLevels'
+import { tryAutoAttuneOnEquip } from './autoAttuneOnEquip'
+import type { AttunementCharacter } from './attunementRules'
+import { gearInactiveHint } from './gearInactiveHint'
+import { refreshInventoryItemsFromCatalog } from './gearCatalogRefresh'
 import { MAX_COMBAT_CONSUMABLE_FAVORITES } from './combatConsumables'
 import {
   canShowEquipChip,
@@ -370,6 +378,10 @@ type InventoryPanelProps = {
   /** U09: open this item card once (from attack → inventory jump). */
   focusItemId?: string | null
   onFocusItemConsumed?: () => void
+  attunements?: AttunementSlot[]
+  onAttunementsChange?: (attunements: AttunementSlot[]) => void
+  attunementCharacter?: AttunementCharacter | null
+  classLevels?: ClassLevelEntry[]
 }
 
 export function InventoryPanel({
@@ -396,6 +408,10 @@ export function InventoryPanel({
   onTransferCoins,
   focusItemId = null,
   onFocusItemConsumed,
+  attunements = [],
+  onAttunementsChange,
+  attunementCharacter,
+  classLevels = [],
 }: InventoryPanelProps) {
   const favoriteSet = useMemo(() => new Set(favoriteConsumableIds), [favoriteConsumableIds])
   const favoriteCount = favoriteConsumableIds.length
@@ -459,8 +475,9 @@ export function InventoryPanel({
   useEffect(() => {
     if (catalogItems.length === 0) return
     const current = inventoryRef.current
-    let changed = false
-    const nextItems = current.items.map((item) => {
+    let nextItems = refreshInventoryItemsFromCatalog(current.items, catalogItems)
+    let changed = nextItems !== current.items
+    nextItems = nextItems.map((item) => {
       // Soft-collapsed / expanded packs: children own mass — don't overwrite shell.
       if (
         isExpandedPack(current.items, item.id) ||
@@ -482,6 +499,46 @@ export function InventoryPanel({
       onChangeRef.current({ ...current, items: nextItems })
     }
   }, [catalogItems])
+
+  function toggleEquip(item: InventoryItem) {
+    const nextEquipped = !item.equipped
+    if (
+      nextEquipped &&
+      item.armor_kind !== 'none' &&
+      !canWearArmor(item.armor_kind, armorProficiency)
+    ) {
+      onToast?.(armorProficiencyHint(item.armor_kind))
+      return
+    }
+    const items = equipInventoryItem(inventory.items, item.id, nextEquipped)
+    let attunementToast: string | null = null
+    let nextAttunements = attunements
+    if (
+      nextEquipped &&
+      item.requires_attunement &&
+      onAttunementsChange &&
+      attunementCharacter
+    ) {
+      const equippedRow = items.find((row) => row.id === item.id) ?? item
+      const result = tryAutoAttuneOnEquip({
+        item: equippedRow,
+        items,
+        attunements,
+        classes: classLevels,
+        character: attunementCharacter,
+      })
+      nextAttunements = result.attunements
+      attunementToast = result.toast
+    }
+    onChange({ ...inventory, items })
+    if (onAttunementsChange && nextAttunements !== attunements) {
+      onAttunementsChange(nextAttunements)
+    }
+    if (attunementToast) onToast?.(attunementToast)
+    if (onWeaponsChange) {
+      onWeaponsChange(syncAttacksHeldFromInventory(weapons, items))
+    }
+  }
 
   const weighable = asWeighableItems(inventory.items)
   const itemsLb = itemsWeightLb(weighable)
@@ -668,23 +725,6 @@ export function InventoryPanel({
     if (isScroll) {
       setScrollBindItemId(id)
       onToast?.('Укажи заклинание на свитке')
-    }
-  }
-
-  function toggleEquip(item: InventoryItem) {
-    const nextEquipped = !item.equipped
-    if (
-      nextEquipped &&
-      item.armor_kind !== 'none' &&
-      !canWearArmor(item.armor_kind, armorProficiency)
-    ) {
-      onToast?.(armorProficiencyHint(item.armor_kind))
-      return
-    }
-    const items = equipInventoryItem(inventory.items, item.id, nextEquipped)
-    onChange({ ...inventory, items })
-    if (onWeaponsChange) {
-      onWeaponsChange(syncAttacksHeldFromInventory(weapons, items))
     }
   }
 
@@ -890,6 +930,7 @@ export function InventoryPanel({
         : itemLineWeightLb(item),
     )
     const effectsLine = formatEffectsLine(item)
+    const inactiveHint = gearInactiveHint(item, attunements)
     const statusTag = item.equipped
       ? equipLabel(item).on.toLowerCase()
       : canShowEquipChip(item)
@@ -921,6 +962,9 @@ export function InventoryPanel({
                 <span className={`inventory-role inventory-role--${bucket}`}>{role}</span>
                 {itemNeedsBaseChoice(item) ? (
                   <span className="attack-held-tag">нужно настроить</span>
+                ) : null}
+                {inactiveHint ? (
+                  <span className="attack-held-tag">{inactiveHint}</span>
                 ) : null}
                 {item.wear_slot && item.wear_slot !== 'none' && bucket === 'other' ? (
                   <span className="attack-held-tag">{WEAR_SLOT_LABEL_RU[item.wear_slot]}</span>
@@ -1241,8 +1285,11 @@ export function InventoryPanel({
         {effectsLine ? (
           <Text tone="muted" className="inventory-card__effects">
             {effectsLine}
-            {item.requires_attunement ? ' · нужна настройка' : ''}
+            {item.requires_attunement && !inactiveHint ? ' · нужна настройка' : ''}
           </Text>
+        ) : null}
+        {inactiveHint ? (
+          <span className="attack-held-tag">{inactiveHint}</span>
         ) : null}
 
         {isSpellScrollItem(item) ? (
@@ -1568,6 +1615,10 @@ export function InventoryPanel({
           ) {
             setScrollBindItemId(added.id)
             onToast?.('Укажи заклинание на свитке')
+          } else if (added.requires_attunement) {
+            onToast?.(
+              'Чтобы свойства работали: возьмите в руку и настройте.',
+            )
           }
         }}
       />

@@ -345,6 +345,8 @@ export function SheetDialogsSetup({ model }: { model: SheetModel }) {
         proficientSkills={model.proficientSkills}
         characterName={model.draft.name}
         gender={model.draft.identity.gender}
+        initialPicks={model.draft.raceGrantPicks}
+        initialSubraceId={model.draft.raceGrant?.raceCatalogId ?? null}
         enableNameGeneration={false}
         onClose={() => model.setRaceGrantPicker(null)}
         onConfirm={(result) => {

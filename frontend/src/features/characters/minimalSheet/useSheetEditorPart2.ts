@@ -20,6 +20,8 @@ import { hydrateSwordsFightingStyleFromGrants } from '../../../shared/dnd/swords
 import { knowledgeBlessingSkillIds } from '../../../shared/dnd/expertise'
 import { applyFeatGrantToDraft, ensureFeatSpellsFromLedger, featSpellsMissingFromKnown } from '../featEffects'
 import { syncFeatureResources } from '../../../shared/dnd/featureResources'
+import { desiredRaceResources, syncRaceResources } from '../../../shared/dnd/raceResources'
+import { proficiencyBonusForTotalLevel } from '../../../shared/dnd/classFeatures'
 import { classWalkSpeedBonusFt, resolveWalkSpeedFt } from '../../../shared/dnd/classMovement'
 import {
   applySpeedModsToWalk,
@@ -55,6 +57,7 @@ import { ensureRaceNaturalWeaponAttacks, raceNaturalWeaponAttacksMatch, syncRace
 import { characterHasCasterClass, highestSpellSlotLevelForClasses } from '../../../shared/dnd/casterProgression'
 import { syncSubclassAlwaysPreparedSpells } from '../subclassEffects'
 import { equippedArmorPieces } from '../inventory'
+import { refreshInventoryItemsFromCatalog } from '../gearCatalogRefresh'
 import { SKILL_DEFS, abilityModifier } from '../sheetTypes'
 import { passiveScore, skillModifierFromState } from '../../../shared/dnd/passives'
 
@@ -144,6 +147,9 @@ export function useSheetEditorPart2(model: SheetModel) {
             // reach sheets that already snapshotted an older trait_cards blob.
             nextGrant = { ...nextGrant, traitCards: catalogDef.traitCards }
           }
+          if (catalogDef?.racialResources && catalogDef.racialResources.length > 0) {
+            nextGrant = { ...nextGrant, racialResources: catalogDef.racialResources }
+          }
           if (catalogDef?.traitsText && !nextGrant.traitsText?.trim()) {
             nextGrant = { ...nextGrant, traitsText: catalogDef.traitsText }
           }
@@ -210,6 +216,37 @@ export function useSheetEditorPart2(model: SheetModel) {
     }
   }, [model.rulesEdition, model.character.id])
 
+  // I23: refresh gear rules from catalog when weapon/armor/item lists load.
+  useEffect(() => {
+    let active = true
+    Promise.all([
+      listCatalogEntries({ kind: 'item', edition: model.rulesEdition }),
+      listCatalogEntries({ kind: 'weapon', edition: model.rulesEdition }),
+      listCatalogEntries({ kind: 'armor', edition: model.rulesEdition }),
+    ])
+      .then(([items, weapons, armor]) => {
+        if (!active) return
+        const catalog = [...items, ...weapons, ...armor]
+        model.setDraft((prev) => {
+          const nextItems = refreshInventoryItemsFromCatalog(
+            prev.inventory.items,
+            catalog,
+          )
+          if (nextItems === prev.inventory.items) return prev
+          return {
+            ...prev,
+            inventory: { ...prev.inventory, items: nextItems },
+          }
+        })
+      })
+      .catch(() => {
+        /* catalog optional — stale item effects stay until next load */
+      })
+    return () => {
+      active = false
+    }
+  }, [model.rulesEdition, model.character.id])
+
   // Keep feat:* pools in play.resources aligned with unlocked features (PB, archetype).
   useEffect(() => {
     model.setDraft((prev) => {
@@ -239,6 +276,43 @@ export function useSheetEditorPart2(model: SheetModel) {
       }
     })
   }, [model.featureDesiredResources])
+
+  // Keep race-res:* pools aligned with racialResources + PB.
+  useEffect(() => {
+    model.setDraft((prev) => {
+      const desired = desiredRaceResources({
+        racialResources: prev.raceGrant?.racialResources ?? [],
+        proficiencyBonus: proficiencyBonusForTotalLevel(
+          totalCharacterLevel(prev.classes),
+        ),
+      })
+      const nextResources = syncRaceResources(prev.play.resources, desired)
+      if (
+        nextResources.length === prev.play.resources.length &&
+        nextResources.every((row, index) => {
+          const cur = prev.play.resources[index]
+          return (
+            cur &&
+            cur.id === row.id &&
+            cur.name === row.name &&
+            cur.max === row.max &&
+            cur.used === row.used &&
+            cur.reset === row.reset
+          )
+        })
+      ) {
+        return prev
+      }
+      return {
+        ...prev,
+        play: { ...prev.play, resources: nextResources },
+      }
+    })
+  }, [
+    model.draft.raceGrant?.racialResources,
+    model.characterLevel,
+    model.draft.classes,
+  ])
 
   // Diamond Soul (and similar): force-enable save proficiencies from features.
   useEffect(() => {

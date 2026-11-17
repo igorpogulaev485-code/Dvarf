@@ -7,6 +7,7 @@ import { parseWeaponCatalogData, type WeaponCategory } from '../../shared/dnd/ge
 import { findWeaponPreset } from '../../shared/dnd/weaponPresets'
 import type { ArmorKind } from '../../shared/dnd/armor'
 import type { ArmorProficiency, WeaponProficiency } from './identity'
+import { weaponBase } from './gearBaseChoice'
 import { resolveWeaponExtraName } from './weaponProficiencyExtras'
 
 /** PHB 2014 simple weapons (RU labels as on the sheet). */
@@ -66,10 +67,29 @@ export function armorProficiencyHint(armorKind: ArmorKind): string {
   return 'Нет владения этим доспехом'
 }
 
+/** Strip trailing « +1/+2/+3 » so magic variants resolve to the PHB base. */
+export function stripMagicBonusSuffix(name: string): string {
+  return name.replace(/\s*\+\s*[123]\s*$/u, '').trim()
+}
+
 export function resolveWeaponCategory(input: {
   name: string
   catalogData?: Record<string, unknown> | null
+  /** Inventory `base_weapon_slug` after I06 base choice (weapon_1 → crossbow_light). */
+  baseWeaponSlug?: string | null
 }): WeaponCategory | null {
+  if (input.baseWeaponSlug?.trim()) {
+    const base = weaponBase(input.baseWeaponSlug.trim())
+    const bySlug =
+      (base ? findWeaponPreset(base.nameRu) : null) ??
+      findWeaponPreset(input.baseWeaponSlug.trim())
+    if (bySlug) {
+      return SIMPLE_WEAPON_RU.has(normalizeName(bySlug.labelRu)) ? 'simple' : 'martial'
+    }
+    if (base) {
+      return SIMPLE_WEAPON_RU.has(normalizeName(base.nameRu)) ? 'simple' : 'martial'
+    }
+  }
   if (input.catalogData && Object.keys(input.catalogData).length > 0) {
     const parsed = parseWeaponCatalogData(input.catalogData)
     if (parsed.category === 'simple' || parsed.category === 'martial') {
@@ -77,11 +97,12 @@ export function resolveWeaponCategory(input: {
       if (!isGenericMagicWeaponName(input.name)) return parsed.category
     }
   }
-  const preset = findWeaponPreset(input.name)
+  const baseName = stripMagicBonusSuffix(input.name)
+  const preset = findWeaponPreset(baseName) ?? findWeaponPreset(input.name)
   if (preset) {
     return SIMPLE_WEAPON_RU.has(normalizeName(preset.labelRu)) ? 'simple' : 'martial'
   }
-  const resolved = resolveWeaponExtraName(input.name)
+  const resolved = resolveWeaponExtraName(baseName) ?? resolveWeaponExtraName(input.name)
   if (resolved && SIMPLE_WEAPON_RU.has(normalizeName(resolved))) return 'simple'
   if (resolved && findWeaponPreset(resolved)) {
     return SIMPLE_WEAPON_RU.has(normalizeName(resolved)) ? 'simple' : 'martial'
@@ -100,6 +121,7 @@ export function isWeaponProficient(input: {
   name: string
   catalogData?: Record<string, unknown> | null
   weapons: WeaponProficiency
+  baseWeaponSlug?: string | null
   /**
    * Race natural weapons (claws, bite, …) are not inventory gear — always proficient
    * and ignore simple/martial / held-slot rules.
@@ -118,11 +140,14 @@ export function isWeaponProficient(input: {
     return true
   }
 
+  const baseName = stripMagicBonusSuffix(input.name)
   const extras = input.weapons.extras ?? []
   for (const extra of extras) {
-    if (namesMatch(input.name, extra)) return true
+    if (namesMatch(input.name, extra) || namesMatch(baseName, extra)) return true
     const resolved = resolveWeaponExtraName(extra)
-    if (resolved && namesMatch(input.name, resolved)) return true
+    if (resolved && (namesMatch(input.name, resolved) || namesMatch(baseName, resolved))) {
+      return true
+    }
   }
 
   // Generic +1/+2/+3 — any weapon training counts.
@@ -133,6 +158,7 @@ export function isWeaponProficient(input: {
   const category = resolveWeaponCategory({
     name: input.name,
     catalogData: input.catalogData,
+    baseWeaponSlug: input.baseWeaponSlug,
   })
   if (category === 'simple') return Boolean(input.weapons.simple)
   if (category === 'martial') return Boolean(input.weapons.martial)

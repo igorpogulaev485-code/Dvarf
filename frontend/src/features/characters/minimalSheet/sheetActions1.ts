@@ -231,6 +231,7 @@ export function installSheetActions1(model: SheetModel) {
       weapons: prev.weapons,
       spells: prev.spells,
       raceGrant: prev.raceGrant,
+      raceGrantPicks: prev.raceGrantPicks,
       classGrantedSkills: classSkills,
       classGrantedTools: classTools,
       classGrantedArmor: classArmor,
