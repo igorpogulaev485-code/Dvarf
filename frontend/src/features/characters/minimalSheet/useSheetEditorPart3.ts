@@ -1,6 +1,6 @@
 /** Состояние и эффекты листа, часть 3. Порядок хуков совпадает с прежним компонентом. */
 import type { SheetModel } from './sheetModel'
-import { useCallback, useEffect, useMemo, useRef } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { getCharacter, updateCharacter } from '../../../shared/api/characters'
 import { ApiRequestError } from '../../../shared/api/client'
 import { publishSheetSync } from '../../../shared/sync/characterSheetChannel'
@@ -51,7 +51,10 @@ import {
   applyMediumArmorMasterCap,
   dualWielderAcBonus,
 } from '../../../shared/dnd/b07FeatCombat'
-import { proficiencyBonusForTotalLevel } from '../../../shared/dnd/classFeatures'
+import {
+  proficiencyBonusForTotalLevel,
+  resolveClassFeatureSlug,
+} from '../../../shared/dnd/classFeatures'
 import { classWalkSpeedBonusFt } from '../../../shared/dnd/classMovement'
 import { featurePicksToSheet } from '../../../shared/dnd/featurePicks'
 import { weaponMasteryToSheet } from '../../../shared/dnd/weaponMastery'
@@ -103,6 +106,7 @@ import { syncPactChainFamiliar } from '../pactChainEffects'
 import { syncCastWithoutSlotGrants } from '../castWithoutSlots'
 import { syncPactTomeCantrips } from '../pactTomeEffects'
 import { syncMagicalSecrets } from '../bardSecretsSync'
+import { ensureBardSpells2024 } from '../bardSpellCatalog2024'
 import { danceAcFormula2024, hasDazzlingFootwork2024 } from '../../../shared/dnd/bard2024Features'
 import {
   isMantleCommandSpell,
@@ -432,12 +436,29 @@ export function useSheetEditorPart3(model: SheetModel) {
     })
   }, [model.draft.classes, model.draft.featurePicks])
 
+  const [bardSpells2024Tick, setBardSpells2024Tick] = useState(0)
+  const hasBardClass = model.draft.classes.some(
+    (row) => resolveClassFeatureSlug(row.name) === 'bard' && row.level > 0,
+  )
+  useEffect(() => {
+    if (model.rulesEdition !== '2024' || !hasBardClass) return undefined
+    let alive = true
+    void ensureBardSpells2024().then(() => {
+      if (alive) setBardSpells2024Tick((tick) => tick + 1)
+    })
+    return () => {
+      alive = false
+    }
+  }, [model.rulesEdition, hasBardClass])
+
   useEffect(() => {
     model.setDraft((prev) => {
       const synced = syncMagicalSecrets({
         spells: prev.spells,
         featurePicks: prev.featurePicks,
         classes: prev.classes,
+        edition: model.rulesEdition,
+        subclassSlugByEntryId: model.subclassSlugByEntryId,
       })
       const hasSpirits = Object.values(model.subclassSlugByEntryId).includes('college_of_spirits')
       const known = hasSpirits
@@ -454,7 +475,13 @@ export function useSheetEditorPart3(model: SheetModel) {
       if (same) return prev
       return { ...prev, spells: { ...prev.spells, known } }
     })
-  }, [model.draft.classes, model.draft.featurePicks, model.subclassSlugByEntryId])
+  }, [
+    model.draft.classes,
+    model.draft.featurePicks,
+    model.subclassSlugByEntryId,
+    model.rulesEdition,
+    bardSpells2024Tick,
+  ])
 
   useEffect(() => {
     model.setDraft((prev) => {

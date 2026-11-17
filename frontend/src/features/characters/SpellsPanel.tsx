@@ -44,6 +44,7 @@ import {
   resolveCastEffect,
   spellSchoolLabelRu,
 } from '../../shared/dnd/spellCatalog'
+import type { FeaturePicksState } from '../../shared/dnd/featurePicks'
 import { GrimoireDialog } from './GrimoireDialog'
 import { PrepareSpellsDialog } from './PrepareSpellsDialog'
 import { SpellbookManageDialog } from './SpellbookManageDialog'
@@ -154,6 +155,8 @@ type SpellsPanelProps = {
   onOpenRitualBook?: () => void
   /** 2024 only: extra cantrips per class slug (Druid Magician +1), same value as the Play Desk budget. */
   extraCantripsBySlug?: Record<string, number>
+  /** Feature picks (bard replacement token, genie kind) forwarded to the grimoire. */
+  featurePicks?: FeaturePicksState | null
   /** 2024 Circle of the Moon L3+: always-prepared circle spells may be cast in Wild Shape. */
   moonFormSpells?: boolean
   /**
@@ -198,6 +201,7 @@ export function SpellsPanel({
   ritualBookLabel = null,
   onOpenRitualBook,
   extraCantripsBySlug,
+  featurePicks = null,
   moonFormSpells,
   onCastSpell,
 }: SpellsPanelProps) {
@@ -1524,6 +1528,7 @@ export function SpellsPanel({
               ]
         }
         subclassCasters={subclassCasters}
+        featurePicks={featurePicks}
         coins={inventory?.coins ?? null}
         onCoinsChange={
           inventory && onInventoryChange

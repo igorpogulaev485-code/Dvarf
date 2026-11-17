@@ -10,7 +10,12 @@
  */
 
 import type { FeatureChoiceDef } from './classFeatures'
-import { getFeatureChoicePickList, type FeaturePicksState } from './featurePicks'
+import {
+  getFeatureChoicePickList,
+  getFeaturePick,
+  setFeaturePick,
+  type FeaturePicksState,
+} from './featurePicks'
 import { findFeatureResource, parseFeatureResourceId, spendRemaining } from './featureResources'
 import { clampResource, type SheetResource } from './rest'
 import type { SpellSlotState } from './spells'
@@ -333,6 +338,169 @@ export function magicalSecretsPickerHintRu2024(input: {
   return `Списки: ${lists.map((id) => MAGICAL_SECRETS_LISTS_RU_2024[id]).join(', ')} — считаются заклинаниями Барда`
 }
 
+/**
+ * Spells a bard may hold outside the Bard list. Each bard level from 10 opens one replacement,
+ * and every level where the prepared column grows opens one more (new) pick.
+ */
+export function magicalSecretsOffListCap2024(bardLevel: number): number {
+  const level = Math.min(20, lvl(bardLevel))
+  let cap = 0
+  for (let at = MAGICAL_SECRETS_MIN_LEVEL_2024; at <= level; at += 1) {
+    cap += 1 + (preparedColumnGrowsAtLevel2024(at) ? 1 : 0)
+  }
+  return cap
+}
+
+export function magicalSecretsOffListHintRu2024(input: {
+  bardLevel: number
+  used: number
+  swapAvailable: boolean
+}): string {
+  const cap = magicalSecretsOffListCap2024(input.bardLevel)
+  if (cap <= 0) return 'Список Барда (Магические тайны с 10 уровня)'
+  const kind: 'new' | 'replace' = preparedColumnGrowsAtLevel2024(input.bardLevel) ? 'new' : 'replace'
+  const lists = magicalSecretsPickerHintRu2024({ bardLevel: input.bardLevel, kind })
+  const swap = input.swapAvailable ? 'замена на этом уровне доступна' : 'замена на этом уровне использована'
+  return `${MAGICAL_SECRETS_NAME_RU}: ${lists}. Вне списка Барда ${input.used}/${cap}; ${swap}`
+}
+
+/* ------------------------------------------------------------------ */
+/* Prepared list: one replacement per bard level (no free long-rest rebuild) */
+/* ------------------------------------------------------------------ */
+
+/** Feature pick that records the bard level at which the prepared replacement was used. */
+export const BARD_PREPARED_SWAP_PICK_ID_2024 = 'prepared_swap'
+/** Same for the College of Lore discoveries replacement. */
+export const BARD_DISCOVERIES_SWAP_PICK_ID_2024 = 'discoveries_swap'
+
+/** Bard prepares from a fixed list; a long rest never rebuilds it (cleric / druid / wizard do). */
+export const BARD_LONG_REST_REBUILDS_PREPARED_2024 = false
+
+export const BARD_PREPARED_SWAP_RULE_RU_2024 =
+  'Барду можно заменить одно подготовленное заклинание при получении уровня барда (длинный отдых список не пересобирает)'
+
+export type BardSwapToken2024 = { level: number; releasedKey: string }
+
+export function parseBardSwapToken2024(raw: string | null | undefined): BardSwapToken2024 | null {
+  const text = (raw ?? '').trim()
+  if (!text) return null
+  const at = text.indexOf(':')
+  const level = Number(at < 0 ? text : text.slice(0, at))
+  if (!Number.isFinite(level) || level <= 0) return null
+  return { level: Math.floor(level), releasedKey: at < 0 ? '' : text.slice(at + 1) }
+}
+
+export function formatBardSwapToken2024(level: number, releasedKey: string): string {
+  return `${lvl(level)}:${releasedKey}`
+}
+
+/** The replacement is open until it is spent at the current bard level. */
+export function bardSwapAvailable2024(raw: string | null | undefined, bardLevel: number): boolean {
+  const token = parseBardSwapToken2024(raw)
+  return !token || token.level !== lvl(bardLevel)
+}
+
+export type BardPreparedRow2024 = {
+  id: string
+  level: number
+  prepared: boolean
+  catalog_id?: string | null
+  class_slug?: string | null
+  prepared_locked?: boolean
+  source_kind?: string | null
+}
+
+export function bardPreparedKey2024(row: Pick<BardPreparedRow2024, 'id' | 'catalog_id'>): string {
+  return row.catalog_id || row.id
+}
+
+/** Rows that spend the bard prepared column (leveled, prepared, not granted / locked). */
+export function isBardPreparedBudgetRow2024(
+  row: BardPreparedRow2024,
+  defaultClassSlug: string | null = BARD_CLASS_SLUG_2024,
+): boolean {
+  if (row.level <= 0 || !row.prepared || row.prepared_locked) return false
+  if (row.source_kind && row.source_kind !== 'catalog' && row.source_kind !== 'custom') return false
+  const slug = (row.class_slug ?? defaultClassSlug ?? '').trim().toLowerCase()
+  return slug === BARD_CLASS_SLUG_2024
+}
+
+export type BardPreparedChange2024 =
+  | { ok: true; swapRaw: string | null }
+  | { ok: false; reasonRu: string }
+
+/**
+ * Validate one edit of the bard prepared list.
+ * - New picks are free while the list is under the column; they may be off-list only within
+ *   the Magical Secrets cap.
+ * - Dropping a prepared spell spends the single replacement of the current bard level; the
+ *   spell dropped last can be taken back to refund it. Over-cap lists (level down) trim freely.
+ */
+export function evaluateBardPreparedChange2024(input: {
+  prev: BardPreparedRow2024[]
+  next: BardPreparedRow2024[]
+  bardLevel: number
+  maxPrepared: number | null
+  swapRaw: string | null
+  isOffList: (row: BardPreparedRow2024) => boolean
+  defaultClassSlug?: string | null
+}): BardPreparedChange2024 {
+  const level = lvl(input.bardLevel)
+  const slug = input.defaultClassSlug ?? BARD_CLASS_SLUG_2024
+  const pick = (rows: BardPreparedRow2024[]) =>
+    new Map(
+      rows
+        .filter((row) => isBardPreparedBudgetRow2024(row, slug))
+        .map((row) => [bardPreparedKey2024(row), row] as const),
+    )
+  const before = pick(input.prev)
+  const after = pick(input.next)
+  const removed = [...before.keys()].filter((key) => !after.has(key))
+  const added = [...after.keys()].filter((key) => !before.has(key))
+  if (removed.length === 0 && added.length === 0) return { ok: true, swapRaw: input.swapRaw }
+
+  const offAfter = [...after.values()].filter((row) => input.isOffList(row)).length
+  const offBefore = [...before.values()].filter((row) => input.isOffList(row)).length
+  const cap = magicalSecretsOffListCap2024(level)
+  if (offAfter > offBefore && offAfter > cap) {
+    return {
+      ok: false,
+      reasonRu:
+        cap <= 0
+          ? `${MAGICAL_SECRETS_NAME_RU} открываются с ${MAGICAL_SECRETS_MIN_LEVEL_2024} уровня барда — пока только список Барда`
+          : `Вне списка Барда уже ${offBefore}/${cap}: новый выбор из списков Волшебника, Друида и Жреца откроется на следующем уровне барда`,
+    }
+  }
+  if (input.maxPrepared != null && after.size > input.maxPrepared && after.size > before.size) {
+    return { ok: false, reasonRu: `Лимит подготовки барда: ${before.size}/${input.maxPrepared}` }
+  }
+
+  const overCap = input.maxPrepared != null && before.size > input.maxPrepared
+  if (removed.length === 0) {
+    const token = parseBardSwapToken2024(input.swapRaw)
+    if (token && token.level === level && token.releasedKey && added.includes(token.releasedKey)) {
+      return { ok: true, swapRaw: null }
+    }
+    return { ok: true, swapRaw: input.swapRaw }
+  }
+  if (overCap && after.size >= (input.maxPrepared ?? 0)) return { ok: true, swapRaw: input.swapRaw }
+  if (removed.length > 1) {
+    return { ok: false, reasonRu: BARD_PREPARED_SWAP_RULE_RU_2024 }
+  }
+  if (!bardSwapAvailable2024(input.swapRaw, level)) {
+    return {
+      ok: false,
+      reasonRu: `Замена на ${level} уровне барда уже использована. ${BARD_PREPARED_SWAP_RULE_RU_2024}`,
+    }
+  }
+  return { ok: true, swapRaw: formatBardSwapToken2024(level, removed[0]!) }
+}
+
+/** Long rest touches resources and slots only; the bard prepared list is returned as is. */
+export function bardPreparedAfterLongRest2024<T>(known: T[]): T[] {
+  return BARD_LONG_REST_REBUILDS_PREPARED_2024 ? [] : known
+}
+
 /* ------------------------------------------------------------------ */
 /* Font of Inspiration (5)                                             */
 /* ------------------------------------------------------------------ */
@@ -592,6 +760,70 @@ export function bardMaxSpellCircle2024(bardLevel: number): number {
   return Math.min(9, Math.ceil(Math.min(20, lvl(bardLevel)) / 2))
 }
 
+export const LORE_DISCOVERIES_FEATURE_ID_2024 = 'magical_discoveries'
+
+export function isLoreSubclass2024(slug: string | null | undefined): boolean {
+  const key = (slug ?? '').trim().toLowerCase()
+  return key === BARD_SUBCLASS_SLUGS_2024.lore || key === 'college_of_lore' || key === 'lore'
+}
+
+export function loreDiscoveriesActive2024(input: {
+  bardLevel: number
+  subclassSlug: string | null | undefined
+}): boolean {
+  return lvl(input.bardLevel) >= SUBCLASS_L6_2024 && isLoreSubclass2024(input.subclassSlug)
+}
+
+export function loreDiscoveriesOutstanding2024(input: {
+  bardLevel: number
+  subclassSlug: string | null | undefined
+  picked: number
+}): number {
+  if (!loreDiscoveriesActive2024(input)) return 0
+  return Math.max(0, LORE_MAGICAL_DISCOVERIES_PICKS_2024 - Math.max(0, Math.floor(input.picked)))
+}
+
+export type LoreDiscoveryToggle2024 =
+  | { ok: true; swapRaw: string | null }
+  | { ok: false; reasonRu: string }
+
+/**
+ * Toggle one Lore discovery. Two picks at level 6; afterwards one may be replaced per bard level
+ * (the replaced spell can be taken back to refund the replacement).
+ */
+export function evaluateLoreDiscoveryToggle2024(input: {
+  selected: string[]
+  slug: string
+  bardLevel: number
+  swapRaw: string | null
+}): LoreDiscoveryToggle2024 {
+  const level = lvl(input.bardLevel)
+  const token = parseBardSwapToken2024(input.swapRaw)
+  const has = input.selected.includes(input.slug)
+  if (!has) {
+    if (input.selected.length >= LORE_MAGICAL_DISCOVERIES_PICKS_2024) {
+      return {
+        ok: false,
+        reasonRu: `Уже выбрано ${LORE_MAGICAL_DISCOVERIES_PICKS_2024}. Снимите одно (замена раз в уровень барда), затем возьмите другое`,
+      }
+    }
+    if (token && token.level === level && token.releasedKey === input.slug) {
+      return { ok: true, swapRaw: null }
+    }
+    return { ok: true, swapRaw: input.swapRaw }
+  }
+  if (input.selected.length < LORE_MAGICAL_DISCOVERIES_PICKS_2024 && !token) {
+    return { ok: true, swapRaw: null }
+  }
+  if (!bardSwapAvailable2024(input.swapRaw, level)) {
+    return {
+      ok: false,
+      reasonRu: `${MAGICAL_DISCOVERIES_NAME_RU}: замена на ${level} уровне барда уже использована`,
+    }
+  }
+  return { ok: true, swapRaw: formatBardSwapToken2024(level, input.slug) }
+}
+
 export function loreDiscoveryEligible2024(input: {
   bardLevel: number
   spellLevel: number
@@ -665,8 +897,26 @@ export function bardPickFeatureIdsToDrop2024(newLevel: number): string[] {
   const out: string[] = []
   if (drops.expertise_9) out.push('expertise_9')
   if (drops.expertise_2) out.push('expertise')
-  if (drops.lore_discoveries) out.push('magical_discoveries')
+  if (drops.lore_discoveries) out.push('magical_discoveries', BARD_DISCOVERIES_SWAP_PICK_ID_2024)
   return out
+}
+
+/** Level down on the sheet: drop bard picks (Expertise, Lore discoveries, their swaps) above the new level. */
+export function trimBard2024PicksOnLevelDown(
+  picks: FeaturePicksState,
+  classEntryId: string,
+  newLevel: number,
+): FeaturePicksState {
+  let next = picks
+  for (const featureId of bardPickFeatureIdsToDrop2024(newLevel)) {
+    if (getFeaturePick(next, classEntryId, featureId) != null) {
+      next = setFeaturePick(next, classEntryId, featureId, null)
+    }
+  }
+  if (lvl(newLevel) < MAGICAL_SECRETS_MIN_LEVEL_2024) {
+    next = setFeaturePick(next, classEntryId, BARD_PREPARED_SWAP_PICK_ID_2024, null)
+  }
+  return next
 }
 
 /* ------------------------------------------------------------------ */

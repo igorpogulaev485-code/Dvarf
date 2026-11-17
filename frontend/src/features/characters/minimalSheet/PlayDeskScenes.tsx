@@ -514,7 +514,7 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
             })}
             featurePicks={model.draft.featurePicks}
             spells={model.draft.spells}
-            onSpellsChange={(spells) => model.setDraft((prev) => ({ ...prev, spells }))}
+            onSpellsChange={(spells) => model.applySpellsChange(spells)}
             divineSmiteIntent={divineSmiteIntent}
             onDivineSmiteIntent={setDivineSmiteIntent}
             rollMode={model.attackRollMode()}
@@ -1700,7 +1700,7 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
               if (!model.isPlayDesk) model.setMobileSpellSurface('book')
               model.setSpellsSettingsOpen(true)
             }}
-            onSpellsChange={(spells) => model.setDraft((prev) => ({ ...prev, spells }))}
+            onSpellsChange={(spells) => model.applySpellsChange(spells)}
             onCastSpell={(spell) => {
               model.setDeskCastMetamagic?.(null)
               void spellReadyToCast(spell, model.rulesEdition).then((ready) =>
@@ -1789,7 +1789,7 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
               }))
             }
             title={model.isPlayDesk ? 'Магия' : 'Книга заклинаний'}
-            onChange={(spells) => model.setDraft((prev) => ({ ...prev, spells }))}
+            onChange={(spells) => model.applySpellsChange(spells)}
             onClose={() => {
               model.setSpellsSettingsOpen(false)
               if (!model.isPlayDesk) model.setMobileSpellSurface('combat')
@@ -1839,7 +1839,8 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
           inventoryItems={model.draft.inventory.items}
           inventory={model.draft.inventory}
           concentration={model.draft.play.concentration}
-          onChange={(spells) => model.setDraft((prev) => ({ ...prev, spells }))}
+          onChange={(spells) => model.applySpellsChange(spells)}
+          featurePicks={model.draft.featurePicks}
           resources={model.draft.play.resources}
           voiceOfAuthority={model.unlockedFeatures.some(
             (row: { id: string }) => row.id === 'voice_of_authority',

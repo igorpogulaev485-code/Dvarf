@@ -7,8 +7,30 @@ import { warlock2024UseFeatureId } from '../../../shared/dnd/warlock2024Features
 import { cleric2024UseFeatureId } from '../../../shared/dnd/cleric2024Features'
 import { bard2024UseFeatureId } from '../../../shared/dnd/bard2024Features'
 import { wizardResolvedFeatureId } from '../../../shared/dnd/wizardTradition'
+import { guardBardSpellsChange2024 } from '../bardPreparedGuard'
+import type { SpellsState } from '../spells'
 
 export function installSheetActions5(model: SheetModel) {
+  /** Every sheet edit of the spell list: 2024 bard replaces one prepared spell per level. */
+  model.applySpellsChange = function applySpellsChange(next: SpellsState) {
+    const guarded = guardBardSpellsChange2024({
+      edition: model.rulesEdition,
+      classes: model.draft.classes,
+      prevSpells: model.draft.spells,
+      nextSpells: next,
+      featurePicks: model.draft.featurePicks,
+    })
+    if (guarded.blockedRu) {
+      model.onToast?.(guarded.blockedRu)
+      return
+    }
+    model.setDraft((prev) => ({
+      ...prev,
+      spells: guarded.spells,
+      featurePicks: guarded.featurePicks,
+    }))
+  }
+
   model.isArcaneRecoveryResource = function isArcaneRecoveryResource(row: { id: string; name: string }): boolean {
     return (
       /:arcane_recovery:/.test(row.id) ||

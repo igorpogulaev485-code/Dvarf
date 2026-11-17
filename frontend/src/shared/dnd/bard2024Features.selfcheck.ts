@@ -333,7 +333,7 @@ assert.equal(down19.magical_secrets, false)
 assert.equal(bard.bardLevelDownDrops2024(9).magical_secrets, true)
 assert.equal(bard.bardLevelDownDrops2024(2).subclass, true)
 assert.deepEqual(bard.bardPickFeatureIdsToDrop2024(8), ['expertise_9'])
-assert.deepEqual(bard.bardPickFeatureIdsToDrop2024(5), ['expertise_9', 'magical_discoveries'])
+assert.deepEqual(bard.bardPickFeatureIdsToDrop2024(5), ['expertise_9', 'magical_discoveries', 'discoveries_swap'])
 assert.equal(bard.bardPickFeatureIdsToDrop2024(1).includes('expertise'), true)
 
 /* Card buttons / routing */

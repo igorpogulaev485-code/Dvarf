@@ -613,6 +613,11 @@ export type GrimoireShelfSource = {
   genieKind?: string | null
   /** Catalog list to match. Defaults to `slug`. Third-casters use `wizard`. */
   listSlug?: string | null
+  /**
+   * Further class lists open for leveled spells (2024 bard Magical Secrets: wizard, druid,
+   * cleric). They never open cantrips.
+   */
+  extraListSlugs?: string[] | null
 }
 
 export function buildGrimoireShelfSources(
@@ -634,6 +639,19 @@ export function buildGrimoireShelfSources(
     })
   }
   return out
+}
+
+/** Leveled catalog spell that is on one of the shelf's extra lists (and not only on the base list). */
+export function spellOnShelfExtraLists(
+  catalogClassSlugs: string[],
+  spellLevel: number,
+  shelf: Pick<GrimoireShelfSource, 'extraListSlugs'>,
+): boolean {
+  if (spellLevel <= 0) return false
+  const extras = (shelf.extraListSlugs ?? []).map((row) => row.trim().toLowerCase())
+  if (extras.length === 0) return false
+  const classes = catalogClassSlugs.map((row) => row.trim().toLowerCase())
+  return extras.some((slug) => classes.includes(slug))
 }
 
 /**
@@ -662,7 +680,8 @@ export function catalogSpellMatchesShelf(
     subclassSlug: shelf.subclassSlug,
     genieKind: shelf.genieKind,
   })
-  if (!onBaseList && !onExpanded) {
+  const onExtra = spellOnShelfExtraLists(catalogClassSlugs, spellLevel, shelf)
+  if (!onBaseList && !onExpanded && !onExtra) {
     return false
   }
   if (spellLevel <= 0) return true
