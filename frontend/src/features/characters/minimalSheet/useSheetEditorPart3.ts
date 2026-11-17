@@ -108,7 +108,9 @@ import { syncPactTomeCantrips } from '../pactTomeEffects'
 import { syncMagicalSecrets } from '../bardSecretsSync'
 import { ensureBardSpells2024 } from '../bardSpellCatalog2024'
 import {
+  bardicInspirationDieLabelRu2024,
   danceAcFormula2024,
+  danceFootworkActive2024,
   hasDazzlingFootwork2024,
   jackOfAllTradesBonus2024,
 } from '../../../shared/dnd/bard2024Features'
@@ -882,6 +884,20 @@ export function useSheetEditorPart3(model: SheetModel) {
     model.draft.classes,
   ])
   model.featureSkillBonuses = featureSkillBonuses
+
+  const danceBardicDie = useMemo(() => {
+    if (model.rulesEdition !== '2024') return null
+    if (!hasDazzlingFootwork2024(model.unlockedFeatures)) return null
+    const pieces = equippedArmorPieces(model.draft.inventory.items)
+    if (!danceFootworkActive2024({ wearingArmor: Boolean(pieces.armor), wearingShield: Boolean(pieces.shield) }).active) {
+      return null
+    }
+    const bardLevel = model.draft.classes
+      .filter((row) => resolveClassFeatureSlug(row.name) === 'bard')
+      .reduce((sum, row) => sum + Math.max(0, Math.floor(row.level) || 0), 0)
+    return bardLevel > 0 ? bardicInspirationDieLabelRu2024(bardLevel) : null
+  }, [model.rulesEdition, model.unlockedFeatures, model.draft.inventory.items, model.draft.classes])
+  model.danceBardicDie = danceBardicDie
 
   const abilitySaveExtras = useMemo(() => {
     const out: Partial<Record<AbilityKey, number>> = {}

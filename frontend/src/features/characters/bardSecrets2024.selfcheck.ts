@@ -8,6 +8,7 @@ import { applyLongRest } from '../../shared/dnd/rest'
 import { emptyFeaturePicks, getFeaturePick, setFeaturePick } from '../../shared/dnd/featurePicks'
 import { buildGrimoireShelfSources, catalogSpellMatchesShelf } from '../../shared/dnd/castProfiles'
 import { buildPendingWizardSteps2024 } from '../../shared/dnd/pendingFeatureChoices2024'
+import { listDeskCombatAttacks } from './kitCombatAttacks'
 import { guardBardSpellsChange2024 } from './bardPreparedGuard'
 import { syncMagicalSecrets, MAGICAL_DISCOVERIES_ID_2024 } from './bardSecretsSync'
 import {
@@ -273,5 +274,15 @@ assert.equal(
   undefined,
   'step done after two picks',
 )
+
+const kitBase = { weapons: [], martialArtsDie: null, hasTavernBrawler: false, styleIds: [], inventoryItems: [] }
+const plainKit = listDeskCombatAttacks(kitBase).find((a) => a.id === 'kit:unarmed-strike')
+assert.equal(plainKit?.ability, 'str')
+assert.equal(plainKit?.damage, '1')
+const danceKit = listDeskCombatAttacks({ ...kitBase, danceBardicDie: '1к8' }).find(
+  (a) => a.id === 'kit:unarmed-strike',
+)
+assert.equal(danceKit?.ability, 'dex', 'Dance unarmed strike uses Dex')
+assert.equal(danceKit?.damage, '1к8', 'Dance unarmed damage is the Bardic Inspiration die')
 
 console.log('bardSecrets2024.selfcheck ok')

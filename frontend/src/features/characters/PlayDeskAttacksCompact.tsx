@@ -320,6 +320,8 @@ type PlayDeskAttacksCompactProps = {
   fightingStyleIds?: string[]
   /** Monk Martial Arts die (e.g. "1к10"). */
   martialArtsDie?: string | null
+  /** 2024 Dance Bardic Damage die label (`1к8`) while Dazzling Footwork is active. */
+  danceBardicDie?: string | null
   /** Active Artificer infusion weapon bonuses. */
   infusionAttackBonus?: number
   infusionDamageBonus?: number
@@ -513,6 +515,7 @@ export function PlayDeskAttacksCompact({
   fightingStyleId = null,
   fightingStyleIds,
   martialArtsDie = null,
+  danceBardicDie = null,
   infusionAttackBonus = 0,
   infusionDamageBonus = 0,
   infusionByItem,
@@ -1029,10 +1032,12 @@ export function PlayDeskAttacksCompact({
         styleIds: styleIdsForKit,
         inventoryItems,
         featUnarmedDamage: featUnarmedDamage ?? null,
+        danceBardicDie,
       }),
     [
       weapons,
       martialArtsDie,
+      danceBardicDie,
       featGrants,
       styleIdsForKit,
       inventoryItems,

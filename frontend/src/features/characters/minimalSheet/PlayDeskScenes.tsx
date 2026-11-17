@@ -33,6 +33,7 @@ import { ClassFeaturesPanel } from '../ClassFeaturesPanel'
 import { WeaponMasteryPanel } from '../WeaponMasteryPanel'
 import { WeaponMasteryAttackPanel } from '../WeaponMasteryAttackPanel'
 import { ClassOptions2024Panel } from '../ClassOptions2024Panel'
+import { Bard2024CombatBlock } from '../Bard2024CombatBlock'
 import { ClassOptions2024CombatPanel } from '../ClassOptions2024CombatPanel'
 import {
   SRD_WEAPONS_2024_MASTERY,
@@ -325,6 +326,7 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
             infusionByItem={model.infusionBonuses.weaponByItem}
             shillelagh={model.draft.play.shillelagh ?? null}
             martialArtsDie={model.martialArtsDie}
+            danceBardicDie={model.danceBardicDie ?? null}
             resources={model.draft.play.resources}
             inventoryItems={model.draft.inventory.items}
             favoriteConsumableIds={model.draft.sheetUi.combatConsumableFavoriteIds}
@@ -1310,6 +1312,15 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
         openSessionId={model.character?.open_session_id}
         characterId={model.baseCharacter?.id ?? model.character?.id}
         onToast={(message) => model.onToast?.(message)}
+      />
+      <Bard2024CombatBlock
+        rulesEdition={model.rulesEdition}
+        classes={model.draft.classes}
+        subclassSlugByEntryId={model.subclassSlugByEntryId}
+        resources={model.draft.play.resources}
+        dexMod={abilityModifier(model.effectiveAbilities?.dex ?? model.draft.abilities.dex)}
+        danceActive={Boolean(model.danceBardicDie)}
+        onBardFeatureUse={(request) => model.setBardFeatureUse(request)}
       />
       <ClassFeaturesPanel
         classes={model.draft.classes}
