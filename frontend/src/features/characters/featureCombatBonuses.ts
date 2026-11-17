@@ -4,6 +4,10 @@ import {
   initiativeBonusFromRaceGrant,
   type AppliedRaceGrant,
 } from '../../shared/dnd/raceGrants'
+import {
+  feralSensesBlindsightFt2024,
+  hasFeralSensesBlindsight,
+} from '../../shared/dnd/ranger2024Features'
 import { abilityModifier, type AbilityKey } from './sheetTypes'
 
 type FeatureLike = { id: string }
@@ -266,6 +270,23 @@ export function darkvisionFtFromFeatures(input: {
   if (!hasUmbral) return base
   if (base <= 0) return 60
   return base + 30
+}
+
+/** Feral Senses (Ranger 2024, L18+): blindsight 30 ft. */
+export function blindsightFtFromFeatures(input: {
+  features: Array<{ id: string; classLevel?: number }>
+  rulesEdition?: string | null
+}): number {
+  if (!isRulesEdition2024(input.rulesEdition)) return 0
+  let rangerLevel = 0
+  for (const feature of input.features) {
+    const id = normalizeFeatureId(feature.id)
+    if (id === 'feral_senses') {
+      rangerLevel = Math.max(rangerLevel, Math.floor(feature.classLevel ?? 0))
+    }
+  }
+  if (!hasFeralSensesBlindsight(rangerLevel)) return 0
+  return feralSensesBlindsightFt2024(rangerLevel)
 }
 
 /** PHB 2024 Rage Damage bonus by barbarian level (same ladder as B-04). */

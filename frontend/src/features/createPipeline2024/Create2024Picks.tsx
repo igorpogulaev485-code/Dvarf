@@ -45,6 +45,12 @@ import {
   isBlessedWarriorStyleId,
 } from '../../shared/dnd/paladin2024Features'
 import {
+  DRUIDIC_WARRIOR_CANTRIP_LIMIT_2024,
+  DRUIDIC_WARRIOR_ID,
+  DRUIDIC_WARRIOR_NAME_RU,
+  isDruidicWarriorStyleId,
+} from '../../shared/dnd/ranger2024Features'
+import {
   backgroundAsiTrio,
   backgroundNeedsToolPick,
   bardCreatePicksNeed2024,
@@ -136,14 +142,18 @@ export function ClassPicks({
   const packs = classStartingPacks(classEntry)
   const setOption = (key: string, value: unknown) =>
     patch({ classOptionPicks: { ...state.classOptionPicks, [key]: value } })
-  const paladinLevel = (() => {
-    if (state.classSlug !== 'paladin') return 0
+  const plannedClassLevel = (slug: 'paladin' | 'ranger') => {
+    if (state.classSlug !== slug) return 0
+    const re = slug === 'paladin' ? /paladin|паладин/i : /ranger|следопыт/i
     const fromClasses = state.classes
-      .filter((row) => /paladin|паладин/i.test(row.catalog_id || row.name || ''))
+      .filter((row) => re.test(row.catalog_id || row.name || ''))
       .reduce((max, row) => Math.max(max, row.level || 0), 0)
     return Math.max(fromClasses, state.characterLevel || 1)
-  })()
+  }
+  const paladinLevel = plannedClassLevel('paladin')
+  const rangerLevel = plannedClassLevel('ranger')
   const showPaladinFightingStyle = state.classSlug === 'paladin'
+  const showRangerFightingStyle = state.classSlug === 'ranger'
   const paladinStyleOptions = [
     ...styleFeats.map((f) => ({ id: f.slug, label: f.name_ru })),
     ...(styleFeats.some((f) => isBlessedWarriorStyleId(f.slug))
@@ -151,6 +161,13 @@ export function ClassPicks({
       : [{ id: BLESSED_WARRIOR_ID, label: BLESSED_WARRIOR_NAME_RU }]),
   ]
   const blessedCantrips = ids(state.classOptionPicks.blessed_warrior_cantrips)
+  const druidicCantrips = ids(state.classOptionPicks.druidic_warrior_cantrips)
+  const rangerStyleOptions = [
+    ...styleFeats.map((f) => ({ id: f.slug, label: f.name_ru })),
+    ...(styleFeats.some((f) => isDruidicWarriorStyleId(f.slug))
+      ? []
+      : [{ id: DRUIDIC_WARRIOR_ID, label: DRUIDIC_WARRIOR_NAME_RU }]),
+  ]
   const clericCantripOptions = catalog.spells
     .filter((spell) => spellLevel(spell) === 0 && spellOnClassList(spell, 'cleric'))
     .map((spell) => ({ id: spell.slug, label: spell.name_ru }))
@@ -191,9 +208,7 @@ export function ClassPicks({
       ) : null}
       {masteryLimit > 0 ? (
         <PickChipGroup
-          label={
-            state.classSlug === 'paladin' ? WEAPON_MASTERY_NAME_RU : 'Мастерство оружия'
-          }
+          label={WEAPON_MASTERY_NAME_RU}
           hint={`Выберите ${masteryLimit}. Свойство применяется, пока оружие в руках.`}
           options={masteryOptions.map(({ entry, mastery }) => ({
             id: entry.slug,
@@ -253,6 +268,49 @@ export function ClassPicks({
               max={BLESSED_WARRIOR_CANTRIP_LIMIT_2024}
               testIdPrefix="p24-m03-pick-blessed-cantrip"
               onChange={(next) => setOption('blessed_warrior_cantrips', next)}
+            />
+          ) : null}
+        </>
+      ) : null}
+      {showRangerFightingStyle ? (
+        <>
+          <PickChipGroup
+            label={FIGHTING_STYLE_NAME_RU}
+            hint={
+              rangerLevel >= FIGHTING_STYLE_MIN_LEVEL_2024
+                ? undefined
+                : `с ${FIGHTING_STYLE_MIN_LEVEL_2024} ур.`
+            }
+            options={rangerStyleOptions}
+            selected={state.fightingStyleSlug ? [state.fightingStyleSlug] : []}
+            max={1}
+            multi={false}
+            testIdPrefix="p24-m03-pick-style-ranger"
+            onChange={(picked) => {
+              const next = picked[0] ?? null
+              patch({
+                fightingStyleSlug: next,
+                classOptionPicks: {
+                  ...state.classOptionPicks,
+                  druidic_warrior_cantrips: isDruidicWarriorStyleId(next)
+                    ? druidicCantrips
+                    : [],
+                },
+              })
+            }}
+          />
+          {isDruidicWarriorStyleId(state.fightingStyleSlug) ? (
+            <PickChipGroup
+              label={`${DRUIDIC_WARRIOR_NAME_RU}: заговоры друида`}
+              hint={`Выберите ${DRUIDIC_WARRIOR_CANTRIP_LIMIT_2024}.`}
+              options={catalog.spells
+                .filter((spell) => spellLevel(spell) === 0 && spellOnClassList(spell, 'druid'))
+                .map((spell) => ({ id: spell.slug, label: spell.name_ru }))
+                .sort((a, b) => a.label.localeCompare(b.label, 'ru'))}
+              selected={druidicCantrips}
+              max={DRUIDIC_WARRIOR_CANTRIP_LIMIT_2024}
+              testIdPrefix="p24-m03-pick-druidic-cantrip"
+              onChange={(next) => setOption('druidic_warrior_cantrips', next)}
             />
           ) : null}
         </>

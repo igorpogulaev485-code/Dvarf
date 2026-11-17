@@ -2,6 +2,7 @@
 
 import { resolveClassFeatureSlug } from './classFeatures'
 import type { ClassLevelEntry } from './classLevels'
+import { rovingSpeedBonusFt } from './ranger2024Features'
 
 /** Monk Unarmored Movement bonus by class level (PHB 2014). */
 const MONK_UNARMORED_MOVEMENT_FT: Array<{ minLevel: number; bonus: number }> = [
@@ -23,6 +24,7 @@ function monkUnarmoredBonusFt(classLevel: number): number {
  * Extra walk speed from class features (not baked into race speed).
  * Barbarian Fast Movement (5+): +10 unless heavy armor.
  * Monk Unarmored Movement (2+): scale unless armor or shield.
+ * Ranger Roving (2024, 6+): +10 unless heavy armor.
  */
 export function classWalkSpeedBonusFt(input: {
   classes: Array<Pick<ClassLevelEntry, 'name' | 'level'>>
@@ -40,8 +42,38 @@ export function classWalkSpeedBonusFt(input: {
     if (slug === 'monk' && !input.wearingArmorOrShield) {
       bonus += monkUnarmoredBonusFt(level)
     }
+    if (slug === 'ranger') {
+      bonus += rovingSpeedBonusFt({
+        rangerLevel: level,
+        wearingHeavyArmor: input.wearingHeavyArmor,
+      })
+    }
   }
   return bonus
+}
+
+/** 2024 Roving: climb/swim at least equal walk when the feature is active. */
+export function applyRovingClimbSwim(input: {
+  walkFt: number | null
+  climb: number | null
+  swim: number | null
+  rangerLevel: number
+  wearingHeavyArmor?: boolean
+}): { climb: number | null; swim: number | null } {
+  const walk = input.walkFt
+  if (walk == null || walk <= 0) {
+    return { climb: input.climb, swim: input.swim }
+  }
+  if (
+    rovingSpeedBonusFt({
+      rangerLevel: input.rangerLevel,
+      wearingHeavyArmor: input.wearingHeavyArmor,
+    }) <= 0
+  ) {
+    return { climb: input.climb, swim: input.swim }
+  }
+  const bump = (value: number | null) => (value == null || value < walk ? walk : value)
+  return { climb: bump(input.climb), swim: bump(input.swim) }
 }
 
 /**

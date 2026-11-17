@@ -48,6 +48,10 @@ BLESSED_WARRIOR_STYLE_SLUG = "blessed-warrior"
 BLESSED_WARRIOR_CANTRIPS_KEY = "blessed_warrior_cantrips"
 BLESSED_WARRIOR_CANTRIP_COUNT = 2
 BLESSED_WARRIOR_NAME_RU = "Благословенный воин"
+DRUIDIC_WARRIOR_STYLE_SLUG = "druidic-warrior"
+DRUIDIC_WARRIOR_CANTRIPS_KEY = "druidic_warrior_cantrips"
+DRUIDIC_WARRIOR_CANTRIP_COUNT = 2
+DRUIDIC_WARRIOR_NAME_RU = "Воин-друид"
 
 # Origin feats with structured picks (others are grant-only).
 ORIGIN_FEATS_WITH_SPELL_LIST = frozenset({"magic-initiate"})
@@ -574,13 +578,21 @@ def _validate_fighting_style(payload: Create2024Payload) -> str | None:
     known = fighting_style_feat_slugs()
 
     def _accept(style: str) -> str:
-        if style == BLESSED_WARRIOR_STYLE_SLUG:
+        norm = style.strip().lower().replace("_", "-")
+        if norm == BLESSED_WARRIOR_STYLE_SLUG:
             if slug != "paladin":
                 raise Create2024Error(
                     "«Благословенный воин» доступен только паладину",
                     code="create_2024_fighting_style",
                 )
-            return style
+            return BLESSED_WARRIOR_STYLE_SLUG
+        if norm == DRUIDIC_WARRIOR_STYLE_SLUG:
+            if slug != "ranger":
+                raise Create2024Error(
+                    "«Воин-друид» доступен только следопыту",
+                    code="create_2024_fighting_style",
+                )
+            return DRUIDIC_WARRIOR_STYLE_SLUG
         if style not in known:
             raise Create2024Error(
                 f"Неизвестный боевой стиль: {style}",
@@ -906,6 +918,17 @@ def cleric_cantrip_slugs_2024() -> frozenset[str]:
     return frozenset(out)
 
 
+@lru_cache(maxsize=1)
+def druid_cantrip_slugs_2024() -> frozenset[str]:
+    """PHB/SRD 2024 Druid cantrips (level 0 on the druid list)."""
+    out: set[str] = set()
+    for slug in _class_spell_list_slugs("druid"):
+        row = load_spell_catalog().get(slug) or {}
+        if _spell_level(row) == 0:
+            out.add(slug)
+    return frozenset(out)
+
+
 def _validate_blessed_warrior_cantrips(raw: Any) -> list[str]:
     """Exactly two distinct Cleric cantrip slugs for Blessed Warrior."""
     if not isinstance(raw, list):
@@ -929,6 +952,30 @@ def _validate_blessed_warrior_cantrips(raw: Any) -> list[str]:
     return picks
 
 
+def _validate_druidic_warrior_cantrips(raw: Any) -> list[str]:
+    """Exactly two distinct Druid cantrip slugs for Druidic Warrior."""
+    if not isinstance(raw, list):
+        raise Create2024Error(
+            f"{DRUIDIC_WARRIOR_NAME_RU}: выберите {DRUIDIC_WARRIOR_CANTRIP_COUNT} заговора друида",
+            code="create_2024_class_options",
+        )
+    picks = [_normalize_slug(str(x)) for x in raw if str(x).strip()]
+    if len(picks) != DRUIDIC_WARRIOR_CANTRIP_COUNT or len(set(picks)) != DRUIDIC_WARRIOR_CANTRIP_COUNT:
+        raise Create2024Error(
+            f"{DRUIDIC_WARRIOR_NAME_RU}: выберите ровно {DRUIDIC_WARRIOR_CANTRIP_COUNT} "
+            "разных заговора друида",
+            code="create_2024_class_options",
+        )
+    allowed = druid_cantrip_slugs_2024()
+    for slug in picks:
+        if slug not in allowed:
+            raise Create2024Error(
+                f"{DRUIDIC_WARRIOR_NAME_RU}: «{slug}» не заговор друида 2024",
+                code="create_2024_class_options",
+            )
+    return picks
+
+
 def _validate_paladin_options_2024(
     payload: Create2024Payload,
     picks: Mapping[str, Any],
@@ -937,12 +984,29 @@ def _validate_paladin_options_2024(
 ) -> dict[str, Any]:
     """Keep Blessed Warrior cantrips when the style is chosen; drop them otherwise."""
     out: dict[str, Any] = {}
-    style = (fighting_style or payload.fighting_style_slug or "").strip().lower()
+    style = (fighting_style or payload.fighting_style_slug or "").strip().lower().replace("_", "-")
     raw_cantrips = picks.get(BLESSED_WARRIOR_CANTRIPS_KEY) or picks.get("blessed-warrior-cantrips")
     if style == BLESSED_WARRIOR_STYLE_SLUG:
         out[BLESSED_WARRIOR_CANTRIPS_KEY] = _validate_blessed_warrior_cantrips(raw_cantrips)
     elif raw_cantrips:
         # Stale picks from a previous UI choice — ignore rather than fail.
+        pass
+    return out
+
+
+def _validate_ranger_options_2024(
+    payload: Create2024Payload,
+    picks: Mapping[str, Any],
+    *,
+    fighting_style: str | None,
+) -> dict[str, Any]:
+    """Keep Druidic Warrior cantrips when the style is chosen; drop them otherwise."""
+    out: dict[str, Any] = {}
+    style = (fighting_style or payload.fighting_style_slug or "").strip().lower().replace("_", "-")
+    raw_cantrips = picks.get(DRUIDIC_WARRIOR_CANTRIPS_KEY) or picks.get("druidic-warrior-cantrips")
+    if style == DRUIDIC_WARRIOR_STYLE_SLUG:
+        out[DRUIDIC_WARRIOR_CANTRIPS_KEY] = _validate_druidic_warrior_cantrips(raw_cantrips)
+    elif raw_cantrips:
         pass
     return out
 
@@ -1514,6 +1578,95 @@ def _sync_blessed_warrior_picks(
         return
 
 
+def _druidic_warrior_cantrip_slugs_from_sheet(
+    sheet: Mapping[str, Any],
+    class_options: Mapping[str, Any],
+) -> list[str]:
+    """Resolve Druidic Warrior cantrip slugs from create picks or class_options."""
+    create = sheet.get("create_2024") if isinstance(sheet.get("create_2024"), dict) else {}
+    create_picks = create.get("class_option_picks") if isinstance(create, dict) else {}
+    raw = (
+        class_options.get(DRUIDIC_WARRIOR_CANTRIPS_KEY)
+        or (create_picks or {}).get(DRUIDIC_WARRIOR_CANTRIPS_KEY)
+        or (create_picks or {}).get("druidic-warrior-cantrips")
+        or []
+    )
+    if not isinstance(raw, list):
+        return []
+    return [_normalize_slug(str(x)) for x in raw if str(x).strip()]
+
+
+def _append_druidic_warrior_cantrips_to_known(
+    sheet: dict[str, Any],
+    cantrips: Sequence[str],
+    *,
+    class_entry_id: str,
+) -> None:
+    """Always-prepared WIS cantrips for Druidic Warrior (do not spend ranger budget)."""
+    spells = sheet.get("spells")
+    if not isinstance(spells, dict):
+        spells = {"known": [], "slots": {}, "casting_ability": "wis"}
+        sheet["spells"] = spells
+    known = list(spells.get("known") or [])
+    prefix = f"feature-spell:{DRUIDIC_WARRIOR_CANTRIPS_KEY}:"
+    known = [row for row in known if not str((row or {}).get("id") or "").startswith(prefix)]
+    for slug in cantrips[:DRUIDIC_WARRIOR_CANTRIP_COUNT]:
+        row = _spell_sheet_row(
+            slug,
+            prepared=True,
+            class_slug="ranger",
+            locked_label=DRUIDIC_WARRIOR_NAME_RU,
+            source_kind="feature",
+            id_prefix=f"feature-spell:{DRUIDIC_WARRIOR_CANTRIPS_KEY}:{class_entry_id}",
+        )
+        row["class_entry_id"] = class_entry_id
+        row["always_prepared"] = True
+        known.append(row)
+    spells["known"] = known
+    # Druidic Warrior cantrips are ranger spells — Wisdom (same pattern as Blessed Warrior / CHA).
+    spells["casting_ability"] = "wis"
+
+
+def _sync_druidic_warrior_picks(
+    sheet: dict[str, Any],
+    class_options: Mapping[str, Any],
+    *,
+    fighting_style: str | None,
+) -> None:
+    """Mirror Druidic Warrior style + cantrips into feature_picks (both id spellings)."""
+    style = (fighting_style or "").strip().lower().replace("_", "-")
+    create = sheet.get("create_2024") if isinstance(sheet.get("create_2024"), dict) else {}
+    if not style and isinstance(create, dict):
+        style = _normalize_slug(str(create.get("fighting_style") or "")).replace("_", "-")
+    if style != DRUIDIC_WARRIOR_STYLE_SLUG:
+        return
+    cantrips = _druidic_warrior_cantrip_slugs_from_sheet(sheet, class_options)
+    if len(cantrips) != DRUIDIC_WARRIOR_CANTRIP_COUNT:
+        return
+    for row in sheet.get("classes") or []:
+        if not isinstance(row, dict):
+            continue
+        if e24.normalize_class_slug(str(row.get("slug") or "")) != "ranger":
+            continue
+        if int(row.get("level") or 0) < 2:
+            return
+        entry_id = str(row.get("id") or "class-ranger")
+        picks = sheet.get("feature_picks")
+        values = dict(picks.get("values") or {}) if isinstance(picks, dict) else {}
+        values[f"{entry_id}:fighting_style_ranger"] = "druidic_warrior"
+        values[f"{entry_id}:fighting-style-ranger"] = DRUIDIC_WARRIOR_STYLE_SLUG
+        joined = ",".join(cantrips)
+        values[f"{entry_id}:{DRUIDIC_WARRIOR_CANTRIPS_KEY}"] = joined
+        values[f"{entry_id}:druidic-warrior-cantrips"] = joined
+        sheet["feature_picks"] = {"values": values}
+        _append_druidic_warrior_cantrips_to_known(
+            sheet,
+            cantrips,
+            class_entry_id=entry_id,
+        )
+        return
+
+
 _KNOWN_FORM_TAGS = frozenset({"swim", "fly", "elemental", "custom"})
 
 
@@ -1637,6 +1790,14 @@ def _validate_class_options(
     if payload.class_slug == "paladin":
         out.update(
             _validate_paladin_options_2024(
+                payload,
+                picks,
+                fighting_style=fighting_style,
+            )
+        )
+    if payload.class_slug == "ranger":
+        out.update(
+            _validate_ranger_options_2024(
                 payload,
                 picks,
                 fighting_style=fighting_style,
@@ -1966,6 +2127,7 @@ def validate_create_2024(payload: Create2024Payload) -> Create2024Result:
     _sync_known_forms(sheet, class_options)
     _sync_bard_picks(sheet, class_options)
     _sync_blessed_warrior_picks(sheet, class_options, fighting_style=fighting_style)
+    _sync_druidic_warrior_picks(sheet, class_options, fighting_style=fighting_style)
     # Magical Secrets: create-at-N prepared may use Wizard/Druid/Cleric lists from bard 10+.
     _validate_bard_magical_secrets_prepared_2024(payload)
 

@@ -33,6 +33,7 @@ import { Monk2024UseDialog } from '../Monk2024UseDialog'
 import { Warlock2024UseDialog } from '../Warlock2024UseDialog'
 import { Cleric2024UseDialog, type ClericFeatureRequest } from '../Cleric2024UseDialog'
 import { Paladin2024UseDialog, type PaladinFeatureRequest } from '../Paladin2024UseDialog'
+import { Ranger2024UseDialog, type RangerFeatureRequest } from '../Ranger2024UseDialog'
 import { Bard2024UseDialog, type BardFeatureRequest } from '../Bard2024UseDialog'
 import {
   BARD_SUBCLASS_SLUGS_2024,
@@ -79,6 +80,10 @@ import {
   paladin2024UseFeatureId,
   type Paladin2024UseResult,
 } from '../../../shared/dnd/paladin2024Features'
+import {
+  ranger2024UseFeatureId,
+  type Ranger2024UseResult,
+} from '../../../shared/dnd/ranger2024Features'
 import { Druid2024UseDialog, type DruidFeatureRequest, type Druid2024ConfirmResult } from '../Druid2024UseDialog'
 import { druid2024UseFeatureId } from '../../../shared/dnd/druid2024Features'
 import { addFlexibleSpellSlot } from '../../../shared/dnd/spells'
@@ -362,6 +367,22 @@ export function SheetDialogsResources({ model }: { model: SheetModel }) {
     }))
     model.onToast(result.feedLineRu)
     model.setPaladinFeatureUse(null)
+  }
+
+  const onRangerUseConfirm = (result: Ranger2024UseResult) => {
+    if (!result.ok) {
+      model.onToast(result.message ?? 'Не удалось применить умение')
+      return
+    }
+    model.setDraft((prev) => ({
+      ...prev,
+      play: {
+        ...prev.play,
+        resources: result.resources,
+      },
+    }))
+    model.onToast(result.feedLineRu)
+    model.setRangerFeatureUse(null)
   }
 
   const onBardUseConfirm = (result: Bard2024UseResult) => {
@@ -788,6 +809,26 @@ export function SheetDialogsResources({ model }: { model: SheetModel }) {
     let level = 0
     for (const row of model.draft.classes) {
       if (resolveClassCasterSlug(row.name) === 'paladin' || /паладин/i.test(row.name)) {
+        level += Math.max(0, row.level || 0)
+      }
+    }
+    return level
+  })()
+
+  const rangerRequest = model.rangerFeatureUse as RangerFeatureRequest | null
+  const ranger2024Use =
+    model.rulesEdition === '2024' &&
+    rangerRequest != null &&
+    ranger2024UseFeatureId(rangerRequest.featureId)
+
+  const rangerLevel = (() => {
+    const entry = rangerRequest
+      ? model.draft.classes.find((row) => row.id === rangerRequest.classEntryId)
+      : null
+    if (entry) return Math.max(0, entry.level || 0)
+    let level = 0
+    for (const row of model.draft.classes) {
+      if (resolveClassCasterSlug(row.name) === 'ranger' || /следопыт/i.test(row.name)) {
         level += Math.max(0, row.level || 0)
       }
     }
@@ -1310,6 +1351,19 @@ export function SheetDialogsResources({ model }: { model: SheetModel }) {
           proficiencyBonus={model.proficiencyBonus ?? 2}
           onClose={() => model.setPaladinFeatureUse(null)}
           onConfirm={onPaladinUseConfirm}
+        />
+      ) : null}
+
+      {ranger2024Use ? (
+        <Ranger2024UseDialog
+          key={`${rangerRequest?.featureId}:${rangerRequest?.classEntryId}`}
+          open
+          request={rangerRequest}
+          resources={model.draft.play.resources}
+          rangerLevel={rangerLevel}
+          wisScore={model.draft.abilities.wis}
+          onClose={() => model.setRangerFeatureUse(null)}
+          onConfirm={onRangerUseConfirm}
         />
       ) : null}
 

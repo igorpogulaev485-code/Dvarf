@@ -314,12 +314,30 @@ RESOURCE_META: dict[str, dict[str, Any]] = {
         "fixed_uses": 1,
     },
     "favored_enemy_uses": {
-        "name_ru": "Заклятый враг",
+        "name_ru": "Метка охотника (бесплатно)",
         "reset": "long",
         "track": "spend",
         "on_hot": True,
         "feature_id": "favored-enemy",
-        "note_ru": "Бесплатные применения «Метки охотника».",
+        "note_ru": "Бесплатные сотворения «Метки охотника» без ячейки.",
+    },
+    "tireless_uses": {
+        "name_ru": "Неутомимость",
+        "reset": "long",
+        "track": "spend",
+        "on_hot": True,
+        "feature_id": "tireless",
+        "note_ru": "Временные хиты 1к8 + мод. Мудрости; пул = мод. Мудрости (мин. 1).",
+        "uses_from": "wis_mod_min_1",
+    },
+    "natures_veil_uses": {
+        "name_ru": "Природная завеса",
+        "reset": "long",
+        "track": "spend",
+        "on_hot": True,
+        "feature_id": "natures-veil",
+        "note_ru": "Бонусным — Невидимый до конца следующего хода; пул = мод. Мудрости (мин. 1).",
+        "uses_from": "wis_mod_min_1",
     },
     "arcane_recovery": {
         "name_ru": "Магическое восстановление",
@@ -674,6 +692,8 @@ def _resource_max(
         return max(1, ability_mod(int(abilities.get("cha") or 10)))
     if uses_from == "int_mod_min_1":
         return max(1, ability_mod(int(abilities.get("int") or 10)))
+    if uses_from == "wis_mod_min_1":
+        return max(1, ability_mod(int(abilities.get("wis") or 10)))
     if uses_from == "one_plus_cha":
         return max(1, 1 + ability_mod(int(abilities.get("cha") or 10)))
     if uses_from == "proficiency_bonus":
@@ -782,6 +802,19 @@ def _build_resources_for_class(
             raw.setdefault("paladin_free_smite", 1)
         if "faithful-steed" in paladin_features:
             raw.setdefault("paladin_free_steed", 1)
+
+    # Ranger Tireless (L10+) / Nature's Veil (L14+) — Wis mod uses / long, not in resources table.
+    if slug == "ranger" and catalog:
+        ranger_features: set[str] = set()
+        for lr in catalog["data"].get("levels") or []:
+            if int(lr.get("level") or 0) > level:
+                continue
+            for f in lr.get("features") or []:
+                ranger_features.add(str(f.get("id")))
+        if "tireless" in ranger_features:
+            raw.setdefault("tireless_uses", True)
+        if "natures-veil" in ranger_features:
+            raw.setdefault("natures_veil_uses", True)
 
     # Artificer Magic of Making — INT mod uses / long rest (not in resources table).
     if slug == "artificer" and level >= 1:

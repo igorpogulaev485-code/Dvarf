@@ -318,12 +318,7 @@ export function LevelingForks2024({
           out.push({
             level: 1,
             kind: 'weapon_mastery',
-            // Paladin 2024 final name; other mastery classes keep the shared create label
-            // until Игорь decides a global rename.
-            label:
-              slug === 'paladin'
-                ? `Оружейное мастерство (${need})`
-                : `Мастерство оружия (${need})`,
+            label: `Оружейное мастерство (${need})`,
             detail: names,
           })
         }

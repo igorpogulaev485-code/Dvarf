@@ -10,6 +10,8 @@ import {
   type MasteryWeaponOption,
   type WeaponMasteryId,
 } from '../../shared/dnd/weaponMastery'
+import { FIGHTING_STYLE_MIN_LEVEL_2024, WEAPON_MASTERY_NAME_RU } from '../../shared/dnd/paladin2024Features'
+import { isDruidicWarriorStyleId } from '../../shared/dnd/ranger2024Features'
 import { ELDRITCH_INVOCATIONS_2024 } from '../../shared/dnd/edition2024ClassOptions'
 import { SKILL_DEFS } from '../characters/sheetTypes'
 import {
@@ -426,9 +428,9 @@ function classIssues(state: Create2024State, ctx: StepIssueCtx): string[] {
   }
   const wm = weaponMasteryLimit(state.classSlug)
   if (wm > 0 && !uniqueCount(state.weaponMasteryIds, wm)) {
-    const masteryLabel =
-      state.classSlug === 'paladin' ? 'Оружейное мастерство' : 'Мастерство оружия'
-    issues.push(`${masteryLabel}: выбрано ${state.weaponMasteryIds.length} из ${wm}`)
+    issues.push(
+      `${WEAPON_MASTERY_NAME_RU}: выбрано ${state.weaponMasteryIds.length} из ${wm}`,
+    )
   }
   if (state.classSlug === 'fighter' && !state.fightingStyleSlug) {
     issues.push('Выберите боевой стиль')
@@ -441,8 +443,28 @@ function classIssues(state: Create2024State, ctx: StepIssueCtx): string[] {
         .map((row) => row.level || 0),
       0,
     )
-    if (paladinLevel >= 2 && !state.fightingStyleSlug) {
+    if (paladinLevel >= FIGHTING_STYLE_MIN_LEVEL_2024 && !state.fightingStyleSlug) {
       issues.push('Выберите боевой стиль')
+    }
+  }
+  if (state.classSlug === 'ranger') {
+    const rangerLevel = Math.max(
+      state.characterLevel || 1,
+      ...state.classes
+        .filter((row) => /ranger|следопыт/i.test(row.catalog_id || row.name || ''))
+        .map((row) => row.level || 0),
+      0,
+    )
+    if (rangerLevel >= FIGHTING_STYLE_MIN_LEVEL_2024 && !state.fightingStyleSlug) {
+      issues.push('Выберите боевой стиль')
+    }
+    if (isDruidicWarriorStyleId(state.fightingStyleSlug)) {
+      const cantrips = Array.isArray(state.classOptionPicks.druidic_warrior_cantrips)
+        ? (state.classOptionPicks.druidic_warrior_cantrips as string[])
+        : []
+      if (!uniqueCount(cantrips, 2)) {
+        issues.push(`Воин-друид: выберите 2 заговора друида (сейчас ${cantrips.length})`)
+      }
     }
   }
   if (state.classSlug === 'cleric') {

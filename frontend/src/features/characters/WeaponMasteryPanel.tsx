@@ -15,6 +15,7 @@ import {
   type WeaponMasteryClassRules,
   type WeaponMasteryState,
 } from '../../shared/dnd/weaponMastery'
+import { WEAPON_MASTERY_NAME_RU } from '../../shared/dnd/paladin2024Features'
 import type { ClassLevelEntry } from './classLevels'
 
 export type WeaponMasteryPanelProps = {
@@ -114,10 +115,10 @@ export function WeaponMasteryPanel({
     <section
       className="sheet-section"
       data-testid="weapon-mastery-panel"
-      aria-label="Мастерство оружия"
+      aria-label={WEAPON_MASTERY_NAME_RU}
     >
       <header className="sheet-section__head">
-        <Text as="h3">Мастерство оружия</Text>
+        <Text as="h3">{WEAPON_MASTERY_NAME_RU}</Text>
         <Text tone="muted">
           {state.known.length}/{limit}
           {state.swapAvailable ? ' · можно сменить после отдыха' : ''}

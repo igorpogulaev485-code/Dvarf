@@ -3,6 +3,7 @@
 import type { ReactNode } from 'react'
 import { Stack, Text } from '../../ui'
 import { formatModifier } from '../characters/sheetTypes'
+import { WEAPON_MASTERY_NAME_RU } from '../../shared/dnd/paladin2024Features'
 import type { SheetPreviewModel } from './create2024SheetPreview'
 
 type Create2024SheetPreviewProps = {
@@ -121,13 +122,7 @@ export function Create2024SheetPreview({ model }: Create2024SheetPreviewProps) {
         ) : null}
 
         {model.weaponMastery.length ? (
-          <Section
-            title={
-              /паладин|paladin/i.test(model.className)
-                ? 'Оружейное мастерство'
-                : 'Мастерство оружия'
-            }
-          >
+          <Section title={WEAPON_MASTERY_NAME_RU}>
             <ul className="create-2024__list">
               {model.weaponMastery.map((row) => (
                 <li key={row.name}>

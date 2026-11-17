@@ -114,6 +114,7 @@ export function useSheetEditorPart5(model: SheetModel) {
       <DarkvisionSense
         baseFt={model.draft.identity.darkvision}
         effectiveFt={model.effectiveDarkvisionFt ?? model.draft.identity.darkvision}
+        blindsightFt={model.featureBlindsightFt ?? 0}
         onBaseChange={(darkvision) => model.patchIdentity({ darkvision })}
       />
     </div>

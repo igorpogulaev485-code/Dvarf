@@ -5,6 +5,8 @@ type DarkvisionSenseProps = {
   baseFt: number
   /** Effective after features/gear (display). */
   effectiveFt: number
+  /** Feature blindsight (e.g. Feral Senses 2024) — display only. */
+  blindsightFt?: number
   onBaseChange: (next: number) => void
 }
 
@@ -15,6 +17,7 @@ type DarkvisionSenseProps = {
 export function DarkvisionSense({
   baseFt,
   effectiveFt,
+  blindsightFt = 0,
   onBaseChange,
 }: DarkvisionSenseProps) {
   const shown = effectiveFt > 0 ? effectiveFt : 0
@@ -59,6 +62,12 @@ export function DarkvisionSense({
           />
         </Field>
       </DetailsMenu>
+      {blindsightFt > 0 ? (
+        <div className="darkvision-sense darkvision-sense--passive">
+          <span className="darkvision-sense__label">Слепое зрение</span>
+          <strong className="darkvision-sense__value">{blindsightFt} фт</strong>
+        </div>
+      ) : null}
     </div>
   )
 }

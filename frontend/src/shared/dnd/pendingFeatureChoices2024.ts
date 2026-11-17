@@ -34,6 +34,20 @@ import {
   LORE_MAGICAL_DISCOVERIES_PICKS_2024,
   loreDiscoveriesOutstanding2024,
 } from './bard2024Features'
+import {
+  DEFENSIVE_TACTICS_MIN_LEVEL_2024,
+  DEFT_EXPLORER_MIN_LEVEL_2024,
+  DEFT_EXPLORER_FEATURE_ID_2024,
+  deftExplorerChoice2024,
+  defensiveTacticsChoice2024,
+  huntersPreyChoice2024,
+  HUNTERS_PREY_MIN_LEVEL_2024,
+  otherworldlyGlamourChoice2024,
+  primalCompanionChoice2024,
+  RANGER_EXPERTISE_MIN_LEVEL_2024,
+  RANGER_SUBCLASS_SLUGS_2024,
+  rangerExpertiseChoice2024,
+} from './ranger2024Features'
 import { metamagicPickGainAtLevel2024 } from './sorcerer2024Features'
 import { invocationPickGainAtLevel2024 } from './warlock2024Features'
 import {
@@ -301,6 +315,158 @@ export function buildPendingWizardSteps2024(input: PendingWizardInput2024): Guid
         featureLevel: row.minLevel,
         choice: row.choice,
       })
+    }
+  }
+
+  if (slug === 'ranger') {
+    if (level >= DEFT_EXPLORER_MIN_LEVEL_2024) {
+      const picked = input.featurePicks
+        ? Boolean(
+            getFeatureChoicePick(
+              input.featurePicks,
+              input.classEntryId,
+              DEFT_EXPLORER_FEATURE_ID_2024,
+              deftExplorerChoice2024.id,
+            ),
+          )
+        : false
+      if (!picked) {
+        steps.push({
+          id: `feature_choice:${input.classEntryId}:${DEFT_EXPLORER_FEATURE_ID_2024}`,
+          kind: 'feature_choice',
+          classEntryId: input.classEntryId,
+          className: input.className,
+          classLevel: level,
+          featureId: DEFT_EXPLORER_FEATURE_ID_2024,
+          featureNameRu: deftExplorerChoice2024.label_ru,
+          featureLevel: DEFT_EXPLORER_MIN_LEVEL_2024,
+          choice: deftExplorerChoice2024,
+        })
+      }
+    }
+    if (level >= RANGER_EXPERTISE_MIN_LEVEL_2024) {
+      const picked = input.featurePicks
+        ? getFeatureChoicePickList(
+            input.featurePicks,
+            input.classEntryId,
+            'expertise',
+            rangerExpertiseChoice2024.id,
+          ).length >= (rangerExpertiseChoice2024.max_picks ?? 2)
+        : false
+      if (!picked) {
+        steps.push({
+          id: `feature_choice:${input.classEntryId}:expertise`,
+          kind: 'feature_choice',
+          classEntryId: input.classEntryId,
+          className: input.className,
+          classLevel: level,
+          featureId: 'expertise',
+          featureNameRu: rangerExpertiseChoice2024.label_ru,
+          featureLevel: RANGER_EXPERTISE_MIN_LEVEL_2024,
+          choice: rangerExpertiseChoice2024,
+        })
+      }
+    }
+    const sub = (input.subclassSlug ?? '').trim()
+    if (sub === RANGER_SUBCLASS_SLUGS_2024.hunter && level >= HUNTERS_PREY_MIN_LEVEL_2024) {
+      const huntersPicked = input.featurePicks
+        ? Boolean(
+            getFeatureChoicePick(
+              input.featurePicks,
+              input.classEntryId,
+              'hunters_prey',
+              huntersPreyChoice2024.id,
+            ),
+          )
+        : false
+      if (!huntersPicked) {
+        steps.push({
+          id: `feature_choice:${input.classEntryId}:hunters_prey`,
+          kind: 'feature_choice',
+          classEntryId: input.classEntryId,
+          className: input.className,
+          classLevel: level,
+          featureId: 'hunters_prey',
+          featureNameRu: huntersPreyChoice2024.label_ru,
+          featureLevel: HUNTERS_PREY_MIN_LEVEL_2024,
+          choice: huntersPreyChoice2024,
+        })
+      }
+    }
+    if (sub === RANGER_SUBCLASS_SLUGS_2024.hunter && level >= DEFENSIVE_TACTICS_MIN_LEVEL_2024) {
+      const tacticsPicked = input.featurePicks
+        ? Boolean(
+            getFeatureChoicePick(
+              input.featurePicks,
+              input.classEntryId,
+              'defensive_tactics',
+              defensiveTacticsChoice2024.id,
+            ),
+          )
+        : false
+      if (!tacticsPicked) {
+        steps.push({
+          id: `feature_choice:${input.classEntryId}:defensive_tactics`,
+          kind: 'feature_choice',
+          classEntryId: input.classEntryId,
+          className: input.className,
+          classLevel: level,
+          featureId: 'defensive_tactics',
+          featureNameRu: defensiveTacticsChoice2024.label_ru,
+          featureLevel: DEFENSIVE_TACTICS_MIN_LEVEL_2024,
+          choice: defensiveTacticsChoice2024,
+        })
+      }
+    }
+    if (sub === RANGER_SUBCLASS_SLUGS_2024.beastmaster && level >= HUNTERS_PREY_MIN_LEVEL_2024) {
+      const companionPicked = input.featurePicks
+        ? Boolean(
+            getFeatureChoicePick(
+              input.featurePicks,
+              input.classEntryId,
+              'primal_companion',
+              primalCompanionChoice2024.id,
+            ),
+          )
+        : false
+      if (!companionPicked) {
+        steps.push({
+          id: `feature_choice:${input.classEntryId}:primal_companion`,
+          kind: 'feature_choice',
+          classEntryId: input.classEntryId,
+          className: input.className,
+          classLevel: level,
+          featureId: 'primal_companion',
+          featureNameRu: primalCompanionChoice2024.label_ru,
+          featureLevel: HUNTERS_PREY_MIN_LEVEL_2024,
+          choice: primalCompanionChoice2024,
+        })
+      }
+    }
+    if (sub === RANGER_SUBCLASS_SLUGS_2024.feyWanderer && level >= HUNTERS_PREY_MIN_LEVEL_2024) {
+      const glamourPicked = input.featurePicks
+        ? Boolean(
+            getFeatureChoicePick(
+              input.featurePicks,
+              input.classEntryId,
+              'otherworldly_glamour',
+              otherworldlyGlamourChoice2024.id,
+            ),
+          )
+        : false
+      if (!glamourPicked) {
+        steps.push({
+          id: `feature_choice:${input.classEntryId}:otherworldly_glamour`,
+          kind: 'feature_choice',
+          classEntryId: input.classEntryId,
+          className: input.className,
+          classLevel: level,
+          featureId: 'otherworldly_glamour',
+          featureNameRu: otherworldlyGlamourChoice2024.label_ru,
+          featureLevel: HUNTERS_PREY_MIN_LEVEL_2024,
+          choice: otherworldlyGlamourChoice2024,
+        })
+      }
     }
   }
 

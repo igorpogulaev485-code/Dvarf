@@ -23,6 +23,7 @@ import {
   type SpellsState,
 } from './spells'
 import { clampPactSlots, clampSlot } from '../../shared/dnd/spells'
+import { ensureRangerHuntersMarkFeatureCast2024 } from '../../shared/dnd/ranger2024Features'
 
 type UseSpellcastingSheetSyncArgs = {
   /** When false, only computes suggestion/knownCaster (no sheet writes). */
@@ -170,6 +171,20 @@ export function useSpellcastingSheetSync({
   ])
 
   // M1: backfill class_slug on mono / labeled rows (no toast — silent migrate).
+  useEffect(() => {
+    if (!enabled || !is2024) return
+    const nextKnown = ensureRangerHuntersMarkFeatureCast2024(spells.known, classRows)
+    if (nextKnown !== spells.known) {
+      onChange({ ...spells, known: nextKnown })
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    enabled,
+    is2024,
+    classRows.map((row) => `${row.id}:${row.name}:${row.level}`).join('|'),
+    spells.known.map((s) => `${s.id}:${s.cast_access ?? ''}:${s.feature_spend?.poolId ?? ''}`).join('|'),
+  ])
+
   useEffect(() => {
     if (!enabled || castProfiles.length === 0) return
     const next = backfillSpellClassFields(spells.known, castProfiles)

@@ -52,6 +52,28 @@ assert(
 )
 
 assert(
+  classWalkSpeedBonusFt({
+    classes: [{ name: 'Следопыт', level: 5 }],
+    wearingHeavyArmor: false,
+  }) === 0,
+  'ranger L5 no Roving',
+)
+assert(
+  classWalkSpeedBonusFt({
+    classes: [{ name: 'ranger', level: 6 }],
+    wearingHeavyArmor: false,
+  }) === 10,
+  'ranger L6 Roving +10',
+)
+assert(
+  classWalkSpeedBonusFt({
+    classes: [{ name: 'ranger', level: 8 }],
+    wearingHeavyArmor: true,
+  }) === 0,
+  'ranger heavy armor blocks Roving',
+)
+
+assert(
   resolveWalkSpeedFt({
     storedSpeed: 30,
     raceSpeed: 30,

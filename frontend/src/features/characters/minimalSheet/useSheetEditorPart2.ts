@@ -20,7 +20,12 @@ import { hydrateSwordsFightingStyleFromGrants } from '../../../shared/dnd/swords
 import { knowledgeBlessingSkillIds } from '../../../shared/dnd/expertise'
 import { applyFeatGrantToDraft, ensureFeatSpellsFromLedger, featSpellsMissingFromKnown } from '../featEffects'
 import { syncFeatureResources } from '../../../shared/dnd/featureResources'
-import { classWalkSpeedBonusFt, resolveWalkSpeedFt } from '../../../shared/dnd/classMovement'
+import {
+  applyRovingClimbSwim,
+  classWalkSpeedBonusFt,
+  resolveWalkSpeedFt,
+} from '../../../shared/dnd/classMovement'
+import { resolveClassFeatureSlug } from '../../../shared/dnd/classFeatures'
 import {
   applySpeedModsToWalk,
   initiativeBonusFromActiveEffects,
@@ -44,7 +49,12 @@ import {
   listFightingStyleIds,
 } from '../../../shared/dnd/featurePicks'
 import { syncMonkUnarmedAttack } from '../../../shared/dnd/martialArts'
-import { darkvisionFtFromFeatures, initiativeBonusFromFeatures, initiativeBonusFromRace } from '../featureCombatBonuses'
+import {
+  blindsightFtFromFeatures,
+  darkvisionFtFromFeatures,
+  initiativeBonusFromFeatures,
+  initiativeBonusFromRace,
+} from '../featureCombatBonuses'
 import { raceDarkvisionFallbackFt } from '../../../shared/dnd/race'
 import { createSheetSpell, sheetSpellFromCatalog } from '../spells'
 import {
@@ -833,6 +843,16 @@ export function useSheetEditorPart2(model: SheetModel) {
   ])
   model.featureDarkvisionFt = featureDarkvisionFt
 
+  const featureBlindsightFt = useMemo(
+    () =>
+      blindsightFtFromFeatures({
+        features: model.unlockedFeatures ?? [],
+        rulesEdition: model.rulesEdition ?? model.baseCharacter?.rules_edition,
+      }),
+    [model.unlockedFeatures, model.rulesEdition, model.baseCharacter?.rules_edition],
+  )
+  model.featureBlindsightFt = featureBlindsightFt
+
   const passives = useMemo(() => {
     const modFor = (skillKey: string) => {
       const def = SKILL_DEFS.find((skill) => skill.key === skillKey)
@@ -894,6 +914,16 @@ export function useSheetEditorPart2(model: SheetModel) {
     [model.draft.inventory.items],
   )
   model.armorPiecesForSpeed = armorPiecesForSpeed
+  const rangerLevelForRoving = useMemo(() => {
+    let level = 0
+    for (const row of model.draft.classes) {
+      if (resolveClassFeatureSlug(row.name) === 'ranger') {
+        level = Math.max(level, Math.floor(row.level || 0))
+      }
+    }
+    return level
+  }, [model.draft.classes])
+  model.rangerLevelForRoving = rangerLevelForRoving
   const displaySpeedAuto = useMemo(() => {
     const wearingHeavy = armorPiecesForSpeed.armor?.kind === 'heavy'
     const wearingArmorOrShield = Boolean(
@@ -981,33 +1011,65 @@ export function useSheetEditorPart2(model: SheetModel) {
 
   const displayClimbSpeed = useMemo(() => {
     if (formHeaderVitals) return formHeaderVitals.speedClimb
-    return withSpeedBonus({
+    const edition2024 =
+      (model.rulesEdition ?? model.baseCharacter?.rules_edition ?? '2014') === '2024'
+    const core = withSpeedBonus({
       core: model.draft.climbSpeed,
       target: 'speed_climb',
       modifiers: model.draft.modifiers,
       vars: model.formulaVarsBase ?? {},
     })
+    if (!edition2024) return core
+    const wearingHeavy = armorPiecesForSpeed.armor?.kind === 'heavy'
+    return applyRovingClimbSwim({
+      walkFt: displaySpeedAuto,
+      climb: core,
+      swim: null,
+      rangerLevel: rangerLevelForRoving,
+      wearingHeavyArmor: wearingHeavy,
+    }).climb
   }, [
     formHeaderVitals,
     model.draft.climbSpeed,
     model.draft.modifiers,
     model.formulaVarsBase,
+    model.rulesEdition,
+    model.baseCharacter?.rules_edition,
+    displaySpeedAuto,
+    armorPiecesForSpeed,
+    rangerLevelForRoving,
   ])
   model.displayClimbSpeed = displayClimbSpeed
 
   const displaySwimSpeed = useMemo(() => {
     if (formHeaderVitals) return formHeaderVitals.speedSwim
-    return withSpeedBonus({
+    const edition2024 =
+      (model.rulesEdition ?? model.baseCharacter?.rules_edition ?? '2014') === '2024'
+    const core = withSpeedBonus({
       core: model.draft.swimSpeed,
       target: 'speed_swim',
       modifiers: model.draft.modifiers,
       vars: model.formulaVarsBase ?? {},
     })
+    if (!edition2024) return core
+    const wearingHeavy = armorPiecesForSpeed.armor?.kind === 'heavy'
+    return applyRovingClimbSwim({
+      walkFt: displaySpeedAuto,
+      climb: null,
+      swim: core,
+      rangerLevel: rangerLevelForRoving,
+      wearingHeavyArmor: wearingHeavy,
+    }).swim
   }, [
     formHeaderVitals,
     model.draft.swimSpeed,
     model.draft.modifiers,
     model.formulaVarsBase,
+    model.rulesEdition,
+    model.baseCharacter?.rules_edition,
+    displaySpeedAuto,
+    armorPiecesForSpeed,
+    rangerLevelForRoving,
   ])
   model.displaySwimSpeed = displaySwimSpeed
 
