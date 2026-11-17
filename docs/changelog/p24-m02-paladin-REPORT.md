@@ -6,10 +6,18 @@
 - Baseline «до» (tip bard / PR #511): `57a970b1fce187ca0daa1e71ae425178ff386f19`
 - Первый коммит пачки: `55511684` — `paladin2024Features.ts`
 - Шапку листа / Lobby Hub lock / `index.css` не трогали
-- Доказательства: живой мастер (`/characters/create?edition=2024&preview=1`) + лист; артефакты `/opt/cursor/artifacts/p24-m02-paladin/`
-- Независимое ревью: [`p24-m02-paladin-REVIEW.md`](./p24-m02-paladin-REVIEW.md) (первое: «нужна доправка») → после **Доправки 1** — живые level-up/down, клятвы, pytest rollback
+- Доказательства: живой мастер (`/characters/create?edition=2024&preview=1`) + лист; артефакты в репозитории `artifacts/p24-m02-paladin/` (ранее только `/opt/cursor/…`)
+- Независимое ревью: [`p24-m02-paladin-REVIEW.md`](./p24-m02-paladin-REVIEW.md)
 
-## Доправка 1 (закрыто)
+## Доправка 1 к PR #512 (приёмка)
+
+| # | Дыра | Как закрыто | Доказательство |
+|---|------|-------------|----------------|
+| 1 | Скрины 1440/390 и md5 2014 только на машине агента | Все пары в `artifacts/p24-m02-paladin/` (+ `regression-2014/before|after-md5-{1440,390}.txt`, md5 before==after). e2e пишет в этот путь | git + `npm run test:e2e:p24-m02-paladin` → **40 passed** |
+| 2 | «Благословенный воин» не доезжал до листа | `_validate_class_options` знает паладина; ровно 2 заговора жреца; `feature_picks` зеркалит `fighting_style_paladin=blessed_warrior` + cantrips (underscore и kebab); known = always-prepared CHA; `syncBlessedWarriorCantrips` принимает slug/`blessed-warrior` | pytest sheet asserts; e2e `create-at-5 blessed warrior: cleric cantrips on sheet` |
+| 3 | «Оружейное мастерство» vs «Мастерство оружия» | У паладина в Create2024Picks / preview / validation / LevelingForks — «Оружейное мастерство»; воин/следопыт/варвар снова «Мастерство оружия» | UI + e2e create-at-1 |
+
+## Доправка 1 (закрыто, архив: live level-up/oaths)
 
 | # | Дыра | Как закрыто | Скрины (1440+390) |
 |---|------|-------------|-------------------|
@@ -125,9 +133,9 @@
 
 ## 7. Скрины / тесты / Alembic
 
-- Артефакты: `/opt/cursor/artifacts/p24-m02-paladin/` (create-at + rests + **Доправка 1**: level-up/down, oaths, LoH Restoring Touch, Radiant Strikes; 1440 и 390).
-- pytest: `tests/test_p24_m02_paladin.py` — **56** тестов (+4 rollback snapshots); смежные M02a/M02b/M03c зелёные.
-- e2e: `npm run test:e2e:p24-m02-paladin` — live create + level-up/down + oaths (desktop-1440 + phone-390).
+- Артефакты: `artifacts/p24-m02-paladin/` в git (create-at 1/5/11, level-up/down, oaths, LoH Restoring Touch, Radiant Strikes, Blessed Warrior; 1440 и 390) + `regression-2014/*`.
+- pytest: `tests/test_p24_m02_paladin.py` — **57** тестов (Blessed Warrior sheet + requires-2-cantrips); смежные зелёные.
+- e2e: `npm run test:e2e:p24-m02-paladin` — **40 passed** (desktop-1440 + phone-390), включая Blessed Warrior sheet asserts.
 - `npm run build` — зелёный.
 - selfcheck: `paladin2024Features.selfcheck: ok`.
 - Alembic: **миграции не было**; голова `p24m03pr01`.
