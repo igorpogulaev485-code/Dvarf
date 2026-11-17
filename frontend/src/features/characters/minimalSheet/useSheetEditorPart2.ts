@@ -28,6 +28,7 @@ import {
 } from '../../../shared/dnd/activeEffects'
 import { withSpeedBonus } from '../modifiers'
 import { wildShapeHeaderVitals2024 } from '../../../shared/dnd/druid2024Features'
+import { auraOfAlacritySpeedBonusFt2024 } from '../../../shared/dnd/paladin2024Features'
 import { activeBeastWildShape } from '../wildShape'
 import { applyFeatureSaveProficiencies, ironMindSaveKey, wisdomSaveAlreadyGranted } from '../../../shared/dnd/featureSaveProficiency'
 import { revokeFalseSubclassCompanions } from '../companions'
@@ -912,6 +913,11 @@ export function useSheetEditorPart2(model: SheetModel) {
       resources: model.draft.play.resources,
       intelligenceScore: model.draft.abilities.int ?? 10,
     })
+    const edition2024 =
+      (model.rulesEdition ?? model.baseCharacter?.rules_edition ?? '2014') === '2024'
+    const alacrityBonus = edition2024
+      ? auraOfAlacritySpeedBonusFt2024(model.unlockedFeatures ?? [])
+      : 0
     const base =
       (resolveWalkSpeedFt({
         storedSpeed: model.draft.speed,
@@ -922,7 +928,8 @@ export function useSheetEditorPart2(model: SheetModel) {
         gearBonusFt: gearEffects.speedBonusFt,
       }) ?? 0) +
       song.speed +
-      (model.infusionBonuses?.speedWalkBonusFt ?? 0)
+      (model.infusionBonuses?.speedWalkBonusFt ?? 0) +
+      alacrityBonus
     const effectMods = speedModsFromActiveEffects(model.draft.play.effects)
     return applySpeedModsToWalk(base, effectMods)
   }, [
@@ -936,6 +943,9 @@ export function useSheetEditorPart2(model: SheetModel) {
     gearEffects.speedBonusFt,
     model.draft.play.effects,
     model.infusionBonuses?.speedWalkBonusFt,
+    model.rulesEdition,
+    model.baseCharacter?.rules_edition,
+    model.unlockedFeatures,
   ])
   model.displaySpeedAuto = displaySpeedAuto
 

@@ -61,7 +61,7 @@ const CHANNEL_OPTION_TEXT: Record<string, string> = {
   'abjure-foes': `${ABJURE_FOES_NAME_RU}: выбранные враги в 60 фт., спас Мдр; провал — Испуганы и скорость 0 (1 мин.).`,
   'sacred-weapon': `${SACRED_WEAPON_NAME_RU}: оружие на 10 мин. (бонус Хар к атаке; опционально урон излучением и свет).`,
   'natures-wrath': `${NATURES_WRATH_NAME_RU}: призрачные лозы опутывают врагов (спас Силы).`,
-  'vow-of-enmity': `${VOW_OF_ENMITY_NAME_RU}: преимущество к атакам по одной цели (1 мин., бонусное).`,
+  'vow-of-enmity': `${VOW_OF_ENMITY_NAME_RU}: при действии Атака — преимущество к атакам по одной цели в 30 фт. (1 мин.).`,
   'inspiring-smite': `${INSPIRING_SMITE_NAME_RU}: после «${DIVINE_SMITE_SPELL_NAME_RU}» раздай врем. хиты существам в 30 фт. (бонусное).`,
   'peerless-athlete': `${PEERLESS_ATHLETE_NAME_RU}: преимущество к СИЛ/ЛОВ проверкам и прыжкам (1 час, бонусное).`,
 }

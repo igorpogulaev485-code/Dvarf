@@ -280,6 +280,20 @@ export function auraProtectionSaveBonus2024(chaMod: number): number {
   return Math.max(1, mod(chaMod))
 }
 
+/** Aura of Alacrity (Glory L7+): paladin's walk speed +10 ft while the feature is unlocked. */
+export function auraOfAlacritySpeedBonusFt2024(
+  features: ReadonlyArray<{ id?: string | null }>,
+): number {
+  return features.some((row) => {
+    const id = String(row.id ?? '')
+      .trim()
+      .replace(/-/g, '_')
+    return id === 'aura_of_alacrity'
+  })
+    ? 10
+    : 0
+}
+
 /** Radiant Strikes rider (L11+). */
 export function radiantStrikesRiderRu2024(): string {
   return '+1к8 излучения'

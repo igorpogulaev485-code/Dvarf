@@ -19,7 +19,8 @@
 | 4 | Glory / Ancients + L20 | create-at Glory@7 (Аура рвения), Ancients@7 (Аура опеки), Devotion@20 (Священный нимб) | `create-at-7-glory-*`, `create-at-7-ancients-*`, `create-at-20-devotion-capstone-*` |
 | 5 | Restoring Touch | create-at-14 → LoH dialog с флажками состояний | `loh-dialog-restoring-touch-conditions-*` |
 | 6 | Radiant Strikes в формуле | L11 combat scene: `+1к8 излучением` / «Сияющие удары» на строке атаки (живое, без fallback) | `radiant-strikes-attack-formula-*` |
-| 7 | Обет вражды текст | parent/параллельно: канал при действии Атака, 30 фт. (не бонусное) | — |
+| 7 | Обет вражды текст | catalog + feed + `Paladin2024UseDialog`: при действии Атака, 30 фт. (не бонусное) | — |
+| 8 | Glory@7 «Аура рвения» вне кадра | focused shot карточки; +10 скорости паладина на листе 2024 | `create-at-7-glory-aura-alacrity-*` |
 
 ## 1. Умения класса 1–20
 

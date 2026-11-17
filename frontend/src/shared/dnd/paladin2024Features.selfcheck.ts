@@ -2,6 +2,7 @@
 import assert from 'node:assert/strict'
 import * as paladin from './paladin2024Features'
 import {
+  auraOfAlacritySpeedBonusFt2024,
   ABJURE_FOES_NAME_RU,
   AURA_OF_PROTECTION_NAME_RU,
   applyPaladin2024FeatureUse,
@@ -113,6 +114,8 @@ assert.equal(auraProtectionRadiusFt2024(20), 30)
 assert.equal(auraProtectionSaveBonus2024(4), 4)
 assert.equal(auraProtectionSaveBonus2024(0), 1)
 assert.equal(auraProtectionSaveBonus2024(-2), 1)
+assert.equal(auraOfAlacritySpeedBonusFt2024([{ id: 'aura_of_alacrity' }]), 10)
+assert.equal(auraOfAlacritySpeedBonusFt2024([{ id: 'aura-of-protection' }]), 0)
 
 /* Formulas */
 assert.equal(radiantStrikesRiderRu2024(), '+1к8 излучения')

@@ -587,6 +587,13 @@ test.describe('P24-M02 paladin — LIVE oath sheets (Glory / Ancients / L20)', (
       LAY_ON_HANDS,
     ])
     await expandAllFeatures(page)
+    const alacrity = await featureCard(page, /^Аура рвения/)
+    await expandCard(alacrity)
+    await alacrity.scrollIntoViewIfNeeded()
+    await expect(alacrity).toContainText(/10|скорост/i)
+    // Header speed should show +10 from Aura of Alacrity (race 25/30 → 35/40).
+    await expect(page.getByText(/Скорость/i).first()).toBeVisible()
+    await shot(page, ARTIFACTS, `${SHOT}-create-at-7-glory-aura-alacrity`, project)
     await tallShot(page, ARTIFACTS, `${SHOT}-create-at-7-glory-features`, project)
     expect(store.unmatched).toEqual([])
   })
