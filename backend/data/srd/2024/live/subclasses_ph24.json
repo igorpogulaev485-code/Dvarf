@@ -416,7 +416,22 @@
         ],
         "summary_ru": "Подкласс барда: воинские владения, Боевое вдохновение и Боевая магия.",
         "spell_list": [],
-        "spell_list_note_ru": "У подкласса нет отдельного списка заклинаний в этой карточке (или список пуст)."
+        "spell_list_note_ru": "У подкласса нет отдельного списка заклинаний в этой карточке (или список пуст).",
+        "parent_slug": "bard",
+        "grants_level": 3,
+        "source": "phb",
+        "sheet_grants": {
+          "armor": [
+            "medium",
+            "shields"
+          ],
+          "weapons": {
+            "simple": false,
+            "martial": true,
+            "extras": []
+          }
+        },
+        "choices": []
       }
     },
     {

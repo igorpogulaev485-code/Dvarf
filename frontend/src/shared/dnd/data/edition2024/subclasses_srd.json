@@ -135,7 +135,27 @@
         ],
         "summary_ru": "Подкласс барда: знания, Острые слова и Доп. магические тайны.",
         "spell_list": [],
-        "spell_list_note_ru": "У подкласса нет отдельного списка заклинаний в справочнике 5.2.1."
+        "spell_list_note_ru": "У подкласса нет отдельного списка заклинаний в справочнике 5.2.1.",
+        "parent_slug": "bard",
+        "grants_level": 3,
+        "source": "phb",
+        "sheet_grants": {
+          "skill_choices": {
+            "count": 3,
+            "from": "any"
+          }
+        },
+        "choices": [
+          {
+            "id": "bonus_skills",
+            "label_ru": "Доп. навыки коллегии",
+            "kind": "multi",
+            "count": 3,
+            "from": "any",
+            "applies_to": "grant",
+            "required": true
+          }
+        ]
       }
     },
     {
