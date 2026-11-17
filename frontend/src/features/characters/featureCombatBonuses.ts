@@ -183,18 +183,25 @@ export function divineStrikeRider(
 }
 
 /**
- * PHB Improved Divine Smite (11th, p. 85): +1d8 radiant on every melee weapon hit.
- * Stacks with Divine Smite and is not part of the 5d8 slot cap. No slot is spent.
+ * PHB 2014 Improved Divine Smite (11th) / PHB 2024 Radiant Strikes (11th):
+ * +1к8 излучением on melee weapon hit (2024 also covers unarmed — caller gates attack type).
+ * Stacks with Divine Smite. No slot is spent.
+ * 2014 sheets only ever carry `improved_divine_smite`; 2024 sheets carry `radiant_strikes`.
  */
 export function improvedDivineSmiteRider(
   features: Array<{ id: string }>,
 ): DivineStrikeRider | null {
-  if (!features.some((row) => row.id === 'improved_divine_smite')) return null
+  const hasRadiantStrikes2024 = features.some((row) => {
+    const id = row.id.trim().replace(/-/g, '_')
+    return id === 'radiant_strikes'
+  })
+  const hasImproved2014 = features.some((row) => row.id === 'improved_divine_smite')
+  if (!hasRadiantStrikes2024 && !hasImproved2014) return null
   return {
     dice: '1d8',
     type: 'излучением',
     label: '1к8 излучением',
-    rollLabel: 'Улучшенная божественная кара, 1к8',
+    rollLabel: hasRadiantStrikes2024 ? 'Сияющие удары, 1к8' : 'Улучшенная божественная кара, 1к8',
   }
 }
 

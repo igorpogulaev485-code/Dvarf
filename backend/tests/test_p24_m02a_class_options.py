@@ -300,9 +300,10 @@ def test_brutal_strike_and_rage():
 def test_divine_sense_is_channel_option():
     snap = e24.compute_progression([{"slug": "paladin", "level": 3}])
     cd = next(r for r in snap.resources if r.pool_id == "channel_divinity")
-    assert "divine_sense" in (cd.meta.get("channel_options") or [])
+    opts = cd.meta.get("channel_options") or []
+    assert "divine-sense" in opts or "divine_sense" in opts
     # No separate divine_sense pool
-    assert not any(r.pool_id == "divine_sense" for r in snap.resources)
+    assert not any(r.pool_id in {"divine_sense", "divine-sense"} for r in snap.resources)
 
     sense = opt.resolve_divine_sense_channel(channel_remaining=2)
     assert sense["spend_channel"] == 1
