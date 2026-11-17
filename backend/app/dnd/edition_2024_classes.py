@@ -211,11 +211,29 @@ RESOURCE_META: dict[str, dict[str, Any]] = {
         "uses_from": "int_mod_min_1",
     },
     "lay_on_hands_hp": {
-        "name_ru": "Наложение рук",
+        "name_ru": "Возложение рук",
         "reset": "long",
         "track": "spend",
         "on_hot": True,
         "feature_id": "lay-on-hands",
+    },
+    "paladin_free_smite": {
+        "name_ru": "Бесплатная Божественная кара",
+        "reset": "long",
+        "track": "spend",
+        "on_hot": False,
+        "feature_id": "paladins-smite",
+        "fixed_uses": 1,
+        "note_ru": "Одно сотворение «Божественной кары» без ячейки за долгий отдых.",
+    },
+    "paladin_free_steed": {
+        "name_ru": "Бесплатный Верный скакун",
+        "reset": "long",
+        "track": "spend",
+        "on_hot": False,
+        "feature_id": "faithful-steed",
+        "fixed_uses": 1,
+        "note_ru": "Одно сотворение «Обретения скакуна» без ячейки за долгий отдых.",
     },
     "sorcery_points": {
         "name_ru": "Очки чародейства",
@@ -336,8 +354,9 @@ CASTER_PROGRESSION: dict[str, str] = {
     "druid": "full",
     "sorcerer": "full",
     "wizard": "full",
-    "paladin": "half",
-    "ranger": "half",
+    # SRD 5.2.1 multiclass: half levels, round up (Paladin / Ranger).
+    "paladin": "half_up",
+    "ranger": "half_up",
     "artificer": "half_up",
     "warlock": "pact",
     "barbarian": "none",
@@ -751,6 +770,19 @@ def _build_resources_for_class(
         if has_divine_intervention:
             raw.setdefault("divine_intervention", 1)
 
+    # Paladin free Divine Smite (L2+) / Find Steed (L5+) — 1/long, not in resources table.
+    if slug == "paladin" and catalog:
+        paladin_features: set[str] = set()
+        for lr in catalog["data"].get("levels") or []:
+            if int(lr.get("level") or 0) > level:
+                continue
+            for f in lr.get("features") or []:
+                paladin_features.add(str(f.get("id")))
+        if "paladins-smite" in paladin_features:
+            raw.setdefault("paladin_free_smite", 1)
+        if "faithful-steed" in paladin_features:
+            raw.setdefault("paladin_free_steed", 1)
+
     # Artificer Magic of Making — INT mod uses / long rest (not in resources table).
     if slug == "artificer" and level >= 1:
         raw.setdefault("magic_of_making", True)
@@ -817,7 +849,10 @@ def _build_resources_for_class(
                     if key == "bardic_inspiration"
                     else None,
                     "channel_options": (
-                        ["divine_sense"]
+                        (
+                            ["divine-sense"]
+                            + (["abjure-foes"] if level >= 9 else [])
+                        )
                         if key == "channel_divinity" and slug == "paladin"
                         else (
                             ["divine-spark", "turn-undead"]
@@ -889,6 +924,8 @@ def _spellcasting_for_class(
             free.append("hunters-mark")
         if "paladins-smite" in unlocked_ids and "divine-smite" not in free:
             free.append("divine-smite")
+        if "faithful-steed" in unlocked_ids and "find-steed" not in free:
+            free.append("find-steed")
         if "magic-of-making" in unlocked_ids and "mending" not in free:
             free.append("mending")
         # Druidic (2024): always prepared Speak with Animals.
@@ -1107,8 +1144,29 @@ def compute_progression(
                 for opt in channel_opts:
                     if opt not in existing:
                         existing.append(opt)
-                if slug == "paladin" and "divine_sense" not in existing:
-                    existing.insert(0, "divine_sense")
+                if slug == "paladin":
+                    # Normalize legacy underscore id; Divine Sense is always first.
+                    existing = [
+                        "divine-sense" if opt in {"divine_sense", "divine-sense"} else opt
+                        for opt in existing
+                    ]
+                    # Dedupe while preserving order.
+                    seen_opts: set[str] = set()
+                    deduped: list[str] = []
+                    for opt in existing:
+                        if opt in seen_opts:
+                            continue
+                        seen_opts.add(opt)
+                        deduped.append(opt)
+                    existing = deduped
+                    if "divine-sense" in existing:
+                        existing.remove("divine-sense")
+                    existing.insert(0, "divine-sense")
+                    if level >= 9 and "abjure-foes" not in existing:
+                        # After Divine Sense, before oath options.
+                        existing.insert(1, "abjure-foes")
+                    if level < 9 and "abjure-foes" in existing:
+                        existing = [o for o in existing if o != "abjure-foes"]
                 if slug == "cleric":
                     for base_opt in ("divine-spark", "turn-undead"):
                         if base_opt not in existing:

@@ -42,6 +42,9 @@ BACKGROUND_GOLD_GP = 50
 
 # Classes that grant a Fighting Style feat at level 1 (catalog L1 features).
 FIGHTING_STYLE_AT_L1 = frozenset({"fighter"})
+# Paladin / Ranger gain Fighting Style at class level 2+.
+FIGHTING_STYLE_AT_L2 = frozenset({"paladin", "ranger"})
+BLESSED_WARRIOR_STYLE_SLUG = "blessed-warrior"
 
 # Origin feats with structured picks (others are grant-only).
 ORIGIN_FEATS_WITH_SPELL_LIST = frozenset({"magic-initiate"})
@@ -564,18 +567,43 @@ def _validate_class_skills(
 
 def _validate_fighting_style(payload: Create2024Payload) -> str | None:
     slug = payload.class_slug
+    class_level = _planned_class_level(payload, slug)
+    known = fighting_style_feat_slugs()
+
+    def _accept(style: str) -> str:
+        if style == BLESSED_WARRIOR_STYLE_SLUG:
+            if slug != "paladin":
+                raise Create2024Error(
+                    "«Благословенный воин» доступен только паладину",
+                    code="create_2024_fighting_style",
+                )
+            return style
+        if style not in known:
+            raise Create2024Error(
+                f"Неизвестный боевой стиль: {style}",
+                code="create_2024_fighting_style",
+            )
+        return style
+
     if slug in FIGHTING_STYLE_AT_L1:
         if not payload.fighting_style_slug:
             raise Create2024Error(
                 "На 1 уровне воину нужен боевой стиль",
                 code="create_2024_fighting_style",
             )
-        if payload.fighting_style_slug not in fighting_style_feat_slugs():
-            raise Create2024Error(
-                f"Неизвестный боевой стиль: {payload.fighting_style_slug}",
-                code="create_2024_fighting_style",
-            )
-        return payload.fighting_style_slug
+        return _accept(payload.fighting_style_slug)
+    if slug in FIGHTING_STYLE_AT_L2:
+        if class_level >= 2:
+            if not payload.fighting_style_slug:
+                raise Create2024Error(
+                    "С 2 уровня нужен боевой стиль",
+                    code="create_2024_fighting_style",
+                )
+            return _accept(payload.fighting_style_slug)
+        if payload.fighting_style_slug:
+            # Optional pre-pick at L1 create; still validate the slug.
+            return _accept(payload.fighting_style_slug)
+        return None
     if payload.fighting_style_slug:
         raise Create2024Error(
             "Этот класс не даёт боевой стиль на 1 уровне",

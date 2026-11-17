@@ -78,11 +78,16 @@ import {
   CLERIC_2024_CARD_BUTTONS,
   cleric2024UseFeatureId,
 } from '../../shared/dnd/cleric2024Features'
+import {
+  PALADIN_2024_CARD_BUTTONS,
+  paladin2024UseFeatureId,
+} from '../../shared/dnd/paladin2024Features'
 import type { WizardFeatureRequest } from './WizardFeatureUseDialog'
 import type { SorcererFeatureRequest } from './SorcererFeatureUseDialog'
 import type { MonkFeatureRequest } from './Monk2024UseDialog'
 import type { WarlockFeatureRequest } from './Warlock2024UseDialog'
 import type { ClericFeatureRequest } from './Cleric2024UseDialog'
+import type { PaladinFeatureRequest } from './Paladin2024UseDialog'
 import type { BardFeatureRequest } from './Bard2024UseDialog'
 import { MAGICAL_DISCOVERIES_ID_2024 } from './bardSecretsSync'
 import { BARD_2024_CARD_BUTTONS, bard2024UseFeatureId } from '../../shared/dnd/bard2024Features'
@@ -261,6 +266,7 @@ type ClassFeaturesPanelProps = {
   onMonkFeatureUse?: (request: MonkFeatureRequest) => void
   onWarlockFeatureUse?: (request: WarlockFeatureRequest) => void
   onClericFeatureUse?: (request: ClericFeatureRequest) => void
+  onPaladinFeatureUse?: (request: PaladinFeatureRequest) => void
   onBardFeatureUse?: (request: BardFeatureRequest) => void
   onDruidFeatureUse?: (request: DruidFeatureRequest) => void
   /** Open sorcery-points spend dialog (2024 metamagic / font). */
@@ -438,6 +444,7 @@ function FeatureResourceControls({
   onMonkFeatureUse,
   onWarlockFeatureUse,
   onClericFeatureUse,
+  onPaladinFeatureUse,
   onBardFeatureUse,
   onDruidFeatureUse,
   onFeatureBuffApply,
@@ -464,6 +471,7 @@ function FeatureResourceControls({
   onMonkFeatureUse?: (request: MonkFeatureRequest) => void
   onWarlockFeatureUse?: (request: WarlockFeatureRequest) => void
   onClericFeatureUse?: (request: ClericFeatureRequest) => void
+  onPaladinFeatureUse?: (request: PaladinFeatureRequest) => void
   onBardFeatureUse?: (request: BardFeatureRequest) => void
   onDruidFeatureUse?: (request: DruidFeatureRequest) => void
   onFeatureBuffApply?: ClassFeaturesPanelProps['onFeatureBuffApply']
@@ -953,6 +961,23 @@ function FeatureResourceControls({
             }
           >
             {CLERIC_2024_CARD_BUTTONS[feature.id] ?? 'Применить…'}
+          </Button>
+        ) : edition === '2024' &&
+          onPaladinFeatureUse &&
+          paladin2024UseFeatureId(feature.id) ? (
+          <Button
+            type="button"
+            onClick={() =>
+              onPaladinFeatureUse({
+                featureId: feature.id,
+                resourceId: pool.id,
+                classSlug,
+                classEntryId: feature.classEntryId,
+                name: feature.name_ru,
+              })
+            }
+          >
+            {PALADIN_2024_CARD_BUTTONS[feature.id] ?? 'Применить…'}
           </Button>
         ) : edition === '2024' &&
           onDruidFeatureUse &&
@@ -2225,6 +2250,7 @@ function FeatureRow({
   onMonkFeatureUse,
   onWarlockFeatureUse,
   onClericFeatureUse,
+  onPaladinFeatureUse,
   onBardFeatureUse,
   onDruidFeatureUse,
   onSorceryPointsSpend,
@@ -2281,6 +2307,7 @@ function FeatureRow({
   onMonkFeatureUse?: (request: MonkFeatureRequest) => void
   onWarlockFeatureUse?: (request: WarlockFeatureRequest) => void
   onClericFeatureUse?: (request: ClericFeatureRequest) => void
+  onPaladinFeatureUse?: (request: PaladinFeatureRequest) => void
   onBardFeatureUse?: (request: BardFeatureRequest) => void
   onDruidFeatureUse?: (request: DruidFeatureRequest) => void
   onSorceryPointsSpend?: (resourceId: string) => void
@@ -2741,6 +2768,28 @@ function FeatureRow({
       ) : null}
       {replacementStatus === 'active' &&
       edition === '2024' &&
+      onPaladinFeatureUse &&
+      !feature.resource?.pool_id &&
+      paladin2024UseFeatureId(feature.id) ? (
+        <div className="feature-resource__actions">
+          <Button
+            type="button"
+            onClick={() =>
+              onPaladinFeatureUse({
+                featureId: feature.id,
+                resourceId: null,
+                classSlug,
+                classEntryId: feature.classEntryId,
+                name: feature.name_ru,
+              })
+            }
+          >
+            {PALADIN_2024_CARD_BUTTONS[feature.id] ?? 'Применить…'}
+          </Button>
+        </div>
+      ) : null}
+      {replacementStatus === 'active' &&
+      edition === '2024' &&
       onDruidFeatureUse &&
       !feature.resource?.pool_id &&
       feature.id !== 'wild_shape' &&
@@ -2901,6 +2950,7 @@ function FeatureRow({
           onMonkFeatureUse={onMonkFeatureUse}
           onWarlockFeatureUse={onWarlockFeatureUse}
           onClericFeatureUse={onClericFeatureUse}
+          onPaladinFeatureUse={onPaladinFeatureUse}
           onBardFeatureUse={onBardFeatureUse}
           onDruidFeatureUse={onDruidFeatureUse}
           onFeatureBuffApply={onFeatureBuffApply}
@@ -3120,6 +3170,7 @@ export function ClassFeaturesPanel({
   onMonkFeatureUse,
   onWarlockFeatureUse,
   onClericFeatureUse,
+  onPaladinFeatureUse,
   onBardFeatureUse,
   onDruidFeatureUse,
   onSorceryPointsSpend,
@@ -3704,6 +3755,7 @@ export function ClassFeaturesPanel({
                             onMonkFeatureUse={onMonkFeatureUse}
                             onWarlockFeatureUse={onWarlockFeatureUse}
                             onClericFeatureUse={onClericFeatureUse}
+                            onPaladinFeatureUse={onPaladinFeatureUse}
                             onBardFeatureUse={onBardFeatureUse}
                             onDruidFeatureUse={onDruidFeatureUse}
                             onSorceryPointsSpend={onSorceryPointsSpend}

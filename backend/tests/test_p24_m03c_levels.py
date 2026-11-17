@@ -45,15 +45,16 @@ def test_multiclass_spell_slot_table_cases():
     assert snap.multiclass_slots["2"] == 3
     assert snap.multiclass_slots["3"] == 2
 
-    # Paladin 5 (half → 2) / Warlock 3 (pact separate) → caster 2 + pact
+    # Paladin 5 (half_up → 3) / Warlock 3 (pact separate) → caster 3 + pact
     snap2 = e24.compute_progression(
         [
             {"slug": "paladin", "level": 5, "subclass_slug": "paladin__oath-of-devotion"},
             {"slug": "warlock", "level": 3, "subclass_slug": "warlock__fiend-patron"},
         ]
     )
-    assert e24.multiclass_caster_level([("paladin", 5), ("warlock", 3)]) == 2
-    assert snap2.multiclass_slots["1"] == 3
+    assert e24.multiclass_caster_level([("paladin", 5), ("warlock", 3)]) == 3
+    assert snap2.multiclass_slots["1"] == 4
+    assert snap2.multiclass_slots["2"] == 2
     assert snap2.multiclass_pact is not None
     assert snap2.multiclass_pact["count"] >= 2
 

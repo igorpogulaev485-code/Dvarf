@@ -1478,19 +1478,19 @@
               {
                 "id": "oath-of-glory-spells",
                 "name_en": "Oath of Glory Spells",
-                "name_ru": "Заклинания Клятвы славы",
+                "name_ru": "Заклинания клятвы",
                 "summary_ru": "Всегда подготовленные заклинания клятвы."
               },
               {
                 "id": "inspiring-smite",
                 "name_en": "Inspiring Smite",
-                "name_ru": "Воодушевляющий удар",
-                "summary_ru": "После кары — временные хиты себе и союзникам."
+                "name_ru": "Воодушевляющая кара",
+                "summary_ru": "Сразу после «Божественной кары» потратить 1 канал: раздать временные хиты (2к8 + уровень Паладина) существам в 30 фт."
               },
               {
                 "id": "peerless-athlete",
                 "name_en": "Peerless Athlete",
-                "name_ru": "Несравненный атлет",
+                "name_ru": "Непревзойдённый атлет",
                 "summary_ru": "Бонусным: преимущество к СИЛ/ЛОВ проверкам, прыжки."
               }
             ]
@@ -1512,7 +1512,7 @@
               {
                 "id": "glorious-defense",
                 "name_en": "Glorious Defense",
-                "name_ru": "Блестящая оборона",
+                "name_ru": "Славная оборона",
                 "summary_ru": "Реакция: повысить КД; при промахе — контратака."
               }
             ]
@@ -1534,24 +1534,36 @@
           {
             "level": 3,
             "spells": [
-              "guiding-bolt",
               "heroism",
-              "enhance-ability",
-              "magic-weapon"
+              "guiding-bolt"
             ]
           },
           {
             "level": 5,
             "spells": [
-              "haste",
-              "protection-from-energy"
+              "magic-weapon",
+              "enhance-ability"
             ]
           },
           {
             "level": 9,
             "spells": [
-              "commune",
-              "flame-strike"
+              "protection-from-energy",
+              "haste"
+            ]
+          },
+          {
+            "level": 13,
+            "spells": [
+              "compulsion",
+              "freedom-of-movement"
+            ]
+          },
+          {
+            "level": 17,
+            "spells": [
+              "legend-lore",
+              "yolandes-regal-presence"
             ]
           }
         ],
@@ -1581,7 +1593,7 @@
               {
                 "id": "oath-of-the-ancients-spells",
                 "name_en": "Oath of the Ancients Spells",
-                "name_ru": "Заклинания Клятвы древних",
+                "name_ru": "Заклинания клятвы",
                 "summary_ru": "Всегда подготовленные заклинания клятвы."
               },
               {
@@ -1599,7 +1611,7 @@
                 "id": "aura-of-warding",
                 "name_en": "Aura of Warding",
                 "name_ru": "Аура опеки",
-                "summary_ru": "Сопротивление урону от заклинаний в ауре."
+                "summary_ru": "Вы и союзники в Ауре защиты имеете сопротивление урону некротическому, психическому и излучением."
               }
             ]
           },
@@ -1632,23 +1644,35 @@
             "level": 3,
             "spells": [
               "ensnaring-strike",
-              "speak-with-animals",
-              "misty-step",
-              "moonbeam"
+              "speak-with-animals"
             ]
           },
           {
             "level": 5,
             "spells": [
-              "plant-growth",
-              "protection-from-energy"
+              "moonbeam",
+              "misty-step"
             ]
           },
           {
             "level": 9,
             "spells": [
-              "commune-with-nature",
-              "tree-stride"
+              "protection-from-energy",
+              "plant-growth"
+            ]
+          },
+          {
+            "level": 13,
+            "spells": [
+              "ice-storm",
+              "stoneskin"
+            ]
+          },
+          {
+            "level": 17,
+            "spells": [
+              "tree-stride",
+              "commune-with-nature"
             ]
           }
         ],
@@ -1678,7 +1702,7 @@
               {
                 "id": "oath-of-vengeance-spells",
                 "name_en": "Oath of Vengeance Spells",
-                "name_ru": "Заклинания Клятвы возмездия",
+                "name_ru": "Заклинания клятвы",
                 "summary_ru": "Всегда подготовленные заклинания клятвы."
               },
               {
@@ -1717,8 +1741,8 @@
               {
                 "id": "avenging-angel",
                 "name_en": "Avenging Angel",
-                "name_ru": "Ангел отмщения",
-                "summary_ru": "Крылья, полёт, аура страха (1/длинный)."
+                "name_ru": "Ангел возмездия",
+                "summary_ru": "Бонусным на 10 мин: полёт 60 фт. (парение); враг, начинающий ход в Ауре защиты — спас Мдр или Испуганный; атаки по такому испуганному с преимуществом. 1/долгий; можно вернуть ячейкой 5-го."
               }
             ]
           }
@@ -1728,24 +1752,36 @@
           {
             "level": 3,
             "spells": [
-              "bane",
               "hunters-mark",
-              "hold-person",
-              "misty-step"
+              "bane"
             ]
           },
           {
             "level": 5,
             "spells": [
-              "haste",
-              "protection-from-energy"
+              "misty-step",
+              "hold-person"
             ]
           },
           {
             "level": 9,
             "spells": [
-              "hold-monster",
-              "scrying"
+              "protection-from-energy",
+              "haste"
+            ]
+          },
+          {
+            "level": 13,
+            "spells": [
+              "banishment",
+              "dimension-door"
+            ]
+          },
+          {
+            "level": 17,
+            "spells": [
+              "scrying",
+              "hold-monster"
             ]
           }
         ],

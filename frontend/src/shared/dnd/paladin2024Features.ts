@@ -18,6 +18,7 @@ import {
 import { parseFeatureResourceId } from './featureResources'
 import { clampResource, type SheetResource } from './rest'
 import type { SpellSlotState } from './spells'
+import type { SharedPoolOption2024 } from './edition2024Subclasses'
 
 /* ------------------------------------------------------------------ */
 /* Names (RU — FINAL)                                                  */
@@ -133,7 +134,7 @@ export type RestoringTouchCondition2024 = (typeof RESTORING_TOUCH_CONDITIONS_202
 
 const RESTORING_TOUCH_SET = new Set<string>(RESTORING_TOUCH_CONDITIONS_2024)
 
-const CONDITION_NAME_RU: Record<RestoringTouchCondition2024, string> = {
+export const RESTORING_TOUCH_CONDITION_NAME_RU: Record<RestoringTouchCondition2024, string> = {
   frightened: 'Испуганный',
   deafened: 'Оглохший',
   blinded: 'Ослеплённый',
@@ -141,6 +142,8 @@ const CONDITION_NAME_RU: Record<RestoringTouchCondition2024, string> = {
   stunned: 'Ошеломлённый',
   paralyzed: 'Парализованный',
 }
+
+const CONDITION_NAME_RU = RESTORING_TOUCH_CONDITION_NAME_RU
 
 /* ------------------------------------------------------------------ */
 /* Feature names by id (leveling step labels)                          */
@@ -435,10 +438,14 @@ export const PALADIN_2024_CARD_BUTTONS: Record<string, string> = {
   free_smite: 'Кара (бесплатно)',
   'paladin-free-smite': 'Кара (бесплатно)',
   paladin_free_smite: 'Кара (бесплатно)',
+  'paladins-smite': 'Кара (бесплатно)',
+  paladins_smite: 'Кара (бесплатно)',
   'free-steed': 'Скакун (бесплатно)',
   free_steed: 'Скакун (бесплатно)',
   'paladin-free-steed': 'Скакун (бесплатно)',
   paladin_free_steed: 'Скакун (бесплатно)',
+  'faithful-steed': 'Скакун (бесплатно)',
+  faithful_steed: 'Скакун (бесплатно)',
   'glorious-defense': 'Оборона…',
   glorious_defense: 'Оборона…',
   'undying-sentinel': 'Страж…',
@@ -451,6 +458,33 @@ export const PALADIN_2024_CARD_BUTTONS: Record<string, string> = {
   elder_champion: 'Чемпион…',
   'avenging-angel': 'Ангел…',
   avenging_angel: 'Ангел…',
+}
+
+/** Base Channel Divinity options for the class table (Divine Sense L3+, Abjure Foes L9+). */
+export const PALADIN_BASE_CHANNEL_OPTIONS_2024: ReadonlyArray<SharedPoolOption2024> = [
+  {
+    feature_id: 'divine-sense',
+    name_ru: DIVINE_SENSE_NAME_RU,
+    spend_pool: CHANNEL_DIVINITY_POOL_ID,
+    cost: 1,
+    kind: 'bonus',
+    min_level: CHANNEL_DIVINITY_MIN_LEVEL_2024,
+  },
+  {
+    feature_id: 'abjure-foes',
+    name_ru: ABJURE_FOES_NAME_RU,
+    spend_pool: CHANNEL_DIVINITY_POOL_ID,
+    cost: 1,
+    kind: 'action',
+    min_level: ABJURE_FOES_MIN_LEVEL_2024,
+  },
+]
+
+/** Base options available at `level` (no separate L1 Divine Sense card). */
+export function paladinBaseChannelOptionsAtLevel2024(level: number): SharedPoolOption2024[] {
+  return PALADIN_BASE_CHANNEL_OPTIONS_2024.filter((row) => lvl(level) >= row.min_level).map(
+    (row) => ({ ...row }),
+  )
 }
 
 const PALADIN_USE_FEATURE_IDS = new Set([
@@ -484,8 +518,8 @@ const CHANNEL_OPTION_IDS = new Set([
   'peerless-athlete',
 ])
 
-const FREE_SMITE_IDS = new Set(['free-smite', 'paladin-free-smite'])
-const FREE_STEED_IDS = new Set(['free-steed', 'paladin-free-steed'])
+const FREE_SMITE_IDS = new Set(['free-smite', 'paladin-free-smite', 'paladins-smite'])
+const FREE_STEED_IDS = new Set(['free-steed', 'paladin-free-steed', 'faithful-steed'])
 
 const CAPSTONE_BY_FEATURE: Record<string, { poolId: string; nameRu: string }> = {
   'holy-nimbus': { poolId: HOLY_NIMBUS_POOL_ID, nameRu: HOLY_NIMBUS_NAME_RU },

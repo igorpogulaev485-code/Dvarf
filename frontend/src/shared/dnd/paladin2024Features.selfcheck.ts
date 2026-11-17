@@ -158,10 +158,25 @@ assert.equal(evaluateLayOnHandsSpend2024({ heal: 0, paladinLevel: 5 }).ok, false
 /* Feature id routing */
 assert.equal(paladin2024UseFeatureId('divine_sense'), 'divine-sense')
 assert.equal(paladin2024UseFeatureId('paladin_free_smite'), 'free-smite')
+assert.equal(paladin2024UseFeatureId('paladins-smite'), 'free-smite')
 assert.equal(paladin2024UseFeatureId('free-steed'), 'free-steed')
+assert.equal(paladin2024UseFeatureId('faithful-steed'), 'free-steed')
 assert.equal(paladin2024UseFeatureId('inspiring_smite'), 'inspiring-smite')
 assert.equal(paladin2024UseFeatureId('spellcasting'), null)
 assert.equal(paladin2024UseFeatureId(null), null)
+
+assert.deepEqual(
+  paladin.paladinBaseChannelOptionsAtLevel2024(2).map((row) => row.feature_id),
+  [],
+)
+assert.deepEqual(
+  paladin.paladinBaseChannelOptionsAtLevel2024(3).map((row) => row.feature_id),
+  ['divine-sense'],
+)
+assert.deepEqual(
+  paladin.paladinBaseChannelOptionsAtLevel2024(9).map((row) => row.feature_id),
+  ['divine-sense', 'abjure-foes'],
+)
 assert.equal(PALADIN_FEATURE_NAMES_BY_ID['abjure-foes'], 'Порицание врагов')
 assert.equal(PALADIN_FEATURE_NAMES_BY_ID.peerless_athlete, 'Непревзойдённый атлет')
 assert.ok(PALADIN_2024_CARD_BUTTONS['lay-on-hands'])

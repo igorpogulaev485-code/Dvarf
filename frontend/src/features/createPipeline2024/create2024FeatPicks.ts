@@ -80,7 +80,7 @@ function toolOptions(ids: readonly string[], items: ItemNameIndex): PickOption[]
   return ids.map((id) => ({ id, label: itemNameRu(id, items) }))
 }
 
-function spellLevel(entry: CatalogEntry): number {
+export function spellLevel(entry: CatalogEntry): number {
   const raw = (entry.data ?? {}).level
   const n = typeof raw === 'number' ? raw : Number(raw ?? -1)
   return Number.isFinite(n) ? n : -1

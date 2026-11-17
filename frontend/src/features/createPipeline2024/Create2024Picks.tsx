@@ -29,10 +29,20 @@ import {
   pruneFeatPicks,
   skillLabelRu,
   speciesPickFields,
+  spellLevel,
+  spellOnClassList,
   type FeatPickContext,
   type FeatPicks,
   type PickField,
 } from './create2024FeatPicks'
+import {
+  BLESSED_WARRIOR_CANTRIP_LIMIT_2024,
+  BLESSED_WARRIOR_ID,
+  BLESSED_WARRIOR_NAME_RU,
+  FIGHTING_STYLE_MIN_LEVEL_2024,
+  FIGHTING_STYLE_NAME_RU,
+  isBlessedWarriorStyleId,
+} from '../../shared/dnd/paladin2024Features'
 import {
   backgroundAsiTrio,
   backgroundNeedsToolPick,
@@ -125,6 +135,25 @@ export function ClassPicks({
   const packs = classStartingPacks(classEntry)
   const setOption = (key: string, value: unknown) =>
     patch({ classOptionPicks: { ...state.classOptionPicks, [key]: value } })
+  const paladinLevel = (() => {
+    if (state.classSlug !== 'paladin') return 0
+    const fromClasses = state.classes
+      .filter((row) => /paladin|паладин/i.test(row.catalog_id || row.name || ''))
+      .reduce((max, row) => Math.max(max, row.level || 0), 0)
+    return Math.max(fromClasses, state.characterLevel || 1)
+  })()
+  const showPaladinFightingStyle = state.classSlug === 'paladin'
+  const paladinStyleOptions = [
+    ...styleFeats.map((f) => ({ id: f.slug, label: f.name_ru })),
+    ...(styleFeats.some((f) => isBlessedWarriorStyleId(f.slug))
+      ? []
+      : [{ id: BLESSED_WARRIOR_ID, label: BLESSED_WARRIOR_NAME_RU }]),
+  ]
+  const blessedCantrips = ids(state.classOptionPicks.blessed_warrior_cantrips)
+  const clericCantripOptions = catalog.spells
+    .filter((spell) => spellLevel(spell) === 0 && spellOnClassList(spell, 'cleric'))
+    .map((spell) => ({ id: spell.slug, label: spell.name_ru }))
+    .sort((a, b) => a.label.localeCompare(b.label, 'ru'))
 
   return (
     <Stack gap={14}>
@@ -184,6 +213,46 @@ export function ClassPicks({
           testIdPrefix="p24-m03-pick-style"
           onChange={(picked) => patch({ fightingStyleSlug: picked[0] ?? null })}
         />
+      ) : null}
+      {showPaladinFightingStyle ? (
+        <>
+          <PickChipGroup
+            label={FIGHTING_STYLE_NAME_RU}
+            hint={
+              paladinLevel >= FIGHTING_STYLE_MIN_LEVEL_2024
+                ? undefined
+                : `с ${FIGHTING_STYLE_MIN_LEVEL_2024} ур.`
+            }
+            options={paladinStyleOptions}
+            selected={state.fightingStyleSlug ? [state.fightingStyleSlug] : []}
+            max={1}
+            multi={false}
+            testIdPrefix="p24-m03-pick-style-paladin"
+            onChange={(picked) => {
+              const next = picked[0] ?? null
+              patch({
+                fightingStyleSlug: next,
+                classOptionPicks: {
+                  ...state.classOptionPicks,
+                  blessed_warrior_cantrips: isBlessedWarriorStyleId(next)
+                    ? blessedCantrips
+                    : [],
+                },
+              })
+            }}
+          />
+          {isBlessedWarriorStyleId(state.fightingStyleSlug) ? (
+            <PickChipGroup
+              label={`${BLESSED_WARRIOR_NAME_RU}: заговоры жреца`}
+              hint={`Выберите ${BLESSED_WARRIOR_CANTRIP_LIMIT_2024}.`}
+              options={clericCantripOptions}
+              selected={blessedCantrips}
+              max={BLESSED_WARRIOR_CANTRIP_LIMIT_2024}
+              testIdPrefix="p24-m03-pick-blessed-cantrip"
+              onChange={(next) => setOption('blessed_warrior_cantrips', next)}
+            />
+          ) : null}
+        </>
       ) : null}
       {state.classSlug === 'cleric' ? (
         <PickChipGroup

@@ -7,7 +7,7 @@ import { applyConcentrationChangeToCompanions } from '../spellCompanions'
 import { SpellFormDialog } from '../SpellFormDialog'
 import { FamiliarPickDialog } from '../FamiliarPickDialog'
 import { CompanionCreaturePickDialog } from '../CompanionCreaturePickDialog'
-import { spendFeatureUse } from '../../../shared/dnd/featureResources'
+import { parseFeatureResourceId, spendFeatureUse } from '../../../shared/dnd/featureResources'
 import { FeatureSelfFormDialog, type FeatureSelfFormDialogResult } from '../FeatureSelfFormDialog'
 import { shapechangerFormLimits } from '../featureForms'
 import { WildShapeDialog } from '../WildShapeDialog'
@@ -32,6 +32,7 @@ import { Sorcerer2024UseDialog } from '../Sorcerer2024UseDialog'
 import { Monk2024UseDialog } from '../Monk2024UseDialog'
 import { Warlock2024UseDialog } from '../Warlock2024UseDialog'
 import { Cleric2024UseDialog, type ClericFeatureRequest } from '../Cleric2024UseDialog'
+import { Paladin2024UseDialog, type PaladinFeatureRequest } from '../Paladin2024UseDialog'
 import { Bard2024UseDialog, type BardFeatureRequest } from '../Bard2024UseDialog'
 import {
   BARD_SUBCLASS_SLUGS_2024,
@@ -74,6 +75,10 @@ import {
   cleric2024UseFeatureId,
   type Cleric2024UseResult,
 } from '../../../shared/dnd/cleric2024Features'
+import {
+  paladin2024UseFeatureId,
+  type Paladin2024UseResult,
+} from '../../../shared/dnd/paladin2024Features'
 import { Druid2024UseDialog, type DruidFeatureRequest, type Druid2024ConfirmResult } from '../Druid2024UseDialog'
 import { druid2024UseFeatureId } from '../../../shared/dnd/druid2024Features'
 import { addFlexibleSpellSlot } from '../../../shared/dnd/spells'
@@ -328,6 +333,35 @@ export function SheetDialogsResources({ model }: { model: SheetModel }) {
     }))
     model.onToast(result.feedLineRu)
     model.setClericFeatureUse(null)
+  }
+
+  const onPaladinUseConfirm = (result: Paladin2024UseResult) => {
+    if (!result.ok) {
+      model.onToast(result.message ?? 'Не удалось применить умение')
+      return
+    }
+    const featureId = paladin2024UseFeatureId(model.paladinFeatureUse?.featureId) ?? 'paladin'
+    const patches = result.patches
+    model.setDraft((prev) => ({
+      ...prev,
+      ...(result.slots ? { spells: { ...prev.spells, slots: result.slots } } : {}),
+      ...(patches?.featurePicks ? { featurePicks: patches.featurePicks } : {}),
+      play: {
+        ...prev.play,
+        resources: result.resources,
+        concentration: patches?.concentrationName
+          ? setConcentration({
+              spellId: `feature:${featureId}`,
+              name: patches.concentrationName,
+            })
+          : patches?.concentrationName === null &&
+              prev.play.concentration?.spell_id === `feature:${featureId}`
+            ? null
+            : prev.play.concentration,
+      },
+    }))
+    model.onToast(result.feedLineRu)
+    model.setPaladinFeatureUse(null)
   }
 
   const onBardUseConfirm = (result: Bard2024UseResult) => {
@@ -724,6 +758,42 @@ export function SheetDialogsResources({ model }: { model: SheetModel }) {
     return level
   })()
 
+  const paladinRequest = model.paladinFeatureUse as PaladinFeatureRequest | null
+  const paladin2024Use =
+    model.rulesEdition === '2024' &&
+    paladinRequest != null &&
+    paladin2024UseFeatureId(paladinRequest.featureId)
+
+  const paladinLevel = (() => {
+    const entry = paladinRequest
+      ? model.draft.classes.find((row) => row.id === paladinRequest.classEntryId)
+      : null
+    if (entry) return Math.max(0, entry.level || 0)
+    let level = 0
+    for (const row of model.draft.classes) {
+      if (resolveClassCasterSlug(row.name) === 'paladin' || /паладин/i.test(row.name)) {
+        level += Math.max(0, row.level || 0)
+      }
+    }
+    return level
+  })()
+
+  const layOnHandsPaladinLevel = (() => {
+    const resource = model.layOnHandsResource as { id?: string } | null
+    const parsed = resource?.id ? parseFeatureResourceId(resource.id) : null
+    if (parsed?.classEntryId) {
+      const entry = model.draft.classes.find((row) => row.id === parsed.classEntryId)
+      if (entry) return Math.max(0, entry.level || 0)
+    }
+    let level = 0
+    for (const row of model.draft.classes) {
+      if (resolveClassCasterSlug(row.name) === 'paladin' || /паладин/i.test(row.name)) {
+        level += Math.max(0, row.level || 0)
+      }
+    }
+    return level
+  })()
+
   const bardRequest = model.bardFeatureUse as BardFeatureRequest | null
   const bard2024Use =
     model.rulesEdition === '2024' &&
@@ -958,6 +1028,14 @@ export function SheetDialogsResources({ model }: { model: SheetModel }) {
         onClericFeatureUse={(request) => {
           model.setChannelDivinitySpendId(null)
           model.setClericFeatureUse(request)
+        }}
+        onPaladinFeatureUse={(request) => {
+          model.setChannelDivinitySpendId(null)
+          if (paladin2024UseFeatureId(request.featureId) === 'lay-on-hands') {
+            if (request.resourceId) model.setLayOnHandsSpendId(request.resourceId)
+            return
+          }
+          model.setPaladinFeatureUse(request)
         }}
         onSpend={(label) => {
           if (!model.channelDivinitySpendId) return
@@ -1220,6 +1298,21 @@ export function SheetDialogsResources({ model }: { model: SheetModel }) {
         />
       ) : null}
 
+      {paladin2024Use ? (
+        <Paladin2024UseDialog
+          key={`${paladinRequest?.featureId}:${paladinRequest?.classEntryId}`}
+          open
+          request={paladinRequest}
+          resources={model.draft.play.resources}
+          slots={model.draft.spells.slots}
+          paladinLevel={paladinLevel}
+          chaMod={abilityModifier(model.draft.abilities.cha)}
+          proficiencyBonus={model.proficiencyBonus ?? 2}
+          onClose={() => model.setPaladinFeatureUse(null)}
+          onConfirm={onPaladinUseConfirm}
+        />
+      ) : null}
+
       {bard2024Use ? (
         <Bard2024UseDialog
           key={`${bardRequest?.featureId}:${bardRequest?.classEntryId}`}
@@ -1458,6 +1551,8 @@ export function SheetDialogsResources({ model }: { model: SheetModel }) {
       <LayOnHandsSpendDialog
         open={model.layOnHandsSpendId != null}
         resource={model.layOnHandsResource}
+        rulesEdition={model.rulesEdition === '2024' ? '2024' : '2014'}
+        paladinLevel={layOnHandsPaladinLevel}
         onSpend={(label, cost) => {
           if (!model.layOnHandsSpendId) return
           model.setDraft((prev) => ({

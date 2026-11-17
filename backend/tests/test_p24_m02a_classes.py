@@ -236,7 +236,7 @@ def test_multiclass_spell_slots():
     assert by_slug["cleric"].prepared_spells == 6
     assert by_slug["wizard"].prepared_spells == 5
 
-    # Half + full: paladin 4 (2) + bard 3 (3) = caster 5
+    # Half_up + full: paladin 4 (2) + bard 3 (3) = caster 5
     snap2 = e24.compute_progression(
         [
             {"slug": "paladin", "level": 4, "subclass_slug": "paladin__oath-of-devotion"},
@@ -245,6 +245,8 @@ def test_multiclass_spell_slots():
     )
     assert e24.multiclass_caster_level([("paladin", 4), ("bard", 3)]) == 5
     assert snap2.multiclass_slots["3"] == 2
+    # Odd half_up: paladin 5 → 3
+    assert e24.multiclass_caster_level([("paladin", 5)]) == 3
 
 
 def test_multiclass_proficiencies_table():

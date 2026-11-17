@@ -302,7 +302,7 @@ export function LevelingForks2024({
     const masteryRule = WEAPON_MASTERY_CLASS_RULES[slug]
     for (let lv = 1; lv <= row.level; lv += 1) {
       if (lv === 1 && isPrimary) {
-        if (slug === 'fighter' || slug === 'paladin' || slug === 'ranger') {
+        if (slug === 'fighter') {
           out.push({
             level: 1,
             kind: 'fighting_style',
@@ -318,10 +318,21 @@ export function LevelingForks2024({
           out.push({
             level: 1,
             kind: 'weapon_mastery',
-            label: `Мастерство оружия (${need})`,
+            label: `Оружейное мастерство (${need})`,
             detail: names,
           })
         }
+      }
+      if (lv === 2 && (slug === 'paladin' || slug === 'ranger')) {
+        out.push({
+          level: 2,
+          kind: 'fighting_style',
+          label: 'Боевой стиль',
+          detail:
+            isPrimary && fightingStyleNameRu
+              ? fightingStyleNameRu
+              : 'Выбран на шаге «Класс» или при повышении',
+        })
       }
       if (lv === subGate) {
         out.push({

@@ -304,11 +304,12 @@ export function ClassOptions2024CombatPanel({
       ) : null}
 
       {paladinLv >= 3 ? (
-        <div data-testid="divine-sense-panel">
+        <div data-testid="divine-sense-panel" data-feature-id="divine-sense">
           <Text as="h3">Проведение · Божественное чувство</Text>
           <button
             type="button"
             className="sheet-chip"
+            data-feature-id="divine-sense"
             onClick={() => {
               const result = resolveDivineSenseChannel2024(channelRemaining)
               if (!result.ok) {
