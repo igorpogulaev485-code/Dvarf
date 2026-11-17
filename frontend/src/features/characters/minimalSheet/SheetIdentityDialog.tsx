@@ -427,12 +427,17 @@ export function SheetIdentityDialog({ model }: { model: SheetModel }) {
                                 )
                                   .filter((feature) => feature.classEntryId === row.id)
                                   .map((feature) => ({ id: feature.id, level: feature.level }))
-                                const nextPicks = clearFeaturePicksAboveClassLevel({
+                                const clearedPicks = clearFeaturePicksAboveClassLevel({
                                   featurePicks: featBase.featurePicks,
                                   classEntryId: row.id,
                                   features: packFeatures,
                                   newClassLevel: newLevel,
                                 })
+                                // Expertise 9→8: drop expertise_9 and auto-trim a broken 4-pick L2 row to 2.
+                                const nextPicks =
+                                  edition2024 && resolveClassSlug2024(row) === 'bard'
+                                    ? trimBard2024PicksOnLevelDown(clearedPicks, row.id, newLevel)
+                                    : clearedPicks
                                 const nextUnlocked = unlockedForLevelDown(
                                   model,
                                   edition2024,

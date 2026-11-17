@@ -382,6 +382,20 @@ const bi4 = snap4.desiredResources.find((r) => r.id.includes(':bardic_inspiratio
 assert.ok(bi4)
 assert.equal(bi4.reset, 'long')
 assert.equal(bi4.max, 4)
+const biFeat4 = snap4.features.find((f) => f.id === 'bardic_inspiration')
+assert.ok(biFeat4)
+assert.ok(
+  (biFeat4.summary_ru || '').length > (biFeat4.name_ru || '').length,
+  'BI resource card uses catalog summary, not name-only',
+)
+const glam6 = bardSnap(6, 'bard__glamour')
+const beguiling = glam6.features.find((f) => f.id === 'beguiling_magic')
+assert.ok(beguiling)
+assert.ok(
+  (beguiling.summary_ru || '').includes('Очарование') ||
+    (beguiling.summary_ru || '').length > (beguiling.name_ru || '').length,
+  'subclass pool card uses subclass feature summary',
+)
 const snap5 = bardSnap(5)
 const bi5 = snap5.desiredResources.find((r) => r.id.includes(':bardic_inspiration:'))
 assert.ok(bi5)

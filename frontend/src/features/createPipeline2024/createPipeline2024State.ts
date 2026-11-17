@@ -18,6 +18,10 @@ import {
   knownFormsBudget2024,
   LAND_TERRAINS_2024,
 } from '../../shared/dnd/druid2024Features'
+import {
+  MAGICAL_SECRETS_MIN_LEVEL_2024,
+  magicalSecretsOffListCap2024,
+} from '../../shared/dnd/bard2024Features'
 import { readKnownForms } from '../characters/knownForms'
 import type { CatalogEntry } from '../../shared/api/catalog'
 import {
@@ -35,6 +39,7 @@ import {
   originFeatSlugOf,
   pickFieldsMissing,
   speciesPickFields,
+  spellOnClassList,
   type FeatPickContext,
 } from './create2024FeatPicks'
 import {
@@ -644,6 +649,35 @@ function levelingIssues(state: Create2024State, ctx: StepIssueCtx): string[] {
         issues.push(
           `Подготовка: нельзя брать круг выше ${maxCircle} (на ур. ${classLevel} нет таких ячеек)`,
         )
+      }
+      if (state.classSlug === 'bard') {
+        const spells = ctx.catalog?.spells ?? []
+        const offList = state.preparedSpellIds.filter((id) => {
+          const entry = spells.find((row) => row.slug === id || row.id === id)
+          if (!entry) return false
+          return !spellOnClassList(entry, 'bard')
+        })
+        const cap = magicalSecretsOffListCap2024(classLevel)
+        if (classLevel < MAGICAL_SECRETS_MIN_LEVEL_2024 && offList.length) {
+          issues.push(
+            `Магические тайны с ${MAGICAL_SECRETS_MIN_LEVEL_2024} ур.: пока только список Барда (чужих ${offList.length})`,
+          )
+        } else if (offList.length > cap) {
+          issues.push(`Магические тайны: вне списка Барда ${offList.length}/${cap}`)
+        }
+        for (const id of offList) {
+          const entry = spells.find((row) => row.slug === id || row.id === id)
+          if (!entry) continue
+          const okExtra =
+            classLevel >= MAGICAL_SECRETS_MIN_LEVEL_2024 &&
+            (spellOnClassList(entry, 'wizard') ||
+              spellOnClassList(entry, 'druid') ||
+              spellOnClassList(entry, 'cleric'))
+          if (!okExtra) {
+            issues.push(`Подготовка: ${entry.name_ru || id} не из списков Магических тайн`)
+            break
+          }
+        }
       }
       if (
         state.preparedSpellIds.length < sc.prepared_spells ||

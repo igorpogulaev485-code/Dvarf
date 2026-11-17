@@ -1,12 +1,16 @@
 /**
  * 2024 bard prepared list on the sheet: new picks follow the table column (Magical Secrets lists
  * from level 10), but only ONE prepared spell may be replaced per bard level gained.
- * Every sheet edit of the spell list goes through `guardBardSpellsChange2024`.
+ * Same one-replace rule for cantrips. Every sheet edit of the spell list goes through
+ * `guardBardSpellsChange2024`.
  */
 
 import {
+  BARD_CANTRIP_SWAP_PICK_ID_2024,
   BARD_PREPARED_SWAP_PICK_ID_2024,
+  bardCantrips2024,
   bardPreparedSpells2024,
+  evaluateBardCantripChange2024,
   evaluateBardPreparedChange2024,
 } from '../../shared/dnd/bard2024Features'
 import { resolveClassFeatureSlug } from '../../shared/dnd/classFeatures'
@@ -37,22 +41,42 @@ export function guardBardSpellsChange2024(input: {
   const bard = active.find((row) => resolveClassFeatureSlug(row.name) === 'bard')
   if (!bard) return pass
 
-  const swapRaw = getFeaturePick(input.featurePicks, bard.id, BARD_PREPARED_SWAP_PICK_ID_2024)
-  const verdict = evaluateBardPreparedChange2024({
+  const defaultSlug = active.length === 1 ? 'bard' : null
+  let picks = input.featurePicks
+
+  const prepSwapRaw = getFeaturePick(picks, bard.id, BARD_PREPARED_SWAP_PICK_ID_2024)
+  const prepVerdict = evaluateBardPreparedChange2024({
     prev: input.prevSpells.known,
     next: input.nextSpells.known,
     bardLevel: bard.level,
     maxPrepared: bardPreparedSpells2024(bard.level),
-    swapRaw,
+    swapRaw: prepSwapRaw,
     isOffList: isOffBardList2024,
-    defaultClassSlug: active.length === 1 ? 'bard' : null,
+    defaultClassSlug: defaultSlug,
   })
-  if (!verdict.ok) {
-    return { spells: input.prevSpells, featurePicks: input.featurePicks, blockedRu: verdict.reasonRu }
+  if (!prepVerdict.ok) {
+    return { spells: input.prevSpells, featurePicks: input.featurePicks, blockedRu: prepVerdict.reasonRu }
   }
-  if (verdict.swapRaw === swapRaw) return pass
-  return {
-    ...pass,
-    featurePicks: setFeaturePick(input.featurePicks, bard.id, BARD_PREPARED_SWAP_PICK_ID_2024, verdict.swapRaw),
+  if (prepVerdict.swapRaw !== prepSwapRaw) {
+    picks = setFeaturePick(picks, bard.id, BARD_PREPARED_SWAP_PICK_ID_2024, prepVerdict.swapRaw)
   }
+
+  const cantripSwapRaw = getFeaturePick(picks, bard.id, BARD_CANTRIP_SWAP_PICK_ID_2024)
+  const cantripVerdict = evaluateBardCantripChange2024({
+    prev: input.prevSpells.known,
+    next: input.nextSpells.known,
+    bardLevel: bard.level,
+    maxCantrips: bardCantrips2024(bard.level),
+    swapRaw: cantripSwapRaw,
+    defaultClassSlug: defaultSlug,
+  })
+  if (!cantripVerdict.ok) {
+    return { spells: input.prevSpells, featurePicks: input.featurePicks, blockedRu: cantripVerdict.reasonRu }
+  }
+  if (cantripVerdict.swapRaw !== cantripSwapRaw) {
+    picks = setFeaturePick(picks, bard.id, BARD_CANTRIP_SWAP_PICK_ID_2024, cantripVerdict.swapRaw)
+  }
+
+  if (picks === input.featurePicks) return pass
+  return { ...pass, featurePicks: picks }
 }
