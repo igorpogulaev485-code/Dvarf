@@ -1027,6 +1027,8 @@ export function CreateCharacter2024Page({
       classSpellcastingAtLevel(classEntry, wizardLevel, {
         divineOrder:
           classSlug === 'cleric' ? String(state.classOptionPicks.divine_order || '') : null,
+        primalOrder:
+          classSlug === 'druid' ? String(state.classOptionPicks.primal_order || '') : null,
       }) ?? classL1Spellcasting(classEntry)
     const maxBookCircle = Math.max(
       1,
@@ -1205,6 +1207,15 @@ export function CreateCharacter2024Page({
             }
             onBlessedStrikesChange={(pick) =>
               patch({ classOptionPicks: { ...state.classOptionPicks, blessed_strikes: pick } })
+            }
+            elementalFuryPick={
+              state.classOptionPicks.elemental_fury === 'potent_spellcasting' ||
+              state.classOptionPicks.elemental_fury === 'primal_strike'
+                ? state.classOptionPicks.elemental_fury
+                : null
+            }
+            onElementalFuryChange={(pick) =>
+              patch({ classOptionPicks: { ...state.classOptionPicks, elemental_fury: pick } })
             }
             onOpenSpells={() => {
               setSpellTab(wizardBook ? 'book' : 'cantrips')

@@ -38,6 +38,15 @@ import {
   POTENT_SPELLCASTING_NAME_RU,
   type BlessedStrikesPick2024,
 } from '../../shared/dnd/cleric2024Features'
+import {
+  ELEMENTAL_FURY_MIN_LEVEL_2024,
+  ELEMENTAL_FURY_NAME_RU,
+  ELEMENTAL_FURY_POTENT_SPELLCASTING,
+  ELEMENTAL_FURY_PRIMAL_STRIKE,
+  POTENT_SPELLCASTING_NAME_RU as DRUID_POTENT_SPELLCASTING_NAME_RU,
+  PRIMAL_STRIKE_NAME_RU,
+  type ElementalFuryPick2024,
+} from '../../shared/dnd/druid2024Features'
 import { hitDieForClass, type AbilityScores } from '../../shared/dnd/multiclassRules'
 import { hitDieSides, type HitDie } from '../../shared/dnd/hitDice'
 import { WEAPON_MASTERY_CLASS_RULES } from '../../shared/dnd/weaponMastery'
@@ -88,6 +97,9 @@ export type LevelingForks2024Props = {
   /** Cleric 2024 Blessed Strikes pick (required from cleric level 7). */
   blessedStrikesPick?: BlessedStrikesPick2024 | null
   onBlessedStrikesChange?: (pick: BlessedStrikesPick2024) => void
+  /** Druid 2024 Ярость стихий pick (required from druid level 7). */
+  elementalFuryPick?: ElementalFuryPick2024 | null
+  onElementalFuryChange?: (pick: ElementalFuryPick2024) => void
 }
 
 function averageFace(die: HitDie): number {
@@ -121,6 +133,8 @@ export function LevelingForks2024({
   onOpenFork,
   blessedStrikesPick = null,
   onBlessedStrikesChange,
+  elementalFuryPick = null,
+  onElementalFuryChange,
 }: LevelingForks2024Props) {
   const [mcOpen, setMcOpen] = useState(false)
   const [cascadeWarn, setCascadeWarn] = useState<{
@@ -700,6 +714,35 @@ export function LevelingForks2024({
                     onChange={(pick) => onBlessedStrikesChange?.(pick)}
                   />
                   {!blessedStrikesPick ? (
+                    <Text tone="muted">Не выбрано — выберите, чтобы продолжить.</Text>
+                  ) : null}
+                </Stack>
+              </div>
+            ) : null}
+            {slug === 'druid' && isPrimary && row.level >= ELEMENTAL_FURY_MIN_LEVEL_2024 ? (
+              <div data-testid="p24-m02-elemental-fury-pick">
+                <Stack gap={8}>
+                  <Text as="h3" className="create-pipeline__section-title">
+                    {ELEMENTAL_FURY_NAME_RU} (с {ELEMENTAL_FURY_MIN_LEVEL_2024} ур.) — обязательный выбор
+                  </Text>
+                  <SegmentedControl<ElementalFuryPick2024>
+                    aria-label={ELEMENTAL_FURY_NAME_RU}
+                    options={[
+                      {
+                        id: ELEMENTAL_FURY_POTENT_SPELLCASTING,
+                        label: DRUID_POTENT_SPELLCASTING_NAME_RU,
+                        testId: `p24-m02-elemental-fury-${ELEMENTAL_FURY_POTENT_SPELLCASTING}`,
+                      },
+                      {
+                        id: ELEMENTAL_FURY_PRIMAL_STRIKE,
+                        label: PRIMAL_STRIKE_NAME_RU,
+                        testId: `p24-m02-elemental-fury-${ELEMENTAL_FURY_PRIMAL_STRIKE}`,
+                      },
+                    ]}
+                    value={(elementalFuryPick ?? '') as ElementalFuryPick2024}
+                    onChange={(pick) => onElementalFuryChange?.(pick)}
+                  />
+                  {!elementalFuryPick ? (
                     <Text tone="muted">Не выбрано — выберите, чтобы продолжить.</Text>
                   ) : null}
                 </Stack>

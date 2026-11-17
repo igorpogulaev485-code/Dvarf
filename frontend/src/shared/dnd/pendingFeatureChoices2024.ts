@@ -19,6 +19,10 @@ import {
   BLESSED_STRIKES_MIN_LEVEL_2024,
   blessedStrikesChoice2024,
 } from './cleric2024Features'
+import {
+  ELEMENTAL_FURY_MIN_LEVEL_2024,
+  elementalFuryChoice2024,
+} from './druid2024Features'
 import { metamagicPickGainAtLevel2024 } from './sorcerer2024Features'
 import { invocationPickGainAtLevel2024 } from './warlock2024Features'
 import { getFeatureChoicePick, type FeaturePicksState } from './featurePicks'
@@ -97,6 +101,12 @@ export const SCHOLAR_FEATURE_ID_2024 = 'scholar'
 export const SCHOLAR_LEVEL_2024 = 2
 
 export const BLESSED_STRIKES_FEATURE_ID_2024 = 'blessed_strikes'
+
+export const ELEMENTAL_FURY_FEATURE_ID_2024 = 'elemental_fury'
+
+export function elementalFuryStepId2024(classEntryId: string): string {
+  return `feature_choice:${classEntryId}:${ELEMENTAL_FURY_FEATURE_ID_2024}`
+}
 
 export function blessedStrikesStepId2024(classEntryId: string): string {
   return `feature_choice:${classEntryId}:${BLESSED_STRIKES_FEATURE_ID_2024}`
@@ -231,6 +241,32 @@ export function buildPendingWizardSteps2024(input: PendingWizardInput2024): Guid
         featureNameRu: blessedStrikesChoice2024.label_ru,
         featureLevel: BLESSED_STRIKES_MIN_LEVEL_2024,
         choice: blessedStrikesChoice2024,
+      })
+    }
+  }
+
+  if (slug === 'druid' && level >= ELEMENTAL_FURY_MIN_LEVEL_2024) {
+    const picked = input.featurePicks
+      ? Boolean(
+          getFeatureChoicePick(
+            input.featurePicks,
+            input.classEntryId,
+            ELEMENTAL_FURY_FEATURE_ID_2024,
+            elementalFuryChoice2024.id,
+          ),
+        )
+      : false
+    if (!picked) {
+      steps.push({
+        id: elementalFuryStepId2024(input.classEntryId),
+        kind: 'feature_choice',
+        classEntryId: input.classEntryId,
+        className: input.className,
+        classLevel: level,
+        featureId: ELEMENTAL_FURY_FEATURE_ID_2024,
+        featureNameRu: elementalFuryChoice2024.label_ru,
+        featureLevel: ELEMENTAL_FURY_MIN_LEVEL_2024,
+        choice: elementalFuryChoice2024,
       })
     }
   }

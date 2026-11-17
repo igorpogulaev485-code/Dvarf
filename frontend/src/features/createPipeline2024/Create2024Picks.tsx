@@ -190,7 +190,7 @@ export function ClassPicks({
       ) : null}
       {state.classSlug === 'druid' ? (
         <PickChipGroup
-          label="Изначальный указ"
+          label="Природный орден"
           options={PRIMAL_ORDER_OPTIONS.map((row) => ({ ...row }))}
           selected={state.classOptionPicks.primal_order ? [String(state.classOptionPicks.primal_order)] : []}
           max={1}

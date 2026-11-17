@@ -79,8 +79,8 @@ export const DIVINE_ORDER_OPTIONS = [
 ] as const
 
 export const PRIMAL_ORDER_OPTIONS = [
-  { id: 'magician', label: 'Маг', rest: 'Лишний заговор и бонус к Природе и Магии' },
-  { id: 'warden', label: 'Страж', rest: 'Средние доспехи и воинское оружие' },
+  { id: 'magician', label: 'Ведун', rest: 'Лишний заговор друида; бонус мод. Мудрости (мин. +1) к Природе и к Магии — к обоим навыкам' },
+  { id: 'warden', label: 'Страж', rest: 'Воинское оружие и средние доспехи (без тяжёлых доспехов и мастерства оружия)' },
 ] as const
 
 export const GENDER_NONE_RU = 'Не указан'

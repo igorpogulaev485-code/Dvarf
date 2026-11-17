@@ -13,11 +13,25 @@ export type ClassOptions2024State = {
   divine_order?: 'protector' | 'thaumaturge' | null
   /** Cleric Blessed Strikes (2024, L7+). */
   blessed_strikes?: 'divine_strike' | 'potent_spellcasting' | null
+  /** Druid Primal Order (2024): Ведун / Страж. */
+  primal_order?: 'magician' | 'warden' | null
+  /** Druid Elemental Fury (2024, L7+). */
+  elemental_fury?: 'potent_spellcasting' | 'primal_strike' | null
 }
 
 function readBlessedStrikes(raw: unknown): 'divine_strike' | 'potent_spellcasting' | null {
   const key = String(raw ?? '').trim().toLowerCase()
   return key === 'divine_strike' || key === 'potent_spellcasting' ? key : null
+}
+
+function readPrimalOrder(raw: unknown): 'magician' | 'warden' | null {
+  const key = String(raw ?? '').trim().toLowerCase()
+  return key === 'magician' || key === 'warden' ? key : null
+}
+
+function readElementalFury(raw: unknown): 'potent_spellcasting' | 'primal_strike' | null {
+  const key = String(raw ?? '').trim().toLowerCase()
+  return key === 'potent_spellcasting' || key === 'primal_strike' ? key : null
 }
 
 function readDivineOrder(raw: unknown): 'protector' | 'thaumaturge' | null {
@@ -33,6 +47,8 @@ export function emptyClassOptions2024(): ClassOptions2024State {
     rage: { active: false, rounds_extended: 0, max_minutes: 10 },
     divine_order: null,
     blessed_strikes: null,
+    primal_order: null,
+    elemental_fury: null,
   }
 }
 
@@ -59,6 +75,8 @@ export function readClassOptions2024(raw: unknown): ClassOptions2024State {
     },
     divine_order: readDivineOrder(row.divine_order),
     blessed_strikes: readBlessedStrikes(row.blessed_strikes),
+    primal_order: readPrimalOrder(row.primal_order),
+    elemental_fury: readElementalFury(row.elemental_fury),
   }
 }
 
@@ -74,6 +92,8 @@ export function classOptions2024ToSheet(state: ClassOptions2024State): Record<st
     },
     ...(state.divine_order ? { divine_order: state.divine_order } : {}),
     ...(state.blessed_strikes ? { blessed_strikes: state.blessed_strikes } : {}),
+    ...(state.primal_order ? { primal_order: state.primal_order } : {}),
+    ...(state.elemental_fury ? { elemental_fury: state.elemental_fury } : {}),
   }
 }
 

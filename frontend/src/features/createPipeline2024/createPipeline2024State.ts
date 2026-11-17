@@ -427,7 +427,7 @@ function classIssues(state: Create2024State, ctx: StepIssueCtx): string[] {
   }
   if (state.classSlug === 'druid') {
     const order = String(state.classOptionPicks.primal_order || '')
-    if (order !== 'magician' && order !== 'warden') issues.push('Выберите Изначальный указ')
+    if (order !== 'magician' && order !== 'warden') issues.push('Выберите Природный орден')
   }
   if (state.classSlug === 'rogue') {
     const expertise = Array.isArray(state.classOptionPicks.expertise)
@@ -498,12 +498,29 @@ function levelingIssues(state: Create2024State, ctx: StepIssueCtx): string[] {
       issues.push('Выберите Благословленные удары (с 7 ур. жреца)')
     }
   }
+  if (state.classSlug === 'druid') {
+    const primary =
+      state.classes.find((row) => row.id === state.primaryClassEntryId) ?? state.classes[0]
+    const druidLevel = Math.max(1, primary?.level ?? state.characterLevel ?? 1)
+    const pick = String(state.classOptionPicks.elemental_fury || '')
+    if (
+      druidLevel >= 7 &&
+      pick !== 'potent_spellcasting' &&
+      pick !== 'primal_strike'
+    ) {
+      issues.push('Выберите Ярость стихий (с 7 ур. друида)')
+    }
+  }
   const divineOrder =
     ctx.classEntry?.slug === 'cleric'
       ? String(state.classOptionPicks.divine_order || '')
       : null
+  const primalOrder =
+    ctx.classEntry?.slug === 'druid'
+      ? String(state.classOptionPicks.primal_order || '')
+      : null
   const sc =
-    classSpellcastingAtLevel(ctx.classEntry, classLevel, { divineOrder }) ??
+    classSpellcastingAtLevel(ctx.classEntry, classLevel, { divineOrder, primalOrder }) ??
     classL1Spellcasting(ctx.classEntry)
   const bookNeed = WIZARD_BOOK_SPELLS_AT_L1 + Math.max(0, wizardLevel - 1) * 2
   if (sc) {

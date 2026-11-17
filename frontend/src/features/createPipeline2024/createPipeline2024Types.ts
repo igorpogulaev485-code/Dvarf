@@ -51,6 +51,10 @@ export type Create2024State = {
   classOptionPicks: Record<string, unknown> & {
     /** Cleric 2024 L7+ Blessed Strikes pick; written to feature_picks by the create endpoint. */
     blessed_strikes?: 'divine_strike' | 'potent_spellcasting' | null
+    /** Druid 2024 Природный орден: Ведун (magician) or Страж (warden). */
+    primal_order?: 'magician' | 'warden' | null
+    /** Druid 2024 L7+ Ярость стихий pick; written to feature_picks by the create endpoint. */
+    elemental_fury?: 'potent_spellcasting' | 'primal_strike' | null
   }
   /** Class tool proficiencies the player chooses (bard instruments, monk, artificer). */
   classToolIds: string[]
@@ -204,7 +208,7 @@ export function classL1Spellcasting(
 export function classSpellcastingAtLevel(
   classEntry: CatalogEntry | null | undefined,
   level: number,
-  opts?: { divineOrder?: string | null },
+  opts?: { divineOrder?: string | null; primalOrder?: string | null },
 ): ClassSpellcastingBudget | null {
   const lv = Math.max(1, Math.min(20, Math.floor(level) || 1))
   const row = classLevelRows(classEntry).find((item) => item?.level === lv)
@@ -228,6 +232,13 @@ export function classSpellcastingAtLevel(
   if (
     classEntry?.slug === 'cleric' &&
     String(opts?.divineOrder || '').toLowerCase() === 'thaumaturge'
+  ) {
+    cantrips += 1
+  }
+  // Druid 2024 Magician (Ведун): +1 cantrip beyond the table column.
+  if (
+    classEntry?.slug === 'druid' &&
+    String(opts?.primalOrder || '').toLowerCase() === 'magician'
   ) {
     cantrips += 1
   }
