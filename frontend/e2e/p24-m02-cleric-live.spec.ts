@@ -1380,7 +1380,8 @@ test.describe('P24-M02 cleric — Доправка 1 (PR #502) live evidence', (
     const sword = page.locator('[class*="attack"]').filter({ hasText: /Длинный меч/ }).first()
     await expect(sword).toBeVisible({ timeout: 10_000 })
     await expect(sword.locator('button').filter({ hasText: /^\+\d+$/ }).first()).toHaveText(`+${expected}`)
-    await expect(sword).toContainText(/1к8\+1 slashing/)
+    await expect(sword).toContainText(/1к8\+1 рубящий/)
+    await expect(sword).not.toContainText(/\bslashing\b/i)
     await expect(sword).toContainText(/в руках/)
     await sword.scrollIntoViewIfNeeded()
     await page.mouse.move(2, 2)
@@ -1435,4 +1436,54 @@ test.describe('P24-M02 cleric — Доправка 1 (PR #502) live evidence', (
       expect(store.unmatched).toEqual([])
     })
   }
+})
+
+const FIX2 = path.join(ARTIFACTS, 'fixup2')
+
+test.beforeAll(() => {
+  fs.mkdirSync(FIX2, { recursive: true })
+})
+
+async function f2shot(page: Page, name: string, project: string) {
+  await shot(page, FIX2, `fixup2-${name}`, project)
+}
+
+async function f2el(target: Locator, name: string, project: string) {
+  await target.scrollIntoViewIfNeeded()
+  await target.page().mouse.move(2, 2)
+  await target.page().waitForTimeout(350)
+  await target.screenshot({ path: path.join(FIX2, `fixup2-${name}-${project}.png`) })
+}
+
+test.describe('P24-M02 cleric — Доправка 2 (PR #502) damage type RU', () => {
+  test.setTimeout(300_000)
+  test.use({ actionTimeout: 15_000 })
+
+  test('fixup2 protector longsword damage type is рубящий (not slashing)', async ({ page }, testInfo) => {
+    const project = projectOf(testInfo)
+    const { store } = await createAndOpenFeatures(page, project, {
+      name: 'Защитник тип урона',
+      level: 5,
+      order: 'protector',
+      subclassSlug: SUBCLASS.life,
+    })
+    await addGearFromPicker(page, project, 'Длинный меч', /^Длинный меч/)
+    const swordCard = await openInventoryItem(page, /Длинный меч/)
+    const equip = swordCard.locator('.inventory-equip').first()
+    if (!(await equip.evaluate((el) => el.classList.contains('is-on')))) await equip.click()
+    await page.waitForTimeout(400)
+    await openCombatScene(page, project)
+    const sword = page.locator('[class*="attack"]').filter({ hasText: /Длинный меч/ }).first()
+    await expect(sword).toBeVisible({ timeout: 10_000 })
+    // Versatile alone → 1к10; with shield (fixup1-7) → 1к8. Type must be RU either way.
+    await expect(sword).toContainText(/1к(?:8|10)\+1 рубящий/)
+    await expect(sword).not.toContainText(/\bslashing\b/i)
+    await expect(sword).not.toContainText(/\bpiercing\b/i)
+    await expect(sword).not.toContainText(/\bbludgeoning\b/i)
+    await sword.scrollIntoViewIfNeeded()
+    await page.mouse.move(2, 2)
+    await f2shot(page, 'protector-martial-рубящий', project)
+    await f2el(sword, 'protector-martial-рубящий-card', project)
+    expect(store.unmatched).toEqual([])
+  })
 })

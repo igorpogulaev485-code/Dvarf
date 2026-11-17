@@ -597,4 +597,52 @@ test.describe('P24-M02 2014 regression (cleric)', () => {
     await expect(page.getByText(/Священное пламя|Лечение ран/).first()).toBeVisible({ timeout: 15_000 })
     await shot(page, ARTIFACTS_2014, `${tag}-sheet-2014-cleric-spells`, project)
   })
+
+  test('2014 sheet — атаки: тип урона по-русски (не slashing)', async ({ page }, testInfo) => {
+    const project = projectOf(testInfo)
+    const tag = SHOT_TAG
+    const character = cleric2014SheetCharacter()
+    const sheet = character.sheet as Record<string, unknown>
+    // Same shape as 2014 catalog/presets (Russian). Compare: 2024 weapons_srd uses English keys.
+    sheet.weapons = [
+      {
+        id: 'w-mace',
+        name: 'Булава',
+        ability: 'str',
+        is_proficient: true,
+        damage: '1к6',
+        damage_type: 'дробящий',
+        held: true,
+        source_kind: 'weapon',
+      },
+      {
+        id: 'w-longsword',
+        name: 'Длинный меч',
+        ability: 'str',
+        is_proficient: true,
+        damage: '1к8',
+        damage_type: 'рубящий',
+        held: true,
+        source_kind: 'weapon',
+      },
+    ]
+    await mock2014Sheet(page, character)
+    await page.goto(`/characters/${character.id}`)
+    await expect(page.locator('#root')).not.toBeEmpty({ timeout: 20_000 })
+    await dismissWelcome(page)
+    if (isPhone(project)) await page.getByText('Бой', { exact: true }).last().click()
+    else await page.getByRole('button', { name: /^Бой$/ }).first().click()
+    await page.waitForTimeout(500)
+    const mace = page.locator('[class*="attack"]').filter({ hasText: /Булава/ }).first()
+    const sword = page.locator('[class*="attack"]').filter({ hasText: /Длинный меч/ }).first()
+    await expect(mace).toBeVisible({ timeout: 15_000 })
+    await expect(sword).toBeVisible({ timeout: 15_000 })
+    await expect(mace).toContainText(/дробящий/i)
+    await expect(sword).toContainText(/рубящий/i)
+    await expect(mace).not.toContainText(/\b(slashing|bludgeoning|piercing)\b/i)
+    await expect(sword).not.toContainText(/\b(slashing|bludgeoning|piercing)\b/i)
+    await sword.scrollIntoViewIfNeeded()
+    await page.mouse.move(2, 2)
+    await shot(page, ARTIFACTS_2014, `${tag}-sheet-2014-cleric-attacks-damage-type`, project)
+  })
 })

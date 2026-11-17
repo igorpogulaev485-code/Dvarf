@@ -230,6 +230,7 @@ import {
   divineStrikeDice2024,
   readBlessedStrikes2024,
 } from '../../shared/dnd/cleric2024Features'
+import { damageTypeDisplayRu } from '../../shared/dnd/damageTypes'
 import { DivineSmiteCombatBlock } from './DivineSmiteCombatBlock'
 import {
   decideSmiteSlotClick,
@@ -2713,7 +2714,13 @@ export function PlayDeskAttacksCompact({
                     !isKitImprovisedAttack(attack)
                   ? tavernBrawlerUnarmedDamage(rawBaseDamage || '1к4')
                   : rawBaseDamage
-            const shownType = face.damageType || attack.damage_type
+            const rawType = face.damageType || attack.damage_type
+            // 2024 catalog weapons store English keys (slashing/…); sheet shows Russian.
+            // 2014 catalog/presets already store Russian — leave display as-is (separate fix if needed).
+            const shownType =
+              String(rulesEdition ?? '2014').trim() === '2024'
+                ? damageTypeDisplayRu(rawType)
+                : rawType
             const mod = abilityModifier(abilities[attackAbility])
             const gear =
               attack.inventory_item_id && attack.held && requirementOk
