@@ -15,6 +15,7 @@ import type {
 import type { ClassLevelEntry } from './classLevels'
 import type { DesiredFeatureResource } from './featureResources'
 import type { SheetResource } from './rest'
+import { expertise9Choice2024, expertiseChoice2024 } from './bard2024Features'
 import {
   blessedStrikesChoice2024,
   clericBaseChannelOptionsAtLevel2024,
@@ -811,6 +812,8 @@ export function computeProgression2024(input: {
           scaleValue: null,
           resourceUses: null,
           ...(fid === 'scholar' ? { choice: SCHOLAR_CHOICE_2024 } : {}),
+          ...(cls.slug === 'bard' && fid === 'expertise' ? { choice: expertiseChoice2024 } : {}),
+          ...(cls.slug === 'bard' && fid === 'expertise_9' ? { choice: expertise9Choice2024 } : {}),
           ...(fid === 'blessed_strikes' && cls.slug === 'cleric'
             ? { choice: blessedStrikesChoice2024 }
             : {}),

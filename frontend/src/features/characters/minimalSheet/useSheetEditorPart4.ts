@@ -14,6 +14,7 @@ import type { SorcererFeatureRequest } from '../SorcererFeatureUseDialog'
 import type { MonkFeatureRequest } from '../Monk2024UseDialog'
 import type { WarlockFeatureRequest } from '../Warlock2024UseDialog'
 import type { ClericFeatureRequest } from '../Cleric2024UseDialog'
+import type { BardFeatureRequest } from '../Bard2024UseDialog'
 import type { DruidFeatureRequest } from '../Druid2024UseDialog'
 import { type FamiliarCastMode } from '../familiarForms'
 import { withInitiativeBonus } from '../modifiers'
@@ -231,6 +232,9 @@ export function useSheetEditorPart4(model: SheetModel) {
     useState<ClericFeatureRequest | null>(null)
   model.clericFeatureUse = clericFeatureUse
   model.setClericFeatureUse = setClericFeatureUse
+  const [bardFeatureUse, setBardFeatureUse] = useState<BardFeatureRequest | null>(null)
+  model.bardFeatureUse = bardFeatureUse
+  model.setBardFeatureUse = setBardFeatureUse
   const [druidFeatureUse, setDruidFeatureUse] = useState<DruidFeatureRequest | null>(null)
   model.druidFeatureUse = druidFeatureUse
   model.setDruidFeatureUse = setDruidFeatureUse

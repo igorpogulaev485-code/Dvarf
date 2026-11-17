@@ -4,7 +4,11 @@ import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import path from 'node:path'
 import * as bard from './bard2024Features'
-import { featureResourceId } from './featureResources'
+import { computeProgression2024 } from './edition2024Classes'
+import { createClassLevel } from './classLevels'
+import { featureResourceId, syncFeatureResources } from './featureResources'
+import { applyLongRest, applyShortRest } from './rest'
+import { buildPendingWizardSteps2024 } from './pendingFeatureChoices2024'
 import type { SheetResource } from './rest'
 import type { SpellSlotState } from './spells'
 
@@ -363,5 +367,90 @@ assert.equal(names.get('font-of-inspiration'), bard.FONT_OF_INSPIRATION_NAME_RU)
 assert.equal(names.get('superior-inspiration'), bard.SUPERIOR_INSPIRATION_NAME_RU)
 assert.equal(names.get('words-of-creation'), bard.WORDS_OF_CREATION_NAME_RU)
 assert.equal(names.has('song-of-rest'), false)
+
+/* Progression + rests: BI is long-rest only below 5, then a short rest returns ALL uses */
+function bardSnap(level: number, subclass: string | null = null) {
+  const row = createClassLevel({ name: 'Бард', level, catalog_id: 'bard' })
+  return computeProgression2024({
+    classes: [row],
+    subclassSlugByEntryId: subclass ? { [row.id]: subclass } : {},
+    abilities: { cha: 18 },
+  })
+}
+const snap4 = bardSnap(4)
+const bi4 = snap4.desiredResources.find((r) => r.id.includes(':bardic_inspiration:'))
+assert.ok(bi4)
+assert.equal(bi4.reset, 'long')
+assert.equal(bi4.max, 4)
+const snap5 = bardSnap(5)
+const bi5 = snap5.desiredResources.find((r) => r.id.includes(':bardic_inspiration:'))
+assert.ok(bi5)
+assert.equal(bi5.reset, 'short')
+assert.equal(bi5.shortRestRegain, undefined)
+const spent4 = syncFeatureResources([], snap4.desiredResources).map((r) => ({ ...r, used: r.max }))
+const afterShort4 = applyShortRest({ resources: spent4 })
+assert.equal(afterShort4.resources.find((r) => r.id.includes(':bardic_inspiration:'))!.used, 4)
+const spent5 = syncFeatureResources([], snap5.desiredResources).map((r) => ({ ...r, used: r.max }))
+const afterShort5 = applyShortRest({ resources: spent5 })
+assert.equal(afterShort5.resources.find((r) => r.id.includes(':bardic_inspiration:'))!.used, 0)
+const longRest = applyLongRest({
+  resources: spent4,
+  slots: { '1': { max: 4, used: 4 } },
+  pact_slots: null,
+  exhaustion: 0,
+  hp_max: 30,
+  hit_dice_current: 0,
+  hit_dice_max: 4,
+  rules_edition: '2024',
+  hp_current: 10,
+})
+assert.equal(longRest.resources.find((r) => r.id.includes(':bardic_inspiration:'))!.used, 0)
+assert.equal(longRest.slots?.['1']?.used, 0)
+// A short rest must not restore spell slots.
+assert.equal((afterShort5 as { slots?: unknown }).slots, undefined)
+
+/* Progression: expertise choices on 2 / 9, no 2014-only rows, college rows */
+const snap9 = bardSnap(9)
+const exp2 = snap9.features.find((f) => f.id === 'expertise')
+const exp9 = snap9.features.find((f) => f.id === 'expertise_9')
+assert.equal(exp2?.choice?.max_picks, 2)
+assert.equal(exp9?.choice?.id, 'expertise_9')
+assert.equal(exp9?.name_ru, 'Компетентность')
+assert.equal(bardSnap(1).features.some((f) => f.id === 'expertise'), false)
+for (const f of bardSnap(20, 'bard__lore').features) {
+  assert.equal(bard.isBard2014OnlyFeatureId(f.id), false, f.id)
+}
+assert.equal(bardSnap(20).features.some((f) => f.id === 'song_of_rest'), false)
+const glam = bardSnap(6, 'bard__glamour')
+assert.ok(glam.features.some((f) => f.id === 'mantle_of_majesty'))
+const dance = bardSnap(3, 'bard__dance')
+assert.equal(bard.hasDazzlingFootwork2024(dance.features), true)
+const lore14 = bardSnap(14, 'bard__lore')
+assert.ok(lore14.features.some((f) => f.id === 'magical_discoveries'))
+assert.ok(lore14.features.some((f) => f.id === 'peerless_skill'))
+
+/* Level-up queue: Expertise on 2 and 9 */
+const queue = (level: number, values: Record<string, string>) =>
+  buildPendingWizardSteps2024({
+    classEntryId: ENTRY,
+    className: 'Бард',
+    classSlug: 'bard',
+    classLevel: level,
+    hasSubclass: true,
+    classAsi: [],
+    featurePicks: { values },
+  }).filter((step) => step.kind === 'feature_choice')
+assert.equal(queue(1, {}).length, 0)
+assert.deepEqual(
+  queue(2, {}).map((step) => (step.kind === 'feature_choice' ? step.featureId : '')),
+  ['expertise'],
+)
+assert.equal(queue(2, { [`${ENTRY}:expertise`]: 'stealth,arcana' }).length, 0)
+assert.deepEqual(
+  queue(9, { [`${ENTRY}:expertise`]: 'stealth,arcana' }).map((step) =>
+    step.kind === 'feature_choice' ? step.featureId : '',
+  ),
+  ['expertise_9'],
+)
 
 console.log('bard2024Features.selfcheck ok')

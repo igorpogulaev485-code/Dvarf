@@ -5,6 +5,7 @@ import { sorcerer2024UseFeatureId } from '../../../shared/dnd/sorcerer2024Featur
 import { monk2024UseFeatureId } from '../../../shared/dnd/monk2024Features'
 import { warlock2024UseFeatureId } from '../../../shared/dnd/warlock2024Features'
 import { cleric2024UseFeatureId } from '../../../shared/dnd/cleric2024Features'
+import { bard2024UseFeatureId } from '../../../shared/dnd/bard2024Features'
 import { wizardResolvedFeatureId } from '../../../shared/dnd/wizardTradition'
 
 export function installSheetActions5(model: SheetModel) {
@@ -68,6 +69,17 @@ export function installSheetActions5(model: SheetModel) {
       return true
     }
     if (model.isBardicInspirationResource(row)) {
+      const parsedBi = parseFeatureResourceId(row.id)
+      if (model.rulesEdition === '2024' && parsedBi) {
+        model.setBardFeatureUse({
+          featureId: parsedBi.poolId,
+          resourceId: row.id,
+          classSlug: parsedBi.classSlug,
+          classEntryId: parsedBi.classEntryId,
+          name: row.name,
+        })
+        return true
+      }
       model.setBardicInspirationSpendId(id)
       return true
     }
@@ -158,6 +170,20 @@ export function installSheetActions5(model: SheetModel) {
       warlock2024UseFeatureId(parsed.poolId)
     ) {
       model.setWarlockFeatureUse({
+        featureId: parsed.poolId,
+        resourceId: row.id,
+        classSlug: parsed.classSlug,
+        classEntryId: parsed.classEntryId,
+        name: row.name,
+      })
+      return true
+    }
+    if (
+      model.rulesEdition === '2024' &&
+      parsed &&
+      bard2024UseFeatureId(parsed.poolId)
+    ) {
+      model.setBardFeatureUse({
         featureId: parsed.poolId,
         resourceId: row.id,
         classSlug: parsed.classSlug,

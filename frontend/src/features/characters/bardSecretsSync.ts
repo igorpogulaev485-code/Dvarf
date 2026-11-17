@@ -24,6 +24,8 @@ import {
 } from './spells'
 
 export const ADDITIONAL_MAGICAL_SECRETS_ID = 'additional_magical_secrets'
+/** 2024 College of Lore «Доп. магические тайны» (level 6): two Wizard/Druid/Cleric spells. */
+export const MAGICAL_DISCOVERIES_ID_2024 = 'magical_discoveries'
 export const MAGICAL_SECRET_FEATURE_IDS = [
   'magical_secrets_10',
   'magical_secrets_14',
@@ -34,20 +36,24 @@ export const MAGICAL_SECRETS_PICK_LIMIT = 2
 
 const GENERAL_PREFIX = 'feature-spell:magical_secrets_'
 const ADDITIONAL_PREFIX = `feature-spell:${ADDITIONAL_MAGICAL_SECRETS_ID}:`
+const DISCOVERIES_PREFIX = `feature-spell:${MAGICAL_DISCOVERIES_ID_2024}:`
 
 export function isAdditionalMagicalSecrets(featureId: string): boolean {
-  return featureId === ADDITIONAL_MAGICAL_SECRETS_ID
+  return featureId === ADDITIONAL_MAGICAL_SECRETS_ID || featureId === MAGICAL_DISCOVERIES_ID_2024
 }
 
 export function isMagicalSecretsFeature(featureId: string): boolean {
   return (
     featureId === ADDITIONAL_MAGICAL_SECRETS_ID ||
+    featureId === MAGICAL_DISCOVERIES_ID_2024 ||
     (MAGICAL_SECRET_FEATURE_IDS as readonly string[]).includes(featureId)
   )
 }
 
 export function magicalSecretsUnlocked(featureId: string, classLevel: number): boolean {
-  if (featureId === ADDITIONAL_MAGICAL_SECRETS_ID) return classLevel >= 6
+  if (featureId === ADDITIONAL_MAGICAL_SECRETS_ID || featureId === MAGICAL_DISCOVERIES_ID_2024) {
+    return classLevel >= 6
+  }
   if (featureId === 'magical_secrets_10') return classLevel >= 10
   if (featureId === 'magical_secrets_14') return classLevel >= 14
   if (featureId === 'magical_secrets_18') return classLevel >= 18
@@ -64,7 +70,11 @@ export function secretSpellId(featureId: string, classEntryId: string, slug: str
 }
 
 export function isManagedSecretSpellId(id: string): boolean {
-  return id.startsWith(GENERAL_PREFIX) || id.startsWith(ADDITIONAL_PREFIX)
+  return (
+    id.startsWith(GENERAL_PREFIX) ||
+    id.startsWith(ADDITIONAL_PREFIX) ||
+    id.startsWith(DISCOVERIES_PREFIX)
+  )
 }
 
 function secretRow(
@@ -91,7 +101,7 @@ function secretRow(
     class_slug: 'bard',
     class_entry_id: classEntryId,
   }
-  if (featureId === ADDITIONAL_MAGICAL_SECRETS_ID) {
+  if (isAdditionalMagicalSecrets(featureId)) {
     return asAlwaysPreparedSpell(base, {
       source_kind: 'feature',
       label: 'Доп. магические тайны',
@@ -122,6 +132,7 @@ export function syncMagicalSecrets(input: {
     if (resolveClassFeatureSlug(row.name) !== 'bard' || row.level <= 0) continue
     const featureIds = [
       ADDITIONAL_MAGICAL_SECRETS_ID,
+      MAGICAL_DISCOVERIES_ID_2024,
       ...MAGICAL_SECRET_FEATURE_IDS,
     ]
     for (const featureId of featureIds) {

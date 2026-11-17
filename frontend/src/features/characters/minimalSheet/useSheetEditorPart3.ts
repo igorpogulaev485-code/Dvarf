@@ -103,6 +103,7 @@ import { syncPactChainFamiliar } from '../pactChainEffects'
 import { syncCastWithoutSlotGrants } from '../castWithoutSlots'
 import { syncPactTomeCantrips } from '../pactTomeEffects'
 import { syncMagicalSecrets } from '../bardSecretsSync'
+import { danceAcFormula2024, hasDazzlingFootwork2024 } from '../../../shared/dnd/bard2024Features'
 import {
   isMantleCommandSpell,
   MANTLE_CONCENTRATION_ID,
@@ -947,6 +948,15 @@ export function useSheetEditorPart3(model: SheetModel) {
         allowsShield: true,
       }
     })()
+    const dance = (() => {
+      if (pieces.armor || pieces.shield) return null
+      const edition = String(
+        model.rulesEdition ?? model.baseCharacter?.rules_edition ?? '2014',
+      ).trim()
+      if (edition !== '2024') return null
+      if (!hasDazzlingFootwork2024(model.unlockedFeatures)) return null
+      return danceAcFormula2024(mods.cha)
+    })()
     const extraFormulas = pieces.armor
       ? []
       : [
@@ -954,6 +964,7 @@ export function useSheetEditorPart3(model: SheetModel) {
           ...(mageFromConcFormula ? [mageFromConcFormula] : []),
           ...effectFormulas,
           ...(draconic ? [draconic] : []),
+          ...(dance ? [dance] : []),
         ]
     const acMinFloor = acMinFromActiveEffects(effectsRaw)
     const preferredKey = model.draft.acFormulaKey

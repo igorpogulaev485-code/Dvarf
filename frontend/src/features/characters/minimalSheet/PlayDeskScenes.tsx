@@ -1624,6 +1624,7 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
         onMonkFeatureUse={(request) => model.setMonkFeatureUse(request)}
         onWarlockFeatureUse={(request) => model.setWarlockFeatureUse(request)}
         onClericFeatureUse={(request) => model.setClericFeatureUse(request)}
+        onBardFeatureUse={(request) => model.setBardFeatureUse(request)}
         onDruidFeatureUse={(request) => model.setDruidFeatureUse(request)}
         onSorceryPointsSpend={(resourceId) => model.setSorcerySpendId(resourceId)}
         onMoonFormSlotHeal={({ slotLevel, diceCount, diceSize }) => {

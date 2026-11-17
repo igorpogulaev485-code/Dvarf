@@ -11,6 +11,7 @@ import {
 import { abilityModifier } from './sheetTypes'
 import {
   ADDITIONAL_MAGICAL_SECRETS_ID,
+  MAGICAL_DISCOVERIES_ID_2024,
   MAGICAL_SECRETS_PICK_LIMIT,
   bardSecretsMaxSpellLevel,
   isMagicalSecretsFeature,
@@ -33,6 +34,7 @@ import {
   spiritTaleByRoll,
   type CreationSize,
 } from '../../shared/dnd/bardCollege'
+import { LORE_DISCOVERY_LISTS_2024 } from '../../shared/dnd/bard2024Features'
 import { rollDie } from './deskRolls'
 import {
   findFeatureResource,
@@ -111,13 +113,17 @@ function SecretsPicker({
 }: ExtraProps) {
   const [query, setQuery] = useState('')
   const maxLevel = bardSecretsMaxSpellLevel(feature.classLevel)
-  const outside = feature.id === ADDITIONAL_MAGICAL_SECRETS_ID
+  const discoveries2024 = feature.id === MAGICAL_DISCOVERIES_ID_2024
+  const outside = feature.id === ADDITIONAL_MAGICAL_SECRETS_ID || discoveries2024
   const selected = getFeaturePickList(featurePicks, feature.classEntryId, feature.id)
   const options = useMemo(() => {
     const rows = []
     for (let level = 0; level <= maxLevel; level += 1) rows.push(...bundledSpellsAtLevel(level))
-    return rows
-  }, [maxLevel])
+    if (!discoveries2024) return rows
+    return rows.filter((row) =>
+      row.classes.some((id) => (LORE_DISCOVERY_LISTS_2024 as readonly string[]).includes(id.toLowerCase())),
+    )
+  }, [maxLevel, discoveries2024])
   const q = query.trim().toLowerCase()
   const filtered = q
     ? options.filter(
@@ -130,12 +136,14 @@ function SecretsPicker({
   return (
     <div className="feature-resource">
       <Text tone="muted">
-        {outside
+        {discoveries2024
+          ? 'Два заклинания из списков Волшебника, Друида или Жреца (заговор или круг с доступной ячейкой). Всегда подготовлены, вне лимита подготовленных.'
+          : outside
           ? 'Два заклинания любого класса, круг не выше ваших ячеек. Вне лимита известных.'
           : 'Два заклинания любого класса, круг не выше ваших ячеек. Входят в число известных.'}{' '}
         Сейчас круг ≤ {maxLevel}. Выбрано {selected.length}/{MAGICAL_SECRETS_PICK_LIMIT}.
       </Text>
-      <Field label="Поиск по всем классам">
+      <Field label={discoveries2024 ? 'Поиск по спискам Волшебника, Друида, Жреца' : 'Поиск по всем классам'}>
         <Input
           value={query}
           placeholder="Fireball, Counterspell, огненный шар…"
@@ -178,7 +186,11 @@ function SecretsPicker({
         })}
       </div>
       {!q ? (
-        <Text tone="muted">Введите название: ищутся все классы, не только полка барда.</Text>
+        <Text tone="muted">
+          {discoveries2024
+            ? 'Введите название: ищутся Волшебник, Друид и Жрец.'
+            : 'Введите название: ищутся все классы, не только полка барда.'}
+        </Text>
       ) : null}
       {q && filtered.length === 0 ? <Text tone="muted">Ничего не найдено в этом круге.</Text> : null}
     </div>
