@@ -51,7 +51,8 @@
 
 - catalog: `trait_cards`, `spell_choices` (Астральное пламя), `racial_resources` (Звёздный шаг);
 - тот же механизм: high_elf / half_elf_high (заговор волшебника), drow (фиксированные `racial_spells`);
-- RaceSetupDialog + needsSetup «… · нужен выбор» даже без `raceGrant` (как на проде);
+- RaceSetupDialog + needsSetup «… · нужен выбор»;
+- banner `sheet-banner` (шапка UIKIT-02 без NeedsSetupIndicator) + кнопка «Выбрать» → RaceSetup;
 - `race-res:starlight_step` с max = ПБ;
 - миграция `n0a1b2c3d4e5`.
 
@@ -80,10 +81,27 @@
 
 ## Доказательства (живые сценарии)
 
-_(скрипты / скрины 1440 и 390, регресс md5 — следующий шаг после зелёной сборки)_
+Локально: живые персонажи через API (не seed-скрипт), Vite + API, Playwright 1440×900 и 390×844.
 
-Selfcheck уже зелёные:
+| Артефакт | Что видно |
+|---|---|
+| `/opt/cursor/artifacts/astral-elf-desk-1440.png` | Астральный волшебник 5: «Пляшущие огоньки» + тег «астральный», «Звёздный шаг» 3/3 (=ПБ), посох 20/20, заклинания с тегом «Посох силы», КД 12 (+2), арбалет +1 «в руках» |
+| `/opt/cursor/artifacts/staff-power-active-1440.png` | Тот же стол — активные заряды/заклинания посоха после настройки |
+| `/opt/cursor/artifacts/astral-elf-desk-390.png` | Mobile: «Звёздный шаг» 3, «Посох силы: заряды» 20/20, «Лёгкий арбалет +1» в руках |
+| `/opt/cursor/artifacts/needs-choice-astral-1440.png` | Старый астральный без picks: banner «Астральное пламя · нужен выбор» + «Выбрать» |
+| `/opt/cursor/artifacts/needs-choice-astral-390.png` | То же на 390 |
+| `/opt/cursor/artifacts/baseline-fighter-1440.png` | Обычный воин без магпредметов — без gear-spell загрязнения |
 
-- `npx tsx src/features/characters/staffOfPower.selfcheck.ts`
-- `npx tsx src/features/characters/gearCatalogRefresh.selfcheck.ts`
-- `npx tsx src/shared/dnd/raceSpellChoices.selfcheck.ts`
+Selfcheck:
+
+- `npx tsx src/features/characters/staffOfPower.selfcheck.ts` → ok
+- `npx tsx src/features/characters/gearCatalogRefresh.selfcheck.ts` → ok
+- `npx tsx src/shared/dnd/raceSpellChoices.selfcheck.ts` → ok
+- `npx tsx src/features/characters/needsSetup.selfcheck.ts` → ok
+
+Регресс UI kit lock (md5 = `main`):
+
+- `frontend/src/index.css` → `31936aa1fd5709718ed05a8ebf707f2d`
+- `frontend/src/styles/26-lobby-hub-lock.css` → `0e69be021d061d701ec041f404370f75`
+
+`npm run build` (frontend) — зелёный.

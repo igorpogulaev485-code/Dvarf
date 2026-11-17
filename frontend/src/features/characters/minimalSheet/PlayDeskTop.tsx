@@ -364,6 +364,29 @@ export function PlayDeskTop({ model }: { model: SheetModel }) {
           </div>
         </div>
       ) : null}
+      {/* Header chip UIKIT-02 off; banner so old astral (catalog id, no picks) still see «нужен выбор». */}
+      {raceSpellSetupItems.length > 0 ? (
+        <div
+          className="sheet-banner"
+          role="status"
+          data-testid="race-spell-needs-setup"
+        >
+          <span>
+            {raceSpellSetupItems.map((item) => item.label).join(' · ')}
+          </span>
+          <div className="sheet-banner__actions">
+            <button
+              type="button"
+              className="sheet-chip"
+              onClick={() => {
+                void model.openRaceSetupFromNeedsSetup()
+              }}
+            >
+              Выбрать
+            </button>
+          </div>
+        </div>
+      ) : null}
       {model.isPlayDesk ? (
         <div className="play-desk__top" data-onboarding="combat-header">
           <CharacterAvatarControl
