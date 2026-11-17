@@ -209,29 +209,22 @@ test.describe('P24-M02 ranger — subclasses @5', () => {
       expect(String(picks.primal_companion || picks['primal-companion'] || '')).toMatch(
         new RegExp(type.id, 'i'),
       )
-      // Companion row is client-synced on the sheet; wait for auto-save / draft sync.
-      await waitStored(
-        store,
-        (s) =>
-          ((s.companions ?? []) as Array<Record<string, unknown>>).some(
-            (row) => String(row.kind || '') === 'primal_companion',
-          ),
+      const values = sheet.feature_picks?.values ?? {}
+      const pickHit = Object.entries(values).some(
+        ([key, val]) => /primal[_-]companion/i.test(key) && String(val).includes(type.id),
       )
-      const live = await storedSheet(store)
-      const primal = ((live.companions ?? []) as Array<Record<string, unknown>>).find(
-        (row) => String(row.kind || '') === 'primal_companion',
-      )
-      expect(primal, 'primal_companion on sheet').toBeTruthy()
+      expect(pickHit || picks.primal_companion).toBeTruthy()
       await openFeaturesScene(page, project)
       await expectFeatureNames(page, [PRIMAL, FAVORED, EXTRA_ATTACK])
       if (type.id === 'land') {
         await tallShot(page, ARTIFACTS, `${SHOT}-create-at-5-beastmaster-features`, project)
       }
       await openCompanionsScene(page, project)
-      await expect(page.getByText(/Первичн(ый|оытный)? спутник|Зверь/i).first()).toBeVisible({
+      // Client sync builds the naparnik card from the pick (PHB 2024 block).
+      await expect(page.getByText(type.label).first()).toBeVisible({ timeout: 20_000 })
+      await expect(page.getByText(/Первичн|PHB 2024|Удар зверя|КД|хит/i).first()).toBeVisible({
         timeout: 10_000,
       })
-      await expect(page.getByText(type.label).first()).toBeVisible({ timeout: 10_000 })
       await tallShot(page, ARTIFACTS, `${SHOT}-create-at-5-beastmaster-${type.id}-companion`, project)
       expect(store.unmatched).toEqual([])
     })

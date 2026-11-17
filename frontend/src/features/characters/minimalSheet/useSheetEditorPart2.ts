@@ -382,12 +382,14 @@ export function useSheetEditorPart2(model: SheetModel) {
 
   useEffect(() => {
     model.setDraft((prev) => {
+      const edition =
+        model.rulesEdition ?? model.baseCharacter?.rules_edition ?? '2014'
       const synced = syncPrimalCompanion2024({
         companions: prev.companions,
         classes: prev.classes,
         featurePicks: prev.featurePicks,
         classOptions2024: prev.classOptions2024,
-        rulesEdition: model.rulesEdition,
+        rulesEdition: edition,
         characterLevel: totalCharacterLevel(prev.classes),
         wisMod: abilityModifier(prev.abilities.wis ?? 10),
       })
@@ -400,6 +402,7 @@ export function useSheetEditorPart2(model: SheetModel) {
     model.draft.classOptions2024,
     model.draft.abilities.wis,
     model.rulesEdition,
+    model.baseCharacter?.rules_edition,
   ])
 
   // Martial Arts: keep a live «Безоружный удар» card while the feature is unlocked.

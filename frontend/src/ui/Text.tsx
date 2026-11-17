@@ -7,6 +7,7 @@ type TextProps = {
   className?: string
   title?: string
   role?: string
+  'data-testid'?: string
 }
 
 export function Text({
@@ -16,12 +17,14 @@ export function Text({
   className = '',
   title,
   role,
+  'data-testid': dataTestId,
 }: TextProps) {
   return (
     <Tag
       className={`ui-text ui-text--${tone} ${className}`.trim()}
       title={title}
       role={role}
+      data-testid={dataTestId}
     >
       {children}
     </Tag>

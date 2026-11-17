@@ -1162,6 +1162,9 @@ const REAL_SUBCLASS_COMPANION_FEATURES = new Set([
   'summon_wildfire_spirit',
   'rangers_companion',
   'drake_companion',
+  // PHB 2024 Beast Master «Первичный спутник» (land/sea/sky).
+  'primal-companion',
+  'primal_companion',
 ])
 
 function heuristicCompanionFeature(feature: string): boolean {
