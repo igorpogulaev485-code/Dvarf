@@ -14,6 +14,7 @@ export default defineConfig({
   testDir: './e2e',
   testMatch: [
     '**/p24-m02-bard-live.spec.ts',
+    '**/p24-m02-bard-fixup1.spec.ts',
     '**/p24-m02-bard-regression-2014.spec.ts',
   ],
   fullyParallel: false,

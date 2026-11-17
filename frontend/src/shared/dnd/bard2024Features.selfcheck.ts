@@ -203,6 +203,14 @@ assert.equal(
     .available,
   false,
 )
+assert.equal(
+  bard.resolveWordsOfCreationSpellSlug2024({ name: 'Слово силы: исцеление', catalog_id: 'uuid-not-a-slug' }),
+  'power-word-heal',
+)
+assert.equal(
+  bard.resolveWordsOfCreationSpellSlug2024({ id: 'feature-spell:words-of-creation:power-word-kill' }),
+  'power-word-kill',
+)
 
 /* Countercharm: reaction, 30 ft, no BI cost */
 assert.equal(bard.COUNTERCHARM_BUTTON_2024.kind, 'reaction')

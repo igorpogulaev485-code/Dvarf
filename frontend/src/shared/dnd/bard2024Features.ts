@@ -731,6 +731,33 @@ export function isWordsOfCreationSpell2024(spellSlug: string | null | undefined)
   )
 }
 
+/**
+ * Resolve Power Word Heal/Kill from a sheet row.
+ * `catalog_id` is often a UUID; `id` may be `feature-spell:…:power-word-heal`.
+ */
+export function resolveWordsOfCreationSpellSlug2024(spell: {
+  id?: string | null
+  name?: string | null
+  catalog_id?: string | null
+  slug?: string | null
+}): string {
+  const name = (spell.name ?? '').trim().toLowerCase()
+  for (const [slug, ru] of Object.entries(WORDS_OF_CREATION_SPELL_NAMES_RU_2024)) {
+    if (name === ru.toLowerCase()) return slug
+  }
+  for (const raw of [spell.slug, spell.catalog_id, spell.id]) {
+    const s = String(raw ?? '')
+      .trim()
+      .toLowerCase()
+      .replace(/_/g, '-')
+    if (!s) continue
+    if (isWordsOfCreationSpell2024(s)) return s
+    const tail = s.includes(':') ? (s.split(':').pop() ?? '') : s
+    if (isWordsOfCreationSpell2024(tail)) return tail
+  }
+  return ''
+}
+
 export const WORDS_OF_CREATION_SECOND_TARGET_NOTE_RU_2024 = `${WORDS_OF_CREATION_NAME_RU}: можно выбрать вторую цель в ${WORDS_OF_CREATION_SECOND_TARGET_FT_2024} фт. от первой`
 
 export function wordsOfCreationSecondTarget2024(input: {

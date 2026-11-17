@@ -61,6 +61,7 @@ import {
 import {
   WORDS_OF_CREATION_SECOND_TARGET_NOTE_RU_2024,
   isWordsOfCreationSpell2024,
+  resolveWordsOfCreationSpellSlug2024,
   wordsOfCreationSecondTarget2024,
 } from '../../shared/dnd/bard2024Features'
 import { Button, Dialog, Stack, Text, ToggleChip } from '../../ui'
@@ -481,20 +482,7 @@ export function CastSpellDialog({
     /огненн[\p{L}]*\s*щит/iu.test(spell?.name ?? '')
 
   const appliesToAllies = Boolean(spell && castSpellAppliesToAllies(spell))
-  const wordsSpellSlug = (() => {
-    if (!spell) return ''
-    const catalog = String(spell.catalog_id ?? '')
-      .trim()
-      .toLowerCase()
-      .replace(/^seed-spell-/, '')
-      .replace(/_/g, '-')
-    if (catalog) return catalog
-    return String(spell.id ?? '')
-      .trim()
-      .toLowerCase()
-      .replace(/^seed-spell-/, '')
-      .replace(/_/g, '-')
-  })()
+  const wordsSpellSlug = spell ? resolveWordsOfCreationSpellSlug2024(spell) : ''
   const wordsOfCreationSecond =
     String(rulesEdition ?? '2014') === '2024' &&
     wordsOfCreationSecondTarget2024({

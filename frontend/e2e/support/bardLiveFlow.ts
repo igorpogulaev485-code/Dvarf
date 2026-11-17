@@ -11,6 +11,7 @@ import {
 } from './bard2024Harness'
 
 export const ARTIFACTS = '/opt/cursor/artifacts/p24-m02-bard'
+export const FIXUP1_DIR = path.join(ARTIFACTS, 'fixup1')
 export const CREATE_LIVE = '/characters/create?edition=2024&preview=1'
 
 export function projectOf(testInfo: { project: { name: string } }): '390' | '1440' {
@@ -497,6 +498,37 @@ export async function waitStored(store: HarnessStore, fn: (s: Record<string, any
 
 export async function storedSheet(store: HarnessStore): Promise<Record<string, any>> {
   return [...store.characters.values()][0]!.sheet as Record<string, any>
+}
+
+export function storedCharacter(store: HarnessStore, index = 0) {
+  return [...store.characters.values()][index]!
+}
+
+export async function gotoStoredCharacter(page: Page, store: HarnessStore, index = 0) {
+  const row = storedCharacter(store, index)
+  await page.goto(`/characters/${row.id}`)
+  await expect(page.locator('#root')).not.toBeEmpty({ timeout: 20_000 })
+  await dismissWelcome(page)
+  await dismissGuided(page)
+  return row
+}
+
+export async function openSpellsPane(page: Page, project: string) {
+  await openCombatScene(page, project)
+  if (isPhone(project)) {
+    await page
+      .locator(':is(button,[role=tab],[role=button]):visible', { hasText: /^Заклинания$/ })
+      .first()
+      .click()
+    await page.waitForTimeout(500)
+  }
+}
+
+export async function unequipItem(page: Page, name: RegExp) {
+  const card = await openInventoryItem(page, name)
+  const equip = card.locator('.inventory-equip').first()
+  if (await equip.evaluate((el) => el.classList.contains('is-on'))) await equip.click()
+  await page.waitForTimeout(400)
 }
 
 export async function openCombatScene(page: Page, project: string) {
