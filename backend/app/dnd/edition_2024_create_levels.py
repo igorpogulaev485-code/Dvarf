@@ -1123,6 +1123,11 @@ def _rollback_bard_state(sheet: dict[str, Any], classes: Sequence[Mapping[str, A
         unset_expertise([x for x in str(values.pop(f"{entry}:expertise_9")).split(",") if x])
     if level < 2 and f"{entry}:expertise" in values:
         unset_expertise([x for x in str(values.pop(f"{entry}:expertise")).split(",") if x])
+    if level < 6:
+        values.pop(f"{entry}:magical_discoveries", None)
+        values.pop(f"{entry}:discoveries_swap", None)
+    if level < 10:
+        values.pop(f"{entry}:prepared_swap", None)
     if isinstance(picks, dict):
         sheet["feature_picks"] = {**picks, "values": values}
 

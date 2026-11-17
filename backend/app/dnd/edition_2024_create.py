@@ -1016,6 +1016,9 @@ BARD_LORE_SUBCLASS_2024 = "bard__lore"
 BARD_VALOR_SUBCLASS_2024 = "bard__valor"
 BARD_SUBCLASS_LEVEL_2024 = 3
 BARD_LORE_SKILL_PICKS_2024 = 3
+BARD_LORE_DISCOVERIES_LEVEL_2024 = 6
+BARD_LORE_DISCOVERIES_PICKS_2024 = 2
+BARD_LORE_DISCOVERY_LISTS_2024 = ("wizard", "druid", "cleric")
 
 
 def _bard_expertise_need_2024(bard_level: int) -> int:
@@ -1077,7 +1080,45 @@ def _validate_bard_options_2024(payload: Create2024Payload, picks: Mapping[str, 
                 code="create_2024_class_options",
             )
         out["lore_skills"] = lore
+    discoveries = [_normalize_slug(str(x)) for x in (picks.get("magical_discoveries") or [])]
+    if subclass == BARD_LORE_SUBCLASS_2024 and bard_level >= BARD_LORE_DISCOVERIES_LEVEL_2024:
+        out["magical_discoveries"] = _validate_lore_discoveries_2024(bard_level, discoveries)
+    elif discoveries:
+        raise Create2024Error(
+            "Доп. магические тайны: Коллегия знаний, с 6 уровня барда",
+            code="create_2024_class_options",
+        )
     return out
+
+
+def _validate_lore_discoveries_2024(bard_level: int, picks: Sequence[str]) -> list[str]:
+    """Two distinct Wizard/Druid/Cleric spells: a cantrip or a circle the bard can cast."""
+    need = BARD_LORE_DISCOVERIES_PICKS_2024
+    if len(picks) != need or len(set(picks)) != need:
+        raise Create2024Error(
+            f"Коллегия знаний: выберите {need} различных заклинания (Доп. магические тайны)",
+            code="create_2024_class_options",
+        )
+    max_circle = min(9, (min(20, bard_level) + 1) // 2)
+    catalog = load_spell_catalog()
+    for slug in picks:
+        row = catalog.get(slug)
+        if row is None:
+            raise Create2024Error(
+                f"Доп. магические тайны: неизвестное заклинание {slug}",
+                code="create_2024_class_options",
+            )
+        if not any(slug in _class_spell_list_slugs(cls) for cls in BARD_LORE_DISCOVERY_LISTS_2024):
+            raise Create2024Error(
+                f"Доп. магические тайны: {slug} нет в списках Волшебника, Друида и Жреца",
+                code="create_2024_class_options",
+            )
+        if _spell_level(row) > max_circle:
+            raise Create2024Error(
+                f"Доп. магические тайны: {slug} выше доступного круга ({max_circle})",
+                code="create_2024_class_options",
+            )
+    return list(picks)
 
 
 def _sync_bard_picks(sheet: dict[str, Any], class_options: Mapping[str, Any]) -> None:
@@ -1095,6 +1136,12 @@ def _sync_bard_picks(sheet: dict[str, Any], class_options: Mapping[str, Any]) ->
             values[f"{class_entry}:expertise"] = ",".join(expertise[:2])
             if len(expertise) > 2:
                 values[f"{class_entry}:expertise_9"] = ",".join(expertise[2:4])
+            sheet["feature_picks"] = {"values": values}
+        discoveries = [str(x) for x in (class_options.get("magical_discoveries") or [])]
+        if discoveries:
+            picks = sheet.get("feature_picks")
+            values = dict(picks.get("values") or {}) if isinstance(picks, dict) else {}
+            values[f"{class_entry}:magical_discoveries"] = ",".join(discoveries)
             sheet["feature_picks"] = {"values": values}
         subclass = _normalize_slug(str(row.get("subclass_slug") or row.get("subclass_catalog_id") or ""))
         level = int(row.get("level") or 0)

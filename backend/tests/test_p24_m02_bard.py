@@ -464,6 +464,76 @@ def test_rollback_below_9_and_below_3_drops_bard_picks_and_grants():
     assert not any(v["is_expertise"] for v in sheet["skills"].values())
 
 
+def _lore6_payload(**picks) -> dict:
+    base = _bard_payload(6, "bard__lore")
+    skills = base["class_skill_ids"]
+    expertise = skills[:2]
+    options = {
+        **base["class_option_picks"],
+        "expertise": expertise,
+        "lore_skills": ["stealth", "history", "religion"],
+        **picks,
+    }
+    return {**base, "class_option_picks": options}
+
+
+def test_create_lore_6_requires_two_magical_discoveries():
+    with pytest.raises(create24.Create2024Error):
+        _create(_lore6_payload())
+    with pytest.raises(create24.Create2024Error):
+        _create(_lore6_payload(magical_discoveries=["fireball"]))
+    with pytest.raises(create24.Create2024Error):
+        _create(_lore6_payload(magical_discoveries=["fireball", "fireball"]))
+
+
+def test_create_lore_discoveries_only_from_wizard_druid_cleric_within_circle():
+    with pytest.raises(create24.Create2024Error):  # bard-only list
+        _create(_lore6_payload(magical_discoveries=["fireball", "vicious-mockery"]))
+    with pytest.raises(create24.Create2024Error):  # 9th circle at bard 6
+        _create(_lore6_payload(magical_discoveries=["fireball", "wish"]))
+    with pytest.raises(create24.Create2024Error):
+        _create(_lore6_payload(magical_discoveries=["fireball", "no-such-spell"]))
+
+
+def test_create_lore_discoveries_persist_as_feature_pick_and_allow_cantrip():
+    sheet = _create(_lore6_payload(magical_discoveries=["guidance", "fireball"])).sheet
+    values = sheet["feature_picks"]["values"]
+    assert values["class-bard:magical_discoveries"] == "guidance,fireball"
+
+
+def test_create_discoveries_rejected_without_lore_or_below_6():
+    base = _bard_payload(6, "bard__valor")
+    options = {
+        **base["class_option_picks"],
+        "expertise": base["class_skill_ids"][:2],
+        "magical_discoveries": ["guidance", "fireball"],
+    }
+    with pytest.raises(create24.Create2024Error):
+        _create({**base, "class_option_picks": options})
+    lore5 = _bard_payload(5, "bard__lore")
+    options5 = {
+        **lore5["class_option_picks"],
+        "expertise": lore5["class_skill_ids"][:2],
+        "lore_skills": ["stealth", "history", "religion"],
+        "magical_discoveries": ["guidance", "fireball"],
+    }
+    with pytest.raises(create24.Create2024Error):
+        _create({**lore5, "class_option_picks": options5})
+
+
+def test_rollback_6_to_5_drops_magical_discoveries_and_swaps():
+    sheet = deepcopy(_create(_lore6_payload(magical_discoveries=["guidance", "fireball"])).sheet)
+    values = sheet["feature_picks"]["values"]
+    values["class-bard:discoveries_swap"] = "6:guidance"
+    values["class-bard:prepared_swap"] = "6:shield"
+    levels.rollback_last_level_gain(sheet)  # 6 -> 5
+    values = sheet["feature_picks"]["values"]
+    assert "class-bard:magical_discoveries" not in values
+    assert "class-bard:discoveries_swap" not in values
+    assert "class-bard:prepared_swap" not in values
+    assert "class-bard:expertise" in values
+
+
 def test_multiclass_bard_dip_grants_light_armor_skill_instrument_and_bi_pool():
     grants = e24.multiclass_proficiencies_for("bard")
     assert grants["armor"] == ["light"]
@@ -512,15 +582,17 @@ def test_2014_bard_pack_unchanged_still_has_song_of_rest():
 @pytest.mark.skipif(
     not (FRONTEND_ROOT / "node_modules").exists(), reason="frontend deps not installed"
 )
-def test_frontend_bard_selfcheck_passes():
+@pytest.mark.parametrize(
+    "selfcheck",
+    [
+        "src/shared/dnd/bard2024Features.selfcheck.ts",
+        "src/features/characters/bardSecrets2024.selfcheck.ts",
+        "src/shared/dnd/pendingFeatureChoices2024.selfcheck.ts",
+    ],
+)
+def test_frontend_bard_selfcheck_passes(selfcheck: str):
     proc = subprocess.run(
-        [
-            "npx",
-            "tsx",
-            "--tsconfig",
-            "tsconfig.app.json",
-            "src/shared/dnd/bard2024Features.selfcheck.ts",
-        ],
+        ["npx", "tsx", "--tsconfig", "tsconfig.app.json", selfcheck],
         cwd=FRONTEND_ROOT,
         capture_output=True,
         text=True,
