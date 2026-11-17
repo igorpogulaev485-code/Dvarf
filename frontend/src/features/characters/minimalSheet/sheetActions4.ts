@@ -1459,6 +1459,14 @@ export function installSheetActions4(model: SheetModel) {
             })
             .filter(Boolean)
             .join(' · ') ?? ''
+        const dieLabels =
+          bonusDice
+            ?.map((row) => {
+              const m = String(row.dice).trim().match(/^(\d*)[dк](\d+)$/i)
+              if (!m) return null
+              return { sides: Number(m[2]), label: row.label }
+            })
+            .filter((row): row is { sides: number; label: string } => row != null) ?? []
         // Режим преимущества/помехи — отдельным полем; в формуле одна d20.
         const expression = `${checkExpression(rollMod, 'normal')}${bonusExpr}`
         const advMode =
@@ -1476,6 +1484,7 @@ export function installSheetActions4(model: SheetModel) {
           advantageMode: advMode,
           category: 'sheet',
           source: 'sheet',
+          dieLabels,
         }).then((result) => {
           if (!result.ok) {
             model.emitToast(result.error)
@@ -1509,6 +1518,9 @@ export function installSheetActions4(model: SheetModel) {
           breakdown: text,
           category: 'sheet',
           source: 'sheet',
+          dieLabels: payload.diceFaces
+            .filter((face) => face.label)
+            .map((face) => ({ sides: face.sides, label: String(face.label) })),
         })
       }
     }

@@ -583,6 +583,7 @@ export function DiceRollerPanel({
                         value: number
                         dropped?: boolean
                         nat?: '20' | '1'
+                        label?: string
                       }>)
                     : []
                   return (
@@ -669,19 +670,39 @@ export function DiceRollerPanel({
                       ) : null}
                       {entry.dice.length > 0 ? (
                         <div className="dice-roller-panel__faces" aria-label="Кости броска">
-                          {entry.dice.map((die, i) => (
-                            <span
-                              key={`${entry.id}-${i}`}
-                              className={`dice-roller-panel__face${
-                                die.dropped ? ' is-dropped' : ''
-                              }${die.nat === '20' ? ' is-nat20' : ''}${
-                                die.nat === '1' ? ' is-nat1' : ''
-                              }`}
-                              title={`d${die.sides}`}
-                            >
-                              {die.value}
-                            </span>
-                          ))}
+                          {entry.dice.map((die, i) => {
+                            const label =
+                              typeof die.label === 'string' ? die.label.trim() : ''
+                            return (
+                              <span
+                                key={`${entry.id}-${i}`}
+                                className="dice-roller-panel__face-wrap"
+                              >
+                                <span
+                                  className={`dice-roller-panel__face${
+                                    die.dropped ? ' is-dropped' : ''
+                                  }${die.nat === '20' ? ' is-nat20' : ''}${
+                                    die.nat === '1' ? ' is-nat1' : ''
+                                  }`}
+                                  title={
+                                    label
+                                      ? `к${die.sides} · ${label}`
+                                      : `к${die.sides}`
+                                  }
+                                >
+                                  {die.value}
+                                </span>
+                                {label ? (
+                                  <span
+                                    className="dice-roller-panel__face-label"
+                                    title={label}
+                                  >
+                                    {label}
+                                  </span>
+                                ) : null}
+                              </span>
+                            )
+                          })}
                           {entry.modifierTotal !== 0 ? (
                             <span className="dice-roller-panel__face is-mod">
                               {entry.modifierTotal > 0 ? '+' : ''}

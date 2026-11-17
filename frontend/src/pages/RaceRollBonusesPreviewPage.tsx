@@ -10,9 +10,19 @@ import { sampleClassic2014Character } from '../features/classicSheet/sampleClass
 import type { CharacterDetail } from '../shared/api/characters'
 import type { DiceLogEntry } from '../features/diceRoller/types'
 import type { AppliedRaceGrant } from '../shared/dnd/raceGrants'
-import { Text } from '../ui'
+import { SessionEventFeed } from '../features/lobby/SessionEventFeed'
+import type { SessionEvent } from '../shared/api/lobbies'
+import { Stack, Text } from '../ui'
 
-type Fixture = 'shadow' | 'sentinel' | 'finding' | 'pale' | 'human' | '2024'
+type Fixture =
+  | 'shadow'
+  | 'sentinel'
+  | 'finding'
+  | 'pale'
+  | 'human'
+  | '2024'
+  | 'halfling'
+  | 'session-feed'
 
 function baseGrant(partial: Partial<AppliedRaceGrant> & Pick<AppliedRaceGrant, 'slug'>): AppliedRaceGrant {
   return {
@@ -120,6 +130,23 @@ function fixtureCharacter(fixture: Fixture): CharacterDetail {
       grant: baseGrant({
         slug: 'human',
         parentSlug: null,
+        darkvision: 0,
+        rollBonuses: [],
+      }),
+    })
+  }
+  if (fixture === 'halfling') {
+    return withGrant(base, {
+      id: 'preview-race-roll-halfling',
+      name: 'Пиппин Лёгконог',
+      raceName: 'Полурослик (легконогий)',
+      className: 'Плут',
+      edition: '2014',
+      grant: baseGrant({
+        slug: 'lightfoot_halfling',
+        parentSlug: 'halfling',
+        size: 'small',
+        speed: 25,
         darkvision: 0,
         rollBonuses: [],
       }),
@@ -243,29 +270,35 @@ function journalFor(fixture: Fixture): DiceLogEntry[] | undefined {
       {
         id: 'shadow-stealth',
         at: Date.now() - 8_000,
-        expression: '1d20+7+1к4',
+        expression: '1d20+5+1к4',
         advantageMode: 'none',
-        total: 21,
-        modifierTotal: 10,
+        total: 19,
+        modifierTotal: 5,
         dice: [
           { sides: 20, value: 11, dropped: false },
-          { sides: 4, value: 3, dropped: false },
+          {
+            sides: 4,
+            value: 3,
+            dropped: false,
+            label: 'Интуиция лукавого',
+          },
         ],
         title: 'Скрытность',
-        toastText: 'Скрытность: 21 (d20:11 +7) + 3 (+1к4 (Интуиция лукавого))',
+        toastText:
+          'Скрытность: 19 (d20:11 +5) + 3 (+1к4 (Интуиция лукавого))',
         source: 'sheet',
         repeatable: true,
       },
       {
         id: 'shadow-athletics',
         at: Date.now() - 4_000,
-        expression: '1d20+2',
+        expression: '1d20+3',
         advantageMode: 'none',
-        total: 14,
-        modifierTotal: 2,
+        total: 15,
+        modifierTotal: 3,
         dice: [{ sides: 20, value: 12, dropped: false }],
         title: 'Атлетика',
-        toastText: 'Атлетика: 14 (d20:12 +2)',
+        toastText: 'Атлетика: 15 (d20:12 +3)',
         source: 'sheet',
         repeatable: true,
       },
@@ -279,10 +312,15 @@ function journalFor(fixture: Fixture): DiceLogEntry[] | undefined {
         expression: '1d20+5+1к4',
         advantageMode: 'none',
         total: 16,
-        modifierTotal: 8,
+        modifierTotal: 5,
         dice: [
           { sides: 20, value: 9, dropped: false },
-          { sides: 4, value: 2, dropped: false },
+          {
+            sides: 4,
+            value: 2,
+            dropped: false,
+            label: 'Интуиция стража',
+          },
         ],
         title: 'Проницательность',
         toastText: 'Проницательность: 16 (d20:9 +5) + 2 (+1к4 (Интуиция стража))',
@@ -299,10 +337,15 @@ function journalFor(fixture: Fixture): DiceLogEntry[] | undefined {
         expression: '1d20+6+1к4',
         advantageMode: 'none',
         total: 19,
-        modifierTotal: 9,
+        modifierTotal: 6,
         dice: [
           { sides: 20, value: 11, dropped: false },
-          { sides: 4, value: 2, dropped: false },
+          {
+            sides: 4,
+            value: 2,
+            dropped: false,
+            label: 'Интуиция охотника',
+          },
         ],
         title: 'Выживание',
         toastText: 'Выживание: 19 (d20:11 +6) + 2 (+1к4 (Интуиция охотника))',
@@ -312,6 +355,59 @@ function journalFor(fixture: Fixture): DiceLogEntry[] | undefined {
     ]
   }
   return undefined
+}
+
+function sessionFeedEvents(): SessionEvent[] {
+  const now = new Date().toISOString()
+  return [
+    {
+      id: 'feed-stealth',
+      session_id: 'preview-session',
+      event_type: 'roll',
+      created_at: now,
+      character_id: 'preview-race-roll-shadow',
+      character_name: 'Тень Фирендии',
+      actor_user_id: null,
+      title: 'Скрытность',
+      formula: '1d20+5+1к4',
+      breakdown: 'd20:11 d4:3 (Интуиция лукавого) +5 = 19',
+      total: 19,
+      is_master_roll: false,
+      payload: {
+        digital: true,
+        category: 'sheet',
+        from_sheet: true,
+        advantage_mode: 'none',
+        modifier_total: 5,
+        dice: [
+          { sides: 20, value: 11, dropped: false },
+          { sides: 4, value: 3, dropped: false, label: 'Интуиция лукавого' },
+        ],
+      },
+    } as SessionEvent,
+    {
+      id: 'feed-athletics',
+      session_id: 'preview-session',
+      event_type: 'roll',
+      created_at: now,
+      character_id: 'preview-race-roll-shadow',
+      character_name: 'Тень Фирендии',
+      actor_user_id: null,
+      title: 'Атлетика',
+      formula: '1d20+3',
+      breakdown: 'd20:12 +3 = 15',
+      total: 15,
+      is_master_roll: false,
+      payload: {
+        digital: true,
+        category: 'sheet',
+        from_sheet: true,
+        advantage_mode: 'none',
+        modifier_total: 3,
+        dice: [{ sides: 20, value: 12, dropped: false }],
+      },
+    } as SessionEvent,
+  ]
 }
 
 export function RaceRollBonusesPreviewPage() {
@@ -324,16 +420,39 @@ export function RaceRollBonusesPreviewPage() {
     'pale',
     'human',
     '2024',
+    'halfling',
+    'session-feed',
   ].includes(raw)
     ? raw
     : 'shadow'
   const clean = params.get('clean') === '1'
   const journal = params.get('journal') === '1'
-  const [character, setCharacter] = useState(() => fixtureCharacter(fixture))
+  const sheetFixture = fixture === 'session-feed' ? 'shadow' : fixture
+  const [character, setCharacter] = useState(() => fixtureCharacter(sheetFixture))
   const seedLog = useMemo(
-    () => (journal ? journalFor(fixture) : undefined),
-    [fixture, journal],
+    () => (journal ? journalFor(sheetFixture) : undefined),
+    [sheetFixture, journal],
   )
+
+  if (fixture === 'session-feed') {
+    return (
+      <main
+        className={`page page--app${clean ? ' dice-preview--clean' : ''}`}
+        data-testid="race-roll-bonuses-preview"
+        data-fixture={fixture}
+      >
+        {!clean ? (
+          <Text tone="muted">
+            /dev/race-roll-bonuses-preview · session-feed · лента партии
+          </Text>
+        ) : null}
+        <Stack gap={16}>
+          <Text as="h2">Лента сессии</Text>
+          <SessionEventFeed events={sessionFeedEvents()} />
+        </Stack>
+      </main>
+    )
+  }
 
   return (
     <main

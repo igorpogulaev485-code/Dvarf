@@ -56,6 +56,10 @@ function facesFromPayload(payload: Record<string, unknown>) {
       const sides = Number(row.sides)
       const value = Number(row.value)
       if (!Number.isFinite(sides) || !Number.isFinite(value)) return null
+      const label =
+        typeof row.label === 'string' && row.label.trim()
+          ? row.label.trim()
+          : undefined
       return {
         sides,
         value,
@@ -64,6 +68,7 @@ function facesFromPayload(payload: Record<string, unknown>) {
           row.nat === '20' || row.nat === '1'
             ? (row.nat as '20' | '1')
             : undefined,
+        ...(label ? { label } : {}),
       }
     })
     .filter((x): x is NonNullable<typeof x> => x != null)

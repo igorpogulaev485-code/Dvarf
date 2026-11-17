@@ -49,6 +49,8 @@ class DieFace:
     value: int
     dropped: bool
     nat: Literal["20", "1"] | None = None
+    """Optional rider source label (Bless / dragonmark intuition, …)."""
+    label: str | None = None
 
     def as_dict(self) -> dict:
         out: dict = {
@@ -58,7 +60,69 @@ class DieFace:
         }
         if self.nat is not None:
             out["nat"] = self.nat
+        if self.label:
+            out["label"] = self.label
         return out
+
+
+def apply_die_labels(
+    dice: list[DieFace],
+    labels: list[dict] | None,
+) -> list[DieFace]:
+    """Attach client-supplied rider labels to matching non-d20 kept faces (order)."""
+    if not labels:
+        return dice
+    pending: list[tuple[int, str]] = []
+    for row in labels:
+        if not isinstance(row, dict):
+            continue
+        sides = row.get("sides")
+        label = row.get("label")
+        if not isinstance(sides, int) or sides < 2:
+            continue
+        if not isinstance(label, str) or not label.strip():
+            continue
+        pending.append((sides, label.strip()[:80]))
+    if not pending:
+        return dice
+    out: list[DieFace] = []
+    for face in dice:
+        if face.dropped or face.sides == 20 or not pending:
+            out.append(face)
+            continue
+        match_i = next(
+            (i for i, (sides, _) in enumerate(pending) if sides == face.sides),
+            None,
+        )
+        if match_i is None:
+            out.append(face)
+            continue
+        _, label = pending.pop(match_i)
+        out.append(
+            DieFace(
+                sides=face.sides,
+                value=face.value,
+                dropped=face.dropped,
+                nat=face.nat,
+                label=label,
+            )
+        )
+    return out
+
+
+def roll_ok_with_die_labels(rolled: RollOk, labels: list[dict] | None) -> RollOk:
+    """Return a RollOk whose dice (and breakdown) carry rider labels."""
+    labeled = apply_die_labels(rolled.dice, labels)
+    if labeled is rolled.dice:
+        return rolled
+    return RollOk(
+        expression=rolled.expression,
+        advantage_mode=rolled.advantage_mode,
+        total=rolled.total,
+        dice=labeled,
+        modifier_total=rolled.modifier_total,
+        breakdown=_breakdown(labeled, rolled.modifier_total, rolled.total)[:500],
+    )
 
 
 @dataclass(frozen=True)
@@ -289,7 +353,10 @@ def _breakdown(dice: list[DieFace], modifier_total: int, total: int) -> str:
     parts: list[str] = []
     for face in dice:
         mark = "↓" if face.dropped else ""
-        parts.append(f"d{face.sides}:{face.value}{mark}")
+        bit = f"d{face.sides}:{face.value}{mark}"
+        if face.label:
+            bit = f"{bit} ({face.label})"
+        parts.append(bit)
     if modifier_total:
         parts.append(f"{modifier_total:+d}")
     return f"{' '.join(parts)} = {total}" if parts else str(total)

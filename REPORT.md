@@ -1,10 +1,14 @@
 # Отчёт: расовые бонусы к броскам 2014 (метки ERLW)
 
-Прод не трогали. Миграций персонажей нет. Редакция 2024 и шапка листа не менялись.
+Прод не трогали. Миграций персонажей нет. Редакция 2024 и шапка листа не менялись. Не вливать.
 
 ## Что сделано
 
 Структурное поле `roll_bonuses` в каталоге рас 2014 → `AppliedRaceGrant.rollBonuses` → доп. кости (`BonusDiePart`) на проверках навыка/инструмента и безусловное преимущество на навыках. Без разбора `traits_text`.
+
+### Доправка 1 (журнал / лог сессии)
+
+Бонусный к4 больше не складывается в чип модификатора. В журнале листа и в ленте сессии кость рисуется отдельно (как Bless/Guidance): значение на грани + подпись источника («Интуиция лукавого»). На сервер уходит `die_labels`; в `SessionEventFeed` и `DiceFaces` подпись читается из грани.
 
 ## Таблица инвентаризации
 
@@ -36,34 +40,36 @@
 - `backend/data/races/phb2014_race_catalog_spec.json` — `roll_bonuses` у 13 меток + бледного эльфа
 - `frontend/src/shared/dnd/raceRollBonuses.ts` — парсер + матчинг skill/tool + gate 2024
 - `raceGrants` / `raceEffects` / backfill каталога — поле в grant
-- `sheetActions4` — кости в `buffDiceFor('check')`, advantage в `effectiveRollMode`
+- `sheetActions4` — кости в `buffDiceFor('check')`, advantage в `effectiveRollMode`; `dieLabels` в запись броска
+- `DieFaceResult.label` → журнал / `DiceFaces` / панель кубиков / лента сессии
+- backend: `die_labels` в digital-roll + `apply_die_labels`
 - `EnterOwnNumberDialog` / `TurnEconomyDeskHost` — доп. кости при «своём числе»
 - `isHalflingLuckyRace(slug, parentSlug)` + атаки Play Desk
-- Selfcheck: `npm run selfcheck:race-roll-bonuses`
+- Selfcheck: `npm run selfcheck:race-roll-bonuses`; `b08Races.selfcheck` (Lucky + parentSlug)
 
 ## Проверки
 
 - `pytest`: 682 passed, 1 skipped
 - `npm run build`: ok
 - Selfcheck меток: навык из списка → d4; другой навык → нет; edition 2024 → нет
+- Lucky: `lightfoot_halfling` и `mark_of_healing`+`parentSlug=halfling` — ok; `mark_of_shadow` — без Lucky
 
 ## Артефакты
 
 Каталог: `/opt/cursor/artifacts/race-roll-bonuses-2014/`
 
-| Кадр | md5 |
+| Кадр | Что доказывает |
 |---|---|
-| shadow-journal-1440.png | см. `md5s.json` / live |
-| shadow-journal-390.png | |
-| shadow-live-stealth-1440.png | live: `1d20+5+1к4` в журнале |
-| shadow-live-athletics-1440.png | без d4 |
-| sentinel-journal-1440/390.png | Проницательность +1к4 |
-| finding-journal-1440/390.png | Выживание +1к4 |
-| human-idle-1440/390.png | регресс |
-| edition-2024-idle-1440/390.png | регресс |
+| `shadow-live-athletics-1440.png` / `390` | Журнал открыт: Атлетика `1d20+3` без к4 + Скрытность `1d20+5+1к4`, грань к4 = число + «Интуиция лукавого»; без toast |
+| `shadow-athletics-stealth-journal-1440.png` / `390` | То же на seeded journal |
+| `session-feed-mark-d4-1440.png` / `390` | Общий лог партии: к4 отдельно с подписью; Атлетика без к4 |
+| `sentinel-journal-*` / `finding-journal-*` | Другие метки |
+| `human-combat-1440/390.png` | Регресс вкладки «Бой» (воин) |
+| `halfling-combat-1440/390.png` | Регресс вкладки «Бой» (лёгкий полурослик) |
+| `edition-2024-idle-*` | Регресс 2024 idle |
 
-Регресс idle (человек-воин 2014 и персонаж 2024), `scrollTop=0`, без toast, viewport не fullpage:
+Регресс Combat (человек-воин и полурослик 2014), `scrollTop=0`, без toast, viewport не fullpage:
 
-`regress-md5.json` — before === after для всех четырёх кадров.
+`regress-md5.json` — before === after для всех четырёх кадров (`human`/`halfling` × 1440/390).
 
-Preview: `/dev/race-roll-bonuses-preview?fixture=shadow|sentinel|finding|pale|human|2024&clean=1&journal=1`
+Preview: `/dev/race-roll-bonuses-preview?fixture=shadow|sentinel|finding|pale|human|halfling|2024|session-feed&clean=1&journal=1`

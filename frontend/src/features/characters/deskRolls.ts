@@ -564,6 +564,7 @@ export type SkillRollPayload = {
     value: number
     dropped: boolean
     nat?: '20' | '1'
+    label?: string
   }>
   modifierTotal: number
   advantageMode: 'none' | 'advantage' | 'disadvantage'
@@ -639,6 +640,17 @@ export function rollSkillCheck(
       return `+${m[1] || 1}к${m[2]}`
     })
     .join('')
+  const bonusFaces = bonus.rolls.flatMap((row) => {
+    const m = String(row.dice).trim().match(/^(\d*)[dк](\d+)$/i)
+    if (!m) return []
+    const count = Math.max(1, Number(m[1] || 1))
+    const sides = Math.max(2, Number(m[2]))
+    // One face chip per bonus part (sum already in row.value for NdX).
+    if (count === 1) {
+      return [{ sides, value: row.value, dropped: false as const, label: row.label }]
+    }
+    return [{ sides, value: row.value, dropped: false as const, label: row.label }]
+  })
   return {
     text,
     roll,
@@ -646,8 +658,10 @@ export function rollSkillCheck(
     modifier: Math.trunc(modifier),
     mode,
     expression: `${expressionBase}${bonusExpr}`,
-    diceFaces: checkRollToDiceFaces(roll),
-    modifierTotal: Math.trunc(modifier) + bonus.total,
+    // d20 faces + separate rider dice (Bless / mark d4) with source labels.
+    // Flat modifier stays in modifierTotal — do not fold rider totals into it.
+    diceFaces: [...checkRollToDiceFaces(roll), ...bonusFaces],
+    modifierTotal: Math.trunc(modifier),
     advantageMode:
       mode === 'advantage' ? 'advantage' : mode === 'disadvantage' ? 'disadvantage' : 'none',
   }

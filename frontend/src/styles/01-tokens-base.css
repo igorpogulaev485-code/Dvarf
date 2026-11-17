@@ -2546,6 +2546,27 @@ body:has(.ui-dice-fab-slot) .play-desk__stage .play-desk-compact__list {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
+  align-items: flex-start;
+}
+
+.dice-roller-panel__face-wrap {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  max-width: 7rem;
+}
+
+.dice-roller-panel__face-label {
+  font-size: 0.7rem;
+  line-height: 1.2;
+  color: var(--muted);
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
 }
 
 .dice-roller-panel__face {
@@ -2586,6 +2607,27 @@ body:has(.ui-dice-fab-slot) .play-desk__stage .play-desk-compact__list {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
+  align-items: flex-start;
+}
+
+.ui-dice-face-wrap {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  max-width: 7rem;
+}
+
+.ui-dice-face__label {
+  font-size: 0.7rem;
+  line-height: 1.2;
+  color: var(--muted);
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
 }
 
 .ui-dice-face {

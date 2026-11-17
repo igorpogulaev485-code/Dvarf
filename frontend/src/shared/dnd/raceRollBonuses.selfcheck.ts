@@ -11,7 +11,10 @@ import {
   raceBonusDiceForCheck,
   readRaceRollBonuses,
 } from './raceRollBonuses.ts'
-import { rollBonusDiceParts } from '../../features/characters/deskRolls.ts'
+import {
+  rollBonusDiceParts,
+  rollSkillCheck,
+} from '../../features/characters/deskRolls.ts'
 
 function assert(cond: unknown, msg: string): asserts cond {
   if (!cond) throw new Error(msg)
@@ -128,6 +131,30 @@ for (const slug of MARK_SLUGS) {
   )
   assert(rolled.total === 4, 'forced d4=4')
   assert(/\+1к4 \(Интуиция лукавого\)/.test(rolled.text), `text ${rolled.text}`)
+}
+
+{
+  let calls = 0
+  const rng = () => {
+    // 1st: d20 → 11 (0.5); 2nd: d4 → 3 (0.5)
+    calls += 1
+    return 0.5
+  }
+  const payload = rollSkillCheck(
+    'Скрытность',
+    5,
+    'normal',
+    rng,
+    null,
+    null,
+    [{ dice: '1d4', label: 'Интуиция лукавого' }],
+  )
+  assert(calls >= 2, 'rolled d20 and d4')
+  assert(payload.total === 11 + 5 + 3, `total ${payload.total}`)
+  assert(payload.modifierTotal === 5, `mod-only chip ${payload.modifierTotal}`)
+  const rider = payload.diceFaces.find((face) => face.sides === 4)
+  assert(rider?.value === 3, 'd4 face value')
+  assert(rider?.label === 'Интуиция лукавого', `label ${rider?.label}`)
 }
 
 console.log('raceRollBonuses.selfcheck: ok')

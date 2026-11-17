@@ -68,6 +68,7 @@ from app.services.dice_formula import (
     FormulaError,
     normalize_advantage,
     roll_expression,
+    roll_ok_with_die_labels,
 )
 from app.schemas.lobby import (
     AddLobbyMemberRequest,
@@ -4669,6 +4670,12 @@ class LobbyService:
                         from sqlalchemy.orm.attributes import flag_modified as _fm_sheet2
 
                         _fm_sheet2(roll_char, "sheet")
+
+        die_label_rows = [
+            {"sides": row.sides, "label": row.label}
+            for row in (payload.die_labels or [])
+        ]
+        rolled = roll_ok_with_die_labels(rolled, die_label_rows)
 
         category = payload.category or "roll"
         title = payload.title.strip() or "Бросок"
