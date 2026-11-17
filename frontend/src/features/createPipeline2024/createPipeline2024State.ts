@@ -479,6 +479,24 @@ function abilitiesIssues(state: Create2024State): string[] {
   return []
 }
 
+/** Bard 2024 create-time picks: Expertise from level 2 (2) and 9 (4), Lore bonus skills at 3. */
+export function bardCreatePicksNeed2024(state: Create2024State): {
+  bardLevel: number
+  expertise: number
+  lore: number
+} {
+  if (state.classSlug !== 'bard') return { bardLevel: 0, expertise: 0, lore: 0 }
+  const primary =
+    state.classes.find((row) => row.id === state.primaryClassEntryId) ?? state.classes[0]
+  const bardLevel = Math.max(1, primary?.level ?? state.characterLevel ?? 1)
+  const subclass = (primary && state.subclassByEntryId[primary.id]) || state.subclassSlug || ''
+  return {
+    bardLevel,
+    expertise: bardLevel >= 9 ? 4 : bardLevel >= 2 ? 2 : 0,
+    lore: bardLevel >= 3 && subclass === 'bard__lore' ? 3 : 0,
+  }
+}
+
 function levelingIssues(state: Create2024State, ctx: StepIssueCtx): string[] {
   const issues: string[] = []
   const wizardLevel = Math.max(
@@ -503,6 +521,21 @@ function levelingIssues(state: Create2024State, ctx: StepIssueCtx): string[] {
       pick !== 'potent_spellcasting'
     ) {
       issues.push('Выберите Благословленные удары (с 7 ур. жреца)')
+    }
+  }
+  if (state.classSlug === 'bard') {
+    const need = bardCreatePicksNeed2024(state)
+    const expertise = Array.isArray(state.classOptionPicks.expertise)
+      ? (state.classOptionPicks.expertise as string[])
+      : []
+    if (need.expertise > 0 && !uniqueCount(expertise, need.expertise)) {
+      issues.push(`Компетентность: выбрано ${expertise.length} из ${need.expertise}`)
+    }
+    const lore = Array.isArray(state.classOptionPicks.lore_skills)
+      ? (state.classOptionPicks.lore_skills as string[])
+      : []
+    if (need.lore > 0 && !uniqueCount(lore, need.lore)) {
+      issues.push(`Доп. навыки Коллегии знаний: выбрано ${lore.length} из ${need.lore}`)
     }
   }
   if (state.classSlug === 'druid') {

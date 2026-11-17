@@ -29,6 +29,7 @@ import {
 import {
   backgroundAsiTrio,
   backgroundNeedsToolPick,
+  bardCreatePicksNeed2024,
   classSkillNeed,
   classStartingPacks,
   classToolChoice,
@@ -242,6 +243,60 @@ export function ClassPicks({
           multi={false}
           testIdPrefix="p24-m03-pick-class-equipment"
           onChange={(picked) => patch({ classEquipment: picked[0] ?? state.classEquipment })}
+        />
+      ) : null}
+    </Stack>
+  )
+}
+
+/** Bard 2024 leveling picks: Expertise (2 / 9) and College of Lore bonus skills. */
+export function BardLevelingPicks({
+  state,
+  patch,
+  proficientSkillIds,
+  allSkillIds,
+}: {
+  state: Create2024State
+  patch: (partial: Partial<Create2024State>) => void
+  proficientSkillIds: readonly string[]
+  allSkillIds: readonly string[]
+}) {
+  const need = bardCreatePicksNeed2024(state)
+  if (need.expertise === 0 && need.lore === 0) return null
+  const lore = ids(state.classOptionPicks.lore_skills)
+  const expertise = ids(state.classOptionPicks.expertise)
+  const setPicks = (partial: Record<string, unknown>) =>
+    patch({ classOptionPicks: { ...state.classOptionPicks, ...partial } })
+  const proficient = new Set(proficientSkillIds)
+  const expertiseOptions = [...new Set([...proficientSkillIds, ...lore])]
+  const loreOptions = allSkillIds.filter((id) => !proficient.has(id))
+  return (
+    <Stack gap={14}>
+      {need.lore > 0 ? (
+        <PickChipGroup
+          label="Доп. навыки Коллегии знаний"
+          hint={`Выберите ${need.lore} навыка, которыми вы ещё не владеете.`}
+          options={loreOptions.map((id) => ({ id, label: skillLabelRu(id) }))}
+          selected={lore}
+          max={need.lore}
+          testIdPrefix="p24-m02-bard-lore"
+          onChange={(next) =>
+            setPicks({
+              lore_skills: next,
+              expertise: expertise.filter((id) => proficient.has(id) || next.includes(id)),
+            })
+          }
+        />
+      ) : null}
+      {need.expertise > 0 ? (
+        <PickChipGroup
+          label="Компетентность"
+          hint={`Выберите ${need.expertise} навыка, которыми вы владеете.`}
+          options={expertiseOptions.map((id) => ({ id, label: skillLabelRu(id) }))}
+          selected={expertise}
+          max={need.expertise}
+          testIdPrefix="p24-m02-bard-expertise"
+          onChange={(next) => setPicks({ expertise: next })}
         />
       ) : null}
     </Stack>

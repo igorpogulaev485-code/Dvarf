@@ -18,6 +18,7 @@ import { Create2024IdentityFields } from '../features/createPipeline2024/Create2
 import { Create2024DetailPanel } from '../features/createPipeline2024/Create2024DetailPanel'
 import {
   BackgroundPicks,
+  BardLevelingPicks,
   ClassPicks,
   SpeciesFeatPicks,
   SpeciesPicks,
@@ -1244,6 +1245,14 @@ export function CreateCharacter2024Page({
               }
             }}
           />
+          {classSlug === 'bard' && model ? (
+            <BardLevelingPicks
+              state={state}
+              patch={patch}
+              proficientSkillIds={model.skills.filter((row) => row.proficient).map((row) => row.key)}
+              allSkillIds={model.skills.map((row) => row.key)}
+            />
+          ) : null}
           {sc ? (
             <div data-testid="p24-m03-step-spells">
               <CatalogCardList
