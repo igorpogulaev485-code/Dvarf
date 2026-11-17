@@ -55,6 +55,12 @@ import {
 import { exhaustionRollFlagsForEdition } from '../../../shared/dnd/exhaustionRules'
 import { usesHeroicInspiration } from '../../../shared/dnd/heroicInspiration'
 import {
+  bardicDieLabelRu,
+  bardicInspirationAllowsAfterFail,
+  bardicInspirationDieFromEffect,
+  findSpendableBardicInspirationEffect,
+} from '../../../shared/dnd/bardicInspirationTarget2024'
+import {
   conditionModeForSelf,
   coverBonusBeyondEffects,
   hasFortifiedHalfCover,
@@ -1603,6 +1609,7 @@ export function installSheetActions4(model: SheetModel) {
     }
     model.emitToast(text)
     offerHeroicRerollAfter(skill.label, 20)
+    model.offerBardicInspirationAfterFail?.(skill.label)
     const te = model.turnEconomyApi as
       | {
           diceOnTable?: boolean
@@ -1690,7 +1697,9 @@ export function installSheetActions4(model: SheetModel) {
     )}${note}${model.inspirationRollArmed && !isHeroic ? ' · вдохновение' : ''}`
     if (model.inspirationRollArmed && !isHeroic) model.spendInspirationForRoll?.()
     model.emitToast(text)
-    offerHeroicRerollAfter(ABILITY_NAMES[key] ?? ABILITY_LABELS[key], 20)
+    const abilityLabel = ABILITY_NAMES[key] ?? ABILITY_LABELS[key]
+    offerHeroicRerollAfter(abilityLabel, 20)
+    model.offerBardicInspirationAfterFail?.(abilityLabel)
     const te = model.turnEconomyApi as
       | {
           diceOnTable?: boolean
@@ -1703,7 +1712,7 @@ export function installSheetActions4(model: SheetModel) {
       | undefined
     if (te?.diceOnTable && te.openEnterOwnNumber) {
       te.openEnterOwnNumber({
-        title: `Проверка · ${ABILITY_NAMES[key] ?? ABILITY_LABELS[key]}`,
+        title: `Проверка · ${abilityLabel}`,
         mode: 'd20',
         modifier: rollMod,
       })
@@ -1809,6 +1818,7 @@ export function installSheetActions4(model: SheetModel) {
       if (model.inspirationRollArmed && !isHeroicSave) model.spendInspirationForRoll?.()
     }
     offerHeroicRerollAfter(saveTitle, 20)
+    model.offerBardicInspirationAfterFail?.(saveTitle)
     consumeOnceBuffDice('save')
   }
 
@@ -1933,6 +1943,8 @@ export function installSheetActions4(model: SheetModel) {
     option?: string | null
     slotLevel?: number | null
     auraAllyDefaultOff?: boolean
+    edition?: string | null
+    combatInspiration?: boolean | null
   }) {
     const { applyFeatureBuffToTargets } = await import('../applyFeatureBuff')
     return applyFeatureBuffToTargets({
@@ -1944,10 +1956,30 @@ export function installSheetActions4(model: SheetModel) {
       option: input.option,
       slotLevel: input.slotLevel,
       auraAllyDefaultOff: input.auraAllyDefaultOff,
+      edition: input.edition,
+      combatInspiration: input.combatInspiration,
       sourceCharacterId: String(model.baseCharacter.id),
       sourceName:
         model.draft.name?.trim() || model.baseCharacter.name || 'Персонаж',
       ...model.featureBuffHooks(),
+    })
+  }
+
+  model.offerBardicInspirationAfterFail = function offerBardicInspirationAfterFail(
+    label: string,
+  ) {
+    if (String(model.baseCharacter?.rules_edition ?? model.rulesEdition ?? '') !== '2024') {
+      return
+    }
+    const effect = findSpendableBardicInspirationEffect(model.draft.play.effects ?? [])
+    if (!effect || !bardicInspirationAllowsAfterFail(effect)) return
+    if (typeof model.setBardicInspirationSpendOffer !== 'function') return
+    const die = bardicInspirationDieFromEffect(effect)
+    model.setBardicInspirationSpendOffer({
+      label,
+      effectId: effect.id,
+      dieLabelRu: bardicDieLabelRu(die),
+      mode: 'after_fail',
     })
   }
 }

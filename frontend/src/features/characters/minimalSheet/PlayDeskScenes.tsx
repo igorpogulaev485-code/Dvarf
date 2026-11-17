@@ -774,14 +774,17 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
                   }))
                 }
               }
-              if (!chips.length) return
-              model.setDraft((prev) => ({
-                ...prev,
-                play: {
-                  ...prev.play,
-                  effects: consumeRollDieChips(prev.play.effects ?? [], chips),
-                },
-              }))
+              if (chips.length) {
+                model.setDraft((prev) => ({
+                  ...prev,
+                  play: {
+                    ...prev.play,
+                    effects: consumeRollDieChips(prev.play.effects ?? [], chips),
+                  },
+                }))
+              }
+              // 2024 BI on target: offer spend after attack Test (player decides if failed).
+              model.offerBardicInspirationAfterFail?.('Атака')
             }}
             onConsumeDamageRiders={(used) => {
               if (!used.length) return

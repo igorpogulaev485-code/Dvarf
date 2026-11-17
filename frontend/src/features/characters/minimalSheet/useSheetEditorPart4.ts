@@ -196,6 +196,14 @@ export function useSheetEditorPart4(model: SheetModel) {
   } | null>(null)
   model.magicalGuidanceOffer = magicalGuidanceOffer
   model.setMagicalGuidanceOffer = setMagicalGuidanceOffer
+  const [bardicInspirationSpendOffer, setBardicInspirationSpendOffer] = useState<{
+    label: string
+    effectId: string
+    dieLabelRu: string
+    mode: 'after_fail' | 'combat_ac' | 'combat_damage'
+  } | null>(null)
+  model.bardicInspirationSpendOffer = bardicInspirationSpendOffer
+  model.setBardicInspirationSpendOffer = setBardicInspirationSpendOffer
   const [bardicInspirationSpendId, setBardicInspirationSpendId] = useState<
     string | null
   >(null)

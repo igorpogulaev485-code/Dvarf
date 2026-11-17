@@ -33,7 +33,11 @@ import { Monk2024UseDialog } from '../Monk2024UseDialog'
 import { Warlock2024UseDialog } from '../Warlock2024UseDialog'
 import { Cleric2024UseDialog, type ClericFeatureRequest } from '../Cleric2024UseDialog'
 import { Bard2024UseDialog, type BardFeatureRequest } from '../Bard2024UseDialog'
-import { bard2024UseFeatureId, type Bard2024UseResult } from '../../../shared/dnd/bard2024Features'
+import {
+  BARD_SUBCLASS_SLUGS_2024,
+  bard2024UseFeatureId,
+  type Bard2024UseResult,
+} from '../../../shared/dnd/bard2024Features'
 import type { WizardFeatureUseResult } from '../../../shared/dnd/wizardTradition'
 import {
   applySelfDamage2024,
@@ -126,6 +130,8 @@ export function SheetDialogsResources({ model }: { model: SheetModel }) {
     casterMod?: number
     slotLevel?: number
     auraAllyDefaultOff?: boolean
+    edition?: string
+    combatInspiration?: boolean
   } | null>(null)
 
   const onWizardUseConfirm = (result: WizardFeatureUseResult) => {
@@ -331,6 +337,7 @@ export function SheetDialogsResources({ model }: { model: SheetModel }) {
     }
     const featureId = bard2024UseFeatureId(model.bardFeatureUse?.featureId) ?? 'bard'
     const patches = result.patches
+    const request = model.bardFeatureUse as BardFeatureRequest | null
     model.setDraft((prev) => ({
       ...prev,
       ...(result.slots ? { spells: { ...prev.spells, slots: result.slots } } : {}),
@@ -346,6 +353,23 @@ export function SheetDialogsResources({ model }: { model: SheetModel }) {
       },
     }))
     model.onToast(result.feedLineRu)
+    // 2024 BI grant: same ally path as 2014 (UseAllyAbilityDialog → applyFeatureBuff).
+    if (patches?.grantedDieLabel && featureId === 'bardic-inspiration') {
+      const entryId = request?.classEntryId ?? ''
+      const subclass =
+        (entryId && model.subclassSlugByEntryId?.[entryId]) ||
+        model.draft.classes.find((row) => row.id === entryId)?.subclass_catalog_id ||
+        ''
+      const isValor = String(subclass) === BARD_SUBCLASS_SLUGS_2024.valor
+      setPendingAllyBuff({
+        slug: 'bardic_inspiration',
+        name: 'Бардовское вдохновение',
+        die: patches.grantedDieLabel,
+        classLevel: bardLevel,
+        edition: '2024',
+        combatInspiration: isValor,
+      })
+    }
     model.setBardFeatureUse(null)
   }
 
@@ -1387,10 +1411,27 @@ export function SheetDialogsResources({ model }: { model: SheetModel }) {
           characterName={model.draft.name?.trim() || model.baseCharacter.name || 'Персонаж'}
           abilityName={pendingAllyBuff.name}
           targetCount={pendingAllyBuff.slug === 'mantle_of_inspiration' ? 3 : 1}
+          requireNonSelfTarget={
+            pendingAllyBuff.edition === '2024' &&
+            pendingAllyBuff.slug === 'bardic_inspiration'
+          }
           onClose={() => setPendingAllyBuff(null)}
           onConfirm={(targetIds) => {
-            const targets =
-              targetIds.length > 0 ? targetIds : [String(model.baseCharacter.id)]
+            const selfId = String(model.baseCharacter.id)
+            const is2024Bi =
+              pendingAllyBuff.edition === '2024' &&
+              pendingAllyBuff.slug === 'bardic_inspiration'
+            const targets = is2024Bi
+              ? targetIds.filter((id) => id && id !== selfId)
+              : targetIds.length > 0
+                ? targetIds
+                : [selfId]
+            if (is2024Bi && !targets.length) {
+              model.onToast(
+                'Бардовское вдохновение нельзя даровать себе — выбери союзника',
+              )
+              return
+            }
             void model
               .applyFeatureBuff?.({
                 slug: pendingAllyBuff.slug,
@@ -1401,6 +1442,8 @@ export function SheetDialogsResources({ model }: { model: SheetModel }) {
                 casterMod: pendingAllyBuff.casterMod,
                 slotLevel: pendingAllyBuff.slotLevel,
                 auraAllyDefaultOff: pendingAllyBuff.auraAllyDefaultOff,
+                edition: pendingAllyBuff.edition,
+                combatInspiration: pendingAllyBuff.combatInspiration,
               })
               .then((res: { error?: string; applied?: number } | undefined) => {
                 if (res?.error) model.onToast(res.error)

@@ -8,6 +8,13 @@ import {
   tickAllEffectsOneRound,
   type ActiveEffect,
 } from '../../shared/dnd/activeEffects'
+import {
+  bardicDieLabelRu,
+  bardicInspirationAllowsCombatAc,
+  bardicInspirationAllowsCombatDamage,
+  bardicInspirationDieFromEffect,
+  spendBardicInspirationOnTarget,
+} from '../../shared/dnd/bardicInspirationTarget2024'
 import { Button, Chip, DetailsMenu, ScrollRow } from '../../ui'
 import { IconRound } from './deskIcons'
 import { rollDamage } from './deskRolls'
@@ -133,6 +140,59 @@ function EffectChip({
         }}
       >
         Удача
+      </Button>,
+    )
+  }
+  // Valor Combat Inspiration 2024: spend granted BI die for AC (reaction) or damage.
+  if (!inactive && bardicInspirationAllowsCombatAc(effect)) {
+    const dieRu = bardicDieLabelRu(bardicInspirationDieFromEffect(effect))
+    actionNodes.push(
+      <Button
+        key="bi-ac"
+        type="button"
+        size="sm"
+        variant="ghost"
+        onClick={() => {
+          const spent = spendBardicInspirationOnTarget({
+            effects: rows,
+            mode: 'combat_ac',
+            effectId: effect.id,
+          })
+          if (!spent.ok) {
+            onToast?.(spent.message ?? 'Не удалось')
+            return
+          }
+          onChange(spent.effects)
+          onToast?.(spent.feedLineRu ?? `КД +${dieRu}`)
+        }}
+      >
+        КД {dieRu}
+      </Button>,
+    )
+  }
+  if (!inactive && bardicInspirationAllowsCombatDamage(effect)) {
+    const dieRu = bardicDieLabelRu(bardicInspirationDieFromEffect(effect))
+    actionNodes.push(
+      <Button
+        key="bi-dmg"
+        type="button"
+        size="sm"
+        variant="ghost"
+        onClick={() => {
+          const spent = spendBardicInspirationOnTarget({
+            effects: rows,
+            mode: 'combat_damage',
+            effectId: effect.id,
+          })
+          if (!spent.ok) {
+            onToast?.(spent.message ?? 'Не удалось')
+            return
+          }
+          onChange(spent.effects)
+          onToast?.(spent.feedLineRu ?? `Урон +${dieRu}`)
+        }}
+      >
+        Урон {dieRu}
       </Button>,
     )
   }
