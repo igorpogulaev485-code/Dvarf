@@ -1,16 +1,21 @@
 /** Lightweight bridge: «броски» on the sheet opens the d20 panel journal. */
 
+export type DiceJournalTab = 'mine' | 'table'
+
 export type DiceJournalOpenRequest = {
   characterId: string
-  /** Personal journal tab (02b will add «Стол» beside it). */
-  tab?: 'mine'
+  /** «Мои» или «Стол» (общий лог партии). */
+  tab?: DiceJournalTab
 }
 
 type Listener = (req: DiceJournalOpenRequest) => void
 
 const listeners = new Set<Listener>()
 
-export function openDiceJournal(characterId: string, tab: 'mine' = 'mine'): void {
+export function openDiceJournal(
+  characterId: string,
+  tab: DiceJournalTab = 'mine',
+): void {
   const req: DiceJournalOpenRequest = { characterId, tab }
   listeners.forEach((fn) => {
     try {

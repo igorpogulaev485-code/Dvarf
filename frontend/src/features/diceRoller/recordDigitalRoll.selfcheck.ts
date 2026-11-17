@@ -25,33 +25,39 @@ if (typeof globalThis.localStorage === 'undefined') {
   }
 }
 
-const id = 'selfcheck-dice-02a'
+async function main() {
+  const id = 'selfcheck-dice-02b'
 
-clearDiceLog(id)
-writeOnlyMePref(id, false)
+  clearDiceLog(id)
+  writeOnlyMePref(id, false)
 
-const entry = recordDigitalRoll({
-  characterId: id,
-  openSessionId: null,
-  title: 'Акробатика',
-  expression: '1d20+3',
-  total: 14,
-  dice: [{ sides: 20, value: 11, dropped: false }],
-  modifierTotal: 3,
-  advantageMode: 'none',
-  toastText: 'Акробатика: 14 (d20:11 +3)',
-  category: 'sheet',
-  source: 'sheet',
-})
+  const result = await recordDigitalRoll({
+    characterId: id,
+    openSessionId: null,
+    title: 'Акробатика',
+    expression: '1d20+3',
+    total: 14,
+    dice: [{ sides: 20, value: 11, dropped: false }],
+    modifierTotal: 3,
+    advantageMode: 'none',
+    toastText: 'Акробатика: 14 (d20:11 +3)',
+    category: 'sheet',
+    source: 'sheet',
+  })
+  assert(result.ok, 'offline roll ok')
+  const entry = result.entry
 
-const log = readDiceLog(id)
-assert(log[0]?.id === entry.id, 'journal prepend')
-assert(log[0]?.title === 'Акробатика', 'title stored')
-assert(shouldPostRollToSession(id) === true, 'only-me off → may post')
+  const log = readDiceLog(id)
+  assert(log[0]?.id === entry.id, 'journal prepend')
+  assert(log[0]?.title === 'Акробатика', 'title stored')
+  assert(shouldPostRollToSession(id) === true, 'only-me off → may post')
 
-writeOnlyMePref(id, true)
-assert(shouldPostRollToSession(id) === false, 'only-me on → skip post')
-writeOnlyMePref(id, false)
-clearDiceLog(id)
+  writeOnlyMePref(id, true)
+  assert(shouldPostRollToSession(id) === false, 'only-me on → skip post')
+  writeOnlyMePref(id, false)
+  clearDiceLog(id)
 
-console.log('recordDigitalRoll.selfcheck ok')
+  console.log('recordDigitalRoll.selfcheck ok')
+}
+
+void main()

@@ -1,9 +1,16 @@
 import { useEffect, useMemo, useRef, useState, type MouseEvent } from 'react'
 import {
+  listSessionEvents,
+  type SessionEvent,
+} from '../../shared/api/lobbies'
+import { useSessionRealtime } from '../lobby/useSessionRealtime'
+import {
   Button,
+  DiceFaces,
   EmptyState,
   Field,
   Input,
+  JournalTab,
   Stack,
   Stepper,
   Text,
@@ -53,9 +60,9 @@ type Props = {
   sheetRollHistory?: RollHistoryEntry[] | null
   /** Start with journal section focused (from «броски»). */
   focusJournal?: boolean
-  /** Which journal tab is active — «Стол» reserved for 02b. */
-  journalTab?: 'mine'
-  onJournalTabChange?: (tab: 'mine') => void
+  /** Which journal tab is active. */
+  journalTab?: 'mine' | 'table'
+  onJournalTabChange?: (tab: 'mine' | 'table') => void
 }
 
 function formatTime(at: number): string {
@@ -98,6 +105,10 @@ export function DiceRollerPanel({
     return first ? new Set([first]) : new Set()
   })
   const [confirmClear, setConfirmClear] = useState(false)
+  const [rolling, setRolling] = useState(false)
+  const [rollError, setRollError] = useState<string | null>(null)
+  const [tableEvents, setTableEvents] = useState<SessionEvent[]>([])
+  const [tableLoading, setTableLoading] = useState(false)
   const [advFlash, setAdvFlash] = useState(false)
   const [strokeOfLuckReady, setStrokeOfLuckReady] = useState(() =>
     isStrokeOfLuckAvailable(characterId),
@@ -161,13 +172,54 @@ export function DiceRollerPanel({
     return parseFormula(text)
   }, [formula, pool])
 
+  const atTable = Boolean(openSessionId?.trim())
   const canRoll =
+    !rolling &&
     parsed.ok &&
     parsed.totalDice > 0 &&
     !(advantage !== 'none' && !parsed.singleD20Eligible)
 
+  useEffect(() => {
+    if (!atTable || journalTab !== 'table' || !openSessionId) {
+      return
+    }
+    let cancelled = false
+    setTableLoading(true)
+    void listSessionEvents(openSessionId, { feedFilter: 'rolls' })
+      .then((rows) => {
+        if (!cancelled) setTableEvents(rows)
+      })
+      .catch(() => {
+        if (!cancelled) setTableEvents([])
+      })
+      .finally(() => {
+        if (!cancelled) setTableLoading(false)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [atTable, journalTab, openSessionId])
+
+  useSessionRealtime(atTable && journalTab === 'table' ? openSessionId : null, {
+    onEvent: (incoming) => {
+      if (incoming.event_type !== 'roll') return
+      setTableEvents((prev) => {
+        const idx = prev.findIndex((e) => e.id === incoming.id)
+        if (idx >= 0) {
+          const next = prev.slice()
+          next[idx] = incoming
+          return next
+        }
+        return [incoming, ...prev]
+      })
+    },
+    onReconnect: () => {
+      if (!openSessionId) return
+      void listSessionEvents(openSessionId, { feedFilter: 'rolls' }).then(setTableEvents)
+    },
+  })
+
   const advDisabled = !(parsed.ok && parsed.singleD20Eligible)
-  const atTable = Boolean(openSessionId?.trim())
 
   useEffect(() => {
     if (advDisabled && advantage !== 'none') setAdvantage('none')
@@ -257,12 +309,41 @@ export function DiceRollerPanel({
     setAdvFlash(false)
   }
 
-  function doRoll(expr?: string, mode?: AdvantageMode) {
+  async function doRoll(expr?: string, mode?: AdvantageMode) {
+    if (rolling) return
     const expression = (expr ?? (formula.trim() || formulaFromPool(pool))).trim()
     const adv = mode ?? advantage
+    const post =
+      Boolean(openSessionId?.trim()) && !onlyMe
+    setRollError(null)
+    if (post) {
+      setRolling(true)
+      try {
+        const result = await recordDigitalRoll({
+          characterId,
+          openSessionId,
+          onlyMe,
+          title: 'Свободный бросок',
+          expression,
+          advantageMode: adv,
+          category: 'roll',
+          source: 'panel',
+        })
+        if (!result.ok) {
+          setRollError(result.error)
+          return
+        }
+        setLog(readDiceLog(characterId))
+        setExpandedIds(new Set([result.entry.id]))
+        onJournalTabChange?.('mine')
+      } finally {
+        setRolling(false)
+      }
+      return
+    }
     const rolled = rollExpression(expression, adv)
     if (!rolled.ok) return
-    const entry = recordDigitalRoll({
+    const result = await recordDigitalRoll({
       characterId,
       openSessionId,
       onlyMe,
@@ -276,8 +357,12 @@ export function DiceRollerPanel({
       category: 'roll',
       source: 'panel',
     })
+    if (!result.ok) {
+      setRollError(result.error)
+      return
+    }
     setLog(readDiceLog(characterId))
-    setExpandedIds(new Set([entry.id]))
+    setExpandedIds(new Set([result.entry.id]))
   }
 
   function onClearLog() {
@@ -443,31 +528,96 @@ export function DiceRollerPanel({
         <Button
           variant="primary"
           disabled={!canRoll}
-          onClick={() => doRoll()}
+          onClick={() => void doRoll()}
           data-testid="dice-roll-submit"
         >
-          Бросить
+          {rolling ? 'Бросаем…' : 'Бросить'}
         </Button>
         <Button variant="ghost" onClick={resetPool} data-testid="dice-pool-reset">
           Сбросить набор
         </Button>
       </div>
+      {rollError ? (
+        <Text tone="danger" role="alert" data-testid="dice-roll-error">
+          {rollError}
+        </Text>
+      ) : null}
 
       <div className="dice-roller-panel__journal" ref={journalRef} data-testid="dice-journal">
         <div className="dice-roller-panel__tabs" role="tablist" aria-label="Журнал бросков">
-          <button
-            type="button"
-            role="tab"
-            aria-selected={journalTab === 'mine'}
-            className={`dice-roller-panel__tab${journalTab === 'mine' ? ' is-on' : ''}`}
+          <JournalTab
+            label="Мои"
+            selected={journalTab === 'mine'}
             data-testid="dice-journal-tab-mine"
+            className={`dice-roller-panel__tab${journalTab === 'mine' ? ' is-on' : ''}`}
             onClick={() => onJournalTabChange?.('mine')}
-          >
-            Мои
-          </button>
-          {/* 02b: вкладка «Стол» рядом */}
+          />
+          {atTable ? (
+            <JournalTab
+              label="Стол"
+              selected={journalTab === 'table'}
+              data-testid="dice-journal-tab-table"
+              className={`dice-roller-panel__tab${journalTab === 'table' ? ' is-on' : ''}`}
+              onClick={() => onJournalTabChange?.('table')}
+            />
+          ) : null}
         </div>
 
+        {journalTab === 'table' && atTable ? (
+          <>
+            <div className="dice-roller-panel__log-head">
+              <Text as="h3">Броски за столом</Text>
+            </div>
+            {tableLoading ? (
+              <Text tone="muted">Загружаем…</Text>
+            ) : tableEvents.length === 0 ? (
+              <EmptyState title="Пока нет бросков за столом" />
+            ) : (
+              <ul className="dice-roller-panel__log" data-testid="dice-table-log">
+                {tableEvents.map((ev) => {
+                  const payload = (ev.payload ?? {}) as Record<string, unknown>
+                  const stub = Boolean(payload.hidden_stub)
+                  const faces = Array.isArray(payload.dice)
+                    ? (payload.dice as Array<{
+                        sides: number
+                        value: number
+                        dropped?: boolean
+                        nat?: '20' | '1'
+                      }>)
+                    : []
+                  return (
+                    <li key={ev.id} className="dice-roller-panel__log-item">
+                      <div className="dice-roller-panel__log-summary">
+                        <span>
+                          {stub
+                            ? 'Мастер бросил скрыто'
+                            : ev.title || ev.character_name || 'Бросок'}
+                        </span>
+                        {!stub && ev.total != null ? (
+                          <strong>{ev.total}</strong>
+                        ) : null}
+                      </div>
+                      {!stub && faces.length > 0 ? (
+                        <DiceFaces
+                          faces={faces}
+                          modifierTotal={
+                            typeof payload.modifier_total === 'number'
+                              ? payload.modifier_total
+                              : null
+                          }
+                        />
+                      ) : null}
+                      {!stub && ev.formula ? (
+                        <Text tone="muted">{ev.formula}</Text>
+                      ) : null}
+                    </li>
+                  )
+                })}
+              </ul>
+            )}
+          </>
+        ) : (
+          <>
         <div className="dice-roller-panel__log-head">
           <Text as="h3">Журнал бросков</Text>
           <Button
@@ -547,7 +697,9 @@ export function DiceRollerPanel({
                           <Button
                             variant="secondary"
                             size="sm"
-                            onClick={() => doRoll(entry.expression, entry.advantageMode)}
+                            onClick={() =>
+                              void doRoll(entry.expression, entry.advantageMode)
+                            }
                           >
                             Повторить
                           </Button>
@@ -581,6 +733,8 @@ export function DiceRollerPanel({
               )
             })}
           </ul>
+        )}
+          </>
         )}
       </div>
     </Stack>

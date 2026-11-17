@@ -64,8 +64,14 @@ from app.services import session_combat as scmb
 from app.services import session_sides as sides
 from app.services import session_table_s03 as s03
 from app.services import session_turn_economy as stec
+from app.services.dice_formula import (
+    FormulaError,
+    normalize_advantage,
+    roll_expression,
+)
 from app.schemas.lobby import (
     AddLobbyMemberRequest,
+    SessionDigitalRollRequest,
     CombatEntryOut,
     CombatFallenOut,
     CombatSideOut,
@@ -981,11 +987,65 @@ def _roll_audience(
     viewer_ids: set[UUID],
     *,
     is_hidden: bool = False,
+    master_hidden: bool = False,
+    legacy_hide_master: bool = True,
 ) -> set[UUID] | None:
-    """Скрытый бросок мастера/игрока — только viewer_ids. Иначе всей комнате."""
-    if is_master_roll or is_hidden:
+    """Кому слать полную запись броска.
+
+    - Скрытый бросок игрока (`is_hidden`) и скрытый бросок мастера (`master_hidden`) —
+      только viewer_ids (ведущие + автор).
+    - Обычный цифровой бросок мастера уходит всей комнате (`legacy_hide_master=False`).
+    - Ручной/живой куб мастера без явного master_hidden сохраняет старое поведение
+      (`is_master_roll` → только ведущие), пока живой куб не переведён на заглушку.
+    """
+    if master_hidden or is_hidden:
+        return set(viewer_ids)
+    if is_master_roll and legacy_hide_master:
         return set(viewer_ids)
     return None
+
+
+MASTER_HIDDEN_STUB_TITLE = "Мастер бросил скрыто"
+ROLL_RATE_BURST = 15
+ROLL_RATE_BURST_SECONDS = 10
+ROLL_RATE_HOUR = 300
+ROLL_TRIM_KEEP = 1000
+
+
+def _event_payload(event: SessionEvent) -> dict:
+    return event.payload if isinstance(event.payload, dict) else {}
+
+
+def _is_master_secret(event: SessionEvent) -> bool:
+    """Скрытый непроявленный бросок мастера."""
+    payload = _event_payload(event)
+    return bool(payload.get("master_hidden")) and not bool(payload.get("revealed"))
+
+
+def _is_master_revealed(event: SessionEvent) -> bool:
+    payload = _event_payload(event)
+    return bool(payload.get("master_hidden")) and bool(payload.get("revealed"))
+
+
+def _stub_master_event(event: SessionEvent) -> SessionEventOut:
+    """Заглушка для игроков: время есть, итога/формулы/костей нет."""
+    base = SessionEventOut.model_validate(event)
+    stub_payload = {
+        "master_hidden": True,
+        "revealed": False,
+        "hidden_stub": True,
+        "category": _event_payload(event).get("category") or "roll",
+        "digital": bool(_event_payload(event).get("digital")),
+    }
+    return base.model_copy(
+        update={
+            "title": MASTER_HIDDEN_STUB_TITLE,
+            "formula": None,
+            "breakdown": None,
+            "total": None,
+            "payload": stub_payload,
+        }
+    )
 
 
 async def _broadcast_session_changed(session_id: UUID) -> None:
@@ -4213,6 +4273,131 @@ class LobbyService:
             journal_entry=journal_out,
         )
 
+    def _leading_viewer_ids(self, lobby: Lobby, session: PlaySession, actor_id: UUID) -> set[UUID]:
+        viewers = {lobby.owner_id, actor_id}
+        for row in self.lobbies.list_roles(lobby.id):
+            if row.role == LOBBY_ROLE_COMASTER:
+                viewers.add(row.user_id)
+            if row.role == LOBBY_ROLE_LEAD_TODAY and row.session_id == session.id:
+                viewers.add(row.user_id)
+        return viewers
+
+    def _ensure_roll_rate_limit(self, user: User, session_id: UUID) -> None:
+        from datetime import timedelta
+
+        from sqlalchemy import func, select
+
+        now = datetime.now(timezone.utc)
+        burst_since = now - timedelta(seconds=ROLL_RATE_BURST_SECONDS)
+        hour_since = now - timedelta(hours=1)
+        burst = int(
+            self.db.scalar(
+                select(func.count())
+                .select_from(SessionEvent)
+                .where(
+                    SessionEvent.session_id == session_id,
+                    SessionEvent.event_type == "roll",
+                    SessionEvent.actor_user_id == user.id,
+                    SessionEvent.created_at >= burst_since,
+                )
+            )
+            or 0
+        )
+        if burst >= ROLL_RATE_BURST:
+            raise AppError(
+                "Слишком много бросков, подождите немного",
+                code="roll_rate_limited",
+                status_code=429,
+            )
+        hourly = int(
+            self.db.scalar(
+                select(func.count())
+                .select_from(SessionEvent)
+                .where(
+                    SessionEvent.session_id == session_id,
+                    SessionEvent.event_type == "roll",
+                    SessionEvent.actor_user_id == user.id,
+                    SessionEvent.created_at >= hour_since,
+                )
+            )
+            or 0
+        )
+        if hourly >= ROLL_RATE_HOUR:
+            raise AppError(
+                "Слишком много бросков, подождите немного",
+                code="roll_rate_limited",
+                status_code=429,
+            )
+
+    def _trim_old_rolls(self, session_id: UUID) -> None:
+        """Если roll-событий > 1000 — удалить самые старые лишние (только roll)."""
+        from sqlalchemy import delete, func, select
+
+        total = int(
+            self.db.scalar(
+                select(func.count())
+                .select_from(SessionEvent)
+                .where(
+                    SessionEvent.session_id == session_id,
+                    SessionEvent.event_type == "roll",
+                )
+            )
+            or 0
+        )
+        excess = total - ROLL_TRIM_KEEP
+        if excess <= 0:
+            return
+        oldest_ids = list(
+            self.db.scalars(
+                select(SessionEvent.id)
+                .where(
+                    SessionEvent.session_id == session_id,
+                    SessionEvent.event_type == "roll",
+                )
+                .order_by(SessionEvent.created_at.asc())
+                .limit(excess)
+            ).all()
+        )
+        if oldest_ids:
+            self.db.execute(
+                delete(SessionEvent).where(SessionEvent.id.in_(oldest_ids))
+            )
+
+    def _present_session_event(
+        self,
+        event: SessionEvent,
+        *,
+        is_owner: bool,
+        viewer_id: UUID,
+        history_mode: str,
+    ) -> SessionEventOut | None:
+        """Видимость ленты с учётом скрытого броска мастера и заглушки."""
+        if not is_owner and history_mode == "off":
+            return None
+
+        payload = _event_payload(event)
+        # Скрытый бросок игрока — автор и ведущие (как раньше).
+        if payload.get("is_hidden") and not event.is_master_roll:
+            if not is_owner and event.actor_user_id != viewer_id:
+                return None
+
+        if is_owner:
+            return SessionEventOut.model_validate(event)
+
+        if event.is_master_roll or _is_master_secret(event) or _is_master_revealed(event):
+            if _is_master_secret(event):
+                if history_mode == "hide_master_rolls":
+                    return None
+                return _stub_master_event(event)
+            if _is_master_revealed(event):
+                # Раскрытый виден даже при «Без бросков мастера».
+                return SessionEventOut.model_validate(event)
+            if history_mode == "hide_master_rolls" and event.is_master_roll:
+                return None
+            return SessionEventOut.model_validate(event)
+
+        return SessionEventOut.model_validate(event)
+
     def list_session_events(
         self,
         user: User,
@@ -4238,20 +4423,14 @@ class LobbyService:
         history_mode = profile.get("event_history") or "active"
         out: list[SessionEventOut] = []
         for event in events:
-            if not is_owner and history_mode == "off":
-                continue
-            if (
-                not is_owner
-                and history_mode == "hide_master_rolls"
-                and event.is_master_roll
-            ):
-                continue
-            payload = event.payload if isinstance(event.payload, dict) else {}
-            # S-04: скрытый бросок игрока — автор и ведущие
-            if payload.get("is_hidden") and not event.is_master_roll:
-                if not is_owner and event.actor_user_id != user.id:
-                    continue
-            out.append(SessionEventOut.model_validate(event))
+            presented = self._present_session_event(
+                event,
+                is_owner=is_owner,
+                viewer_id=user.id,
+                history_mode=history_mode,
+            )
+            if presented is not None:
+                out.append(presented)
         if feed_filter and feed_filter not in ("all", "rolls"):
             filtered = s04.filter_events_by_feed(out, feed_filter=feed_filter)
             return list(filtered)
@@ -4271,6 +4450,7 @@ class LobbyService:
         lobby = session.lobby
         self._require_view(lobby, user)
         roles.require_can_act_on_board(self.db, lobby, user)
+        self._ensure_roll_rate_limit(user, session.id)
 
         character_name: str | None = None
         character_id = payload.character_id
@@ -4371,21 +4551,253 @@ class LobbyService:
             },
         )
         self.lobbies.add_session_event(event)
+        self._trim_old_rolls(session.id)
         self.db.commit()
         self.db.refresh(event)
         out = SessionEventOut.model_validate(event)
-        hidden_viewers = {lobby.owner_id, user.id}
-        for row in self.lobbies.list_roles(lobby.id):
-            if row.role == LOBBY_ROLE_COMASTER:
-                hidden_viewers.add(row.user_id)
-            if row.role == LOBBY_ROLE_LEAD_TODAY and row.session_id == session.id:
-                hidden_viewers.add(row.user_id)
+        hidden_viewers = self._leading_viewer_ids(lobby, session, user.id)
         await session_hub.broadcast(
             session.id,
             {"type": "session_event", "event": out.model_dump(mode="json")},
             only_user_ids=_roll_audience(
                 is_master_roll, hidden_viewers, is_hidden=is_hidden
             ),
+        )
+        return out
+
+    async def create_digital_roll(
+        self,
+        user: User,
+        session_id: UUID,
+        payload: SessionDigitalRollRequest,
+    ) -> SessionEventOut:
+        """DICE-02b: сервер считает формулу; total/breakdown с клиента не принимаются."""
+        session = self.lobbies.get_session(session_id)
+        if session is None:
+            raise NotFoundError("Сессия не найдена", code="session_not_found")
+        lobby = session.lobby
+        self._require_view(lobby, user)
+        roles.require_can_act_on_board(self.db, lobby, user)
+        self._ensure_roll_rate_limit(user, session.id)
+
+        character_name: str | None = None
+        character_id = payload.character_id
+        is_master_roll = False
+        can_master = roles.can_run_session(self.db, lobby, user, session)
+        if character_id is not None:
+            member = self.lobbies.get_member(lobby.id, character_id)
+            if member is None:
+                raise AppError(
+                    "Персонаж не в лобби",
+                    code="character_not_in_lobby",
+                    status_code=400,
+                )
+            if not can_master and member.user_id != user.id:
+                raise AppError(
+                    "Нельзя бросить за чужого персонажа",
+                    code="forbidden",
+                    status_code=403,
+                )
+            char_map = self.lobbies.get_characters_map([character_id])
+            character = char_map.get(character_id)
+            character_name = character.name if character else None
+            if self.lobbies.get_seat(session.id, character_id) is None:
+                raise AppError(
+                    "Персонаж не за столом этой сессии",
+                    code="character_not_seated",
+                    status_code=400,
+                )
+        elif not can_master:
+            raise AppError(
+                "Только ведущий может бросать без персонажа",
+                code="forbidden",
+                status_code=403,
+            )
+        else:
+            is_master_roll = True
+            character_name = "Мастер"
+
+        master_hidden = bool(payload.master_hidden) and can_master
+        if master_hidden:
+            is_master_roll = True
+        # Скрытый бросок игрока — только не-мастер и не master_hidden.
+        is_hidden = bool(payload.is_hidden) and not is_master_roll and not master_hidden
+
+        mode = normalize_advantage(payload.mode, advantage=bool(payload.advantage))
+        try:
+            rolled = roll_expression(payload.formula, mode)
+        except FormulaError as exc:
+            raise AppError(str(exc), code="bad_formula", status_code=400) from exc
+
+        inspiration_used = False
+        advantage_applied = mode == "advantage" or bool(payload.used_inspiration)
+        after_roll = s03.parse_inspiration_after_roll(
+            lobby.visibility_profile or {},
+            campaign_rules=getattr(lobby, "campaign_rules", None),
+        )
+        if character_id is not None:
+            char_map_roll = self.lobbies.get_characters_map([character_id])
+            roll_char = char_map_roll.get(character_id)
+            if roll_char is not None:
+                sheet = dict(roll_char.sheet or {})
+                combat = dict(sheet.get("combat") or {})
+                if combat.get("advantage_next_roll") and not after_roll:
+                    if mode == "none":
+                        try:
+                            rolled = roll_expression(payload.formula, "advantage")
+                            mode = "advantage"
+                        except FormulaError as exc:
+                            raise AppError(
+                                str(exc), code="bad_formula", status_code=400
+                            ) from exc
+                    advantage_applied = True
+                    combat["advantage_next_roll"] = False
+                    inspiration_used = True
+                    sheet["combat"] = combat
+                    roll_char.sheet = sheet
+                    from sqlalchemy.orm.attributes import flag_modified as _fm_sheet
+
+                    _fm_sheet(roll_char, "sheet")
+                elif after_roll and (
+                    payload.used_inspiration or combat.get("inspiration")
+                ):
+                    if payload.used_inspiration and combat.get("inspiration"):
+                        combat["inspiration"] = False
+                        inspiration_used = True
+                        sheet["combat"] = combat
+                        roll_char.sheet = sheet
+                        from sqlalchemy.orm.attributes import flag_modified as _fm_sheet2
+
+                        _fm_sheet2(roll_char, "sheet")
+
+        category = payload.category or "roll"
+        title = payload.title.strip() or "Бросок"
+        event = SessionEvent(
+            session_id=session.id,
+            event_type="roll",
+            character_id=character_id,
+            actor_user_id=user.id,
+            character_name=character_name,
+            title=title,
+            formula=rolled.expression,
+            breakdown=rolled.breakdown[:500],
+            total=rolled.total,
+            is_master_roll=is_master_roll,
+            payload={
+                "advantage": advantage_applied or mode == "advantage",
+                "advantage_mode": mode,
+                "inspiration_used": inspiration_used,
+                "inspiration_after_roll": after_roll,
+                "physical_dice": False,
+                "is_hidden": is_hidden,
+                "master_hidden": master_hidden,
+                "revealed": False,
+                "category": category,
+                "from_sheet": category == "sheet",
+                "digital": True,
+                "dice": [face.as_dict() for face in rolled.dice],
+                "modifier_total": rolled.modifier_total,
+            },
+        )
+        self.lobbies.add_session_event(event)
+        self._trim_old_rolls(session.id)
+        self.db.commit()
+        self.db.refresh(event)
+
+        full = SessionEventOut.model_validate(event)
+        leading = self._leading_viewer_ids(lobby, session, user.id)
+        secret = master_hidden or is_hidden
+        if secret:
+            await session_hub.broadcast(
+                session.id,
+                {"type": "session_event", "event": full.model_dump(mode="json")},
+                only_user_ids=_roll_audience(
+                    is_master_roll,
+                    leading,
+                    is_hidden=is_hidden,
+                    master_hidden=master_hidden,
+                    legacy_hide_master=False,
+                ),
+            )
+            if master_hidden:
+                # Заглушку шлём только в режиме «Активно».
+                # «Без бросков мастера» / «Выключено» — игроки не видят даже заглушку.
+                history_mode = (lobby.visibility_profile or {}).get(
+                    "event_history"
+                ) or "active"
+                if history_mode == "active":
+                    stub = _stub_master_event(event)
+                    member_ids = self.lobbies.list_member_user_ids(lobby.id)
+                    # Владелец лобби тоже в комнате, даже если не в members.
+                    member_ids = set(member_ids) | {lobby.owner_id}
+                    player_ids = member_ids - leading
+                    if player_ids:
+                        await session_hub.broadcast(
+                            session.id,
+                            {
+                                "type": "session_event",
+                                "event": stub.model_dump(mode="json"),
+                            },
+                            only_user_ids=player_ids,
+                        )
+        else:
+            await session_hub.broadcast(
+                session.id,
+                {"type": "session_event", "event": full.model_dump(mode="json")},
+                only_user_ids=None,
+            )
+        return full
+
+    async def reveal_master_roll(
+        self,
+        user: User,
+        session_id: UUID,
+        event_id: UUID,
+    ) -> SessionEventOut:
+        """Раскрыть скрытый бросок мастера — полная запись всем за столом."""
+        from sqlalchemy.orm.attributes import flag_modified
+
+        session = self.lobbies.get_session(session_id)
+        if session is None:
+            raise NotFoundError("Сессия не найдена", code="session_not_found")
+        lobby = session.lobby
+        self._require_view(lobby, user)
+        if not roles.can_run_session(self.db, lobby, user, session):
+            raise AppError(
+                "Только ведущий может раскрыть бросок",
+                code="forbidden",
+                status_code=403,
+            )
+        event = self.db.get(SessionEvent, event_id)
+        if event is None or event.session_id != session.id:
+            raise NotFoundError("Событие не найдено", code="event_not_found")
+        if event.event_type != "roll":
+            raise AppError(
+                "Это не бросок",
+                code="not_a_roll",
+                status_code=400,
+            )
+        payload = dict(_event_payload(event))
+        if not payload.get("master_hidden"):
+            raise AppError(
+                "Этот бросок не скрытый",
+                code="not_hidden",
+                status_code=400,
+            )
+        if payload.get("revealed"):
+            return SessionEventOut.model_validate(event)
+
+        payload["revealed"] = True
+        payload["hidden_stub"] = False
+        event.payload = payload
+        flag_modified(event, "payload")
+        self.db.commit()
+        self.db.refresh(event)
+        out = SessionEventOut.model_validate(event)
+        await session_hub.broadcast(
+            session.id,
+            {"type": "session_event", "event": out.model_dump(mode="json")},
+            only_user_ids=None,
         )
         return out
 

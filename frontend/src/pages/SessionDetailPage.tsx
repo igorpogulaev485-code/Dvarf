@@ -4,6 +4,7 @@ import { openProductSite } from '../shared/brand/creed20'
 import { LobbyChatsPanel } from '../features/lobby/LobbyChatsPanel'
 import { LobbyNotesPanel } from '../features/lobby/LobbyNotesPanel'
 import { ManualRollForm } from '../features/lobby/ManualRollForm'
+import { SessionDigitalRollPanel } from '../features/lobby/SessionDigitalRollPanel'
 import { AddCombatantDialog } from '../features/lobby/AddCombatantDialog'
 import { AddStoryCompanionDialog } from '../features/lobby/AddStoryCompanionDialog'
 import { seatCompanionInInitiativeSeed } from '../features/lobby/companionCombatSeat'
@@ -578,7 +579,12 @@ export function SessionDetailPage() {
   useSessionRealtime(session?.id, {
     onEvent: (incoming) => {
       setEvents((prev) => {
-        if (prev.some((e) => e.id === incoming.id)) return prev
+        const existingIdx = prev.findIndex((e) => e.id === incoming.id)
+        if (existingIdx >= 0) {
+          const next = prev.slice()
+          next[existingIdx] = incoming
+          return next
+        }
         if (feedFilter === 'rolls' && incoming.event_type !== 'roll') return prev
         if (
           feedFilter === 'combat' &&
@@ -1506,28 +1512,49 @@ export function SessionDetailPage() {
                     events={events}
                     filter={feedFilter}
                     onFilterChange={setFeedFilter}
-                  />
-                )}
-                {!session.closed_at ? (
-                  <ManualRollForm
-                    seats={session.seats}
-                    ownCharacterIds={ownCharacterIds}
-                    isOwner={canRun}
-                    busy={busy}
-                    diceOnTable={Boolean(session.combat?.dice_on_table)}
-                    onSubmit={async (payload) => {
-                      await run(async () => {
-                        const created = await createSessionRoll(session.id, payload)
-                        setEvents((prev) => {
-                          if (prev.some((e) => e.id === created.id)) return prev
-                          if (feedFilter === 'rolls' && created.event_type !== 'roll') return prev
-                          return [created, ...prev]
-                        })
-                        setToast('Бросок в ленте')
-                        setLiveTab('feed')
+                    canReveal={canRun}
+                    sessionId={session.id}
+                    onEventUpdated={(updated) => {
+                      setEvents((prev) => {
+                        const idx = prev.findIndex((e) => e.id === updated.id)
+                        if (idx < 0) return [updated, ...prev]
+                        const next = prev.slice()
+                        next[idx] = updated
+                        return next
                       })
                     }}
                   />
+                )}
+                {!session.closed_at ? (
+                  <>
+                    <SessionDigitalRollPanel
+                      sessionId={session.id}
+                      canHide={canRun}
+                      onRolled={() => {
+                        setToast('Бросок в ленте')
+                        setLiveTab('feed')
+                      }}
+                    />
+                    <ManualRollForm
+                      seats={session.seats}
+                      ownCharacterIds={ownCharacterIds}
+                      isOwner={canRun}
+                      busy={busy}
+                      diceOnTable={Boolean(session.combat?.dice_on_table)}
+                      onSubmit={async (payload) => {
+                        await run(async () => {
+                          const created = await createSessionRoll(session.id, payload)
+                          setEvents((prev) => {
+                            if (prev.some((e) => e.id === created.id)) return prev
+                            if (feedFilter === 'rolls' && created.event_type !== 'roll') return prev
+                            return [created, ...prev]
+                          })
+                          setToast('Бросок в ленте')
+                          setLiveTab('feed')
+                        })
+                      }}
+                    />
+                  </>
                 ) : null}
                 </Stack>
               </div>
@@ -2450,30 +2477,51 @@ export function SessionDetailPage() {
                     events={events}
                     filter={feedFilter}
                     onFilterChange={setFeedFilter}
-                  />
-                )}
-                {!session.closed_at ? (
-                  <ManualRollForm
-                    seats={session.seats}
-                    ownCharacterIds={ownCharacterIds}
-                    isOwner={canRun}
-                    busy={busy}
-                    diceOnTable={Boolean(session.combat?.dice_on_table)}
-                    onSubmit={async (payload) => {
-                      await run(async () => {
-                        const created = await createSessionRoll(session.id, payload)
-                        setEvents((prev) => {
-                          if (prev.some((e) => e.id === created.id)) return prev
-                          if (feedFilter === 'rolls' && created.event_type !== 'roll') {
-                            return prev
-                          }
-                          return [created, ...prev]
-                        })
-                        setToast('Бросок в ленте')
-                        setLiveTab('feed')
+                    canReveal={canRun}
+                    sessionId={session.id}
+                    onEventUpdated={(updated) => {
+                      setEvents((prev) => {
+                        const idx = prev.findIndex((e) => e.id === updated.id)
+                        if (idx < 0) return [updated, ...prev]
+                        const next = prev.slice()
+                        next[idx] = updated
+                        return next
                       })
                     }}
                   />
+                )}
+                {!session.closed_at ? (
+                  <>
+                    <SessionDigitalRollPanel
+                      sessionId={session.id}
+                      canHide={canRun}
+                      onRolled={() => {
+                        setToast('Бросок в ленте')
+                        setLiveTab('feed')
+                      }}
+                    />
+                    <ManualRollForm
+                      seats={session.seats}
+                      ownCharacterIds={ownCharacterIds}
+                      isOwner={canRun}
+                      busy={busy}
+                      diceOnTable={Boolean(session.combat?.dice_on_table)}
+                      onSubmit={async (payload) => {
+                        await run(async () => {
+                          const created = await createSessionRoll(session.id, payload)
+                          setEvents((prev) => {
+                            if (prev.some((e) => e.id === created.id)) return prev
+                            if (feedFilter === 'rolls' && created.event_type !== 'roll') {
+                              return prev
+                            }
+                            return [created, ...prev]
+                          })
+                          setToast('Бросок в ленте')
+                          setLiveTab('feed')
+                        })
+                      }}
+                    />
+                  </>
                 ) : null}
                 </Stack>
               ) : null}

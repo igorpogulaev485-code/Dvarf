@@ -2433,6 +2433,38 @@ export async function createSessionRoll(
   })
 }
 
+/** DICE-02b: цифровой бросок — итог считает сервер. */
+export async function createSessionDigitalRoll(
+  sessionId: string,
+  payload: {
+    character_id?: string | null
+    title: string
+    formula: string
+    mode?: 'none' | 'advantage' | 'disadvantage' | string | null
+    advantage?: boolean
+    used_inspiration?: boolean
+    master_hidden?: boolean
+    is_hidden?: boolean
+    category?: string | null
+  },
+): Promise<SessionEvent> {
+  return apiRequest<SessionEvent>(`/sessions/${sessionId}/rolls/digital`, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  })
+}
+
+/** DICE-02b: раскрыть скрытый бросок мастера. */
+export async function revealSessionEvent(
+  sessionId: string,
+  eventId: string,
+): Promise<SessionEvent> {
+  return apiRequest<SessionEvent>(
+    `/sessions/${sessionId}/events/${eventId}/reveal`,
+    { method: 'POST', body: JSON.stringify({}) },
+  )
+}
+
 export function sessionWsUrl(sessionId: string, accessToken: string): string {
   const proto = window.location.protocol === 'https:' ? 'wss' : 'ws'
   const host = window.location.host
