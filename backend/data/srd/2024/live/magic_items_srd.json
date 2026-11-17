@@ -326,7 +326,7 @@
     {
       "kind": "item",
       "slug": "apparatus-of-the-crab",
-      "name_ru": "Аппарат краба",
+      "name_ru": "Аппарат Краба",
       "name_en": "Apparatus of the Crab",
       "source": "srd-5.2",
       "sort_order": 100,
@@ -352,7 +352,7 @@
         "cursed": false,
         "spell_refs": [],
         "base_item_categories": [],
-        "name_ru_pending": true,
+        "name_ru_pending": false,
         "summary_ru": "Чудесный предмет, легендарный. Кратко: магический предмет редакции 2024 из открытого справочника."
       }
     },
@@ -2168,7 +2168,7 @@
     {
       "kind": "item",
       "slug": "dragon-orb",
-      "name_ru": "Драконий шар",
+      "name_ru": "Сфера драконьего рода",
       "name_en": "Dragon Orb",
       "source": "srd-5.2",
       "sort_order": 640,
@@ -2199,7 +2199,7 @@
           "suggestion"
         ],
         "base_item_categories": [],
-        "name_ru_pending": true,
+        "name_ru_pending": false,
         "summary_ru": "Чудесный предмет, артефакт. Требует настройки. Заряды: 7. на рассвете восстанавливает 1d4+3 зарядов. Позволяет накладывать 1 связанное заклинание."
       }
     },
@@ -2444,7 +2444,7 @@
     {
       "kind": "item",
       "slug": "efficient-quiver",
-      "name_ru": "Вместительный колчан",
+      "name_ru": "Эффективный колчан",
       "name_en": "Efficient Quiver",
       "source": "srd-5.2",
       "sort_order": 720,
@@ -2470,7 +2470,7 @@
         "cursed": false,
         "spell_refs": [],
         "base_item_categories": [],
-        "name_ru_pending": true,
+        "name_ru_pending": false,
         "summary_ru": "Чудесный предмет, необычный. Кратко: магический предмет редакции 2024 из открытого справочника."
       }
     },
@@ -2779,7 +2779,7 @@
     {
       "kind": "item",
       "slug": "feather-token",
-      "name_ru": "Перо-токен",
+      "name_ru": "Жетон с перышком",
       "name_en": "Feather Token",
       "source": "srd-5.2",
       "sort_order": 820,
@@ -2805,7 +2805,7 @@
         "cursed": false,
         "spell_refs": [],
         "base_item_categories": [],
-        "name_ru_pending": true,
+        "name_ru_pending": false,
         "summary_ru": "Чудесный предмет, редкий. Кратко: магический предмет редакции 2024 из открытого справочника."
       }
     },
@@ -3314,7 +3314,7 @@
         "cursed": false,
         "spell_refs": [],
         "base_item_categories": [],
-        "name_ru_pending": true,
+        "name_ru_pending": false,
         "summary_ru": "Чудесный предмет, редкий. Кратко: магический предмет редакции 2024 из открытого справочника."
       }
     },
@@ -3789,7 +3789,7 @@
           "wish"
         ],
         "base_item_categories": [],
-        "name_ru_pending": true,
+        "name_ru_pending": false,
         "summary_ru": "Чудесный предмет, редкий. Требует настройки. Позволяет накладывать 1 связанное заклинание."
       }
     },
@@ -3829,7 +3829,7 @@
     {
       "kind": "item",
       "slug": "iron-bands",
-      "name_ru": "Железные оковы",
+      "name_ru": "Железные ленты",
       "name_en": "Iron Bands",
       "source": "srd-5.2",
       "sort_order": 1130,
@@ -3855,7 +3855,7 @@
         "cursed": false,
         "spell_refs": [],
         "base_item_categories": [],
-        "name_ru_pending": true,
+        "name_ru_pending": false,
         "summary_ru": "Чудесный предмет, редкий. Кратко: магический предмет редакции 2024 из открытого справочника."
       }
     },
@@ -4289,7 +4289,7 @@
         "cursed": false,
         "spell_refs": [],
         "base_item_categories": [],
-        "name_ru_pending": true,
+        "name_ru_pending": false,
         "summary_ru": "Чудесный предмет, очень редкий. Кратко: магический предмет редакции 2024 из открытого справочника."
       }
     },
@@ -4404,7 +4404,7 @@
     {
       "kind": "item",
       "slug": "mysterious-deck",
-      "name_ru": "Таинственная колода",
+      "name_ru": "Колода многих вещей",
       "name_en": "Mysterious Deck",
       "source": "srd-5.2",
       "sort_order": 1300,
@@ -4432,7 +4432,7 @@
           "wish"
         ],
         "base_item_categories": [],
-        "name_ru_pending": true,
+        "name_ru_pending": false,
         "summary_ru": "Чудесный предмет, легендарный. Позволяет накладывать 1 связанное заклинание. Проклят."
       }
     },

@@ -381,13 +381,13 @@
           "long": 120
         },
         "ammunition_type": "bolt",
-        "name_ru_pending": true
+        "name_ru_pending": false
       }
     },
     {
       "kind": "weapon",
       "slug": "handaxe",
-      "name_ru": "Одноручный топор",
+      "name_ru": "Ручной топор",
       "name_en": "Handaxe",
       "source": "srd-5.2",
       "sort_order": 130,
@@ -416,7 +416,7 @@
           "normal": 20,
           "long": 60
         },
-        "name_ru_pending": true
+        "name_ru_pending": false
       }
     },
     {
@@ -492,7 +492,7 @@
     {
       "kind": "weapon",
       "slug": "lance",
-      "name_ru": "Кавалерийское копьё",
+      "name_ru": "Длинное копьё",
       "name_en": "Lance",
       "source": "srd-5.2",
       "sort_order": 160,
@@ -519,7 +519,7 @@
         "mastery": "topple",
         "summary_ru": "Воинское рукопашное: 1d10 (колющий).",
         "two_handed_note_ru": "Двуручное, кроме случая когда вы в седле.",
-        "name_ru_pending": true
+        "name_ru_pending": false
       }
     },
     {
@@ -1159,7 +1159,7 @@
         "mastery": "sap",
         "summary_ru": "Воинское рукопашное: 1d8 (колющий).",
         "versatile_damage": "1d10",
-        "name_ru_pending": true
+        "name_ru_pending": false
       }
     },
     {
