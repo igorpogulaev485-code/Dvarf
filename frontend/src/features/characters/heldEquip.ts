@@ -138,8 +138,13 @@ export function isWeaponItem(item: InventoryItem): boolean {
 }
 
 /** Shield or weapon that occupies hands when equipped. */
+function isHeldWearSlot(item: InventoryItem): boolean {
+  return item.wear_slot === 'held_main' || item.wear_slot === 'held_off'
+}
+
 export function isHeldItem(item: InventoryItem): boolean {
   if (item.armor_kind === 'shield') return true
+  if (isHeldWearSlot(item)) return true
   return isWeaponItem(item)
 }
 
@@ -149,14 +154,7 @@ export function canShowEquipChip(item: InventoryItem): boolean {
   if (isWeaponItem(item)) return true
   // Worn wondrous / magic (cloak, ring, …).
   const slot = item.wear_slot
-  if (
-    slot &&
-    slot !== 'none' &&
-    slot !== 'held_main' &&
-    slot !== 'held_off' &&
-    slot !== 'body_armor' &&
-    slot !== 'shield'
-  ) {
+  if (slot && slot !== 'none' && slot !== 'body_armor' && slot !== 'shield') {
     return true
   }
   return Boolean(item.requires_attunement)
@@ -165,6 +163,7 @@ export function canShowEquipChip(item: InventoryItem): boolean {
 /** How many hands this item needs while equipped. */
 export function handsCost(item: InventoryItem): number {
   if (item.armor_kind === 'shield') return 1
+  if (isHeldWearSlot(item) && !isWeaponItem(item)) return 1
   if (!isWeaponItem(item)) return 0
   // Always re-resolve from name — stored weapon_grip may be stale
   // (e.g. «Боевой молот» wrongly saved as two_hand via substring «молот»).
@@ -226,7 +225,7 @@ export function equipHeldItem(items: InventoryItem[], id: string): InventoryItem
 }
 
 export function equipLabel(item: InventoryItem): { on: string; off: string } {
-  if (isWeaponItem(item)) {
+  if (isWeaponItem(item) || isHeldWearSlot(item)) {
     return { on: 'В руках', off: 'Убран' }
   }
   if (item.armor_kind === 'shield') {

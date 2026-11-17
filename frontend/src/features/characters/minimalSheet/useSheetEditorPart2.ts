@@ -55,6 +55,7 @@ import { ensureRaceNaturalWeaponAttacks, raceNaturalWeaponAttacksMatch, syncRace
 import { characterHasCasterClass, highestSpellSlotLevelForClasses } from '../../../shared/dnd/casterProgression'
 import { syncSubclassAlwaysPreparedSpells } from '../subclassEffects'
 import { equippedArmorPieces } from '../inventory'
+import { refreshInventoryItemsFromCatalog } from '../gearCatalogRefresh'
 import { SKILL_DEFS, abilityModifier } from '../sheetTypes'
 import { passiveScore, skillModifierFromState } from '../../../shared/dnd/passives'
 
@@ -204,6 +205,37 @@ export function useSheetEditorPart2(model: SheetModel) {
         if (!active) return
         model.raceCatalogCacheRef.current = null
         model.setRaceCatalogRows([])
+      })
+    return () => {
+      active = false
+    }
+  }, [model.rulesEdition, model.character.id])
+
+  // I23: refresh gear rules from catalog when weapon/armor/item lists load.
+  useEffect(() => {
+    let active = true
+    Promise.all([
+      listCatalogEntries({ kind: 'item', edition: model.rulesEdition }),
+      listCatalogEntries({ kind: 'weapon', edition: model.rulesEdition }),
+      listCatalogEntries({ kind: 'armor', edition: model.rulesEdition }),
+    ])
+      .then(([items, weapons, armor]) => {
+        if (!active) return
+        const catalog = [...items, ...weapons, ...armor]
+        model.setDraft((prev) => {
+          const nextItems = refreshInventoryItemsFromCatalog(
+            prev.inventory.items,
+            catalog,
+          )
+          if (nextItems === prev.inventory.items) return prev
+          return {
+            ...prev,
+            inventory: { ...prev.inventory, items: nextItems },
+          }
+        })
+      })
+      .catch(() => {
+        /* catalog optional — stale item effects stay until next load */
       })
     return () => {
       active = false

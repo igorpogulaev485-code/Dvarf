@@ -917,6 +917,17 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
         acHint={model.armorClass.summary}
         attunementFilled={filledAttunementCount(model.draft.attunements)}
         attunementLimit={maxAttunementsForClasses(model.draft.classes)}
+        attunements={model.draft.attunements}
+        onAttunementsChange={model.applyAttunements}
+        classLevels={model.draft.classes}
+        attunementCharacter={{
+          classes: model.draft.classes,
+          raceCatalogId: model.draft.raceCatalogId,
+          raceSlug: model.draft.raceGrant?.slug ?? null,
+          raceParentSlug: model.draft.raceGrant?.parentSlug ?? null,
+          alignmentSlug: model.draft.identity.alignment,
+          alignmentUnresolved: Boolean(model.draft.identity.alignmentText),
+        }}
         favoriteConsumableIds={model.draft.sheetUi.combatConsumableFavoriteIds}
         onToggleConsumableFavorite={model.toggleCombatFavorite}
         onCastScroll={(itemId) => model.setDeskCastScrollId(itemId)}
