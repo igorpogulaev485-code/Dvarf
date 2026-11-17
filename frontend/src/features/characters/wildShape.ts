@@ -463,9 +463,21 @@ function materialHasGpCost(text: string | undefined): boolean {
   return /\d/.test(text) && /(gp|зм|зл|золот)/i.test(text)
 }
 
+function materialIsConsumed(text: string | undefined): boolean {
+  if (!text) return false
+  return /расход|поглощ|consumed|consumes|which the spell consumes/i.test(text)
+}
+
 /**
- * PHB: no spells in Wild Shape until Beast Spells (18). Those still cannot
- * supply material components. Archdruid (20) ignores V, S, and free M.
+ * Spellcasting while in Wild Shape.
+ *
+ * 2014: no spells until Beast Spells (18); those still cannot supply M.
+ * Archdruid (20) ignores V, S, and free M (costly M still blocked).
+ *
+ * 2024 (PHB / next.dnd.su «Заклинания зверя»): from 18 you may cast in form
+ * except spells whose M has a listed gold cost or that consume their M.
+ * Free non-consumed M is allowed. Circle of the Moon circle spells may be
+ * cast in form from 3 with the same M gate. Before 18, other spells stay blocked.
  */
 export function wildShapeCastBlock(input: {
   companions: CompanionEntry[]
@@ -474,6 +486,8 @@ export function wildShapeCastBlock(input: {
   material?: string | null
   /** 2024 Circle of the Moon: an always-prepared circle spell may be cast in Wild Shape. */
   moonCircleSpell?: boolean
+  /** Branch: only `2024` changes Beast Spells / Moon M rules. Default keeps 2014. */
+  rulesEdition?: '2014' | '2024' | string | null
 }): string | null {
   if (!activeBeastWildShape(input.companions)) return null
   const level = druidLevelFromClasses(input.classes)
@@ -481,12 +495,33 @@ export function wildShapeCastBlock(input: {
   const slug = (input.classSlug || '').toLowerCase()
   const druidSpell = slug === '' || slug === 'druid'
   const moonCircle = Boolean(input.moonCircleSpell)
+  const is2024 = input.rulesEdition === '2024'
+
   if (!moonCircle && (level < 18 || !druidSpell)) {
-    return 'В Диком облике нельзя накладывать заклинания до «Звериных заклинаний» (18). Форма не сброшена, ячейка не списана.'
+    return is2024
+      ? 'В Диком облике нельзя накладывать заклинания до «Заклинания зверя» (18). Форма не сброшена, ячейка не списана.'
+      : 'В Диком облике нельзя накладывать заклинания до «Звериных заклинаний» (18). Форма не сброшена, ячейка не списана.'
   }
+
   const material = input.material?.trim() || ''
   if (!material) return null
   const costly = materialHasGpCost(material)
+  const consumed = materialIsConsumed(material)
+
+  if (is2024) {
+    // PH24 Beast Spells / Moon circle: free non-consumed M OK; block cost OR consume.
+    if (!costly && !consumed) return null
+    const who = moonCircle && level < 18 ? 'Круг луны' : 'Заклинания зверя'
+    if (costly && consumed) {
+      return `${who}: в облике нельзя предоставить расходуемый материальный компонент с ценой. Каст не выполнен.`
+    }
+    if (costly) {
+      return `${who}: в облике нельзя предоставить материальный компонент с указанной ценой. Каст не выполнен.`
+    }
+    return `${who}: в облике нельзя предоставить расходуемый материальный компонент. Каст не выполнен.`
+  }
+
+  // 2014 path (unchanged)
   if (level >= 20 && !costly) return null
   if (level >= 20) {
     return 'Архидруид не отменяет материальный компонент с указанной ценой. Каст не выполнен.'

@@ -1823,6 +1823,12 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
             model.druidSubclassSlug === DRUID_SUBCLASS_SLUGS_2024.moon &&
             model.druidLevel >= 3
           }
+          onCastSpell={(spell) => {
+            model.setDeskCastMetamagic?.(null)
+            void spellReadyToCast(spell, model.rulesEdition).then((ready) =>
+              model.setDeskCastSpell(ready),
+            )
+          }}
           hostHp={model.draft.hpCurrent}
           hostHpMax={model.draft.hpMax}
           abilities={model.effectiveAbilities}
@@ -1914,11 +1920,13 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
         emptyHint={resolveCompanionsEmptyHint({
           classes: model.draft.classes,
           subclassSlugByEntryId: model.subclassSlugByEntryId,
+          rulesEdition: model.rulesEdition,
         })}
         onEmptyAction={() => {
           const hint = resolveCompanionsEmptyHint({
             classes: model.draft.classes,
             subclassSlugByEntryId: model.subclassSlugByEntryId,
+            rulesEdition: model.rulesEdition,
           })
           if (hint.kind === 'wizard') {
             const spell =
@@ -1952,6 +1960,27 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
             const druid = model.draft.classes.find((row) =>
               /друид|druid/i.test(row.name),
             )
+            if (model.rulesEdition === '2024' && druid) {
+              const feature = model.unlockedFeatures.find(
+                (f: { id: string; classEntryId?: string }) =>
+                  (f.id === 'wild_companion' || f.id === 'wild-companion') &&
+                  (!druid || f.classEntryId === druid.id),
+              )
+              if (feature) {
+                model.setDruidFeatureUse({
+                  featureId: feature.id,
+                  resourceId: null,
+                  classSlug: 'druid',
+                  classEntryId: druid.id,
+                  name: feature.name_ru || 'Дикий спутник',
+                })
+                return
+              }
+              model.onToast?.(
+                'Открой «Способности» и нажми «Дикий спутник…»',
+              )
+              return
+            }
             const feature = model.unlockedFeatures.find(
               (f: { id: string; classEntryId?: string }) =>
                 (f.id === 'wild_shape' || f.id === 'wild_companion') &&
@@ -1974,10 +2003,31 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
         }}
         onResummonSpellCompanion={(row: CompanionEntry) => {
           const feature = (row.source?.feature ?? '').trim().toLowerCase()
-          if (feature === 'wild_companion') {
+          if (feature === 'wild_companion' || feature === 'wild-companion') {
             const druid = model.draft.classes.find((r) =>
               /друид|druid/i.test(r.name),
             )
+            if (model.rulesEdition === '2024' && druid) {
+              const featureRow = model.unlockedFeatures.find(
+                (f: { id: string; classEntryId?: string }) =>
+                  (f.id === 'wild_companion' || f.id === 'wild-companion') &&
+                  (!druid || f.classEntryId === druid.id),
+              )
+              if (featureRow) {
+                model.setDruidFeatureUse({
+                  featureId: featureRow.id,
+                  resourceId: null,
+                  classSlug: 'druid',
+                  classEntryId: druid.id,
+                  name: featureRow.name_ru || 'Дикий спутник',
+                })
+                return
+              }
+              model.onToast?.(
+                'Открой «Способности» → «Дикий спутник…»',
+              )
+              return
+            }
             const featureRow = model.unlockedFeatures.find(
               (f: { id: string; classEntryId?: string }) =>
                 (f.id === 'wild_shape' || f.id === 'wild_companion') &&

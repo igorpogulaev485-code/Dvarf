@@ -70,6 +70,7 @@ import {
 } from '../../../shared/dnd/cleric2024Features'
 import { Druid2024UseDialog, type DruidFeatureRequest, type Druid2024ConfirmResult } from '../Druid2024UseDialog'
 import { druid2024UseFeatureId } from '../../../shared/dnd/druid2024Features'
+import { addFlexibleSpellSlot } from '../../../shared/dnd/spells'
 import { applyStarryForm } from '../wildShape'
 import { applyLongRestFeaturePicks2024 } from '../../../shared/dnd/rest2024'
 import { chooseTempHpPool } from '../../../shared/dnd/activeEffects'
@@ -337,9 +338,16 @@ export function SheetDialogsResources({ model }: { model: SheetModel }) {
         if (row) slots = { ...slots, [key]: { ...row, used: Math.min(row.max, row.used + 1) } }
       }
       if (patches?.gainSlotLevel) {
-        const key = String(patches.gainSlotLevel)
-        const row = slots[key]
-        if (row) slots = { ...slots, [key]: { ...row, used: Math.max(0, row.used - 1) } }
+        if (patches.createSlot) {
+          // Nature Magician: create a temporary slot (2 levels per Wild Shape use).
+          const created = addFlexibleSpellSlot(slots, patches.gainSlotLevel, { maxCircle: 9 })
+          if (created) slots = created
+        } else {
+          // Wild Resurgence shape→slot: restore one spent slot of that circle.
+          const key = String(patches.gainSlotLevel)
+          const row = slots[key]
+          if (row) slots = { ...slots, [key]: { ...row, used: Math.max(0, row.used - 1) } }
+        }
       }
       const druidRow = request
         ? prev.classes.find((row) => row.id === request.classEntryId)

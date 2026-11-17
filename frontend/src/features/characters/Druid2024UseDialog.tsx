@@ -128,7 +128,6 @@ export function Druid2024UseDialog({
   const resurgenceMode = mode === 'shape-to-slot' ? 'shape-to-slot' : 'slot-to-shape'
   const resurgenceUsed = wildResurgenceSlotUsed2024(featurePicks, request.classEntryId)
   const magicianBudget = natureMagicianSlotLevel2024(uses)
-  const magicianLevels = spentSlotLevels.filter((level) => level <= magicianBudget)
   const magicianSpent = natureMagicianSpent2024(featurePicks, request.classEntryId)
   const lockedNote =
     featureId === 'wild-resurgence' && resurgenceMode === 'shape-to-slot' && resurgenceUsed
@@ -139,9 +138,9 @@ export function Druid2024UseDialog({
 
   const wildAtZero = wild != null && wild.used >= wild.max
   const companionSlot = featureId === 'wild-companion' && companionPay === 'slot'
+  /** Nature Magician creates a slot of level = 2×uses — no spent-slot picker. */
   const needsSlotPick =
     (featureId === 'wild-resurgence' && resurgenceMode === 'slot-to-shape') ||
-    featureId === 'nature-magician' ||
     (featureId === 'wild-resurgence' && resurgenceMode === 'shape-to-slot') ||
     companionSlot
   const pickLevels =
@@ -149,12 +148,13 @@ export function Druid2024UseDialog({
       ? freeSlotLevels
       : featureId === 'wild-resurgence'
         ? spentSlotLevels.filter((level) => level === 1)
-        : magicianLevels
+        : []
   const effectiveSlot = pickLevels.includes(slotLevel) ? slotLevel : (pickLevels[0] ?? 0)
 
   const primaryDisabled =
     Boolean(lockedNote) ||
     (needsSlotPick && effectiveSlot <= 0) ||
+    (featureId === 'nature-magician' && (uses < 1 || uses > wildLeft || magicianBudget < 1)) ||
     (featureId === 'wild-resurgence' && resurgenceMode === 'slot-to-shape' && !wildAtZero) ||
     (featureId === 'wild-companion' && companionPay === 'wild-shape' && wildLeft <= 0) ||
     (featureId === 'starry-form' && !STARRY_FORMS_2024.some((row) => row.id === mode))
@@ -198,12 +198,8 @@ export function Druid2024UseDialog({
       usesToConvert: featureId === 'nature-magician' ? uses : undefined,
       featurePicks,
     })
-    const patched: Druid2024UseResult =
-      result.ok && result.patches && featureId === 'nature-magician' && effectiveSlot > 0
-        ? { ...result, patches: { ...result.patches, gainSlotLevel: effectiveSlot } }
-        : result
     onConfirm({
-      ...patched,
+      ...result,
       featureId,
       ...(featureId === 'starry-form' ? { starryForm: mode } : {}),
     })
@@ -370,9 +366,9 @@ export function Druid2024UseDialog({
         {featureId === 'nature-magician' ? (
           <>
             <Text>
-              Бонусное действие: потрать использования «{WILD_SHAPE_NAME_RU}» — каждое даёт 2 уровня
-              ячейки. Восстанови потраченную ячейку не выше {magicianBudget} круга. Раз в долгий
-              отдых.
+              Действий не требуется: преобразуй непотраченные использования «{WILD_SHAPE_NAME_RU}» в
+              одну ячейку заклинаний — каждое использование даёт 2 уровня ячейки (например, 2 →
+              ячейка 4 круга). Раз в долгий отдых.
             </Text>
             <Field label="Потратить использований облика">
               <NumberInput
@@ -381,13 +377,13 @@ export function Druid2024UseDialog({
                 value={uses}
                 onValueChange={(value) => {
                   setUses(Math.max(1, Math.min(Math.max(1, wildLeft), value ?? 1)))
-                  setSlotLevel(0)
                 }}
               />
             </Field>
-            <Field label="Восстановить ячейку">
-              <SlotLevelPicker levels={magicianLevels} value={effectiveSlot} onPick={setSlotLevel} />
-            </Field>
+            <Text>
+              Создать ячейку: <strong>{magicianBudget || '—'} круг</strong>
+              {wildLeft < 1 ? ' (нет использований облика)' : ''}
+            </Text>
           </>
         ) : null}
 

@@ -123,6 +123,49 @@ assert(
   'no form, cast allowed',
 )
 
+/* 2024 Beast Spells / Moon: free non-consumed M allowed; costly/consumed blocked */
+assert(
+  wildShapeCastBlock({
+    companions: bearForm.companions,
+    classes: [{ name: 'Друид', level: 3 }],
+    classSlug: 'druid',
+    material: 'лист луносемянника',
+    moonCircleSpell: true,
+    rulesEdition: '2024',
+  }) == null,
+  '2024 moon circle free M allowed',
+)
+assert(
+  wildShapeCastBlock({
+    companions: bearForm.companions,
+    classes: [{ name: 'Друид', level: 18 }],
+    classSlug: 'druid',
+    material: 'лист луносемянника',
+    rulesEdition: '2024',
+  }) == null,
+  '2024 beast spells free M allowed',
+)
+assert(
+  wildShapeCastBlock({
+    companions: bearForm.companions,
+    classes: [{ name: 'Друид', level: 18 }],
+    classSlug: 'druid',
+    material: 'алмаз стоимостью 300 зм, расходуется',
+    rulesEdition: '2024',
+  })?.includes('Заклинания зверя'),
+  '2024 beast spells costly+consumed blocked',
+)
+assert(
+  wildShapeCastBlock({
+    companions: bearForm.companions,
+    classes: [{ name: 'Друид', level: 5 }],
+    classSlug: 'druid',
+    material: '',
+    rulesEdition: '2024',
+  })?.includes('Заклинания зверя'),
+  '2024 pre-18 non-moon blocked with PH24 name',
+)
+
 const poolId = featureResourceId('druid', 'wild_shape', 'c1')
 const spent = spendPoolUses({
   resources: [

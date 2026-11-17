@@ -1119,6 +1119,11 @@ export type Druid2024Patches = {
   spendSlotLevel?: number
   /** Spell slot circle the caller must create / restore. */
   gainSlotLevel?: number
+  /**
+   * When true with `gainSlotLevel`, create a temporary slot (Nature Magician).
+   * When false/absent, restore one spent slot of that circle (Wild Resurgence).
+   */
+  createSlot?: boolean
   /** Caller should mark this Nature Magician use as spent until long rest. */
   natureMagicianSpent?: boolean
   /** Wild Companion paid: caller opens the familiar picker (Find Familiar as a fey). */
@@ -1320,11 +1325,13 @@ export function applyDruid2024FeatureUse(input: Druid2024UseInput): Druid2024Use
       if (pool) resources = patchRow(resources, pool.id, (item) => ({ ...item, used: item.used + 1 }))
       return ok(
         input,
-        `${NATURE_MAGICIAN_NAME_RU} (бонусное действие): ${uses} использ. «${WILD_SHAPE_NAME_RU}» → ячейка ${slotLevel} круга (2 уровня за использование; раз в долгий отдых)`,
+        `${NATURE_MAGICIAN_NAME_RU} (действий не требуется): ${uses} использ. «${WILD_SHAPE_NAME_RU}» → ячейка ${slotLevel} круга (2 уровня за использование; раз в долгий отдых)`,
         {
           resources,
           patches: {
+            /** Create a temporary slot (not restore a spent one). */
             gainSlotLevel: slotLevel,
+            createSlot: true,
             natureMagicianSpent: true,
             ...(pool
               ? {}

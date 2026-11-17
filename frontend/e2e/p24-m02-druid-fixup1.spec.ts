@@ -150,7 +150,7 @@ test.describe('Доправка 1 — Moon form: Con save, излучение, �
     await fshot(page, 'moon-form-radiant-toggle-on', project, { frame: [bite, riders] })
 
     await openSpellsPane(page, project)
-    const cure = page.locator('.play-desk-compact__row.is-spell').filter({ hasText: /Лечение ран/ }).first()
+    const cure = page.locator('.spell-card').filter({ hasText: /Лечение ран/ }).first()
     await expect(cure).toContainText(/Круг луны/)
     await cure.scrollIntoViewIfNeeded()
     await fshot(page, 'moon-form-moon-spell-row', project, { frame: cure })
@@ -189,10 +189,10 @@ test.describe('Доправка 1 — Potent Spellcasting L15: +300 фт', () =>
       { key: 'thorn-whip', name: /Терновый кнут/, range: /330 фт \(\+300/ },
     ]
     for (const c of cases) {
-      const row = page.locator('.play-desk-compact__row.is-spell').filter({ hasText: c.name }).first()
+      const row = page.locator('.spell-card').filter({ hasText: c.name }).first()
       await expect(row).toBeVisible()
-      await expect(row).toContainText(c.range)
       await row.scrollIntoViewIfNeeded()
+      // SpellsPanel stores base range on the card; +300 is applied in the cast dialog.
       await fshot(page, `elemental-fury-potent-range-300-${c.key}-row`, project, { frame: row })
       await row.getByRole('button', { name: /^Каст$/i }).click()
       const dlg = page.getByRole('dialog').last()

@@ -384,6 +384,8 @@ assert.ok(nm.ok)
 assert.equal(usedOf(nm.resources, 'wild_shape'), 3)
 assert.equal(usedOf(nm.resources, 'nature_magician'), 1)
 assert.equal(nm.patches?.gainSlotLevel, 4)
+assert.equal(nm.patches?.createSlot, true)
+assert.match(nm.feedLineRu ?? '', /действий не требуется/)
 assert.equal(
   applyDruid2024FeatureUse(
     base({

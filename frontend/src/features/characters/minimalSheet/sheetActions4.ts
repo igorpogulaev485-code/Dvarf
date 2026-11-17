@@ -781,6 +781,7 @@ export function installSheetActions4(model: SheetModel) {
       classes: model.draft.classes,
       classSlug: spell.class_slug,
       material: spell.components?.m,
+      rulesEdition: model.rulesEdition,
       moonCircleSpell: moonCircleSpellCastableInForm2024({
         rulesEdition: model.rulesEdition,
         druidLevel: model.druidLevel,
@@ -1307,6 +1308,14 @@ export function installSheetActions4(model: SheetModel) {
   }
 
   model.showCompact = function showCompact(id: PlayDeskCompactPanelId): boolean {
+    // 2024 Druid: classic SpellsPanel (known forms, moon circle, cast-in-form).
+    if (
+      id === 'spells' &&
+      model.rulesEdition === '2024' &&
+      (model.druidLevel ?? 0) > 0
+    ) {
+      return false
+    }
     // Spells / attacks: compact is the only play surface (desk + phone); setup in dialogs.
     if (id === 'spells' || id === 'attacks') return true
     // Explore / Social / Features / Companions: glance→expand — no compact/full flip.

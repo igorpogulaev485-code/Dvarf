@@ -156,6 +156,11 @@ type SpellsPanelProps = {
   extraCantripsBySlug?: Record<string, number>
   /** 2024 Circle of the Moon L3+: always-prepared circle spells may be cast in Wild Shape. */
   moonFormSpells?: boolean
+  /**
+   * Play Desk: route Cast through the desk cast dialog (potent range, metamagic, …).
+   * When set, the panel does not open its own CastSpellDialog.
+   */
+  onCastSpell?: (spell: SheetSpell) => void
 }
 
 export function SpellsPanel({
@@ -194,6 +199,7 @@ export function SpellsPanel({
   onOpenRitualBook,
   extraCantripsBySlug,
   moonFormSpells,
+  onCastSpell,
 }: SpellsPanelProps) {
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [prepareOpen, setPrepareOpen] = useState(false)
@@ -546,6 +552,7 @@ export function SpellsPanel({
       classes: classes ?? [],
       classSlug: castSpell.class_slug,
       material: castSpell.components?.m,
+      rulesEdition: edition,
       moonCircleSpell:
         Boolean(moonFormSpells) &&
         Boolean(castSpell.prepared_locked) &&
@@ -1434,6 +1441,10 @@ export function SpellsPanel({
                                   ))
                           }
                           onClick={() => {
+                            if (onCastSpell) {
+                              void spellReadyToCast(spell, edition).then(onCastSpell)
+                              return
+                            }
                             void spellReadyToCast(spell, edition).then(setCastSpell)
                           }}
                         >
@@ -1524,6 +1535,7 @@ export function SpellsPanel({
         onClose={() => setGrimoireOpen(false)}
         onToast={onToast}
       />
+      {onCastSpell ? null : (
       <CastSpellDialog
         open={castSpell != null}
         spell={castSpell}
@@ -1554,6 +1566,7 @@ export function SpellsPanel({
         onConfirm={confirmCast}
         onClose={() => setCastSpell(null)}
       />
+      )}
       {pendingSelfForm ? (
         <SpellFormDialog
           open

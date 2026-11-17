@@ -15,6 +15,7 @@ export default defineConfig({
   testMatch: [
     '**/p24-m02-druid-live.spec.ts',
     '**/p24-m02-druid-fixup1.spec.ts',
+    '**/p24-m02-druid-fixup2.spec.ts',
     '**/p24-m02-druid-regression-2014.spec.ts',
     '**/p24-m02-druid-regression-2014-form-active.spec.ts',
   ],
