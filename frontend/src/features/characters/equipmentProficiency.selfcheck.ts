@@ -88,4 +88,13 @@ const fighterParts = buildAttackBonusParts({
 const fighterTotal = fighterParts.reduce((sum, part) => sum + part.value, 0)
 assert.equal(fighterTotal, 6, `fighter longsword +1 attack expected +6, got ${fighterTotal}`)
 
+import { reconcileDruidStartWeapons } from './classEffects'
+
+const keepSimple = reconcileDruidStartWeapons({
+  classGrants: [],
+  weapons: { simple: true, martial: false, extras: [] },
+})
+assert.equal(keepSimple.changed, false, 'empty classGrants must not rewrite weapons')
+assert.equal(keepSimple.weapons.simple, true, 'wizard simple proficiency must survive')
+
 console.log('equipmentProficiency.selfcheck: ok')
