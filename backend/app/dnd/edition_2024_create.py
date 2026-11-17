@@ -1000,7 +1000,7 @@ def _validate_ranger_options_2024(
     *,
     fighting_style: str | None,
 ) -> dict[str, Any]:
-    """Keep Druidic Warrior cantrips when the style is chosen; drop them otherwise."""
+    """Druidic Warrior cantrips + conclave feature picks (PHB 2024)."""
     out: dict[str, Any] = {}
     style = (fighting_style or payload.fighting_style_slug or "").strip().lower().replace("_", "-")
     raw_cantrips = picks.get(DRUIDIC_WARRIOR_CANTRIPS_KEY) or picks.get("druidic-warrior-cantrips")
@@ -1008,6 +1008,41 @@ def _validate_ranger_options_2024(
         out[DRUIDIC_WARRIOR_CANTRIPS_KEY] = _validate_druidic_warrior_cantrips(raw_cantrips)
     elif raw_cantrips:
         pass
+
+    ranger_level = _planned_class_level(payload, "ranger")
+    subclass = _planned_primary_subclass(payload)
+    if subclass == e24opt.RANGER_SUBCLASS_HUNTER_2024 and ranger_level >= e24opt.RANGER_CONCLAVE_PICK_MIN_LEVEL_2024:
+        prey = str(picks.get("hunters_prey") or "").lower()
+        if prey not in e24opt.HUNTERS_PREY_OPTIONS_2024:
+            raise Create2024Error(
+                "Следопыт 3+: выберите Добычу охотника (colossus_slayer/horde_breaker)",
+                code="create_2024_class_options",
+            )
+        out["hunters_prey"] = prey
+    if subclass == e24opt.RANGER_SUBCLASS_HUNTER_2024 and ranger_level >= e24opt.RANGER_DEFENSIVE_TACTICS_MIN_LEVEL_2024:
+        tactics = str(picks.get("defensive_tactics") or "").lower()
+        if tactics not in e24opt.DEFENSIVE_TACTICS_OPTIONS_2024:
+            raise Create2024Error(
+                "Следопыт 7+: выберите Оборонительную тактику",
+                code="create_2024_class_options",
+            )
+        out["defensive_tactics"] = tactics
+    if subclass == e24opt.RANGER_SUBCLASS_BEASTMASTER_2024 and ranger_level >= e24opt.RANGER_CONCLAVE_PICK_MIN_LEVEL_2024:
+        companion = str(picks.get("primal_companion") or "").lower()
+        if companion not in e24opt.PRIMAL_COMPANION_TYPES_2024:
+            raise Create2024Error(
+                "Повелитель зверей 3+: выберите Первичного спутника (land/sea/sky)",
+                code="create_2024_class_options",
+            )
+        out["primal_companion"] = companion
+    if subclass == e24opt.RANGER_SUBCLASS_FEY_2024 and ranger_level >= e24opt.RANGER_CONCLAVE_PICK_MIN_LEVEL_2024:
+        glamour = str(picks.get("otherworldly_glamour") or "").lower()
+        if glamour not in e24opt.OTHERWORLDLY_GLAMOUR_SKILLS_2024:
+            raise Create2024Error(
+                "Странник фей 3+: выберите навык Иного блеска",
+                code="create_2024_class_options",
+            )
+        out["otherworldly_glamour"] = glamour
     return out
 
 
@@ -1442,6 +1477,39 @@ def _sync_elemental_fury_pick(sheet: dict[str, Any]) -> None:
         values = dict(picks.get("values") or {}) if isinstance(picks, dict) else {}
         values[f"{entry_id}:elemental_fury"] = pick
         values[f"{entry_id}:elemental-fury"] = pick
+        sheet["feature_picks"] = {"values": values}
+        return
+
+
+def _sync_ranger_subclass_picks(sheet: dict[str, Any], class_options: Mapping[str, Any]) -> None:
+    """Mirror ranger conclave picks into feature_picks for the ranger class row."""
+    for row in sheet.get("classes") or []:
+        if not isinstance(row, dict):
+            continue
+        if e24.normalize_class_slug(str(row.get("slug") or "")) != "ranger":
+            continue
+        entry_id = str(row.get("id") or "class-ranger")
+        level = int(row.get("level") or 1)
+        picks = sheet.get("feature_picks")
+        values = dict(picks.get("values") or {}) if isinstance(picks, dict) else {}
+
+        prey = str(class_options.get("hunters_prey") or "").lower()
+        if prey in e24opt.HUNTERS_PREY_OPTIONS_2024:
+            values[f"{entry_id}:hunters_prey"] = prey
+
+        tactics = str(class_options.get("defensive_tactics") or "").lower()
+        if tactics in e24opt.DEFENSIVE_TACTICS_OPTIONS_2024 and level >= e24opt.RANGER_DEFENSIVE_TACTICS_MIN_LEVEL_2024:
+            values[f"{entry_id}:defensive_tactics"] = tactics
+
+        companion = str(class_options.get("primal_companion") or "").lower()
+        if companion in e24opt.PRIMAL_COMPANION_TYPES_2024 and level >= e24opt.RANGER_CONCLAVE_PICK_MIN_LEVEL_2024:
+            values[f"{entry_id}:primal_companion"] = companion
+            values[f"{entry_id}:primal-companion"] = companion
+
+        glamour = str(class_options.get("otherworldly_glamour") or "").lower()
+        if glamour in e24opt.OTHERWORLDLY_GLAMOUR_SKILLS_2024:
+            values[f"{entry_id}:otherworldly_glamour"] = glamour
+
         sheet["feature_picks"] = {"values": values}
         return
 
@@ -2128,6 +2196,7 @@ def validate_create_2024(payload: Create2024Payload) -> Create2024Result:
     _sync_bard_picks(sheet, class_options)
     _sync_blessed_warrior_picks(sheet, class_options, fighting_style=fighting_style)
     _sync_druidic_warrior_picks(sheet, class_options, fighting_style=fighting_style)
+    _sync_ranger_subclass_picks(sheet, class_options)
     # Magical Secrets: create-at-N prepared may use Wizard/Druid/Cleric lists from bard 10+.
     _validate_bard_magical_secrets_prepared_2024(payload)
 
@@ -2865,6 +2934,14 @@ def _build_sheet(
         options_sheet["elemental_fury"] = str(class_options["elemental_fury"])
     if class_options.get("land_choice"):
         options_sheet["land_choice"] = str(class_options["land_choice"])
+    if class_options.get("hunters_prey"):
+        options_sheet["hunters_prey"] = str(class_options["hunters_prey"])
+    if class_options.get("defensive_tactics"):
+        options_sheet["defensive_tactics"] = str(class_options["defensive_tactics"])
+    if class_options.get("primal_companion"):
+        options_sheet["primal_companion"] = str(class_options["primal_companion"])
+    if class_options.get("otherworldly_glamour"):
+        options_sheet["otherworldly_glamour"] = str(class_options["otherworldly_glamour"])
     sheet["class_options_2024"] = options_sheet
 
     sheet["create_2024"] = {

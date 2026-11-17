@@ -156,7 +156,7 @@ function templateForCompanion(
       row.kind === 'eldritch_cannon'
         ? guessCannonVariant(row)
         : row.kind === 'primal_companion'
-          ? guessPrimalVariant(row)
+          ? guessPrimalVariant(row, ctx.rulesEdition)
           : ''
     const fromFeature = resolveCompanionTemplate({
       choiceId: feature,
@@ -187,9 +187,14 @@ function templateForCompanion(
     })
   }
   if (row.kind === 'primal_companion') {
+    const pick = guessPrimalVariant(row, ctx.rulesEdition)
+    const choiceId =
+      ctx.rulesEdition === '2024' && ['land', 'sea', 'sky'].includes(pick)
+        ? 'primal-companion'
+        : 'companion_type'
     return resolveCompanionTemplate({
-      choiceId: 'companion_type',
-      pickValue: guessPrimalVariant(row),
+      choiceId,
+      pickValue: pick,
       ctx,
     })
   }
@@ -218,8 +223,13 @@ function guessCannonVariant(row: CompanionEntry): string {
   return 'force_ballista'
 }
 
-function guessPrimalVariant(row: CompanionEntry): string {
+function guessPrimalVariant(row: CompanionEntry, rulesEdition?: string | null): string {
   const blob = `${row.name} ${row.notes} ${row.actions}`.toLowerCase()
+  if (rulesEdition === '2024') {
+    if (blob.includes('мор') || blob.includes('sea')) return 'sea'
+    if (blob.includes('неб') || blob.includes('sky')) return 'sky'
+    return 'land'
+  }
   if (blob.includes('мор') || blob.includes('sea')) return 'beast_of_the_sea'
   if (blob.includes('неб') || blob.includes('sky')) return 'beast_of_the_sky'
   return 'beast_of_the_land'

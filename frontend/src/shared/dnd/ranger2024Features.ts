@@ -382,6 +382,88 @@ export function primalCompanionTypeLabelRu2024(typeId: string | null | undefined
   return PRIMAL_COMPANION_TYPES_2024.find((row) => row.id === key)?.nameRu ?? null
 }
 
+const PRIMAL_COMPANION_TYPE_IDS = new Set<string>(PRIMAL_COMPANION_TYPES_2024.map((row) => row.id))
+
+export function isPrimalCompanionType2024(
+  typeId: string | null | undefined,
+): typeId is PrimalCompanionType2024 {
+  const key = String(typeId ?? '').trim().toLowerCase()
+  return PRIMAL_COMPANION_TYPE_IDS.has(key)
+}
+
+export function readPrimalCompanionType2024(
+  picks: FeaturePicksState,
+  classEntryId: string,
+): PrimalCompanionType2024 | null {
+  const raw = getFeaturePick(picks, classEntryId, 'primal_companion')
+    || getFeaturePick(picks, classEntryId, 'primal-companion')
+  const key = String(raw ?? '').trim().toLowerCase()
+  return isPrimalCompanionType2024(key) ? key : null
+}
+
+/** PHB 2024 primal beast stat block (SRD 5.2 / next.dnd.su): AC 13+Мдр, scaled HP & Beast's Strike. */
+export type PrimalCompanionStats2024 = {
+  type: PrimalCompanionType2024
+  nameRu: string
+  hp: number
+  ac: number
+  speed: number
+  speedClimb?: number
+  speedSwim?: number
+  speedFly?: number
+  actionsRu: string
+  notesRu: string
+}
+
+export function primalCompanionStats2024(input: {
+  type: PrimalCompanionType2024
+  rangerLevel: number
+  wisMod: number
+}): PrimalCompanionStats2024 {
+  const level = Math.max(1, Math.min(20, Math.floor(input.rangerLevel) || 1))
+  const wis = Math.floor(input.wisMod || 0)
+  const ac = 13 + wis
+  const nameRu = primalCompanionTypeLabelRu2024(input.type) ?? 'Первичный спутник'
+  const strikeNote = 'мод. атаки заклинаний'
+  if (input.type === 'sea') {
+    const hp = 5 + 5 * level
+    return {
+      type: 'sea',
+      nameRu: `Зверь моря · ${nameRu}`,
+      hp,
+      ac,
+      speed: 5,
+      speedSwim: 60,
+      actionsRu: `Удар зверя: ${strikeNote}; 1к6+2+${wis}; при попадании — схватил (СЛ спасброска = 8 + мод. атаки заклинаний).`,
+      notesRu: 'PHB 2024 · Первичный спутник · морской · амфибия',
+    }
+  }
+  if (input.type === 'sky') {
+    const hp = 4 + 4 * level
+    return {
+      type: 'sky',
+      nameRu: `Зверь неба · ${nameRu}`,
+      hp,
+      ac,
+      speed: 10,
+      speedFly: 60,
+      actionsRu: `Удар зверя: ${strikeNote}; 1к4+3+${wis} рубящий. Полёт: уход без провоц. атак.`,
+      notesRu: 'PHB 2024 · Первичный спутник · небесный · Flyby',
+    }
+  }
+  const hp = 5 + 5 * level
+  return {
+    type: 'land',
+    nameRu: `Зверь земли · ${nameRu}`,
+    hp,
+    ac,
+    speed: 40,
+    speedClimb: 40,
+    actionsRu: `Удар зверя: ${strikeNote}; 1к8+2+${wis} (дроб./кол./руб. на выбор); разбег 20+ фт. → +1к6 и сбит с ног (≤Крупный).`,
+    notesRu: 'PHB 2024 · Первичный спутник · земной',
+  }
+}
+
 /* ------------------------------------------------------------------ */
 /* Druidic Warrior (fighting style)                                    */
 /* ------------------------------------------------------------------ */

@@ -402,6 +402,43 @@ def test_create_ranger_druidic_warrior_materialize():
     assert (sheet.get("spells") or {}).get("casting_ability") == "wis"
 
 
+@pytest.mark.parametrize("companion", ["land", "sea", "sky"])
+def test_create_ranger_beastmaster_primal_companion(companion: str):
+    """PHB 2024: beastmaster must pick land/sea/sky; mirrored to feature_picks."""
+    payload = build_valid_payload(
+        "ranger",
+        ability_method="manual",
+        base_abilities=_ABILITIES,
+        subclass_slug="ranger__beastmaster",
+        class_levels=[{"slug": "ranger", "level": 5, "subclass_slug": "ranger__beastmaster"}],
+    )
+    payload["class_option_picks"] = {
+        **(payload.get("class_option_picks") or {}),
+        "primal_companion": companion,
+    }
+    sheet = create24.validate_create_2024(create24.payload_from_dict(payload)).sheet
+    values = (sheet.get("feature_picks") or {}).get("values") or {}
+    entry = next(
+        str(row.get("id") or "class-ranger")
+        for row in sheet["classes"]
+        if str(row.get("slug") or "") == "ranger"
+    )
+    assert values.get(f"{entry}:primal_companion") == companion
+    assert (sheet.get("class_options_2024") or {}).get("primal_companion") == companion
+
+
+def test_create_ranger_beastmaster_requires_primal_companion():
+    payload = build_valid_payload(
+        "ranger",
+        ability_method="manual",
+        base_abilities=_ABILITIES,
+        subclass_slug="ranger__beastmaster",
+        class_levels=[{"slug": "ranger", "level": 5, "subclass_slug": "ranger__beastmaster"}],
+    )
+    with pytest.raises(create24.Create2024Error, match="Первичн"):
+        create24.validate_create_2024(create24.payload_from_dict(payload))
+
+
 def test_create_ranger_druidic_warrior_requires_two_cantrips():
     payload = build_valid_payload(
         "ranger",

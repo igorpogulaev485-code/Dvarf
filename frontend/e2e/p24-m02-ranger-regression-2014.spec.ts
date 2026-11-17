@@ -94,4 +94,45 @@ test.describe('P24-M02 2014 regression (ranger)', () => {
     ).toBeVisible({ timeout: 15_000 })
     await shot(page, ARTIFACTS_2014, `${tag}-sheet-2014-ranger-features`, project)
   })
+
+  for (const level of [6, 8] as const) {
+    test(`2014 sheet L${level} — скорость без «Вездеходности» (+10 не утекает)`, async ({
+      page,
+    }, testInfo) => {
+      const project = projectOf(testInfo)
+      const tag = SHOT_TAG
+      const character = ranger2014SheetCharacter({
+        level,
+        name: `Арагорн L${level}`,
+      })
+      await mock2014Sheet(page, character)
+
+      await page.goto(`/characters/${character.id}`)
+      await expect(page.locator('#root')).not.toBeEmpty({ timeout: 20_000 })
+      await dismissWelcome(page)
+      await expect(page.getByText(new RegExp(`Арагорн L${level}|Следопыт`, 'i')).first()).toBeVisible({
+        timeout: 15_000,
+      })
+
+      if (isPhone(project)) {
+        await page.getByText('Бой', { exact: true }).last().click()
+        await ensureMobileVitalsExpanded(page)
+      }
+
+      // Displayed walk speed must stay 30 — Roving +10 is 2024-only.
+      const speedNode = page
+        .locator(
+          '[data-testid="vitals-speed"], .vital--speed, .combat-sticky__stats, .play-desk__vital',
+        )
+        .filter({ hasText: /\b30\b/ })
+        .first()
+      if (await speedNode.count()) {
+        await expect(speedNode).toBeVisible()
+        await expect(speedNode).not.toContainText(/\b40\b/)
+      } else {
+        await expect(page.getByText(/\b30\s*(фт|ft)?/i).first()).toBeVisible({ timeout: 10_000 })
+      }
+      await shot(page, ARTIFACTS_2014, `${tag}-sheet-2014-ranger-l${level}-speed`, project)
+    })
+  }
 })

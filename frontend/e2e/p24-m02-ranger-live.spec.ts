@@ -22,7 +22,9 @@ import {
   liveLevelUp,
   markPoolRemaining,
   openCombatScene,
+  openCompanionsScene,
   openFeaturesScene,
+  openSpellsPane,
   projectOf,
   shot,
   storedSheet,
@@ -188,18 +190,42 @@ function SUPERIOR_HUNTERS() {
 test.describe('P24-M02 ranger — subclasses @5', () => {
   test.setTimeout(240_000)
 
-  test('create-at-5 beastmaster: Первичный спутник', async ({ page }, testInfo) => {
-    const project = projectOf(testInfo)
-    const { store } = await createAt(page, project, {
-      name: 'Повелитель зверей 5',
-      level: 5,
-      subclassSlug: SUB.beastmaster,
+  for (const type of [
+    { id: 'land' as const, label: /Зверь земли|Земной/i },
+    { id: 'sea' as const, label: /Зверь моря|Морской/i },
+    { id: 'sky' as const, label: /Зверь неба|Небесный/i },
+  ]) {
+    test(`create-at-5 beastmaster ${type.id}: Первичный спутник PHB 2024`, async ({
+      page,
+    }, testInfo) => {
+      const project = projectOf(testInfo)
+      const { store, sheet } = await createAt(page, project, {
+        name: `Повелитель ${type.id} 5`,
+        level: 5,
+        subclassSlug: SUB.beastmaster,
+        primalCompanionType: type.id,
+      })
+      const picks = sheet.create_2024?.class_option_picks ?? {}
+      expect(String(picks.primal_companion || picks['primal-companion'] || '')).toMatch(
+        new RegExp(type.id, 'i'),
+      )
+      const companions = (sheet.companions ?? []) as Array<Record<string, unknown>>
+      const primal = companions.find((row) => String(row.kind || '') === 'primal_companion')
+      expect(primal, 'primal_companion on sheet').toBeTruthy()
+      await openFeaturesScene(page, project)
+      await expectFeatureNames(page, [PRIMAL, FAVORED, EXTRA_ATTACK])
+      if (type.id === 'land') {
+        await tallShot(page, ARTIFACTS, `${SHOT}-create-at-5-beastmaster-features`, project)
+      }
+      await openCompanionsScene(page, project)
+      await expect(page.getByText(/Первичн(ый|оытный)? спутник|Зверь/i).first()).toBeVisible({
+        timeout: 10_000,
+      })
+      await expect(page.getByText(type.label).first()).toBeVisible({ timeout: 10_000 })
+      await tallShot(page, ARTIFACTS, `${SHOT}-create-at-5-beastmaster-${type.id}-companion`, project)
+      expect(store.unmatched).toEqual([])
     })
-    await openFeaturesScene(page, project)
-    await expectFeatureNames(page, [PRIMAL, FAVORED, EXTRA_ATTACK])
-    await tallShot(page, ARTIFACTS, `${SHOT}-create-at-5-beastmaster-features`, project)
-    expect(store.unmatched).toEqual([])
-  })
+  }
 
   test('create-at-5 gloom: Угроза из засады', async ({ page }, testInfo) => {
     const project = projectOf(testInfo)
@@ -244,10 +270,21 @@ test.describe('P24-M02 ranger — druidic warrior + mark UI', () => {
       String(row.id || '').includes('druidic_warrior_cantrips'),
     )
     expect(dw.length).toBe(2)
+    const names = dw.map((row) => String(row.name || ''))
+    expect(names).toEqual(expect.arrayContaining(['Указание', 'Звёздный светлячок']))
+    for (const row of dw) {
+      expect(row.level).toBe(0)
+      expect(row.prepared).toBe(true)
+    }
     expect(sheet.spells?.casting_ability).toBe('wis')
     await openFeaturesScene(page, project)
     await expectFeatureNames(page, [FAVORED, /Воин-друид/])
     await tallShot(page, ARTIFACTS, `${SHOT}-druidic-warrior-features`, project)
+    await openSpellsPane(page, project)
+    await expect(page.getByText(/Указание/i).first()).toBeVisible({ timeout: 10_000 })
+    await expect(page.getByText(/Звёздный светлячок/i).first()).toBeVisible({ timeout: 10_000 })
+    await expect(page.getByText(/Мудрост/i).first()).toBeVisible()
+    await tallShot(page, ARTIFACTS, `${SHOT}-druidic-warrior-spells`, project)
     expect(store.unmatched).toEqual([])
   })
 

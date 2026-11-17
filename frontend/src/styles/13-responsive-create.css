@@ -469,6 +469,8 @@
 
 .create-pipeline__section-title {
   font-size: 1.25rem;
+  /* Keep section titles (e.g. «Оружейное мастерство (2/2)») visible under sticky steprrail. */
+  scroll-margin-top: 96px;
 }
 
 .create-pipeline__steps-wrap {

@@ -20,17 +20,23 @@ function monkUnarmoredBonusFt(classLevel: number): number {
   return 0
 }
 
+function isEdition2024(rulesEdition?: string | null): boolean {
+  return String(rulesEdition ?? '').trim() === '2024'
+}
+
 /**
  * Extra walk speed from class features (not baked into race speed).
  * Barbarian Fast Movement (5+): +10 unless heavy armor.
  * Monk Unarmored Movement (2+): scale unless armor or shield.
- * Ranger Roving (2024, 6+): +10 unless heavy armor.
+ * Ranger Roving (2024 only, 6+): +10 unless heavy armor — never on 2014 sheets.
  */
 export function classWalkSpeedBonusFt(input: {
   classes: Array<Pick<ClassLevelEntry, 'name' | 'level'>>
   wearingHeavyArmor?: boolean
   /** Any body armor or shield — blocks monk Unarmored Movement. */
   wearingArmorOrShield?: boolean
+  /** Rules edition — Roving applies only for `2024`. */
+  rulesEdition?: string | null
 }): number {
   let bonus = 0
   for (const row of input.classes) {
@@ -42,7 +48,7 @@ export function classWalkSpeedBonusFt(input: {
     if (slug === 'monk' && !input.wearingArmorOrShield) {
       bonus += monkUnarmoredBonusFt(level)
     }
-    if (slug === 'ranger') {
+    if (slug === 'ranger' && isEdition2024(input.rulesEdition)) {
       bonus += rovingSpeedBonusFt({
         rangerLevel: level,
         wearingHeavyArmor: input.wearingHeavyArmor,
@@ -59,9 +65,10 @@ export function applyRovingClimbSwim(input: {
   swim: number | null
   rangerLevel: number
   wearingHeavyArmor?: boolean
+  rulesEdition?: string | null
 }): { climb: number | null; swim: number | null } {
   const walk = input.walkFt
-  if (walk == null || walk <= 0) {
+  if (walk == null || walk <= 0 || !isEdition2024(input.rulesEdition)) {
     return { climb: input.climb, swim: input.swim }
   }
   if (

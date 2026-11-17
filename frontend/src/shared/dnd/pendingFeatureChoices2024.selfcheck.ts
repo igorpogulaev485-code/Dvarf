@@ -328,4 +328,35 @@ assert.equal(trimLevelUpSpellbookRows(bookAtL3, 1).length, 6, 'L1 keeps only the
   assert.equal(cleared.featurePicks.values['c1:blessed_strikes'], undefined)
 }
 
+{
+  const beastSteps = buildPendingWizardSteps2024({
+    classEntryId: 'r1',
+    className: 'Следопыт',
+    classSlug: 'ranger',
+    classLevel: 5,
+    hasSubclass: true,
+    subclassSlug: 'ranger__beastmaster',
+    classAsi: [],
+  }).filter((step) => step.kind === 'feature_choice')
+  const primal = beastSteps.find((step) => step.featureId === 'primal_companion')
+  assert.ok(primal && primal.kind === 'feature_choice')
+  assert.equal(
+    beastSteps.find((step) => step.featureId === 'primal_companion' && step.choice?.options?.includes('land')),
+    primal,
+  )
+  assert.equal(
+    buildPendingWizardSteps2024({
+      classEntryId: 'r1',
+      className: 'Следопыт',
+      classSlug: 'ranger',
+      classLevel: 5,
+      hasSubclass: true,
+      subclassSlug: 'ranger__beastmaster',
+      classAsi: [],
+      featurePicks: { values: { 'r1:primal_companion': 'land' } },
+    }).some((step) => step.kind === 'feature_choice' && step.featureId === 'primal_companion'),
+    false,
+  )
+}
+
 console.log('pendingFeatureChoices2024.selfcheck ok')

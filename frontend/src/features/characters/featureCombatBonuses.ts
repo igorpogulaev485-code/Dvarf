@@ -258,18 +258,26 @@ export function initiativeBonusFromRace(input: {
 }
 
 /**
- * Umbral Sight (Gloom Stalker): darkvision 60 ft, or +30 ft if you already have it.
+ * Umbral Sight (Gloom Stalker): darkvision 60 ft if none;
+ * if you already have it — +30 ft (2014) or +60 ft (2024).
  * `baseDarkvision` is the sheet value before this feature (race / manual / gear separate).
  */
 export function darkvisionFtFromFeatures(input: {
   features: FeatureLike[]
   baseDarkvision: number
+  rulesEdition?: string | null
 }): number {
-  const hasUmbral = input.features.some((feature) => feature.id === 'umbral_sight')
+  const hasUmbral = input.features.some(
+    (feature) =>
+      feature.id === 'umbral_sight' ||
+      feature.id === 'umbral-sight' ||
+      String(feature.id || '').replace(/-/g, '_') === 'umbral_sight',
+  )
   const base = Math.max(0, Math.floor(input.baseDarkvision))
   if (!hasUmbral) return base
   if (base <= 0) return 60
-  return base + 30
+  const bump = String(input.rulesEdition ?? '').trim() === '2024' ? 60 : 30
+  return base + bump
 }
 
 /** Feral Senses (Ranger 2024, L18+): blindsight 30 ft. */

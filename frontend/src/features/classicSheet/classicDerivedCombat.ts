@@ -344,6 +344,7 @@ export function classicDisplayInitiative(character: CharacterDetail): string {
 export function classicDisplaySpeed(character: CharacterDetail): string {
   const stored = readNullableCombatNumber(character, 'speed')
   const sheet = asRecord(character.sheet)
+  const rulesEdition = String(character.rules_edition ?? sheet.rules_edition ?? '2014').trim()
   const inventory = readInventory(sheet)
   const gear = aggregateGearEffects({
     items: inventory.items,
@@ -364,11 +365,13 @@ export function classicDisplaySpeed(character: CharacterDetail): string {
     classes,
     wearingHeavyArmor: wearingHeavy,
     wearingArmorOrShield,
+    rulesEdition,
   })
   const classBonusMax = classWalkSpeedBonusFt({
     classes,
     wearingHeavyArmor: false,
     wearingArmorOrShield: false,
+    rulesEdition,
   })
   const featBonus = sumFeatSpeedBonus(readFeatGrantLedger(sheet.feat_grants))
   const resolved = resolveWalkSpeedFt({

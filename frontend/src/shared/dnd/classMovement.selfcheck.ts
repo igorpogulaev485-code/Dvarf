@@ -55,6 +55,7 @@ assert(
   classWalkSpeedBonusFt({
     classes: [{ name: 'Следопыт', level: 5 }],
     wearingHeavyArmor: false,
+    rulesEdition: '2024',
   }) === 0,
   'ranger L5 no Roving',
 )
@@ -62,15 +63,32 @@ assert(
   classWalkSpeedBonusFt({
     classes: [{ name: 'ranger', level: 6 }],
     wearingHeavyArmor: false,
+    rulesEdition: '2024',
   }) === 10,
-  'ranger L6 Roving +10',
+  'ranger L6 Roving +10 (2024)',
 )
 assert(
   classWalkSpeedBonusFt({
     classes: [{ name: 'ranger', level: 8 }],
     wearingHeavyArmor: true,
+    rulesEdition: '2024',
   }) === 0,
   'ranger heavy armor blocks Roving',
+)
+assert(
+  classWalkSpeedBonusFt({
+    classes: [{ name: 'Следопыт', level: 6 }],
+    wearingHeavyArmor: false,
+    rulesEdition: '2014',
+  }) === 0,
+  'ranger 2014 L6 must NOT get Roving +10',
+)
+assert(
+  classWalkSpeedBonusFt({
+    classes: [{ name: 'ranger', level: 8 }],
+    wearingHeavyArmor: false,
+  }) === 0,
+  'ranger without rulesEdition must NOT get Roving (safe default)',
 )
 
 assert(

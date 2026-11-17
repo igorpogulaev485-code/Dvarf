@@ -168,6 +168,31 @@ export async function openCombatScene(page: Page, project: string) {
   await page.waitForTimeout(600)
 }
 
+export async function openCompanionsScene(page: Page, project: string) {
+  if (isPhone(project)) await page.getByText('Напарн.', { exact: true }).last().click()
+  else await page.getByRole('button', { name: /^Напарники/ }).first().click()
+  await page.waitForTimeout(600)
+}
+
+export async function openSpellsPane(page: Page, project: string) {
+  await openCombatScene(page, project)
+  if (isPhone(project)) {
+    await page
+      .locator(':is(button,[role=tab],[role=button]):visible', { hasText: /^Заклинания$/ })
+      .first()
+      .click()
+    await page.waitForTimeout(500)
+  } else {
+    const tab = page
+      .locator(':is(button,[role=tab],[role=button]):visible', { hasText: /^Заклинания$/ })
+      .first()
+    if (await tab.isVisible().catch(() => false)) {
+      await tab.click()
+      await page.waitForTimeout(400)
+    }
+  }
+}
+
 export async function openExploreScene(page: Page, project: string) {
   if (isPhone(project)) await page.getByText('Снаряж.', { exact: true }).last().click()
   else await page.getByRole('button', { name: /^Снаряжение$|^Инвентарь$/ }).first().click()
@@ -328,6 +353,7 @@ export async function pickRangerSubclassForks(
   page: Page,
   subclassSlug: string | null,
   level: number,
+  opts?: { primalCompanionType?: 'land' | 'sea' | 'sky' },
 ) {
   if (!subclassSlug || level < 3) return
   const tryPick = async (prefix: string, ids: string[]) => {
@@ -339,7 +365,7 @@ export async function pickRangerSubclassForks(
     if (level >= 7) await tryPick('p24-m03-pick-defensive_tactics', ['escape_the_horde'])
   }
   if (subclassSlug === SUB.beastmaster) {
-    await tryPick('p24-m03-pick-primal_companion', ['land'])
+    await tryPick('p24-m03-pick-primal_companion', [opts?.primalCompanionType ?? 'land'])
   }
   if (subclassSlug === SUB.feyWanderer) {
     await tryPick('p24-m03-pick-otherworldly_glamour', ['performance'])
@@ -362,6 +388,7 @@ export type LiveRangerOpts = {
   druidicCantrips?: readonly string[]
   mastery?: readonly string[]
   skills?: readonly string[]
+  primalCompanionType?: 'land' | 'sea' | 'sky'
 }
 
 export async function walkLiveRangerCreate(
@@ -422,7 +449,10 @@ export async function walkLiveRangerCreate(
   await pickPrefixed(page, 'p24-m03-pick-class-equipment', [opts.classEquipment ?? 'a'])
   await fillUnderfilledPicks(page)
   if (opts.stepShots) {
-    await page.getByTestId(`p24-m03-pick-mastery-${mastery[0]}`).scrollIntoViewIfNeeded()
+    const masteryHeading = page.getByTestId('p24-m03-mastery-heading')
+    await expect(masteryHeading).toBeVisible()
+    await masteryHeading.scrollIntoViewIfNeeded()
+    await page.waitForTimeout(200)
     await tallShot(page, opts.shotDir, `${prefix}step3-class-skills-mastery`, opts.project)
   }
   await next(page)
@@ -477,7 +507,9 @@ export async function walkLiveRangerCreate(
   await forkList.scrollIntoViewIfNeeded()
 
   if (opts.duringLeveling) await opts.duringLeveling(page)
-  await pickRangerSubclassForks(page, opts.subclassSlug, opts.level)
+  await pickRangerSubclassForks(page, opts.subclassSlug, opts.level, {
+    primalCompanionType: opts.primalCompanionType,
+  })
   if (opts.stopAfterForks) return {}
 
   await pickSpellsToQuota(page, 'level1', PREPARED)

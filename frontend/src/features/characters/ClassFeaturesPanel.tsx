@@ -181,7 +181,7 @@ import type { ConcentrationState } from '../../shared/dnd/concentration'
 import type { SheetResource } from '../../shared/dnd/rest'
 import { displayResourceLabel } from '../../shared/dnd/rest'
 import type { InventoryItem } from './inventory'
-import { Button, Chip, Field, Input, Panel, Stack, Text } from '../../ui'
+import { Button, Field, Input, Panel, Stack, Text } from '../../ui'
 import { SlotPips } from '../../ui/SlotPips'
 import {
   newCustomFeatureId,
@@ -2502,9 +2502,12 @@ function FeatureRow({
       {replacementStatusLabelRu(replacementStatus)}
     </span>
   ) : null
+  // Badge (not Chip): Chip always wraps a <button>, and glance is already a <button>.
   const needChoiceChip =
     choicePending && replacementStatus === 'active' ? (
-      <Chip className="feature-card__need-choice-chip">нужен выбор</Chip>
+      <span className="ui-chip feature-card__need-choice-chip" aria-label="нужен выбор">
+        <span className="ui-chip__label">нужен выбор</span>
+      </span>
     ) : null
   const cardToneClass =
     replacementStatus === 'replaced'

@@ -73,8 +73,11 @@ test.describe('P24-M02 paladin fixup shots (ranger pack)', () => {
       stopAfterClassStep: true,
       fightingStyle: null,
     })
-    await expect(page.getByText(/Оружейное мастерство.*\(2\/2\)/i).first()).toBeVisible()
-    await page.getByTestId('p24-m03-pick-mastery-longsword').scrollIntoViewIfNeeded()
+    const masteryHeading = page.getByTestId('p24-m03-mastery-heading')
+    await expect(masteryHeading).toBeVisible()
+    await expect(masteryHeading).toContainText(/Оружейное мастерство.*\(2\/2\)/i)
+    await masteryHeading.scrollIntoViewIfNeeded()
+    await page.waitForTimeout(200)
     await tallShot(page, PALADIN_DIR, `${PALADIN_SHOT}-step3-mastery-header-fix`, project)
     expect(store.unmatched).toEqual([])
   })

@@ -31,7 +31,10 @@ import {
   RANGER_CLASS_SLUG_2024,
   RANGER_FEATURE_NAMES_BY_ID,
   RANGER_SUBCLASS_SLUGS_2024,
+  isPrimalCompanionType2024,
+  primalCompanionStats2024,
   readDruidicWarriorCantrips2024,
+  readPrimalCompanionType2024,
   RELENTLESS_HUNTER_NAME_RU,
   rovingClimbSwimEqualsSpeed,
   rovingSpeedBonusFt,
@@ -42,7 +45,7 @@ import {
   WEAPON_MASTERY_NAME_RU,
   writeDruidicWarriorCantrips2024,
 } from './ranger2024Features'
-import { emptyFeaturePicks } from './featurePicks'
+import { emptyFeaturePicks, setFeaturePick } from './featurePicks'
 import type { SheetResource } from './rest'
 
 const ENTRY = 'entry-ranger'
@@ -105,6 +108,26 @@ assert.deepEqual(
   PRIMAL_COMPANION_TYPES_2024.map((row) => row.nameRu),
   ['Земной', 'Морской', 'Небесный'],
 )
+assert.equal(isPrimalCompanionType2024('land'), true)
+assert.equal(isPrimalCompanionType2024('beast_of_the_land'), false)
+
+const land5 = primalCompanionStats2024({ type: 'land', rangerLevel: 5, wisMod: 3 })
+assert.equal(land5.ac, 16)
+assert.equal(land5.hp, 30)
+assert.equal(land5.speed, 40)
+assert.equal(land5.speedClimb, 40)
+
+const sea5 = primalCompanionStats2024({ type: 'sea', rangerLevel: 5, wisMod: 2 })
+assert.equal(sea5.hp, 30)
+assert.equal(sea5.speedSwim, 60)
+
+const sky5 = primalCompanionStats2024({ type: 'sky', rangerLevel: 5, wisMod: 2 })
+assert.equal(sky5.hp, 24)
+assert.equal(sky5.speedFly, 60)
+
+let picksPrimal = emptyFeaturePicks()
+picksPrimal = setFeaturePick(picksPrimal, ENTRY, 'primal_companion', 'sea')
+assert.equal(readPrimalCompanionType2024(picksPrimal, ENTRY), 'sea')
 
 const l1 = listRangerFeaturesForLeveling(1).map((row) => row.id)
 assert.ok(l1.includes('favored-enemy'))

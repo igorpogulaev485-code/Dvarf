@@ -11,7 +11,20 @@ import {
   type WeaponMasteryId,
 } from '../../shared/dnd/weaponMastery'
 import { FIGHTING_STYLE_MIN_LEVEL_2024, WEAPON_MASTERY_NAME_RU } from '../../shared/dnd/paladin2024Features'
-import { isDruidicWarriorStyleId } from '../../shared/dnd/ranger2024Features'
+import {
+  DEFENSIVE_TACTICS_MIN_LEVEL_2024,
+  DEFENSIVE_TACTICS_NAME_RU,
+  HUNTERS_PREY_MIN_LEVEL_2024,
+  HUNTERS_PREY_NAME_RU,
+  isDefensiveTacticsOption2024,
+  isHuntersPreyOption2024,
+  isPrimalCompanionType2024,
+  isDruidicWarriorStyleId,
+  OTHERWORLDLY_GLAMOUR_NAME_RU,
+  OTHERWORLDLY_GLAMOUR_SKILLS_2024,
+  PRIMAL_COMPANION_NAME_RU,
+  RANGER_SUBCLASS_SLUGS_2024,
+} from '../../shared/dnd/ranger2024Features'
 import { ELDRITCH_INVOCATIONS_2024 } from '../../shared/dnd/edition2024ClassOptions'
 import { SKILL_DEFS } from '../characters/sheetTypes'
 import {
@@ -521,6 +534,46 @@ function abilitiesIssues(state: Create2024State): string[] {
 }
 
 /** Bard 2024 create-time picks: Expertise from level 2 (2) and 9 (4), Lore bonus skills at 3. */
+export function rangerCreatePicksNeed2024(state: Create2024State): {
+  rangerLevel: number
+  subclassSlug: string
+  huntersPrey: boolean
+  defensiveTactics: boolean
+  primalCompanion: boolean
+  otherworldlyGlamour: boolean
+} {
+  if (state.classSlug !== 'ranger') {
+    return {
+      rangerLevel: 0,
+      subclassSlug: '',
+      huntersPrey: false,
+      defensiveTactics: false,
+      primalCompanion: false,
+      otherworldlyGlamour: false,
+    }
+  }
+  const primary =
+    state.classes.find((row) => row.id === state.primaryClassEntryId) ?? state.classes[0]
+  const rangerLevel = Math.max(1, primary?.level ?? state.characterLevel ?? 1)
+  const subclass =
+    (primary && state.subclassByEntryId[primary.id]) || state.subclassSlug || ''
+  return {
+    rangerLevel,
+    subclassSlug: subclass,
+    huntersPrey:
+      subclass === RANGER_SUBCLASS_SLUGS_2024.hunter && rangerLevel >= HUNTERS_PREY_MIN_LEVEL_2024,
+    defensiveTactics:
+      subclass === RANGER_SUBCLASS_SLUGS_2024.hunter &&
+      rangerLevel >= DEFENSIVE_TACTICS_MIN_LEVEL_2024,
+    primalCompanion:
+      subclass === RANGER_SUBCLASS_SLUGS_2024.beastmaster &&
+      rangerLevel >= HUNTERS_PREY_MIN_LEVEL_2024,
+    otherworldlyGlamour:
+      subclass === RANGER_SUBCLASS_SLUGS_2024.feyWanderer &&
+      rangerLevel >= HUNTERS_PREY_MIN_LEVEL_2024,
+  }
+}
+
 export function bardCreatePicksNeed2024(state: Create2024State): {
   bardLevel: number
   expertise: number
@@ -615,6 +668,28 @@ function levelingIssues(state: Create2024State, ctx: StepIssueCtx): string[] {
       if (!LAND_TERRAINS_2024.some((row) => row.id === land)) {
         issues.push('Выберите местность Круга земли (с 3 ур. друида)')
       }
+    }
+  }
+  if (state.classSlug === 'ranger') {
+    const need = rangerCreatePicksNeed2024(state)
+    const huntersPrey = String(state.classOptionPicks.hunters_prey || '')
+    if (need.huntersPrey && !isHuntersPreyOption2024(huntersPrey)) {
+      issues.push(`Выберите ${HUNTERS_PREY_NAME_RU} (с 3 ур. следопыта)`)
+    }
+    const tactics = String(state.classOptionPicks.defensive_tactics || '')
+    if (need.defensiveTactics && !isDefensiveTacticsOption2024(tactics)) {
+      issues.push(`Выберите ${DEFENSIVE_TACTICS_NAME_RU} (с 7 ур. следопыта)`)
+    }
+    const primal = String(state.classOptionPicks.primal_companion || '')
+    if (need.primalCompanion && !isPrimalCompanionType2024(primal)) {
+      issues.push(`Выберите ${PRIMAL_COMPANION_NAME_RU} (с 3 ур. следопыта)`)
+    }
+    const glamour = String(state.classOptionPicks.otherworldly_glamour || '')
+    if (
+      need.otherworldlyGlamour &&
+      !(OTHERWORLDLY_GLAMOUR_SKILLS_2024 as readonly string[]).includes(glamour)
+    ) {
+      issues.push(`Выберите ${OTHERWORLDLY_GLAMOUR_NAME_RU} (с 3 ур. следопыта)`)
     }
   }
   const divineOrder =

@@ -309,21 +309,22 @@ export async function walk2014ToRangerClass(page: Page) {
   return classDlg
 }
 
-export function ranger2014SheetCharacter() {
-  const id = 'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeee0009'
+export function ranger2014SheetCharacter(opts?: { level?: number; name?: string }) {
+  const level = Math.max(1, Math.floor(opts?.level ?? 5))
+  const id = `aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeee00${String(level).padStart(2, '0')}`
   const sample = JSON.parse(JSON.stringify(sampleClassic2014Character)) as Record<string, unknown>
   sample.id = id
   sample.rules_edition = '2014'
   sample.class_name = 'Следопыт'
-  sample.name = 'Арагорн Странник'
-  sample.level = 5
+  sample.name = opts?.name ?? 'Арагорн Странник'
+  sample.level = level
   const sheet = (sample.sheet ?? {}) as Record<string, unknown>
   sheet.classes = [
     {
       id: 'c-ranger',
       slug: 'ranger',
       name: 'Следопыт',
-      level: 5,
+      level,
       subclass_slug: 'hunter',
       subclass_name: 'Охотник',
       catalog_id: 'ranger',
@@ -374,11 +375,11 @@ export function ranger2014SheetCharacter() {
   combat.speed = 30
   combat.ac = 16
   combat.hit_die = 'к10'
-  combat.hp_dice_current = 5
+  combat.hp_dice_current = level
   sheet.combat = combat
   sample.sheet = sheet
-  sample.hp_max = 38
-  sample.hp_current = 38
+  sample.hp_max = 8 + 5 * level
+  sample.hp_current = sample.hp_max
   sample.race_name = 'Дварф (горный)'
   return sample as {
     id: string

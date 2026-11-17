@@ -447,7 +447,10 @@ export async function walkLivePaladinCreate(
   await pickPrefixed(page, 'p24-m03-pick-class-equipment', [opts.classEquipment ?? 'a'])
   await fillUnderfilledPicks(page)
   if (opts.stepShots) {
-    await page.getByTestId('p24-m03-pick-mastery-longsword').scrollIntoViewIfNeeded()
+    const masteryHeading = page.getByTestId('p24-m03-mastery-heading')
+    await expect(masteryHeading).toBeVisible()
+    await masteryHeading.scrollIntoViewIfNeeded()
+    await page.waitForTimeout(200)
     await tallShot(page, opts.shotDir, `${prefix}step3-class-skills-mastery`, opts.project)
   }
   if (opts.stopAfterClassStep) return {}
