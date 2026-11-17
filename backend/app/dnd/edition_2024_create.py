@@ -1012,6 +1012,125 @@ def _planned_class_level(payload: Create2024Payload, class_slug: str) -> int:
     return 1
 
 
+BARD_LORE_SUBCLASS_2024 = "bard__lore"
+BARD_VALOR_SUBCLASS_2024 = "bard__valor"
+BARD_SUBCLASS_LEVEL_2024 = 3
+BARD_LORE_SKILL_PICKS_2024 = 3
+
+
+def _bard_expertise_need_2024(bard_level: int) -> int:
+    """Skills a bard must hold in Expertise: 2 from level 2, 4 from level 9."""
+    if bard_level >= 9:
+        return 4
+    if bard_level >= 2:
+        return 2
+    return 0
+
+
+def _planned_primary_subclass(payload: Create2024Payload) -> str:
+    """Subclass slug of the primary class in the create plan (empty when none)."""
+    for row in payload.class_levels or []:
+        if not isinstance(row, Mapping):
+            continue
+        slug = e24.normalize_class_slug(str(row.get("slug") or row.get("class_slug") or ""))
+        if slug == payload.class_slug:
+            sub = row.get("subclass_slug") or row.get("subclass")
+            if sub:
+                return _normalize_slug(str(sub))
+    return _normalize_slug(str(payload.subclass_slug or ""))
+
+
+def _validate_bard_options_2024(payload: Create2024Payload, picks: Mapping[str, Any]) -> dict[str, Any]:
+    """Bard 2024 create picks: Expertise (2 / 9) and College of Lore bonus proficiencies."""
+    out: dict[str, Any] = {}
+    bard_level = _planned_class_level(payload, "bard")
+    need = _bard_expertise_need_2024(bard_level)
+    expertise = [str(x) for x in (picks.get("expertise") or [])]
+    if need:
+        if len(expertise) != need or len(set(expertise)) != need:
+            raise Create2024Error(
+                f"Бард {bard_level}: выберите {need} различных навыка для Компетентности",
+                code="create_2024_class_options",
+            )
+        unknown = [x for x in expertise if x not in SKILL_IDS]
+        if unknown:
+            raise Create2024Error(
+                f"Компетентность: неизвестный навык {unknown[0]}",
+                code="create_2024_class_options",
+            )
+        out["expertise"] = expertise
+    elif expertise:
+        raise Create2024Error(
+            "Бард: Компетентность открывается со 2 уровня",
+            code="create_2024_class_options",
+        )
+    subclass = _planned_primary_subclass(payload)
+    if subclass == BARD_LORE_SUBCLASS_2024 and bard_level >= BARD_SUBCLASS_LEVEL_2024:
+        lore = [str(x) for x in (picks.get("lore_skills") or [])]
+        if (
+            len(lore) != BARD_LORE_SKILL_PICKS_2024
+            or len(set(lore)) != BARD_LORE_SKILL_PICKS_2024
+            or any(x not in SKILL_IDS for x in lore)
+        ):
+            raise Create2024Error(
+                "Коллегия знаний: выберите 3 различных навыка (Доп. владения)",
+                code="create_2024_class_options",
+            )
+        out["lore_skills"] = lore
+    return out
+
+
+def _sync_bard_picks(sheet: dict[str, Any], class_options: Mapping[str, Any]) -> None:
+    """Mirror Expertise picks into feature_picks and record the College grants ledger."""
+    from app.services.edition_2024_catalog_seed import entry_id
+
+    for row in sheet.get("classes") or []:
+        if not isinstance(row, dict):
+            continue
+        if e24.normalize_class_slug(str(row.get("slug") or "")) != "bard":
+            continue
+        class_entry = str(row.get("id") or "class-bard")
+        expertise = [str(x) for x in (class_options.get("expertise") or [])]
+        if expertise:
+            picks = sheet.get("feature_picks")
+            values = dict(picks.get("values") or {}) if isinstance(picks, dict) else {}
+            values[f"{class_entry}:expertise"] = ",".join(expertise[:2])
+            if len(expertise) > 2:
+                values[f"{class_entry}:expertise_9"] = ",".join(expertise[2:4])
+            sheet["feature_picks"] = {"values": values}
+        subclass = _normalize_slug(str(row.get("subclass_slug") or row.get("subclass_catalog_id") or ""))
+        level = int(row.get("level") or 0)
+        grant: dict[str, Any] | None = None
+        if subclass == BARD_LORE_SUBCLASS_2024 and level >= BARD_SUBCLASS_LEVEL_2024:
+            lore = [str(x) for x in (class_options.get("lore_skills") or [])]
+            if lore:
+                grant = {"skills": lore, "armorKeys": [], "weaponKeys": [], "picks": {"bonus_skills": lore}}
+        elif subclass == BARD_VALOR_SUBCLASS_2024 and level >= BARD_SUBCLASS_LEVEL_2024:
+            grant = {"skills": [], "armorKeys": ["medium", "shields"], "weaponKeys": ["martial"], "picks": {}}
+        if grant is not None:
+            ledger = [
+                dict(item)
+                for item in (sheet.get("subclass_grants") or [])
+                if isinstance(item, dict) and item.get("classEntryId") != class_entry
+            ]
+            ledger.append(
+                {
+                    "classEntryId": class_entry,
+                    "catalogId": entry_id(kind="subclass", slug=subclass),
+                    "slug": subclass,
+                    "parentSlug": "bard",
+                    "weaponExtras": [],
+                    "tools": [],
+                    "languages": [],
+                    "caster": None,
+                    "grantedSpellIds": [],
+                    **grant,
+                }
+            )
+            sheet["subclass_grants"] = ledger
+        return
+
+
 def _sync_blessed_strikes_pick(sheet: dict[str, Any]) -> None:
     """Mirror class_options_2024.blessed_strikes into feature_picks for the cleric row."""
     options = sheet.get("class_options_2024")
@@ -1257,6 +1376,8 @@ def _validate_class_options(payload: Create2024Payload) -> dict[str, Any]:
         known_forms = _validate_known_forms(picks.get("known_forms"), druid_level)
         if known_forms:
             out["known_forms"] = known_forms
+    if payload.class_slug == "bard":
+        out.update(_validate_bard_options_2024(payload, picks))
     if payload.class_slug == "rogue":
         expertise = [str(x) for x in (picks.get("expertise") or [])]
         if len(expertise) != 2 or len(set(expertise)) != 2:
@@ -1532,6 +1653,7 @@ def validate_create_2024(payload: Create2024Payload) -> Create2024Result:
     _sync_elemental_fury_pick(sheet)
     _sync_land_choice_pick(sheet)
     _sync_known_forms(sheet, class_options)
+    _sync_bard_picks(sheet, class_options)
 
     # Class name line: primary + multiclass summary.
     class_name = str(class_row.get("name_ru") or class_slug)
@@ -1828,7 +1950,23 @@ def _build_sheet(
     if skill_or_tool in SKILL_IDS:
         species_skills.add(skill_or_tool)
     proficient = set(bg_skills) | set(class_skills) | skilled | species_skills | species_feat_skilled
+    if payload.class_slug == "bard":
+        lore_skills = {str(x) for x in (class_options.get("lore_skills") or []) if x in SKILL_IDS}
+        already = sorted(lore_skills & proficient)
+        if already:
+            raise Create2024Error(
+                f"Коллегия знаний: навык {already[0]} уже есть — выберите другой",
+                code="create_2024_class_options",
+            )
+        proficient |= lore_skills
     expertise = {str(x) for x in (class_options.get("expertise") or []) if x in SKILL_IDS}
+    if payload.class_slug == "bard":
+        untrained = sorted(expertise - proficient)
+        if untrained:
+            raise Create2024Error(
+                f"Компетентность только в навыках с владением: {untrained[0]}",
+                code="create_2024_class_options",
+            )
     for skill, meta in sheet["skills"].items():
         meta["is_proficient"] = skill in proficient
         meta["is_expertise"] = skill in expertise
@@ -1924,6 +2062,15 @@ def _build_sheet(
         armor = list(armor) + (
             ["medium"] if "medium" not in armor and "all" not in armor else []
         )
+    # College of Valor (2024) Martial Training: martial weapons, medium armor, shields.
+    # Never grants weapon mastery.
+    if (
+        payload.class_slug == "bard"
+        and _planned_primary_subclass(payload) == BARD_VALOR_SUBCLASS_2024
+        and _planned_class_level(payload, "bard") >= BARD_SUBCLASS_LEVEL_2024
+    ):
+        weapons_prof = {**weapons_prof, "martial": True}
+        armor = list(armor) + [x for x in ("medium", "shields") if x not in armor and "all" not in armor]
     sheet["proficiency"] = {
         "bonus": 2,
         "armor": {
