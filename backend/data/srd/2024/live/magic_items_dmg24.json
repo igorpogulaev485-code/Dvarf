@@ -205,7 +205,7 @@
     {
       "kind": "item",
       "slug": "apparatus-of-kwalish",
-      "name_ru": "Аппарат Квалиша",
+      "name_ru": "Аппарат Краба",
       "name_en": "Apparatus of Kwalish",
       "source": "dmg24",
       "sort_order": 50,
@@ -235,7 +235,7 @@
         "base_item_categories": [],
         "name_ru_pending": false,
         "text_ru_pending": false,
-        "summary_ru": "Аппарат Квалиша: Чудесный предмет, легендарный; именная версия предмета из открытых правил.",
+        "summary_ru": "Аппарат Краба: Чудесный предмет, легендарный; именная версия предмета из открытых правил.",
         "srd_alias": "apparatus-of-the-crab"
       }
     },
@@ -1243,7 +1243,7 @@
     {
       "kind": "item",
       "slug": "daerns-instant-fortress",
-      "name_ru": "Мгновенная крепость Даэрн",
+      "name_ru": "Мгновенная крепость",
       "name_en": "Daern’s Instant Fortress",
       "source": "dmg24",
       "sort_order": 330,
@@ -1273,7 +1273,7 @@
         "base_item_categories": [],
         "name_ru_pending": false,
         "text_ru_pending": false,
-        "summary_ru": "Мгновенная крепость Даэрн: Чудесный предмет, редкий; требуется настройка; именная версия предмета из открытых правил.",
+        "summary_ru": "Мгновенная крепость: Чудесный предмет, редкий; требуется настройка; именная версия предмета из открытых правил.",
         "srd_alias": "instant-fortress"
       }
     },
@@ -3344,7 +3344,7 @@
     {
       "kind": "item",
       "slug": "hewards-handy-haversack",
-      "name_ru": "Удобный рюкзак Хеварда",
+      "name_ru": "Удобный рюкзак",
       "name_en": "Heward’s Handy Haversack",
       "source": "dmg24",
       "sort_order": 890,
@@ -3374,7 +3374,7 @@
         "base_item_categories": [],
         "name_ru_pending": false,
         "text_ru_pending": false,
-        "summary_ru": "Удобный рюкзак Хеварда: Чудесный предмет, редкий; именная версия предмета из открытых правил.",
+        "summary_ru": "Удобный рюкзак: Чудесный предмет, редкий; именная версия предмета из открытых правил.",
         "srd_alias": "handy-haversack"
       }
     },
@@ -4209,7 +4209,7 @@
     {
       "kind": "item",
       "slug": "iron-bands-of-bilarro",
-      "name_ru": "Железные ленты Биларро",
+      "name_ru": "Железные ленты",
       "name_en": "Iron Bands of Bilarro",
       "source": "dmg24",
       "sort_order": 1130,
@@ -4239,7 +4239,7 @@
         "base_item_categories": [],
         "name_ru_pending": false,
         "text_ru_pending": false,
-        "summary_ru": "Железные ленты Биларро: Чудесный предмет, редкий; именная версия предмета из открытых правил.",
+        "summary_ru": "Железные ленты: Чудесный предмет, редкий; именная версия предмета из открытых правил.",
         "srd_alias": "iron-bands"
       }
     },
@@ -4736,7 +4736,7 @@
     {
       "kind": "item",
       "slug": "nolzurs-marvelous-pigments",
-      "name_ru": "Чудесные краски Нолзура",
+      "name_ru": "Чудесные краски",
       "name_en": "Nolzur’s Marvelous Pigments",
       "source": "dmg24",
       "sort_order": 1270,
@@ -4766,7 +4766,7 @@
         "base_item_categories": [],
         "name_ru_pending": false,
         "text_ru_pending": false,
-        "summary_ru": "Чудесные краски Нолзура: Чудесный предмет, очень редкий; именная версия предмета из открытых правил.",
+        "summary_ru": "Чудесные краски: Чудесный предмет, очень редкий; именная версия предмета из открытых правил.",
         "srd_alias": "marvelous-pigments"
       }
     },
@@ -5352,7 +5352,7 @@
     {
       "kind": "item",
       "slug": "quaals-feather-token",
-      "name_ru": "Перо Кваля",
+      "name_ru": "Жетон с перышком",
       "name_en": "Quaal’s Feather Token",
       "source": "dmg24",
       "sort_order": 1440,
@@ -5382,7 +5382,7 @@
         "base_item_categories": [],
         "name_ru_pending": false,
         "text_ru_pending": false,
-        "summary_ru": "Перо Кваля: Чудесный предмет, редкость различается; именная версия предмета из открытых правил; семейство вариантов по редкости или уровню.",
+        "summary_ru": "Жетон с перышком: Чудесный предмет, редкость различается; именная версия предмета из открытых правил; семейство вариантов по редкости или уровню.",
         "srd_alias": "feather-token"
       }
     },
@@ -5605,7 +5605,7 @@
     {
       "kind": "item",
       "slug": "quiver-of-ehlonna",
-      "name_ru": "Колчан Элонны",
+      "name_ru": "Эффективный колчан",
       "name_en": "Quiver of Ehlonna",
       "source": "dmg24",
       "sort_order": 1510,
@@ -5635,7 +5635,7 @@
         "base_item_categories": [],
         "name_ru_pending": false,
         "text_ru_pending": false,
-        "summary_ru": "Колчан Элонны: Чудесный предмет, необычный; именная версия предмета из открытых правил.",
+        "summary_ru": "Эффективный колчан: Чудесный предмет, необычный; именная версия предмета из открытых правил.",
         "srd_alias": "efficient-quiver"
       }
     },

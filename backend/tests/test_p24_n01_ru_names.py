@@ -5,6 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from app.dnd.p24_n01_names import (
+    N17_11_NAME_OVERRIDES,
     RARITY_RU_ALLOWED,
     decide_name,
     decision_key,
@@ -114,6 +115,8 @@ def test_discrepancy_rows_without_2014_pair_match_dndsu():
         )
         if entry is None or is_pending(entry):
             continue
+        if (disc_kind, slug) in N17_11_NAME_OVERRIDES:
+            continue
         pair, _how = find_2014_pair(
             kind=entry.get("kind"),
             slug=slug,
@@ -144,6 +147,11 @@ def test_srd_alias_pairs_share_name_ru():
             continue
         if is_pending(entry) or is_pending(other):
             continue
+        if entry.get("kind") == "spell" and (
+            ("spell", slug) in N17_11_NAME_OVERRIDES
+            or ("spell", alias) in N17_11_NAME_OVERRIDES
+        ):
+            continue  # 17.11: SRD strips the eponym, PH24 keeps the 2014-style name
         if entry.get("name_ru") != other.get("name_ru"):
             failures.append(
                 f"{slug}={entry.get('name_ru')!r} vs {alias}={other.get('name_ru')!r}"
@@ -167,7 +175,7 @@ def test_discrepancies_have_result_columns():
     assert "P24-N01" in text
 
 
-def test_pending_bastions_untouched_flag():
+def test_bastions_pending_cleared_after_17_11():
     import json
 
     from app.dnd.p24_n01_names import LIVE_DIR
@@ -175,8 +183,10 @@ def test_pending_bastions_untouched_flag():
     payload = json.loads((LIVE_DIR / "bastions_dmg24.json").read_text(encoding="utf-8"))
     assert payload["entries"]
     assert all(
-        (e.get("data") or {}).get("name_ru_pending") is True for e in payload["entries"]
+        (e.get("data") or {}).get("name_ru_pending") is False for e in payload["entries"]
     )
+    war_room = next(e for e in payload["entries"] if e["slug"] == "war-room")
+    assert war_room["name_ru"] == "Штаб"
 
 
 def test_embedded_slug_name_ru_matches_target_card():
