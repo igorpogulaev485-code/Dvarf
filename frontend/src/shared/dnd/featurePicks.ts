@@ -28,8 +28,73 @@ export function readFeaturePicks(raw: unknown): FeaturePicksState {
   for (const [key, value] of Object.entries(valuesRaw)) {
     if (typeof value === 'string' && value.trim()) values[key] = value.trim()
     else if (value === true) values[key] = 'on'
+    else if (Array.isArray(value)) {
+      // Legacy / alternate writers sometimes store multi-picks as JSON arrays.
+      const joined = value
+        .map((item) => (typeof item === 'string' ? item.trim() : ''))
+        .filter(Boolean)
+        .join(',')
+      if (joined) values[key] = joined
+    }
   }
   return { values }
+}
+
+/**
+ * Conflict-rebase helper: never let an empty local key wipe a non-empty server
+ * pick (metamagic, fighting style, …). Local non-empty values still win so an
+ * intentional edit on this tab is kept.
+ */
+export function mergeFeaturePicksPreservingNonEmpty(
+  local: FeaturePicksState,
+  server: FeaturePicksState,
+): FeaturePicksState {
+  const values: Record<string, string> = { ...server.values }
+  for (const [key, localValue] of Object.entries(local.values)) {
+    const trimmed = localValue.trim()
+    if (trimmed) {
+      values[key] = trimmed
+      continue
+    }
+    // Local explicitly empty — keep server if it still has something.
+    if (!values[key]?.trim()) delete values[key]
+  }
+  return { values }
+}
+
+/**
+ * Move orphan `*:metamagic` keys onto the live sorcerer class entry id so the
+ * settings card (ClassFeaturesPanel) and saves use the same key as unlocked
+ * features. Cast dialog already falls back via collectSorcererMetamagicIds.
+ */
+export function rebindStaleMetamagicPicks(input: {
+  featurePicks: FeaturePicksState
+  liveClassEntryIds: string[]
+}): FeaturePicksState {
+  const live = input.liveClassEntryIds.map((id) => id.trim()).filter(Boolean)
+  if (live.length === 0) return input.featurePicks
+  const targetId = live[0]!
+  const liveSet = new Set(live)
+  let next = input.featurePicks
+  const orphanParts: string[] = []
+  for (const [key, raw] of Object.entries(input.featurePicks.values)) {
+    if (!/:metamagic$/i.test(key)) continue
+    const entryId = key.slice(0, key.length - ':metamagic'.length)
+    if (liveSet.has(entryId)) continue
+    for (const part of raw.split(',')) {
+      const id = part.trim()
+      if (id && !orphanParts.includes(id)) orphanParts.push(id)
+    }
+    next = setFeaturePick(next, entryId, 'metamagic', null)
+  }
+  if (orphanParts.length === 0) return next
+  const existing = getFeaturePickList(next, targetId, 'metamagic')
+  const merged = [...existing]
+  for (const id of orphanParts) {
+    if (!merged.includes(id)) merged.push(id)
+  }
+  if (merged.join(',') === existing.join(',')) return next
+  return setFeaturePick(next, targetId, 'metamagic', merged.join(','))
 }
 
 export function featurePicksToSheet(picks: FeaturePicksState): FeaturePicksState {

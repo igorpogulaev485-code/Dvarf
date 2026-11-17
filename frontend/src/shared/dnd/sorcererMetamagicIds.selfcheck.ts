@@ -50,4 +50,18 @@ const viaCatalog = collectSorcererMetamagicIds({
 })
 assert.deepEqual(viaCatalog, ['subtle'])
 
+// Prod stores catalog_id as a UUID; name «Чародей» is what identifies the row.
+const viaProdShape = collectSorcererMetamagicIds({
+  classes: [
+    createClassLevel({
+      id: 'c2',
+      name: 'Чародей',
+      level: 8,
+      catalog_id: 'de750e12-7212-5b2d-a3b1-ed8231bb5fdd',
+    }),
+  ],
+  featurePicks: setFeaturePick(emptyFeaturePicks(), 'c2', 'metamagic', 'distant'),
+})
+assert.deepEqual(viaProdShape, ['distant'], 'prod UUID catalog_id + name Чародей')
+
 console.log('sorcererMetamagicIds.selfcheck: ok')
