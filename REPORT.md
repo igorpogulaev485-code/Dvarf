@@ -68,7 +68,7 @@
 | after md5 | `b84e94dd759d708f110e7107734e362d` | `0490b44fc8ec93e6a259f5705b669859` |
 | DIFF | да, ~0.81% пикселей | да, ~6.36% пикселей |
 
-**Объяснение DIFF:** один и тот же персонаж (Торин Камнебород, волшебник 5, sample classic 2014). Before снят с `origin/main` без FAB; after — с ветки DICE, на листе появляется FAB кубиков (и связанные слои панели). Шапка/создание/level-up не трогались. Ожидаемый визуальный diff только из DICE UI, не из поломки бланка 2014.
+**Объяснение DIFF:** один и тот же персонаж (Торин Камнебород, волшебник 5, sample classic 2014). Before снят с `origin/main` без FAB; after — с ветки DICE (`DiceRollerHost`). Попиксельный diff на 1440 сосредоточен в нижней полосе (~y 832–899): зона FAB/hot-bar, не шапка и не колонка характеристик. Шапка/создание/level-up не трогались. Ожидаемый визуальный diff из DICE UI, не поломка бланка 2014.
 
 Before: `scripts/dice-before-from-main.sh` + `e2e/dice-before-from-main.spec.ts` (Pixel5 `deviceScaleFactor` принудительно 1, `scale: 'css'`).
 
