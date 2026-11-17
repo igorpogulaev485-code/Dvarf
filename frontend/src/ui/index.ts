@@ -29,6 +29,10 @@ export { Combobox } from './Combobox'
 export type { ComboboxOption } from './Combobox'
 export { Dialog } from './Dialog'
 export { DiceFab } from './DiceFab'
+export { DiceFaces } from './DiceFaces'
+export type { DiceFaceView } from './DiceFaces'
+export { JournalTab } from './JournalTab'
+export { RevealButton } from './RevealButton'
 export {
   intentionalActivateProps,
   INTENTIONAL_ACTIVATE_THRESHOLD_PX,

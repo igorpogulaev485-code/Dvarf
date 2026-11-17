@@ -33,7 +33,7 @@ export function DiceRollerHost({
 }: Props) {
   const [open, setOpen] = useState(defaultOpen)
   const [focusJournal, setFocusJournal] = useState(false)
-  const [journalTab, setJournalTab] = useState<'mine'>('mine')
+  const [journalTab, setJournalTab] = useState<'mine' | 'table'>('mine')
   const [desktop, setDesktop] = useState(() =>
     typeof window !== 'undefined' ? window.matchMedia(DESKTOP_MQ).matches : true,
   )

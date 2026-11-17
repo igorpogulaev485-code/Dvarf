@@ -102,6 +102,7 @@ from app.schemas.lobby import (
     SessionQuestStatusResult,
     SessionRevealPageRequest,
     SessionRevealPageResult,
+    SessionDigitalRollRequest,
     SessionRollCreateRequest,
     SessionUpdateRequest,
     SettingArtifactCreateRequest,
@@ -1513,6 +1514,37 @@ async def create_session_roll(
     db: DbSession,
 ) -> SessionEventOut:
     return await LobbyService(db).create_manual_roll(current_user, session_id, payload)
+
+
+@router.post(
+    "/sessions/{session_id}/rolls/digital",
+    response_model=SessionEventOut,
+    status_code=201,
+)
+async def create_session_digital_roll(
+    session_id: UUID,
+    payload: SessionDigitalRollRequest,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> SessionEventOut:
+    """DICE-02b: цифровой бросок — итог считает сервер."""
+    return await LobbyService(db).create_digital_roll(current_user, session_id, payload)
+
+
+@router.post(
+    "/sessions/{session_id}/events/{event_id}/reveal",
+    response_model=SessionEventOut,
+)
+async def reveal_session_event(
+    session_id: UUID,
+    event_id: UUID,
+    current_user: CurrentUser,
+    db: DbSession,
+) -> SessionEventOut:
+    """DICE-02b: раскрыть скрытый бросок мастера."""
+    return await LobbyService(db).reveal_master_roll(
+        current_user, session_id, event_id
+    )
 
 
 @router.websocket("/sessions/{session_id}/ws")

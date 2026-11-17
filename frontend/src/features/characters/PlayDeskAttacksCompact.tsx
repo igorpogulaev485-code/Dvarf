@@ -255,7 +255,7 @@ import {
 } from './deskRolls'
 import { postSheetRollToSession } from './postSheetRollToSession'
 import {
-  recordDigitalRoll,
+  recordDigitalRollLocal,
   shouldPostRollToSession,
 } from '../diceRoller/recordDigitalRoll'
 import { intentionalActivateProps } from '../../ui'
@@ -3487,16 +3487,60 @@ export function PlayDeskAttacksCompact({
                                   .join(' · ')
                               : `Атака: ${attack.name}`
                         if (shouldPostRollToSession(characterId)) {
+                          const digMode =
+                            attackMode === 'advantage'
+                              ? 'advantage'
+                              : attackMode === 'disadvantage'
+                                ? 'disadvantage'
+                                : 'none'
                           void postSheetRollToSession({
-                          openSessionId: sessionId,
-                          characterId,
-                          title: feedTitle,
-                          total,
-                          formula: opts?.formula ?? null,
-                          breakdown: opts?.breakdown ?? null,
-                          physicalDice: physical,
-                          targetName: null,
-                        })
+                            openSessionId: sessionId,
+                            characterId,
+                            title: feedTitle,
+                            total,
+                            formula: physical
+                              ? opts?.formula ?? null
+                              : checkExpression(effectiveAttackBonus, 'normal'),
+                            breakdown: opts?.breakdown ?? null,
+                            physicalDice: physical,
+                            targetName: null,
+                            mode: physical ? undefined : digMode,
+                            swallowErrors: physical,
+                          }).then((posted) => {
+                            if (!posted || !posted.ok || physical) return
+                            const faces = Array.isArray(posted.event.payload?.dice)
+                              ? (
+                                  posted.event.payload.dice as Array<{
+                                    sides: number
+                                    value: number
+                                    dropped?: boolean
+                                    nat?: '20' | '1'
+                                  }>
+                                ).map((d) => ({
+                                  sides: d.sides,
+                                  value: d.value,
+                                  dropped: Boolean(d.dropped),
+                                  ...(d.nat ? { nat: d.nat } : {}),
+                                }))
+                              : []
+                            recordDigitalRollLocal({
+                              characterId,
+                              title: feedTitle,
+                              expression:
+                                posted.event.formula || opts?.formula || '1d20',
+                              total: posted.event.total ?? total,
+                              dice: faces,
+                              modifierTotal:
+                                typeof posted.event.payload?.modifier_total ===
+                                'number'
+                                  ? posted.event.payload.modifier_total
+                                  : 0,
+                              toastText: posted.event.breakdown || feedTitle,
+                              breakdown: posted.event.breakdown,
+                              skipSession: true,
+                              source: 'sheet',
+                            })
+                          })
                         }
                       }
                       smiteApplyLock.current = false
@@ -3745,25 +3789,33 @@ export function PlayDeskAttacksCompact({
                       : undefined
 
                     if (characterId && strike.hitRoll) {
-                      recordDigitalRoll({
-                        characterId,
-                        openSessionId: openSessionId ?? turnEco?.openSessionId,
-                        title: `Атака: ${attack.name}`,
-                        expression: checkExpression(effectiveAttackBonus, attackMode),
-                        total: strike.hitRoll.total,
-                        dice: checkRollToDiceFaces(strike.hitRoll),
-                        modifierTotal: effectiveAttackBonus,
-                        advantageMode:
-                          attackMode === 'advantage'
-                            ? 'advantage'
-                            : attackMode === 'disadvantage'
-                              ? 'disadvantage'
-                              : 'none',
-                        toastText: strike.text,
-                        breakdown: breakdown ?? strike.text,
-                        skipSession: true,
-                        source: 'sheet',
-                      })
+                      const sess = openSessionId ?? turnEco?.openSessionId
+                      const posting =
+                        shouldPostRollToSession(characterId) &&
+                        Boolean(sess?.trim()) &&
+                        !turnEco?.diceOnTable
+                      // За столом журнал допишет ответ сервера из finishAttack → post.
+                      if (!posting) {
+                        recordDigitalRollLocal({
+                          characterId,
+                          openSessionId: sess,
+                          title: `Атака: ${attack.name}`,
+                          expression: checkExpression(effectiveAttackBonus, attackMode),
+                          total: strike.hitRoll.total,
+                          dice: checkRollToDiceFaces(strike.hitRoll),
+                          modifierTotal: effectiveAttackBonus,
+                          advantageMode:
+                            attackMode === 'advantage'
+                              ? 'advantage'
+                              : attackMode === 'disadvantage'
+                                ? 'disadvantage'
+                                : 'none',
+                          toastText: strike.text,
+                          breakdown: breakdown ?? strike.text,
+                          skipSession: true,
+                          source: 'sheet',
+                        })
+                      }
                     }
 
                     finishAttackRef.current = finishAttack
@@ -3825,6 +3877,62 @@ export function PlayDeskAttacksCompact({
                     {...intentionalActivateProps(() => {
                       const expr = dmg || baseDamage || ''
                       const typeBit = shownType ? ` ${shownType}` : ''
+                      const sessionId = openSessionId ?? turnEco?.openSessionId
+                      const physical = Boolean(turnEco?.diceOnTable)
+                      const post =
+                        Boolean(characterId) &&
+                        shouldPostRollToSession(characterId) &&
+                        Boolean(sessionId?.trim())
+                      if (characterId && post && !physical && expr) {
+                        onToast?.('Бросаем…')
+                        void postSheetRollToSession({
+                          openSessionId: sessionId,
+                          characterId,
+                          title: `Урон: ${attack.name}`,
+                          formula: expr,
+                          category: 'sheet',
+                          swallowErrors: false,
+                        }).then((posted) => {
+                          if (!posted || !posted.ok) {
+                            onToast?.(
+                              posted && !posted.ok
+                                ? posted.error
+                                : 'Не удалось бросить — проверьте связь',
+                            )
+                            return
+                          }
+                          const total = posted.event.total ?? 0
+                          const text = `Урон: ${attack.name} · ${total}${typeBit}`
+                          onToast?.(text)
+                          const faces = Array.isArray(posted.event.payload?.dice)
+                            ? (posted.event.payload.dice as Array<{
+                                sides: number
+                                value: number
+                                dropped?: boolean
+                              }>).map((d) => ({
+                                sides: d.sides,
+                                value: d.value,
+                                dropped: Boolean(d.dropped),
+                              }))
+                            : []
+                          recordDigitalRollLocal({
+                            characterId,
+                            title: `Урон: ${attack.name}`,
+                            expression: posted.event.formula || expr,
+                            total,
+                            dice: faces,
+                            modifierTotal:
+                              typeof posted.event.payload?.modifier_total === 'number'
+                                ? posted.event.payload.modifier_total
+                                : 0,
+                            toastText: text,
+                            breakdown: posted.event.breakdown,
+                            skipSession: true,
+                            source: 'sheet',
+                          })
+                        })
+                        return
+                      }
                       const rolled = rollDamage(expr)
                       const text = rolled
                         ? `Урон: ${attack.name} · ${rolled.total}${typeBit} (${rolled.detail})`
@@ -3833,9 +3941,9 @@ export function PlayDeskAttacksCompact({
                       if (characterId && rolled) {
                         const parsed = parseDamageExpression(expr)
                         const sides = parsed?.sides ?? 6
-                        recordDigitalRoll({
+                        recordDigitalRollLocal({
                           characterId,
-                          openSessionId: openSessionId ?? turnEco?.openSessionId,
+                          openSessionId: sessionId,
                           title: `Урон: ${attack.name}`,
                           expression: expr || `${rolled.parts.length}d${sides}`,
                           total: rolled.total,
@@ -3851,15 +3959,15 @@ export function PlayDeskAttacksCompact({
                           skipSession: true,
                           source: 'sheet',
                         })
-                        if (shouldPostRollToSession(characterId)) {
+                        if (post && physical) {
                           void postSheetRollToSession({
-                            openSessionId: openSessionId ?? turnEco?.openSessionId,
+                            openSessionId: sessionId,
                             characterId,
                             title: `Урон: ${attack.name}`,
                             total: rolled.total,
                             formula: expr || null,
                             breakdown: rolled.detail,
-                            physicalDice: Boolean(turnEco?.diceOnTable),
+                            physicalDice: true,
                             targetName: null,
                           })
                         }
@@ -4139,7 +4247,7 @@ export function PlayDeskAttacksCompact({
                 turnEco?.spendAttack()
                 onToast?.(strike.text)
                 if (characterId && strike.hitRoll) {
-                  recordDigitalRoll({
+                  recordDigitalRollLocal({
                     characterId,
                     openSessionId,
                     title: `${atk.companionName}: ${atk.name}`,

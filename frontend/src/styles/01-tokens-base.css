@@ -2580,3 +2580,88 @@ body:has(.ui-dice-fab-slot) .play-desk__stage .play-desk-compact__list {
   background: var(--accent-soft);
   color: var(--accent);
 }
+
+/* DICE-02b kit atoms: shared faces, journal tabs, reveal */
+.ui-dice-faces {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.ui-dice-face {
+  min-width: 2rem;
+  height: 2rem;
+  padding: 0 6px;
+  display: inline-grid;
+  place-items: center;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.ui-dice-face.is-dropped {
+  opacity: 0.4;
+  text-decoration: line-through;
+}
+
+.ui-dice-face.is-nat20 {
+  border-color: var(--success);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--success) 35%, transparent);
+}
+
+.ui-dice-face.is-nat1 {
+  border-color: var(--danger);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--danger) 35%, transparent);
+}
+
+.ui-dice-face.is-mod {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.ui-journal-tab {
+  appearance: none;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  color: var(--text);
+  border-radius: 999px;
+  padding: 4px 12px;
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.ui-journal-tab.is-on {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+.ui-reveal-btn {
+  appearance: none;
+  border: 1px solid var(--line);
+  background: var(--accent-soft);
+  color: var(--accent);
+  border-radius: 8px;
+  padding: 4px 10px;
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.ui-reveal-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.session-event-feed__faces {
+  margin-top: 6px;
+}
+
+.session-digital-roll {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+}
