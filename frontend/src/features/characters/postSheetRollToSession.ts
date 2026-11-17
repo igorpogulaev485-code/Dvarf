@@ -36,6 +36,8 @@ export async function postSheetRollToSession(opts: {
   category?: 'sheet' | 'roll' | string | null
   masterHidden?: boolean
   isHidden?: boolean
+  /** Rider die captions for digital rolls (mark d4 / Bless). */
+  dieLabels?: Array<{ sides: number; label: string }> | null
   /**
    * Если true — ошибка сети глотается (старое поведение атак/диалогов).
    * Для единого цифрового пути лучше false, чтобы не писать ложный журнал.
@@ -87,6 +89,7 @@ export async function postSheetRollToSession(opts: {
       category: opts.category ?? 'sheet',
       ...(opts.masterHidden ? { master_hidden: true } : {}),
       ...(opts.isHidden ? { is_hidden: true } : {}),
+      ...(opts.dieLabels?.length ? { die_labels: opts.dieLabels } : {}),
     })
     return { ok: true, event, digital: true }
   } catch (err) {

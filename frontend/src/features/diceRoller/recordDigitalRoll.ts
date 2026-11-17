@@ -26,6 +26,8 @@ export type RecordDigitalRollInput = {
   skipSession?: boolean
   masterHidden?: boolean
   isHidden?: boolean
+  /** Rider die captions for session digital rolls. */
+  dieLabels?: Array<{ sides: number; label: string }> | null
 }
 
 export type RecordDigitalRollOk = {
@@ -50,11 +52,14 @@ function facesFromEvent(event: SessionEvent): DieFaceResult[] {
       const value = Number(row.value)
       if (!Number.isFinite(sides) || !Number.isFinite(value)) return null
       const nat = row.nat === '20' || row.nat === '1' ? row.nat : undefined
+      const label =
+        typeof row.label === 'string' && row.label.trim() ? row.label.trim() : undefined
       return {
         sides,
         value,
         dropped: Boolean(row.dropped),
         ...(nat ? { nat } : {}),
+        ...(label ? { label } : {}),
       } satisfies DieFaceResult
     })
     .filter((x): x is DieFaceResult => x != null)
@@ -137,6 +142,7 @@ export async function recordDigitalRoll(
       category: input.category ?? 'sheet',
       masterHidden: input.masterHidden,
       isHidden: input.isHidden,
+      dieLabels: input.dieLabels,
       swallowErrors: false,
     })
     if (!posted || !posted.ok) {

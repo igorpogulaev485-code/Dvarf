@@ -72,6 +72,8 @@ export type TurnEconomyContextValue = {
     title: string
     mode?: 'total' | 'd20'
     modifier?: number
+    /** Extra dice (mark d4 / Bless) rolled into the recorded total. */
+    bonusDice?: Array<{ dice: string; label: string }> | null
     onDone?: (total: number) => void
   }) => void
   /** Кубики на столе: Спас / Провал. */

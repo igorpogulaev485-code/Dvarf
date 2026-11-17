@@ -58,6 +58,8 @@ export type DieFaceResult = {
   dropped: boolean
   /** Natural 20 / 1 highlight on a d20 face. */
   nat?: '20' | '1'
+  /** Rider / mark die source, e.g. «Интуиция лукавого», «Благословение». */
+  label?: string
 }
 
 export type RollResult = {

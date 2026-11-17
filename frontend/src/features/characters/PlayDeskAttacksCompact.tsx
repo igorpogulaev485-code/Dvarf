@@ -50,6 +50,7 @@ import {
   weaponNeedsAmmunition,
 } from '../../shared/dnd/o09DeathInspirationAmmo'
 import { hasFeatFlag } from '../../shared/dnd/b07FeatCombat'
+import { isHalflingLuckyRace } from '../../shared/dnd/b08RaceCombat'
 import type { AppliedFeatGrant } from '../../shared/dnd/featGrants'
 import { equippedArmorPieces } from './inventory'
 import {
@@ -450,6 +451,8 @@ type PlayDeskAttacksCompactProps = {
   }) => void
   /** B-08: Halfling Lucky — natural 1 on attack. */
   raceSlug?: string | null
+  /** Parent race slug (mark halfings inherit Lucky). */
+  raceParentSlug?: string | null
   /** O-06: dragonborn ancestry id for breath. */
   ancestryId?: string | null
   /** O-06: Fizban book allowed in lobby (null = вне лобби). */
@@ -572,6 +575,7 @@ export function PlayDeskAttacksCompact({
   flamesOfPhlegethos = false,
   onLuckyPickNeeded,
   raceSlug = null,
+  raceParentSlug = null,
   ancestryId = null,
   ftdAllowed = null,
   onHalflingLuckyNeeded,
@@ -3775,8 +3779,7 @@ export function PlayDeskAttacksCompact({
                       strike.die === 1 &&
                       strike.hitRoll &&
                       onHalflingLuckyNeeded &&
-                      (raceSlug === 'halfling' ||
-                        Boolean(raceSlug && raceSlug.includes('halfling')))
+                      isHalflingLuckyRace(raceSlug, raceParentSlug)
                     ) {
                       onToast?.(strike.text)
                       turnEco?.spendAttack()

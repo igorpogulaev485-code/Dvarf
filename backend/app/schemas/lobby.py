@@ -1876,6 +1876,13 @@ class SessionRollCreateRequest(BaseModel):
     category: str | None = Field(default=None, max_length=40)
 
 
+class SessionDigitalDieLabel(BaseModel):
+    """Подпись доп. кости (метка / Благословение) — клеится к грани с тем же sides."""
+
+    sides: int = Field(ge=2, le=1000)
+    label: str = Field(min_length=1, max_length=80)
+
+
 class SessionDigitalRollRequest(BaseModel):
     """DICE-02b: цифровой бросок — итог считает сервер, total/breakdown с клиента игнор."""
 
@@ -1891,6 +1898,8 @@ class SessionDigitalRollRequest(BaseModel):
     """Скрытый бросок игрока (автор + ведущие) — не путать с master_hidden."""
     is_hidden: bool = False
     category: str | None = Field(default=None, max_length=40)
+    """Опциональные подписи rider-костей (не влияют на расчёт)."""
+    die_labels: list[SessionDigitalDieLabel] = Field(default_factory=list, max_length=12)
 
 
 class CombatAttackRequest(BaseModel):

@@ -577,6 +577,7 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
               model.setHalflingLuckyPending?.(input)
             }}
             raceSlug={model.draft.raceGrant?.slug ?? null}
+            raceParentSlug={model.draft.raceGrant?.parentSlug ?? null}
             ancestryId={model.draft.raceGrant?.ancestryId ?? null}
             ftdAllowed={
               model.campaignRulesRaw == null

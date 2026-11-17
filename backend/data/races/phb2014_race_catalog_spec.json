@@ -546,7 +546,20 @@
           "notes_ru": "список метки"
         }
       ],
-      "content_layer": "community_ref"
+      "content_layer": "community_ref",
+      "roll_bonuses": [
+        {
+          "id": "warders_intuition",
+          "name_ru": "Интуиция стража",
+          "dice": "1d4",
+          "skills": [
+            "investigation"
+          ],
+          "tools": [
+            "Воровские инструменты"
+          ]
+        }
+      ]
     },
     {
       "slug": "elf",
@@ -1164,7 +1177,19 @@
           "notes_ru": "список метки"
         }
       ],
-      "content_layer": "community_ref"
+      "content_layer": "community_ref",
+      "roll_bonuses": [
+        {
+          "id": "cunning_intuition",
+          "name_ru": "Интуиция лукавого",
+          "dice": "1d4",
+          "skills": [
+            "performance",
+            "stealth"
+          ],
+          "tools": []
+        }
+      ]
     },
     {
       "slug": "pale_elf",
@@ -1221,7 +1246,19 @@
           "notes_ru": "только на себя; без мат. компонентов"
         }
       ],
-      "content_layer": "community_ref"
+      "content_layer": "community_ref",
+      "roll_bonuses": [
+        {
+          "id": "incisive_sense",
+          "name_ru": "Острый ум",
+          "advantage": true,
+          "skills": [
+            "investigation",
+            "insight"
+          ],
+          "tools": []
+        }
+      ]
     },
     {
       "slug": "astral_elf",
@@ -1274,11 +1311,24 @@
           "id": "astral_fire",
           "label_ru": "Астральное пламя",
           "pick": 1,
-          "casting_ability_choices": ["int", "wis", "cha"],
+          "casting_ability_choices": [
+            "int",
+            "wis",
+            "cha"
+          ],
           "options": [
-            { "spell_slug": "dancing_lights", "name_ru": "Пляшущие огоньки" },
-            { "spell_slug": "light", "name_ru": "Свет" },
-            { "spell_slug": "sacred_flame", "name_ru": "Священное пламя" }
+            {
+              "spell_slug": "dancing_lights",
+              "name_ru": "Пляшущие огоньки"
+            },
+            {
+              "spell_slug": "light",
+              "name_ru": "Свет"
+            },
+            {
+              "spell_slug": "sacred_flame",
+              "name_ru": "Священное пламя"
+            }
           ]
         }
       ],
@@ -1635,7 +1685,20 @@
           "notes_ru": "список метки"
         }
       ],
-      "content_layer": "community_ref"
+      "content_layer": "community_ref",
+      "roll_bonuses": [
+        {
+          "id": "medical_intuition",
+          "name_ru": "Интуиция медика",
+          "dice": "1d4",
+          "skills": [
+            "medicine"
+          ],
+          "tools": [
+            "Набор травника"
+          ]
+        }
+      ]
     },
     {
       "slug": "mark_of_hospitality",
@@ -1771,7 +1834,21 @@
           "notes_ru": "список метки"
         }
       ],
-      "content_layer": "community_ref"
+      "content_layer": "community_ref",
+      "roll_bonuses": [
+        {
+          "id": "ever_hospitable",
+          "name_ru": "Всегда гостеприимен",
+          "dice": "1d4",
+          "skills": [
+            "persuasion"
+          ],
+          "tools": [
+            "Инструменты пивовара",
+            "Инструменты повара"
+          ]
+        }
+      ]
     },
     {
       "slug": "lotusden_halfling",
@@ -2135,7 +2212,19 @@
           "notes_ru": "список метки"
         }
       ],
-      "content_layer": "community_ref"
+      "content_layer": "community_ref",
+      "roll_bonuses": [
+        {
+          "id": "hunters_intuition",
+          "name_ru": "Интуиция охотника",
+          "dice": "1d4",
+          "skills": [
+            "perception",
+            "survival"
+          ],
+          "tools": []
+        }
+      ]
     },
     {
       "slug": "mark_of_handling",
@@ -2267,7 +2356,19 @@
           "notes_ru": "список метки"
         }
       ],
-      "content_layer": "community_ref"
+      "content_layer": "community_ref",
+      "roll_bonuses": [
+        {
+          "id": "wild_intuition",
+          "name_ru": "Дикая интуиция",
+          "dice": "1d4",
+          "skills": [
+            "animal_handling",
+            "nature"
+          ],
+          "tools": []
+        }
+      ]
     },
     {
       "slug": "mark_of_making",
@@ -2421,7 +2522,20 @@
           "notes_ru": "список метки"
         }
       ],
-      "content_layer": "community_ref"
+      "content_layer": "community_ref",
+      "roll_bonuses": [
+        {
+          "id": "artisans_intuition",
+          "name_ru": "Интуиция ремесленника",
+          "dice": "1d4",
+          "skills": [
+            "arcana"
+          ],
+          "tools": [
+            "artisan_tools"
+          ]
+        }
+      ]
     },
     {
       "slug": "mark_of_passage",
@@ -2543,7 +2657,20 @@
           "notes_ru": "список метки"
         }
       ],
-      "content_layer": "community_ref"
+      "content_layer": "community_ref",
+      "roll_bonuses": [
+        {
+          "id": "intuitive_motion",
+          "name_ru": "Интуитивное движение",
+          "dice": "1d4",
+          "skills": [
+            "acrobatics"
+          ],
+          "tools": [
+            "Транспорт (наземный)"
+          ]
+        }
+      ]
     },
     {
       "slug": "mark_of_sentinel",
@@ -2658,7 +2785,19 @@
           "notes_ru": "список метки"
         }
       ],
-      "content_layer": "community_ref"
+      "content_layer": "community_ref",
+      "roll_bonuses": [
+        {
+          "id": "sentinels_intuition",
+          "name_ru": "Интуиция стража",
+          "dice": "1d4",
+          "skills": [
+            "insight",
+            "perception"
+          ],
+          "tools": []
+        }
+      ]
     },
     {
       "slug": "dragonborn",
@@ -3358,7 +3497,21 @@
           "notes_ru": "список метки"
         }
       ],
-      "content_layer": "community_ref"
+      "content_layer": "community_ref",
+      "roll_bonuses": [
+        {
+          "id": "gifted_scribe",
+          "name_ru": "Одарённый писец",
+          "dice": "1d4",
+          "skills": [
+            "history"
+          ],
+          "tools": [
+            "Инструменты каллиграфа",
+            "Инструменты фальсификатора"
+          ]
+        }
+      ]
     },
     {
       "slug": "half_elf",
@@ -3830,7 +3983,19 @@
           "notes_ru": "список метки"
         }
       ],
-      "content_layer": "community_ref"
+      "content_layer": "community_ref",
+      "roll_bonuses": [
+        {
+          "id": "deductive_intuition",
+          "name_ru": "Интуиция сыщика",
+          "dice": "1d4",
+          "skills": [
+            "investigation",
+            "insight"
+          ],
+          "tools": []
+        }
+      ]
     },
     {
       "slug": "mark_of_storm",
@@ -3959,6 +4124,19 @@
       "content_layer": "community_ref",
       "damage_resistances": [
         "электричество"
+      ],
+      "roll_bonuses": [
+        {
+          "id": "windwrights_intuition",
+          "name_ru": "Интуиция ветродела",
+          "dice": "1d4",
+          "skills": [
+            "acrobatics"
+          ],
+          "tools": [
+            "Инструменты навигатора"
+          ]
+        }
       ]
     },
     {
@@ -4331,7 +4509,19 @@
           "notes_ru": "список метки"
         }
       ],
-      "content_layer": "community_ref"
+      "content_layer": "community_ref",
+      "roll_bonuses": [
+        {
+          "id": "hunters_intuition",
+          "name_ru": "Интуиция охотника",
+          "dice": "1d4",
+          "skills": [
+            "perception",
+            "survival"
+          ],
+          "tools": []
+        }
+      ]
     },
     {
       "slug": "tiefling",

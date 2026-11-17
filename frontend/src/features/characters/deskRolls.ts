@@ -522,7 +522,7 @@ export type BonusDiePart = {
   label: string
 }
 
-/** Roll optional buff dice (Bless / Guidance / …) and format as `+N (1d4 Label)`. */
+/** Roll optional buff dice (Bless / Guidance / mark d4) — text like ` + 3 (+1к4 (Интуиция лукавого))`. */
 export function rollBonusDiceParts(
   parts: BonusDiePart[] | null | undefined,
   rng?: () => number,
@@ -531,16 +531,22 @@ export function rollBonusDiceParts(
   const rolls: Array<{ label: string; value: number; dice: string }> = []
   let total = 0
   for (const part of parts) {
-    const match = String(part.dice).trim().match(/^(\d*)d(\d+)$/i)
+    const match = String(part.dice).trim().match(/^(\d*)[dк](\d+)$/i)
     if (!match) continue
     const count = Math.max(1, Number(match[1] || 1))
     const sides = Math.max(2, Number(match[2]))
     let value = 0
     for (let i = 0; i < count; i += 1) value += rollDie(sides, rng)
     total += value
-    rolls.push({ label: part.label, value, dice: part.dice })
+    rolls.push({ label: part.label, value, dice: `${count}d${sides}` })
   }
-  const text = rolls.map((row) => ` + ${row.value} (${row.dice} ${row.label})`).join('')
+  const text = rolls
+    .map((row) => {
+      const m = String(row.dice).trim().match(/^(\d*)d(\d+)$/i)
+      const expr = m ? `+${m[1] || 1}к${m[2]}` : row.dice
+      return ` + ${row.value} (${expr} (${row.label}))`
+    })
+    .join('')
   return { total, text, rolls }
 }
 
@@ -558,6 +564,7 @@ export type SkillRollPayload = {
     value: number
     dropped: boolean
     nat?: '20' | '1'
+    label?: string
   }>
   modifierTotal: number
   advantageMode: 'none' | 'advantage' | 'disadvantage'
@@ -627,11 +634,23 @@ export function rollSkillCheck(
   const expressionBase = checkExpression(modBit, mode)
   const bonusExpr = bonus.rolls
     .map((row) => {
-      const m = String(row.dice).trim().match(/^(\d*)d(\d+)$/i)
+      const m = String(row.dice).trim().match(/^(\d*)[dк](\d+)$/i)
       if (!m) return ''
-      return `+${m[1] || 1}d${m[2]}`
+      // Server/parser accept к; journal shows Russian die notation.
+      return `+${m[1] || 1}к${m[2]}`
     })
     .join('')
+  const bonusFaces = bonus.rolls.flatMap((row) => {
+    const m = String(row.dice).trim().match(/^(\d*)[dк](\d+)$/i)
+    if (!m) return []
+    const count = Math.max(1, Number(m[1] || 1))
+    const sides = Math.max(2, Number(m[2]))
+    // One face chip per bonus part (sum already in row.value for NdX).
+    if (count === 1) {
+      return [{ sides, value: row.value, dropped: false as const, label: row.label }]
+    }
+    return [{ sides, value: row.value, dropped: false as const, label: row.label }]
+  })
   return {
     text,
     roll,
@@ -639,8 +658,10 @@ export function rollSkillCheck(
     modifier: Math.trunc(modifier),
     mode,
     expression: `${expressionBase}${bonusExpr}`,
-    diceFaces: checkRollToDiceFaces(roll),
-    modifierTotal: Math.trunc(modifier) + bonus.total,
+    // d20 faces + separate rider dice (Bless / mark d4) with source labels.
+    // Flat modifier stays in modifierTotal — do not fold rider totals into it.
+    diceFaces: [...checkRollToDiceFaces(roll), ...bonusFaces],
+    modifierTotal: Math.trunc(modifier),
     advantageMode:
       mode === 'advantage' ? 'advantage' : mode === 'disadvantage' ? 'disadvantage' : 'none',
   }

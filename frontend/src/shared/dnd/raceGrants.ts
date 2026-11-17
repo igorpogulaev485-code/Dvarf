@@ -10,6 +10,12 @@ import {
   readRaceTraitCards,
   type RaceTraitCard,
 } from './raceTraitCards'
+import {
+  readRaceRollBonuses,
+  type RaceRollBonus,
+} from './raceRollBonuses'
+
+export type { RaceRollBonus }
 
 export type AbilityKey = 'str' | 'dex' | 'con' | 'int' | 'wis' | 'cha'
 
@@ -251,6 +257,8 @@ export type RaceGrantDef = {
   activatedMovement: RaceActivatedMovement[]
   damageResistances: string[]
   combatBonuses: RaceCombatBonuses
+  /** ERLW marks / pale elf — structured check dice & advantage. */
+  rollBonuses: RaceRollBonus[]
   racialSpells: RaceRacialSpell[]
   spellChoices: RaceSpellChoiceDef[]
   racialResources: RaceRacialResourceDef[]
@@ -304,6 +312,8 @@ export type AppliedRaceGrant = {
   activatedMovement: RaceActivatedMovement[]
   damageResistances: string[]
   combatBonuses: RaceCombatBonuses
+  /** ERLW marks / pale elf — structured check dice & advantage. */
+  rollBonuses: RaceRollBonus[]
   racialSpells: RaceRacialSpell[]
   racialResources: RaceRacialResourceDef[]
   /** B-08 / MPMM aasimar: chosen celestial revelation id. */
@@ -1094,6 +1104,7 @@ export function raceGrantDefFromCatalog(input: {
     combatBonuses: readCombatBonuses(
       data.combat_bonuses ?? data.combatBonuses,
     ),
+    rollBonuses: readRaceRollBonuses(data.roll_bonuses ?? data.rollBonuses),
     racialSpells: readRacialSpells(data.racial_spells ?? data.racialSpells),
     spellChoices: readSpellChoices(data.spell_choices ?? data.spellChoices),
     racialResources: readRacialResources(
@@ -1565,6 +1576,7 @@ export function readAppliedRaceGrant(raw: unknown): AppliedRaceGrant | null {
       row.damageResistances ?? row.damage_resistances,
     ),
     combatBonuses: readCombatBonuses(row.combatBonuses ?? row.combat_bonuses),
+    rollBonuses: readRaceRollBonuses(row.rollBonuses ?? row.roll_bonuses),
     racialSpells: readRacialSpells(row.racialSpells ?? row.racial_spells),
     racialResources: readRacialResources(
       row.racialResources ?? row.racial_resources,

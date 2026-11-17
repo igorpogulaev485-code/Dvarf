@@ -2446,6 +2446,8 @@ export async function createSessionDigitalRoll(
     master_hidden?: boolean
     is_hidden?: boolean
     category?: string | null
+    /** Rider die captions (mark d4 / Bless) — attached to matching faces. */
+    die_labels?: Array<{ sides: number; label: string }> | null
   },
 ): Promise<SessionEvent> {
   return apiRequest<SessionEvent>(`/sessions/${sessionId}/rolls/digital`, {

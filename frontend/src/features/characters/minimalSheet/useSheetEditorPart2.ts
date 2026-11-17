@@ -150,6 +150,10 @@ export function useSheetEditorPart2(model: SheetModel) {
           if (catalogDef?.racialResources && catalogDef.racialResources.length > 0) {
             nextGrant = { ...nextGrant, racialResources: catalogDef.racialResources }
           }
+          if (catalogDef?.rollBonuses) {
+            // Always refresh from catalog so mark d4 / pale-elf advantage reach older sheets.
+            nextGrant = { ...nextGrant, rollBonuses: catalogDef.rollBonuses }
+          }
           if (catalogDef?.traitsText && !nextGrant.traitsText?.trim()) {
             nextGrant = { ...nextGrant, traitsText: catalogDef.traitsText }
           }
