@@ -445,3 +445,49 @@ def test_is_master_secret_helper() -> None:
     assert _is_master_secret(event) is True
     event.payload["revealed"] = True
     assert _is_master_secret(event) is False
+
+
+def test_player_api_payload_has_no_total_before_reveal() -> None:
+    """Игрок до раскрытия не получает число/кости даже в JSON ответа API/шины."""
+    svc = LobbyService(MagicMock())
+    master_id = uuid4()
+    player_id = uuid4()
+    event = SessionEvent(
+        id=uuid4(),
+        session_id=uuid4(),
+        event_type="roll",
+        character_id=None,
+        actor_user_id=master_id,
+        character_name="Мастер",
+        title="Скрытая проверка",
+        formula="1d20+2",
+        breakdown="d20:14 +2 = 16",
+        total=16,
+        is_master_roll=True,
+        payload={
+            "master_hidden": True,
+            "revealed": False,
+            "digital": True,
+            "dice": [{"sides": 20, "value": 14, "dropped": False}],
+            "category": "roll",
+        },
+        created_at=datetime.now(timezone.utc),
+    )
+    stub = svc._present_session_event(
+        event, is_owner=False, viewer_id=player_id, history_mode="active"
+    )
+    assert stub is not None
+    # SessionEventOut → словарь как в HTTP/WS (без токенов).
+    dumped = stub.model_dump()
+    assert dumped["title"] == "Мастер бросил скрыто"
+    assert dumped["total"] is None
+    assert dumped["formula"] is None
+    assert dumped["breakdown"] is None
+    assert dumped["payload"].get("hidden_stub") is True
+    assert "dice" not in dumped["payload"]
+    # Секретные поля отсутствуют; UUID/даты в ответе могут содержать цифры — не сканируем весь dump.
+    payload_blob = str(dumped["payload"])
+    assert "16" not in payload_blob
+    assert "14" not in payload_blob
+    assert "1d20" not in payload_blob
+    assert dumped["title"] != "Скрытая проверка"
