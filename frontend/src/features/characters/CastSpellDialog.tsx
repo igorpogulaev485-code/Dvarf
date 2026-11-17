@@ -1062,14 +1062,16 @@ export function CastSpellDialog({
           useMastery: !isCantrip && useMastery && masteryAvailable,
           powerSurge: powerSurgeOffer && powerSurge,
           embodimentOfLaw: offerEmbodiment && useEmbodiment && !useRitual && !useGrant,
-          quickened: offerQuickened && useQuickened && !useRitual && !useGrant && metaAffordable,
-          seeking: offerSeeking && useSeeking && !useRitual && !useGrant && metaAffordable,
+          // PHB 2014: metamagic applies to any spell the sorcerer casts
+          // (class slot, feat/racial/item grant, feature charge) — not rituals.
+          quickened: offerQuickened && useQuickened && !useRitual && metaAffordable,
+          seeking: offerSeeking && useSeeking && !useRitual && metaAffordable,
           transmutedType:
-            offerTransmuted && useTransmuted && !useRitual && !useGrant && metaAffordable
+            offerTransmuted && useTransmuted && !useRitual && metaAffordable
               ? transmutedType
               : null,
           metamagic:
-            !useRitual && !useGrant && metaAffordable
+            !useRitual && metaAffordable
               ? {
                   careful: useCareful,
                   distant: useDistant,

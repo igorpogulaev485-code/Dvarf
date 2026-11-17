@@ -1553,6 +1553,7 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
           concentration={model.draft.play.concentration}
           onChange={(spells) => model.setDraft((prev) => ({ ...prev, spells }))}
           resources={model.draft.play.resources}
+          metamagicIds={model.sorcererMetamagicIds ?? []}
           voiceOfAuthority={model.unlockedFeatures.some(
             (row: { id: string }) => row.id === 'voice_of_authority',
           )}
