@@ -175,22 +175,29 @@ export async function openCompanionsScene(page: Page, project: string) {
 }
 
 export async function openSpellsPane(page: Page, project: string) {
-  await openCombatScene(page, project)
   if (isPhone(project)) {
+    await openCombatScene(page, project)
     await page
       .locator(':is(button,[role=tab],[role=button]):visible', { hasText: /^Заклинания$/ })
       .first()
       .click()
     await page.waitForTimeout(500)
+    return
+  }
+  const deskTab = page.getByRole('button', { name: /^Заклинания$/ }).first()
+  if (await deskTab.isVisible().catch(() => false)) {
+    await deskTab.click()
   } else {
+    await openCombatScene(page, project)
     const tab = page
       .locator(':is(button,[role=tab],[role=button]):visible', { hasText: /^Заклинания$/ })
       .first()
-    if (await tab.isVisible().catch(() => false)) {
-      await tab.click()
-      await page.waitForTimeout(400)
-    }
+    if (await tab.isVisible().catch(() => false)) await tab.click()
   }
+  await expect(page.getByRole('heading', { name: /^Заклинания$/ }).first()).toBeVisible({
+    timeout: 10_000,
+  })
+  await page.waitForTimeout(400)
 }
 
 export async function openExploreScene(page: Page, project: string) {

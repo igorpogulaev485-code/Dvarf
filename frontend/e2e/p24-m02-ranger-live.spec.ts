@@ -284,22 +284,20 @@ test.describe('P24-M02 ranger — druidic warrior + mark UI', () => {
     await expectFeatureNames(page, [FAVORED, /Воин-друид/])
     await tallShot(page, ARTIFACTS, `${SHOT}-druidic-warrior-features`, project)
     await openSpellsPane(page, project)
-    const spellsCompact = page.locator('.play-desk-compact--spells, .spells-panel').first()
-    await expect(spellsCompact).toBeVisible({ timeout: 10_000 })
-    // Ensure cantrip group is expanded if the compact list folds empty-looking blocks.
-    const cantripToggle = spellsCompact.locator('.play-desk-compact__level-toggle', {
-      hasText: /Заговор/i,
-    })
-    if (await cantripToggle.isVisible().catch(() => false)) {
-      const expanded = await cantripToggle.getAttribute('aria-expanded')
-      if (expanded === 'false') await cantripToggle.click()
+    // Full SpellsPanel: CatalogCombobox value; compact: plain text.
+    const guidanceBox = page.getByRole('combobox', { name: 'Заклинание' }).and(page.getByDisplayValue('Указание'))
+    const starryBox = page
+      .getByRole('combobox', { name: 'Заклинание' })
+      .and(page.getByDisplayValue(/Звёздный светлячок/))
+    if (await guidanceBox.count()) {
+      await expect(guidanceBox.first()).toBeVisible({ timeout: 10_000 })
+      await expect(starryBox.first()).toBeVisible()
+      await guidanceBox.first().scrollIntoViewIfNeeded()
+    } else {
+      await expect(page.getByText('Указание').first()).toBeVisible({ timeout: 15_000 })
+      await expect(page.getByText(/Звёздный светлячок/).first()).toBeVisible()
     }
-    await expect(spellsCompact.getByText('Указание').first()).toBeVisible({ timeout: 15_000 })
-    await expect(spellsCompact.getByText(/Звёздный светлячок/).first()).toBeVisible({
-      timeout: 10_000,
-    })
     await expect(page.getByText(/Мудрост/i).first()).toBeVisible()
-    await spellsCompact.scrollIntoViewIfNeeded()
     await tallShot(page, ARTIFACTS, `${SHOT}-druidic-warrior-spells`, project)
     expect(store.unmatched).toEqual([])
   })
