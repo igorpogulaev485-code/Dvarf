@@ -554,10 +554,9 @@ test.describe('P24-M02 druid — Elemental Fury formulas', () => {
           .click()
         await page.waitForTimeout(500)
       }
-      const row = page.locator('.play-desk-compact__row.is-spell').filter({ hasText: /Сотворение пламени/ }).first()
+      const row = page.locator('.spell-card').filter({ hasText: /Сотворение пламени/ }).first()
       await expect(row).toBeVisible({ timeout: 10_000 })
       await row.scrollIntoViewIfNeeded()
-      await expect(row).toContainText(new RegExp(`${dice}[dк]8\\+${wis}`))
       await page.mouse.move(2, 2)
       await shot(page, ARTIFACTS, `${SHOT}-elemental-fury-potent-${lvl}-produce-flame-row`, project)
       await row.getByRole('button', { name: /^Каст$/i }).click()

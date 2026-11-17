@@ -487,7 +487,7 @@ test.describe('Доправка 1 — Дикое восстановление: �
 
 async function castSpellByName(page: Page, project: string, name: RegExp) {
   await openSpellsPane(page, project)
-  const row = page.locator('.play-desk-compact__row.is-spell').filter({ hasText: name }).first()
+  const row = page.locator('.spell-card').filter({ hasText: name }).first()
   await row.scrollIntoViewIfNeeded()
   await row.getByRole('button', { name: /^Каст$/i }).click()
   const dlg = page.getByRole('dialog').last()
