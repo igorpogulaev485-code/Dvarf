@@ -104,13 +104,18 @@ function readDruidicWarriorCantrips(
 export function syncDruidicWarriorCantrips(input: {
   spells: SpellsState
   featurePicks: FeaturePicksState
-  classes: Array<{ id: string; name: string; level: number }>
+  classes: Array<{ id: string; name: string; level: number; catalog_id?: string | null }>
 }): { spells: SpellsState; changed: boolean } {
+  const previousDruidic = input.spells.known.filter((spell) => isDruidicWarriorSpellId(spell.id))
   let known = input.spells.known.filter((spell) => !isDruidicWarriorSpellId(spell.id))
   let changed = known.length !== input.spells.known.length
+  let rematerialized = 0
 
   for (const row of input.classes) {
-    if (!/следопыт|ranger/i.test(row.name.trim()) || row.level < 2) continue
+    const isRanger =
+      /следопыт|ranger/i.test(row.name.trim()) ||
+      String(row.catalog_id || '').toLowerCase() === 'ranger'
+    if (!isRanger || row.level < 2) continue
     if (!isDruidicWarriorActive(input.featurePicks, row.id)) continue
     const picks = readDruidicWarriorCantrips(input.featurePicks, row.id)
     for (const raw of picks) {
@@ -138,8 +143,14 @@ export function syncDruidicWarriorCantrips(input: {
         nameEn,
       )
       known.push(created)
+      rematerialized += 1
       changed = true
     }
+  }
+
+  // Never drop create/backend rows if rematerialize failed (e.g. unknown slug).
+  if (rematerialized === 0 && previousDruidic.length > 0) {
+    return { spells: input.spells, changed: false }
   }
 
   if (!changed) return { spells: input.spells, changed: false }

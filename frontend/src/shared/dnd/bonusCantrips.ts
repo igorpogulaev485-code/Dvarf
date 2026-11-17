@@ -27,15 +27,19 @@ export const WIZARD_CANTRIP_NAMES = [
   'True Strike',
 ] as const
 
-/** PHB druid cantrips present in the bundled 2014 catalog. */
+/** Druid cantrips for Fighting Style / bonus picks (2014 PHB + 2024 SRD extras). */
 export const DRUID_CANTRIP_NAMES = [
   'Druidcraft',
+  'Elementalism',
   'Guidance',
   'Mending',
+  'Message',
   'Poison Spray',
   'Produce Flame',
   'Resistance',
   'Shillelagh',
+  'Spare the Dying',
+  'Starry Wisp',
 ] as const
 
 /** PHB cleric cantrips for TCE Blessed Warrior (paladin fighting style). */
@@ -77,13 +81,16 @@ const CANTRIP_LABEL_RU: Record<string, string> = {
   'Shocking Grasp': 'Электрошок',
   'True Strike': 'Меткий удар',
   Druidcraft: 'Искусство друидов',
+  Elementalism: 'Элементализм',
   Thaumaturgy: 'Чудотворство',
   Guidance: 'Указание',
+  Message: 'Сообщение',
   'Produce Flame': 'Сотворение пламени',
   Resistance: 'Сопротивление',
   Shillelagh: 'Дубинка',
   'Spare the Dying': 'Уход за умирающим',
   'Sacred Flame': 'Священное пламя',
+  'Starry Wisp': 'Звёздный светлячок',
 }
 
 export function bonusCantripLabelRu(nameEn: string): string | null {

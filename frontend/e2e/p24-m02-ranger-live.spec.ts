@@ -220,11 +220,11 @@ test.describe('P24-M02 ranger — subclasses @5', () => {
         await tallShot(page, ARTIFACTS, `${SHOT}-create-at-5-beastmaster-features`, project)
       }
       await openCompanionsScene(page, project)
-      // Client sync builds the naparnik card from the pick (PHB 2024 block).
-      await expect(page.getByText(type.label).first()).toBeVisible({ timeout: 20_000 })
-      await expect(page.getByText(/Первичн|PHB 2024|Удар зверя|КД|хит/i).first()).toBeVisible({
-        timeout: 10_000,
-      })
+      const companionPanel = page.locator('.companions-panel, .play-desk__scene').first()
+      await expect(companionPanel.getByText(type.label).first()).toBeVisible({ timeout: 20_000 })
+      await expect(
+        companionPanel.getByText(/КД|Удар зверя|PHB 2024|\d+\/\d+/i).first(),
+      ).toBeVisible({ timeout: 10_000 })
       await tallShot(page, ARTIFACTS, `${SHOT}-create-at-5-beastmaster-${type.id}-companion`, project)
       expect(store.unmatched).toEqual([])
     })
@@ -284,8 +284,9 @@ test.describe('P24-M02 ranger — druidic warrior + mark UI', () => {
     await expectFeatureNames(page, [FAVORED, /Воин-друид/])
     await tallShot(page, ARTIFACTS, `${SHOT}-druidic-warrior-features`, project)
     await openSpellsPane(page, project)
-    await expect(page.getByText(/Указание/i).first()).toBeVisible({ timeout: 10_000 })
-    await expect(page.getByText(/Звёздный светлячок/i).first()).toBeVisible({ timeout: 10_000 })
+    const spellsRoot = page.locator('.spells-panel, .play-desk__scene, #root').first()
+    await expect(spellsRoot.getByText('Указание').first()).toBeVisible({ timeout: 15_000 })
+    await expect(spellsRoot.getByText(/Звёздный светлячок/).first()).toBeVisible({ timeout: 10_000 })
     await expect(page.getByText(/Мудрост/i).first()).toBeVisible()
     await tallShot(page, ARTIFACTS, `${SHOT}-druidic-warrior-spells`, project)
     expect(store.unmatched).toEqual([])
