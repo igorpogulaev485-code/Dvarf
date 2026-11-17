@@ -155,9 +155,11 @@ export function moonShapeScale(
   unlocked: Array<{ id: string; classEntryId: string }>,
   rulesEdition: '2014' | '2024' = '2014',
 ): string | null {
-  if (feature.id !== 'wild_shape' && feature.id !== 'circle_forms') return null
+  const normalize = (id: string) => (rulesEdition === '2024' ? id.replace(/-/g, '_') : id)
+  const featureId = normalize(feature.id)
+  if (featureId !== 'wild_shape' && featureId !== 'circle_forms') return null
   const moon = unlocked.some(
-    (row) => row.id === 'circle_forms' && row.classEntryId === feature.classEntryId,
+    (row) => normalize(row.id) === 'circle_forms' && row.classEntryId === feature.classEntryId,
   )
   if (!moon) return null
   return formatWildShapeLimit(
@@ -166,6 +168,18 @@ export function moonShapeScale(
       subclassSlug: 'circle_of_the_moon',
       rulesEdition,
     }),
+  )
+}
+
+/** 2024 Wild Shape / Circle Forms card line (swim allowed from level 2; Moon uses level / 3). */
+export function wildShapeScale2024(
+  feature: { id: string; classLevel: number },
+  subclassSlug: string | null | undefined,
+): string | null {
+  const id = feature.id.replace(/-/g, '_')
+  if (id !== 'wild_shape' && id !== 'circle_forms') return null
+  return formatWildShapeLimit(
+    wildShapeLimits({ druidLevel: feature.classLevel, subclassSlug, rulesEdition: '2024' }),
   )
 }
 
@@ -473,7 +487,7 @@ export function wildShapeCastBlock(input: {
   if (level >= 20) {
     return 'Архидруид не отменяет материальный компонент с указанной ценой. Каст не выполнен.'
   }
-  return 'Звериные заклинания: в облике нельзя предоставить материальный компонент. Каст не выполнен.'
+  return 'Заклинания зверя: в облике нельзя предоставить материальный компонент. Каст не выполнен.'
 }
 
 function dismissActiveSelfForm(companions: CompanionEntry[]): CompanionEntry[] {

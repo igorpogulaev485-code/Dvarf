@@ -177,7 +177,12 @@ import {
 import { isFeatureSelfFormId } from './featureForms'
 import type { SpellsState } from './spells'
 import { abilityModifier, SKILL_DEFS } from './sheetTypes'
-import { isWildShapeForkFeature, moonHealDiceCount, moonShapeScale } from './wildShape'
+import {
+  isWildShapeForkFeature,
+  moonHealDiceCount,
+  moonShapeScale,
+  wildShapeScale2024,
+} from './wildShape'
 import { PactTomeCantripsPicker } from './PactTomeCantripsPicker'
 import {
   isPactTomeActive,
@@ -2348,8 +2353,21 @@ function FeatureRow({
           elementalFury: readElementalFury2024(featurePicks, feature.classEntryId),
         })
       : ''
+  const wildShapeScale2024Text =
+    edition === '2024'
+      ? wildShapeScale2024(
+          feature,
+          unlockedFeatures.find(
+            (row) =>
+              row.classEntryId === feature.classEntryId &&
+              row.source === 'subclass' &&
+              Boolean(row.subclassSlug),
+          )?.subclassSlug,
+        )
+      : null
   const scaleShown =
     druidFormula2024 ||
+    wildShapeScale2024Text ||
     (moonShapeScale(feature, unlockedFeatures, edition === '2024' ? '2024' : '2014') ??
       feature.scaleValue)
 

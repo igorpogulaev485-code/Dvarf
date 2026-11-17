@@ -35,6 +35,11 @@ import {
   overlayLearnBudgets2024,
 } from '../../../shared/dnd/spellBudgets2024'
 import { getFeaturePickList } from '../../../shared/dnd/featurePicks'
+import {
+  magicianExtraCantrips2024,
+  PRIMAL_ORDER_MAGICIAN,
+  readPrimalOrder2024,
+} from '../../../shared/dnd/druid2024Features'
 import { isPactChainActive } from '../pactChainEffects'
 import { isWarlockClassName } from '../pactTomeEffects'
 import { parseInfusionSlotsResourceId } from '../InfusionsActiveDialog'
@@ -999,6 +1004,15 @@ export function useSheetEditorPart4(model: SheetModel) {
   model.subclassCastersForSpells = subclassCastersForSpells
 
   const sheetIs2024 = is2024Edition(model.rulesEdition ?? model.baseCharacter?.rules_edition)
+  const primalOrderExtraCantrips = useMemo(
+    () =>
+      sheetIs2024 &&
+      (readPrimalOrder2024(model.draft.classOptions2024) ??
+        readPrimalOrder2024(model.draft.featurePicks)) === PRIMAL_ORDER_MAGICIAN
+        ? { druid: magicianExtraCantrips2024() }
+        : undefined,
+    [sheetIs2024, model.draft.classOptions2024, model.draft.featurePicks],
+  )
   const spellLearnBudget = useMemo(() => {
     const rows = model.draft.classes.filter((row) => row.name.trim() && row.level > 0)
     if (rows.length === 0) return null
@@ -1007,8 +1021,14 @@ export function useSheetEditorPart4(model: SheetModel) {
       subclassCasters: subclassCastersForSpells,
       abilityModFor: (ability) => abilityModifier(model.draft.abilities[ability]),
     })
-    return sheetIs2024 ? overlayLearnBudget2024(budget, rows) : budget
-  }, [model.draft.classes, subclassCastersForSpells, model.draft.abilities, sheetIs2024])
+    return sheetIs2024 ? overlayLearnBudget2024(budget, rows, primalOrderExtraCantrips) : budget
+  }, [
+    model.draft.classes,
+    subclassCastersForSpells,
+    model.draft.abilities,
+    sheetIs2024,
+    primalOrderExtraCantrips,
+  ])
   model.spellLearnBudget = spellLearnBudget
 
   const spellLearnBudgets = useMemo(() => {
@@ -1020,13 +1040,14 @@ export function useSheetEditorPart4(model: SheetModel) {
       abilityModFor: (ability) => abilityModifier(model.draft.abilities[ability]),
       proficiencyBonus: model.proficiencyBonus,
     })
-    return sheetIs2024 ? overlayLearnBudgets2024(budgets, rows) : budgets
+    return sheetIs2024 ? overlayLearnBudgets2024(budgets, rows, primalOrderExtraCantrips) : budgets
   }, [
     model.draft.classes,
     subclassCastersForSpells,
     model.draft.abilities,
     model.proficiencyBonus,
     sheetIs2024,
+    primalOrderExtraCantrips,
   ])
   model.spellLearnBudgets = spellLearnBudgets
 

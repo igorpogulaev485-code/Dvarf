@@ -1581,6 +1581,20 @@ export function CompanionsPanel({
                     }
                   />
                 </Field>
+                {isSelfForm(editRow) && editRow.active ? (
+                  <div className="sheet-actions">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      onClick={() => {
+                        removeOrDismiss(editRow)
+                        closeDialogEdit()
+                      }}
+                    >
+                      Сбросить облик
+                    </Button>
+                  </div>
+                ) : null}
                 {!isSelfForm(editRow) && isPermanentCompanionSlot(editRow) ? (
                   <div className="sheet-actions">
                     {editRow.active ? (

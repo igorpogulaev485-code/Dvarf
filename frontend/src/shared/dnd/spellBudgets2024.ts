@@ -34,17 +34,19 @@ function tableByClass2024(classes: ClassLevelEntry[]): Map<string, PreparedRow> 
 export function overlayLearnBudgets2024(
   budgets: SpellLearnBudget[],
   classes: ClassLevelEntry[],
+  extraCantripsBySlug?: Record<string, number>,
 ): SpellLearnBudget[] {
   const table = tableByClass2024(classes)
   if (table.size === 0) return budgets
   return budgets.map((row) => {
     const hit = table.get(row.slug)
     if (!hit) return row
+    const cantrips = hit.cantrips + (extraCantripsBySlug?.[row.slug] ?? 0)
     if (hit.prepared_spells > 0 && row.mode === 'known') {
       return {
         ...row,
         mode: 'prepared_list' as const,
-        cantrips: hit.cantrips,
+        cantrips,
         leveledKnown: null,
         maxPrepared: hit.prepared_spells,
       }
@@ -52,7 +54,7 @@ export function overlayLearnBudgets2024(
     if (row.mode === 'known') return row
     return {
       ...row,
-      cantrips: hit.cantrips,
+      cantrips,
       maxPrepared: hit.prepared_spells > 0 ? hit.prepared_spells : row.maxPrepared,
     }
   })
@@ -61,7 +63,8 @@ export function overlayLearnBudgets2024(
 export function overlayLearnBudget2024(
   budget: SpellLearnBudget | null,
   classes: ClassLevelEntry[],
+  extraCantripsBySlug?: Record<string, number>,
 ): SpellLearnBudget | null {
   if (!budget) return budget
-  return overlayLearnBudgets2024([budget], classes)[0] ?? budget
+  return overlayLearnBudgets2024([budget], classes, extraCantripsBySlug)[0] ?? budget
 }
