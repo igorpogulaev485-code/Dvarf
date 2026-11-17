@@ -23,11 +23,16 @@ import { isPactChainActive, isPactChainSpellId, pactChainFamiliarSpellId, syncPa
 import { isWarlockClassName } from '../pactTomeEffects'
 import { toggleCombatConsumableFavorite } from '../combatConsumables'
 import {
-  formatSkillRoll,
+  checkExpression,
   resolveRollMode,
+  rollSkillCheck,
   type BonusDiePart,
   type DeskRollMode,
 } from '../deskRolls'
+import {
+  recordDigitalRoll,
+  shouldPostRollToSession,
+} from '../../diceRoller/recordDigitalRoll'
 import {
   chooseTempHpPool,
   consumeRollDieChips,
@@ -1397,17 +1402,6 @@ export function installSheetActions4(model: SheetModel) {
         profNote = ` · ${rolled.label} вместо БМ +${pb}`
       }
     }
-    const text = `${formatSkillRoll(
-      skill.label,
-      rollMod,
-      mode,
-      undefined,
-      model.strengthCheckFloor(base === 'str'),
-      silver ? { value: 10, label: 'серебряный язык' } : null,
-      bonusDice,
-    )}${note}${profNote}${model.inspirationRollArmed ? ' · вдохновение' : ''}`
-    if (model.inspirationRollArmed) model.spendInspirationForRoll?.()
-    model.emitToast(text)
     const te = model.turnEconomyApi as
       | {
           diceOnTable?: boolean
@@ -1421,11 +1415,80 @@ export function installSheetActions4(model: SheetModel) {
         }
       | undefined
     if (te?.diceOnTable && te.openEnterOwnNumber) {
+      if (model.inspirationRollArmed) model.spendInspirationForRoll?.()
       te.openEnterOwnNumber({
         title: `Проверка: ${skill.label}`,
         mode: 'd20',
         modifier: skill.mod,
       })
+      if (profNote) model.emitToast(`${skill.label}${profNote}`)
+    } else {
+      const suffix = `${note}${profNote}${
+        model.inspirationRollArmed ? ' · вдохновение' : ''
+      }`
+      if (model.inspirationRollArmed) model.spendInspirationForRoll?.()
+      const atTable =
+        Boolean(model.character.open_session_id?.trim()) &&
+        shouldPostRollToSession(model.character.id)
+      if (atTable) {
+        const bonusExpr = bonusDice
+          ?.map((row) => {
+            const m = String(row.dice).trim().match(/^(\d*)d(\d+)$/i)
+            if (!m) return ''
+            return `+${m[1] || 1}d${m[2]}`
+          })
+          .join('') ?? ''
+        // Режим преимущества/помехи — отдельным полем; в формуле одна d20.
+        const expression = `${checkExpression(rollMod, 'normal')}${bonusExpr}`
+        const advMode =
+          mode === 'advantage'
+            ? 'advantage'
+            : mode === 'disadvantage'
+              ? 'disadvantage'
+              : 'none'
+        model.emitToast('Бросаем…')
+        void recordDigitalRoll({
+          characterId: model.character.id,
+          openSessionId: model.character.open_session_id,
+          title: skill.label,
+          expression,
+          advantageMode: advMode,
+          category: 'sheet',
+          source: 'sheet',
+        }).then((result) => {
+          if (!result.ok) {
+            model.emitToast(result.error)
+            return
+          }
+          model.emitToast(`${result.entry.toastText ?? ''}${suffix}`)
+        })
+      } else {
+        const payload = rollSkillCheck(
+          skill.label,
+          rollMod,
+          mode,
+          undefined,
+          model.strengthCheckFloor(base === 'str'),
+          silver ? { value: 10, label: 'серебряный язык' } : null,
+          bonusDice,
+        )
+        const text = `${payload.text}${suffix}`
+        model.emitToast(text)
+        void recordDigitalRoll({
+          characterId: model.character.id,
+          openSessionId: model.character.open_session_id,
+          title: skill.label,
+          expression: payload.expression,
+          total: payload.total,
+          dice: payload.diceFaces,
+          modifierTotal: payload.modifierTotal,
+          advantageMode: payload.advantageMode,
+          toastText: text,
+          breakdown: text,
+          category: 'sheet',
+          source: 'sheet',
+        })
+      }
     }
     // O-02: Магическое наставление — предложить переброс при провале (игрок решает).
     const tceForGuidance =
@@ -1477,17 +1540,7 @@ export function installSheetActions4(model: SheetModel) {
           ? ' · помеха от истощения'
           : ''
     const bonusDice = buffDiceFor('check')
-    const text = `${formatSkillRoll(
-      `Проверка · ${ABILITY_NAMES[key] ?? ABILITY_LABELS[key]}`,
-      mod,
-      model.effectiveRollMode(),
-      undefined,
-      model.strengthCheckFloor(key === 'str'),
-      null,
-      bonusDice,
-    )}${note}${model.inspirationRollArmed ? ' · вдохновение' : ''}`
-    if (model.inspirationRollArmed) model.spendInspirationForRoll?.()
-    model.emitToast(text)
+    const checkTitle = `Проверка · ${ABILITY_NAMES[key] ?? ABILITY_LABELS[key]}`
     const te = model.turnEconomyApi as
       | {
           diceOnTable?: boolean
@@ -1499,11 +1552,76 @@ export function installSheetActions4(model: SheetModel) {
         }
       | undefined
     if (te?.diceOnTable && te.openEnterOwnNumber) {
+      if (model.inspirationRollArmed) model.spendInspirationForRoll?.()
       te.openEnterOwnNumber({
-        title: `Проверка · ${ABILITY_NAMES[key] ?? ABILITY_LABELS[key]}`,
+        title: checkTitle,
         mode: 'd20',
         modifier: mod,
       })
+    } else {
+      const suffix = `${note}${model.inspirationRollArmed ? ' · вдохновение' : ''}`
+      if (model.inspirationRollArmed) model.spendInspirationForRoll?.()
+      const mode = model.effectiveRollMode()
+      const atTable =
+        Boolean(model.character.open_session_id?.trim()) &&
+        shouldPostRollToSession(model.character.id)
+      if (atTable) {
+        const bonusExpr = bonusDice
+          ?.map((row) => {
+            const m = String(row.dice).trim().match(/^(\d*)d(\d+)$/i)
+            if (!m) return ''
+            return `+${m[1] || 1}d${m[2]}`
+          })
+          .join('') ?? ''
+        const expression = `${checkExpression(mod, 'normal')}${bonusExpr}`
+        model.emitToast('Бросаем…')
+        void recordDigitalRoll({
+          characterId: model.character.id,
+          openSessionId: model.character.open_session_id,
+          title: checkTitle,
+          expression,
+          advantageMode:
+            mode === 'advantage'
+              ? 'advantage'
+              : mode === 'disadvantage'
+                ? 'disadvantage'
+                : 'none',
+          category: 'sheet',
+          source: 'sheet',
+        }).then((result) => {
+          if (!result.ok) {
+            model.emitToast(result.error)
+            return
+          }
+          model.emitToast(`${result.entry.toastText ?? ''}${suffix}`)
+        })
+      } else {
+        const payload = rollSkillCheck(
+          checkTitle,
+          mod,
+          mode,
+          undefined,
+          model.strengthCheckFloor(key === 'str'),
+          null,
+          bonusDice,
+        )
+        const text = `${payload.text}${suffix}`
+        model.emitToast(text)
+        void recordDigitalRoll({
+          characterId: model.character.id,
+          openSessionId: model.character.open_session_id,
+          title: checkTitle,
+          expression: payload.expression,
+          total: payload.total,
+          dice: payload.diceFaces,
+          modifierTotal: payload.modifierTotal,
+          advantageMode: payload.advantageMode,
+          toastText: text,
+          breakdown: text,
+          category: 'sheet',
+          source: 'sheet',
+        })
+      }
     }
     consumeOnceBuffDice('check')
   }
@@ -1586,20 +1704,71 @@ export function installSheetActions4(model: SheetModel) {
       if (saveProfNote) model.emitToast(`${saveTitle}${saveProfNote}`)
       if (model.inspirationRollArmed) model.spendInspirationForRoll?.()
     } else {
-      model.emitToast(
-        `${formatSkillRoll(
+      const suffix = `${note}${songNote}${coverNote}${spellNote}${saveProfNote}${
+        model.inspirationRollArmed ? ' · вдохновение' : ''
+      }`
+      if (model.inspirationRollArmed) model.spendInspirationForRoll?.()
+      const saveMode = model.saveRollMode(key)
+      const atTable =
+        Boolean(model.character.open_session_id?.trim()) &&
+        shouldPostRollToSession(model.character.id)
+      if (atTable) {
+        const bonusExpr = bonusDice
+          ?.map((row) => {
+            const m = String(row.dice).trim().match(/^(\d*)d(\d+)$/i)
+            if (!m) return ''
+            return `+${m[1] || 1}d${m[2]}`
+          })
+          .join('') ?? ''
+        const expression = `${checkExpression(saveRollMod, 'normal')}${bonusExpr}`
+        model.emitToast('Бросаем…')
+        void recordDigitalRoll({
+          characterId: model.character.id,
+          openSessionId: model.character.open_session_id,
+          title: saveTitle,
+          expression,
+          advantageMode:
+            saveMode === 'advantage'
+              ? 'advantage'
+              : saveMode === 'disadvantage'
+                ? 'disadvantage'
+                : 'none',
+          category: 'sheet',
+          source: 'sheet',
+        }).then((result) => {
+          if (!result.ok) {
+            model.emitToast(result.error)
+            return
+          }
+          model.emitToast(`${result.entry.toastText ?? ''}${suffix}`)
+        })
+      } else {
+        const payload = rollSkillCheck(
           saveTitle,
           saveRollMod,
-          model.saveRollMode(key),
+          saveMode,
           undefined,
           null,
           null,
           bonusDice,
-        )}${note}${songNote}${coverNote}${spellNote}${saveProfNote}${
-          model.inspirationRollArmed ? ' · вдохновение' : ''
-        }`,
-      )
-      if (model.inspirationRollArmed) model.spendInspirationForRoll?.()
+        )
+        const text = `${payload.text}${suffix}`
+        model.emitToast(text)
+        void recordDigitalRoll({
+          characterId: model.character.id,
+          openSessionId: model.character.open_session_id,
+          title: saveTitle,
+          expression: payload.expression,
+          total: payload.total,
+          dice: payload.diceFaces,
+          modifierTotal: payload.modifierTotal,
+          advantageMode: payload.advantageMode,
+          toastText: text,
+          breakdown: text,
+          category: 'sheet',
+          source: 'sheet',
+        })
+      }
     }
     consumeOnceBuffDice('save')
   }

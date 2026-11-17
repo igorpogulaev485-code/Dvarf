@@ -39,6 +39,8 @@ export default defineConfig({
       name: 'mobile-390',
       use: {
         ...devices['Pixel 5'],
+        // CSS pixels for comparable before/after md5 (not device pixels).
+        deviceScaleFactor: 1,
         viewport: { width: 390, height: 844 },
         isMobile: true,
         hasTouch: true,

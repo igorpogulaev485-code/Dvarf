@@ -76,6 +76,13 @@ export type DiceLogEntry = {
   total: number
   dice: DieFaceResult[]
   modifierTotal: number
+  /** Human title for sheet rolls («Акробатика», «Атака: меч»). */
+  title?: string
+  /** Full toast line — stroke of luck / legacy sheet history. */
+  toastText?: string
+  source?: 'panel' | 'sheet'
+  /** When false, hide «Повторить» (legacy migrated toast without formula). */
+  repeatable?: boolean
 }
 
 export const FORMULA_MAX_LEN = 200

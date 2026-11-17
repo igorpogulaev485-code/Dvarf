@@ -1,7 +1,7 @@
 """Upsert PHB 2014 elf spell choices: astral / high / drow / half-elf high.
 
 Revision ID: n0a1b2c3d4e5
-Revises: admqf01bootstrapsrc
+Revises: dice02b01widenroll
 Create Date: 2026-11-17
 """
 
@@ -15,7 +15,7 @@ import sqlalchemy as sa
 from alembic import op
 
 revision: str = "n0a1b2c3d4e5"
-down_revision: Union[str, Sequence[str], None] = "admqf01bootstrapsrc"
+down_revision: Union[str, Sequence[str], None] = "dice02b01widenroll"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 

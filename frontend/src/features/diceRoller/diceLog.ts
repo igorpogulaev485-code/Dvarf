@@ -51,13 +51,16 @@ export function prependLogEntry(
 function isLogEntry(value: unknown): value is DiceLogEntry {
   if (!value || typeof value !== 'object') return false
   const e = value as DiceLogEntry
-  return (
-    typeof e.id === 'string' &&
-    typeof e.at === 'number' &&
-    typeof e.expression === 'string' &&
-    typeof e.total === 'number' &&
-    Array.isArray(e.dice)
-  )
+  if (
+    typeof e.id !== 'string' ||
+    typeof e.at !== 'number' ||
+    typeof e.expression !== 'string' ||
+    typeof e.total !== 'number' ||
+    !Array.isArray(e.dice)
+  ) {
+    return false
+  }
+  return true
 }
 
 export function newLogId(): string {

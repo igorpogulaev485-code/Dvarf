@@ -416,7 +416,10 @@ export function CharacterDetailPage() {
       </Stack>
 
       {character && !loading ? (
-        <DiceRollerHost characterId={character.id} />
+        <DiceRollerHost
+          characterId={character.id}
+          openSessionId={character.open_session_id}
+        />
       ) : null}
 
       <CharacterReadyDialog

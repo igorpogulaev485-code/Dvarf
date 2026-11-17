@@ -143,4 +143,24 @@ const mightSkip = formatSkillRoll('Проверка · Сила', 5, 'normal', (
 })
 assert(!mightSkip.includes('неукротимая'), `high roll stays: ${mightSkip}`)
 
+// DICE-02a: default path must not call Math.random.
+{
+  const original = Math.random
+  let touched = false
+  Math.random = () => {
+    touched = true
+    return 0.5
+  }
+  try {
+    const fair = rollDie(20)
+    assert(fair >= 1 && fair <= 20, `fair rollDie range got ${fair}`)
+    assert(!touched, 'rollDie without rng must not call Math.random')
+    const checkFair = rollCheck(0, 'normal')
+    assert(checkFair.die >= 1 && checkFair.die <= 20, 'fair rollCheck')
+    assert(!touched, 'rollCheck without rng must not call Math.random')
+  } finally {
+    Math.random = original
+  }
+}
+
 console.log('deskRolls.selfcheck ok')

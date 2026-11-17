@@ -159,6 +159,29 @@ Selfcheck: `npm run selfcheck:abilities-rail-cap` (рядом `selfcheck:abiliti
 `.play-desk__left` / рельса — LOCK §2a). Before-скрины 2014: `scripts/dice-before-from-main.sh`.
 Фича: `frontend/src/features/diceRoller/`. Без page-level CSS и без правок `index.css`.
 
+### intentionalActivate + «Только себе» (DICE-02a)
+
+| Kit / helper | Файл | Лицо |
+|--------------|------|------|
+| `intentionalActivateProps` | `ui/intentionalActivate.ts` | pointer down/move/click: бросок только если сдвиг ≤10px (тап ≠ прокрутка) |
+| `ToggleChip` «Только себе» | панель `DiceRollerPanel` | рядом с преим./помехой; виден только за открытым столом; on = броски не уходят в ленту |
+
+Журнал панели — вкладка «Мои». Кнопка «броски» на листе открывает тот же журнал через
+`openDiceJournal`.
+
+### JournalTab + DiceFaces + RevealButton (DICE-02b)
+
+| Kit | Файл | Лицо |
+|-----|------|------|
+| `JournalTab` | `ui/JournalTab.tsx` | вкладки «Мои» / «Стол» в журнале панели |
+| `DiceFaces` | `ui/DiceFaces.tsx` | плашки костей (отброшенные приглушены, нат-20/нат-1) в ленте и панели |
+| `RevealButton` | `ui/RevealButton.tsx` | «Раскрыть» скрытый бросок мастера |
+| `ToggleChip` «Скрытый бросок» | `SessionDigitalRollPanel` | только у ведущих на странице сессии |
+
+Стили `.ui-journal-tab*` / `.ui-dice-face*` / `.ui-reveal-btn` / `.session-digital-roll` в
+`01-tokens-base.css`. За столом цифровой бросок считает сервер (`POST …/rolls/digital`);
+живой куб по-прежнему `POST …/rolls`. Без page-level CSS.
+
 ### Эталон 14.11.2026 — kit atoms (не менять вид без ok)
 
 | Kit | Файл | Лицо |

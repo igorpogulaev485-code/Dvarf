@@ -6,6 +6,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { MinimalSheetEditor } from '../features/characters/MinimalSheetEditor'
 import { sampleClassic2014Character } from '../features/classicSheet/sampleClassicCharacter'
+import { DiceRollerHost } from '../features/diceRoller'
 import type { CharacterDetail } from '../shared/api/characters'
 import { Text } from '../ui'
 
@@ -234,6 +235,7 @@ export function DraconicHpPreviewPage() {
         onSaved={setCharacter}
         onToast={() => undefined}
       />
+      <DiceRollerHost characterId={character.id} />
     </main>
   )
 }

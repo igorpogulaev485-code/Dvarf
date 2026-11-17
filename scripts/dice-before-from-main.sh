@@ -65,9 +65,9 @@ if "/dev/play-desk-baseline-preview" not in text:
     text = text.replace(route_needle, route_insert, 1)
 p.write_text(text)
 print("wired App.tsx")
-else:
-    print("App.tsx already wired")
 PY
+else
+  echo "App.tsx already wired"
 fi
 
 if [[ ! -d "$WT/frontend/node_modules" ]]; then

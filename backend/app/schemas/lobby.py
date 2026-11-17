@@ -1860,8 +1860,8 @@ class SessionRollCreateRequest(BaseModel):
 
     character_id: UUID | None = None
     title: str = Field(default="Бросок", min_length=1, max_length=200)
-    formula: str | None = Field(default=None, max_length=120)
-    breakdown: str | None = Field(default=None, max_length=200)
+    formula: str | None = Field(default=None, max_length=200)
+    breakdown: str | None = Field(default=None, max_length=500)
     total: int = Field(ge=-999, le=9999)
     # если true — скрываем от игроков при режиме «Без бросков мастера»
     is_master_roll: bool = False
@@ -1873,6 +1873,23 @@ class SessionRollCreateRequest(BaseModel):
     """S-04: скрытый бросок игрока (видят автор и ведущие)."""
     is_hidden: bool = False
     """S-04: метка категории для фильтра ленты (combat | roll)."""
+    category: str | None = Field(default=None, max_length=40)
+
+
+class SessionDigitalRollRequest(BaseModel):
+    """DICE-02b: цифровой бросок — итог считает сервер, total/breakdown с клиента игнор."""
+
+    character_id: UUID | None = None
+    title: str = Field(default="Бросок", min_length=1, max_length=200)
+    formula: str = Field(min_length=1, max_length=200)
+    """none | advantage | disadvantage (или bool advantage ниже)."""
+    mode: str | None = Field(default=None, max_length=32)
+    advantage: bool = False
+    used_inspiration: bool = False
+    """Скрытый бросок мастера (заглушка игрокам до «Раскрыть»)."""
+    master_hidden: bool = False
+    """Скрытый бросок игрока (автор + ведущие) — не путать с master_hidden."""
+    is_hidden: bool = False
     category: str | None = Field(default=None, max_length=40)
 
 

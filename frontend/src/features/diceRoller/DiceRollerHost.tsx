@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { BottomSheet, DiceFab, FloatingPanel } from '../../ui'
 import { DiceRollerPanel } from './DiceRollerPanel'
+import { subscribeDiceJournalOpen } from './journalBridge'
 import type { DiceLogEntry } from './types'
+import type { RollHistoryEntry } from '../characters/playDeskUi'
 
 const DESKTOP_MQ = '(min-width: 960px)'
 
@@ -11,6 +13,10 @@ type Props = {
   initialLog?: DiceLogEntry[]
   /** Start open (e2e / screenshots). */
   defaultOpen?: boolean
+  /** Open session → show «Только себе» and post free rolls. */
+  openSessionId?: string | null
+  /** Sheet history for one-time journal merge. */
+  sheetRollHistory?: RollHistoryEntry[] | null
 }
 
 /**
@@ -22,8 +28,12 @@ export function DiceRollerHost({
   characterId,
   initialLog,
   defaultOpen = false,
+  openSessionId = null,
+  sheetRollHistory = null,
 }: Props) {
   const [open, setOpen] = useState(defaultOpen)
+  const [focusJournal, setFocusJournal] = useState(false)
+  const [journalTab, setJournalTab] = useState<'mine' | 'table'>('mine')
   const [desktop, setDesktop] = useState(() =>
     typeof window !== 'undefined' ? window.matchMedia(DESKTOP_MQ).matches : true,
   )
@@ -43,13 +53,21 @@ export function DiceRollerHost({
     return () => mq.removeEventListener('change', sync)
   }, [])
 
+  useEffect(() => {
+    return subscribeDiceJournalOpen((req) => {
+      if (req.characterId !== characterId) return
+      setJournalTab(req.tab ?? 'mine')
+      setFocusJournal(true)
+      setOpen(true)
+    })
+  }, [characterId])
+
   const place = useCallback(() => {
     const fab = fabRef.current
     if (!fab) return
     const r = fab.getBoundingClientRect()
     const pad = 12
     const width = Math.min(400, window.innerWidth - pad * 2)
-    // Grow up from the FAB (bottom-right): height = min(content, space above FAB).
     const gap = 10
     const bottom = Math.max(pad, window.innerHeight - r.top + gap)
     const available = Math.max(280, r.top - pad - gap)
@@ -75,10 +93,25 @@ export function DiceRollerHost({
     }
   }, [open, desktop, place])
 
-  const close = useCallback(() => setOpen(false), [])
+  const close = useCallback(() => {
+    setOpen(false)
+    setFocusJournal(false)
+  }, [])
   const liftForMobileNav =
     typeof document !== 'undefined' &&
     Boolean(document.querySelector('.mobile-scene-nav'))
+
+  const panel = (
+    <DiceRollerPanel
+      characterId={characterId}
+      initialLog={initialLog}
+      openSessionId={openSessionId}
+      sheetRollHistory={sheetRollHistory}
+      focusJournal={focusJournal}
+      journalTab={journalTab}
+      onJournalTabChange={setJournalTab}
+    />
+  )
 
   return (
     <>
@@ -87,7 +120,10 @@ export function DiceRollerHost({
           ref={fabRef}
           active={open}
           liftForMobileNav={liftForMobileNav}
-          onClick={() => setOpen((v) => !v)}
+          onClick={() => {
+            setFocusJournal(false)
+            setOpen((v) => !v)
+          }}
           data-testid="dice-fab"
         />
       </div>
@@ -110,7 +146,7 @@ export function DiceRollerHost({
           panelClassName="no-print"
           className="no-print"
         >
-          <DiceRollerPanel characterId={characterId} initialLog={initialLog} />
+          {panel}
         </FloatingPanel>
       ) : (
         <BottomSheet
@@ -120,7 +156,7 @@ export function DiceRollerHost({
           className="no-print"
           maxHeightRatio={0.58}
         >
-          <DiceRollerPanel characterId={characterId} initialLog={initialLog} />
+          {panel}
         </BottomSheet>
       )}
     </>

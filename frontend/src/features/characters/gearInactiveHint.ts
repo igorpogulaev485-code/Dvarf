@@ -12,10 +12,10 @@ export function gearInactiveHint(
   const attuned = attunedItemIdSet(attunements)
   if (isGearEffectActive(item, attuned)) return null
   if (!item.equipped && canShowEquipChip(item)) {
-    return 'свойства не действуют · не в руке/не надето'
+    return 'свойства не действуют · возьмите в руки / наденьте, чтобы получить бонусы'
   }
   if (item.requires_attunement && !attuned.has(item.id)) {
-    return 'свойства не действуют · нужна настройка'
+    return 'свойства не действуют · настройте, чтобы получить бонусы'
   }
   return null
 }

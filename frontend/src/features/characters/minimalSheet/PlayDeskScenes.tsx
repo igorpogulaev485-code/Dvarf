@@ -282,6 +282,7 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
             hpTemp={model.draft.play.hpTemp}
             abilities={model.effectiveAbilities}
             proficiencyBonus={model.proficiencyBonus}
+            weaponProficiency={model.draft.identity.weapons}
             gearBonusesByItem={model.gearEffects.byItem}
             effectWeaponBonus={weaponBonusesFromActiveEffects(model.draft.play.effects)}
             activeEffects={model.draft.play.effects ?? []}
