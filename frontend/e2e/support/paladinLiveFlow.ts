@@ -170,6 +170,80 @@ export async function openCombatScene(page: Page, project: string) {
   await page.waitForTimeout(600)
 }
 
+export async function openExploreScene(page: Page, project: string) {
+  if (isPhone(project)) await page.getByText('Снаряж.', { exact: true }).last().click()
+  else await page.getByRole('button', { name: /^Снаряжение$|^Инвентарь$/ }).first().click()
+  await page.waitForTimeout(600)
+}
+
+/** Play Desk identity dialog (name / +1 уровень / −1). */
+export async function openIdentity(page: Page) {
+  await page
+    .locator('.play-desk__top button, [data-onboarding="combat-header"] button')
+    .first()
+    .click()
+  const dlg = page.getByRole('dialog').last()
+  await expect(dlg.getByRole('button', { name: /\+1 уровень/ })).toBeVisible()
+  return dlg
+}
+
+/**
+ * Live sheet level-up via identity «+1 уровень» → «Повышение уровня»
+ * (same path as bard/cleric `liveLevelUp`; captures the features step).
+ */
+export async function liveLevelUp(
+  page: Page,
+  project: string,
+  shotName: string,
+  opts: { expectUpcoming?: RegExp[]; expectNoUpcoming?: boolean },
+) {
+  const identity = await openIdentity(page)
+  await identity.getByRole('button', { name: /\+1 уровень/ }).first().click()
+  const raise = page.getByRole('dialog').filter({ hasText: 'Повышение уровня' })
+  await expect(raise).toBeVisible()
+  await expect(raise.getByText(/Дварфийская стойкость/i).first()).toBeVisible({ timeout: 10_000 })
+  if (opts.expectUpcoming?.length) {
+    const feats = raise.getByTestId('level-up-features')
+    await expect(feats).toBeVisible()
+    for (const re of opts.expectUpcoming) await expect(feats.getByText(re).first()).toBeVisible()
+    await feats.scrollIntoViewIfNeeded()
+  } else if (opts.expectNoUpcoming) {
+    await expect(raise.getByTestId('level-up-features')).toHaveCount(0)
+  }
+  await shot(page, ARTIFACTS, `${shotName}-features`, project)
+  await raise.getByRole('button', { name: /^Повысить$/ }).click()
+  await expect(raise).toBeHidden({ timeout: 15_000 })
+  for (let i = 0; i < 8; i += 1) {
+    const dlg = page.getByRole('dialog').last()
+    if (!(await dlg.isVisible({ timeout: 2_500 }).catch(() => false))) break
+    const primary = dlg.getByRole('button', { name: /^Далее$|^Готово$/ })
+    if (await primary.isEnabled({ timeout: 2_000 }).catch(() => false)) await primary.click()
+    else break
+    await page.waitForTimeout(400)
+  }
+}
+
+/** Live sheet level-down via identity «−1» (before/after shots of the dialog). */
+export async function liveLevelDown(
+  page: Page,
+  project: string,
+  shotName: string,
+  opts: { from: number; to: number },
+) {
+  const identity = await openIdentity(page)
+  const minus = identity.getByRole('button', { name: '−1', exact: true }).first()
+  await minus.scrollIntoViewIfNeeded()
+  await expect(identity).toContainText(new RegExp(`(^|\\D)${opts.from}(\\D|$)`))
+  await shot(page, ARTIFACTS, `${shotName}-before`, project)
+  await minus.click()
+  await page.waitForTimeout(800)
+  await minus.scrollIntoViewIfNeeded()
+  await expect(identity).toContainText(new RegExp(`(^|\\D)${opts.to}(\\D|$)`))
+  await shot(page, ARTIFACTS, `${shotName}-after`, project)
+  await identity.getByRole('button', { name: /^Готово$|^Закрыть$/ }).first().click()
+  await expect(page.getByRole('dialog')).toHaveCount(0, { timeout: 10_000 })
+}
+
 export async function openRest(page: Page, project: string) {
   if (project === '390') {
     await ensureMobileVitalsExpanded(page)
@@ -405,7 +479,7 @@ export async function walkLivePaladinCreate(
     await expect(sub).toHaveClass(/ui-button--primary/)
   }
 
-  for (const lv of [4, 8, 12, 16]) {
+  for (const lv of [4, 8, 12, 16, 19]) {
     if (lv > opts.level) break
     const asi =
       lv === 4

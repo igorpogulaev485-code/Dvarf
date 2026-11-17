@@ -469,3 +469,100 @@ def test_l20_capstone_pools():
         }
         assert pools[feat_id].max == 1
         assert pools[feat_id].reset == "long"
+
+
+def _snap(level: int, *, subclass: str | None = "paladin__oath-of-devotion"):
+    row: dict = {"slug": "paladin", "level": level}
+    if level >= 3 and subclass:
+        row["subclass_slug"] = subclass
+    return e24.compute_progression([row], abilities=_ABILITIES)
+
+
+def _pool_max(snap, pool_id: str) -> int | None:
+    for r in snap.resources:
+        if r.pool_id == pool_id:
+            return int(r.max)
+    return None
+
+
+def _feature_names(snap) -> set[str]:
+    return {f.name_ru for f in snap.features}
+
+
+def _always(snap) -> set[str]:
+    if not snap.spellcasting:
+        return set()
+    return set(snap.spellcasting[0].always_prepared)
+
+
+def test_rollback_3_to_2_drops_channel_and_oath_spells_keeps_smite():
+    """3→2: channel + subclass always-prepared oath spells gone; Paladin's Smite remains."""
+    hi = _snap(3)
+    lo = _snap(2)
+    assert _pool_max(hi, "channel_divinity") == 2
+    assert _pool_max(lo, "channel_divinity") is None
+    oath_l3 = OATH_SPELLS_L3["paladin__oath-of-devotion"]
+    assert oath_l3 <= _always(hi)
+    assert not (oath_l3 & _always(lo))
+    assert "divine-smite" in _always(lo)
+    assert _pool_max(lo, "paladin_free_smite") == 1
+    names_hi, names_lo = _feature_names(hi), _feature_names(lo)
+    assert "Проведение божественности" in names_hi
+    assert "Проведение божественности" not in names_lo
+    assert "Кара паладина" in names_lo
+    assert "Священное оружие" in names_hi
+    assert "Священное оружие" not in names_lo
+
+
+def test_rollback_11_to_10_drops_radiant_strikes_and_channel_max():
+    """11→10: Radiant Strikes gone; channel max 3→2."""
+    hi = _snap(11)
+    lo = _snap(10)
+    assert _pool_max(hi, "channel_divinity") == 3
+    assert _pool_max(lo, "channel_divinity") == 2
+    names_hi, names_lo = _feature_names(hi), _feature_names(lo)
+    assert "Сияющие удары" in names_hi
+    assert "Сияющие удары" not in names_lo
+    assert "Аура отваги" in names_lo
+
+
+def test_rollback_20_to_19_drops_l20_capstone_pool():
+    """20→19: L20 capstone pool/feature gone (Holy Nimbus for Devotion)."""
+    hi = _snap(20)
+    lo = _snap(19)
+    assert _pool_max(hi, "holy_nimbus") == 1
+    assert _pool_max(lo, "holy_nimbus") is None
+    names_hi, names_lo = _feature_names(hi), _feature_names(lo)
+    assert "Священный нимб" in names_hi
+    assert "Священный нимб" not in names_lo
+    assert "Эпический дар" in names_lo
+    # Other oaths drop their own capstone pools the same way.
+    for subclass, pool_id, name_ru in (
+        ("paladin__oath-of-glory", "living_legend", "Живая легенда"),
+        ("paladin__oath-of-the-ancients", "elder_champion", "Древний чемпион"),
+        ("paladin__oath-of-vengeance", "avenging_angel", "Ангел возмездия"),
+    ):
+        hi_o = _snap(20, subclass=subclass)
+        lo_o = _snap(19, subclass=subclass)
+        assert _pool_max(hi_o, pool_id) == 1
+        assert _pool_max(lo_o, pool_id) is None
+        assert name_ru in _feature_names(hi_o)
+        assert name_ru not in _feature_names(lo_o)
+
+
+def test_rollback_2_to_1_keeps_spellcasting_loses_free_smite():
+    """2→1: spellcasting remains; free smite / fighting style / Paladin's Smite gone."""
+    hi = _snap(2)
+    lo = _snap(1)
+    assert lo.spellcasting and lo.spellcasting[0].prepared_spells == 2
+    assert "Сотворение заклинаний" in _feature_names(lo)
+    assert _pool_max(hi, "paladin_free_smite") == 1
+    assert _pool_max(lo, "paladin_free_smite") is None
+    assert "divine-smite" in _always(hi)
+    assert "divine-smite" not in _always(lo)
+    names_hi, names_lo = _feature_names(hi), _feature_names(lo)
+    assert "Кара паладина" in names_hi
+    assert "Кара паладина" not in names_lo
+    assert "Боевой стиль" in names_hi
+    assert "Боевой стиль" not in names_lo
+    assert "Возложение рук" in names_lo

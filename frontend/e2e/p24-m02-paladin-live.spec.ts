@@ -31,8 +31,11 @@ import {
   freeSteedFromSheet,
   isPhone,
   layOnHandsFromSheet,
+  liveLevelDown,
+  liveLevelUp,
   lohRemaining,
   longRest,
+  openCombatScene,
   openFeaturesScene,
   openLayOnHandsDialog,
   openRest,
@@ -414,6 +417,293 @@ test.describe('P24-M02 paladin — free smite / steed pools', () => {
     await tallShot(page, ARTIFACTS, `${SHOT}-free-smite-steed-buttons`, project)
     expect(PALADIN_SKILLS).toHaveLength(2)
     expect(PALADIN_MASTERY).toHaveLength(2)
+    expect(store.unmatched).toEqual([])
+  })
+})
+
+/* ------------------------------------------------------------------ */
+/* Live level-up from sheet (identity +1 / Повышение уровня)           */
+/* ------------------------------------------------------------------ */
+
+test.describe('P24-M02 paladin — LIVE level-up from sheet', () => {
+  test.setTimeout(300_000)
+  test.use({ actionTimeout: 15_000 })
+
+  test('levelup-live 4→5: Дополнительная атака + Верный скакун', async ({ page }, testInfo) => {
+    const project = projectOf(testInfo)
+    const { store, sheet } = await createAt(page, project, {
+      name: 'Прокачка 4→5',
+      level: 4,
+      subclassSlug: OATH.devotion,
+      fightingStyle: FIGHTING_STYLE_DEFENSE,
+    })
+    expect(sheet.classes?.[0]?.level).toBe(4)
+    expect(freeSteedFromSheet(sheet)).toBeUndefined()
+    await liveLevelUp(page, project, `${SHOT}-levelup-4to5`, {
+      expectUpcoming: [/Дополнительная атака/, /Верный скакун/],
+    })
+    await waitStored(store, (s) => s.classes?.[0]?.level === 5)
+    const after = await storedSheet(store)
+    expect(freeSteedFromSheet(after)?.max).toBe(1)
+    expect(channelFromSheet(after)).toMatchObject({ max: 2 })
+    await openFeaturesScene(page, project)
+    await expectFeatureNames(page, [/^Дополнительная атака/, FREE_STEED_CARD, LAY_ON_HANDS, CHANNEL])
+    await expectNoFeatureNames(page, [RADIANT, AURA_PROTECTION])
+    await tallShot(page, ARTIFACTS, `${SHOT}-levelup-4to5-sheet-features`, project)
+    expect(store.unmatched).toEqual([])
+  })
+
+  test('levelup-live 10→11: Сияющие удары + channel 3', async ({ page }, testInfo) => {
+    const project = projectOf(testInfo)
+    const { store, sheet } = await createAt(page, project, {
+      name: 'Прокачка 10→11',
+      level: 10,
+      subclassSlug: OATH.devotion,
+      fightingStyle: FIGHTING_STYLE_DEFENSE,
+    })
+    expect(sheet.classes?.[0]?.level).toBe(10)
+    expect(channelFromSheet(sheet)).toMatchObject({ max: 2 })
+    await openFeaturesScene(page, project)
+    await expectNoFeatureNames(page, [RADIANT])
+    await liveLevelUp(page, project, `${SHOT}-levelup-10to11`, {
+      expectUpcoming: [/Сияющие удары/],
+    })
+    await waitStored(store, (s) => s.classes?.[0]?.level === 11)
+    const after = await storedSheet(store)
+    expect(channelFromSheet(after)).toMatchObject({ max: 3 })
+    await openFeaturesScene(page, project)
+    await expectFeatureNames(page, [RADIANT, AURA_PROTECTION, /^Аура отваги/, CHANNEL])
+    expect(await channelRemaining(page)).toEqual({ left: 3, max: 3 })
+    await tallShot(page, ARTIFACTS, `${SHOT}-levelup-10to11-sheet-features`, project)
+    expect(store.unmatched).toEqual([])
+  })
+})
+
+/* ------------------------------------------------------------------ */
+/* Live level-down from sheet (identity −1)                            */
+/* ------------------------------------------------------------------ */
+
+test.describe('P24-M02 paladin — LIVE level-down from sheet', () => {
+  test.setTimeout(360_000)
+  test.use({ actionTimeout: 15_000 })
+
+  test('leveldown-live 20→19: capstone Священный нимб gone', async ({ page }, testInfo) => {
+    const project = projectOf(testInfo)
+    const { store } = await createAt(page, project, {
+      name: 'Откат 20→19',
+      level: 20,
+      subclassSlug: OATH.devotion,
+      fightingStyle: FIGHTING_STYLE_DEFENSE,
+    })
+    await openFeaturesScene(page, project)
+    await expectFeatureNames(page, [/^Священный нимб/, RADIANT, CHANNEL])
+    await expandAllFeatures(page)
+    await tallShot(page, ARTIFACTS, `${SHOT}-leveldown-20to19-sheet-before`, project)
+    await liveLevelDown(page, project, `${SHOT}-leveldown-20to19`, { from: 20, to: 19 })
+    await waitStored(store, (s) => s.classes?.[0]?.level === 19)
+    await openFeaturesScene(page, project)
+    await expectNoFeatureNames(page, [/^Священный нимб/])
+    await expectFeatureNames(page, [RADIANT, /^Эпический дар/, CHANNEL])
+    await expandAllFeatures(page)
+    await tallShot(page, ARTIFACTS, `${SHOT}-leveldown-20to19-sheet-after`, project)
+    expect(store.unmatched).toEqual([])
+  })
+
+  test('leveldown-live 11→10: Сияющие удары gone, channel 3→2', async ({ page }, testInfo) => {
+    const project = projectOf(testInfo)
+    const { store } = await createAt(page, project, {
+      name: 'Откат 11→10',
+      level: 11,
+      subclassSlug: OATH.devotion,
+      fightingStyle: FIGHTING_STYLE_DEFENSE,
+    })
+    await openFeaturesScene(page, project)
+    await expectFeatureNames(page, [RADIANT])
+    expect(await channelRemaining(page)).toEqual({ left: 3, max: 3 })
+    await expandAllFeatures(page)
+    await tallShot(page, ARTIFACTS, `${SHOT}-leveldown-11to10-sheet-before`, project)
+    await liveLevelDown(page, project, `${SHOT}-leveldown-11to10`, { from: 11, to: 10 })
+    await waitStored(store, (s) => s.classes?.[0]?.level === 10)
+    await openFeaturesScene(page, project)
+    await expectNoFeatureNames(page, [RADIANT])
+    expect(await channelRemaining(page)).toEqual({ left: 2, max: 2 })
+    await expectFeatureNames(page, [/^Аура отваги/, CHANNEL])
+    await expandAllFeatures(page)
+    await tallShot(page, ARTIFACTS, `${SHOT}-leveldown-11to10-sheet-after`, project)
+    expect(store.unmatched).toEqual([])
+  })
+
+  test('leveldown-live 3→2: subclass+channel gone; Кара паладина remains', async ({
+    page,
+  }, testInfo) => {
+    const project = projectOf(testInfo)
+    const { store } = await createAt(page, project, {
+      name: 'Откат 3→2',
+      level: 3,
+      subclassSlug: OATH.devotion,
+      fightingStyle: FIGHTING_STYLE_DEFENSE,
+    })
+    await openFeaturesScene(page, project)
+    await expectFeatureNames(page, [CHANNEL, FREE_SMITE_CARD, /^Священное оружие/])
+    await expandAllFeatures(page)
+    await tallShot(page, ARTIFACTS, `${SHOT}-leveldown-3to2-sheet-before`, project)
+    await liveLevelDown(page, project, `${SHOT}-leveldown-3to2`, { from: 3, to: 2 })
+    await waitStored(store, (s) => s.classes?.[0]?.level === 2)
+    const after = await storedSheet(store)
+    expect(channelFromSheet(after)).toBeUndefined()
+    expect(freeSmiteFromSheet(after)?.max).toBe(1)
+    await openFeaturesScene(page, project)
+    await expectNoFeatureNames(page, [CHANNEL, /^Священное оружие/, DIVINE_SENSE])
+    await expectFeatureNames(page, [FREE_SMITE_CARD, FIGHTING_STYLE_CARD, LAY_ON_HANDS])
+    await expandAllFeatures(page)
+    await tallShot(page, ARTIFACTS, `${SHOT}-leveldown-3to2-sheet-after`, project)
+    expect(store.unmatched).toEqual([])
+  })
+})
+
+/* ------------------------------------------------------------------ */
+/* Oaths: Glory / Ancients @7 + Devotion L20 capstone                  */
+/* ------------------------------------------------------------------ */
+
+test.describe('P24-M02 paladin — LIVE oath sheets (Glory / Ancients / L20)', () => {
+  test.setTimeout(360_000)
+  test.use({ actionTimeout: 15_000 })
+
+  test('create-at-7 glory: Аура рвения', async ({ page }, testInfo) => {
+    const project = projectOf(testInfo)
+    const { store, sheet } = await createAt(page, project, {
+      name: 'Клятва славы 7',
+      level: 7,
+      subclassSlug: OATH.glory,
+      fightingStyle: FIGHTING_STYLE_DEFENSE,
+    })
+    expect(String(sheet.classes?.[0]?.subclass_slug || '')).toBe(OATH.glory)
+    await openFeaturesScene(page, project)
+    await expectFeatureNames(page, [
+      /^Аура рвения/,
+      AURA_PROTECTION,
+      /^Воодушевляющая кара/,
+      CHANNEL,
+      LAY_ON_HANDS,
+    ])
+    await expandAllFeatures(page)
+    await tallShot(page, ARTIFACTS, `${SHOT}-create-at-7-glory-features`, project)
+    expect(store.unmatched).toEqual([])
+  })
+
+  test('create-at-7 ancients: Аура опеки', async ({ page }, testInfo) => {
+    const project = projectOf(testInfo)
+    const { store, sheet } = await createAt(page, project, {
+      name: 'Клятва древних 7',
+      level: 7,
+      subclassSlug: OATH.ancients,
+      fightingStyle: FIGHTING_STYLE_DEFENSE,
+    })
+    expect(String(sheet.classes?.[0]?.subclass_slug || '')).toBe(OATH.ancients)
+    await openFeaturesScene(page, project)
+    await expectFeatureNames(page, [
+      /^Аура опеки/,
+      AURA_PROTECTION,
+      /^Гнев природы/,
+      CHANNEL,
+      LAY_ON_HANDS,
+    ])
+    const warding = await featureCard(page, /^Аура опеки/)
+    await expandCard(warding)
+    await expect(warding).toContainText(/некротическ|психическ|излучен/i)
+    await expect(warding).not.toContainText(/от заклинаний/i)
+    await expandAllFeatures(page)
+    await tallShot(page, ARTIFACTS, `${SHOT}-create-at-7-ancients-features`, project)
+    expect(store.unmatched).toEqual([])
+  })
+
+  test('create-at-20 devotion: Священный нимб capstone', async ({ page }, testInfo) => {
+    const project = projectOf(testInfo)
+    const { store, sheet } = await createAt(page, project, {
+      name: 'Клятва преданности 20',
+      level: 20,
+      subclassSlug: OATH.devotion,
+      fightingStyle: FIGHTING_STYLE_DEFENSE,
+    })
+    expect(sheet.classes?.[0]?.level).toBe(20)
+    await openFeaturesScene(page, project)
+    await expectFeatureNames(page, [
+      /^Священный нимб/,
+      /^Расширение ауры/,
+      RADIANT,
+      /^Восстанавливающее касание/,
+      CHANNEL,
+    ])
+    const nimbus = await featureCard(page, /^Священный нимб/)
+    await expandCard(nimbus)
+    await expect(nimbus.getByRole('button', { name: /Нимб|Применить|Потратить/ }).first()).toBeVisible()
+    await expandAllFeatures(page)
+    await tallShot(page, ARTIFACTS, `${SHOT}-create-at-20-devotion-capstone`, project)
+    expect(store.unmatched).toEqual([])
+  })
+})
+
+/* ------------------------------------------------------------------ */
+/* Restoring Touch (L14 LoH dialog) + Radiant Strikes attack formula   */
+/* ------------------------------------------------------------------ */
+
+test.describe('P24-M02 paladin — Restoring Touch + Radiant Strikes evidence', () => {
+  test.setTimeout(300_000)
+  test.use({ actionTimeout: 15_000 })
+
+  test('create-at-14: LoH dialog shows Restoring Touch condition checkboxes', async ({
+    page,
+  }, testInfo) => {
+    const project = projectOf(testInfo)
+    const { store } = await createAt(page, project, {
+      name: 'Восстанавливающее касание 14',
+      level: 14,
+      subclassSlug: OATH.devotion,
+      fightingStyle: FIGHTING_STYLE_DEFENSE,
+    })
+    await openFeaturesScene(page, project)
+    await expectFeatureNames(page, [/^Восстанавливающее касание/, LAY_ON_HANDS, RADIANT])
+    const dlg = await openLayOnHandsDialog(page)
+    await expect(dlg).toContainText(/Восстанавливающее касание/i)
+    await expect(dlg).toContainText(/Испуганный/)
+    await expect(dlg).toContainText(/Оглохший/)
+    await expect(dlg).toContainText(/Ослеплённый/)
+    await expect(dlg).toContainText(/Очарованный/)
+    await expect(dlg).toContainText(/Ошеломлённый/)
+    await expect(dlg).toContainText(/Парализованный/)
+    await shot(page, ARTIFACTS, `${SHOT}-loh-dialog-restoring-touch-conditions`, project)
+    await cancelDialog(page, dlg)
+    expect(store.unmatched).toEqual([])
+  })
+
+  test('create-at-11: Radiant Strikes in attack formula or feature card', async ({
+    page,
+  }, testInfo) => {
+    const project = projectOf(testInfo)
+    const { store } = await createAt(page, project, {
+      name: 'Сияющие удары формула',
+      level: 11,
+      subclassSlug: OATH.devotion,
+      fightingStyle: FIGHTING_STYLE_DEFENSE,
+    })
+    await openCombatScene(page, project)
+    const body = page.locator('body')
+    const attackText = (await body.innerText()).replace(/\s+/g, ' ')
+    const inAttack =
+      /1к8\s*излучен/i.test(attackText) ||
+      /Сияющие удары/i.test(attackText) ||
+      /\+\s*1к8/i.test(attackText)
+    if (inAttack) {
+      await shot(page, ARTIFACTS, `${SHOT}-radiant-strikes-attack-formula`, project)
+    } else {
+      // Combat scene may not surface the rider until a melee weapon row is expanded;
+      // fall back to the feature card formula text (note in REPORT if combat-only).
+      await openFeaturesScene(page, project)
+      const card = await featureCard(page, RADIANT)
+      await expandCard(card)
+      await expect(card).toContainText(/1к8|излучен/i)
+      await tallShot(page, ARTIFACTS, `${SHOT}-radiant-strikes-feature-card-formula`, project)
+    }
     expect(store.unmatched).toEqual([])
   })
 })
