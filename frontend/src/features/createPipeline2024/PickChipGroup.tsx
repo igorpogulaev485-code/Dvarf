@@ -52,18 +52,18 @@ export function PickChipGroup({
 
   return (
     <Stack gap={8}>
-      <Text
-        as="h3"
-        className="create-pipeline__section-title"
+      <div
         data-testid={
           testIdPrefix === 'p24-m03-pick-mastery'
             ? 'p24-m03-mastery-heading'
             : undefined
         }
       >
-        {label}
-        {max > 0 ? ` (${selected.length}/${max})` : null}
-      </Text>
+        <Text as="h3" className="create-pipeline__section-title">
+          {label}
+          {max > 0 ? ` (${selected.length}/${max})` : null}
+        </Text>
+      </div>
       {hint ? <Text tone="muted">{hint}</Text> : null}
       {searchable ? (
         <Input

@@ -209,8 +209,18 @@ test.describe('P24-M02 ranger — subclasses @5', () => {
       expect(String(picks.primal_companion || picks['primal-companion'] || '')).toMatch(
         new RegExp(type.id, 'i'),
       )
-      const companions = (sheet.companions ?? []) as Array<Record<string, unknown>>
-      const primal = companions.find((row) => String(row.kind || '') === 'primal_companion')
+      // Companion row is client-synced on the sheet; wait for auto-save / draft sync.
+      await waitStored(
+        store,
+        (s) =>
+          ((s.companions ?? []) as Array<Record<string, unknown>>).some(
+            (row) => String(row.kind || '') === 'primal_companion',
+          ),
+      )
+      const live = await storedSheet(store)
+      const primal = ((live.companions ?? []) as Array<Record<string, unknown>>).find(
+        (row) => String(row.kind || '') === 'primal_companion',
+      )
       expect(primal, 'primal_companion on sheet').toBeTruthy()
       await openFeaturesScene(page, project)
       await expectFeatureNames(page, [PRIMAL, FAVORED, EXTRA_ATTACK])

@@ -32,17 +32,33 @@ export function readPrimalCompanionPick2024(input: {
   return isPrimalCompanionType2024(fromOpts) ? fromOpts : null
 }
 
+function normalizeSubclassKey(raw: string): string {
+  return raw
+    .trim()
+    .toLowerCase()
+    .replace(/_/g, '-')
+}
+
 function findBeastMasterRow(
   classes: ClassLevelEntry[],
 ): { classEntryId: string; subclassSlug: string; level: number } | null {
+  const target = normalizeSubclassKey(RANGER_SUBCLASS_SLUGS_2024.beastmaster)
   for (const row of classes) {
-    const slug = String(row.subclass_catalog_id || row.subclass_name || '')
-      .trim()
-      .toLowerCase()
-    if (slug !== RANGER_SUBCLASS_SLUGS_2024.beastmaster) continue
+    const raw = String(row.subclass_catalog_id || row.subclass_name || '').trim()
+    const slug = normalizeSubclassKey(raw)
+    const isBeast =
+      slug === target ||
+      slug.endsWith('beastmaster') ||
+      slug.includes('beast-master') ||
+      /повелитель\s*зверей/i.test(raw)
+    if (!isBeast) continue
     const level = Math.max(1, Math.floor(row.level || 1))
     if (level < 3) continue
-    return { classEntryId: row.id, subclassSlug: slug, level }
+    return {
+      classEntryId: row.id,
+      subclassSlug: RANGER_SUBCLASS_SLUGS_2024.beastmaster,
+      level,
+    }
   }
   return null
 }
