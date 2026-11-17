@@ -85,6 +85,11 @@ ELDRITCH_INVOCATIONS_2024: tuple[InvocationDef, ...] = (
 DIVINE_ORDER_OPTIONS_2024 = frozenset({"protector", "thaumaturge"})
 BLESSED_STRIKES_OPTIONS_2024 = frozenset({"divine_strike", "potent_spellcasting"})
 BLESSED_STRIKES_MIN_LEVEL_2024 = 7
+PRIMAL_ORDER_OPTIONS_2024 = frozenset({"magician", "warden"})
+ELEMENTAL_FURY_OPTIONS_2024 = frozenset({"potent_spellcasting", "primal_strike"})
+ELEMENTAL_FURY_MIN_LEVEL_2024 = 7
+LAND_TERRAINS_2024 = frozenset({"arid", "polar", "temperate", "tropical"})
+LAND_CHOICE_MIN_LEVEL_2024 = 3
 
 INVOCATIONS_BY_ID = {row.id: row for row in ELDRITCH_INVOCATIONS_2024}
 
@@ -567,6 +572,7 @@ def validate_class_options_update(
     sorcerer_lv = _class_level(classes, "sorcerer")
     artificer_lv = _class_level(classes, "artificer")
     cleric_lv = _class_level(classes, "cleric")
+    druid_lv = _class_level(classes, "druid")
 
     src = incoming if isinstance(incoming, Mapping) else {}
     prev = previous if isinstance(previous, Mapping) else {}
@@ -628,6 +634,14 @@ def validate_class_options_update(
         src.get("blessed_strikes") if "blessed_strikes" in src else prev.get("blessed_strikes")
     )
     strikes = str(strikes_src or "").strip().lower()
+    primal_src = src.get("primal_order") if "primal_order" in src else prev.get("primal_order")
+    primal_order = str(primal_src or "").strip().lower()
+    fury_src = (
+        src.get("elemental_fury") if "elemental_fury" in src else prev.get("elemental_fury")
+    )
+    elemental_fury = str(fury_src or "").strip().lower()
+    land_src = src.get("land_choice") if "land_choice" in src else prev.get("land_choice")
+    land_choice = str(land_src or "").strip().lower()
 
     result: dict[str, Any] = {
         "eldritch_invocations": invocations,
@@ -698,6 +712,18 @@ def validate_class_options_update(
         and strikes in BLESSED_STRIKES_OPTIONS_2024
     ):
         result["blessed_strikes"] = strikes
+    if druid_lv and primal_order in PRIMAL_ORDER_OPTIONS_2024:
+        result["primal_order"] = primal_order
+    if (
+        druid_lv >= ELEMENTAL_FURY_MIN_LEVEL_2024
+        and elemental_fury in ELEMENTAL_FURY_OPTIONS_2024
+    ):
+        result["elemental_fury"] = elemental_fury
+    if (
+        druid_lv >= LAND_CHOICE_MIN_LEVEL_2024
+        and land_choice in LAND_TERRAINS_2024
+    ):
+        result["land_choice"] = land_choice
     return result
 
 

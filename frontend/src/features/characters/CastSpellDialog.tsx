@@ -261,6 +261,8 @@ type CastSpellDialogProps = {
   warlockLevel?: number
   /** 2024 Cleric Potent Spellcasting: +Wis to cleric cantrip damage (0 = off). */
   potentSpellcastingBonus?: number
+  /** Class that holds Potent Spellcasting (cleric by default, druid for Elemental Fury). */
+  potentSpellcastingClass?: 'cleric' | 'druid'
   /** Feature / ki pools, for cards that do not spend a spell slot. */
   resources?: SheetResource[]
   /** T-02: выбранные варианты метамагии чародея (id из sorcererMetamagic). */
@@ -311,6 +313,7 @@ export function CastSpellDialog({
   knownInvocationIds = [],
   warlockLevel,
   potentSpellcastingBonus = 0,
+  potentSpellcastingClass = 'cleric',
   resources,
   metamagicIds = [],
   initialMetamagicId = null,
@@ -709,7 +712,10 @@ export function CastSpellDialog({
       if (
         potentSpellcastingBonus > 0 &&
         spell &&
-        isPotentSpellcastingCantrip2024({ level: rulesSpell.level, class_slug: spell.class_slug })
+        isPotentSpellcastingCantrip2024(
+          { level: rulesSpell.level, class_slug: spell.class_slug },
+          potentSpellcastingClass,
+        )
       ) {
         const effect = applyPotentSpellcastingToDamage2024(summary.effect, potentSpellcastingBonus)
         return {
@@ -766,6 +772,7 @@ export function CastSpellDialog({
     elementalAffinity,
     knownInvocationIds,
     potentSpellcastingBonus,
+    potentSpellcastingClass,
     abilities,
     castProfiles,
     proficiencyBonus,

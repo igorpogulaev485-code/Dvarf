@@ -223,4 +223,23 @@ assert(
   'missing forms have fallbacks',
 )
 
+/* P24-M02 druid: edition switch must not touch the 2014 table. */
+{
+  const base = wildShapeLimits({ druidLevel: 2, subclassSlug: null })
+  const explicit2014 = wildShapeLimits({ druidLevel: 2, subclassSlug: null, rulesEdition: '2014' })
+  assert(JSON.stringify(base) === JSON.stringify(explicit2014), '2014 explicit == default')
+  assert(!base.allowSwim && base.tempHp === undefined, '2014 L2 no swim, no temp hp')
+  const l2 = wildShapeLimits({ druidLevel: 2, subclassSlug: null, rulesEdition: '2024' })
+  assert(l2.maxCr === 0.25 && l2.allowSwim && !l2.allowFly, '2024 L2 swim from the start')
+  assert(l2.tempHp === 2 && l2.knownForms === 4 && l2.keepOwnHp === true, '2024 L2 temp hp / forms')
+  const l8 = wildShapeLimits({ druidLevel: 8, subclassSlug: null, rulesEdition: '2024' })
+  assert(l8.maxCr === 1 && l8.allowFly && l8.knownForms === 8, '2024 L8 fly CR 1')
+  const moon9 = wildShapeLimits({
+    druidLevel: 9,
+    subclassSlug: 'druid__moon',
+    rulesEdition: '2024',
+  })
+  assert(moon9.moon && moon9.maxCr === 3 && moon9.tempHp === 27, '2024 moon 9')
+}
+
 console.log('pack07Druid.selfcheck: ok')

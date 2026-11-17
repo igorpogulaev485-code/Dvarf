@@ -892,6 +892,11 @@ def _validate_spells(payload: Create2024Payload) -> dict[str, Any]:
         order_raw = (payload.class_option_picks or {}).get("divine_order")
         if str(order_raw or "").lower() == "thaumaturge":
             cantrip_need += 1
+    # Magician Primal Order: +1 Druid cantrip beyond the table column.
+    if payload.class_slug == "druid":
+        order_raw = (payload.class_option_picks or {}).get("primal_order")
+        if str(order_raw or "").lower() == "magician":
+            cantrip_need += 1
     prep_need = int(block.prepared_spells or 0)
     cantrips = [_normalize_slug(x) for x in payload.cantrip_ids]
     prepared = [_normalize_slug(x) for x in payload.prepared_spell_ids]
@@ -1029,6 +1034,49 @@ def _sync_blessed_strikes_pick(sheet: dict[str, Any]) -> None:
         return
 
 
+def _sync_elemental_fury_pick(sheet: dict[str, Any]) -> None:
+    """Mirror class_options_2024.elemental_fury into feature_picks for the druid row."""
+    options = sheet.get("class_options_2024")
+    pick = str((options or {}).get("elemental_fury") or "").strip().lower()
+    if pick not in e24opt.ELEMENTAL_FURY_OPTIONS_2024:
+        return
+    for row in sheet.get("classes") or []:
+        if not isinstance(row, dict):
+            continue
+        if e24.normalize_class_slug(str(row.get("slug") or "")) != "druid":
+            continue
+        if int(row.get("level") or 0) < e24opt.ELEMENTAL_FURY_MIN_LEVEL_2024:
+            return
+        entry_id = str(row.get("id") or "class-druid")
+        picks = sheet.get("feature_picks")
+        values = dict(picks.get("values") or {}) if isinstance(picks, dict) else {}
+        values[f"{entry_id}:elemental_fury"] = pick
+        values[f"{entry_id}:elemental-fury"] = pick
+        sheet["feature_picks"] = {"values": values}
+        return
+
+
+def _sync_land_choice_pick(sheet: dict[str, Any]) -> None:
+    """Mirror class_options_2024.land_choice into feature_picks (circle_spells_land)."""
+    options = sheet.get("class_options_2024")
+    land = str((options or {}).get("land_choice") or "").strip().lower()
+    if land not in e24opt.LAND_TERRAINS_2024:
+        return
+    for row in sheet.get("classes") or []:
+        if not isinstance(row, dict):
+            continue
+        if e24.normalize_class_slug(str(row.get("slug") or "")) != "druid":
+            continue
+        if int(row.get("level") or 0) < e24opt.LAND_CHOICE_MIN_LEVEL_2024:
+            return
+        entry_id = str(row.get("id") or "class-druid")
+        picks = sheet.get("feature_picks")
+        values = dict(picks.get("values") or {}) if isinstance(picks, dict) else {}
+        values[f"{entry_id}:circle_spells_land"] = land
+        sheet["feature_picks"] = {"values": values}
+        return
+
+
 def _validate_class_options(payload: Create2024Payload) -> dict[str, Any]:
     picks = dict(payload.class_option_picks or {})
     out: dict[str, Any] = {}
@@ -1054,10 +1102,26 @@ def _validate_class_options(payload: Create2024Payload) -> dict[str, Any]:
         order = str(picks.get("primal_order") or "").lower()
         if order not in PRIMAL_ORDER_OPTIONS:
             raise Create2024Error(
-                "Друид: выберите Изначальный указ (magician/warden)",
+                "Друид: выберите Природный орден (magician/warden)",
                 code="create_2024_class_options",
             )
         out["primal_order"] = order
+        druid_level = _planned_class_level(payload, "druid")
+        fury = str(picks.get("elemental_fury") or "").lower()
+        if druid_level >= e24opt.ELEMENTAL_FURY_MIN_LEVEL_2024:
+            if fury not in e24opt.ELEMENTAL_FURY_OPTIONS_2024:
+                raise Create2024Error(
+                    "Друид 7+: выберите Ярость стихий "
+                    "(potent_spellcasting/primal_strike)",
+                    code="create_2024_class_options",
+                )
+            out["elemental_fury"] = fury
+        land = str(picks.get("land_choice") or "").lower()
+        if (
+            druid_level >= e24opt.LAND_CHOICE_MIN_LEVEL_2024
+            and land in e24opt.LAND_TERRAINS_2024
+        ):
+            out["land_choice"] = land
     if payload.class_slug == "rogue":
         expertise = [str(x) for x in (picks.get("expertise") or [])]
         if len(expertise) != 2 or len(set(expertise)) != 2:
@@ -1329,6 +1393,8 @@ def validate_create_2024(payload: Create2024Payload) -> Create2024Result:
         )
         final_level = sum(r.level for r in levels_plan.class_levels)
     _sync_blessed_strikes_pick(sheet)
+    _sync_elemental_fury_pick(sheet)
+    _sync_land_choice_pick(sheet)
 
     # Class name line: primary + multiclass summary.
     class_name = str(class_row.get("name_ru") or class_slug)
@@ -1713,6 +1779,14 @@ def _build_sheet(
     if payload.class_slug == "cleric" and divine_order == "protector":
         weapons_prof = {**weapons_prof, "martial": True}
         armor = list(armor) + (["heavy"] if "heavy" not in armor and "all" not in armor else [])
+    # Primal Order (Druid 2024): Warden adds martial weapons + medium armor.
+    # Never grant weapon mastery or heavy armor from this order.
+    primal_order = str((class_options or {}).get("primal_order") or "").lower()
+    if payload.class_slug == "druid" and primal_order == "warden":
+        weapons_prof = {**weapons_prof, "martial": True}
+        armor = list(armor) + (
+            ["medium"] if "medium" not in armor and "all" not in armor else []
+        )
     sheet["proficiency"] = {
         "bonus": 2,
         "armor": {
@@ -1990,6 +2064,12 @@ def _build_sheet(
         options_sheet["divine_order"] = str(class_options["divine_order"])
     if class_options.get("blessed_strikes"):
         options_sheet["blessed_strikes"] = str(class_options["blessed_strikes"])
+    if class_options.get("primal_order"):
+        options_sheet["primal_order"] = str(class_options["primal_order"])
+    if class_options.get("elemental_fury"):
+        options_sheet["elemental_fury"] = str(class_options["elemental_fury"])
+    if class_options.get("land_choice"):
+        options_sheet["land_choice"] = str(class_options["land_choice"])
     sheet["class_options_2024"] = options_sheet
 
     sheet["create_2024"] = {

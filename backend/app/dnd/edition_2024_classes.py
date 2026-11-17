@@ -891,6 +891,9 @@ def _spellcasting_for_class(
             free.append("divine-smite")
         if "magic-of-making" in unlocked_ids and "mending" not in free:
             free.append("mending")
+        # Druidic (2024): always prepared Speak with Animals.
+        if "druidic" in unlocked_ids and "speak-with-animals" not in free:
+            free.append("speak-with-animals")
 
     return SpellcastingBlock(
         class_slug=slug,

@@ -3,6 +3,11 @@ import assert from 'node:assert/strict'
 import * as druid from './druid2024Features'
 import {
   applyDruid2024FeatureUse,
+  druid2024CardFormulaRu,
+  landChoiceByEntryId2024,
+  landTerrainChoice2024,
+  potentSpellcastingForSheet2024,
+  resetDruid2024PicksOnLongRestAll,
   ARCHDRUID_NAME_RU,
   BEAST_SPELLS_NAME_RU,
   beastSpellsActive2024,
@@ -19,6 +24,7 @@ import {
   magicianExtraCantrips2024,
   magicianSkillBonus2024,
   moonMaxCr2024,
+  EVERGREEN_WILD_SHAPE_NAME_RU,
   NATURE_MAGICIAN_NAME_RU,
   potentSpellcastingCantripBonus2024,
   potentSpellcastingRangeBonusFt2024,
@@ -43,6 +49,7 @@ import {
   wildShapeTempHp2024,
   wildShapeUsesMax2024,
   wrathOfTheSeaFormulaRu2024,
+  WRATH_OF_THE_SEA_NAME_RU,
   WILD_RESURGENCE_NAME_RU,
   WILD_SHAPE_NAME_RU,
 } from './druid2024Features'
@@ -64,7 +71,9 @@ assert.equal(POTENT_SPELLCASTING_NAME_RU, 'Мощные заклинания')
 assert.equal(PRIMAL_STRIKE_NAME_RU, 'Природный удар')
 assert.equal(BEAST_SPELLS_NAME_RU, 'Звериные заклинания')
 assert.equal(ARCHDRUID_NAME_RU, 'Архидруид')
-assert.equal(NATURE_MAGICIAN_NAME_RU, 'Природный маг')
+assert.equal(NATURE_MAGICIAN_NAME_RU, 'Природный ворожей')
+assert.equal(EVERGREEN_WILD_SHAPE_NAME_RU, 'Неувядающий дикий облик')
+assert.equal(WRATH_OF_THE_SEA_NAME_RU, 'Гнев морей')
 assert.equal(LONGEVITY_NAME_RU, 'Долголетие')
 
 /* 2014 names must not leak into the 2024 module */
@@ -427,5 +436,89 @@ assert.ok(chalice.ok && chalice.feedLineRu.includes('1к8+4'))
   assert.equal(spendWildShapeUse2024([pool('wild_shape', 2, 2)], ENTRY).ok, false)
   assert.equal(spendWildShapeUse2024([], ENTRY).ok, false)
 }
+
+/* Card formulas, land terrain choice, long-rest upkeep */
+assert.equal(druid2024CardFormulaRu({ featureId: 'lands_aid', druidLevel: 10, wisMod: 3 }), '3к6')
+assert.equal(druid2024CardFormulaRu({ featureId: 'wrath-of-the-sea', druidLevel: 3, wisMod: 0 }), '1к6')
+assert.equal(
+  druid2024CardFormulaRu({
+    featureId: 'elemental_fury',
+    druidLevel: 15,
+    wisMod: 3,
+    elementalFury: 'primal_strike',
+  }),
+  '2к8',
+)
+assert.equal(
+  druid2024CardFormulaRu({
+    featureId: 'elemental_fury',
+    druidLevel: 15,
+    wisMod: 3,
+    elementalFury: 'potent_spellcasting',
+  }),
+  '',
+)
+assert.deepEqual(landTerrainChoice2024.options, ['arid', 'polar', 'temperate', 'tropical'])
+assert.equal(landTerrainChoice2024.id, 'circle_spells_land')
+{
+  const picks = setFeaturePick({ values: {} }, ENTRY, 'circle_spells_land', 'polar')
+  assert.deepEqual(landChoiceByEntryId2024([{ id: ENTRY }, { id: 'other' }], picks), {
+    [ENTRY]: 'polar',
+    other: null,
+  })
+  assert.equal(
+    landChoiceByEntryId2024([{ id: ENTRY }], { values: {} }, { land_choice: 'tropical' })[ENTRY],
+    'tropical',
+  )
+  assert.equal(landChoiceByEntryId2024([{ id: ENTRY }], setFeaturePick({ values: {} }, ENTRY, 'circle_spells_land', 'arctic'))[ENTRY], null)
+  const locked = setFeaturePick(
+    setFeaturePick({ values: {} }, ENTRY, 'wild_resurgence_slot_used', 'on'),
+    ENTRY,
+    'nature_magician_spent',
+    'on',
+  )
+  assert.deepEqual(resetDruid2024PicksOnLongRestAll(locked), { values: {} })
+}
+{
+  const nm = applyDruid2024FeatureUse({
+    featureId: 'nature-magician',
+    resourceId: null,
+    resources: [pool('wild_shape', 2, 0)],
+    classEntryId: ENTRY,
+    druidLevel: 20,
+    usesToConvert: 1,
+    featurePicks: { values: {} },
+  })
+  assert.ok(nm.ok)
+  assert.equal(nm.patches?.featurePicks?.values[`${ENTRY}:nature_magician_spent`], 'on')
+  const again = applyDruid2024FeatureUse({
+    featureId: 'nature-magician',
+    resourceId: null,
+    resources: [pool('wild_shape', 2, 0)],
+    classEntryId: ENTRY,
+    druidLevel: 20,
+    usesToConvert: 1,
+    featurePicks: nm.patches?.featurePicks,
+  })
+  assert.equal(again.ok, false)
+}
+assert.deepEqual(
+  potentSpellcastingForSheet2024({
+    rulesEdition: '2024',
+    classes: [{ id: ENTRY, name: 'Друид', level: 7 }],
+    featurePicks: setFeaturePick({ values: {} }, ENTRY, 'elemental_fury', 'potent_spellcasting'),
+    wisScore: 16,
+  }),
+  { bonus: 3, classSlug: 'druid' },
+)
+assert.equal(
+  potentSpellcastingForSheet2024({
+    rulesEdition: '2014',
+    classes: [{ id: ENTRY, name: 'Друид', level: 7 }],
+    featurePicks: setFeaturePick({ values: {} }, ENTRY, 'elemental_fury', 'potent_spellcasting'),
+    wisScore: 16,
+  }).bonus,
+  0,
+)
 
 console.log('druid2024Features.selfcheck: ok')

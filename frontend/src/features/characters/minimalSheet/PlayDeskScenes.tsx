@@ -118,7 +118,7 @@ import {
   wizard2024Flags,
 } from '../../../shared/dnd/wizard2024Features'
 import { getFeaturePick } from '../../../shared/dnd/featurePicks'
-import { potentSpellcastingBonusForSheet2024 } from '../../../shared/dnd/cleric2024Features'
+import { potentSpellcastingForSheet2024 } from '../../../shared/dnd/druid2024Features'
 import { elementalAffinityPreview } from '../../../shared/dnd/pack04SorcererWarlock'
 import { collectWarlockInvocationIds } from '../../../shared/dnd/o06StylesBreathInvocations'
 import { totalCharacterLevel } from '../../../shared/dnd/classLevels'
@@ -132,6 +132,13 @@ type DeskTransferMode =
     }
 
 export function PlayDeskScenes({ model }: { model: SheetModel }) {
+  const potentSheet = potentSpellcastingForSheet2024({
+    rulesEdition: model.rulesEdition,
+    classes: model.draft.classes,
+    featurePicks: model.draft.featurePicks,
+    classOptions: model.draft.classOptions2024,
+    wisScore: model.effectiveAbilities?.wis ?? model.draft.abilities.wis,
+  })
   const [masteryNickUsed, setMasteryNickUsed] = useState(false)
   const [masteryCleaveUsed, setMasteryCleaveUsed] = useState(false)
   const [divineSmiteIntent, setDivineSmiteIntent] = useState<DivineSmiteIntent>({
@@ -1592,6 +1599,7 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
         onMonkFeatureUse={(request) => model.setMonkFeatureUse(request)}
         onWarlockFeatureUse={(request) => model.setWarlockFeatureUse(request)}
         onClericFeatureUse={(request) => model.setClericFeatureUse(request)}
+        onDruidFeatureUse={(request) => model.setDruidFeatureUse(request)}
         onSorceryPointsSpend={(resourceId) => model.setSorcerySpendId(resourceId)}
         onMoonFormSlotHeal={({ slotLevel, diceCount, diceSize }) => {
           const form = model.draft.companions.find(
@@ -1643,13 +1651,8 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
               model.draft.classes.find((row) => /колдун|warlock/i.test(row.name))?.level ??
               model.characterLevel
             }
-            potentSpellcastingBonus={potentSpellcastingBonusForSheet2024({
-              rulesEdition: model.rulesEdition,
-              classes: model.draft.classes,
-              featurePicks: model.draft.featurePicks,
-              classOptions: model.draft.classOptions2024,
-              wisScore: model.effectiveAbilities?.wis ?? model.draft.abilities.wis,
-            })}
+            potentSpellcastingBonus={potentSheet.bonus}
+            potentSpellcastingClass={potentSheet.classSlug}
             improvedIllusions={
               model.rulesEdition === '2024' &&
               wizard2024Flags(

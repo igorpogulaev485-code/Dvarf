@@ -62,6 +62,12 @@ import {
   thaumaturgeSkillBonus2024,
 } from '../../../shared/dnd/cleric2024Features'
 import {
+  landChoiceByEntryId2024,
+  magicianSkillBonus2024,
+  PRIMAL_ORDER_MAGICIAN,
+  readPrimalOrder2024,
+} from '../../../shared/dnd/druid2024Features'
+import {
   computeProgression2024,
   snapshotToSheetFragment2024,
 } from '../../../shared/dnd/edition2024Classes'
@@ -775,6 +781,17 @@ export function useSheetEditorPart3(model: SheetModel) {
             return thaumaturgeSkillBonus2024(wisMod)
           })()
         : null
+    const magicianBonus =
+      model.rulesEdition === '2024'
+        ? (() => {
+            const order =
+              readPrimalOrder2024(model.draft.classOptions2024) ??
+              readPrimalOrder2024(model.draft.featurePicks)
+            if (order !== PRIMAL_ORDER_MAGICIAN) return null
+            const wisMod = Math.floor(((effectiveAbilities.wis ?? 10) - 10) / 2)
+            return magicianSkillBonus2024(wisMod)
+          })()
+        : null
     for (const skill of SKILL_DEFS) {
       const state = model.draft.skills[skill.key]
       const proficient = Boolean(state?.is_proficient || state?.is_expertise)
@@ -793,6 +810,10 @@ export function useSheetEditorPart3(model: SheetModel) {
       if (thaumaturgeBonus) {
         if (skill.key === 'arcana') thaum = thaumaturgeBonus.arcana
         if (skill.key === 'religion') thaum = thaumaturgeBonus.religion
+      }
+      if (magicianBonus) {
+        if (skill.key === 'arcana') thaum += magicianBonus.arcana
+        if (skill.key === 'nature') thaum += magicianBonus.nature
       }
       const total = athlete + courtier + thaum
       if (total) out[skill.key] = total
@@ -1108,6 +1129,11 @@ export function useSheetEditorPart3(model: SheetModel) {
           const progress = computeProgression2024({
             classes: draftSnap.classes,
             abilities: draftSnap.abilities,
+            landChoiceByEntryId: landChoiceByEntryId2024(
+              draftSnap.classes,
+              draftSnap.featurePicks,
+              draftSnap.classOptions2024,
+            ),
           })
           const fragment = snapshotToSheetFragment2024(progress) as {
             resources?: Array<Record<string, unknown>>

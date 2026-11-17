@@ -83,6 +83,13 @@ import type { SorcererFeatureRequest } from './SorcererFeatureUseDialog'
 import type { MonkFeatureRequest } from './Monk2024UseDialog'
 import type { WarlockFeatureRequest } from './Warlock2024UseDialog'
 import type { ClericFeatureRequest } from './Cleric2024UseDialog'
+import type { DruidFeatureRequest } from './Druid2024UseDialog'
+import {
+  DRUID_2024_CARD_BUTTONS,
+  druid2024CardFormulaRu,
+  druid2024UseFeatureId,
+  readElementalFury2024,
+} from '../../shared/dnd/druid2024Features'
 import {
   FLEXIBLE_CASTING_SLOT_COST,
   isTceMetamagic,
@@ -246,6 +253,7 @@ type ClassFeaturesPanelProps = {
   onMonkFeatureUse?: (request: MonkFeatureRequest) => void
   onWarlockFeatureUse?: (request: WarlockFeatureRequest) => void
   onClericFeatureUse?: (request: ClericFeatureRequest) => void
+  onDruidFeatureUse?: (request: DruidFeatureRequest) => void
   /** Open sorcery-points spend dialog (2024 metamagic / font). */
   onSorceryPointsSpend?: (resourceId: string) => void
   /**
@@ -421,6 +429,7 @@ function FeatureResourceControls({
   onMonkFeatureUse,
   onWarlockFeatureUse,
   onClericFeatureUse,
+  onDruidFeatureUse,
   onFeatureBuffApply,
   moonCombatWildShape = false,
   scaleText = null,
@@ -445,6 +454,7 @@ function FeatureResourceControls({
   onMonkFeatureUse?: (request: MonkFeatureRequest) => void
   onWarlockFeatureUse?: (request: WarlockFeatureRequest) => void
   onClericFeatureUse?: (request: ClericFeatureRequest) => void
+  onDruidFeatureUse?: (request: DruidFeatureRequest) => void
   onFeatureBuffApply?: ClassFeaturesPanelProps['onFeatureBuffApply']
   /** Circle of the Moon: Wild Shape is a bonus action. */
   moonCombatWildShape?: boolean
@@ -706,8 +716,14 @@ function FeatureResourceControls({
   const lockedBySuccess = Boolean(successLock) && pool.reset === 'manual' && pool.used > 0
   const blockedByHeavyArmor =
     Boolean(resource.blocked_while_heavy_armor) && wearingHeavyArmor
+  const opensDruid2024Dialog =
+    edition === '2024' &&
+    feature.id !== 'wild_shape' &&
+    druid2024UseFeatureId(feature.id) != null
   const opensWildShapeFork =
-    Boolean(onWildShapeFork) && isWildShapeForkFeature(feature.id)
+    Boolean(onWildShapeFork) &&
+    isWildShapeForkFeature(feature.id) &&
+    !(opensDruid2024Dialog && onDruidFeatureUse)
   // Fork spends wild_shape (own pool or linked); enable when that currency remains.
   const wildShapePoolForFork =
     poolId === 'wild_shape'
@@ -909,6 +925,23 @@ function FeatureResourceControls({
             }
           >
             {CLERIC_2024_CARD_BUTTONS[feature.id] ?? 'Применить…'}
+          </Button>
+        ) : edition === '2024' &&
+          onDruidFeatureUse &&
+          opensDruid2024Dialog ? (
+          <Button
+            type="button"
+            onClick={() =>
+              onDruidFeatureUse({
+                featureId: feature.id,
+                resourceId: pool.id,
+                classSlug,
+                classEntryId: feature.classEntryId,
+                name: feature.name_ru,
+              })
+            }
+          >
+            {DRUID_2024_CARD_BUTTONS[feature.id] ?? 'Применить…'}
           </Button>
         ) : isPack03CustomSpend(feature.id) ||
           pack04CustomSpendFeature(feature.id) ||
@@ -2164,6 +2197,7 @@ function FeatureRow({
   onMonkFeatureUse,
   onWarlockFeatureUse,
   onClericFeatureUse,
+  onDruidFeatureUse,
   onSorceryPointsSpend,
   moonCombatWildShape = false,
   onMoonFormSlotHeal,
@@ -2218,6 +2252,7 @@ function FeatureRow({
   onMonkFeatureUse?: (request: MonkFeatureRequest) => void
   onWarlockFeatureUse?: (request: WarlockFeatureRequest) => void
   onClericFeatureUse?: (request: ClericFeatureRequest) => void
+  onDruidFeatureUse?: (request: DruidFeatureRequest) => void
   onSorceryPointsSpend?: (resourceId: string) => void
   moonCombatWildShape?: boolean
   onMoonFormSlotHeal?: (input: {
@@ -2304,7 +2339,19 @@ function FeatureRow({
     : (Boolean(feature.choice) && !isFeatureChoiceComplete(feature, featurePicks)) ||
       tomeCantripsPending
 
-  const scaleShown = moonShapeScale(feature, unlockedFeatures) ?? feature.scaleValue
+  const druidFormula2024 =
+    edition === '2024'
+      ? druid2024CardFormulaRu({
+          featureId: feature.id,
+          druidLevel: feature.classLevel,
+          wisMod: Math.floor(((wisdomScore ?? 10) - 10) / 2),
+          elementalFury: readElementalFury2024(featurePicks, feature.classEntryId),
+        })
+      : ''
+  const scaleShown =
+    druidFormula2024 ||
+    (moonShapeScale(feature, unlockedFeatures, edition === '2024' ? '2024' : '2014') ??
+      feature.scaleValue)
 
   const classRow = classes.find((row) => row.id === feature.classEntryId)
   const subclassFromPeers =
@@ -2628,6 +2675,29 @@ function FeatureRow({
         </div>
       ) : null}
       {replacementStatus === 'active' &&
+      edition === '2024' &&
+      onDruidFeatureUse &&
+      !feature.resource?.pool_id &&
+      feature.id !== 'wild_shape' &&
+      druid2024UseFeatureId(feature.id) ? (
+        <div className="feature-resource__actions">
+          <Button
+            type="button"
+            onClick={() =>
+              onDruidFeatureUse({
+                featureId: feature.id,
+                resourceId: null,
+                classSlug,
+                classEntryId: feature.classEntryId,
+                name: feature.name_ru,
+              })
+            }
+          >
+            {DRUID_2024_CARD_BUTTONS[feature.id] ?? 'Применить…'}
+          </Button>
+        </div>
+      ) : null}
+      {replacementStatus === 'active' &&
       onWizardFeatureUse &&
       (feature.id === 'minor_conjuration' || feature.id === 'command_undead') ? (
         <div className="feature-resource__actions">
@@ -2766,6 +2836,7 @@ function FeatureRow({
           onMonkFeatureUse={onMonkFeatureUse}
           onWarlockFeatureUse={onWarlockFeatureUse}
           onClericFeatureUse={onClericFeatureUse}
+          onDruidFeatureUse={onDruidFeatureUse}
           onFeatureBuffApply={onFeatureBuffApply}
           moonCombatWildShape={moonCombatWildShape}
           scaleText={scaleShown}
@@ -2982,6 +3053,7 @@ export function ClassFeaturesPanel({
   onMonkFeatureUse,
   onWarlockFeatureUse,
   onClericFeatureUse,
+  onDruidFeatureUse,
   onSorceryPointsSpend,
   onMoonFormSlotHeal,
   divineSmiteIntent,
@@ -3564,6 +3636,7 @@ export function ClassFeaturesPanel({
                             onMonkFeatureUse={onMonkFeatureUse}
                             onWarlockFeatureUse={onWarlockFeatureUse}
                             onClericFeatureUse={onClericFeatureUse}
+                            onDruidFeatureUse={onDruidFeatureUse}
                             onSorceryPointsSpend={onSorceryPointsSpend}
                             moonCombatWildShape={moonCombatWildShape}
                             onMoonFormSlotHeal={onMoonFormSlotHeal}

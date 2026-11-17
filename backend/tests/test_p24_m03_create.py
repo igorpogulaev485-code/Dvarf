@@ -218,7 +218,7 @@ def _class_option_picks(class_slug: str, class_skills: list[str]) -> dict:
     if class_slug == "cleric":
         return {"divine_order": "protector"}
     if class_slug == "druid":
-        return {"primal_order": "magician"}
+        return {"primal_order": "warden"}
     if class_slug == "rogue":
         return {"expertise": class_skills[:2]}
     if class_slug == "warlock":

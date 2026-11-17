@@ -8,6 +8,7 @@
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { LAND_TERRAINS_2024, type LandTerrain2024 } from '../shared/dnd/druid2024Features'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { AbilitiesStep } from '../features/createPipeline/AbilitiesStep'
 import { CatalogCardList, type CatalogCardItem } from '../features/createPipeline/CatalogCardList'
@@ -1216,6 +1217,14 @@ export function CreateCharacter2024Page({
             }
             onElementalFuryChange={(pick) =>
               patch({ classOptionPicks: { ...state.classOptionPicks, elemental_fury: pick } })
+            }
+            landChoicePick={
+              LAND_TERRAINS_2024.some((row) => row.id === state.classOptionPicks.land_choice)
+                ? (state.classOptionPicks.land_choice as LandTerrain2024)
+                : null
+            }
+            onLandChoiceChange={(pick) =>
+              patch({ classOptionPicks: { ...state.classOptionPicks, land_choice: pick } })
             }
             onOpenSpells={() => {
               setSpellTab(wizardBook ? 'book' : 'cantrips')

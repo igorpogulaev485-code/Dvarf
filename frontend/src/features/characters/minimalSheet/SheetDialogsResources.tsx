@@ -66,6 +66,9 @@ import {
   cleric2024UseFeatureId,
   type Cleric2024UseResult,
 } from '../../../shared/dnd/cleric2024Features'
+import { Druid2024UseDialog, type DruidFeatureRequest, type Druid2024ConfirmResult } from '../Druid2024UseDialog'
+import { druid2024UseFeatureId } from '../../../shared/dnd/druid2024Features'
+import { applyStarryForm } from '../wildShape'
 import { applyLongRestFeaturePicks2024 } from '../../../shared/dnd/rest2024'
 import { chooseTempHpPool } from '../../../shared/dnd/activeEffects'
 import { resolveClassCasterSlug, warlockLevels } from '../../../shared/dnd/casterProgression'
@@ -314,6 +317,59 @@ export function SheetDialogsResources({ model }: { model: SheetModel }) {
     }))
     model.onToast(result.feedLineRu)
     model.setClericFeatureUse(null)
+  }
+
+  const onDruidUseConfirm = (result: Druid2024ConfirmResult) => {
+    if (!result.ok) {
+      model.onToast(result.message ?? 'Не удалось применить умение')
+      return
+    }
+    const patches = result.patches
+    const request = model.druidFeatureUse as DruidFeatureRequest | null
+    const starry = result.featureId === 'starry-form' && result.starryForm
+    model.setDraft((prev) => {
+      let slots = prev.spells.slots
+      if (patches?.spendSlotLevel) {
+        const key = String(patches.spendSlotLevel)
+        const row = slots[key]
+        if (row) slots = { ...slots, [key]: { ...row, used: Math.min(row.max, row.used + 1) } }
+      }
+      if (patches?.gainSlotLevel) {
+        const key = String(patches.gainSlotLevel)
+        const row = slots[key]
+        if (row) slots = { ...slots, [key]: { ...row, used: Math.max(0, row.used - 1) } }
+      }
+      const druidRow = request
+        ? prev.classes.find((row) => row.id === request.classEntryId)
+        : null
+      return {
+        ...prev,
+        ...(patches?.featurePicks ? { featurePicks: patches.featurePicks } : {}),
+        ...(starry
+          ? {
+              companions: applyStarryForm({
+                companions: prev.companions,
+                constellation: result.starryForm as 'archer' | 'chalice' | 'dragon',
+                hostHp: prev.hpCurrent ?? 0,
+                hostHpMax: prev.hpMax ?? 0,
+                druidLevel: druidRow?.level ?? model.druidLevel,
+              }),
+            }
+          : {}),
+        spells: slots === prev.spells.slots ? prev.spells : { ...prev.spells, slots },
+        play: { ...prev.play, resources: result.resources },
+      }
+    })
+    if (starry && typeof model.applyFeatureBuff === 'function') {
+      void model.applyFeatureBuff({
+        slug: `starry_form_${result.starryForm}`,
+        name: 'Звёздный облик',
+        classLevel: model.druidLevel,
+        option: result.starryForm,
+      })
+    }
+    model.onToast(result.feedLineRu)
+    model.setDruidFeatureUse(null)
   }
 
   const [wizardCantripCatalog, setWizardCantripCatalog] = useState<SheetSpell[]>([])
@@ -571,6 +627,15 @@ export function SheetDialogsResources({ model }: { model: SheetModel }) {
     }
     return level
   })()
+
+  const druidRequest = model.druidFeatureUse as DruidFeatureRequest | null
+  const druid2024Use =
+    model.rulesEdition === '2024' &&
+    druidRequest != null &&
+    druid2024UseFeatureId(druidRequest.featureId)
+  const druidRequestRow = druidRequest
+    ? model.draft.classes.find((row) => row.id === druidRequest.classEntryId)
+    : null
 
   const warlockLevel = warlockLevels(model.draft.classes)
 
@@ -943,6 +1008,7 @@ export function SheetDialogsResources({ model }: { model: SheetModel }) {
           hostHp={model.draft.hpCurrent ?? 0}
           hostHpMax={model.draft.hpMax ?? 0}
           edition={model.rulesEdition === '2024' ? '2024' : '2014'}
+          wisMod={abilityModifier(model.draft.abilities.wis)}
           featurePicks={model.draft.featurePicks}
           onConfirm={(result) => {
             model.applyWildShapeResult(result)
@@ -1029,6 +1095,22 @@ export function SheetDialogsResources({ model }: { model: SheetModel }) {
           wisMod={abilityModifier(model.draft.abilities.wis)}
           onClose={() => model.setClericFeatureUse(null)}
           onConfirm={onClericUseConfirm}
+        />
+      ) : null}
+
+      {druid2024Use ? (
+        <Druid2024UseDialog
+          key={`${druidRequest?.featureId}:${druidRequest?.classEntryId}`}
+          open
+          request={druidRequest}
+          resources={model.draft.play.resources}
+          slots={model.draft.spells.slots}
+          featurePicks={model.draft.featurePicks}
+          druidLevel={Math.max(0, druidRequestRow?.level ?? model.druidLevel ?? 0)}
+          wisMod={abilityModifier(model.draft.abilities.wis)}
+          subclassSlug={model.subclassSlugByEntryId?.[druidRequest?.classEntryId ?? ''] ?? model.druidSubclassSlug}
+          onClose={() => model.setDruidFeatureUse(null)}
+          onConfirm={onDruidUseConfirm}
         />
       ) : null}
 

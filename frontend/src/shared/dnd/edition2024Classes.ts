@@ -21,7 +21,7 @@ import {
   DIVINE_SPARK_FEATURE_ID,
   divineSparkFormulaRu2024,
 } from './cleric2024Features'
-import { elementalFuryChoice2024 } from './druid2024Features'
+import { elementalFuryChoice2024, landTerrainChoice2024 } from './druid2024Features'
 import {
   alwaysPreparedForSubclass2024,
   buildPermanentBonuses2024,
@@ -721,6 +721,8 @@ export function computeProgression2024(input: {
   classes: ClassLevelEntry[]
   subclassSlugByEntryId?: Record<string, string | null | undefined>
   abilities?: Partial<Record<'str' | 'dex' | 'con' | 'int' | 'wis' | 'cha', number>>
+  /** Druid Circle of the Land terrain per class entry (2024): arid | polar | temperate | tropical. */
+  landChoiceByEntryId?: Record<string, string | null | undefined>
 }): ClassProgressSnapshot2024 {
   const parsed = parseClasses(input.classes, input.subclassSlugByEntryId)
   const totalLevel = Math.min(
@@ -908,6 +910,9 @@ export function computeProgression2024(input: {
               scaleValue: null,
               automationMode: mode === 'text' ? null : mode,
               resourceUses: null,
+              ...(fidRaw === 'circle-of-the-land-spells' && cls.subclassSlug === 'druid__land'
+                ? { choice: landTerrainChoice2024 }
+                : {}),
             })
           }
         }
@@ -1118,7 +1123,11 @@ export function computeProgression2024(input: {
           if (/^\d+$/.test(k) && Number(k) >= 1 && Number(k) <= 9) slots[k] = Number(v || 0)
         }
       }
-      const free = alwaysPrepared(cls.subclassSlug, cls.level)
+      const free = alwaysPrepared(
+        cls.subclassSlug,
+        cls.level,
+        input.landChoiceByEntryId?.[cls.entryId] ?? null,
+      )
       const unlockedIds = new Set<string>()
       for (const lr of levels) {
         if (Number(lr.level || 0) > cls.level) continue
@@ -1129,6 +1138,9 @@ export function computeProgression2024(input: {
       if (unlockedIds.has('favored-enemy') && !free.includes('hunters-mark')) free.push('hunters-mark')
       if (unlockedIds.has('paladins-smite') && !free.includes('divine-smite')) free.push('divine-smite')
       if (unlockedIds.has('magic-of-making') && !free.includes('mending')) free.push('mending')
+      if (unlockedIds.has('druidic') && !free.includes('speak-with-animals')) {
+        free.push('speak-with-animals')
+      }
 
       spellcasting.push({
         class_slug: cls.slug,

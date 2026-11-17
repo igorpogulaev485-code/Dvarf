@@ -45,7 +45,7 @@ import {
 import { ignoresClassRaceLevel } from '../attunementRules'
 import { abilityModifier } from '../sheetTypes'
 import { getFeaturePick } from '../../../shared/dnd/featurePicks'
-import { potentSpellcastingBonusForSheet2024 } from '../../../shared/dnd/cleric2024Features'
+import { potentSpellcastingForSheet2024 } from '../../../shared/dnd/druid2024Features'
 import { elementalAffinityPreview } from '../../../shared/dnd/pack04SorcererWarlock'
 
 function infusedItemIdsFor(model: SheetModel): string[] {
@@ -63,6 +63,13 @@ function infusedItemIdsFor(model: SheetModel): string[] {
 }
 
 export function SheetDialogsRolls({ model }: { model: SheetModel }) {
+  const potentSheet = potentSpellcastingForSheet2024({
+    rulesEdition: model.baseCharacter.rules_edition,
+    classes: model.draft.classes,
+    featurePicks: model.draft.featurePicks,
+    classOptions: model.draft.classOptions2024,
+    wisScore: model.effectiveAbilities?.wis ?? model.draft.abilities.wis,
+  })
   const sorcerer = model.draft.classes.find((row) => /чародей|sorcerer/i.test(row.name))
   const elementalAffinity = sorcerer
     ? elementalAffinityPreview({
@@ -293,13 +300,8 @@ export function SheetDialogsRolls({ model }: { model: SheetModel }) {
           model.draft.classes.find((row) => /колдун|warlock/i.test(row.name))?.level ??
           model.characterLevel
         }
-        potentSpellcastingBonus={potentSpellcastingBonusForSheet2024({
-          rulesEdition: model.baseCharacter.rules_edition,
-          classes: model.draft.classes,
-          featurePicks: model.draft.featurePicks,
-          classOptions: model.draft.classOptions2024,
-          wisScore: model.effectiveAbilities?.wis ?? model.draft.abilities.wis,
-        })}
+        potentSpellcastingBonus={potentSheet.bonus}
+        potentSpellcastingClass={potentSheet.classSlug}
         abilities={model.effectiveAbilities}
         proficiencyBonus={model.proficiencyBonus}
         castProfiles={model.spellcastingSync.castProfiles}

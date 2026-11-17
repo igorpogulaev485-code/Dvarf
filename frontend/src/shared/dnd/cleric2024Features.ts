@@ -378,13 +378,16 @@ export function potentSpellcastingBonusForSheet2024(input: {
 }
 
 /** Damaging cantrips of the cleric list (unlabeled class counts; other classes do not). */
-export function isPotentSpellcastingCantrip2024(spell: {
-  level: number
-  class_slug?: string | null
-}): boolean {
+export function isPotentSpellcastingCantrip2024(
+  spell: {
+    level: number
+    class_slug?: string | null
+  },
+  potentClass: 'cleric' | 'druid' = CLERIC_CLASS_SLUG_2024,
+): boolean {
   if (spell.level > 0) return false
   const slug = (spell.class_slug ?? '').trim().toLowerCase()
-  return !slug || slug === CLERIC_CLASS_SLUG_2024
+  return !slug || slug === potentClass
 }
 
 /** Add the bonus to the first dice term: `3d8 излучение` → `3d8+3 излучение`. */

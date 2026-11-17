@@ -193,6 +193,11 @@ import {
 } from '../../shared/dnd/fightingStyles'
 import type { FeaturePicksState } from '../../shared/dnd/featurePicks'
 import {
+  ELEMENTAL_FURY_PRIMAL_STRIKE,
+  primalStrikeDice2024,
+  readElementalFury2024,
+} from '../../shared/dnd/druid2024Features'
+import {
   attackBonusFromActiveEffects,
   weaponBonusesFromActiveEffects,
   type ActiveEffect,
@@ -891,6 +896,21 @@ export function PlayDeskAttacksCompact({
         type: 'излучением или некротическим',
         label: `${diceCount}к8 излучением или некротическим, раз в ход`,
         rollLabel: `Божественный удар, ${diceCount}к8`,
+      }
+    }
+    // 2024 druid Elemental Fury → Primal Strike (weapon hit, once per turn).
+    for (const row of combatFeatures) {
+      if (row.id !== 'elemental_fury' || !row.classEntryId) continue
+      if (readElementalFury2024(featurePicks, row.classEntryId) !== ELEMENTAL_FURY_PRIMAL_STRIKE) {
+        continue
+      }
+      const diceCount = primalStrikeDice2024(row.classLevel || 0)
+      if (diceCount <= 0) continue
+      return {
+        dice: `${diceCount}d8`,
+        type: 'холодом, огнём, электричеством или звуком',
+        label: `${diceCount}к8 холодом, огнём, электричеством или звуком, раз в ход`,
+        rollLabel: `Природный удар, ${diceCount}к8`,
       }
     }
     return from2014

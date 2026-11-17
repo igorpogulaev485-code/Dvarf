@@ -12,6 +12,7 @@ import {
 } from '../../shared/dnd/weaponMastery'
 import { ELDRITCH_INVOCATIONS_2024 } from '../../shared/dnd/edition2024ClassOptions'
 import { SKILL_DEFS } from '../characters/sheetTypes'
+import { DRUID_SUBCLASS_SLUGS_2024, LAND_TERRAINS_2024 } from '../../shared/dnd/druid2024Features'
 import type { CatalogEntry } from '../../shared/api/catalog'
 import {
   ARTISAN_TOOL_IDS,
@@ -509,6 +510,13 @@ function levelingIssues(state: Create2024State, ctx: StepIssueCtx): string[] {
       pick !== 'primal_strike'
     ) {
       issues.push('Выберите Ярость стихий (с 7 ур. друида)')
+    }
+    const subclass = (primary && state.subclassByEntryId[primary.id]) || state.subclassSlug || ''
+    if (druidLevel >= 3 && subclass === DRUID_SUBCLASS_SLUGS_2024.land) {
+      const land = String(state.classOptionPicks.land_choice || '')
+      if (!LAND_TERRAINS_2024.some((row) => row.id === land)) {
+        issues.push('Выберите местность Круга земли (с 3 ур. друида)')
+      }
     }
   }
   const divineOrder =

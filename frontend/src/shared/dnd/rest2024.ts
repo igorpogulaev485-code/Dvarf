@@ -7,6 +7,7 @@ import {
   decrementWishLockOnLongRest2024,
   DIVINE_INTERVENTION_WISH_LOCK_PICK_ID_2024,
 } from './cleric2024Features'
+import { resetDruid2024PicksOnLongRestAll } from './druid2024Features'
 import type { FeaturePicksState } from './featurePicks'
 
 export const LONG_REST_MIN_HOURS_2024 = 8
@@ -102,5 +103,5 @@ export function applyLongRestFeaturePicks2024(picks: FeaturePicksState): Feature
     if (!key.endsWith(suffix)) continue
     next = decrementWishLockOnLongRest2024(next, key.slice(0, -suffix.length))
   }
-  return next
+  return resetDruid2024PicksOnLongRestAll(next)
 }

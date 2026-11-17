@@ -23,6 +23,8 @@ import {
 import { computeProgression2024 } from '../../../shared/dnd/edition2024Classes'
 import { resolveMartialArtsDie } from '../../../shared/dnd/martialArts'
 import { type FeatureSelfFormRequest, type WildShapeForkRequest } from '../ClassFeaturesPanel'
+import { activeBeastWildShape } from '../wildShape'
+import { landChoiceByEntryId2024, WILD_SHAPE_TEMP_HP_PICK_ID_2024 } from '../../../shared/dnd/druid2024Features'
 import { characterHasMagicSources } from '../magicSources'
 import { blockPlainText, withBlockPlainText } from '../textBlocks'
 import { buildDraft, type MinimalSheetEditorProps } from './draft'
@@ -310,14 +312,24 @@ export function useSheetEditorPart1(model: SheetModel, props: MinimalSheetEditor
   }, [draft.subclassTransitions])
   model.subclassTransitionByEntryId = subclassTransitionByEntryId
   const sheetRulesEdition = (baseCharacter.rules_edition || '2014') as RulesEdition
+  const landChoiceKey = useMemo(
+    () =>
+      sheetRulesEdition === '2024'
+        ? JSON.stringify(
+            landChoiceByEntryId2024(draft.classes, draft.featurePicks, draft.classOptions2024),
+          )
+        : '',
+    [sheetRulesEdition, draft.classes, draft.featurePicks, draft.classOptions2024],
+  )
   const progression2024 = useMemo(() => {
     if (sheetRulesEdition !== '2024') return null
     return computeProgression2024({
       classes: draft.classes,
       subclassSlugByEntryId,
       abilities: draft.abilities,
+      landChoiceByEntryId: landChoiceKey ? JSON.parse(landChoiceKey) : undefined,
     })
-  }, [sheetRulesEdition, draft.classes, subclassSlugByEntryId, draft.abilities])
+  }, [sheetRulesEdition, draft.classes, subclassSlugByEntryId, draft.abilities, landChoiceKey])
   model.progression2024 = progression2024
   const unlockedFeatures = useMemo(
     () =>
@@ -498,6 +510,30 @@ export function useSheetEditorPart1(model: SheetModel, props: MinimalSheetEditor
   const druidSubclassSlug =
     (druidClassRow && subclassSlugByEntryId[druidClassRow.id]) || null
   model.druidSubclassSlug = druidSubclassSlug
+
+  const wildShapeFormActive2024 = useMemo(
+    () => activeBeastWildShape(draft.companions) != null,
+    [draft.companions],
+  )
+  useEffect(() => {
+    if (String(rulesEdition ?? '2014') !== '2024') return
+    if (wildShapeFormActive2024) return
+    const marker = draft.featurePicks?.values
+      ? Object.keys(draft.featurePicks.values).find((key) =>
+          key.endsWith(`:${WILD_SHAPE_TEMP_HP_PICK_ID_2024}`),
+        )
+      : null
+    if (!marker) return
+    setDraft((prev) => {
+      const values = { ...prev.featurePicks.values }
+      delete values[marker]
+      return {
+        ...prev,
+        featurePicks: { values },
+        play: { ...prev.play, hpTemp: 0 },
+      }
+    })
+  }, [rulesEdition, wildShapeFormActive2024, draft.featurePicks])
 
   useEffect(() => {
     // New character open — full reset.

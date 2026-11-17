@@ -17,6 +17,8 @@ export type ClassOptions2024State = {
   primal_order?: 'magician' | 'warden' | null
   /** Druid Elemental Fury (2024, L7+). */
   elemental_fury?: 'potent_spellcasting' | 'primal_strike' | null
+  /** Druid Circle of the Land terrain (2024): arid | polar | temperate | tropical. */
+  land_choice?: 'arid' | 'polar' | 'temperate' | 'tropical' | null
 }
 
 function readBlessedStrikes(raw: unknown): 'divine_strike' | 'potent_spellcasting' | null {
@@ -34,6 +36,11 @@ function readElementalFury(raw: unknown): 'potent_spellcasting' | 'primal_strike
   return key === 'potent_spellcasting' || key === 'primal_strike' ? key : null
 }
 
+function readLandChoice(raw: unknown): 'arid' | 'polar' | 'temperate' | 'tropical' | null {
+  const key = String(raw ?? '').trim().toLowerCase()
+  return key === 'arid' || key === 'polar' || key === 'temperate' || key === 'tropical' ? key : null
+}
+
 function readDivineOrder(raw: unknown): 'protector' | 'thaumaturge' | null {
   const key = String(raw ?? '').trim().toLowerCase()
   return key === 'protector' || key === 'thaumaturge' ? key : null
@@ -49,6 +56,7 @@ export function emptyClassOptions2024(): ClassOptions2024State {
     blessed_strikes: null,
     primal_order: null,
     elemental_fury: null,
+    land_choice: null,
   }
 }
 
@@ -77,6 +85,7 @@ export function readClassOptions2024(raw: unknown): ClassOptions2024State {
     blessed_strikes: readBlessedStrikes(row.blessed_strikes),
     primal_order: readPrimalOrder(row.primal_order),
     elemental_fury: readElementalFury(row.elemental_fury),
+    land_choice: readLandChoice(row.land_choice),
   }
 }
 
@@ -94,6 +103,7 @@ export function classOptions2024ToSheet(state: ClassOptions2024State): Record<st
     ...(state.blessed_strikes ? { blessed_strikes: state.blessed_strikes } : {}),
     ...(state.primal_order ? { primal_order: state.primal_order } : {}),
     ...(state.elemental_fury ? { elemental_fury: state.elemental_fury } : {}),
+    ...(state.land_choice ? { land_choice: state.land_choice } : {}),
   }
 }
 

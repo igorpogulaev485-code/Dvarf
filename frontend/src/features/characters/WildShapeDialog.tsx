@@ -2,6 +2,16 @@ import { useEffect, useMemo, useState } from 'react'
 import { listCatalogEntries, type CatalogEntry } from '../../shared/api/catalog'
 import { parseBestiaryData } from '../../shared/dnd/bestiaryCatalog'
 import { getFeaturePick, setFeaturePick, type FeaturePicksState } from '../../shared/dnd/featurePicks'
+import {
+  ELEMENTAL_FURY_PRIMAL_STRIKE,
+  isBeastFormAllowed2024,
+  primalStrikeAttackRiderRu2024,
+  readElementalFury2024,
+  WILD_SHAPE_EQUIPMENT_2024,
+  WILD_SHAPE_TEMP_HP_PICK_ID_2024,
+  wildShapeArmorClass2024,
+  type WildShapeEquipment2024,
+} from '../../shared/dnd/druid2024Features'
 import { SYMBIOTIC_ACTIVE_PREFIX } from './featureCombatBonuses'
 import { bestiaryDataToPick } from './bestiaryCompanionStats'
 import type { UnlockedFeature } from '../../shared/dnd/classFeatures'
@@ -21,6 +31,7 @@ import {
   ELEMENTAL_FALLBACK_STATS,
   elementalKeyToSlug,
   formatWildShapeLimit,
+  parseCr,
   resolveWildShapeOptions,
   spendWildShapeUses,
   symbioticTempHp,
@@ -58,6 +69,8 @@ type WildShapeDialogProps = {
   hostHp: number
   hostHpMax: number
   edition: '2014' | '2024'
+  /** 2024: Wisdom modifier (Circle of the Moon AC = max(beast AC, 13 + Wis)). */
+  wisMod?: number
   featurePicks?: FeaturePicksState
   onConfirm: (result: WildShapeDialogResult) => void
 }
@@ -104,12 +117,16 @@ export function WildShapeDialog({
   hostHp,
   hostHpMax,
   edition,
+  wisMod = 0,
   featurePicks,
   onConfirm,
 }: WildShapeDialogProps) {
+  const is2024 = edition === '2024'
   const [step, setStep] = useState<
-    'fork' | 'beast' | 'familiar' | 'starry' | 'elemental'
+    'fork' | 'beast' | 'familiar' | 'starry' | 'elemental' | 'replace' | 'equipment'
   >('fork')
+  const [pendingBeast, setPendingBeast] = useState<BestiaryFormPick | null>(null)
+  const [replaceFormId, setReplaceFormId] = useState<string | null>(null)
   const [query, setQuery] = useState('')
   const [catalogPicks, setCatalogPicks] = useState<BestiaryFormPick[]>([])
   const [catalogError, setCatalogError] = useState<string | null>(null)
@@ -122,8 +139,30 @@ export function WildShapeDialog({
   >('air')
 
   const limits = useMemo(
-    () => wildShapeLimits({ druidLevel, subclassSlug }),
-    [druidLevel, subclassSlug],
+    () => wildShapeLimits({ druidLevel, subclassSlug, rulesEdition: edition }),
+    [druidLevel, subclassSlug, edition],
+  )
+
+  const budget2024 = limits.knownForms ?? 0
+  const knownBeasts2024 = useMemo(
+    () => knownForms.filter((row) => !row.tags.includes('elemental')),
+    [knownForms],
+  )
+
+  const formAllowed = useMemo(
+    () => (pick: BestiaryFormPick): boolean => {
+      if (!is2024) return beastPickAllowed(pick, limits)
+      if (pick.type !== 'beast') return false
+      return isBeastFormAllowed2024(
+        {
+          cr: parseCr(pick.cr) ?? Number.POSITIVE_INFINITY,
+          fly: (pick.speed_fly ?? 0) > 0,
+        },
+        druidLevel,
+        subclassSlug,
+      )
+    },
+    [is2024, limits, druidLevel, subclassSlug],
   )
 
   const options = useMemo(
@@ -149,6 +188,8 @@ export function WildShapeDialog({
     if (!open) {
       setStep('fork')
       setQuery('')
+      setPendingBeast(null)
+      setReplaceFormId(null)
       return
     }
     const saved = featurePicks
@@ -190,19 +231,19 @@ export function WildShapeDialog({
       knownForms
         .map(knownToPick)
         .filter((p): p is BestiaryFormPick => Boolean(p))
-        .filter((p) => beastPickAllowed(p, limits)),
-    [knownForms, limits],
+        .filter(formAllowed),
+    [knownForms, formAllowed],
   )
 
   const filteredBeasts = useMemo(() => {
     const q = query.trim().toLowerCase()
-    const beasts = catalogPicks.filter((p) => beastPickAllowed(p, limits))
+    const beasts = catalogPicks.filter(formAllowed)
     if (!q) return beasts
     return beasts.filter(
       (p) =>
         p.name_ru.toLowerCase().includes(q) || p.slug.toLowerCase().includes(q),
     )
-  }, [catalogPicks, limits, query])
+  }, [catalogPicks, formAllowed, query])
 
   function spendAnd(
     label: string,
@@ -298,7 +339,66 @@ export function WildShapeDialog({
     }
   }
 
+  function isKnownBeast(pick: BestiaryFormPick): boolean {
+    return knownForms.some(
+      (row) =>
+        (row.bestiary_slug && row.bestiary_slug === pick.slug) ||
+        (pick.catalog_id && row.bestiary_ref === pick.catalog_id),
+    )
+  }
+
+  function confirmBeast2024(pick: BestiaryFormPick, equipment: WildShapeEquipment2024) {
+    const base = replaceFormId
+      ? knownForms.filter((row) => row.id !== replaceFormId)
+      : knownForms
+    const tempHp = limits.tempHp ?? 0
+    const equipNote =
+      WILD_SHAPE_EQUIPMENT_2024.find((row) => row.id === equipment)?.noteRu ?? ''
+    const picks = featurePicks
+      ? setFeaturePick(
+          featurePicks,
+          classEntryId,
+          WILD_SHAPE_TEMP_HP_PICK_ID_2024,
+          tempHp > 0 ? String(tempHp) : null,
+        )
+      : undefined
+    spendAnd('Дикий облик', 1, () => {
+      const next = applyBeastWildShape({
+        companions,
+        knownForms: base,
+        pick,
+        hostHp,
+        hostHpMax,
+        druidLevel,
+        keepOwnHp: true,
+        armorClass: wildShapeArmorClass2024(pick.ac, wisMod, subclassSlug),
+        equipmentNoteRu: equipNote,
+        attackRiderRu:
+          featurePicks &&
+          readElementalFury2024(featurePicks, classEntryId) === ELEMENTAL_FURY_PRIMAL_STRIKE
+            ? primalStrikeAttackRiderRu2024(druidLevel)
+            : undefined,
+      })
+      return {
+        ...next,
+        hpTemp: tempHp,
+        featurePicks: picks,
+        toast: `Дикий облик: ${pick.name_ru} · вр. хиты ${tempHp} · свои хиты сохранены`,
+      }
+    })
+  }
+
   function confirmBeast(pick: BestiaryFormPick) {
+    if (is2024) {
+      setPendingBeast(pick)
+      setReplaceFormId(null)
+      if (!isKnownBeast(pick) && budget2024 > 0 && knownBeasts2024.length >= budget2024) {
+        setStep('replace')
+      } else {
+        setStep('equipment')
+      }
+      return
+    }
     spendAnd('Дикий облик', 1, () => {
       const next = applyBeastWildShape({
         companions,
@@ -403,7 +503,11 @@ export function WildShapeDialog({
           ? 'Дикий спутник — выбери форму'
           : step === 'starry'
             ? 'Звёздная форма'
-            : 'Элементальный облик'
+            : step === 'replace'
+              ? 'Заменить известный облик'
+              : step === 'equipment'
+                ? 'Снаряжение в облике'
+                : 'Элементальный облик'
 
   return (
     <Dialog
@@ -413,6 +517,7 @@ export function WildShapeDialog({
       secondaryLabel={step === 'fork' ? 'Отмена' : 'Назад'}
       onSecondary={() => {
         if (step === 'fork') onClose()
+        else if (step === 'replace' || step === 'equipment') setStep('beast')
         else setStep('fork')
       }}
       primaryLabel={
@@ -422,7 +527,9 @@ export function WildShapeDialog({
             ? 'Принять (−2)'
             : 'Закрыть'
       }
-      primaryDisabled={step === 'beast' || step === 'familiar'}
+      primaryDisabled={
+        step === 'beast' || step === 'familiar' || step === 'replace' || step === 'equipment'
+      }
       onPrimary={() => {
         if (step === 'starry') confirmStarry()
         else if (step === 'elemental') confirmElemental()
@@ -436,6 +543,12 @@ export function WildShapeDialog({
               Лимит облика: {formatWildShapeLimit(limits)}
               {limits.combatBonusAction ? ' · бонусным действием' : ''}
             </Text>
+            {is2024 ? (
+              <Text tone="muted">
+                Известных обликов: {knownBeasts2024.length}/{budget2024} · временные хиты{' '}
+                {limits.tempHp ?? 0} · свои хиты сохраняются
+              </Text>
+            ) : null}
             <Stack gap={8}>
               {options.map((opt) => (
                 <Button
@@ -495,6 +608,15 @@ export function WildShapeDialog({
 
         {step === 'beast' ? (
           <>
+            {is2024 ? (
+              <Text tone="muted">
+                Известные облики: {knownBeasts2024.length}/{budget2024}. Новый облик из бестиария
+                {knownBeasts2024.length >= budget2024
+                  ? ' заменит один из известных.'
+                  : ' пополнит список известных.'}{' '}
+                Хиты зверя не используются.
+              </Text>
+            ) : null}
             <Field label="Поиск">
               <Input
                 value={query}
@@ -541,6 +663,47 @@ export function WildShapeDialog({
                 ))}
               </Stack>
             ) : null}
+          </>
+        ) : null}
+
+        {step === 'replace' && pendingBeast ? (
+          <>
+            <Text tone="muted">
+              Список известных обликов полон ({knownBeasts2024.length}/{budget2024}). Выбери облик,
+              который забудешь ради «{pendingBeast.name_ru}».
+            </Text>
+            {knownBeasts2024.map((row) => (
+              <Button
+                key={row.id}
+                type="button"
+                variant="secondary"
+                onClick={() => {
+                  setReplaceFormId(row.id)
+                  setStep('equipment')
+                }}
+              >
+                Забыть: {row.name_ru} · CR {row.cr}
+              </Button>
+            ))}
+          </>
+        ) : null}
+
+        {step === 'equipment' && pendingBeast ? (
+          <>
+            <Text tone="muted">
+              {pendingBeast.name_ru}: что происходит со снаряжением? Временные хиты{' '}
+              {limits.tempHp ?? 0}; хиты персонажа не меняются.
+            </Text>
+            {WILD_SHAPE_EQUIPMENT_2024.map((row) => (
+              <Button
+                key={row.id}
+                type="button"
+                variant={row.id === 'wear' ? 'primary' : 'secondary'}
+                onClick={() => confirmBeast2024(pendingBeast, row.id)}
+              >
+                {row.nameRu}
+              </Button>
+            ))}
           </>
         ) : null}
 

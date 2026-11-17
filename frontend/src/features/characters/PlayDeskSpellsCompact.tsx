@@ -103,6 +103,8 @@ type PlayDeskSpellsCompactProps = {
   warlockLevel?: number
   /** 2024 Cleric Potent Spellcasting: +Wis to cleric cantrip damage (0 = off). */
   potentSpellcastingBonus?: number
+  /** Class holding Potent Spellcasting (cleric by default, druid for Elemental Fury). */
+  potentSpellcastingClass?: 'cleric' | 'druid'
   /** 2024 Illusionist: show Improved Illusions range on the spell card. */
   improvedIllusions?: boolean
   pinned?: boolean
@@ -158,6 +160,7 @@ export function PlayDeskSpellsCompact({
   knownInvocationIds = [],
   warlockLevel,
   potentSpellcastingBonus = 0,
+  potentSpellcastingClass = 'cleric',
   improvedIllusions = false,
   pinned = false,
   concentration = null,
@@ -770,6 +773,7 @@ export function PlayDeskSpellsCompact({
                           warlockLevel={warlockLevel ?? characterLevel}
                           edition={edition}
                           potentSpellcastingBonus={potentSpellcastingBonus}
+                          potentSpellcastingClass={potentSpellcastingClass}
                           learnMode={learnMode}
                           hasSpellbook={hasSpellbook}
                           activeConcentration={isActiveConc}
@@ -941,6 +945,7 @@ function compactDamage(
     edition?: string | null
     chaMod?: number
     potentBonus?: number
+    potentClass?: 'cleric' | 'druid'
   },
 ): string {
   const rules = withBundledRules(spell)
@@ -981,7 +986,9 @@ function compactDamage(
     affinity,
   })
   const potent =
-    opts?.potentBonus && isPotentSpellcastingCantrip2024(spell) ? opts.potentBonus : 0
+    opts?.potentBonus && isPotentSpellcastingCantrip2024(spell, opts.potentClass)
+      ? opts.potentBonus
+      : 0
   const scaled = shortDamage(summary.effect)
   if (scaled) return shortDamage(applyPotentSpellcastingToDamage2024(scaled, potent))
   return shortDamage(applyPotentSpellcastingToDamage2024(rules.damage ?? '', potent))
@@ -1051,8 +1058,10 @@ function SpellRow({
   metaOpen,
   onToggleMeta,
   potentSpellcastingBonus = 0,
+  potentSpellcastingClass = 'cleric',
 }: {
   potentSpellcastingBonus?: number
+  potentSpellcastingClass?: 'cleric' | 'druid'
   spell: SheetSpell
   characterLevel: number
   affinity?: { damageType: string; amount: number } | null
@@ -1113,6 +1122,7 @@ function SpellRow({
       edition,
       chaMod: abilityModifier(abilities.cha),
       potentBonus: potentSpellcastingBonus,
+      potentClass: potentSpellcastingClass,
     },
   )
   const source = spellSourceBadge(spell)

@@ -262,4 +262,22 @@ assert.deepEqual(wizard2014?.multiclass.skillChoices, null)
   assert.equal(c10.features.find((f) => f.id === 'blessed_strikes')?.choice?.id, 'blessed-strikes')
 }
 
+/* Druid 2024: Druidic → Speak with Animals; Land terrain feeds always prepared. */
+{
+  const d5 = computeProgression2024({
+    classes: [
+      createClassLevel({ id: 'd1', name: 'Друид', catalog_id: 'druid', level: 5, subclass_catalog_id: 'druid__land' }),
+    ],
+    subclassSlugByEntryId: { d1: 'druid__land' },
+    landChoiceByEntryId: { d1: 'arid' },
+  })
+  const prepared = d5.spellcasting[0]?.always_prepared ?? []
+  assert.ok(prepared.includes('speak-with-animals'))
+  assert.ok(prepared.includes('fireball') && !prepared.includes('sleet-storm'))
+  assert.deepEqual(
+    d5.features.find((f) => f.id === 'circle_of_the_land_spells')?.choice?.options,
+    ['arid', 'polar', 'temperate', 'tropical'],
+  )
+}
+
 console.log('edition2024Classes.selfcheck: ok')

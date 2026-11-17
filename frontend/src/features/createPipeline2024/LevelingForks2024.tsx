@@ -39,6 +39,9 @@ import {
   type BlessedStrikesPick2024,
 } from '../../shared/dnd/cleric2024Features'
 import {
+  DRUID_SUBCLASS_SLUGS_2024,
+  LAND_TERRAINS_2024,
+  type LandTerrain2024,
   ELEMENTAL_FURY_MIN_LEVEL_2024,
   ELEMENTAL_FURY_NAME_RU,
   ELEMENTAL_FURY_POTENT_SPELLCASTING,
@@ -100,6 +103,9 @@ export type LevelingForks2024Props = {
   /** Druid 2024 Ярость стихий pick (required from druid level 7). */
   elementalFuryPick?: ElementalFuryPick2024 | null
   onElementalFuryChange?: (pick: ElementalFuryPick2024) => void
+  /** Druid 2024 Circle of the Land terrain (required from druid level 3 with the Land subclass). */
+  landChoicePick?: LandTerrain2024 | null
+  onLandChoiceChange?: (pick: LandTerrain2024) => void
 }
 
 function averageFace(die: HitDie): number {
@@ -135,6 +141,8 @@ export function LevelingForks2024({
   onBlessedStrikesChange,
   elementalFuryPick = null,
   onElementalFuryChange,
+  landChoicePick = null,
+  onLandChoiceChange,
 }: LevelingForks2024Props) {
   const [mcOpen, setMcOpen] = useState(false)
   const [cascadeWarn, setCascadeWarn] = useState<{
@@ -714,6 +722,31 @@ export function LevelingForks2024({
                     onChange={(pick) => onBlessedStrikesChange?.(pick)}
                   />
                   {!blessedStrikesPick ? (
+                    <Text tone="muted">Не выбрано — выберите, чтобы продолжить.</Text>
+                  ) : null}
+                </Stack>
+              </div>
+            ) : null}
+            {slug === 'druid' &&
+            isPrimary &&
+            row.level >= 3 &&
+            subclassByEntryId[row.id] === DRUID_SUBCLASS_SLUGS_2024.land ? (
+              <div data-testid="p24-m02-land-terrain-pick">
+                <Stack gap={8}>
+                  <Text as="h3" className="create-pipeline__section-title">
+                    Местность Круга земли — обязательный выбор
+                  </Text>
+                  <SegmentedControl<LandTerrain2024>
+                    aria-label="Местность Круга земли"
+                    options={LAND_TERRAINS_2024.map((terrain) => ({
+                      id: terrain.id,
+                      label: terrain.nameRu,
+                      testId: `p24-m02-land-terrain-${terrain.id}`,
+                    }))}
+                    value={(landChoicePick ?? '') as LandTerrain2024}
+                    onChange={(pick) => onLandChoiceChange?.(pick)}
+                  />
+                  {!landChoicePick ? (
                     <Text tone="muted">Не выбрано — выберите, чтобы продолжить.</Text>
                   ) : null}
                 </Stack>

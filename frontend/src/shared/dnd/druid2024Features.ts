@@ -9,6 +9,7 @@
  */
 
 import type { FeatureChoiceDef } from './classFeatures'
+import { potentSpellcastingBonusForSheet2024 } from './cleric2024Features'
 import {
   getFeaturePick,
   setFeaturePick,
@@ -33,14 +34,14 @@ export const PRIMAL_STRIKE_NAME_RU = 'Природный удар'
 export const IMPROVED_ELEMENTAL_FURY_NAME_RU = 'Улучшенная ярость стихий'
 export const BEAST_SPELLS_NAME_RU = 'Звериные заклинания'
 export const ARCHDRUID_NAME_RU = 'Архидруид'
-export const EVERGREEN_WILD_SHAPE_NAME_RU = 'Вечнозелёный дикий облик'
-export const NATURE_MAGICIAN_NAME_RU = 'Природный маг'
+export const EVERGREEN_WILD_SHAPE_NAME_RU = 'Неувядающий дикий облик'
+export const NATURE_MAGICIAN_NAME_RU = 'Природный ворожей'
 export const LONGEVITY_NAME_RU = 'Долголетие'
 
 export const CIRCLE_FORMS_NAME_RU = 'Облики Круга'
 export const LANDS_AID_NAME_RU = 'Помощь земли'
-export const CIRCLE_OF_THE_LAND_SPELLS_NAME_RU = 'Заклинания Круга Земли'
-export const WRATH_OF_THE_SEA_NAME_RU = 'Гнев моря'
+export const CIRCLE_OF_THE_LAND_SPELLS_NAME_RU = 'Заклинания круга земли'
+export const WRATH_OF_THE_SEA_NAME_RU = 'Гнев морей'
 export const STARRY_FORM_NAME_RU = 'Звёздный облик'
 
 export const DRUID_CLASS_SLUG_2024 = 'druid'
@@ -419,6 +420,22 @@ export function druidPotentSpellcastingBonusForSheet2024(input: {
   return potentSpellcastingCantripBonus2024(wisMod, druid.level)
 }
 
+export type PotentSpellcastingSheet2024 = { bonus: number; classSlug: 'cleric' | 'druid' }
+
+/** Cantrip damage bonus from Potent Spellcasting, whichever class (cleric / druid) holds the pick. */
+export function potentSpellcastingForSheet2024(input: {
+  rulesEdition: string | null | undefined
+  classes: ReadonlyArray<{ id: string; name: string; level: number }>
+  featurePicks: FeaturePicksState
+  classOptions?: unknown
+  wisScore: number | null | undefined
+}): PotentSpellcastingSheet2024 {
+  const cleric = potentSpellcastingBonusForSheet2024(input)
+  if (cleric > 0) return { bonus: cleric, classSlug: 'cleric' }
+  const druid = druidPotentSpellcastingBonusForSheet2024(input)
+  return druid > 0 ? { bonus: druid, classSlug: 'druid' } : { bonus: 0, classSlug: 'cleric' }
+}
+
 export function primalStrikeAttackRiderRu2024(druidLevel: number): string {
   const formula = primalStrikeFormulaRu2024(druidLevel)
   if (!formula) return ''
@@ -467,6 +484,36 @@ export const LAND_TERRAINS_2024 = [
 export type LandTerrain2024 = (typeof LAND_TERRAINS_2024)[number]['id']
 
 export const LAND_TERRAIN_PICK_ID_2024 = 'circle_spells_land'
+
+/** FeatureChoice for the Circle of the Land terrain card (`{classEntryId}:circle_spells_land`). */
+export const landTerrainChoice2024: FeatureChoiceDef = {
+  id: LAND_TERRAIN_PICK_ID_2024,
+  label_ru: 'Местность',
+  options: LAND_TERRAINS_2024.map((row) => row.id),
+  option_labels_ru: Object.fromEntries(LAND_TERRAINS_2024.map((row) => [row.id, row.nameRu])),
+  max_picks: 1,
+}
+
+/** Terrain pick per class entry: feature picks first, then `class_options_2024.land_choice`. */
+export function landChoiceByEntryId2024(
+  classes: ReadonlyArray<{ id: string }>,
+  picks: FeaturePicksState,
+  classOptions?: unknown,
+): Record<string, string | null> {
+  const fromOptions =
+    classOptions && typeof classOptions === 'object'
+      ? String((classOptions as Record<string, unknown>).land_choice ?? '').trim().toLowerCase()
+      : ''
+  const out: Record<string, string | null> = {}
+  for (const row of classes) {
+    const pick = (getFeaturePick(picks, row.id, LAND_TERRAIN_PICK_ID_2024) ?? '')
+      .trim()
+      .toLowerCase()
+    const found = LAND_TERRAINS_2024.find((item) => item.id === pick || item.id === fromOptions)
+    out[row.id] = found ? found.id : null
+  }
+  return out
+}
 
 export function landTerrainNameRu2024(id: string | null | undefined): string {
   const key = (id ?? '').trim().toLowerCase()
@@ -526,23 +573,25 @@ export function starryFormFormulaRu2024(druidLevel: number, wisMod: number): str
 
 /** Card buttons on ClassFeaturesPanel (edition 2024 only). */
 export const DRUID_2024_CARD_BUTTONS: Record<string, string> = {
+  archdruid: 'Архидруид…',
   'wild-shape': 'Облик…',
   wild_shape: 'Облик…',
   'wild-resurgence': 'Восстановление…',
   wild_resurgence: 'Восстановление…',
-  'evergreen-wild-shape': 'Вечнозелёный облик',
-  evergreen_wild_shape: 'Вечнозелёный облик',
-  'nature-magician': 'Природный маг…',
-  nature_magician: 'Природный маг…',
+  'evergreen-wild-shape': 'Неувядающий дикий облик',
+  evergreen_wild_shape: 'Неувядающий дикий облик',
+  'nature-magician': 'Природный ворожей…',
+  nature_magician: 'Природный ворожей…',
   'lands-aid': 'Помощь земли…',
   lands_aid: 'Помощь земли…',
-  'wrath-of-the-sea': 'Гнев моря…',
-  wrath_of_the_sea: 'Гнев моря…',
+  'wrath-of-the-sea': 'Гнев морей…',
+  wrath_of_the_sea: 'Гнев морей…',
   'starry-form': 'Звёздный облик…',
   starry_form: 'Звёздный облик…',
 }
 
 const DRUID_USE_FEATURE_IDS = new Set([
+  'archdruid',
   'wild-shape',
   'wild-resurgence',
   'evergreen-wild-shape',
@@ -557,6 +606,27 @@ export function druid2024UseFeatureId(featureId: string | null | undefined): str
   if (!featureId) return null
   const key = featureId.trim().replace(/_/g, '-')
   return DRUID_USE_FEATURE_IDS.has(key) ? key : null
+}
+
+/**
+ * Formula shown on a feature card (Land's Aid, Wrath of the Sea, Primal Strike). Empty when the
+ * feature has no formula or the pick does not apply.
+ */
+export function druid2024CardFormulaRu(input: {
+  featureId: string
+  druidLevel: number
+  wisMod: number
+  elementalFury?: ElementalFuryPick2024 | null
+}): string {
+  const id = input.featureId.trim().replace(/_/g, '-')
+  if (id === 'lands-aid') return landsAidFormulaRu2024(input.druidLevel)
+  if (id === 'wrath-of-the-sea') return wrathOfTheSeaFormulaRu2024(input.wisMod)
+  if (id === 'elemental-fury' || id === 'improved-elemental-fury') {
+    return input.elementalFury === ELEMENTAL_FURY_PRIMAL_STRIKE
+      ? primalStrikeFormulaRu2024(input.druidLevel)
+      : ''
+  }
+  return ''
 }
 
 /* ------------------------------------------------------------------ */
@@ -641,10 +711,27 @@ export function restWildShape2024(
   }))
 }
 
+/** Temp HP granted by the current Wild Shape form; cleared when the form ends. */
+export const WILD_SHAPE_TEMP_HP_PICK_ID_2024 = 'wild_shape_temp_hp'
+
+export const WILD_SHAPE_EQUIPMENT_2024 = [
+  { id: 'drop', nameRu: 'Падает на землю', noteRu: 'снаряжение упало на землю' },
+  { id: 'merge', nameRu: 'Сливается с обликом', noteRu: 'снаряжение слилось с обликом' },
+  { id: 'wear', nameRu: 'Надето на облик', noteRu: 'снаряжение надето на облик (по решению ДМ)' },
+] as const
+
+export type WildShapeEquipment2024 = (typeof WILD_SHAPE_EQUIPMENT_2024)[number]['id']
+
 export const WILD_RESURGENCE_SLOT_USED_PICK_ID_2024 = 'wild_resurgence_slot_used'
 
 export function wildResurgenceSlotUsed2024(picks: FeaturePicksState, classEntryId: string): boolean {
   return getFeaturePick(picks, classEntryId, WILD_RESURGENCE_SLOT_USED_PICK_ID_2024) === 'on'
+}
+
+export const NATURE_MAGICIAN_SPENT_PICK_ID_2024 = 'nature_magician_spent'
+
+export function natureMagicianSpent2024(picks: FeaturePicksState, classEntryId: string): boolean {
+  return getFeaturePick(picks, classEntryId, NATURE_MAGICIAN_SPENT_PICK_ID_2024) === 'on'
 }
 
 /** Long rest: Wild Resurgence slot conversion and Nature Magician become available again. */
@@ -655,6 +742,24 @@ export function resetDruid2024PicksOnLongRest(
   let next = picks
   if (wildResurgenceSlotUsed2024(next, classEntryId)) {
     next = setFeaturePick(next, classEntryId, WILD_RESURGENCE_SLOT_USED_PICK_ID_2024, null)
+  }
+  if (natureMagicianSpent2024(next, classEntryId)) {
+    next = setFeaturePick(next, classEntryId, NATURE_MAGICIAN_SPENT_PICK_ID_2024, null)
+  }
+  return next
+}
+
+/** Long rest upkeep for every druid class entry that holds a Druid 2024 pick. */
+export function resetDruid2024PicksOnLongRestAll(picks: FeaturePicksState): FeaturePicksState {
+  let next = picks
+  const suffixes = [
+    `:${WILD_RESURGENCE_SLOT_USED_PICK_ID_2024}`,
+    `:${NATURE_MAGICIAN_SPENT_PICK_ID_2024}`,
+  ]
+  for (const key of Object.keys(picks.values)) {
+    const suffix = suffixes.find((item) => key.endsWith(item))
+    if (!suffix) continue
+    next = resetDruid2024PicksOnLongRest(next, key.slice(0, -suffix.length))
   }
   return next
 }
@@ -862,6 +967,9 @@ export function applyDruid2024FeatureUse(input: Druid2024UseInput): Druid2024Use
       if (pool && pool.used >= pool.max) {
         return refuse(input, `${NATURE_MAGICIAN_NAME_RU} уже использовано (до долгого отдыха)`)
       }
+      if (!pool && natureMagicianSpent2024(picks, input.classEntryId)) {
+        return refuse(input, `${NATURE_MAGICIAN_NAME_RU} уже использовано (до долгого отдыха)`)
+      }
       const wild = poolRow(input, WILD_SHAPE_POOL_ID)
       if (!wild) return refuse(input, `Ресурс «${WILD_SHAPE_NAME_RU}» не найден`)
       const available = Math.max(0, wild.max - wild.used)
@@ -876,7 +984,23 @@ export function applyDruid2024FeatureUse(input: Druid2024UseInput): Druid2024Use
       return ok(
         input,
         `${NATURE_MAGICIAN_NAME_RU} (бонусное действие): ${uses} использ. «${WILD_SHAPE_NAME_RU}» → ячейка ${slotLevel} круга (2 уровня за использование; раз в долгий отдых)`,
-        { resources, patches: { gainSlotLevel: slotLevel, natureMagicianSpent: true } },
+        {
+          resources,
+          patches: {
+            gainSlotLevel: slotLevel,
+            natureMagicianSpent: true,
+            ...(pool
+              ? {}
+              : {
+                  featurePicks: setFeaturePick(
+                    picks,
+                    input.classEntryId,
+                    NATURE_MAGICIAN_SPENT_PICK_ID_2024,
+                    'on',
+                  ),
+                }),
+          },
+        },
       )
     }
 

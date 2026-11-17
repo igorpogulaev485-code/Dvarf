@@ -55,6 +55,8 @@ export type Create2024State = {
     primal_order?: 'magician' | 'warden' | null
     /** Druid 2024 L7+ Ярость стихий pick; written to feature_picks by the create endpoint. */
     elemental_fury?: 'potent_spellcasting' | 'primal_strike' | null
+    /** Druid 2024 Круг земли (3+): arid | polar | temperate | tropical. */
+    land_choice?: 'arid' | 'polar' | 'temperate' | 'tropical' | null
   }
   /** Class tool proficiencies the player chooses (bard instruments, monk, artificer). */
   classToolIds: string[]

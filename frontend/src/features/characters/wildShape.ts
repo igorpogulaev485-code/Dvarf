@@ -23,6 +23,7 @@ import {
   resolveCompanionTemplate,
 } from './companionTemplates'
 import { createKnownForm, upsertKnownForm, type KnownForm } from './knownForms'
+import { wildShapeLimits2024 } from '../../shared/dnd/druid2024Features'
 
 export type WildShapeLimits = {
   maxCr: number
@@ -30,6 +31,12 @@ export type WildShapeLimits = {
   allowFly: boolean
   moon: boolean
   combatBonusAction: boolean
+  /** 2024 only: temp HP gained on entering a form (the druid keeps own HP). */
+  tempHp?: number
+  /** 2024 only: how many forms the druid knows at once. */
+  knownForms?: number
+  /** 2024 only: beast hit points are never used. */
+  keepOwnHp?: boolean
 }
 
 export type WildShapeOptionId =
@@ -77,7 +84,22 @@ export function parseCr(raw: string | null | undefined): number | null {
 export function wildShapeLimits(input: {
   druidLevel: number
   subclassSlug: string | null | undefined
+  /** Omitted or '2014' keeps the 2014 table untouched. */
+  rulesEdition?: '2014' | '2024'
 }): WildShapeLimits {
+  if (input.rulesEdition === '2024') {
+    const limits = wildShapeLimits2024(input.druidLevel, input.subclassSlug)
+    return {
+      maxCr: limits.crMax,
+      allowSwim: limits.swimAllowed,
+      allowFly: limits.flyAllowed,
+      moon: limits.moon,
+      combatBonusAction: true,
+      tempHp: limits.tempHp,
+      knownForms: limits.knownForms,
+      keepOwnHp: limits.keepOwnHp,
+    }
+  }
   const level = Math.max(1, Math.min(20, Math.floor(input.druidLevel) || 1))
   const moon =
     (input.subclassSlug || '').toLowerCase().includes('moon') ||
@@ -131,6 +153,7 @@ export function formatWildShapeLimit(limits: WildShapeLimits): string {
 export function moonShapeScale(
   feature: { id: string; classLevel: number; classEntryId: string },
   unlocked: Array<{ id: string; classEntryId: string }>,
+  rulesEdition: '2014' | '2024' = '2014',
 ): string | null {
   if (feature.id !== 'wild_shape' && feature.id !== 'circle_forms') return null
   const moon = unlocked.some(
@@ -138,7 +161,11 @@ export function moonShapeScale(
   )
   if (!moon) return null
   return formatWildShapeLimit(
-    wildShapeLimits({ druidLevel: feature.classLevel, subclassSlug: 'circle_of_the_moon' }),
+    wildShapeLimits({
+      druidLevel: feature.classLevel,
+      subclassSlug: 'circle_of_the_moon',
+      rulesEdition,
+    }),
   )
 }
 
@@ -490,6 +517,14 @@ export function applyBeastWildShape(input: {
   formSourceRef?: string
   /** Extra known_form tags (e.g. elemental). */
   extraTags?: KnownForm['tags']
+  /** 2024: the druid keeps own HP, so the form card gets no separate HP pool. */
+  keepOwnHp?: boolean
+  /** 2024 Circle of the Moon: AC = max(beast AC, 13 + Wis). */
+  armorClass?: number
+  /** 2024: what happens to worn / held equipment. */
+  equipmentNoteRu?: string
+  /** 2024 Primal Strike rider shown with the form attacks. */
+  attackRiderRu?: string
 }): { companions: CompanionEntry[]; knownForms: KnownForm[] } {
   const previousPrimaryId = capturePreviousPrimaryId(input.companions)
   const cleared = dismissActiveSelfForm(input.companions)
@@ -506,9 +541,25 @@ export function applyBeastWildShape(input: {
     control: 'with_master',
     active: true,
     is_primary: true,
-    stats: formStatsFromPick(input.pick),
-    actions: input.pick.actions_text,
-    notes: formNotesFromPick(input.pick, isElemental),
+    stats: (() => {
+      const stats = formStatsFromPick(input.pick)
+      if (!input.keepOwnHp && input.armorClass == null) return stats
+      return {
+        ...stats,
+        ...(input.keepOwnHp ? { hp: null, hp_max: null } : {}),
+        ...(input.armorClass != null ? { ac: input.armorClass } : {}),
+      }
+    })(),
+    actions: [input.pick.actions_text, input.attackRiderRu ?? '']
+      .filter(Boolean)
+      .join(' · '),
+    notes: [
+      formNotesFromPick(input.pick, isElemental),
+      input.keepOwnHp ? 'свои хиты сохраняются' : '',
+      input.equipmentNoteRu ?? '',
+    ]
+      .filter(Boolean)
+      .join(' · '),
     source: {
       kind: 'class',
       labelRu: isElemental ? 'Элементальный дикий облик' : 'Дикий облик',
