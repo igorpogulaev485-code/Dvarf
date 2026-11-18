@@ -53,6 +53,12 @@ import {
   monkAsiChoicesForLevel,
   parseMonkSeed,
 } from '../features/createPipeline2024/e2eMonkSeed2024'
+import {
+  buildWarlockClassOptionPicks,
+  buildWarlockSeedSpells,
+  parseWarlockSeed,
+  warlockAsiChoicesForLevel,
+} from '../features/createPipeline2024/e2eWarlockSeed2024'
 import { createClassLevel, totalCharacterLevel } from '../shared/dnd/classLevels'
 import { thirdCasterBlock2024 } from '../shared/dnd/edition2024Subclasses'
 import { ensureHpChoices } from '../features/createPipeline/LevelingStep'
@@ -492,6 +498,30 @@ export function CreateCharacter2024Page({
         backgroundAsi: { con: 2, dex: 1 },
         asi: monkAsiChoicesForLevel(monkSpec.level),
         ...(mysticSpells ? { spells: mysticSpells } : {}),
+      }
+    }
+    const warlockSpec = parseWarlockSeed(e2eSeed)
+    const warlockClass = bySlug(catalog.classes, 'warlock')
+    if (warlockSpec && warlockClass) {
+      seeds[e2eSeed] = {
+        name: `Колдун ${warlockSpec.level}`,
+        classSlug: 'warlock',
+        abilities: { str: 8, dex: 14, con: 13, int: 10, wis: 12, cha: 15 },
+        rows: [
+          {
+            slug: 'warlock',
+            level: warlockSpec.level,
+            ...(warlockSpec.subclassSlug ? { subclass: warlockSpec.subclassSlug } : {}),
+          },
+        ],
+        skills: ['arcana', 'deception'],
+        backgroundAsi: { con: 2, dex: 1 },
+        asi: warlockAsiChoicesForLevel(warlockSpec.level),
+        spells: buildWarlockSeedSpells(catalog.spells, warlockClass, warlockSpec.level),
+        classOptionPicks: buildWarlockClassOptionPicks(
+          warlockSpec.level,
+          warlockSpec.subclassSlug,
+        ),
       }
     }
     const seed = seeds[e2eSeed] || seeds.fighter5

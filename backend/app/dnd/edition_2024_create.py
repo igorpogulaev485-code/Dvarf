@@ -2363,6 +2363,26 @@ def _validate_class_options(
                 code="create_2024_class_options",
             )
         out["eldritch_invocations"] = inv
+        warlock_level = _planned_class_level(payload, "warlock")
+        subclass = _planned_primary_subclass(payload)
+        if (
+            subclass == e24opt.WARLOCK_SUBCLASS_VESTIGE_2024
+            and warlock_level >= e24opt.WARLOCK_BOOK_SUBCLASS_LEVEL_2024
+        ):
+            domain = str(picks.get("vestige_domain") or "").lower()
+            if domain not in e24opt.VESTIGE_DOMAIN_OPTIONS_2024:
+                raise Create2024Error(
+                    "Предтеча 3+: выберите домен (war/life/trickery/light)",
+                    code="create_2024_class_options",
+                )
+            companion_type = str(picks.get("vestige_companion_type") or "").lower()
+            if companion_type not in e24opt.VESTIGE_COMPANION_TYPES_2024:
+                raise Create2024Error(
+                    "Предтеча 3+: выберите тип спутника (fiend/celestial/undead)",
+                    code="create_2024_class_options",
+                )
+            out["vestige_domain"] = domain
+            out["vestige_companion_type"] = companion_type
     return out
 
 
@@ -3436,6 +3456,10 @@ def _build_sheet(
         options_sheet["primal_companion"] = str(class_options["primal_companion"])
     if class_options.get("otherworldly_glamour"):
         options_sheet["otherworldly_glamour"] = str(class_options["otherworldly_glamour"])
+    if class_options.get("vestige_domain"):
+        options_sheet["vestige_domain"] = str(class_options["vestige_domain"])
+    if class_options.get("vestige_companion_type"):
+        options_sheet["vestige_companion_type"] = str(class_options["vestige_companion_type"])
     aspect = str(class_options.get("wild_heart_aspect") or "").lower()
     if aspect in e24opt.WILD_HEART_ASPECT_OPTIONS_2024:
         options_sheet["wild_heart_aspect"] = aspect

@@ -1194,7 +1194,7 @@ def compute_progression(
                 ]
                 if len(hits) == 1:
                     sub_s = hits[0]
-        land = row.get("land_choice") or row.get("circle_land")
+        land = row.get("land_choice") or row.get("circle_land") or row.get("vestige_domain")
         land_s = str(land).strip().lower() if land else None
         parsed.append((slug, level, sub_s, land_s))
 

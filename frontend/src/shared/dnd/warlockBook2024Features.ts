@@ -267,6 +267,33 @@ export function rollDie(sides: number): number {
 }
 
 /** Feature gates used by sheet / tests. */
+/** Merge Vestige domain into landChoiceByEntryId map (domain id → always-prepared). */
+export function mergeVestigeDomainIntoLandChoiceMap2024(input: {
+  classes: Array<{ id: string; level?: number; subclass_catalog_id?: string | null; subclass_name?: string | null }>
+  subclassSlugByEntryId?: Record<string, string | null | undefined>
+  classOptions2024?: { vestige_domain?: string | null } | null
+  landChoiceByEntryId?: Record<string, string | null | undefined>
+}): Record<string, string | null | undefined> {
+  const out: Record<string, string | null | undefined> = {
+    ...(input.landChoiceByEntryId || {}),
+  }
+  const domain = String(input.classOptions2024?.vestige_domain || '')
+    .trim()
+    .toLowerCase()
+  if (!isVestigeDomain2024(domain)) return out
+  for (const row of input.classes) {
+    const slug = String(
+      input.subclassSlugByEntryId?.[row.id] || row.subclass_catalog_id || '',
+    )
+      .trim()
+      .toLowerCase()
+    if (!isVestigePatron2024(slug)) continue
+    if (Math.max(1, Math.floor(row.level || 1)) < 3) continue
+    out[row.id] = domain
+  }
+  return out
+}
+
 export function warlockBookFeatureIdsAtLevel2024(input: {
   subclassSlug: string | null | undefined
   warlockLevel: number

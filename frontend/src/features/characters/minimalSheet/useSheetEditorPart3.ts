@@ -75,6 +75,7 @@ import {
   PRIMAL_ORDER_MAGICIAN,
   readPrimalOrder2024,
 } from '../../../shared/dnd/druid2024Features'
+import { mergeVestigeDomainIntoLandChoiceMap2024 } from '../../../shared/dnd/warlockBook2024Features'
 import {
   computeProgression2024,
   snapshotToSheetFragment2024,
@@ -1288,11 +1289,15 @@ export function useSheetEditorPart3(model: SheetModel) {
           const progress = computeProgression2024({
             classes: draftSnap.classes,
             abilities: draftSnap.abilities,
-            landChoiceByEntryId: landChoiceByEntryId2024(
-              draftSnap.classes,
-              draftSnap.featurePicks,
-              draftSnap.classOptions2024,
-            ),
+            landChoiceByEntryId: mergeVestigeDomainIntoLandChoiceMap2024({
+              classes: draftSnap.classes,
+              classOptions2024: draftSnap.classOptions2024,
+              landChoiceByEntryId: landChoiceByEntryId2024(
+                draftSnap.classes,
+                draftSnap.featurePicks,
+                draftSnap.classOptions2024,
+              ),
+            }),
           })
           const fragment = snapshotToSheetFragment2024(progress) as {
             resources?: Array<Record<string, unknown>>

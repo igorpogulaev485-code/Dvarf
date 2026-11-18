@@ -25,6 +25,7 @@ import { resolveMartialArtsDie } from '../../../shared/dnd/martialArts'
 import { type FeatureSelfFormRequest, type WildShapeForkRequest } from '../ClassFeaturesPanel'
 import { activeBeastWildShape } from '../wildShape'
 import { landChoiceByEntryId2024, WILD_SHAPE_TEMP_HP_PICK_ID_2024 } from '../../../shared/dnd/druid2024Features'
+import { mergeVestigeDomainIntoLandChoiceMap2024 } from '../../../shared/dnd/warlockBook2024Features'
 import { characterHasMagicSources } from '../magicSources'
 import { blockPlainText, withBlockPlainText } from '../textBlocks'
 import { buildDraft, type MinimalSheetEditorProps } from './draft'
@@ -312,15 +313,28 @@ export function useSheetEditorPart1(model: SheetModel, props: MinimalSheetEditor
   }, [draft.subclassTransitions])
   model.subclassTransitionByEntryId = subclassTransitionByEntryId
   const sheetRulesEdition = (baseCharacter.rules_edition || '2014') as RulesEdition
-  const landChoiceKey = useMemo(
-    () =>
-      sheetRulesEdition === '2024'
-        ? JSON.stringify(
-            landChoiceByEntryId2024(draft.classes, draft.featurePicks, draft.classOptions2024),
-          )
-        : '',
-    [sheetRulesEdition, draft.classes, draft.featurePicks, draft.classOptions2024],
-  )
+  const landChoiceKey = useMemo(() => {
+    if (sheetRulesEdition !== '2024') return ''
+    const land = landChoiceByEntryId2024(
+      draft.classes,
+      draft.featurePicks,
+      draft.classOptions2024,
+    )
+    return JSON.stringify(
+      mergeVestigeDomainIntoLandChoiceMap2024({
+        classes: draft.classes,
+        subclassSlugByEntryId,
+        classOptions2024: draft.classOptions2024,
+        landChoiceByEntryId: land,
+      }),
+    )
+  }, [
+    sheetRulesEdition,
+    draft.classes,
+    draft.featurePicks,
+    draft.classOptions2024,
+    subclassSlugByEntryId,
+  ])
   const progression2024 = useMemo(() => {
     if (sheetRulesEdition !== '2024') return null
     return computeProgression2024({
