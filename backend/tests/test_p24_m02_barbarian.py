@@ -293,6 +293,49 @@ def test_primal_champion_max_25_only_on_2024():
     assert ability_max_from_classes(classes, rules_edition="2024")["str"] == 25
 
 
+def test_validate_class_options_keeps_wild_heart_rage_and_aspect():
+    from app.dnd import edition_2024_class_options as opt
+
+    sheet = {
+        "classes": [
+            {
+                "slug": "barbarian",
+                "level": 6,
+                "subclass_slug": "barbarian__wild-heart",
+            }
+        ],
+    }
+    out = opt.validate_class_options_update(
+        rules_edition="2024",
+        previous=None,
+        incoming={
+            "rage": {"active": True, "wild_heart": "bear", "rounds_extended": 1},
+            "wild_heart_aspect": "panther",
+        },
+        sheet=sheet,
+    )
+    assert out is not None
+    assert out["rage"]["wild_heart"] == "bear"
+    assert out["wild_heart_aspect"] == "panther"
+    kept = opt.validate_class_options_update(
+        rules_edition="2024",
+        previous=out,
+        incoming={"rage": {"active": False, "rounds_extended": 0}},
+        sheet=sheet,
+    )
+    assert kept["rage"].get("wild_heart") == "bear"
+    assert kept.get("wild_heart_aspect") == "panther"
+
+
+def test_progression_wild_heart_level_6_no_crash():
+    snap = e24.compute_progression(
+        [{"slug": "barbarian", "level": 6, "subclass_slug": "barbarian__wild-heart"}],
+        abilities=_ABILITIES,
+    )
+    assert snap is not None
+    assert any(r.pool_id == "rages" for r in snap.resources)
+
+
 def test_multiclass_barbarian_grants_martial_and_shields_not_simple():
     grants = e24.MULTICLASS_PROFICIENCIES["barbarian"]
     assert grants["armor"] == ["shields"]

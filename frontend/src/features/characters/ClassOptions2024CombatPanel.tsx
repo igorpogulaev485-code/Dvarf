@@ -17,6 +17,16 @@ import {
 } from '../../shared/dnd/edition2024ClassOptions'
 import { normalizeClassSlug2024 } from '../../shared/dnd/edition2024Classes'
 import { cunningStrikeEffectNameRu2024 } from '../../shared/dnd/rogue2024Features'
+import {
+  BARBARIAN_SUBCLASS_SLUGS_2024,
+  BRANCHES_OF_THE_TREE_NAME_RU,
+  TRAVEL_ALONG_THE_TREE_MIN_LEVEL_2024,
+  TRAVEL_ALONG_THE_TREE_NAME_RU,
+  VITALITY_OF_THE_TREE_NAME_RU,
+  WILD_HEART_ASPECT_OPTIONS_RU,
+  WILD_HEART_POWER_OPTIONS_RU,
+  WILD_HEART_RAGE_OPTIONS_RU,
+} from '../../shared/dnd/barbarian2024Features'
 import type { ClassLevelEntry } from './classLevels'
 import { postSheetRollToSession } from './postSheetRollToSession'
 
@@ -41,9 +51,14 @@ export type ClassOptions2024CombatPanelProps = {
   onFeedLine?: (line: string) => void
 }
 
+function classSlugOf(row: ClassLevelEntry): string | null {
+  // catalog_id may be a UUID from create-2024; fall back to Russian/English name.
+  return normalizeClassSlug2024(row.catalog_id) || normalizeClassSlug2024(row.name)
+}
+
 function levelOf(classes: ClassLevelEntry[], slug: string): number {
   return classes.reduce((sum, row) => {
-    const s = normalizeClassSlug2024(row.catalog_id || row.name)
+    const s = classSlugOf(row)
     return s === slug ? sum + Math.max(0, row.level || 0) : sum
   }, 0)
 }
@@ -71,6 +86,8 @@ export function ClassOptions2024CombatPanel({
   const [brutalPick, setBrutalPick] = useState<string[]>([])
   const [reckless, setReckless] = useState(false)
   const [hasAdv, setHasAdv] = useState(true)
+  const [wildHeartRage, setWildHeartRage] = useState<'wolf' | 'bear' | 'eagle'>('wolf')
+  const [wildHeartPower, setWildHeartPower] = useState<'falcon' | 'lion' | 'ram'>('falcon')
 
   const rogueLv = levelOf(classes, 'rogue')
   const barbLv = levelOf(classes, 'barbarian')
@@ -93,7 +110,20 @@ export function ClassOptions2024CombatPanel({
     return null
   }, [classes])
   const isThief = Boolean(rogueSubclass && rogueSubclass.includes('thief'))
-
+  const barbarianSubclass = useMemo(() => {
+    for (const row of classes) {
+      const slug = classSlugOf(row)
+      if (slug !== 'barbarian') continue
+      // Keep `barbarian__wild-heart` form — do not turn `__` into `--`.
+      const sub = String(row.subclass_catalog_id || '')
+        .trim()
+        .toLowerCase()
+        .replace(/_/g, '-')
+        .replace(/--+/g, '__')
+      if (sub) return sub
+    }
+    return ''
+  }, [classes])
   const sneakDice = useMemo(
     () => parseSneakAttackDice(sneakAttackScale || (rogueLv >= 5 ? `${Math.ceil(rogueLv / 2)}d6` : '0')),
     [sneakAttackScale, rogueLv],
@@ -185,6 +215,105 @@ export function ClassOptions2024CombatPanel({
       {barbLv >= 1 ? (
         <div data-testid="rage-brutal-panel">
           <Text as="h3">Ярость / Жестокий удар</Text>
+          {barbarianSubclass === BARBARIAN_SUBCLASS_SLUGS_2024.wildHeart ? (
+            <div className="sheet-chip-row" data-testid="wild-heart-rage-picks">
+              {Object.entries(WILD_HEART_RAGE_OPTIONS_RU).map(([id, label]) => (
+                <button
+                  key={id}
+                  type="button"
+                  className={`sheet-chip${wildHeartRage === id || options.rage.wild_heart === id ? ' is-on' : ''}`}
+                  onClick={() => setWildHeartRage(id as 'wolf' | 'bear' | 'eagle')}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          ) : null}
+          {barbarianSubclass === BARBARIAN_SUBCLASS_SLUGS_2024.wildHeart && barbLv >= 6 ? (
+            <div className="sheet-chip-row" data-testid="wild-heart-aspect-picks">
+              {Object.entries(WILD_HEART_ASPECT_OPTIONS_RU).map(([id, label]) => (
+                <button
+                  key={id}
+                  type="button"
+                  className={`sheet-chip${options.wild_heart_aspect === id ? ' is-on' : ''}`}
+                  onClick={() =>
+                    onOptionsChange({
+                      ...options,
+                      wild_heart_aspect: id as 'salmon' | 'panther' | 'owl',
+                    })
+                  }
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          ) : null}
+          {barbarianSubclass === BARBARIAN_SUBCLASS_SLUGS_2024.wildHeart && barbLv >= 14 ? (
+            <div className="sheet-chip-row" data-testid="wild-heart-power-picks">
+              {Object.entries(WILD_HEART_POWER_OPTIONS_RU).map(([id, label]) => {
+                const selected =
+                  (options.rage.wild_heart_power ?? wildHeartPower) === id
+                return (
+                  <button
+                    key={id}
+                    type="button"
+                    className={`sheet-chip${selected ? ' is-on' : ''}`}
+                    data-testid={`wild-heart-power-${id}`}
+                    onClick={() => {
+                      const next = id as 'falcon' | 'lion' | 'ram'
+                      setWildHeartPower(next)
+                      onOptionsChange({
+                        ...options,
+                        rage: { ...options.rage, wild_heart_power: next },
+                      })
+                    }}
+                  >
+                    {label}
+                  </button>
+                )
+              })}
+            </div>
+          ) : null}
+          {barbarianSubclass === BARBARIAN_SUBCLASS_SLUGS_2024.worldTree ? (
+            <div className="sheet-chip-row">
+              {barbLv >= 6 ? (
+                <button
+                  type="button"
+                  className="sheet-chip"
+                  onClick={() =>
+                    void announce(
+                      BRANCHES_OF_THE_TREE_NAME_RU,
+                      `${BRANCHES_OF_THE_TREE_NAME_RU}: удержание / телепорт — отметьте на столе.`,
+                    )
+                  }
+                >
+                  {BRANCHES_OF_THE_TREE_NAME_RU}
+                </button>
+              ) : null}
+              {barbLv >= TRAVEL_ALONG_THE_TREE_MIN_LEVEL_2024 ? (
+                <button
+                  type="button"
+                  className="sheet-chip"
+                  data-testid="world-tree-travel-button"
+                  onClick={() => {
+                    onOptionsChange({
+                      ...options,
+                      rage: {
+                        ...options.rage,
+                        world_tree_travel_used: true,
+                      },
+                    })
+                    void announce(
+                      TRAVEL_ALONG_THE_TREE_NAME_RU,
+                      `${TRAVEL_ALONG_THE_TREE_NAME_RU}: в ярости телепорт до 60 фт (бонусным); раз за ярость — до 150 фт и до шести согласных.`,
+                    )
+                  }}
+                >
+                  {TRAVEL_ALONG_THE_TREE_NAME_RU}
+                </button>
+              ) : null}
+            </div>
+          ) : null}
           <div className="sheet-chip-row">
             <button
               type="button"
@@ -193,20 +322,44 @@ export function ClassOptions2024CombatPanel({
                 if (options.rage.active) {
                   onOptionsChange({
                     ...options,
-                    rage: { ...options.rage, active: false, rounds_extended: 0 },
+                    rage: {
+                      ...options.rage,
+                      active: false,
+                      rounds_extended: 0,
+                      wild_heart: null,
+                      wild_heart_power: null,
+                    },
                   })
                   void announce('Ярость', 'Ярость окончена')
                   return
                 }
-                const next = {
-                  ...options,
-                  rage: { active: true, rounds_extended: 0, max_minutes: 10 },
+                const rageExtras: typeof options.rage = {
+                  active: true,
+                  rounds_extended: 0,
+                  max_minutes: 10,
                 }
+                let toastExtra = ''
+                if (barbarianSubclass === BARBARIAN_SUBCLASS_SLUGS_2024.wildHeart) {
+                  rageExtras.wild_heart = wildHeartRage
+                  toastExtra += ` · ${WILD_HEART_RAGE_OPTIONS_RU[wildHeartRage]}`
+                  if (barbLv >= 14) {
+                    rageExtras.wild_heart_power = wildHeartPower
+                    toastExtra += ` · ${WILD_HEART_POWER_OPTIONS_RU[wildHeartPower]}`
+                  }
+                }
+                const next = { ...options, rage: { ...options.rage, ...rageExtras } }
                 onOptionsChange(next)
-                void announce(
-                  'Ярость',
-                  'Ярость начата (до конца следующего хода; продление атакой/спасом/бонусным)',
-                )
+                if (barbarianSubclass === BARBARIAN_SUBCLASS_SLUGS_2024.worldTree && barbLv >= 3) {
+                  void announce(
+                    VITALITY_OF_THE_TREE_NAME_RU,
+                    `${VITALITY_OF_THE_TREE_NAME_RU}: временные хиты = ${barbLv}`,
+                  )
+                } else {
+                  void announce(
+                    'Ярость',
+                    `Ярость начата${toastExtra} (до конца следующего хода; продление атакой/спасом/бонусным)`,
+                  )
+                }
               }}
             >
               {options.rage.active ? 'Завершить ярость' : 'Начать ярость'}

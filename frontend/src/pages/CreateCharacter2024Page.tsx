@@ -20,6 +20,7 @@ import {
   BackgroundPicks,
   BardLevelingPicks,
   ArtificerLevelingPicks,
+  BarbarianLevelingPicks,
   RangerLevelingPicks,
   RogueLevelingPicks,
   ClassPicks,
@@ -1290,6 +1291,9 @@ export function CreateCharacter2024Page({
           ) : null}
           {classSlug === 'rogue' ? <RogueLevelingPicks state={state} patch={patch} /> : null}
           {classSlug === 'ranger' ? <RangerLevelingPicks state={state} patch={patch} /> : null}
+          {classSlug === 'barbarian' ? (
+            <BarbarianLevelingPicks state={state} patch={patch} catalog={catalog} />
+          ) : null}
           {classSlug === 'artificer' ? (
             <ArtificerLevelingPicks state={state} patch={patch} catalog={catalog} />
           ) : null}

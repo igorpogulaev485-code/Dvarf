@@ -1047,6 +1047,41 @@ def _validate_ranger_options_2024(
     return out
 
 
+def _validate_barbarian_options_2024(
+    payload: Create2024Payload,
+    picks: Mapping[str, Any],
+) -> dict[str, Any]:
+    """Wild Heart conclave picks → class_options_2024 defaults."""
+    out: dict[str, Any] = {}
+    barbarian_level = _planned_class_level(payload, "barbarian")
+    subclass = _planned_primary_subclass(payload)
+    if subclass == e24opt.BARBARIAN_SUBCLASS_WILD_HEART_2024 and barbarian_level >= 3:
+        rage = str(picks.get("wild_heart_rage") or "").lower()
+        if rage not in e24opt.WILD_HEART_RAGE_OPTIONS_2024:
+            raise Create2024Error(
+                "Путь дикого сердца 3+: выберите форму ярости (wolf/bear/eagle)",
+                code="create_2024_class_options",
+            )
+        out["wild_heart_rage"] = rage
+    if subclass == e24opt.BARBARIAN_SUBCLASS_WILD_HEART_2024 and barbarian_level >= 6:
+        aspect = str(picks.get("wild_heart_aspect") or "").lower()
+        if aspect not in e24opt.WILD_HEART_ASPECT_OPTIONS_2024:
+            raise Create2024Error(
+                "Путь дикого сердца 6+: выберите аспект (salmon/panther/owl)",
+                code="create_2024_class_options",
+            )
+        out["wild_heart_aspect"] = aspect
+    if subclass == e24opt.BARBARIAN_SUBCLASS_WILD_HEART_2024 and barbarian_level >= 14:
+        power = str(picks.get("wild_heart_power") or "").lower()
+        if power not in e24opt.WILD_HEART_POWER_OPTIONS_2024:
+            raise Create2024Error(
+                "Путь дикого сердца 14+: выберите силу (falcon/lion/ram)",
+                code="create_2024_class_options",
+            )
+        out["wild_heart_power"] = power
+    return out
+
+
 def _validate_artificer_options_2024(
     payload: Create2024Payload,
     picks: Mapping[str, Any],
@@ -2087,6 +2122,8 @@ def _validate_class_options(
                 fighting_style=fighting_style,
             )
         )
+    if payload.class_slug == "barbarian":
+        out.update(_validate_barbarian_options_2024(payload, picks))
     if payload.class_slug == "artificer":
         out.update(_validate_artificer_options_2024(payload, picks))
     if payload.class_slug == "cleric":
@@ -3183,6 +3220,15 @@ def _build_sheet(
         options_sheet["primal_companion"] = str(class_options["primal_companion"])
     if class_options.get("otherworldly_glamour"):
         options_sheet["otherworldly_glamour"] = str(class_options["otherworldly_glamour"])
+    aspect = str(class_options.get("wild_heart_aspect") or "").lower()
+    if aspect in e24opt.WILD_HEART_ASPECT_OPTIONS_2024:
+        options_sheet["wild_heart_aspect"] = aspect
+    rage_animal = str(class_options.get("wild_heart_rage") or "").lower()
+    if rage_animal in e24opt.WILD_HEART_RAGE_OPTIONS_2024:
+        options_sheet["rage"]["wild_heart"] = rage_animal
+    rage_power = str(class_options.get("wild_heart_power") or "").lower()
+    if rage_power in e24opt.WILD_HEART_POWER_OPTIONS_2024:
+        options_sheet["rage"]["wild_heart_power"] = rage_power
     sheet["class_options_2024"] = options_sheet
 
     sheet["create_2024"] = {

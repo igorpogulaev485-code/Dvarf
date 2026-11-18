@@ -1,13 +1,15 @@
 /**
  * 2024 Barbarian feature «use» dialog — edition branch only (`rules_edition === '2024'`).
- * Rage, Relentless / Persistent Rage, Zealot pools, Retaliation.
+ * Rage, Relentless / Persistent Rage, Zealot pools, Wild Heart / World Tree, Retaliation.
  */
 
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Dialog, Field, SegmentedControl, Stack, Text } from '../../ui'
 import type { SheetResource } from '../../shared/dnd/rest'
+import type { ClassOptions2024State } from '../../shared/dnd/edition2024ClassOptions'
 import {
   applyBarbarian2024FeatureUse,
+  BARBARIAN_SUBCLASS_SLUGS_2024,
   barbarian2024UseFeatureId,
   FANATICAL_FOCUS_NAME_RU,
   findBarbarianPool2024,
@@ -21,6 +23,9 @@ import {
   WARRIOR_OF_THE_GODS_NAME_RU,
   WARRIOR_OF_THE_GODS_POOL_ID,
   warriorOfTheGodsDice2024,
+  WILD_HEART_ASPECT_OPTIONS_RU,
+  WILD_HEART_POWER_OPTIONS_RU,
+  WILD_HEART_RAGE_OPTIONS_RU,
   ZEALOUS_PRESENCE_NAME_RU,
   type Barbarian2024UseResult,
 } from '../../shared/dnd/barbarian2024Features'
@@ -39,6 +44,8 @@ type Props = {
   resources: SheetResource[]
   barbarianLevel: number
   wearingHeavyArmor?: boolean
+  subclassSlug?: string | null
+  classOptions2024?: ClassOptions2024State | null
   onConfirm: (result: Barbarian2024UseResult) => void
   onClose: () => void
 }
@@ -53,6 +60,8 @@ const FEATURE_TEXT: Record<string, string> = {
   'intimidating-presence': `${INTIMIDATING_PRESENCE_NAME_RU}: бонусным — испугать в 30 фт. (1 / долгий или за ярость).`,
   'rage-of-the-gods': `${RAGE_OF_THE_GODS_NAME_RU}: облик богов на 1 минуту (1 / долгий).`,
   retaliation: `${RETALIATION_NAME_RU}: реакцией — рукопашная атака по обидчику в 5 фт.`,
+  'aspect-of-the-wilds': 'Смена аспекта после долгого отдыха.',
+  'power-of-the-wilds': 'Сила дикой природы применяется при входе в ярость (с 14 ур.).',
 }
 
 export function Barbarian2024UseDialog({
@@ -61,16 +70,28 @@ export function Barbarian2024UseDialog({
   resources,
   barbarianLevel,
   wearingHeavyArmor = false,
+  subclassSlug = null,
+  classOptions2024 = null,
   onConfirm,
   onClose,
 }: Props) {
   const [mode, setMode] = useState('spend')
   const [diceCount, setDiceCount] = useState('1')
+  const [wildHeartRage, setWildHeartRage] = useState(
+    () => classOptions2024?.rage.wild_heart ?? 'wolf',
+  )
+  const [wildHeartPower, setWildHeartPower] = useState(
+    () => classOptions2024?.rage.wild_heart_power ?? 'falcon',
+  )
+  const [wildHeartAspect, setWildHeartAspect] = useState(
+    () => classOptions2024?.wild_heart_aspect ?? 'salmon',
+  )
 
   if (!request) return null
 
   const featureId =
     barbarian2024UseFeatureId(request.featureId) ?? request.featureId.replace(/_/g, '-')
+  const subclass = String(subclassSlug || '').trim().toLowerCase()
 
   const poolId =
     featureId === 'rage'
@@ -81,11 +102,11 @@ export function Barbarian2024UseDialog({
           ? 'fanatical_focus'
           : featureId === 'zealous-presence'
             ? 'zealous_presence'
-            : featureId === 'intimidating-presence'
-              ? 'intimidating_presence'
-              : featureId === 'rage-of-the-gods'
-                ? 'rage_of_the_gods'
-                : null
+          : featureId === 'intimidating-presence'
+            ? 'intimidating_presence'
+          : featureId === 'rage-of-the-gods'
+            ? 'rage_of_the_gods'
+          : null
 
   const pool =
     poolId != null
@@ -101,6 +122,31 @@ export function Barbarian2024UseDialog({
   const body = FEATURE_TEXT[featureId] ?? request.name
   const wog = warriorOfTheGodsDice2024(barbarianLevel)
 
+  const rageOptions = useMemo(
+    () =>
+      Object.entries(WILD_HEART_RAGE_OPTIONS_RU).map(([id, label]) => ({
+        id,
+        label,
+      })),
+    [],
+  )
+  const powerOptions = useMemo(
+    () =>
+      Object.entries(WILD_HEART_POWER_OPTIONS_RU).map(([id, label]) => ({
+        id,
+        label,
+      })),
+    [],
+  )
+  const aspectOptions = useMemo(
+    () =>
+      Object.entries(WILD_HEART_ASPECT_OPTIONS_RU).map(([id, label]) => ({
+        id,
+        label,
+      })),
+    [],
+  )
+
   function confirm() {
     const result = applyBarbarian2024FeatureUse({
       featureId: request!.featureId,
@@ -108,10 +154,26 @@ export function Barbarian2024UseDialog({
       resources,
       classEntryId: request!.classEntryId,
       barbarianLevel,
+      subclassSlug: subclass,
       refund: mode === 'refund',
       mode: mode === 'refund_with_rage' ? 'refund_with_rage' : mode,
       diceCount: featureId === 'warrior-of-the-gods' ? Number(diceCount) || 1 : undefined,
       wearingHeavyArmor,
+      wildHeartRage:
+        featureId === 'rage' && subclass === BARBARIAN_SUBCLASS_SLUGS_2024.wildHeart
+          ? (wildHeartRage as 'wolf' | 'bear' | 'eagle')
+          : undefined,
+      wildHeartPower:
+        featureId === 'rage' && subclass === BARBARIAN_SUBCLASS_SLUGS_2024.wildHeart && barbarianLevel >= 14
+          ? (wildHeartPower as 'falcon' | 'lion' | 'ram')
+          : featureId === 'power-of-the-wilds'
+            ? (wildHeartPower as 'falcon' | 'lion' | 'ram')
+            : classOptions2024?.rage.wild_heart_power ?? undefined,
+      wildHeartAspect:
+        featureId === 'aspect-of-the-wilds'
+          ? (wildHeartAspect as 'salmon' | 'panther' | 'owl')
+          : undefined,
+      rageWildHeart: classOptions2024?.rage.wild_heart ?? null,
     })
     onConfirm(result)
   }
@@ -149,6 +211,51 @@ export function Barbarian2024UseDialog({
               value={mode}
               onChange={setMode}
               options={modeOptions}
+            />
+          </Field>
+        ) : null}
+        {featureId === 'rage' &&
+        mode === 'spend' &&
+        subclass === BARBARIAN_SUBCLASS_SLUGS_2024.wildHeart ? (
+          <Field label="Форма ярости">
+            <SegmentedControl
+              aria-label="Ярость дикой природы"
+              value={wildHeartRage}
+              onChange={(id) => setWildHeartRage(id as 'wolf' | 'bear' | 'eagle')}
+              options={rageOptions}
+            />
+          </Field>
+        ) : null}
+        {featureId === 'rage' &&
+        mode === 'spend' &&
+        subclass === BARBARIAN_SUBCLASS_SLUGS_2024.wildHeart &&
+        barbarianLevel >= 14 ? (
+          <Field label="Сила дикой природы">
+            <SegmentedControl
+              aria-label="Сила дикой природы"
+              value={wildHeartPower}
+              onChange={(id) => setWildHeartPower(id as 'falcon' | 'lion' | 'ram')}
+              options={powerOptions}
+            />
+          </Field>
+        ) : null}
+        {featureId === 'aspect-of-the-wilds' ? (
+          <Field label="Аспект">
+            <SegmentedControl
+              aria-label="Аспект дикой природы"
+              value={wildHeartAspect}
+              onChange={(id) => setWildHeartAspect(id as 'salmon' | 'panther' | 'owl')}
+              options={aspectOptions}
+            />
+          </Field>
+        ) : null}
+        {featureId === 'power-of-the-wilds' ? (
+          <Field label="Сила">
+            <SegmentedControl
+              aria-label="Сила дикой природы"
+              value={wildHeartPower}
+              onChange={(id) => setWildHeartPower(id as 'falcon' | 'lion' | 'ram')}
+              options={powerOptions}
             />
           </Field>
         ) : null}
