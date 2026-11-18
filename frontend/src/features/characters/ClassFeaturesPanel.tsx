@@ -3011,7 +3011,9 @@ function FeatureRow({
       onArtificerFeatureUse &&
       artificer2024UseFeatureId(feature.id) &&
       (!feature.resource?.pool_id ||
-        /spell-storing|spell_storing|replicate-magic|replicate_magic/i.test(feature.id)) ? (
+        /spell-storing|spell_storing|replicate-magic|replicate_magic|experimental-elixir|experimental_elixir|eldritch-cannon|eldritch_cannon|steel-defender|steel_defender|adventure-atlas|adventure_atlas|mapping-magic|mapping_magic|reanimated-companion|reanimated_companion|reanimator-s-skill-set|reanimator_s_skill_set|refined-reanimation|refined_reanimation|chemical-mastery|chemical_mastery|arcane-jolt|arcane_jolt/i.test(
+          feature.id,
+        )) ? (
         <div className="feature-resource__actions">
           <Button
             type="button"
