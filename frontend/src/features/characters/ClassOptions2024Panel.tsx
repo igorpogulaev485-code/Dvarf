@@ -142,7 +142,7 @@ export function ClassOptions2024Panel({
       {artificerLv >= 2 && plansLimit > 0 ? (
         <div data-testid="class-options-plans">
           <Text as="h3">
-            Планы реплики ({state.replicate_plans.length}/{plansLimit})
+            Известные схемы ({state.replicate_plans.length}/{plansLimit})
           </Text>
           <div className="sheet-chip-row">
             {ARTIFICER_REPLICATE_PLANS_2024.filter((row) => row.minLevel <= artificerLv).map(

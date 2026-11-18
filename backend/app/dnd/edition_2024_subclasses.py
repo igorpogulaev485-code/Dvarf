@@ -1035,7 +1035,7 @@ def build_subclass_resources(
         if class_level >= 9:
             add(
                 "restorative_reagents",
-                name_ru="Малое восстановление (реагенты)",
+                name_ru="Восстанавливающие реагенты",
                 max_uses=max(1, int_m),
                 reset="long",
                 feature_id="restorative-reagents",

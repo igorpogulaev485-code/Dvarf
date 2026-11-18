@@ -48,6 +48,11 @@ import {
   RANGER_SUBCLASS_SLUGS_2024,
   rangerExpertiseChoice2024,
 } from './ranger2024Features'
+import {
+  armorModelChoice2024,
+  ARTIFICER_SUBCLASS_SLUGS_2024,
+  SUBCLASS_MIN_LEVEL_2024 as ARTIFICER_SUBCLASS_MIN_LEVEL_2024,
+} from './artificer2024Features'
 import { metamagicPickGainAtLevel2024 } from './sorcerer2024Features'
 import { invocationPickGainAtLevel2024 } from './warlock2024Features'
 import {
@@ -465,6 +470,35 @@ export function buildPendingWizardSteps2024(input: PendingWizardInput2024): Guid
           featureNameRu: otherworldlyGlamourChoice2024.label_ru,
           featureLevel: HUNTERS_PREY_MIN_LEVEL_2024,
           choice: otherworldlyGlamourChoice2024,
+        })
+      }
+    }
+  }
+
+  if (slug === 'artificer' && level >= ARTIFICER_SUBCLASS_MIN_LEVEL_2024) {
+    const sub = (input.subclassSlug ?? '').trim()
+    if (sub === ARTIFICER_SUBCLASS_SLUGS_2024.armorer) {
+      const modelPicked = input.featurePicks
+        ? Boolean(
+            getFeatureChoicePick(
+              input.featurePicks,
+              input.classEntryId,
+              'armor_model',
+              armorModelChoice2024.id,
+            ),
+          )
+        : false
+      if (!modelPicked) {
+        steps.push({
+          id: `feature_choice:${input.classEntryId}:armor_model`,
+          kind: 'feature_choice',
+          classEntryId: input.classEntryId,
+          className: input.className,
+          classLevel: level,
+          featureId: 'armor_model',
+          featureNameRu: armorModelChoice2024.label_ru,
+          featureLevel: ARTIFICER_SUBCLASS_MIN_LEVEL_2024,
+          choice: armorModelChoice2024,
         })
       }
     }

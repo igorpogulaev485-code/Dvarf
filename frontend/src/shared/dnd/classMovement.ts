@@ -2,6 +2,7 @@
 
 import { resolveClassFeatureSlug } from './classFeatures'
 import type { ClassLevelEntry } from './classLevels'
+import { armorerInfiltratorSpeedBonusFt2024, type ArmorModel2024 } from './artificer2024Features'
 import { rovingSpeedBonusFt } from './ranger2024Features'
 
 /** Monk Unarmored Movement bonus by class level (PHB 2014). */
@@ -35,8 +36,10 @@ export function classWalkSpeedBonusFt(input: {
   wearingHeavyArmor?: boolean
   /** Any body armor or shield — blocks monk Unarmored Movement. */
   wearingArmorOrShield?: boolean
-  /** Rules edition — Roving applies only for `2024`. */
+  /** Rules edition — Roving / Armorer Infiltrator apply only for `2024`. */
   rulesEdition?: string | null
+  /** Armorer 2024 armor model pick (Диверсант → +5). */
+  armorerArmorModel?: ArmorModel2024 | null
 }): number {
   let bonus = 0
   for (const row of input.classes) {
@@ -52,6 +55,15 @@ export function classWalkSpeedBonusFt(input: {
       bonus += rovingSpeedBonusFt({
         rangerLevel: level,
         wearingHeavyArmor: input.wearingHeavyArmor,
+      })
+    }
+    if (
+      (slug === 'artificer' || /артефактор|изобретат/i.test(row.name || '')) &&
+      isEdition2024(input.rulesEdition)
+    ) {
+      bonus += armorerInfiltratorSpeedBonusFt2024({
+        artificerLevel: level,
+        armorModel: input.armorerArmorModel ?? null,
       })
     }
   }

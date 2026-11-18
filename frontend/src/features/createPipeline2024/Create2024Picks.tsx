@@ -13,7 +13,8 @@ import {
   OTHERWORLDLY_GLAMOUR_SKILLS_2024,
   PRIMAL_COMPANION_TYPES_2024,
 } from '../../shared/dnd/ranger2024Features'
-import { rangerCreatePicksNeed2024 } from './createPipeline2024State'
+import { ARMOR_MODELS_2024 } from '../../shared/dnd/artificer2024Features'
+import { artificerCreatePicksNeed2024, rangerCreatePicksNeed2024 } from './createPipeline2024State'
 import {
   emptyFeaturePicks,
   getFeaturePickList,
@@ -397,6 +398,33 @@ const BARD_CREATE_ENTRY_ID = 'create-bard'
 
 /** Bard 2024 leveling picks: Expertise (2 / 9) and College of Lore bonus skills. */
 /** Ranger 2024 conclave picks on the leveling step (create-at-N). */
+export function ArtificerLevelingPicks({
+  state,
+  patch,
+}: {
+  state: Create2024State
+  patch: (partial: Partial<Create2024State>) => void
+}) {
+  const need = artificerCreatePicksNeed2024(state)
+  if (!need.armorModel) return null
+  const setPicks = (partial: Record<string, unknown>) =>
+    patch({ classOptionPicks: { ...state.classOptionPicks, ...partial } })
+  return (
+    <Stack gap={14}>
+      <PickChipGroup
+        label="Модель доспеха"
+        hint="Дредноут, Диверсант или Страж (EFA 2024)."
+        options={ARMOR_MODELS_2024.map((row) => ({ id: row.id, label: row.nameRu }))}
+        selected={state.classOptionPicks.armor_model ? [String(state.classOptionPicks.armor_model)] : []}
+        max={1}
+        multi={false}
+        testIdPrefix="p24-m03-pick-armor_model"
+        onChange={(picked) => setPicks({ armor_model: picked[0] ?? null })}
+      />
+    </Stack>
+  )
+}
+
 export function RangerLevelingPicks({
   state,
   patch,

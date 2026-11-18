@@ -25,6 +25,12 @@ import {
   PRIMAL_COMPANION_NAME_RU,
   RANGER_SUBCLASS_SLUGS_2024,
 } from '../../shared/dnd/ranger2024Features'
+import {
+  ARMOR_MODEL_NAME_RU,
+  ARTIFICER_SUBCLASS_SLUGS_2024,
+  isArmorModel2024,
+  SUBCLASS_MIN_LEVEL_2024 as ARTIFICER_SUBCLASS_MIN_LEVEL_2024,
+} from '../../shared/dnd/artificer2024Features'
 import { ELDRITCH_INVOCATIONS_2024 } from '../../shared/dnd/edition2024ClassOptions'
 import { SKILL_DEFS } from '../characters/sheetTypes'
 import {
@@ -534,6 +540,28 @@ function abilitiesIssues(state: Create2024State): string[] {
 }
 
 /** Bard 2024 create-time picks: Expertise from level 2 (2) and 9 (4), Lore bonus skills at 3. */
+export function artificerCreatePicksNeed2024(state: Create2024State): {
+  artificerLevel: number
+  subclassSlug: string
+  armorModel: boolean
+} {
+  if (state.classSlug !== 'artificer') {
+    return { artificerLevel: 0, subclassSlug: '', armorModel: false }
+  }
+  const primary =
+    state.classes.find((row) => row.id === state.primaryClassEntryId) ?? state.classes[0]
+  const artificerLevel = Math.max(1, primary?.level ?? state.characterLevel ?? 1)
+  const subclass =
+    (primary && state.subclassByEntryId[primary.id]) || state.subclassSlug || ''
+  return {
+    artificerLevel,
+    subclassSlug: subclass,
+    armorModel:
+      subclass === ARTIFICER_SUBCLASS_SLUGS_2024.armorer &&
+      artificerLevel >= ARTIFICER_SUBCLASS_MIN_LEVEL_2024,
+  }
+}
+
 export function rangerCreatePicksNeed2024(state: Create2024State): {
   rangerLevel: number
   subclassSlug: string
@@ -668,6 +696,13 @@ function levelingIssues(state: Create2024State, ctx: StepIssueCtx): string[] {
       if (!LAND_TERRAINS_2024.some((row) => row.id === land)) {
         issues.push('Выберите местность Круга земли (с 3 ур. друида)')
       }
+    }
+  }
+  if (state.classSlug === 'artificer') {
+    const need = artificerCreatePicksNeed2024(state)
+    const model = String(state.classOptionPicks.armor_model || '')
+    if (need.armorModel && !isArmorModel2024(model)) {
+      issues.push(`Выберите ${ARMOR_MODEL_NAME_RU} (с 3 ур. артефактора)`)
     }
   }
   if (state.classSlug === 'ranger') {

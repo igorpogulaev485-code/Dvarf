@@ -19,6 +19,7 @@ import { Create2024DetailPanel } from '../features/createPipeline2024/Create2024
 import {
   BackgroundPicks,
   BardLevelingPicks,
+  ArtificerLevelingPicks,
   RangerLevelingPicks,
   ClassPicks,
   SpeciesFeatPicks,
@@ -1261,6 +1262,7 @@ export function CreateCharacter2024Page({
             />
           ) : null}
           {classSlug === 'ranger' ? <RangerLevelingPicks state={state} patch={patch} /> : null}
+          {classSlug === 'artificer' ? <ArtificerLevelingPicks state={state} patch={patch} /> : null}
           {sc ? (
             <div data-testid="p24-m03-step-spells">
               <CatalogCardList

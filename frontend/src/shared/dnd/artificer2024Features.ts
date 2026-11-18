@@ -17,6 +17,7 @@ import {
   setFeaturePick,
   type FeaturePicksState,
 } from './featurePicks'
+import { parseFeatureResourceId } from './featureResources'
 import { clampResource, type SheetResource } from './rest'
 
 /* ------------------------------------------------------------------ */
@@ -432,13 +433,125 @@ export const ARTIFICER_2024_CARD_BUTTONS: Record<string, string> = {
   soul_of_artifice: 'Обман смерти…',
 }
 
+const ARTIFICER_USE_FEATURE_IDS = new Set([
+  'magic-of-making',
+  'flash-of-genius',
+  'magic-item-tinker',
+  'spell-storing-item',
+  'replicate-magic-item',
+  'experimental-elixir',
+  'eldritch-cannon',
+  'steel-defender',
+  'adventure-atlas',
+  'soul-of-artifice',
+])
+
 export function artificer2024UseFeatureId(featureId: string | null | undefined): string | null {
   if (!featureId) return null
-  const key = featureId.trim()
-  if (ARTIFICER_2024_CARD_BUTTONS[key] || ARTIFICER_2024_CARD_BUTTONS[key.replace(/_/g, '-')]) {
-    return key.replace(/_/g, '-')
-  }
+  const key = featureId.trim().replace(/_/g, '-')
+  if (ARTIFICER_2024_CARD_BUTTONS[key] || ARTIFICER_USE_FEATURE_IDS.has(key)) return key
   return null
+}
+
+export function findArtificerPool2024(
+  resources: SheetResource[],
+  poolId: string,
+  classEntryId?: string,
+): SheetResource | null {
+  const matches = (row: SheetResource) =>
+    row.pool_id === poolId || parseFeatureResourceId(row.id)?.poolId === poolId
+  if (classEntryId) {
+    const exact = resources.find((row) => {
+      const parsed = parseFeatureResourceId(row.id)
+      return parsed?.poolId === poolId && parsed.classEntryId === classEntryId
+    })
+    if (exact) return exact
+    const art = resources.find((row) => {
+      const parsed = parseFeatureResourceId(row.id)
+      return parsed?.poolId === poolId && parsed.classSlug === ARTIFICER_CLASS_SLUG_2024
+    })
+    if (art) return art
+  }
+  return resources.find(matches) ?? null
+}
+
+export type Artificer2024UseResult = {
+  ok: boolean
+  resources: SheetResource[]
+  feedLineRu: string
+  message?: string
+}
+
+export function applyArtificer2024FeatureUse(input: {
+  featureId: string
+  resourceId: string | null
+  resources: SheetResource[]
+  classEntryId: string
+  refund?: boolean
+}): Artificer2024UseResult {
+  const fid = artificer2024UseFeatureId(input.featureId) ?? input.featureId.replace(/_/g, '-')
+  const poolId =
+    fid === 'magic-of-making'
+      ? MAGIC_OF_MAKING_POOL_ID
+      : fid === 'flash-of-genius'
+        ? FLASH_OF_GENIUS_POOL_ID
+        : null
+  if (!poolId) {
+    return {
+      ok: false,
+      resources: input.resources,
+      feedLineRu: '',
+      message: 'Это умение пока без автотраты — см. карточку.',
+    }
+  }
+  const pool =
+    (input.resourceId
+      ? input.resources.find((row) => row.id === input.resourceId)
+      : null)
+    ?? findArtificerPool2024(input.resources, poolId, input.classEntryId)
+  if (!pool) {
+    return {
+      ok: false,
+      resources: input.resources,
+      feedLineRu: '',
+      message: 'Пул не найден',
+    }
+  }
+  const refund = Boolean(input.refund)
+  if (refund) {
+    if (pool.used <= 0) {
+      return {
+        ok: false,
+        resources: input.resources,
+        feedLineRu: '',
+        message: 'Нечего возвращать',
+      }
+    }
+    const next = input.resources.map((row) =>
+      row.id === pool.id ? clampResource({ ...row, used: Math.max(0, row.used - 1) }) : row,
+    )
+    return {
+      ok: true,
+      resources: next,
+      feedLineRu: `${pool.name || fid}: возврат использования`,
+    }
+  }
+  if (pool.used >= pool.max) {
+    return {
+      ok: false,
+      resources: input.resources,
+      feedLineRu: '',
+      message: 'Нет использований',
+    }
+  }
+  const next = input.resources.map((row) =>
+    row.id === pool.id ? clampResource({ ...row, used: Math.min(row.max, row.used + 1) }) : row,
+  )
+  return {
+    ok: true,
+    resources: next,
+    feedLineRu: `${pool.name || fid}: потрачено`,
+  }
 }
 
 /** Sync Flash of Genius pool onto sheet resources (2024 only callers). */
@@ -453,14 +566,14 @@ export function syncFlashOfGeniusResource2024(input: {
   if (max <= 0) {
     return input.resources.filter((r) => r.pool_id !== FLASH_OF_GENIUS_POOL_ID)
   }
-  const next: SheetResource = {
+  const next = clampResource({
     id: existing?.id ?? `pool:${FLASH_OF_GENIUS_POOL_ID}`,
     pool_id: FLASH_OF_GENIUS_POOL_ID,
     name: FLASH_OF_GENIUS_NAME_RU,
     max,
-    used: clampResource(existing?.used ?? 0, max),
+    used: existing?.used ?? 0,
     reset: 'long',
-  }
+  })
   if (existing) {
     return input.resources.map((r) => (r.pool_id === FLASH_OF_GENIUS_POOL_ID ? next : r))
   }
@@ -474,4 +587,86 @@ export function armorerInfiltratorSpeedBonusFt2024(input: {
 }): number {
   if (lvl(input.artificerLevel) < SUBCLASS_MIN_LEVEL_2024) return 0
   return input.armorModel === 'infiltrator' ? 5 : 0
+}
+
+/* ------------------------------------------------------------------ */
+/* Companion stat blocks (EFA 2024 — not Tasha)                        */
+/* ------------------------------------------------------------------ */
+
+export type EldritchCannonStats2024 = {
+  ac: number
+  hp: number
+  modesRu: string
+  notesRu: string
+  maxCannons: number
+  damageDice: string
+  protectorTempFormulaRu: string
+  detonationRu: string | null
+}
+
+/** Eldritch Cannon — https://next.dnd.su/bestiary/27369-eldritch-cannon */
+export function eldritchCannonStats2024(input: {
+  artificerLevel: number
+  intMod: number
+}): EldritchCannonStats2024 {
+  const level = Math.max(1, Math.min(20, lvl(input.artificerLevel) || 1))
+  const intM = mod(input.intMod)
+  const explosive = level >= 9
+  const fortified = level >= 15
+  const damageDice = explosive ? '3к8' : '2к8'
+  const protector = explosive ? `1к8+1к8+${intM}` : `1к8+${intM}`
+  return {
+    ac: 18,
+    hp: 5 * level,
+    maxCannons: fortified ? 2 : 1,
+    damageDice,
+    protectorTempFormulaRu: protector,
+    modesRu: [
+      `${CANNON_MODE_FLAMETHROWER_RU}: конус 15 фт., спас Ловкости, ${damageDice} огня`,
+      `${CANNON_MODE_FORCE_BALLISTA_RU}: дальнобойная атака заклинанием 120 фт., ${damageDice} силового + толчок 5 фт.`,
+      `${CANNON_MODE_PROTECTOR_RU}: временные хиты ${protector} в 10 фт. (включая пушку)`,
+    ].join(' · '),
+    notesRu:
+      'EFA 2024: режим выбирается при каждой активации (не при создании). Иммунитеты: психический, яд. «Починка» — 2к8 хитов.',
+    detonationRu: explosive
+      ? 'Взрывная пушка: реакция при уроне по пушке в 60 фт. — детонация 20 фт., 3к10 силового (спас Ловкости).'
+      : null,
+  }
+}
+
+export type SteelDefenderStats2024 = {
+  ac: number
+  hp: number
+  speed: number
+  actionsRu: string
+  notesRu: string
+  repairMax: number
+}
+
+/** Steel Defender — https://next.dnd.su/bestiary/27372-steel-defender */
+export function steelDefenderStats2024(input: {
+  artificerLevel: number
+  intMod: number
+}): SteelDefenderStats2024 {
+  const level = Math.max(1, Math.min(20, lvl(input.artificerLevel) || 1))
+  const intM = mod(input.intMod)
+  const improved = level >= 15
+  const rendDice = improved ? '4к6' : '1к8'
+  const rend = `${rendDice}+2+${intM} силового`
+  const deflectExtra = improved
+    ? ` При «Отражении атаки» атакующий получает 1к4+${intM} силового.`
+    : ''
+  return {
+    ac: 12 + intM,
+    hp: 5 + 5 * level,
+    speed: 40,
+    repairMax: 3,
+    actionsRu: [
+      `Силовой разрыв: атака заклинанием; ${rend}.`,
+      `Ремонт 3/день: 2к8+${intM} себе / конструкту / объекту в 5 фт.`,
+      `Реакция «Отражение атаки»: помеха на атаку по существу в 5 фт. (не по защитнику).${deflectExtra}`,
+    ].join(' '),
+    notesRu:
+      'EFA 2024: Средний конструкт. Стальная связь — ваш БВ ко всем проверкам и спасброскам защитника. Иммунитеты — как в официальном блоке.',
+  }
 }

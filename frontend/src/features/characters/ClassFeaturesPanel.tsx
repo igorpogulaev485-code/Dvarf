@@ -86,6 +86,11 @@ import {
   RANGER_2024_CARD_BUTTONS,
   ranger2024UseFeatureId,
 } from '../../shared/dnd/ranger2024Features'
+import {
+  ARTIFICER_2024_CARD_BUTTONS,
+  artificer2024UseFeatureId,
+} from '../../shared/dnd/artificer2024Features'
+import type { ArtificerFeatureRequest } from './Artificer2024UseDialog'
 import type { WizardFeatureRequest } from './WizardFeatureUseDialog'
 import type { SorcererFeatureRequest } from './SorcererFeatureUseDialog'
 import type { MonkFeatureRequest } from './Monk2024UseDialog'
@@ -275,6 +280,7 @@ type ClassFeaturesPanelProps = {
   onBardFeatureUse?: (request: BardFeatureRequest) => void
   onDruidFeatureUse?: (request: DruidFeatureRequest) => void
   onRangerFeatureUse?: (request: RangerFeatureRequest) => void
+  onArtificerFeatureUse?: (request: ArtificerFeatureRequest) => void
   /** Open sorcery-points spend dialog (2024 metamagic / font). */
   onSorceryPointsSpend?: (resourceId: string) => void
   /**
@@ -454,6 +460,7 @@ function FeatureResourceControls({
   onBardFeatureUse,
   onDruidFeatureUse,
   onRangerFeatureUse,
+  onArtificerFeatureUse,
   onFeatureBuffApply,
   moonCombatWildShape = false,
   scaleText = null,
@@ -482,6 +489,7 @@ function FeatureResourceControls({
   onBardFeatureUse?: (request: BardFeatureRequest) => void
   onDruidFeatureUse?: (request: DruidFeatureRequest) => void
   onRangerFeatureUse?: (request: RangerFeatureRequest) => void
+  onArtificerFeatureUse?: (request: ArtificerFeatureRequest) => void
   onFeatureBuffApply?: ClassFeaturesPanelProps['onFeatureBuffApply']
   /** Circle of the Moon: Wild Shape is a bonus action. */
   moonCombatWildShape?: boolean
@@ -2837,6 +2845,30 @@ function FeatureRow({
             }
           >
             {RANGER_2024_CARD_BUTTONS[feature.id] ?? 'Применить…'}
+          </Button>
+        </div>
+      ) : null}
+      {replacementStatus === 'active' &&
+      edition === '2024' &&
+      onArtificerFeatureUse &&
+      !feature.resource?.pool_id &&
+      artificer2024UseFeatureId(feature.id) ? (
+        <div className="feature-resource__actions">
+          <Button
+            type="button"
+            onClick={() =>
+              onArtificerFeatureUse({
+                featureId: feature.id,
+                resourceId: null,
+                classSlug,
+                classEntryId: feature.classEntryId,
+                name: feature.name_ru,
+              })
+            }
+          >
+            {ARTIFICER_2024_CARD_BUTTONS[feature.id] ??
+              ARTIFICER_2024_CARD_BUTTONS[feature.id.replace(/_/g, '-')] ??
+              'Применить…'}
           </Button>
         </div>
       ) : null}
