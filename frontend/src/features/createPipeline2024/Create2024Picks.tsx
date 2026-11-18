@@ -14,6 +14,12 @@ import {
   PRIMAL_COMPANION_TYPES_2024,
 } from '../../shared/dnd/ranger2024Features'
 import {
+  VESTIGE_COMPANION_NAME_RU,
+  VESTIGE_COMPANION_TYPE_OPTIONS_2024,
+  VESTIGE_DOMAIN_OPTIONS_2024,
+  VESTIGE_SPELLS_NAME_RU,
+} from '../../shared/dnd/warlockBook2024Features'
+import {
   BLADESINGER_WAR_SONG_SKILLS_2024,
   ENCHANTER_ORATOR_SKILLS_2024,
   TRANSMUTER_STONE_BENEFITS_2024,
@@ -93,6 +99,7 @@ import {
   plannedPrimaryClassLevel,
   rangerCreatePicksNeed2024,
   rogueCreatePicksNeed2024,
+  warlockCreatePicksNeed2024,
   wizardBookCreatePicksNeed2024,
   setAsiFlat1,
   setAsiPlus2Plus1,
@@ -682,6 +689,60 @@ export function RangerLevelingPicks({
           multi={false}
           testIdPrefix="p24-m03-pick-otherworldly_glamour"
           onChange={(picked) => setPicks({ otherworldly_glamour: picked[0] ?? null })}
+        />
+      ) : null}
+    </Stack>
+  )
+}
+
+/** Warlock Vestige Patron 2024: domain + companion type from L3. */
+export function WarlockLevelingPicks({
+  state,
+  patch,
+}: {
+  state: Create2024State
+  patch: (partial: Partial<Create2024State>) => void
+}) {
+  const need = warlockCreatePicksNeed2024(state)
+  if (!need.vestigeDomain && !need.vestigeCompanionType) return null
+  const setPicks = (partial: Record<string, unknown>) =>
+    patch({ classOptionPicks: { ...state.classOptionPicks, ...partial } })
+
+  return (
+    <Stack gap={14}>
+      {need.vestigeDomain ? (
+        <PickChipGroup
+          label={VESTIGE_SPELLS_NAME_RU}
+          hint="Домен жреца для всегда подготовленных заклинаний Предтечи."
+          options={VESTIGE_DOMAIN_OPTIONS_2024.map((row) => ({ id: row.id, label: row.nameRu }))}
+          selected={
+            state.classOptionPicks.vestige_domain
+              ? [String(state.classOptionPicks.vestige_domain)]
+              : []
+          }
+          max={1}
+          multi={false}
+          testIdPrefix="p24-m02b-vestige-domain"
+          onChange={(picked) => setPicks({ vestige_domain: picked[0] ?? null })}
+        />
+      ) : null}
+      {need.vestigeCompanionType ? (
+        <PickChipGroup
+          label={VESTIGE_COMPANION_NAME_RU}
+          hint="Тип существа спутника-предтечи."
+          options={VESTIGE_COMPANION_TYPE_OPTIONS_2024.map((row) => ({
+            id: row.id,
+            label: row.nameRu,
+          }))}
+          selected={
+            state.classOptionPicks.vestige_companion_type
+              ? [String(state.classOptionPicks.vestige_companion_type)]
+              : []
+          }
+          max={1}
+          multi={false}
+          testIdPrefix="p24-m02b-vestige-companion-type"
+          onChange={(picked) => setPicks({ vestige_companion_type: picked[0] ?? null })}
         />
       ) : null}
     </Stack>

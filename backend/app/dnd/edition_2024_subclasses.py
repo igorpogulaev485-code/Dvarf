@@ -1588,6 +1588,15 @@ def build_subclass_resources(
             reset="long",
             feature_id="form-of-dread",
         )
+        if class_level >= 10:
+            add(
+                "necrotic_husk",
+                name_ru="Некротическая оболочка",
+                max_uses=1,
+                reset="short",
+                feature_id="necrotic-husk",
+                min_level=10,
+            )
     elif subclass_slug == "warlock__vestige-patron":
         add(
             "vestige_companion",
@@ -1597,6 +1606,24 @@ def build_subclass_resources(
             feature_id="vestige-companion",
             on_hot=False,
         )
+        if class_level >= 10:
+            add(
+                "vestige_recovery",
+                name_ru="Восстановление предтечи",
+                max_uses=1,
+                reset="long",
+                feature_id="vestige-recovery",
+                min_level=10,
+            )
+        if class_level >= 14:
+            add(
+                "semblance_of_life",
+                name_ru="Подобие жизни",
+                max_uses=1,
+                reset="long",
+                feature_id="semblance-of-life",
+                min_level=14,
+            )
 
     # --- Wizard ---
     elif subclass_slug == "wizard__abjurer":
@@ -2176,6 +2203,14 @@ def build_subclass_resources(
     return out
 
 
+VESTIGE_DOMAIN_TO_CLERIC_SLUG = {
+    "war": "cleric__war-domain",
+    "life": "cleric__life-domain",
+    "trickery": "cleric__trickery-domain",
+    "light": "cleric__light-domain",
+}
+
+
 def always_prepared_for_subclass(
     subclass_slug: str | None,
     class_level: int,
@@ -2184,6 +2219,13 @@ def always_prepared_for_subclass(
 ) -> list[str]:
     if not subclass_slug:
         return []
+    # Vestige Patron: always-prepared come from the chosen Cleric domain table.
+    if subclass_slug == "warlock__vestige-patron":
+        domain = str(land_choice or "").strip().lower()
+        domain_slug = VESTIGE_DOMAIN_TO_CLERIC_SLUG.get(domain)
+        if not domain_slug:
+            return []
+        return always_prepared_for_subclass(domain_slug, class_level)
     sub = load_subclass_catalog().get(subclass_slug)
     if not sub:
         return []
