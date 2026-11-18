@@ -16,6 +16,7 @@ import {
   BATTLE_READY_NAME_RU,
   CHEMICAL_MASTERY_NAME_RU,
   cheatDeathHpRestored2024,
+  artificer2024FeaturePoolId,
   experimentalElixirCount2024,
   FLASH_OF_GENIUS_NAME_RU,
   isEfaArtificerSubclassSlug,
@@ -64,7 +65,13 @@ assert(spellStoringItemCharges2024(0) === 2, 'ssi min 2')
 assert(cheatDeathHpRestored2024(2) === 40, 'cheat death 20×n')
 
 assert(isEfaArtificerSubclassSlug(ARTIFICER_SUBCLASS_SLUGS_2024.cartographer), 'cartographer EFA')
-assert(isOutOfPackArtificerSubclassSlug('artificer__reanimator'), 'reanimator out')
-assert(!isEfaArtificerSubclassSlug('artificer__reanimator'), 'reanimator not EFA picker')
+assert(!isOutOfPackArtificerSubclassSlug('artificer__reanimator'), 'reanimator in pack')
+assert(!isEfaArtificerSubclassSlug('artificer__reanimator'), 'reanimator not EFA source set')
+
+assert(artificer2024FeaturePoolId('chemical-mastery') === 'chemical_mastery_cauldron', 'chem pool')
+assert(artificer2024FeaturePoolId('arcane_jolt') === 'arcane_jolt', 'jolt pool')
+assert(artificer2024FeaturePoolId('mapping-magic') === 'mapping_faerie_fire', 'faerie pool')
+assert(artificer2024FeaturePoolId('reanimator-s-skill-set') === 'reviving_bolt', 'bolt pool')
+assert(artificer2024FeaturePoolId('refined-reanimation') === 'eased_raise_dead', 'raise pool')
 
 console.log('artificer2024Features.selfcheck: ok')

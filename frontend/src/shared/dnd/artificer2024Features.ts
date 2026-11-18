@@ -111,8 +111,13 @@ export const ARTIFICER_SUBCLASS_SLUGS_2024 = {
 
 export type ArtificerSubclassKey2024 = keyof typeof ARTIFICER_SUBCLASS_SLUGS_2024
 
-/** Book / other — not in EFA picker for this pack. */
-export const OUT_OF_PACK_ARTIFICER_SUBCLASSES_2024 = ['artificer__reanimator'] as const
+/**
+ * Artificer book paths outside this M02B pack (none — all six are in-pack).
+ * Kept as an empty list so call sites / tests stay stable.
+ */
+export const OUT_OF_PACK_ARTIFICER_SUBCLASSES_2024 = [] as const
+
+export const REANIMATOR_SUBCLASS_SLUG_2024 = 'artificer__reanimator'
 
 export const MAGIC_OF_MAKING_POOL_ID = 'magic_of_making'
 export const FLASH_OF_GENIUS_POOL_ID = 'flash_of_genius'
@@ -258,6 +263,20 @@ export const ARTIFICER_FEATURE_NAMES_BY_ID: Record<string, string> = {
   superior_atlas: SUPERIOR_ATLAS_NAME_RU,
   'homunculus-servant': HOMUNCULUS_SERVANT_NAME_RU,
   homunculus_servant: HOMUNCULUS_SERVANT_NAME_RU,
+  'reanimator-spells': 'Заклинания Реаниматора',
+  reanimator_spells: 'Заклинания Реаниматора',
+  'reanimator-s-skill-set': 'Навыки Реаниматора',
+  reanimator_s_skill_set: 'Навыки Реаниматора',
+  'reanimated-companion': 'Реанимированный спутник',
+  reanimated_companion: 'Реанимированный спутник',
+  'strange-modifications': 'Чуждые модификации',
+  strange_modifications: 'Чуждые модификации',
+  'improved-reanimation': 'Улучшенная реанимация',
+  improved_reanimation: 'Улучшенная реанимация',
+  'macabre-modifications': 'Ужасные модификации',
+  macabre_modifications: 'Ужасные модификации',
+  'refined-reanimation': 'Отточенная реанимация',
+  refined_reanimation: 'Отточенная реанимация',
 }
 
 export function artificerFeatureNameRu2024(featureId: string | null | undefined): string | null {
@@ -542,6 +561,18 @@ export const ARTIFICER_2024_CARD_BUTTONS: Record<string, string> = {
   steel_defender: 'Защитник…',
   'adventure-atlas': 'Атлас…',
   adventure_atlas: 'Атлас…',
+  'mapping-magic': 'Магия карты…',
+  mapping_magic: 'Магия карты…',
+  'reanimated-companion': 'Спутник…',
+  reanimated_companion: 'Спутник…',
+  'reanimator-s-skill-set': 'Оживляющий разряд…',
+  reanimator_s_skill_set: 'Оживляющий разряд…',
+  'refined-reanimation': 'Отточенная…',
+  refined_reanimation: 'Отточенная…',
+  'chemical-mastery': 'Хим. мастерство…',
+  chemical_mastery: 'Хим. мастерство…',
+  'arcane-jolt': 'Импульс…',
+  arcane_jolt: 'Импульс…',
   'soul-of-artifice': 'Обман смерти…',
   soul_of_artifice: 'Обман смерти…',
 }
@@ -556,6 +587,12 @@ const ARTIFICER_USE_FEATURE_IDS = new Set([
   'eldritch-cannon',
   'steel-defender',
   'adventure-atlas',
+  'mapping-magic',
+  'reanimated-companion',
+  'reanimator-s-skill-set',
+  'refined-reanimation',
+  'chemical-mastery',
+  'arcane-jolt',
   'soul-of-artifice',
 ])
 
@@ -594,20 +631,53 @@ export type Artificer2024UseResult = {
   message?: string
 }
 
+/** Feature id (hyphen form) → resource pool id for desk spend/refund. */
+export function artificer2024FeaturePoolId(
+  featureId: string | null | undefined,
+): string | null {
+  const fid = artificer2024UseFeatureId(featureId) ?? String(featureId ?? '').replace(/_/g, '-')
+  switch (fid) {
+    case 'magic-of-making':
+      return MAGIC_OF_MAKING_POOL_ID
+    case 'flash-of-genius':
+      return FLASH_OF_GENIUS_POOL_ID
+    case 'experimental-elixir':
+      return EXPERIMENTAL_ELIXIR_POOL_ID
+    case 'adventure-atlas':
+      return ADVENTURE_ATLAS_POOL_ID
+    case 'mapping-magic':
+      return MAPPING_FAERIE_FIRE_POOL_ID
+    case 'eldritch-cannon':
+      return ELDRITCH_CANNON_POOL_ID
+    case 'steel-defender':
+      return STEEL_DEFENDER_POOL_ID
+    case 'reanimated-companion':
+      return 'reanimated_companion'
+    case 'reanimator-s-skill-set':
+      return 'reviving_bolt'
+    case 'refined-reanimation':
+      return 'eased_raise_dead'
+    case 'chemical-mastery':
+      return CHEMICAL_MASTERY_CAULDRON_POOL_ID
+    case 'arcane-jolt':
+      return ARCANE_JOLT_POOL_ID
+    default:
+      return null
+  }
+}
+
 export function applyArtificer2024FeatureUse(input: {
   featureId: string
   resourceId: string | null
   resources: SheetResource[]
   classEntryId: string
   refund?: boolean
+  /** Override pool when one feature card spends alternate pools (reanimator). */
+  poolId?: string | null
 }): Artificer2024UseResult {
   const fid = artificer2024UseFeatureId(input.featureId) ?? input.featureId.replace(/_/g, '-')
   const poolId =
-    fid === 'magic-of-making'
-      ? MAGIC_OF_MAKING_POOL_ID
-      : fid === 'flash-of-genius'
-        ? FLASH_OF_GENIUS_POOL_ID
-        : null
+    (input.poolId && String(input.poolId).trim()) || artificer2024FeaturePoolId(fid)
   if (!poolId) {
     return {
       ok: false,
