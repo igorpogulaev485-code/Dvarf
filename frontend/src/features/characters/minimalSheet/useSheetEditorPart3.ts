@@ -14,6 +14,10 @@ import {
   spellAttackBonusFromActiveEffects,
 } from '../../../shared/dnd/activeEffects'
 import { bladesongBonuses } from '../../../shared/dnd/wizardTradition'
+import {
+  bladesongBonuses2024,
+  enchantingOratorSkillBonus2024,
+} from '../../../shared/dnd/wizardBook2024Features'
 import { buildSheetFormulaVars } from '../../../shared/dnd/formulas'
 import {
   abilityCheckBonus,
@@ -873,19 +877,37 @@ export function useSheetEditorPart3(model: SheetModel) {
         if (skill.key === 'arcana') thaum += magicianBonus.arcana
         if (skill.key === 'nature') thaum += magicianBonus.nature
       }
-      const total = athlete + courtier + thaum + jack
+      let orator = 0
+      if (model.rulesEdition === '2024') {
+        const wizardRow = model.draft.classes.find((row) =>
+          /волшебник|wizard/i.test(row.name),
+        )
+        if (wizardRow) {
+          orator = enchantingOratorSkillBonus2024({
+            subclassSlug: model.subclassSlugByEntryId?.[wizardRow.id] ?? null,
+            classEntryId: wizardRow.id,
+            featurePicks: model.draft.featurePicks,
+            wizardLevel: wizardRow.level,
+            intelligenceScore: effectiveAbilities.int ?? 10,
+            skillKey: skill.key,
+          })
+        }
+      }
+      const total = athlete + courtier + thaum + jack + orator
       if (total) out[skill.key] = total
     }
     return out
   }, [
     model.draft.skills,
     effectiveAbilities.wis,
+    effectiveAbilities.int,
     model.unlockedFeatures,
     model.proficiencyBonus,
     model.rulesEdition,
     model.draft.classOptions2024,
     model.draft.featurePicks,
     model.draft.classes,
+    model.subclassSlugByEntryId,
   ])
   model.featureSkillBonuses = featureSkillBonuses
 
@@ -1077,10 +1099,25 @@ export function useSheetEditorPart3(model: SheetModel) {
       coreAc += dualWieldAc
       gearSummary = `${gearSummary} · двуоружие +${dualWieldAc}`
     }
-    const song = bladesongBonuses({
-      resources: model.draft.play.resources,
-      intelligenceScore: model.draft.abilities.int ?? 10,
-    })
+    const edition2024 =
+      (model.rulesEdition ?? model.baseCharacter?.rules_edition ?? '2014') === '2024'
+    const song = edition2024
+      ? bladesongBonuses2024({
+          rulesEdition: '2024',
+          subclassSlug:
+            Object.values(model.subclassSlugByEntryId ?? {}).find(
+              (slug): slug is string =>
+                typeof slug === 'string' && slug.toLowerCase().includes('bladesinger'),
+            ) ?? null,
+          resources: model.draft.play.resources,
+          intelligenceScore: model.draft.abilities.int ?? 10,
+          wizardLevel:
+            model.draft.classes.find((row) => /волшебник|wizard/i.test(row.name))?.level ?? 0,
+        })
+      : bladesongBonuses({
+          resources: model.draft.play.resources,
+          intelligenceScore: model.draft.abilities.int ?? 10,
+        })
     if (song.ac > 0) {
       coreAc += song.ac
       gearSummary = `${gearSummary} · песнь +${song.ac}`

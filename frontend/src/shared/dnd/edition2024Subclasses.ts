@@ -146,6 +146,18 @@ const EFA_ARTIFICER_SUBCLASS_SLUGS = new Set([
   'artificer__cartographer',
 ])
 
+/**
+ * Book wizard paths opened by P24-M02B-wizard (AU + FRHoF Bladesinger).
+ * Other book subclasses stay hidden until their M02B pack.
+ */
+export const M02B_WIZARD_BOOK_SUBCLASS_SLUGS = new Set([
+  'wizard__conjurer',
+  'wizard__enchanter',
+  'wizard__necromancer',
+  'wizard__transmuter',
+  'wizard__bladesinger',
+])
+
 export function isPhb2024CreateSubclass(slug: string, source?: string | null): boolean {
   const key = String(slug || '')
     .trim()
@@ -158,6 +170,8 @@ export function isPhb2024CreateSubclass(slug: string, source?: string | null): b
   // Artificer EFA specialties (P24-M02-artificer); exclude Reanimator (rtw / out of pack).
   if (src === 'efa' && EFA_ARTIFICER_SUBCLASS_SLUGS.has(key)) return true
   if (!src && EFA_ARTIFICER_SUBCLASS_SLUGS.has(key)) return true
+  // P24-M02B-wizard: AU schools + FRHoF Bladesinger only.
+  if (M02B_WIZARD_BOOK_SUBCLASS_SLUGS.has(key)) return true
   // Catalog API may omit source; fall back to known PHB table rows.
   return Boolean(row && CREATE_SUBCLASS_SOURCES_2024.has(String(row.source || '').toLowerCase()))
 }
@@ -678,7 +692,97 @@ export function buildPermanentBonuses2024(input: {
     add('improved-warding-flare', 'Улучшенная ограждающая вспышка', 'other_calc', { reset_short: true }, 6)
   }
   if (subclassSlug === 'wizard__necromancer' && classLevel >= 6) {
-    add('undead-thralls', 'Неживые слуги', 'other_calc', { thrall_bonus_hp_per_wizard_level: true }, 6)
+    const intM = abilityMod(ab.int ?? 10)
+    const halfLevel = Math.floor(classLevel / 2)
+    add(
+      'undead-thralls',
+      'Неживые слуги',
+      'other_calc',
+      {
+        thrall_bonus_hp: intM + halfLevel,
+        thrall_bonus_hp_int_plus_half_level: true,
+        thrall_damage_bonus: Math.max(1, intM),
+      },
+      6,
+      'Бонус хитов нежити = Инт + ½ ур. волшебника; доп. некротический урон атаки = Инт (мин. 1)',
+    )
+  }
+  if (subclassSlug === 'wizard__bladesinger') {
+    const intM = abilityMod(ab.int ?? 10)
+    add(
+      'bladesong',
+      'Песнь клинка',
+      'other_calc',
+      {
+        ac_bonus_int_min_1: true,
+        speed_bonus_ft: 10,
+        acrobatics_advantage: true,
+        weapon_attack_damage_int: true,
+        concentration_save_add_int: true,
+        regain_one_on_arcane_recovery: true,
+      },
+      3,
+      `Пока Песнь активна: +${Math.max(1, intM)} КД, скорость +10, Преимущество на Акробатику, Инт для атаки/урона оружием, +Инт к спас концентрации`,
+    )
+    if (classLevel >= 6) {
+      add(
+        'extra-attack',
+        'Дополнительная атака',
+        'other_calc',
+        { attacks: 2, replace_one_with_wizard_cantrip_action: true },
+        6,
+      )
+    }
+    if (classLevel >= 10) {
+      add(
+        'song-of-defense',
+        'Песнь защиты',
+        'other_calc',
+        { reduce_damage_slot_level_times: 5, requires_bladesong: true },
+        10,
+      )
+    }
+  }
+  if (subclassSlug === 'wizard__conjurer') {
+    if (classLevel >= 6) {
+      add(
+        'durable-summons',
+        'Надёжный вызов',
+        'other_calc',
+        {
+          temp_hp_times_wizard_level: 2,
+          resist_all_except: ['necrotic', 'psychic', 'force', 'radiant'],
+        },
+        6,
+      )
+    }
+    if (classLevel >= 10) {
+      add(
+        'focused-conjuration',
+        'Сфокусированный призыв',
+        'other_calc',
+        { concentration_immune_to_damage_for_conjuration: true },
+        10,
+      )
+    }
+  }
+  if (subclassSlug === 'wizard__enchanter') {
+    add(
+      'enchanting-conversationalist',
+      'Чарующий оратор',
+      'other_calc',
+      { skill_choice: true, skill_bonus_int_min_1: true },
+      3,
+    )
+  }
+  if (subclassSlug === 'wizard__transmuter') {
+    add(
+      'transmuter-s-stone',
+      'Камень преобразования',
+      'other_calc',
+      { con_save_proficiency: true, benefit_choice: true },
+      3,
+    )
   }
   return out
 }
@@ -781,13 +885,64 @@ export function buildSubclassResources2024(input: {
   } else if (subclassSlug === 'wizard__illusionist' && classLevel >= 10) {
     push('illusory_self', 'Собственная иллюзорность', 1, 'short', 'illusory-self')
   } else if (subclassSlug === 'wizard__conjurer') {
-    push('benign_transposition', 'Безопасный перенос', 1, 'long', 'benign-transposition')
+    push(
+      'benign_transposition',
+      'Безопасный перенос',
+      Math.max(1, intMod),
+      'long',
+      'benign-transposition',
+    )
+    if (classLevel >= 14) {
+      push('splintered_summons', 'Разделённый вызов', 1, 'long', 'splintered-summons')
+    }
   } else if (subclassSlug === 'wizard__enchanter') {
-    push('hypnotic_presence', 'Гипнотическое присутствие', 1, 'long', 'hypnotic-presence')
+    push(
+      'hypnotic_presence',
+      'Гипнотизирующее присутствие',
+      Math.max(1, intMod),
+      'long',
+      'hypnotic-presence',
+    )
+    if (classLevel >= 6) {
+      push(
+        'split_enchantment',
+        'Разделённое очарование',
+        Math.max(1, intMod),
+        'long',
+        'split-enchantment',
+      )
+    }
+    if (classLevel >= 10) {
+      push('instinctive_charm', 'Инстинктивное очарование', 1, 'long', 'instinctive-charm')
+    }
+  } else if (subclassSlug === 'wizard__necromancer') {
+    if (classLevel >= 6) {
+      push('undead_thralls_free', 'Неживые слуги (без ячейки)', 1, 'long', 'undead-thralls')
+    }
+    if (classLevel >= 14) {
+      push('deaths_master_flare', 'Разгорание нежизни', 1, 'long', 'deaths-master')
+    }
   } else if (subclassSlug === 'wizard__bladesinger') {
     push('bladesong', 'Песнь клинка', Math.max(1, intMod), 'long', 'bladesong')
   } else if (subclassSlug === 'wizard__transmuter') {
-    push('transmuters_stone', 'Камень преобразителя', 1, 'long', 'transmuter-s-stone')
+    push('transmuters_stone', 'Камень преобразования', 1, 'long', 'transmuter-s-stone')
+    push('wondrous_alteration', 'Волшебное превращение', 1, 'long', 'wondrous-alteration')
+    if (classLevel >= 6) {
+      push(
+        'empowered_transmutation',
+        'Усиленное преобразование',
+        Math.max(1, intMod),
+        'long',
+        'empowered-transmutation',
+      )
+    }
+    if (classLevel >= 10) {
+      push('shape_shifter', 'Мастер превращения', 1, 'long', 'shape-shifter')
+      push('shape_shifter_self', 'Мастер превращения (на себя)', 1, 'long', 'shape-shifter')
+    }
+    if (classLevel >= 14) {
+      push('master_transmuter', 'Мастер преобразования', 1, 'long', 'master-transmuter')
+    }
   } else if (subclassSlug === 'sorcerer__wild-magic-sorcery') {
     push('tides_of_chaos', 'Волны хаоса', 1, 'long', 'tides-of-chaos')
     if (classLevel >= 18) {

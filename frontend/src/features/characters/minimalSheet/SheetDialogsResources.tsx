@@ -8,6 +8,7 @@ import { SpellFormDialog } from '../SpellFormDialog'
 import { FamiliarPickDialog } from '../FamiliarPickDialog'
 import { CompanionCreaturePickDialog } from '../CompanionCreaturePickDialog'
 import { parseFeatureResourceId, spendFeatureUse } from '../../../shared/dnd/featureResources'
+import { regainOneBladesongUse2024 } from '../../../shared/dnd/wizardBook2024Features'
 import { FeatureSelfFormDialog, type FeatureSelfFormDialogResult } from '../FeatureSelfFormDialog'
 import { shapechangerFormLimits } from '../featureForms'
 import { WildShapeDialog } from '../WildShapeDialog'
@@ -1979,19 +1980,38 @@ export function SheetDialogsResources({ model }: { model: SheetModel }) {
         slots={model.draft.spells.slots}
         onRecover={(slots, label) => {
           if (!model.arcaneRecoverySpendId) return
-          model.setDraft((prev) => ({
-            ...prev,
-            spells: { ...prev.spells, slots },
-            play: {
-              ...prev.play,
-              resources: prev.play.resources.map((row) =>
-                row.id === model.arcaneRecoverySpendId && row.used < row.max
-                  ? { ...row, used: row.used + 1 }
-                  : row,
-              ),
-            },
-          }))
-          model.onToast(label)
+          const edition2024 =
+            (model.baseCharacter?.rules_edition ?? model.rulesEdition) === '2024'
+          const isBladesinger = Object.values(model.subclassSlugByEntryId ?? {}).some(
+            (slug) =>
+              String(slug || '')
+                .toLowerCase() === 'wizard__bladesinger',
+          )
+          model.setDraft((prev) => {
+            let resources = prev.play.resources.map((row) =>
+              row.id === model.arcaneRecoverySpendId && row.used < row.max
+                ? { ...row, used: row.used + 1 }
+                : row,
+            )
+            if (edition2024 && isBladesinger) {
+              const entryId =
+                parseFeatureResourceId(model.arcaneRecoverySpendId)?.classEntryId ?? ''
+              resources = regainOneBladesongUse2024(resources, entryId)
+            }
+            return {
+              ...prev,
+              spells: { ...prev.spells, slots },
+              play: {
+                ...prev.play,
+                resources,
+              },
+            }
+          })
+          model.onToast(
+            edition2024 && isBladesinger
+              ? `${label} · Песнь клинка: +1 использование`
+              : label,
+          )
           model.setArcaneRecoverySpendId(null)
         }}
         onToast={model.onToast}

@@ -253,6 +253,9 @@ def fighting_style_feat_slugs() -> frozenset[str]:
 
 
 LIGHT_MARTIAL_MELEE_RU = "Воинское рукопашное оружие со свойством «лёгкое»"
+BLADESINGER_MARTIAL_MELEE_RU = (
+    "Воинское рукопашное оружие без свойств «Двуручное» и «Тяжёлое»"
+)
 
 
 def _weapons_proficiency_from_class_data(weapons_raw: Any) -> dict[str, Any]:
@@ -2915,6 +2918,17 @@ def _build_sheet(
     ):
         weapons_prof = {**weapons_prof, "martial": True}
         armor = list(armor) + [x for x in ("medium", "shields") if x not in armor and "all" not in armor]
+    # Bladesinger (2024) Training in War and Song: martial melee without Two-Handed/Heavy.
+    # Do NOT set martial: True (that would include heavy / two-handed).
+    if (
+        payload.class_slug == "wizard"
+        and _planned_primary_subclass(payload) == "wizard__bladesinger"
+        and _planned_class_level(payload, "wizard") >= 3
+    ):
+        extras = list(weapons_prof.get("extras") or [])
+        if BLADESINGER_MARTIAL_MELEE_RU not in extras:
+            extras.append(BLADESINGER_MARTIAL_MELEE_RU)
+        weapons_prof = {**weapons_prof, "extras": extras}
     sheet["proficiency"] = {
         "bonus": 2,
         "armor": {

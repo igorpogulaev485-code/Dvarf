@@ -2711,6 +2711,13 @@ export function PlayDeskAttacksCompact({
               shillelagh.attackId === attack.id &&
               attack.held !== false
             if (attackSuppressedByEmptyStack(attack, inventoryItems)) return null
+            const bladesongIntWeapon =
+              String(rulesEdition ?? '2014').trim() === '2024' &&
+              Boolean(attack.is_proficient) &&
+              resources.some((row) => {
+                const pool = parseFeatureResourceId(row.id)?.poolId
+                return pool === 'bladesong' && Boolean(row.activeLabel)
+              })
             const attackAbility = shillelaghOn
               ? shillelagh.ability
               : monkWeapon
@@ -2719,7 +2726,9 @@ export function PlayDeskAttacksCompact({
                     dex: abilities.dex,
                     weaponAbility: attack.ability,
                   })
-                : attack.ability
+                : bladesongIntWeapon
+                  ? 'int'
+                  : attack.ability
             const face = artifactAttackDamage(attack)
             const requirementOk = artifactRequirementMet(attack, abilities)
             const rawBaseDamage = shillelaghOn
