@@ -1,5 +1,6 @@
 /**
  * P24-M02B-wizard 2014 regression (1440 / 390) with md5 sidecars.
+ * Full set like rogue: 5 desktop + 6 phone.
  * P24_M02B_WIZARD_SHOT_TAG=before|after
  * Artifacts: ../artifacts/p24-m02b-wizard/regression-2014/
  */
@@ -22,6 +23,10 @@ const SHOT_TAG = process.env.P24_M02B_WIZARD_SHOT_TAG || 'after'
 
 function projectOf(testInfo: { project: { name: string } }): '1440' | '390' {
   return testInfo.project.name.includes('390') ? '390' : '1440'
+}
+
+function isPhone(project: string) {
+  return project === '390'
 }
 
 function md5SidecarName(project: string) {
@@ -217,21 +222,53 @@ function asRecord(value: unknown): Record<string, unknown> {
   return value && typeof value === 'object' ? (value as Record<string, unknown>) : {}
 }
 
-function wizard2014SheetCharacter() {
+type TraditionKey = 'evocation' | 'abjuration' | 'necromancy'
+
+const TRADITION_META: Record<
+  TraditionKey,
+  { subclass_slug: string; subclass_name: string; featureRe: RegExp; shot: string }
+> = {
+  evocation: {
+    subclass_slug: 'school_of_evocation',
+    subclass_name: 'Школа воплощения',
+    featureRe: /Школа воплощения|Скульптор заклинаний|Мощный заговор|Перегрузка|воплощени/i,
+    shot: 'evocation',
+  },
+  abjuration: {
+    subclass_slug: 'school_of_abjuration',
+    subclass_name: 'Школа ограждения',
+    featureRe: /Школа ограждения|Волшебный щит|Улучшенный волшебный щит|Сопротивление заклинаниям/i,
+    shot: 'abjuration',
+  },
+  necromancy: {
+    subclass_slug: 'school_of_necromancy',
+    subclass_name: 'Школа некромантии',
+    featureRe: /Школа некромантии|Жатва|Неживые|Мёртвые|Undead|гримуар/i,
+    shot: 'necromancy',
+  },
+}
+
+function wizard2014SheetCharacter(opts?: {
+  level?: number
+  name?: string
+  tradition?: TraditionKey
+}) {
+  const tradition = opts?.tradition ?? 'evocation'
+  const meta = TRADITION_META[tradition]
   const id = 'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeee00b1'
   const sample = JSON.parse(JSON.stringify(sampleClassic2014Character)) as Record<string, unknown>
   sample.id = id
   sample.rules_edition = '2014'
-  sample.name = 'Торин'
+  sample.name = opts?.name ?? 'Торин'
   const sheet = (sample.sheet ?? {}) as Record<string, unknown>
   sheet.classes = [
     {
       id: 'c-wizard',
       slug: 'wizard',
       name: 'Волшебник',
-      level: 5,
-      subclass_slug: 'school_of_evocation',
-      subclass_name: 'Школа воплощения',
+      level: opts?.level ?? 5,
+      subclass_slug: meta.subclass_slug,
+      subclass_name: meta.subclass_name,
       catalog_id: 'wizard',
     },
   ]
@@ -302,13 +339,20 @@ async function dismissWelcome(page: Page) {
   }
 }
 
+async function openFeaturesScene(page: Page, project: string) {
+  // Play Desk rail: «Способности» (phone label «Способн.») — same as rogue/wizard 2014 harness.
+  if (isPhone(project)) await page.getByText('Способн.', { exact: true }).last().click()
+  else await page.getByRole('button', { name: /^Способности$/ }).first().click()
+  await page.waitForTimeout(700)
+}
+
 test.beforeAll(({}, testInfo) => {
   fs.mkdirSync(ARTIFACTS_2014, { recursive: true })
   fs.writeFileSync(path.join(ARTIFACTS_2014, md5SidecarName(projectOf(testInfo))), '')
 })
 
 test.describe('P24-M02B 2014 regression (wizard)', () => {
-  test.setTimeout(90_000)
+  test.setTimeout(120_000)
 
   test('2014 create — класс Волшебник', async ({ page }, testInfo) => {
     const project = projectOf(testInfo)
@@ -324,7 +368,7 @@ test.describe('P24-M02B 2014 regression (wizard)', () => {
     await shot(page, `${tag}-create-2014-wizard-class`, project)
   })
 
-  test('2014 sheet — волшебник шапка/умения', async ({ page }, testInfo) => {
+  test('2014 sheet — волшебник шапка / умения', async ({ page }, testInfo) => {
     const project = projectOf(testInfo)
     const tag = SHOT_TAG
     const character = wizard2014SheetCharacter()
@@ -333,10 +377,69 @@ test.describe('P24-M02B 2014 regression (wizard)', () => {
     await expect(page.locator('#root')).not.toBeEmpty({ timeout: 20_000 })
     await dismissWelcome(page)
     await expect(page.getByText(/Торин|Волшебник/i).first()).toBeVisible({ timeout: 15_000 })
-    if (project === '390') {
+
+    if (isPhone(project)) {
       await page.getByText('Бой', { exact: true }).last().click()
       await page.waitForTimeout(300)
+      const expand = page.getByRole('button', { name: /Развернуть шапку/ })
+      if (await expand.isVisible().catch(() => false)) {
+        await expand.click()
+        await page.waitForTimeout(300)
+      }
+      await shot(page, `${tag}-sheet-2014-wizard-header`, project)
+      const abilBtn = page.locator('button.mobile-vitals__abil')
+      await expect(abilBtn).toBeVisible({ timeout: 10_000 })
+      await abilBtn.click()
+      const abilPage = page.getByRole('dialog', { name: /Характеристики/ })
+      await expect(abilPage).toBeVisible()
+      for (const abil of ['str', 'dex', 'con', 'int', 'wis', 'cha']) {
+        await expect(abilPage.locator(`.abil-block[data-abil="${abil}"]`).first()).toBeVisible()
+      }
+      await shot(page, `${tag}-sheet-2014-wizard-abilities`, project)
+      await abilPage.locator('button.mobile-abil-page__back').click()
+      await expect(abilPage).toHaveCount(0, { timeout: 10_000 })
+    } else {
+      for (const abil of ['str', 'dex', 'con', 'int', 'wis', 'cha']) {
+        await expect(page.locator(`.abil-block[data-abil="${abil}"]`).first()).toBeVisible()
+      }
+      await shot(page, `${tag}-sheet-2014-wizard`, project)
     }
-    await shot(page, `${tag}-sheet-2014-wizard`, project)
+
+    await openFeaturesScene(page, project)
+    const classFeature = page
+      .locator('.feature-card, .play-desk-features, [data-onboarding="features"]')
+      .getByText(
+        /Магическое восстановление|Сотворение заклинаний|Ритуальное|Аркана|Школа воплощения|Традиция волшебника/i,
+      )
+      .first()
+    await classFeature.scrollIntoViewIfNeeded().catch(() => {})
+    await expect(classFeature).toBeVisible({ timeout: 15_000 })
+    await shot(page, `${tag}-sheet-2014-wizard-features`, project)
+  })
+
+  test('2014 sheet — традиция воплощения', async ({ page }, testInfo) => {
+    const project = projectOf(testInfo)
+    const tag = SHOT_TAG
+    const character = wizard2014SheetCharacter({
+      level: 5,
+      name: 'Торин Воплотитель',
+      tradition: 'evocation',
+    })
+    await mock2014Sheet(page, character)
+    await page.goto(`/characters/${character.id}`)
+    await expect(page.locator('#root')).not.toBeEmpty({ timeout: 20_000 })
+    await dismissWelcome(page)
+    if (isPhone(project)) {
+      await page.getByText('Бой', { exact: true }).last().click()
+      await page.waitForTimeout(250)
+    }
+    await openFeaturesScene(page, project)
+    const tradition = page
+      .locator('.feature-card')
+      .filter({ hasText: TRADITION_META.evocation.featureRe })
+      .first()
+    await tradition.scrollIntoViewIfNeeded().catch(() => {})
+    await expect(tradition).toBeVisible({ timeout: 15_000 })
+    await shot(page, `${tag}-sheet-2014-evocation-features`, project)
   })
 })

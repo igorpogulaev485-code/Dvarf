@@ -54,6 +54,13 @@ import {
   MAGICAL_SECRETS_MIN_LEVEL_2024,
   magicalSecretsOffListCap2024,
 } from '../../shared/dnd/bard2024Features'
+import {
+  BLADESINGER_WAR_SONG_SKILLS_2024,
+  ENCHANTER_ORATOR_SKILLS_2024,
+  TRANSMUTER_STONE_BENEFITS_2024,
+  TRANSMUTER_STONE_POTENT_EXTRA_2024,
+} from '../../shared/dnd/wizardBook2024Features'
+import { wizardCreateBookNeed2024 } from '../../shared/dnd/wizardSpellbook2024'
 import { readKnownForms } from '../characters/knownForms'
 import type { CatalogEntry } from '../../shared/api/catalog'
 import {
@@ -639,6 +646,45 @@ export function barbarianCreatePicksNeed2024(state: Create2024State): {
   }
 }
 
+const TRANSMUTER_STONE_BENEFITS_2_2024 = [
+  ...TRANSMUTER_STONE_BENEFITS_2024,
+  ...TRANSMUTER_STONE_POTENT_EXTRA_2024,
+] as const
+
+export function wizardBookCreatePicksNeed2024(state: Create2024State): {
+  wizardLevel: number
+  subclassSlug: string
+  oratorSkill: boolean
+  warSongSkill: boolean
+  stoneBenefit: boolean
+  stoneBenefit2: boolean
+} {
+  if (state.classSlug !== 'wizard') {
+    return {
+      wizardLevel: 0,
+      subclassSlug: '',
+      oratorSkill: false,
+      warSongSkill: false,
+      stoneBenefit: false,
+      stoneBenefit2: false,
+    }
+  }
+  const primary =
+    state.classes.find((row) => row.id === state.primaryClassEntryId) ?? state.classes[0]
+  const wizardLevel = Math.max(1, primary?.level ?? state.characterLevel ?? 1)
+  const subclass = String(
+    (primary && state.subclassByEntryId[primary.id]) || state.subclassSlug || '',
+  ).toLowerCase()
+  return {
+    wizardLevel,
+    subclassSlug: subclass,
+    oratorSkill: subclass === 'wizard__enchanter' && wizardLevel >= 3,
+    warSongSkill: subclass === 'wizard__bladesinger' && wizardLevel >= 3,
+    stoneBenefit: subclass === 'wizard__transmuter' && wizardLevel >= 3,
+    stoneBenefit2: subclass === 'wizard__transmuter' && wizardLevel >= 10,
+  }
+}
+
 export function rangerCreatePicksNeed2024(state: Create2024State): {
   rangerLevel: number
   subclassSlug: string
@@ -891,7 +937,37 @@ function levelingIssues(state: Create2024State, ctx: StepIssueCtx): string[] {
     (subclassSlug
       ? null
       : classL1Spellcasting(ctx.classEntry))
-  const bookNeed = WIZARD_BOOK_SPELLS_AT_L1 + Math.max(0, wizardLevel - 1) * 2
+  const bookNeed =
+    state.classSlug === 'wizard'
+      ? wizardCreateBookNeed2024({ wizardLevel, subclassSlug })
+      : WIZARD_BOOK_SPELLS_AT_L1 + Math.max(0, wizardLevel - 1) * 2
+  if (state.classSlug === 'wizard') {
+    const need = wizardBookCreatePicksNeed2024(state)
+    if (need.oratorSkill) {
+      const pick = String(state.classOptionPicks.enchanting_conversationalist || '')
+      if (!(ENCHANTER_ORATOR_SKILLS_2024 as readonly string[]).includes(pick)) {
+        issues.push('Выберите навык «Чарующего оратора» (с 3 ур.)')
+      }
+    }
+    if (need.warSongSkill) {
+      const pick = String(state.classOptionPicks.training_in_war_and_song || '')
+      if (!(BLADESINGER_WAR_SONG_SKILLS_2024 as readonly string[]).includes(pick)) {
+        issues.push('Выберите навык «Учения песни и войны» (с 3 ур.)')
+      }
+    }
+    if (need.stoneBenefit) {
+      const pick = String(state.classOptionPicks.transmuter_stone_benefit || '')
+      if (!(TRANSMUTER_STONE_BENEFITS_2024 as readonly string[]).includes(pick)) {
+        issues.push('Выберите свойство «Камня преобразования» (с 3 ур.)')
+      }
+    }
+    if (need.stoneBenefit2) {
+      const pick = String(state.classOptionPicks.transmuter_stone_benefit_2 || '')
+      if (!(TRANSMUTER_STONE_BENEFITS_2_2024 as readonly string[]).includes(pick)) {
+        issues.push('Выберите второе свойство «Могущественного камня» (с 10 ур.)')
+      }
+    }
+  }
   if (sc) {
     const locked = sc.lockedCantrips ?? []
     for (const id of locked) {
@@ -908,7 +984,7 @@ function levelingIssues(state: Create2024State, ctx: StepIssueCtx): string[] {
     }
     if (usesSpellbook(state.classSlug)) {
       if (
-        state.spellbookSpellIds.length < bookNeed ||
+        state.spellbookSpellIds.length !== bookNeed ||
         new Set(state.spellbookSpellIds).size !== state.spellbookSpellIds.length
       ) {
         issues.push(

@@ -306,6 +306,10 @@ export const BLADESINGER_SONG_OF_VICTORY_RULE_RU_2024 =
 export const BLADESINGER_WEAPON_FOCUS_RULE_RU_2024 =
   'Рукопашное оружие, которым владеете, считается заклинательной фокусировкой Волшебника.'
 
+/** Song of Defense (L10+): reaction while Bladesong is active. */
+export const BLADESINGER_SONG_OF_DEFENSE_RULE_RU_2024 =
+  'Песнь защиты (реакция, пока Песнь активна): потрать ячейку — урон уменьшен на круг × 5.'
+
 /** Equipped non-ranged weapon → arcane focus (Training in War and Song, 2024 only). */
 export function markBladesingerMeleeFocusItems2024<
   T extends {
@@ -369,4 +373,39 @@ export function listTransmuterStonePicks(
   classEntryId: string,
 ): string[] {
   return getFeaturePickList(picks, classEntryId, TRANSMUTER_STONE_BENEFIT_PICK_ID)
+}
+
+/** Clear orator / war-song / stone picks when level drops below their gates. */
+export function trimWizardBookPicksOnLevelDown2024(
+  picks: FeaturePicksState,
+  classEntryId: string,
+  newWizardLevel: number,
+): FeaturePicksState {
+  const level = Math.max(0, Math.floor(newWizardLevel) || 0)
+  const values = { ...picks.values }
+  let changed = false
+  const drop = (...keys: string[]) => {
+    for (const key of keys) {
+      const full = `${classEntryId}:${key}`
+      if (full in values) {
+        delete values[full]
+        changed = true
+      }
+    }
+  }
+  if (level < 3) {
+    drop(
+      ENCHANTING_CONVERSATIONALIST_FEATURE_ID,
+      'enchanting_conversationalist',
+      TRAINING_IN_WAR_AND_SONG_FEATURE_ID,
+      'training_in_war_and_song',
+      TRANSMUTER_STONE_BENEFIT_PICK_ID,
+      TRANSMUTER_STONE_FEATURE_ID,
+      'transmuter-s-stone',
+    )
+  }
+  if (level < 10) {
+    drop(TRANSMUTER_STONE_BENEFIT_2_PICK_ID)
+  }
+  return changed ? { values } : picks
 }

@@ -205,3 +205,29 @@ export function savantFreePicksAtWizardLevel(input: {
   if (tier == null) return { picks: 0, maxSpellLevel: 0 }
   return { picks: savantFreeBookSlotOnNewTier(), maxSpellLevel: tier }
 }
+
+/**
+ * Cumulative free school spells through `wizardLevel` (create-at / sheet book size).
+ * L3 → 2, L5 → 3, L11 → 6 for any school Savant; 0 when no school subclass.
+ */
+export function savantFreeBookTotalThroughLevel(input: {
+  wizardLevel: number
+  subclassSlug: string | null | undefined
+}): number {
+  const level = Math.max(0, Math.floor(input.wizardLevel) || 0)
+  if (!wizardSavantSchool(input.subclassSlug) || level < WIZARD_SUBCLASS_LEVEL_2024) return 0
+  let total = savantFreeBookSlotsOnSubclass()
+  for (let lv = WIZARD_SUBCLASS_LEVEL_2024 + 1; lv <= level; lv += 1) {
+    if (newSlotTiersGainedAtWizardLevel(lv) != null) total += savantFreeBookSlotOnNewTier()
+  }
+  return total
+}
+
+/** Create-at / leveling book quota: free research + Savant free school spells. */
+export function wizardCreateBookNeed2024(input: {
+  wizardLevel: number
+  subclassSlug: string | null | undefined
+}): number {
+  const level = Math.max(1, Math.floor(input.wizardLevel) || 1)
+  return freeBookCap(level) + savantFreeBookTotalThroughLevel(input)
+}
