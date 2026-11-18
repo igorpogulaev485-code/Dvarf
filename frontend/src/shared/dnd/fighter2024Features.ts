@@ -9,6 +9,8 @@
 
 import type { ClassLevelEntry } from './classLevels'
 import { normalizeClassSlug2024 } from './edition2024Classes'
+import { parseFeatureResourceId } from './featureResources'
+import { clampResource, type SheetResource } from './rest'
 
 /* ------------------------------------------------------------------ */
 /* Names (RU — FINAL)                                                  */
@@ -438,4 +440,263 @@ export function championCritThreshold2024(fighterLevel: number, hasChampion: boo
 /** Heroic Fortitude heal: 5 + Con mod (min when bloodied). */
 export function heroicFortitudeHeal2024(conMod: number): number {
   return 5 + Math.floor(conMod || 0)
+}
+
+/* ------------------------------------------------------------------ */
+/* Sheet use / spend (2024 only)                                       */
+/* ------------------------------------------------------------------ */
+
+const FIGHTER_USE_FEATURE_IDS = new Set([
+  'second-wind',
+  'tactical-mind',
+  'action-surge',
+  'indomitable',
+  'know-your-enemy',
+  'protective-field',
+  'psionic-strike',
+  'telekinetic-movement',
+  'psi-powered-leap',
+  'bulwark-of-force',
+  'telekinetic-master',
+  'relentless',
+])
+
+export const FIGHTER_2024_CARD_BUTTONS: Record<string, string> = {
+  second_wind: 'Потратить…',
+  'second-wind': 'Потратить…',
+  tactical_mind: 'Применить…',
+  'tactical-mind': 'Применить…',
+  action_surge: 'Всплеск…',
+  'action-surge': 'Всплеск…',
+  indomitable: 'Перебросить…',
+  know_your_enemy: 'Изучить…',
+  'know-your-enemy': 'Изучить…',
+  bulwark_of_force: 'Оплот…',
+  'bulwark-of-force': 'Оплот…',
+  relentless: '1к8 вместо кости…',
+}
+
+export function fighter2024UseFeatureId(featureId: string | null | undefined): string | null {
+  if (!featureId) return null
+  const key = featureId.trim().replace(/_/g, '-')
+  if (key === 'psionic-power') return 'psionic-strike'
+  if (key === 'telekinetic-adept') return 'psi-powered-leap'
+  return FIGHTER_USE_FEATURE_IDS.has(key) ? key : null
+}
+
+export function findFighterPool2024(
+  resources: SheetResource[],
+  poolId: string,
+  classEntryId?: string,
+): SheetResource | null {
+  if (classEntryId) {
+    const exact = resources.find((row) => {
+      const parsed = parseFeatureResourceId(row.id)
+      return parsed?.poolId === poolId && parsed.classEntryId === classEntryId
+    })
+    if (exact) return exact
+    const byClass = resources.find((row) => {
+      const parsed = parseFeatureResourceId(row.id)
+      return parsed?.poolId === poolId && parsed.classSlug === FIGHTER_CLASS_SLUG_2024
+    })
+    if (byClass) return byClass
+  }
+  return resources.find((row) => parseFeatureResourceId(row.id)?.poolId === poolId) ?? null
+}
+
+export type Fighter2024UseInput = {
+  featureId: string
+  resourceId: string | null
+  resources: SheetResource[]
+  classEntryId: string
+  fighterLevel: number
+  abilities?: Partial<Record<'str' | 'dex' | 'con' | 'int', number>>
+  refund?: boolean
+  mode?: string | null
+  /** Tactical Mind: check still failed after adding 1d10 → do not spend Second Wind. */
+  checkStillFailed?: boolean
+}
+
+export type Fighter2024UseResult = {
+  ok: boolean
+  resources: SheetResource[]
+  message: string
+  patches?: {
+    diceExpression?: string | null
+    healHp?: number
+    activeLabels?: string[]
+    indomitableBonus?: number
+  }
+}
+
+function refuse(input: Fighter2024UseInput, message: string): Fighter2024UseResult {
+  return { ok: false, resources: input.resources, message }
+}
+
+function ok(
+  input: Fighter2024UseInput,
+  message: string,
+  extra?: Partial<Fighter2024UseResult>,
+): Fighter2024UseResult {
+  return { ok: true, resources: input.resources, message, ...extra }
+}
+
+function bumpPool(
+  resources: SheetResource[],
+  pool: SheetResource,
+  deltaUsed: number,
+): SheetResource[] {
+  return resources.map((row) => {
+    if (row.id !== pool.id) return row
+    return clampResource({ ...row, used: Math.max(0, Math.min(row.max, row.used + deltaUsed)) })
+  })
+}
+
+export function applyFighter2024FeatureUse(input: Fighter2024UseInput): Fighter2024UseResult {
+  const fid = fighter2024UseFeatureId(input.featureId) ?? input.featureId.replace(/_/g, '-')
+  const level = lvl(input.fighterLevel)
+  const refund = Boolean(input.refund) || input.mode === 'refund'
+
+  if (fid === 'second-wind') {
+    const pool = findFighterPool2024(input.resources, SECOND_WIND_POOL_ID, input.classEntryId)
+    if (!pool) return refuse(input, `${SECOND_WIND_NAME_RU}: пул не найден`)
+    if (refund) {
+      if (pool.used <= 0) return refuse(input, `${SECOND_WIND_NAME_RU}: нечего возвращать`)
+      return ok(input, `${SECOND_WIND_NAME_RU}: использование возвращено`, {
+        resources: bumpPool(input.resources, pool, -1),
+      })
+    }
+    if (pool.used >= pool.max) return refuse(input, `${SECOND_WIND_NAME_RU}: нет использований`)
+    return ok(input, `${SECOND_WIND_NAME_RU}: 1к10+${level} хитов`, {
+      resources: bumpPool(input.resources, pool, 1),
+      patches: { diceExpression: `1d10+${level}`, healHp: level },
+    })
+  }
+
+  if (fid === 'tactical-mind') {
+    if (level < TACTICAL_MIND_MIN_LEVEL_2024) {
+      return refuse(input, `${TACTICAL_MIND_NAME_RU} с ${TACTICAL_MIND_MIN_LEVEL_2024} уровня`)
+    }
+    const pool = findFighterPool2024(input.resources, SECOND_WIND_POOL_ID, input.classEntryId)
+    if (!pool) return refuse(input, `${TACTICAL_MIND_NAME_RU}: нет Второго дыхания`)
+    if (refund) {
+      if (pool.used <= 0) return refuse(input, `${TACTICAL_MIND_NAME_RU}: нечего возвращать`)
+      return ok(input, `${TACTICAL_MIND_NAME_RU}: использование возвращено`, {
+        resources: bumpPool(input.resources, pool, -1),
+      })
+    }
+    if (input.checkStillFailed) {
+      return ok(
+        input,
+        `${TACTICAL_MIND_NAME_RU}: проверка всё ещё провалена — использование Второго дыхания не тратится`,
+        { patches: { diceExpression: '1d10' } },
+      )
+    }
+    if (pool.used >= pool.max) return refuse(input, `${TACTICAL_MIND_NAME_RU}: нет Второго дыхания`)
+    return ok(input, `${TACTICAL_MIND_NAME_RU}: +1к10 к проверке (тратит Второе дыхание)`, {
+      resources: bumpPool(input.resources, pool, 1),
+      patches: { diceExpression: '1d10' },
+    })
+  }
+
+  if (fid === 'action-surge') {
+    if (level < ACTION_SURGE_MIN_LEVEL_2024) {
+      return refuse(input, `${ACTION_SURGE_NAME_RU} со ${ACTION_SURGE_MIN_LEVEL_2024} уровня`)
+    }
+    const pool = findFighterPool2024(input.resources, ACTION_SURGE_POOL_ID, input.classEntryId)
+    if (!pool) return refuse(input, `${ACTION_SURGE_NAME_RU}: пул не найден`)
+    if (refund) {
+      if (pool.used <= 0) return refuse(input, `${ACTION_SURGE_NAME_RU}: нечего возвращать`)
+      return ok(input, `${ACTION_SURGE_NAME_RU}: использование возвращено`, {
+        resources: bumpPool(input.resources, pool, -1),
+      })
+    }
+    if (pool.used >= pool.max) return refuse(input, `${ACTION_SURGE_NAME_RU}: нет использований`)
+    return ok(
+      input,
+      `${ACTION_SURGE_NAME_RU}: +1 действие (кроме «Магии»)${level >= 17 ? '; не чаще 1 раза за ход' : ''}`,
+      { resources: bumpPool(input.resources, pool, 1) },
+    )
+  }
+
+  if (fid === 'indomitable') {
+    if (level < INDOMITABLE_MIN_LEVEL_2024) {
+      return refuse(input, `${INDOMITABLE_NAME_RU} с ${INDOMITABLE_MIN_LEVEL_2024} уровня`)
+    }
+    const pool = findFighterPool2024(input.resources, INDOMITABLE_POOL_ID, input.classEntryId)
+    if (!pool) return refuse(input, `${INDOMITABLE_NAME_RU}: пул не найден`)
+    if (refund) {
+      if (pool.used <= 0) return refuse(input, `${INDOMITABLE_NAME_RU}: нечего возвращать`)
+      return ok(input, `${INDOMITABLE_NAME_RU}: использование возвращено`, {
+        resources: bumpPool(input.resources, pool, -1),
+      })
+    }
+    if (pool.used >= pool.max) return refuse(input, `${INDOMITABLE_NAME_RU}: нет использований`)
+    const bonus = indomitableBonus2024(level)
+    return ok(input, `${INDOMITABLE_NAME_RU}: переброс спасброска с бонусом +${bonus}`, {
+      resources: bumpPool(input.resources, pool, 1),
+      patches: { indomitableBonus: bonus },
+    })
+  }
+
+  if (fid === 'know-your-enemy') {
+    const pool = findFighterPool2024(input.resources, KNOW_YOUR_ENEMY_POOL_ID, input.classEntryId)
+    if (!pool) return refuse(input, `${KNOW_YOUR_ENEMY_NAME_RU}: пул не найден`)
+    if (refund) {
+      if (pool.used <= 0) return refuse(input, `${KNOW_YOUR_ENEMY_NAME_RU}: нечего возвращать`)
+      return ok(input, `${KNOW_YOUR_ENEMY_NAME_RU}: использование возвращено`, {
+        resources: bumpPool(input.resources, pool, -1),
+      })
+    }
+    if (input.mode === 'refund_with_die') {
+      const dice = findFighterPool2024(input.resources, SUPERIORITY_DICE_POOL_ID, input.classEntryId)
+      if (!dice || dice.used >= dice.max) {
+        return refuse(input, `${KNOW_YOUR_ENEMY_NAME_RU}: нужна кость превосходства`)
+      }
+      let next = bumpPool(input.resources, dice, 1)
+      if (pool.used > 0) {
+        const refreshed = findFighterPool2024(next, KNOW_YOUR_ENEMY_POOL_ID, input.classEntryId)
+        if (refreshed) next = bumpPool(next, refreshed, -1)
+      }
+      return ok(input, `${KNOW_YOUR_ENEMY_NAME_RU}: использование восстановлено (кость превосходства)`, {
+        resources: next,
+      })
+    }
+    if (pool.used >= pool.max) return refuse(input, `${KNOW_YOUR_ENEMY_NAME_RU}: нет использований`)
+    return ok(
+      input,
+      `${KNOW_YOUR_ENEMY_NAME_RU}: бонусным — иммунитеты, сопротивления и уязвимости цели в 30 фт.`,
+      { resources: bumpPool(input.resources, pool, 1) },
+    )
+  }
+
+  if (fid === 'bulwark-of-force') {
+    const pool = findFighterPool2024(input.resources, BULWARK_OF_FORCE_POOL_ID, input.classEntryId)
+    if (!pool) return refuse(input, `${BULWARK_OF_FORCE_NAME_RU}: пул не найден`)
+    if (refund) {
+      if (pool.used <= 0) return refuse(input, `${BULWARK_OF_FORCE_NAME_RU}: нечего возвращать`)
+      return ok(input, `${BULWARK_OF_FORCE_NAME_RU}: использование возвращено`, {
+        resources: bumpPool(input.resources, pool, -1),
+      })
+    }
+    if (pool.used >= pool.max) return refuse(input, `${BULWARK_OF_FORCE_NAME_RU}: нет использований`)
+    return ok(
+      input,
+      `${BULWARK_OF_FORCE_NAME_RU}: укрытие наполовину (не временные хиты)`,
+      {
+        resources: bumpPool(input.resources, pool, 1),
+        patches: { activeLabels: ['Укрытие наполовину (Оплот силы)'] },
+      },
+    )
+  }
+
+  if (fid === 'relentless') {
+    return ok(
+      input,
+      `${RELENTLESS_NAME_RU}: вместо кости превосходства бросьте 1к8 (1 раз за ход)`,
+      { patches: { diceExpression: '1d8' } },
+    )
+  }
+
+  return refuse(input, `Умение «${fid}» пока без отдельной кнопки 2024`)
 }

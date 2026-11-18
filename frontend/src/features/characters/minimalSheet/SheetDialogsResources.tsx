@@ -34,6 +34,7 @@ import { Warlock2024UseDialog } from '../Warlock2024UseDialog'
 import { Cleric2024UseDialog, type ClericFeatureRequest } from '../Cleric2024UseDialog'
 import { Paladin2024UseDialog, type PaladinFeatureRequest } from '../Paladin2024UseDialog'
 import { Ranger2024UseDialog, type RangerFeatureRequest } from '../Ranger2024UseDialog'
+import { Fighter2024UseDialog, type FighterFeatureRequest } from '../Fighter2024UseDialog'
 import { Bard2024UseDialog, type BardFeatureRequest } from '../Bard2024UseDialog'
 import {
   BARD_SUBCLASS_SLUGS_2024,
@@ -84,6 +85,10 @@ import {
   ranger2024UseFeatureId,
   type Ranger2024UseResult,
 } from '../../../shared/dnd/ranger2024Features'
+import {
+  fighter2024UseFeatureId,
+  type Fighter2024UseResult,
+} from '../../../shared/dnd/fighter2024Features'
 import { Druid2024UseDialog, type DruidFeatureRequest, type Druid2024ConfirmResult } from '../Druid2024UseDialog'
 import { druid2024UseFeatureId } from '../../../shared/dnd/druid2024Features'
 import { addFlexibleSpellSlot } from '../../../shared/dnd/spells'
@@ -383,6 +388,22 @@ export function SheetDialogsResources({ model }: { model: SheetModel }) {
     }))
     model.onToast(result.feedLineRu)
     model.setRangerFeatureUse(null)
+  }
+
+  const onFighterUseConfirm = (result: Fighter2024UseResult) => {
+    if (!result.ok) {
+      model.onToast(result.message ?? 'Не удалось применить умение')
+      return
+    }
+    model.setDraft((prev) => ({
+      ...prev,
+      play: {
+        ...prev.play,
+        resources: result.resources,
+      },
+    }))
+    model.onToast(result.message)
+    model.setFighterFeatureUse(null)
   }
 
   const onBardUseConfirm = (result: Bard2024UseResult) => {
@@ -829,6 +850,26 @@ export function SheetDialogsResources({ model }: { model: SheetModel }) {
     let level = 0
     for (const row of model.draft.classes) {
       if (resolveClassCasterSlug(row.name) === 'ranger' || /следопыт/i.test(row.name)) {
+        level += Math.max(0, row.level || 0)
+      }
+    }
+    return level
+  })()
+
+  const fighterRequest = model.fighterFeatureUse as FighterFeatureRequest | null
+  const fighter2024Use =
+    model.rulesEdition === '2024' &&
+    fighterRequest != null &&
+    fighter2024UseFeatureId(fighterRequest.featureId)
+
+  const fighterLevel = (() => {
+    const entry = fighterRequest
+      ? model.draft.classes.find((row) => row.id === fighterRequest.classEntryId)
+      : null
+    if (entry) return Math.max(0, entry.level || 0)
+    let level = 0
+    for (const row of model.draft.classes) {
+      if (resolveClassCasterSlug(row.name) === 'fighter' || /воин|боец/i.test(row.name)) {
         level += Math.max(0, row.level || 0)
       }
     }
@@ -1364,6 +1405,18 @@ export function SheetDialogsResources({ model }: { model: SheetModel }) {
           wisScore={model.draft.abilities.wis}
           onClose={() => model.setRangerFeatureUse(null)}
           onConfirm={onRangerUseConfirm}
+        />
+      ) : null}
+
+      {fighter2024Use ? (
+        <Fighter2024UseDialog
+          key={`${fighterRequest?.featureId}:${fighterRequest?.classEntryId}`}
+          open
+          request={fighterRequest}
+          resources={model.draft.play.resources}
+          fighterLevel={fighterLevel}
+          onClose={() => model.setFighterFeatureUse(null)}
+          onConfirm={onFighterUseConfirm}
         />
       ) : null}
 

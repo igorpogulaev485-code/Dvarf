@@ -81,9 +81,11 @@ MULTICLASS_PROFICIENCIES: dict[str, dict[str, Any]] = {
         "skills": 0,
         "note_ru": "Без металлических доспехов/щитов — по правилу класса.",
     },
+    # next.dnd.su multiclass: martial weapons; light/medium armor + shields; no heavy; no skills.
+    # Simple weapons are not listed for multiclass (full class still gets simple+martial).
     "fighter": {
         "armor": ["light", "medium", "shields"],
-        "weapons": ["simple", "martial"],
+        "weapons": ["martial"],
         "tools": [],
         "skills": 0,
     },
@@ -150,6 +152,8 @@ RESOURCE_META: dict[str, dict[str, Any]] = {
         "track": "spend",
         "on_hot": True,
         "feature_id": "indomitable",
+        # 2024: reroll with bonus = fighter level (sheet/dialog applies; 2014 has no bonus).
+        "bonus_equals_class_level": True,
     },
     "rages": {
         "name_ru": "Ярость",
@@ -1354,16 +1358,19 @@ def compute_progression(
                         class_slug=str(third["class_slug"]),
                         progression="third",
                         cantrips=int(third["cantrips"]),
-                        prepared_spells=0,
+                        prepared_spells=int(third.get("prepared_spells") or 0),
                         slots=dict(third["slots"]),
                         pact_slots=None,
                         always_prepared=(),
                         subclass_slug=sub,
-                        spells_known=int(third["spells_known"]),
+                        spells_known=int(third.get("spells_known") or 0) or None,
                         ability=str(third["ability"]),
                     )
                 )
-                scales[f"{slug}:third_caster_known"] = third["spells_known"]
+                if int(third.get("prepared_spells") or 0) > 0:
+                    scales[f"{slug}:third_caster_prepared"] = third["prepared_spells"]
+                if int(third.get("spells_known") or 0) > 0:
+                    scales[f"{slug}:third_caster_known"] = third["spells_known"]
 
     caster_lv = multiclass_caster_level([(s, lv) for s, lv, _, _ in parsed])
     # Include third-caster levels in multiclass caster level.

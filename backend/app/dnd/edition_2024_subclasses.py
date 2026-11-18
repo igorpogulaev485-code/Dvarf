@@ -509,38 +509,53 @@ def build_permanent_bonuses(
             )
         )
 
-    # Fighter Champion
+    # Fighter Champion (PHB 2024 names — Игорь 18.11.2026)
     if subclass_slug == "fighter__champion":
         add(
             "improved-critical",
-            "Улучшенные критические попадания",
+            "Улучшенный критический удар",
             "crit_threshold",
             19,
-            note_ru="Крит на 19–20",
+            note_ru="Крит на 19–20 (оружие и безоружные)",
         )
         if class_level >= 15:
             add(
                 "superior-critical",
-                "Превосходные критические попадания",
+                "Превосходный критический удар",
                 "crit_threshold",
                 18,
                 min_level=15,
-                note_ru="Крит на 18–20",
+                note_ru="Крит на 18–20 (оружие и безоружные)",
             )
         add(
             "remarkable-athlete",
             "Выдающийся атлет",
             "initiative_advantage",
             True,
-            note_ru="Преимущество к инициативе и Атлетике",
+            note_ru="Преимущество к инициативе и Атлетике; после крита — ½ скорости без провокации",
         )
+        if class_level >= 10:
+            add(
+                "heroic-warrior",
+                "Героический воин",
+                "other_calc",
+                {"grant_heroic_inspiration_start_of_turn": True},
+                min_level=10,
+                note_ru="В начале хода в бою, если нет Героического вдохновения — получаете его",
+            )
         if class_level >= 18:
             add(
                 "survivor",
                 "Вызов смерти",
                 "other_calc",
-                {"death_save_18_plus_is_20": True, "regen_bloodied": True},
+                {
+                    "death_save_advantage": True,
+                    "death_save_18_plus_is_20": True,
+                    "regen_bloodied": True,
+                    "regen_formula": "5+con",
+                },
                 min_level=18,
+                note_ru="Отрицание смерти + Героическая крепость (5+ТЕЛ при окровавленности)",
             )
 
     # Bard College of Dance (2024): unarmored AC 10 + Dex + Cha (no armor, no shield).
@@ -994,6 +1009,20 @@ def build_subclass_resources(
             feature_id="combat-superiority",
             extra_meta={"die": _superiority_die(class_level)},
         )
+        if class_level >= 7:
+            add(
+                "know_your_enemy",
+                name_ru="Знай своего врага",
+                max_uses=1,
+                reset="long",
+                feature_id="know-your-enemy",
+                min_level=7,
+                extra_meta={
+                    "note_ru": "Бонусным: иммунитеты/сопротивления/уязвимости в 30 фт.; "
+                    "можно восстановить, потратив кость превосходства",
+                    "refund_with_pool": "superiority_dice",
+                },
+            )
     elif subclass_slug in {"fighter__psi-warrior", "rogue__soulknife"}:
         count, die = _psi_energy_table(class_level)
         add(
@@ -1005,6 +1034,51 @@ def build_subclass_resources(
             feature_id="psionic-power",
             extra_meta={"die": die},
         )
+        if subclass_slug == "fighter__psi-warrior":
+            if class_level >= 3:
+                add(
+                    "telekinetic_movement",
+                    name_ru="Телекинетическое передвижение",
+                    max_uses=1,
+                    reset="short",
+                    feature_id="psionic-power",
+                    min_level=3,
+                    extra_meta={"refund_with_pool": "psionic_energy_dice"},
+                )
+            if class_level >= 7:
+                add(
+                    "psi_powered_leap",
+                    name_ru="Усиленный пси прыжок",
+                    max_uses=1,
+                    reset="short",
+                    feature_id="telekinetic-adept",
+                    min_level=7,
+                    extra_meta={"refund_with_pool": "psionic_energy_dice"},
+                )
+            if class_level >= 15:
+                add(
+                    "bulwark_of_force",
+                    name_ru="Оплот силы",
+                    max_uses=1,
+                    reset="long",
+                    feature_id="bulwark-of-force",
+                    min_level=15,
+                    extra_meta={
+                        "effect": "half_cover",
+                        "note_ru": "Укрытие наполовину (не временные хиты)",
+                        "refund_with_pool": "psionic_energy_dice",
+                    },
+                )
+            if class_level >= 18:
+                add(
+                    "telekinetic_master",
+                    name_ru="Мастер телекинеза",
+                    max_uses=1,
+                    reset="long",
+                    feature_id="telekinetic-master",
+                    min_level=18,
+                    extra_meta={"refund_with_pool": "psionic_energy_dice", "spell": "telekinesis"},
+                )
         if subclass_slug == "rogue__soulknife" and class_level >= 13:
             add(
                 "psychic_veil",
@@ -1661,6 +1735,10 @@ def third_caster_block(
     lv = max(1, min(20, class_level))
     row = THIRD_CASTER_SLOTS[lv - 1]
     slots = {str(i + 1): int(row[i]) for i in range(9)}
+    budget = THIRD_CASTER_SPELLS_KNOWN[lv - 1]
+    # Eldritch Knight 2024 prepares wizard spells (not «known» with school lock).
+    # Arcane Trickster / Mystic Arts keep known-style budget for now.
+    ek_prepared = subclass_slug == "fighter__eldritch-knight"
     return {
         "class_slug": subclass_parent(subclass_slug) or "class",
         "subclass_slug": subclass_slug,
@@ -1668,11 +1746,14 @@ def third_caster_block(
         "ability": meta["ability"],
         "name_ru": meta["name_ru"],
         "cantrips": THIRD_CASTER_CANTRIPS[lv - 1],
-        "prepared_spells": 0,
-        "spells_known": THIRD_CASTER_SPELLS_KNOWN[lv - 1],
+        "prepared_spells": budget if ek_prepared else 0,
+        "spells_known": 0 if ek_prepared else budget,
         "slots": slots,
         "pact_slots": None,
         "always_prepared": [],
+        "spell_list": "wizard" if ek_prepared else None,
+        "prepare_mode": "prepared" if ek_prepared else "known",
+        "replace_one_on_level": ek_prepared,
     }
 
 

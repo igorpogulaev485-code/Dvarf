@@ -173,9 +173,26 @@ export const TCE_MANEUVER_IDS = BATTLE_MASTER_MANEUVERS.filter(
   (row) => row.sourceBook === 'tce',
 ).map((row) => row.id)
 
+/** Tasha maneuvers that are NOT on the PHB 2024 Battle Master list. */
+export const TASHA_ONLY_MANEUVER_IDS_2014 = [
+  'grappling_strike',
+  'quick_toss',
+  'brace',
+] as const
+
+/** PHB 2024 site list (20). Ambush / Commanding Presence / Bait and Switch / Tactical Assessment stay. */
+export const PHB_2024_MANEUVER_IDS = BATTLE_MASTER_MANEUVERS.filter(
+  (row) => !(TASHA_ONLY_MANEUVER_IDS_2014 as readonly string[]).includes(row.id),
+).map((row) => row.id)
+
 export function isTceManeuver(id: string | null | undefined): boolean {
   if (!id) return false
   return maneuverById(id)?.sourceBook === 'tce'
+}
+
+export function isTashaOnlyManeuver2014(id: string | null | undefined): boolean {
+  if (!id) return false
+  return (TASHA_ONLY_MANEUVER_IDS_2014 as readonly string[]).includes(id)
 }
 
 export function maneuversKnownCount(classLevel: number): number {
@@ -184,6 +201,16 @@ export function maneuversKnownCount(classLevel: number): number {
   if (classLevel >= 7) return 5
   if (classLevel >= 3) return 3
   return 0
+}
+
+/** Same known counts as 2014; dice pool size differs (4 at L3 in 2024). */
+export function maneuversForPicker(
+  rulesEdition: string | null | undefined,
+): ManeuverDef[] {
+  if (String(rulesEdition ?? '2014').trim() === '2024') {
+    return BATTLE_MASTER_MANEUVERS.filter((row) => !isTashaOnlyManeuver2014(row.id))
+  }
+  return BATTLE_MASTER_MANEUVERS
 }
 
 export function maneuverById(id: string | null | undefined): ManeuverDef | null {

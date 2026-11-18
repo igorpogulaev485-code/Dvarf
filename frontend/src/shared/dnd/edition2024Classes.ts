@@ -240,6 +240,7 @@ const RESOURCE_META: Record<string, ResourceMeta> = {
     reset: 'long',
     feature_id: 'indomitable',
     kind: 'resource',
+    bonus_equals_class_level: true,
   },
   rages: {
     name_ru: 'Ярость',
@@ -1465,7 +1466,7 @@ export function computeProgression2024(input: {
           class_slug: third.class_slug,
           progression: 'third',
           cantrips: third.cantrips,
-          prepared_spells: 0,
+          prepared_spells: third.prepared_spells,
           slots: third.slots,
           pact_slots: null,
           always_prepared: [],
@@ -1473,7 +1474,12 @@ export function computeProgression2024(input: {
           spells_known: third.spells_known,
           ability: third.ability,
         })
-        scales[`${cls.slug}:third_caster_known`] = third.spells_known
+        if (third.prepared_spells > 0) {
+          scales[`${cls.slug}:third_caster_prepared`] = third.prepared_spells
+        }
+        if ((third.spells_known ?? 0) > 0) {
+          scales[`${cls.slug}:third_caster_known`] = third.spells_known
+        }
       }
     }
   }

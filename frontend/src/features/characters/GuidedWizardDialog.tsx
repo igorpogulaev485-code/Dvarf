@@ -394,6 +394,7 @@ function FeatureChoiceStepBody({
   featurePicks,
   expertiseKeys,
   onFeaturePicksChange,
+  edition = '2014',
 }: {
   step: Extract<GuidedWizardStep, { kind: 'feature_choice' }>
   skills: SkillExpertiseState
@@ -401,6 +402,7 @@ function FeatureChoiceStepBody({
   featurePicks: FeaturePicksState
   expertiseKeys: Array<{ classEntryId: string; featureId: string }>
   onFeaturePicksChange: (picks: FeaturePicksState) => void
+  edition?: RulesEdition
 }) {
   const choice = step.choice
   const [pendingReplicate, setPendingReplicate] = useState(false)
@@ -449,11 +451,11 @@ function FeatureChoiceStepBody({
       options: (
         choice.options_from === 'artificer_infusions'
           ? infusionOptionIdsAtLevel(step.classLevel)
-          : choiceOptionsAtLevel(choice, step.classLevel)
+          : choiceOptionsAtLevel(choice, step.classLevel, edition)
       ).filter((id) => !takenStyles.has(id)),
       optionsFrom: choice.options_from,
-      // Guided create is usually outside a live lobby book gate.
-      tceAllowed: null,
+      // Guided create: 2024 Battle Master already excludes Tasha-only three.
+      tceAllowed: edition === '2024' && choice.options_from === 'battle_master_maneuvers' ? true : null,
       selectedIds,
     })
     return ids.map((id) => ({
@@ -471,6 +473,7 @@ function FeatureChoiceStepBody({
     step.classLevel,
     multi,
     selected,
+    edition,
   ])
 
   const selectedDef = fightingStyleById(selected)
@@ -1301,6 +1304,7 @@ export function GuidedWizardDialog({
             featurePicks={featurePicks}
             expertiseKeys={expertiseKeys}
             onFeaturePicksChange={onFeaturePicksChange}
+            edition={edition}
           />
         ) : null}
         {step.kind === 'asi' ? (
