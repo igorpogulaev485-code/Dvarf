@@ -3,6 +3,8 @@ import assert from 'node:assert/strict'
 import { createClassLevel } from '../../shared/dnd/classLevels'
 import { emptyClassOptions2024 } from '../../shared/dnd/edition2024ClassOptions'
 import { emptyFeaturePicks } from '../../shared/dnd/featurePicks'
+import { parseCompanionActionAttacks } from './companionAttacks'
+import { revokeFalseSubclassCompanions } from './companions'
 import {
   DIVINE_POWER_RESOURCE_ID,
   restoreVestigeDivinePowerOnCompanions,
@@ -38,6 +40,24 @@ assert.equal(synced.companions[0]!.stats.ac, 16)
 assert.equal(synced.companions[0]!.stats.hp_max, 4 + 5 * 4)
 assert.equal(synced.companions[0]!.resources[0]?.id, DIVINE_POWER_RESOURCE_ID)
 assert.equal(synced.companions[0]!.resources[0]?.reset, 'long')
+assert.match(synced.companions[0]!.actions, /Удар предтечи/)
+assert.match(synced.companions[0]!.actions, /Божественная сила/)
+assert.match(synced.companions[0]!.notes, /Божественная сила/)
+
+// revokeFalseSubclassCompanions must keep vestige (feature matches companion heuristic).
+const afterRevoke = revokeFalseSubclassCompanions(synced.companions)
+assert.equal(afterRevoke.length, 1)
+assert.equal(afterRevoke[0]!.source?.feature, 'vestige-companion')
+
+// Attack chip name must stay «Удар предтечи» (no «попадание» split).
+const atks = parseCompanionActionAttacks(synced.companions[0]!, {
+  characterLevel: 5,
+  spellMod: 3,
+})
+assert.ok(
+  atks.some((a) => /Удар предтечи/i.test(a.name)),
+  `attack names: ${atks.map((a) => a.name).join(',')}`,
+)
 
 const l6 = syncVestigeCompanion2024({
   companions: synced.companions,

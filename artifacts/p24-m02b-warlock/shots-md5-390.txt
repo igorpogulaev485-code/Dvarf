@@ -48,9 +48,9 @@ d2a95b94de198545322ab625607924e9  2024-vestige-domain-type-picks-390.png
 5dcef9acfc97e2f2459b55dfebea6c94  2024-rollback-11-to-10-undead-390.png
 3a0baf4d7c8365c7378b5ac160e2390c  2024-rollback-14-to-13-vestige-390.png
 91abe246d8a34fed31179c3377085d16  2024-rollback-20-to-19-undead-390.png
-7f9aa76c2f482af4eaa2da5ee07affa9  2024-desk-vestige-companion-feature-390.png
-922f3c2415a1e05aad81e5ce699b4eff  2024-desk-vestige-companion-390.png
-d8eb0c210f11591aa6978a84b86daa7e  2024-desk-vestige-recovery-390.png
+4de701cb8f1bf301902522082ac6c1bd  2024-desk-vestige-companion-feature-390.png
+c2f23cae0dd776d18f94de5ad3d33962  2024-desk-vestige-companion-390.png
+a26ac9157fe205702bcab5778cb0abda  2024-desk-vestige-recovery-390.png
 a4b841c2e088e6726157fc1d6393c654  2024-desk-form-of-dread-390.png
 120c45409ab3664845216f79a77d40ff  2024-desk-form-of-dread-active-390.png
 23079ea8f591401097c4bff4c4b134a2  2024-desk-grave-touched-390.png

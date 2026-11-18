@@ -225,12 +225,15 @@ export function vestigeCompanionStats2024(input: {
     strikeDamageBonus: 3 + cha,
     damageTypeRu: typeRow.damageTypeRu,
     divinePowerNoteRu: divineByType[input.type],
+    // One attack line (no `;`) so companionAttacks keeps the name «Удар предтечи».
+    // Divine Power stays on its own sentence — shown via notes when chips hide raw actions.
     actionsRu:
-      `${VESTIGE_STRIKE_NAME_RU}: +${attack}, 5 фт. или 60 фт.; попадание 1к6+${3 + cha} ${typeRow.damageTypeRu}. ` +
+      `${VESTIGE_STRIKE_NAME_RU} +${attack} 1к6+${3 + cha} ${typeRow.damageTypeRu} (5 фт. или 60 фт.). ` +
       `${DIVINE_POWER_NAME_RU} (1/день): ${divineByType[input.type]}`,
     notesRu:
       `Связь договора: +БВ (${pb}) к проверкам и спасброскам предтечи. ` +
-      `Сопротивление: ${typeRow.resistanceRu}. Иммунитеты: Испуганный, Опрокинутый, Очарованный.`,
+      `Сопротивление: ${typeRow.resistanceRu}. Иммунитеты: Испуганный, Опрокинутый, Очарованный. ` +
+      `${DIVINE_POWER_NAME_RU} (1/день): ${divineByType[input.type]}`,
   }
 }
 

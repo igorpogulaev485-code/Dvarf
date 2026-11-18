@@ -48,9 +48,9 @@ e7abc79cb88b081edb074a8d4071b14c  2024-finish-disabled-l3-undead-1440.png
 9f4cda94234c15d93773c70490e7d41d  2024-rollback-11-to-10-undead-1440.png
 812e9b4fcc35fff57aaa6195488b1fe7  2024-rollback-14-to-13-vestige-1440.png
 d60a9b5387090b7f2abfcfeb42e72ba9  2024-rollback-20-to-19-undead-1440.png
-b0749854027d8312142ea176aa499a9c  2024-desk-vestige-companion-feature-1440.png
-dcb2a8a1dc6e76949689aa8013b3f5f3  2024-desk-vestige-companions-scene-1440.png
-547ae8bab4c9b3658048facf08bc1606  2024-desk-vestige-recovery-1440.png
+9a849ad9e8085a8561f374fadffa1ad7  2024-desk-vestige-companion-feature-1440.png
+62ddaed882df81e1d3a2a2e1d40911ca  2024-desk-vestige-companion-1440.png
+9aca3e70d019ab41e7cb29f16097261f  2024-desk-vestige-recovery-1440.png
 2221ebe85b987d18222779d13b08948b  2024-desk-form-of-dread-1440.png
 2f0a7ec8062947c6cb127cbb5540def7  2024-desk-form-of-dread-active-1440.png
 101adf94116b8c06f523c45662761dd4  2024-desk-grave-touched-1440.png

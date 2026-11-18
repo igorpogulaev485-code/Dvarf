@@ -352,12 +352,31 @@ test.describe('P24-M02B warlock book — desk mechanics', () => {
     await shot(page, '2024-desk-vestige-companion-feature', project)
 
     await openCompanions(page, project)
-    const companion = page.getByText(/Спутник-предтеча|предтеч/i).first()
-    if (await companion.isVisible().catch(() => false)) {
-      await shot(page, '2024-desk-vestige-companion', project)
-    } else {
-      await shot(page, '2024-desk-vestige-companions-scene', project)
+    // Hard expect: live card (not empty familiar fallback).
+    await expect(page.getByText(/Нет фамильяра/i)).toHaveCount(0)
+    await expect(page.getByText(/Нет спутника-предтечи/i)).toHaveCount(0)
+    const companionCard = page.locator('.companion-card').filter({
+      has: page.getByText(/Спутник-предтеча/i),
+    }).first()
+    await expect(companionCard).toBeVisible({ timeout: 15_000 })
+    // Expand so attack line + Divine Power resource are in the DOM.
+    if (await companionCard.locator('.companion-card__glance').count()) {
+      await companionCard.locator('.companion-card__glance').first().click()
+      await page.waitForTimeout(350)
     }
+    const expanded = page.locator('.companion-card--expand').filter({
+      has: page.getByText(/Спутник-предтеча/i),
+    }).first()
+    await expect(expanded).toBeVisible({ timeout: 8_000 })
+    await expect(expanded.getByText(/Хиты\s+\d+\s*\/\s*\d+/i).first()).toBeVisible({
+      timeout: 8_000,
+    })
+    await expect(
+      expanded.getByRole('button', { name: /Удар предтечи/i }).first(),
+    ).toBeVisible({ timeout: 8_000 })
+    await expect(expanded.getByText(/Божественная сила/i).first()).toBeVisible({ timeout: 8_000 })
+    await expect(expanded.getByText(/Команда/i).first()).toBeVisible({ timeout: 8_000 })
+    await shot(page, '2024-desk-vestige-companion', project)
 
     await openFeatures(page, project)
     await expect(

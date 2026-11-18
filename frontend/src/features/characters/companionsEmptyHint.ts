@@ -41,6 +41,22 @@ export function resolveCompanionsEmptyHint(input: {
     }
   }
 
+  const warlock = classes.find((row) => /колдун|warlock/i.test(row.name))
+  if (warlock) {
+    const slug = slugOf(warlock)
+    const vestige =
+      /vestige/i.test(slug) || /предтеч/i.test(warlock.subclass_name || '')
+    if (vestige && (warlock.level ?? 1) >= 3) {
+      return {
+        kind: 'generic',
+        title: 'Нет спутника-предтечи',
+        description:
+          'У Предтечи спутник появляется после выбора типа (Исчадие / Небожитель / Нежить). Можно добавить вручную.',
+        actionLabel: '+ Добавить',
+      }
+    }
+  }
+
   const wizard = classes.find((row) =>
     /волшебник|wizard|колдун|warlock|чародей|sorcerer/i.test(row.name),
   )

@@ -478,6 +478,8 @@ export function useSheetEditorPart2(model: SheetModel) {
     model.draft.classes,
     model.draft.classOptions2024,
     model.draft.abilities.cha,
+    // Re-sync if the card was wiped (e.g. stale revoke) while vestige options remain.
+    model.draft.companions.length,
     model.rulesEdition,
     model.baseCharacter?.rules_edition,
   ])
