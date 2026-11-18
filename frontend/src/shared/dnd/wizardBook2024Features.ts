@@ -296,6 +296,65 @@ export function isBladesongActive2024(resources: SheetResource[]): boolean {
   return Boolean(resourceByPool(resources, 'bladesong')?.activeLabel)
 }
 
+/** Extra Attack (L6): two attacks; one may be a wizard action cantrip. */
+export const BLADESINGER_EXTRA_ATTACK_RULE_RU_2024 =
+  'Действие Атака — две атаки; вместо одной можно сотворить заговор Волшебника со временем сотворения «действие».'
+
+export const BLADESINGER_SONG_OF_VICTORY_RULE_RU_2024 =
+  'После заклинания со временем «действие» — бонусным действием одна атака оружием.'
+
+export const BLADESINGER_WEAPON_FOCUS_RULE_RU_2024 =
+  'Рукопашное оружие, которым владеете, считается заклинательной фокусировкой Волшебника.'
+
+/** Equipped non-ranged weapon → arcane focus (Training in War and Song, 2024 only). */
+export function markBladesingerMeleeFocusItems2024<
+  T extends {
+    name: string
+    equipped?: boolean
+    qty?: number | null
+    spell_tooling?: string | null
+    focus_kind?: string | null
+    armor_kind?: string | null
+    weapon_grip?: string | null
+  },
+>(items: T[], enabled: boolean): T[] {
+  if (!enabled) return items
+  let changed = false
+  const next = items.map((item) => {
+    if ((item.qty ?? 1) <= 0) return item
+    if (!item.equipped) return item
+    if (item.armor_kind && item.armor_kind !== 'none') return item
+    if (item.spell_tooling === 'component_pouch') return item
+    if (!isBladesingerMeleeWeaponCandidate(item)) return item
+    if (item.spell_tooling === 'focus' && item.focus_kind === 'arcane') return item
+    changed = true
+    return { ...item, spell_tooling: 'focus' as const, focus_kind: 'arcane' as const }
+  })
+  return changed ? next : items
+}
+
+function isBladesingerMeleeWeaponCandidate(item: {
+  name: string
+  weapon_grip?: string | null
+  armor_kind?: string | null
+}): boolean {
+  if (item.armor_kind === 'shield') return false
+  const grip = item.weapon_grip
+  const looksHeld = grip === 'one_hand' || grip === 'two_hand'
+  // Lazy import avoided: mirror weaponPresets ranged check via name heuristics + grip.
+  const name = String(item.name || '').toLowerCase()
+  const rangedHint =
+    /лук|арбалет|дротик|пращ|сеть|blowgun|bow|crossbow|dart|sling|net|пистолет|ружь/.test(
+      name,
+    )
+  if (rangedHint) return false
+  if (looksHeld) return true
+  // Fallback: common melee RU names without stored grip.
+  return /меч|рапир|кинжал|топор|молот|булав|копь|трезуб|посох|дубин|ятаган|глеф|алебард|морген|кистень|кнут/.test(
+    name,
+  )
+}
+
 /* ------------------------------------------------------------------ */
 /* Transmuter stone labels                                             */
 /* ------------------------------------------------------------------ */

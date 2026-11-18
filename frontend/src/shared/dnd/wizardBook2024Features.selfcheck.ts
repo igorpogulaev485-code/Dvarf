@@ -5,6 +5,7 @@ import {
   enchantingConversationalistChoice2024,
   enchantingOratorSkillBonus2024,
   isM02bWizardBookSubclass,
+  markBladesingerMeleeFocusItems2024,
   readEnchantingOratorSkill,
   regainOneBladesongUse2024,
   songOfDefenseReduce2024,
@@ -97,5 +98,16 @@ const regained = regainOneBladesongUse2024(
   entry,
 )
 assert.equal(regained[0]!.used, 1)
+
+const focusMarked = markBladesingerMeleeFocusItems2024(
+  [
+    { name: 'Рапира', equipped: true, weapon_grip: 'one_hand' as const, armor_kind: 'none' },
+    { name: 'Короткий лук', equipped: true, weapon_grip: 'two_hand' as const, armor_kind: 'none' },
+  ],
+  true,
+)
+assert.equal(focusMarked[0]!.spell_tooling, 'focus')
+assert.equal(focusMarked[0]!.focus_kind, 'arcane')
+assert.equal(focusMarked[1]!.spell_tooling, undefined)
 
 console.log('wizardBook2024Features.selfcheck ok')

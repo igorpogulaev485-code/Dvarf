@@ -34,6 +34,7 @@ import { WeaponMasteryPanel } from '../WeaponMasteryPanel'
 import { WeaponMasteryAttackPanel } from '../WeaponMasteryAttackPanel'
 import { ClassOptions2024Panel } from '../ClassOptions2024Panel'
 import { Bard2024CombatBlock } from '../Bard2024CombatBlock'
+import { Wizard2024CombatBlock } from '../Wizard2024CombatBlock'
 import { ClassOptions2024CombatPanel } from '../ClassOptions2024CombatPanel'
 import {
   SRD_WEAPONS_2024_MASTERY,
@@ -65,6 +66,7 @@ import { spendSpellSlot } from '../../../shared/dnd/spells'
 import { PlayDeskSpellsCompact } from '../PlayDeskSpellsCompact'
 import { equipInventoryItem, equippedArmorPieces } from '../inventory'
 import { withSpellFocusFlags } from '../spellFocus'
+import { markBladesingerMeleeFocusItems2024 } from '../../../shared/dnd/wizardBook2024Features'
 import { syncWizardSpellbookWithInventory } from '../wizardSpellbookInventory'
 import { abilityModifier } from '../sheetTypes'
 import { sheetDamageProfile } from '../gearEffects'
@@ -1095,20 +1097,31 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
         }
         onChange={(inventory) =>
           model.setDraft((prev) => {
-            const focusSpells = withSpellFocusFlags(prev.spells, inventory.items)
+            const bladesinger2024 =
+              String(model.rulesEdition || model.baseCharacter?.rules_edition || '') ===
+                '2024' &&
+              Object.values(model.subclassSlugByEntryId ?? {}).some(
+                (slug) => String(slug || '').toLowerCase() === 'wizard__bladesinger',
+              )
+            const items = markBladesingerMeleeFocusItems2024(
+              inventory.items,
+              bladesinger2024,
+            )
+            const nextInventory = items === inventory.items ? inventory : { ...inventory, items }
+            const focusSpells = withSpellFocusFlags(prev.spells, items)
             const isWizard =
               model.spellLearnBudget?.mode === 'spellbook' ||
               prev.classes.some((row) => /волшебник|wizard|маг/i.test(row.name))
             const synced = syncWizardSpellbookWithInventory({
               isWizard,
               spells: focusSpells,
-              items: inventory.items,
+              items,
             })
             if (synced.message) queueMicrotask(() => model.onToast(synced.message!))
             return {
               ...prev,
-              inventory,
-              weapons: syncAttacksHeldFromInventory(prev.weapons, inventory.items),
+              inventory: nextInventory,
+              weapons: syncAttacksHeldFromInventory(prev.weapons, items),
               spells: synced.spells,
             }
           })
@@ -1324,6 +1337,12 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
         dexMod={abilityModifier(model.effectiveAbilities?.dex ?? model.draft.abilities.dex)}
         danceActive={Boolean(model.danceBardicDie)}
         onBardFeatureUse={(request) => model.setBardFeatureUse(request)}
+      />
+      <Wizard2024CombatBlock
+        rulesEdition={model.rulesEdition}
+        classes={model.draft.classes}
+        subclassSlugByEntryId={model.subclassSlugByEntryId}
+        resources={model.draft.play.resources}
       />
       <ClassFeaturesPanel
         classes={model.draft.classes}
@@ -1895,17 +1914,29 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
           )}
           onInventoryChange={(inventory) =>
             model.setDraft((prev) => {
-              const focusSpells = withSpellFocusFlags(prev.spells, inventory.items)
+              const bladesinger2024 =
+                String(model.rulesEdition || model.baseCharacter?.rules_edition || '') ===
+                  '2024' &&
+                Object.values(model.subclassSlugByEntryId ?? {}).some(
+                  (slug) => String(slug || '').toLowerCase() === 'wizard__bladesinger',
+                )
+              const items = markBladesingerMeleeFocusItems2024(
+                inventory.items,
+                bladesinger2024,
+              )
+              const nextInventory =
+                items === inventory.items ? inventory : { ...inventory, items }
+              const focusSpells = withSpellFocusFlags(prev.spells, items)
               const isWizard =
                 model.spellLearnBudget?.mode === 'spellbook' ||
                 prev.classes.some((row) => /волшебник|wizard|маг/i.test(row.name))
               const synced = syncWizardSpellbookWithInventory({
                 isWizard,
                 spells: focusSpells,
-                items: inventory.items,
+                items,
               })
               if (synced.message) queueMicrotask(() => model.onToast(synced.message!))
-              return { ...prev, inventory, spells: synced.spells }
+              return { ...prev, inventory: nextInventory, spells: synced.spells }
             })
           }
           onConcentrationChange={(concentration) => {
