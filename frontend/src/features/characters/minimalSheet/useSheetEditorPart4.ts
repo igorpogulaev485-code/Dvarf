@@ -528,6 +528,29 @@ export function useSheetEditorPart4(model: SheetModel) {
   } | null>(null)
   model.heroicRerollPending = heroicRerollPending
   model.setHeroicRerollPending = setHeroicRerollPending
+  model.offerHeroicRerollAfter = function offerHeroicRerollAfter(
+    label: string,
+    sides = 20,
+  ) {
+    const edition = model.baseCharacter?.rules_edition ?? model.rulesEdition
+    if (String(edition ?? '') !== '2024') return
+    if (!model.draft.inspiration) return
+    setHeroicRerollPending({ label, sides: Math.max(2, Math.floor(sides || 20)) })
+  }
+  const [heroicTransferOpen, setHeroicTransferOpen] = useState(false)
+  const [heroicTransferAllyId, setHeroicTransferAllyId] = useState('')
+  model.heroicTransferOpen = heroicTransferOpen
+  model.setHeroicTransferOpen = setHeroicTransferOpen
+  model.heroicTransferAllyId = heroicTransferAllyId
+  model.setHeroicTransferAllyId = setHeroicTransferAllyId
+  model.heroicTransferAllies = model.heroicTransferAllies ?? []
+  model.openHeroicTransfer = function openHeroicTransfer(
+    allies: Array<{ id: string; name: string }>,
+  ) {
+    model.heroicTransferAllies = allies
+    setHeroicTransferAllyId(allies[0]?.id ?? '')
+    setHeroicTransferOpen(true)
+  }
   model.spendHeroicInspirationReroll = function spendHeroicInspirationReroll() {
     if (!model.draft.inspiration) {
       model.onToast?.('Нет героического вдохновения')
@@ -549,9 +572,11 @@ export function useSheetEditorPart4(model: SheetModel) {
       model.onToast?.('Выберите союзника без вдохновения')
       return false
     }
-    // Sheet flag clears locally; lobby/session sync of the ally is caller's job.
     model.setDraft((prev) => ({ ...prev, inspiration: false }))
-    model.onToast?.(`Героическое вдохновение передано союзнику (${allyId})`)
+    const allyName =
+      (model.heroicTransferAllies || []).find((a: { id: string }) => a.id === allyId)
+        ?.name || allyId
+    model.onToast?.(`Героическое вдохновение передано союзнику (${allyName})`)
     return true
   }
   const [luckyPickPending, setLuckyPickPending] = useState<{

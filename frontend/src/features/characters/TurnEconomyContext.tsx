@@ -26,6 +26,8 @@ export type TurnEconomyContextValue = {
   combatTurnsUntil: number | null
   initiativePending: boolean
   openInitiativeRoll: () => void
+  /** P24-M04: this PC marked surprised in combat queue. */
+  combatSurprised?: boolean
   openSessionId: string | null
   characterId: string
   targets: CombatTarget[]

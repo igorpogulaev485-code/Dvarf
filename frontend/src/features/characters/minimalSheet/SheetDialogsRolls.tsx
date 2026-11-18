@@ -6,7 +6,10 @@ import { AcBreakdownDialog } from '../AcBreakdownDialog'
 import { TempHpReplaceDialog } from '../TempHpReplaceDialog'
 import { InitiativeBreakdownDialog } from '../InitiativeBreakdownDialog'
 import { SpeedBreakdownDialog } from '../SpeedBreakdownDialog'
-import { Button, Dialog, Stack, Text } from '../../../ui'
+import { Button, Dialog, Field, Select, Stack, Text } from '../../../ui'
+import { resolveHeroicReroll } from '../../../shared/dnd/heroicInspiration'
+import { postSheetRollToSession } from '../postSheetRollToSession'
+import { patchSeatCombat } from '../../../shared/api/lobbies'
 import { ConsumableSpendPadDialog } from '../ConsumableSpendPadDialog'
 import { syncAttacksHeldFromInventory } from '../AttacksPanel'
 import { canWearArmor, armorProficiencyHint } from '../equipmentProficiency'
@@ -606,21 +609,89 @@ export function SheetDialogsRolls({ model }: { model: SheetModel }) {
           if (!pending) return
           if (!model.spendHeroicInspirationReroll?.()) return
           const sides = Math.max(2, Math.floor(pending.sides || 20))
-          const face = 1 + Math.floor(Math.random() * sides)
-          model.emitToast?.(
-            `Героическое вдохновение: ${pending.label} — переброс к${sides} → ${face} (новый результат)`,
-          )
+          const rr = resolveHeroicReroll({ previous: 0, sides })
+          const face = rr.next
+          const line = `Героическое вдохновение: ${pending.label} — переброс к${sides} → ${face} (новый результат)`
+          model.emitToast?.(line)
+          void postSheetRollToSession({
+            openSessionId: model.character.open_session_id,
+            characterId: model.character.id,
+            title: `Героическое вдохновение · переброс · ${pending.label}`,
+            total: face,
+            formula: `1к${sides}`,
+            breakdown: line,
+          })
         }}
         onSecondary={() => model.setHeroicRerollPending?.(null)}
       >
         <Stack gap={8}>
-          <Text>
+          <Text data-testid="heroic-inspiration-reroll-chip">
             Потратить героическое вдохновение и перебросить любой кубик
             {model.heroicRerollPending
               ? ` (к${model.heroicRerollPending.sides} · ${model.heroicRerollPending.label})`
               : ''}
             ? Новый результат обязателен.
           </Text>
+        </Stack>
+      </Dialog>
+
+      <Dialog
+        open={Boolean(model.heroicTransferOpen)}
+        title="Передать героическое вдохновение"
+        primaryLabel="Передать"
+        secondaryLabel="Отмена"
+        primaryDisabled={!model.heroicTransferAllyId}
+        onPrimary={() => {
+          const allyId = model.heroicTransferAllyId
+          if (!allyId) return
+          if (!model.transferHeroicInspirationToAlly?.(allyId)) return
+          const sessionId = model.character.open_session_id
+          if (sessionId) {
+            void patchSeatCombat(sessionId, allyId, { inspiration: true }).catch(() => {
+              model.onToast?.('Не удалось выдать союзнику на столе — отметьте вручную')
+            })
+            const allies = (model.heroicTransferAllies || []) as Array<{
+              id: string
+              name: string
+            }>
+            const allyName = allies.find((a) => a.id === allyId)?.name || allyId
+            void postSheetRollToSession({
+              openSessionId: sessionId,
+              characterId: model.character.id,
+              title: `Героическое вдохновение · передача → ${allyName}`,
+              total: 0,
+              breakdown: `Перевёл героическое вдохновение союзнику ${allyName}`,
+            })
+          }
+          model.setHeroicTransferOpen?.(false)
+          model.setHeroicTransferAllyId?.('')
+        }}
+        onSecondary={() => {
+          model.setHeroicTransferOpen?.(false)
+          model.setHeroicTransferAllyId?.('')
+        }}
+      >
+        <Stack gap={8}>
+          <Text data-testid="heroic-inspiration-transfer">
+            У вас уже есть героическое вдохновение. Можно отдать союзнику в том же лобби, у кого
+            его нет.
+          </Text>
+          <Field label="Союзник">
+            <Select
+              value={model.heroicTransferAllyId || ''}
+              onChange={(e) => model.setHeroicTransferAllyId?.(e.target.value)}
+              data-testid="heroic-transfer-ally"
+            >
+              <option value="">Выберите…</option>
+              {((model.heroicTransferAllies || []) as Array<{ id: string; name: string }>).map(
+                (ally) => (
+                  <option key={ally.id} value={ally.id}>
+                    {ally.name}
+                  </option>
+                ),
+              )}
+            </Select>
+          </Field>
         </Stack>
       </Dialog>
 

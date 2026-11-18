@@ -437,6 +437,8 @@ type PlayDeskAttacksCompactProps = {
   /** O-09: Inspiration armed — advantage on this attack (spend handled by parent). */
   inspirationArmed?: boolean
   onInspirationSpent?: () => void
+  /** P24-M04: after any die posted to feed — offer heroic reroll on 2024. */
+  onAfterDieRoll?: (label: string, sides?: number) => void
   /** P24-02: 2024 turn actions / Hide DC / no L-21 surprise round. */
   rulesEdition?: string | null
   /** O-09: inventory item ids with repeating_shot infusion (no ammo spend). */
@@ -574,6 +576,7 @@ export function PlayDeskAttacksCompact({
   onLuckySpent,
   inspirationArmed = false,
   onInspirationSpent,
+  onAfterDieRoll,
   rulesEdition = '2014',
   repeatingShotItemIds = [],
   onBindAmmo,
@@ -601,6 +604,13 @@ export function PlayDeskAttacksCompact({
   swimSpeed = null,
 }: PlayDeskAttacksCompactProps) {
   const turnEco = useTurnEconomy()
+  const postDeskRoll = (
+    opts: Parameters<typeof postSheetRollToSession>[0] & { sides?: number },
+  ) => {
+    void postSheetRollToSession(opts)
+    onAfterDieRoll?.(opts.title, opts.sides ?? 20)
+  }
+
   const [grappleOpen, setGrappleOpen] = useState(false)
   const [o07Dialog, setO07Dialog] = useState<
     null | 'oa' | 'counterspell' | 'sentinel' | 'mage_slayer' | 'riposte'
@@ -1505,6 +1515,10 @@ export function PlayDeskAttacksCompact({
           <TurnEconomyCombatActions
             mode="all"
             rulesEdition={rulesEdition}
+            surpriseInitiative={Boolean(turnEco.combatSurprised)}
+            onToggleSurpriseInitiative={() => {
+              turnEco.openInitiativeRoll()
+            }}
             hasCunningAction={
               hasCunningAction ||
               combatFeatures.some((f) => f.id === 'cunning_action')
@@ -3632,7 +3646,7 @@ export function PlayDeskAttacksCompact({
                                   .filter(Boolean)
                                   .join(' · ')
                               : `Атака: ${attack.name}`
-                        void postSheetRollToSession({
+                        postDeskRoll({
                           openSessionId: sessionId,
                           characterId,
                           title: feedTitle,
@@ -3966,7 +3980,7 @@ export function PlayDeskAttacksCompact({
                         : `Урон: ${attack.name} · ${expr || '—'}${typeBit}`
                       onToast?.(text)
                       if (characterId && rolled) {
-                        void postSheetRollToSession({
+                        postDeskRoll({
                           openSessionId: openSessionId ?? turnEco?.openSessionId,
                           characterId,
                           title: `Урон: ${attack.name}`,
@@ -4256,7 +4270,7 @@ export function PlayDeskAttacksCompact({
                 turnEco?.spendAttack()
                 onToast?.(strike.text)
                 if (openSessionId && characterId) {
-                  void postSheetRollToSession({
+                  postDeskRoll({
                     openSessionId,
                     characterId,
                     title: `${atk.companionName}: ${atk.name}`,
@@ -4299,7 +4313,7 @@ export function PlayDeskAttacksCompact({
                         : `Природный удар: ${expr}`,
                     )
                     if (characterId && rolled) {
-                      void postSheetRollToSession({
+                      postDeskRoll({
                         openSessionId: openSessionId ?? turnEco?.openSessionId,
                         characterId,
                         title: 'Природный удар',
@@ -4786,7 +4800,7 @@ export function PlayDeskAttacksCompact({
       onClose={() => setEnterNumberOpen(false)}
       onConfirm={({ total }) => {
         if (characterId && enterNumberCtx) {
-          void postSheetRollToSession({
+          postDeskRoll({
             openSessionId: openSessionId ?? turnEco?.openSessionId,
             characterId,
             title: enterNumberCtx.title,

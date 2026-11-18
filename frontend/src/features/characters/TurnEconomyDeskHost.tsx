@@ -175,6 +175,7 @@ export function TurnEconomyDeskHost({ model, children }: Props) {
       combatTurnsUntil: combat.turnsUntil,
       initiativePending: combat.initiativePending,
       openInitiativeRoll: () => setInitiativeOpen(true),
+      combatSurprised: Boolean(combat.combatSurprised),
       openSessionId,
       characterId,
       targets: combat.targets,
@@ -326,6 +327,7 @@ export function TurnEconomyDeskHost({ model, children }: Props) {
       combat.activeEntry?.name,
       combat.turnsUntil,
       combat.initiativePending,
+      combat.combatSurprised,
       combat.targets,
       openSessionId,
       characterId,
@@ -375,6 +377,12 @@ export function TurnEconomyDeskHost({ model, children }: Props) {
         seat={
           combat.session?.seats?.find((s) => s.character_id === characterId) ??
           null
+        }
+        rulesEdition={
+          combat.session?.rules_edition ??
+          model.baseCharacter?.rules_edition ??
+          model.rulesEdition ??
+          '2014'
         }
         onClose={() => setInitiativeOpen(false)}
         onRoll={({ advantage }) => {

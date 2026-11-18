@@ -831,6 +831,8 @@ export type SessionDetail = {
   setting_id: string | null
   setting_name: string | null
   name: string
+  /** P24-M04: lobby rules edition for desk / generator / surprise. */
+  rules_edition?: LobbyRulesEdition | string
   is_owner: boolean
   is_comaster?: boolean
   is_observer?: boolean
@@ -958,12 +960,14 @@ export async function listLobbies(): Promise<LobbySummary[]> {
 export async function createLobby(
   name?: string,
   rulesEdition: LobbyRulesEdition = '2014',
+  options?: { isPreview?: boolean },
 ): Promise<LobbyDetail> {
   return apiRequest<LobbyDetail>('/lobbies', {
     method: 'POST',
     body: JSON.stringify({
       name: name || undefined,
       rules_edition: rulesEdition,
+      ...(options?.isPreview ? { is_preview: true } : {}),
     }),
   })
 }

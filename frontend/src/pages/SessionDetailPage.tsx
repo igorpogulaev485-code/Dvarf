@@ -2960,6 +2960,7 @@ export function SessionDetailPage() {
         open={combatantOpen}
         busy={busy}
         combatActive={Boolean(session.combat?.active)}
+        rulesEdition={session.rules_edition ?? '2014'}
         onClose={() => setCombatantOpen(false)}
         onSubmit={(payload) => {
           void run(async () => {
@@ -3184,6 +3185,7 @@ export function SessionDetailPage() {
         busy={busy}
         seats={session.seats}
         combatants={session.combatants ?? []}
+        rulesEdition={session.rules_edition ?? '2014'}
         onClose={() => setCombatStartOpen(false)}
         onSubmit={(payload) => {
           void run(async () => {

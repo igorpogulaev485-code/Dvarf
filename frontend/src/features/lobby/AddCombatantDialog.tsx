@@ -49,6 +49,8 @@ type Props = {
   busy?: boolean
   /** S-02: в идущем бою новая пачка = скрытая волна */
   combatActive?: boolean
+  /** P24-M04: каталог бестиария по редакции лобби */
+  rulesEdition?: string | null
   onClose: () => void
   onSubmit: (payload: {
     catalog_id?: string
@@ -75,9 +77,12 @@ export function AddCombatantDialog({
   open,
   busy = false,
   combatActive = false,
+  rulesEdition = '2014',
   onClose,
   onSubmit,
 }: Props) {
+  const catalogEdition =
+    String(rulesEdition ?? '2014').trim() === '2024' ? '2024' : '2014'
   const [mode, setMode] = useState<Mode>('bestiary')
   const [queryLabel, setQueryLabel] = useState('')
   const [selected, setSelected] = useState<CatalogEntry | null>(null)
@@ -215,7 +220,7 @@ export function AddCombatantDialog({
             <Field label="Кто">
               <CatalogCombobox
                 kind="bestiary"
-                edition="2014"
+                edition={catalogEdition}
                 value={queryLabel}
                 placeholder="Гоблин, огр, волк…"
                 onChange={(label, entry) => {

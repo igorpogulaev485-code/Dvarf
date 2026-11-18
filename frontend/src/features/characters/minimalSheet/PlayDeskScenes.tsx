@@ -536,6 +536,9 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
             onInspirationSpent={() => {
               model.spendInspirationForRoll?.()
             }}
+            onAfterDieRoll={(label, sides) => {
+              model.offerHeroicRerollAfter?.(label, sides ?? 20)
+            }}
             rulesEdition={model.baseCharacter.rules_edition}
             repeatingShotItemIds={(() => {
               const ids: string[] = []
@@ -1009,6 +1012,10 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
                       })
                     }}
                     onToast={(message) => model.onToast?.(message)}
+                    onFeedLine={(line) => {
+                      model.onToast?.(line)
+                      model.offerHeroicRerollAfter?.(`Мастерство · ${line}`, 20)
+                    }}
                   />
                 )
               })()

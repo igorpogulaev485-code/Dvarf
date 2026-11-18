@@ -911,6 +911,8 @@ class LobbyCreateRequest(BaseModel):
     name: str | None = Field(default=None, min_length=1, max_length=120)
     # P24-01: редакция лобби; после создания не меняется.
     rules_edition: str | None = Field(default="2014", pattern=r"^(2014|2024)$")
+    # P24-M04: внутренний обход флага для e2e/preview (кнопку игрокам не открывает).
+    is_preview: bool = False
 
 
 class LobbyUpdateRequest(BaseModel):
@@ -1731,6 +1733,8 @@ class SessionDetail(BaseModel):
     setting_id: UUID | None
     setting_name: str | None
     name: str
+    # P24-M04: редакция лобби (стол/генератор/неожиданность).
+    rules_edition: str = "2014"
     is_owner: bool
     is_comaster: bool = False
     is_observer: bool = False
