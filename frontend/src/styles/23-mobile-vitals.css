@@ -585,9 +585,15 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  /* Dialogs must not opacity-fade — that made the sheet look translucent over the page. */
   .ui-dialog,
   .ui-dialog--wide,
-  .ui-dialog--xl,
+  .ui-dialog--xl {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+
   .play-desk--mobile .play-desk__stage-panel:not([hidden]),
   .mobile-scene-nav__tab.is-on .mobile-scene-nav__ico,
   .mobile-vitals__hp.is-pulse {

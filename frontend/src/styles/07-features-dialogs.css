@@ -257,7 +257,7 @@
     max(12px, env(safe-area-inset-right, 0px))
     max(12px, env(safe-area-inset-bottom, 0px))
     max(12px, env(safe-area-inset-left, 0px));
-  background: rgba(28, 25, 23, 0.45);
+  background: rgba(28, 25, 23, 0.55);
   box-sizing: border-box;
 }
 
@@ -274,8 +274,9 @@
   padding: 0;
   border-radius: 16px;
   border: 1px solid var(--line);
-  /* Solid kit surface — never translucent over the page (M06 390). */
-  background: var(--card, #fffdf8);
+  /* Solid kit paper — never alpha-blend over the page (M06 390). */
+  background: #fffdf8;
+  background-color: #fffdf8;
   background-color: var(--card, #fffdf8);
   opacity: 1;
   isolation: isolate;
@@ -300,7 +301,8 @@
   /* LOBBY-FIX: заголовок не прилипает к первому полю (Хиты в своём НПС). */
   padding: 14px 16px 12px;
   border-bottom: 1px solid color-mix(in srgb, var(--line) 55%, transparent);
-  background: var(--card, #fffdf8);
+  background: #fffdf8;
+  background-color: #fffdf8;
   background-color: var(--card, #fffdf8);
 }
 
@@ -348,7 +350,8 @@
   -webkit-overflow-scrolling: touch;
   padding: 10px 16px 8px;
   font-size: 0.95rem;
-  background: var(--card, #fffdf8);
+  background: #fffdf8;
+  background-color: #fffdf8;
   background-color: var(--card, #fffdf8);
 }
 
@@ -360,7 +363,8 @@
   justify-content: flex-end;
   padding: 10px 16px max(12px, env(safe-area-inset-bottom, 0px));
   border-top: 1px solid color-mix(in srgb, var(--line) 70%, transparent);
-  background: var(--card, #fffdf8);
+  background: #fffdf8;
+  background-color: #fffdf8;
   background-color: var(--card, #fffdf8);
 }
 
