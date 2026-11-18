@@ -709,11 +709,11 @@ export function CreateCharacter2024Page({
             ? `Знаменосец ${fighterSpec.level}`
             : `Воин ${fighterSpec.level}`,
         classSlug: 'fighter',
-        // Archer needs INT for shot pool; Banneret needs CHA for ally caps.
+        // Standard-array permutation (15/14/13/12/10/8). Archer: DEX+INT; Banneret: STR+CHA.
         abilities: isArcher
-          ? { str: 13, dex: 15, con: 14, int: 14, wis: 10, cha: 8 }
+          ? { str: 12, dex: 15, con: 13, int: 14, wis: 10, cha: 8 }
           : isBanneret
-            ? { str: 15, dex: 12, con: 14, int: 8, wis: 10, cha: 14 }
+            ? { str: 15, dex: 12, con: 13, int: 8, wis: 10, cha: 14 }
             : { str: 15, dex: 14, con: 13, int: 8, wis: 12, cha: 10 },
         rows: [
           {
@@ -723,10 +723,11 @@ export function CreateCharacter2024Page({
           },
         ],
         skills: isArcher ? ['athletics', 'perception'] : ['athletics', 'perception'],
+        // Soldier ASI is only str/dex/con — CHA for Banneret comes from the array.
         backgroundAsi: isArcher
           ? { dex: 2, con: 1 }
           : isBanneret
-            ? { str: 2, cha: 1 }
+            ? { str: 2, con: 1 }
             : { str: 2, con: 1 },
         asi: fighterAsiChoicesForLevel(fighterSpec.level, fighterSpec.subclassSlug),
         fighting: 'defense',

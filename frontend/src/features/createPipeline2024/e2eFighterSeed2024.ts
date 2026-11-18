@@ -55,34 +55,36 @@ export function fighterAsiChoicesForLevel(
   const gates = [4, 6, 8, 12, 14, 16, 19].filter((g) => g <= level)
   const archer = subclassSlug === 'fighter__arcane-archer'
   const banneret = subclassSlug === 'fighter__banneret'
+  // Keep finals ≤20: seed bases are 15 + soldier +2/+1 on the primary physical score.
+  // Archer primary DEX ends at 19 after one ASI; Banneret primary STR the same.
   const bumps: Array<Partial<Record<'str' | 'dex' | 'con' | 'int' | 'cha', number>>> = archer
     ? [
-        { dex: 2 },
+        { dex: 2 }, // 17→19
         { int: 2 },
         { con: 2 },
-        { dex: 2 },
         { int: 2 },
         { con: 2 },
-        { dex: 2 },
+        { wis: 2 },
+        { con: 2 },
       ]
     : banneret
       ? [
-          { str: 2 },
+          { str: 2 }, // 17→19
           { cha: 2 },
           { con: 2 },
-          { str: 2 },
           { cha: 2 },
           { con: 2 },
-          { str: 2 },
+          { wis: 2 },
+          { con: 2 },
         ]
       : [
           { str: 2 },
           { con: 2 },
-          { str: 2 },
+          { dex: 2 },
           { con: 2 },
           { str: 2 },
+          { dex: 2 },
           { con: 2 },
-          { str: 2 },
         ]
   return gates.map((classLevel, index) => ({
     classSlug: 'fighter',
