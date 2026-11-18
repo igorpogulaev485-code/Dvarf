@@ -49,8 +49,8 @@ class Settings(BaseSettings):
     mcp_allowed_hosts: str = ""
     mcp_port: int = 8100
 
-    # P24-01: редакция 2024 закрыта до финальной пачки открытия (P24-M06).
-    # Env: RULES_EDITION_2024_OPEN=true|false. По умолчанию выключен.
+    # P24-01 / M06: редакция 2024 закрыта по умолчанию.
+    # Env: RULES_EDITION_2024_OPEN=true|false. Включает Игорь после merge/deploy (не коммитить true).
     rules_edition_2024_open: bool = False
 
     @property

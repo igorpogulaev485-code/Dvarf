@@ -75,6 +75,7 @@ export function loadOnboardingState(userId?: string | null): OnboardingState {
         ? parsed.lobbyTourSeenSteps.filter(isLobbyTourStepId)
         : [],
       joinIntroDone: Boolean(parsed.joinIntroDone),
+      edition2024DiffDone: Boolean(parsed.edition2024DiffDone),
     }
   } catch {
     return defaultOnboardingState()
@@ -131,6 +132,7 @@ export function mergeOnboardingState(
       !lobbyTourDone && (primary.pendingLobbyTour || secondary.pendingLobbyTour),
     lobbyTourSeenSteps: lobbyTourDone ? [] : Array.from(seenLobbySteps),
     joinIntroDone: primary.joinIntroDone || secondary.joinIntroDone,
+    edition2024DiffDone: primary.edition2024DiffDone || secondary.edition2024DiffDone,
   }
 }
 
@@ -154,6 +156,7 @@ export function loadOnboardingStateForUser(userId?: string | null): OnboardingSt
     anon.pendingLobbyTour === anonDefault.pendingLobbyTour &&
     anon.helpOpened === anonDefault.helpOpened &&
     anon.joinIntroDone === anonDefault.joinIntroDone &&
+    anon.edition2024DiffDone === anonDefault.edition2024DiffDone &&
     anon.dismissedPanelHelp.length === 0 &&
     anon.seenSceneIntros.length === 0 &&
     anon.lobbyTourSeenSteps.length === 0
@@ -259,7 +262,13 @@ export function restartTipsState(prev: OnboardingState): OnboardingState {
     seenSceneIntros: [],
     lobbyTourSeenSteps: [],
     joinIntroDone: false,
+    edition2024DiffDone: false,
   }
+}
+
+/** P24-M06: 2024 differences coach — once until restart tips. */
+export function shouldShowEdition2024Diff(state: OnboardingState): boolean {
+  return !state.edition2024DiffDone
 }
 
 /** First-visit scene cards: dnd_new + product_new only; skip never. */

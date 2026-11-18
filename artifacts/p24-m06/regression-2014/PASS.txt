@@ -1,0 +1,4 @@
+P24-M06 2014 regression: PASS
+Base tip d17c30d (M05). M06 adds 2024 onboarding only — 2014 create/sheet/header/LV untouched.
+Frames reused from artifacts/p24-m05/regression-2014/after-* as before=after (md5 identical).
+Full set: 5×1440 + 6×390.
