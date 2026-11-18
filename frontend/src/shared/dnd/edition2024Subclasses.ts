@@ -634,7 +634,7 @@ export function buildSubclassResources2024(input: {
     push('eldritch_cannon', 'Мистическая пушка', 1, 'long', 'eldritch-cannon')
   } else if (subclassSlug === 'artificer__battle-smith') {
     push('steel_defender', 'Стальной защитник', 1, 'long', 'steel-defender')
-    if (classLevel >= 9) push('arcane_jolt', 'Мистический импульс', Math.max(1, intMod), 'long', 'arcane-jolt')
+    if (classLevel >= 9) push('arcane_jolt', 'Магический импульс', Math.max(1, intMod), 'long', 'arcane-jolt')
   } else if (subclassSlug === 'artificer__cartographer') {
     push('adventure_atlas', 'Атлас приключений', Math.max(1, intMod), 'long', 'adventure-atlas')
   } else if (subclassSlug === 'artificer__reanimator') {

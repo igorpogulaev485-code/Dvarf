@@ -1061,7 +1061,7 @@ def build_subclass_resources(
         if class_level >= 9:
             add(
                 "arcane_jolt",
-                name_ru="Мистический импульс",
+                name_ru="Магический импульс",
                 max_uses=max(1, int_m),
                 reset="long",
                 feature_id="arcane-jolt",

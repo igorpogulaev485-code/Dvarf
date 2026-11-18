@@ -9,7 +9,7 @@ export const MAX_ATTUNEMENTS = 3
 function isArtificer(row: ClassLevelEntry): boolean {
   if (resolveClassFeatureSlug(row.name) === 'artificer') return true
   const id = (row.catalog_id || '').toLowerCase()
-  return id.includes('artificer') || /изобретат/i.test(row.name || '')
+  return id.includes('artificer') || /изобретат|артефактор/i.test(row.name || '')
 }
 
 /**
