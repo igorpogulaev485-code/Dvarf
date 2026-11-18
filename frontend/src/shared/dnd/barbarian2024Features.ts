@@ -113,6 +113,7 @@ export const INSTINCTIVE_POUNCE_MIN_LEVEL_2024 = 7
 export const BRUTAL_STRIKE_MIN_LEVEL_2024 = 9
 export const RELENTLESS_RAGE_MIN_LEVEL_2024 = 11
 export const IMPROVED_BRUTAL_STRIKE_MIN_LEVEL_2024 = 13
+export const TRAVEL_ALONG_THE_TREE_MIN_LEVEL_2024 = 14
 export const PERSISTENT_RAGE_MIN_LEVEL_2024 = 15
 export const IMPROVED_BRUTAL_STRIKE_TWO_EFFECTS_LEVEL_2024 = 17
 export const INDOMITABLE_MIGHT_MIN_LEVEL_2024 = 18
@@ -724,12 +725,22 @@ export function applyBarbarian2024FeatureUse(input: Barbarian2024UseInput): Barb
   }
 
   if (fid === 'travel-along-the-tree') {
-    if (level < 10) return refuse(input, `${TRAVEL_ALONG_THE_TREE_NAME_RU} с 10 уровня`)
-    return ok(input, `${TRAVEL_ALONG_THE_TREE_NAME_RU}: путешествие отмечено (1 / долгий).`, {
-      patches: {
-        classOptionsPatch: { rage: { world_tree_travel_used: true } },
+    if (level < TRAVEL_ALONG_THE_TREE_MIN_LEVEL_2024) {
+      return refuse(
+        input,
+        `${TRAVEL_ALONG_THE_TREE_NAME_RU} с ${TRAVEL_ALONG_THE_TREE_MIN_LEVEL_2024} уровня`,
+      )
+    }
+    // PHB 2024: while raging, bonus teleport ≤60 ft; once per rage ≤150 ft + up to six willing.
+    return ok(
+      input,
+      `${TRAVEL_ALONG_THE_TREE_NAME_RU}: в ярости телепорт до 60 фт (бонусным); раз за ярость — до 150 фт и до шести согласных.`,
+      {
+        patches: {
+          classOptionsPatch: { rage: { world_tree_travel_used: true } },
+        },
       },
-    })
+    )
   }
 
   if (fid === 'rage-of-the-wilds') {

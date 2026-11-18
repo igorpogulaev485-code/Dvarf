@@ -15,8 +15,11 @@ import {
   PRIMAL_KNOWLEDGE_NAME_RU,
   RAGE_OF_THE_WILDS_NAME_RU,
   RELENTLESS_RAGE_NAME_RU,
+  TRAVEL_ALONG_THE_TREE_MIN_LEVEL_2024,
+  TRAVEL_ALONG_THE_TREE_NAME_RU,
   VITALITY_OF_THE_TREE_NAME_RU,
   ZEALOUS_PRESENCE_NAME_RU,
+  applyBarbarian2024FeatureUse,
   barbarianAttackCount2024,
   brutalStrikeDice2024,
   brutalStrikeEffectCount2024,
@@ -81,5 +84,31 @@ assert(isPhbBarbarianSubclassSlug(BARBARIAN_SUBCLASS_SLUGS_2024.wildHeart), 'wil
 assert(isOutOfPackBarbarianSubclassSlug('barbarian__totem-warrior'), 'totem out')
 assert(!isPhbBarbarianSubclassSlug('barbarian__totem-warrior'), 'totem not PHB picker')
 assert(isOutOfPackBarbarianSubclassSlug('barbarian__beast'), 'beast out')
+
+assert(TRAVEL_ALONG_THE_TREE_MIN_LEVEL_2024 === 14, 'travel unlocks at 14')
+assert(TRAVEL_ALONG_THE_TREE_NAME_RU === 'Путешествие по Древу', 'travel name')
+{
+  const base = {
+    resourceId: null as string | null,
+    resources: [] as [],
+    classEntryId: 'barb',
+    subclassSlug: BARBARIAN_SUBCLASS_SLUGS_2024.worldTree,
+  }
+  const refuse11 = applyBarbarian2024FeatureUse({
+    ...base,
+    featureId: 'travel-along-the-tree',
+    barbarianLevel: 11,
+  })
+  assert(!refuse11.ok, 'travel refused below 14')
+  assert(/14/.test(refuse11.message), 'travel refuse mentions 14')
+  const ok14 = applyBarbarian2024FeatureUse({
+    ...base,
+    featureId: 'travel-along-the-tree',
+    barbarianLevel: 14,
+  })
+  assert(ok14.ok, 'travel ok at 14')
+  assert(!/долгий/.test(ok14.message), 'travel must not say long-rest quota')
+  assert(/60/.test(ok14.message) && /150/.test(ok14.message), 'travel PHB distances')
+}
 
 console.log('barbarian2024Features.selfcheck: ok')

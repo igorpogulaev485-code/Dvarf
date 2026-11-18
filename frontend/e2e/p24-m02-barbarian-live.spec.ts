@@ -556,9 +556,14 @@ test.describe('P24-M02 barbarian — LIVE create matrix', () => {
     await expandAllFeatures(page)
     await tallShot(page, ARTIFACTS, `${SHOT}-create-at-11-world-tree-features`, project)
 
-    const branches = page.getByRole('button', { name: /^Ветви Древа$/ }).first()
-    await branches.scrollIntoViewIfNeeded()
+    const combat = page.getByTestId('class-options-2024-combat')
+    await combat.scrollIntoViewIfNeeded()
+    await expect(combat).toBeVisible({ timeout: 15_000 })
+    const branches = combat.getByRole('button', { name: /^Ветви Древа$/ }).first()
     await expect(branches).toBeVisible({ timeout: 15_000 })
+    // Explicit: combat panel must not expose Travel before L14 (not only feature card).
+    await expect(combat.getByTestId('world-tree-travel-button')).toHaveCount(0)
+    await expect(combat.getByRole('button', { name: /^Путешествие по Древу$/ })).toHaveCount(0)
     await shot(page, ARTIFACTS, `${SHOT}-create-at-11-world-tree-combat`, project)
     expect(store.unmatched).toEqual([])
   })
@@ -573,10 +578,47 @@ test.describe('P24-M02 barbarian — LIVE create matrix', () => {
     })
     await openFeaturesScene(page, project)
     await expectFeatureNames(page, [/^Путешествие по Древу$/, /^Ветви Древа$/])
-    const travel = page.getByRole('button', { name: /^Путешествие по Древу$/ }).first()
-    await travel.scrollIntoViewIfNeeded()
+    const combat = page.getByTestId('class-options-2024-combat')
+    await combat.scrollIntoViewIfNeeded()
+    const travel = combat.getByTestId('world-tree-travel-button')
     await expect(travel).toBeVisible({ timeout: 15_000 })
+    await expect(travel).toHaveText(/^Путешествие по Древу$/)
     await tallShot(page, ARTIFACTS, `${SHOT}-create-at-14-world-tree-travel`, project)
+    expect(store.unmatched).toEqual([])
+  })
+
+  test('create-live-at-14 wild-heart: power falcon/lion/ram chips', async ({ page }, testInfo) => {
+    const project = projectOf(testInfo)
+    const { store, sheet } = await createAt(page, project, {
+      name: 'Дикое сердце 14',
+      level: 14,
+      subclassSlug: SUB.wildHeart,
+      stepShots: true,
+      shotPrefix: `${SHOT}-create-at-14-wild-heart-`,
+      duringLeveling: async (pg) => {
+        await expect(pg.getByTestId('p24-m03-pick-wild_heart_power-falcon')).toHaveAttribute(
+          'aria-checked',
+          'true',
+        )
+        await tallShot(pg, ARTIFACTS, `${SHOT}-create-at-14-wild-heart-picks`, project)
+      },
+    })
+    expect(sheet.class_options_2024?.rage?.wild_heart_power).toBe('falcon')
+    expect(sheet.class_options_2024?.wild_heart_aspect).toBe('salmon')
+
+    await openFeaturesScene(page, project)
+    await expectFeatureNames(page, [/^Сила дикой природы$/, /^Аспект дикой природы$/])
+    await expandAllFeatures(page)
+    await tallShot(page, ARTIFACTS, `${SHOT}-create-at-14-wild-heart-features`, project)
+
+    const power = page.getByTestId('wild-heart-power-picks')
+    await power.scrollIntoViewIfNeeded()
+    await expect(power).toBeVisible({ timeout: 15_000 })
+    await expect(power).toContainText('Сокол')
+    await expect(power).toContainText('Лев')
+    await expect(power).toContainText('Баран')
+    await expect(page.getByTestId('wild-heart-power-falcon')).toHaveClass(/is-on/)
+    await shot(page, ARTIFACTS, `${SHOT}-create-at-14-wild-heart-power-chips`, project)
     expect(store.unmatched).toEqual([])
   })
 

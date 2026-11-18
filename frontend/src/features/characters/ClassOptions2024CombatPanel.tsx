@@ -19,6 +19,7 @@ import { normalizeClassSlug2024 } from '../../shared/dnd/edition2024Classes'
 import {
   BARBARIAN_SUBCLASS_SLUGS_2024,
   BRANCHES_OF_THE_TREE_NAME_RU,
+  TRAVEL_ALONG_THE_TREE_MIN_LEVEL_2024,
   TRAVEL_ALONG_THE_TREE_NAME_RU,
   VITALITY_OF_THE_TREE_NAME_RU,
   WILD_HEART_ASPECT_OPTIONS_RU,
@@ -224,16 +225,28 @@ export function ClassOptions2024CombatPanel({
           ) : null}
           {barbarianSubclass === BARBARIAN_SUBCLASS_SLUGS_2024.wildHeart && barbLv >= 14 ? (
             <div className="sheet-chip-row" data-testid="wild-heart-power-picks">
-              {Object.entries(WILD_HEART_POWER_OPTIONS_RU).map(([id, label]) => (
-                <button
-                  key={id}
-                  type="button"
-                  className={`sheet-chip${wildHeartPower === id || options.rage.wild_heart_power === id ? ' is-on' : ''}`}
-                  onClick={() => setWildHeartPower(id as 'falcon' | 'lion' | 'ram')}
-                >
-                  {label}
-                </button>
-              ))}
+              {Object.entries(WILD_HEART_POWER_OPTIONS_RU).map(([id, label]) => {
+                const selected =
+                  (options.rage.wild_heart_power ?? wildHeartPower) === id
+                return (
+                  <button
+                    key={id}
+                    type="button"
+                    className={`sheet-chip${selected ? ' is-on' : ''}`}
+                    data-testid={`wild-heart-power-${id}`}
+                    onClick={() => {
+                      const next = id as 'falcon' | 'lion' | 'ram'
+                      setWildHeartPower(next)
+                      onOptionsChange({
+                        ...options,
+                        rage: { ...options.rage, wild_heart_power: next },
+                      })
+                    }}
+                  >
+                    {label}
+                  </button>
+                )
+              })}
             </div>
           ) : null}
           {barbarianSubclass === BARBARIAN_SUBCLASS_SLUGS_2024.worldTree ? (
@@ -252,10 +265,11 @@ export function ClassOptions2024CombatPanel({
                   {BRANCHES_OF_THE_TREE_NAME_RU}
                 </button>
               ) : null}
-              {barbLv >= 10 ? (
+              {barbLv >= TRAVEL_ALONG_THE_TREE_MIN_LEVEL_2024 ? (
                 <button
                   type="button"
                   className="sheet-chip"
+                  data-testid="world-tree-travel-button"
                   onClick={() => {
                     onOptionsChange({
                       ...options,
@@ -266,7 +280,7 @@ export function ClassOptions2024CombatPanel({
                     })
                     void announce(
                       TRAVEL_ALONG_THE_TREE_NAME_RU,
-                      `${TRAVEL_ALONG_THE_TREE_NAME_RU}: использовано (1 / долгий).`,
+                      `${TRAVEL_ALONG_THE_TREE_NAME_RU}: в ярости телепорт до 60 фт (бонусным); раз за ярость — до 150 фт и до шести согласных.`,
                     )
                   }}
                 >
