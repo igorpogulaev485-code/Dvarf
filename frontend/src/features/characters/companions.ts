@@ -1156,6 +1156,9 @@ export function readCompanions(raw: unknown): CompanionEntry[] {
  */
 const REAL_SUBCLASS_COMPANION_FEATURES = new Set([
   'eldritch_cannon',
+  'eldritch-cannon',
+  'steel_defender',
+  'steel-defender',
   'steel_defender_name',
   'wildfire_spirit',
   // Wild Shape summon path writes this feature id — keep the card.

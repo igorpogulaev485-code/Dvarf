@@ -4,10 +4,22 @@
  * Mirror of backend/app/dnd/edition_2024_class_options.py.
  */
 
+/** Active EFA replicate on the sheet (created magic item). */
+export type ReplicateActive2024 = {
+  planId: string
+  attuned: boolean
+  /** Creation order — oldest vanishes first when over the Magic Items column. */
+  seq: number
+}
+
 export type ClassOptions2024State = {
   eldritch_invocations: string[]
   metamagic: string[]
   replicate_plans: string[]
+  /** Active replicas created from known plans (2024 EFA). */
+  replicate_active: ReplicateActive2024[]
+  /** Spell stored in Spell-Storing Item (artificer spell slug, circles 1–3). */
+  spell_storing_spell: string | null
   rage: { active: boolean; rounds_extended: number; max_minutes: number }
   /** Cleric Divine Order (2024). */
   divine_order?: 'protector' | 'thaumaturge' | null
@@ -53,6 +65,8 @@ export function emptyClassOptions2024(): ClassOptions2024State {
     eldritch_invocations: [],
     metamagic: [],
     replicate_plans: [],
+    replicate_active: [],
+    spell_storing_spell: null,
     rage: { active: false, rounds_extended: 0, max_minutes: 10 },
     divine_order: null,
     blessed_strikes: null,
@@ -61,6 +75,26 @@ export function emptyClassOptions2024(): ClassOptions2024State {
     land_choice: null,
     primal_companion: null,
   }
+}
+
+function readReplicateActive(raw: unknown): ReplicateActive2024[] {
+  if (!Array.isArray(raw)) return []
+  const out: ReplicateActive2024[] = []
+  for (const row of raw) {
+    if (!row || typeof row !== 'object') continue
+    const rec = row as Record<string, unknown>
+    const planId = String(rec.planId ?? rec.plan_id ?? '')
+      .trim()
+      .toLowerCase()
+      .replace(/_/g, '-')
+    if (!planId) continue
+    out.push({
+      planId,
+      attuned: Boolean(rec.attuned),
+      seq: Math.max(0, Math.floor(Number(rec.seq ?? out.length) || 0)),
+    })
+  }
+  return out
 }
 
 function readPrimalCompanion(raw: unknown): 'land' | 'sea' | 'sky' | null {
@@ -80,10 +114,13 @@ export function readClassOptions2024(raw: unknown): ClassOptions2024State {
     row.rage && typeof row.rage === 'object'
       ? (row.rage as Record<string, unknown>)
       : {}
+  const spellStoring = String(row.spell_storing_spell ?? '').trim() || null
   return {
     eldritch_invocations: list('eldritch_invocations'),
     metamagic: list('metamagic'),
     replicate_plans: list('replicate_plans'),
+    replicate_active: readReplicateActive(row.replicate_active),
+    spell_storing_spell: spellStoring,
     rage: {
       active: Boolean(rageRaw.active),
       rounds_extended: Number(rageRaw.rounds_extended || 0),
@@ -103,6 +140,14 @@ export function classOptions2024ToSheet(state: ClassOptions2024State): Record<st
     eldritch_invocations: [...state.eldritch_invocations],
     metamagic: [...state.metamagic],
     replicate_plans: [...state.replicate_plans],
+    replicate_active: state.replicate_active.map((row) => ({
+      plan_id: row.planId,
+      attuned: row.attuned,
+      seq: row.seq,
+    })),
+    ...(state.spell_storing_spell
+      ? { spell_storing_spell: state.spell_storing_spell }
+      : { spell_storing_spell: null }),
     rage: {
       active: state.rage.active,
       rounds_extended: state.rage.rounds_extended,
@@ -378,6 +423,8 @@ export type ReplicatePlan2024 = {
   nameRu: string
   minLevel: number
   rarity: string
+  /** If true, creating/attuning counts against the artificer attunement cap. */
+  requiresAttunement?: boolean
 }
 
 export const ARTIFICER_REPLICATE_PLANS_2024: ReplicatePlan2024[] = [
@@ -388,18 +435,28 @@ export const ARTIFICER_REPLICATE_PLANS_2024: ReplicatePlan2024[] = [
   { id: 'lantern-of-revealing', nameRu: 'Фонарь выявления', minLevel: 2, rarity: 'uncommon' },
   { id: 'rope-of-climbing', nameRu: 'Верёвка лазания', minLevel: 2, rarity: 'uncommon' },
   { id: 'sending-stones', nameRu: 'Камни послания', minLevel: 2, rarity: 'uncommon' },
-  { id: 'wand-of-magic-detection', nameRu: 'Жезл обнаружения магии', minLevel: 2, rarity: 'uncommon' },
-  { id: 'boots-of-the-winding-path', nameRu: 'Сапоги извилистого пути', minLevel: 6, rarity: 'uncommon' },
-  { id: 'helm-of-awareness', nameRu: 'Шлем бдительности', minLevel: 6, rarity: 'uncommon' },
-  { id: 'radiant-weapon', nameRu: 'Сияющее оружие', minLevel: 6, rarity: 'rare' },
-  { id: 'repulsion-shield', nameRu: 'Щит отталкивания', minLevel: 6, rarity: 'rare' },
-  { id: 'spell-refueling-ring', nameRu: 'Кольцо подпитки заклинаний', minLevel: 6, rarity: 'uncommon' },
-  { id: 'boots-of-speed', nameRu: 'Сапоги скорости', minLevel: 10, rarity: 'rare' },
-  { id: 'winged-boots', nameRu: 'Крылатые сапоги', minLevel: 10, rarity: 'uncommon' },
-  { id: 'belt-of-hill-giant-strength', nameRu: 'Пояс силы холмового великана', minLevel: 14, rarity: 'rare' },
-  { id: 'amulet-of-health', nameRu: 'Амулет здоровья', minLevel: 14, rarity: 'rare' },
-  { id: 'armor-of-resistance', nameRu: 'Доспех сопротивления', minLevel: 14, rarity: 'rare' },
+  { id: 'wand-of-magic-detection', nameRu: 'Жезл обнаружения магии', minLevel: 2, rarity: 'uncommon', requiresAttunement: true },
+  { id: 'boots-of-the-winding-path', nameRu: 'Сапоги извилистого пути', minLevel: 6, rarity: 'uncommon', requiresAttunement: true },
+  { id: 'helm-of-awareness', nameRu: 'Шлем бдительности', minLevel: 6, rarity: 'uncommon', requiresAttunement: true },
+  { id: 'radiant-weapon', nameRu: 'Сияющее оружие', minLevel: 6, rarity: 'rare', requiresAttunement: true },
+  { id: 'repulsion-shield', nameRu: 'Щит отталкивания', minLevel: 6, rarity: 'rare', requiresAttunement: true },
+  { id: 'spell-refueling-ring', nameRu: 'Кольцо подпитки заклинаний', minLevel: 6, rarity: 'uncommon', requiresAttunement: true },
+  { id: 'boots-of-speed', nameRu: 'Сапоги скорости', minLevel: 10, rarity: 'rare', requiresAttunement: true },
+  { id: 'winged-boots', nameRu: 'Крылатые сапоги', minLevel: 10, rarity: 'uncommon', requiresAttunement: true },
+  { id: 'belt-of-hill-giant-strength', nameRu: 'Пояс силы холмового великана', minLevel: 14, rarity: 'rare', requiresAttunement: true },
+  { id: 'amulet-of-health', nameRu: 'Амулет здоровья', minLevel: 14, rarity: 'rare', requiresAttunement: true },
+  { id: 'armor-of-resistance', nameRu: 'Доспех сопротивления', minLevel: 14, rarity: 'rare', requiresAttunement: true },
 ]
+
+const REPLICATE_PLANS_BY_ID = Object.fromEntries(
+  ARTIFICER_REPLICATE_PLANS_2024.map((row) => [row.id, row]),
+)
+
+export function replicatePlanById2024(id: string | null | undefined): ReplicatePlan2024 | null {
+  if (!id) return null
+  const key = String(id).trim().toLowerCase().replace(/_/g, '-')
+  return REPLICATE_PLANS_BY_ID[key] ?? null
+}
 
 export function invocationById2024(id: string): InvocationDef2024 | null {
   return INVOCATIONS_BY_ID[id] ?? null

@@ -11,6 +11,11 @@
 
 import type { FeatureChoiceDef } from './classFeatures'
 import type { ClassLevelEntry } from './classLevels'
+import {
+  replicatePlanById2024,
+  type ClassOptions2024State,
+  type ReplicateActive2024,
+} from './edition2024ClassOptions'
 import { normalizeClassSlug2024 } from './edition2024Classes'
 import {
   getFeaturePick,
@@ -330,6 +335,114 @@ export function replicateLimits2024(artificerLevel: number): { plansKnown: numbe
   if (level >= 10) return { plansKnown: 6, magicItems: 4 }
   if (level >= 6) return { plansKnown: 5, magicItems: 3 }
   return { plansKnown: 4, magicItems: 2 }
+}
+
+export function replicateAttunedCount2024(active: ReplicateActive2024[]): number {
+  return active.filter((row) => row.attuned).length
+}
+
+/**
+ * Create one replica from a known plan. If over Magic Items column, drop oldest
+ * (lowest seq). Attunement is optional and capped by `attunementLimit`.
+ */
+export function createReplicateActive2024(input: {
+  state: ClassOptions2024State
+  planId: string
+  artificerLevel: number
+  attune?: boolean
+  attunementLimit: number
+}):
+  | { ok: true; state: ClassOptions2024State; dropped: ReplicateActive2024 | null; feedLineRu: string }
+  | { ok: false; reasonRu: string } {
+  const planId = String(input.planId || '')
+    .trim()
+    .toLowerCase()
+    .replace(/_/g, '-')
+  const plan = replicatePlanById2024(planId)
+  if (!plan) return { ok: false, reasonRu: 'Неизвестная схема' }
+  if (!input.state.replicate_plans.includes(planId)) {
+    return { ok: false, reasonRu: 'Схема не известна' }
+  }
+  if (lvl(input.artificerLevel) < plan.minLevel) {
+    return { ok: false, reasonRu: `Схема с ${plan.minLevel} ур.` }
+  }
+  const limits = replicateLimits2024(input.artificerLevel)
+  if (limits.magicItems <= 0) return { ok: false, reasonRu: 'Реплики с 2 ур.' }
+
+  const wantAttune = Boolean(input.attune && plan.requiresAttunement)
+  const attunedNow = replicateAttunedCount2024(input.state.replicate_active)
+  if (wantAttune && attunedNow >= input.attunementLimit) {
+    return {
+      ok: false,
+      reasonRu: `Лимит настройки ${input.attunementLimit}`,
+    }
+  }
+
+  const nextSeq =
+    input.state.replicate_active.reduce((m, row) => Math.max(m, row.seq), 0) + 1
+  let active = [
+    ...input.state.replicate_active,
+    { planId, attuned: wantAttune, seq: nextSeq },
+  ]
+  let dropped: ReplicateActive2024 | null = null
+  while (active.length > limits.magicItems) {
+    const oldest = [...active].sort((a, b) => a.seq - b.seq)[0]!
+    dropped = oldest
+    active = active.filter((row) => row !== oldest)
+  }
+  const name = plan.nameRu
+  const dropNote = dropped
+    ? ` · исчезла старейшая «${replicatePlanById2024(dropped.planId)?.nameRu ?? dropped.planId}»`
+    : ''
+  return {
+    ok: true,
+    state: { ...input.state, replicate_active: active },
+    dropped,
+    feedLineRu: `Реплика «${name}» создана${wantAttune ? ' (настройка)' : ''}${dropNote}`,
+  }
+}
+
+export function setReplicateAttuned2024(input: {
+  state: ClassOptions2024State
+  seq: number
+  attuned: boolean
+  attunementLimit: number
+}):
+  | { ok: true; state: ClassOptions2024State }
+  | { ok: false; reasonRu: string } {
+  const row = input.state.replicate_active.find((r) => r.seq === input.seq)
+  if (!row) return { ok: false, reasonRu: 'Реплика не найдена' }
+  const plan = replicatePlanById2024(row.planId)
+  if (input.attuned && !plan?.requiresAttunement) {
+    return { ok: false, reasonRu: 'Предмет не требует настройки' }
+  }
+  if (input.attuned && !row.attuned) {
+    const others = replicateAttunedCount2024(
+      input.state.replicate_active.filter((r) => r.seq !== input.seq),
+    )
+    if (others >= input.attunementLimit) {
+      return { ok: false, reasonRu: `Лимит настройки ${input.attunementLimit}` }
+    }
+  }
+  return {
+    ok: true,
+    state: {
+      ...input.state,
+      replicate_active: input.state.replicate_active.map((r) =>
+        r.seq === input.seq ? { ...r, attuned: input.attuned } : r,
+      ),
+    },
+  }
+}
+
+export function dissolveReplicateActive2024(
+  state: ClassOptions2024State,
+  seq: number,
+): ClassOptions2024State {
+  return {
+    ...state,
+    replicate_active: state.replicate_active.filter((row) => row.seq !== seq),
+  }
 }
 
 /** Experimental elixir count after a long rest (Alchemist). */

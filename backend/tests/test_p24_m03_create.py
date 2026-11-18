@@ -242,6 +242,16 @@ def _class_option_picks(class_slug: str, class_skills: list[str]) -> dict:
         return {"expertise": class_skills[:2]}
     if class_slug == "warlock":
         return {"eldritch_invocations": ["armor-of-shadows"]}
+    if class_slug == "artificer":
+        # Default L2–5 known-plans quota (4). Higher create-at-N tests override.
+        return {
+            "replicate_plans": [
+                "bag-of-holding",
+                "sending-stones",
+                "cap-of-water-breathing",
+                "goggles-of-night",
+            ],
+        }
     return {}
 
 

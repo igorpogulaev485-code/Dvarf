@@ -258,8 +258,47 @@ def test_create_artificer_alchemist_at_3():
     sheet = create24.validate_create_2024(create24.payload_from_dict(payload)).sheet
     assert sheet["classes"][0]["name_ru"] == "Артефактор"
     assert sheet["classes"][0]["subclass_slug"] == "artificer__alchemist"
+    plans = (sheet.get("class_options_2024") or {}).get("replicate_plans") or []
+    assert len(plans) == 4
     resources = (sheet.get("class_progress_2024") or {}).get("resources") or []
     elixir = next(r for r in resources if r.get("pool_id") == "experimental_elixir")
     assert elixir["max"] == 2
     mom = next(r for r in resources if r.get("pool_id") == "magic_of_making")
     assert mom["max"] == 3
+
+
+def test_create_artificer_plans_and_ssi_at_11():
+    plans = [
+        "bag-of-holding",
+        "sending-stones",
+        "cap-of-water-breathing",
+        "goggles-of-night",
+        "alchemy-jug",
+        "lantern-of-revealing",
+    ]
+    payload = build_valid_payload(
+        "artificer",
+        ability_method="manual",
+        base_abilities=_ABILITIES,
+        subclass_slug="artificer__alchemist",
+        class_levels=[{"slug": "artificer", "level": 11, "subclass_slug": "artificer__alchemist"}],
+    )
+    payload["class_option_picks"] = {
+        **(payload.get("class_option_picks") or {}),
+        "replicate_plans": plans,
+        "spell_storing_spell": "cure-wounds",
+    }
+    sheet = create24.validate_create_2024(create24.payload_from_dict(payload)).sheet
+    opts = sheet.get("class_options_2024") or {}
+    assert opts.get("replicate_plans") == plans
+    assert opts.get("spell_storing_spell") == "cure-wounds"
+    values = (sheet.get("feature_picks") or {}).get("values") or {}
+    assert any(str(v) == "cure-wounds" for k, v in values.items() if "spell_stor" in k)
+
+
+def test_artillerist_summary_ru_uses_approved_firearm_name():
+    data = json.loads((BACKEND_LIVE / "subclasses_efa.json").read_text(encoding="utf-8"))
+    row = next(e for e in data["entries"] if e["slug"] == "artificer__artillerist")
+    summary = (row.get("data") or {}).get("summary_ru") or ""
+    assert "Магическое огнестрельное" in summary
+    assert "магострельн" not in summary.lower()

@@ -1262,7 +1262,9 @@ export function CreateCharacter2024Page({
             />
           ) : null}
           {classSlug === 'ranger' ? <RangerLevelingPicks state={state} patch={patch} /> : null}
-          {classSlug === 'artificer' ? <ArtificerLevelingPicks state={state} patch={patch} /> : null}
+          {classSlug === 'artificer' ? (
+            <ArtificerLevelingPicks state={state} patch={patch} catalog={catalog} />
+          ) : null}
           {sc ? (
             <div data-testid="p24-m03-step-spells">
               <CatalogCardList
