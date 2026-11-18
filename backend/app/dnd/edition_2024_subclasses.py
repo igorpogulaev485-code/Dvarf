@@ -1005,6 +1005,57 @@ def build_permanent_bonuses(
             ),
         )
 
+    # Warlock Undead / Vestige (P24-M02B-warlock) — desk calc metadata
+    if subclass_slug == "warlock__undead":
+        add(
+            "form-of-dread",
+            "Аватар ужаса",
+            "other_calc",
+            {
+                "necrotic_resistance_when_not_in_dread": True,
+                "while_active": {
+                    "immune": ["frightened"],
+                    "temp_hp": "1d10+warlock_level",
+                    "frighten_once_per_turn": True,
+                },
+            },
+            note_ru=(
+                "Вне аватара — сопротивление некротическому; "
+                "в аватаре — иммунитет к «Испуганный»"
+            ),
+        )
+        if class_level >= 14:
+            add(
+                "superior-dread",
+                "Совершенный ужас",
+                "other_calc",
+                {
+                    "while_form_of_dread": {
+                        "fly_speed_ft": 30,
+                        "necrotic_resistance": True,
+                    },
+                },
+                min_level=14,
+                note_ru=(
+                    "Пока «Аватар ужаса» активен: полёт и сопротивление некротическому"
+                ),
+            )
+
+    if subclass_slug == "warlock__vestige-patron":
+        add(
+            "vestige-companion",
+            "Спутник-предтеча",
+            "other_calc",
+            {
+                "host_resistance_within_ft_of_companion": 30,
+                "note": "resistance_shared_with_companion_type",
+            },
+            note_ru=(
+                "В пределах 30 фт. от спутника-предтечи — "
+                "сопротивление его типу урона (метаданные)"
+            ),
+        )
+
     # Light domain improved flare is a calc rider on the warding_flare pool
     if subclass_slug == "cleric__light-domain" and class_level >= 6:
         add(

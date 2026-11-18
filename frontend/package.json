@@ -112,6 +112,7 @@
     "selfcheck:p24-m03-levelup": "tsx --tsconfig tsconfig.app.json src/shared/dnd/pendingFeatureChoices2024.selfcheck.ts",
     "selfcheck:ranger2024-features": "tsx --tsconfig tsconfig.app.json src/shared/dnd/ranger2024Features.selfcheck.ts",
     "selfcheck:primal-companion-2024": "tsx --tsconfig tsconfig.app.json src/features/characters/primalCompanion2024.selfcheck.ts",
+    "selfcheck:vestige-companion-2024": "tsx --tsconfig tsconfig.app.json src/features/characters/vestigeCompanion2024.selfcheck.ts",
     "selfcheck:p24-m02-wizard": "tsx --tsconfig tsconfig.app.json src/shared/dnd/wizardSpellbook2024.selfcheck.ts",
     "selfcheck:wizard-2024-features": "tsx --tsconfig tsconfig.app.json src/shared/dnd/wizard2024Features.selfcheck.ts && tsx --tsconfig tsconfig.app.json src/features/characters/wizard2024RestSwaps.selfcheck.ts",
     "selfcheck:sorcerer-2024-features": "tsx --tsconfig tsconfig.app.json src/shared/dnd/sorcerer2024Features.selfcheck.ts",

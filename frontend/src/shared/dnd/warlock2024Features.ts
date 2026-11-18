@@ -21,6 +21,52 @@ import {
 } from './featurePicks'
 import { parseFeatureResourceId } from './featureResources'
 import { clampResource, type SheetResource } from './rest'
+import {
+  FORM_OF_DREAD_ACTIVE_PICK,
+  FORM_OF_DREAD_FEAR_TURN_PICK,
+  FORM_OF_DREAD_FEATURE_ID,
+  FORM_OF_DREAD_NAME_RU,
+  FORM_OF_DREAD_POOL_ID,
+  formOfDreadTempHp2024,
+  GRAVE_TOUCHED_DAMAGE_SWAP_TURN_PICK,
+  GRAVE_TOUCHED_EXTRA_DIE_TURN_PICK,
+  GRAVE_TOUCHED_FEATURE_ID,
+  GRAVE_TOUCHED_NAME_RU,
+  NECROTIC_HUSK_FEATURE_ID,
+  NECROTIC_HUSK_NAME_RU,
+  NECROTIC_HUSK_POOL_ID,
+  necroticHuskDamageDice2024,
+  necroticHuskHp2024,
+  rollDie,
+  SEMBLANCE_OF_LIFE_FEATURE_ID,
+  SEMBLANCE_OF_LIFE_NAME_RU,
+  SEMBLANCE_OF_LIFE_POOL_ID,
+  semblanceSpellLevel2024,
+  SUPERIOR_DREAD_FEATURE_ID,
+  SUPERIOR_DREAD_NAME_RU,
+  VESTIGE_POWER_FEATURE_ID,
+  VESTIGE_POWER_NAME_RU,
+  VESTIGE_RECOVERY_FEATURE_ID,
+  VESTIGE_RECOVERY_NAME_RU,
+  VESTIGE_RECOVERY_POOL_ID,
+} from './warlockBook2024Features'
+
+export {
+  FORM_OF_DREAD_FEATURE_ID,
+  FORM_OF_DREAD_NAME_RU,
+  GRAVE_TOUCHED_FEATURE_ID,
+  GRAVE_TOUCHED_NAME_RU,
+  NECROTIC_HUSK_FEATURE_ID,
+  NECROTIC_HUSK_NAME_RU,
+  SEMBLANCE_OF_LIFE_FEATURE_ID,
+  SEMBLANCE_OF_LIFE_NAME_RU,
+  SUPERIOR_DREAD_FEATURE_ID,
+  SUPERIOR_DREAD_NAME_RU,
+  VESTIGE_POWER_FEATURE_ID,
+  VESTIGE_POWER_NAME_RU,
+  VESTIGE_RECOVERY_FEATURE_ID,
+  VESTIGE_RECOVERY_NAME_RU,
+} from './warlockBook2024Features'
 
 export const ELDRITCH_INVOCATIONS_NAME_RU = 'Таинственные воззвания'
 export const PACT_MAGIC_NAME_RU = 'Магия договора'
@@ -533,6 +579,20 @@ export const WARLOCK_2024_CARD_BUTTONS: Record<string, string> = {
   whispers_of_the_grave: 'Разговор с мёртвыми',
   'gift-of-the-depths': 'Подводное дыхание',
   gift_of_the_depths: 'Подводное дыхание',
+  'form-of-dread': 'Аватар ужаса…',
+  form_of_dread: 'Аватар ужаса…',
+  'grave-touched': 'Прикосновение могилы…',
+  grave_touched: 'Прикосновение могилы…',
+  'necrotic-husk': 'Некротическая оболочка…',
+  necrotic_husk: 'Некротическая оболочка…',
+  'superior-dread': 'Совершенный ужас',
+  superior_dread: 'Совершенный ужас',
+  'vestige-power': 'Мощь предтечи',
+  vestige_power: 'Мощь предтечи',
+  'vestige-recovery': 'Восстановление…',
+  vestige_recovery: 'Восстановление…',
+  'semblance-of-life': 'Подобие жизни…',
+  semblance_of_life: 'Подобие жизни…',
 }
 
 const MYSTIC_ARCANUM_ALIAS = /^mystic-arcanum-([6-9])$/
@@ -572,6 +632,15 @@ export function warlock2024UseFeatureId(featureId: string | null | undefined): s
     'searing-vengeance',
     'celestial-resilience',
     'armor-of-shadows',
+    FORM_OF_DREAD_FEATURE_ID,
+    'form-of-dread-end',
+    'form-of-dread-fear',
+    GRAVE_TOUCHED_FEATURE_ID,
+    NECROTIC_HUSK_FEATURE_ID,
+    SUPERIOR_DREAD_FEATURE_ID,
+    VESTIGE_POWER_FEATURE_ID,
+    VESTIGE_RECOVERY_FEATURE_ID,
+    SEMBLANCE_OF_LIFE_FEATURE_ID,
     ...Object.keys(AT_WILL_INVOCATION_CASTS_2024),
   ])
   return known.has(key) ? key : null
@@ -652,6 +721,16 @@ export type WarlockFeatureUseResult = {
   tempHp?: number
   /** Allies' temp HP (Celestial Resilience). */
   allyTempHp?: number
+  /** Absolute HP set (Necrotic Husk revival). */
+  hpSet?: number
+  /** Delta to play.exhaustion (Necrotic Husk). */
+  exhaustionDelta?: number
+  /** Condition slugs to remove when tracked (Form of Dread clears frightened). */
+  conditionsEnded?: string[]
+  /** Magical Cunning L6+: restore Divine Power on vestige companion. */
+  restoreVestigeDivinePower?: boolean
+  /** Vestige Recovery: set vestige companion HP to max. */
+  healVestigeCompanion?: boolean
   diceExpression?: string | null
   acNoteRu?: string | null
   restoredPactSlots?: number
@@ -741,10 +820,16 @@ function cunning(input: Warlock2024UseInput): WarlockFeatureUseResult {
     cunningMax: row.max,
   })
   if (!result.ok) return refuse(input, result.reasonRu)
-  return done(input, result.feedLineRu, {
+  const level = Math.max(0, Math.floor(input.warlockLevel))
+  const vestigeHook = level >= 6
+  const vestigeNote = vestigeHook
+    ? ` · ${VESTIGE_POWER_NAME_RU}: «Божественная сила» спутника-предтечи восстановлена (если есть).`
+    : ''
+  return done(input, `${result.feedLineRu}${vestigeNote}`, {
     resources: patchRow(input.resources, row.id, (item) => ({ ...item, used: item.used + 1 })),
     pact_slots: result.pact,
     restoredPactSlots: result.restored,
+    ...(vestigeHook ? { restoreVestigeDivinePower: true } : {}),
   })
 }
 
@@ -1051,6 +1136,202 @@ export function applyWarlock2024FeatureUse(input: Warlock2024UseInput): WarlockF
         input,
         `Мощь Исчадия: «Псевдожизнь» на себя без ячейки — по максимуму костей (2к4 + 4 → ${FALSE_LIFE_MAX_TEMP_HP_2024} врем. хитов на базовом круге).`,
         { tempHp: FALSE_LIFE_MAX_TEMP_HP_2024 },
+      )
+    }
+
+    case 'form-of-dread': {
+      if (level < 3) return refuse(input, `${FORM_OF_DREAD_NAME_RU} с 3 уровня колдуна`)
+      if (input.mode === 'end') {
+        const picks = input.featurePicks ?? { values: {} }
+        const next = setFeaturePick(picks, input.classEntryId, FORM_OF_DREAD_ACTIVE_PICK, null)
+        return done(input, `${FORM_OF_DREAD_NAME_RU}: облик завершён.`, {
+          featurePicks: next,
+          activeLabels: [],
+        })
+      }
+      if (input.mode === 'fear') {
+        const picks = input.featurePicks ?? { values: {} }
+        if (getFeaturePick(picks, input.classEntryId, FORM_OF_DREAD_ACTIVE_PICK) !== 'on') {
+          return refuse(input, `${FORM_OF_DREAD_NAME_RU} не активен`)
+        }
+        if (getFeaturePick(picks, input.classEntryId, FORM_OF_DREAD_FEAR_TURN_PICK) === 'on') {
+          return refuse(input, 'Ужас аватара уже отмечен в этом ходу')
+        }
+        const next = setFeaturePick(
+          picks,
+          input.classEntryId,
+          FORM_OF_DREAD_FEAR_TURN_PICK,
+          'on',
+        )
+        return done(
+          input,
+          `${FORM_OF_DREAD_NAME_RU}: раз за ход — существо в 60 фт., видевшее тебя, делает спас Мдр или пугается до конца твоего следующего хода.`,
+          { featurePicks: next },
+        )
+      }
+      const spent = spendOne(
+        input,
+        FORM_OF_DREAD_POOL_ID,
+        `Ресурс «${FORM_OF_DREAD_NAME_RU}» не найден`,
+        `${FORM_OF_DREAD_NAME_RU}: использования закончились (до долгого отдыха)`,
+      )
+      if (!spent.ok) return spent.result
+      const d10 = rollDie(10)
+      const tempHp = formOfDreadTempHp2024({ warlockLevel: level, d10Roll: d10 })
+      let picks = input.featurePicks ?? { values: {} }
+      picks = setFeaturePick(picks, input.classEntryId, FORM_OF_DREAD_ACTIVE_PICK, 'on')
+      picks = setFeaturePick(picks, input.classEntryId, FORM_OF_DREAD_FEAR_TURN_PICK, null)
+      return done(
+        input,
+        `${FORM_OF_DREAD_NAME_RU}: активирован на 1 минуту · врем. хиты ${tempHp} (1к10+ур. = ${d10}+${level}) · иммунитет к «Испуганный» · снимает «Испуганный», если был.`,
+        {
+          resources: spent.resources,
+          featurePicks: picks,
+          tempHp,
+          conditionsEnded: ['frightened'],
+          activeLabels: [FORM_OF_DREAD_NAME_RU],
+          diceExpression: '1к10',
+        },
+      )
+    }
+
+    case 'form-of-dread-end': {
+      const picks = input.featurePicks ?? { values: {} }
+      const next = setFeaturePick(picks, input.classEntryId, FORM_OF_DREAD_ACTIVE_PICK, null)
+      return done(input, `${FORM_OF_DREAD_NAME_RU}: облик завершён.`, {
+        featurePicks: next,
+        activeLabels: [],
+      })
+    }
+
+    case 'form-of-dread-fear': {
+      const picks = input.featurePicks ?? { values: {} }
+      if (getFeaturePick(picks, input.classEntryId, FORM_OF_DREAD_ACTIVE_PICK) !== 'on') {
+        return refuse(input, `${FORM_OF_DREAD_NAME_RU} не активен`)
+      }
+      if (getFeaturePick(picks, input.classEntryId, FORM_OF_DREAD_FEAR_TURN_PICK) === 'on') {
+        return refuse(input, 'Ужас аватара уже отмечен в этом ходу')
+      }
+      const next = setFeaturePick(picks, input.classEntryId, FORM_OF_DREAD_FEAR_TURN_PICK, 'on')
+      return done(
+        input,
+        `${FORM_OF_DREAD_NAME_RU}: раз за ход — существо в 60 фт. делает спас Мдр или пугается.`,
+        { featurePicks: next },
+      )
+    }
+
+    case 'grave-touched': {
+      if (level < 6) return refuse(input, `${GRAVE_TOUCHED_NAME_RU} с 6 уровня колдуна`)
+      const picks = input.featurePicks ?? { values: {} }
+      if (input.mode === 'extra-die') {
+        if (getFeaturePick(picks, input.classEntryId, GRAVE_TOUCHED_EXTRA_DIE_TURN_PICK) === 'on') {
+          return refuse(input, 'Доп. кость «Прикосновения могилы» уже отмечена в этом ходу')
+        }
+        const next = setFeaturePick(
+          picks,
+          input.classEntryId,
+          GRAVE_TOUCHED_EXTRA_DIE_TURN_PICK,
+          'on',
+        )
+        return done(
+          input,
+          `${GRAVE_TOUCHED_NAME_RU}: раз за ход — +1к8 некротического урона к одной атаке.`,
+          { featurePicks: next, diceExpression: '1к8' },
+        )
+      }
+      if (getFeaturePick(picks, input.classEntryId, GRAVE_TOUCHED_DAMAGE_SWAP_TURN_PICK) === 'on') {
+        return refuse(input, 'Смена типа урона уже отмечена в этом ходу')
+      }
+      const next = setFeaturePick(
+        picks,
+        input.classEntryId,
+        GRAVE_TOUCHED_DAMAGE_SWAP_TURN_PICK,
+        'on',
+      )
+      return done(
+        input,
+        `${GRAVE_TOUCHED_NAME_RU}: раз за ход — один бросок урона атаки или заклинания становится некротическим.`,
+        { featurePicks: next },
+      )
+    }
+
+    case 'necrotic-husk': {
+      if (level < 10) return refuse(input, `${NECROTIC_HUSK_NAME_RU} с 10 уровня колдуна`)
+      const spent = spendOne(
+        input,
+        NECROTIC_HUSK_POOL_ID,
+        `Ресурс «${NECROTIC_HUSK_NAME_RU}» не найден`,
+        `${NECROTIC_HUSK_NAME_RU} уже использована (до короткого/долгого отдыха)`,
+      )
+      if (!spent.ok) return spent.result
+      const hp = necroticHuskHp2024(level)
+      const dice = necroticHuskDamageDice2024()
+      return done(
+        input,
+        `${NECROTIC_HUSK_NAME_RU}: вместо падения на 0 — хиты ${hp} (2×ур.); эманация ${dice} некротического (спас Тел); +1 истощение.`,
+        {
+          resources: spent.resources,
+          hpSet: hp,
+          exhaustionDelta: 1,
+          diceExpression: dice,
+        },
+      )
+    }
+
+    case 'superior-dread': {
+      if (level < 14) return refuse(input, `${SUPERIOR_DREAD_NAME_RU} с 14 уровня колдуна`)
+      return done(
+        input,
+        `${SUPERIOR_DREAD_NAME_RU} (пассивно): пока «${FORM_OF_DREAD_NAME_RU}» активен — полёт, сопротивление некротическому, и доп. эффекты аватара (см. карточку).`,
+      )
+    }
+
+    case 'vestige-power': {
+      if (level < 6) return refuse(input, `${VESTIGE_POWER_NAME_RU} с 6 уровня колдуна`)
+      return done(
+        input,
+        `${VESTIGE_POWER_NAME_RU}: «Божественная сила» спутника-предтечи восстанавливается коротким отдыхом и «Магической искусностью».`,
+        { restoreVestigeDivinePower: true },
+      )
+    }
+
+    case 'vestige-recovery': {
+      if (level < 10) return refuse(input, `${VESTIGE_RECOVERY_NAME_RU} с 10 уровня колдуна`)
+      const spent = spendOne(
+        input,
+        VESTIGE_RECOVERY_POOL_ID,
+        `Ресурс «${VESTIGE_RECOVERY_NAME_RU}» не найден`,
+        `${VESTIGE_RECOVERY_NAME_RU} уже использовано (до долгого отдыха)`,
+      )
+      if (!spent.ok) return spent.result
+      const pact = input.pactSlots
+      if (!pact || pact.max <= 0) return refuse(input, 'Нет ячеек Магии договора')
+      if (pact.used >= pact.max) return refuse(input, 'Нет свободных ячеек Магии договора')
+      return done(
+        input,
+        `${VESTIGE_RECOVERY_NAME_RU}: потрачена 1 ячейка договора — спутник-предтеча полностью исцелён и телепортируется к тебе (или наоборот, по правилу).`,
+        {
+          resources: spent.resources,
+          pact_slots: { ...pact, used: pact.used + 1 },
+          healVestigeCompanion: true,
+        },
+      )
+    }
+
+    case 'semblance-of-life': {
+      if (level < 14) return refuse(input, `${SEMBLANCE_OF_LIFE_NAME_RU} с 14 уровня колдуна`)
+      const spent = spendOne(
+        input,
+        SEMBLANCE_OF_LIFE_POOL_ID,
+        `Ресурс «${SEMBLANCE_OF_LIFE_NAME_RU}» не найден`,
+        `${SEMBLANCE_OF_LIFE_NAME_RU} уже использовано (до долгого отдыха)`,
+      )
+      if (!spent.ok) return spent.result
+      const circle = semblanceSpellLevel2024(level)
+      return done(
+        input,
+        `${SEMBLANCE_OF_LIFE_NAME_RU}: дух-предтеча в облике заклинания ${circle} круга (½ ур. колдуна) — отметьте на столе.`,
+        { resources: spent.resources },
       )
     }
 

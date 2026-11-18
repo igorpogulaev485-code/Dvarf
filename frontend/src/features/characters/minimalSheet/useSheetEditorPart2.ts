@@ -40,6 +40,7 @@ import { revokeFalseSubclassCompanions } from '../companions'
 import { backfillCompanionStatsFromTemplates } from '../companionBackfill'
 import { syncPrimalCompanion2024 } from '../primalCompanion2024'
 import { syncArtificerCompanions2024 } from '../artificerCompanions2024'
+import { syncVestigeCompanion2024 } from '../vestigeCompanion2024'
 import {
   fighterSkillAndLanguageGrants,
   hydrateTotemSpiritFromGrants,
@@ -452,6 +453,31 @@ export function useSheetEditorPart2(model: SheetModel) {
   }, [
     model.draft.classes,
     model.draft.abilities.int,
+    model.rulesEdition,
+    model.baseCharacter?.rules_edition,
+  ])
+
+  useEffect(() => {
+    model.setDraft((prev) => {
+      const edition =
+        model.rulesEdition ?? model.baseCharacter?.rules_edition ?? '2014'
+      const synced = syncVestigeCompanion2024({
+        companions: prev.companions,
+        classes: prev.classes,
+        featurePicks: prev.featurePicks,
+        classOptions2024: prev.classOptions2024,
+        rulesEdition: edition,
+        characterLevel: totalCharacterLevel(prev.classes),
+        chaMod: abilityModifier(prev.abilities.cha ?? 10),
+      })
+      if (!synced.changed) return prev
+      return { ...prev, companions: synced.companions }
+    })
+  }, [
+    model.draft.featurePicks,
+    model.draft.classes,
+    model.draft.classOptions2024,
+    model.draft.abilities.cha,
     model.rulesEdition,
     model.baseCharacter?.rules_edition,
   ])

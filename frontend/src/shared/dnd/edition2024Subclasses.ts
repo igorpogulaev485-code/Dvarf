@@ -723,6 +723,51 @@ export function buildPermanentBonuses2024(input: {
       ally_kill_within_ft: 10,
     }, 3, 'Врем. хиты = Хар + ур. колдуна (мин. 1), когда ты или союзник в пределах 10 фт. опускаете врага до 0 хитов')
   }
+  if (subclassSlug === 'warlock__undead') {
+    add(
+      'form-of-dread',
+      'Аватар ужаса',
+      'other_calc',
+      {
+        necrotic_resistance_when_not_in_dread: true,
+        while_active: {
+          immune: ['frightened'],
+          temp_hp: '1d10+warlock_level',
+          frighten_once_per_turn: true,
+        },
+      },
+      3,
+      'Вне аватара — сопротивление некротическому; в аватаре — иммунитет к «Испуганный»',
+    )
+    if (classLevel >= 14) {
+      add(
+        'superior-dread',
+        'Совершенный ужас',
+        'other_calc',
+        {
+          while_form_of_dread: {
+            fly_speed_ft: 30,
+            necrotic_resistance: true,
+          },
+        },
+        14,
+        'Пока «Аватар ужаса» активен: полёт и сопротивление некротическому',
+      )
+    }
+  }
+  if (subclassSlug === 'warlock__vestige-patron') {
+    add(
+      'vestige-companion',
+      'Спутник-предтеча',
+      'other_calc',
+      {
+        host_resistance_within_ft_of_companion: 30,
+        note: 'resistance_shared_with_companion_type',
+      },
+      3,
+      'В пределах 30 фт. от спутника-предтечи — сопротивление его типу урона (метаданные)',
+    )
+  }
   if (subclassSlug === 'cleric__light-domain' && classLevel >= 6) {
     add('improved-warding-flare', 'Улучшенная ограждающая вспышка', 'other_calc', { reset_short: true }, 6)
   }

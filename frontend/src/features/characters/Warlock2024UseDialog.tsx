@@ -15,13 +15,25 @@ import {
   findHealingLightResource,
   findMagicalCunningResource,
   findMysticArcanumResource,
+  FORM_OF_DREAD_NAME_RU,
+  GRAVE_TOUCHED_NAME_RU,
   healingLightMaxDicePerUse2024,
+  NECROTIC_HUSK_NAME_RU,
+  SEMBLANCE_OF_LIFE_NAME_RU,
   STEPS_OF_THE_FEY_MODES_2024,
+  SUPERIOR_DREAD_NAME_RU,
+  VESTIGE_POWER_NAME_RU,
+  VESTIGE_RECOVERY_NAME_RU,
   warlock2024ArcanumCircleFromId,
   warlock2024UseFeatureId,
   type WarlockFeatureUseResult,
   type WarlockPactSlots2024,
 } from '../../shared/dnd/warlock2024Features'
+import {
+  FORM_OF_DREAD_ACTIVE_PICK,
+  semblanceSpellLevel2024,
+} from '../../shared/dnd/warlockBook2024Features'
+import { getFeaturePick } from '../../shared/dnd/featurePicks'
 
 export type WarlockFeatureRequest = {
   featureId: string
@@ -90,11 +102,21 @@ export function Warlock2024UseDialog({
   const stepsModes = STEPS_OF_THE_FEY_MODES_2024.filter((row) => warlockLevel >= row.minLevel)
   const stepsMode = mode || (featureId === 'misty-escape' ? 'concealing' : 'refreshing')
 
+  const dreadActive =
+    getFeaturePick(featurePicks, request.classEntryId, FORM_OF_DREAD_ACTIVE_PICK) === 'on'
+  const semblanceCircle = semblanceSpellLevel2024(warlockLevel)
+
   function confirm() {
     let useMode: string | undefined = mode || undefined
     if (featureId === 'steps-of-the-fey' || featureId === 'misty-escape') useMode = stepsMode
     if (featureId === 'mystic-arcanum') useMode = mode || 'cast'
     if (featureId === 'armor-of-shadows') useMode = armorOn ? 'on' : 'off'
+    if (featureId === 'form-of-dread') {
+      useMode = mode === 'end' || mode === 'fear' ? mode : 'activate'
+    }
+    if (featureId === 'grave-touched') {
+      useMode = mode === 'extra-die' ? 'extra-die' : 'damage-swap'
+    }
     const result = applyWarlock2024FeatureUse({
       featureId: request!.featureId,
       resourceId: request!.resourceId,
@@ -348,6 +370,78 @@ export function Warlock2024UseDialog({
         {atWill && featureId !== 'armor-of-shadows' && featureId !== 'fiendish-vigor' ? (
           <Text>
             «{atWill.spellRu}» {atWill.noteRu}.
+          </Text>
+        ) : null}
+
+        {featureId === 'form-of-dread' ? (
+          <>
+            <Text tone="muted">
+              {dreadActive
+                ? `${FORM_OF_DREAD_NAME_RU} активен. Можно завершить раньше или отметить ужас раз за ход.`
+                : `${FORM_OF_DREAD_NAME_RU}: бонусное действие — врем. хиты 1к10+ур., иммунитет к «Испуганный», 1 минута.`}
+            </Text>
+            <SegmentedControl
+              aria-label="Аватар ужаса"
+              value={mode === 'end' ? 'end' : mode === 'fear' ? 'fear' : 'activate'}
+              onChange={setMode}
+              options={[
+                { id: 'activate', label: dreadActive ? 'Обновить' : 'Активировать' },
+                { id: 'fear', label: 'Ужас (ход)' },
+                { id: 'end', label: 'Завершить' },
+              ]}
+            />
+          </>
+        ) : null}
+
+        {featureId === 'grave-touched' ? (
+          <>
+            <Text tone="muted">
+              {GRAVE_TOUCHED_NAME_RU}: отметьте использование раз за ход.
+            </Text>
+            <SegmentedControl
+              aria-label="Прикосновение могилы"
+              value={mode === 'extra-die' ? 'extra-die' : 'damage-swap'}
+              onChange={setMode}
+              options={[
+                { id: 'damage-swap', label: 'Тип → некротический' },
+                { id: 'extra-die', label: '+1к8 некрот.' },
+              ]}
+            />
+          </>
+        ) : null}
+
+        {featureId === 'necrotic-husk' ? (
+          <Text>
+            {NECROTIC_HUSK_NAME_RU}: когда хиты падают до 0 — вместо этого хиты = 2×ур. колдуна;
+            эманация 2к10 некротического; +1 истощение. Подтвердите применение.
+          </Text>
+        ) : null}
+
+        {featureId === 'superior-dread' ? (
+          <Text>
+            {SUPERIOR_DREAD_NAME_RU}: пассивное усиление «{FORM_OF_DREAD_NAME_RU}» (полёт,
+            сопротивление некротическому и др.).
+          </Text>
+        ) : null}
+
+        {featureId === 'vestige-power' ? (
+          <Text>
+            {VESTIGE_POWER_NAME_RU}: «Божественная сила» спутника восстанавливается коротким
+            отдыхом и «Магической искусностью». Нажмите, чтобы отметить восстановление.
+          </Text>
+        ) : null}
+
+        {featureId === 'vestige-recovery' ? (
+          <Text>
+            {VESTIGE_RECOVERY_NAME_RU}: потратьте 1 ячейку договора — полное исцеление
+            спутника-предтечи и телепорт (доступно ячеек: {pactLeft}).
+          </Text>
+        ) : null}
+
+        {featureId === 'semblance-of-life' ? (
+          <Text>
+            {SEMBLANCE_OF_LIFE_NAME_RU}: дух в облике заклинания {semblanceCircle} круга (½
+            уровня колдуна). Раз за долгий отдых.
           </Text>
         ) : null}
       </Stack>
