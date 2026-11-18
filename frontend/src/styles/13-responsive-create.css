@@ -343,6 +343,9 @@
     );
     border-radius: 16px 16px 0 0;
     box-shadow: 0 -8px 28px rgba(28, 25, 23, 0.18);
+    background: var(--card, #fffdf8);
+    background-color: var(--card, #fffdf8);
+    opacity: 1;
     animation: sheet-rise var(--motion-sheet) ease;
   }
 

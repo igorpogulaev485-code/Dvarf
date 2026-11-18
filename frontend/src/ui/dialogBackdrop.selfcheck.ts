@@ -38,6 +38,13 @@ assert.match(actions![0], /safe-area-inset-bottom/)
 
 assert.match(css, /\.ui-dialog__header/)
 assert.match(css, /\.ui-dialog__close/)
+
+const sheet = css.match(/\.ui-dialog\s*\{[\s\S]*?\n\}/)
+assert.ok(sheet, 'dialog sheet rule present')
+assert.match(sheet![0], /background(?:-color)?:\s*var\(--card/)
+assert.match(sheet![0], /opacity:\s*1/)
+assert.doesNotMatch(sheet![0], /background:\s*rgba?\([^)]+,\s*0?\.\d+/)
+
 assert.match(dialog, /showClose/)
 assert.match(dialog, /ui-dialog__close/)
 assert.match(dialog, /className="ui-dialog-backdrop"/)

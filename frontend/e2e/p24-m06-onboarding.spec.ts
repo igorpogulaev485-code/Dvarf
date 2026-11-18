@@ -47,7 +47,36 @@ test.describe('P24-M06 onboarding + gate', () => {
     for (const id of ['species', 'heroic', 'exhaustion', 'rest', 'mastery', 'surprise']) {
       await expect(page.getByTestId(`edition-2024-diff-${id}`)).toBeVisible()
     }
+    // Sheet rise is transform-only; still wait a beat so paint settles before the frame.
+    await page.waitForTimeout(300)
+    const solid = await page.locator('.ui-dialog').evaluate((el) => {
+      const cs = getComputedStyle(el)
+      const bg = cs.backgroundColor
+      const m = bg.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([0-9.]+))?\)/)
+      const alpha = m?.[4] === undefined ? 1 : Number(m[4])
+      return { bg, opacity: Number(cs.opacity), alpha, text: el.textContent || '' }
+    })
+    expect(solid.opacity).toBe(1)
+    expect(solid.alpha).toBe(1)
+    expect(solid.text).toContain('правилах 2014')
+    expect(solid.text).not.toContain('L-21')
+    expect(solid.text).toContain('говорим «вид»')
     await shot(page, 'onboarding-2024-diff', testInfo.project.name)
+
+    // Darker account theme (чернила) — sheet must stay opaque kit --card.
+    await page.evaluate(() => document.documentElement.setAttribute('data-theme', 'int'))
+    await page.waitForTimeout(100)
+    const solidDark = await page.locator('.ui-dialog').evaluate((el) => {
+      const cs = getComputedStyle(el)
+      const bg = cs.backgroundColor
+      const m = bg.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([0-9.]+))?\)/)
+      const alpha = m?.[4] === undefined ? 1 : Number(m[4])
+      return { opacity: Number(cs.opacity), alpha }
+    })
+    expect(solidDark.opacity).toBe(1)
+    expect(solidDark.alpha).toBe(1)
+    await shot(page, 'onboarding-2024-diff-ink', testInfo.project.name)
+
     await page.getByRole('button', { name: 'Понятно' }).click()
     await expect(page.getByTestId('edition-2024-diff-dialog')).toHaveCount(0)
     await expect(page.getByTestId('edition-2024-diff-reopen')).toBeVisible()
