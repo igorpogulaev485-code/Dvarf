@@ -387,6 +387,35 @@ def test_assassin_death_strike_and_envenom_notes_are_2024():
     assert "первом раунде" in (death.note_ru or "")
 
 
+def test_assassin_catalog_ph24_summaries_are_2024_not_2014():
+    """Live sheet cards read backend catalog JSON — not only permanent-bonus notes."""
+    path = BACKEND_LIVE / "subclasses_ph24.json"
+    data = json.loads(path.read_text(encoding="utf-8"))
+    by_id: dict[str, str] = {}
+
+    def walk(node: object) -> None:
+        if isinstance(node, dict):
+            fid = node.get("id")
+            if fid in {"death-strike", "envenom-weapon"} and "summary_ru" in node:
+                by_id[str(fid)] = str(node.get("summary_ru") or "")
+            for value in node.values():
+                walk(value)
+        elif isinstance(node, list):
+            for item in node:
+                walk(item)
+
+    walk(data)
+    death = by_id["death-strike"]
+    envenom = by_id["envenom-weapon"]
+    assert "Скрытой атаке" in death or "Скрытая атака" in death
+    assert "первом раунде" in death
+    assert "врасплох" not in death.lower()
+    assert "бонусным отравить" not in envenom.lower()
+    assert "Отравление" in envenom
+    assert "2к6" in envenom
+    assert "сопротивлен" in envenom.lower()
+
+
 def test_third_caster_at_create_requires_mage_hand_and_prepared():
     payload = create24.Create2024Payload(
         name="AT",
