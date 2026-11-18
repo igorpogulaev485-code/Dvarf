@@ -61,6 +61,10 @@ assert.match(lobbiesSrc, /lobby-create-rules-edition/, 'lobby select test id rea
 assert.equal(EDITION_HINT, EDITION_HINT_2014)
 assert.match(EDITION_HINT_2024, /2024/)
 assert.equal(EDITION_2024_DIFF.items.length, 6)
+const diffText = EDITION_2024_DIFF.items.map((i) => i.body).join(' ')
+assert.doesNotMatch(diffText, /\bL-21\b/)
+assert.match(diffText, /как в правилах 2014/)
+assert.match(diffText, /говорим «вид»/)
 
 const dialogSrc = readFileSync(
   join(here, '../../features/onboarding/Edition2024DiffDialog.tsx'),

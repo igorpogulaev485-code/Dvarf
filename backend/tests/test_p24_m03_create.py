@@ -83,9 +83,14 @@ def _spell_pick(class_slug: str, level: int, n: int) -> list[str]:
     return out
 
 
-def wizard_book_for_level(level: int, *, include_circle: int | None = None) -> list[str]:
-    """Wizard create-at-N book: 6 first-circle starters + 2×(n−1) higher picks."""
-    need = 6 + 2 * max(0, int(level) - 1)
+def wizard_book_for_level(
+    level: int,
+    *,
+    include_circle: int | None = None,
+    subclass_slug: str | None = None,
+) -> list[str]:
+    """Wizard create-at-N book: free research + Savant extras when subclass has it."""
+    need = create24.wizard_create_book_need_2024(level, subclass_slug)
     l1 = _spell_pick("wizard", 1, max(12, need))
     book = list(l1[:6])
     if include_circle and include_circle > 1:
@@ -377,17 +382,19 @@ def build_valid_payload(class_slug: str, **overrides) -> dict:
 
     book_overridden = "spellbook_spell_ids" in overrides
     payload.update(overrides)
-    # Wizard create-at-N expects 6 + 2×(n−1) book spells unless the caller set the book.
+    # Wizard create-at-N expects free research + Savant extras unless the caller set the book.
     if payload.get("class_slug") == "wizard" and not book_overridden:
         wizard_lv = 1
+        subclass_slug = payload.get("subclass_slug")
         for row in payload.get("class_levels") or []:
             if isinstance(row, dict) and str(row.get("slug") or "") == "wizard":
                 wizard_lv = int(row.get("level") or 1)
+                subclass_slug = row.get("subclass_slug") or subclass_slug
                 break
-        need = 6 + 2 * max(0, wizard_lv - 1)
+        need = create24.wizard_create_book_need_2024(wizard_lv, subclass_slug)
         book = list(payload.get("spellbook_spell_ids") or [])
         if len(book) < need:
-            book = wizard_book_for_level(wizard_lv)
+            book = wizard_book_for_level(wizard_lv, subclass_slug=subclass_slug)
             payload["spellbook_spell_ids"] = book
             prep_n = len(payload.get("prepared_spell_ids") or [])
             if prep_n:

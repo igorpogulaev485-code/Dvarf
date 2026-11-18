@@ -35,6 +35,16 @@ async function shot(page: Page, name: string, project: string) {
 }
 
 async function dismissWelcome(page: Page) {
+  // M06 onboarding auto-opens on 2024 create and blocks finish / sheet clicks.
+  const diff = page.getByTestId('edition-2024-diff-dialog')
+  try {
+    if (await diff.isVisible({ timeout: 2_500 }).catch(() => false)) {
+      await page.getByRole('button', { name: 'Понятно' }).click()
+      await diff.waitFor({ state: 'hidden', timeout: 5_000 }).catch(() => {})
+    }
+  } catch {
+    /* ok */
+  }
   const skip = page.getByRole('button', { name: /Пропустит.*подсказ/i })
   try {
     await skip.waitFor({ state: 'visible', timeout: 2_500 })
@@ -68,6 +78,7 @@ async function createViaSeed(page: Page, store: HarnessStore, seed: string) {
   await installMonkHarness(page, store)
   await page.goto(`/characters/create?edition=2024&preview=1&e2eLeveling=1&e2eSeed=${seed}`)
   await expect(page.getByTestId('p24-m03c-leveling')).toBeVisible({ timeout: 40_000 })
+  await dismissWelcome(page)
   await completeVisibleChoices(page)
   const finish = page.getByTestId('p24-m03-finish')
   await expect(finish).toBeEnabled({ timeout: 60_000 })
@@ -214,6 +225,7 @@ test.describe('P24-M02B monk — picker + finish quotas', () => {
       '/characters/create?edition=2024&preview=1&e2eLeveling=1&e2eSeed=monk3mystic&e2eEmptySpells=1',
     )
     await expect(page.getByTestId('p24-m03c-leveling')).toBeVisible({ timeout: 40_000 })
+  await dismissWelcome(page)
     await expect(page.getByText(/Мистический воин/i).first()).toBeVisible({ timeout: 15_000 })
     await expect(page.getByText(/Арканный воин/i)).toHaveCount(0)
     const finish = page.getByTestId('p24-m03-finish')
@@ -231,6 +243,7 @@ test.describe('P24-M02B monk mystic — live create rollbacks', () => {
     await installMonkHarness(page, store)
     await page.goto('/characters/create?edition=2024&preview=1&e2eLeveling=1&e2eSeed=monk3mystic')
     await expect(page.getByTestId('p24-m03c-leveling')).toBeVisible({ timeout: 40_000 })
+  await dismissWelcome(page)
     await expect(page.getByText(/Мистический воин/i).first()).toBeVisible({ timeout: 15_000 })
     await setCreateLevel(page, 2)
     await expect(page.getByText(/Мистический воин/i)).toHaveCount(0)
@@ -244,6 +257,7 @@ test.describe('P24-M02B monk mystic — live create rollbacks', () => {
     await installMonkHarness(page, store)
     await page.goto('/characters/create?edition=2024&preview=1&e2eLeveling=1&e2eSeed=monk11mystic')
     await expect(page.getByTestId('p24-m03c-leveling')).toBeVisible({ timeout: 40_000 })
+  await dismissWelcome(page)
     await setCreateLevel(page, 10)
     await expect(page.getByText(/Сфокусированный удар/i)).toHaveCount(0)
     await expect(page.getByText(/0\/\d+/)).toHaveCount(0)
@@ -256,6 +270,7 @@ test.describe('P24-M02B monk mystic — live create rollbacks', () => {
     await installMonkHarness(page, store)
     await page.goto('/characters/create?edition=2024&preview=1&e2eLeveling=1&e2eSeed=monk17mystic')
     await expect(page.getByTestId('p24-m03c-leveling')).toBeVisible({ timeout: 40_000 })
+  await dismissWelcome(page)
     await expect(page.getByText(/Улучшенный стиль мистического воина/i).first()).toBeVisible({
       timeout: 15_000,
     })
@@ -271,6 +286,7 @@ test.describe('P24-M02B monk mystic — live create rollbacks', () => {
     await installMonkHarness(page, store)
     await page.goto('/characters/create?edition=2024&preview=1&e2eLeveling=1&e2eSeed=monk20mystic')
     await expect(page.getByTestId('p24-m03c-leveling')).toBeVisible({ timeout: 40_000 })
+  await dismissWelcome(page)
     await setCreateLevel(page, 19)
     await completeVisibleChoices(page)
     await shot(page, '2024-rollback-20-to-19-mystic', project)

@@ -99,6 +99,14 @@ N17_11_NAME_OVERRIDES: dict[tuple[str, str], str] = {
     ('spell', 'irresistible-dance'): 'Неудержимая пляска',
     ('spell', 'arcane-sword'): 'Чародейский меч',
     ('spell', 'magnificent-mansion'): 'Великолепный особняк',
+    # P24-M02 approved class names (override N01 2014-pair default).
+    ('subclass', 'rogue-soulknife'): 'Клинок душ',
+}
+
+# Nested feature id may collide with an unrelated live card (e.g. Champion
+# «Вызов смерти» vs RTW origin feat «Выживший»). Allow intentional 2024 names.
+EMBEDDED_NAME_ALLOW: dict[tuple[str, str], str] = {
+    ('fighter__champion', 'survivor'): 'Вызов смерти',
 }
 
 # discrepancies.md uses plural table names in the category column.
@@ -711,11 +719,15 @@ def find_embedded_name_mismatches(
             want = resolve_live_name_ru(
                 slug, kind_hint=hint, by_kind_slug=by_kind_slug, by_slug=by_slug
             )
+            owner_slug = str(owner.get("slug") or "")
+            allowed = EMBEDDED_NAME_ALLOW.get((owner_slug, norm_slug(slug)))
+            if allowed is not None and name_ru == allowed:
+                want = None
             if want is not None and want != name_ru:
                 found.append(
                     EmbeddedNameMismatch(
                         file=file_name,
-                        owner_slug=str(owner.get("slug") or ""),
+                        owner_slug=owner_slug,
                         path=".".join(path_parts),
                         ref_slug=slug,
                         got=name_ru,

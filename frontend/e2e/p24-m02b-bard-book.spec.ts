@@ -48,6 +48,16 @@ async function shot(page: Page, name: string, project: string) {
 }
 
 async function dismissWelcome(page: Page) {
+  // M06 onboarding auto-opens on 2024 create and blocks finish / sheet clicks.
+  const diff = page.getByTestId('edition-2024-diff-dialog')
+  try {
+    if (await diff.isVisible({ timeout: 2_500 }).catch(() => false)) {
+      await page.getByRole('button', { name: 'Понятно' }).click()
+      await diff.waitFor({ state: 'hidden', timeout: 5_000 }).catch(() => {})
+    }
+  } catch {
+    /* ok */
+  }
   const skip = page.getByRole('button', { name: /Пропустит.*подсказ/i })
   try {
     await skip.waitFor({ state: 'visible', timeout: 2_500 })
@@ -81,6 +91,7 @@ async function createViaSeed(page: Page, store: HarnessStore, seed: string) {
   await installBardHarness(page, store)
   await page.goto(`/characters/create?edition=2024&preview=1&e2eLeveling=1&e2eSeed=${seed}`)
   await expect(page.getByTestId('p24-m03c-leveling')).toBeVisible({ timeout: 40_000 })
+  await dismissWelcome(page)
   await completeVisibleChoices(page)
   const finish = page.getByTestId('p24-m03-finish')
   await expect(finish).toBeEnabled({ timeout: 60_000 })
@@ -222,6 +233,7 @@ test.describe('P24-M02B bard book — picker + create picks', () => {
         `/characters/create?edition=2024&preview=1&e2eLeveling=1&e2eSeed=bard3${pathSlug}`,
       )
       await expect(page.getByTestId('p24-m03c-leveling')).toBeVisible({ timeout: 40_000 })
+  await dismissWelcome(page)
       await expect(page.getByText(PICKER_RE[pathSlug]).first()).toBeVisible({ timeout: 15_000 })
       await shot(page, `2024-picker-${pathSlug}`, project)
     }
@@ -235,6 +247,7 @@ test.describe('P24-M02B bard book — picker + create picks', () => {
       '/characters/create?edition=2024&preview=1&e2eLeveling=1&e2eSeed=bard3moon',
     )
     await expect(page.getByTestId('p24-m03c-leveling')).toBeVisible({ timeout: 40_000 })
+  await dismissWelcome(page)
     await expect(page.getByTestId('p24-m02b-bard-book-picks')).toBeVisible({ timeout: 15_000 })
     await shot(page, '2024-moon-primal-lore-picks', project)
   })
@@ -247,6 +260,7 @@ test.describe('P24-M02B bard book — picker + create picks', () => {
       '/characters/create?edition=2024&preview=1&e2eLeveling=1&e2eSeed=bard3spirits&e2eEmptySpells=1',
     )
     await expect(page.getByTestId('p24-m03c-leveling')).toBeVisible({ timeout: 40_000 })
+  await dismissWelcome(page)
     const finish = page.getByTestId('p24-m03-finish')
     await expect(finish).toBeDisabled({ timeout: 15_000 })
     await shot(page, '2024-finish-disabled-l3-spirits', project)
@@ -262,6 +276,7 @@ test.describe('P24-M02B bard book — live create rollbacks', () => {
     await installBardHarness(page, store)
     await page.goto('/characters/create?edition=2024&preview=1&e2eLeveling=1&e2eSeed=bard3moon')
     await expect(page.getByTestId('p24-m03c-leveling')).toBeVisible({ timeout: 40_000 })
+  await dismissWelcome(page)
     await expect(page.getByText(/Коллегия луны/i).first()).toBeVisible({ timeout: 15_000 })
     await setCreateLevel(page, 2)
     await expect(page.getByText(/Коллегия луны/i)).toHaveCount(0)
@@ -277,6 +292,7 @@ test.describe('P24-M02B bard book — live create rollbacks', () => {
       '/characters/create?edition=2024&preview=1&e2eLeveling=1&e2eSeed=bard6spirits',
     )
     await expect(page.getByTestId('p24-m03c-leveling')).toBeVisible({ timeout: 40_000 })
+  await dismissWelcome(page)
     await expect(page.getByText(/Улучшенный призыв/i).first()).toBeVisible({ timeout: 15_000 })
     await setCreateLevel(page, 5)
     await expect(page.getByText(/Улучшенный призыв/i)).toHaveCount(0)
@@ -292,6 +308,7 @@ test.describe('P24-M02B bard book — live create rollbacks', () => {
       '/characters/create?edition=2024&preview=1&e2eLeveling=1&e2eSeed=bard11moon',
     )
     await expect(page.getByTestId('p24-m03c-leveling')).toBeVisible({ timeout: 40_000 })
+  await dismissWelcome(page)
     await setCreateLevel(page, 10)
     await completeVisibleChoices(page)
     await shot(page, '2024-rollback-11-to-10-moon', project)
@@ -305,6 +322,7 @@ test.describe('P24-M02B bard book — live create rollbacks', () => {
       '/characters/create?edition=2024&preview=1&e2eLeveling=1&e2eSeed=bard14moon',
     )
     await expect(page.getByTestId('p24-m03c-leveling')).toBeVisible({ timeout: 40_000 })
+  await dismissWelcome(page)
     await expect(page.getByText(/Вечернее великолепие/i).first()).toBeVisible({ timeout: 15_000 })
     await setCreateLevel(page, 13)
     await expect(page.getByText(/Вечернее великолепие/i)).toHaveCount(0)
@@ -320,6 +338,7 @@ test.describe('P24-M02B bard book — live create rollbacks', () => {
       '/characters/create?edition=2024&preview=1&e2eLeveling=1&e2eSeed=bard20spirits',
     )
     await expect(page.getByTestId('p24-m03c-leveling')).toBeVisible({ timeout: 40_000 })
+  await dismissWelcome(page)
     await setCreateLevel(page, 19)
     await completeVisibleChoices(page)
     await shot(page, '2024-rollback-20-to-19-spirits', project)

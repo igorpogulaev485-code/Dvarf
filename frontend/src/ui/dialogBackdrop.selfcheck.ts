@@ -38,6 +38,26 @@ assert.match(actions![0], /safe-area-inset-bottom/)
 
 assert.match(css, /\.ui-dialog__header/)
 assert.match(css, /\.ui-dialog__close/)
+
+const sheet = css.match(/\.ui-dialog\s*\{[\s\S]*?\n\}/)
+assert.ok(sheet, 'dialog sheet rule present')
+assert.match(sheet![0], /background(?:-color)?:\s*(?:#fffdf8|var\(--card)/)
+assert.match(sheet![0], /opacity:\s*1/)
+assert.doesNotMatch(sheet![0], /background:\s*rgba?\([^)]+,\s*0?\.\d+/)
+
+const mobileWide = mobile.match(/\.ui-dialog--wide[\s\S]*?min-height:/)
+assert.ok(mobileWide, 'mobile wide dialog forces solid full-height sheet')
+
+const vitals = readFileSync(join(root, 'src/styles/23-mobile-vitals.css'), 'utf8')
+assert.match(vitals, /@keyframes sheet-rise/)
+const sheetRise = vitals.match(/@keyframes sheet-rise\s*\{[\s\S]*?\n\}/)?.[0] ?? ''
+assert.doesNotMatch(sheetRise, /opacity\s*:/, 'sheet-rise must not animate opacity')
+assert.match(
+  vitals,
+  /\.ui-dialog[\s\S]*?animation:\s*none/,
+  'reduced-motion must not opacity-fade dialogs',
+)
+
 assert.match(dialog, /showClose/)
 assert.match(dialog, /ui-dialog__close/)
 assert.match(dialog, /className="ui-dialog-backdrop"/)
