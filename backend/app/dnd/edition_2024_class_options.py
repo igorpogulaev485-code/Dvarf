@@ -143,12 +143,12 @@ def metamagic_known_limit(sorcerer_level: int) -> int:
 
 # —— Cunning Strike (SRD base + Devious Strikes) ——
 CUNNING_STRIKE_2024: tuple[StrikeOption, ...] = (
-    StrikeOption("poison", "Poison", "Яд", 1, "con", 5, "Спас Тел. или Отравлен 1 мин.", requires_kit="poisoners-kit"),
-    StrikeOption("trip", "Trip", "Подножка", 1, "dex", 5, "Большое или меньше: спас Лов. или Опрокинут."),
-    StrikeOption("withdraw", "Withdraw", "Отход", 1, None, 5, "Перемещение до половины скорости без провоцированных."),
-    StrikeOption("daze", "Daze", "Оглушение", 2, "con", 14, "Спас Тел. или на след. ходу только движение ИЛИ действие ИЛИ бонусное."),
-    StrikeOption("knock-out", "Knock Out", "Нокаут", 6, "con", 14, "Спас Тел. или Бессознателен 1 мин. / до урона."),
-    StrikeOption("obscure", "Obscure", "Затмение", 3, "dex", 14, "Спас Лов. или Слепота до конца своего след. хода."),
+    StrikeOption("poison", "Poison", "Отравление", 1, "con", 5, "Спас Тел. или Отравлена 1 мин.; повтор в конце каждого своего хода. Нужны инструменты отравителя.", requires_kit="poisoners-kit"),
+    StrikeOption("trip", "Trip", "Подсечка", 1, "dex", 5, "Цель Большая или меньше: спас Лов. или Опрокинута."),
+    StrikeOption("withdraw", "Withdraw", "Отступление", 1, None, 5, "Сразу после атаки переместиться до половины скорости без провоцированных."),
+    StrikeOption("daze", "Daze", "Шок", 2, "con", 14, "Спас Тел. или в следующий свой ход цель может только либо переместиться, либо совершить одно действие, либо бонусное."),
+    StrikeOption("knock-out", "Knock Out", "Нокаут", 6, "con", 14, "Спас Тел. или Бессознательна 1 мин. / до урона; повтор в конце каждого своего хода."),
+    StrikeOption("obscure", "Obscure", "Ослепление", 3, "dex", 14, "Спас Лов. или Ослеплена до конца своего следующего хода."),
 )
 CUNNING_BY_ID = {row.id: row for row in CUNNING_STRIKE_2024}
 

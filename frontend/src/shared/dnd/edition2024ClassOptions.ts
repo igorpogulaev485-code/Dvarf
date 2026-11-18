@@ -287,12 +287,12 @@ export type StrikeOption2024 = {
 }
 
 export const CUNNING_STRIKE_2024: StrikeOption2024[] = [
-  { id: 'poison', nameRu: 'Яд', costDice: 1, save: 'con', minLevel: 5, summaryRu: 'Спас Тел. или Отравлен 1 мин.', requiresKit: 'poisoners-kit' },
-  { id: 'trip', nameRu: 'Подножка', costDice: 1, save: 'dex', minLevel: 5, summaryRu: 'Большое или меньше: спас Лов. или Опрокинут.' },
-  { id: 'withdraw', nameRu: 'Отход', costDice: 1, save: null, minLevel: 5, summaryRu: 'Перемещение до половины скорости без OA.' },
-  { id: 'daze', nameRu: 'Оглушение', costDice: 2, save: 'con', minLevel: 14, summaryRu: 'Спас Тел. или только одно: движение/действие/бонусное.' },
-  { id: 'knock-out', nameRu: 'Нокаут', costDice: 6, save: 'con', minLevel: 14, summaryRu: 'Спас Тел. или Бессознателен.' },
-  { id: 'obscure', nameRu: 'Затмение', costDice: 3, save: 'dex', minLevel: 14, summaryRu: 'Спас Лов. или Слепота.' },
+  { id: 'poison', nameRu: 'Отравление', costDice: 1, save: 'con', minLevel: 5, summaryRu: 'Спас Тел. или Отравлена 1 мин.; повтор в конце каждого своего хода. Нужны инструменты отравителя.', requiresKit: 'poisoners-kit' },
+  { id: 'trip', nameRu: 'Подсечка', costDice: 1, save: 'dex', minLevel: 5, summaryRu: 'Цель Большая или меньше: спас Лов. или Опрокинута.' },
+  { id: 'withdraw', nameRu: 'Отступление', costDice: 1, save: null, minLevel: 5, summaryRu: 'Сразу после атаки переместиться до половины скорости без провоцированных.' },
+  { id: 'daze', nameRu: 'Шок', costDice: 2, save: 'con', minLevel: 14, summaryRu: 'Спас Тел. или в следующий свой ход цель может только либо переместиться, либо совершить одно действие, либо бонусное.' },
+  { id: 'knock-out', nameRu: 'Нокаут', costDice: 6, save: 'con', minLevel: 14, summaryRu: 'Спас Тел. или Бессознательна 1 мин. / до урона; повтор в конце каждого своего хода.' },
+  { id: 'obscure', nameRu: 'Ослепление', costDice: 3, save: 'dex', minLevel: 14, summaryRu: 'Спас Лов. или Ослеплена до конца своего следующего хода.' },
 ]
 
 export const BRUTAL_STRIKE_2024: StrikeOption2024[] = [
