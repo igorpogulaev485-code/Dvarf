@@ -27,6 +27,7 @@ import {
   eldritchCannonStats2024,
   steelDefenderStats2024,
 } from '../../shared/dnd/artificer2024Features'
+import { reanimatedCompanionStats2024 } from '../../shared/dnd/artificerBook2024Features'
 
 export type CompanionTemplateContext = {
   hostClassLevel: number
@@ -250,6 +251,27 @@ function eldritchCannonTemplate(
 ): CompanionTemplatePatch {
   if (ctx.rulesEdition === '2024') return eldritchCannonTemplate2024(ctx)
   return eldritchCannonTemplate2014(variant, ctx)
+}
+
+/** RTW Reanimator companion — https://next.dnd.su/bestiary/31225-reanimated-companion */
+function reanimatedCompanionTemplate2024(
+  ctx: CompanionTemplateContext,
+  modifications: string[] = [],
+): CompanionTemplatePatch {
+  const block = reanimatedCompanionStats2024({
+    artificerLevel: clampLevel(ctx.hostClassLevel),
+    intMod: Math.floor(ctx.hostIntMod ?? ctx.spellMod ?? 0),
+    modifications,
+  })
+  return {
+    kind: 'reanimated_companion',
+    defaultName: 'Реанимированный спутник',
+    stats: { hp: block.hp, hp_max: block.hp, ac: block.ac, speed: block.speed },
+    actions: [block.actionsRu, block.deathBurstRu].join(' '),
+    notes: block.notesRu,
+    nature: 'summoned',
+    control: 'bonus_action_command',
+  }
 }
 
 function drakeTemplate(ctx: CompanionTemplateContext): CompanionTemplatePatch {
@@ -595,6 +617,13 @@ export function resolveCompanionTemplate(input: {
   if (id.includes('defender')) {
     return steelDefenderTemplate(input.ctx)
   }
+  if (id.includes('reanimated') || value === 'reanimated_companion' || value === 'reanimated-companion') {
+    const mods = value
+      .split(/[+,|]/)
+      .map((part) => part.trim())
+      .filter((part) => part && part !== 'reanimated_companion' && part !== 'reanimated-companion')
+    return reanimatedCompanionTemplate2024(input.ctx, mods)
+  }
   if (id.includes('drake')) {
     return drakeTemplate(input.ctx)
   }
@@ -615,7 +644,10 @@ export function resolveCompanionTemplate(input: {
   }
   // Name-only open_text (rangers_companion): PHB stub; type/primal handled via
   // companion_type pick in applySubclassGrantToDraft / resolveCompanionTemplate value.
-  if (id.includes('rangers_companion') || (id.includes('companion') && !id.includes('type'))) {
+  if (
+    id.includes('rangers_companion')
+    || (id.includes('companion') && !id.includes('type') && !id.includes('reanimated'))
+  ) {
     return phbBeastStub()
   }
   return null

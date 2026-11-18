@@ -69,6 +69,7 @@ export const COMPANION_KIND_SHORT: Record<CompanionKind, string> = {
   beast_companion: 'Зверь',
   steel_defender: 'Защитник',
   eldritch_cannon: 'Пушка',
+  reanimated_companion: 'Реаним.',
   drake: 'Дрейк',
   primal_companion: 'Спутник',
   familiar: 'Фамилиар',

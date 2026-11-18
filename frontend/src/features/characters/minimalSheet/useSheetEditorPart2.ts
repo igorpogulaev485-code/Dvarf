@@ -446,6 +446,7 @@ export function useSheetEditorPart2(model: SheetModel) {
         rulesEdition: edition,
         characterLevel: totalCharacterLevel(prev.classes),
         intMod: abilityModifier(prev.abilities.int ?? 10),
+        featurePicks: prev.featurePicks,
       })
       if (!synced.changed) return prev
       return { ...prev, companions: synced.companions }
@@ -453,6 +454,7 @@ export function useSheetEditorPart2(model: SheetModel) {
   }, [
     model.draft.classes,
     model.draft.abilities.int,
+    model.draft.featurePicks,
     model.rulesEdition,
     model.baseCharacter?.rules_edition,
   ])

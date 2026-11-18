@@ -30,11 +30,17 @@ import {
   ARTIFICER_SUBCLASS_SLUGS_2024,
   isArmorModel2024,
   PLANS_KNOWN_COLUMN_RU,
+  REANIMATOR_SUBCLASS_SLUG_2024,
   replicateLimits2024,
   SPELL_STORING_ITEM_MIN_LEVEL_2024,
   SPELL_STORING_ITEM_NAME_RU,
   SUBCLASS_MIN_LEVEL_2024 as ARTIFICER_SUBCLASS_MIN_LEVEL_2024,
 } from '../../shared/dnd/artificer2024Features'
+import {
+  strangeModificationOptions2024,
+  strangeModificationPickCount2024,
+  STRANGE_MODIFICATIONS_NAME_RU,
+} from '../../shared/dnd/artificerBook2024Features'
 import { ELDRITCH_INVOCATIONS_2024 } from '../../shared/dnd/edition2024ClassOptions'
 import {
   BARBARIAN_SUBCLASS_SLUGS_2024,
@@ -591,13 +597,14 @@ function abilitiesIssues(state: Create2024State): string[] {
   return []
 }
 
-/** Artificer 2024 create-time picks: armor model, replicate plans N/M, SSI spell @11+. */
+/** Artificer 2024 create-time picks: armor model, replicate plans N/M, SSI spell @11+, reanimator mods. */
 export function artificerCreatePicksNeed2024(state: Create2024State): {
   artificerLevel: number
   subclassSlug: string
   armorModel: boolean
   plansKnown: number
   spellStoring: boolean
+  strangeMods: number
 } {
   if (state.classSlug !== 'artificer') {
     return {
@@ -606,6 +613,7 @@ export function artificerCreatePicksNeed2024(state: Create2024State): {
       armorModel: false,
       plansKnown: 0,
       spellStoring: false,
+      strangeMods: 0,
     }
   }
   const primary =
@@ -622,6 +630,10 @@ export function artificerCreatePicksNeed2024(state: Create2024State): {
       artificerLevel >= ARTIFICER_SUBCLASS_MIN_LEVEL_2024,
     plansKnown,
     spellStoring: artificerLevel >= SPELL_STORING_ITEM_MIN_LEVEL_2024,
+    strangeMods:
+      subclass === REANIMATOR_SUBCLASS_SLUG_2024
+        ? strangeModificationPickCount2024(artificerLevel)
+        : 0,
   }
 }
 
@@ -1039,6 +1051,24 @@ function levelingIssues(state: Create2024State, ctx: StepIssueCtx): string[] {
       const spell = String(state.classOptionPicks.spell_storing_spell || '').trim()
       if (!spell) {
         issues.push(`Выберите заклинание для «${SPELL_STORING_ITEM_NAME_RU}» (1–3 круг)`)
+      }
+    }
+    if (need.strangeMods > 0) {
+      const raw = state.classOptionPicks.strange_modifications
+      const mods = Array.isArray(raw)
+        ? raw.map((id) => String(id).trim()).filter(Boolean)
+        : String(raw || '')
+            .split(',')
+            .map((id) => id.trim())
+            .filter(Boolean)
+      const allowed = new Set(
+        strangeModificationOptions2024(need.artificerLevel).map((row) => row.id),
+      )
+      const unique = [...new Set(mods)].filter((id) => allowed.has(id as never))
+      if (unique.length !== need.strangeMods) {
+        issues.push(
+          `${STRANGE_MODIFICATIONS_NAME_RU}: выбрано ${unique.length} из ${need.strangeMods}`,
+        )
       }
     }
   }

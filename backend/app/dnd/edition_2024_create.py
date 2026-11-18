@@ -1387,6 +1387,42 @@ def _validate_artificer_options_2024(
             )
         out["armor_model"] = model
 
+    if subclass == "artificer__reanimator" and artificer_level >= 5:
+        need = 3 if artificer_level >= 15 else 2 if artificer_level >= 9 else 1
+        allowed = {
+            "magical_conduit",
+            "ferocity",
+            "bloated",
+            "gaunt",
+            "sodden",
+        }
+        if artificer_level < 9:
+            allowed = {"magical_conduit", "ferocity"}
+        raw_mods = picks.get("strange_modifications") or []
+        if isinstance(raw_mods, str):
+            raw_mods = [part.strip() for part in raw_mods.split(",") if part.strip()]
+        if not isinstance(raw_mods, (list, tuple)):
+            raise Create2024Error(
+                "Реаниматор 5+: передайте список Чуждых модификаций",
+                code="create_2024_class_options",
+            )
+        mods = []
+        for item in raw_mods:
+            key = str(item or "").strip().lower().replace("-", "_")
+            if key not in allowed:
+                raise Create2024Error(
+                    f"Реаниматор: неизвестная модификация «{item}»",
+                    code="create_2024_class_options",
+                )
+            if key not in mods:
+                mods.append(key)
+        if len(mods) != need:
+            raise Create2024Error(
+                f"Реаниматор {artificer_level}+: выберите {need} Чуждых модификаций",
+                code="create_2024_class_options",
+            )
+        out["strange_modifications"] = mods
+
     plans_limit = 0
     if artificer_level >= 2:
         row = e24.class_level_row("artificer", artificer_level)
@@ -2419,6 +2455,19 @@ def _sync_artificer_subclass_picks(sheet: dict[str, Any], class_options: Mapping
         if spell:
             values[f"{entry_id}:spell_storing_spell"] = spell
             values[f"{entry_id}:spell-storing-item"] = spell
+
+        raw_mods = class_options.get("strange_modifications") or []
+        if isinstance(raw_mods, str):
+            raw_mods = [part.strip() for part in raw_mods.split(",") if part.strip()]
+        if isinstance(raw_mods, (list, tuple)) and raw_mods:
+            joined = ",".join(
+                str(item).strip().lower().replace("-", "_")
+                for item in raw_mods
+                if str(item).strip()
+            )
+            if joined:
+                values[f"{entry_id}:strange_modifications"] = joined
+                values[f"{entry_id}:strange-modifications"] = joined
 
         sheet["feature_picks"] = {"values": values}
 

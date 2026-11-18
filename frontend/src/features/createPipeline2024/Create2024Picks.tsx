@@ -71,6 +71,7 @@ import {
   PLANS_KNOWN_COLUMN_RU,
   SPELL_STORING_ITEM_NAME_RU,
 } from '../../shared/dnd/artificer2024Features'
+import { strangeModificationOptions2024 } from '../../shared/dnd/artificerBook2024Features'
 import { ARTIFICER_REPLICATE_PLANS_2024 } from '../../shared/dnd/edition2024ClassOptions'
 import {
   WILD_HEART_ASPECT_OPTIONS_RU,
@@ -483,13 +484,26 @@ export function ArtificerLevelingPicks({
   catalog?: Create2024CatalogBundle
 }) {
   const need = artificerCreatePicksNeed2024(state)
-  if (!need.armorModel && need.plansKnown <= 0 && !need.spellStoring) return null
+  if (
+    !need.armorModel &&
+    need.plansKnown <= 0 &&
+    !need.spellStoring &&
+    need.strangeMods <= 0
+  ) {
+    return null
+  }
   const setPicks = (partial: Record<string, unknown>) =>
     patch({ classOptionPicks: { ...state.classOptionPicks, ...partial } })
   const plansSelected = Array.isArray(state.classOptionPicks.replicate_plans)
     ? (state.classOptionPicks.replicate_plans as string[])
     : []
   const ssiSpell = String(state.classOptionPicks.spell_storing_spell || '')
+  const strangeSelected = Array.isArray(state.classOptionPicks.strange_modifications)
+    ? (state.classOptionPicks.strange_modifications as string[])
+    : String(state.classOptionPicks.strange_modifications || '')
+        .split(',')
+        .map((id) => id.trim())
+        .filter(Boolean)
   const ssiOptions = (catalog?.spells ?? [])
     .filter((spell) => {
       const lv = spellLevel(spell)
@@ -509,6 +523,21 @@ export function ArtificerLevelingPicks({
           multi={false}
           testIdPrefix="p24-m03-pick-armor_model"
           onChange={(picked) => setPicks({ armor_model: picked[0] ?? null })}
+        />
+      ) : null}
+      {need.strangeMods > 0 ? (
+        <PickChipGroup
+          label="Чуждые модификации"
+          hint={`Выберите ${need.strangeMods} модификаций Реанимированного спутника.`}
+          options={strangeModificationOptions2024(need.artificerLevel).map((row) => ({
+            id: row.id,
+            label: row.nameRu,
+          }))}
+          selected={strangeSelected}
+          max={need.strangeMods}
+          multi
+          testIdPrefix="p24-m03-pick-strange_mod"
+          onChange={(picked) => setPicks({ strange_modifications: picked })}
         />
       ) : null}
       {need.plansKnown > 0 ? (

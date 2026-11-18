@@ -92,13 +92,23 @@ def test_reanimator_catalog_names_and_full_summaries():
         assert "…" not in summary, fid
         assert len(summary) > 120, fid
         assert FORBIDDEN_COMPANION_LABEL not in summary, fid
+        assert summary.rstrip().endswith((".", ";", "»")), fid  # no mid-word scrape cut
+    spells = by_id["reanimator-spells"]["summary_ru"]
+    assert "Ведьмин снаряд" in spells and "Оживление" in spells
+    skill = by_id["reanimator-s-skill-set"]["summary_ru"]
+    assert "Оживляющий разряд" in skill and "2к4" in skill
+    companion = by_id["reanimated-companion"]["summary_ru"]
+    assert "Реанимированного спутника" in companion or "Реанимированный спутник" in companion
     improved = by_id["improved-reanimation"]["summary_ru"]
     assert "4к4" in improved
+    assert "игнорирует" in improved.lower()
     macabre = by_id["macabre-modifications"]["summary_ru"]
     assert "два" in macabre.lower()
+    assert "Раздутый" in macabre and "Тощий" in macabre and "Влажный" in macabre
     refined = by_id["refined-reanimation"]["summary_ru"]
     assert "Оживление" in refined
     assert "три" in refined.lower()
+    assert "Перекачивание" in refined
 
 
 def test_efa_artificer_subclass_names():

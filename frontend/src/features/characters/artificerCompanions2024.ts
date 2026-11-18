@@ -7,8 +7,12 @@ import type { ClassLevelEntry } from '../../shared/dnd/classLevels'
 import {
   ARTIFICER_SUBCLASS_SLUGS_2024,
   ELDRITCH_CANNON_NAME_RU,
+  REANIMATOR_SUBCLASS_SLUG_2024,
   STEEL_DEFENDER_NAME_RU,
 } from '../../shared/dnd/artificer2024Features'
+import { REANIMATED_COMPANION_NAME_RU } from '../../shared/dnd/artificerBook2024Features'
+import { getFeaturePickList } from '../../shared/dnd/featurePicks'
+import type { FeaturePicksState } from '../../shared/dnd/featurePicks'
 import type { RulesEdition } from '../../shared/api/characters'
 import {
   companionFromTemplate,
@@ -19,6 +23,7 @@ import { type CompanionEntry } from './companions'
 
 const CANNON_FEATURES = ['eldritch-cannon', 'eldritch_cannon'] as const
 const DEFENDER_FEATURES = ['steel-defender', 'steel_defender', 'steel_defender_name'] as const
+const REANIMATED_FEATURES = ['reanimated-companion', 'reanimated_companion'] as const
 
 function normalizeSubclassKey(raw: string): string {
   return raw
@@ -187,18 +192,67 @@ export function syncSteelDefender2024(input: {
   })
 }
 
-/** Apply both EFA companion syncs. */
+export function syncReanimatedCompanion2024(input: {
+  companions: CompanionEntry[]
+  classes: ClassLevelEntry[]
+  rulesEdition?: RulesEdition | string | null
+  characterLevel: number
+  intMod: number
+  featurePicks?: FeaturePicksState | null
+}): { companions: CompanionEntry[]; changed: boolean } {
+  if (input.rulesEdition !== '2024') {
+    return { companions: input.companions, changed: false }
+  }
+  const host = findArtificerSubclassRow(
+    input.classes,
+    REANIMATOR_SUBCLASS_SLUG_2024,
+    /реаниматор/i,
+  )
+  if (!host) {
+    const before = input.companions.length
+    const kept = input.companions.filter(
+      (row) =>
+        !REANIMATED_FEATURES.includes(
+          String(row.source?.feature ?? '') as (typeof REANIMATED_FEATURES)[number],
+        ),
+    )
+    return { companions: kept, changed: kept.length !== before }
+  }
+  const mods =
+    input.featurePicks
+      ? getFeaturePickList(input.featurePicks, host.classEntryId, 'strange_modifications')
+      : []
+  const pickValue = mods.length > 0 ? `reanimated_companion|${mods.join('+')}` : 'reanimated_companion'
+  return syncOne({
+    companions: input.companions,
+    host,
+    feature: 'reanimated-companion',
+    choiceId: 'reanimated-companion',
+    pickValue,
+    labelRu: REANIMATED_COMPANION_NAME_RU,
+    characterLevel: input.characterLevel,
+    intMod: input.intMod,
+    featureIds: REANIMATED_FEATURES,
+  })
+}
+
+/** Apply EFA + Reanimator companion syncs. */
 export function syncArtificerCompanions2024(input: {
   companions: CompanionEntry[]
   classes: ClassLevelEntry[]
   rulesEdition?: RulesEdition | string | null
   characterLevel: number
   intMod: number
+  featurePicks?: FeaturePicksState | null
 }): { companions: CompanionEntry[]; changed: boolean } {
   const cannon = syncEldritchCannon2024(input)
   const defender = syncSteelDefender2024({ ...input, companions: cannon.companions })
-  return {
+  const reanimated = syncReanimatedCompanion2024({
+    ...input,
     companions: defender.companions,
-    changed: cannon.changed || defender.changed,
+  })
+  return {
+    companions: reanimated.companions,
+    changed: cannon.changed || defender.changed || reanimated.changed,
   }
 }
