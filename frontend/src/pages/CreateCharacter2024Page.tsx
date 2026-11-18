@@ -565,11 +565,13 @@ export function CreateCharacter2024Page({
     const bardSpec = parseBardSeed(e2eSeed)
     const bardClass = bySlug(catalog.classes, 'bard')
     if (bardSpec && bardClass) {
-      const bardSkills = ['performance', 'persuasion']
+      // PHB 2024 Bard picks 3 class skills.
+      const bardSkills = ['performance', 'persuasion', 'deception']
       seeds[e2eSeed] = {
         name: `Бард ${bardSpec.level}`,
         classSlug: 'bard',
-        abilities: { str: 8, dex: 14, con: 14, int: 10, wis: 10, cha: 15 },
+        // Standard array 15/14/13/12/10/8 (CHA primary, DEX/CON next).
+        abilities: { str: 8, dex: 14, con: 13, int: 10, wis: 12, cha: 15 },
         rows: [
           {
             slug: 'bard',

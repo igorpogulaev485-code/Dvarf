@@ -68,7 +68,6 @@ import {
   STUDENT_OF_ARCANA_SKILLS_2024,
 } from '../../shared/dnd/clericBook2024Features'
 import {
-  bardBookCreatePicksNeed2024 as bardBookCreatePicksNeedCore2024,
   PRIMAL_LORE_CANTRIPS_2024,
   PRIMAL_LORE_SKILLS_2024,
 } from '../../shared/dnd/bardBook2024Features'
@@ -767,17 +766,15 @@ export function bardBookCreatePicksNeed2024(state: Create2024State): {
   const subclass = String(
     (primary && state.subclassByEntryId[primary.id]) || state.subclassSlug || '',
   ).toLowerCase()
-  const need = bardBookCreatePicksNeedCore2024({
-    subclassSlug: subclass,
-    bardLevel,
-    classOptionPicks: state.classOptionPicks as Record<string, unknown>,
-  })
+  // Show moon picks whenever the subclass gate is open (like cleric book picks),
+  // even if seed already filled values — create shots need the widget visible.
+  const moonOpen = subclass === 'bard__college-of-the-moon' && bardLevel >= 3
   return {
     bardLevel,
     subclassSlug: subclass,
-    primalCantrip: need.primalCantrip,
-    primalSkill: need.primalSkill,
-    any: need.any,
+    primalCantrip: moonOpen,
+    primalSkill: moonOpen,
+    any: moonOpen,
   }
 }
 

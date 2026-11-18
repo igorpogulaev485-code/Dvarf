@@ -159,24 +159,17 @@ export function buildBardSeedSpells(
   return {
     cantripIds,
     spellbookSpellIds: [],
-    preparedSpellIds: [...cantripIds, ...prepared],
+    // Prepared budget is leveled spells only (cantrips live in cantripIds).
+    preparedSpellIds: prepared,
   }
 }
 
 export function buildBardClassOptionPicks(
   level: number,
   subclassSlug: string | null | undefined,
-  classSkills: string[] = ['performance', 'persuasion'],
+  classSkills: string[] = ['performance', 'persuasion', 'deception'],
 ): Record<string, unknown> {
   const out: Record<string, unknown> = {}
-  const expertiseNeed = level >= 9 ? 4 : level >= 2 ? 2 : 0
-  if (expertiseNeed > 0) {
-    const pool: string[] = []
-    for (const skill of [...classSkills, 'performance', 'persuasion', 'deception', 'insight']) {
-      if (!pool.includes(skill)) pool.push(skill)
-    }
-    out.expertise = pool.slice(0, expertiseNeed)
-  }
   const sub = String(subclassSlug || '').toLowerCase()
   if (sub === 'bard__college-of-the-moon' && level >= 3) {
     out.primal_lore_skill = 'nature'
@@ -187,6 +180,21 @@ export function buildBardClassOptionPicks(
   }
   if (sub === 'bard__lore' && level >= 6) {
     out.magical_discoveries = ['guidance', 'fireball']
+  }
+  const expertiseNeed = level >= 9 ? 4 : level >= 2 ? 2 : 0
+  if (expertiseNeed > 0) {
+    // Expertise only in skills the character actually has (class + soldier bg + moon nature).
+    const pool: string[] = []
+    const proficient = [
+      ...classSkills,
+      'athletics',
+      'intimidation',
+      ...(sub === 'bard__college-of-the-moon' && level >= 3 ? (['nature'] as const) : []),
+    ]
+    for (const skill of proficient) {
+      if (!pool.includes(skill)) pool.push(skill)
+    }
+    out.expertise = pool.slice(0, expertiseNeed)
   }
   return out
 }
