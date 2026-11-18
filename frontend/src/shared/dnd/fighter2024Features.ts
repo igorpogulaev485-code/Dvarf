@@ -1,0 +1,441 @@
+/**
+ * Fighter 2024 (PHB / SRD 5.2): Second Wind, Action Surge, Weapon Mastery,
+ * Tactical Mind / Shift / Master, Studied Attacks, Indomitable, and PHB
+ * subclasses (Champion, Battle Master, Eldritch Knight, Psi Warrior).
+ *
+ * Callers branch on `rules_edition === '2024'`; nothing here feeds the 2014
+ * fighter pack. Names follow the FINAL Russian list approved by Игорь 18.11.2026.
+ */
+
+import type { ClassLevelEntry } from './classLevels'
+import { normalizeClassSlug2024 } from './edition2024Classes'
+
+/* ------------------------------------------------------------------ */
+/* Names (RU — FINAL)                                                  */
+/* ------------------------------------------------------------------ */
+
+export const FIGHTER_CLASS_NAME_RU = 'Воин'
+
+export const FIGHTING_STYLE_NAME_RU = 'Боевой стиль'
+export const SECOND_WIND_NAME_RU = 'Второе дыхание'
+export const WEAPON_MASTERY_NAME_RU = 'Оружейное мастерство'
+export const ACTION_SURGE_NAME_RU = 'Всплеск действий'
+export const TACTICAL_MIND_NAME_RU = 'Тактическое мышление'
+export const FIGHTER_SUBCLASS_NAME_RU = 'Подкласс воина'
+export const ASI_NAME_RU = 'Увеличение характеристик'
+export const EXTRA_ATTACK_NAME_RU = 'Дополнительная атака'
+export const TWO_EXTRA_ATTACKS_NAME_RU = 'Две дополнительные атаки'
+export const THREE_EXTRA_ATTACKS_NAME_RU = 'Три дополнительные атаки'
+export const TACTICAL_SHIFT_NAME_RU = 'Тактическое смещение'
+export const INDOMITABLE_NAME_RU = 'Непоколебимость'
+export const TACTICAL_MASTER_NAME_RU = 'Тактическое решение'
+export const STUDIED_ATTACKS_NAME_RU = 'Изучающие выпады'
+export const EPIC_BOON_NAME_RU = 'Эпический дар'
+export const SUBCLASS_FEATURE_NAME_RU = 'Умение подкласса'
+export const SPELLCASTING_NAME_RU = 'Сотворение заклинаний'
+
+/* Champion */
+export const CHAMPION_NAME_RU = 'Чемпион'
+export const IMPROVED_CRITICAL_NAME_RU = 'Улучшенный критический удар'
+export const REMARKABLE_ATHLETE_NAME_RU = 'Выдающийся атлет'
+export const ADDITIONAL_FIGHTING_STYLE_NAME_RU = 'Дополнительный боевой стиль'
+export const HEROIC_WARRIOR_NAME_RU = 'Героический воин'
+export const SUPERIOR_CRITICAL_NAME_RU = 'Превосходный критический удар'
+export const DEFY_DEATH_NAME_RU = 'Вызов смерти'
+export const DENY_DEATH_NAME_RU = 'Отрицание смерти'
+export const HEROIC_FORTITUDE_NAME_RU = 'Героическая крепость'
+
+/* Battle Master */
+export const BATTLE_MASTER_NAME_RU = 'Мастер боевых искусств'
+export const COMBAT_SUPERIORITY_NAME_RU = 'Боевое превосходство'
+export const STUDENT_OF_WAR_NAME_RU = 'Ученик войны'
+export const KNOW_YOUR_ENEMY_NAME_RU = 'Знай своего врага'
+export const IMPROVED_COMBAT_SUPERIORITY_NAME_RU = 'Улучшенное боевое превосходство'
+export const RELENTLESS_NAME_RU = 'Неутомимый'
+export const ULTIMATE_COMBAT_SUPERIORITY_NAME_RU = 'Абсолютное боевое превосходство'
+
+/* Eldritch Knight */
+export const ELDRITCH_KNIGHT_NAME_RU = 'Мистический рыцарь'
+export const WEAPON_BOND_NAME_RU = 'Связь с оружием'
+export const WAR_MAGIC_NAME_RU = 'Боевая магия'
+export const ELDRITCH_STRIKE_NAME_RU = 'Мистический удар'
+export const ARCANE_CHARGE_NAME_RU = 'Магический рывок'
+export const IMPROVED_WAR_MAGIC_NAME_RU = 'Улучшенная боевая магия'
+
+/* Psi Warrior */
+export const PSI_WARRIOR_NAME_RU = 'Пси-воин'
+export const PSIONIC_POWER_NAME_RU = 'Псионическая сила'
+export const TELEKINETIC_ADEPT_NAME_RU = 'Телекинетический адепт'
+export const GUARDED_MIND_NAME_RU = 'Охраняемый разум'
+export const BULWARK_OF_FORCE_NAME_RU = 'Оплот силы'
+export const TELEKINETIC_MASTER_NAME_RU = 'Мастер телекинеза'
+
+/* ------------------------------------------------------------------ */
+/* Ids / pools                                                         */
+/* ------------------------------------------------------------------ */
+
+export const FIGHTER_CLASS_SLUG_2024 = 'fighter'
+
+export const FIGHTER_SUBCLASS_SLUGS_2024 = {
+  champion: 'fighter__champion',
+  battlemaster: 'fighter__battlemaster',
+  eldritchKnight: 'fighter__eldritch-knight',
+  psiWarrior: 'fighter__psi-warrior',
+} as const
+
+export type FighterSubclassKey2024 = keyof typeof FIGHTER_SUBCLASS_SLUGS_2024
+
+/** Book / 2014-only — not in PHB 2024 picker for this pack. */
+export const OUT_OF_PACK_FIGHTER_SUBCLASSES_2024 = [
+  'fighter__purple-dragon-knight', // Banneret (FRHoF)
+  'fighter__arcane-archer', // AU / Misty Archer
+  'fighter__cavalier',
+  'fighter__samurai',
+  'fighter__echo-knight',
+  'fighter__rune-knight',
+] as const
+
+export const SECOND_WIND_POOL_ID = 'second_wind'
+export const ACTION_SURGE_POOL_ID = 'action_surge'
+export const INDOMITABLE_POOL_ID = 'indomitable'
+export const SUPERIORITY_DICE_POOL_ID = 'superiority_dice'
+export const PSIONIC_ENERGY_POOL_ID = 'psionic_energy'
+export const KNOW_YOUR_ENEMY_POOL_ID = 'know_your_enemy'
+export const TELEKINETIC_MOVEMENT_POOL_ID = 'telekinetic_movement'
+export const PSI_POWERED_LEAP_POOL_ID = 'psi_powered_leap'
+export const BULWARK_OF_FORCE_POOL_ID = 'bulwark_of_force'
+export const TELEKINETIC_MASTER_POOL_ID = 'telekinetic_master'
+
+export const SUBCLASS_MIN_LEVEL_2024 = 3
+export const ACTION_SURGE_MIN_LEVEL_2024 = 2
+export const TACTICAL_MIND_MIN_LEVEL_2024 = 2
+export const EXTRA_ATTACK_MIN_LEVEL_2024 = 5
+export const TACTICAL_SHIFT_MIN_LEVEL_2024 = 5
+export const INDOMITABLE_MIN_LEVEL_2024 = 9
+export const TACTICAL_MASTER_MIN_LEVEL_2024 = 9
+export const TWO_EXTRA_ATTACKS_MIN_LEVEL_2024 = 11
+export const STUDIED_ATTACKS_MIN_LEVEL_2024 = 13
+export const ACTION_SURGE_SECOND_USE_LEVEL_2024 = 17
+export const EPIC_BOON_MIN_LEVEL_2024 = 19
+export const THREE_EXTRA_ATTACKS_MIN_LEVEL_2024 = 20
+
+/** PHB 2024 Battle Master maneuvers (20). Tasha-only Grappling Strike / Quick Toss / Brace stay 2014-only. */
+export const BATTLE_MASTER_MANEUVER_IDS_PHB_2024 = [
+  'evasive_footwork',
+  'lunging_attack',
+  'maneuvering_attack',
+  'menacing_attack',
+  'feinting_attack',
+  'ambush',
+  'commanding_presence',
+  'disarming_attack',
+  'trip_attack',
+  'riposte',
+  'distracting_strike',
+  'parry',
+  'bait_and_switch',
+  'goading_attack',
+  'sweeping_attack',
+  'rally',
+  'tactical_assessment',
+  'pushing_attack',
+  'precision_attack',
+  'commanders_strike',
+] as const
+
+export const BATTLE_MASTER_MANEUVER_IDS_TASHA_ONLY_2014 = [
+  'grappling_strike',
+  'quick_toss',
+  'brace',
+] as const
+
+/* ------------------------------------------------------------------ */
+/* Feature names by id (leveling / sheet labels)                       */
+/* ------------------------------------------------------------------ */
+
+export const FIGHTER_FEATURE_NAMES_BY_ID: Record<string, string> = {
+  'fighting-style': FIGHTING_STYLE_NAME_RU,
+  fighting_style: FIGHTING_STYLE_NAME_RU,
+  'second-wind': SECOND_WIND_NAME_RU,
+  second_wind: SECOND_WIND_NAME_RU,
+  'weapon-mastery': WEAPON_MASTERY_NAME_RU,
+  weapon_mastery: WEAPON_MASTERY_NAME_RU,
+  'action-surge': ACTION_SURGE_NAME_RU,
+  action_surge: ACTION_SURGE_NAME_RU,
+  'tactical-mind': TACTICAL_MIND_NAME_RU,
+  tactical_mind: TACTICAL_MIND_NAME_RU,
+  'fighter-subclass': FIGHTER_SUBCLASS_NAME_RU,
+  fighter_subclass: FIGHTER_SUBCLASS_NAME_RU,
+  subclass: FIGHTER_SUBCLASS_NAME_RU,
+  'ability-score-improvement': ASI_NAME_RU,
+  ability_score_improvement: ASI_NAME_RU,
+  asi: ASI_NAME_RU,
+  'extra-attack': EXTRA_ATTACK_NAME_RU,
+  extra_attack: EXTRA_ATTACK_NAME_RU,
+  'tactical-shift': TACTICAL_SHIFT_NAME_RU,
+  tactical_shift: TACTICAL_SHIFT_NAME_RU,
+  'subclass-feature': SUBCLASS_FEATURE_NAME_RU,
+  subclass_feature: SUBCLASS_FEATURE_NAME_RU,
+  indomitable: INDOMITABLE_NAME_RU,
+  'tactical-master': TACTICAL_MASTER_NAME_RU,
+  tactical_master: TACTICAL_MASTER_NAME_RU,
+  'two-extra-attacks': TWO_EXTRA_ATTACKS_NAME_RU,
+  two_extra_attacks: TWO_EXTRA_ATTACKS_NAME_RU,
+  'studied-attacks': STUDIED_ATTACKS_NAME_RU,
+  studied_attacks: STUDIED_ATTACKS_NAME_RU,
+  'epic-boon': EPIC_BOON_NAME_RU,
+  epic_boon: EPIC_BOON_NAME_RU,
+  'three-extra-attacks': THREE_EXTRA_ATTACKS_NAME_RU,
+  three_extra_attacks: THREE_EXTRA_ATTACKS_NAME_RU,
+
+  /* Champion */
+  'improved-critical': IMPROVED_CRITICAL_NAME_RU,
+  improved_critical: IMPROVED_CRITICAL_NAME_RU,
+  'remarkable-athlete': REMARKABLE_ATHLETE_NAME_RU,
+  remarkable_athlete: REMARKABLE_ATHLETE_NAME_RU,
+  'additional-fighting-style': ADDITIONAL_FIGHTING_STYLE_NAME_RU,
+  additional_fighting_style: ADDITIONAL_FIGHTING_STYLE_NAME_RU,
+  'heroic-warrior': HEROIC_WARRIOR_NAME_RU,
+  heroic_warrior: HEROIC_WARRIOR_NAME_RU,
+  'superior-critical': SUPERIOR_CRITICAL_NAME_RU,
+  superior_critical: SUPERIOR_CRITICAL_NAME_RU,
+  survivor: DEFY_DEATH_NAME_RU,
+  'defy-death': DEFY_DEATH_NAME_RU,
+  defy_death: DEFY_DEATH_NAME_RU,
+
+  /* Battle Master */
+  'combat-superiority': COMBAT_SUPERIORITY_NAME_RU,
+  combat_superiority: COMBAT_SUPERIORITY_NAME_RU,
+  'student-of-war': STUDENT_OF_WAR_NAME_RU,
+  student_of_war: STUDENT_OF_WAR_NAME_RU,
+  'know-your-enemy': KNOW_YOUR_ENEMY_NAME_RU,
+  know_your_enemy: KNOW_YOUR_ENEMY_NAME_RU,
+  'improved-combat-superiority': IMPROVED_COMBAT_SUPERIORITY_NAME_RU,
+  improved_combat_superiority: IMPROVED_COMBAT_SUPERIORITY_NAME_RU,
+  relentless: RELENTLESS_NAME_RU,
+  'ultimate-combat-superiority': ULTIMATE_COMBAT_SUPERIORITY_NAME_RU,
+  ultimate_combat_superiority: ULTIMATE_COMBAT_SUPERIORITY_NAME_RU,
+
+  /* Eldritch Knight */
+  spellcasting: SPELLCASTING_NAME_RU,
+  'weapon-bond': WEAPON_BOND_NAME_RU,
+  weapon_bond: WEAPON_BOND_NAME_RU,
+  'war-magic': WAR_MAGIC_NAME_RU,
+  war_magic: WAR_MAGIC_NAME_RU,
+  'eldritch-strike': ELDRITCH_STRIKE_NAME_RU,
+  eldritch_strike: ELDRITCH_STRIKE_NAME_RU,
+  'arcane-charge': ARCANE_CHARGE_NAME_RU,
+  arcane_charge: ARCANE_CHARGE_NAME_RU,
+  'improved-war-magic': IMPROVED_WAR_MAGIC_NAME_RU,
+  improved_war_magic: IMPROVED_WAR_MAGIC_NAME_RU,
+
+  /* Psi Warrior */
+  'psionic-power': PSIONIC_POWER_NAME_RU,
+  psionic_power: PSIONIC_POWER_NAME_RU,
+  'telekinetic-adept': TELEKINETIC_ADEPT_NAME_RU,
+  telekinetic_adept: TELEKINETIC_ADEPT_NAME_RU,
+  'guarded-mind': GUARDED_MIND_NAME_RU,
+  guarded_mind: GUARDED_MIND_NAME_RU,
+  'bulwark-of-force': BULWARK_OF_FORCE_NAME_RU,
+  bulwark_of_force: BULWARK_OF_FORCE_NAME_RU,
+  'telekinetic-master': TELEKINETIC_MASTER_NAME_RU,
+  telekinetic_master: TELEKINETIC_MASTER_NAME_RU,
+}
+
+export function fighterFeatureNameRu2024(featureId: string | null | undefined): string | null {
+  if (!featureId) return null
+  const key = featureId.trim().replace(/_/g, '-')
+  return (
+    FIGHTER_FEATURE_NAMES_BY_ID[featureId]
+    || FIGHTER_FEATURE_NAMES_BY_ID[key]
+    || FIGHTER_FEATURE_NAMES_BY_ID[featureId.replace(/-/g, '_')]
+    || null
+  )
+}
+
+/* ------------------------------------------------------------------ */
+/* Helpers                                                             */
+/* ------------------------------------------------------------------ */
+
+function lvl(value: number): number {
+  return Math.max(0, Math.floor(value || 0))
+}
+
+export function isFighterClassSlug(slug: string | null | undefined): boolean {
+  const key = (slug ?? '').trim().toLowerCase()
+  if (key === FIGHTER_CLASS_SLUG_2024) return true
+  return /воин|fighter|боец/.test(key)
+}
+
+export function normalizeFighterClassSlug(
+  slug: string | null | undefined,
+): string | null {
+  const n = normalizeClassSlug2024(slug ?? '')
+  return n === FIGHTER_CLASS_SLUG_2024
+    ? n
+    : isFighterClassSlug(slug)
+      ? FIGHTER_CLASS_SLUG_2024
+      : null
+}
+
+export function fighterLevelsFromClasses(classes: ClassLevelEntry[] | undefined | null): number {
+  let total = 0
+  for (const row of classes ?? []) {
+    const catalogId = String((row as { catalog_id?: string }).catalog_id ?? '').toLowerCase()
+    if (
+      normalizeFighterClassSlug(row.name)
+      || catalogId.includes('fighter')
+      || /воин|боец/i.test(row.name || '')
+    ) {
+      total += Math.max(0, Math.floor(row.level))
+    }
+  }
+  return total
+}
+
+export function isPhbFighterSubclassSlug(slug: string | null | undefined): boolean {
+  const key = (slug ?? '').trim().toLowerCase()
+  return (Object.values(FIGHTER_SUBCLASS_SLUGS_2024) as string[]).includes(key)
+}
+
+export function isOutOfPackFighterSubclassSlug(slug: string | null | undefined): boolean {
+  const key = (slug ?? '').trim().toLowerCase()
+  return (OUT_OF_PACK_FIGHTER_SUBCLASSES_2024 as readonly string[]).includes(key)
+}
+
+/** Second Wind uses: 2 / 3 / 4 by fighter level (2024 table). */
+export function secondWindUses2024(fighterLevel: number): number {
+  const level = lvl(fighterLevel)
+  if (level >= 10) return 4
+  if (level >= 4) return 3
+  if (level >= 1) return 2
+  return 0
+}
+
+/** Action Surge uses: 1 from 2, 2 from 17 (one per turn). */
+export function actionSurgeUses2024(fighterLevel: number): number {
+  const level = lvl(fighterLevel)
+  if (level >= ACTION_SURGE_SECOND_USE_LEVEL_2024) return 2
+  if (level >= ACTION_SURGE_MIN_LEVEL_2024) return 1
+  return 0
+}
+
+/** Indomitable uses: 1 / 2 / 3 at 9 / 13 / 17. */
+export function indomitableUses2024(fighterLevel: number): number {
+  const level = lvl(fighterLevel)
+  if (level >= 17) return 3
+  if (level >= 13) return 2
+  if (level >= INDOMITABLE_MIN_LEVEL_2024) return 1
+  return 0
+}
+
+/** Weapon Mastery slots: 3 / 4 / 5 / 6 at 1 / 4 / 10 / 16. */
+export function weaponMasterySlots2024(fighterLevel: number): number {
+  const level = lvl(fighterLevel)
+  if (level >= 16) return 6
+  if (level >= 10) return 5
+  if (level >= 4) return 4
+  if (level >= 1) return 3
+  return 0
+}
+
+/** Attacks from Extra Attack progression: 1 / 2 / 3 / 4. */
+export function fighterAttackCount2024(fighterLevel: number): number {
+  const level = lvl(fighterLevel)
+  if (level >= THREE_EXTRA_ATTACKS_MIN_LEVEL_2024) return 4
+  if (level >= TWO_EXTRA_ATTACKS_MIN_LEVEL_2024) return 3
+  if (level >= EXTRA_ATTACK_MIN_LEVEL_2024) return 2
+  return 1
+}
+
+/** Indomitable 2024: reroll save with bonus = fighter level. */
+export function indomitableBonus2024(fighterLevel: number): number {
+  return lvl(fighterLevel) >= INDOMITABLE_MIN_LEVEL_2024 ? lvl(fighterLevel) : 0
+}
+
+/** Battle Master superiority dice count: 4 / 5 / 6 at 3 / 7 / 15. */
+export function superiorityDiceCount2024(fighterLevel: number): number {
+  const level = lvl(fighterLevel)
+  if (level >= 15) return 6
+  if (level >= 7) return 5
+  if (level >= 3) return 4
+  return 0
+}
+
+/** Superiority die size: d8 / d10 / d12 at 3 / 10 / 18. */
+export function superiorityDieSize2024(fighterLevel: number): number {
+  const level = lvl(fighterLevel)
+  if (level >= 18) return 12
+  if (level >= 10) return 10
+  if (level >= 3) return 8
+  return 0
+}
+
+/** Maneuvers known: 3 + 2 at 7/10/15. */
+export function maneuversKnown2024(fighterLevel: number): number {
+  const level = lvl(fighterLevel)
+  if (level >= 15) return 9
+  if (level >= 10) return 7
+  if (level >= 7) return 5
+  if (level >= 3) return 3
+  return 0
+}
+
+/** Psi Warrior energy die: size + count by fighter level. */
+export function psionicEnergyDice2024(fighterLevel: number): { die: number; count: number } {
+  const level = lvl(fighterLevel)
+  if (level >= 17) return { die: 12, count: 12 }
+  if (level >= 13) return { die: 10, count: 10 }
+  if (level >= 11) return { die: 10, count: 8 }
+  if (level >= 9) return { die: 8, count: 8 }
+  if (level >= 5) return { die: 8, count: 6 }
+  if (level >= 3) return { die: 6, count: 4 }
+  return { die: 0, count: 0 }
+}
+
+/** Eldritch Knight prepared spells + slots by fighter level (2024 table). */
+export function eldritchKnightSpellTable2024(fighterLevel: number): {
+  prepared: number
+  slots: [number, number, number, number]
+  cantrips: number
+} {
+  const level = lvl(fighterLevel)
+  const cantrips = level >= 10 ? 3 : level >= 3 ? 2 : 0
+  if (level >= 20) return { prepared: 13, slots: [4, 3, 3, 1], cantrips }
+  if (level >= 19) return { prepared: 12, slots: [4, 3, 3, 1], cantrips }
+  if (level >= 16) return { prepared: 11, slots: [4, 3, 3, 0], cantrips }
+  if (level >= 14) return { prepared: 10, slots: [4, 3, 2, 0], cantrips }
+  if (level >= 13) return { prepared: 9, slots: [4, 3, 2, 0], cantrips }
+  if (level >= 11) return { prepared: 8, slots: [4, 3, 0, 0], cantrips }
+  if (level >= 10) return { prepared: 7, slots: [4, 3, 0, 0], cantrips }
+  if (level >= 8) return { prepared: 6, slots: [4, 2, 0, 0], cantrips }
+  if (level >= 7) return { prepared: 5, slots: [4, 2, 0, 0], cantrips }
+  if (level >= 5) return { prepared: 4, slots: [3, 0, 0, 0], cantrips }
+  if (level >= 4) return { prepared: 4, slots: [3, 0, 0, 0], cantrips }
+  if (level >= 3) return { prepared: 3, slots: [2, 0, 0, 0], cantrips }
+  return { prepared: 0, slots: [0, 0, 0, 0], cantrips: 0 }
+}
+
+/** Multiclass caster share for Eldritch Knight 2024: one-third of fighter levels. */
+export function eldritchKnightCasterLevels2024(fighterLevel: number, subclassSlug?: string | null): number {
+  if (!subclassSlug) return 0
+  const key = subclassSlug.trim().toLowerCase()
+  if (key !== FIGHTER_SUBCLASS_SLUGS_2024.eldritchKnight && !key.includes('eldritch')) {
+    return 0
+  }
+  return Math.floor(lvl(fighterLevel) / 3)
+}
+
+/** Champion critical threshold: 20 → 19–20 at 3 → 18–20 at 15. */
+export function championCritThreshold2024(fighterLevel: number, hasChampion: boolean): number {
+  if (!hasChampion) return 20
+  const level = lvl(fighterLevel)
+  if (level >= 15) return 18
+  if (level >= 3) return 19
+  return 20
+}
+
+/** Heroic Fortitude heal: 5 + Con mod (min when bloodied). */
+export function heroicFortitudeHeal2024(conMod: number): number {
+  return 5 + Math.floor(conMod || 0)
+}
