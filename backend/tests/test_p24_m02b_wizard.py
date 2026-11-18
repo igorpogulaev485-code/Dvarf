@@ -215,17 +215,30 @@ def test_wizard_create_book_need_includes_savant(level, subclass, need):
     assert wizard_create_book_need_2024(level, subclass) == need
 
 
-def test_trim_wizard_book_picks_mirrors_fe_gates():
-    """Sanity: stone 2nd benefit is L10+; orator/war-song/stone are L3+."""
-    from app.dnd.edition_2024_create import (
-        ENCHANTER_ORATOR_SKILLS_2024,
-        BLADESINGER_WAR_SONG_SKILLS_2024,
-        TRANSMUTER_STONE_BENEFITS_2024,
-        TRANSMUTER_STONE_BENEFITS_2_2024,
-    )
+def test_trim_wizard_book_picks_on_level_down():
+    """Real trim: 10→9 drops stone-2; 3→2 drops orator / war-song / stone."""
+    from app.dnd.edition_2024_create import trim_wizard_book_picks_on_level_down_2024
 
-    assert "persuasion" in ENCHANTER_ORATOR_SKILLS_2024
-    assert "acrobatics" in BLADESINGER_WAR_SONG_SKILLS_2024
-    assert "darkvision" in TRANSMUTER_STONE_BENEFITS_2024
-    assert "mighty_build" in TRANSMUTER_STONE_BENEFITS_2_2024
-    assert "mighty_build" not in TRANSMUTER_STONE_BENEFITS_2024
+    entry = "class-wizard"
+    values = {
+        f"{entry}:enchanting_conversationalist": "persuasion",
+        f"{entry}:training_in_war_and_song": "acrobatics",
+        f"{entry}:transmuter_stone_benefit": "speed",
+        f"{entry}:transmuter_stone_benefit_2": "mighty_build",
+        f"{entry}:unrelated": "keep",
+    }
+    at9 = trim_wizard_book_picks_on_level_down_2024(values, entry, 9)
+    assert at9[f"{entry}:transmuter_stone_benefit"] == "speed"
+    assert f"{entry}:transmuter_stone_benefit_2" not in at9
+    assert at9[f"{entry}:enchanting_conversationalist"] == "persuasion"
+    assert at9[f"{entry}:unrelated"] == "keep"
+
+    at2 = trim_wizard_book_picks_on_level_down_2024(values, entry, 2)
+    assert f"{entry}:enchanting_conversationalist" not in at2
+    assert f"{entry}:training_in_war_and_song" not in at2
+    assert f"{entry}:transmuter_stone_benefit" not in at2
+    assert f"{entry}:transmuter_stone_benefit_2" not in at2
+    assert at2[f"{entry}:unrelated"] == "keep"
+
+    at10 = trim_wizard_book_picks_on_level_down_2024(values, entry, 10)
+    assert at10[f"{entry}:transmuter_stone_benefit_2"] == "mighty_build"

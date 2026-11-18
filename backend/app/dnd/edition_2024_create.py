@@ -168,6 +168,35 @@ def wizard_create_book_need_2024(wizard_lv: int, subclass_slug: str | None) -> i
     free = WIZARD_BOOK_SPELLS_AT_L1 + max(0, level - 1) * 2
     return free + _savant_free_book_total_through_level(level, subclass_slug)
 
+
+def trim_wizard_book_picks_on_level_down_2024(
+    values: Mapping[str, Any],
+    class_entry_id: str,
+    new_wizard_level: int,
+) -> dict[str, Any]:
+    """Mirror FE trimWizardBookPicksOnLevelDown2024 for orator / war-song / stone picks."""
+    level = max(0, int(new_wizard_level or 0))
+    out = dict(values or {})
+    prefix = f"{class_entry_id}:"
+
+    def drop(*keys: str) -> None:
+        for key in keys:
+            out.pop(f"{prefix}{key}", None)
+
+    if level < 3:
+        drop(
+            "enchanting-conversationalist",
+            "enchanting_conversationalist",
+            "training-in-war-and-song",
+            "training_in_war_and_song",
+            "transmuter_stone_benefit",
+            "transmuter-s-stone",
+            "transmuters_stone",
+        )
+    if level < 10:
+        drop("transmuter_stone_benefit_2")
+    return out
+
 SKILL_IDS = frozenset(
     {
         "acrobatics",

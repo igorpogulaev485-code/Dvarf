@@ -306,6 +306,10 @@ export const BLADESINGER_SONG_OF_VICTORY_RULE_RU_2024 =
 export const BLADESINGER_WEAPON_FOCUS_RULE_RU_2024 =
   'Рукопашное оружие, которым владеете, считается заклинательной фокусировкой Волшебника.'
 
+/** Song of Defense (L10+): reaction while Bladesong is active. */
+export const BLADESINGER_SONG_OF_DEFENSE_RULE_RU_2024 =
+  'Песнь защиты (реакция, пока Песнь активна): потрать ячейку — урон уменьшен на круг × 5.'
+
 /** Equipped non-ranged weapon → arcane focus (Training in War and Song, 2024 only). */
 export function markBladesingerMeleeFocusItems2024<
   T extends {

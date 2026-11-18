@@ -1,6 +1,7 @@
 /** Run: npx tsx --tsconfig tsconfig.app.json src/shared/dnd/wizardBook2024Features.selfcheck.ts */
 import assert from 'node:assert/strict'
 import {
+  BLADESINGER_SONG_OF_DEFENSE_RULE_RU_2024,
   bladesongBonuses2024,
   enchantingConversationalistChoice2024,
   enchantingOratorSkillBonus2024,
@@ -10,6 +11,7 @@ import {
   regainOneBladesongUse2024,
   songOfDefenseReduce2024,
   trainingInWarAndSongChoice2024,
+  trimWizardBookPicksOnLevelDown2024,
   wizardBookSkillGrants2024,
 } from './wizardBook2024Features'
 import { featureResourceId } from './featureResources'
@@ -92,6 +94,22 @@ const empty2014 = bladesongBonuses2024({
 assert.equal(empty2014.active, false, '2014 must not use 2024 bladesong helper')
 
 assert.equal(songOfDefenseReduce2024(3), 15)
+assert.match(BLADESINGER_SONG_OF_DEFENSE_RULE_RU_2024, /× 5|x 5/i)
+
+// Level-down trim: orator / war-song / stone drop below gates; stone-2 below 10.
+let trimPicks = emptyFeaturePicks()
+trimPicks = setFeaturePick(trimPicks, entry, 'enchanting_conversationalist', 'persuasion')
+trimPicks = setFeaturePick(trimPicks, entry, 'training_in_war_and_song', 'acrobatics')
+trimPicks = setFeaturePick(trimPicks, entry, 'transmuter_stone_benefit', 'speed')
+trimPicks = setFeaturePick(trimPicks, entry, 'transmuter_stone_benefit_2', 'mighty_build')
+const at9 = trimWizardBookPicksOnLevelDown2024(trimPicks, entry, 9)
+assert.equal(at9.values[`${entry}:transmuter_stone_benefit`], 'speed')
+assert.equal(at9.values[`${entry}:transmuter_stone_benefit_2`], undefined)
+const at2 = trimWizardBookPicksOnLevelDown2024(trimPicks, entry, 2)
+assert.equal(at2.values[`${entry}:enchanting_conversationalist`], undefined)
+assert.equal(at2.values[`${entry}:training_in_war_and_song`], undefined)
+assert.equal(at2.values[`${entry}:transmuter_stone_benefit`], undefined)
+assert.equal(at2.values[`${entry}:transmuter_stone_benefit_2`], undefined)
 
 const regained = regainOneBladesongUse2024(
   [{ id: songId, name: 'Песнь', max: 3, used: 2, activeLabel: 'Песнь клинка' }],

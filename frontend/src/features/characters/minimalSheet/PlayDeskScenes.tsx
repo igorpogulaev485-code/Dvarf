@@ -1050,6 +1050,13 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
           }}
         />
       )}
+      {/* Bladesinger combat hints on Бой/attacks stage (visible with Песнь активна). */}
+      <Wizard2024CombatBlock
+        rulesEdition={model.rulesEdition}
+        classes={model.draft.classes}
+        subclassSlugByEntryId={model.subclassSlugByEntryId}
+        resources={model.draft.play.resources}
+      />
 
       </div>
 
@@ -1337,12 +1344,6 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
         dexMod={abilityModifier(model.effectiveAbilities?.dex ?? model.draft.abilities.dex)}
         danceActive={Boolean(model.danceBardicDie)}
         onBardFeatureUse={(request) => model.setBardFeatureUse(request)}
-      />
-      <Wizard2024CombatBlock
-        rulesEdition={model.rulesEdition}
-        classes={model.draft.classes}
-        subclassSlugByEntryId={model.subclassSlugByEntryId}
-        resources={model.draft.play.resources}
       />
       <ClassFeaturesPanel
         classes={model.draft.classes}

@@ -6,6 +6,7 @@ import { Text } from '../../ui'
 import { resolveClassFeatureSlug } from '../../shared/dnd/classFeatures'
 import {
   BLADESINGER_EXTRA_ATTACK_RULE_RU_2024,
+  BLADESINGER_SONG_OF_DEFENSE_RULE_RU_2024,
   BLADESINGER_SONG_OF_VICTORY_RULE_RU_2024,
   BLADESINGER_WEAPON_FOCUS_RULE_RU_2024,
   isBladesongActive2024,
@@ -38,8 +39,9 @@ export function Wizard2024CombatBlock({
   const level = wizard.level
   const songActive = isBladesongActive2024(resources)
   const extraAttack = level >= 6
+  const songOfDefense = level >= 10
   const songOfVictory = level >= 14
-  if (!extraAttack && !songOfVictory && level < 3) return null
+  if (!extraAttack && !songOfDefense && !songOfVictory && level < 3) return null
 
   return (
     <div className="feature-resource" data-testid="wizard-2024-bladesinger-combat">
@@ -52,6 +54,11 @@ export function Wizard2024CombatBlock({
       {extraAttack ? (
         <Text tone="muted" data-testid="wizard-bladesinger-extra-attack">
           Доп. атака: {BLADESINGER_EXTRA_ATTACK_RULE_RU_2024}
+        </Text>
+      ) : null}
+      {songOfDefense ? (
+        <Text tone="muted" data-testid="wizard-bladesinger-song-of-defense">
+          {BLADESINGER_SONG_OF_DEFENSE_RULE_RU_2024}
         </Text>
       ) : null}
       {songOfVictory ? (
