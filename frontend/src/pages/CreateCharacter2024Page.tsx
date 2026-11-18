@@ -537,7 +537,7 @@ export function CreateCharacter2024Page({
       seeds[e2eSeed] = {
         name: `Жрец ${clericSpec.level}`,
         classSlug: 'cleric',
-        abilities: { str: 10, dex: 12, con: 14, int: 10, wis: 15, cha: 13 },
+        abilities: { str: 8, dex: 12, con: 14, int: 10, wis: 15, cha: 13 },
         rows: [
           {
             slug: 'cleric',
@@ -546,7 +546,7 @@ export function CreateCharacter2024Page({
           },
         ],
         skills: ['insight', 'religion'],
-        backgroundAsi: { wis: 2, con: 1 },
+        backgroundAsi: { con: 2, cha: 1 },
         asi: clericAsiChoicesForLevel(clericSpec.level),
         spells: buildClericSeedSpells(catalog.spells, clericClass, clericSpec.level),
         classOptionPicks: buildClericClassOptionPicks(

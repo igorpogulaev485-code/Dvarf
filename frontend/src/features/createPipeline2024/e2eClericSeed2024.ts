@@ -79,44 +79,60 @@ export function clericAsiChoicesForLevel(level: number): Array<{
   classSlug: string
   classLevel: number
   kind: 'asi_plus2'
-  abilities: Record<string, number>
+  abilities: Partial<Record<'str' | 'dex' | 'con' | 'int' | 'wis' | 'cha', number>>
 }> {
   const gates = [4, 8, 12, 16, 19].filter((g) => g <= level)
+  const bumps: Array<Partial<Record<'wis' | 'con', number>>> = [
+    { wis: 2 },
+    { con: 2 },
+    { wis: 2 },
+    { con: 2 },
+    { wis: 2 },
+  ]
   return gates.map((classLevel, index) => ({
     classSlug: 'cleric',
     classLevel,
     kind: 'asi_plus2' as const,
-    abilities: index % 2 === 0 ? { wis: 2 } : { con: 2 },
+    abilities: bumps[index] ?? { con: 2 },
   }))
 }
 
-function pickSpells(
-  spells: CatalogEntry[],
-  classEntry: CatalogEntry,
-  level: number,
-  circle: number,
-  count: number,
-): string[] {
-  const preferred = PREFERRED[circle] ?? []
-  const out: string[] = []
-  for (const slug of preferred) {
-    if (out.length >= count) break
-    if (!spellOnClassList(spells, classEntry, slug)) continue
-    if (!out.includes(slug)) out.push(slug)
-  }
-  if (out.length < count) {
-    for (const row of spells) {
-      if (out.length >= count) break
-      const slug = String(row.slug || '')
-      if (!slug || out.includes(slug)) continue
-      if (!spellOnClassList(spells, classEntry, slug)) continue
-      const data = (row.data || {}) as { level?: number; circle?: number }
-      const circ = Number(data.level ?? data.circle ?? 0)
-      if (circ !== circle) continue
-      out.push(slug)
-    }
-  }
-  return out
+type LevelRow = {
+  level?: number
+  spellcasting?: {
+    cantrips?: number
+    prepared_spells?: number
+    slots?: Record<string, number>
+  } | null
+}
+
+function levelRow(clericClass: CatalogEntry, level: number): LevelRow | null {
+  const levels = (clericClass.data as { levels?: LevelRow[] } | undefined)?.levels
+  if (!Array.isArray(levels)) return null
+  return levels.find((row) => row?.level === level) ?? null
+}
+
+function spellLevelOf(entry: CatalogEntry): number {
+  return Number((entry.data as { level?: number } | undefined)?.level ?? -1)
+}
+
+function maxCircle(row: LevelRow | null): number {
+  const keys = Object.keys(row?.spellcasting?.slots ?? {}).map(Number)
+  return keys.length ? Math.max(...keys) : Math.min(9, Math.ceil((row?.level ?? 1) / 2))
+}
+
+function poolForCircle(spells: readonly CatalogEntry[], circle: number): string[] {
+  const available = spells
+    .filter(
+      (s) =>
+        spellLevelOf(s) === circle &&
+        spellOnClassList(s, 'cleric') &&
+        (s.source === 'srd-5.2' || s.source === 'ph24'),
+    )
+    .map((s) => s.slug)
+  const preferred = (PREFERRED[circle] ?? []).filter((slug) => available.includes(slug))
+  const rest = available.filter((slug) => !preferred.includes(slug)).sort()
+  return [...preferred, ...rest]
 }
 
 export function buildClericSeedSpells(
@@ -124,14 +140,27 @@ export function buildClericSeedSpells(
   classEntry: CatalogEntry,
   level: number,
 ): ClericSeedSpells {
-  const cantripNeed = level >= 10 ? 5 : level >= 4 ? 4 : 3
-  const cantripIds = pickSpells(spells, classEntry, level, 0, cantripNeed)
-  const prepared: string[] = [...cantripIds]
-  const maxCircle = Math.min(9, Math.ceil(level / 2))
-  for (let circle = 1; circle <= maxCircle; circle += 1) {
-    prepared.push(...pickSpells(spells, classEntry, level, circle, circle <= 2 ? 3 : 2))
+  const row = levelRow(classEntry, level)
+  const cantripNeed = Number(row?.spellcasting?.cantrips ?? (level >= 10 ? 5 : level >= 4 ? 4 : 3))
+  const preparedNeed = Number(row?.spellcasting?.prepared_spells ?? Math.max(4, level + 2))
+  const top = maxCircle(row)
+  const cantripIds = poolForCircle(spells, 0).slice(0, cantripNeed)
+  const taken = new Set<string>(cantripIds)
+  const prepared: string[] = []
+  for (let circle = 1; circle <= top; circle += 1) {
+    for (const slug of poolForCircle(spells, circle)) {
+      if (prepared.length >= preparedNeed) break
+      if (taken.has(slug)) continue
+      taken.add(slug)
+      prepared.push(slug)
+    }
+    if (prepared.length >= preparedNeed) break
   }
-  return { cantripIds, spellbookSpellIds: [], preparedSpellIds: prepared }
+  return {
+    cantripIds,
+    spellbookSpellIds: [],
+    preparedSpellIds: [...cantripIds, ...prepared],
+  }
 }
 
 export function buildClericClassOptionPicks(
