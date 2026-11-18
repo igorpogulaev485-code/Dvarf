@@ -114,10 +114,11 @@ def test_multiclass_requirements_ge_13():
 
 def test_create_wizard_5_equivalence():
     """create@5 == create@1 then four level gains (same average HP path)."""
-    book = wizard_book_for_level(5)
-    assert len(book) == 14
+    # free research 14 + Evoker Savant 3 = 17
+    book = wizard_book_for_level(5, subclass_slug="wizard__evoker")
+    assert len(book) == 17
     book_l1, book_extra = book[:6], book[6:]
-    assert len(book_extra) == 8
+    assert len(book_extra) == 11
     direct = create24.validate_create_2024(
         create24.payload_from_dict(
             _base_wizard(
@@ -139,7 +140,8 @@ def test_create_wizard_5_equivalence():
                         "class_slug": "wizard",
                         "hp_mode": "average",
                         "subclass_slug": "wizard__evoker",
-                        "add_spellbook": book_extra[2:4],
+                        # +2 research + 2 Savant at subclass gate
+                        "add_spellbook": book_extra[2:6],
                     },
                     {
                         "class_slug": "wizard",
@@ -150,12 +152,13 @@ def test_create_wizard_5_equivalence():
                             "kind": "asi_plus2",
                             "abilities": {"int": 2},
                         },
-                        "add_spellbook": book_extra[4:6],
+                        "add_spellbook": book_extra[6:8],
                     },
                     {
                         "class_slug": "wizard",
                         "hp_mode": "average",
-                        "add_spellbook": book_extra[6:8],
+                        # +2 research + 1 Savant at 3rd-circle tier
+                        "add_spellbook": book_extra[8:11],
                     },
                 ],
             )
@@ -174,7 +177,7 @@ def test_create_wizard_5_equivalence():
             class_slug="wizard",
             hp_mode="average",
             subclass_slug="wizard__evoker",
-            add_spellbook=book_extra[2:4],
+            add_spellbook=book_extra[2:6],
         ),
         levels.LevelGainStep(
             class_slug="wizard",
@@ -185,12 +188,12 @@ def test_create_wizard_5_equivalence():
                 kind="asi_plus2",
                 abilities={"int": 2},
             ),
-            add_spellbook=book_extra[4:6],
+            add_spellbook=book_extra[6:8],
         ),
         levels.LevelGainStep(
             class_slug="wizard",
             hp_mode="average",
-            add_spellbook=book_extra[6:8],
+            add_spellbook=book_extra[8:11],
         ),
     ]
     for step in steps:
@@ -320,8 +323,9 @@ def test_level1_path_unchanged():
 
 def test_create_at_n_hit_dice_and_no_duplicate_spell_rows():
     cantrips = ["fire-bolt", "mage-hand", "prestidigitation"]
-    book = wizard_book_for_level(3)
-    assert len(book) == 10
+    # free research 10 + Evoker Savant 2 = 12
+    book = wizard_book_for_level(3, subclass_slug="wizard__evoker")
+    assert len(book) == 12
     result = create24.validate_create_2024(
         create24.payload_from_dict(
             _base_wizard(

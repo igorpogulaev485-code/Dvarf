@@ -437,7 +437,11 @@ def test_create_cleric_at_5_ignores_blessed_strikes():
     }
     sheet = create24.validate_create_2024(create24.payload_from_dict(payload)).sheet
     assert "blessed_strikes" not in sheet["class_options_2024"]
-    assert "feature_picks" not in sheet
+    # create-at may still allocate feature_picks for other mirrors; Blessed Strikes
+    # must not be persisted below the unlock level.
+    values = ((sheet.get("feature_picks") or {}).get("values") or {})
+    assert "class-cleric:blessed_strikes" not in values
+    assert "class-cleric:blessed-strikes" not in values
 
 
 def test_class_options_validator_keeps_blessed_strikes_for_cleric_7_plus():
