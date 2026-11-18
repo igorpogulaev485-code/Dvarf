@@ -161,8 +161,8 @@ test.describe('P24-M02 barbarian — LIVE create (preview wizard)', () => {
       shotPrefix: `${SHOT}-create-at-1-`,
       duringLeveling: async (pg) => {
         const list = pg.getByTestId('p24-m03c-fork-list-barbarian')
+        // На 1-м в развилках — выбор мастерства; Ярость пассивный пул, не fork.
         await expect(list).toContainText('Оружейное мастерство')
-        await expect(list).toContainText('Ярость')
         await expect(list).not.toContainText('Подкласс')
       },
     })
