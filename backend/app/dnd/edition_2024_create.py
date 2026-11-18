@@ -2471,6 +2471,29 @@ def validate_create_2024(payload: Create2024Payload) -> Create2024Result:
             subclass_slug=third_sub,
             class_level=third_lv,
         )
+        # Stamp INT casting + third-caster slots onto the sheet (rogue/fighter L1 has no caster).
+        block = e24sub.third_caster_block(third_sub, third_lv) or {}
+        meta = e24sub.THIRD_CASTER_SUBCLASSES.get(third_sub) or {}
+        spells_sheet = sheet.get("spells")
+        if isinstance(spells_sheet, dict):
+            ability = str(meta.get("ability") or block.get("ability") or "int")
+            spells_sheet["casting_ability"] = ability
+            slots = block.get("slots") or {}
+            if slots:
+                # Sheet slots are {circle: {max, used}} or bare counts depending on path;
+                # normalize to max/used objects when values are ints.
+                normalized: dict[str, Any] = {}
+                for key, raw in dict(slots).items():
+                    if isinstance(raw, Mapping):
+                        normalized[str(key)] = {
+                            "max": int(raw.get("max") or raw.get("count") or 0),
+                            "used": int(raw.get("used") or 0),
+                        }
+                    else:
+                        normalized[str(key)] = {"max": int(raw or 0), "used": 0}
+                spells_sheet["slots"] = normalized
+            # AT: cantrips already include Mage Hand from payload; keep known rows.
+            sheet["spells"] = spells_sheet
 
     # Class name line: primary + multiclass summary.
     class_name = str(class_row.get("name_ru") or class_slug)

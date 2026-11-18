@@ -14,7 +14,7 @@ import {
   resolveSpellLearnBudget,
   resolveSubclassCasterOverlays,
   spellLearnModeForSlug,
-  thirdCasterCantripsKnown,
+  thirdCasterCantripsBudget,
   thirdCasterSpellsKnown,
   type SpellLearnBudget,
   type SpellLearnMode,
@@ -164,7 +164,11 @@ export function buildCastProfiles(input: BuildCastProfilesInput): SpellCastProfi
         continue
       }
       const level = Math.max(0, Math.floor(row.level))
-      const cantrips = thirdCasterCantripsKnown(level)
+      const subSlug =
+        (row as { subclass_catalog_id?: string; subclass_slug?: string }).subclass_catalog_id ||
+        (row as { subclass_slug?: string }).subclass_slug ||
+        subclassSlugFromClassRow(row)
+      const cantrips = thirdCasterCantripsBudget(level, subSlug)
       const known = thirdCasterSpellsKnown(level)
       const aloneMaxLevel = maxSpellLevelForClassAlone('third', row.level)
       const hostSlug = resolveClassCasterSlug(row.name) ?? 'third'

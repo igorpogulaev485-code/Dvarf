@@ -1514,10 +1514,15 @@ export function computeProgression2024(input: {
     if (cls.subclassSlug && THIRD_CASTER_SUBCLASSES[cls.subclassSlug]) {
       const third = thirdCasterBlock2024(cls.subclassSlug, cls.level)
       if (third) {
+        // Arcane Trickster: Mage Hand is a free locked grant on top of the table column.
+        const cantrips =
+          cls.subclassSlug === 'rogue__arcane-trickster'
+            ? Number(third.cantrips || 0) + 1
+            : Number(third.cantrips || 0)
         spellcasting.push({
           class_slug: third.class_slug,
           progression: 'third',
-          cantrips: third.cantrips,
+          cantrips,
           prepared_spells: third.prepared_spells,
           slots: third.slots,
           pact_slots: null,

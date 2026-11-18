@@ -833,9 +833,17 @@ def build_permanent_bonuses(
                 "envenom-weapon",
                 "Покрытое ядом оружие",
                 "damage_rider",
-                {"poison_damage_on_sneak": "2d6", "once_per_turn": True},
+                {
+                    "enhances_cunning_poison": True,
+                    "poison_damage_on_failed_save": "2d6",
+                    "ignore_poison_resistance": True,
+                    "once_per_turn": True,
+                },
                 min_level=13,
-                note_ru="При Скрытой атаке — доп. 2к6 яда (1/ход); цель может получить Отравление",
+                note_ru=(
+                    "Усиливает «Отравление» хитрого удара: при провале спаса — 2к6 яда; "
+                    "игнор сопротивления к яду"
+                ),
             )
         if class_level >= 17:
             add(
@@ -843,12 +851,16 @@ def build_permanent_bonuses(
                 "Смертельный удар",
                 "other_calc",
                 {
-                    "on_assassinate_hit": True,
+                    "on_sneak_attack_round_1": True,
                     "con_save_or_double_damage": True,
+                    "not_2014_surprised": True,
                     "partial": True,
                 },
                 min_level=17,
-                note_ru="При попадании из Убийства: спас Тел. или удвоенный урон этой атаки (кнопка/сводка на листе)",
+                note_ru=(
+                    "При Скрытой атаке в первом раунде: спас Тел. или удвоенный урон "
+                    "(не «захваченный врасплох» 2014)"
+                ),
             )
 
     # Rogue Thief
@@ -896,7 +908,8 @@ def build_permanent_bonuses(
                 min_level=13,
                 note_ru=(
                     "Настройка на четыре предмета; при трате заряда — 1к6, на 6 заряд не тратится; "
-                    "свитки через Интеллект"
+                    "свитки через Интеллект (заговор/1-й без проверки; выше 1-го — проверка "
+                    "Интеллекта Сл 10 + уровень заклинания)"
                 ),
             )
         if class_level >= 17:

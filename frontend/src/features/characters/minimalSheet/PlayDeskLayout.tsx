@@ -287,20 +287,26 @@ export function PlayDeskLayout({ model }: { model: SheetModel }) {
                   >
                     Бой
                   </button>
-                  <button
-                    type="button"
-                    role="tab"
-                    aria-selected={model.mobileSpellSurface === 'book'}
-                    className={`mobile-combat-seg__btn${
-                      model.mobileSpellSurface === 'book' ? ' is-on' : ''
-                    }`}
-                    onClick={() => {
-                      model.setMobileSpellSurface('book')
-                      model.setSpellsSettingsOpen(true)
-                    }}
-                  >
-                    Книга
-                  </button>
+                  {/* Third-caster AT/EK: no spellbook — hide «Книга» surface. */}
+                  {(model.spellcastingSync?.castProfiles ?? []).length > 0 &&
+                  (model.spellcastingSync?.castProfiles ?? []).every(
+                    (row: { kind?: string }) => row.kind === 'third',
+                  ) ? null : (
+                    <button
+                      type="button"
+                      role="tab"
+                      aria-selected={model.mobileSpellSurface === 'book'}
+                      className={`mobile-combat-seg__btn${
+                        model.mobileSpellSurface === 'book' ? ' is-on' : ''
+                      }`}
+                      onClick={() => {
+                        model.setMobileSpellSurface('book')
+                        model.setSpellsSettingsOpen(true)
+                      }}
+                    >
+                      Книга
+                    </button>
+                  )}
                 </div>
               ) : null}
               <div

@@ -26,6 +26,7 @@ import {
   fillUnderfilledPicks,
   next,
   openIdentity,
+  openSpellsPane,
   selectCatalogCard,
   pickPrefixed,
   shot,
@@ -447,11 +448,27 @@ test.describe('P24-M02 rogue — LIVE create (preview wizard)', () => {
     await expectNoFeatureNames(page, [/^Вор заклинаний$/, /^Многогранный ловкач$/])
     await expandAllFeatures(page)
     await tallShot(page, ARTIFACTS, `${SHOT}-create-at-5-arcane-trickster-features`, project)
-    // Spells on sheet (Mage Hand + prepared)
-    const root = page.locator('#root')
-    await expect(root.getByText(/Волшебная рука|Magic Hand|Щит|Magic Missile|Волшебная стрела/i).first()).toBeVisible({
-      timeout: 15_000,
-    })
+    // Spells panel: Mage Hand quota 3/3, INT DC/attack, no Grimoire / book copy.
+    await openSpellsPane(page, project)
+    const summary = page.locator('.spells-summary').first()
+    const compactStats = page.locator('[aria-label="Сл. спас. и атака заклинаний по классам"]').first()
+    if (await summary.isVisible().catch(() => false)) {
+      await expect(summary).toContainText(/Заговоры/)
+      await expect(summary).toContainText(/3\/3/)
+      await expect(summary.locator('.spells-summary__stat').filter({ hasText: /Сл\. спас/ }).locator('strong')).not.toHaveText(
+        '—',
+      )
+      await expect(summary.locator('.spells-summary__stat').filter({ hasText: /Атака закл/ }).locator('strong')).not.toHaveText(
+        '—',
+      )
+    } else {
+      await expect(compactStats).toBeVisible({ timeout: 10_000 })
+      await expect(compactStats).toContainText(/Интеллект|Сл \d/)
+      await expect(page.getByText(/заговоры:.*3\/3|заг\. 3\/3/i).first()).toBeVisible()
+    }
+    await expect(page.getByRole('button', { name: /^Гримуар$/ })).toHaveCount(0)
+    await expect(page.getByRole('tab', { name: /^Книга$/ })).toHaveCount(0)
+    await expect(page.getByText(/из гримуара/i)).toHaveCount(0)
     await tallShot(page, ARTIFACTS, `${SHOT}-create-at-5-at-spells-sheet`, project)
     await dismissGuided(page)
     expect(store.unmatched).toEqual([])

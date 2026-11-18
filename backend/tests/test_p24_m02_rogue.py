@@ -368,9 +368,23 @@ def test_use_magic_device_note_is_phb_2024_not_charge_floor():
     assert "при 0 зарядов" not in note
     assert "четыре" in note.lower() or "4" in note
     assert "1к6" in note or "1d6" in note.lower()
+    assert "Сл 10" in note
+    assert "Интеллект" in note
     calc = umd.value if isinstance(umd.value, dict) else {}
     assert calc.get("attunement_slots") == 4
     assert "charge_floor" not in calc
+
+
+def test_assassin_death_strike_and_envenom_notes_are_2024():
+    bonuses = sub24.build_permanent_bonuses("rogue__assassin", 17, abilities=_ABILITIES)
+    envenom = next(b for b in bonuses if b.feature_id == "envenom-weapon")
+    death = next(b for b in bonuses if b.feature_id == "death-strike")
+    assert "Отравление" in (envenom.note_ru or "")
+    assert "2к6" in (envenom.note_ru or "")
+    assert "бонусным отравить" not in (envenom.note_ru or "").lower()
+    assert "Скрытой атаке" in (death.note_ru or "") or "Скрытая атака" in (death.note_ru or "")
+    assert "захваченн" not in (death.note_ru or "").lower() or "не" in (death.note_ru or "").lower()
+    assert "первом раунде" in (death.note_ru or "")
 
 
 def test_third_caster_at_create_requires_mage_hand_and_prepared():

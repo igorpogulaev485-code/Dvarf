@@ -587,8 +587,14 @@ export function buildPermanentBonuses2024(input: {
         'envenom-weapon',
         'Покрытое ядом оружие',
         'damage_rider',
-        { poison_damage_on_sneak: '2d6', once_per_turn: true },
+        {
+          enhances_cunning_poison: true,
+          poison_damage_on_failed_save: '2d6',
+          ignore_poison_resistance: true,
+          once_per_turn: true,
+        },
         13,
+        'Усиливает «Отравление» хитрого удара: при провале спаса — 2к6 яда; игнор сопротивления к яду',
       )
     }
     if (classLevel >= 17) {
@@ -596,9 +602,14 @@ export function buildPermanentBonuses2024(input: {
         'death-strike',
         'Смертельный удар',
         'other_calc',
-        { on_assassinate_hit: true, con_save_or_double_damage: true, partial: true },
+        {
+          on_sneak_attack_round_1: true,
+          con_save_or_double_damage: true,
+          not_2014_surprised: true,
+          partial: true,
+        },
         17,
-        'При попадании из Убийства: спас Тел. или удвоенный урон (кнопка/сводка)',
+        'При Скрытой атаке в первом раунде: спас Тел. или удвоенный урон (не «захваченный врасплох» 2014)',
       )
     }
   }
@@ -635,7 +646,7 @@ export function buildPermanentBonuses2024(input: {
           ignore_class_spell_lists: true,
         },
         13,
-        'Настройка на четыре предмета; при трате заряда — 1к6, на 6 заряд не тратится; свитки через Интеллект',
+        'Настройка на четыре предмета; при трате заряда — 1к6, на 6 заряд не тратится; свитки через Интеллект (заговор/1-й без проверки; выше 1-го — проверка Интеллекта Сл 10 + уровень заклинания)',
       )
     }
     if (classLevel >= 17) {
