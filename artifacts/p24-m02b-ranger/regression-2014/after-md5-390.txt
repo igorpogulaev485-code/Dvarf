@@ -1,0 +1,8 @@
+593794cbc8945111beb093cf3ee71614  after-create-2014-race-marker-390.png
+b081a82dcbaf5354425721fda00f4158  after-create-2014-ranger-class-390.png
+85f0294b4ec1d7e136d555330b80072f  after-sheet-2014-ranger-header-390.png
+25e7b79a8e6516d1b726e69520059bc6  after-sheet-2014-ranger-abilities-390.png
+436bfc6f43510449ac05c72ac994a536  after-sheet-2014-ranger-features-390.png
+aa3d78767bb3c78a4f859a14eb6d7659  after-sheet-2014-ranger-hunter-390.png
+6eb4db7f2a49ba66dbcb36c62ac89e63  after-sheet-2014-ranger-l6-speed-390.png
+7dd9b9ff7a61f9d14c6948dbc26c4991  after-sheet-2014-ranger-l8-speed-390.png

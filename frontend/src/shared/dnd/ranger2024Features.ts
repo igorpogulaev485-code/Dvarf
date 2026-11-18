@@ -18,6 +18,37 @@ import {
 } from './featurePicks'
 import { parseFeatureResourceId } from './featureResources'
 import { clampResource, type SheetResource } from './rest'
+import {
+  ANCIENT_MIGHT_NAME_RU,
+  CHILLING_RETRIBUTION_FEATURE_ID,
+  CHILLING_RETRIBUTION_NAME_RU,
+  CHILLING_RETRIBUTION_POOL_ID,
+  FORTIFYING_SOUL_FEATURE_ID,
+  FORTIFYING_SOUL_NAME_RU,
+  FORTIFYING_SOUL_POOL_ID,
+  fortifyingSoulHealFormulaRu2024,
+  fortifyingSoulTargetCap2024,
+  FROZEN_HAUNT_FEATURE_ID,
+  FROZEN_HAUNT_NAME_RU,
+  FROZEN_HAUNT_POOL_ID,
+  HUNGERING_MIGHT_FEATURE_ID,
+  HUNGERING_MIGHT_NAME_RU,
+  hungeringMightHealFormulaRu2024,
+  HUNTERS_RIME_FEATURE_ID,
+  HUNTERS_RIME_NAME_RU,
+  huntersRimeTempHpFormulaRu2024,
+  polarStrikesDie2024,
+  FRIGID_EXPLORER_FEATURE_ID,
+  FRIGID_EXPLORER_NAME_RU,
+  ROT_AND_VIOLENCE_FEATURE_ID,
+  ROT_AND_VIOLENCE_NAME_RU,
+  UNDYING_WRATH_NAME_RU,
+  UNDYING_WRATH_POOL_ID,
+  undyingWrathHp2024,
+  WRATH_OF_THE_WILD_FEATURE_ID,
+  WRATH_OF_THE_WILD_NAME_RU,
+  wrathAcBonus2024,
+} from './rangerBook2024Features'
 
 /* ------------------------------------------------------------------ */
 /* Names (RU — FINAL)                                                  */
@@ -353,6 +384,25 @@ export const RANGER_2024_CARD_BUTTONS: Record<string, string> = {
   dread_ambusher: 'Удар…',
   'dreadful-strikes': 'Ужасающие удары…',
   dreadful_strikes: 'Ужасающие удары…',
+  // P24-M02B-ranger book paths
+  'hunters-rime': 'Изморозь…',
+  hunters_rime: 'Изморозь…',
+  'frigid-explorer': 'Полярные удары…',
+  frigid_explorer: 'Полярные удары…',
+  'fortifying-soul': 'Укрепляющий дух…',
+  fortifying_soul: 'Укрепляющий дух…',
+  'chilling-retribution': 'Возмездие…',
+  chilling_retribution: 'Возмездие…',
+  'frozen-haunt': 'Морозный призрак…',
+  frozen_haunt: 'Морозный призрак…',
+  'wrath-of-the-wild': 'Ярость…',
+  wrath_of_the_wild: 'Ярость…',
+  'hungering-might': 'Алчущая мощь…',
+  hungering_might: 'Алчущая мощь…',
+  'rot-and-violence': 'Гниль…',
+  rot_and_violence: 'Гниль…',
+  'ancient-might': 'Неугасающая ярость…',
+  ancient_might: 'Неугасающая ярость…',
 }
 
 /** Tireless temp HP: `1к8+Мдр` (Мдр мин. 1). */
@@ -573,6 +623,16 @@ const RANGER_USE_FEATURE_IDS = new Set([
   'free-hunters-mark',
   'dread-ambusher-strike',
   'dread-ambusher',
+  // P24-M02B-ranger
+  HUNTERS_RIME_FEATURE_ID,
+  FRIGID_EXPLORER_FEATURE_ID,
+  FORTIFYING_SOUL_FEATURE_ID,
+  CHILLING_RETRIBUTION_FEATURE_ID,
+  FROZEN_HAUNT_FEATURE_ID,
+  WRATH_OF_THE_WILD_FEATURE_ID,
+  HUNGERING_MIGHT_FEATURE_ID,
+  ROT_AND_VIOLENCE_FEATURE_ID,
+  'ancient-might',
 ])
 
 export function ranger2024UseFeatureId(featureId: string | null | undefined): string | null {
@@ -580,6 +640,7 @@ export function ranger2024UseFeatureId(featureId: string | null | undefined): st
   const key = featureId.trim().replace(/_/g, '-')
   if (key === 'hunters-mark-free' || key === 'favored-enemy-mark') return 'favored-enemy'
   if (key === 'dread_ambusher_strike') return 'dread-ambusher-strike'
+  if (key === 'undying-wrath' || key === 'undying_wrath') return 'ancient-might'
   return RANGER_USE_FEATURE_IDS.has(key) ? key : null
 }
 
@@ -813,6 +874,186 @@ export function applyRanger2024FeatureUse(input: Ranger2024UseInput): Ranger2024
         input,
         `${DREAD_AMBUSHER_NAME_RU}: ${DREAD_AMBUSHER_STRIKE_NAME_RU} (+2к6 психического, 1 раз за ход)`,
         { resources: spent.resources },
+      )
+    }
+
+    /* ---- P24-M02B-ranger: Winter Walker / Hollow Warden ---- */
+
+    case HUNTERS_RIME_FEATURE_ID: {
+      if (level < SUBCLASS_MIN_LEVEL_2024) {
+        return refuse(input, `${HUNTERS_RIME_NAME_RU} с ${SUBCLASS_MIN_LEVEL_2024} уровня следопыта`)
+      }
+      // No separate pool — triggers when casting Hunter's Mark (free or slot).
+      const formula = huntersRimeTempHpFormulaRu2024(level)
+      return ok(
+        input,
+        `${HUNTERS_RIME_NAME_RU}: при «${HUNTERS_MARK_NAME_RU}» — врем. хиты ${formula}; цель с меткой не может совершать Отход`,
+        {
+          patches: {
+            diceExpression: formula,
+            activeLabels: [HUNTERS_RIME_NAME_RU],
+          },
+        },
+      )
+    }
+
+    case FRIGID_EXPLORER_FEATURE_ID: {
+      if (level < SUBCLASS_MIN_LEVEL_2024) {
+        return refuse(input, `${FRIGID_EXPLORER_NAME_RU} с ${SUBCLASS_MIN_LEVEL_2024} уровня следопыта`)
+      }
+      const die = polarStrikesDie2024(level)
+      return ok(
+        input,
+        `${FRIGID_EXPLORER_NAME_RU}: Полярные удары +${die} холодом (1/цель/ход); сопротивление Холоду; игнор сопротивления Холоду`,
+        { patches: { diceExpression: die, activeLabels: ['Полярные удары'] } },
+      )
+    }
+
+    case FORTIFYING_SOUL_FEATURE_ID: {
+      if (level < 7) return refuse(input, `${FORTIFYING_SOUL_NAME_RU} с 7 уровня следопыта`)
+      if (refund) {
+        const refunded = refundPool(input, FORTIFYING_SOUL_POOL_ID, FORTIFYING_SOUL_NAME_RU)
+        if (!refunded.ok) return refunded.result
+        return ok(input, `${FORTIFYING_SOUL_NAME_RU}: использование возвращено`, {
+          resources: refunded.resources,
+        })
+      }
+      const spent = spendPool(input, FORTIFYING_SOUL_POOL_ID, FORTIFYING_SOUL_NAME_RU)
+      if (!spent.ok) return spent.result
+      const heal = fortifyingSoulHealFormulaRu2024(level)
+      const cap = fortifyingSoulTargetCap2024(wisMod)
+      return ok(
+        input,
+        `${FORTIFYING_SOUL_NAME_RU} (действие «Магия»): до ${cap} целей, хил ${heal}; преимущество vs Испуганный 1 час`,
+        {
+          resources: spent.resources,
+          patches: { diceExpression: heal, activeLabels: [FORTIFYING_SOUL_NAME_RU] },
+        },
+      )
+    }
+
+    case CHILLING_RETRIBUTION_FEATURE_ID: {
+      if (level < 11) return refuse(input, `${CHILLING_RETRIBUTION_NAME_RU} с 11 уровня следопыта`)
+      if (refund) {
+        const refunded = refundPool(
+          input,
+          CHILLING_RETRIBUTION_POOL_ID,
+          CHILLING_RETRIBUTION_NAME_RU,
+        )
+        if (!refunded.ok) return refunded.result
+        return ok(input, `${CHILLING_RETRIBUTION_NAME_RU}: использование возвращено`, {
+          resources: refunded.resources,
+        })
+      }
+      const spent = spendPool(
+        input,
+        CHILLING_RETRIBUTION_POOL_ID,
+        CHILLING_RETRIBUTION_NAME_RU,
+      )
+      if (!spent.ok) return spent.result
+      return ok(
+        input,
+        `${CHILLING_RETRIBUTION_NAME_RU} (реакция): спас Мудрости; при провале — Ошеломлённый, скорость 0`,
+        {
+          resources: spent.resources,
+          patches: { activeLabels: [CHILLING_RETRIBUTION_NAME_RU] },
+        },
+      )
+    }
+
+    case FROZEN_HAUNT_FEATURE_ID: {
+      if (level < 15) return refuse(input, `${FROZEN_HAUNT_NAME_RU} с 15 уровня следопыта`)
+      if (refund) {
+        const refunded = refundPool(input, FROZEN_HAUNT_POOL_ID, FROZEN_HAUNT_NAME_RU)
+        if (!refunded.ok) return refunded.result
+        return ok(input, `${FROZEN_HAUNT_NAME_RU}: использование возвращено`, {
+          resources: refunded.resources,
+        })
+      }
+      const spent = spendPool(input, FROZEN_HAUNT_POOL_ID, FROZEN_HAUNT_NAME_RU)
+      if (!spent.ok) return spent.result
+      return ok(
+        input,
+        `${FROZEN_HAUNT_NAME_RU}: форма на время «${HUNTERS_MARK_NAME_RU}» — иммунитет Холоду, аура 2к4, частичная бестелесность`,
+        {
+          resources: spent.resources,
+          patches: {
+            diceExpression: '2к4',
+            activeLabels: [FROZEN_HAUNT_NAME_RU],
+          },
+        },
+      )
+    }
+
+    case WRATH_OF_THE_WILD_FEATURE_ID: {
+      if (level < SUBCLASS_MIN_LEVEL_2024) {
+        return refuse(input, `${WRATH_OF_THE_WILD_NAME_RU} с ${SUBCLASS_MIN_LEVEL_2024} уровня следопыта`)
+      }
+      if (refund) {
+        const refunded = refundPool(input, FAVORED_ENEMY_POOL_ID, FAVORED_ENEMY_NAME_RU)
+        if (!refunded.ok) return refunded.result
+        return ok(
+          input,
+          `${WRATH_OF_THE_WILD_NAME_RU}: использование Избранного врага возвращено`,
+          { resources: refunded.resources },
+        )
+      }
+      const spent = spendPool(input, FAVORED_ENEMY_POOL_ID, FAVORED_ENEMY_NAME_RU)
+      if (!spent.ok) return spent.result
+      const acBonus = wrathAcBonus2024(level)
+      return ok(
+        input,
+        `${WRATH_OF_THE_WILD_NAME_RU} (бонусное, 1 мин.): КД +${acBonus}; Рыскающее возмездие; Пугающая аура 10 фт.`,
+        {
+          resources: spent.resources,
+          patches: {
+            activeLabels: [`${WRATH_OF_THE_WILD_NAME_RU} (КД +${acBonus})`],
+          },
+        },
+      )
+    }
+
+    case HUNGERING_MIGHT_FEATURE_ID: {
+      if (level < 7) return refuse(input, `${HUNGERING_MIGHT_NAME_RU} с 7 уровня следопыта`)
+      const heal = hungeringMightHealFormulaRu2024(wisMod)
+      return ok(
+        input,
+        `${HUNGERING_MIGHT_NAME_RU}: бонус к спасброскам Тел = мод. Муд; в Ярости + Окровавлены — хил ${heal} 1/ход`,
+        { patches: { diceExpression: heal, activeLabels: [HUNGERING_MIGHT_NAME_RU] } },
+      )
+    }
+
+    case ROT_AND_VIOLENCE_FEATURE_ID: {
+      if (level < 11) return refuse(input, `${ROT_AND_VIOLENCE_NAME_RU} с 11 уровня следопыта`)
+      return ok(
+        input,
+        `${ROT_AND_VIOLENCE_NAME_RU} (в Ярости): Ужасающая аура блокирует хил/реакции; Цепляющиеся корни — второе свойство мастерства`,
+        { patches: { activeLabels: [ROT_AND_VIOLENCE_NAME_RU] } },
+      )
+    }
+
+    case 'ancient-might': {
+      if (level < 15) return refuse(input, `${ANCIENT_MIGHT_NAME_RU} с 15 уровня следопыта`)
+      if (refund) {
+        const refunded = refundPool(input, UNDYING_WRATH_POOL_ID, UNDYING_WRATH_NAME_RU)
+        if (!refunded.ok) return refunded.result
+        return ok(input, `${UNDYING_WRATH_NAME_RU}: использование возвращено`, {
+          resources: refunded.resources,
+        })
+      }
+      const spent = spendPool(input, UNDYING_WRATH_POOL_ID, UNDYING_WRATH_NAME_RU)
+      if (!spent.ok) return spent.result
+      const hp = undyingWrathHp2024(level)
+      return ok(
+        input,
+        `${UNDYING_WRATH_NAME_RU}: при HP→0 в Ярости хиты становятся ${hp}; +Муд урона по Испуганным; иммунитет к Истощению`,
+        {
+          resources: spent.resources,
+          patches: {
+            tempHp: hp,
+            activeLabels: [UNDYING_WRATH_NAME_RU],
+          },
+        },
       )
     }
 

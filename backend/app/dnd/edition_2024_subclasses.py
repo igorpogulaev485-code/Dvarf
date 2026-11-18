@@ -302,6 +302,16 @@ SHARED_OPTIONS: dict[str, list[SharedPoolOption]] = {
     "paladin__oath-of-the-noble-genies": [
         SharedPoolOption("elemental-smite", "Стихийная кара", "channel_divinity", kind="bonus"),
     ],
+    # Ranger book paths (P24-M02B-ranger)
+    "ranger__hollow-warden": [
+        # Wrath spends Favored Enemy uses (not a separate pool).
+        SharedPoolOption(
+            "wrath-of-the-wild",
+            "Ярость дикой природы",
+            "favored_enemy_uses",
+            kind="bonus",
+        ),
+    ],
     # Bard colleges — spend Bardic Inspiration
     "bard__lore": [
         SharedPoolOption("cutting-words", "Острые слова", "bardic_inspiration", kind="reaction"),
@@ -597,6 +607,50 @@ def build_permanent_bonuses(
             min_level=7,
             note_ru="Сопротивление выбранному типу в Ауре защиты; смена в начале хода без действия",
         )
+
+    # Ranger Winter Walker (FRHoF): cold resistance, ignore cold resistance, polar strikes.
+    if subclass_slug == "ranger__winter-walker":
+        add(
+            "frigid-explorer",
+            "Ледяной исследователь",
+            "other_calc",
+            {
+                "cold_resistance": True,
+                "ignore_cold_resistance": True,
+                "polar_strikes_die": "1d6" if class_level >= 11 else "1d4",
+                "polar_strikes_once_per_target_per_turn": True,
+            },
+            note_ru="Сопротивление Холоду; игнор сопротивления Холоду; Полярные удары 1к4 (с 11 — 1к6), 1/цель/ход",
+        )
+
+    # Ranger Hollow Warden (RTW): Con-save bonus; exhaustion immunity at 15.
+    if subclass_slug == "ranger__hollow-warden":
+        if class_level >= 7:
+            add(
+                "hungering-might",
+                "Алчущая мощь",
+                "other_calc",
+                {
+                    "con_save_bonus_wis_min_1": True,
+                    "bloodied_heal_while_wrath": "1d10+wis",
+                    "once_per_turn": True,
+                },
+                min_level=7,
+                note_ru="Бонус к спасброскам Тел = мод. Муд (мин. +1); хил 1к10+Муд при попадании в Ярости, если Окровавлены, 1/ход",
+            )
+        if class_level >= 15:
+            add(
+                "ancient-might",
+                "Древняя мощь",
+                "other_calc",
+                {
+                    "frightened_hit_bonus_damage_wis": True,
+                    "exhaustion_immunity": True,
+                    "undying_wrath_hp": "ranger_level*2",
+                },
+                min_level=15,
+                note_ru="Зловещие удары (+Муд по Испуганным); Неугасающая ярость; иммунитет к Истощению",
+            )
 
     # Sorcerer Draconic
     if subclass_slug == "sorcerer__draconic-sorcery":
@@ -2272,21 +2326,47 @@ def build_subclass_resources(
             extra_meta={"damage": "2d6", "type": "psychic", "once_per_turn": True},
         )
     elif subclass_slug == "ranger__winter-walker":
-        add(
-            "hunters_rime",
-            name_ru="Иней охотника",
-            max_uses=max(1, wis_m),
-            reset="long",
-            feature_id="hunters-rime",
-        )
+        # Hunter's Rime has no separate pool — triggers on Hunter's Mark cast.
+        if class_level >= 7:
+            add(
+                "fortifying_soul",
+                name_ru="Укрепляющий дух",
+                max_uses=1,
+                reset="long",
+                feature_id="fortifying-soul",
+                min_level=7,
+            )
+        if class_level >= 11:
+            add(
+                "chilling_retribution",
+                name_ru="Выстужающее возмездие",
+                max_uses=max(1, wis_m),
+                reset="long",
+                feature_id="chilling-retribution",
+                min_level=11,
+            )
+        if class_level >= 15:
+            add(
+                "frozen_haunt",
+                name_ru="Морозный призрак",
+                max_uses=1,
+                reset="long",
+                feature_id="frozen-haunt",
+                min_level=15,
+                extra_meta={"restore_with_slot_min": 4},
+            )
     elif subclass_slug == "ranger__hollow-warden":
-        add(
-            "wrath_of_the_wild",
-            name_ru="Гнев дикой природы",
-            max_uses=max(1, wis_m),
-            reset="long",
-            feature_id="wrath-of-the-wild",
-        )
+        # Wrath of the Wild spends favored_enemy_uses — no separate pool.
+        if class_level >= 15:
+            add(
+                "undying_wrath",
+                name_ru="Неугасающая ярость",
+                max_uses=1,
+                reset="long",
+                feature_id="ancient-might",
+                min_level=15,
+                extra_meta={"restore_with_slot_min": 4},
+            )
 
     # --- Rogue ---
     elif subclass_slug == "rogue__phantom":
