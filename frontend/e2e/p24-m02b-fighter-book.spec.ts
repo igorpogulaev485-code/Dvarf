@@ -49,6 +49,16 @@ async function shot(page: Page, name: string, project: string) {
 }
 
 async function dismissWelcome(page: Page) {
+  // M06 onboarding auto-opens on 2024 create and blocks finish / sheet clicks.
+  const diff = page.getByTestId('edition-2024-diff-dialog')
+  try {
+    if (await diff.isVisible({ timeout: 2_500 }).catch(() => false)) {
+      await page.getByRole('button', { name: 'Понятно' }).click()
+      await diff.waitFor({ state: 'hidden', timeout: 5_000 }).catch(() => {})
+    }
+  } catch {
+    /* ok */
+  }
   const skip = page.getByRole('button', { name: /Пропустит.*подсказ/i })
   try {
     await skip.waitFor({ state: 'visible', timeout: 2_500 })
@@ -82,6 +92,7 @@ async function createViaSeed(page: Page, store: HarnessStore, seed: string) {
   await installFighterHarness(page, store)
   await page.goto(`/characters/create?edition=2024&preview=1&e2eLeveling=1&e2eSeed=${seed}`)
   await expect(page.getByTestId('p24-m03c-leveling')).toBeVisible({ timeout: 40_000 })
+  await dismissWelcome(page)
   await completeVisibleChoices(page)
   const finish = page.getByTestId('p24-m03-finish')
   await expect(finish).toBeEnabled({ timeout: 60_000 })
@@ -232,6 +243,7 @@ test.describe('P24-M02B fighter book — picker + finish gate', () => {
         `/characters/create?edition=2024&preview=1&e2eLeveling=1&e2eSeed=fighter3${pathSlug}`,
       )
       await expect(page.getByTestId('p24-m03c-leveling')).toBeVisible({ timeout: 40_000 })
+  await dismissWelcome(page)
       const archerChip = page.getByTestId('p24-m03c-subclass-fighter__arcane-archer')
       const banneretChip = page.getByTestId('p24-m03c-subclass-fighter__banneret')
       await expect(archerChip).toBeVisible({ timeout: 15_000 })
@@ -255,6 +267,7 @@ test.describe('P24-M02B fighter book — picker + finish gate', () => {
       '/characters/create?edition=2024&preview=1&e2eLeveling=1&e2eSeed=fighter3archer',
     )
     await expect(page.getByTestId('p24-m03c-leveling')).toBeVisible({ timeout: 40_000 })
+  await dismissWelcome(page)
     // Clear seeded shot picks so finish stays gated.
     await page.evaluate(() => {
       const w = window as unknown as {
@@ -290,6 +303,7 @@ test.describe('P24-M02B fighter book — live create rollbacks', () => {
     await installFighterHarness(page, store)
     await page.goto('/characters/create?edition=2024&preview=1&e2eLeveling=1&e2eSeed=fighter3archer')
     await expect(page.getByTestId('p24-m03c-leveling')).toBeVisible({ timeout: 40_000 })
+  await dismissWelcome(page)
     await expect(page.getByTestId('p24-m03c-subclass-fighter__arcane-archer')).toBeVisible({
       timeout: 15_000,
     })
@@ -306,6 +320,7 @@ test.describe('P24-M02B fighter book — live create rollbacks', () => {
       '/characters/create?edition=2024&preview=1&e2eLeveling=1&e2eSeed=fighter7banneret',
     )
     await expect(page.getByTestId('p24-m03c-leveling')).toBeVisible({ timeout: 40_000 })
+  await dismissWelcome(page)
     await expect(page.getByText(/Групповая тактика/i).first()).toBeVisible({ timeout: 15_000 })
     await setCreateLevel(page, 6)
     await expect(page.getByText(/Групповая тактика/i)).toHaveCount(0)
@@ -321,6 +336,7 @@ test.describe('P24-M02B fighter book — live create rollbacks', () => {
       '/characters/create?edition=2024&preview=1&e2eLeveling=1&e2eSeed=fighter10archer',
     )
     await expect(page.getByTestId('p24-m03c-leveling')).toBeVisible({ timeout: 40_000 })
+  await dismissWelcome(page)
     await expect(page.getByText(/Заготовленный выстрел/i).first()).toBeVisible({ timeout: 15_000 })
     await setCreateLevel(page, 9)
     await expect(page.getByText(/Заготовленный выстрел/i)).toHaveCount(0)
@@ -336,6 +352,7 @@ test.describe('P24-M02B fighter book — live create rollbacks', () => {
       '/characters/create?edition=2024&preview=1&e2eLeveling=1&e2eSeed=fighter15banneret',
     )
     await expect(page.getByTestId('p24-m03c-leveling')).toBeVisible({ timeout: 40_000 })
+  await dismissWelcome(page)
     await expect(page.getByText(/Устойчивость команды/i).first()).toBeVisible({ timeout: 15_000 })
     await setCreateLevel(page, 14)
     await expect(page.getByText(/Устойчивость команды/i)).toHaveCount(0)
@@ -351,6 +368,7 @@ test.describe('P24-M02B fighter book — live create rollbacks', () => {
       '/characters/create?edition=2024&preview=1&e2eLeveling=1&e2eSeed=fighter18archer',
     )
     await expect(page.getByTestId('p24-m03c-leveling')).toBeVisible({ timeout: 40_000 })
+  await dismissWelcome(page)
     await expect(page.getByText(/Мастерская стрельба/i).first()).toBeVisible({ timeout: 15_000 })
     await setCreateLevel(page, 17)
     await expect(page.getByText(/Мастерская стрельба/i)).toHaveCount(0)
@@ -366,6 +384,7 @@ test.describe('P24-M02B fighter book — live create rollbacks', () => {
       '/characters/create?edition=2024&preview=1&e2eLeveling=1&e2eSeed=fighter20banneret',
     )
     await expect(page.getByTestId('p24-m03c-leveling')).toBeVisible({ timeout: 40_000 })
+  await dismissWelcome(page)
     await setCreateLevel(page, 19)
     await completeVisibleChoices(page)
     await shot(page, '2024-rollback-20-to-19-banneret', project)
