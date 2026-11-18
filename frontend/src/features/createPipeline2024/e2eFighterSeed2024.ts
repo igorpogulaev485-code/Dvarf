@@ -57,7 +57,7 @@ export function fighterAsiChoicesForLevel(
   const banneret = subclassSlug === 'fighter__banneret'
   // Keep finals ≤20: seed bases are 15 + soldier +2/+1 on the primary physical score.
   // Archer primary DEX ends at 19 after one ASI; Banneret primary STR the same.
-  const bumps: Array<Partial<Record<'str' | 'dex' | 'con' | 'int' | 'cha', number>>> = archer
+  const bumps: Array<Partial<Record<'str' | 'dex' | 'con' | 'int' | 'wis' | 'cha', number>>> = archer
     ? [
         { dex: 2 }, // 17→19
         { int: 2 },
