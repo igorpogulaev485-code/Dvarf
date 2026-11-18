@@ -25,6 +25,7 @@ import { Create2024DetailPanel } from '../features/createPipeline2024/Create2024
 import {
   BackgroundPicks,
   BardLevelingPicks,
+  BardBookLevelingPicks,
   ArtificerLevelingPicks,
   BarbarianLevelingPicks,
   RangerLevelingPicks,
@@ -66,6 +67,12 @@ import {
   buildClericClassOptionPicks,
   clericAsiChoicesForLevel,
 } from '../features/createPipeline2024/e2eClericSeed2024'
+import {
+  parseBardSeed,
+  buildBardSeedSpells,
+  buildBardClassOptionPicks,
+  bardAsiChoicesForLevel,
+} from '../features/createPipeline2024/e2eBardSeed2024'
 import { createClassLevel, totalCharacterLevel } from '../shared/dnd/classLevels'
 import { thirdCasterBlock2024 } from '../shared/dnd/edition2024Subclasses'
 import { ensureHpChoices } from '../features/createPipeline/LevelingStep'
@@ -552,6 +559,33 @@ export function CreateCharacter2024Page({
         classOptionPicks: buildClericClassOptionPicks(
           clericSpec.level,
           clericSpec.subclassSlug,
+        ),
+      }
+    }
+    const bardSpec = parseBardSeed(e2eSeed)
+    const bardClass = bySlug(catalog.classes, 'bard')
+    if (bardSpec && bardClass) {
+      const bardSkills = ['performance', 'persuasion']
+      seeds[e2eSeed] = {
+        name: `Бард ${bardSpec.level}`,
+        classSlug: 'bard',
+        abilities: { str: 8, dex: 14, con: 14, int: 10, wis: 10, cha: 15 },
+        rows: [
+          {
+            slug: 'bard',
+            level: bardSpec.level,
+            ...(bardSpec.subclassSlug ? { subclass: bardSpec.subclassSlug } : {}),
+          },
+        ],
+        skills: bardSkills,
+        classToolIds: ['lute'],
+        backgroundAsi: { con: 2, dex: 1 },
+        asi: bardAsiChoicesForLevel(bardSpec.level),
+        spells: buildBardSeedSpells(catalog.spells, bardClass, bardSpec.level),
+        classOptionPicks: buildBardClassOptionPicks(
+          bardSpec.level,
+          bardSpec.subclassSlug,
+          bardSkills,
         ),
       }
     }
@@ -1515,6 +1549,7 @@ export function CreateCharacter2024Page({
               allSkillIds={model.skills.map((row) => row.key)}
             />
           ) : null}
+          {classSlug === 'bard' ? <BardBookLevelingPicks state={state} patch={patch} /> : null}
           {classSlug === 'rogue' ? <RogueLevelingPicks state={state} patch={patch} /> : null}
           {classSlug === 'ranger' ? <RangerLevelingPicks state={state} patch={patch} /> : null}
           {classSlug === 'warlock' ? <WarlockLevelingPicks state={state} patch={patch} /> : null}

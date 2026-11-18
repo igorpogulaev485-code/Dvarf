@@ -114,6 +114,9 @@ ALWAYS_PREPARED_FEATURE_IDS: frozenset[str] = frozenset(
         "circle-of-the-moon-spells",
         "circle-of-the-sea-spells",
         "circle-of-the-land-spells",
+        # P24-M02B-bard L6 always-prepared feature cards (spell_list also lists the spells)
+        "blessing-of-moonlight",
+        "empowered-channeling",
     }
 )
 
@@ -324,7 +327,7 @@ SHARED_OPTIONS: dict[str, list[SharedPoolOption]] = {
         SharedPoolOption("moons-inspiration", "Вдохновение луны", "bardic_inspiration", kind="bonus"),
     ],
     "bard__college-of-the-spirits": [
-        SharedPoolOption("spirits-from-beyond", "Духи извне", "bardic_inspiration", kind="bonus"),
+        SharedPoolOption("spirits-from-beyond", "Замогильные духи", "bardic_inspiration", kind="bonus"),
     ],
     # Monk traditions — spend Focus Points
     "monk__warrior-of-the-hand": [
@@ -2362,6 +2365,37 @@ def build_subclass_resources(
             feature_id="unbreakable-majesty",
             min_level=14,
         )
+    elif subclass_slug == "bard__college-of-the-moon":
+        if class_level >= 6:
+            add(
+                "moonlight_blessing",
+                name_ru="Благословение лунного света",
+                max_uses=1,
+                reset="long",
+                feature_id="blessing-of-moonlight",
+                min_level=6,
+                extra_meta={"modify_spell": "moonbeam", "heal_on_fail": "2d4"},
+            )
+    elif subclass_slug == "bard__college-of-the-spirits":
+        if class_level >= 6:
+            add(
+                "spirit_guardians_free",
+                name_ru="Духовные стражи (без ячейки)",
+                max_uses=1,
+                reset="long",
+                feature_id="empowered-channeling",
+                min_level=6,
+                extra_meta={"free_cast": "spirit-guardians"},
+            )
+            add(
+                "spirit_guardians_cover",
+                name_ru="Проявление духов (укрытие)",
+                max_uses=1,
+                reset="short",
+                feature_id="empowered-channeling",
+                min_level=6,
+                extra_meta={"half_cover_emanation": True},
+            )
 
     # --- Paladin oath spend pools ---
     if subclass_slug == "paladin__oath-of-glory" and class_level >= 15:

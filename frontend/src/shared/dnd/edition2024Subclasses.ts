@@ -188,6 +188,14 @@ export const M02B_CLERIC_BOOK_SUBCLASS_SLUGS = new Set([
   'cleric__grave-domain',
 ])
 
+/**
+ * Book bard paths opened by P24-M02B-bard (FRHoF Moon + RTW Spirits).
+ */
+export const M02B_BARD_BOOK_SUBCLASS_SLUGS = new Set([
+  'bard__college-of-the-moon',
+  'bard__college-of-the-spirits',
+])
+
 export function isPhb2024CreateSubclass(slug: string, source?: string | null): boolean {
   const key = String(slug || '')
     .trim()
@@ -210,6 +218,8 @@ export function isPhb2024CreateSubclass(slug: string, source?: string | null): b
   if (M02B_WARLOCK_BOOK_SUBCLASS_SLUGS.has(key)) return true
   // P24-M02B-cleric: Arcana + Knowledge + Grave only.
   if (M02B_CLERIC_BOOK_SUBCLASS_SLUGS.has(key)) return true
+  // P24-M02B-bard: Moon + Spirits only.
+  if (M02B_BARD_BOOK_SUBCLASS_SLUGS.has(key)) return true
   // Catalog API may omit source; fall back to known PHB table rows.
   return Boolean(row && CREATE_SUBCLASS_SOURCES_2024.has(String(row.source || '').toLowerCase()))
 }
@@ -314,7 +324,7 @@ const SHARED_OPTIONS_2024: Record<string, SharedPoolOption2024[]> = {
     { feature_id: 'moons-inspiration', name_ru: 'Вдохновение луны', spend_pool: 'bardic_inspiration', cost: 1, kind: 'bonus', min_level: 3 },
   ],
   'bard__college-of-the-spirits': [
-    { feature_id: 'spirits-from-beyond', name_ru: 'Духи извне', spend_pool: 'bardic_inspiration', cost: 1, kind: 'bonus', min_level: 3 },
+    { feature_id: 'spirits-from-beyond', name_ru: 'Замогильные духи', spend_pool: 'bardic_inspiration', cost: 1, kind: 'bonus', min_level: 3 },
   ],
   'monk__warrior-of-the-hand': [
     { feature_id: 'open-hand-technique', name_ru: 'Техники открытой ладони', spend_pool: 'focus_points', cost: 0, kind: 'passive', min_level: 3 },
@@ -1374,6 +1384,15 @@ export function buildSubclassResources2024(input: {
     push('beguiling_magic', 'Чарующая магия', 1, 'long', 'beguiling-magic')
     if (classLevel >= 6) push('mantle_of_majesty', 'Мантия величия', 1, 'long', 'mantle-of-majesty')
     if (classLevel >= 14) push('unbreakable_majesty', 'Несокрушимое величие', 1, 'short', 'unbreakable-majesty')
+  } else if (subclassSlug === 'bard__college-of-the-moon') {
+    if (classLevel >= 6) {
+      push('moonlight_blessing', 'Благословение лунного света', 1, 'long', 'blessing-of-moonlight')
+    }
+  } else if (subclassSlug === 'bard__college-of-the-spirits') {
+    if (classLevel >= 6) {
+      push('spirit_guardians_free', 'Духовные стражи (без ячейки)', 1, 'long', 'empowered-channeling')
+      push('spirit_guardians_cover', 'Проявление духов (укрытие)', 1, 'short', 'empowered-channeling')
+    }
   }
   return out
 }
@@ -1455,6 +1474,11 @@ export function thirdCasterBlock2024(subclassSlug: string, classLevel: number) {
 /** Ids ending in `-spells` that are not an always-prepared list. */
 const NOT_ALWAYS_PREPARED_FEATURE_IDS_2024 = new Set(['sculpt-spells'])
 
+const ALWAYS_PREPARED_FEATURE_IDS_2024 = new Set([
+  'blessing-of-moonlight',
+  'empowered-channeling',
+])
+
 export function featureAutomationMode2024(input: {
   featureId: string
   subclassSlug: string | null
@@ -1467,7 +1491,13 @@ export function featureAutomationMode2024(input: {
   if (input.hasSharedOption) return 'shared_option'
   if (input.hasCalc) return 'calc'
   if (NOT_ALWAYS_PREPARED_FEATURE_IDS_2024.has(fid)) return 'text'
-  if (fid.endsWith('-spells') || fid.endsWith('-domain-spells')) return 'always_prepared'
+  if (
+    ALWAYS_PREPARED_FEATURE_IDS_2024.has(fid) ||
+    fid.endsWith('-spells') ||
+    fid.endsWith('-domain-spells')
+  ) {
+    return 'always_prepared'
+  }
   if (
     input.subclassSlug &&
     THIRD_CASTER_SUBCLASSES[input.subclassSlug] &&
