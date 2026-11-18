@@ -373,7 +373,7 @@ export type StrikeOption2024 = {
   id: string
   nameRu: string
   costDice: number
-  save: 'dex' | 'con' | null
+  save: 'dex' | 'con' | 'wis' | null
   minLevel: number
   summaryRu: string
   requiresKit?: string
@@ -395,6 +395,16 @@ export const CUNNING_STRIKE_2024: StrikeOption2024[] = [
     minLevel: 9,
     summaryRu: 'До конца текущего хода — преимущество на проверки Скрытности (Хитрое действие: Засада).',
     requiresSubclass: 'rogue__thief',
+  },
+  {
+    id: 'strike-fear',
+    nameRu: 'Удар страха',
+    costDice: 1,
+    save: 'wis',
+    minLevel: 9,
+    summaryRu:
+      'Спас Мудр. или Испуганный 1 мин.; преимущество к атакам по цели; повтор сейва в конце каждого её хода.',
+    requiresSubclass: 'rogue__scion-of-the-three',
   },
 ]
 
@@ -435,7 +445,13 @@ export function resolveCunningStrike2024(input: {
     if (opt.requiresSubclass) {
       const need = opt.requiresSubclass.replace(/_/g, '-')
       if (!sub || (sub !== need && !sub.endsWith(need) && !sub.includes(need))) {
-        return { ok: false, reasonRu: `«${opt.nameRu}» доступен подклассу Вор (с 9 ур.)` }
+        const who =
+          need.includes('scion')
+            ? 'Наследник троицы'
+            : need.includes('thief')
+              ? 'Вор'
+              : 'нужному подклассу'
+        return { ok: false, reasonRu: `«${opt.nameRu}» доступен подклассу ${who} (с ${opt.minLevel} ур.)` }
       }
     }
     if (opt.requiresKit === 'poisoners-kit' && !input.hasPoisonersKit) {

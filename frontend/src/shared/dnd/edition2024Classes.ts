@@ -588,6 +588,12 @@ function stockLabels2024(poolId: string): {
   if (poolId === 'portent') {
     return { stock_gain_label_ru: 'Записать кость', stock_spend_label_ru: 'Потратить знамение' }
   }
+  if (poolId === 'tokens_of_the_departed') {
+    return {
+      stock_gain_label_ru: '+ сувенир (смерть в 30 фт.)',
+      stock_spend_label_ru: 'Уничтожить сувенир',
+    }
+  }
   return {}
 }
 
@@ -1466,6 +1472,8 @@ export function computeProgression2024(input: {
         classLabelRu: CLASS_CATALOG[pool.class_slug]?.name_ru,
       }
       if (pool.shortRestRegain != null) desired.shortRestRegain = pool.shortRestRegain
+      if (pool.initialStock != null) desired.initialStock = pool.initialStock
+      if (pool.longRestStockFloor != null) desired.longRestStockFloor = pool.longRestStockFloor
       desiredResources.push(desired)
       if (pool.die) scales[`${cls.slug}:${pool.pool_id}:die`] = pool.die
     }

@@ -81,6 +81,14 @@ import {
   knightlyEnvoySkillChoice2024,
 } from '../../shared/dnd/fighterBook2024Features'
 import {
+  DREAD_ALLEGIANCE_DEITIES_2024,
+  DREAD_ALLEGIANCE_DEITY_LABELS_RU,
+  DREAD_ALLEGIANCE_NAME_RU,
+  DREAD_ALLEGIANCE_TABLE_2024,
+  SCION_NAME_RU,
+  dreadAllegianceDeityChoice2024,
+} from '../../shared/dnd/rogueBook2024Features'
+import {
   ARMOR_MODELS_2024,
   PLANS_KNOWN_COLUMN_RU,
   SPELL_STORING_ITEM_NAME_RU,
@@ -157,6 +165,7 @@ import {
   bardBookCreatePicksNeed2024,
   paladinBookCreatePicksNeed2024,
   fighterBookCreatePicksNeed2024,
+  rogueBookCreatePicksNeed2024,
   setAsiFlat1,
   setAsiPlus2Plus1,
   speciesLineages,
@@ -860,6 +869,49 @@ export function RogueLevelingPicks({
       testIdPrefix="p24-m02-rogue-expertise"
       onChange={(next) => setPicks({ expertise: next })}
     />
+  )
+}
+
+/** P24-M02B book rogue: Scion dread-allegiance deity (Баал / Бэйн / Миркул). */
+export function RogueBookLevelingPicks({
+  state,
+  patch,
+}: {
+  state: Create2024State
+  patch: (partial: Partial<Create2024State>) => void
+}) {
+  const need = rogueBookCreatePicksNeed2024(state)
+  if (!need.any) return null
+  const setPicks = (partial: Record<string, unknown>) =>
+    patch({ classOptionPicks: { ...state.classOptionPicks, ...partial } })
+  const labels = dreadAllegianceDeityChoice2024.option_labels_ru ?? DREAD_ALLEGIANCE_DEITY_LABELS_RU
+  return (
+    <div data-testid="p24-m02b-rogue-book-picks">
+      <Stack gap={14}>
+        {need.dreadDeity ? (
+          <PickChipGroup
+            label={`${DREAD_ALLEGIANCE_NAME_RU} (${SCION_NAME_RU}): Божество`}
+            hint="Баал — Яд + Защита от оружия; Бэйн — Психический + Малая иллюзия; Миркул — Некротический + Леденящее прикосновение. Характеристика заговора — Интеллект."
+            options={DREAD_ALLEGIANCE_DEITIES_2024.map((id) => {
+              const row = DREAD_ALLEGIANCE_TABLE_2024[id]
+              return {
+                id,
+                label: `${labels[id] ?? id} (${row.resistanceRu}; ${row.cantripRu})`,
+              }
+            })}
+            selected={
+              state.classOptionPicks.dread_allegiance_deity
+                ? [String(state.classOptionPicks.dread_allegiance_deity)]
+                : []
+            }
+            max={1}
+            multi={false}
+            testIdPrefix="p24-m02b-pick-dread-deity"
+            onChange={(picked) => setPicks({ dread_allegiance_deity: picked[0] ?? null })}
+          />
+        ) : null}
+      </Stack>
+    </div>
   )
 }
 

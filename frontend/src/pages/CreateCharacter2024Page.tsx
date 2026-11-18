@@ -32,6 +32,7 @@ import {
   BarbarianLevelingPicks,
   RangerLevelingPicks,
   RogueLevelingPicks,
+  RogueBookLevelingPicks,
   WarlockLevelingPicks,
   WizardBookLevelingPicks,
   ClericBookLevelingPicks,
@@ -98,6 +99,11 @@ import {
   buildFighterClassOptionPicks,
   fighterAsiChoicesForLevel,
 } from '../features/createPipeline2024/e2eFighterSeed2024'
+import {
+  parseRogueBookSeed,
+  buildRogueBookClassOptionPicks,
+  rogueBookAsiChoicesForLevel,
+} from '../features/createPipeline2024/e2eRogueBookSeed2024'
 import { createClassLevel, totalCharacterLevel } from '../shared/dnd/classLevels'
 import { thirdCasterBlock2024 } from '../shared/dnd/edition2024Subclasses'
 import { ensureHpChoices } from '../features/createPipeline/LevelingStep'
@@ -735,6 +741,39 @@ export function CreateCharacter2024Page({
         classOptionPicks: buildFighterClassOptionPicks(
           fighterSpec.level,
           fighterSpec.subclassSlug,
+        ),
+      }
+    }
+    const rogueBookSpec = parseRogueBookSeed(e2eSeed)
+    if (rogueBookSpec) {
+      const isScion = rogueBookSpec.subclassSlug === 'rogue__scion-of-the-three'
+      const isPhantom = rogueBookSpec.subclassSlug === 'rogue__phantom'
+      seeds[e2eSeed] = {
+        name: isScion
+          ? `Наследник троицы ${rogueBookSpec.level}`
+          : isPhantom
+            ? `Фантом ${rogueBookSpec.level}`
+            : `Плут ${rogueBookSpec.level}`,
+        classSlug: 'rogue',
+        // Scion wants INT for bloodthirst; Phantom wants DEX for wails.
+        abilities: isScion
+          ? { str: 8, dex: 15, con: 13, int: 14, wis: 12, cha: 10 }
+          : { str: 8, dex: 15, con: 14, int: 10, wis: 13, cha: 12 },
+        rows: [
+          {
+            slug: 'rogue',
+            level: rogueBookSpec.level,
+            ...(rogueBookSpec.subclassSlug ? { subclass: rogueBookSpec.subclassSlug } : {}),
+          },
+        ],
+        skills: ['stealth', 'sleight_of_hand', 'perception', 'acrobatics'],
+        // Soldier ASI is only str/dex/con — INT for Scion comes from the array (14).
+        backgroundAsi: { dex: 2, con: 1 },
+        asi: rogueBookAsiChoicesForLevel(rogueBookSpec.level, rogueBookSpec.subclassSlug),
+        mastery: 2,
+        classOptionPicks: buildRogueBookClassOptionPicks(
+          rogueBookSpec.level,
+          rogueBookSpec.subclassSlug,
         ),
       }
     }
@@ -1733,6 +1772,7 @@ export function CreateCharacter2024Page({
           {classSlug === 'paladin' ? <PaladinBookLevelingPicks state={state} patch={patch} /> : null}
           {classSlug === 'fighter' ? <FighterBookLevelingPicks state={state} patch={patch} /> : null}
           {classSlug === 'rogue' ? <RogueLevelingPicks state={state} patch={patch} /> : null}
+          {classSlug === 'rogue' ? <RogueBookLevelingPicks state={state} patch={patch} /> : null}
           {classSlug === 'ranger' ? <RangerLevelingPicks state={state} patch={patch} /> : null}
           {classSlug === 'warlock' ? <WarlockLevelingPicks state={state} patch={patch} /> : null}
           {classSlug === 'wizard' ? <WizardBookLevelingPicks state={state} patch={patch} /> : null}

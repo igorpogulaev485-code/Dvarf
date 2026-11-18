@@ -88,6 +88,7 @@ import {
   KNIGHTLY_ENVOY_SKILLS_2024,
   arcaneShotsKnown2024,
 } from '../../shared/dnd/fighterBook2024Features'
+import { DREAD_ALLEGIANCE_DEITIES_2024 } from '../../shared/dnd/rogueBook2024Features'
 import { wizardCreateBookNeed2024 } from '../../shared/dnd/wizardSpellbook2024'
 import {
   isVestigeCompanionType2024,
@@ -833,6 +834,31 @@ export function paladinBookCreatePicksNeed2024(state: Create2024State): {
   }
 }
 
+/** P24-M02B-rogue: Scion dread-allegiance deity (Phantom has no create-time pick beyond PHB). */
+export function rogueBookCreatePicksNeed2024(state: Create2024State): {
+  rogueLevel: number
+  subclassSlug: string
+  dreadDeity: boolean
+  any: boolean
+} {
+  if (state.classSlug !== 'rogue') {
+    return { rogueLevel: 0, subclassSlug: '', dreadDeity: false, any: false }
+  }
+  const primary =
+    state.classes.find((row) => row.id === state.primaryClassEntryId) ?? state.classes[0]
+  const rogueLevel = Math.max(1, primary?.level ?? state.characterLevel ?? 1)
+  const subclass = String(
+    (primary && state.subclassByEntryId[primary.id]) || state.subclassSlug || '',
+  ).toLowerCase()
+  const scion = subclass === 'rogue__scion-of-the-three' && rogueLevel >= 3
+  return {
+    rogueLevel,
+    subclassSlug: subclass,
+    dreadDeity: scion,
+    any: scion,
+  }
+}
+
 /** P24-M02B-fighter: Arcane Archer + Banneret (UI «Знаменосец») mandatory create picks. */
 export function fighterBookCreatePicksNeed2024(state: Create2024State): {
   fighterLevel: number
@@ -1318,6 +1344,21 @@ function levelingIssues(state: Create2024State, ctx: StepIssueCtx): string[] {
         .replace(/-/g, '_')
       if (!(ELEMENTAL_SHIELDING_TYPES_2024 as readonly string[]).includes(pick)) {
         issues.push('Клятва благородных гениев 7+: выберите тип «Ауры стихийной защиты»')
+      }
+    }
+  }
+  if (state.classSlug === 'rogue') {
+    const need = rogueBookCreatePicksNeed2024(state)
+    if (need.dreadDeity) {
+      const pick = String(state.classOptionPicks.dread_allegiance_deity || '')
+        .trim()
+        .toLowerCase()
+        .replace(/-/g, '_')
+      const normalized = pick === 'bhaal' ? 'baal' : pick
+      if (!(DREAD_ALLEGIANCE_DEITIES_2024 as readonly string[]).includes(normalized)) {
+        issues.push(
+          'Наследник троицы 3+: выберите божество «Ужасной преданности» (Баал / Бэйн / Миркул)',
+        )
       }
     }
   }

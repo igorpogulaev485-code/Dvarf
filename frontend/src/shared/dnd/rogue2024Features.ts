@@ -84,6 +84,8 @@ export const CUNNING_STRIKE_EFFECT_NAMES_RU: Record<string, string> = {
   blind: 'Ослепление',
   'supreme-sneak': 'Скрытная атака',
   supreme_sneak: 'Скрытная атака',
+  'strike-fear': 'Удар страха',
+  strike_fear: 'Удар страха',
 }
 
 /* ------------------------------------------------------------------ */
@@ -101,10 +103,11 @@ export const ROGUE_SUBCLASS_SLUGS_2024 = {
 
 export type RogueSubclassKey2024 = keyof typeof ROGUE_SUBCLASS_SLUGS_2024
 
-/** Book / 2014-only — not in PHB 2024 picker for this pack. */
+/**
+ * Still outside the 2024 picker after P24-M02B-rogue.
+ * Scion + Phantom are opened via M02B_ROGUE_BOOK_SUBCLASS_SLUGS — not listed here.
+ */
 export const OUT_OF_PACK_ROGUE_SUBCLASSES_2024 = [
-  'rogue__phantom',
-  'rogue__scion-of-the-three',
   'rogue__swashbuckler',
   'rogue__inquisitive',
   'rogue__mastermind',
@@ -410,6 +413,18 @@ const ROGUE_USE_FEATURE_IDS = new Set([
   'rend-mind',
   'spell-thief',
   'fast-hands',
+  /* P24-M02B book */
+  'bloodthirst',
+  'dread-allegiance',
+  'strike-fear',
+  'aura-of-malevolence',
+  'dread-incarnate',
+  'whispers-of-the-dead',
+  'wails-from-the-grave',
+  'tokens-of-the-departed',
+  'voice-of-death',
+  'ghost-walk',
+  'death-s-friend',
 ])
 
 export const ROGUE_2024_CARD_BUTTONS: Record<string, string> = {
@@ -431,6 +446,27 @@ export const ROGUE_2024_CARD_BUTTONS: Record<string, string> = {
   spell_thief: 'Похитить…',
   'fast-hands': 'Руки…',
   fast_hands: 'Руки…',
+  bloodthirst: 'Реакция…',
+  'dread-allegiance': 'Преданность…',
+  dread_allegiance: 'Преданность…',
+  'strike-fear': 'Удар страха…',
+  strike_fear: 'Удар страха…',
+  'aura-of-malevolence': 'Аура…',
+  aura_of_malevolence: 'Аура…',
+  'dread-incarnate': 'Ужас…',
+  dread_incarnate: 'Ужас…',
+  'whispers-of-the-dead': 'Шёпот…',
+  whispers_of_the_dead: 'Шёпот…',
+  'wails-from-the-grave': 'Стенания…',
+  wails_from_the_grave: 'Стенания…',
+  'tokens-of-the-departed': 'Сувениры…',
+  tokens_of_the_departed: 'Сувениры…',
+  'voice-of-death': 'Голос…',
+  voice_of_death: 'Голос…',
+  'ghost-walk': 'Походка…',
+  ghost_walk: 'Походка…',
+  'death-s-friend': 'Друг смерти…',
+  death_s_friend: 'Друг смерти…',
 }
 
 export function rogue2024UseFeatureId(featureId: string | null | undefined): string | null {
