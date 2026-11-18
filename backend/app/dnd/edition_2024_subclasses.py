@@ -806,7 +806,7 @@ def build_permanent_bonuses(
     if subclass_slug == "rogue__assassin":
         add(
             "assassinate",
-            "Ликвидация",
+            "Убийство",
             "other_calc",
             {
                 "initiative_advantage": True,
@@ -814,8 +814,42 @@ def build_permanent_bonuses(
                 "sneak_attack_extra_damage_equals_rogue_level_round_1": True,
                 "crit_vs_surprised": False,
             },
-            note_ru="2024: преим. к инициативе; преим. vs ещё не ходивших в 1-м раунде; доп. урон Коварной = ур. плута. Без авто-крита по surprised (это 2014).",
+            note_ru="2024: преим. к инициативе; преим. vs ещё не ходивших в 1-м раунде; доп. урон Скрытой = ур. плута. Без авто-крита по surprised (это 2014).",
         )
+        if class_level >= 9:
+            add(
+                "infiltration-expertise",
+                "Мастерство внедрения",
+                "other_calc",
+                {
+                    "steady_aim_allows_moved": True,
+                    "steady_aim_no_speed_0": True,
+                },
+                min_level=9,
+                note_ru="Точное прицеливание: можно после движения; скорость не становится 0",
+            )
+        if class_level >= 13:
+            add(
+                "envenom-weapon",
+                "Покрытое ядом оружие",
+                "damage_rider",
+                {"poison_damage_on_sneak": "2d6", "once_per_turn": True},
+                min_level=13,
+                note_ru="При Скрытой атаке — доп. 2к6 яда (1/ход); цель может получить Отравление",
+            )
+        if class_level >= 17:
+            add(
+                "death-strike",
+                "Смертельный удар",
+                "other_calc",
+                {
+                    "on_assassinate_hit": True,
+                    "con_save_or_double_damage": True,
+                    "partial": True,
+                },
+                min_level=17,
+                note_ru="При попадании из Убийства: спас Тел. или удвоенный урон этой атаки (кнопка/сводка на листе)",
+            )
 
     # Rogue Thief
     if subclass_slug == "rogue__thief":
@@ -823,16 +857,52 @@ def build_permanent_bonuses(
             "fast-hands",
             "Быстрые руки",
             "other_calc",
-            {"bonus_action_use_object": True, "bonus_sleight": True},
-            note_ru="Использование предмета / Ловкость рук бонусным действием",
+            {
+                "bonus_action_use_object": True,
+                "bonus_sleight": True,
+                "bonus_magic_item_action": True,
+                "via_cunning_action": True,
+            },
+            note_ru="Хитрое действие: Ловкость рук, Использование предмета, действие магического предмета",
         )
         add(
             "second-story-work",
-            "Работа на втором этаже",
+            "Работа на высоте",
             "speed",
-            {"climb_equals_speed": True},
-            note_ru="Лазание = скорость",
+            {"climb_equals_speed": True, "jump_distance_bonus_dex": True},
+            note_ru="Лазание = скорость; прыжок + мод. Ловкости",
         )
+        if class_level >= 9:
+            add(
+                "supreme-sneak",
+                "Превосходная скрытность",
+                "other_calc",
+                {"cunning_strike_option": "supreme-sneak", "cost_dice": 1},
+                min_level=9,
+                note_ru="Опция Хитрого удара «Скрытная атака» (1 кость): преим. к Скрытности",
+            )
+        if class_level >= 13:
+            add(
+                "use-magic-device",
+                "Использование магических устройств",
+                "other_calc",
+                {
+                    "attune_any_class_item": True,
+                    "ignore_class_spell_lists": True,
+                    "charge_floor": 1,
+                },
+                min_level=13,
+                note_ru="Аттьюн к любому предмету; игнор классовых ограничений; при 0 зарядов — 1",
+            )
+        if class_level >= 17:
+            add(
+                "thiefs-reflexes",
+                "Рефлексы вора",
+                "other_calc",
+                {"two_turns_round_1": True},
+                min_level=17,
+                note_ru="В первом раунде боя — два хода (инициатива и инициатива −10)",
+            )
 
     # Druid Moon — circle forms CR / AC
     if subclass_slug == "druid__moon":
@@ -1079,15 +1149,47 @@ def build_subclass_resources(
                     min_level=18,
                     extra_meta={"refund_with_pool": "psionic_energy_dice", "spell": "telekinesis"},
                 )
-        if subclass_slug == "rogue__soulknife" and class_level >= 13:
-            add(
-                "psychic_veil",
-                name_ru="Психическая завеса",
-                max_uses=1,
-                reset="long",
-                feature_id="psychic-veil",
-                min_level=13,
-            )
+        if subclass_slug == "rogue__soulknife":
+            if class_level >= 13:
+                add(
+                    "psychic_veil",
+                    name_ru="Психическая завеса",
+                    max_uses=1,
+                    reset="long",
+                    feature_id="psychic-veil",
+                    min_level=13,
+                    extra_meta={
+                        "refund_with_pool": "psionic_energy_dice",
+                        "refund_cost": 1,
+                        "note_ru": "Невидимость 1 ч.; можно восстановить, потратив кость пси-энергии",
+                    },
+                )
+            if class_level >= 17:
+                add(
+                    "rend_mind",
+                    name_ru="Разрыв разума",
+                    max_uses=1,
+                    reset="long",
+                    feature_id="rend-mind",
+                    min_level=17,
+                    extra_meta={
+                        "refund_with_pool": "psionic_energy_dice",
+                        "refund_cost": 3,
+                        "note_ru": "При попадании психическим клинком: спас Муд. или Ошеломлён; восстановить за 3 кости",
+                    },
+                )
+    elif subclass_slug == "rogue__arcane-trickster" and class_level >= 17:
+        add(
+            "spell_thief",
+            name_ru="Похититель заклинаний",
+            max_uses=1,
+            reset="long",
+            feature_id="spell-thief",
+            min_level=17,
+            extra_meta={
+                "note_ru": "Реакция: украсть заклинание, нацеленное на вас (1 / долгий)",
+            },
+        )
     elif subclass_slug == "fighter__arcane-archer":
         add(
             "arcane_shot",
@@ -1757,9 +1859,12 @@ def third_caster_block(
     row = THIRD_CASTER_SLOTS[lv - 1]
     slots = {str(i + 1): int(row[i]) for i in range(9)}
     budget = THIRD_CASTER_SPELLS_KNOWN[lv - 1]
-    # Eldritch Knight 2024 prepares wizard spells (not «known» with school lock).
-    # Arcane Trickster / Mystic Arts keep known-style budget for now.
-    ek_prepared = subclass_slug == "fighter__eldritch-knight"
+    # EK + Arcane Trickster 2024: prepare wizard spells (no enchantment/illusion-only lock).
+    # Mystic Arts (monk) stays known-style.
+    wizard_prepared = subclass_slug in {
+        "fighter__eldritch-knight",
+        "rogue__arcane-trickster",
+    }
     return {
         "class_slug": subclass_parent(subclass_slug) or "class",
         "subclass_slug": subclass_slug,
@@ -1767,14 +1872,15 @@ def third_caster_block(
         "ability": meta["ability"],
         "name_ru": meta["name_ru"],
         "cantrips": THIRD_CASTER_CANTRIPS[lv - 1],
-        "prepared_spells": budget if ek_prepared else 0,
-        "spells_known": 0 if ek_prepared else budget,
+        "prepared_spells": budget if wizard_prepared else 0,
+        "spells_known": 0 if wizard_prepared else budget,
         "slots": slots,
         "pact_slots": None,
         "always_prepared": [],
-        "spell_list": "wizard" if ek_prepared else None,
-        "prepare_mode": "prepared" if ek_prepared else "known",
-        "replace_one_on_level": ek_prepared,
+        "spell_list": "wizard" if wizard_prepared else None,
+        "prepare_mode": "prepared" if wizard_prepared else "known",
+        "replace_one_on_level": wizard_prepared,
+        "school_restriction": None if wizard_prepared else "2014_known",
     }
 
 

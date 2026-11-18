@@ -20,6 +20,7 @@ import type { DruidFeatureRequest } from '../Druid2024UseDialog'
 import type { RangerFeatureRequest } from '../Ranger2024UseDialog'
 import type { FighterFeatureRequest } from '../Fighter2024UseDialog'
 import type { BarbarianFeatureRequest } from '../Barbarian2024UseDialog'
+import type { RogueFeatureRequestUi } from '../Rogue2024UseDialog'
 import type { ArtificerFeatureRequest } from '../Artificer2024UseDialog'
 import { type FamiliarCastMode } from '../familiarForms'
 import { withInitiativeBonus } from '../modifiers'
@@ -267,6 +268,10 @@ export function useSheetEditorPart4(model: SheetModel) {
     useState<BarbarianFeatureRequest | null>(null)
   model.barbarianFeatureUse = barbarianFeatureUse
   model.setBarbarianFeatureUse = setBarbarianFeatureUse
+  const [rogueFeatureUse, setRogueFeatureUse] =
+    useState<RogueFeatureRequestUi | null>(null)
+  model.rogueFeatureUse = rogueFeatureUse
+  model.setRogueFeatureUse = setRogueFeatureUse
   const [artificerFeatureUse, setArtificerFeatureUse] =
     useState<ArtificerFeatureRequest | null>(null)
   model.artificerFeatureUse = artificerFeatureUse

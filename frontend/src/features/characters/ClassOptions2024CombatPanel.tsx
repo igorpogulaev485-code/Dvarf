@@ -16,6 +16,7 @@ import {
   type ClassOptions2024State,
 } from '../../shared/dnd/edition2024ClassOptions'
 import { normalizeClassSlug2024 } from '../../shared/dnd/edition2024Classes'
+import { cunningStrikeEffectNameRu2024 } from '../../shared/dnd/rogue2024Features'
 import type { ClassLevelEntry } from './classLevels'
 import { postSheetRollToSession } from './postSheetRollToSession'
 
@@ -71,17 +72,34 @@ export function ClassOptions2024CombatPanel({
   const [reckless, setReckless] = useState(false)
   const [hasAdv, setHasAdv] = useState(true)
 
-  if (String(rulesEdition || '') !== '2024') return null
-
   const rogueLv = levelOf(classes, 'rogue')
   const barbLv = levelOf(classes, 'barbarian')
   const paladinLv = levelOf(classes, 'paladin')
   const sorcererLv = levelOf(classes, 'sorcerer')
+  const rogueSubclass = useMemo(() => {
+    for (const row of classes) {
+      if (normalizeClassSlug2024(row.catalog_id || row.name) !== 'rogue') continue
+      const sub = String(
+        (row as { subclass_catalog_id?: string; subclass_slug?: string }).subclass_catalog_id ||
+          (row as { subclass_slug?: string }).subclass_slug ||
+          row.subclass_name ||
+          '',
+      )
+        .trim()
+        .toLowerCase()
+        .replace(/_/g, '-')
+      if (sub) return sub.startsWith('rogue__') ? sub : `rogue__${sub}`
+    }
+    return null
+  }, [classes])
+  const isThief = Boolean(rogueSubclass && rogueSubclass.includes('thief'))
 
   const sneakDice = useMemo(
     () => parseSneakAttackDice(sneakAttackScale || (rogueLv >= 5 ? `${Math.ceil(rogueLv / 2)}d6` : '0')),
     [sneakAttackScale, rogueLv],
   )
+
+  if (String(rulesEdition || '') !== '2024') return null
 
   async function announce(title: string, line: string) {
     onFeedLine?.(line)
@@ -116,7 +134,13 @@ export function ClassOptions2024CombatPanel({
         <div data-testid="cunning-strike-panel">
           <Text as="h3">Хитрый удар ({sneakDice}d6)</Text>
           <div className="sheet-chip-row">
-            {CUNNING_STRIKE_2024.filter((r) => r.minLevel <= rogueLv).map((row) => (
+            {CUNNING_STRIKE_2024.filter((r) => {
+              if (r.minLevel > rogueLv) return false
+              if (r.requiresSubclass === 'rogue__thief' && !(isThief && rogueLv >= 9)) {
+                return false
+              }
+              return true
+            }).map((row) => (
               <button
                 key={row.id}
                 type="button"
@@ -128,7 +152,7 @@ export function ClassOptions2024CombatPanel({
                   )
                 }
               >
-                {row.nameRu} ·{row.costDice}d6
+                {cunningStrikeEffectNameRu2024(row.id) || row.nameRu} ·{row.costDice}d6
               </button>
             ))}
           </div>
@@ -144,6 +168,7 @@ export function ClassOptions2024CombatPanel({
                 dexMod,
                 proficiencyBonus,
                 hasPoisonersKit,
+                subclassSlug: rogueSubclass,
               })
               if (!result.ok) {
                 onToast?.(result.reasonRu)

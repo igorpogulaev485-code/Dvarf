@@ -114,7 +114,8 @@ export const OUT_OF_PACK_ROGUE_SUBCLASSES_2024 = [
 
 export const SNEAK_ATTACK_SCALE_ID = 'sneak_attack'
 export const STROKE_OF_LUCK_POOL_ID = 'stroke_of_luck'
-export const PSIONIC_ENERGY_POOL_ID = 'psionic_energy'
+/** Matches subclass resource pool_id from edition2024Subclasses / backend. */
+export const PSIONIC_ENERGY_POOL_ID = 'psionic_energy_dice'
 export const PSYCHIC_VEIL_POOL_ID = 'psychic_veil'
 export const REND_MIND_POOL_ID = 'rend_mind'
 export const SPELL_THIEF_POOL_ID = 'spell_thief'

@@ -91,7 +91,10 @@ def test_subclass_checkpoints(subclass_slug: str, level: int):
     if subclass_slug in e24sub.THIRD_CASTER_SUBCLASSES:
         third = [b for b in snap.spellcasting if b.progression == "third"]
         assert third, subclass_slug
-        assert third[0].spells_known and third[0].spells_known > 0
+        # 2024 EK / Arcane Trickster prepare wizard spells; monk mystic stays known.
+        known = int(third[0].spells_known or 0)
+        prepared = int(third[0].prepared_spells or 0)
+        assert known > 0 or prepared > 0, (subclass_slug, known, prepared)
         assert snap.multiclass_slots["1"] >= 2
 
 

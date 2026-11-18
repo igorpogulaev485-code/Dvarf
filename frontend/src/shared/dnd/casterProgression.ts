@@ -795,7 +795,11 @@ export function characterSpellListSlugs(
 export function thirdCasterSchoolGate(
   classes: ClassLevelEntry[],
   subclassCasters?: SubclassCasterOverlay[],
+  rulesEdition?: string | null,
 ): string[] | null {
+  // 2024 EK / Arcane Trickster prepare any wizard school — no enchantment/illusion lock.
+  if (String(rulesEdition || '').trim() === '2024') return null
+
   const hasWizardLevels = classes.some(
     (row) => resolveClassCasterSlug(row.name) === 'wizard' && row.level > 0,
   )

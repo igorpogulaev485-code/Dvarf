@@ -1553,12 +1553,27 @@ export function installSheetActions4(model: SheetModel) {
         (feature: { id?: string }) => feature.id === 'silver_tongue',
       ),
     )
+    const skillState = (model.draft.skills as Record<
+      string,
+      { is_proficient?: boolean; is_expertise?: boolean }
+    >)[skill.key]
+    const skillProficient = Boolean(skillState?.is_proficient || skillState?.is_expertise)
+    const edition = model.baseCharacter?.rules_edition ?? model.rulesEdition
+    const hasReliableTalent = (model.unlockedFeatures ?? []).some(
+      (feature: { id?: string }) =>
+        feature.id === 'reliable_talent' || feature.id === 'reliable-talent',
+    )
+    // Reliable Talent: ability checks that add PB — d20 below 10 counts as 10.
+    // 2024 unlocks at 7; 2014 at 11 (feature unlock level handles the gate).
+    const reliableFloor =
+      hasReliableTalent && skillProficient
+        ? { value: 10, label: edition === '2024' ? 'надёжный талант' : 'надёжный талант' }
+        : null
+    const dieFloor = silver
+      ? { value: 10, label: 'серебряный язык' }
+      : reliableFloor
     const bonusDice = buffDiceFor('check')
     const homebrew = normalizeCampaignRules(model.campaignRulesRaw).homebrew
-    const skillProficient = Boolean(
-      (model.draft.skills as Record<string, { is_proficient?: boolean }>)[skill.key]
-        ?.is_proficient,
-    )
     const exhPen = exhaustionD20Penalty()
     let rollMod = skill.mod - exhPen
     let profNote = exhPen > 0 ? ` · истощение −${exhPen}` : ''
@@ -1589,7 +1604,7 @@ export function installSheetActions4(model: SheetModel) {
       mode,
       undefined,
       model.strengthCheckFloor(base === 'str'),
-      silver ? { value: 10, label: 'серебряный язык' } : null,
+      dieFloor,
       bonusDice,
     )}${note}${profNote}${
       model.inspirationRollArmed &&

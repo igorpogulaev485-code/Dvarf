@@ -1350,6 +1350,54 @@ def _bard_expertise_need_2024(bard_level: int) -> int:
     return 0
 
 
+def _rogue_expertise_need_2024(rogue_level: int) -> int:
+    """Rogue Expertise picks: 2 @1, 4 @6+."""
+    if rogue_level >= 6:
+        return 4
+    if rogue_level >= 1:
+        return 2
+    return 0
+
+
+def _validate_rogue_options_2024(payload: Create2024Payload, picks: Mapping[str, Any]) -> dict[str, Any]:
+    """Rogue 2024 create picks: Expertise 2 @ L1, 4 @ L6+ (skills or thieves' tools)."""
+    out: dict[str, Any] = {}
+    rogue_level = _planned_class_level(payload, "rogue")
+    need = _rogue_expertise_need_2024(rogue_level)
+    expertise = [str(x) for x in (picks.get("expertise") or [])]
+    if need:
+        if len(expertise) != need or len(set(expertise)) != need:
+            raise Create2024Error(
+                f"Плут {rogue_level}: выберите {need} различных навыка/инструмента для Компетентности",
+                code="create_2024_class_options",
+            )
+        out["expertise"] = expertise
+    elif expertise:
+        raise Create2024Error(
+            "Плут: Компетентность на 1+ уровне",
+            code="create_2024_class_options",
+        )
+    return out
+
+
+def _sync_rogue_picks(sheet: dict[str, Any], class_options: Mapping[str, Any]) -> None:
+    """Mirror Expertise picks into feature_picks (expertise + expertise_6)."""
+    for row in sheet.get("classes") or []:
+        if not isinstance(row, dict):
+            continue
+        if e24.normalize_class_slug(str(row.get("slug") or "")) != "rogue":
+            continue
+        class_entry = str(row.get("id") or "class-rogue")
+        expertise = [str(x) for x in (class_options.get("expertise") or [])]
+        if expertise:
+            picks = sheet.get("feature_picks")
+            values = dict(picks.get("values") or {}) if isinstance(picks, dict) else {}
+            values[f"{class_entry}:expertise"] = ",".join(expertise[:2])
+            if len(expertise) > 2:
+                values[f"{class_entry}:expertise_6"] = ",".join(expertise[2:4])
+            sheet["feature_picks"] = {"values": values}
+
+
 def _planned_primary_subclass(payload: Create2024Payload) -> str:
     """Subclass slug of the primary class in the create plan (empty when none)."""
     for row in payload.class_levels or []:
@@ -2014,13 +2062,7 @@ def _validate_class_options(
     if payload.class_slug == "bard":
         out.update(_validate_bard_options_2024(payload, picks))
     if payload.class_slug == "rogue":
-        expertise = [str(x) for x in (picks.get("expertise") or [])]
-        if len(expertise) != 2 or len(set(expertise)) != 2:
-            raise Create2024Error(
-                "Плут: выберите два навыка/инструмента для компетентности",
-                code="create_2024_class_options",
-            )
-        out["expertise"] = expertise
+        out.update(_validate_rogue_options_2024(payload, picks))
     if payload.class_slug == "warlock":
         raw_inv = picks.get("eldritch_invocations") or picks.get("invocations") or []
         inv = [_normalize_slug(str(x)) for x in raw_inv]
@@ -2289,6 +2331,7 @@ def validate_create_2024(payload: Create2024Payload) -> Create2024Result:
     _sync_land_choice_pick(sheet)
     _sync_known_forms(sheet, class_options)
     _sync_bard_picks(sheet, class_options)
+    _sync_rogue_picks(sheet, class_options)
     _sync_blessed_warrior_picks(sheet, class_options, fighting_style=fighting_style)
     _sync_druidic_warrior_picks(sheet, class_options, fighting_style=fighting_style)
     _sync_ranger_subclass_picks(sheet, class_options)
@@ -2565,6 +2608,10 @@ def _build_sheet(
 
     # Saves
     save_prof = {str(x).lower() for x in (class_data.get("saving_throws") or [])}
+    # Slippery Mind 2024 (L15+): Wis AND Cha (2014 path is Wis-only via 2014 pack).
+    planned_rogue = _planned_class_level(payload, "rogue") if payload.class_slug == "rogue" else 0
+    if payload.class_slug == "rogue" and planned_rogue >= 15:
+        save_prof |= {"wis", "cha"}
     sheet["saves"] = {
         k: {"is_proficient": k in save_prof} for k in ABILITY_KEYS
     }

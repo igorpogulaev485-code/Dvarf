@@ -284,6 +284,7 @@ export type StrikeOption2024 = {
   minLevel: number
   summaryRu: string
   requiresKit?: string
+  requiresSubclass?: string
 }
 
 export const CUNNING_STRIKE_2024: StrikeOption2024[] = [
@@ -293,6 +294,15 @@ export const CUNNING_STRIKE_2024: StrikeOption2024[] = [
   { id: 'daze', nameRu: 'Шок', costDice: 2, save: 'con', minLevel: 14, summaryRu: 'Спас Тел. или в следующий свой ход цель может только либо переместиться, либо совершить одно действие, либо бонусное.' },
   { id: 'knock-out', nameRu: 'Нокаут', costDice: 6, save: 'con', minLevel: 14, summaryRu: 'Спас Тел. или Бессознательна 1 мин. / до урона; повтор в конце каждого своего хода.' },
   { id: 'obscure', nameRu: 'Ослепление', costDice: 3, save: 'dex', minLevel: 14, summaryRu: 'Спас Лов. или Ослеплена до конца своего следующего хода.' },
+  {
+    id: 'supreme-sneak',
+    nameRu: 'Скрытная атака',
+    costDice: 1,
+    save: null,
+    minLevel: 9,
+    summaryRu: 'До конца текущего хода — преимущество на проверки Скрытности (Хитрое действие: Засада).',
+    requiresSubclass: 'rogue__thief',
+  },
 ]
 
 export const BRUTAL_STRIKE_2024: StrikeOption2024[] = [
@@ -309,6 +319,7 @@ export function resolveCunningStrike2024(input: {
   dexMod: number
   proficiencyBonus: number
   hasPoisonersKit?: boolean
+  subclassSlug?: string | null
 }): { ok: true; diceSpent: number; remaining: number; feedLineRu: string; effects: StrikeOption2024[]; dc: number } | { ok: false; reasonRu: string } {
   if (input.rogueLevel < 5) return { ok: false, reasonRu: 'Хитрый удар с 5 ур. плута' }
   const maxOpts = input.rogueLevel >= 11 ? 2 : 1
@@ -318,14 +329,24 @@ export function resolveCunningStrike2024(input: {
   const byId = Object.fromEntries(CUNNING_STRIKE_2024.map((r) => [r.id, r]))
   const effects: StrikeOption2024[] = []
   let cost = 0
+  const sub = String(input.subclassSlug || '')
+    .trim()
+    .toLowerCase()
+    .replace(/_/g, '-')
   for (const oid of input.optionIds) {
     const opt = byId[oid]
     if (!opt) return { ok: false, reasonRu: `Неизвестный Хитрый удар: ${oid}` }
     if (input.rogueLevel < opt.minLevel) {
       return { ok: false, reasonRu: `«${opt.nameRu}» с ${opt.minLevel} ур.` }
     }
+    if (opt.requiresSubclass) {
+      const need = opt.requiresSubclass.replace(/_/g, '-')
+      if (!sub || (sub !== need && !sub.endsWith(need) && !sub.includes(need))) {
+        return { ok: false, reasonRu: `«${opt.nameRu}» доступен подклассу Вор (с 9 ур.)` }
+      }
+    }
     if (opt.requiresKit === 'poisoners-kit' && !input.hasPoisonersKit) {
-      return { ok: false, reasonRu: 'Для «Яда» нужен набор отравителя' }
+      return { ok: false, reasonRu: 'Для «Отравления» нужен набор отравителя' }
     }
     cost += opt.costDice
     effects.push(opt)

@@ -157,7 +157,9 @@ export function SheetDialogsRolls({ model }: { model: SheetModel }) {
                             model.onToast?.('Удача доступна плуту 20-го уровня')
                             return
                           }
-                          const nextText = applyStrokeOfLuck(row.text)
+                          const edition =
+                            model.baseCharacter?.rules_edition ?? model.rulesEdition ?? '2014'
+                          const nextText = applyStrokeOfLuck(row.text, edition)
                           if (!nextText) {
                             model.onToast?.('Этот бросок уже нельзя заменить Удачей')
                             return
@@ -184,9 +186,11 @@ export function SheetDialogsRolls({ model }: { model: SheetModel }) {
                             },
                           }))
                           model.onToast?.(
-                            strokeOfLuckKind(row.text) === 'attack'
-                              ? 'Удача: промах становится попаданием'
-                              : 'Удача: d20 проверки считается как 20',
+                            edition === '2024'
+                              ? 'Удача: d20 считается как 20'
+                              : strokeOfLuckKind(row.text) === 'attack'
+                                ? 'Удача: промах становится попаданием'
+                                : 'Удача: d20 проверки считается как 20',
                           )
                         }}
                       >

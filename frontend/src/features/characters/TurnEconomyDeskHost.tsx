@@ -199,12 +199,40 @@ export function TurnEconomyDeskHost({ model, children }: Props) {
       canHide: (hasCunningAction) => resolveHideTiming(economy, hasCunningAction),
       spendHide: (timing: HideSpendTiming) =>
         patchEconomy((te) => applyHideSpend(te, timing)),
-      canSteadyAim: () => canSpendSteadyAim(economy),
+      canSteadyAim: () => {
+        const edition = model.baseCharacter?.rules_edition ?? model.rulesEdition
+        const infiltration =
+          edition === '2024' &&
+          (model.unlockedFeatures ?? []).some(
+            (f: { id?: string }) =>
+              f.id === 'infiltration_expertise' || f.id === 'infiltration-expertise',
+          )
+        return canSpendSteadyAim(
+          economy,
+          infiltration ? { allowsMoved: true, noSpeedZero: true } : undefined,
+        )
+      },
       spendSteadyAim: () => {
-        if (!canSpendSteadyAim(economy).ok) return
+        const edition = model.baseCharacter?.rules_edition ?? model.rulesEdition
+        const infiltration =
+          edition === '2024' &&
+          (model.unlockedFeatures ?? []).some(
+            (f: { id?: string }) =>
+              f.id === 'infiltration_expertise' || f.id === 'infiltration-expertise',
+          )
+        const opts = infiltration
+          ? { allowsMoved: true, noSpeedZero: true }
+          : undefined
+        if (!canSpendSteadyAim(economy, opts).ok) return
         model.setDraft((prev) => {
           const te = prev.play.turnEconomy ?? emptyTurnEconomy()
-          const nextTe = applySteadyAim(te)
+          const nextTe = applySteadyAim(te, opts)
+          const mods: ActiveEffect['mods'] = [
+            { target: 'advantage', op: 'advantage', condition: 'attack', once: true },
+          ]
+          if (!opts?.noSpeedZero) {
+            mods.push({ target: 'speed', op: 'set', value: 0 })
+          }
           const effect: ActiveEffect = {
             id:
               typeof crypto !== 'undefined' && 'randomUUID' in crypto
@@ -217,10 +245,7 @@ export function TurnEconomyDeskHost({ model, children }: Props) {
             source_character_id: characterId || null,
             source_name: null,
             linked_concentration: false,
-            mods: [
-              { target: 'advantage', op: 'advantage', condition: 'attack', once: true },
-              { target: 'speed', op: 'set', value: 0 },
-            ],
+            mods,
             duration: { unit: 'until_source_next_turn_end' },
           }
           const withoutOld = (prev.play.effects ?? []).filter(

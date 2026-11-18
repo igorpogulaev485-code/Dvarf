@@ -566,15 +566,74 @@ export function buildPermanentBonuses2024(input: {
   }
   if (subclassSlug === 'rogue__assassin') {
     // 2024 Assassinate — NOT 2014 auto-crit on surprised.
-    add('assassinate', 'Ликвидация', 'other_calc', {
+    add('assassinate', 'Убийство', 'other_calc', {
       initiative_advantage: true,
       advantage_vs_not_yet_acted_round_1: true,
       sneak_attack_extra_damage_equals_rogue_level_round_1: true,
       crit_vs_surprised: false,
     })
+    if (classLevel >= 9) {
+      add(
+        'infiltration-expertise',
+        'Мастерство внедрения',
+        'other_calc',
+        { steady_aim_allows_moved: true, steady_aim_no_speed_0: true },
+        9,
+        'Точное прицеливание: можно после движения; скорость не становится 0',
+      )
+    }
+    if (classLevel >= 13) {
+      add(
+        'envenom-weapon',
+        'Покрытое ядом оружие',
+        'damage_rider',
+        { poison_damage_on_sneak: '2d6', once_per_turn: true },
+        13,
+      )
+    }
+    if (classLevel >= 17) {
+      add(
+        'death-strike',
+        'Смертельный удар',
+        'other_calc',
+        { on_assassinate_hit: true, con_save_or_double_damage: true, partial: true },
+        17,
+        'При попадании из Убийства: спас Тел. или удвоенный урон (кнопка/сводка)',
+      )
+    }
   }
   if (subclassSlug === 'rogue__thief') {
-    add('fast-hands', 'Быстрые руки', 'other_calc', { bonus_action_use_object: true })
+    add('fast-hands', 'Быстрые руки', 'other_calc', {
+      bonus_action_use_object: true,
+      bonus_sleight: true,
+      bonus_magic_item_action: true,
+      via_cunning_action: true,
+    })
+    add('second-story-work', 'Работа на высоте', 'speed', {
+      climb_equals_speed: true,
+      jump_distance_bonus_dex: true,
+    })
+    if (classLevel >= 9) {
+      add(
+        'supreme-sneak',
+        'Превосходная скрытность',
+        'other_calc',
+        { cunning_strike_option: 'supreme-sneak', cost_dice: 1 },
+        9,
+      )
+    }
+    if (classLevel >= 13) {
+      add(
+        'use-magic-device',
+        'Использование магических устройств',
+        'other_calc',
+        { attune_any_class_item: true, ignore_class_spell_lists: true, charge_floor: 1 },
+        13,
+      )
+    }
+    if (classLevel >= 17) {
+      add('thiefs-reflexes', 'Рефлексы вора', 'other_calc', { two_turns_round_1: true }, 17)
+    }
   }
   if (subclassSlug === 'druid__moon') {
     add('circle-forms', 'Облики Круга', 'other_calc', { wild_shape_cr_div: 3, ac: { base: 13, mods: ['wis'] } })
@@ -648,9 +707,16 @@ export function buildSubclassResources2024(input: {
   } else if (subclassSlug === 'fighter__psi-warrior' || subclassSlug === 'rogue__soulknife') {
     const { count, die } = psiTable(classLevel)
     push('psionic_energy_dice', 'Кости пси-энергии', count, 'long', 'psionic-power', { shortRestRegain: 1, die })
-    if (subclassSlug === 'rogue__soulknife' && classLevel >= 13) {
-      push('psychic_veil', 'Психическая завеса', 1, 'long', 'psychic-veil')
+    if (subclassSlug === 'rogue__soulknife') {
+      if (classLevel >= 13) {
+        push('psychic_veil', 'Психическая завеса', 1, 'long', 'psychic-veil')
+      }
+      if (classLevel >= 17) {
+        push('rend_mind', 'Разрыв разума', 1, 'long', 'rend-mind')
+      }
     }
+  } else if (subclassSlug === 'rogue__arcane-trickster' && classLevel >= 17) {
+    push('spell_thief', 'Похититель заклинаний', 1, 'long', 'spell-thief')
   } else if (subclassSlug === 'fighter__arcane-archer') {
     push('arcane_shot', 'Чародейный выстрел', Math.max(1, intMod), 'long', 'arcane-shot')
   } else if (subclassSlug === 'artificer__alchemist') {
@@ -810,8 +876,9 @@ export function thirdCasterBlock2024(subclassSlug: string, classLevel: number) {
   const lv = Math.min(20, Math.max(1, Math.floor(classLevel)))
   const row = THIRD_CASTER_SLOTS[lv - 1]
   const budget = THIRD_CASTER_SPELLS_KNOWN[lv - 1]
-  // Eldritch Knight 2024 prepares wizard spells; other third-casters stay «known».
-  const ekPrepared = subclassSlug === 'fighter__eldritch-knight'
+  // EK + Arcane Trickster 2024: prepare wizard spells (no school lock).
+  const wizardPrepared =
+    subclassSlug === 'fighter__eldritch-knight' || subclassSlug === 'rogue__arcane-trickster'
   return {
     class_slug: subclassParent2024(subclassSlug) || 'class',
     subclass_slug: subclassSlug,
@@ -819,14 +886,15 @@ export function thirdCasterBlock2024(subclassSlug: string, classLevel: number) {
     ability: meta.ability,
     name_ru: meta.name_ru,
     cantrips: THIRD_CASTER_CANTRIPS[lv - 1],
-    prepared_spells: ekPrepared ? budget : 0,
-    spells_known: ekPrepared ? 0 : budget,
+    prepared_spells: wizardPrepared ? budget : 0,
+    spells_known: wizardPrepared ? 0 : budget,
     slots: Object.fromEntries(row.map((n, i) => [String(i + 1), n])),
     pact_slots: null as null,
     always_prepared: [] as string[],
-    spell_list: ekPrepared ? 'wizard' : null,
-    prepare_mode: ekPrepared ? ('prepared' as const) : ('known' as const),
-    replace_one_on_level: ekPrepared,
+    spell_list: wizardPrepared ? 'wizard' : null,
+    prepare_mode: wizardPrepared ? ('prepared' as const) : ('known' as const),
+    replace_one_on_level: wizardPrepared,
+    school_restriction: wizardPrepared ? null : '2014_known',
   }
 }
 
