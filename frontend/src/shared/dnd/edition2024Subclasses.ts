@@ -166,6 +166,11 @@ export const M02B_SORCERER_BOOK_SUBCLASS_SLUGS = new Set([
   'sorcerer__shadow-sorcery',
 ])
 
+/**
+ * Book monk path opened by P24-M02B-monk (AU Mystic Arts only).
+ */
+export const M02B_MONK_BOOK_SUBCLASS_SLUGS = new Set(['monk__warrior-of-the-mystic-arts'])
+
 export function isPhb2024CreateSubclass(slug: string, source?: string | null): boolean {
   const key = String(slug || '')
     .trim()
@@ -182,6 +187,8 @@ export function isPhb2024CreateSubclass(slug: string, source?: string | null): b
   if (M02B_WIZARD_BOOK_SUBCLASS_SLUGS.has(key)) return true
   // P24-M02B-sorcerer: Spellfire + Shadow only.
   if (M02B_SORCERER_BOOK_SUBCLASS_SLUGS.has(key)) return true
+  // P24-M02B-monk: Mystic Arts only.
+  if (M02B_MONK_BOOK_SUBCLASS_SLUGS.has(key)) return true
   // Catalog API may omit source; fall back to known PHB table rows.
   return Boolean(row && CREATE_SUBCLASS_SOURCES_2024.has(String(row.source || '').toLowerCase()))
 }
@@ -345,8 +352,22 @@ const SHARED_OPTIONS_2024: Record<string, SharedPoolOption2024[]> = {
     },
   ],
   'monk__warrior-of-the-mystic-arts': [
-    { feature_id: 'mystic-focus', name_ru: 'Мистический фокус', spend_pool: 'focus_points', cost: 1, kind: 'bonus', min_level: 6 },
-    { feature_id: 'focused-strike', name_ru: 'Сосредоточенный удар', spend_pool: 'focus_points', cost: 1, kind: 'passive', min_level: 11 },
+    {
+      feature_id: 'mystic-focus',
+      name_ru: 'Мистическая сосредоточенность',
+      spend_pool: 'focus_points',
+      cost: 0,
+      kind: 'action',
+      min_level: 6,
+    },
+    {
+      feature_id: 'focused-strike',
+      name_ru: 'Сфокусированный удар',
+      spend_pool: 'focus_points',
+      cost: 0,
+      kind: 'passive',
+      min_level: 11,
+    },
   ],
   'druid__land': [
     { feature_id: 'lands-aid', name_ru: 'Помощь земли', spend_pool: 'wild_shape', cost: 1, kind: 'action', min_level: 3 },
@@ -1181,8 +1202,11 @@ export function thirdCasterBlock2024(subclassSlug: string, classLevel: number) {
   const row = THIRD_CASTER_SLOTS[lv - 1]
   const budget = THIRD_CASTER_SPELLS_KNOWN[lv - 1]
   // EK + Arcane Trickster 2024: prepare wizard spells (no school lock).
+  // Mystic Arts (monk): prepare sorcerer spells (Wisdom).
   const wizardPrepared =
     subclassSlug === 'fighter__eldritch-knight' || subclassSlug === 'rogue__arcane-trickster'
+  const mysticPrepared = subclassSlug === 'monk__warrior-of-the-mystic-arts'
+  const prepared = wizardPrepared || mysticPrepared
   return {
     class_slug: subclassParent2024(subclassSlug) || 'class',
     subclass_slug: subclassSlug,
@@ -1190,15 +1214,15 @@ export function thirdCasterBlock2024(subclassSlug: string, classLevel: number) {
     ability: meta.ability,
     name_ru: meta.name_ru,
     cantrips: THIRD_CASTER_CANTRIPS[lv - 1],
-    prepared_spells: wizardPrepared ? budget : 0,
-    spells_known: wizardPrepared ? 0 : budget,
+    prepared_spells: prepared ? budget : 0,
+    spells_known: prepared ? 0 : budget,
     slots: Object.fromEntries(row.map((n, i) => [String(i + 1), n])),
     pact_slots: null as null,
     always_prepared: [] as string[],
-    spell_list: wizardPrepared ? 'wizard' : null,
-    prepare_mode: wizardPrepared ? ('prepared' as const) : ('known' as const),
-    replace_one_on_level: wizardPrepared,
-    school_restriction: wizardPrepared ? null : '2014_known',
+    spell_list: wizardPrepared ? 'wizard' : mysticPrepared ? 'sorcerer' : null,
+    prepare_mode: prepared ? ('prepared' as const) : ('known' as const),
+    replace_one_on_level: prepared,
+    school_restriction: prepared ? null : '2014_known',
   }
 }
 

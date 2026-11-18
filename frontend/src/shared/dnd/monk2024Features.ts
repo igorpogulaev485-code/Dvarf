@@ -9,6 +9,21 @@
 import { parseFeatureResourceId } from './featureResources'
 import { clampResource, type SheetResource } from './rest'
 import { getFeaturePick, setFeaturePick, type FeaturePicksState } from './featurePicks'
+import { clampSlot, spendSpellSlot, type SpellSlotState } from './spells'
+import {
+  FOCUSED_STRIKE_FEATURE_ID,
+  FOCUSED_STRIKE_NAME_RU,
+  FOCUSED_STRIKE_SAVE_DISADV_PICK_KEY,
+  IMPROVED_MYSTIC_FIGHTING_STYLE_FEATURE_ID,
+  IMPROVED_MYSTIC_FIGHTING_STYLE_NAME_RU,
+  isMysticArtsMonk2024,
+  MYSTIC_FIGHTING_STYLE_FEATURE_ID,
+  MYSTIC_FIGHTING_STYLE_NAME_RU,
+  MYSTIC_FOCUS_FEATURE_ID,
+  MYSTIC_FOCUS_NAME_RU,
+  mysticFocusPointsFromSlot2024,
+  mysticFocusSlotRestoreCost2024,
+} from './monkBook2024Features'
 
 export const FOCUS_POINTS_NAME_RU = 'Очки сосредоточенности'
 export const FOCUS_POINTS_POOL_ID = 'focus_points'
@@ -274,6 +289,14 @@ export const MONK_2024_CARD_BUTTONS: Record<string, string> = {
   elemental_burst: 'Стихийный выброс…',
   'elemental-epitome': 'Воплощение стихий…',
   elemental_epitome: 'Воплощение стихий…',
+  'mystic-focus': 'Сосредоточенность…',
+  mystic_focus: 'Сосредоточенность…',
+  'mystic-fighting-style': 'Стиль…',
+  mystic_fighting_style: 'Стиль…',
+  'focused-strike': 'Сфокусированный…',
+  focused_strike: 'Сфокусированный…',
+  'improved-mystic-fighting-style': 'Улучш. стиль…',
+  improved_mystic_fighting_style: 'Улучш. стиль…',
 }
 
 const USE_FEATURE_ALIASES: Record<string, string> = {
@@ -309,6 +332,10 @@ const USE_FEATURE_ALIASES: Record<string, string> = {
   'elemental-attunement': 'elemental-attunement',
   'elemental-burst': 'elemental-burst',
   'elemental-epitome': 'elemental-epitome',
+  'mystic-focus': 'mystic-focus',
+  'mystic-fighting-style': 'mystic-fighting-style',
+  'focused-strike': 'focused-strike',
+  'improved-mystic-fighting-style': 'improved-mystic-fighting-style',
   // Shared pool click → techniques dialog
   focus_points: 'monks-focus',
   'focus-points': 'monks-focus',
@@ -521,6 +548,14 @@ export type Monk2024UseInput = {
   /** Metabolism already used this long rest (blocks perfect-focus? no — perfect requires metabolism NOT used). */
   metabolismUsed?: boolean
   wisMod?: number
+  /** Subclass slug (for Mystic Arts desk gates). */
+  subclassSlug?: string | null
+  /** Spell slots for Mystic Focus conversions / improved style cast. */
+  slots?: Record<string, SpellSlotState> | null
+  /** Known/prepared cantrip slugs for fighting-style replacement. */
+  cantripIds?: string[] | null
+  /** Prepared leveled spell slugs for improved style. */
+  preparedSpellIds?: string[] | null
 }
 
 export type MonkFeatureUseResult = {
@@ -538,6 +573,7 @@ export type MonkFeatureUseResult = {
   fallReduce?: number
   focusCost?: number
   strikeCount?: number
+  slots?: Record<string, SpellSlotState> | null
 }
 
 function done(
@@ -759,16 +795,30 @@ export function applyMonk2024FeatureUse(input: Monk2024UseInput): MonkFeatureUse
       }
       const spent = spendFocusPoints(input.resources, input.classEntryId, 1)
       if (!spent.ok) return refuse(input, spent.reasonRu)
-      const nextPicks = setFeaturePick(picks, input.classEntryId, STUNNING_STRIKE_TURN_PICK_KEY, 'on')
+      let nextPicks = setFeaturePick(picks, input.classEntryId, STUNNING_STRIKE_TURN_PICK_KEY, 'on')
       const saveResult = (input.mode ?? 'fail').replace(/_/g, '-')
       const effect =
         saveResult === 'success' || saveResult === 'save'
           ? 'успех: скорость ×½; следующая атака с преимуществом'
           : 'провал: Ошеломлённый до начала твоего следующего хода'
-      return done(input, `${STUNNING_STRIKE_NAME_RU} (−1 очк.): ${effect}`, {
+      const mysticFocusStrike =
+        isMysticArtsMonk2024(input.subclassSlug) && level >= 11
+      let focusNote = ''
+      if (mysticFocusStrike) {
+        const mark = input.target?.trim() || 'цель'
+        nextPicks = setFeaturePick(
+          nextPicks,
+          input.classEntryId,
+          FOCUSED_STRIKE_SAVE_DISADV_PICK_KEY,
+          mark,
+        )
+        focusNote = `; ${FOCUSED_STRIKE_NAME_RU}: ${mark} с помехой к спасам от твоих заклинаний до начала твоего следующего хода`
+      }
+      return done(input, `${STUNNING_STRIKE_NAME_RU} (−1 очк.): ${effect}${focusNote}`, {
         resources: spent.resources,
         featurePicks: nextPicks,
         focusCost: 1,
+        activeLabels: mysticFocusStrike ? [FOCUSED_STRIKE_NAME_RU] : [],
       })
     }
 
@@ -1112,6 +1162,133 @@ export function applyMonk2024FeatureUse(input: Monk2024UseInput): MonkFeatureUse
         input,
         `Воплощение стихий: сопротивление «${type}» (пока действует Сродство); усиленные удары / разрушительная поступь`,
         { featurePicks: next, activeLabels: [`Воплощение: ${type}`] },
+      )
+    }
+
+    case MYSTIC_FOCUS_FEATURE_ID: {
+      if (!isMysticArtsMonk2024(input.subclassSlug)) {
+        return refuse(input, `${MYSTIC_FOCUS_NAME_RU}: нужен подкласс «Мистический воин»`)
+      }
+      if (level < 6) return refuse(input, `${MYSTIC_FOCUS_NAME_RU} с 6 уровня`)
+      const slots = input.slots ?? {}
+      const mode = (input.mode ?? 'slot-to-focus').replace(/_/g, '-')
+      if (mode === 'slot-to-focus' || mode === 'slots-to-focus') {
+        const slotLevel = Math.max(1, Math.min(9, Math.floor(Number(input.choice || input.amount) || 0)))
+        if (slotLevel < 1) return refuse(input, 'Выбери уровень ячейки')
+        const spent = spendSpellSlot(slots, slotLevel)
+        if (!spent.ok) return refuse(input, `Нет свободной ячейки ${slotLevel} круга`)
+        const regain = mysticFocusPointsFromSlot2024(slotLevel)
+        const restored = returnFocusPoints(input.resources, input.classEntryId, regain)
+        if (!restored.ok) return refuse(input, restored.reasonRu)
+        return done(
+          input,
+          `${MYSTIC_FOCUS_NAME_RU}: ячейка ${slotLevel} → +${regain} ${FOCUS_POINTS_NAME_RU.toLowerCase()} (без действия)`,
+          { resources: restored.resources, slots: spent.slots },
+        )
+      }
+      if (mode === 'focus-to-slot' || mode === 'points-to-slot') {
+        const slotLevel = Math.max(1, Math.min(4, Math.floor(Number(input.choice || input.amount) || 0)))
+        const cost = mysticFocusSlotRestoreCost2024(slotLevel, level)
+        if (cost == null) {
+          return refuse(
+            input,
+            `Нельзя восстановить ячейку ${slotLevel} (нужен ур. монаха по таблице; 5+ недоступны)`,
+          )
+        }
+        const key = String(slotLevel)
+        const current = clampSlot(slots[key] ?? { max: 0, used: 0 })
+        if (current.max <= 0 || current.used <= 0) {
+          return refuse(input, `Нет потраченной ячейки ${slotLevel} круга`)
+        }
+        if (focus.remaining < cost) {
+          return refuse(input, `Нужно ${cost} очк. (сейчас ${focus.remaining})`)
+        }
+        const spentFocus = spendFocusPoints(input.resources, input.classEntryId, cost)
+        if (!spentFocus.ok) return refuse(input, spentFocus.reasonRu)
+        const nextSlots = {
+          ...slots,
+          [key]: clampSlot({
+            max: current.max,
+            used: current.used - 1,
+            flexible: current.flexible,
+          }),
+        }
+        return done(
+          input,
+          `${MYSTIC_FOCUS_NAME_RU}: −${cost} очк. → ячейка ${slotLevel} (после короткого отдыха / ${UNCANNY_METABOLISM_NAME_RU})`,
+          { resources: spentFocus.resources, slots: nextSlots, focusCost: cost },
+        )
+      }
+      return refuse(input, 'Выбери режим: ячейка→очки или очки→ячейка')
+    }
+
+    case MYSTIC_FIGHTING_STYLE_FEATURE_ID: {
+      if (!isMysticArtsMonk2024(input.subclassSlug)) {
+        return refuse(input, `${MYSTIC_FIGHTING_STYLE_NAME_RU}: нужен «Мистический воин»`)
+      }
+      if (level < 6) return refuse(input, `${MYSTIC_FIGHTING_STYLE_NAME_RU} с 6 уровня`)
+      const cantrip = String(input.choice || input.target || '').trim()
+      if (!cantrip) return refuse(input, 'Выбери заговор Чародея (время — действие)')
+      const known = (input.cantripIds ?? []).map((s) => s.toLowerCase())
+      if (known.length && !known.includes(cantrip.toLowerCase())) {
+        return refuse(input, `Заговор «${cantrip}» не из известных заговоров Мистического воина`)
+      }
+      return done(
+        input,
+        `${MYSTIC_FIGHTING_STYLE_NAME_RU}: вместо одного Безоружного удара — заговор «${cantrip}»`,
+        { strikeCount: 1 },
+      )
+    }
+
+    case FOCUSED_STRIKE_FEATURE_ID: {
+      if (!isMysticArtsMonk2024(input.subclassSlug)) {
+        return refuse(input, `${FOCUSED_STRIKE_NAME_RU}: нужен «Мистический воин»`)
+      }
+      if (level < 11) return refuse(input, `${FOCUSED_STRIKE_NAME_RU} с 11 уровня`)
+      if (input.mode === 'end' || input.mode === 'clear') {
+        const next = setFeaturePick(picks, input.classEntryId, FOCUSED_STRIKE_SAVE_DISADV_PICK_KEY, null)
+        return done(input, `${FOCUSED_STRIKE_NAME_RU} снят`, { featurePicks: next, activeLabels: [] })
+      }
+      return done(
+        input,
+        `${FOCUSED_STRIKE_NAME_RU}: применяется вместе с ${STUNNING_STRIKE_NAME_RU} (помеха к спасам от твоих заклинаний до начала твоего следующего хода)`,
+      )
+    }
+
+    case IMPROVED_MYSTIC_FIGHTING_STYLE_FEATURE_ID: {
+      if (!isMysticArtsMonk2024(input.subclassSlug)) {
+        return refuse(input, `${IMPROVED_MYSTIC_FIGHTING_STYLE_NAME_RU}: нужен «Мистический воин»`)
+      }
+      if (level < 17) return refuse(input, `${IMPROVED_MYSTIC_FIGHTING_STYLE_NAME_RU} с 17 уровня`)
+      const spell = String(input.choice || input.target || '').trim()
+      if (!spell) return refuse(input, 'Выбери заклинание Чародея 1–2 круга')
+      const prepared = (input.preparedSpellIds ?? []).map((s) => s.toLowerCase())
+      if (prepared.length && !prepared.includes(spell.toLowerCase())) {
+        return refuse(input, `«${spell}» не из подготовленных заклинаний Мистического воина`)
+      }
+      const slotLevel = Math.max(1, Math.min(2, Math.floor(Number(input.amount) || 1)))
+      const slots = input.slots ?? {}
+      const spent = spendSpellSlot(slots, slotLevel)
+      if (!spent.ok) return refuse(input, `Нет ячейки ${slotLevel} круга`)
+      // Flurry still costs 1 focus unless cloak; improved style replaces two of the strikes.
+      const free = cloakActive
+      const cost = free ? 0 : 1
+      let resources = input.resources
+      if (!free) {
+        const spentFocus = spendFocusPoints(input.resources, input.classEntryId, cost)
+        if (!spentFocus.ok) return refuse(input, spentFocus.reasonRu)
+        resources = spentFocus.resources
+      }
+      const strikes = Math.max(0, flurryStrikeCount2024(level) - 2)
+      return done(
+        input,
+        `${IMPROVED_MYSTIC_FIGHTING_STYLE_NAME_RU}: Шквал — два удара → «${spell}» (${slotLevel} кр.)${strikes > 0 ? `; ещё ${strikes} безоружных` : ''}${cost ? ` (−${cost} очк.)` : ' (Покров — без очков)'}`,
+        {
+          resources,
+          slots: spent.slots,
+          focusCost: cost,
+          strikeCount: strikes,
+        },
       )
     }
 
