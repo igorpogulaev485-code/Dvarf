@@ -143,7 +143,7 @@ async function clickFeatureUse(page: Page, nameRe: RegExp) {
   const btn = card
     .locator('button')
     .filter({
-      hasText: /Стихийная|Возмездие|Гений|Кара|Оборона|Нимб|Использовать|…/,
+      hasText: /Аура стихий|Стихийная|Возмездие|Гений|Кара|Оборона|Нимб|Использовать|…/,
     })
     .first()
   if (await btn.isVisible().catch(() => false)) {
@@ -340,8 +340,29 @@ test.describe('P24-M02B paladin book — desk mechanics', () => {
     const store = createStore()
     await createViaSeed(page, store, 'paladin20genies')
     await openFeatures(page, project)
-    await expect(page.getByText(/Аура стихийной защиты/i).first()).toBeVisible({ timeout: 12_000 })
+    await clickFeatureUse(page, /Аура стихийной защиты/)
+    const shieldDlg = page.getByRole('dialog').last()
+    await expect(shieldDlg.getByTestId('p24-m02b-elemental-shielding-indicator')).toBeVisible({
+      timeout: 10_000,
+    })
+    await expect(shieldDlg.getByTestId('p24-m02b-elemental-shielding-indicator')).toContainText(
+      /Огонь|Кислота|Холод|Звук|Электричество/,
+    )
+    await expect(shieldDlg.getByTestId('p24-m02b-elemental-shielding-picker')).toBeVisible()
+    await expect(shieldDlg.getByTestId('p24-m02b-elemental-shielding-cold')).toBeVisible()
+    await shieldDlg.getByTestId('p24-m02b-elemental-shielding-cold').click()
     await shot(page, '2024-desk-elemental-shielding', project)
+    await shieldDlg.getByRole('button', { name: /^Применить$/ }).first().click()
+    await dismissOpenDialogs(page)
+    // Resistance lands in sheet defenses (overview / features defenseSummary).
+    await expect(page.getByText(/Сопротивлен/i).first()).toBeVisible({ timeout: 10_000 })
+    await expect(page.getByText(/холод/i).first()).toBeVisible({ timeout: 10_000 })
+    await clickFeatureUse(page, /Аура стихийной защиты/)
+    await expect(
+      page.getByRole('dialog').last().getByTestId('p24-m02b-elemental-shielding-indicator'),
+    ).toContainText(/Холод/)
+    await page.getByRole('dialog').last().getByRole('button', { name: /^Отмена$|^Закрыть$/ }).first().click()
+    await dismissOpenDialogs(page)
     await clickFeatureUse(page, /Стихийное возмездие/)
     await expect(page.getByRole('dialog').last()).toContainText(/Звук|Кислота|Огонь|Холод|Электричество/)
     await shot(page, '2024-desk-elemental-rebuke', project)

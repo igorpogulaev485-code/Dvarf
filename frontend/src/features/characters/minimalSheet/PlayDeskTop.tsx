@@ -17,6 +17,7 @@ import {
   featResistanceTypes,
   hasFeatFlag,
 } from '../../../shared/dnd/b07FeatCombat'
+import { elementalShieldingResistanceLines2024 } from '../../../shared/dnd/paladinBook2024Features'
 import {
   listKnownManeuvers,
   martialAdeptManeuverIds,
@@ -101,6 +102,12 @@ export function PlayDeskTop({ model }: { model: SheetModel }) {
     effects: model.draft.play.effects,
     infusionResistances: model.infusionBonuses?.resistances,
     featResistances: featResistanceTypes(model.draft.featGrants),
+    featureResistances: elementalShieldingResistanceLines2024({
+      rulesEdition: model.baseCharacter.rules_edition ?? model.rulesEdition,
+      classes: model.draft.classes,
+      featurePicks: model.draft.featurePicks,
+      subclassSlugByEntryId: model.subclassSlugByEntryId,
+    }),
   })
   const heavyArmorMaster =
     wornArmorKind === 'heavy' &&

@@ -9,6 +9,7 @@ import {
   emptyFeaturePicks,
   getFeatureChoicePick,
   getFeaturePick,
+  setFeaturePick,
   type FeaturePicksState,
 } from './featurePicks'
 
@@ -286,6 +287,65 @@ export function readElementalShieldingType2024(
     ELEMENTAL_SHIELDING_TYPES_2024,
   )
   return (raw as ElementalShieldingType2024 | null) ?? null
+}
+
+/** Persist Elemental Shielding damage type (feature id + choice id keys). */
+export function writeElementalShieldingType2024(
+  picks: FeaturePicksState | null | undefined,
+  classEntryId: string,
+  dtype: ElementalShieldingType2024 | null,
+): FeaturePicksState {
+  let next = picksOrEmpty(picks)
+  next = setFeaturePick(next, classEntryId, AURA_OF_ELEMENTAL_SHIELDING_FEATURE_ID, dtype)
+  next = setFeaturePick(next, classEntryId, ELEMENTAL_SHIELDING_TYPE_PICK, dtype)
+  return next
+}
+
+/**
+ * Resistance lines for sheetDamageProfile from the live Elemental Shielding pick.
+ * Source label keeps the aura name so defenses show «Аура стихийной защиты».
+ */
+export function elementalShieldingResistanceLines2024(input: {
+  rulesEdition?: string | null
+  classes: Array<{
+    id?: string
+    slug?: string
+    level?: number
+    subclass_slug?: string | null
+    subclassSlug?: string | null
+  }>
+  featurePicks: FeaturePicksState | null | undefined
+  subclassSlugByEntryId?: Record<string, string | null | undefined> | null
+}): Array<{ type: string; source: string }> {
+  if (input.rulesEdition !== '2024') return []
+  const out: Array<{ type: string; source: string }> = []
+  for (const row of input.classes) {
+    if (String(row.slug || '').toLowerCase() !== 'paladin') continue
+    if (Math.floor(Number(row.level) || 0) < 7) continue
+    const entryId = String(row.id || '').trim()
+    if (!entryId) continue
+    const subclass = String(
+      input.subclassSlugByEntryId?.[entryId] ||
+        row.subclass_slug ||
+        row.subclassSlug ||
+        '',
+    )
+      .trim()
+      .toLowerCase()
+    // If subclass known and not genies — skip. Unknown subclass still honors a live pick.
+    if (subclass && subclass !== OATH_OF_THE_NOBLE_GENIES_SLUG) continue
+    const dtype = readElementalShieldingType2024(input.featurePicks, entryId)
+    if (!dtype) continue
+    out.push({ type: dtype, source: AURA_OF_ELEMENTAL_SHIELDING_NAME_RU })
+  }
+  return out
+}
+
+export function elementalShieldingTypeLabelRu2024(
+  dtype: ElementalShieldingType2024 | null | undefined,
+): string {
+  if (!dtype) return 'не выбран'
+  return ELEMENTAL_SHIELDING_TYPE_LABELS_RU[dtype] ?? dtype
 }
 
 export function elementalSmiteModeFeedRu2024(mode: ElementalSmiteMode2024): string {

@@ -121,6 +121,17 @@ def test_genies_splendor_ac_allows_shield():
     assert ac.value["mods"] == ["dex", "cha"]
 
 
+def test_elemental_shielding_permanent_bonus_from_l7():
+    early = sub24.build_permanent_bonuses(GENIES, 6, abilities=_ABILITIES)
+    assert not any(b.feature_id == "aura-of-elemental-shielding" for b in early)
+    bonuses = sub24.build_permanent_bonuses(GENIES, 7, abilities=_ABILITIES)
+    aura = next(b for b in bonuses if b.feature_id == "aura-of-elemental-shielding")
+    assert aura.kind == "other_calc"
+    assert aura.value["elemental_resistance_chosen"] is True
+    assert aura.value["change_at_start_of_turn"] is True
+    assert set(aura.value["types"]) == {"thunder", "acid", "fire", "cold", "lightning"}
+
+
 def test_always_prepared_thresholds():
     assert set(sub24.always_prepared_for_subclass(GENIES, 3)) >= {
         "thunderous-smite",

@@ -20,6 +20,7 @@ import { clampResource, type SheetResource } from './rest'
 import type { SpellSlotState } from './spells'
 import type { SharedPoolOption2024 } from './edition2024Subclasses'
 import {
+  AURA_OF_ELEMENTAL_SHIELDING_NAME_RU,
   ELEMENTAL_REBUKE_FEATURE_ID,
   ELEMENTAL_REBUKE_NAME_RU,
   ELEMENTAL_REBUKE_POOL_ID,
@@ -30,6 +31,7 @@ import {
   ELEMENTAL_SMITE_MODES_2024,
   ELEMENTAL_SMITE_NAME_RU,
   elementalRebukeDamageFormulaRu2024,
+  elementalShieldingTypeLabelRu2024,
   elementalSmiteModeFeedRu2024,
   GENIES_SPLENDOR_NAME_RU,
   MINOR_WISH_NAME_RU,
@@ -37,6 +39,8 @@ import {
   NOBLE_SCION_FLIGHT_NAME_RU,
   NOBLE_SCION_NAME_RU,
   NOBLE_SCION_POOL_ID,
+  readElementalShieldingType2024,
+  writeElementalShieldingType2024,
   type ElementalShieldingType2024,
   type ElementalSmiteMode2024,
 } from './paladinBook2024Features'
@@ -578,6 +582,7 @@ const PALADIN_USE_FEATURE_IDS = new Set([
   'glorious-defense',
   'undying-sentinel',
   'elemental-rebuke',
+  'aura-of-elemental-shielding',
   'holy-nimbus',
   'living-legend',
   'elder-champion',
@@ -1226,6 +1231,36 @@ export function applyPaladin2024FeatureUse(input: Paladin2024UseInput): Paladin2
         `${GLORIOUS_DEFENSE_NAME_RU} (реакция): +${bonus} к КД против атаки по тебе или союзнику в 10 фт.; при промахе — одна атака по атакующему`,
         { resources: spent.resources },
       )
+    }
+
+    case 'aura-of-elemental-shielding': {
+      if (level < 7) {
+        return refuse(input, `${AURA_OF_ELEMENTAL_SHIELDING_NAME_RU} с 7 уровня паладина`)
+      }
+      const dtype = String(input.damageType || '')
+        .trim()
+        .toLowerCase() as ElementalShieldingType2024
+      if (!(ELEMENTAL_SHIELDING_TYPES_2024 as readonly string[]).includes(dtype)) {
+        return refuse(
+          input,
+          `${AURA_OF_ELEMENTAL_SHIELDING_NAME_RU}: выберите тип (Звук / Кислота / Огонь / Холод / Электричество)`,
+        )
+      }
+      const prev = readElementalShieldingType2024(input.featurePicks, input.classEntryId)
+      const nextPicks = writeElementalShieldingType2024(
+        input.featurePicks,
+        input.classEntryId,
+        dtype,
+      )
+      const typeRu = elementalShieldingTypeLabelRu2024(dtype)
+      const prevRu = elementalShieldingTypeLabelRu2024(prev)
+      const feed =
+        prev && prev !== dtype
+          ? `${AURA_OF_ELEMENTAL_SHIELDING_NAME_RU}: тип ${prevRu} → ${typeRu} (начало хода, без действия)`
+          : `${AURA_OF_ELEMENTAL_SHIELDING_NAME_RU}: сопротивление «${typeRu}» (смена в начале хода, без действия)`
+      return ok(input, feed, {
+        patches: { featurePicks: nextPicks, damageType: dtype, activeLabels: [typeRu] },
+      })
     }
 
     case 'elemental-rebuke': {

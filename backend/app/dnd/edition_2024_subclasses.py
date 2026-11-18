@@ -585,6 +585,18 @@ def build_permanent_bonuses(
             {"base": 10, "mods": ["dex", "cha"], "allows_shield": True, "requires_no_armor": True},
             note_ru="КД 10+Лов+Хар без доспеха; щит разрешён",
         )
+        add(
+            "aura-of-elemental-shielding",
+            "Аура стихийной защиты",
+            "other_calc",
+            {
+                "elemental_resistance_chosen": True,
+                "change_at_start_of_turn": True,
+                "types": ["thunder", "acid", "fire", "cold", "lightning"],
+            },
+            min_level=7,
+            note_ru="Сопротивление выбранному типу в Ауре защиты; смена в начале хода без действия",
+        )
 
     # Sorcerer Draconic
     if subclass_slug == "sorcerer__draconic-sorcery":

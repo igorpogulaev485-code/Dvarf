@@ -7,6 +7,7 @@
 
 import { useMemo, useState } from 'react'
 import { Dialog, Field, NumberInput, SegmentedControl, Stack, Text } from '../../ui'
+import type { FeaturePicksState } from '../../shared/dnd/featurePicks'
 import type { SheetResource } from '../../shared/dnd/rest'
 import type { SpellSlotState } from '../../shared/dnd/spells'
 import {
@@ -43,10 +44,13 @@ import {
   type Paladin2024UseResult,
 } from '../../shared/dnd/paladin2024Features'
 import {
+  AURA_OF_ELEMENTAL_SHIELDING_NAME_RU,
   ELEMENTAL_SHIELDING_TYPE_LABELS_RU,
   ELEMENTAL_SHIELDING_TYPES_2024,
   ELEMENTAL_SMITE_MODE_LABELS_RU,
   ELEMENTAL_SMITE_MODES_2024,
+  elementalShieldingTypeLabelRu2024,
+  readElementalShieldingType2024,
   type ElementalShieldingType2024,
   type ElementalSmiteMode2024,
 } from '../../shared/dnd/paladinBook2024Features'
@@ -64,6 +68,7 @@ type Props = {
   request: PaladinFeatureRequest | null
   resources: SheetResource[]
   slots: Record<string, SpellSlotState>
+  featurePicks?: FeaturePicksState | null
   paladinLevel: number
   chaMod?: number
   proficiencyBonus?: number
@@ -105,6 +110,7 @@ export function Paladin2024UseDialog({
   request,
   resources,
   slots,
+  featurePicks = null,
   paladinLevel,
   chaMod = 0,
   proficiencyBonus = 2,
@@ -115,6 +121,7 @@ export function Paladin2024UseDialog({
   const [slotLevel, setSlotLevel] = useState(CAPSTONE_REGAIN_SLOT_MIN_2024)
   const [smiteMode, setSmiteMode] = useState<ElementalSmiteMode2024>('marid')
   const [rebukeType, setRebukeType] = useState<ElementalShieldingType2024>('fire')
+  const [shieldingType, setShieldingType] = useState<ElementalShieldingType2024 | null>(null)
   const [nobleMode, setNobleMode] = useState('spend')
 
   const featureId =
@@ -127,6 +134,14 @@ export function Paladin2024UseDialog({
     [resources, request?.classEntryId],
   )
 
+  const currentShielding = useMemo(() => {
+    if (!request) return null
+    return readElementalShieldingType2024(featurePicks, request.classEntryId)
+  }, [featurePicks, request])
+
+  const activeShieldingType =
+    shieldingType ?? currentShielding ?? ('fire' as ElementalShieldingType2024)
+
   if (!request) return null
 
   const channelLeft = channelRow ? Math.max(0, channelRow.max - channelRow.used) : 0
@@ -136,6 +151,7 @@ export function Paladin2024UseDialog({
   const isFreeSteed = featureId === 'free-steed'
   const isElementalSmite = featureId === 'elemental-smite'
   const isElementalRebuke = featureId === 'elemental-rebuke'
+  const isElementalShielding = featureId === 'aura-of-elemental-shielding'
   const isNobleScion = featureId === 'noble-scion'
   const isRefundable =
     usesChannel ||
@@ -166,8 +182,13 @@ export function Paladin2024UseDialog({
       mode: useMode,
       slotLevel: isCapstone && useMode === 'regain' ? activeSlot : undefined,
       slots,
+      featurePicks,
       smiteMode: isElementalSmite ? smiteMode : undefined,
-      damageType: isElementalRebuke ? rebukeType : undefined,
+      damageType: isElementalRebuke
+        ? rebukeType
+        : isElementalShielding
+          ? activeShieldingType
+          : undefined,
       nobleMode: isNobleScion ? nobleMode : undefined,
     })
     onConfirm(result)
@@ -262,6 +283,30 @@ export function Paladin2024UseDialog({
             {GLORIOUS_DEFENSE_NAME_RU} (реакция): бонус Хар к КД против атаки по тебе или союзнику
             в 10 фт.; при промахе — одна атака по атакующему.
           </Text>
+        ) : null}
+
+        {isElementalShielding ? (
+          <>
+            <Text data-testid="p24-m02b-elemental-shielding-indicator">
+              {AURA_OF_ELEMENTAL_SHIELDING_NAME_RU}: текущий тип —{' '}
+              <strong>{elementalShieldingTypeLabelRu2024(currentShielding)}</strong>. Вы и союзники
+              в Ауре защиты имеют сопротивление. В начале хода можно сменить тип (без действия).
+            </Text>
+            <div data-testid="p24-m02b-elemental-shielding-picker">
+              <Field label="Тип сопротивления">
+                <SegmentedControl
+                  aria-label="Тип сопротивления ауры"
+                  value={activeShieldingType}
+                  onChange={(next) => setShieldingType(next as ElementalShieldingType2024)}
+                  options={ELEMENTAL_SHIELDING_TYPES_2024.map((id) => ({
+                    id,
+                    label: ELEMENTAL_SHIELDING_TYPE_LABELS_RU[id],
+                    testId: `p24-m02b-elemental-shielding-${id}`,
+                  }))}
+                />
+              </Field>
+            </div>
+          </>
         ) : null}
 
         {isElementalRebuke && mode !== 'refund' ? (

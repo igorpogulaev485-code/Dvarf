@@ -485,6 +485,18 @@ export function buildPermanentBonuses2024(input: {
       3,
       'КД 10+Лов+Хар без доспеха; щит разрешён',
     )
+    add(
+      'aura-of-elemental-shielding',
+      'Аура стихийной защиты',
+      'other_calc',
+      {
+        elemental_resistance_chosen: true,
+        change_at_start_of_turn: true,
+        types: ['thunder', 'acid', 'fire', 'cold', 'lightning'],
+      },
+      7,
+      'Сопротивление выбранному типу в Ауре защиты; смена в начале хода без действия',
+    )
   }
   if (subclassSlug === 'sorcerer__draconic-sorcery') {
     add('draconic-resilience', 'Драконья устойчивость', 'ac_formula', {
