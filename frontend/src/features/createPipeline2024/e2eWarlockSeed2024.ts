@@ -122,18 +122,19 @@ export function warlockAsiChoicesForLevel(level: number): Array<{
   abilities: Partial<Record<'str' | 'dex' | 'con' | 'int' | 'wis' | 'cha', number>>
 }> {
   const levels = [4, 8, 12, 16, 19].filter((lv) => lv <= level)
-  const bumps: Array<Partial<Record<'cha' | 'con', number>>> = [
+  // Base CHA 15 → at most two +2 (→19); rest CON/DEX so create stays ≤20.
+  const bumps: Array<Partial<Record<'cha' | 'con' | 'dex', number>>> = [
     { cha: 2 },
     { con: 2 },
     { cha: 2 },
     { con: 2 },
-    { cha: 2 },
+    { dex: 2 },
   ]
   return levels.map((classLevel, i) => ({
     classSlug: 'warlock',
     classLevel,
     kind: 'asi_plus2' as const,
-    abilities: bumps[i] ?? { cha: 2 },
+    abilities: bumps[i] ?? { con: 2 },
   }))
 }
 

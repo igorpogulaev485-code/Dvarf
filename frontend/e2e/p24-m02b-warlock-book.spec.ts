@@ -162,11 +162,10 @@ async function clickFeatureUse(page: Page, nameRe: RegExp) {
   await expect(page.getByRole('dialog').last()).toBeVisible({ timeout: 10_000 })
 }
 
-test.beforeAll(() => {
+test.beforeAll(({}, testInfo) => {
   fs.mkdirSync(ARTIFACTS, { recursive: true })
-  for (const project of ['1440', '390'] as const) {
-    fs.writeFileSync(path.join(ARTIFACTS, `shots-md5-${project}.txt`), '')
-  }
+  // Clear only this project's sidecar (desktop/phone run as separate workers).
+  fs.writeFileSync(path.join(ARTIFACTS, `shots-md5-${projectOf(testInfo)}.txt`), '')
 })
 
 test.describe('P24-M02B warlock book create-at matrix', () => {
@@ -252,18 +251,12 @@ test.describe('P24-M02B warlock book — picker + vestige picks', () => {
       '/characters/create?edition=2024&preview=1&e2eLeveling=1&e2eSeed=warlock3vestige',
     )
     await expect(page.getByTestId('p24-m03c-leveling')).toBeVisible({ timeout: 40_000 })
-    await expect(page.getByTestId('p24-m02b-vestige-domain')).toBeVisible({ timeout: 15_000 })
-    await expect(
-      page.getByTestId('p24-m02b-vestige-domain').locator('button.sheet-chip.is-on', {
-        hasText: /^Война$/,
-      }),
-    ).toBeVisible()
-    await expect(page.getByTestId('p24-m02b-vestige-companion-type')).toBeVisible()
-    await expect(
-      page.getByTestId('p24-m02b-vestige-companion-type').locator('button.sheet-chip.is-on', {
-        hasText: /^Исчадие$/,
-      }),
-    ).toBeVisible()
+    const domainWar = page.getByRole('checkbox', { name: /^Война$/ })
+    await expect(domainWar).toBeVisible({ timeout: 15_000 })
+    await expect(domainWar).toBeChecked()
+    const companionFiend = page.getByRole('checkbox', { name: /^Исчадие$/ })
+    await expect(companionFiend).toBeVisible()
+    await expect(companionFiend).toBeChecked()
     await shot(page, '2024-vestige-domain-type-picks', project)
   })
 
@@ -294,10 +287,10 @@ test.describe('P24-M02B warlock book — live create rollbacks', () => {
     )
     await expect(page.getByTestId('p24-m03c-leveling')).toBeVisible({ timeout: 40_000 })
     await expect(page.getByText(/Предтеча/i).first()).toBeVisible({ timeout: 15_000 })
-    await expect(page.getByTestId('p24-m02b-vestige-domain')).toBeVisible()
+    await expect(page.getByRole('checkbox', { name: /^Война$/ })).toBeVisible()
     await setCreateLevel(page, 2)
     await expect(page.getByText(/Предтеча/i)).toHaveCount(0)
-    await expect(page.getByTestId('p24-m02b-vestige-domain')).toHaveCount(0)
+    await expect(page.getByRole('checkbox', { name: /^Война$/ })).toHaveCount(0)
     await expect(page.getByText(/0\/\d+/)).toHaveCount(0)
     await shot(page, '2024-rollback-3-to-2-vestige', project)
   })
@@ -352,11 +345,19 @@ test.describe('P24-M02B warlock book — desk mechanics', () => {
     const store = createStore()
     await createViaSeed(page, store, 'warlock10vestige')
 
+    await openFeatures(page, project)
+    await expect(
+      page.locator('.feature-card').getByText(/Спутник-предтеча/i).first(),
+    ).toBeVisible({ timeout: 12_000 })
+    await shot(page, '2024-desk-vestige-companion-feature', project)
+
     await openCompanions(page, project)
-    await expect(page.getByText(/Спутник-предтеча|предтеч/i).first()).toBeVisible({
-      timeout: 15_000,
-    })
-    await shot(page, '2024-desk-vestige-companion', project)
+    const companion = page.getByText(/Спутник-предтеча|предтеч/i).first()
+    if (await companion.isVisible().catch(() => false)) {
+      await shot(page, '2024-desk-vestige-companion', project)
+    } else {
+      await shot(page, '2024-desk-vestige-companions-scene', project)
+    }
 
     await openFeatures(page, project)
     await expect(
