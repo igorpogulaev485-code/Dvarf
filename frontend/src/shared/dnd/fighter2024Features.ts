@@ -87,10 +87,13 @@ export const FIGHTER_SUBCLASS_SLUGS_2024 = {
 
 export type FighterSubclassKey2024 = keyof typeof FIGHTER_SUBCLASS_SLUGS_2024
 
-/** Book / 2014-only — not in PHB 2024 picker for this pack. */
+/**
+ * Book / 2014-only — not in PHB 2024 picker.
+ * P24-M02B-fighter opens `fighter__arcane-archer` + `fighter__banneret` via
+ * M02B_FIGHTER_BOOK_SUBCLASS_SLUGS (not listed here). Purple Dragon stays out.
+ */
 export const OUT_OF_PACK_FIGHTER_SUBCLASSES_2024 = [
-  'fighter__purple-dragon-knight', // Banneret (FRHoF)
-  'fighter__arcane-archer', // AU / Misty Archer
+  'fighter__purple-dragon-knight', // 2014 Purple Dragon Knight — not 2024 Banneret
   'fighter__cavalier',
   'fighter__samurai',
   'fighter__echo-knight',
@@ -459,6 +462,18 @@ const FIGHTER_USE_FEATURE_IDS = new Set([
   'bulwark-of-force',
   'telekinetic-master',
   'relentless',
+  /* P24-M02B book */
+  'arcane-shot',
+  'magical-ammunition',
+  'curving-shot',
+  'ever-ready-shot',
+  'indomitable-teleport',
+  'masterful-shots',
+  'group-recovery',
+  'rallying-surge',
+  'shared-resilience',
+  'team-tactics',
+  'inspiring-commander',
 ])
 
 export const FIGHTER_2024_CARD_BUTTONS: Record<string, string> = {
@@ -474,6 +489,28 @@ export const FIGHTER_2024_CARD_BUTTONS: Record<string, string> = {
   bulwark_of_force: 'Оплот…',
   'bulwark-of-force': 'Оплот…',
   relentless: '1к8 вместо кости…',
+  arcane_shot: 'Выстрел…',
+  'arcane-shot': 'Выстрел…',
+  magical_ammunition: 'Зарядить…',
+  'magical-ammunition': 'Зарядить…',
+  curving_shot: 'Отскок…',
+  'curving-shot': 'Отскок…',
+  ever_ready_shot: 'Восстановить…',
+  'ever-ready-shot': 'Восстановить…',
+  indomitable_teleport: 'Телепорт…',
+  'indomitable-teleport': 'Телепорт…',
+  masterful_shots: 'Реакция…',
+  'masterful-shots': 'Реакция…',
+  group_recovery: 'Групповое…',
+  'group-recovery': 'Групповое…',
+  rallying_surge: 'Воодушевить…',
+  'rallying-surge': 'Воодушевить…',
+  shared_resilience: 'Реакция…',
+  'shared-resilience': 'Реакция…',
+  team_tactics: 'Тактика…',
+  'team-tactics': 'Тактика…',
+  inspiring_commander: 'Командир…',
+  'inspiring-commander': 'Командир…',
 }
 
 export function fighter2024UseFeatureId(featureId: string | null | undefined): string | null {
@@ -695,6 +732,185 @@ export function applyFighter2024FeatureUse(input: Fighter2024UseInput): Fighter2
       input,
       `${RELENTLESS_NAME_RU}: вместо кости превосходства бросьте 1к8 (1 раз за ход)`,
       { patches: { diceExpression: '1d8' } },
+    )
+  }
+
+  /* ---- P24-M02B book paths (Arcane Archer / Banneret «Знаменосец») ---- */
+
+  if (fid === 'arcane-shot') {
+    const pool = findFighterPool2024(input.resources, 'arcane_shot', input.classEntryId)
+    if (!pool) return refuse(input, 'Чародейный выстрел: пул не найден')
+    if (refund) {
+      if (pool.used <= 0) return refuse(input, 'Чародейный выстрел: нечего возвращать')
+      return ok(input, 'Чародейный выстрел: использование возвращено', {
+        resources: bumpPool(input.resources, pool, -1),
+      })
+    }
+    if (pool.used >= pool.max) return refuse(input, 'Чародейный выстрел: нет использований')
+    const die =
+      level >= 18 ? 'd12' : level >= 15 ? 'd10' : level >= 10 ? 'd8' : 'd6'
+    return ok(input, `Чародейный выстрел: применено (кость к${die.slice(1)})`, {
+      resources: bumpPool(input.resources, pool, 1),
+      patches: { diceExpression: die, activeLabels: ['Чародейный выстрел'] },
+    })
+  }
+
+  if (fid === 'magical-ammunition') {
+    const pool = findFighterPool2024(input.resources, 'magical_ammunition', input.classEntryId)
+    if (!pool) return refuse(input, 'Магические боеприпасы: пул не найден')
+    if (input.mode === 'refund_with_die' || input.mode === 'refund_second_wind') {
+      const sw = findFighterPool2024(input.resources, SECOND_WIND_POOL_ID, input.classEntryId)
+      if (!sw || sw.used >= sw.max) {
+        return refuse(input, 'Магические боеприпасы: нужно Второе дыхание для возврата')
+      }
+      let next = bumpPool(input.resources, sw, 1)
+      if (pool.used > 0) {
+        const refreshed = findFighterPool2024(next, 'magical_ammunition', input.classEntryId)
+        if (refreshed) next = bumpPool(next, refreshed, -1)
+      }
+      return ok(input, 'Магические боеприпасы: использование восстановлено (Второе дыхание)', {
+        resources: next,
+      })
+    }
+    if (refund) {
+      if (pool.used <= 0) return refuse(input, 'Магические боеприпасы: нечего возвращать')
+      return ok(input, 'Магические боеприпасы: использование возвращено', {
+        resources: bumpPool(input.resources, pool, -1),
+      })
+    }
+    if (pool.used >= pool.max) return refuse(input, 'Магические боеприпасы: нет использований')
+    const ammo = String(input.mode || 'obscuring')
+    const label =
+      ammo === 'opening'
+        ? 'Открывающий боеприпас'
+        : ammo === 'vine'
+          ? 'Лозовой боеприпас'
+          : 'Затемняющий боеприпас'
+    return ok(input, `Магические боеприпасы: ${label} (1 / короткий или долгий)`, {
+      resources: bumpPool(input.resources, pool, 1),
+      patches: { activeLabels: [label] },
+    })
+  }
+
+  if (fid === 'curving-shot') {
+    return ok(input, 'Странствующая стрела: бонусным — отскок к новой цели в 60 фт.', {
+      patches: { activeLabels: ['Странствующая стрела'] },
+    })
+  }
+
+  if (fid === 'ever-ready-shot') {
+    const pool = findFighterPool2024(input.resources, 'arcane_shot', input.classEntryId)
+    if (!pool) return refuse(input, 'Заготовленный выстрел: нет пула Чародейного выстрела')
+    if (pool.used <= 0) return refuse(input, 'Заготовленный выстрел: нечего восстанавливать')
+    return ok(input, 'Заготовленный выстрел: +1 использование Чародейного выстрела (инициатива)', {
+      resources: bumpPool(input.resources, pool, -1),
+    })
+  }
+
+  if (fid === 'indomitable-teleport') {
+    return ok(
+      input,
+      'Неукротимая телепортация: после успеха Непоколебимости — телепорт до 60 фт.',
+      { patches: { activeLabels: ['Неукротимая телепортация'] } },
+    )
+  }
+
+  if (fid === 'masterful-shots') {
+    return ok(
+      input,
+      'Мастерская стрельба: реакцией — перемещение до ½ Скорости + дальнобойная атака',
+      { patches: { activeLabels: ['Мастерская стрельба'] } },
+    )
+  }
+
+  if (fid === 'group-recovery') {
+    const pool = findFighterPool2024(input.resources, 'group_recovery', input.classEntryId)
+    const sw = findFighterPool2024(input.resources, SECOND_WIND_POOL_ID, input.classEntryId)
+    if (!pool) return refuse(input, 'Групповое оздоровление: пул не найден')
+    if (!sw) return refuse(input, 'Групповое оздоровление: нет Второго дыхания')
+    if (refund) {
+      if (pool.used <= 0) return refuse(input, 'Групповое оздоровление: нечего возвращать')
+      return ok(input, 'Групповое оздоровление: использование возвращено', {
+        resources: bumpPool(input.resources, pool, -1),
+      })
+    }
+    if (pool.used >= pool.max) {
+      return refuse(input, 'Групповое оздоровление: уже использовано (1 / короткий или долгий)')
+    }
+    if (sw.used >= sw.max) return refuse(input, 'Групповое оздоровление: нет Второго дыхания')
+    let next = bumpPool(input.resources, sw, 1)
+    const refreshed = findFighterPool2024(next, 'group_recovery', input.classEntryId)
+    if (refreshed) next = bumpPool(next, refreshed, 1)
+    const radius = level >= 18 ? 60 : 30
+    return ok(
+      input,
+      `Групповое оздоровление: союзники в ${radius}-фт. эманации — 1к4+${level} хитов`,
+      {
+        resources: next,
+        patches: {
+          diceExpression: `1d4+${level}`,
+          activeLabels: level >= 7 ? ['Групповая тактика: преимущество к20'] : ['Групповое оздоровление'],
+        },
+      },
+    )
+  }
+
+  if (fid === 'rallying-surge') {
+    const surge = findFighterPool2024(input.resources, ACTION_SURGE_POOL_ID, input.classEntryId)
+    if (!surge) return refuse(input, 'Воодушевляющий всплеск: нет Всплеска действий')
+    if (refund) {
+      if (surge.used <= 0) return refuse(input, 'Воодушевляющий всплеск: нечего возвращать')
+      return ok(input, 'Воодушевляющий всплеск: использование возвращено', {
+        resources: bumpPool(input.resources, surge, -1),
+      })
+    }
+    if (surge.used >= surge.max) return refuse(input, 'Воодушевляющий всплеск: нет Всплеска действий')
+    const radius = level >= 18 ? 60 : 30
+    return ok(
+      input,
+      `Воодушевляющий всплеск: союзники в ${radius}-фт. эманации — реакцией Атака или Перемещение`,
+      {
+        resources: bumpPool(input.resources, surge, 1),
+        patches: { activeLabels: ['Воодушевляющий всплеск'] },
+      },
+    )
+  }
+
+  if (fid === 'shared-resilience') {
+    const pool = findFighterPool2024(input.resources, INDOMITABLE_POOL_ID, input.classEntryId)
+    if (!pool) return refuse(input, 'Устойчивость команды: нет Непоколебимости')
+    if (refund) {
+      if (pool.used <= 0) return refuse(input, 'Устойчивость команды: нечего возвращать')
+      return ok(input, 'Устойчивость команды: использование возвращено', {
+        resources: bumpPool(input.resources, pool, -1),
+      })
+    }
+    if (pool.used >= pool.max) return refuse(input, 'Устойчивость команды: нет Непоколебимости')
+    return ok(
+      input,
+      `Устойчивость команды: союзник перебрасывает спас с бонусом +${level}`,
+      {
+        resources: bumpPool(input.resources, pool, 1),
+        patches: { indomitableBonus: level, activeLabels: ['Устойчивость команды'] },
+      },
+    )
+  }
+
+  if (fid === 'team-tactics') {
+    return ok(input, 'Групповая тактика: преимущество ко всем Тестам к20 до вашего следующего хода', {
+      patches: { activeLabels: ['Групповая тактика'] },
+    })
+  }
+
+  if (fid === 'inspiring-commander') {
+    return ok(
+      input,
+      'Вдохновляющий командир: эманация 60 фт.; иммунитет к Испуганный и Очарованный',
+      {
+        patches: {
+          activeLabels: ['Иммунитет: Испуганный', 'Иммунитет: Очарованный', 'Эманация 60 фт.'],
+        },
+      },
     )
   }
 

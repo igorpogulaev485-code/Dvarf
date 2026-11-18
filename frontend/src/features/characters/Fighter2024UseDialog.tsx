@@ -1,6 +1,6 @@
 /**
  * 2024 Fighter feature «use» dialog — edition branch only (`rules_edition === '2024'`).
- * Second Wind, Tactical Mind, Action Surge, Indomitable, Know Your Enemy, Bulwark of Force.
+ * PHB Second Wind / Surge / Indomitable + P24-M02B book paths.
  */
 
 import { useState } from 'react'
@@ -50,6 +50,28 @@ const FEATURE_TEXT: Record<string, string> = {
   'know-your-enemy': `${KNOW_YOUR_ENEMY_NAME_RU}: бонусным — иммунитеты/сопротивления/уязвимости в 30 фт.`,
   'bulwark-of-force': `${BULWARK_OF_FORCE_NAME_RU}: укрытие наполовину (не временные хиты).`,
   relentless: `${RELENTLESS_NAME_RU}: 1к8 вместо кости превосходства (1 раз за ход).`,
+  'arcane-shot':
+    'Чародейный выстрел: 1/ход при дальнобойной атаке Боеприпасом; пул = мод. ИНТ (мин. 1), сброс на коротком или долгом.',
+  'magical-ammunition':
+    'Магические боеприпасы: действием Магия зарядить немагический боеприпас (1/короткий или долгий; возврат Вторым дыханием).',
+  'curving-shot':
+    'Странствующая стрела: после промаха Боеприпасом — бонусным отскок к новой цели в 60 фт.',
+  'ever-ready-shot':
+    'Заготовленный выстрел: на инициативе восстановить 1 использование Чародейного выстрела.',
+  'indomitable-teleport':
+    'Неукротимая телепортация: после успеха Непоколебимости — телепорт до 60 фт.',
+  'masterful-shots':
+    'Мастерская стрельба: реакцией на промах по вам — перемещение + дальнобойная атака.',
+  'group-recovery':
+    'Групповое оздоровление: при Втором дыхании на хиты — союзники в эманации 1к4+ур. (1/короткий или долгий).',
+  'rallying-surge':
+    'Воодушевляющий всплеск: при Всплеске действий союзники реакцией Атака или Перемещение.',
+  'shared-resilience':
+    'Устойчивость команды: реакцией потратить Непоколебимость — союзник перебрасывает спас с бонусом уровня.',
+  'team-tactics':
+    'Групповая тактика: при Групповом оздоровлении — преимущество ко всем Тестам к20.',
+  'inspiring-commander':
+    'Вдохновляющий командир: эманация 60 фт.; иммунитет к Испуганный и Очарованный.',
 }
 
 export function Fighter2024UseDialog({
@@ -61,6 +83,7 @@ export function Fighter2024UseDialog({
   onClose,
 }: Props) {
   const [mode, setMode] = useState('spend')
+  const [ammoType, setAmmoType] = useState('obscuring')
   const [checkStillFailed, setCheckStillFailed] = useState(false)
 
   if (!request) return null
@@ -71,15 +94,21 @@ export function Fighter2024UseDialog({
   const poolId =
     featureId === 'second-wind' || featureId === 'tactical-mind'
       ? SECOND_WIND_POOL_ID
-      : featureId === 'action-surge'
-        ? ACTION_SURGE_POOL_ID
-        : featureId === 'indomitable'
-          ? INDOMITABLE_POOL_ID
-          : featureId === 'know-your-enemy'
-            ? KNOW_YOUR_ENEMY_POOL_ID
-            : featureId === 'bulwark-of-force'
-              ? BULWARK_OF_FORCE_POOL_ID
-              : null
+      : featureId === 'group-recovery'
+        ? 'group_recovery'
+        : featureId === 'action-surge' || featureId === 'rallying-surge'
+          ? ACTION_SURGE_POOL_ID
+          : featureId === 'indomitable' || featureId === 'shared-resilience'
+            ? INDOMITABLE_POOL_ID
+            : featureId === 'know-your-enemy'
+              ? KNOW_YOUR_ENEMY_POOL_ID
+              : featureId === 'bulwark-of-force'
+                ? BULWARK_OF_FORCE_POOL_ID
+                : featureId === 'arcane-shot' || featureId === 'ever-ready-shot'
+                  ? 'arcane_shot'
+                  : featureId === 'magical-ammunition'
+                    ? 'magical_ammunition'
+                    : null
 
   const pool =
     poolId != null
@@ -93,6 +122,14 @@ export function Fighter2024UseDialog({
   const body = FEATURE_TEXT[featureId] ?? request.name
 
   function confirm() {
+    const spendMode =
+      mode === 'refund_with_die'
+        ? 'refund_with_die'
+        : mode === 'refund_second_wind'
+          ? 'refund_second_wind'
+          : featureId === 'magical-ammunition' && mode === 'spend'
+            ? ammoType
+            : mode
     const result = applyFighter2024FeatureUse({
       featureId: request!.featureId,
       resourceId: request!.resourceId,
@@ -100,7 +137,7 @@ export function Fighter2024UseDialog({
       classEntryId: request!.classEntryId,
       fighterLevel,
       refund: mode === 'refund',
-      mode: mode === 'refund_with_die' ? 'refund_with_die' : mode,
+      mode: spendMode,
       checkStillFailed: featureId === 'tactical-mind' && checkStillFailed,
     })
     onConfirm(result)
@@ -111,6 +148,9 @@ export function Fighter2024UseDialog({
     ...(refundable ? [{ id: 'refund', label: 'Вернуть' }] : []),
     ...(featureId === 'know-your-enemy'
       ? [{ id: 'refund_with_die', label: 'Восстановить костью' }]
+      : []),
+    ...(featureId === 'magical-ammunition'
+      ? [{ id: 'refund_second_wind', label: 'Вернуть дыханием' }]
       : []),
   ]
 
@@ -136,6 +176,20 @@ export function Fighter2024UseDialog({
               value={mode}
               onChange={setMode}
               options={modeOptions}
+            />
+          </Field>
+        ) : null}
+        {featureId === 'magical-ammunition' && mode === 'spend' ? (
+          <Field label="Тип боеприпаса">
+            <SegmentedControl
+              aria-label="Тип боеприпаса"
+              value={ammoType}
+              onChange={setAmmoType}
+              options={[
+                { id: 'obscuring', label: 'Затемняющий' },
+                { id: 'opening', label: 'Открывающий' },
+                { id: 'vine', label: 'Лозовой' },
+              ]}
             />
           </Field>
         ) : null}

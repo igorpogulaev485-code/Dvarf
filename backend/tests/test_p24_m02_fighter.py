@@ -49,13 +49,12 @@ PHB_FIGHTER_SUBCLASSES = {
     "fighter__psi-warrior": "Пси-воин",
 }
 
+# Book AU/FRHoF paths are opened by P24-M02B-fighter (separate test file).
 OUT_OF_PACK_FIGHTER_SUBCLASSES = {
     "fighter__cavalier",
     "fighter__samurai",
     "fighter__echo-knight",
     "fighter__rune-knight",
-    "fighter__arcane-archer",
-    "fighter__banneret",
     "fighter__purple-dragon-knight",
 }
 

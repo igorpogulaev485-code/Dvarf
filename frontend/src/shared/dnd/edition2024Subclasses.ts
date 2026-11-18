@@ -223,6 +223,14 @@ export const M02B_ARTIFICER_BOOK_SUBCLASS_SLUGS = new Set([
   'artificer__reanimator',
 ])
 
+/**
+ * Book fighter paths opened by P24-M02B-fighter (AU Arcane Archer + FRHoF Banneret / «Знаменосец»).
+ */
+export const M02B_FIGHTER_BOOK_SUBCLASS_SLUGS = new Set([
+  'fighter__arcane-archer',
+  'fighter__banneret',
+])
+
 export function isPhb2024CreateSubclass(slug: string, source?: string | null): boolean {
   const key = String(slug || '')
     .trim()
@@ -253,6 +261,8 @@ export function isPhb2024CreateSubclass(slug: string, source?: string | null): b
   if (M02B_RANGER_BOOK_SUBCLASS_SLUGS.has(key)) return true
   // P24-M02B-artificer: five EFA + Reanimator only.
   if (M02B_ARTIFICER_BOOK_SUBCLASS_SLUGS.has(key)) return true
+  // P24-M02B-fighter: Arcane Archer + Banneret (UI «Знаменосец») only.
+  if (M02B_FIGHTER_BOOK_SUBCLASS_SLUGS.has(key)) return true
   // Catalog API may omit source; fall back to known PHB table rows.
   return Boolean(row && CREATE_SUBCLASS_SOURCES_2024.has(String(row.source || '').toLowerCase()))
 }
@@ -454,8 +464,32 @@ const SHARED_OPTIONS_2024: Record<string, SharedPoolOption2024[]> = {
     { feature_id: 'psionic-sorcery', name_ru: 'Псионическое чародейство', spend_pool: 'sorcery_points', cost: 1, kind: 'passive', min_level: 6 },
     { feature_id: 'revelation-in-flesh', name_ru: 'Откровение во плоти', spend_pool: 'sorcery_points', cost: 1, cost_max: 4, kind: 'bonus', min_level: 14 },
   ],
+  // P24-M02B-fighter Banneret: Group Recovery rides Second Wind but has its own 1/short-or-long pool.
   'fighter__banneret': [
-    { feature_id: 'group-recovery', name_ru: 'Групповое оздоровление', spend_pool: 'second_wind', cost: 1, kind: 'passive', min_level: 3 },
+    {
+      feature_id: 'group-recovery',
+      name_ru: 'Групповое оздоровление',
+      spend_pool: 'second_wind',
+      cost: 1,
+      kind: 'passive',
+      min_level: 3,
+    },
+    {
+      feature_id: 'rallying-surge',
+      name_ru: 'Воодушевляющий всплеск',
+      spend_pool: 'action_surge',
+      cost: 1,
+      kind: 'passive',
+      min_level: 10,
+    },
+    {
+      feature_id: 'shared-resilience',
+      name_ru: 'Устойчивость команды',
+      spend_pool: 'indomitable',
+      cost: 1,
+      kind: 'reaction',
+      min_level: 15,
+    },
   ],
   // P24-M02B-ranger: Wrath spends Favored Enemy uses (not a separate pool).
   'ranger__hollow-warden': [
@@ -1274,7 +1308,15 @@ export function buildSubclassResources2024(input: {
   } else if (subclassSlug === 'rogue__arcane-trickster' && classLevel >= 17) {
     push('spell_thief', 'Похититель заклинаний', 1, 'long', 'spell-thief')
   } else if (subclassSlug === 'fighter__arcane-archer') {
-    push('arcane_shot', 'Чародейный выстрел', Math.max(1, intMod), 'long', 'arcane-shot')
+    // Book: Int mod (min 1); reset on Short or Long rest.
+    push('arcane_shot', 'Чародейный выстрел', Math.max(1, intMod), 'short', 'arcane-shot')
+    if (classLevel >= 7) {
+      push('magical_ammunition', 'Магические боеприпасы', 1, 'short', 'magical-ammunition')
+    }
+  } else if (subclassSlug === 'fighter__banneret') {
+    if (classLevel >= 3) {
+      push('group_recovery', 'Групповое оздоровление', 1, 'short', 'group-recovery')
+    }
   } else if (subclassSlug === 'artificer__alchemist') {
     push('experimental_elixir', 'Экспериментальный эликсир', scaleUses(classLevel, { 3: 2, 5: 3, 9: 4, 15: 5 }), 'long', 'experimental-elixir')
     if (classLevel >= 9) push('restorative_reagents', 'Восстанавливающие реагенты', Math.max(1, intMod), 'long', 'restorative-reagents')
