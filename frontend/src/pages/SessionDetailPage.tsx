@@ -3254,6 +3254,7 @@ export function SessionDetailPage() {
             ? session.seats.find((s) => s.character_id === initRollEntry.ref_id) ?? null
             : null
         }
+        rulesEdition={session.rules_edition ?? '2014'}
         onClose={() => setInitRollEntry(null)}
         onRoll={({ advantage }) => {
           const entry = initRollEntry
@@ -3503,6 +3504,7 @@ export function SessionDetailPage() {
           session.seats.find((s) => s.character_id === companionHostId)?.character_name ??
           null
         }
+        rulesEdition={session.rules_edition ?? '2014'}
         onClose={() => setCompanionOpen(false)}
         onSubmit={(payload) => {
           if (!companionHostId) return

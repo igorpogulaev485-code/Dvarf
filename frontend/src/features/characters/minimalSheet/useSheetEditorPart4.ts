@@ -539,17 +539,54 @@ export function useSheetEditorPart4(model: SheetModel) {
   }
   const [heroicTransferOpen, setHeroicTransferOpen] = useState(false)
   const [heroicTransferAllyId, setHeroicTransferAllyId] = useState('')
+  const [heroicTransferAllies, setHeroicTransferAllies] = useState<
+    Array<{ id: string; name: string }>
+  >([])
   model.heroicTransferOpen = heroicTransferOpen
   model.setHeroicTransferOpen = setHeroicTransferOpen
   model.heroicTransferAllyId = heroicTransferAllyId
   model.setHeroicTransferAllyId = setHeroicTransferAllyId
-  model.heroicTransferAllies = model.heroicTransferAllies ?? []
+  model.heroicTransferAllies = heroicTransferAllies
   model.openHeroicTransfer = function openHeroicTransfer(
     allies: Array<{ id: string; name: string }>,
   ) {
-    model.heroicTransferAllies = allies
+    setHeroicTransferAllies(allies)
     setHeroicTransferAllyId(allies[0]?.id ?? '')
     setHeroicTransferOpen(true)
+  }
+  /** Desk seats without heroic inspiration (filled by TurnEconomyDeskHost). */
+  model.deskHeroicAllies = model.deskHeroicAllies ?? []
+  /**
+   * P24-M04: grant heroic inspiration. Book limit 1 — second grant opens
+   * transfer to a desk ally without inspiration.
+   */
+  model.tryGrantHeroicInspiration = function tryGrantHeroicInspiration() {
+    const edition = model.baseCharacter?.rules_edition ?? model.rulesEdition
+    if (String(edition ?? '') !== '2024') {
+      model.setDraft((prev) => ({
+        ...prev,
+        inspiration: !prev.inspiration,
+      }))
+      return
+    }
+    if (!model.draft.inspiration) {
+      model.setDraft((prev) => ({
+        ...prev,
+        inspiration: true,
+      }))
+      return
+    }
+    const allies = (
+      (model.deskHeroicAllies as Array<{ id: string; name: string }> | undefined) ??
+      []
+    ).filter((a) => a.id && a.name)
+    if (allies.length === 0) {
+      model.onToast?.(
+        'Уже есть героическое вдохновение — отдайте союзнику за столом или потратьте на переброс',
+      )
+      return
+    }
+    model.openHeroicTransfer?.(allies)
   }
   model.spendHeroicInspirationReroll = function spendHeroicInspirationReroll() {
     if (!model.draft.inspiration) {

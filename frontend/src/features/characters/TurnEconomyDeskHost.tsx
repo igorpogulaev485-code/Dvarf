@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import type { SheetModel } from './minimalSheet/sheetModel'
 import { applyBeginMyTurnWithCompanions } from './beginMyTurn'
 import { SPELLFIRE_BURST_TURN_PICK_KEY } from '../../shared/dnd/sorcererBook2024Features'
@@ -95,6 +95,23 @@ export function TurnEconomyDeskHost({ model, children }: Props) {
     },
     onTurnEconomyReset: () => beginMyTurn(),
   })
+
+  /** P24-M04: desk allies for heroic inspiration transfer (limit 1 → pass). */
+  useEffect(() => {
+    const seats = combat.session?.seats ?? []
+    const allies = seats
+      .filter(
+        (seat) =>
+          seat.character_id &&
+          seat.character_id !== characterId &&
+          !seat.inspiration,
+      )
+      .map((seat) => ({
+        id: seat.character_id,
+        name: seat.character_name || 'Союзник',
+      }))
+    model.deskHeroicAllies = allies
+  }, [combat.session, characterId, model])
 
   const economy = model.draft.play.turnEconomy ?? emptyTurnEconomy()
   const personalPref = Boolean(model.draft.sheetUi.diceOnTablePref)

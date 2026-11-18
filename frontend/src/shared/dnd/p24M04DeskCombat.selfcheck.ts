@@ -76,6 +76,44 @@ const addCombatant = readFileSync(
 assert.match(addCombatant, /catalogEdition/)
 assert.doesNotMatch(addCombatant, /edition="2014"/)
 
+const combatEditor = readFileSync(
+  pathJoin(root, 'features/lobby/CombatPageEditor.tsx'),
+  'utf8',
+)
+assert.match(combatEditor, /rulesEdition/)
+assert.match(combatEditor, /catalogEdition/)
+assert.doesNotMatch(combatEditor, /edition="2014"/)
+
+const companionDialog = readFileSync(
+  pathJoin(root, 'features/lobby/AddStoryCompanionDialog.tsx'),
+  'utf8',
+)
+assert.match(companionDialog, /rulesEdition/)
+assert.match(companionDialog, /catalogEdition/)
+assert.doesNotMatch(companionDialog, /edition="2014"/)
+
+const sessionDetail = readFileSync(
+  pathJoin(root, 'pages/SessionDetailPage.tsx'),
+  'utf8',
+)
+assert.match(
+  sessionDetail,
+  /InitiativeRollDialog[\s\S]*rulesEdition=\{session\.rules_edition/,
+)
+
+const part4 = readFileSync(
+  pathJoin(root, 'features/characters/minimalSheet/useSheetEditorPart4.ts'),
+  'utf8',
+)
+assert.match(part4, /tryGrantHeroicInspiration/)
+assert.match(part4, /openHeroicTransfer/)
+
+const deskHost = readFileSync(
+  pathJoin(root, 'features/characters/TurnEconomyDeskHost.tsx'),
+  'utf8',
+)
+assert.match(deskHost, /deskHeroicAllies/)
+
 const joinPage = readFileSync(pathJoin(root, 'pages/JoinLobbyPage.tsx'), 'utf8')
 assert.match(joinPage, /lobby_rules_edition_mismatch/)
 assert.match(joinPage, /seatableCharacters/)

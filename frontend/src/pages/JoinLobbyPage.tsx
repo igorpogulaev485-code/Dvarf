@@ -352,7 +352,7 @@ export function JoinLobbyPage() {
                       </Select>
                     </Field>
                     {inviteMeta && seatableCharacters.length === 0 ? (
-                      <Text tone="muted" data-testid="join-edition-empty">
+                      <Text tone="muted">
                         Нет персонажей редакции {lobbyEdition} для этого стола.
                         Смешанный стол 2014+2024 запрещён.
                       </Text>
@@ -388,6 +388,12 @@ export function JoinLobbyPage() {
                         )
                       })}
                     </div>
+                    {inviteMeta && seatableCharacters.length === 0 ? (
+                      <Text tone="muted" data-testid="join-edition-empty">
+                        Нет персонажей редакции {lobbyEdition} для этого стола.
+                        Смешанный стол 2014+2024 запрещён.
+                      </Text>
+                    ) : null}
                   </fieldset>
 
                   {selected && codeReady ? (

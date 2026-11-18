@@ -1,0 +1,48 @@
+{
+  "name": "M04-Fighter",
+  "class_slug": "fighter",
+  "background_slug": "soldier",
+  "species_slug": "dwarf",
+  "ability_method": "standard_array",
+  "base_abilities": {
+    "str": 15,
+    "dex": 14,
+    "con": 13,
+    "int": 12,
+    "wis": 10,
+    "cha": 8
+  },
+  "background_asi_mode": "+2/+1",
+  "background_asi": {
+    "str": 2,
+    "dex": 1
+  },
+  "language_ids": [
+    "elvish",
+    "dwarvish"
+  ],
+  "class_skill_ids": [
+    "acrobatics",
+    "animal_handling"
+  ],
+  "weapon_mastery_ids": [
+    "battleaxe",
+    "blowgun",
+    "club"
+  ],
+  "fighting_style_slug": "defense",
+  "background_tool_id": "dice-set",
+  "background_equipment": "pack",
+  "class_equipment": "a",
+  "cantrip_ids": [],
+  "prepared_spell_ids": [],
+  "class_option_picks": {
+    "client_picks": {
+      "origin_feat_picks": {},
+      "species_picks": {}
+    }
+  },
+  "is_preview": true,
+  "is_draft": false,
+  "species_size": "medium"
+}

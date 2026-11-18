@@ -4,13 +4,14 @@
 
 ## Что сделано
 
-- Героическое вдохновение: переброс пишет в ленту сессии; передача союзнику через `patchSeatCombat` + строка ленты; чип «героич.» на столе (не бардовское, не преимущество 2014).
+- Героическое вдохновение: переброс пишет в ленту сессии; **продуктовый** `tryGrantHeroicInspiration` → `openHeroicTransfer` при втором гранте (лимит 1) + союзники со стола (`deskHeroicAllies` из seats); передача через `patchSeatCombat` + строка ленты; чип «героич.» (не бардовское).
 - Отдых 2024: подсказка на диалоге; все кости через `applyLongRest`; пауза 16 ч через `lastLongRestFinishedAt`.
-- Неожиданность 2024: `StartCombatDialog` / `InitiativeRollDialog` — помеха к инициативе; бэкенд не ставит L-21 lock в лобби 2024; 2014 L-21 сохранён.
+- Неожиданность 2024: `StartCombatDialog` / `InitiativeRollDialog` — помеха к инициативе; **SessionDetailPage** передаёт `rulesEdition={session.rules_edition}`; бэкенд не ставит L-21 lock в лобби 2024; 2014 L-21 сохранён.
 - Посадка: пикер всегда фильтрует по редакции; отказ `lobby_rules_edition_mismatch` без ack.
-- Генератор / бестиарий / AddCombatant читают `lobby.rules_edition` (зашивка `edition="2014"` убрана).
+- Генератор / бестиарий / AddCombatant / **CombatPageEditor** / **AddStoryCompanionDialog** читают `lobby`/`session.rules_edition` (зашивка `edition="2014"` убрана).
 - Мастерство оружия: `onFeedLine` на живом столе; запись в ленту через `postSheetRollToSession`.
 - `SessionDetail.rules_edition`; `createLobby(..., { isPreview: true })` для e2e.
+- Приёмка: live e2e с API (join mismatch / session edition / кадры листа-сессии); preview — только smoke. Soft-skip API ≠ зелёный.
 - `RULES_EDITION_2024_OPEN` по-прежнему выкл.
 
 ## 2014
