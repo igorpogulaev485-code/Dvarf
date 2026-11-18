@@ -3,13 +3,17 @@
 from __future__ import annotations
 
 import json
+from copy import deepcopy
 from pathlib import Path
 
 import pytest
 
 from app.core.config import settings
 from app.dnd import edition_2024_classes as e24
+from app.dnd import edition_2024_create as create24
+from app.dnd import edition_2024_create_levels as levels
 from app.dnd import edition_2024_subclasses as sub24
+from tests.test_p24_m03_create import build_valid_payload
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 BACKEND_LIVE = REPO_ROOT / "backend" / "data" / "srd" / "2024" / "live"
@@ -154,6 +158,15 @@ def test_spellfire_absorb_counterspell_always_prepared():
     assert bonuses["absorb-spells"].value.get("restore_sp_on_counterspell_fail") == "1d4"
 
 
+def test_spellfire_burst_pool_on_hot_at_3():
+    pools = _pools("sorcerer__spellfire-sorcery", 3)
+    assert "spellfire_burst" in pools
+    assert pools["spellfire_burst"].max == 1
+    assert pools["spellfire_burst"].name_ru == "Прорыв чаропламени"
+    assert pools["spellfire_burst"].on_hot is True
+    assert _pools("sorcerer__spellfire-sorcery", 2).get("spellfire_burst") is None
+
+
 def test_spellfire_crown_pool_at_18():
     pools = _pools("sorcerer__spellfire-sorcery", 18)
     assert "crown_of_spellfire" in pools
@@ -178,6 +191,11 @@ def test_shadow_beasts_and_umbral():
     assert bonuses6["beasts-of-ill-omen"].name_ru == "Звери дурных знамений"
     assert bonuses6["beasts-of-ill-omen"].value.get("cost_sp") == 3
     assert bonuses6["beasts-of-ill-omen"].value.get("summon") == "summon-beast"
+
+    pools14 = _pools("sorcerer__shadow-sorcery", 14)
+    assert "shadow_walk" in pools14
+    assert pools14["shadow_walk"].name_ru == "Хождение по теням"
+    assert pools14["shadow_walk"].on_hot is True
 
     pools18 = _pools("sorcerer__shadow-sorcery", 18)
     assert "umbral_form" in pools18
@@ -221,3 +239,59 @@ def test_no_wrong_spellfire_shared_option_name():
     # Beasts also moved to dialog/calc (cost 3 SP), not a 1-SP shared stub.
     shadow_opts = sub24.shared_options_for_subclass("sorcerer__shadow-sorcery", 6)
     assert all(o.feature_id != "beasts-of-ill-omen" for o in shadow_opts)
+
+
+def test_vestige_companion_name_is_predtecha():
+    pools = {
+        p.pool_id: p
+        for p in sub24.build_subclass_resources(
+            "warlock__vestige-patron", 3, total_level=3, abilities=_ABILITIES
+        )
+    }
+    assert pools["vestige_companion"].name_ru == "Спутник-предтеча"
+
+
+@pytest.mark.parametrize(
+    "slug,from_level,to_level",
+    [
+        ("sorcerer__spellfire-sorcery", 3, 2),
+        ("sorcerer__shadow-sorcery", 11, 10),
+        ("sorcerer__spellfire-sorcery", 18, 17),
+        ("sorcerer__shadow-sorcery", 20, 19),
+    ],
+)
+def test_book_sorcerer_rollback_levels(slug: str, from_level: int, to_level: int):
+    payload = build_valid_payload(
+        "sorcerer",
+        ability_method="manual",
+        base_abilities={"str": 8, "dex": 14, "con": 14, "int": 10, "wis": 10, "cha": 15},
+        class_levels=[
+            {
+                "slug": "sorcerer",
+                "level": from_level,
+                "subclass_slug": slug,
+            }
+        ],
+    )
+    sheet = deepcopy(
+        create24.validate_create_2024(create24.payload_from_dict(payload)).sheet
+    )
+    assert sum(int(r["level"]) for r in sheet["classes"]) == from_level
+    if from_level >= 3:
+        assert sheet["classes"][0].get("subclass_slug") == slug
+    free_before = set(sub24.always_prepared_for_subclass(slug, from_level))
+    levels.rollback_last_level_gain(sheet)
+    assert sum(int(r["level"]) for r in sheet["classes"]) == to_level
+    if to_level < 3:
+        assert not sheet["classes"][0].get("subclass_slug")
+    else:
+        free_after = set(sub24.always_prepared_for_subclass(slug, to_level))
+        # Higher-circle always-prepared from from_level must not remain as a requirement.
+        assert free_after <= free_before
+    if from_level == 18 and to_level == 17:
+        assert "crown_of_spellfire" not in {
+            p.pool_id
+            for p in sub24.build_subclass_resources(
+                slug, 17, total_level=17, abilities=_ABILITIES
+            )
+        }

@@ -1,3 +1,5 @@
 9830fb7a6c0acc068819fff2aeb16b0e  before-create-2014-race-marker-1440.png
 1b6db9df4b777033ebe6c0e6a0c3e903  before-create-2014-sorcerer-class-1440.png
 915ec7d184c1fca6399ca78ac37fba3d  before-sheet-2014-sorcerer-1440.png
+3c24a54b8f31ff3f0d5eef2a55da84e4  before-sheet-2014-sorcerer-features-1440.png
+49c9e34fb01d3f4ede585440a267f30f  before-sheet-2014-draconic-features-1440.png

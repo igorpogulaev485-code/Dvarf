@@ -1,5 +1,6 @@
 /**
  * P24-M02B-sorcerer 2014 regression (1440 / 390) with md5 sidecars.
+ * Full set like wizard/rogue: 5 desktop + 6 phone.
  * P24_M02B_SORCERER_SHOT_TAG=before|after
  * Artifacts: ../artifacts/p24-m02b-sorcerer/regression-2014/
  */
@@ -24,13 +25,16 @@ function projectOf(testInfo: { project: { name: string } }): '1440' | '390' {
   return testInfo.project.name.includes('390') ? '390' : '1440'
 }
 
+function isPhone(project: string) {
+  return project === '390'
+}
+
 function md5SidecarName(project: string) {
   return `${SHOT_TAG}-md5-${project}.txt`
 }
 
 async function shot(page: Page, name: string, project: string) {
   await page.evaluate(async () => {
-    // Stabilize fonts / layout before md5 (390 sheet was flaky on tip too).
     try {
       await (document as Document & { fonts?: { ready: Promise<unknown> } }).fonts?.ready
     } catch {
@@ -215,22 +219,34 @@ function asRecord(value: unknown): Record<string, unknown> {
   return value && typeof value === 'object' ? (value as Record<string, unknown>) : {}
 }
 
-function sorcerer2014SheetCharacter() {
+const DRACONIC_META = {
+  subclass_slug: 'draconic',
+  subclass_name: 'Драконья кровь',
+  featureRe: /Драконья кровь|Драконий предок|Драконья устойчивость|Элементальное родство|Крылья дракона/i,
+}
+
+function sorcerer2014SheetCharacter(opts?: {
+  level?: number
+  name?: string
+  withDraconic?: boolean
+}) {
   const id = 'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeee00c2'
   const sample = JSON.parse(JSON.stringify(sampleClassic2014Character)) as Record<string, unknown>
   sample.id = id
   sample.rules_edition = '2014'
   sample.class_name = 'Чародей'
-  sample.name = 'Селенья Искра'
+  sample.name = opts?.name ?? 'Селенья Искра'
+  sample.level = opts?.level ?? 5
   const sheet = (sample.sheet ?? {}) as Record<string, unknown>
+  const withDraconic = opts?.withDraconic !== false
   sheet.classes = [
     {
       id: 'c-sorcerer',
       slug: 'sorcerer',
       name: 'Чародей',
-      level: 5,
-      subclass_slug: 'draconic',
-      subclass_name: 'Драконья кровь',
+      level: opts?.level ?? 5,
+      subclass_slug: withDraconic ? DRACONIC_META.subclass_slug : null,
+      subclass_name: withDraconic ? DRACONIC_META.subclass_name : null,
       catalog_id: 'sorcerer',
     },
   ]
@@ -317,13 +333,19 @@ async function dismissWelcome(page: Page) {
   }
 }
 
+async function openFeaturesScene(page: Page, project: string) {
+  if (isPhone(project)) await page.getByText('Способн.', { exact: true }).last().click()
+  else await page.getByRole('button', { name: /^Способности$/ }).first().click()
+  await page.waitForTimeout(700)
+}
+
 test.beforeAll(({}, testInfo) => {
   fs.mkdirSync(ARTIFACTS_2014, { recursive: true })
   fs.writeFileSync(path.join(ARTIFACTS_2014, md5SidecarName(projectOf(testInfo))), '')
 })
 
 test.describe('P24-M02B 2014 regression (sorcerer)', () => {
-  test.setTimeout(90_000)
+  test.setTimeout(120_000)
 
   test('2014 create — класс Чародей', async ({ page }, testInfo) => {
     const project = projectOf(testInfo)
@@ -339,7 +361,7 @@ test.describe('P24-M02B 2014 regression (sorcerer)', () => {
     await shot(page, `${tag}-create-2014-sorcerer-class`, project)
   })
 
-  test('2014 sheet — чародей шапка/умения', async ({ page }, testInfo) => {
+  test('2014 sheet — чародей шапка / умения', async ({ page }, testInfo) => {
     const project = projectOf(testInfo)
     const tag = SHOT_TAG
     const character = sorcerer2014SheetCharacter()
@@ -348,10 +370,69 @@ test.describe('P24-M02B 2014 regression (sorcerer)', () => {
     await expect(page.locator('#root')).not.toBeEmpty({ timeout: 20_000 })
     await dismissWelcome(page)
     await expect(page.getByText(/Селенья|Чародей/i).first()).toBeVisible({ timeout: 15_000 })
-    if (project === '390') {
+
+    if (isPhone(project)) {
       await page.getByText('Бой', { exact: true }).last().click()
       await page.waitForTimeout(300)
+      const expand = page.getByRole('button', { name: /Развернуть шапку/ })
+      if (await expand.isVisible().catch(() => false)) {
+        await expand.click()
+        await page.waitForTimeout(300)
+      }
+      await shot(page, `${tag}-sheet-2014-sorcerer-header`, project)
+      const abilBtn = page.locator('button.mobile-vitals__abil')
+      await expect(abilBtn).toBeVisible({ timeout: 10_000 })
+      await abilBtn.click()
+      const abilPage = page.getByRole('dialog', { name: /Характеристики/ })
+      await expect(abilPage).toBeVisible()
+      for (const abil of ['str', 'dex', 'con', 'int', 'wis', 'cha']) {
+        await expect(abilPage.locator(`.abil-block[data-abil="${abil}"]`).first()).toBeVisible()
+      }
+      await shot(page, `${tag}-sheet-2014-sorcerer-abilities`, project)
+      await abilPage.locator('button.mobile-abil-page__back').click()
+      await expect(abilPage).toHaveCount(0, { timeout: 10_000 })
+    } else {
+      for (const abil of ['str', 'dex', 'con', 'int', 'wis', 'cha']) {
+        await expect(page.locator(`.abil-block[data-abil="${abil}"]`).first()).toBeVisible()
+      }
+      await shot(page, `${tag}-sheet-2014-sorcerer`, project)
     }
-    await shot(page, `${tag}-sheet-2014-sorcerer`, project)
+
+    await openFeaturesScene(page, project)
+    const classFeature = page
+      .locator('.feature-card, .play-desk-features, [data-onboarding="features"]')
+      .getByText(
+        /Сотворение заклинаний|Источник магии|Метамагия|Чародейское восстановление|Очки чародейства|Гибкое колдовство|Драконья/i,
+      )
+      .first()
+    await classFeature.scrollIntoViewIfNeeded().catch(() => {})
+    await expect(classFeature).toBeVisible({ timeout: 15_000 })
+    await shot(page, `${tag}-sheet-2014-sorcerer-features`, project)
+  })
+
+  test('2014 sheet — драконья кровь', async ({ page }, testInfo) => {
+    const project = projectOf(testInfo)
+    const tag = SHOT_TAG
+    const character = sorcerer2014SheetCharacter({
+      level: 5,
+      name: 'Селенья Драконья',
+      withDraconic: true,
+    })
+    await mock2014Sheet(page, character)
+    await page.goto(`/characters/${character.id}`)
+    await expect(page.locator('#root')).not.toBeEmpty({ timeout: 20_000 })
+    await dismissWelcome(page)
+    if (isPhone(project)) {
+      await page.getByText('Бой', { exact: true }).last().click()
+      await page.waitForTimeout(250)
+    }
+    await openFeaturesScene(page, project)
+    const tradition = page
+      .locator('.feature-card')
+      .filter({ hasText: DRACONIC_META.featureRe })
+      .first()
+    await tradition.scrollIntoViewIfNeeded().catch(() => {})
+    await expect(tradition).toBeVisible({ timeout: 15_000 })
+    await shot(page, `${tag}-sheet-2014-draconic-features`, project)
   })
 })

@@ -62,6 +62,11 @@ export const BEASTS_OF_ILL_OMEN_FEATURE_ID = 'beasts-of-ill-omen'
 export const SHADOW_WALK_FEATURE_ID = 'shadow-walk'
 export const UMBRAL_FORM_FEATURE_ID = 'umbral-form'
 
+/** Resource pool ids (hot bar / once-per-turn gate). */
+export const SPELLFIRE_BURST_POOL_ID = 'spellfire_burst'
+export const SHADOW_WALK_POOL_ID = 'shadow_walk'
+export const SPELLFIRE_BURST_TURN_PICK_KEY = 'spellfire_burst_used_this_turn'
+
 export const RESTORE_SP_COST_BOOK = {
   crownOfSpellfire: 5,
   umbralForm: 6,

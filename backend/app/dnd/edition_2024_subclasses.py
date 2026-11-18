@@ -1579,7 +1579,7 @@ def build_subclass_resources(
     elif subclass_slug == "warlock__vestige-patron":
         add(
             "vestige_companion",
-            name_ru="Спутник-отголосок",
+            name_ru="Спутник-предтеча",
             max_uses=1,
             reset="long",
             feature_id="vestige-companion",
@@ -1827,6 +1827,16 @@ def build_subclass_resources(
                 extra_meta={"restore_sp_cost": 7},
             )
     elif subclass_slug == "sorcerer__spellfire-sorcery":
+        # Once-per-turn gate shown on combat hot bar; refreshed on «Начало моего хода».
+        add(
+            "spellfire_burst",
+            name_ru="Прорыв чаропламени",
+            max_uses=1,
+            reset="long",
+            feature_id="spellfire-burst",
+            min_level=3,
+            extra_meta={"once_per_turn_after_sp_spend": True},
+        )
         if class_level >= 18:
             add(
                 "crown_of_spellfire",
@@ -1846,6 +1856,17 @@ def build_subclass_resources(
             reset="long",
             feature_id="power-of-shadow",
         )
+        if class_level >= 14:
+            # At-will teleport tracker for desk (activeLabel = last hop); not a hard daily cap.
+            add(
+                "shadow_walk",
+                name_ru="Хождение по теням",
+                max_uses=1,
+                reset="long",
+                feature_id="shadow-walk",
+                min_level=14,
+                extra_meta={"at_will_in_dim_or_dark": True},
+            )
         if class_level >= 18:
             add(
                 "umbral_form",

@@ -18,7 +18,7 @@ import { addFlexibleSpellSlot, clampSlot, type SpellSlotState } from './spells'
 import { FLEXIBLE_CASTING_SLOT_COST } from './sorcererMetamagic'
 import { clampResource, type SheetResource } from './rest'
 import { STACKABLE_METAMAGIC_IDS } from './metamagicCast'
-import { setFeaturePick, type FeaturePicksState } from './featurePicks'
+import { getFeaturePick, setFeaturePick, type FeaturePicksState } from './featurePicks'
 import {
   BEASTS_OF_ILL_OMEN_NAME_RU,
   BURNING_LIFE_NAME_RU,
@@ -26,7 +26,10 @@ import {
   RADIANT_FLAME_NAME_RU,
   RESTORE_SP_COST_BOOK,
   SHADOW_WALK_NAME_RU,
+  SHADOW_WALK_POOL_ID,
   SPELLFIRE_BURST_NAME_RU,
+  SPELLFIRE_BURST_POOL_ID,
+  SPELLFIRE_BURST_TURN_PICK_KEY,
   STRENGTH_OF_THE_GRAVE_NAME_RU,
   SUMMON_BEAST_SPIRIT_NAME_RU,
   SUSTAINING_FLAMES_NAME_RU,
@@ -688,6 +691,10 @@ export type Sorcerer2024UseInput = {
   damageTaken?: number
   /** Crown burning life: number of hit dice to spend. */
   hitDiceCount?: number
+  /** Shadow Walk: lighting + destination (desk, not toast-only). */
+  selfLighting?: 'dim' | 'dark' | null
+  targetLighting?: 'dim' | 'dark' | null
+  destinationRu?: string | null
 }
 
 export type SorcererFeatureUseResult = {
@@ -1097,11 +1104,35 @@ export function applySorcerer2024FeatureUse(
       return done(input, 'Отметь эффект вручную на столе — диалог только подсказка.')
 
     case 'spellfire-burst': {
+      const picks = input.featurePicks ?? { values: {} }
+      const turnUsed =
+        getFeaturePick(picks, input.classEntryId, SPELLFIRE_BURST_TURN_PICK_KEY) === 'on'
+      const burstRow = poolRow(input, SPELLFIRE_BURST_POOL_ID)
+      if (turnUsed || (burstRow && burstRow.used >= burstRow.max)) {
+        return refuse(
+          input,
+          `${SPELLFIRE_BURST_NAME_RU}: уже использован в этот ход (1/ход после траты очка).`,
+        )
+      }
       const chaMod = Math.floor(input.chaMod ?? 0)
       const mode = input.burstMode ?? input.mode ?? 'sustaining'
       const die = spellfireBurstDie2024(input.sorcererLevel)
       const sides = die === '1d8' ? 8 : 4
       const roll = rollDie(sides)
+      let resources = input.resources
+      if (burstRow) {
+        resources = patchRow(resources, burstRow.id, (item) => ({
+          ...item,
+          used: Math.min(item.max, item.used + 1),
+          activeLabel: 'использован в этот ход',
+        }))
+      }
+      const nextPicks = setFeaturePick(
+        picks,
+        input.classEntryId,
+        SPELLFIRE_BURST_TURN_PICK_KEY,
+        'on',
+      )
       if (mode === 'sustaining') {
         const temp = spellfireBurstTempHpBonus2024({
           sorcererLevel: input.sorcererLevel,
@@ -1112,15 +1143,25 @@ export function applySorcerer2024FeatureUse(
           input.sorcererLevel >= 14 ? ` (+ур. ${input.sorcererLevel})` : ''
         return done(
           input,
-          `${SPELLFIRE_BURST_NAME_RU} — ${SUSTAINING_FLAMES_NAME_RU}: ${temp} врем. хитов (${die}+Хар${honed}). 1/ход после траты очка.`,
-          { tempHpGain: temp, activeLabels: [SPELLFIRE_BURST_NAME_RU] },
+          `${SPELLFIRE_BURST_NAME_RU} — ${SUSTAINING_FLAMES_NAME_RU}: ${temp} врем. хитов (${die}+Хар${honed}). 1/ход.`,
+          {
+            resources,
+            featurePicks: nextPicks,
+            tempHpGain: temp,
+            activeLabels: [SPELLFIRE_BURST_NAME_RU, '1/ход · использован'],
+          },
         )
       }
       const dtype = mode === 'radiant-radiant' ? 'излучением' : 'огнём'
       return done(
         input,
-        `${SPELLFIRE_BURST_NAME_RU} — ${RADIANT_FLAME_NAME_RU}: ${roll} урона ${dtype} (${die}, без атаки/спаса). 1/ход после траты очка.`,
-        { damageRollRu: `${roll} ${dtype}`, activeLabels: [SPELLFIRE_BURST_NAME_RU] },
+        `${SPELLFIRE_BURST_NAME_RU} — ${RADIANT_FLAME_NAME_RU}: ${roll} урона ${dtype} (${die}, без атаки/спаса). 1/ход.`,
+        {
+          resources,
+          featurePicks: nextPicks,
+          damageRollRu: `${roll} ${dtype}`,
+          activeLabels: [SPELLFIRE_BURST_NAME_RU, '1/ход · использован'],
+        },
       )
     }
 
@@ -1246,10 +1287,38 @@ export function applySorcerer2024FeatureUse(
     }
 
     case 'shadow-walk': {
+      const selfLit = input.selfLighting ?? null
+      const targetLit = input.targetLighting ?? null
+      if (selfLit !== 'dim' && selfLit !== 'dark') {
+        return refuse(
+          input,
+          `${SHADOW_WALK_NAME_RU}: вы должны быть в тусклом свете или темноте.`,
+        )
+      }
+      if (targetLit !== 'dim' && targetLit !== 'dark') {
+        return refuse(
+          input,
+          `${SHADOW_WALK_NAME_RU}: цель — незанятое пространство в тусклом свете или темноте ≤120 фт.`,
+        )
+      }
+      const dest = String(input.destinationRu || input.target || '').trim() || '≤120 фт.'
+      const selfRu = selfLit === 'dark' ? 'темнота' : 'тусклый свет'
+      const targetRu = targetLit === 'dark' ? 'темнота' : 'тусклый свет'
+      const walkRow = poolRow(input, SHADOW_WALK_POOL_ID)
+      let resources = input.resources
+      if (walkRow) {
+        resources = patchRow(resources, walkRow.id, (item) => ({
+          ...item,
+          activeLabel: `→ ${dest}`,
+        }))
+      }
       return done(
         input,
-        `${SHADOW_WALK_NAME_RU}: бонусным телепорт ≤120 фт. (вы и цель — тусклый свет/темнота).`,
-        { activeLabels: [SHADOW_WALK_NAME_RU] },
+        `${SHADOW_WALK_NAME_RU} (бонусное): телепорт → ${dest} (вы: ${selfRu}; цель: ${targetRu}).`,
+        {
+          resources,
+          activeLabels: [SHADOW_WALK_NAME_RU, `→ ${dest}`],
+        },
       )
     }
 

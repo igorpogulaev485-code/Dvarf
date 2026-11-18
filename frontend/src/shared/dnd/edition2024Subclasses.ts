@@ -987,7 +987,7 @@ export function buildSubclassResources2024(input: {
   } else if (subclassSlug === 'warlock__undead') {
     push('form_of_dread', 'Аватар ужаса', Math.max(1, chaMod), 'long', 'form-of-dread')
   } else if (subclassSlug === 'warlock__vestige-patron') {
-    push('vestige_companion', 'Спутник-отголосок', 1, 'long', 'vestige-companion')
+    push('vestige_companion', 'Спутник-предтеча', 1, 'long', 'vestige-companion')
   } else if (subclassSlug === 'wizard__abjurer') {
     push('arcane_ward', 'Волшебный щит', classLevel * 2 + intMod, 'long', 'arcane-ward', { track: 'stock' })
   } else if (subclassSlug === 'wizard__diviner') {
@@ -1066,12 +1066,18 @@ export function buildSubclassResources2024(input: {
     if (classLevel >= 14) push('trance_of_order', 'Транс упорядоченности', 1, 'long', 'trance-of-order')
     if (classLevel >= 18) push('clockwork_cavalcade', 'Заводная кавалькада', 1, 'long', 'clockwork-cavalcade')
   } else if (subclassSlug === 'sorcerer__spellfire-sorcery') {
+    // Once-per-turn gate on combat hot bar; refreshed on begin-my-turn.
+    push('spellfire_burst', 'Прорыв чаропламени', 1, 'long', 'spellfire-burst')
     if (classLevel >= 18) {
       push('crown_of_spellfire', 'Корона чаропламени', 1, 'long', 'crown-of-spellfire')
     }
   } else if (subclassSlug === 'sorcerer__shadow-sorcery') {
     // Strength of the Grave: 1 successful save / long rest (not Cha-mod uses).
     push('power_of_shadow', 'Сила могилы', 1, 'long', 'power-of-shadow')
+    if (classLevel >= 14) {
+      // Desk tracker for last teleport (activeLabel); at-will in dim/dark.
+      push('shadow_walk', 'Хождение по теням', 1, 'long', 'shadow-walk')
+    }
     if (classLevel >= 18) {
       push('umbral_form', 'Форма абсолютной тени', 1, 'long', 'umbral-form')
     }

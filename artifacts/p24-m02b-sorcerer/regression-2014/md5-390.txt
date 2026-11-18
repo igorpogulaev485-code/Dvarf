@@ -1,3 +1,6 @@
 593794cbc8945111beb093cf3ee71614  after-create-2014-race-marker-390.png
 3e2f24bad3e77c614d54b91f767e3eee  after-create-2014-sorcerer-class-390.png
-d3ab8404e1feb424190f739c0a04010b  after-sheet-2014-sorcerer-390.png
+78c00e34451c9a0626ce74fe7accdb18  after-sheet-2014-sorcerer-header-390.png
+99beeeecfc05178cd8e22dbc2422fe22  after-sheet-2014-sorcerer-abilities-390.png
+54cff42eaae8548436cf7bf2ed7bf7fc  after-sheet-2014-sorcerer-features-390.png
+503ebdb951efc7d2eb76e27fc6d065ff  after-sheet-2014-draconic-features-390.png

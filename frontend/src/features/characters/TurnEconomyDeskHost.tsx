@@ -1,6 +1,7 @@
 import { useCallback, useMemo, useState } from 'react'
 import type { SheetModel } from './minimalSheet/sheetModel'
 import { applyBeginMyTurnWithCompanions } from './beginMyTurn'
+import { SPELLFIRE_BURST_TURN_PICK_KEY } from '../../shared/dnd/sorcererBook2024Features'
 import {
   TurnEconomyProvider,
   type TurnEconomyContextValue,
@@ -75,10 +76,15 @@ export function TurnEconomyDeskHost({ model, children }: Props) {
         play: prev.play,
         companions: prev.companions,
       })
+      const values = { ...(prev.featurePicks?.values ?? {}) }
+      for (const key of Object.keys(values)) {
+        if (key.endsWith(`:${SPELLFIRE_BURST_TURN_PICK_KEY}`)) delete values[key]
+      }
       return {
         ...prev,
         play: next.play,
         companions: next.companions,
+        featurePicks: { values },
       }
     })
   }, [model])

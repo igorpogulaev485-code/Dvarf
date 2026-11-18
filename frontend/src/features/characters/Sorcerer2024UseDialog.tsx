@@ -19,11 +19,16 @@ import {
   rollWildMagicSurgePair2024,
   type SorcererFeatureUseResult,
 } from '../../shared/dnd/sorcerer2024Features'
+import { getFeaturePick } from '../../shared/dnd/featurePicks'
+import { parseFeatureResourceId } from '../../shared/dnd/featureResources'
 import {
   BEASTS_OF_ILL_OMEN_NAME_RU,
   CROWN_OF_SPELLFIRE_NAME_RU,
   RADIANT_FLAME_NAME_RU,
+  SHADOW_WALK_NAME_RU,
   SPELLFIRE_BURST_NAME_RU,
+  SPELLFIRE_BURST_POOL_ID,
+  SPELLFIRE_BURST_TURN_PICK_KEY,
   STRENGTH_OF_THE_GRAVE_NAME_RU,
   SUMMON_BEAST_SPIRIT_NAME_RU,
   SUSTAINING_FLAMES_NAME_RU,
@@ -116,6 +121,9 @@ export function Sorcerer2024UseDialog({
   const [noConcentration, setNoConcentration] = useState(true)
   const [damageTaken, setDamageTaken] = useState(10)
   const [hitDiceCount, setHitDiceCount] = useState(1)
+  const [selfLighting, setSelfLighting] = useState<'dim' | 'dark' | ''>('')
+  const [targetLighting, setTargetLighting] = useState<'dim' | 'dark' | ''>('')
+  const [destinationRu, setDestinationRu] = useState('')
 
   const featureId = request?.featureId.replace(/_/g, '-') ?? ''
   const sorcery = useMemo(() => findSorceryResource(resources), [resources])
@@ -125,6 +133,16 @@ export function Sorcerer2024UseDialog({
   const spellfire = isSpellfireSorcery2024(subclassSlug)
   const shadow = isShadowSorcery2024(subclassSlug)
   const burstDie = spellfireBurstDie2024(sorcererLevel)
+  const burstUsedThisTurn = useMemo(() => {
+    if (!request || featureId !== 'spellfire-burst') return false
+    if (getFeaturePick(featurePicks, request.classEntryId, SPELLFIRE_BURST_TURN_PICK_KEY) === 'on') {
+      return true
+    }
+    const row = resources.find(
+      (item) => parseFeatureResourceId(item.id)?.poolId === SPELLFIRE_BURST_POOL_ID,
+    )
+    return Boolean(row && row.used >= row.max)
+  }, [featureId, featurePicks, request, resources])
 
   const slotLevels = LEVELS.filter((level) => (slots[String(level)]?.max ?? 0) > 0)
   const freeLevels = slotLevels.filter((level) => {
@@ -163,9 +181,26 @@ export function Sorcerer2024UseDialog({
       damageTaken: featureId === 'power-of-shadow' ? damageTaken : undefined,
       hitDiceCount: featureId === 'crown-of-spellfire' ? hitDiceCount : undefined,
       counterspellFailed: featureId === 'absorb-spells' && mode === 'restore',
+      selfLighting:
+        featureId === 'shadow-walk' && (selfLighting === 'dim' || selfLighting === 'dark')
+          ? selfLighting
+          : undefined,
+      targetLighting:
+        featureId === 'shadow-walk' && (targetLighting === 'dim' || targetLighting === 'dark')
+          ? targetLighting
+          : undefined,
+      destinationRu: featureId === 'shadow-walk' ? destinationRu || target || undefined : undefined,
     })
     onConfirm(result)
   }
+
+  const shadowWalkReady =
+    featureId !== 'shadow-walk' ||
+    ((selfLighting === 'dim' || selfLighting === 'dark') &&
+      (targetLighting === 'dim' || targetLighting === 'dark'))
+  const primaryDisabled =
+    (featureId === 'spellfire-burst' && burstUsedThisTurn) ||
+    (featureId === 'shadow-walk' && !shadowWalkReady)
 
   const fontCreateLevels = [1, 2, 3, 4, 5].filter((level) => {
     const row = CREATE_SLOT_COST_2024[level]
@@ -177,6 +212,7 @@ export function Sorcerer2024UseDialog({
       open={open}
       title={request.name}
       primaryLabel="Применить"
+      primaryDisabled={primaryDisabled}
       secondaryLabel="Отмена"
       onPrimary={confirm}
       onSecondary={onClose}
@@ -251,10 +287,14 @@ export function Sorcerer2024UseDialog({
               {SPELLFIRE_BURST_NAME_RU}: после траты ≥1 очка в действие «Магия» или бонусное в ваш
               ход. Только раз в ход. Кость: {burstDie}.
             </Text>
+            {burstUsedThisTurn ? (
+              <Text tone="danger">Уже использован в этот ход — сброс на «Начало моего хода».</Text>
+            ) : null}
             <div className="chip-row">
               <button
                 type="button"
                 className={`sheet-chip${burstMode === 'sustaining' ? ' is-on' : ''}`}
+                disabled={burstUsedThisTurn}
                 onClick={() => setBurstMode('sustaining')}
               >
                 {SUSTAINING_FLAMES_NAME_RU}
@@ -262,6 +302,7 @@ export function Sorcerer2024UseDialog({
               <button
                 type="button"
                 className={`sheet-chip${burstMode === 'radiant-fire' ? ' is-on' : ''}`}
+                disabled={burstUsedThisTurn}
                 onClick={() => setBurstMode('radiant-fire')}
               >
                 {RADIANT_FLAME_NAME_RU} (огонь)
@@ -269,6 +310,7 @@ export function Sorcerer2024UseDialog({
               <button
                 type="button"
                 className={`sheet-chip${burstMode === 'radiant-radiant' ? ' is-on' : ''}`}
+                disabled={burstUsedThisTurn}
                 onClick={() => setBurstMode('radiant-radiant')}
               >
                 {RADIANT_FLAME_NAME_RU} (излучение)
@@ -398,10 +440,56 @@ export function Sorcerer2024UseDialog({
         ) : null}
 
         {featureId === 'shadow-walk' ? (
-          <Text tone="muted">
-            Бонусным: телепорт ≤120 фт. в тусклый свет/темноту (вы тоже должны быть в тусклом
-            свете или темноте).
-          </Text>
+          <>
+            <Text tone="muted">
+              {SHADOW_WALK_NAME_RU}: бонусным телепорт ≤120 фт. Нужны тусклый свет или темнота у
+              вас и у цели.
+            </Text>
+            <Text tone="muted">Вы сейчас:</Text>
+            <div className="chip-row">
+              <button
+                type="button"
+                className={`sheet-chip${selfLighting === 'dim' ? ' is-on' : ''}`}
+                onClick={() => setSelfLighting('dim')}
+              >
+                Тусклый свет
+              </button>
+              <button
+                type="button"
+                className={`sheet-chip${selfLighting === 'dark' ? ' is-on' : ''}`}
+                onClick={() => setSelfLighting('dark')}
+              >
+                Темнота
+              </button>
+            </div>
+            <Text tone="muted">Цель (незанятое пространство):</Text>
+            <div className="chip-row">
+              <button
+                type="button"
+                className={`sheet-chip${targetLighting === 'dim' ? ' is-on' : ''}`}
+                onClick={() => setTargetLighting('dim')}
+              >
+                Тусклый свет
+              </button>
+              <button
+                type="button"
+                className={`sheet-chip${targetLighting === 'dark' ? ' is-on' : ''}`}
+                onClick={() => setTargetLighting('dark')}
+              >
+                Темнота
+              </button>
+            </div>
+            <Field label="Куда телепортируетесь (стол)">
+              <Input
+                value={destinationRu}
+                onChange={(e) => setDestinationRu(e.target.value)}
+                placeholder="например: за колонну, 80 фт."
+              />
+            </Field>
+            {!shadowWalkReady ? (
+              <Text tone="danger">Отметьте освещение у себя и у цели.</Text>
+            ) : null}
+          </>
         ) : null}
 
         {featureId === 'umbral-form' ? (
