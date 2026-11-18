@@ -546,7 +546,7 @@ export function CreateCharacter2024Page({
           },
         ],
         skills: ['insight', 'religion'],
-        backgroundAsi: { con: 2, cha: 1 },
+        backgroundAsi: { con: 2, dex: 1 },
         asi: clericAsiChoicesForLevel(clericSpec.level),
         spells: buildClericSeedSpells(catalog.spells, clericClass, clericSpec.level),
         classOptionPicks: buildClericClassOptionPicks(
