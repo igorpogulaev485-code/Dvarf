@@ -297,9 +297,9 @@ export const CUNNING_STRIKE_2024: StrikeOption2024[] = [
 
 export const BRUTAL_STRIKE_2024: StrikeOption2024[] = [
   { id: 'forceful-blow', nameRu: 'Мощный удар', costDice: 0, save: null, minLevel: 9, summaryRu: 'Толчок 15 фт + движение без OA. +1d10.' },
-  { id: 'hamstring-blow', nameRu: 'Подрезание', costDice: 0, save: null, minLevel: 9, summaryRu: 'Скорость −15 фт. +1d10.' },
-  { id: 'staggering-blow', nameRu: 'Шокирующий удар', costDice: 0, save: null, minLevel: 13, summaryRu: 'Помеха на след. спас; без OA.' },
-  { id: 'sundering-blow', nameRu: 'Крушащий удар', costDice: 0, save: null, minLevel: 13, summaryRu: 'След. атака союзника +5.' },
+  { id: 'hamstring-blow', nameRu: 'Калечащий удар', costDice: 0, save: null, minLevel: 9, summaryRu: 'Скорость цели −15 фт до начала вашего следующего хода. +1d10.' },
+  { id: 'staggering-blow', nameRu: 'Потрясающий удар', costDice: 0, save: null, minLevel: 13, summaryRu: 'Помеха на след. спас; без OA до начала вашего следующего хода.' },
+  { id: 'sundering-blow', nameRu: 'Расшатывающий удар', costDice: 0, save: null, minLevel: 13, summaryRu: '+5 к следующему броску атаки по цели другим существом.' },
 ]
 
 export function resolveCunningStrike2024(input: {

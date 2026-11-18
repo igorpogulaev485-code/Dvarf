@@ -113,7 +113,8 @@ export const MULTICLASS_PROFICIENCIES_2024: Record<
   string,
   { armor: string[]; weapons: string[]; tools: string[]; skills: number }
 > = {
-  barbarian: { armor: ['shields'], weapons: ['simple', 'martial'], tools: [], skills: 0 },
+  // next.dnd.su multiclass: martial weapons; shields; no simple grant on dip.
+  barbarian: { armor: ['shields'], weapons: ['martial'], tools: [], skills: 0 },
   bard: { armor: ['light'], weapons: [], tools: ['one_musical_instrument'], skills: 1 },
   cleric: { armor: ['light', 'medium', 'shields'], weapons: [], tools: [], skills: 0 },
   druid: { armor: ['light', 'shields'], weapons: [], tools: [], skills: 0 },

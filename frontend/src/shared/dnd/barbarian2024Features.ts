@@ -119,13 +119,14 @@ export const INDOMITABLE_MIGHT_MIN_LEVEL_2024 = 18
 export const EPIC_BOON_MIN_LEVEL_2024 = 19
 export const PRIMAL_CHAMPION_MIN_LEVEL_2024 = 20
 
-export const BRUTAL_STRIKE_EFFECT_IDS_L9 = ['forceful-blow', 'hamstringing-blow'] as const
+export const BRUTAL_STRIKE_EFFECT_IDS_L9 = ['forceful-blow', 'hamstring-blow'] as const
 export const BRUTAL_STRIKE_EFFECT_IDS_L13 = [
   'staggering-blow',
   'sundering-blow',
 ] as const
 export const BRUTAL_STRIKE_EFFECT_NAMES_RU: Record<string, string> = {
   'forceful-blow': 'Мощный удар',
+  'hamstring-blow': 'Калечащий удар',
   'hamstringing-blow': 'Калечащий удар',
   'staggering-blow': 'Потрясающий удар',
   'sundering-blow': 'Расшатывающий удар',
@@ -398,78 +399,313 @@ export function primalChampionAbilityBonus2024(barbarianLevel: number): {
 
 const BARBARIAN_USE_FEATURE_IDS = new Set([
   'rage',
-  'rages',
-  'reckless-attack',
-  'reckless_attack',
-  'brutal-strike',
-  'brutal_strike',
   'relentless-rage',
-  'relentless_rage',
   'persistent-rage',
-  'persistent_rage',
-  'frenzy',
-  'retaliation',
-  'intimidating-presence',
-  'intimidating_presence',
-  'divine-fury',
-  'divine_fury',
   'warrior-of-the-gods',
-  'warrior_of_the_gods',
   'fanatical-focus',
-  'fanatical_focus',
   'zealous-presence',
-  'zealous_presence',
+  'intimidating-presence',
   'rage-of-the-gods',
-  'rage_of_the_gods',
-  'branches-of-the-tree',
-  'branches_of_the_tree',
-  'travel-along-the-tree',
-  'travel_along_the_tree',
-  'vitality-of-the-tree',
-  'vitality_of_the_tree',
+  'retaliation',
 ])
 
+export const BARBARIAN_2024_CARD_BUTTONS: Record<string, string> = {
+  rage: 'Ярость…',
+  'relentless-rage': 'Спас…',
+  relentless_rage: 'Спас…',
+  'persistent-rage': 'Восстановить…',
+  persistent_rage: 'Восстановить…',
+  'warrior-of-the-gods': 'Исцелить…',
+  warrior_of_the_gods: 'Исцелить…',
+  'fanatical-focus': 'Перебросить…',
+  fanatical_focus: 'Перебросить…',
+  'zealous-presence': 'Присутствие…',
+  zealous_presence: 'Присутствие…',
+  'intimidating-presence': 'Устрашить…',
+  intimidating_presence: 'Устрашить…',
+  'rage-of-the-gods': 'Облик…',
+  rage_of_the_gods: 'Облик…',
+  retaliation: 'Возмездие…',
+}
+
+export function barbarian2024UseFeatureId(featureId: string | null | undefined): string | null {
+  if (!featureId) return null
+  const key = featureId.trim().replace(/_/g, '-')
+  if (key === 'rages') return 'rage'
+  return BARBARIAN_USE_FEATURE_IDS.has(key) ? key : null
+}
+
 export function isBarbarianUseFeatureId2024(featureId: string | null | undefined): boolean {
-  if (!featureId) return false
-  const raw = featureId.trim()
-  if (BARBARIAN_USE_FEATURE_IDS.has(raw) || BARBARIAN_USE_FEATURE_IDS.has(raw.replace(/_/g, '-'))) {
-    return true
+  return barbarian2024UseFeatureId(featureId) != null
+}
+
+export function findBarbarianPool2024(
+  resources: SheetResource[],
+  poolId: string,
+  classEntryId?: string,
+): SheetResource | null {
+  if (classEntryId) {
+    const exact = resources.find((row) => {
+      const parsed = parseFeatureResourceId(row.id)
+      return parsed?.poolId === poolId && parsed.classEntryId === classEntryId
+    })
+    if (exact) return exact
+    const byClass = resources.find((row) => {
+      const parsed = parseFeatureResourceId(row.id)
+      return parsed?.poolId === poolId && parsed.classSlug === BARBARIAN_CLASS_SLUG_2024
+    })
+    if (byClass) return byClass
   }
-  const parsed = parseFeatureResourceId(raw)
-  return Boolean(parsed && BARBARIAN_USE_FEATURE_IDS.has(parsed.poolId))
+  return resources.find((row) => parseFeatureResourceId(row.id)?.poolId === poolId) ?? null
+}
+
+function bumpPool(
+  resources: SheetResource[],
+  pool: SheetResource,
+  deltaUsed: number,
+): SheetResource[] {
+  return resources.map((row) => {
+    if (row.id !== pool.id) return row
+    return clampResource({ ...row, used: Math.max(0, Math.min(row.max, row.used + deltaUsed)) })
+  })
 }
 
 export function spendRageUse2024(
   resources: SheetResource[] | undefined | null,
-  poolId: string = RAGES_POOL_ID,
+  classEntryId?: string,
 ): { ok: true; resources: SheetResource[] } | { ok: false; reason_ru: string } {
   const list = [...(resources ?? [])]
-  const idx = list.findIndex((r) => r.id === poolId || r.id.endsWith(`:${poolId}`))
-  if (idx < 0) {
-    return { ok: false, reason_ru: 'Нет пула ярости на листе.' }
-  }
-  const cur = list[idx]
-  const value = Math.max(0, Math.floor(cur.value || 0))
-  if (value <= 0) {
-    return { ok: false, reason_ru: 'Нет использований ярости.' }
-  }
-  list[idx] = { ...cur, value: clampResource(value - 1, cur.max) }
-  return { ok: true, resources: list }
+  const pool = findBarbarianPool2024(list, RAGES_POOL_ID, classEntryId)
+  if (!pool) return { ok: false, reason_ru: 'Нет пула ярости на листе.' }
+  if (pool.used >= pool.max) return { ok: false, reason_ru: 'Нет использований ярости.' }
+  return { ok: true, resources: bumpPool(list, pool, 1) }
 }
 
 export function restoreRageUse2024(
   resources: SheetResource[] | undefined | null,
   amount: number = 1,
-  poolId: string = RAGES_POOL_ID,
+  classEntryId?: string,
 ): SheetResource[] {
   const list = [...(resources ?? [])]
-  const idx = list.findIndex((r) => r.id === poolId || r.id.endsWith(`:${poolId}`))
-  if (idx < 0) return list
-  const cur = list[idx]
-  const next = Math.min(
-    Math.max(0, Math.floor(cur.max || 0)),
-    Math.max(0, Math.floor(cur.value || 0)) + Math.max(0, Math.floor(amount)),
-  )
-  list[idx] = { ...cur, value: next }
-  return list
+  const pool = findBarbarianPool2024(list, RAGES_POOL_ID, classEntryId)
+  if (!pool) return list
+  return bumpPool(list, pool, -Math.max(0, Math.floor(amount)))
+}
+
+export function restoreAllRageUses2024(
+  resources: SheetResource[] | undefined | null,
+  classEntryId?: string,
+): SheetResource[] {
+  const list = [...(resources ?? [])]
+  const pool = findBarbarianPool2024(list, RAGES_POOL_ID, classEntryId)
+  if (!pool) return list
+  return bumpPool(list, pool, -pool.used)
+}
+
+export type Barbarian2024UseInput = {
+  featureId: string
+  resourceId: string | null
+  resources: SheetResource[]
+  classEntryId: string
+  barbarianLevel: number
+  refund?: boolean
+  mode?: string | null
+  /** Warrior of the Gods: how many d12 to spend. */
+  diceCount?: number
+  wearingHeavyArmor?: boolean
+  incapacitated?: boolean
+  unconscious?: boolean
+}
+
+export type Barbarian2024UseResult = {
+  ok: boolean
+  resources: SheetResource[]
+  message: string
+  patches?: {
+    healHp?: number
+    diceExpression?: string | null
+    activeLabels?: string[]
+    rageActive?: boolean
+    restoreAllRages?: boolean
+  }
+}
+
+function refuse(input: Barbarian2024UseInput, message: string): Barbarian2024UseResult {
+  return { ok: false, resources: input.resources, message }
+}
+
+function ok(
+  input: Barbarian2024UseInput,
+  message: string,
+  extra?: Partial<Barbarian2024UseResult>,
+): Barbarian2024UseResult {
+  return { ok: true, resources: input.resources, message, ...extra }
+}
+
+export function applyBarbarian2024FeatureUse(input: Barbarian2024UseInput): Barbarian2024UseResult {
+  const fid = barbarian2024UseFeatureId(input.featureId) ?? input.featureId.replace(/_/g, '-')
+  const level = lvl(input.barbarianLevel)
+  const refund = Boolean(input.refund) || input.mode === 'refund'
+
+  if (fid === 'rage') {
+    const pool = findBarbarianPool2024(input.resources, RAGES_POOL_ID, input.classEntryId)
+    if (!pool) return refuse(input, `${RAGE_NAME_RU}: пул не найден`)
+    if (refund) {
+      if (pool.used <= 0) return refuse(input, `${RAGE_NAME_RU}: нечего возвращать`)
+      return ok(input, `${RAGE_NAME_RU}: использование возвращено`, {
+        resources: bumpPool(input.resources, pool, -1),
+      })
+    }
+    if (input.wearingHeavyArmor) {
+      return refuse(input, `${RAGE_NAME_RU}: нельзя в тяжёлом доспехе`)
+    }
+    if (input.incapacitated) {
+      return refuse(input, `${RAGE_NAME_RU}: нельзя, пока недееспособны`)
+    }
+    if (pool.used >= pool.max) return refuse(input, `${RAGE_NAME_RU}: нет использований`)
+    const dmg = rageDamageBonus2024(level)
+    return ok(
+      input,
+      `${RAGE_NAME_RU}: активна (урон +${dmg}; сопротивление дроб./кол./руб.; преим. к Силе)`,
+      {
+        resources: bumpPool(input.resources, pool, 1),
+        patches: { rageActive: true, activeLabels: [RAGE_NAME_RU] },
+      },
+    )
+  }
+
+  if (fid === 'relentless-rage') {
+    if (level < RELENTLESS_RAGE_MIN_LEVEL_2024) {
+      return refuse(input, `${RELENTLESS_RAGE_NAME_RU} с ${RELENTLESS_RAGE_MIN_LEVEL_2024} уровня`)
+    }
+    const heal = relentlessRageHeal2024(level)
+    return ok(
+      input,
+      `${RELENTLESS_RAGE_NAME_RU}: при успехе спасброска Тел — хиты = ${heal} (уровень × 2)`,
+      { patches: { healHp: heal } },
+    )
+  }
+
+  if (fid === 'persistent-rage') {
+    if (level < PERSISTENT_RAGE_MIN_LEVEL_2024) {
+      return refuse(input, `${PERSISTENT_RAGE_NAME_RU} с ${PERSISTENT_RAGE_MIN_LEVEL_2024} уровня`)
+    }
+    if (refund) {
+      return refuse(input, `${PERSISTENT_RAGE_NAME_RU}: возврат не требуется`)
+    }
+    // Initiative restore-all (1 / long rest tracked by caller via mode or pool later).
+    return ok(
+      input,
+      `${PERSISTENT_RAGE_NAME_RU}: при инициативе можно восстановить все использования ярости; ярость 10 мин без продления каждый раунд`,
+      {
+        resources: restoreAllRageUses2024(input.resources, input.classEntryId),
+        patches: { restoreAllRages: true, rageActive: true },
+      },
+    )
+  }
+
+  if (fid === 'warrior-of-the-gods') {
+    const stock = warriorOfTheGodsDice2024(level)
+    if (stock.count <= 0) {
+      return refuse(input, `${WARRIOR_OF_THE_GODS_NAME_RU} с 3 уровня (Путь фанатика)`)
+    }
+    const pool = findBarbarianPool2024(
+      input.resources,
+      WARRIOR_OF_THE_GODS_POOL_ID,
+      input.classEntryId,
+    )
+    if (!pool) return refuse(input, `${WARRIOR_OF_THE_GODS_NAME_RU}: пул не найден`)
+    if (refund) {
+      if (pool.used <= 0) return refuse(input, `${WARRIOR_OF_THE_GODS_NAME_RU}: нечего возвращать`)
+      return ok(input, `${WARRIOR_OF_THE_GODS_NAME_RU}: кости возвращены`, {
+        resources: bumpPool(input.resources, pool, -Math.max(1, input.diceCount ?? 1)),
+      })
+    }
+    const spend = Math.max(1, Math.min(stock.count, Math.floor(input.diceCount ?? 1)))
+    const remaining = Math.max(0, pool.max - pool.used)
+    if (spend > remaining) {
+      return refuse(input, `${WARRIOR_OF_THE_GODS_NAME_RU}: недостаточно костей`)
+    }
+    return ok(input, `${WARRIOR_OF_THE_GODS_NAME_RU}: ${spend}к12 хитов`, {
+      resources: bumpPool(input.resources, pool, spend),
+      patches: { diceExpression: `${spend}d12`, healHp: spend },
+    })
+  }
+
+  const simplePoolFeatures: Array<{
+    id: string
+    pool: string
+    name: string
+    minLevel: number
+    spendMsg: string
+  }> = [
+    {
+      id: 'fanatical-focus',
+      pool: FANATICAL_FOCUS_POOL_ID,
+      name: FANATICAL_FOCUS_NAME_RU,
+      minLevel: 6,
+      spendMsg: 'переброс спасброска с бонусом = урон ярости (1 раз за ярость)',
+    },
+    {
+      id: 'zealous-presence',
+      pool: ZEALOUS_PRESENCE_POOL_ID,
+      name: ZEALOUS_PRESENCE_NAME_RU,
+      minLevel: 10,
+      spendMsg: 'до 10 существ с преимуществом к атакам и спасам до начала вашего след. хода',
+    },
+    {
+      id: 'intimidating-presence',
+      pool: INTIMIDATING_PRESENCE_POOL_ID,
+      name: INTIMIDATING_PRESENCE_NAME_RU,
+      minLevel: 14,
+      spendMsg: 'существа в 30 фт. — спас Мудрости или Испуганы',
+    },
+    {
+      id: 'rage-of-the-gods',
+      pool: RAGE_OF_THE_GODS_POOL_ID,
+      name: RAGE_OF_THE_GODS_NAME_RU,
+      minLevel: 14,
+      spendMsg: 'облик богов на 1 мин. (полёт, сопротивления; реакция спасает союзника)',
+    },
+  ]
+
+  for (const row of simplePoolFeatures) {
+    if (fid !== row.id) continue
+    if (level < row.minLevel) {
+      return refuse(input, `${row.name} с ${row.minLevel} уровня`)
+    }
+    const pool = findBarbarianPool2024(input.resources, row.pool, input.classEntryId)
+    if (!pool) return refuse(input, `${row.name}: пул не найден`)
+    if (refund) {
+      if (pool.used <= 0) return refuse(input, `${row.name}: нечего возвращать`)
+      return ok(input, `${row.name}: использование возвращено`, {
+        resources: bumpPool(input.resources, pool, -1),
+      })
+    }
+    if (input.mode === 'refund_with_rage') {
+      const rage = findBarbarianPool2024(input.resources, RAGES_POOL_ID, input.classEntryId)
+      if (!rage || rage.used >= rage.max) {
+        return refuse(input, `${row.name}: нет ярости для восстановления`)
+      }
+      let next = bumpPool(input.resources, rage, 1)
+      const refreshed = findBarbarianPool2024(next, row.pool, input.classEntryId)
+      if (refreshed && refreshed.used > 0) {
+        next = bumpPool(next, refreshed, -refreshed.used)
+      }
+      return ok(input, `${row.name}: восстановлено за использование ярости`, { resources: next })
+    }
+    if (pool.used >= pool.max) return refuse(input, `${row.name}: нет использований`)
+    return ok(input, `${row.name}: ${row.spendMsg}`, {
+      resources: bumpPool(input.resources, pool, 1),
+    })
+  }
+
+  if (fid === 'retaliation') {
+    return ok(
+      input,
+      `${RETALIATION_NAME_RU}: реакцией — одна рукопашная атака по существу в 5 фт., нанёсшему вам урон`,
+    )
+  }
+
+  return refuse(input, 'Неизвестное умение варвара 2024')
 }

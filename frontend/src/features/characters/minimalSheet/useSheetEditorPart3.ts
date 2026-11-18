@@ -187,6 +187,7 @@ export function useSheetEditorPart3(model: SheetModel) {
   const abilityCeilings = useMemo(() => {
     const resolved = resolveAbilityMaxes({
       classes: model.draft.classes,
+      rulesEdition: model.rulesEdition,
       inventoryItems: model.draft.inventory.items.map((item) => {
         const extra = item as InventoryItem & {
           item_kind?: string
@@ -1499,7 +1500,11 @@ export function useSheetEditorPart3(model: SheetModel) {
         (next.primalChampion.str > 0 || next.primalChampion.con > 0)
       if (gained) {
         queueMicrotask(() => {
-          model.onToast('Изначальный чемпион: Сила и Телосложение +4, потолок 24')
+          model.onToast(
+            model.rulesEdition === '2024'
+              ? 'Изначальный чемпион: Сила и Телосложение +4, потолок 25'
+              : 'Изначальный чемпион: Сила и Телосложение +4, потолок 24',
+          )
         })
       }
       return next

@@ -25,11 +25,16 @@ def _looks_like(name: str, catalog_id: str | None, *needles: str) -> bool:
     return any(n.lower() in hay for n in needles)
 
 
-def ability_max_from_classes(classes: list[dict[str, Any]] | None) -> dict[str, int]:
+def ability_max_from_classes(
+    classes: list[dict[str, Any]] | None,
+    *,
+    rules_edition: str | None = None,
+) -> dict[str, int]:
     """Structured class/archetype raises keyed by ability."""
     out: dict[str, int] = {}
     if not isinstance(classes, list):
         return out
+    edition = (rules_edition or "2014").strip().lower()
     for cls in classes:
         if not isinstance(cls, dict):
             continue
@@ -39,9 +44,10 @@ def ability_max_from_classes(classes: list[dict[str, Any]] | None) -> dict[str, 
             level = int(cls.get("level") or 0)
         except (TypeError, ValueError):
             level = 0
-        # Barbarian 20 — Primal Champion: STR & CON max 24
+        # Barbarian 20 — Primal Champion: 2014 max 24, 2024 max 25
         if level >= 20 and _looks_like(name, catalog_id, "варвар", "barbarian"):
-            for key, ceiling in (("str", 24), ("con", 24)):
+            ceiling = 25 if edition == "2024" else 24
+            for key in ("str", "con"):
                 out[key] = max(out.get(key, 0), ceiling)
     return out
 
@@ -134,7 +140,10 @@ def resolve_ability_maxes(sheet: dict[str, Any] | None) -> dict[str, int]:
 
     merged: dict[str, int] = {k: DEFAULT_ABILITY_SCORE_MAX for k in ABILITY_KEYS}
     for source in (
-        ability_max_from_classes(sheet.get("classes") if isinstance(sheet.get("classes"), list) else None),
+        ability_max_from_classes(
+            sheet.get("classes") if isinstance(sheet.get("classes"), list) else None,
+            rules_edition=str(sheet.get("rules_edition") or "") or None,
+        ),
         ability_max_from_inventory(
             sheet.get("inventory") if isinstance(sheet.get("inventory"), dict) else None,
             attuned_item_ids=attuned,

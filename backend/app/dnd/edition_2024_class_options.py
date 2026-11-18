@@ -155,9 +155,9 @@ CUNNING_BY_ID = {row.id: row for row in CUNNING_STRIKE_2024}
 # —— Brutal Strike ——
 BRUTAL_STRIKE_2024: tuple[StrikeOption, ...] = (
     StrikeOption("forceful-blow", "Forceful Blow", "Мощный удар", 0, None, 9, "Толчок 15 фт + перемещение наполовину к цели без OA. Extra 1d10."),
-    StrikeOption("hamstring-blow", "Hamstring Blow", "Подрезание", 0, None, 9, "Скорость −15 фт до начала вашего след. хода. Extra 1d10."),
-    StrikeOption("staggering-blow", "Staggering Blow", "Шокирующий удар", 0, None, 13, "Помеха на след. спас; без OA до вашего след. хода."),
-    StrikeOption("sundering-blow", "Sundering Blow", "Крушащий удар", 0, None, 13, "След. атака союзника по цели +5."),
+    StrikeOption("hamstring-blow", "Hamstring Blow", "Калечащий удар", 0, None, 9, "Скорость цели −15 фт до начала вашего следующего хода. Extra 1d10."),
+    StrikeOption("staggering-blow", "Staggering Blow", "Потрясающий удар", 0, None, 13, "Помеха на след. спас; без OA до начала вашего следующего хода."),
+    StrikeOption("sundering-blow", "Sundering Blow", "Расшатывающий удар", 0, None, 13, "+5 к следующему броску атаки по цели другим существом."),
 )
 BRUTAL_BY_ID = {row.id: row for row in BRUTAL_STRIKE_2024}
 
