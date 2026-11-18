@@ -9,9 +9,9 @@
 - Неожиданность 2024: `StartCombatDialog` / `InitiativeRollDialog` — помеха к инициативе; **SessionDetailPage** передаёт `rulesEdition={session.rules_edition}`; бэкенд не ставит L-21 lock в лобби 2024; 2014 L-21 сохранён.
 - Посадка: пикер всегда фильтрует по редакции; отказ `lobby_rules_edition_mismatch` без ack.
 - Генератор / бестиарий / AddCombatant / **CombatPageEditor** / **AddStoryCompanionDialog** читают `lobby`/`session.rules_edition` (зашивка `edition="2014"` убрана).
-- Мастерство оружия: `onFeedLine` на живом столе; запись в ленту через `postSheetRollToSession`.
-- `SessionDetail.rules_edition`; `createLobby(..., { isPreview: true })` для e2e.
-- Приёмка: live e2e с API (join mismatch / session edition / кадры листа-сессии); preview — только smoke. Soft-skip API ≠ зелёный.
+- Мастерство оружия: held sync через `inventory.equipped`; панель с выбором Попадание/Промах (Graze); `postSheetRollToSession` → строка «Мастерство · …» в ленте.
+- `SessionDetail.rules_edition`; `createLobby(..., { isPreview: true })` для e2e; AddCombatant показывает редакцию лобби.
+- Приёмка: live e2e с API без soft-skip и без else-shot mastery; честные кадры 1440+390 — heroic reroll chip/лента, mastery apply+лента, bestiary/add combatant. Preview — только smoke.
 - `RULES_EDITION_2024_OPEN` по-прежнему выкл.
 
 ## 2014

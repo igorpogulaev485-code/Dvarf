@@ -215,6 +215,10 @@ export function AddCombatantDialog({
           </button>
         </div>
 
+        <Text tone="muted" data-testid="add-combatant-edition">
+          редакция лобби: {catalogEdition}
+        </Text>
+
         {mode === 'bestiary' ? (
           <>
             <Field label="Кто">

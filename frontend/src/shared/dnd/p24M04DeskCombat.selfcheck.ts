@@ -74,6 +74,7 @@ const addCombatant = readFileSync(
   'utf8',
 )
 assert.match(addCombatant, /catalogEdition/)
+assert.match(addCombatant, /add-combatant-edition/)
 assert.doesNotMatch(addCombatant, /edition="2014"/)
 
 const combatEditor = readFileSync(

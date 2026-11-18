@@ -70,7 +70,7 @@ async function createFighter2024(
   request: APIRequestContext,
   access: string,
   name: string,
-): Promise<{ id: string; name: string }> {
+): Promise<{ id: string; name: string; sheet_version: number; sheet: Record<string, unknown> }> {
   const base = JSON.parse(fs.readFileSync(PAYLOAD_PATH, 'utf8')) as Record<string, unknown>
   const res = await request.post(`${API}/characters/create-2024`, {
     headers: auth(access),
@@ -79,7 +79,71 @@ async function createFighter2024(
   expect(res.ok(), await res.text()).toBeTruthy()
   const body = await res.json()
   expect(body.rules_edition).toBe('2024')
-  return { id: body.id as string, name: body.name as string }
+  return {
+    id: body.id as string,
+    name: body.name as string,
+    sheet_version: body.sheet_version as number,
+    sheet: body.sheet as Record<string, unknown>,
+  }
+}
+
+/**
+ * Equip held greatsword (pack starting weapon) + grant heroic inspiration.
+ * Mastery known must already include greatsword from create payload.
+ */
+async function equipHeldGreatswordAndInspiration(
+  request: APIRequestContext,
+  access: string,
+  character: {
+    id: string
+    sheet_version: number
+    sheet: Record<string, unknown>
+  },
+): Promise<void> {
+  const sheet = structuredClone(character.sheet) as Record<string, unknown>
+  const inventory = (sheet.inventory as { items?: Array<Record<string, unknown>> }) || {
+    items: [],
+  }
+  const items = inventory.items || []
+  const gs = items.find((it) => it.slug === 'greatsword')
+  expect(gs, 'fighter pack must include greatsword').toBeTruthy()
+  // draft sync mirrors inventory.equipped → attack.held
+  if (gs) {
+    gs.held = true
+    gs.equipped = true
+  }
+
+  sheet.weapons = [
+    {
+      id: 'w-gs',
+      name: 'Двуручный меч',
+      catalog_id: 'greatsword',
+      held: true,
+      ability: 'str',
+      is_proficient: true,
+      damage: '2к6',
+      damage_type: 'рубящий',
+      inventory_item_id: gs?.id || 'start-greatsword-1',
+      source_kind: 'weapon',
+    },
+  ]
+  sheet.inventory = { ...inventory, items }
+  const combat = { ...((sheet.combat as Record<string, unknown>) || {}), inspiration: true }
+  sheet.combat = combat
+
+  const patch = await request.patch(`${API}/characters/${character.id}`, {
+    headers: auth(access),
+    data: { sheet, sheet_version: character.sheet_version },
+  })
+  expect(patch.ok(), await patch.text()).toBeTruthy()
+  const updated = await patch.json()
+  const invGs = (updated.sheet?.inventory?.items || []).find(
+    (it: { slug?: string }) => it.slug === 'greatsword',
+  )
+  expect(invGs?.equipped, 'greatsword must be equipped for held sync').toBe(true)
+  expect(updated.sheet?.combat?.inspiration).toBe(true)
+  const known = updated.sheet?.weapon_mastery?.known || []
+  expect(known).toContain('greatsword')
 }
 
 async function shot(page: Page, name: string, project: string) {
@@ -98,8 +162,16 @@ async function dismissTour(page: Page) {
   }
 }
 
+async function expandMobileHeader(page: Page) {
+  const expandHeader = page.getByRole('button', { name: /Развернуть шапку/i })
+  if (await expandHeader.isVisible().catch(() => false)) {
+    await expandHeader.click()
+    await page.waitForTimeout(300)
+  }
+}
+
 test.describe('P24-M04 live lobby/session/desk', () => {
-  test.setTimeout(240_000)
+  test.setTimeout(300_000)
 
   test('join mismatch + session edition + live desk frames', async ({
     page,
@@ -111,7 +183,6 @@ test.describe('P24-M04 live lobby/session/desk', () => {
 
     const ownerAccess = await registerAndLogin(request, page, 'owner')
 
-    // Closed create without preview still blocked
     const closed = await request.post(`${API}/lobbies`, {
       headers: auth(ownerAccess),
       data: { name: 'm04-closed', rules_edition: '2024' },
@@ -143,20 +214,20 @@ test.describe('P24-M04 live lobby/session/desk', () => {
     const code = joinBody.code || joinBody.detail?.code
     expect(code).toBe('lobby_rules_edition_mismatch')
 
-    // Live Join UI (product page, not /dev preview)
     await page.goto(`/join?code=${inviteCode}`)
     await expect(page.getByTestId('join-edition-empty')).toBeVisible({ timeout: 20_000 })
     await expect(page.getByTestId('join-edition-empty')).toContainText(/запрещ/i)
     await shot(page, 'live-join-mismatch', project)
 
     const alice = await createFighter2024(request, ownerAccess, 'Алиса-стол')
+    await equipHeldGreatswordAndInspiration(request, ownerAccess, alice)
+
     const joinOk = await request.post(`${API}/lobbies/join`, {
       headers: auth(ownerAccess),
       data: { code: inviteCode, character_id: alice.id },
     })
     expect(joinOk.ok(), await joinOk.text()).toBeTruthy()
 
-    // Ally user for heroic transfer
     const allyEmail = `m04-ally-${Date.now()}@example.com`
     const allyReg = await request.post(`${API}/auth/register`, {
       data: { email: allyEmail, password: 'TestPass123!', display_name: 'Ally' },
@@ -194,7 +265,16 @@ test.describe('P24-M04 live lobby/session/desk', () => {
     await dismissTour(page)
     await shot(page, 'live-session-edition', project)
 
-    // Toolbar «Бой» opens StartCombatDialog (do not press primary «Начать бой» — that submits).
+    // Live bestiary / add combatant (edition from session)
+    await page.locator('summary, .session-toolbar-more__summary, [data-onboarding="lobby-more"]').filter({ hasText: 'Ещё' }).first().click({ timeout: 8_000 })
+    await page.getByText('+ Враги', { exact: true }).click({ timeout: 8_000 })
+    await expect(page.getByTestId('add-combatant-edition')).toBeVisible({ timeout: 10_000 })
+    await expect(page.getByTestId('add-combatant-edition')).toContainText('2024')
+    await expect(page.getByRole('button', { name: 'Бестиарий' })).toBeVisible()
+    await shot(page, 'live-bestiary-add-2024', project)
+    await page.getByRole('button', { name: 'Отмена' }).click()
+
+    // Surprise 2024 on StartCombat
     await page.getByRole('button', { name: /^Бой$/i }).first().click()
     await expect(page.getByRole('button', { name: 'Начать бой' })).toBeVisible({
       timeout: 10_000,
@@ -209,30 +289,19 @@ test.describe('P24-M04 live lobby/session/desk', () => {
     await page.goto(`/characters/${alice.id}`)
     await expect(page.getByText('Алиса-стол').first()).toBeVisible({ timeout: 30_000 })
     await dismissTour(page)
+    await expandMobileHeader(page)
 
-    // Phone chrome collapses vitals — expand header to reach rest / inspiration.
-    const expandHeader = page.getByRole('button', { name: /Развернуть шапку/i })
-    if (await expandHeader.isVisible().catch(() => false)) {
-      await expandHeader.click()
-      await page.waitForTimeout(300)
-    }
-
-    // Rest 2024 on sheet (desktop label / phone aria-label icon)
-    const restBtn = page.getByRole('button', { name: /Отдых/i }).first()
-    await restBtn.click({ timeout: 15_000 })
+    // Rest 2024
+    await page.getByRole('button', { name: /Отдых/i }).first().click({ timeout: 15_000 })
     await expect(page.getByTestId('rest-2024-hint')).toBeVisible({ timeout: 10_000 })
     await expect(page.getByTestId('rest-2024-hint')).toContainText(/все кости|16/i)
     await shot(page, 'live-rest-2024', project)
     await page.getByRole('button', { name: /Отмена|Закрыть/i }).first().click().catch(() => null)
 
-    // Wait for session seats to hydrate deskHeroicAllies (TurnEconomyDeskHost).
-    await page.waitForTimeout(1500)
+    await page.waitForTimeout(1200)
+    await expandMobileHeader(page)
 
-    // Heroic: grant then second click → transfer to desk ally
-    if (await expandHeader.isVisible().catch(() => false)) {
-      await expandHeader.click()
-      await page.waitForTimeout(300)
-    }
+    // Heroic transfer (second grant)
     const inspChip = page
       .locator('button.play-desk-header__chip, button.mobile-vitals__chip')
       .filter({ hasText: /Г\.вдохн|Вдохн|героич/i })
@@ -240,8 +309,7 @@ test.describe('P24-M04 live lobby/session/desk', () => {
     const inspFallback = page.getByRole('button', { name: /Г\.вдохн|Вдохнов|героич/i }).first()
     const insp = (await inspChip.isVisible().catch(() => false)) ? inspChip : inspFallback
     await expect(insp).toBeVisible({ timeout: 10_000 })
-    await insp.click()
-    await page.waitForTimeout(400)
+    // Already has inspiration from patch — second grant opens transfer
     await insp.click()
     await expect(page.getByTestId('heroic-inspiration-transfer')).toBeVisible({
       timeout: 10_000,
@@ -252,21 +320,70 @@ test.describe('P24-M04 live lobby/session/desk', () => {
     await shot(page, 'live-heroic-transfer', project)
     await page.getByRole('button', { name: 'Отмена' }).click().catch(() => null)
 
-    // Mastery panel on combat/attacks scene
-    const combatScene = page.getByRole('button', { name: /Бой|Атаки/i }).first()
-    if (await combatScene.isVisible().catch(() => false)) {
-      await combatScene.click({ timeout: 5_000 }).catch(() => null)
+    // Heroic reroll chip after a live skill roll (inspiration still held)
+    const athletics = page.getByRole('button', { name: /Атлетика/i }).first()
+    await expect(athletics).toBeVisible({ timeout: 10_000 })
+    await athletics.click()
+    await expect(page.getByTestId('heroic-inspiration-reroll-chip')).toBeVisible({
+      timeout: 10_000,
+    })
+    await shot(page, 'live-heroic-reroll', project)
+    // Spend → posts feed line; keep dialog evidence first
+    await page.getByRole('button', { name: 'Перебросить' }).click()
+    await page.waitForTimeout(500)
+
+    // Mastery panel — must be visible (no else-shot). Greatsword = Graze → needs miss.
+    const combatTab = page.getByRole('button', { name: /^Бой$/i }).first()
+    if (await combatTab.isVisible().catch(() => false)) {
+      await combatTab.click({ timeout: 5_000 }).catch(() => null)
     }
     const mastery = page.getByTestId('weapon-mastery-attack')
-    if (await mastery.isVisible({ timeout: 8_000 }).catch(() => false)) {
-      await mastery.scrollIntoViewIfNeeded()
-      const apply = page.getByTestId('weapon-mastery-apply')
-      if (await apply.isVisible().catch(() => false)) {
-        await apply.click()
-      }
-      await shot(page, 'live-mastery-feed', project)
+    await expect(mastery, 'held greatsword + known mastery must mount panel').toBeVisible({
+      timeout: 15_000,
+    })
+    await mastery.scrollIntoViewIfNeeded()
+    await expect(page.getByTestId('weapon-mastery-apply')).toBeVisible()
+    await page.getByTestId('weapon-mastery-outcome-miss').click()
+    await page.getByTestId('weapon-mastery-apply').click()
+    // Honest apply evidence — feed/toast line, not just weapon name on the sheet
+    await expect(
+      page.getByText(/Касание:|Мастерство · Касание|Касание:/i).first(),
+    ).toBeVisible({ timeout: 10_000 })
+    await shot(page, 'live-mastery-feed', project)
+
+    // Session feed should carry mastery line from postSheetRollToSession
+    await page.goto(`/sessions/${session.id}`)
+    await dismissTour(page)
+    await expect(page.getByRole('heading', { name: 'Живой стол' })).toBeVisible({
+      timeout: 20_000,
+    })
+    // Phone: feed is behind «Лента» tab (nav hidden on desktop ≥1000px)
+    const liveNav = page.getByRole('navigation', { name: 'Живой стол' })
+    const feedTab = liveNav.getByRole('button', { name: 'Лента' })
+    const onPhone = await feedTab.isVisible().catch(() => false)
+    if (onPhone) {
+      await feedTab.click()
+      await expect(feedTab).toHaveAttribute('aria-current', 'page', { timeout: 10_000 })
+      // Desk grid itself collapses (center hidden); feed is the sibling mobile panel
+      await expect(page.locator('.session-live-mobile-panel')).toBeVisible({ timeout: 10_000 })
     } else {
-      await shot(page, 'live-mastery-feed', project)
+      await expect(page.locator('.session-live-desk__rail')).toBeVisible({ timeout: 10_000 })
     }
+    const feedRoot = onPhone
+      ? page.locator('.session-live-mobile-panel')
+      : page.locator('.session-live-desk__rail')
+    const masteryFeed = feedRoot
+      .locator('.session-event-feed__title')
+      .filter({ hasText: /Мастерство · Касание/i })
+      .first()
+    await expect(masteryFeed).toBeVisible({ timeout: 20_000 })
+    await masteryFeed.scrollIntoViewIfNeeded()
+    await expect(
+      feedRoot
+        .locator('.session-event-feed__title')
+        .filter({ hasText: /Героическое вдохновение · переброс/i })
+        .first(),
+    ).toBeVisible({ timeout: 10_000 })
+    await shot(page, 'live-mastery-session-feed', project)
   })
 })

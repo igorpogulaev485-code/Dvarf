@@ -26,8 +26,8 @@
     "animal_handling"
   ],
   "weapon_mastery_ids": [
+    "greatsword",
     "battleaxe",
-    "blowgun",
     "club"
   ],
   "fighting_style_slug": "defense",
