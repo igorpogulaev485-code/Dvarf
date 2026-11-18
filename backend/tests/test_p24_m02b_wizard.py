@@ -196,3 +196,36 @@ def test_au_savant_texts_still_free_book():
                 if feat["id"].endswith("-savant"):
                     text = feat["summary_ru"]
                     assert "без затрат" in text or "бесплатно" in text, feat["id"]
+
+
+@pytest.mark.parametrize(
+    "level,subclass,need",
+    [
+        (3, "wizard__conjurer", 12),
+        (5, "wizard__enchanter", 17),
+        (11, "wizard__necromancer", 32),
+        (3, "wizard__bladesinger", 10),
+        (5, None, 14),
+        (3, "wizard__abjurer", 12),
+    ],
+)
+def test_wizard_create_book_need_includes_savant(level, subclass, need):
+    from app.dnd.edition_2024_create import wizard_create_book_need_2024
+
+    assert wizard_create_book_need_2024(level, subclass) == need
+
+
+def test_trim_wizard_book_picks_mirrors_fe_gates():
+    """Sanity: stone 2nd benefit is L10+; orator/war-song/stone are L3+."""
+    from app.dnd.edition_2024_create import (
+        ENCHANTER_ORATOR_SKILLS_2024,
+        BLADESINGER_WAR_SONG_SKILLS_2024,
+        TRANSMUTER_STONE_BENEFITS_2024,
+        TRANSMUTER_STONE_BENEFITS_2_2024,
+    )
+
+    assert "persuasion" in ENCHANTER_ORATOR_SKILLS_2024
+    assert "acrobatics" in BLADESINGER_WAR_SONG_SKILLS_2024
+    assert "darkvision" in TRANSMUTER_STONE_BENEFITS_2024
+    assert "mighty_build" in TRANSMUTER_STONE_BENEFITS_2_2024
+    assert "mighty_build" not in TRANSMUTER_STONE_BENEFITS_2024

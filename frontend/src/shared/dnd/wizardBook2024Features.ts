@@ -370,3 +370,38 @@ export function listTransmuterStonePicks(
 ): string[] {
   return getFeaturePickList(picks, classEntryId, TRANSMUTER_STONE_BENEFIT_PICK_ID)
 }
+
+/** Clear orator / war-song / stone picks when level drops below their gates. */
+export function trimWizardBookPicksOnLevelDown2024(
+  picks: FeaturePicksState,
+  classEntryId: string,
+  newWizardLevel: number,
+): FeaturePicksState {
+  const level = Math.max(0, Math.floor(newWizardLevel) || 0)
+  const values = { ...picks.values }
+  let changed = false
+  const drop = (...keys: string[]) => {
+    for (const key of keys) {
+      const full = `${classEntryId}:${key}`
+      if (full in values) {
+        delete values[full]
+        changed = true
+      }
+    }
+  }
+  if (level < 3) {
+    drop(
+      ENCHANTING_CONVERSATIONALIST_FEATURE_ID,
+      'enchanting_conversationalist',
+      TRAINING_IN_WAR_AND_SONG_FEATURE_ID,
+      'training_in_war_and_song',
+      TRANSMUTER_STONE_BENEFIT_PICK_ID,
+      TRANSMUTER_STONE_FEATURE_ID,
+      'transmuter-s-stone',
+    )
+  }
+  if (level < 10) {
+    drop(TRANSMUTER_STONE_BENEFIT_2_PICK_ID)
+  }
+  return changed ? { values } : picks
+}

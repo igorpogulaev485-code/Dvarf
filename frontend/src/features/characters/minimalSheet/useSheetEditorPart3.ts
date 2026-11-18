@@ -10,6 +10,7 @@ import {
   abilityFloorsFromActiveEffects,
   acFormulasFromActiveEffects,
   acMinFromActiveEffects,
+  darkvisionFromActiveEffects,
   speedModsFromActiveEffects,
   spellAttackBonusFromActiveEffects,
 } from '../../../shared/dnd/activeEffects'
@@ -676,15 +677,21 @@ export function useSheetEditorPart3(model: SheetModel) {
   ])
   model.spellCastModifiers = spellCastModifiers
 
-  const effectiveDarkvisionFt = useMemo(
-    () =>
-      Math.max(
-        model.featureDarkvisionFt,
-        gearDarkvisionFt(model.gearEffects),
-        infusionBonuses.darkvisionFt,
-      ),
-    [model.featureDarkvisionFt, model.gearEffects, infusionBonuses.darkvisionFt],
-  )
+  const effectiveDarkvisionFt = useMemo(() => {
+    const fromBuffs = darkvisionFromActiveEffects(model.draft.play.effects)
+    return Math.max(
+      model.featureDarkvisionFt,
+      gearDarkvisionFt(model.gearEffects),
+      infusionBonuses.darkvisionFt,
+      // Stone / spell buffs: never replace a higher race floor (dwarf 120 > stone 60).
+      fromBuffs ?? 0,
+    )
+  }, [
+    model.featureDarkvisionFt,
+    model.gearEffects,
+    infusionBonuses.darkvisionFt,
+    model.draft.play.effects,
+  ])
   model.effectiveDarkvisionFt = effectiveDarkvisionFt
 
   const ownFormulaVars = useMemo(() => {

@@ -767,6 +767,9 @@ export function syncWizardSubclassSpells2024<T extends W24Spell>(input: {
         prepared: true,
         prepared_locked: true,
         prepare_source_label: rule.label,
+        // Keep the book copy, but do not spend a free research slot.
+        spellbook_acquisition: 'feature' as const,
+        in_spellbook: existing.in_spellbook !== false,
         ...(rule.freeCast && !existing.grant_cast
           ? { grant_cast: { ...rule.freeCast, used: 0, label: rule.label } }
           : {}),

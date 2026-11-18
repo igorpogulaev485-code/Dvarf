@@ -346,10 +346,16 @@ export function SpellsPanel({
       .map(([, group]) => group)
   }, [filter, combatPool, spells.slots])
 
-  const knownCaster = isKnownSpellcastingMode({
-    maxPrepared: spells.max_prepared,
-    hasCasterSuggestion: suggestion != null && suggestion.progression !== 'none',
-  })
+  const effectiveMaxPrepared =
+    spells.max_prepared ?? suggestion?.max_prepared ?? learnBudget?.maxPrepared ?? null
+  // Wizard spellbook is never a «known» caster — even when max_prepared is still null
+  // (2024 create used to omit it and classic panel showed «Известно N/freeBookCap»).
+  const knownCaster =
+    learnBudget?.mode !== 'spellbook' &&
+    isKnownSpellcastingMode({
+      maxPrepared: effectiveMaxPrepared,
+      hasCasterSuggestion: suggestion != null && suggestion.progression !== 'none',
+    })
 
   useEffect(() => {
     if (!knownCaster) return
@@ -894,7 +900,9 @@ export function SpellsPanel({
   }
 
   const prepareLimitLabel =
-    spells.max_prepared == null ? String(preparedCount) : `${preparedCount}/${spells.max_prepared}`
+    effectiveMaxPrepared == null
+      ? String(preparedCount)
+      : `${preparedCount}/${effectiveMaxPrepared}`
 
   return (
     <Panel
@@ -926,7 +934,9 @@ export function SpellsPanel({
             <strong>
               {knownCaster
                 ? (() => {
-                    const n = spells.known.filter((s) => s.level > 0).length
+                    const n = spells.known.filter(
+                      (s) => s.level > 0 && !s.prepared_locked && s.in_spellbook !== false,
+                    ).length
                     const cap = learnBudget?.leveledKnown
                     return cap != null ? `${n}/${cap}` : String(n)
                   })()

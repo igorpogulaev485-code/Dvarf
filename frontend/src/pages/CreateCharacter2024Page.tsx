@@ -23,6 +23,7 @@ import {
   BarbarianLevelingPicks,
   RangerLevelingPicks,
   RogueLevelingPicks,
+  WizardBookLevelingPicks,
   ClassPicks,
   SpeciesFeatPicks,
   SpeciesPicks,
@@ -92,13 +93,13 @@ import {
   toCreate2024Request,
   usesSpellbook,
   visibleCreate2024Steps,
-  WIZARD_BOOK_SPELLS_AT_L1,
   type Create2024CatalogBundle,
   type Create2024State,
   type Create2024StepId,
   type LanguagesBundle,
 } from '../features/createPipeline2024/createPipeline2024Types'
 import { maxSpellLevelForClassAlone } from '../shared/dnd/casterProgression'
+import { wizardCreateBookNeed2024 } from '../shared/dnd/wizardSpellbook2024'
 import { useIsPhone } from '../features/createPipeline2024/useIsPhone'
 import { listCatalogEntries, type CatalogEntry, type CatalogKind } from '../shared/api/catalog'
 import {
@@ -401,6 +402,20 @@ export function CreateCharacter2024Page({
     const wizardSpec = parseWizardSeed(e2eSeed)
     const wizardClass = bySlug(catalog.classes, 'wizard')
     if (wizardSpec && wizardClass) {
+      const sub = wizardSpec.subclassSlug
+      const wizardPicks: Create2024State['classOptionPicks'] = {}
+      if (sub === 'wizard__enchanter' && wizardSpec.level >= 3) {
+        wizardPicks.enchanting_conversationalist = 'persuasion'
+      }
+      if (sub === 'wizard__bladesinger' && wizardSpec.level >= 3) {
+        wizardPicks.training_in_war_and_song = 'acrobatics'
+      }
+      if (sub === 'wizard__transmuter' && wizardSpec.level >= 3) {
+        wizardPicks.transmuter_stone_benefit = 'speed'
+      }
+      if (sub === 'wizard__transmuter' && wizardSpec.level >= 10) {
+        wizardPicks.transmuter_stone_benefit_2 = 'mighty_build'
+      }
       seeds[e2eSeed] = {
         name: `Волшебник ${wizardSpec.level}`,
         classSlug: 'wizard',
@@ -409,12 +424,18 @@ export function CreateCharacter2024Page({
           {
             slug: 'wizard',
             level: wizardSpec.level,
-            ...(wizardSpec.subclassSlug ? { subclass: wizardSpec.subclassSlug } : {}),
+            ...(sub ? { subclass: sub } : {}),
           },
         ],
         skills: ['arcana', 'history'],
         backgroundAsi: { con: 2, dex: 1 },
-        spells: buildWizardSeedSpells(catalog.spells, wizardClass, wizardSpec.level),
+        spells: buildWizardSeedSpells(
+          catalog.spells,
+          wizardClass,
+          wizardSpec.level,
+          wizardSpec.subclassSlug,
+        ),
+        classOptionPicks: wizardPicks,
       }
     }
     const sorcererSpec = parseSorcererSeed(e2eSeed)
@@ -1087,8 +1108,10 @@ export function CreateCharacter2024Page({
         : tab === 'book'
           ? state.spellbookSpellIds
           : state.preparedSpellIds
-    const wizardBookNeed =
-      WIZARD_BOOK_SPELLS_AT_L1 + Math.max(0, wizardLevel - 1) * 2
+    const wizardBookNeed = wizardCreateBookNeed2024({
+      wizardLevel,
+      subclassSlug: state.subclassSlug || null,
+    })
     const max =
       tab === 'cantrips'
         ? (sc?.cantrips ?? 0)
@@ -1205,13 +1228,58 @@ export function CreateCharacter2024Page({
               const weapon = catalogData.weapons.find((w) => w.slug === slug)
               return weapon?.name_ru || slug
             })}
-            onClassesChange={(classes) =>
-              patch({
+            onClassesChange={(classes) => {
+              const primary =
+                classes.find((row) => row.id === state.primaryClassEntryId) ?? classes[0]
+              const newLevel = Math.max(1, primary?.level ?? 1)
+              const patchBody: Partial<Create2024State> = {
                 classes,
                 characterLevel: totalCharacterLevel(classes),
                 hpChoices: ensureHpChoices(classes, state.hpChoices),
-              })
-            }
+              }
+              if (state.classSlug === 'wizard') {
+                const sub =
+                  (primary && state.subclassByEntryId[primary.id]) || state.subclassSlug || null
+                const effectiveSub = newLevel < 3 ? null : sub
+                const bookNeed = wizardCreateBookNeed2024({
+                  wizardLevel: newLevel,
+                  subclassSlug: effectiveSub,
+                })
+                if (state.spellbookSpellIds.length > bookNeed) {
+                  patchBody.spellbookSpellIds = state.spellbookSpellIds.slice(0, bookNeed)
+                  patchBody.preparedSpellIds = state.preparedSpellIds.filter((id) =>
+                    (patchBody.spellbookSpellIds ?? state.spellbookSpellIds).includes(id),
+                  )
+                }
+                const nextPicks = { ...state.classOptionPicks }
+                let picksChanged = false
+                if (newLevel < 3) {
+                  for (const key of [
+                    'enchanting_conversationalist',
+                    'training_in_war_and_song',
+                    'transmuter_stone_benefit',
+                    'transmuter_stone_benefit_2',
+                  ] as const) {
+                    if (nextPicks[key] != null) {
+                      delete nextPicks[key]
+                      picksChanged = true
+                    }
+                  }
+                  patchBody.subclassSlug = null
+                  if (primary) {
+                    patchBody.subclassByEntryId = {
+                      ...state.subclassByEntryId,
+                      [primary.id]: null,
+                    }
+                  }
+                } else if (newLevel < 10 && nextPicks.transmuter_stone_benefit_2 != null) {
+                  delete nextPicks.transmuter_stone_benefit_2
+                  picksChanged = true
+                }
+                if (picksChanged) patchBody.classOptionPicks = nextPicks
+              }
+              patch(patchBody)
+            }}
             onHpChoicesChange={(hpChoices) => patch({ hpChoices })}
             onSubclassChange={(classEntryId, subclassSlug) => {
               const next = {
@@ -1291,6 +1359,7 @@ export function CreateCharacter2024Page({
           ) : null}
           {classSlug === 'rogue' ? <RogueLevelingPicks state={state} patch={patch} /> : null}
           {classSlug === 'ranger' ? <RangerLevelingPicks state={state} patch={patch} /> : null}
+          {classSlug === 'wizard' ? <WizardBookLevelingPicks state={state} patch={patch} /> : null}
           {classSlug === 'barbarian' ? (
             <BarbarianLevelingPicks state={state} patch={patch} catalog={catalog} />
           ) : null}
