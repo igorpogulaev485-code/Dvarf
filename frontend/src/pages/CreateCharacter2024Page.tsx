@@ -672,7 +672,8 @@ export function CreateCharacter2024Page({
       seeds[e2eSeed] = {
         name: `Артефактор ${artificerSpec.level}`,
         classSlug: 'artificer',
-        abilities: { str: 10, dex: 14, con: 13, int: 15, wis: 12, cha: 8 },
+        // Soldier background ASI is str/dex/con only; keep INT high on the base array.
+        abilities: { str: 10, dex: 13, con: 14, int: 15, wis: 12, cha: 8 },
         rows: [
           {
             slug: 'artificer',
@@ -682,7 +683,7 @@ export function CreateCharacter2024Page({
         ],
         skills: ['investigation', 'arcana'],
         classToolIds: ['smiths-tools'],
-        backgroundAsi: { int: 2, con: 1 },
+        backgroundAsi: { dex: 2, con: 1 },
         asi: artificerAsiChoicesForLevel(artificerSpec.level),
         spells: buildArtificerSeedSpells(catalog.spells, artificerClass, artificerSpec.level),
         classOptionPicks: buildArtificerClassOptionPicks(

@@ -86,10 +86,11 @@ export function artificerAsiChoicesForLevel(level: number): Array<{
   abilities: Partial<Record<'str' | 'dex' | 'con' | 'int' | 'wis' | 'cha', number>>
 }> {
   const gates = [4, 8, 12, 16, 19].filter((g) => g <= level)
-  const bumps: Array<Partial<Record<'int' | 'con' | 'dex', number>>> = [
-    { int: 2 },
+  // e2e harness (soldier + dwarf) only accepts ASI into str/dex/con.
+  const bumps: Array<Partial<Record<'str' | 'dex' | 'con', number>>> = [
+    { dex: 2 },
     { con: 2 },
-    { int: 2 },
+    { str: 2 },
     { dex: 2 },
     { con: 2 },
   ]

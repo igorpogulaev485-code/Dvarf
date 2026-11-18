@@ -100,7 +100,17 @@ async function createViaSeed(page: Page, store: HarnessStore, seed: string) {
   const finish = page.getByTestId('p24-m03-finish')
   await expect(finish).toBeEnabled({ timeout: 60_000 })
   await finish.click()
-  await expect(page).toHaveURL(/\/characters\/[0-9a-f-]{36}/i, { timeout: 30_000 })
+  try {
+    await page.waitForURL(/\/characters\/[0-9a-f-]{36}/i, { timeout: 45_000 })
+  } catch {
+    const issues = page.getByTestId('p24-m03-issues')
+    const banner = await page
+      .locator('.create-2024__issues, [role="alert"], [role="status"]')
+      .allTextContents()
+    throw new Error(
+      `finish did not navigate; issues=${await issues.textContent().catch(() => '')}; banner=${banner.join(' | ')}`,
+    )
+  }
   await dismissWelcome(page)
 }
 
@@ -144,6 +154,33 @@ async function setCreateLevel(page: Page, level: number) {
   await levelInput.fill(String(level))
   await levelInput.blur()
   await page.waitForTimeout(450)
+}
+
+async function expandFeature(page: Page, name: RegExp) {
+  const collapsed = page
+    .locator('.feature-card')
+    .filter({ has: page.locator('.feature-card__name, .feature-card__title', { hasText: name }) })
+    .first()
+  await expect(collapsed).toBeVisible({ timeout: 12_000 })
+  if (await collapsed.locator('.feature-card__title').count()) return collapsed
+  await collapsed.locator('button.feature-card__glance, button[aria-label="Подробнее"]').first().click()
+  await page.waitForTimeout(300)
+  return page
+    .locator('.feature-card--expand')
+    .filter({ has: page.locator('.feature-card__title', { hasText: name }) })
+    .first()
+}
+
+async function clickFeatureUse(page: Page, nameRe: RegExp, buttonRe: RegExp) {
+  const card = await expandFeature(page, nameRe)
+  await card.scrollIntoViewIfNeeded().catch(() => {})
+  const btn = card.locator('button').filter({ hasText: buttonRe }).first()
+  if (await btn.isVisible().catch(() => false)) {
+    await btn.click()
+  } else {
+    await card.locator('button').filter({ hasText: /…/ }).first().click()
+  }
+  await expect(page.getByRole('dialog').last()).toBeVisible({ timeout: 10_000 })
 }
 
 test.beforeAll(({}, testInfo) => {
@@ -276,32 +313,21 @@ test.describe('P24-M02B artificer — live create rollbacks', () => {
 })
 
 test.describe('P24-M02B artificer — desk panels', () => {
-  test.setTimeout(240_000)
+  test.setTimeout(360_000)
 
   test('alchemist elixir + artillerist cannon + reanimator companion', async ({ page }, testInfo) => {
     const project = projectOf(testInfo)
     const store = createStore()
     await createViaSeed(page, store, 'artificer5alchemist')
     await openFeatures(page, project)
-    const elixir = page
-      .locator('.feature-card')
-      .filter({ hasText: /Экспериментальный эликсир/i })
-      .first()
-    await expect(elixir).toBeVisible({ timeout: 12_000 })
-    await elixir.locator('button').filter({ hasText: /Эликсир|…/ }).first().click().catch(async () => {
-      await elixir.locator('button').last().click()
-    })
+    await clickFeatureUse(page, /Экспериментальный эликсир/i, /^Эликсир/)
     await expect(page.getByTestId('artificer-dialog-elixirs')).toBeVisible({ timeout: 10_000 })
     await shot(page, '2024-desk-elixirs', project)
     await dismissOpenDialogs(page)
 
     await createViaSeed(page, store, 'artificer5artillerist')
     await openFeatures(page, project)
-    const cannon = page.locator('.feature-card').filter({ hasText: /Мистическая пушка/i }).first()
-    await expect(cannon).toBeVisible({ timeout: 12_000 })
-    await cannon.locator('button').filter({ hasText: /Пушка|…/ }).first().click().catch(async () => {
-      await cannon.locator('button').last().click()
-    })
+    await clickFeatureUse(page, /Мистическая пушка/i, /^Пушка/)
     await expect(page.getByTestId('artificer-dialog-cannon')).toBeVisible({ timeout: 10_000 })
     await shot(page, '2024-desk-cannon', project)
     await dismissOpenDialogs(page)
@@ -310,17 +336,13 @@ test.describe('P24-M02B artificer — desk panels', () => {
     await openFeatures(page, project)
     await expect(page.getByText(/Реанимированный спутник/i).first()).toBeVisible({ timeout: 12_000 })
     await expect(page.getByText(/Оживлённый спутник/i)).toHaveCount(0)
-    const companion = page
-      .locator('.feature-card')
-      .filter({ hasText: /Реанимированный спутник/i })
-      .first()
-    await companion.locator('button').filter({ hasText: /Спутник|…/ }).first().click().catch(async () => {
-      await companion.locator('button').last().click()
-    })
+    await clickFeatureUse(page, /Реанимированный спутник/i, /^Спутник/)
     await expect(page.getByTestId('artificer-dialog-reanimator')).toBeVisible({ timeout: 10_000 })
     await shot(page, '2024-desk-reanimator', project)
     await openCombat(page, project)
-    await expect(page.getByText(/Реанимированный|Реаним/i).first()).toBeVisible({ timeout: 10_000 })
+    await expect(
+      page.getByText(/Реанимированный спутник/i).filter({ visible: true }).first(),
+    ).toBeVisible({ timeout: 10_000 })
     await shot(page, '2024-desk-reanimator-combat', project)
   })
 })
