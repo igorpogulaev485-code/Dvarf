@@ -1,6 +1,6 @@
-28ba4bfcf60acaf34c61e4d9f44b8927  2024-sorcerer3spellfire-sheet-390.png
-d8b6de2412f332d99f958a0f64c812d2  2024-sorcerer3spellfire-features-390.png
-28ba4bfcf60acaf34c61e4d9f44b8927  2024-sorcerer3spellfire-combat-390.png
+f3eb2e824cf4db913d6532f8be9d3601  2024-sorcerer3spellfire-sheet-390.png
+bdacffbcfbe10174367138b339ce9383  2024-sorcerer3spellfire-features-390.png
+f3eb2e824cf4db913d6532f8be9d3601  2024-sorcerer3spellfire-combat-390.png
 8c0dfb3b0b22ccba45f9a4ecfcfe0df1  2024-sorcerer3shadow-sheet-390.png
 33774c7e31925a32ae840a98375a9bee  2024-sorcerer3shadow-features-390.png
 8c0dfb3b0b22ccba45f9a4ecfcfe0df1  2024-sorcerer3shadow-combat-390.png
@@ -36,8 +36,8 @@ ede214c52deada387630086bd7e9ada4  2024-sorcerer18shadow-sheet-390.png
 ede214c52deada387630086bd7e9ada4  2024-sorcerer18shadow-combat-390.png
 9a9ca26d2ec0f49ee5c51d4ada55a4f0  2024-finish-disabled-l3-spellfire-390.png
 f038228197f16d08378c3929c6e5bb49  2024-rollback-3-to-2-spellfire-390.png
-60ed3e5d0185789cb99d20762c91301d  2024-rollback-11-to-10-shadow-390.png
-17fdc62097018ebbd031a9800df6d08b  2024-rollback-18-to-17-spellfire-390.png
+f5db99c67c6d4da978de0bea1715bdd3  2024-rollback-11-to-10-shadow-390.png
+eb46af16ea90e1e5e2df2484e709b0de  2024-rollback-18-to-17-spellfire-390.png
 372df3925194b505dc88b850df8b6929  2024-rollback-20-to-19-shadow-390.png
 f3eb2e824cf4db913d6532f8be9d3601  2024-desk-spellfire-burst-on-rail-390.png
 ccd58fa4070ddea80a409e02a615910a  2024-desk-spellfire-burst-sustaining-390.png
@@ -49,7 +49,7 @@ b23292d7627addc7d482c37f6994c5fc  2024-desk-crown-overlay-390.png
 7e54fbaf553effd136fe9817d4a0ceda  2024-desk-crown-active-390.png
 422e9b4d59f490ae02425446f88f24de  2024-desk-grave-success-390.png
 4c574ba2489ea1ab3a2ca786a4a9e237  2024-desk-beasts-dialog-390.png
-287be82283a40793a3317f58377563f5  2024-desk-beasts-companion-390.png
+e36870c7c5f95e7dac19af818087eb1b  2024-desk-beasts-companion-390.png
 43136b72bd08859005493e94d0f06d02  2024-desk-shadow-walk-390.png
 d4451b6400ce368742d96e1c3251f589  2024-desk-shadow-walk-active-390.png
 344cf5d1097e5d3ae68a4329cd96302d  2024-desk-umbral-overlay-390.png

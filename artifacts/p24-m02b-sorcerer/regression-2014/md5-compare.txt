@@ -34,4 +34,3 @@ OK  sheet-2014-sorcerer-features-390.png
 OK  sheet-2014-sorcerer-header-390.png
   before 78c00e34451c9a0626ce74fe7accdb18
   after  78c00e34451c9a0626ce74fe7accdb18
-
