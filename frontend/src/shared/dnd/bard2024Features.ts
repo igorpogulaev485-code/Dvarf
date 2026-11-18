@@ -19,6 +19,37 @@ import {
 import { findFeatureResource, parseFeatureResourceId, spendRemaining } from './featureResources'
 import { clampResource, type SheetResource } from './rest'
 import type { SpellSlotState } from './spells'
+import {
+  BLESSING_OF_MOONLIGHT_NAME_RU,
+  CHANNELER_NAME_RU,
+  EMPOWERED_CHANNELING_NAME_RU,
+  EVENTIDES_SPLENDOR_NAME_RU,
+  FORCES_FROM_BEYOND_NAME_RU,
+  FULL_MOON_RESONANCE_NAME_RU,
+  GUIDED_SUMMON_NAME_RU,
+  GUIDANCE_NAME_RU,
+  INSPIRED_ECLIPSE_NAME_RU,
+  LUNAR_VITALITY_NAME_RU,
+  MOONBEAM_NAME_RU,
+  MOONLIGHT_BLESSING_POOL_ID,
+  MOONS_INSPIRATION_NAME_RU,
+  MYSTICAL_CONNECTION_NAME_RU,
+  NEW_MOON_SHADOW_NAME_RU,
+  parseSpiritsBank2024,
+  readSpiritsBank2024,
+  RELEASE_SPIRIT_NAME_RU,
+  serializeSpiritsBank2024,
+  SPIRIT_GUARDIANS_COVER_POOL_ID,
+  SPIRIT_GUARDIANS_FREE_POOL_ID,
+  SPIRIT_GUARDIANS_NAME_RU,
+  SPIRIT_MANIFESTATION_NAME_RU,
+  SPIRITS_BANK_PICK,
+  SPIRITS_FROM_BEYOND_NAME_RU,
+  spiritFromBeyondByRoll2024,
+  spiritsAvailableForDie2024,
+  spiritsGuidedMaxRoll2024,
+  type SpiritBankEntry2024,
+} from './bardBook2024Features'
 
 /* ------------------------------------------------------------------ */
 /* Names (RU, accepted)                                                */
@@ -1080,6 +1111,20 @@ export const BARD_2024_CARD_BUTTONS: Record<string, string> = {
   combat_inspiration: 'Боевое…',
   'battle-magic': 'Боевая магия',
   battle_magic: 'Боевая магия',
+  // P24-M02B-bard book colleges
+  'moons-inspiration': 'Вдохновение луны…',
+  moons_inspiration: 'Вдохновение луны…',
+  'blessing-of-moonlight': 'Лунный луч…',
+  blessing_of_moonlight: 'Лунный луч…',
+  'eventides-splendor': 'Вечернее…',
+  eventides_splendor: 'Вечернее…',
+  'spirits-from-beyond': 'Замогильные духи…',
+  spirits_from_beyond: 'Замогильные духи…',
+  'empowered-channeling': 'Улучшенный призыв…',
+  empowered_channeling: 'Улучшенный призыв…',
+  'mystical-connection': 'Мистическая связь…',
+  mystical_connection: 'Мистическая связь…',
+  channeler: 'Проводник',
 }
 
 const BARD_USE_FEATURE_IDS = new Set([
@@ -1097,6 +1142,14 @@ const BARD_USE_FEATURE_IDS = new Set([
   'tandem-footwork',
   'combat-inspiration',
   'battle-magic',
+  // P24-M02B-bard
+  'moons-inspiration',
+  'blessing-of-moonlight',
+  'eventides-splendor',
+  'spirits-from-beyond',
+  'empowered-channeling',
+  'mystical-connection',
+  'channeler',
 ])
 
 /** Normalize feature ids that open the dialog (`_` → `-`). */
@@ -1132,6 +1185,7 @@ export type Bard2024UseInput = {
   bardLevel: number
   chaScore?: number
   slots?: Record<string, SpellSlotState>
+  featurePicks?: FeaturePicksState | null
   /** font-of-inspiration / mantle-of-majesty (regain): slot circle. */
   slotLevel?: number
   /** bardic-inspiration: grant target flags. */
@@ -1140,12 +1194,16 @@ export type Bard2024UseInput = {
   targetName?: string
   /** mantle-of-inspiration: rolled BI die. */
   dieRoll?: number
+  /** Second die for Mystical Connection (14+). */
+  dieRoll2?: number
   /** beguiling-magic / mantle-of-majesty: `regain` restores the use instead of spending. */
   mode?: string | null
   /** peerless-skill: roll succeeded after adding the die. */
   succeeded?: boolean
-  /** combat-inspiration: defense | offense. */
+  /** combat-inspiration: defense | offense. Book: eclipse | vitality | random | guided | release | cover | free | d6. */
   choice?: string | null
+  /** Guided summon / release: spirit table roll 1–12. */
+  spiritRoll?: number
   rng?: () => number
 }
 
@@ -1156,6 +1214,9 @@ export type Bard2024Patches = {
   diceExpression?: string | null
   /** Spend BI to grant: other sheets receive this die label (1к6…1к12). */
   grantedDieLabel?: string
+  featurePicks?: FeaturePicksState
+  healDice?: string
+  damageDice?: string
 }
 
 export type Bard2024UseResult = {
@@ -1235,6 +1296,7 @@ export function applyBard2024FeatureUse(input: Bard2024UseInput): Bard2024UseRes
   const fid = bard2024UseFeatureId(input.featureId) ?? norm(input.featureId)
   const level = lvl(input.bardLevel)
   const dieLabel = bardicInspirationDieLabelRu2024(level)
+  const sides = bardicInspirationDieSides2024(level)
 
   switch (fid) {
     case 'bardic-inspiration': {
@@ -1450,7 +1512,322 @@ export function applyBard2024FeatureUse(input: Bard2024UseInput): Bard2024UseRes
       )
     }
 
+    case 'moons-inspiration': {
+      if (level < BARD_SUBCLASS_MIN_LEVEL_2024) {
+        return refuse(input, `${MOONS_INSPIRATION_NAME_RU} с 3 уровня барда`)
+      }
+      const mode = String(input.choice || 'eclipse')
+      if (mode === 'eclipse') {
+        const spent = spendBi(input)
+        if (!spent.ok) return spent.result
+        const ally =
+          level >= SUBCLASS_L14_2024
+            ? `; ${NEW_MOON_SHADOW_NAME_RU}: союзник тоже может стать Невидимым и реакцией телепортироваться до 30 фт.`
+            : ''
+        const who = input.targetName?.trim() ? `«${input.targetName.trim()}»` : 'союзник'
+        return done(
+          input,
+          `${INSPIRED_ECLIPSE_NAME_RU}: ${who} получает ${dieLabel}; ты — Невидимый и телепорт до 30 фт. (до начала следующего хода; оканчивается от заклинания/урона/атаки)${ally}`,
+          {
+            resources: spent.resources,
+            patches: {
+              grantedDieLabel: dieLabel,
+              activeLabels: [INSPIRED_ECLIPSE_NAME_RU],
+            },
+          },
+        )
+      }
+      if (mode === 'vitality') {
+        const useFreeD6 = level >= SUBCLASS_L14_2024 && input.mode === 'full-moon'
+        let resources = input.resources
+        let usedDie = dieLabel
+        if (useFreeD6) {
+          usedDie = '1к6'
+        } else {
+          const spent = spendBi(input)
+          if (!spent.ok) return spent.result
+          resources = spent.resources
+        }
+        const roll = Math.max(1, Math.min(useFreeD6 ? 6 : sides, input.dieRoll ?? 1))
+        return done(
+          input,
+          `${LUNAR_VITALITY_NAME_RU}${useFreeD6 ? ` (${FULL_MOON_RESONANCE_NAME_RU})` : ''}: +${roll} Хитов (${usedDie}) и Скорость +10 фт. до конца следующего хода цели (1/ход)`,
+          {
+            resources,
+            patches: {
+              diceExpression: usedDie,
+              healDice: String(roll),
+              activeLabels: [LUNAR_VITALITY_NAME_RU],
+            },
+          },
+        )
+      }
+      return refuse(input, 'Выберите Вдохновенное затмение или Лунную живучесть')
+    }
+
+    case 'blessing-of-moonlight': {
+      if (level < SUBCLASS_L6_2024) return refuse(input, `${BLESSING_OF_MOONLIGHT_NAME_RU} с 6 уровня барда`)
+      const spent = spendOwnPool(
+        input,
+        MOONLIGHT_BLESSING_POOL_ID,
+        BLESSING_OF_MOONLIGHT_NAME_RU,
+        'долгий отдых вернёт',
+      )
+      if (!spent.ok) return spent.result
+      return done(
+        input,
+        `${BLESSING_OF_MOONLIGHT_NAME_RU}: ${MOONBEAM_NAME_RU} изменён — Тусклый свет 5 фт.; при провале спаса цели другое существо в 60 фт. восстанавливает 2к4 Хитов (1/долгий)`,
+        {
+          resources: spent.resources,
+          patches: {
+            activeLabels: [`${MOONBEAM_NAME_RU} (лунный свет)`],
+            healDice: '2d4',
+            concentrationName: MOONBEAM_NAME_RU,
+          },
+        },
+      )
+    }
+
+    case 'eventides-splendor': {
+      if (level < SUBCLASS_L14_2024) return refuse(input, `${EVENTIDES_SPLENDOR_NAME_RU} с 14 уровня барда`)
+      return done(
+        input,
+        `${EVENTIDES_SPLENDOR_NAME_RU}: усиливает ${INSPIRED_ECLIPSE_NAME_RU} (${NEW_MOON_SHADOW_NAME_RU}) и ${LUNAR_VITALITY_NAME_RU} (${FULL_MOON_RESONANCE_NAME_RU}: 1к6 без списания пула)`,
+      )
+    }
+
+    case 'channeler': {
+      if (level < BARD_SUBCLASS_MIN_LEVEL_2024) return refuse(input, `${CHANNELER_NAME_RU} с 3 уровня барда`)
+      return done(
+        input,
+        `${CHANNELER_NAME_RU}: ${GUIDANCE_NAME_RU} на 60 фт.; фокусировка — набор игральных карт (или кристалл/сфера, свеча, писчее перо)`,
+      )
+    }
+
+    case 'spirits-from-beyond': {
+      if (level < BARD_SUBCLASS_MIN_LEVEL_2024) {
+        return refuse(input, `${SPIRITS_FROM_BEYOND_NAME_RU} с 3 уровня барда`)
+      }
+      const mode = String(input.choice || 'random')
+      const picks = input.featurePicks ?? { values: {} }
+      const bank = readSpiritsBank2024(picks, input.classEntryId)
+      const rollDie = () => {
+        const rng = input.rng ?? Math.random
+        return Math.floor(rng() * sides) + 1
+      }
+
+      if (mode === 'random') {
+        const spent = spendBi(input)
+        if (!spent.ok) return spent.result
+        let rollA = input.dieRoll && input.dieRoll >= 1 ? Math.min(sides, input.dieRoll) : rollDie()
+        let chosen = spiritFromBeyondByRoll2024(rollA)
+        let picksNext = picks
+        if (level >= SUBCLASS_L14_2024) {
+          const rollB =
+            input.dieRoll2 && input.dieRoll2 >= 1 ? Math.min(sides, input.dieRoll2) : rollDie()
+          if (input.spiritRoll && input.spiritRoll >= 1) {
+            chosen = spiritFromBeyondByRoll2024(Math.min(12, input.spiritRoll))
+            rollA = chosen?.roll ?? rollA
+          } else if (rollA === rollB) {
+            // Double: caller may pass spiritRoll for any table spirit; default keep first.
+            chosen = spiritFromBeyondByRoll2024(rollA)
+          } else if (input.mode === 'pick-b') {
+            chosen = spiritFromBeyondByRoll2024(rollB)
+            rollA = rollB
+          }
+        }
+        if (!chosen) return refuse(input, 'Не удалось определить духа')
+        const entry: SpiritBankEntry2024 = {
+          roll: chosen.roll,
+          id: chosen.id,
+          nameRu: chosen.nameRu,
+        }
+        const nextBank = [...bank, entry]
+        picksNext = setFeaturePick(
+          picks,
+          input.classEntryId,
+          SPIRITS_BANK_PICK,
+          serializeSpiritsBank2024(nextBank),
+        )
+        const who = input.targetName?.trim() ? `«${input.targetName.trim()}»` : 'союзник'
+        return done(
+          input,
+          `${SPIRITS_FROM_BEYOND_NAME_RU}: ${who} получает ${dieLabel}; призван дух «${chosen.nameRu}» (${chosen.roll}) — банк: ${nextBank.length}`,
+          {
+            resources: spent.resources,
+            patches: { grantedDieLabel: dieLabel, featurePicks: picksNext },
+          },
+        )
+      }
+
+      if (mode === 'guided') {
+        const maxRoll = spiritsGuidedMaxRoll2024(sides)
+        const roll = Math.floor(Number(input.spiritRoll) || 0)
+        if (roll < 1 || roll > maxRoll) {
+          return refuse(
+            input,
+            `${GUIDED_SUMMON_NAME_RU}: выберите духа 1–${maxRoll} (текущая кость ${dieLabel})`,
+          )
+        }
+        const chosen = spiritFromBeyondByRoll2024(roll)
+        if (!chosen) return refuse(input, 'Неизвестный дух')
+        const spent = spendBi(input)
+        if (!spent.ok) return spent.result
+        const nextBank = [...bank, { roll: chosen.roll, id: chosen.id, nameRu: chosen.nameRu }]
+        const picksNext = setFeaturePick(
+          picks,
+          input.classEntryId,
+          SPIRITS_BANK_PICK,
+          serializeSpiritsBank2024(nextBank),
+        )
+        return done(
+          input,
+          `${GUIDED_SUMMON_NAME_RU}: призван «${chosen.nameRu}» (${chosen.roll}) — банк: ${nextBank.length}`,
+          { resources: spent.resources, patches: { featurePicks: picksNext } },
+        )
+      }
+
+      if (mode === 'release') {
+        const roll = Math.floor(Number(input.spiritRoll) || 0)
+        const idx = bank.findIndex((row) => row.roll === roll)
+        if (idx < 0) return refuse(input, `${RELEASE_SPIRIT_NAME_RU}: выберите духа из банка`)
+        const chosen = spiritFromBeyondByRoll2024(bank[idx]!.roll)
+        if (!chosen) return refuse(input, 'Неизвестный дух в банке')
+        const nextBank = bank.filter((_, i) => i !== idx)
+        const picksNext = setFeaturePick(
+          picks,
+          input.classEntryId,
+          SPIRITS_BANK_PICK,
+          serializeSpiritsBank2024(nextBank),
+        )
+        const chaMod = Math.floor(((input.chaScore ?? 10) - 10) / 2)
+        const dieParts: number[] = []
+        for (let i = 0; i < chosen.dieRolls; i += 1) {
+          const rng = input.rng ?? Math.random
+          dieParts.push(Math.floor(rng() * sides) + 1)
+        }
+        const diceSum = dieParts.reduce((a, b) => a + b, 0)
+        let total = diceSum
+        if (chosen.usesCha) total += chaMod
+        if (chosen.usesBardLevel) total += level
+        const who = input.targetName?.trim() ? `«${input.targetName.trim()}»` : 'цель в 30 фт.'
+        const diceNote =
+          chosen.dieRolls > 0
+            ? ` [${dieParts.join('+')}${chosen.usesCha ? `${chaMod >= 0 ? '+' : ''}${chaMod}` : ''}${
+                chosen.usesBardLevel ? `+${level}` : ''
+              }=${total}]`
+            : ''
+        return done(
+          input,
+          `${RELEASE_SPIRIT_NAME_RU} (Магия): «${chosen.nameRu}» → ${who}: ${chosen.effectRu}${diceNote}`,
+          {
+            patches: {
+              featurePicks: picksNext,
+              diceExpression: chosen.dieRolls > 0 ? `${chosen.dieRolls}×${dieLabel}` : undefined,
+              healDice: chosen.id === 'beloved' || chosen.id === 'priest' ? String(total) : undefined,
+              damageDice:
+                chosen.id !== 'beloved' && chosen.id !== 'priest' && chosen.dieRolls > 0
+                  ? String(total)
+                  : undefined,
+            },
+          },
+        )
+      }
+
+      return refuse(input, 'Выберите случайный призыв, управляемый призыв или выпуск духа')
+    }
+
+    case 'empowered-channeling': {
+      if (level < SUBCLASS_L6_2024) return refuse(input, `${EMPOWERED_CHANNELING_NAME_RU} с 6 уровня барда`)
+      const mode = String(input.choice || 'force')
+      if (mode === 'force') {
+        const roll = Math.max(1, Math.min(6, input.dieRoll ?? Math.floor((input.rng ?? Math.random)() * 6) + 1))
+        return done(
+          input,
+          `${FORCES_FROM_BEYOND_NAME_RU}: +${roll} (1к6) к урону или лечению слотового заклинания Барда (1/ход)`,
+          { patches: { diceExpression: '1к6', healDice: String(roll), damageDice: String(roll) } },
+        )
+      }
+      if (mode === 'free') {
+        const spent = spendOwnPool(
+          input,
+          SPIRIT_GUARDIANS_FREE_POOL_ID,
+          `${SPIRIT_GUARDIANS_NAME_RU} (без ячейки)`,
+          'долгий отдых вернёт',
+        )
+        if (!spent.ok) return spent.result
+        return done(
+          input,
+          `${SPIRIT_MANIFESTATION_NAME_RU}: ${SPIRIT_GUARDIANS_NAME_RU} без ячейки (1/долгий)`,
+          {
+            resources: spent.resources,
+            patches: { concentrationName: SPIRIT_GUARDIANS_NAME_RU, activeLabels: [SPIRIT_GUARDIANS_NAME_RU] },
+          },
+        )
+      }
+      if (mode === 'cover') {
+        const spent = spendOwnPool(
+          input,
+          SPIRIT_GUARDIANS_COVER_POOL_ID,
+          `${SPIRIT_MANIFESTATION_NAME_RU} (укрытие)`,
+          'короткий или долгий отдых вернёт',
+        )
+        if (!spent.ok) return spent.result
+        return done(
+          input,
+          `${SPIRIT_MANIFESTATION_NAME_RU}: вы и союзники в эманации стражей — Укрытие наполовину (1/короткий или долгий)`,
+          {
+            resources: spent.resources,
+            patches: { activeLabels: ['Укрытие наполовину (стражи)'] },
+          },
+        )
+      }
+      return refuse(input, 'Выберите Силы с того света, free-cast или укрытие')
+    }
+
+    case 'mystical-connection': {
+      if (level < SUBCLASS_L14_2024) return refuse(input, `${MYSTICAL_CONNECTION_NAME_RU} с 14 уровня барда`)
+      return done(
+        input,
+        `${MYSTICAL_CONNECTION_NAME_RU}: при броске по таблице «${SPIRITS_FROM_BEYOND_NAME_RU}» — два броска на выбор; при дубле — любой дух из таблицы`,
+      )
+    }
+
     default:
       return refuse(input, `Умение «${input.featureId}» не настроено в диалоге 2024`)
   }
+}
+
+/** Clear spirit bank on short or long rest (College of Spirits). */
+export function clearSpiritsBankOnRest2024(
+  picks: FeaturePicksState,
+  classEntryId: string,
+): FeaturePicksState {
+  const raw = getFeaturePick(picks, classEntryId, SPIRITS_BANK_PICK)
+  if (!raw) return picks
+  return setFeaturePick(picks, classEntryId, SPIRITS_BANK_PICK, '')
+}
+
+export function listSpiritsBankLabel2024(
+  picks: FeaturePicksState | null | undefined,
+  classEntryId: string,
+): string {
+  const bank = readSpiritsBank2024(picks, classEntryId)
+  if (!bank.length) return 'Банк духов: пусто'
+  return `Банк духов: ${bank.map((row) => `${row.roll} ${row.nameRu}`).join(', ')}`
+}
+
+export function spiritsPickerOptions2024(dieFaces: number): { id: string; label: string }[] {
+  return spiritsAvailableForDie2024(dieFaces).map((row) => ({
+    id: String(row.roll),
+    label: `${row.roll}. ${row.nameRu}`,
+  }))
+}
+
+export function spiritsGuidedCap2024(dieFaces: number): number {
+  return spiritsGuidedMaxRoll2024(dieFaces)
+}
+
+export function parseSpiritsBankRaw2024(raw: string | null | undefined): SpiritBankEntry2024[] {
+  return parseSpiritsBank2024(raw)
 }

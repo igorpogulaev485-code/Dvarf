@@ -7,11 +7,16 @@
 import type { FeatureChoiceDef } from './classFeatures'
 import { alwaysPreparedForSubclass2024, isPhb2024CreateSubclass } from './edition2024Subclasses'
 import {
+  emptyFeaturePicks,
   getFeatureChoicePick,
   getFeatureChoicePickList,
   getFeaturePick,
   type FeaturePicksState,
 } from './featurePicks'
+
+function picksOrEmpty(picks: FeaturePicksState | null | undefined): FeaturePicksState {
+  return picks ?? emptyFeaturePicks()
+}
 
 export const M02B_BARD_BOOK_SLUGS = [
   'bard__college-of-the-moon',
@@ -154,22 +159,18 @@ export const PRIMAL_LORE_CANTRIP_LABELS_RU: Record<string, string> = {
 
 export const primalLoreSkillChoice2024: FeatureChoiceDef = {
   id: PRIMAL_LORE_SKILL_PICK,
-  label: `${PRIMAL_LORE_NAME_RU}: навык`,
-  pick: 1,
-  options: PRIMAL_LORE_SKILLS_2024.map((id) => ({
-    id,
-    label: PRIMAL_LORE_SKILL_LABELS_RU[id] || id,
-  })),
+  label_ru: `${PRIMAL_LORE_NAME_RU}: навык`,
+  max_picks: 1,
+  options: [...PRIMAL_LORE_SKILLS_2024],
+  option_labels_ru: PRIMAL_LORE_SKILL_LABELS_RU,
 }
 
 export const primalLoreCantripChoice2024: FeatureChoiceDef = {
   id: PRIMAL_LORE_CANTRIP_PICK,
-  label: `${PRIMAL_LORE_NAME_RU}: заговор друида`,
-  pick: 1,
-  options: PRIMAL_LORE_CANTRIPS_2024.map((id) => ({
-    id,
-    label: PRIMAL_LORE_CANTRIP_LABELS_RU[id] || id,
-  })),
+  label_ru: `${PRIMAL_LORE_NAME_RU}: заговор друида`,
+  max_picks: 1,
+  options: [...PRIMAL_LORE_CANTRIPS_2024],
+  option_labels_ru: PRIMAL_LORE_CANTRIP_LABELS_RU,
 }
 
 /* ------------------------------------------------------------------ */
@@ -344,7 +345,9 @@ export function readSpiritsBank2024(
   picks: FeaturePicksState | null | undefined,
   classEntryId: string,
 ): SpiritBankEntry2024[] {
-  return parseSpiritsBank2024(getFeaturePick(picks, classEntryId, SPIRITS_BANK_PICK))
+  return parseSpiritsBank2024(
+    getFeaturePick(picksOrEmpty(picks), classEntryId, SPIRITS_BANK_PICK),
+  )
 }
 
 /* ------------------------------------------------------------------ */
@@ -363,7 +366,8 @@ export function readPrimalLoreSkill2024(
   picks: FeaturePicksState | null | undefined,
   classEntryId: string,
 ): string | null {
-  const raw = getFeatureChoicePick(picks, classEntryId, PRIMAL_LORE_SKILL_PICK)
+  const state = picksOrEmpty(picks)
+  const raw = getFeatureChoicePick(state, classEntryId, PRIMAL_LORE_SKILL_PICK)
   const key = String(raw || '')
     .trim()
     .toLowerCase()
@@ -374,9 +378,10 @@ export function readPrimalLoreCantrip2024(
   picks: FeaturePicksState | null | undefined,
   classEntryId: string,
 ): string | null {
-  const list = getFeatureChoicePickList(picks, classEntryId, PRIMAL_LORE_CANTRIP_PICK)
+  const state = picksOrEmpty(picks)
+  const list = getFeatureChoicePickList(state, classEntryId, PRIMAL_LORE_CANTRIP_PICK)
   const fromList = list[0]
-  const raw = fromList || getFeaturePick(picks, classEntryId, PRIMAL_LORE_CANTRIP_PICK)
+  const raw = fromList || getFeaturePick(state, classEntryId, PRIMAL_LORE_CANTRIP_PICK)
   const key = String(raw || '')
     .trim()
     .toLowerCase()
