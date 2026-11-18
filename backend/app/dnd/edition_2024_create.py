@@ -1061,13 +1061,29 @@ def _validate_druidic_warrior_cantrips(raw: Any) -> list[str]:
     return picks
 
 
+GENIES_SPLENDOR_SKILL_KEY = "genies_splendor_skill"
+GENIES_SPLENDOR_SKILLS_2024 = frozenset(
+    {"acrobatics", "performance", "intimidation", "persuasion"}
+)
+ELEMENTAL_SHIELDING_TYPE_KEY = "elemental_shielding_type"
+ELEMENTAL_SHIELDING_TYPES_2024 = frozenset(
+    {"thunder", "acid", "fire", "cold", "lightning"}
+)
+PALADIN_NOBLE_GENIES_SUBCLASS_2024 = "paladin__oath-of-the-noble-genies"
+PALADIN_SUBCLASS_LEVEL_2024 = 3
+PALADIN_ELEMENTAL_SHIELDING_LEVEL_2024 = 7
+
+
 def _validate_paladin_options_2024(
     payload: Create2024Payload,
     picks: Mapping[str, Any],
     *,
     fighting_style: str | None,
 ) -> dict[str, Any]:
-    """Keep Blessed Warrior cantrips when the style is chosen; drop them otherwise."""
+    """Keep Blessed Warrior cantrips when the style is chosen; drop them otherwise.
+
+    P24-M02B-paladin: Genie's Splendor skill (L3+) + Aura of Elemental Shielding type (L7+).
+    """
     out: dict[str, Any] = {}
     style = (fighting_style or payload.fighting_style_slug or "").strip().lower().replace("_", "-")
     raw_cantrips = picks.get(BLESSED_WARRIOR_CANTRIPS_KEY) or picks.get("blessed-warrior-cantrips")
@@ -1076,6 +1092,28 @@ def _validate_paladin_options_2024(
     elif raw_cantrips:
         # Stale picks from a previous UI choice — ignore rather than fail.
         pass
+
+    paladin_level = _planned_class_level(payload, "paladin")
+    subclass = _planned_primary_subclass(payload)
+    if subclass == PALADIN_NOBLE_GENIES_SUBCLASS_2024 and paladin_level >= PALADIN_SUBCLASS_LEVEL_2024:
+        skill = str(picks.get(GENIES_SPLENDOR_SKILL_KEY) or "").lower().replace("-", "_")
+        if skill not in GENIES_SPLENDOR_SKILLS_2024:
+            raise Create2024Error(
+                "Клятва благородных гениев 3+: выберите навык «Великолепия гения»",
+                code="create_2024_class_options",
+            )
+        out[GENIES_SPLENDOR_SKILL_KEY] = skill
+        if paladin_level >= PALADIN_ELEMENTAL_SHIELDING_LEVEL_2024:
+            dtype = str(picks.get(ELEMENTAL_SHIELDING_TYPE_KEY) or "").lower().replace("-", "_")
+            # Accept both lightning and electric aliases; catalog uses lightning.
+            if dtype == "electricity":
+                dtype = "lightning"
+            if dtype not in ELEMENTAL_SHIELDING_TYPES_2024:
+                raise Create2024Error(
+                    "Клятва благородных гениев 7+: выберите тип «Ауры стихийной защиты»",
+                    code="create_2024_class_options",
+                )
+            out[ELEMENTAL_SHIELDING_TYPE_KEY] = dtype
     return out
 
 
@@ -2118,6 +2156,94 @@ def _sync_bard_book_picks(sheet: dict[str, Any], class_options: Mapping[str, Any
         return
 
 
+
+def _sync_paladin_book_picks(sheet: dict[str, Any], class_options: Mapping[str, Any]) -> None:
+    """P24-M02B-paladin: Genie's Splendor skill + Elemental Shielding type → feature_picks / grants."""
+    for row in sheet.get("classes") or []:
+        if not isinstance(row, dict):
+            continue
+        if e24.normalize_class_slug(str(row.get("slug") or "")) != "paladin":
+            continue
+        level = int(row.get("level") or 0)
+        subclass = _normalize_slug(str(row.get("subclass_slug") or ""))
+        entry_id = str(row.get("id") or "class-paladin")
+        picks = sheet.get("feature_picks")
+        values = dict(picks.get("values") or {}) if isinstance(picks, dict) else {}
+        prof = sheet.get("proficiency") if isinstance(sheet.get("proficiency"), dict) else {}
+        skills_meta = sheet.get("skills") if isinstance(sheet.get("skills"), dict) else {}
+
+        if subclass != PALADIN_NOBLE_GENIES_SUBCLASS_2024 or level < PALADIN_SUBCLASS_LEVEL_2024:
+            for key in (
+                f"{entry_id}:{GENIES_SPLENDOR_SKILL_KEY}",
+                f"{entry_id}:{ELEMENTAL_SHIELDING_TYPE_KEY}",
+                f"{entry_id}:genies-splendor",
+                f"{entry_id}:aura-of-elemental-shielding",
+            ):
+                values.pop(key, None)
+            sheet["feature_picks"] = {"values": values}
+            # Drop noble-genies grant row for this entry.
+            sheet["subclass_grants"] = [
+                item
+                for item in (sheet.get("subclass_grants") or [])
+                if not (
+                    isinstance(item, dict)
+                    and item.get("classEntryId") == entry_id
+                    and item.get("slug") == PALADIN_NOBLE_GENIES_SUBCLASS_2024
+                )
+            ]
+            return
+
+        skill = str(class_options.get(GENIES_SPLENDOR_SKILL_KEY) or "").lower().replace("-", "_")
+        if skill in GENIES_SPLENDOR_SKILLS_2024:
+            values[f"{entry_id}:{GENIES_SPLENDOR_SKILL_KEY}"] = skill
+            values[f"{entry_id}:genies-splendor"] = skill
+            if isinstance(skills_meta.get(skill), dict):
+                skills_meta[skill]["is_proficient"] = True
+            skill_list = list(prof.get("skills") or []) if isinstance(prof, dict) else []
+            if skill not in skill_list:
+                skill_list.append(skill)
+                if isinstance(prof, dict):
+                    prof["skills"] = skill_list
+
+        dtype = str(class_options.get(ELEMENTAL_SHIELDING_TYPE_KEY) or "").lower()
+        if level >= PALADIN_ELEMENTAL_SHIELDING_LEVEL_2024 and dtype in ELEMENTAL_SHIELDING_TYPES_2024:
+            values[f"{entry_id}:{ELEMENTAL_SHIELDING_TYPE_KEY}"] = dtype
+            values[f"{entry_id}:aura-of-elemental-shielding"] = dtype
+
+        ledger = [
+            dict(item)
+            for item in (sheet.get("subclass_grants") or [])
+            if isinstance(item, dict) and item.get("classEntryId") != entry_id
+        ]
+        ledger.append(
+            {
+                "classEntryId": entry_id,
+                "catalogId": subclass,
+                "slug": subclass,
+                "parentSlug": "paladin",
+                "skills": [skill] if skill in GENIES_SPLENDOR_SKILLS_2024 else [],
+                "armorKeys": [],
+                "weaponKeys": [],
+                "weaponExtras": [],
+                "tools": [],
+                "languages": [],
+                "caster": None,
+                "grantedSpellIds": [],
+                "picks": {
+                    GENIES_SPLENDOR_SKILL_KEY: skill if skill in GENIES_SPLENDOR_SKILLS_2024 else None,
+                    ELEMENTAL_SHIELDING_TYPE_KEY: dtype if dtype in ELEMENTAL_SHIELDING_TYPES_2024 else None,
+                },
+            }
+        )
+        sheet["subclass_grants"] = ledger
+        sheet["feature_picks"] = {"values": values}
+        if isinstance(prof, dict):
+            sheet["proficiency"] = prof
+        if isinstance(skills_meta, dict):
+            sheet["skills"] = skills_meta
+        return
+
+
 def _sync_blessed_strikes_pick(sheet: dict[str, Any]) -> None:
     """Mirror class_options_2024.blessed_strikes into feature_picks for the cleric row."""
     options = sheet.get("class_options_2024")
@@ -3016,6 +3142,7 @@ def validate_create_2024(payload: Create2024Payload) -> Create2024Result:
     _sync_bard_book_picks(sheet, class_options)
     _sync_rogue_picks(sheet, class_options)
     _sync_blessed_warrior_picks(sheet, class_options, fighting_style=fighting_style)
+    _sync_paladin_book_picks(sheet, class_options)
     _sync_druidic_warrior_picks(sheet, class_options, fighting_style=fighting_style)
     _sync_ranger_subclass_picks(sheet, class_options)
     _sync_artificer_subclass_picks(sheet, class_options)
@@ -3379,6 +3506,10 @@ def _build_sheet(
         moon_skill = str(class_options.get(PRIMAL_LORE_SKILL_KEY) or "").lower().replace("-", "_")
         if moon_skill in PRIMAL_LORE_SKILLS_2024:
             proficient.add(moon_skill)
+    if payload.class_slug == "paladin":
+        genies_skill = str(class_options.get(GENIES_SPLENDOR_SKILL_KEY) or "").lower().replace("-", "_")
+        if genies_skill in GENIES_SPLENDOR_SKILLS_2024:
+            proficient.add(genies_skill)
     expertise = {str(x) for x in (class_options.get("expertise") or []) if x in SKILL_IDS}
     if payload.class_slug == "bard":
         untrained = sorted(expertise - proficient)

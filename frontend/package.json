@@ -122,7 +122,8 @@
     "selfcheck:p24-02-heroic": "tsx src/shared/dnd/heroicInspiration.selfcheck.ts",
     "selfcheck:p24-02-rest": "tsx src/shared/dnd/rest2024.selfcheck.ts",
     "selfcheck:p24-02-campaign": "tsx src/features/lobby/campaignRules2024.selfcheck.ts",
-    "selfcheck:race-species-label": "tsx src/shared/dnd/raceSpeciesLabel.selfcheck.ts"
+    "selfcheck:race-species-label": "tsx src/shared/dnd/raceSpeciesLabel.selfcheck.ts",
+    "selfcheck:p24-m02b-paladin": "tsx --tsconfig tsconfig.app.json src/shared/dnd/paladinBook2024Features.selfcheck.ts"
   },
   "dependencies": {
     "qrcode": "^1.5.4",
