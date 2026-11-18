@@ -407,6 +407,12 @@ const BARBARIAN_USE_FEATURE_IDS = new Set([
   'intimidating-presence',
   'rage-of-the-gods',
   'retaliation',
+  'vitality-of-the-tree',
+  'branches-of-the-tree',
+  'travel-along-the-tree',
+  'rage-of-the-wilds',
+  'aspect-of-the-wilds',
+  'power-of-the-wilds',
 ])
 
 export const BARBARIAN_2024_CARD_BUTTONS: Record<string, string> = {
@@ -426,6 +432,48 @@ export const BARBARIAN_2024_CARD_BUTTONS: Record<string, string> = {
   'rage-of-the-gods': 'Облик…',
   rage_of_the_gods: 'Облик…',
   retaliation: 'Возмездие…',
+  'vitality-of-the-tree': 'Временные хиты…',
+  vitality_of_the_tree: 'Временные хиты…',
+  'branches-of-the-tree': 'Ветви…',
+  branches_of_the_tree: 'Ветви…',
+  'travel-along-the-tree': 'Путешествие…',
+  travel_along_the_tree: 'Путешествие…',
+  'rage-of-the-wilds': 'Форма ярости…',
+  rage_of_the_wilds: 'Форма ярости…',
+  'aspect-of-the-wilds': 'Аспект…',
+  aspect_of_the_wilds: 'Аспект…',
+  'power-of-the-wilds': 'Сила дикой природы…',
+  power_of_the_wilds: 'Сила дикой природы…',
+}
+
+export function wildHeartRageLabelRu(id: string | null | undefined): string | null {
+  if (!id) return null
+  const key = id.trim().toLowerCase() as keyof typeof WILD_HEART_RAGE_OPTIONS_RU
+  return WILD_HEART_RAGE_OPTIONS_RU[key] ?? null
+}
+
+export function wildHeartAspectLabelRu(id: string | null | undefined): string | null {
+  if (!id) return null
+  const key = id.trim().toLowerCase() as keyof typeof WILD_HEART_ASPECT_OPTIONS_RU
+  return WILD_HEART_ASPECT_OPTIONS_RU[key] ?? null
+}
+
+export function wildHeartPowerLabelRu(id: string | null | undefined): string | null {
+  if (!id) return null
+  const key = id.trim().toLowerCase() as keyof typeof WILD_HEART_POWER_OPTIONS_RU
+  return WILD_HEART_POWER_OPTIONS_RU[key] ?? null
+}
+
+export function isWildHeartRageOption2024(id: string | null | undefined): boolean {
+  return wildHeartRageLabelRu(id) != null
+}
+
+export function isWildHeartAspectOption2024(id: string | null | undefined): boolean {
+  return wildHeartAspectLabelRu(id) != null
+}
+
+export function isWildHeartPowerOption2024(id: string | null | undefined): boolean {
+  return wildHeartPowerLabelRu(id) != null
 }
 
 export function barbarian2024UseFeatureId(featureId: string | null | undefined): string | null {
@@ -515,6 +563,15 @@ export type Barbarian2024UseInput = {
   wearingHeavyArmor?: boolean
   incapacitated?: boolean
   unconscious?: boolean
+  subclassSlug?: string | null
+  /** Wild Heart — animal form when entering rage (L3+). */
+  wildHeartRage?: 'wolf' | 'bear' | 'eagle' | null
+  /** Wild Heart — power of the wilds (L14+, set on rage). */
+  wildHeartPower?: 'falcon' | 'lion' | 'ram' | null
+  /** Wild Heart — aspect of the wilds (sheet / long rest). */
+  wildHeartAspect?: 'salmon' | 'panther' | 'owl' | null
+  /** Already persisted on rage (combat panel / prior use). */
+  rageWildHeart?: 'wolf' | 'bear' | 'eagle' | null
 }
 
 export type Barbarian2024UseResult = {
@@ -523,11 +580,23 @@ export type Barbarian2024UseResult = {
   message: string
   patches?: {
     healHp?: number
+    tempHp?: number
     diceExpression?: string | null
     activeLabels?: string[]
     rageActive?: boolean
     restoreAllRages?: boolean
+    classOptionsPatch?: {
+      rage?: {
+        wild_heart?: 'wolf' | 'bear' | 'eagle' | null
+        wild_heart_power?: 'falcon' | 'lion' | 'ram' | null
+        world_tree_travel_used?: boolean
+        active?: boolean
+        rounds_extended?: number
+      }
+      wild_heart_aspect?: 'salmon' | 'panther' | 'owl' | null
+    }
   }
+  tempHp?: number
 }
 
 function refuse(input: Barbarian2024UseInput, message: string): Barbarian2024UseResult {
@@ -564,13 +633,109 @@ export function applyBarbarian2024FeatureUse(input: Barbarian2024UseInput): Barb
     }
     if (pool.used >= pool.max) return refuse(input, `${RAGE_NAME_RU}: нет использований`)
     const dmg = rageDamageBonus2024(level)
+    const subclass = String(input.subclassSlug || '').trim().toLowerCase()
+    const ragePatch: NonNullable<Barbarian2024UseResult['patches']>['classOptionsPatch'] = {
+      rage: { active: true, rounds_extended: 0 },
+    }
+    let tempHp: number | undefined
+    const labels = [RAGE_NAME_RU]
+
+    if (subclass === BARBARIAN_SUBCLASS_SLUGS_2024.wildHeart) {
+      const animal = input.wildHeartRage ?? input.rageWildHeart ?? null
+      if (!animal || !isWildHeartRageOption2024(animal)) {
+        return refuse(input, `${RAGE_OF_THE_WILDS_NAME_RU}: выберите Волка, Медведя или Орла`)
+      }
+      ragePatch!.rage!.wild_heart = animal
+      const animalRu = wildHeartRageLabelRu(animal)
+      if (animalRu) labels.push(`${RAGE_OF_THE_WILDS_NAME_RU}: ${animalRu}`)
+      if (level >= 14) {
+        const power = input.wildHeartPower ?? null
+        if (power && isWildHeartPowerOption2024(power)) {
+          ragePatch.rage!.wild_heart_power = power
+          const powerRu = wildHeartPowerLabelRu(power)
+          if (powerRu) labels.push(`${POWER_OF_THE_WILDS_NAME_RU}: ${powerRu}`)
+        }
+      }
+    }
+
+    if (subclass === BARBARIAN_SUBCLASS_SLUGS_2024.worldTree && level >= 3) {
+      tempHp = level
+      labels.push(`${VITALITY_OF_THE_TREE_NAME_RU}: временные хиты = ${level}`)
+    }
+
+    let message = `${RAGE_NAME_RU}: активна (урон +${dmg}; сопротивление дроб./кол./руб.; преим. к Силе)`
+    if (tempHp) message += `; временные хиты = ${tempHp}`
+
+    return ok(input, message, {
+      resources: bumpPool(input.resources, pool, 1),
+      tempHp,
+      patches: {
+        rageActive: true,
+        tempHp,
+        activeLabels: labels,
+        classOptionsPatch: ragePatch,
+      },
+    })
+  }
+
+  if (fid === 'aspect-of-the-wilds') {
+    const aspect = input.wildHeartAspect
+    if (!aspect || !isWildHeartAspectOption2024(aspect)) {
+      return refuse(input, `${ASPECT_OF_THE_WILDS_NAME_RU}: выберите аспект (лосось / пантера / сова)`)
+    }
+    const label = wildHeartAspectLabelRu(aspect)
+    return ok(input, `${ASPECT_OF_THE_WILDS_NAME_RU}: ${label ?? aspect}`, {
+      patches: {
+        classOptionsPatch: { wild_heart_aspect: aspect },
+        activeLabels: label ? [label] : [],
+      },
+    })
+  }
+
+  if (fid === 'power-of-the-wilds') {
+    const power = input.wildHeartPower
+    if (!power || !isWildHeartPowerOption2024(power)) {
+      return refuse(input, `${POWER_OF_THE_WILDS_NAME_RU}: выберите Сокола, Льва или Барана`)
+    }
+    const label = wildHeartPowerLabelRu(power)
+    return ok(input, `${POWER_OF_THE_WILDS_NAME_RU}: ${label ?? power} (при следующей ярости)`, {
+      patches: {
+        classOptionsPatch: { rage: { wild_heart_power: power } },
+        activeLabels: label ? [label] : [],
+      },
+    })
+  }
+
+  if (fid === 'vitality-of-the-tree') {
+    if (level < 3) return refuse(input, `${VITALITY_OF_THE_TREE_NAME_RU} с 3 уровня`)
+    const thp = level
+    return ok(input, `${VITALITY_OF_THE_TREE_NAME_RU}: временные хиты = ${thp}`, {
+      tempHp: thp,
+      patches: { tempHp: thp },
+    })
+  }
+
+  if (fid === 'branches-of-the-tree') {
+    if (level < 6) return refuse(input, `${BRANCHES_OF_THE_TREE_NAME_RU} с 6 уровня`)
     return ok(
       input,
-      `${RAGE_NAME_RU}: активна (урон +${dmg}; сопротивление дроб./кол./руб.; преим. к Силе)`,
-      {
-        resources: bumpPool(input.resources, pool, 1),
-        patches: { rageActive: true, activeLabels: [RAGE_NAME_RU] },
+      `${BRANCHES_OF_THE_TREE_NAME_RU}: удержание/телепорт союзников — отметьте на столе (мастер).`,
+    )
+  }
+
+  if (fid === 'travel-along-the-tree') {
+    if (level < 10) return refuse(input, `${TRAVEL_ALONG_THE_TREE_NAME_RU} с 10 уровня`)
+    return ok(input, `${TRAVEL_ALONG_THE_TREE_NAME_RU}: путешествие отмечено (1 / долгий).`, {
+      patches: {
+        classOptionsPatch: { rage: { world_tree_travel_used: true } },
       },
+    })
+  }
+
+  if (fid === 'rage-of-the-wilds') {
+    return ok(
+      input,
+      `${RAGE_OF_THE_WILDS_NAME_RU}: форму зверя выбирайте при входе в ярость (кнопка «Ярость»).`,
     )
   }
 

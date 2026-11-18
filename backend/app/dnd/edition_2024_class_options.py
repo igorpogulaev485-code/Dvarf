@@ -94,6 +94,11 @@ LAND_CHOICE_MIN_LEVEL_2024 = 3
 HUNTERS_PREY_OPTIONS_2024 = frozenset({"colossus_slayer", "horde_breaker"})
 DEFENSIVE_TACTICS_OPTIONS_2024 = frozenset({"escape_the_horde", "multiattack_defense"})
 PRIMAL_COMPANION_TYPES_2024 = frozenset({"land", "sea", "sky"})
+WILD_HEART_RAGE_OPTIONS_2024 = frozenset({"wolf", "bear", "eagle"})
+WILD_HEART_ASPECT_OPTIONS_2024 = frozenset({"salmon", "panther", "owl"})
+WILD_HEART_POWER_OPTIONS_2024 = frozenset({"falcon", "lion", "ram"})
+BARBARIAN_SUBCLASS_WILD_HEART_2024 = "barbarian__wild-heart"
+BARBARIAN_SUBCLASS_WORLD_TREE_2024 = "barbarian__world-tree"
 OTHERWORLDLY_GLAMOUR_SKILLS_2024 = frozenset({"performance", "deception", "persuasion"})
 RANGER_SUBCLASS_BEASTMASTER_2024 = "ranger__beastmaster"
 RANGER_SUBCLASS_HUNTER_2024 = "ranger__hunter-ranger"
@@ -631,12 +636,53 @@ def validate_class_options_update(
     )
 
     rage_src = src.get("rage") if "rage" in src else prev.get("rage")
+    prev_rage = prev.get("rage") if isinstance(prev.get("rage"), Mapping) else {}
     rage = rage_src if isinstance(rage_src, Mapping) else {}
-    rage_out = {
+    rage_out: dict[str, Any] = {
         "active": bool(rage.get("active")),
         "rounds_extended": int(rage.get("rounds_extended") or 0),
         "max_minutes": 10,
     }
+
+    def _rage_pick(key: str, allowed: frozenset[str] | None = None) -> str | bool | None:
+        if key in rage:
+            raw = rage.get(key)
+        elif key in prev_rage:
+            raw = prev_rage.get(key)
+        else:
+            return None
+        if key == "world_tree_travel_used":
+            return bool(raw) if raw is not None else None
+        val = str(raw or "").strip().lower()
+        if not val:
+            return None
+        if allowed is not None and val not in allowed:
+            return None
+        return val
+
+    wh = _rage_pick("wild_heart", WILD_HEART_RAGE_OPTIONS_2024)
+    if wh:
+        rage_out["wild_heart"] = wh
+    whp = _rage_pick("wild_heart_power", WILD_HEART_POWER_OPTIONS_2024)
+    if whp:
+        rage_out["wild_heart_power"] = whp
+    travel = _rage_pick("world_tree_travel_used")
+    if travel is True:
+        rage_out["world_tree_travel_used"] = True
+
+    aspect_src = (
+        src.get("wild_heart_aspect")
+        if "wild_heart_aspect" in src
+        else prev.get("wild_heart_aspect")
+    )
+    wild_heart_aspect = str(aspect_src or "").strip().lower()
+
+    primal_comp_src = (
+        src.get("primal_companion")
+        if "primal_companion" in src
+        else prev.get("primal_companion")
+    )
+    primal_companion = str(primal_comp_src or "").strip().lower()
 
     order_src = src.get("divine_order") if "divine_order" in src else prev.get("divine_order")
     order = str(order_src or "").strip().lower()
@@ -762,6 +808,10 @@ def validate_class_options_update(
         and land_choice in LAND_TERRAINS_2024
     ):
         result["land_choice"] = land_choice
+    if wild_heart_aspect in WILD_HEART_ASPECT_OPTIONS_2024:
+        result["wild_heart_aspect"] = wild_heart_aspect
+    if primal_companion in PRIMAL_COMPANION_TYPES_2024:
+        result["primal_companion"] = primal_companion
     return result
 
 

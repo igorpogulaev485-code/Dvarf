@@ -19,7 +19,11 @@ import {
   SPELL_STORING_ITEM_NAME_RU,
 } from '../../shared/dnd/artificer2024Features'
 import { ARTIFICER_REPLICATE_PLANS_2024 } from '../../shared/dnd/edition2024ClassOptions'
-import { artificerCreatePicksNeed2024, rangerCreatePicksNeed2024 } from './createPipeline2024State'
+import {
+  WILD_HEART_ASPECT_OPTIONS_RU,
+  WILD_HEART_POWER_OPTIONS_RU,
+  WILD_HEART_RAGE_OPTIONS_RU,
+} from '../../shared/dnd/barbarian2024Features'
 import {
   emptyFeaturePicks,
   getFeaturePickList,
@@ -66,6 +70,8 @@ import {
 import {
   backgroundAsiTrio,
   backgroundNeedsToolPick,
+  artificerCreatePicksNeed2024,
+  barbarianCreatePicksNeed2024,
   bardCreatePicksNeed2024,
   classSkillNeed,
   classStartingPacks,
@@ -74,6 +80,7 @@ import {
   fightingStyleFeats,
   l1Invocations,
   masteryWeaponOptions,
+  plannedPrimaryClassLevel,
   setAsiFlat1,
   setAsiPlus2Plus1,
   speciesLineages,
@@ -82,6 +89,7 @@ import {
   speciesSizeOptions,
   toolChoicePool,
   weaponMasteryLimit,
+  rangerCreatePicksNeed2024,
 } from './createPipeline2024State'
 import {
   entryData,
@@ -148,7 +156,8 @@ export function ClassPicks({
   classEntry,
 }: PicksBase & { classEntry: CatalogEntry }) {
   const skills = classSkillNeed(classEntry)
-  const masteryLimit = weaponMasteryLimit(state.classSlug)
+  // Use planned primary level so create-at-N / «Изменить на шаге Класс» can fill 2→3→4.
+  const masteryLimit = weaponMasteryLimit(state.classSlug, plannedPrimaryClassLevel(state))
   const masteryOptions = masteryWeaponOptions(classEntry, catalog.weapons)
   const styleFeats = fightingStyleFeats(catalog.feats)
   const toolChoice = classToolChoice(classEntry)
@@ -468,6 +477,108 @@ export function ArtificerLevelingPicks({
           multi={false}
           testIdPrefix="p24-m03-pick-spell_storing"
           onChange={(picked) => setPicks({ spell_storing_spell: picked[0] ?? null })}
+        />
+      ) : null}
+    </Stack>
+  )
+}
+
+export function BarbarianLevelingPicks({
+  state,
+  patch,
+  catalog,
+}: {
+  state: Create2024State
+  patch: (partial: Partial<Create2024State>) => void
+  catalog: Create2024CatalogBundle | null
+}) {
+  const need = barbarianCreatePicksNeed2024(state)
+  if (
+    !need.wildHeartRage &&
+    !need.wildHeartAspect &&
+    !need.wildHeartPower &&
+    !need.masteryTopUp
+  ) {
+    return null
+  }
+  const setPicks = (partial: Record<string, unknown>) =>
+    patch({ classOptionPicks: { ...state.classOptionPicks, ...partial } })
+  const classEntry = catalog?.classes?.find((row) => row.slug === 'barbarian') ?? null
+  const masteryOptions = masteryWeaponOptions(classEntry, catalog?.weapons ?? []).map((row) => ({
+    id: row.entry.slug,
+    label: row.entry.name_ru,
+    rest: masteryPropertyNameRu(row.mastery),
+  }))
+
+  return (
+    <Stack gap={14}>
+      {need.masteryTopUp && masteryOptions.length > 0 ? (
+        <PickChipGroup
+          label="Доп. оружейное мастерство"
+          hint={`Выберите ${need.masteryLimit} оружия (прокачка).`}
+          options={masteryOptions}
+          selected={state.weaponMasteryIds}
+          max={need.masteryLimit}
+          multi
+          testIdPrefix="p24-m03-pick-weapon_mastery_leveling"
+          onChange={(weaponMasteryIds) => patch({ weaponMasteryIds })}
+        />
+      ) : null}
+      {need.wildHeartRage ? (
+        <PickChipGroup
+          label="Ярость дикой природы"
+          hint="Волк, Медведь или Орёл (с 3 ур.)."
+          options={Object.entries(WILD_HEART_RAGE_OPTIONS_RU).map(([id, label]) => ({
+            id,
+            label,
+          }))}
+          selected={
+            state.classOptionPicks.wild_heart_rage
+              ? [String(state.classOptionPicks.wild_heart_rage)]
+              : []
+          }
+          max={1}
+          multi={false}
+          testIdPrefix="p24-m03-pick-wild_heart_rage"
+          onChange={(picked) => setPicks({ wild_heart_rage: picked[0] ?? null })}
+        />
+      ) : null}
+      {need.wildHeartAspect ? (
+        <PickChipGroup
+          label="Аспект дикой природы"
+          hint="С 6 уровня."
+          options={Object.entries(WILD_HEART_ASPECT_OPTIONS_RU).map(([id, label]) => ({
+            id,
+            label,
+          }))}
+          selected={
+            state.classOptionPicks.wild_heart_aspect
+              ? [String(state.classOptionPicks.wild_heart_aspect)]
+              : []
+          }
+          max={1}
+          multi={false}
+          testIdPrefix="p24-m03-pick-wild_heart_aspect"
+          onChange={(picked) => setPicks({ wild_heart_aspect: picked[0] ?? null })}
+        />
+      ) : null}
+      {need.wildHeartPower ? (
+        <PickChipGroup
+          label="Сила дикой природы"
+          hint="С 14 уровня."
+          options={Object.entries(WILD_HEART_POWER_OPTIONS_RU).map(([id, label]) => ({
+            id,
+            label,
+          }))}
+          selected={
+            state.classOptionPicks.wild_heart_power
+              ? [String(state.classOptionPicks.wild_heart_power)]
+              : []
+          }
+          max={1}
+          multi={false}
+          testIdPrefix="p24-m03-pick-wild_heart_power"
+          onChange={(picked) => setPicks({ wild_heart_power: picked[0] ?? null })}
         />
       ) : null}
     </Stack>

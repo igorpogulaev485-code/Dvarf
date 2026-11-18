@@ -421,13 +421,65 @@ export function SheetDialogsResources({ model }: { model: SheetModel }) {
       model.onToast(result.message ?? 'Не удалось применить умение')
       return
     }
-    model.setDraft((prev) => ({
-      ...prev,
-      play: {
-        ...prev.play,
-        resources: result.resources,
-      },
-    }))
+    const patch = result.patches?.classOptionsPatch
+    model.setDraft((prev) => {
+      let classOptions2024 = prev.classOptions2024
+      if (patch) {
+        const ragePrev = classOptions2024?.rage ?? {
+          active: false,
+          rounds_extended: 0,
+          max_minutes: 10,
+        }
+        classOptions2024 = {
+          ...(classOptions2024 ?? {
+            eldritch_invocations: [],
+            metamagic: [],
+            replicate_plans: [],
+            replicate_active: [],
+            spell_storing_spell: null,
+            rage: ragePrev,
+          }),
+          ...(patch.wild_heart_aspect != null
+            ? { wild_heart_aspect: patch.wild_heart_aspect }
+            : {}),
+          rage: {
+            ...ragePrev,
+            ...(patch.rage ?? {}),
+            max_minutes: 10,
+          },
+        }
+      }
+      return {
+        ...prev,
+        classOptions2024,
+        play: {
+          ...prev.play,
+          resources: result.resources,
+        },
+      }
+    })
+    const incomingTemp =
+      typeof result.tempHp === 'number' ? Math.max(0, Math.floor(result.tempHp)) : 0
+    if (incomingTemp > 0) {
+      const current = Math.max(0, model.draft.play.hpTemp || 0)
+      const applyTemp = (value: number) =>
+        model.setDraft((prev) => ({
+          ...prev,
+          play: { ...prev.play, hpTemp: value },
+        }))
+      const ask = model.askTempHpReplace as
+        | ((input: { current: number; incoming: number }) => Promise<'keep' | 'replace'>)
+        | undefined
+      if (current <= 0) {
+        applyTemp(incomingTemp)
+      } else if (typeof ask === 'function') {
+        void ask({ current, incoming: incomingTemp }).then((choice) =>
+          applyTemp(chooseTempHpPool(current, incomingTemp, choice)),
+        )
+      } else {
+        applyTemp(Math.max(current, incomingTemp))
+      }
+    }
     model.onToast(result.message)
     model.setBarbarianFeatureUse(null)
   }
@@ -939,6 +991,19 @@ export function SheetDialogsResources({ model }: { model: SheetModel }) {
   })()
 
   const wearingHeavyArmor = model.armorPiecesForSpeed?.armor?.kind === 'heavy'
+
+  const barbarianSubclassSlug = (() => {
+    const entry = barbarianRequest
+      ? model.draft.classes.find((row) => row.id === barbarianRequest.classEntryId)
+      : null
+    return (
+      entry?.subclass_catalog_id ??
+      (barbarianRequest?.classEntryId
+        ? model.subclassSlugByEntryId?.[barbarianRequest.classEntryId]
+        : null) ??
+      null
+    )
+  })()
 
   const artificerRequest = model.artificerFeatureUse as ArtificerFeatureRequest | null
   const artificer2024Use =
@@ -1515,6 +1580,8 @@ export function SheetDialogsResources({ model }: { model: SheetModel }) {
           resources={model.draft.play.resources}
           barbarianLevel={barbarianLevel}
           wearingHeavyArmor={wearingHeavyArmor}
+          subclassSlug={barbarianSubclassSlug}
+          classOptions2024={model.draft.classOptions2024}
           onClose={() => model.setBarbarianFeatureUse(null)}
           onConfirm={onBarbarianUseConfirm}
         />
