@@ -653,10 +653,38 @@ def validate_class_options_update(
     land_src = src.get("land_choice") if "land_choice" in src else prev.get("land_choice")
     land_choice = str(land_src or "").strip().lower()
 
+    active_src = (
+        src.get("replicate_active") if "replicate_active" in src else prev.get("replicate_active")
+    )
+    replicate_active: list[dict[str, Any]] = []
+    if isinstance(active_src, (list, tuple)):
+        for i, row in enumerate(active_src):
+            if not isinstance(row, Mapping):
+                continue
+            pid = str(row.get("plan_id") or row.get("planId") or "").strip().lower().replace("_", "-")
+            if not pid:
+                continue
+            replicate_active.append(
+                {
+                    "plan_id": pid,
+                    "attuned": bool(row.get("attuned")),
+                    "seq": int(row.get("seq") if row.get("seq") is not None else i),
+                }
+            )
+
+    spell_src = (
+        src.get("spell_storing_spell")
+        if "spell_storing_spell" in src
+        else prev.get("spell_storing_spell")
+    )
+    spell_storing = str(spell_src or "").strip().lower().replace("_", "-") or None
+
     result: dict[str, Any] = {
         "eldritch_invocations": invocations,
         "metamagic": metamagic,
         "replicate_plans": plans,
+        "replicate_active": replicate_active,
+        "spell_storing_spell": spell_storing,
         "rage": rage_out,
         "catalog": {
             "invocations": [

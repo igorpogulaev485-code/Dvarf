@@ -35,6 +35,11 @@ import { Cleric2024UseDialog, type ClericFeatureRequest } from '../Cleric2024Use
 import { Paladin2024UseDialog, type PaladinFeatureRequest } from '../Paladin2024UseDialog'
 import { Ranger2024UseDialog, type RangerFeatureRequest } from '../Ranger2024UseDialog'
 import { Fighter2024UseDialog, type FighterFeatureRequest } from '../Fighter2024UseDialog'
+import { Artificer2024UseDialog, type ArtificerFeatureRequest } from '../Artificer2024UseDialog'
+import {
+  artificer2024UseFeatureId,
+  type Artificer2024UseResult,
+} from '../../../shared/dnd/artificer2024Features'
 import { Bard2024UseDialog, type BardFeatureRequest } from '../Bard2024UseDialog'
 import {
   BARD_SUBCLASS_SLUGS_2024,
@@ -404,6 +409,22 @@ export function SheetDialogsResources({ model }: { model: SheetModel }) {
     }))
     model.onToast(result.message)
     model.setFighterFeatureUse(null)
+  }
+
+  const onArtificerUseConfirm = (result: Artificer2024UseResult) => {
+    if (!result.ok) {
+      model.onToast(result.message ?? 'Не удалось применить умение')
+      return
+    }
+    model.setDraft((prev) => ({
+      ...prev,
+      play: {
+        ...prev.play,
+        resources: result.resources,
+      },
+    }))
+    if (result.feedLineRu) model.onToast(result.feedLineRu)
+    model.setArtificerFeatureUse(null)
   }
 
   const onBardUseConfirm = (result: Bard2024UseResult) => {
@@ -870,6 +891,29 @@ export function SheetDialogsResources({ model }: { model: SheetModel }) {
     let level = 0
     for (const row of model.draft.classes) {
       if (resolveClassCasterSlug(row.name) === 'fighter' || /воин|боец/i.test(row.name)) {
+        level += Math.max(0, row.level || 0)
+      }
+    }
+    return level
+  })()
+
+  const artificerRequest = model.artificerFeatureUse as ArtificerFeatureRequest | null
+  const artificer2024Use =
+    model.rulesEdition === '2024' &&
+    artificerRequest != null &&
+    artificer2024UseFeatureId(artificerRequest.featureId)
+
+  const artificerLevel = (() => {
+    const entry = artificerRequest
+      ? model.draft.classes.find((row) => row.id === artificerRequest.classEntryId)
+      : null
+    if (entry) return Math.max(0, entry.level || 0)
+    let level = 0
+    for (const row of model.draft.classes) {
+      if (
+        resolveClassCasterSlug(row.name) === 'artificer' ||
+        /артефактор|изобретат/i.test(row.name)
+      ) {
         level += Math.max(0, row.level || 0)
       }
     }
@@ -1417,6 +1461,23 @@ export function SheetDialogsResources({ model }: { model: SheetModel }) {
           fighterLevel={fighterLevel}
           onClose={() => model.setFighterFeatureUse(null)}
           onConfirm={onFighterUseConfirm}
+        />
+      ) : null}
+
+      {artificer2024Use ? (
+        <Artificer2024UseDialog
+          key={`${artificerRequest?.featureId}:${artificerRequest?.classEntryId}`}
+          open
+          request={artificerRequest}
+          resources={model.draft.play.resources}
+          artificerLevel={artificerLevel}
+          classOptions2024={model.draft.classOptions2024}
+          onClassOptions2024Change={(classOptions2024) =>
+            model.setDraft((prev) => ({ ...prev, classOptions2024 }))
+          }
+          onClose={() => model.setArtificerFeatureUse(null)}
+          onConfirm={onArtificerUseConfirm}
+          onToast={model.onToast}
         />
       ) : null}
 

@@ -243,14 +243,27 @@ export async function liveLevelUp(
     if (!(await dlg.isVisible({ timeout: 2_500 }).catch(() => false))) break
     const title = ((await dlg.locator('h2, h3, [role="heading"]').first().textContent()) || '').trim()
     if (
-      /Модель доспеха|Дредноут|Страж|Диверсант|Компетентность|Первичн|Инфуз|Схем|Реплик|Железный/i.test(
+      /Модель доспеха|Дредноут|Страж|Диверсант|Компетентность|Первичн|Инфуз|Схем|Реплик|Железный|хранящ|заклинание/i.test(
         title,
       )
     ) {
-      const chip = dlg.locator('[role="checkbox"], button.ui-chip, .create-2024__pick-grid button').first()
-      if (await chip.isVisible().catch(() => false)) {
+      const chips = dlg.locator(
+        '[role="checkbox"], button.ui-chip, .create-2024__pick-grid button, .sheet-chip',
+      )
+      const n = await chips.count()
+      const head = ((await dlg.locator('h2, h3').first().textContent()) || '').match(/(\d+)\/(\d+)/)
+      const need = head ? Math.max(1, Number(head[2]) - Number(head[1])) : Math.min(n, 4)
+      let clicked = 0
+      for (let i = 0; i < n && clicked < need; i += 1) {
+        const chip = chips.nth(i)
+        if (!(await chip.isVisible().catch(() => false))) continue
+        const checked = await chip.getAttribute('aria-checked')
+        if (checked === 'true' || (await chip.evaluate((el) => el.classList.contains('is-on')))) {
+          continue
+        }
         await chip.click()
-        await page.waitForTimeout(200)
+        clicked += 1
+        await page.waitForTimeout(120)
       }
     }
     const primary = dlg.getByRole('button', { name: /^Далее$|^Готово$/ })
@@ -378,15 +391,61 @@ export async function pickSpellsToQuota(
   return need
 }
 
-/** Armorer armor model (and any underfilled chip grids on leveling). */
+/** Recommended EFA replicate plans (all available from L2 in curated catalog). */
+export const PLAN_PICK_IDS = [
+  'bag-of-holding',
+  'sending-stones',
+  'cap-of-water-breathing',
+  'goggles-of-night',
+  'alchemy-jug',
+  'lantern-of-revealing',
+  'rope-of-climbing',
+  'wand-of-magic-detection',
+] as const
+
+export function plansKnownForLevel(level: number): number {
+  if (level < 2) return 0
+  if (level >= 18) return 8
+  if (level >= 14) return 7
+  if (level >= 10) return 6
+  if (level >= 6) return 5
+  return 4
+}
+
+export async function pickReplicatePlans(page: Page, level: number) {
+  const need = plansKnownForLevel(level)
+  if (need <= 0) return
+  const ids = PLAN_PICK_IDS.slice(0, need)
+  await pickPrefixed(page, 'p24-m03-pick-replicate_plan', [...ids])
+}
+
+export async function pickSpellStoringSpell(page: Page, level: number, spellId = 'cure-wounds') {
+  if (level < 11) return
+  const chip = page.getByTestId(`p24-m03-pick-spell_storing-${spellId}`)
+  if (await chip.count()) {
+    await chip.scrollIntoViewIfNeeded()
+    if ((await chip.getAttribute('aria-checked')) !== 'true') {
+      await chip.click()
+      await expect(chip).toHaveAttribute('aria-checked', 'true')
+    }
+    return
+  }
+  // Fallback: first available SSI chip.
+  const any = page.locator('[data-testid^="p24-m03-pick-spell_storing-"]').first()
+  if (await any.count()) {
+    await any.click()
+    await expect(any).toHaveAttribute('aria-checked', 'true')
+  }
+}
+
+/** Armorer armor model + replicate plans + SSI (and any underfilled chip grids). */
 export async function pickArtificerSubclassForks(
   page: Page,
   subclassSlug: string | null,
   level: number,
   opts?: { armorModel?: 'dreadnaught' | 'infiltrator' | 'guardian' },
 ) {
-  if (!subclassSlug || level < 3) return
-  if (subclassSlug === SUB.armorer) {
+  if (subclassSlug === SUB.armorer && level >= 3) {
     const model = opts?.armorModel ?? 'dreadnaught'
     const chip = page.getByTestId(`p24-m03-pick-armor_model-${model}`)
     if (await chip.count()) {
@@ -397,6 +456,8 @@ export async function pickArtificerSubclassForks(
       }
     }
   }
+  await pickReplicatePlans(page, level)
+  await pickSpellStoringSpell(page, level)
   await fillUnderfilledPicks(page)
 }
 

@@ -19,7 +19,9 @@ import {
   liveLevelDown,
   liveLevelUp,
   magicOfMakingFromSheet,
+  openCompanionsScene,
   openFeaturesScene,
+  plansKnownForLevel,
   projectOf,
   shot,
   spellStoringFromSheet,
@@ -110,6 +112,9 @@ test.describe('P24-M02 artificer — LIVE create', () => {
     expect(sheet.spells?.slots?.['2']).toMatchObject({ max: 2 })
     expect(magicOfMakingFromSheet(sheet)?.max).toBeGreaterThanOrEqual(1)
     expect(flashOfGeniusFromSheet(sheet)).toBeUndefined()
+    const plans = sheet.class_options_2024?.replicate_plans ?? []
+    expect(plans.length).toBe(plansKnownForLevel(5))
+    expect(plans.length).toBeGreaterThan(0)
 
     if (isPhone(project)) await page.getByText('Бой', { exact: true }).last().click()
     await shot(page, ARTIFACTS, `${SHOT}-create-at-5-sheet`, project)
@@ -117,6 +122,18 @@ test.describe('P24-M02 artificer — LIVE create', () => {
     await openFeaturesScene(page, project)
     await expectFeatureNames(page, [MAGIC_OF_MAKING, SPELLCASTING, REPLICATE, EXPERIMENTAL])
     await expectNoFeatureNames(page, [FLASH, ADEPT, SPELL_STORING, SOUL])
+    await expect(page.getByTestId('class-options-plans')).toContainText(
+      new RegExp(`Известные схемы \\(${plans.length}/${plansKnownForLevel(5)}\\)`),
+    )
+    await expect(page.getByTestId('class-options-plans')).not.toContainText(/Известные схемы \(0\//)
+    // Create one replica and capture the panel.
+    const createPlan = page.getByTestId('replicate-create-plan')
+    if (await createPlan.count()) {
+      await createPlan.selectOption({ index: 1 })
+      await page.getByTestId('replicate-create-submit').click()
+      await expect(page.getByTestId('replicate-active-list')).toBeVisible()
+      await tallShot(page, ARTIFACTS, `${SHOT}-create-at-5-replicates-panel`, project)
+    }
     await expandAllFeatures(page)
     await tallShot(page, ARTIFACTS, `${SHOT}-create-at-5-alchemist-features`, project)
     expect(store.unmatched).toEqual([])
@@ -137,6 +154,8 @@ test.describe('P24-M02 artificer — LIVE create', () => {
     const sheet = store.createdSheet as Record<string, any>
     expect((flashOfGeniusFromSheet(sheet)?.max ?? 0)).toBeGreaterThanOrEqual(1)
     expect((spellStoringFromSheet(sheet)?.max ?? 0)).toBeGreaterThanOrEqual(2)
+    expect((sheet.class_options_2024?.replicate_plans ?? []).length).toBe(plansKnownForLevel(11))
+    expect(String(sheet.class_options_2024?.spell_storing_spell || '')).toBeTruthy()
 
     await openFeaturesScene(page, project)
     await expectFeatureNames(page, [FLASH, SPELL_STORING, TINKER, REPLICATE])
@@ -145,9 +164,19 @@ test.describe('P24-M02 artificer — LIVE create', () => {
       timeout: 15_000,
     })
     await expectNoFeatureNames(page, [SOUL])
+    await expect(page.getByTestId('class-options-plans')).not.toContainText(/Известные схемы \(0\//)
     await expandAllFeatures(page)
     const flash = await featureCard(page, FLASH)
     await expandCard(flash)
+    const ssi = await featureCard(page, SPELL_STORING)
+    await expandCard(ssi)
+    const ssiBtn = ssi.getByRole('button', { name: /Хранящий предмет/i })
+    if (await ssiBtn.count()) {
+      await ssiBtn.click()
+      await expect(page.getByTestId('ssi-spell-chips')).toBeVisible()
+      await tallShot(page, ARTIFACTS, `${SHOT}-create-at-11-ssi-dialog`, project)
+      await page.getByRole('button', { name: /^Готово$|^Отмена$|^Закрыть$/ }).last().click()
+    }
     await tallShot(page, ARTIFACTS, `${SHOT}-create-at-11-alchemist-features`, project)
     expect(store.unmatched).toEqual([])
   })
@@ -181,6 +210,16 @@ test.describe('P24-M02 artificer — subclasses @5', () => {
     await openFeaturesScene(page, project)
     await expectFeatureNames(page, [ELDRITCH_CANNON, MAGIC_OF_MAKING])
     await tallShot(page, ARTIFACTS, `${SHOT}-create-at-5-artillerist-features`, project)
+    await openCompanionsScene(page, project)
+    const panel = page.locator('.companions-panel, .play-desk__scene').first()
+    await expect(panel.getByText(/Мистическая пушка/i).first()).toBeVisible({ timeout: 20_000 })
+    // Expand companion row if collapsed.
+    const row = panel.getByText(/Мистическая пушка/i).first()
+    await row.click()
+    await expect(panel.getByText(/КД|хит|огнемёт|баллиста|защитник|режим/i).first()).toBeVisible({
+      timeout: 10_000,
+    })
+    await tallShot(page, ARTIFACTS, `${SHOT}-create-at-5-artillerist-companion`, project)
   })
 
   test('create-at-5 battle-smith: Стальной защитник', async ({ page }, testInfo) => {
@@ -193,6 +232,14 @@ test.describe('P24-M02 artificer — subclasses @5', () => {
     await openFeaturesScene(page, project)
     await expectFeatureNames(page, [STEEL_DEFENDER, MAGIC_OF_MAKING])
     await tallShot(page, ARTIFACTS, `${SHOT}-create-at-5-battle-smith-features`, project)
+    await openCompanionsScene(page, project)
+    const panel = page.locator('.companions-panel, .play-desk__scene').first()
+    await expect(panel.getByText(/Стальной защитник/i).first()).toBeVisible({ timeout: 20_000 })
+    await panel.getByText(/Стальной защитник/i).first().click()
+    await expect(panel.getByText(/КД|хит|ремонт|сила|действие/i).first()).toBeVisible({
+      timeout: 10_000,
+    })
+    await tallShot(page, ARTIFACTS, `${SHOT}-create-at-5-battle-smith-companion`, project)
   })
 
   test('create-at-5 cartographer: Атлас приключений', async ({ page }, testInfo) => {
@@ -241,6 +288,10 @@ test.describe('P24-M02 artificer — level-up / level-down', () => {
       expectUpcoming: [SPELL_STORING],
     })
     await waitStored(store, (s) => s.classes?.[0]?.level === 11)
+    await waitStored(
+      store,
+      (s) => Boolean(String(s.class_options_2024?.spell_storing_spell || '').trim()),
+    )
     await openFeaturesScene(page, project)
     await expectFeatureNames(page, [SPELL_STORING, FLASH])
     await tallShot(page, ARTIFACTS, `${SHOT}-levelup-10to11-sheet-features`, project)
@@ -308,8 +359,10 @@ test.describe('P24-M02 artificer — capstone', () => {
       subclassSlug: SUB.alchemist,
     })
     expect(sheet.classes?.[0]?.level).toBe(20)
+    expect((sheet.class_options_2024?.replicate_plans ?? []).length).toBe(plansKnownForLevel(20))
     await openFeaturesScene(page, project)
     await expectFeatureNames(page, [SOUL, EPIC, FLASH, SPELL_STORING])
+    await expect(page.getByTestId('class-options-plans')).not.toContainText(/Известные схемы \(0\//)
     const soul = await featureCard(page, SOUL)
     await expandCard(soul)
     await expect(soul).toContainText(/Обман смерти|магическ|реплик|спас/i)

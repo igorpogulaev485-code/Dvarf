@@ -19,6 +19,7 @@ import type { BardFeatureRequest } from '../Bard2024UseDialog'
 import type { DruidFeatureRequest } from '../Druid2024UseDialog'
 import type { RangerFeatureRequest } from '../Ranger2024UseDialog'
 import type { FighterFeatureRequest } from '../Fighter2024UseDialog'
+import type { ArtificerFeatureRequest } from '../Artificer2024UseDialog'
 import { type FamiliarCastMode } from '../familiarForms'
 import { withInitiativeBonus } from '../modifiers'
 import { type ToastInput } from '../../../ui'
@@ -261,6 +262,10 @@ export function useSheetEditorPart4(model: SheetModel) {
     useState<FighterFeatureRequest | null>(null)
   model.fighterFeatureUse = fighterFeatureUse
   model.setFighterFeatureUse = setFighterFeatureUse
+  const [artificerFeatureUse, setArtificerFeatureUse] =
+    useState<ArtificerFeatureRequest | null>(null)
+  model.artificerFeatureUse = artificerFeatureUse
+  model.setArtificerFeatureUse = setArtificerFeatureUse
   const [infusionsSpendId, setInfusionsSpendId] = useState<string | null>(null)
   model.infusionsSpendId = infusionsSpendId
   model.setInfusionsSpendId = setInfusionsSpendId

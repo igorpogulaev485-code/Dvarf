@@ -2904,15 +2904,18 @@ function FeatureRow({
       {replacementStatus === 'active' &&
       edition === '2024' &&
       onArtificerFeatureUse &&
-      !feature.resource?.pool_id &&
-      artificer2024UseFeatureId(feature.id) ? (
+      artificer2024UseFeatureId(feature.id) &&
+      (!feature.resource?.pool_id ||
+        /spell-storing|spell_storing|replicate-magic|replicate_magic/i.test(feature.id)) ? (
         <div className="feature-resource__actions">
           <Button
             type="button"
             onClick={() =>
               onArtificerFeatureUse({
                 featureId: feature.id,
-                resourceId: null,
+                resourceId: feature.resource
+                  ? `feat:${classSlug}:${feature.resource.pool_id}:${feature.classEntryId}`
+                  : null,
                 classSlug,
                 classEntryId: feature.classEntryId,
                 name: feature.name_ru,

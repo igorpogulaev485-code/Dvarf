@@ -34,12 +34,30 @@ import {
 } from '../../shared/dnd/classFeatures'
 import { filterTceCatalogOptions } from '../../shared/dnd/filterTceCatalogOptions'
 import {
+  ARTIFICER_REPLICATE_PLANS_2024,
   ELDRITCH_INVOCATIONS_2024,
   METAMAGIC_2024,
   metamagicKnownLimit2024,
   warlockInvocationLimit2024,
   type ClassOptions2024State,
 } from '../../shared/dnd/edition2024ClassOptions'
+import { PLANS_KNOWN_COLUMN_RU, replicateLimits2024, SPELL_STORING_ITEM_NAME_RU } from '../../shared/dnd/artificer2024Features'
+
+/** Curated artificer 1–3 circle spells for Spell-Storing Item wizard step. */
+const SPELL_STORING_OPTIONS_2024: Array<{ id: string; label: string }> = [
+  { id: 'cure-wounds', label: 'Лечение ран' },
+  { id: 'detect-magic', label: 'Обнаружение магии' },
+  { id: 'faerie-fire', label: 'Огонь фей' },
+  { id: 'grease', label: 'Смазка' },
+  { id: 'jump', label: 'Прыжок' },
+  { id: 'longstrider', label: 'Скороход' },
+  { id: 'heat-metal', label: 'Раскалённый металл' },
+  { id: 'invisibility', label: 'Невидимость' },
+  { id: 'enlarge-reduce', label: 'Увеличение/уменьшение' },
+  { id: 'fly', label: 'Полёт' },
+  { id: 'haste', label: 'Ускорение' },
+  { id: 'revivify', label: 'Оживление' },
+]
 import {
   invocationUnavailableReason2024,
   invocationsDependingOn2024,
@@ -994,6 +1012,17 @@ export function GuidedWizardDialog({
     step?.kind === 'invocation_picks' &&
     invocationCount >= Math.min(step.picksNeeded, invocationLimit)
 
+  const replicatePlansLimit =
+    step?.kind === 'replicate_plans' ? replicateLimits2024(step.classLevel).plansKnown : 0
+  const replicatePlansCount =
+    step?.kind === 'replicate_plans' ? (classOptions2024?.replicate_plans.length ?? 0) : 0
+  const replicatePlansReady =
+    step?.kind === 'replicate_plans' && replicatePlansCount >= replicatePlansLimit
+
+  const spellStoringReady =
+    step?.kind === 'spell_storing_spell' &&
+    Boolean(String(classOptions2024?.spell_storing_spell || '').trim())
+
   const knownFormsCount =
     step?.kind === 'known_forms' ? (knownForms ?? []).filter(isCountedKnownForm2024).length : 0
   const knownFormsReady = step?.kind === 'known_forms' && knownFormsCount >= step.budget
@@ -1028,11 +1057,15 @@ export function GuidedWizardDialog({
                     ? !metamagicReady
                     : step?.kind === 'invocation_picks'
                       ? !invocationReady
-                      : step?.kind === 'known_forms'
-                        ? !knownFormsReady
-                        : step?.kind === 'lore_discoveries'
-                          ? !loreDiscoveriesReady
-                          : false
+                      : step?.kind === 'replicate_plans'
+                        ? !replicatePlansReady
+                        : step?.kind === 'spell_storing_spell'
+                          ? !spellStoringReady
+                          : step?.kind === 'known_forms'
+                            ? !knownFormsReady
+                            : step?.kind === 'lore_discoveries'
+                              ? !loreDiscoveriesReady
+                              : false
 
   const title = !step
     ? 'Настройка персонажа'
@@ -1054,13 +1087,17 @@ export function GuidedWizardDialog({
                     ? `Метамагия · ${step.className} ${step.classLevel}`
                     : step.kind === 'invocation_picks'
                       ? `Воззвания · ${step.className} ${step.classLevel}`
-                      : step.kind === 'lore_discoveries'
-                        ? `Доп. магические тайны · ${step.className} ${step.classLevel}`
-                      : step.kind === 'known_forms'
-                        ? `Известные облики · ${step.className} ${step.classLevel}`
-                        : step.kind === 'feature_choice'
-                        ? `${step.choice.label_ru} · ${step.className}`
-                        : 'Настройка персонажа'
+                      : step.kind === 'replicate_plans'
+                        ? `${PLANS_KNOWN_COLUMN_RU} · ${step.className} ${step.classLevel}`
+                        : step.kind === 'spell_storing_spell'
+                          ? `${SPELL_STORING_ITEM_NAME_RU} · ${step.className}`
+                          : step.kind === 'lore_discoveries'
+                            ? `Доп. магические тайны · ${step.className} ${step.classLevel}`
+                            : step.kind === 'known_forms'
+                              ? `Известные облики · ${step.className} ${step.classLevel}`
+                              : step.kind === 'feature_choice'
+                                ? `${step.choice.label_ru} · ${step.className}`
+                                : 'Настройка персонажа'
 
   const choosingFeat =
     (step?.kind === 'asi' && asiUiMode === 'feat') || step?.kind === 'feat'
@@ -1193,6 +1230,28 @@ export function GuidedWizardDialog({
         return
       }
       onToast?.('Воззвания: готово')
+      onAdvance(index + 1)
+      return
+    }
+
+    if (step.kind === 'replicate_plans') {
+      if (!replicatePlansReady) {
+        onToast?.(
+          `Выбери схемы: ${replicatePlansCount}/${replicatePlansLimit}`,
+        )
+        return
+      }
+      onToast?.(`${PLANS_KNOWN_COLUMN_RU}: готово`)
+      onAdvance(index + 1)
+      return
+    }
+
+    if (step.kind === 'spell_storing_spell') {
+      if (!spellStoringReady) {
+        onToast?.(`Выбери заклинание для «${SPELL_STORING_ITEM_NAME_RU}»`)
+        return
+      }
+      onToast?.(`${SPELL_STORING_ITEM_NAME_RU}: готово`)
       onAdvance(index + 1)
       return
     }
@@ -1452,6 +1511,75 @@ export function GuidedWizardDialog({
                     }}
                   >
                     {row.nameRu}
+                  </button>
+                )
+              })}
+            </div>
+          </Stack>
+        ) : null}
+        {step.kind === 'replicate_plans' ? (
+          <Stack gap={12}>
+            <Text tone="muted">
+              {PLANS_KNOWN_COLUMN_RU}: {replicatePlansCount}/{replicatePlansLimit} (нужно ещё{' '}
+              {Math.max(0, replicatePlansLimit - replicatePlansCount)}).
+            </Text>
+            <div className="sheet-chip-row" data-testid="wizard-replicate-plans">
+              {ARTIFICER_REPLICATE_PLANS_2024.filter((row) => row.minLevel <= step.classLevel).map(
+                (row) => {
+                  const selected = classOptions2024?.replicate_plans.includes(row.id) ?? false
+                  return (
+                    <button
+                      key={row.id}
+                      type="button"
+                      className={`sheet-chip${selected ? ' is-on' : ''}`}
+                      title={`${row.rarity} · с ${row.minLevel} ур.`}
+                      onClick={() => {
+                        if (!classOptions2024 || !onClassOptions2024Change) return
+                        const cur = new Set(classOptions2024.replicate_plans)
+                        if (cur.has(row.id)) cur.delete(row.id)
+                        else {
+                          if (cur.size >= replicatePlansLimit) {
+                            onToast?.(`Лимит схем: ${replicatePlansLimit}`)
+                            return
+                          }
+                          cur.add(row.id)
+                        }
+                        onClassOptions2024Change({
+                          ...classOptions2024,
+                          replicate_plans: [...cur],
+                        })
+                      }}
+                    >
+                      {row.nameRu}
+                    </button>
+                  )
+                },
+              )}
+            </div>
+          </Stack>
+        ) : null}
+        {step.kind === 'spell_storing_spell' ? (
+          <Stack gap={12}>
+            <Text tone="muted">
+              Выбери заклинание артефактора 1–3 круга для «{SPELL_STORING_ITEM_NAME_RU}».
+            </Text>
+            <div className="sheet-chip-row" data-testid="wizard-spell-storing">
+              {SPELL_STORING_OPTIONS_2024.map((row) => {
+                const selected = classOptions2024?.spell_storing_spell === row.id
+                return (
+                  <button
+                    key={row.id}
+                    type="button"
+                    className={`sheet-chip${selected ? ' is-on' : ''}`}
+                    onClick={() => {
+                      if (!classOptions2024 || !onClassOptions2024Change) return
+                      onClassOptions2024Change({
+                        ...classOptions2024,
+                        spell_storing_spell: row.id,
+                      })
+                    }}
+                  >
+                    {row.label}
                   </button>
                 )
               })}

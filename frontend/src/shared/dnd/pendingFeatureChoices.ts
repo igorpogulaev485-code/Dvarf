@@ -117,6 +117,21 @@ export type GuidedWizardStep =
       budget: number
       subclassSlug: string | null
     }
+  | {
+      id: string
+      kind: 'replicate_plans'
+      classEntryId: string
+      className: string
+      classLevel: number
+      picksNeeded: number
+    }
+  | {
+      id: string
+      kind: 'spell_storing_spell'
+      classEntryId: string
+      className: string
+      classLevel: number
+    }
 
 export function backgroundWizardStep(): GuidedWizardStep {
   return {
