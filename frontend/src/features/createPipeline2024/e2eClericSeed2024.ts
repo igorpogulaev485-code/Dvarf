@@ -168,7 +168,8 @@ export function buildClericClassOptionPicks(
   subclassSlug: string | null | undefined,
 ): Record<string, unknown> {
   const out: Record<string, unknown> = {
-    divine_order: 'thaumaturge',
+    // Protector avoids the +1 cantrip budget (thaumaturge) so seed cantrips stay stable.
+    divine_order: 'protector',
   }
   if (level >= 7) out.blessed_strikes = 'potent_spellcasting'
   const sub = String(subclassSlug || '').toLowerCase()
