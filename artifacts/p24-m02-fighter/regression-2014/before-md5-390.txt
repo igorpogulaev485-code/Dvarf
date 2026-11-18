@@ -1,6 +1,6 @@
-593794cbc8945111beb093cf3ee71614  before-create-2014-race-marker-390.png
 323074c5c94353d9d9d5621e260800a2  before-create-2014-fighter-class-390.png
-db4db4bd84985a9d56f361ab9d1eac15  before-sheet-2014-fighter-header-390.png
+593794cbc8945111beb093cf3ee71614  before-create-2014-race-marker-390.png
+35115387ef377a0a8778d5c62d03581e  before-sheet-2014-battlemaster-features-390.png
 d2c3b7f8b8ca05904a702d8bc49bc822  before-sheet-2014-fighter-abilities-390.png
 7daafabe57b6856ee96dc936112cc219  before-sheet-2014-fighter-features-390.png
-35115387ef377a0a8778d5c62d03581e  before-sheet-2014-battlemaster-features-390.png
+db4db4bd84985a9d56f361ab9d1eac15  before-sheet-2014-fighter-header-390.png

@@ -1,5 +1,5 @@
-9830fb7a6c0acc068819fff2aeb16b0e  after-create-2014-race-marker-1440.png
 29f8f6fdd8c936c38262d259590389a8  after-create-2014-fighter-class-1440.png
+9830fb7a6c0acc068819fff2aeb16b0e  after-create-2014-race-marker-1440.png
+78ef4b360711c78f5bf4b6c6bd86ad57  after-sheet-2014-battlemaster-features-1440.png
 95fbd74028a25984ec051a5c2411f79f  after-sheet-2014-fighter-1440.png
 da40e0146d42df8ba30df376f076d8cc  after-sheet-2014-fighter-features-1440.png
-78ef4b360711c78f5bf4b6c6bd86ad57  after-sheet-2014-battlemaster-features-1440.png

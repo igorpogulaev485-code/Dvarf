@@ -1,20 +1,22 @@
 # P24-M02-fighter — регресс 2014 (md5)
 
-Точка «до»: `fa481f44133d68b3165d832afc4c8d16564b89df` (tip artificer / #514).
+Точка «до» (после доправки 1 артефактора): `27ee74f7d87ec51faa562758ee6784bd6ee50464`
+(`cursor/edition-p24-m02-artificer`, #514). Первичный старт пачки был `fa481f44`; baseline
+переснят после merge tip артефактора в fighter.
 
 ## Как снимали
 
 ```bash
-# before — worktree на tip artificer
-git worktree add /tmp/fighter-before fa481f44133d68b3165d832afc4c8d16564b89df
+# before — worktree на tip artificer (доправка 1)
+git worktree add /tmp/fighter-before 27ee74f7d87ec51faa562758ee6784bd6ee50464
 cd /tmp/fighter-before/frontend && ln -sfn /path/to/branch/frontend/node_modules node_modules
 cp <branch>/frontend/playwright.p24-m02-fighter.config.ts .
 cp <branch>/frontend/e2e/p24-m02-fighter-regression-2014.spec.ts e2e/
 cp <branch>/frontend/e2e/support/fighter2014Mock.ts e2e/support/
-P24_M02_FIGHTER_SHOT_TAG=before P24_E2E_PORT=5191 npx playwright test \
+P24_M02_FIGHTER_SHOT_TAG=before P24_E2E_PORT=5193 npx playwright test \
   --config=playwright.p24-m02-fighter.config.ts p24-m02-fighter-regression-2014
 
-# after — эта ветка
+# after — эта ветка (после merge artificer)
 P24_M02_FIGHTER_SHOT_TAG=after npm run test:e2e:p24-m02-fighter -- p24-m02-fighter-regression-2014
 ```
 
