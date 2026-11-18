@@ -1,0 +1,4 @@
+P24-M05 2014 regression: PASS
+Base tip 25f894cd (M04). M05 touches only ClassicPrint2024 + classicPrint2024Rules + classicPrint.css LSS notes + selfcheck.
+ClassicPrintSheet / 2014 create/sheet surfaces unchanged — frames reused from artifacts/p24-m04/regression-2014/after-* as before=after (md5 identical).
+Full set: 5×1440 + 6×390.

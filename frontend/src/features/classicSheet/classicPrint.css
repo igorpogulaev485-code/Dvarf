@@ -3084,6 +3084,42 @@
   font-weight: 650;
 }
 
+/* P24-M05: compact 2024 rules captions on print (no interactive). */
+.classic-lss-rules-note {
+  margin: 0;
+  width: 100%;
+  font-size: 0.48rem;
+  font-weight: 500;
+  line-height: 1.25;
+  color: var(--lss-soft-ink, var(--c-ink-muted, #5a5348));
+  white-space: normal;
+}
+
+.classic-lss-origin-line {
+  margin-top: 0.08rem;
+  grid-column: 1 / -1;
+}
+
+.classic-lss-insp-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.08rem;
+  margin-top: auto;
+}
+
+.classic-lss-insp-wrap .classic-lss-insp {
+  margin-top: 0;
+}
+
+.classic-lss-mastery-slots {
+  margin: 0 0 0.08rem;
+  padding: 0 0.04in;
+}
+
+.classic-lss-hd .classic-lss-rules-note {
+  margin-top: 0.1rem;
+}
+
 .classic-lss-training {
   display: flex;
   flex-direction: column;

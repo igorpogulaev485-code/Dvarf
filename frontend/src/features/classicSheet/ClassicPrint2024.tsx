@@ -54,6 +54,16 @@ import {
 import { ClassicTextBlock } from './ClassicTextBlock'
 import { ClassicFitInput } from './ClassicFitInput'
 import { ClassicStaticField } from './ClassicStaticField'
+import {
+  PRINT_EXHAUSTION_2024_NOTE,
+  PRINT_HEROIC_INSPIRATION_2024_NOTE,
+  PRINT_REST_2024_NOTE,
+  classicPrintBackgroundOriginLine2024,
+  classicPrintSpeciesLabel2024,
+  classicPrintWeaponCatalogIds,
+  classicPrintWeaponMasteryNote2024,
+  classicPrintWeaponMasterySlotsLine2024,
+} from './classicPrint2024Rules'
 
 type Props = {
   character: CharacterDetail
@@ -156,6 +166,10 @@ export function ClassicPrint2024({ character: c, onPrintSettings }: Props) {
   const castProfiles = classicCastProfiles(c)
   const coins = inventoryCoins(c)
   const weapons = classicWeaponRows(c)
+  const weaponCatalogIds = classicPrintWeaponCatalogIds(c)
+  const speciesLabel = blank ? '' : classicPrintSpeciesLabel2024(c)
+  const masterySlotsLine = blank ? '' : classicPrintWeaponMasterySlotsLine2024(c)
+  const backgroundOriginLine = blank ? '' : classicPrintBackgroundOriginLine2024(c)
   const pb = proficiency ?? 0
   const passivePerception = blank
     ? ''
@@ -205,11 +219,11 @@ export function ClassicPrint2024({ character: c, onPrintSettings }: Props) {
               </label>
               <label>
                 <ClassicFitInput
-                  value={c.race_name ?? ''}
+                  value={speciesLabel}
                   wrap
-                  aria-label="Раса"
+                  aria-label="Вид"
                 />
-                <span>Раса</span>
+                <span>Вид</span>
               </label>
               <label>
                 <ClassicFitInput
@@ -220,6 +234,11 @@ export function ClassicPrint2024({ character: c, onPrintSettings }: Props) {
                 <span>Подкласс</span>
               </label>
             </div>
+            {backgroundOriginLine ? (
+              <p className="classic-lss-rules-note classic-lss-origin-line" aria-label="Предыстория 2024">
+                {backgroundOriginLine}
+              </p>
+            ) : null}
           </div>
 
           <div className="classic-lss-level">
@@ -308,6 +327,9 @@ export function ClassicPrint2024({ character: c, onPrintSettings }: Props) {
                  readOnly />
                 <span>Кость</span>
               </label>
+              <p className="classic-lss-rules-note" aria-label="Отдых 2024">
+                {PRINT_REST_2024_NOTE}
+              </p>
             </div>
             <div className="classic-lss-death">
               <span className="classic-lss-block-title">Смерть</span>
@@ -389,6 +411,9 @@ export function ClassicPrint2024({ character: c, onPrintSettings }: Props) {
                   label={`Истощение ${i + 1}`}
                 />
               ))}
+              <span className="classic-lss-rules-note" aria-label="Истощение 2024">
+                {PRINT_EXHAUSTION_2024_NOTE}
+              </span>
             </div>
 
             <div className="classic-lss-training">
@@ -445,13 +470,18 @@ export function ClassicPrint2024({ character: c, onPrintSettings }: Props) {
               </div>
             </div>
 
-            <label className="classic-insp classic-lss-insp">
-              <input
-                type="checkbox"
-                checked={Boolean(combatField(c, 'inspiration'))}
-               disabled />
-              Героическое вдохновение
-            </label>
+            <div className="classic-lss-insp-wrap">
+              <label className="classic-insp classic-lss-insp">
+                <input
+                  type="checkbox"
+                  checked={Boolean(combatField(c, 'inspiration'))}
+                 disabled />
+                Героическое вдохновение
+              </label>
+              <span className="classic-lss-rules-note" aria-label="Героическое вдохновение 2024">
+                {PRINT_HEROIC_INSPIRATION_2024_NOTE}
+              </span>
+            </div>
           </div>
 
           <div className="classic-lss-p1-right">
@@ -483,43 +513,75 @@ export function ClassicPrint2024({ character: c, onPrintSettings }: Props) {
             </div>
 
             <div className="classic-panel classic-lss-weapons">
+              {masterySlotsLine ? (
+                <p
+                  className="classic-lss-rules-note classic-lss-mastery-slots"
+                  aria-label="Оружейное мастерство"
+                >
+                  Мастерство оружия: {masterySlotsLine}
+                </p>
+              ) : (
+                <p
+                  className="classic-lss-rules-note classic-lss-mastery-slots"
+                  aria-label="Оружейное мастерство"
+                >
+                  Мастерство оружия
+                </p>
+              )}
               <div className="classic-attacks-head classic-lss-weapons-head">
                 <span>Название</span>
                 <span>Бонус / Сл</span>
                 <span>Урон / вид</span>
                 <span>Заметки</span>
               </div>
-              {weapons.map((row, idx) => (
-                <div className="classic-weapon classic-lss-weapon-row" key={row.id}>
-                  <div className="classic-weapon__cell classic-weapon__cell--name">
-                    <ClassicStaticField
-                      value={row.name}
-                      wrap
-                      tone="compact"
-                      pencilLine={false}
-                      aria-label={`Оружие ${idx + 1}: название`}
-                    />
+              {weapons.map((row, idx) => {
+                const masteryNote = blank
+                  ? ''
+                  : classicPrintWeaponMasteryNote2024(c, {
+                      catalogId: weaponCatalogIds[idx] ?? null,
+                      name: row.name,
+                    })
+                return (
+                  <div className="classic-weapon classic-lss-weapon-row" key={row.id}>
+                    <div className="classic-weapon__cell classic-weapon__cell--name">
+                      <ClassicStaticField
+                        value={row.name}
+                        wrap
+                        tone="compact"
+                        pencilLine={false}
+                        aria-label={`Оружие ${idx + 1}: название`}
+                      />
+                    </div>
+                    <div className="classic-weapon__cell classic-weapon__cell--bonus">
+                      <ClassicStaticField
+                        value={row.attackBonus}
+                        align="center"
+                        tone="numeric"
+                        pencilLine={false}
+                        aria-label={`Оружие ${idx + 1}: бонус`}
+                      />
+                    </div>
+                    <div className="classic-weapon__cell classic-weapon__cell--dmg">
+                      <ClassicStaticField
+                        value={row.damageLine}
+                        wrap
+                        tone="compact"
+                        pencilLine={false}
+                        aria-label={`Оружие ${idx + 1}: урон`}
+                      />
+                    </div>
+                    <div className="classic-weapon__cell classic-weapon__cell--notes">
+                      <ClassicStaticField
+                        value={masteryNote}
+                        wrap
+                        tone="compact"
+                        pencilLine={false}
+                        aria-label={`Оружие ${idx + 1}: заметки`}
+                      />
+                    </div>
                   </div>
-                  <div className="classic-weapon__cell classic-weapon__cell--bonus">
-                    <ClassicStaticField
-                      value={row.attackBonus}
-                      align="center"
-                      tone="numeric"
-                      pencilLine={false}
-                      aria-label={`Оружие ${idx + 1}: бонус`}
-                    />
-                  </div>
-                  <div className="classic-weapon__cell classic-weapon__cell--dmg">
-                    <ClassicStaticField
-                      value={row.damageLine}
-                      wrap
-                      tone="compact"
-                      pencilLine={false}
-                      aria-label={`Оружие ${idx + 1}: урон`}
-                    />
-                  </div>
-                </div>
-              ))}
+                )
+              })}
               <div className="classic-caption">Оружие и боевые заговоры</div>
             </div>
 
