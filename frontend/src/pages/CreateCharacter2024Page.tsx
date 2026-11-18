@@ -21,6 +21,7 @@ import {
   BardLevelingPicks,
   ArtificerLevelingPicks,
   RangerLevelingPicks,
+  RogueLevelingPicks,
   ClassPicks,
   SpeciesFeatPicks,
   SpeciesPicks,
@@ -1261,6 +1262,7 @@ export function CreateCharacter2024Page({
               allSkillIds={model.skills.map((row) => row.key)}
             />
           ) : null}
+          {classSlug === 'rogue' ? <RogueLevelingPicks state={state} patch={patch} /> : null}
           {classSlug === 'ranger' ? <RangerLevelingPicks state={state} patch={patch} /> : null}
           {classSlug === 'artificer' ? (
             <ArtificerLevelingPicks state={state} patch={patch} catalog={catalog} />

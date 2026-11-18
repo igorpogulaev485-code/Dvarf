@@ -1,0 +1,6 @@
+dba89e85985b1479c9be66149e39b42c  2024-rogue-mock-at-1-features-390.png
+6dd7699944d1365163641c68d0ab22de  2024-rogue-mock-at-5-thief-features-390.png
+fe653f88d0ad1b28c47e6889c228f3a4  2024-rogue-mock-at-11-features-390.png
+2d3b7df61ce6bb30a60b61b4cc055dda  2024-rogue-mock-at-20-soulknife-features-390.png
+008d6236c2fa4e9c7e66e22baef6c593  2024-rogue-mock-subclass-assassin-features-390.png
+db455487940c6358a62dd0583e44fd3f  2024-rogue-mock-subclass-arcane-trickster-features-390.png

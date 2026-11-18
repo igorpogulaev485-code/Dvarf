@@ -1,9 +1,8 @@
 /**
  * P24-M02-rogue live / 2024 sheet evidence (preview=1 when RULES_EDITION closed).
  *
- * Live create: at-1, at-5 (thief). Create-at-11 is not feasible until the create UI
- * accepts 4 Expertise picks (class step max=2; backend needs 4 @6+) — covered by mocks.
- * Level-up 4→5 and rollback 5→4 via fighterLiveFlow helpers when harness supports.
+ * Live create: at-1, at-5 (thief), at-11 / at-20 (extra Expertise on leveling step).
+ * Level-up 4→5 / 10→11; rollbacks 5→4 / 11→10 / 3→2 / 20→19.
  */
 import { expect, test, type Page } from '@playwright/test'
 import fs from 'node:fs'
@@ -39,9 +38,14 @@ const ARTIFACTS = path.resolve(process.cwd(), '../artifacts/p24-m02-rogue')
 const SHOT = '2024-rogue'
 
 const SUB_THIEF = 'rogue__thief'
+const SUB_ASSASSIN = 'rogue__assassin'
+const SUB_AT = 'rogue__arcane-trickster'
+const SUB_SOUL = 'rogue__soulknife'
 const ROGUE_SKILLS = ['stealth', 'sleight_of_hand', 'perception', 'acrobatics'] as const
 const ROGUE_MASTERY = ['shortsword', 'dagger'] as const
 const ROGUE_EXPERTISE_L1 = ['stealth', 'perception'] as const
+const ROGUE_EXPERTISE_L6_EXTRA = ['sleight_of_hand', 'acrobatics'] as const
+const ROGUE_EXPERTISE_ALL = [...ROGUE_EXPERTISE_L1, ...ROGUE_EXPERTISE_L6_EXTRA] as const
 
 test.beforeAll(() => {
   fs.mkdirSync(ARTIFACTS, { recursive: true })
@@ -177,7 +181,12 @@ async function walkLiveRogueCreate(
     await expect(sub).toHaveClass(/ui-button--primary/)
   }
 
-  for (const lv of [4, 8, 12, 16, 19]) {
+  if (opts.level >= 6) {
+    // L1 pair was picked on class step; leveling step asks for 4 total.
+    await pickPrefixed(page, 'p24-m02-rogue-expertise', [...ROGUE_EXPERTISE_ALL])
+  }
+
+  for (const lv of [4, 8, 10, 12, 16, 19]) {
     if (lv > opts.level) break
     const asi =
       lv === 4
@@ -303,6 +312,81 @@ test.describe('P24-M02 rogue — LIVE create (preview wizard)', () => {
     await dismissGuided(page)
     expect(store.unmatched).toEqual([])
   })
+
+  test('create-live-at-11 assassin: reliable@7 + improved cunning', async ({ page }, testInfo) => {
+    const project = projectOf(testInfo)
+    const store = createStore()
+    await walkLiveRogueCreate(page, store, {
+      name: 'Живой Плут 11',
+      level: 11,
+      subclassSlug: SUB_ASSASSIN,
+      project,
+      stepShots: true,
+      shotPrefix: `${SHOT}-create-at-11-`,
+      duringLeveling: async (pg) => {
+        const list = pg.getByTestId('p24-m03c-fork-list-rogue')
+        await expect(list).toContainText(/Надёжный талант/)
+        await expect(list).toContainText(/Улучшенный Хитрый удар/)
+        await expect(list).not.toContainText('Бесчестные удары')
+      },
+    })
+
+    if (isPhone(project)) await page.getByText('Бой', { exact: true }).last().click()
+    await shot(page, ARTIFACTS, `${SHOT}-create-at-11-sheet`, project)
+    await openFeaturesScene(page, project)
+    await expectFeatureNames(page, [
+      /^Надёжный талант$/,
+      /^Увёртливость$/,
+      /^Улучшенный Хитрый удар$/,
+      /^Убийство$/,
+    ])
+    await expectNoFeatureNames(page, [/^Бесчестные удары$/, /^Ликвидация$/, /^Коварные удары$/])
+    await expandAllFeatures(page)
+    await tallShot(page, ARTIFACTS, `${SHOT}-create-at-11-assassin-features`, project)
+    await dismissGuided(page)
+    expect(store.unmatched).toEqual([])
+  })
+
+  test('create-live-at-20 soulknife: luck + rend mind', async ({ page }, testInfo) => {
+    const project = projectOf(testInfo)
+    const store = createStore()
+    await walkLiveRogueCreate(page, store, {
+      name: 'Живой Плут 20',
+      level: 20,
+      subclassSlug: SUB_SOUL,
+      project,
+      stepShots: false,
+      shotPrefix: `${SHOT}-create-at-20-`,
+    })
+    if (isPhone(project)) await page.getByText('Бой', { exact: true }).last().click()
+    await shot(page, ARTIFACTS, `${SHOT}-create-at-20-sheet`, project)
+    await openFeaturesScene(page, project)
+    await expectFeatureNames(page, [/^Удача$/, /^Неуловимость$/, /^Бесчестные удары$/, /^Разрыв разума$/])
+    await expectNoFeatureNames(page, [/^Удар удачи$/, /^Улыбка фортуны$/, /^Раздирание разума$/])
+    await expandAllFeatures(page)
+    await tallShot(page, ARTIFACTS, `${SHOT}-create-at-20-soulknife-features`, project)
+    await dismissGuided(page)
+    expect(store.unmatched).toEqual([])
+  })
+
+  test('create-live-at-5 arcane-trickster: spellcasting names', async ({ page }, testInfo) => {
+    const project = projectOf(testInfo)
+    const store = createStore()
+    await walkLiveRogueCreate(page, store, {
+      name: 'Живой Ловкач 5',
+      level: 5,
+      subclassSlug: SUB_AT,
+      project,
+      stepShots: false,
+      shotPrefix: `${SHOT}-create-at-5-at-`,
+    })
+    await openFeaturesScene(page, project)
+    await expectFeatureNames(page, [/^Сотворение заклинаний$/, /^Ловкость волшебной руки$/])
+    await expectNoFeatureNames(page, [/^Вор заклинаний$/, /^Многогранный ловкач$/])
+    await tallShot(page, ARTIFACTS, `${SHOT}-create-at-5-arcane-trickster-features`, project)
+    await dismissGuided(page)
+    expect(store.unmatched).toEqual([])
+  })
 })
 
 test.describe('P24-M02 rogue — level-up / rollback', () => {
@@ -345,6 +429,81 @@ test.describe('P24-M02 rogue — level-up / rollback', () => {
     await openFeaturesScene(page, project)
     await expectNoFeatureNames(page, [/^Хитрый удар$/])
     await tallShot(page, ARTIFACTS, `${SHOT}-leveldown-5to4-sheet-after`, project)
+  })
+
+  test('levelup-live 10→11: improved cunning strike', async ({ page }, testInfo) => {
+    const project = projectOf(testInfo)
+    const store = createStore()
+    await walkLiveRogueCreate(page, store, {
+      name: 'Прокачка 10→11',
+      level: 10,
+      subclassSlug: SUB_THIEF,
+      project,
+    })
+    await dismissGuided(page)
+    await rogueLiveLevelUp(page, project, `${SHOT}-levelup-10to11`, {
+      expectUpcoming: [/Улучшенный Хитрый удар/],
+    })
+    await waitStored(store, (s) => s.classes?.[0]?.level === 11)
+    await openFeaturesScene(page, project)
+    await expectFeatureNames(page, [/^Улучшенный Хитрый удар$/, /^Надёжный талант$/])
+    await tallShot(page, ARTIFACTS, `${SHOT}-levelup-10to11-sheet-features`, project)
+  })
+
+  test('leveldown-live 11→10: improved cunning gone', async ({ page }, testInfo) => {
+    const project = projectOf(testInfo)
+    const store = createStore()
+    await walkLiveRogueCreate(page, store, {
+      name: 'Откат 11→10',
+      level: 11,
+      subclassSlug: SUB_THIEF,
+      project,
+    })
+    await dismissGuided(page)
+    await rogueLiveLevelDown(page, project, `${SHOT}-leveldown-11to10`, { from: 11, to: 10 })
+    await waitStored(store, (s) => s.classes?.[0]?.level === 10)
+    await openFeaturesScene(page, project)
+    await expectNoFeatureNames(page, [/^Улучшенный Хитрый удар$/])
+    await expectFeatureNames(page, [/^Надёжный талант$/])
+    await tallShot(page, ARTIFACTS, `${SHOT}-leveldown-11to10-sheet-after`, project)
+  })
+
+  test('leveldown-live 3→2: subclass gone', async ({ page }, testInfo) => {
+    const project = projectOf(testInfo)
+    const store = createStore()
+    await walkLiveRogueCreate(page, store, {
+      name: 'Откат 3→2',
+      level: 3,
+      subclassSlug: SUB_THIEF,
+      project,
+    })
+    await dismissGuided(page)
+    await openFeaturesScene(page, project)
+    await expectFeatureNames(page, [/^Точное прицеливание$/, /^Быстрые руки$/])
+    await rogueLiveLevelDown(page, project, `${SHOT}-leveldown-3to2`, { from: 3, to: 2 })
+    await waitStored(store, (s) => s.classes?.[0]?.level === 2)
+    await openFeaturesScene(page, project)
+    await expectNoFeatureNames(page, [/^Точное прицеливание$/, /^Быстрые руки$/, /^Подкласс плута$/])
+    await tallShot(page, ARTIFACTS, `${SHOT}-leveldown-3to2-sheet-after`, project)
+  })
+
+  test('leveldown-live 20→19: luck gone', async ({ page }, testInfo) => {
+    const project = projectOf(testInfo)
+    const store = createStore()
+    await walkLiveRogueCreate(page, store, {
+      name: 'Откат 20→19',
+      level: 20,
+      subclassSlug: SUB_THIEF,
+      project,
+    })
+    await dismissGuided(page)
+    await openFeaturesScene(page, project)
+    await expectFeatureNames(page, [/^Удача$/])
+    await rogueLiveLevelDown(page, project, `${SHOT}-leveldown-20to19`, { from: 20, to: 19 })
+    await waitStored(store, (s) => s.classes?.[0]?.level === 19)
+    await openFeaturesScene(page, project)
+    await expectNoFeatureNames(page, [/^Удача$/])
+    await tallShot(page, ARTIFACTS, `${SHOT}-leveldown-20to19-sheet-after`, project)
   })
 })
 

@@ -3,7 +3,7 @@
 ## Full (create / level-up / sheet)
 
 - Class progression names, Sneak Attack scale, Weapon Mastery = 2 (change all)
-- Expertise 2 @1 / 4 @6 (`expertise` + `expertise_6` picks)
+- Expertise 2 @1 / 4 @6 (`expertise` + `expertise_6`; class step L1 pair + `RogueLevelingPicks` on create-at ≥6)
 - Reliable Talent unlock @7 (2024 catalog)
 - Slippery Mind → Wis **and** Cha save proficiency (2024 create + feature grant)
 - Stroke of Luck pool «Удача» @20 (reset short+long); roll history: d20→20 for any D20 Test
@@ -15,6 +15,7 @@
 - Thief Fast Hands 2024 (sleight / object / magic item via Cunning Action)
 - `Rogue2024UseDialog` for luck / psi / veil / rend / spell thief / fast hands
 - Multiclass prerequisite Dex 13
+- Live e2e: create-at-1/5/11/20, levelup 4→5 & 10→11, leveldown 20→19 / 11→10 / 5→4 / 3→2
 
 ## Partial (combat automation)
 

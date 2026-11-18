@@ -49,4 +49,4 @@ P24_M02_ROGUE_SHOT_TAG=after npm run test:e2e:p24-m02-rogue -- p24-m02-rogue-reg
 
 Sidecars: `before-md5-1440.txt`, `before-md5-390.txt`, `after-md5-1440.txt`, `after-md5-390.txt`.
 
-e2e: `npm run test:e2e:p24-m02-rogue` → regression **6 passed** (before worktree + after tip); live **20 passed**.
+e2e: `npm run test:e2e:p24-m02-rogue` → regression **6 passed** (before worktree + after tip); live **17 passed** × desktop-1440 + phone-390 (create-at-1/5/11/20, levelup/rollback, mocks).

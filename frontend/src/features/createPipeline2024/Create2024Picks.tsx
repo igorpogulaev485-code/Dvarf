@@ -19,7 +19,6 @@ import {
   SPELL_STORING_ITEM_NAME_RU,
 } from '../../shared/dnd/artificer2024Features'
 import { ARTIFICER_REPLICATE_PLANS_2024 } from '../../shared/dnd/edition2024ClassOptions'
-import { artificerCreatePicksNeed2024, rangerCreatePicksNeed2024 } from './createPipeline2024State'
 import {
   emptyFeaturePicks,
   getFeaturePickList,
@@ -64,6 +63,7 @@ import {
   isDruidicWarriorStyleId,
 } from '../../shared/dnd/ranger2024Features'
 import {
+  artificerCreatePicksNeed2024,
   backgroundAsiTrio,
   backgroundNeedsToolPick,
   bardCreatePicksNeed2024,
@@ -74,6 +74,8 @@ import {
   fightingStyleFeats,
   l1Invocations,
   masteryWeaponOptions,
+  rangerCreatePicksNeed2024,
+  rogueCreatePicksNeed2024,
   setAsiFlat1,
   setAsiPlus2Plus1,
   speciesLineages,
@@ -353,15 +355,18 @@ export function ClassPicks({
       {state.classSlug === 'rogue' ? (
         <PickChipGroup
           label="Компетентность"
-          hint="Два навыка из выбранных или воровские инструменты."
+          hint="Два навыка из выбранных или воровские инструменты. С 6 ур. ещё два — на шаге прокачки."
           options={[
             ...state.classSkillIds.map((id) => ({ id, label: skillLabelRu(id) })),
             { id: 'thieves-tools', label: 'Воровские инструменты' },
           ]}
-          selected={ids(state.classOptionPicks.expertise)}
+          selected={ids(state.classOptionPicks.expertise).slice(0, 2)}
           max={2}
           testIdPrefix="p24-m03-pick-expertise"
-          onChange={(expertise) => setOption('expertise', expertise)}
+          onChange={(expertise) => {
+            const kept = ids(state.classOptionPicks.expertise).slice(2)
+            setOption('expertise', [...expertise.slice(0, 2), ...kept])
+          }}
         />
       ) : null}
       {state.classSlug === 'warlock' ? (
@@ -559,6 +564,36 @@ export function RangerLevelingPicks({
         />
       ) : null}
     </Stack>
+  )
+}
+
+/** Extra Expertise pair when create-at ≥6 (L1 pair was collected on the class step). */
+export function RogueLevelingPicks({
+  state,
+  patch,
+}: {
+  state: Create2024State
+  patch: (partial: Partial<Create2024State>) => void
+}) {
+  const need = rogueCreatePicksNeed2024(state)
+  if (need.expertise < 4) return null
+  const expertise = ids(state.classOptionPicks.expertise)
+  const setPicks = (partial: Record<string, unknown>) =>
+    patch({ classOptionPicks: { ...state.classOptionPicks, ...partial } })
+  const options = [
+    ...state.classSkillIds.map((id) => ({ id, label: skillLabelRu(id) })),
+    { id: 'thieves-tools', label: 'Воровские инструменты' },
+  ]
+  return (
+    <PickChipGroup
+      label="Компетентность (ещё два с 6 ур.)"
+      hint={`Всего нужно ${need.expertise}: два с 1-го уровня и ещё два с 6-го.`}
+      options={options}
+      selected={expertise}
+      max={need.expertise}
+      testIdPrefix="p24-m02-rogue-expertise"
+      onChange={(next) => setPicks({ expertise: next })}
+    />
   )
 }
 

@@ -501,10 +501,11 @@ function classIssues(state: Create2024State, ctx: StepIssueCtx): string[] {
     if (order !== 'magician' && order !== 'warden') issues.push('Выберите Природный орден')
   }
   if (state.classSlug === 'rogue') {
+    // Class step always collects the L1 pair (2). Extra @6 are validated in levelingIssues.
     const expertise = Array.isArray(state.classOptionPicks.expertise)
       ? (state.classOptionPicks.expertise as string[])
       : []
-    if (!uniqueCount(expertise, 2)) {
+    if (new Set(expertise).size < 2) {
       issues.push(`Компетентность: выбрано ${expertise.length} из 2`)
     }
   }
@@ -637,6 +638,21 @@ export function bardCreatePicksNeed2024(state: Create2024State): {
   }
 }
 
+/** Rogue 2024 create: Expertise 2 @1–5, 4 @6+ (skills/tools already proficient). */
+export function rogueCreatePicksNeed2024(state: Create2024State): {
+  rogueLevel: number
+  expertise: number
+} {
+  if (state.classSlug !== 'rogue') return { rogueLevel: 0, expertise: 0 }
+  const primary =
+    state.classes.find((row) => row.id === state.primaryClassEntryId) ?? state.classes[0]
+  const rogueLevel = Math.max(1, primary?.level ?? state.characterLevel ?? 1)
+  return {
+    rogueLevel,
+    expertise: rogueLevel >= 6 ? 4 : rogueLevel >= 1 ? 2 : 0,
+  }
+}
+
 function levelingIssues(state: Create2024State, ctx: StepIssueCtx): string[] {
   const issues: string[] = []
   const wizardLevel = Math.max(
@@ -661,6 +677,15 @@ function levelingIssues(state: Create2024State, ctx: StepIssueCtx): string[] {
       pick !== 'potent_spellcasting'
     ) {
       issues.push('Выберите Благословленные удары (с 7 ур. жреца)')
+    }
+  }
+  if (state.classSlug === 'rogue') {
+    const need = rogueCreatePicksNeed2024(state)
+    const expertise = Array.isArray(state.classOptionPicks.expertise)
+      ? (state.classOptionPicks.expertise as string[])
+      : []
+    if (need.expertise > 0 && !uniqueCount(expertise, need.expertise)) {
+      issues.push(`Компетентность: выбрано ${expertise.length} из ${need.expertise}`)
     }
   }
   if (state.classSlug === 'bard') {
