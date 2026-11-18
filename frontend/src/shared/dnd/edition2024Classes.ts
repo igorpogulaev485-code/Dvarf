@@ -951,6 +951,8 @@ export function computeProgression2024(input: {
     const subclassResourceUnlock = new Map<string, number>()
     /** Catalog summary for synthetic subclass resource cards (avoid name-only stubs). */
     const subclassResourceSummary = new Map<string, string>()
+    /** Catalog feature title — pool label may differ (e.g. «Кости превосходства» vs «Боевое превосходство»). */
+    const subclassResourceNameRu = new Map<string, string>()
     const sharedByFid = new Map(subclassShared.map((o) => [o.feature_id, o]))
     const calcFids = new Set(subclassBonuses.map((b) => b.feature_id))
 
@@ -970,6 +972,10 @@ export function computeProgression2024(input: {
               const summary = String(feat.summary_ru || '').trim()
               if (summary && !subclassResourceSummary.has(fidRaw)) {
                 subclassResourceSummary.set(fidRaw, summary)
+              }
+              const nameRu = String(feat.name_ru || '').trim()
+              if (nameRu && !subclassResourceNameRu.has(fidRaw)) {
+                subclassResourceNameRu.set(fidRaw, nameRu)
               }
               continue
             }
@@ -1380,10 +1386,15 @@ export function computeProgression2024(input: {
         subclassResourceSummary.get(pool.feature_id.replace(/_/g, '-')) ||
         subclassResourceSummary.get(pool.feature_id.replace(/-/g, '_')) ||
         ''
+      const featureNameRu =
+        subclassResourceNameRu.get(pool.feature_id) ||
+        subclassResourceNameRu.get(pool.feature_id.replace(/_/g, '-')) ||
+        subclassResourceNameRu.get(pool.feature_id.replace(/-/g, '_')) ||
+        pool.name
       features.push({
         id: pool.feature_id.replace(/-/g, '_'),
         level: unlock != null && unlock > 0 ? unlock : cls.level,
-        name_ru: pool.name,
+        name_ru: featureNameRu,
         name_en: pool.pool_id,
         summary_ru:
           poolSummary || (pool.die ? `${pool.name} (${pool.die})` : pool.name),
