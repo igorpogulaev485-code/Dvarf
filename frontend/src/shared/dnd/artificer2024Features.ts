@@ -458,8 +458,7 @@ export function findArtificerPool2024(
   poolId: string,
   classEntryId?: string,
 ): SheetResource | null {
-  const matches = (row: SheetResource) =>
-    row.pool_id === poolId || parseFeatureResourceId(row.id)?.poolId === poolId
+  const matches = (row: SheetResource) => parseFeatureResourceId(row.id)?.poolId === poolId
   if (classEntryId) {
     const exact = resources.find((row) => {
       const parsed = parseFeatureResourceId(row.id)
@@ -559,23 +558,31 @@ export function syncFlashOfGeniusResource2024(input: {
   resources: SheetResource[]
   artificerLevel: number
   intMod: number
+  classEntryId?: string
 }): SheetResource[] {
   const level = lvl(input.artificerLevel)
   const max = level >= FLASH_OF_GENIUS_MIN_LEVEL_2024 ? flashOfGeniusUses2024(input.intMod) : 0
-  const existing = input.resources.find((r) => r.pool_id === FLASH_OF_GENIUS_POOL_ID)
+  const existing = findArtificerPool2024(
+    input.resources,
+    FLASH_OF_GENIUS_POOL_ID,
+    input.classEntryId,
+  )
   if (max <= 0) {
-    return input.resources.filter((r) => r.pool_id !== FLASH_OF_GENIUS_POOL_ID)
+    return input.resources.filter(
+      (r) => parseFeatureResourceId(r.id)?.poolId !== FLASH_OF_GENIUS_POOL_ID,
+    )
   }
   const next = clampResource({
-    id: existing?.id ?? `pool:${FLASH_OF_GENIUS_POOL_ID}`,
-    pool_id: FLASH_OF_GENIUS_POOL_ID,
+    id:
+      existing?.id
+      ?? `feat:${ARTIFICER_CLASS_SLUG_2024}:${FLASH_OF_GENIUS_POOL_ID}:${input.classEntryId || 'main'}`,
     name: FLASH_OF_GENIUS_NAME_RU,
     max,
     used: existing?.used ?? 0,
     reset: 'long',
   })
   if (existing) {
-    return input.resources.map((r) => (r.pool_id === FLASH_OF_GENIUS_POOL_ID ? next : r))
+    return input.resources.map((r) => (r.id === existing.id ? next : r))
   }
   return [...input.resources, next]
 }

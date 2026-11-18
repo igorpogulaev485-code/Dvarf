@@ -69,6 +69,7 @@ export function Artificer2024UseDialog({
         : null
 
   const left = pool ? Math.max(0, pool.max - pool.used) : 0
+  const refundable = Boolean(poolId)
 
   function confirm() {
     const result = applyArtificer2024FeatureUse({
@@ -81,33 +82,38 @@ export function Artificer2024UseDialog({
     if (result.ok) onConfirm(result)
   }
 
+  const body =
+    FEATURE_TEXT[featureId] ?? FEATURE_TEXT[request.featureId] ?? request.name
+
   return (
-    <Dialog open={open} onClose={onClose} title={request.name || 'Умение артефактора'}>
+    <Dialog
+      open={open}
+      title={request.name}
+      primaryLabel="Применить"
+      secondaryLabel="Отмена"
+      onPrimary={confirm}
+      onSecondary={onClose}
+    >
       <Stack gap={12}>
-        <Text>{FEATURE_TEXT[featureId] ?? FEATURE_TEXT[featureId.replace(/_/g, '-')] ?? request.name}</Text>
         {pool ? (
           <Text tone="muted">
-            Осталось: {left} / {pool.max}
+            Осталось: {left}/{pool.max}
           </Text>
         ) : null}
-        <Field label="Действие">
-          <SegmentedControl
-            value={mode}
-            onChange={setMode}
-            options={[
-              { value: 'spend', label: 'Потратить' },
-              { value: 'refund', label: 'Вернуть' },
-            ]}
-          />
-        </Field>
-        <div className="sheet-chip-row">
-          <button type="button" className="sheet-chip is-on" onClick={confirm}>
-            Подтвердить
-          </button>
-          <button type="button" className="sheet-chip" onClick={onClose}>
-            Отмена
-          </button>
-        </div>
+        {refundable ? (
+          <Field label="Режим">
+            <SegmentedControl
+              aria-label="Режим"
+              value={mode}
+              onChange={setMode}
+              options={[
+                { id: 'spend', label: 'Потратить' },
+                { id: 'refund', label: 'Вернуть' },
+              ]}
+            />
+          </Field>
+        ) : null}
+        <Text>{body}</Text>
       </Stack>
     </Dialog>
   )

@@ -83,42 +83,37 @@ function syncOne(input: {
     feature: input.feature,
   }
 
-  const existing = input.companions.find((row) =>
-    input.featureIds.includes(String(row.source?.feature ?? '') as (typeof input.featureIds)[number]),
+  const existing = input.companions.find(
+    (row) =>
+      row.source?.classEntryId === input.host.classEntryId &&
+      input.featureIds.includes(String(row.source?.feature ?? '') as (typeof input.featureIds)[number]),
   )
+
   const built = companionFromTemplate({
     template,
+    name: existing?.name?.trim() ? existing.name : template.defaultName,
     source,
-    existingId: existing?.id,
-    name: existing?.name || template.defaultName,
   })
-
-  if (!existing) {
-    return { companions: [...input.companions, built], changed: true }
+  const nextRow: CompanionEntry = {
+    ...built,
+    id: existing?.id ?? built.id,
+    active: existing ? existing.active || (existing.stats.hp ?? 1) > 0 : true,
+    stats: {
+      ...built.stats,
+      hp: existing?.stats.hp != null && existing.stats.hp > 0 ? existing.stats.hp : built.stats.hp,
+    },
   }
 
-  const others = input.companions.filter((row) => row.id !== existing.id)
-  const same =
-    existing.stats.hp_max === built.stats.hp_max
-    && existing.stats.ac === built.stats.ac
-    && existing.actions === built.actions
-    && existing.notes === built.notes
-  if (same) return { companions: input.companions, changed: false }
-  return {
-    companions: [
-      ...others,
-      {
-        ...built,
-        id: existing.id,
-        name: existing.name || built.name,
-        stats: {
-          ...built.stats,
-          hp: existing.stats.hp ?? built.stats.hp,
-        },
-      },
-    ],
-    changed: true,
-  }
+  const others = input.companions.filter((row) => row.id !== existing?.id)
+  const next = [...others, nextRow]
+  const changed =
+    !existing
+    || existing.stats.ac !== nextRow.stats.ac
+    || existing.stats.hp_max !== nextRow.stats.hp_max
+    || existing.actions !== nextRow.actions
+    || existing.notes !== nextRow.notes
+
+  return { companions: next, changed }
 }
 
 export function syncEldritchCannon2024(input: {

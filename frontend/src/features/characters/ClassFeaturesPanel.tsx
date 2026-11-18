@@ -460,7 +460,6 @@ function FeatureResourceControls({
   onBardFeatureUse,
   onDruidFeatureUse,
   onRangerFeatureUse,
-  onArtificerFeatureUse,
   onFeatureBuffApply,
   moonCombatWildShape = false,
   scaleText = null,
@@ -489,7 +488,6 @@ function FeatureResourceControls({
   onBardFeatureUse?: (request: BardFeatureRequest) => void
   onDruidFeatureUse?: (request: DruidFeatureRequest) => void
   onRangerFeatureUse?: (request: RangerFeatureRequest) => void
-  onArtificerFeatureUse?: (request: ArtificerFeatureRequest) => void
   onFeatureBuffApply?: ClassFeaturesPanelProps['onFeatureBuffApply']
   /** Circle of the Moon: Wild Shape is a bonus action. */
   moonCombatWildShape?: boolean
@@ -2287,6 +2285,7 @@ function FeatureRow({
   onBardFeatureUse,
   onDruidFeatureUse,
   onRangerFeatureUse,
+  onArtificerFeatureUse,
   onSorceryPointsSpend,
   moonCombatWildShape = false,
   onMoonFormSlotHeal,
@@ -2345,6 +2344,7 @@ function FeatureRow({
   onBardFeatureUse?: (request: BardFeatureRequest) => void
   onDruidFeatureUse?: (request: DruidFeatureRequest) => void
   onRangerFeatureUse?: (request: RangerFeatureRequest) => void
+  onArtificerFeatureUse?: (request: ArtificerFeatureRequest) => void
   onSorceryPointsSpend?: (resourceId: string) => void
   moonCombatWildShape?: boolean
   onMoonFormSlotHeal?: (input: {
@@ -3260,6 +3260,7 @@ export function ClassFeaturesPanel({
   onBardFeatureUse,
   onDruidFeatureUse,
   onRangerFeatureUse,
+  onArtificerFeatureUse,
   onSorceryPointsSpend,
   onMoonFormSlotHeal,
   divineSmiteIntent,
@@ -3846,6 +3847,7 @@ export function ClassFeaturesPanel({
                             onBardFeatureUse={onBardFeatureUse}
                             onDruidFeatureUse={onDruidFeatureUse}
                             onRangerFeatureUse={onRangerFeatureUse}
+                            onArtificerFeatureUse={onArtificerFeatureUse}
                             onSorceryPointsSpend={onSorceryPointsSpend}
                             moonCombatWildShape={moonCombatWildShape}
                             onMoonFormSlotHeal={onMoonFormSlotHeal}
