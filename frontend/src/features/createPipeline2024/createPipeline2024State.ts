@@ -792,11 +792,31 @@ function levelingIssues(state: Create2024State, ctx: StepIssueCtx): string[] {
     ctx.classEntry?.slug === 'druid'
       ? String(state.classOptionPicks.primal_order || '')
       : null
+  const primary =
+    state.classes.find((row) => row.id === state.primaryClassEntryId) ?? state.classes[0]
+  const subclassSlug =
+    (primary && state.subclassByEntryId[primary.id]) || state.subclassSlug || null
   const sc =
-    classSpellcastingAtLevel(ctx.classEntry, classLevel, { divineOrder, primalOrder }) ??
-    classL1Spellcasting(ctx.classEntry)
+    classSpellcastingAtLevel(ctx.classEntry, classLevel, {
+      divineOrder,
+      primalOrder,
+      subclassSlug,
+    }) ??
+    (subclassSlug
+      ? null
+      : classL1Spellcasting(ctx.classEntry))
   const bookNeed = WIZARD_BOOK_SPELLS_AT_L1 + Math.max(0, wizardLevel - 1) * 2
   if (sc) {
+    const locked = sc.lockedCantrips ?? []
+    for (const id of locked) {
+      if (!state.cantripIds.includes(id)) {
+        issues.push(
+          id === 'mage-hand'
+            ? 'Мистический ловкач: «Волшебная рука» обязательна'
+            : `Обязательный заговор не выбран: ${id}`,
+        )
+      }
+    }
     if (state.cantripIds.length < sc.cantrips || new Set(state.cantripIds).size !== state.cantripIds.length) {
       issues.push(`Заговоры: выбрано ${state.cantripIds.length} из ${sc.cantrips}`)
     }

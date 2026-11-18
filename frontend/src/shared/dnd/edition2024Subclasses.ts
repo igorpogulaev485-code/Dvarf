@@ -627,8 +627,15 @@ export function buildPermanentBonuses2024(input: {
         'use-magic-device',
         'Использование магических устройств',
         'other_calc',
-        { attune_any_class_item: true, ignore_class_spell_lists: true, charge_floor: 1 },
+        {
+          attunement_slots: 4,
+          charge_save_die: '1d6',
+          charge_save_on: 6,
+          scroll_ability: 'int',
+          ignore_class_spell_lists: true,
+        },
         13,
+        'Настройка на четыре предмета; при трате заряда — 1к6, на 6 заряд не тратится; свитки через Интеллект',
       )
     }
     if (classLevel >= 17) {

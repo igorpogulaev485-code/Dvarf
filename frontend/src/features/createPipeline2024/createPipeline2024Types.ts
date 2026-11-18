@@ -9,9 +9,13 @@ import type { CharacterCreate2024Request } from '../../shared/api/characters'
 import type { ClassLevelEntry } from '../../shared/dnd/classLevels'
 import { createClassLevel, totalCharacterLevel } from '../../shared/dnd/classLevels'
 import { normalizeClassSlug2024 } from '../../shared/dnd/edition2024Classes'
+import { thirdCasterBlock2024 } from '../../shared/dnd/edition2024Subclasses'
 import type { HpLevelChoice } from '../createPipeline/createPipelineTypes'
 import type { FeatPicks } from './create2024FeatPicks'
 import type { AsiChoice2024 } from './LevelingForks2024'
+
+/** Arcane Trickster 2024: Mage Hand is mandatory and not replaceable. */
+export const ARCANE_TRICKSTER_LOCKED_CANTRIP = 'mage-hand'
 
 /**
  * Same shell order as the 2014 pipeline: вид → черта* → предыстория → класс →
@@ -208,6 +212,10 @@ export type ClassSpellcastingBudget = {
   cantrips: number
   prepared_spells: number
   maxSlotLevel: number
+  /** Class list slug for picker (wizard for EK/AT 2024). */
+  spellListSlug?: string
+  /** Cantrips that must stay selected (AT Mage Hand). */
+  lockedCantrips?: string[]
 }
 
 export function classL1Spellcasting(
@@ -216,25 +224,49 @@ export function classL1Spellcasting(
   return classSpellcastingAtLevel(classEntry, 1)
 }
 
-/** Spellcasting budgets + highest non-zero slot circle at a class level. */
-export function classSpellcastingAtLevel(
-  classEntry: CatalogEntry | null | undefined,
-  level: number,
-  opts?: { divineOrder?: string | null; primalOrder?: string | null },
-): ClassSpellcastingBudget | null {
-  const lv = Math.max(1, Math.min(20, Math.floor(level) || 1))
-  const row = classLevelRows(classEntry).find((item) => item?.level === lv)
-  const sc = row?.spellcasting
-  if (!sc || typeof sc !== 'object') return null
-  const slots = sc.slots && typeof sc.slots === 'object' ? sc.slots : {}
+function maxSlotLevelFromSlots(slots: Record<string, unknown> | null | undefined): number {
   let maxSlotLevel = 0
-  for (const [key, value] of Object.entries(slots)) {
+  for (const [key, value] of Object.entries(slots || {})) {
     const circle = Number(key)
     const n = Number(value)
     if (Number.isFinite(circle) && circle >= 1 && Number.isFinite(n) && n > 0) {
       maxSlotLevel = Math.max(maxSlotLevel, circle)
     }
   }
+  return maxSlotLevel
+}
+
+/** Spellcasting budgets + highest non-zero slot circle at a class level. */
+export function classSpellcastingAtLevel(
+  classEntry: CatalogEntry | null | undefined,
+  level: number,
+  opts?: {
+    divineOrder?: string | null
+    primalOrder?: string | null
+    /** When set, third-caster subclasses (AT/EK) get wizard-list budgets. */
+    subclassSlug?: string | null
+  },
+): ClassSpellcastingBudget | null {
+  const lv = Math.max(1, Math.min(20, Math.floor(level) || 1))
+  const subclassSlug = String(opts?.subclassSlug || '').trim()
+  const third = subclassSlug ? thirdCasterBlock2024(subclassSlug, lv) : null
+  if (third) {
+    const lockedCantrips =
+      subclassSlug === 'rogue__arcane-trickster' ? [ARCANE_TRICKSTER_LOCKED_CANTRIP] : []
+    return {
+      // AT: Mage Hand is free + chosen cantrips from the third-caster table.
+      cantrips: Number(third.cantrips || 0) + lockedCantrips.length,
+      prepared_spells: Number(third.prepared_spells || 0),
+      maxSlotLevel: maxSlotLevelFromSlots(third.slots as Record<string, unknown>),
+      spellListSlug: third.spell_list || 'wizard',
+      lockedCantrips,
+    }
+  }
+  const row = classLevelRows(classEntry).find((item) => item?.level === lv)
+  const sc = row?.spellcasting
+  if (!sc || typeof sc !== 'object') return null
+  const slots = sc.slots && typeof sc.slots === 'object' ? sc.slots : {}
+  let maxSlotLevel = maxSlotLevelFromSlots(slots as Record<string, unknown>)
   const pact = sc.pact_slots
   if (pact && Number(pact.count) > 0 && Number(pact.slot_level) >= 1) {
     maxSlotLevel = Math.max(maxSlotLevel, Number(pact.slot_level))
@@ -258,6 +290,8 @@ export function classSpellcastingAtLevel(
     cantrips,
     prepared_spells: Number(sc.prepared_spells || 0),
     maxSlotLevel,
+    spellListSlug: classEntry?.slug || undefined,
+    lockedCantrips: [],
   }
 }
 

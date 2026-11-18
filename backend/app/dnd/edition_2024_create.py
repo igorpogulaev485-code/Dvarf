@@ -23,6 +23,7 @@ from typing import Any, Mapping, Sequence
 
 from app.dnd import edition_2024_classes as e24
 from app.dnd import edition_2024_class_options as e24opt
+from app.dnd import edition_2024_subclasses as e24sub
 from app.dnd import weapon_mastery as wm
 from app.dnd.edition_2024_languages import (
     COMMON_LANGUAGE_ID,
@@ -1264,6 +1265,80 @@ BARD_MAGICAL_SECRETS_LEVEL_2024 = 10
 BARD_MAGICAL_SECRETS_LISTS_2024 = ("bard", "wizard", "druid", "cleric")
 
 
+ARCANE_TRICKSTER_LOCKED_CANTRIP_2024 = "mage-hand"
+
+
+def _validate_third_caster_spells_2024(
+    payload: Create2024Payload,
+    *,
+    subclass_slug: str,
+    class_level: int,
+) -> None:
+    """Enforce AT/EK 2024 create budgets (wizard list, no 2014 school lock)."""
+    block = e24sub.third_caster_block(subclass_slug, class_level)
+    if not block:
+        return
+    cantrips = [_normalize_slug(x) for x in payload.cantrip_ids]
+    prepared = [_normalize_slug(x) for x in payload.prepared_spell_ids]
+    locked: list[str] = []
+    if subclass_slug == "rogue__arcane-trickster":
+        locked = [ARCANE_TRICKSTER_LOCKED_CANTRIP_2024]
+        if ARCANE_TRICKSTER_LOCKED_CANTRIP_2024 not in cantrips:
+            raise Create2024Error(
+                "Мистический ловкач: «Волшебная рука» обязательна",
+                code="create_2024_spells",
+            )
+    cantrip_need = int(block.get("cantrips") or 0) + len(locked)
+    prep_need = int(block.get("prepared_spells") or 0)
+    if len(cantrips) != cantrip_need or len(set(cantrips)) != len(cantrips):
+        raise Create2024Error(
+            f"Нужно {cantrip_need} {_ru_plural(cantrip_need, 'заговор', 'заговора', 'заговоров')}, "
+            f"выбрано {len(cantrips)}",
+            code="create_2024_spells",
+        )
+    if len(prepared) != prep_need or len(set(prepared)) != len(prepared):
+        raise Create2024Error(
+            f"Нужно {prep_need} "
+            f"{_ru_plural(prep_need, 'подготовленное заклинание', 'подготовленных заклинания', 'подготовленных заклинаний')}, "
+            f"выбрано {len(prepared)}",
+            code="create_2024_spells",
+        )
+    spell_list_slug = str(block.get("spell_list") or "wizard")
+    spell_list = _class_spell_list_slugs(spell_list_slug)
+    spells = load_spell_catalog()
+    slots = block.get("slots") or {}
+    max_circle = max(
+        (int(k) for k, n in slots.items() if int(n or 0) > 0),
+        default=1,
+    )
+    for cid in cantrips:
+        row = spells.get(cid)
+        if row is None:
+            raise Create2024Error(f"Неизвестный заговор: {cid}", code="create_2024_spells")
+        if _spell_level(row) != 0:
+            raise Create2024Error(f"{cid} не заговор", code="create_2024_spells")
+        if spell_list and cid not in spell_list:
+            raise Create2024Error(
+                f"Заговор {cid} не из списка волшебника",
+                code="create_2024_spells",
+            )
+    for sid in prepared:
+        row = spells.get(sid)
+        if row is None:
+            raise Create2024Error(f"Неизвестное заклинание: {sid}", code="create_2024_spells")
+        circle = _spell_level(row)
+        if circle < 1 or circle > max_circle:
+            raise Create2024Error(
+                f"{sid}: на ур. {class_level} доступны круги 1–{max_circle}",
+                code="create_2024_spells",
+            )
+        if spell_list and sid not in spell_list:
+            raise Create2024Error(
+                f"Заклинание {sid} не из списка волшебника",
+                code="create_2024_spells",
+            )
+
+
 def _bard_prepared_column_2024(bard_level: int) -> int:
     """Prepared-spells column for a single-class bard (table, no subclass free spells)."""
     level = max(1, min(20, int(bard_level or 1)))
@@ -2338,6 +2413,27 @@ def validate_create_2024(payload: Create2024Payload) -> Create2024Result:
     _sync_artificer_subclass_picks(sheet, class_options)
     # Magical Secrets: create-at-N prepared may use Wizard/Druid/Cleric lists from bard 10+.
     _validate_bard_magical_secrets_prepared_2024(payload)
+
+    # Third-caster subclass (AT/EK): require wizard-list cantrips/prepared by final level.
+    third_sub = ""
+    third_lv = 0
+    if levels_plan and levels_plan.class_levels:
+        for row in levels_plan.class_levels:
+            sub = _normalize_slug(str(row.subclass_slug or ""))
+            if sub in e24sub.THIRD_CASTER_SUBCLASSES:
+                third_sub = sub
+                third_lv = max(third_lv, int(row.level or 0))
+    if not third_sub:
+        top_sub = _normalize_slug(str(payload.subclass_slug or ""))
+        if top_sub in e24sub.THIRD_CASTER_SUBCLASSES:
+            third_sub = top_sub
+            third_lv = final_level if final_level > 1 else _planned_class_level(payload, payload.class_slug)
+    if third_sub and third_lv >= 3:
+        _validate_third_caster_spells_2024(
+            payload,
+            subclass_slug=third_sub,
+            class_level=third_lv,
+        )
 
     # Class name line: primary + multiclass summary.
     class_name = str(class_row.get("name_ru") or class_slug)

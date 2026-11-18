@@ -887,12 +887,17 @@ def build_permanent_bonuses(
                 "Использование магических устройств",
                 "other_calc",
                 {
-                    "attune_any_class_item": True,
+                    "attunement_slots": 4,
+                    "charge_save_die": "1d6",
+                    "charge_save_on": 6,
+                    "scroll_ability": "int",
                     "ignore_class_spell_lists": True,
-                    "charge_floor": 1,
                 },
                 min_level=13,
-                note_ru="Аттьюн к любому предмету; игнор классовых ограничений; при 0 зарядов — 1",
+                note_ru=(
+                    "Настройка на четыре предмета; при трате заряда — 1к6, на 6 заряд не тратится; "
+                    "свитки через Интеллект"
+                ),
             )
         if class_level >= 17:
             add(

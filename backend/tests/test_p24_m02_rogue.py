@@ -354,3 +354,59 @@ def test_create_rogue_expertise_need_helpers():
     assert create24._rogue_expertise_need_2024(5) == 2
     assert create24._rogue_expertise_need_2024(6) == 4
     assert create24._weapon_mastery_limit("rogue") == 2
+
+
+def test_use_magic_device_note_is_phb_2024_not_charge_floor():
+    bonuses = sub24.build_permanent_bonuses(
+        "rogue__thief",
+        13,
+        abilities=_ABILITIES,
+    )
+    umd = next(b for b in bonuses if b.feature_id == "use-magic-device")
+    note = str(umd.note_ru or "")
+    assert "charge floor" not in note.lower()
+    assert "при 0 зарядов" not in note
+    assert "четыре" in note.lower() or "4" in note
+    assert "1к6" in note or "1d6" in note.lower()
+    calc = umd.value if isinstance(umd.value, dict) else {}
+    assert calc.get("attunement_slots") == 4
+    assert "charge_floor" not in calc
+
+
+def test_third_caster_at_create_requires_mage_hand_and_prepared():
+    payload = create24.Create2024Payload(
+        name="AT",
+        class_slug="rogue",
+        background_slug="soldier",
+        species_slug="dwarf",
+        ability_method="standard",
+        base_abilities=_ABILITIES,
+        background_asi_mode="+2/+1",
+        background_asi={"dex": 2, "con": 1},
+        language_ids=["common", "dwarvish"],
+        class_skill_ids=["stealth", "sleight_of_hand", "perception", "acrobatics"],
+        weapon_mastery_ids=["shortsword", "dagger"],
+        class_option_picks={"expertise": ["stealth", "perception"]},
+        subclass_slug="rogue__arcane-trickster",
+        cantrip_ids=["mage-hand", "ray-of-frost", "minor-illusion"],
+        prepared_spell_ids=["shield", "magic-missile", "disguise-self", "silent-image"],
+        class_levels=[{"slug": "rogue", "level": 5, "subclass_slug": "rogue__arcane-trickster"}],
+    )
+    create24._validate_third_caster_spells_2024(
+        payload,
+        subclass_slug="rogue__arcane-trickster",
+        class_level=5,
+    )
+    bad = create24.Create2024Payload(
+        **{
+            **payload.__dict__,
+            "cantrip_ids": ["ray-of-frost", "minor-illusion", "prestidigitation"],
+        }
+    )
+    with pytest.raises(create24.Create2024Error) as exc:
+        create24._validate_third_caster_spells_2024(
+            bad,
+            subclass_slug="rogue__arcane-trickster",
+            class_level=5,
+        )
+    assert "Волшебная рука" in str(exc.value)

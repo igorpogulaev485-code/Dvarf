@@ -46,6 +46,46 @@ const ROGUE_MASTERY = ['shortsword', 'dagger'] as const
 const ROGUE_EXPERTISE_L1 = ['stealth', 'perception'] as const
 const ROGUE_EXPERTISE_L6_EXTRA = ['sleight_of_hand', 'acrobatics'] as const
 const ROGUE_EXPERTISE_ALL = [...ROGUE_EXPERTISE_L1, ...ROGUE_EXPERTISE_L6_EXTRA] as const
+/** AT 2024: Mage Hand locked + 2 chosen cantrips @3–9; prepared from wizard list. */
+const AT_CANTRIPS = ['mage-hand', 'ray-of-frost', 'minor-illusion', 'prestidigitation'] as const
+const AT_PREPARED = [
+  'shield',
+  'magic-missile',
+  'disguise-self',
+  'silent-image',
+  'jump',
+  'charm-person',
+  'sleep',
+  'thunderwave',
+] as const
+
+async function pickSpellsToQuota(
+  page: Page,
+  tab: 'cantrips' | 'level1',
+  pool: readonly string[],
+) {
+  const tabBtn = page.getByTestId(`p24-m03-spell-tab-${tab}`)
+  if (!(await tabBtn.count())) return 0
+  await tabBtn.scrollIntoViewIfNeeded()
+  await tabBtn.click()
+  const label = (await tabBtn.innerText()) || ''
+  const m = label.match(/(\d+)\/(\d+)/)
+  const need = m ? Number(m[2]) - Number(m[1]) : 0
+  let picked = 0
+  for (const slug of pool) {
+    if (picked >= need) break
+    const card = page.getByTestId(`p24-m03-card-${slug}`)
+    if (!(await card.count())) continue
+    const pressed = await card.getAttribute('aria-pressed')
+    const checked = await card.getAttribute('aria-checked')
+    if (pressed === 'true' || checked === 'true') continue
+    await card.scrollIntoViewIfNeeded()
+    await card.click()
+    picked += 1
+  }
+  if (need > 0) expect(picked, `could not fill ${tab} quota (${label})`).toBe(need)
+  return need
+}
 
 test.beforeAll(() => {
   fs.mkdirSync(ARTIFACTS, { recursive: true })
@@ -184,6 +224,26 @@ async function walkLiveRogueCreate(
   if (opts.level >= 6) {
     // L1 pair was picked on class step; leveling step asks for 4 total.
     await pickPrefixed(page, 'p24-m02-rogue-expertise', [...ROGUE_EXPERTISE_ALL])
+  }
+
+  // Arcane Trickster: mandatory wizard cantrips/prepared — Finish stays disabled until filled.
+  if (opts.subclassSlug === SUB_AT && opts.level >= 3) {
+    const spellsBtn = page.getByTestId('p24-m03c-spells')
+    if (await spellsBtn.count()) {
+      await spellsBtn.click()
+      await page.waitForTimeout(300)
+    }
+    await expect(page.getByTestId('p24-m03-spell-tab-cantrips')).toBeVisible({ timeout: 10_000 })
+    await expect(page.getByTestId('p24-m03-finish')).toBeDisabled()
+    if (opts.stepShots) {
+      await tallShot(page, ARTIFACTS, `${prefix}step5-spells-cantrips`, opts.project)
+    }
+    await pickSpellsToQuota(page, 'cantrips', AT_CANTRIPS)
+    await pickSpellsToQuota(page, 'level1', AT_PREPARED)
+    if (opts.stepShots) {
+      await page.getByTestId('p24-m03-spell-tab-level1').click()
+      await tallShot(page, ARTIFACTS, `${prefix}step5-spells-prepared`, opts.project)
+    }
   }
 
   for (const lv of [4, 8, 10, 12, 16, 19]) {
@@ -369,7 +429,7 @@ test.describe('P24-M02 rogue — LIVE create (preview wizard)', () => {
     expect(store.unmatched).toEqual([])
   })
 
-  test('create-live-at-5 arcane-trickster: spellcasting names', async ({ page }, testInfo) => {
+  test('create-live-at-5 arcane-trickster: spells required + sheet', async ({ page }, testInfo) => {
     const project = projectOf(testInfo)
     const store = createStore()
     await walkLiveRogueCreate(page, store, {
@@ -377,14 +437,52 @@ test.describe('P24-M02 rogue — LIVE create (preview wizard)', () => {
       level: 5,
       subclassSlug: SUB_AT,
       project,
-      stepShots: false,
+      stepShots: true,
       shotPrefix: `${SHOT}-create-at-5-at-`,
     })
+    if (isPhone(project)) await page.getByText('Бой', { exact: true }).last().click()
+    await shot(page, ARTIFACTS, `${SHOT}-create-at-5-at-sheet`, project)
     await openFeaturesScene(page, project)
     await expectFeatureNames(page, [/^Сотворение заклинаний$/, /^Ловкость волшебной руки$/])
     await expectNoFeatureNames(page, [/^Вор заклинаний$/, /^Многогранный ловкач$/])
+    await expandAllFeatures(page)
     await tallShot(page, ARTIFACTS, `${SHOT}-create-at-5-arcane-trickster-features`, project)
+    // Spells on sheet (Mage Hand + prepared)
+    const root = page.locator('#root')
+    await expect(root.getByText(/Волшебная рука|Magic Hand|Щит|Magic Missile|Волшебная стрела/i).first()).toBeVisible({
+      timeout: 15_000,
+    })
+    await tallShot(page, ARTIFACTS, `${SHOT}-create-at-5-at-spells-sheet`, project)
     await dismissGuided(page)
+    expect(store.unmatched).toEqual([])
+  })
+
+  test('create-live-at-5 assassin: Убийство chip on combat desk', async ({ page }, testInfo) => {
+    const project = projectOf(testInfo)
+    const store = createStore()
+    await walkLiveRogueCreate(page, store, {
+      name: 'Живой Убийца 5',
+      level: 5,
+      subclassSlug: SUB_ASSASSIN,
+      project,
+      stepShots: false,
+      shotPrefix: `${SHOT}-create-at-5-assassin-`,
+    })
+    await dismissGuided(page)
+    // Combat desk chip: approved «Убийство», not «Ликвидация» / «Коварной».
+    if (isPhone(project)) await page.getByText('Бой', { exact: true }).last().click()
+    else {
+      const combatTab = page.getByRole('button', { name: /^Бой$|Атаки|Стол/ }).first()
+      if (await combatTab.isVisible().catch(() => false)) await combatTab.click()
+    }
+    const chip = page.getByTestId('assassinate-round1-chip')
+    await expect(chip).toBeVisible({ timeout: 15_000 })
+    await expect(chip).toContainText(/Убийство/)
+    await expect(chip).not.toContainText(/Ликвидация/)
+    await expect(page.getByText(/Коварн/)).toHaveCount(0)
+    await chip.click()
+    await expect(chip).toHaveAttribute('aria-pressed', 'true')
+    await shot(page, ARTIFACTS, `${SHOT}-assassin-chip-combat`, project)
     expect(store.unmatched).toEqual([])
   })
 })
