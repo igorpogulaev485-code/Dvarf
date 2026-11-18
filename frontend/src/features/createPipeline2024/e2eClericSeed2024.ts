@@ -82,12 +82,13 @@ export function clericAsiChoicesForLevel(level: number): Array<{
   abilities: Partial<Record<'str' | 'dex' | 'con' | 'int' | 'wis' | 'cha', number>>
 }> {
   const gates = [4, 8, 12, 16, 19].filter((g) => g <= level)
-  const bumps: Array<Partial<Record<'wis' | 'con', number>>> = [
+  // Base WIS 15 → at most two +2 (→19); rest CON/DEX so create stays ≤20.
+  const bumps: Array<Partial<Record<'wis' | 'con' | 'dex', number>>> = [
     { wis: 2 },
     { con: 2 },
     { wis: 2 },
     { con: 2 },
-    { wis: 2 },
+    { dex: 2 },
   ]
   return gates.map((classLevel, index) => ({
     classSlug: 'cleric',

@@ -1233,7 +1233,8 @@ export function ClericBookLevelingPicks({
     : []
 
   return (
-    <Stack gap={14} data-testid="p24-m02b-cleric-book-picks">
+    <div data-testid="p24-m02b-cleric-book-picks">
+    <Stack gap={14}>
       {need.studentSkill ? (
         <PickChipGroup
           label={`${STUDENT_OF_ARCANA_NAME_RU} (${ARCANA_DOMAIN_NAME_RU})`}
@@ -1344,5 +1345,6 @@ export function ClericBookLevelingPicks({
           ))
         : null}
     </Stack>
+    </div>
   )
 }
