@@ -231,19 +231,19 @@ const TRADITION_META: Record<
   evocation: {
     subclass_slug: 'school_of_evocation',
     subclass_name: 'Школа воплощения',
-    featureRe: /Воплощение|Скульптор заклинаний|Мощное воплощение|Перегрузка/i,
+    featureRe: /Школа воплощения|Скульптор заклинаний|Мощный заговор|Перегрузка|воплощени/i,
     shot: 'evocation',
   },
   abjuration: {
     subclass_slug: 'school_of_abjuration',
     subclass_name: 'Школа ограждения',
-    featureRe: /Ограждение|Волшебный щит|Улучшенный волшебный щит|Сопротивление заклинаниям/i,
+    featureRe: /Школа ограждения|Волшебный щит|Улучшенный волшебный щит|Сопротивление заклинаниям/i,
     shot: 'abjuration',
   },
   necromancy: {
     subclass_slug: 'school_of_necromancy',
     subclass_name: 'Школа некромантии',
-    featureRe: /Некромантия|Жатва|Нежилые|Мёртвые|Undead|гримуар/i,
+    featureRe: /Школа некромантии|Жатва|Неживые|Мёртвые|Undead|гримуар/i,
     shot: 'necromancy',
   },
 }
@@ -340,27 +340,10 @@ async function dismissWelcome(page: Page) {
 }
 
 async function openFeaturesScene(page: Page, project: string) {
-  if (isPhone(project)) {
-    const feats = page.getByRole('button', { name: /^Умения$|^Особенности$/ }).first()
-    if (await feats.isVisible().catch(() => false)) {
-      await feats.click()
-      await page.waitForTimeout(350)
-      return
-    }
-    const more = page.getByText('Ещё', { exact: true }).last()
-    if (await more.isVisible().catch(() => false)) {
-      await more.click()
-      await page.waitForTimeout(200)
-      await page.getByText(/Умения|Особенности/i).first().click()
-      await page.waitForTimeout(350)
-    }
-    return
-  }
-  const featuresBtn = page.getByRole('button', { name: /^Умения$|^Особенности$/ }).first()
-  if (await featuresBtn.isVisible().catch(() => false)) {
-    await featuresBtn.click()
-    await page.waitForTimeout(350)
-  }
+  // Play Desk rail: «Способности» (phone label «Способн.») — same as rogue/wizard 2014 harness.
+  if (isPhone(project)) await page.getByText('Способн.', { exact: true }).last().click()
+  else await page.getByRole('button', { name: /^Способности$/ }).first().click()
+  await page.waitForTimeout(700)
 }
 
 test.beforeAll(({}, testInfo) => {
@@ -398,19 +381,23 @@ test.describe('P24-M02B 2014 regression (wizard)', () => {
     if (isPhone(project)) {
       await page.getByText('Бой', { exact: true }).last().click()
       await page.waitForTimeout(300)
+      const expand = page.getByRole('button', { name: /Развернуть шапку/ })
+      if (await expand.isVisible().catch(() => false)) {
+        await expand.click()
+        await page.waitForTimeout(300)
+      }
       await shot(page, `${tag}-sheet-2014-wizard-header`, project)
       const abilBtn = page.locator('button.mobile-vitals__abil')
-      if (await abilBtn.isVisible().catch(() => false)) {
-        await abilBtn.click()
-        const abilPage = page.getByRole('dialog', { name: /Характеристики/ })
-        await expect(abilPage).toBeVisible()
-        for (const abil of ['str', 'dex', 'con', 'int', 'wis', 'cha']) {
-          await expect(abilPage.locator(`.abil-block[data-abil="${abil}"]`).first()).toBeVisible()
-        }
-        await shot(page, `${tag}-sheet-2014-wizard-abilities`, project)
-        await abilPage.locator('button.mobile-abil-page__back').click()
-        await expect(abilPage).toHaveCount(0, { timeout: 10_000 })
+      await expect(abilBtn).toBeVisible({ timeout: 10_000 })
+      await abilBtn.click()
+      const abilPage = page.getByRole('dialog', { name: /Характеристики/ })
+      await expect(abilPage).toBeVisible()
+      for (const abil of ['str', 'dex', 'con', 'int', 'wis', 'cha']) {
+        await expect(abilPage.locator(`.abil-block[data-abil="${abil}"]`).first()).toBeVisible()
       }
+      await shot(page, `${tag}-sheet-2014-wizard-abilities`, project)
+      await abilPage.locator('button.mobile-abil-page__back').click()
+      await expect(abilPage).toHaveCount(0, { timeout: 10_000 })
     } else {
       for (const abil of ['str', 'dex', 'con', 'int', 'wis', 'cha']) {
         await expect(page.locator(`.abil-block[data-abil="${abil}"]`).first()).toBeVisible()
@@ -419,9 +406,14 @@ test.describe('P24-M02B 2014 regression (wizard)', () => {
     }
 
     await openFeaturesScene(page, project)
-    await expect(
-      page.getByText(/Волшебная восстанавливаемость|Книга заклинаний|Аркана|Ритуальное|Традиция/i).first(),
-    ).toBeVisible({ timeout: 15_000 })
+    const classFeature = page
+      .locator('.feature-card, .play-desk-features, [data-onboarding="features"]')
+      .getByText(
+        /Магическое восстановление|Сотворение заклинаний|Ритуальное|Аркана|Школа воплощения|Традиция волшебника/i,
+      )
+      .first()
+    await classFeature.scrollIntoViewIfNeeded().catch(() => {})
+    await expect(classFeature).toBeVisible({ timeout: 15_000 })
     await shot(page, `${tag}-sheet-2014-wizard-features`, project)
   })
 
@@ -442,9 +434,12 @@ test.describe('P24-M02B 2014 regression (wizard)', () => {
       await page.waitForTimeout(250)
     }
     await openFeaturesScene(page, project)
-    await expect(page.getByText(TRADITION_META.evocation.featureRe).first()).toBeVisible({
-      timeout: 15_000,
-    })
+    const tradition = page
+      .locator('.feature-card')
+      .filter({ hasText: TRADITION_META.evocation.featureRe })
+      .first()
+    await tradition.scrollIntoViewIfNeeded().catch(() => {})
+    await expect(tradition).toBeVisible({ timeout: 15_000 })
     await shot(page, `${tag}-sheet-2014-evocation-features`, project)
   })
 })

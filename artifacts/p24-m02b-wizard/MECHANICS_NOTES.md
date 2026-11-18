@@ -29,16 +29,22 @@
 
 ## 2014 regression md5 (tip `3fb02475` before = branch after)
 
-| project | file | md5 |
-|---|---|---|
-| 1440 | create-2014-race-marker | `9830fb7a6c0acc068819fff2aeb16b0e` |
-| 1440 | create-2014-wizard-class | `37a63f294b8b59d7de03a574047de04d` |
-| 1440 | sheet-2014-wizard | `cb510c5e7e13ae1731218d612054549a` |
-| 390 | create-2014-race-marker | `593794cbc8945111beb093cf3ee71614` |
-| 390 | create-2014-wizard-class | `e24638350aed100f1e5c27a703e5f9b9` |
-| 390 | sheet-2014-wizard | `f80e0b59c955c37a56c027e1901eaa07` |
+Полный набор 5+6 (как у плута). Все пары before = after. Кадры: `artifacts/p24-m02b-wizard/regression-2014/`.
 
-Все пары before = after. Кадры: `artifacts/p24-m02b-wizard/regression-2014/`.
+**1440 (5):** race-marker `9830fb7a…`, wizard-class `37a63f29…`, sheet-wizard `cb510c5e…`, wizard-features `5f4d9710…`, evocation-features `50d55a6c…`.
+
+**390 (6):** race-marker `593794cb…`, wizard-class `e2463835…`, header `5f215ef6…`, abilities `91b5726b…`, wizard-features `e21e940a…`, evocation-features `7d495943…`.
+
+Sidecar’ы: `before-md5-*` / `after-md5-*` / `md5-compare.txt`.
+
+## Проверки (п.7 доправки)
+
+- **«Известно» + max_prepared null:** да, дыра книжных путей — classic SpellsPanel при `max_prepared == null` считал книгу режимом Known («Известно N/freeCap»). Исправлено: spellbook mode не known; create пишет `max_prepared` для волшебника.
+- **Камень «тёмное зрение 60» на дварфе 120:** `effectiveDarkvisionFt` берёт `Math.max` с buff senses — камень не затирает 120.
+
+## AU Savant book need
+
+L3 = 12, L5 = 17, L11 = 32 (free research + school free). Bladesinger без саванта. Live create / seed / BE / selfcheck совпадают.
 
 ## 2014 / PHB 2024
 

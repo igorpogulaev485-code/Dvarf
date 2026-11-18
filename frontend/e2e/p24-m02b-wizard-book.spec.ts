@@ -104,35 +104,22 @@ async function createViaSeed(page: Page, store: HarnessStore, seed: string) {
 }
 
 async function openFeatures(page: Page, project: string) {
+  // Play Desk: desktop «Способности», phone bottom-nav «Способн.»
   if (project === '390') {
-    const feats = page.getByRole('button', { name: /^Умения$|^Особенности$/ }).first()
-    if (await feats.isVisible().catch(() => false)) {
-      await feats.click()
-      await page.waitForTimeout(350)
-      return
-    }
+    await page.getByText('Способн.', { exact: true }).last().click()
+  } else {
+    await page.getByRole('button', { name: /^Способности$/ }).first().click()
   }
-  const featuresBtn = page.getByRole('button', { name: /^Умения$|^Особенности$/ }).first()
-  if (await featuresBtn.isVisible().catch(() => false)) {
-    await featuresBtn.click()
-    await page.waitForTimeout(350)
-  }
+  await page.waitForTimeout(700)
 }
 
 async function openCombat(page: Page, project: string) {
   if (project === '390') {
-    const combat = page.getByText('Бой', { exact: true }).last()
-    if (await combat.isVisible().catch(() => false)) {
-      await combat.click()
-      await page.waitForTimeout(300)
-    }
+    await page.getByText('Бой', { exact: true }).last().click()
   } else {
-    const combatBtn = page.getByRole('button', { name: /^Бой$/ }).first()
-    if (await combatBtn.isVisible().catch(() => false)) {
-      await combatBtn.click()
-      await page.waitForTimeout(300)
-    }
+    await page.getByRole('button', { name: /^Бой$/ }).first().click()
   }
+  await page.waitForTimeout(500)
 }
 
 async function setCreateLevel(page: Page, level: number) {
@@ -245,7 +232,7 @@ test.describe('P24-M02B wizard book — live create rollbacks', () => {
     void finish
   })
 
-  test('rollback 5→4 drops savant of new tier (17→15)', async ({ page }, testInfo) => {
+  test('rollback 5→4 drops savant of new tier (17→14)', async ({ page }, testInfo) => {
     const project = projectOf(testInfo)
     const store = createStore()
     await installWizardHarness(page, store)

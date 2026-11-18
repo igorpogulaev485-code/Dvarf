@@ -1,3 +1,5 @@
 9830fb7a6c0acc068819fff2aeb16b0e  before-create-2014-race-marker-1440.png
 37a63f294b8b59d7de03a574047de04d  before-create-2014-wizard-class-1440.png
 cb510c5e7e13ae1731218d612054549a  before-sheet-2014-wizard-1440.png
+5f4d97105cf4eaaaa1887b720cdc0074  before-sheet-2014-wizard-features-1440.png
+50d55a6c5e5f364bd79d7896a4f7b948  before-sheet-2014-evocation-features-1440.png
