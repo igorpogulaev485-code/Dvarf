@@ -31,7 +31,7 @@ import sorcererPack from './data/sorcerer_2014.json'
 import warlockPack from './data/warlock_2014.json'
 import { SORCERER_METAMAGIC } from './sorcererMetamagic'
 import { ARCANE_SHOTS } from './arcaneShots'
-import { BATTLE_MASTER_MANEUVERS, maneuversForPicker } from './battleMasterManeuvers'
+import { maneuversForPicker } from './battleMasterManeuvers'
 import {
   cavalierBonusOptionIds,
   samuraiBonusOptionIds,

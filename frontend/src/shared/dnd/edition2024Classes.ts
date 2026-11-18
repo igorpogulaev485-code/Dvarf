@@ -204,6 +204,8 @@ type ResourceMeta = {
   feature_id: string
   blocks_magic_action?: boolean
   distinct_from_heroic?: boolean
+  /** 2024 Indomitable: reroll save with bonus = fighter level. */
+  bonus_equals_class_level?: boolean
   uses_from?:
     | 'proficiency_bonus'
     | 'cha_mod_min_1'
