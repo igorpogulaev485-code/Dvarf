@@ -275,10 +275,11 @@ SHARED_OPTIONS: dict[str, list[SharedPoolOption]] = {
         SharedPoolOption("mind-magic", "Магия разума", "channel_divinity", kind="action"),
     ],
     "cleric__arcana-domain": [
-        SharedPoolOption("modify-magic", "Изменение магии", "channel_divinity", kind="action"),
+        # Spend at cast time — no separate action (next.dnd.su / AU).
+        SharedPoolOption("modify-magic", "Изменение магии", "channel_divinity", kind="cast"),
     ],
     "cleric__grave-domain": [
-        SharedPoolOption("path-to-the-grave", "Путь в могилу", "channel_divinity", kind="action"),
+        SharedPoolOption("path-to-the-grave", "Путь к могиле", "channel_divinity", kind="bonus"),
     ],
     # Paladin oaths — Channel Divinity (+ class divine_sense already on pool)
     "paladin__oath-of-devotion": [
@@ -1067,6 +1068,119 @@ def build_permanent_bonuses(
             note_ru="Сброс вспышки на коротком; врем. хиты союзнику",
         )
 
+    # Cleric book domains (P24-M02B-cleric)
+    cleric_wis_m = ability_mod(int(abilities.get("wis") or 10))
+    if subclass_slug == "cleric__arcana-domain":
+        add(
+            "modify-magic",
+            "Изменение магии",
+            "other_calc",
+            {
+                "spend_channel_on_cast": True,
+                "fortifying_temp_hp": "2d8+cleric_level",
+                "tenacious_save_penalty": "1d6",
+            },
+            min_level=3,
+            note_ru=(
+                "При сотворении: Укрепляющее (врем. хиты 2к8+ур.) "
+                "или Упорное (−1к6 к первому спасброску)"
+            ),
+        )
+        if class_level >= 6:
+            add(
+                "dispelling-recovery",
+                "Рассеивающее восстановление",
+                "other_calc",
+                {
+                    "free_dispel_magic_after_heal_or_condition_removal": True,
+                    "restore_with_channel": True,
+                },
+                min_level=6,
+            )
+    if subclass_slug == "cleric__knowledge-domain":
+        add(
+            "mind-magic",
+            "Магия разума",
+            "other_calc",
+            {"channel_cast_domain_divination": True, "no_slot_no_material": True},
+            min_level=3,
+        )
+        if class_level >= 6:
+            add(
+                "unfettered-mind",
+                "Разум освобождённый",
+                "other_calc",
+                {
+                    "telepathy_ft": 60,
+                    "linked_creatures": max(1, cleric_wis_m),
+                    "int_save_proficiency": True,
+                },
+                min_level=6,
+                note_ru=(
+                    f"Телепатия 60 фт.; до {max(1, cleric_wis_m)} существ; "
+                    "владение спасбросками Интеллекта"
+                ),
+            )
+        if class_level >= 17:
+            add(
+                "divine-foreknowledge",
+                "Божественное предзнание",
+                "other_calc",
+                {"advantage_all_d20_1_hour": True, "restore_with_slot_min": 6},
+                min_level=17,
+            )
+    if subclass_slug == "cleric__grave-domain":
+        add(
+            "circle-of-mortality",
+            "Круговорот жизни и смерти",
+            "other_calc",
+            {
+                "once_per_turn_necrotic": "1d6" if class_level >= 11 else "1d4",
+                "spare_the_dying_bonus_action": True,
+                "max_heal_dice_on_0_hp": True,
+            },
+            min_level=3,
+            note_ru=(
+                f"Толчок к смерти {'1к6' if class_level >= 11 else '1к4'}; "
+                "Уход за умирающим бонусным; макс. кости лечения на 0 HP"
+            ),
+        )
+        add(
+            "path-to-the-grave",
+            "Путь к могиле",
+            "other_calc",
+            {
+                "curse_30_ft_until_next_turn": True,
+                "disadvantage_attacks_and_saves": True,
+                "end_on_hit_extra_damage": "cleric_level",
+            },
+            min_level=3,
+        )
+        if class_level >= 6:
+            add(
+                "sentinel-at-death-s-door",
+                "Страж на пороге смерти",
+                "other_calc",
+                {
+                    "reaction_halve_damage": True,
+                    "cancel_crit": True,
+                    "pool_wis_mod": True,
+                },
+                min_level=6,
+            )
+        if class_level >= 17:
+            add(
+                "divine-reaper",
+                "Божественный жнец",
+                "other_calc",
+                {
+                    "second_target_via_channel": True,
+                    "keeper_of_souls_heal": "cleric_level*2",
+                    "restore_with_slot_min": 6,
+                },
+                min_level=17,
+            )
+
     # Wizard book subclasses (P24-M02B-wizard)
     wizard_int_m = ability_mod(int(abilities.get("int") or 10))
 
@@ -1561,6 +1675,48 @@ def build_subclass_resources(
             reset="short",
             feature_id="war-priest",
         )
+    elif subclass_slug == "cleric__arcana-domain":
+        if class_level >= 6:
+            add(
+                "dispelling_recovery",
+                name_ru="Рассеивающее восстановление",
+                max_uses=1,
+                reset="short",
+                feature_id="dispelling-recovery",
+                min_level=6,
+                extra_meta={"restore_with_pool": "channel_divinity"},
+            )
+    elif subclass_slug == "cleric__knowledge-domain":
+        if class_level >= 17:
+            add(
+                "divine_foreknowledge",
+                name_ru="Божественное предзнание",
+                max_uses=1,
+                reset="long",
+                feature_id="divine-foreknowledge",
+                min_level=17,
+                extra_meta={"restore_with_slot_min": 6},
+            )
+    elif subclass_slug == "cleric__grave-domain":
+        if class_level >= 6:
+            add(
+                "sentinel_at_deaths_door",
+                name_ru="Страж на пороге смерти",
+                max_uses=max(1, wis_m),
+                reset="long",
+                feature_id="sentinel-at-death-s-door",
+                min_level=6,
+            )
+        if class_level >= 17:
+            add(
+                "keeper_of_souls",
+                name_ru="Хранитель душ",
+                max_uses=1,
+                reset="short",
+                feature_id="divine-reaper",
+                min_level=17,
+                extra_meta={"restore_with_slot_min": 6, "heal": "cleric_level*2"},
+            )
 
     # --- Warlock ---
     elif subclass_slug == "warlock__celestial-patron":

@@ -179,6 +179,15 @@ export const M02B_WARLOCK_BOOK_SUBCLASS_SLUGS = new Set([
   'warlock__undead',
 ])
 
+/**
+ * Book cleric paths opened by P24-M02B-cleric (AU Arcana + FRHoF Knowledge + RTW Grave).
+ */
+export const M02B_CLERIC_BOOK_SUBCLASS_SLUGS = new Set([
+  'cleric__arcana-domain',
+  'cleric__knowledge-domain',
+  'cleric__grave-domain',
+])
+
 export function isPhb2024CreateSubclass(slug: string, source?: string | null): boolean {
   const key = String(slug || '')
     .trim()
@@ -199,6 +208,8 @@ export function isPhb2024CreateSubclass(slug: string, source?: string | null): b
   if (M02B_MONK_BOOK_SUBCLASS_SLUGS.has(key)) return true
   // P24-M02B-warlock: Vestige + Undead only.
   if (M02B_WARLOCK_BOOK_SUBCLASS_SLUGS.has(key)) return true
+  // P24-M02B-cleric: Arcana + Knowledge + Grave only.
+  if (M02B_CLERIC_BOOK_SUBCLASS_SLUGS.has(key)) return true
   // Catalog API may omit source; fall back to known PHB table rows.
   return Boolean(row && CREATE_SUBCLASS_SOURCES_2024.has(String(row.source || '').toLowerCase()))
 }
@@ -263,10 +274,11 @@ const SHARED_OPTIONS_2024: Record<string, SharedPoolOption2024[]> = {
     { feature_id: 'mind-magic', name_ru: 'Магия разума', spend_pool: 'channel_divinity', cost: 1, kind: 'action', min_level: 3 },
   ],
   'cleric__arcana-domain': [
-    { feature_id: 'modify-magic', name_ru: 'Изменение магии', spend_pool: 'channel_divinity', cost: 1, kind: 'action', min_level: 3 },
+    // Spend at cast time — no separate action (next.dnd.su / AU).
+    { feature_id: 'modify-magic', name_ru: 'Изменение магии', spend_pool: 'channel_divinity', cost: 1, kind: 'cast', min_level: 3 },
   ],
   'cleric__grave-domain': [
-    { feature_id: 'path-to-the-grave', name_ru: 'Путь в могилу', spend_pool: 'channel_divinity', cost: 1, kind: 'action', min_level: 3 },
+    { feature_id: 'path-to-the-grave', name_ru: 'Путь к могиле', spend_pool: 'channel_divinity', cost: 1, kind: 'bonus', min_level: 3 },
   ],
   'paladin__oath-of-devotion': [
     { feature_id: 'sacred-weapon', name_ru: 'Священное оружие', spend_pool: 'channel_divinity', cost: 1, kind: 'attack', min_level: 3 },
@@ -771,6 +783,122 @@ export function buildPermanentBonuses2024(input: {
   if (subclassSlug === 'cleric__light-domain' && classLevel >= 6) {
     add('improved-warding-flare', 'Улучшенная ограждающая вспышка', 'other_calc', { reset_short: true }, 6)
   }
+  if (subclassSlug === 'cleric__arcana-domain') {
+    add(
+      'modify-magic',
+      'Изменение магии',
+      'other_calc',
+      {
+        spend_channel_on_cast: true,
+        fortifying_temp_hp: '2d8+cleric_level',
+        tenacious_save_penalty: '1d6',
+      },
+      3,
+      'При сотворении: Укрепляющее (врем. хиты 2к8+ур.) или Упорное (−1к6 к первому спасброску)',
+    )
+    if (classLevel >= 6) {
+      add(
+        'dispelling-recovery',
+        'Рассеивающее восстановление',
+        'other_calc',
+        {
+          free_dispel_magic_after_heal_or_condition_removal: true,
+          restore_with_channel: true,
+        },
+        6,
+      )
+    }
+  }
+  if (subclassSlug === 'cleric__knowledge-domain') {
+    add(
+      'mind-magic',
+      'Магия разума',
+      'other_calc',
+      {
+        channel_cast_domain_divination: true,
+        no_slot_no_material: true,
+      },
+      3,
+    )
+    if (classLevel >= 6) {
+      const wisM = abilityMod(ab.wis ?? 10)
+      add(
+        'unfettered-mind',
+        'Разум освобождённый',
+        'other_calc',
+        {
+          telepathy_ft: 60,
+          linked_creatures: Math.max(1, wisM),
+          int_save_proficiency: true,
+        },
+        6,
+        `Телепатия 60 фт.; до ${Math.max(1, wisM)} существ; владение спасбросками Интеллекта`,
+      )
+    }
+    if (classLevel >= 17) {
+      add(
+        'divine-foreknowledge',
+        'Божественное предзнание',
+        'other_calc',
+        {
+          advantage_all_d20_1_hour: true,
+          restore_with_slot_min: 6,
+        },
+        17,
+      )
+    }
+  }
+  if (subclassSlug === 'cleric__grave-domain') {
+    add(
+      'circle-of-mortality',
+      'Круговорот жизни и смерти',
+      'other_calc',
+      {
+        once_per_turn_necrotic: classLevel >= 11 ? '1d6' : '1d4',
+        spare_the_dying_bonus_action: true,
+        max_heal_dice_on_0_hp: true,
+      },
+      3,
+      `Толчок к смерти ${classLevel >= 11 ? '1к6' : '1к4'}; Уход за умирающим бонусным; макс. кости лечения на 0 HP`,
+    )
+    add(
+      'path-to-the-grave',
+      'Путь к могиле',
+      'other_calc',
+      {
+        curse_30_ft_until_next_turn: true,
+        disadvantage_attacks_and_saves: true,
+        end_on_hit_extra_damage: 'cleric_level',
+      },
+      3,
+    )
+    if (classLevel >= 6) {
+      add(
+        'sentinel-at-death-s-door',
+        'Страж на пороге смерти',
+        'other_calc',
+        {
+          reaction_halve_damage: true,
+          cancel_crit: true,
+          pool_wis_mod: true,
+        },
+        6,
+      )
+    }
+    if (classLevel >= 17) {
+      add(
+        'divine-reaper',
+        'Божественный жнец',
+        'other_calc',
+        {
+          second_target_via_channel: true,
+          keeper_of_souls_heal: 'cleric_level*2',
+          restore_with_slot_min: 6,
+        },
+        17,
+      )
+    }
+  }
   if (subclassSlug === 'wizard__necromancer' && classLevel >= 6) {
     const intM = abilityMod(ab.int ?? 10)
     const halfLevel = Math.floor(classLevel / 2)
@@ -1047,6 +1175,27 @@ export function buildSubclassResources2024(input: {
     if (classLevel >= 17) push('corona_of_light', 'Корона света', Math.max(1, wisMod), 'long', 'corona-of-light')
   } else if (subclassSlug === 'cleric__war-domain') {
     push('war_priest', 'Боевой священник', Math.max(1, wisMod), 'short', 'war-priest')
+  } else if (subclassSlug === 'cleric__arcana-domain') {
+    if (classLevel >= 6) {
+      push('dispelling_recovery', 'Рассеивающее восстановление', 1, 'short', 'dispelling-recovery')
+    }
+  } else if (subclassSlug === 'cleric__knowledge-domain') {
+    if (classLevel >= 17) {
+      push('divine_foreknowledge', 'Божественное предзнание', 1, 'long', 'divine-foreknowledge')
+    }
+  } else if (subclassSlug === 'cleric__grave-domain') {
+    if (classLevel >= 6) {
+      push(
+        'sentinel_at_deaths_door',
+        'Страж на пороге смерти',
+        Math.max(1, wisMod),
+        'long',
+        'sentinel-at-death-s-door',
+      )
+    }
+    if (classLevel >= 17) {
+      push('keeper_of_souls', 'Хранитель душ', 1, 'short', 'divine-reaper')
+    }
   } else if (subclassSlug === 'warlock__celestial-patron') {
     push('healing_light', 'Лечащий свет', 1 + classLevel, 'long', 'healing-light', { die: 'd6' })
     if (classLevel >= 14) push('searing_vengeance', 'Опаляющее возмездие', 1, 'long', 'searing-vengeance')

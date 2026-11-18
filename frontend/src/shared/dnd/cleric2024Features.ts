@@ -11,6 +11,36 @@
 import type { FeatureChoiceDef } from './classFeatures'
 import type { SharedPoolOption2024 } from './edition2024Subclasses'
 import {
+  CIRCLE_OF_MORTALITY_NAME_RU,
+  DISPELLING_RECOVERY_FEATURE_ID,
+  DISPELLING_RECOVERY_NAME_RU,
+  DISPELLING_RECOVERY_POOL_ID,
+  DIVINE_FOREKNOWLEDGE_ACTIVE_PICK,
+  DIVINE_FOREKNOWLEDGE_FEATURE_ID,
+  DIVINE_FOREKNOWLEDGE_NAME_RU,
+  DIVINE_FOREKNOWLEDGE_POOL_ID,
+  DIVINE_REAPER_FEATURE_ID,
+  DIVINE_REAPER_NAME_RU,
+  FORTIFYING_SPELL_NAME_RU,
+  KEEPER_OF_SOULS_NAME_RU,
+  KEEPER_OF_SOULS_POOL_ID,
+  MIND_MAGIC_FEATURE_ID,
+  MIND_MAGIC_NAME_RU,
+  MODIFY_MAGIC_FEATURE_ID,
+  MODIFY_MAGIC_NAME_RU,
+  PATH_TO_THE_GRAVE_ACTIVE_PICK,
+  PATH_TO_THE_GRAVE_FEATURE_ID,
+  PATH_TO_THE_GRAVE_NAME_RU,
+  SENTINEL_AT_DEATHS_DOOR_FEATURE_ID,
+  SENTINEL_AT_DEATHS_DOOR_NAME_RU,
+  SENTINEL_AT_DEATHS_DOOR_POOL_ID,
+  TENACIOUS_SPELL_NAME_RU,
+  circleMortalityExtraDie2024,
+  keeperOfSoulsHeal2024,
+  modifyMagicTempHpFormulaRu2024,
+  pathToTheGraveExtraDamage2024,
+} from './clericBook2024Features'
+import {
   getFeaturePick,
   setFeaturePick,
   type FeaturePicksState,
@@ -72,6 +102,9 @@ export const CLERIC_SUBCLASS_SLUGS_2024 = {
   light: 'cleric__light-domain',
   trickery: 'cleric__trickery-domain',
   war: 'cleric__war-domain',
+  arcana: 'cleric__arcana-domain',
+  knowledge: 'cleric__knowledge-domain',
+  grave: 'cleric__grave-domain',
 } as const
 
 /** Shared Channel Divinity pool + subclass pools (see `buildSubclassResources2024`). */
@@ -618,6 +651,22 @@ export const CLERIC_2024_CARD_BUTTONS: Record<string, string> = {
   divine_intervention: 'Вмешательство…',
   'greater-divine-intervention': 'Вмешательство…',
   greater_divine_intervention: 'Вмешательство…',
+  'modify-magic': 'Изменение…',
+  modify_magic: 'Изменение…',
+  'mind-magic': 'Магия разума…',
+  mind_magic: 'Магия разума…',
+  'path-to-the-grave': 'Путь к могиле…',
+  path_to_the_grave: 'Путь к могиле…',
+  'dispelling-recovery': 'Рассеивание…',
+  dispelling_recovery: 'Рассеивание…',
+  'divine-foreknowledge': 'Предзнание…',
+  divine_foreknowledge: 'Предзнание…',
+  'sentinel-at-death-s-door': 'Страж…',
+  sentinel_at_death_s_door: 'Страж…',
+  'divine-reaper': 'Жнец…',
+  divine_reaper: 'Жнец…',
+  'circle-of-mortality': 'Круговорот…',
+  circle_of_mortality: 'Круговорот…',
 }
 
 const CLERIC_USE_FEATURE_IDS = new Set([
@@ -633,6 +682,14 @@ const CLERIC_USE_FEATURE_IDS = new Set([
   'war-priest',
   'corona-of-light',
   'divine-intervention',
+  MODIFY_MAGIC_FEATURE_ID,
+  MIND_MAGIC_FEATURE_ID,
+  PATH_TO_THE_GRAVE_FEATURE_ID,
+  DISPELLING_RECOVERY_FEATURE_ID,
+  DIVINE_FOREKNOWLEDGE_FEATURE_ID,
+  SENTINEL_AT_DEATHS_DOOR_FEATURE_ID,
+  DIVINE_REAPER_FEATURE_ID,
+  'circle-of-mortality',
 ])
 
 /** Normalize feature ids that open the dialog (`_` → `-`; Greater DI → divine-intervention). */
@@ -1027,6 +1084,215 @@ export function applyCleric2024FeatureUse(input: Cleric2024UseInput): Cleric2024
         input,
         `${DIVINE_INTERVENTION_NAME_RU}: «${spellId}» без ячейки и материальных компонентов (действие «Магия»)`,
         { resources: spend },
+      )
+    }
+
+    case MODIFY_MAGIC_FEATURE_ID: {
+      if (level < 3) return refuse(input, `${MODIFY_MAGIC_NAME_RU} с 3 уровня жреца`)
+      const mode = String(input.mode || '').toLowerCase()
+      if (mode !== 'fortifying' && mode !== 'tenacious') {
+        return refuse(input, `Выбери: «${FORTIFYING_SPELL_NAME_RU}» или «${TENACIOUS_SPELL_NAME_RU}»`)
+      }
+      const spent = spendChannel(input)
+      if (!spent.ok) return spent.result
+      if (mode === 'fortifying') {
+        const formula = modifyMagicTempHpFormulaRu2024(level)
+        return ok(
+          input,
+          `${MODIFY_MAGIC_NAME_RU} — ${FORTIFYING_SPELL_NAME_RU}: цель получает ${formula} временных хитов (при сотворении)`,
+          { resources: spent.resources, patches: { diceExpression: formula, tempHp: 0 } },
+        )
+      }
+      return ok(
+        input,
+        `${MODIFY_MAGIC_NAME_RU} — ${TENACIOUS_SPELL_NAME_RU}: −1к6 к первому успешному спасброску цели против этого заклинания`,
+        { resources: spent.resources, patches: { diceExpression: '1к6' } },
+      )
+    }
+
+    case MIND_MAGIC_FEATURE_ID: {
+      if (level < 3) return refuse(input, `${MIND_MAGIC_NAME_RU} с 3 уровня жреца`)
+      const spellId = (input.spellId ?? '').trim()
+      if (!spellId) {
+        return refuse(input, 'Выбери подготовленное заклинание Прорицания из таблицы домена знаний')
+      }
+      const spent = spendChannel(input)
+      if (!spent.ok) return spent.result
+      return ok(
+        input,
+        `${MIND_MAGIC_NAME_RU}: «${spellId}» без ячейки и материальных компонентов (действие «Магия»)`,
+        { resources: spent.resources },
+      )
+    }
+
+    case PATH_TO_THE_GRAVE_FEATURE_ID: {
+      if (level < 3) return refuse(input, `${PATH_TO_THE_GRAVE_NAME_RU} с 3 уровня жреца`)
+      const mode = String(input.mode || 'curse').toLowerCase()
+      if (mode === 'end-hit') {
+        const damage = pathToTheGraveExtraDamage2024(level)
+        const dtype = String(input.choice || 'necrotic').toLowerCase() === 'radiant' ? 'излучением' : 'некротическим'
+        return ok(
+          input,
+          `${PATH_TO_THE_GRAVE_NAME_RU}: проклятие снято при попадании — +${damage} урона ${dtype}`,
+          {
+            patches: {
+              featurePicks: setFeaturePick(picks, input.classEntryId, PATH_TO_THE_GRAVE_ACTIVE_PICK, null),
+              activeLabels: [],
+              damageType: dtype.includes('излуч') ? 'radiant' : 'necrotic',
+            },
+          },
+        )
+      }
+      const spent = spendChannel(input)
+      if (!spent.ok) return spent.result
+      return ok(
+        input,
+        `${PATH_TO_THE_GRAVE_NAME_RU}: проклятие на существо в 30 фт. до начала твоего следующего хода (помеха на атаки и спасброски)`,
+        {
+          resources: spent.resources,
+          patches: {
+            featurePicks: setFeaturePick(picks, input.classEntryId, PATH_TO_THE_GRAVE_ACTIVE_PICK, '1'),
+            activeLabels: [PATH_TO_THE_GRAVE_NAME_RU],
+          },
+        },
+      )
+    }
+
+    case DISPELLING_RECOVERY_FEATURE_ID: {
+      if (level < 6) return refuse(input, `${DISPELLING_RECOVERY_NAME_RU} с 6 уровня жреца`)
+      const mode = String(input.mode || 'cast').toLowerCase()
+      if (mode === 'restore') {
+        const spent = spendChannel(input)
+        if (!spent.ok) return spent.result
+        const row = poolRow(input, DISPELLING_RECOVERY_POOL_ID)
+        if (!row) return refuse(input, `Ресурс «${DISPELLING_RECOVERY_NAME_RU}» не найден`)
+        const restored = patchRow(spent.resources, row.id, (item) => ({
+          ...item,
+          used: Math.max(0, item.used - 1),
+        }))
+        return ok(
+          input,
+          `${DISPELLING_RECOVERY_NAME_RU}: использование восстановлено через ${CHANNEL_DIVINITY_NAME_RU}`,
+          { resources: restored },
+        )
+      }
+      const spent = spendPool(
+        input,
+        DISPELLING_RECOVERY_POOL_ID,
+        `Ресурс «${DISPELLING_RECOVERY_NAME_RU}» не найден`,
+        `${DISPELLING_RECOVERY_NAME_RU}: использования закончились (короткий/долгий или через канал)`,
+      )
+      if (!spent.ok) return spent.result
+      return ok(
+        input,
+        `${DISPELLING_RECOVERY_NAME_RU}: «Рассеивание магии» без ячейки частью того же действия`,
+        { resources: spent.resources },
+      )
+    }
+
+    case DIVINE_FOREKNOWLEDGE_FEATURE_ID: {
+      if (level < 17) return refuse(input, `${DIVINE_FOREKNOWLEDGE_NAME_RU} с 17 уровня жреца`)
+      const mode = String(input.mode || 'activate').toLowerCase()
+      if (mode === 'restore') {
+        const slot = Math.floor(Number(input.amount ?? 0) || 0)
+        if (slot < 6) return refuse(input, 'Нужна ячейка 6-го круга или выше')
+        const row = poolRow(input, DIVINE_FOREKNOWLEDGE_POOL_ID)
+        if (!row) return refuse(input, `Ресурс «${DIVINE_FOREKNOWLEDGE_NAME_RU}» не найден`)
+        const restored = patchRow(input.resources, row.id, (item) => ({
+          ...item,
+          used: Math.max(0, item.used - 1),
+        }))
+        return ok(
+          input,
+          `${DIVINE_FOREKNOWLEDGE_NAME_RU}: использование восстановлено ячейкой ${slot}+`,
+          { resources: restored },
+        )
+      }
+      const spent = spendPool(
+        input,
+        DIVINE_FOREKNOWLEDGE_POOL_ID,
+        `Ресурс «${DIVINE_FOREKNOWLEDGE_NAME_RU}» не найден`,
+        `${DIVINE_FOREKNOWLEDGE_NAME_RU}: использования закончились (долгий или ячейка 6+)`,
+      )
+      if (!spent.ok) return spent.result
+      return ok(
+        input,
+        `${DIVINE_FOREKNOWLEDGE_NAME_RU}: Преимущество на все Тесты к20 на 1 час (бонусное)`,
+        {
+          resources: spent.resources,
+          patches: {
+            featurePicks: setFeaturePick(picks, input.classEntryId, DIVINE_FOREKNOWLEDGE_ACTIVE_PICK, '1'),
+            activeLabels: [DIVINE_FOREKNOWLEDGE_NAME_RU],
+          },
+        },
+      )
+    }
+
+    case SENTINEL_AT_DEATHS_DOOR_FEATURE_ID: {
+      if (level < 6) return refuse(input, `${SENTINEL_AT_DEATHS_DOOR_NAME_RU} с 6 уровня жреца`)
+      const spent = spendPool(
+        input,
+        SENTINEL_AT_DEATHS_DOOR_POOL_ID,
+        `Ресурс «${SENTINEL_AT_DEATHS_DOOR_NAME_RU}» не найден`,
+        `${SENTINEL_AT_DEATHS_DOOR_NAME_RU}: использования закончились (долгий отдых)`,
+      )
+      if (!spent.ok) return spent.result
+      return ok(
+        input,
+        `${SENTINEL_AT_DEATHS_DOOR_NAME_RU} (реакция): урон атаки вдвое вниз; эффекты крита отменяются`,
+        { resources: spent.resources },
+      )
+    }
+
+    case DIVINE_REAPER_FEATURE_ID: {
+      if (level < 17) return refuse(input, `${DIVINE_REAPER_NAME_RU} с 17 уровня жреца`)
+      const mode = String(input.mode || 'second-target').toLowerCase()
+      if (mode === 'keeper' || mode === 'keeper-restore') {
+        if (mode === 'keeper-restore') {
+          const slot = Math.floor(Number(input.amount ?? 0) || 0)
+          if (slot < 6) return refuse(input, 'Нужна ячейка 6-го круга или выше')
+          const row = poolRow(input, KEEPER_OF_SOULS_POOL_ID)
+          if (!row) return refuse(input, `Ресурс «${KEEPER_OF_SOULS_NAME_RU}» не найден`)
+          const restored = patchRow(input.resources, row.id, (item) => ({
+            ...item,
+            used: Math.max(0, item.used - 1),
+          }))
+          return ok(
+            input,
+            `${KEEPER_OF_SOULS_NAME_RU}: использование восстановлено ячейкой ${slot}+`,
+            { resources: restored },
+          )
+        }
+        const spent = spendPool(
+          input,
+          KEEPER_OF_SOULS_POOL_ID,
+          `Ресурс «${KEEPER_OF_SOULS_NAME_RU}» не найден`,
+          `${KEEPER_OF_SOULS_NAME_RU}: использования закончились`,
+        )
+        if (!spent.ok) return spent.result
+        const heal = keeperOfSoulsHeal2024(level)
+        return ok(
+          input,
+          `${KEEPER_OF_SOULS_NAME_RU}: при смерти врага в 60 фт. — ${heal} хитов тебе или союзнику`,
+          { resources: spent.resources, patches: { healPool: heal } },
+        )
+      }
+      const spent = spendChannel(input)
+      if (!spent.ok) return spent.result
+      return ok(
+        input,
+        `${DIVINE_REAPER_NAME_RU} — Усовершенствованная некромантия: вторая цель в пределах дистанции`,
+        { resources: spent.resources },
+      )
+    }
+
+    case 'circle-of-mortality': {
+      if (level < 3) return refuse(input, `${CIRCLE_OF_MORTALITY_NAME_RU} с 3 уровня жреца`)
+      const die = circleMortalityExtraDie2024(level)
+      return ok(
+        input,
+        `${CIRCLE_OF_MORTALITY_NAME_RU}: ${die} доп. некротического 1/ход по цели ниже макс. хитов; Уход за умирающим бонусным; макс. кости лечения на 0 HP`,
+        { patches: { diceExpression: die, damageType: 'necrotic' } },
       )
     }
 
