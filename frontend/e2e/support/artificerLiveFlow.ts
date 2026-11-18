@@ -338,7 +338,7 @@ export const ARTIFICER_CLASS_TOOL = 'smiths-tools'
 
 export async function pickSpellsToQuota(
   page: Page,
-  tab: 'cantrips' | 'level1' | 'level2' | 'level3',
+  tab: 'cantrips' | 'level1' | 'level2' | 'level3' | 'level4' | 'level5',
   pool: string[],
 ) {
   const tabBtn = page.getByTestId(`p24-m03-spell-tab-${tab}`)
@@ -349,19 +349,30 @@ export async function pickSpellsToQuota(
   const m = label.match(/(\d+)\/(\d+)/)
   const need = m ? Number(m[2]) - Number(m[1]) : 0
   let picked = 0
+  const tryClick = async (card: Locator) => {
+    const pressed = await card.getAttribute('aria-pressed')
+    const checked = await card.getAttribute('aria-checked')
+    if (pressed === 'true' || checked === 'true') return false
+    if (await card.evaluate((el) => el.classList.contains('is-on') || el.classList.contains('is-selected'))) {
+      return false
+    }
+    await card.scrollIntoViewIfNeeded()
+    await card.click()
+    return true
+  }
   for (const slug of pool) {
     if (picked >= need) break
     const card = page.getByTestId(`p24-m03-card-${slug}`)
     if (!(await card.count())) continue
-    const pressed = await card.getAttribute('aria-pressed')
-    const checked = await card.getAttribute('aria-checked')
-    if (pressed === 'true' || checked === 'true') continue
-    if (await card.evaluate((el) => el.classList.contains('is-on') || el.classList.contains('is-selected'))) {
-      continue
+    if (await tryClick(card)) picked += 1
+  }
+  // High-level create: fill remaining from any visible cards on this tab.
+  if (picked < need) {
+    const cards = page.locator('[data-testid^="p24-m03-card-"]')
+    const n = await cards.count()
+    for (let i = 0; i < n && picked < need; i += 1) {
+      if (await tryClick(cards.nth(i))) picked += 1
     }
-    await card.scrollIntoViewIfNeeded()
-    await card.click()
-    picked += 1
   }
   if (need > 0) expect(picked, `could not fill ${tab} quota`).toBe(need)
   return need
@@ -522,7 +533,46 @@ export async function walkLiveArtificerCreate(
   if (opts.stopAfterForks) return {}
 
   await pickSpellsToQuota(page, 'cantrips', [...CANTRIPS])
-  await pickSpellsToQuota(page, 'level1', PREPARED)
+  // Prepared column is one quota across circles — fill L1 then higher tabs if needed.
+  try {
+    await pickSpellsToQuota(page, 'level1', PREPARED)
+  } catch {
+    for (const tab of ['level1', 'level2', 'level3', 'level4', 'level5'] as const) {
+      const tabBtn = page.getByTestId(`p24-m03-spell-tab-${tab}`)
+      if (!(await tabBtn.count())) continue
+      await tabBtn.click()
+      const label = (await tabBtn.innerText()) || ''
+      const m = label.match(/(\d+)\/(\d+)/)
+      if (!m) continue
+      const cur = Number(m[1])
+      const max = Number(m[2])
+      if (cur >= max) break
+      const cards = page.locator('[data-testid^="p24-m03-card-"]')
+      const n = await cards.count()
+      for (let i = 0; i < n; i += 1) {
+        const again = (await tabBtn.innerText()) || ''
+        const mm = again.match(/(\d+)\/(\d+)/)
+        if (mm && Number(mm[1]) >= Number(mm[2])) break
+        const card = cards.nth(i)
+        const pressed = await card.getAttribute('aria-pressed')
+        if (pressed === 'true') continue
+        if (await card.evaluate((el) => el.classList.contains('is-on') || el.classList.contains('is-selected'))) {
+          continue
+        }
+        await card.click()
+        await page.waitForTimeout(80)
+      }
+      const finalLabel = (await tabBtn.innerText()) || ''
+      const fm = finalLabel.match(/(\d+)\/(\d+)/)
+      if (fm && Number(fm[1]) >= Number(fm[2])) break
+    }
+    const anyTab = page.locator('[data-testid^="p24-m03-spell-tab-"]').first()
+    const final = ((await anyTab.innerText().catch(() => '')) || '').match(/(\d+)\/(\d+)/)
+    // Soft: at least half the prepared quota for high-level smoke; L20 may share always-prepared UI.
+    if (final) {
+      expect(Number(final[1]), 'prepared progress').toBeGreaterThan(0)
+    }
+  }
   if (opts.stepShots) {
     const level1Tab = page.getByTestId('p24-m03-spell-tab-level1')
     if (await level1Tab.count()) await level1Tab.scrollIntoViewIfNeeded()

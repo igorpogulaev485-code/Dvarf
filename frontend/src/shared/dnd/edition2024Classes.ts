@@ -303,7 +303,7 @@ const RESOURCE_META: Record<string, ResourceMeta> = {
   magic_item_tinker_drain: {
     name_ru: 'Вытягивание энергии',
     reset: 'long',
-    feature_id: 'magic-item-tinker',
+    feature_id: 'magic-item-tinker-drain',
     fixed_uses: 1,
     kind: 'resource',
     on_hot: false,
@@ -312,7 +312,7 @@ const RESOURCE_META: Record<string, ResourceMeta> = {
   magic_item_tinker_transform: {
     name_ru: 'Преобразование реплики',
     reset: 'long',
-    feature_id: 'magic-item-tinker',
+    feature_id: 'magic-item-tinker-transform',
     fixed_uses: 1,
     kind: 'resource',
     on_hot: false,
