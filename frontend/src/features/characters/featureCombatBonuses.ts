@@ -274,28 +274,49 @@ export function darkvisionFtFromFeatures(input: {
       feature.id === 'umbral-sight' ||
       String(feature.id || '').replace(/-/g, '_') === 'umbral_sight',
   )
+  const hasEyesOfDarkness = input.features.some((feature) => {
+    const id = normalizeFeatureId(feature.id)
+    return id === 'power_of_shadow' || id === 'eyes_of_darkness'
+  })
   const base = Math.max(0, Math.floor(input.baseDarkvision))
-  if (!hasUmbral) return base
-  if (base <= 0) return 60
-  const bump = String(input.rulesEdition ?? '').trim() === '2024' ? 60 : 30
-  return base + bump
+  let value = base
+  if (hasUmbral) {
+    if (value <= 0) value = 60
+    else {
+      const bump = String(input.rulesEdition ?? '').trim() === '2024' ? 60 : 30
+      value = value + bump
+    }
+  }
+  // Shadow Sorcery 2024 — Eyes of Darkness: darkvision 120 ft (floor).
+  if (isRulesEdition2024(input.rulesEdition) && hasEyesOfDarkness) {
+    value = Math.max(value, 120)
+  }
+  return value
 }
 
-/** Feral Senses (Ranger 2024, L18+): blindsight 30 ft. */
+/** Feral Senses (Ranger 2024, L18+): blindsight 30 ft. Shadow Sorcery: 10 ft. */
 export function blindsightFtFromFeatures(input: {
   features: Array<{ id: string; classLevel?: number }>
   rulesEdition?: string | null
 }): number {
   if (!isRulesEdition2024(input.rulesEdition)) return 0
   let rangerLevel = 0
+  let shadowEyes = false
   for (const feature of input.features) {
     const id = normalizeFeatureId(feature.id)
     if (id === 'feral_senses') {
       rangerLevel = Math.max(rangerLevel, Math.floor(feature.classLevel ?? 0))
     }
+    if (id === 'power_of_shadow' || id === 'eyes_of_darkness') {
+      shadowEyes = true
+    }
   }
-  if (!hasFeralSensesBlindsight(rangerLevel)) return 0
-  return feralSensesBlindsightFt2024(rangerLevel)
+  let value = 0
+  if (hasFeralSensesBlindsight(rangerLevel)) {
+    value = Math.max(value, feralSensesBlindsightFt2024(rangerLevel))
+  }
+  if (shadowEyes) value = Math.max(value, 10)
+  return value
 }
 
 /** PHB 2024 Rage Damage bonus by barbarian level (same ladder as B-04). */

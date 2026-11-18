@@ -14,10 +14,26 @@ import {
   findInnateSorceryResource,
   findSorcerousRestorationResource,
   findSorceryResource,
+  RESTORE_SP_COST,
   REVELATION_OPTIONS_2024,
   rollWildMagicSurgePair2024,
   type SorcererFeatureUseResult,
 } from '../../shared/dnd/sorcerer2024Features'
+import {
+  BEASTS_OF_ILL_OMEN_NAME_RU,
+  CROWN_OF_SPELLFIRE_NAME_RU,
+  RADIANT_FLAME_NAME_RU,
+  SPELLFIRE_BURST_NAME_RU,
+  STRENGTH_OF_THE_GRAVE_NAME_RU,
+  SUMMON_BEAST_SPIRIT_NAME_RU,
+  SUSTAINING_FLAMES_NAME_RU,
+  UMBRAL_FORM_NAME_RU,
+  isShadowSorcery2024,
+  isSpellfireSorcery2024,
+  spellfireBurstDie2024,
+  strengthOfTheGraveDc2024,
+  strengthOfTheGraveHp2024,
+} from '../../shared/dnd/sorcererBook2024Features'
 import {
   resolveWildMagicSurge2024,
   tamedSurgeChoices2024,
@@ -34,6 +50,8 @@ type Props = {
   sorcererLevel: number
   innateActive?: boolean
   hasControlledChaos?: boolean
+  chaMod?: number
+  subclassSlug?: string | null
   onConfirm: (result: SorcererFeatureUseResult) => void
   onClose: () => void
 }
@@ -77,6 +95,8 @@ export function Sorcerer2024UseDialog({
   sorcererLevel,
   innateActive = false,
   hasControlledChaos = false,
+  chaMod = 0,
+  subclassSlug = null,
   onConfirm,
   onClose,
 }: Props) {
@@ -89,12 +109,22 @@ export function Sorcerer2024UseDialog({
   const [chosenSurgeLow, setChosenSurgeLow] = useState(0)
   const [surgePickIndex, setSurgePickIndex] = useState(0)
   const [surgeRolls, setSurgeRolls] = useState<number[]>([])
+  const [innateOverlay, setInnateOverlay] = useState<'none' | 'crown' | 'umbral'>('none')
+  const [burstMode, setBurstMode] = useState<'sustaining' | 'radiant-fire' | 'radiant-radiant'>(
+    'sustaining',
+  )
+  const [noConcentration, setNoConcentration] = useState(true)
+  const [damageTaken, setDamageTaken] = useState(10)
+  const [hitDiceCount, setHitDiceCount] = useState(1)
 
   const featureId = request?.featureId.replace(/_/g, '-') ?? ''
   const sorcery = useMemo(() => findSorceryResource(resources), [resources])
   const sorceryLeft = sorcery ? Math.max(0, sorcery.max - sorcery.used) : 0
   const innateRow = useMemo(() => findInnateSorceryResource(resources), [resources])
   const innateOn = Boolean(innateRow?.activeLabel || innateActive)
+  const spellfire = isSpellfireSorcery2024(subclassSlug)
+  const shadow = isShadowSorcery2024(subclassSlug)
+  const burstDie = spellfireBurstDie2024(sorcererLevel)
 
   const slotLevels = LEVELS.filter((level) => (slots[String(level)]?.max ?? 0) > 0)
   const freeLevels = slotLevels.filter((level) => {
@@ -126,6 +156,13 @@ export function Sorcerer2024UseDialog({
       featurePicks,
       innateActive: innateOn,
       controlledChaos: hasControlledChaos,
+      chaMod,
+      innateOverlay: featureId === 'innate-sorcery' ? innateOverlay : 'none',
+      burstMode: featureId === 'spellfire-burst' ? burstMode : undefined,
+      noConcentration: featureId === 'beasts-of-ill-omen' ? noConcentration : undefined,
+      damageTaken: featureId === 'power-of-shadow' ? damageTaken : undefined,
+      hitDiceCount: featureId === 'crown-of-spellfire' ? hitDiceCount : undefined,
+      counterspellFailed: featureId === 'absorb-spells' && mode === 'restore',
     })
     onConfirm(result)
   }
@@ -171,6 +208,222 @@ export function Sorcerer2024UseDialog({
                 onClick={() => setMode('end')}
               >
                 Завершить
+              </button>
+            </div>
+            {!innateOn && mode !== 'end' && sorcererLevel >= 18 && (spellfire || shadow) ? (
+              <>
+                <Text tone="muted">Опция книжного пути на время Врождённого чародейства:</Text>
+                <div className="chip-row">
+                  <button
+                    type="button"
+                    className={`sheet-chip${innateOverlay === 'none' ? ' is-on' : ''}`}
+                    onClick={() => setInnateOverlay('none')}
+                  >
+                    Без опции
+                  </button>
+                  {spellfire ? (
+                    <button
+                      type="button"
+                      className={`sheet-chip${innateOverlay === 'crown' ? ' is-on' : ''}`}
+                      onClick={() => setInnateOverlay('crown')}
+                    >
+                      {CROWN_OF_SPELLFIRE_NAME_RU}
+                    </button>
+                  ) : null}
+                  {shadow ? (
+                    <button
+                      type="button"
+                      className={`sheet-chip${innateOverlay === 'umbral' ? ' is-on' : ''}`}
+                      onClick={() => setInnateOverlay('umbral')}
+                    >
+                      {UMBRAL_FORM_NAME_RU}
+                    </button>
+                  ) : null}
+                </div>
+              </>
+            ) : null}
+          </>
+        ) : null}
+
+        {featureId === 'spellfire-burst' ? (
+          <>
+            <Text tone="muted">
+              {SPELLFIRE_BURST_NAME_RU}: после траты ≥1 очка в действие «Магия» или бонусное в ваш
+              ход. Только раз в ход. Кость: {burstDie}.
+            </Text>
+            <div className="chip-row">
+              <button
+                type="button"
+                className={`sheet-chip${burstMode === 'sustaining' ? ' is-on' : ''}`}
+                onClick={() => setBurstMode('sustaining')}
+              >
+                {SUSTAINING_FLAMES_NAME_RU}
+              </button>
+              <button
+                type="button"
+                className={`sheet-chip${burstMode === 'radiant-fire' ? ' is-on' : ''}`}
+                onClick={() => setBurstMode('radiant-fire')}
+              >
+                {RADIANT_FLAME_NAME_RU} (огонь)
+              </button>
+              <button
+                type="button"
+                className={`sheet-chip${burstMode === 'radiant-radiant' ? ' is-on' : ''}`}
+                onClick={() => setBurstMode('radiant-radiant')}
+              >
+                {RADIANT_FLAME_NAME_RU} (излучение)
+              </button>
+            </div>
+          </>
+        ) : null}
+
+        {featureId === 'absorb-spells' ? (
+          <>
+            <Text tone="muted">
+              Контрзаклинание всегда подготовлено. Если цель провалила спас — восстановить 1к4
+              очков.
+            </Text>
+            <div className="chip-row">
+              <button
+                type="button"
+                className={`sheet-chip${mode !== 'restore' ? ' is-on' : ''}`}
+                onClick={() => setMode('hint')}
+              >
+                Напомнить
+              </button>
+              <button
+                type="button"
+                className={`sheet-chip${mode === 'restore' ? ' is-on' : ''}`}
+                onClick={() => setMode('restore')}
+              >
+                Цель провалила спас → +1к4 очков
+              </button>
+            </div>
+          </>
+        ) : null}
+
+        {featureId === 'crown-of-spellfire' ? (
+          <>
+            <Text tone="muted">
+              Корона включается вместе с Врождённым чародейством. Здесь — восстановление за{' '}
+              {RESTORE_SP_COST.crownOfSpellfire} очк. или Горящая жизнь.
+            </Text>
+            <div className="chip-row">
+              <button
+                type="button"
+                className={`sheet-chip${mode === 'restore' ? ' is-on' : ''}`}
+                onClick={() => setMode('restore')}
+              >
+                Восстановить ({RESTORE_SP_COST.crownOfSpellfire} очк.)
+              </button>
+              <button
+                type="button"
+                className={`sheet-chip${mode === 'burning-life' ? ' is-on' : ''}`}
+                onClick={() => setMode('burning-life')}
+              >
+                Горящая жизнь
+              </button>
+            </div>
+            {mode === 'burning-life' ? (
+              <Field label={`Кости хитов (макс. ${Math.max(1, chaMod)})`}>
+                <NumberInput
+                  value={hitDiceCount}
+                  min={1}
+                  max={Math.max(1, chaMod)}
+                  onValueChange={(v) => setHitDiceCount(Math.max(1, Number(v) || 1))}
+                />
+              </Field>
+            ) : null}
+          </>
+        ) : null}
+
+        {featureId === 'power-of-shadow' ? (
+          <>
+            <Text tone="muted">
+              Глаза тьмы уже на листе (ТЗ 120 / слепое 10). {STRENGTH_OF_THE_GRAVE_NAME_RU}: спас
+              Хар Сл {strengthOfTheGraveDc2024(damageTaken)}; при успехе хиты ={' '}
+              {strengthOfTheGraveHp2024({ chaMod, sorcererLevel })}.
+            </Text>
+            <Field label="Урон, опустивший хиты до 0">
+              <NumberInput
+                value={damageTaken}
+                min={0}
+                max={999}
+                onValueChange={(v) => setDamageTaken(Math.max(0, Number(v) || 0))}
+              />
+            </Field>
+            <div className="chip-row">
+              <button
+                type="button"
+                className={`sheet-chip${mode === 'grave-success' || mode === 'grave' ? ' is-on' : ''}`}
+                onClick={() => setMode('grave-success')}
+              >
+                Успех спаса
+              </button>
+              <button
+                type="button"
+                className={`sheet-chip${mode === 'grave-fail' ? ' is-on' : ''}`}
+                onClick={() => setMode('grave-fail')}
+              >
+                Провал
+              </button>
+            </div>
+          </>
+        ) : null}
+
+        {featureId === 'beasts-of-ill-omen' ? (
+          <>
+            <Text tone="muted">
+              {BEASTS_OF_ILL_OMEN_NAME_RU}: бонусным потратить 3 очка → {SUMMON_BEAST_SPIRIT_NAME_RU}{' '}
+              (тени). Враги в 5 фт. с помехой на спас от ваших заклинаний. Очков:{' '}
+              {sorceryLeft}/{sorcery?.max ?? 0}.
+            </Text>
+            <div className="chip-row">
+              <button
+                type="button"
+                className={`sheet-chip${noConcentration ? ' is-on' : ''}`}
+                onClick={() => setNoConcentration(true)}
+              >
+                Без концентрации (1 мин)
+              </button>
+              <button
+                type="button"
+                className={`sheet-chip${!noConcentration ? ' is-on' : ''}`}
+                onClick={() => setNoConcentration(false)}
+              >
+                С концентрацией
+              </button>
+            </div>
+          </>
+        ) : null}
+
+        {featureId === 'shadow-walk' ? (
+          <Text tone="muted">
+            Бонусным: телепорт ≤120 фт. в тусклый свет/темноту (вы тоже должны быть в тусклом
+            свете или темноте).
+          </Text>
+        ) : null}
+
+        {featureId === 'umbral-form' ? (
+          <>
+            <Text tone="muted">
+              Форма включается с Врождённым чародейством. Восстановление за {RESTORE_SP_COST.umbralForm}{' '}
+              очк. или завершение раньше.
+            </Text>
+            <div className="chip-row">
+              <button
+                type="button"
+                className={`sheet-chip${mode === 'restore' ? ' is-on' : ''}`}
+                onClick={() => setMode('restore')}
+              >
+                Восстановить ({RESTORE_SP_COST.umbralForm} очк.)
+              </button>
+              <button
+                type="button"
+                className={`sheet-chip${mode === 'end' ? ' is-on' : ''}`}
+                onClick={() => setMode('end')}
+              >
+                Завершить форму
               </button>
             </div>
           </>

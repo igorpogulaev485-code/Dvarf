@@ -544,6 +544,34 @@ export function PlayDeskTop({ model }: { model: SheetModel }) {
                   ) {
                     queueMicrotask(() => model.setRelentlessEndurancePending?.(true))
                   }
+                  if (String(edition) === '2024') {
+                    const shadow = (prev.classes ?? []).some((row) => {
+                      const fromMap = model.subclassSlugByEntryId?.[row.id]
+                      const slug = String(
+                        fromMap || row.subclass_catalog_id || '',
+                      ).toLowerCase()
+                      return slug === 'sorcerer__shadow-sorcery'
+                    })
+                    const grave = (prev.play.resources ?? []).find(
+                      (row) =>
+                        (typeof row.id === 'string' &&
+                          row.id.includes(':power_of_shadow:')) ||
+                        /сила\s*могил/i.test(String(row.name || '')),
+                    )
+                    const graveLeft =
+                      grave != null
+                        ? Math.max(0, (grave.max ?? 0) - (grave.used ?? 0))
+                        : 0
+                    if (shadow && graveLeft > 0) {
+                      const dmg = Math.max(
+                        1,
+                        (prev.hpCurrent ?? 0) - (patch.hpCurrent ?? 0),
+                      )
+                      queueMicrotask(() =>
+                        model.setStrengthOfTheGravePending?.({ damage: dmg }),
+                      )
+                    }
+                  }
                 }
                 return {
                   ...prev,
@@ -735,6 +763,34 @@ export function PlayDeskTop({ model }: { model: SheetModel }) {
                     slug.startsWith('half_orc'))
                 ) {
                   queueMicrotask(() => model.setRelentlessEndurancePending?.(true))
+                }
+                if (String(edition) === '2024') {
+                  const shadow = (prev.classes ?? []).some((row) => {
+                    const fromMap = model.subclassSlugByEntryId?.[row.id]
+                    const slug = String(
+                      fromMap || row.subclass_catalog_id || '',
+                    ).toLowerCase()
+                    return slug === 'sorcerer__shadow-sorcery'
+                  })
+                  const grave = (prev.play.resources ?? []).find(
+                    (row) =>
+                      (typeof row.id === 'string' &&
+                        row.id.includes(':power_of_shadow:')) ||
+                      /сила\s*могил/i.test(String(row.name || '')),
+                  )
+                  const graveLeft =
+                    grave != null
+                      ? Math.max(0, (grave.max ?? 0) - (grave.used ?? 0))
+                      : 0
+                  if (shadow && graveLeft > 0) {
+                    const dmg = Math.max(
+                      1,
+                      (prev.hpCurrent ?? 0) - (patch.hpCurrent ?? 0),
+                    )
+                    queueMicrotask(() =>
+                      model.setStrengthOfTheGravePending?.({ damage: dmg }),
+                    )
+                  }
                 }
               }
               return {

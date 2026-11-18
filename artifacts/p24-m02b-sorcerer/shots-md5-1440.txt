@@ -1,0 +1,14 @@
+8f33b5a9a7b1bf6caf19376cd391f8e1  2024-sorcerer3spellfire-sheet-1440.png
+48a034f9d929a682e4e992dabf71e456  2024-sorcerer3shadow-sheet-1440.png
+8cba64d65a4ef718e5e39e954fbdd276  2024-sorcerer5spellfire-sheet-1440.png
+2946a9535f3e7a10455640f59040a0b7  2024-sorcerer5shadow-sheet-1440.png
+8a4702b232dd8650153a5af90f24c4e7  2024-sorcerer6spellfire-sheet-1440.png
+4f7889498d84f404cb1f3358aab96b65  2024-sorcerer6shadow-sheet-1440.png
+3685172f6db44d438135f87f8ae8287f  2024-sorcerer11spellfire-sheet-1440.png
+30706f06997281c0164b12a944aededa  2024-sorcerer11shadow-sheet-1440.png
+722103afa5af701b7126de6b46166f6b  2024-sorcerer14spellfire-sheet-1440.png
+91cace14a45f7436abc5ef20fe92875d  2024-sorcerer14shadow-sheet-1440.png
+9bc26616038a2bf3f5caa2bec296610c  2024-sorcerer18spellfire-sheet-1440.png
+baf6c0fea6a96416710969cf69bdca47  2024-sorcerer18shadow-sheet-1440.png
+1288330800e81e54f4099930884719e0  2024-sorcerer20spellfire-sheet-1440.png
+07cc53d00f5aea266c07a2aed7b59e31  2024-sorcerer20shadow-sheet-1440.png

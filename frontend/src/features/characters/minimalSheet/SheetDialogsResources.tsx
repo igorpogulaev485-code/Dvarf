@@ -248,13 +248,64 @@ export function SheetDialogsResources({ model }: { model: SheetModel }) {
       if (result.slots) {
         spells = { ...prev.spells, slots: result.slots }
       }
+      let companions = prev.companions
+      if (result.companionSpawn) {
+        const next = createCompanion({
+          name: result.companionSpawn.nameRu,
+          notes: result.companionSpawn.noteRu,
+          kind: 'other',
+          role: 'ally',
+          nature: 'summoned',
+          control: 'with_master',
+          active: true,
+          source: {
+            kind: 'feature',
+            labelRu: result.companionSpawn.nameRu,
+            feature: 'beasts_of_ill_omen',
+            classEntryId: model.sorcererFeatureUse?.classEntryId,
+          },
+        })
+        companions = [
+          ...companions.filter(
+            (row) =>
+              !(
+                row.source?.kind === 'feature' &&
+                row.source.feature === 'beasts_of_ill_omen'
+              ),
+          ),
+          next,
+        ]
+      }
+      const tempGain = Math.max(0, Math.floor(result.tempHpGain ?? 0))
+      const hpTemp =
+        tempGain > 0
+          ? Math.max(prev.play.hpTemp ?? 0, tempGain)
+          : prev.play.hpTemp
+      const hpCurrent =
+        result.hpSet != null ? Math.max(1, Math.floor(result.hpSet)) : prev.hpCurrent
       return {
         ...prev,
         ...(result.featurePicks ? { featurePicks: result.featurePicks } : {}),
+        ...(result.hpSet != null ? { hpCurrent } : {}),
         spells,
+        companions,
         play: {
           ...prev.play,
           resources: result.resources,
+          ...(tempGain > 0 ? { hpTemp } : {}),
+          ...(result.hpSet != null
+            ? { isDying: false, deathSuccesses: 0, deathFails: 0 }
+            : {}),
+          concentration: result.concentrationName
+            ? setConcentration({
+                spellId: `feature:${model.sorcererFeatureUse?.featureId ?? 'sorcerer'}`,
+                name: result.concentrationName,
+              })
+            : result.companionSpawn?.noConcentration
+              ? prev.play.concentration
+              : result.concentrationName === null && result.companionSpawn
+                ? prev.play.concentration
+                : prev.play.concentration,
         },
       }
     })
@@ -1527,6 +1578,24 @@ export function SheetDialogsResources({ model }: { model: SheetModel }) {
           sorcererLevel={sorcererLevel}
           innateActive={innateActive}
           hasControlledChaos={hasControlledChaos}
+          chaMod={abilityModifier(model.draft.abilities.cha)}
+          subclassSlug={
+            (() => {
+              const entryId = model.sorcererFeatureUse?.classEntryId
+              if (entryId && model.subclassSlugByEntryId?.[entryId]) {
+                return model.subclassSlugByEntryId[entryId]
+              }
+              const row = model.draft.classes.find(
+                (item) =>
+                  item.id === entryId || resolveClassCasterSlug(item.name) === 'sorcerer',
+              )
+              return (
+                (row && model.subclassSlugByEntryId?.[row.id]) ||
+                row?.subclass_catalog_id ||
+                null
+              )
+            })()
+          }
           onClose={() => model.setSorcererFeatureUse(null)}
           onConfirm={onSorcererUseConfirm}
         />
