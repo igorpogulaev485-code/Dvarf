@@ -26,7 +26,7 @@ import {
   classicAttunementLimit,
 } from './classicAttunement'
 import { classicConditionsLabel } from './classicConditions'
-import { classicWeaponRows } from './classicWeapons'
+import { CLASSIC_WEAPON_SLOTS, classicWeaponRows } from './classicWeapons'
 import {
   classicCastProfiles,
   classicSpellAbilityLabel,
@@ -155,7 +155,20 @@ export function ClassicPrint2024({ character: c, onPrintSettings }: Props) {
   const spellStats = classicSpellStats(c, spells)
   const castProfiles = classicCastProfiles(c)
   const coins = inventoryCoins(c)
-  const weapons = classicWeaponRows(c)
+  const weaponsBase = classicWeaponRows(c)
+  const pencilBlanks = readClassicPencilBlanks(c)
+  const weapons =
+    pencilBlanks && weaponsBase.length >= CLASSIC_WEAPON_SLOTS
+      ? [
+          ...weaponsBase,
+          {
+            id: 'weapon-pencil-spare',
+            name: '',
+            attackBonus: '',
+            damageLine: '',
+          },
+        ]
+      : weaponsBase
   const pb = proficiency ?? 0
   const passivePerception = blank
     ? ''
@@ -166,185 +179,180 @@ export function ClassicPrint2024({ character: c, onPrintSettings }: Props) {
           (skillFlags(c, 'perception').is_expertise ? pb : 0),
       )
 
-  const pencilBlanks = readClassicPencilBlanks(c)
   const { first: spellRows, rest: spellOverflow } = buildSpellTableRows(spells.known, pencilBlanks)
+  const hitDieValue = blank
+    ? ''
+    : String(combatField(c, 'hit_die') ?? '') || 'к6'
+  const hitDiceLine =
+    blank || (!hitDiceCurrent && !hitDiceTotal)
+      ? ''
+      : `${hitDiceCurrent} / ${hitDiceTotal}`
   return (
     <>
-      {/* ——— P1 combat (LSS) ——— */}
+      {/* ——— P1 combat (official 2024-style blank) ——— */}
       <article
         className="classic-sheet classic-lss classic-lss-p1"
         aria-label="Классический лист 2024, страница 1"
       >
-        <header className="classic-lss-top">
-          <div className="classic-lss-id">
-            <label className="classic-lss-name">
-              <ClassicFitInput
-                value={c.name}
-                wrap
-                aria-label="Имя персонажа"
-              />
-              <span>Имя персонажа</span>
-            </label>
-            <div className="classic-lss-id-grid">
-              <label>
+        <header className="classic-lss-header">
+          <div className="classic-brand" aria-hidden="true">
+            <ClassicBrandWordmark />
+            <span>{brandYearLabel('2024')}</span>
+          </div>
+          <div className="classic-lss-id-plate">
+            <div className="classic-lss-name">
+              <ClassicFitInput value={c.name} wrap aria-label="Имя персонажа" />
+              <span className="classic-field-label">Имя персонажа</span>
+            </div>
+            <div className="classic-lss-meta classic-lss-meta--plate">
+              <div className="classic-lss-meta__cell">
                 <ClassicFitInput
                   value={String(identityField(c, 'background') ?? '')}
                   wrap
                   aria-label="Предыстория"
                   title="Выбор из справочника — в панели над листом"
                 />
-                <span>Предыстория</span>
-              </label>
-              <label>
-                <ClassicFitInput
-                  value={classAndLevel}
-                  wrap
-                  aria-label="Класс"
-                />
-                <span>Класс</span>
-              </label>
-              <label>
-                <ClassicFitInput
-                  value={c.race_name ?? ''}
-                  wrap
-                  aria-label="Раса"
-                />
-                <span>Раса</span>
-              </label>
-              <label>
-                <ClassicFitInput
-                  value={subclassLabel}
-                  wrap
-                  aria-label="Подкласс"
-                />
-                <span>Подкласс</span>
-              </label>
-            </div>
-          </div>
-
-          <div className="classic-lss-level">
-            <label>
-              <input
-                type="number"
-                value={blank ? '' : c.level}
-               readOnly />
-              <span>Уровень</span>
-            </label>
-            <label>
-              <input
-                value={String(identityField(c, 'experience') ?? '')}
-               readOnly />
-              <span>Опыт</span>
-            </label>
-          </div>
-
-          <div className="classic-lss-ac">
-            <div className="classic-lss-ac__shield">
-              <span className="classic-lss-ac__label">КД</span>
-              <input
-                value={combatNum('ac')}
-                aria-label="Класс доспеха"
-               readOnly />
-              <label className="classic-lss-ac__shield-flag">
-                <Bubble
-                  filled={combatBool('shield_equipped')}
-                  label="Щит"
-
-                />
-                Щит
-              </label>
-            </div>
-          </div>
-
-          <div className="classic-lss-vitals">
-            <div className="classic-lss-hp">
-              <span className="classic-lss-block-title">Хиты</span>
-              <div className="classic-lss-hp__row">
-                <label>
-                  <input
-                    value={hpCurrent}
-                    readOnly
-                    aria-label="Текущие хиты"
-                  />
-                  <span>Тек.</span>
-                </label>
-                <label>
-                  <input
-                    value={combatNum('hp_temp')}
-                    readOnly
-                    aria-label="Временные хиты"
-                  />
-                  <span>Врем.</span>
-                </label>
-                <label>
-                  <input
-                    value={hpMax}
-                    readOnly
-                    aria-label="Максимум хитов"
-                  />
-                  <span>Макс.</span>
-                </label>
+                <span className="classic-field-label">Предыстория</span>
               </div>
-            </div>
-            <div className="classic-lss-hd">
-              <span className="classic-lss-block-title">Кости хитов</span>
-              <label>
-                <input
-                  value={
-                    blank || (!hitDiceCurrent && !hitDiceTotal)
-                      ? ''
-                      : `${hitDiceCurrent} / ${hitDiceTotal}`
-                  }
-                 readOnly />
-                <span>Текущие</span>
-              </label>
-              <label>
-                <input
-                  value={
-                    blank
-                      ? ''
-                      : String(combatField(c, 'hit_die') ?? '') || 'к6'
-                  }
-                 readOnly />
-                <span>Кость</span>
-              </label>
-            </div>
-            <div className="classic-lss-death">
-              <span className="classic-lss-block-title">Смерть</span>
-              <div className="classic-death-line">
-                <span>Усп.</span>
-                <span className="classic-death-bubbles">
-                  {[0, 1, 2].map((i) => (
-                    <Bubble
-                      key={`s${i}`}
-                      filled={deathSuccesses > i}
-                      label={`Успех ${i + 1}`}
-                    />
-                  ))}
-                </span>
+              <div className="classic-lss-meta__cell">
+                <ClassicFitInput value={classAndLevel} wrap aria-label="Класс" />
+                <span className="classic-field-label">Класс</span>
               </div>
-              <div className="classic-death-line">
-                <span>Пров.</span>
-                <span className="classic-death-bubbles">
-                  {[0, 1, 2].map((i) => (
-                    <Bubble
-                      key={`f${i}`}
-                      filled={deathFails > i}
-                      label={`Провал ${i + 1}`}
-                    />
-                  ))}
-                </span>
+              <div className="classic-lss-meta__cell">
+                <ClassicFitInput value={c.race_name ?? ''} wrap aria-label="Раса" />
+                <span className="classic-field-label">Раса</span>
+              </div>
+              <div className="classic-lss-meta__cell">
+                <ClassicFitInput value={subclassLabel} wrap aria-label="Подкласс" />
+                <span className="classic-field-label">Подкласс</span>
+              </div>
+              <div className="classic-lss-meta__cell classic-lss-meta__cell--narrow">
+                <ClassicStaticField
+                  value={blank ? '' : c.level}
+                  align="center"
+                  tone="numeric"
+                  pencilLine={false}
+                  aria-label="Уровень"
+                />
+                <span className="classic-field-label">Уровень</span>
+              </div>
+              <div className="classic-lss-meta__cell classic-lss-meta__cell--narrow">
+                <ClassicStaticField
+                  value={String(identityField(c, 'experience') ?? '')}
+                  align="center"
+                  tone="numeric"
+                  pencilLine={false}
+                  aria-label="Опыт"
+                />
+                <span className="classic-field-label">Опыт</span>
               </div>
             </div>
           </div>
         </header>
 
-        <div className="classic-lss-brand-rule">
-          <div className="classic-brand">
-            <ClassicBrandWordmark />
-            <span>{brandYearLabel('2024')}</span>
+        <section className="classic-lss-vitals-row" aria-label="Боевые показатели">
+          <div className="classic-lss-ac">
+            <div className="classic-lss-ac__shield">
+              <span className="classic-lss-ac__label">КД</span>
+              <ClassicStaticField
+                value={combatNum('ac')}
+                align="center"
+                tone="display"
+                pencilLine={false}
+                aria-label="Класс доспеха"
+              />
+              <label className="classic-lss-ac__shield-flag">
+                <Bubble filled={combatBool('shield_equipped')} label="Щит" />
+                Щит
+              </label>
+            </div>
           </div>
-        </div>
+          <div className="classic-lss-hp">
+            <span className="classic-lss-block-title">Хиты</span>
+            <div className="classic-lss-hp__row">
+              <label>
+                <ClassicStaticField
+                  value={hpCurrent}
+                  align="center"
+                  tone="numeric"
+                  pencilLine={false}
+                  aria-label="Текущие хиты"
+                />
+                <span>Тек.</span>
+              </label>
+              <label>
+                <ClassicStaticField
+                  value={combatNum('hp_temp')}
+                  align="center"
+                  tone="numeric"
+                  pencilLine={false}
+                  aria-label="Временные хиты"
+                />
+                <span>Врем.</span>
+              </label>
+              <label>
+                <ClassicStaticField
+                  value={hpMax}
+                  align="center"
+                  tone="numeric"
+                  pencilLine={false}
+                  aria-label="Максимум хитов"
+                />
+                <span>Макс.</span>
+              </label>
+            </div>
+          </div>
+          <div className="classic-lss-hd">
+            <span className="classic-lss-block-title">Кости хитов</span>
+            <label>
+              <ClassicStaticField
+                value={hitDiceLine}
+                align="center"
+                tone="numeric"
+                pencilLine={false}
+                aria-label="Текущие кости хитов"
+              />
+              <span>Текущие</span>
+            </label>
+            <label>
+              <ClassicStaticField
+                value={hitDieValue}
+                align="center"
+                tone="compact"
+                pencilLine={false}
+                aria-label="Кость хитов"
+              />
+              <span>Кость</span>
+            </label>
+          </div>
+          <div className="classic-lss-death">
+            <span className="classic-lss-block-title">Смерть</span>
+            <div className="classic-death-line">
+              <span>Усп.</span>
+              <span className="classic-death-bubbles">
+                {[0, 1, 2].map((i) => (
+                  <Bubble
+                    key={`s${i}`}
+                    filled={deathSuccesses > i}
+                    label={`Успех ${i + 1}`}
+                  />
+                ))}
+              </span>
+            </div>
+            <div className="classic-death-line">
+              <span>Пров.</span>
+              <span className="classic-death-bubbles">
+                {[0, 1, 2].map((i) => (
+                  <Bubble
+                    key={`f${i}`}
+                    filled={deathFails > i}
+                    label={`Провал ${i + 1}`}
+                  />
+                ))}
+              </span>
+            </div>
+          </div>
+        </section>
 
         <div className="classic-lss-p1-body">
           <div className="classic-lss-abilities-wrap">
@@ -489,37 +497,52 @@ export function ClassicPrint2024({ character: c, onPrintSettings }: Props) {
                 <span>Урон / вид</span>
                 <span>Заметки</span>
               </div>
-              {weapons.map((row, idx) => (
-                <div className="classic-weapon classic-lss-weapon-row" key={row.id}>
-                  <div className="classic-weapon__cell classic-weapon__cell--name">
-                    <ClassicStaticField
-                      value={row.name}
-                      wrap
-                      tone="compact"
-                      pencilLine={false}
-                      aria-label={`Оружие ${idx + 1}: название`}
-                    />
+              {weapons.map((row, idx) => {
+                const isEmpty = !row.name && !row.attackBonus && !row.damageLine
+                return (
+                  <div
+                    className={`classic-weapon classic-lss-weapon-row${isEmpty ? ' classic-weapon--slot' : ''}`}
+                    key={row.id}
+                  >
+                    <div className="classic-weapon__cell classic-weapon__cell--name">
+                      <ClassicStaticField
+                        value={row.name}
+                        wrap
+                        tone="compact"
+                        pencilLine={!row.name}
+                        aria-label={`Оружие ${idx + 1}: название`}
+                      />
+                    </div>
+                    <div className="classic-weapon__cell classic-weapon__cell--bonus">
+                      <ClassicStaticField
+                        value={row.attackBonus}
+                        align="center"
+                        tone="numeric"
+                        pencilLine={!row.attackBonus}
+                        aria-label={`Оружие ${idx + 1}: бонус`}
+                      />
+                    </div>
+                    <div className="classic-weapon__cell classic-weapon__cell--dmg">
+                      <ClassicStaticField
+                        value={row.damageLine}
+                        wrap
+                        tone="compact"
+                        pencilLine={!row.damageLine}
+                        aria-label={`Оружие ${idx + 1}: урон`}
+                      />
+                    </div>
+                    <div className="classic-weapon__cell classic-weapon__cell--notes">
+                      <ClassicStaticField
+                        value=""
+                        wrap
+                        tone="compact"
+                        pencilLine
+                        aria-label={`Оружие ${idx + 1}: заметки`}
+                      />
+                    </div>
                   </div>
-                  <div className="classic-weapon__cell classic-weapon__cell--bonus">
-                    <ClassicStaticField
-                      value={row.attackBonus}
-                      align="center"
-                      tone="numeric"
-                      pencilLine={false}
-                      aria-label={`Оружие ${idx + 1}: бонус`}
-                    />
-                  </div>
-                  <div className="classic-weapon__cell classic-weapon__cell--dmg">
-                    <ClassicStaticField
-                      value={row.damageLine}
-                      wrap
-                      tone="compact"
-                      pencilLine={false}
-                      aria-label={`Оружие ${idx + 1}: урон`}
-                    />
-                  </div>
-                </div>
-              ))}
+                )
+              })}
               <div className="classic-caption">Оружие и боевые заговоры</div>
             </div>
 
@@ -571,12 +594,16 @@ export function ClassicPrint2024({ character: c, onPrintSettings }: Props) {
         className="classic-sheet classic-lss classic-lss-p2"
         aria-label="Классический лист 2024, страница 2"
       >
-        <div className="classic-lss-brand-rule">
-          <div className="classic-brand">
+        <header className="classic-lss-page-mark">
+          <div className="classic-brand" aria-hidden="true">
             <ClassicBrandWordmark />
             <span>{brandYearLabel('2024')}</span>
           </div>
-        </div>
+          <div className="classic-lss-page-mark__name">
+            <ClassicFitInput value={c.name} wrap aria-label="Имя персонажа" />
+            <span className="classic-field-label">Имя персонажа</span>
+          </div>
+        </header>
         <div className="classic-lss-p2-grid">
           <section className="classic-panel classic-lss-portrait">
             <div className="classic-lss-portrait__frame">
@@ -645,12 +672,16 @@ export function ClassicPrint2024({ character: c, onPrintSettings }: Props) {
         className="classic-sheet classic-lss classic-lss-p4"
         aria-label="Классический лист 2024, страница 4"
       >
-        <div className="classic-lss-brand-rule">
-          <div className="classic-brand">
+        <header className="classic-lss-page-mark">
+          <div className="classic-brand" aria-hidden="true">
             <ClassicBrandWordmark />
             <span>{brandYearLabel('2024')}</span>
           </div>
-        </div>
+          <div className="classic-lss-page-mark__name">
+            <ClassicFitInput value={c.name} wrap aria-label="Имя персонажа" />
+            <span className="classic-field-label">Имя персонажа</span>
+          </div>
+        </header>
         <div className="classic-lss-p4-grid">
           <div className="classic-lss-p4-left">
             {castProfiles.length > 1 ? (

@@ -2551,169 +2551,180 @@
   margin-bottom: 0.12rem;
 }
 
-.classic-lss-top {
-  display: flex;
-  gap: 0.06in;
+/* PRINT-15: one header strip — brand column + identity plate (like 2014). */
+.classic-lss-header {
+  display: grid;
+  grid-template-columns: 0.72in minmax(0, 1fr);
+  gap: 0.12in;
   align-items: stretch;
   flex: 0 0 auto;
-  height: auto;
-  min-height: 1.25in;
-  margin-bottom: 0.06in;
-  min-width: 0;
-  max-width: 100%;
-  overflow: visible;
-  box-sizing: border-box;
-}
-
-.classic-lss-top > * {
+  margin-bottom: 0.1in;
   min-width: 0;
 }
 
-.classic-lss-id {
-  flex: 1.05 1 0;
+.classic-lss-header > .classic-brand {
+  min-height: 1.15in;
+  align-self: stretch;
+}
+
+.classic-lss-id-plate {
   display: flex;
   flex-direction: column;
-  gap: 0.05in;
+  gap: 0.06in;
   min-width: 0;
   min-height: 0;
-}
-
-.classic-lss-vitals {
-  flex: 1.45 1 0;
-  display: flex;
-  gap: 0.05in;
-  min-width: 0;
-  max-width: 100%;
 }
 
 .classic-lss-name {
   display: flex;
   flex-direction: column;
-  gap: 0.06rem;
+  justify-content: flex-end;
+  gap: 0.04rem;
   min-width: 0;
+  min-height: 0.52in;
+  padding: 0.08rem 0.2rem 0.1rem;
+  border: var(--c-frame-accent);
+  border-radius: 0.28rem;
+  background: #fff;
 }
 
-.classic-lss-name input {
+.classic-lss-name .classic-fit-input,
+.classic-lss-name .classic-static {
   width: 100%;
   min-width: 0;
   font-family: var(--classic-ink-font);
-  font-size: 1.2rem;
+  font-size: 1.15rem;
   font-weight: 700;
   border: 0;
-  border-bottom: 1.5px solid var(--lss-line);
+  border-bottom: none;
   background: transparent;
-  padding: 0.04rem 0;
+  padding: 0.02rem 0;
   line-height: 1.15;
-  --classic-fit-max-px: 19.2;
+  --classic-fit-max-px: 18.4;
+  --classic-fit-wrap-height: 2.4rem;
   overflow: hidden;
 }
 
-.classic-lss-name span,
-.classic-lss-id-grid span,
-.classic-lss-level span,
+.classic-lss-name .classic-field-label,
+.classic-lss-meta .classic-field-label,
+.classic-lss-page-mark .classic-field-label,
 .classic-lss-hp label span,
 .classic-lss-hd label span,
 .classic-lss-combat-bar span,
 .classic-lss-spell-stats span,
 .classic-lss-phys-bar span {
-  font-size: 0.5rem;
-  font-weight: 650;
-  letter-spacing: 0.05em;
+  font-size: var(--classic-label-size);
+  font-weight: 700;
+  letter-spacing: var(--classic-label-track);
   text-transform: uppercase;
   color: var(--c-muted);
+  line-height: 1.15;
 }
 
-.classic-lss-id-grid {
+/* Identity plate: value above label, even cells (no double hairline on empty). */
+.classic-lss-meta {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.05in 0.08in;
-  align-items: end;
-}
-
-.classic-lss-id-grid label,
-.classic-lss-level label {
-  display: flex;
-  flex-direction: column;
-  gap: 0.06rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0;
   min-width: 0;
 }
 
-/* Same autofit as 2014 meta: shrink ≥7pt, then wrap to 2 lines — never clip words. */
-.classic-lss-id-grid .classic-fit-input,
-.classic-lss-id-grid .classic-static {
+.classic-lss-meta--plate {
+  border: var(--c-frame-accent);
+  border-radius: 0.28rem;
+  background: #fff;
+  overflow: hidden;
+  min-height: 0.72in;
+}
+
+.classic-lss-meta__cell {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 0.04rem;
+  min-width: 0;
+  padding: 0.12rem 0.22rem 0.1rem;
+  border-right: 0.7pt solid var(--c-line);
+  border-bottom: 0.7pt solid var(--c-line);
+  background: #fff;
+}
+
+.classic-lss-meta__cell:nth-child(3n) {
+  border-right: 0;
+}
+
+.classic-lss-meta__cell:nth-child(n + 4) {
+  border-bottom: 0;
+}
+
+.classic-lss-meta__cell--narrow {
+  text-align: center;
+}
+
+.classic-lss-meta__cell .classic-fit-input,
+.classic-lss-meta__cell .classic-static {
   width: 100%;
   box-sizing: border-box;
-  padding: 0.12rem 0.18rem;
-  border: 1px solid var(--lss-soft);
-  border-radius: 0.2rem;
-  background: #fff;
+  padding: 0.02rem 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
   font-size: 0.78rem;
   font-weight: 550;
   color: var(--c-ink);
   --classic-fit-max-px: 12.48;
   --classic-fit-wrap-height: 2.05rem;
   letter-spacing: 0;
-  word-spacing: 0.06em;
-  overflow: visible;
+  word-spacing: 0.04em;
+  min-height: 1.35rem;
+  overflow: hidden;
 }
 
-.classic-lss-id-grid .classic-static--wrap {
-  max-height: 4.2rem;
-  min-height: 1.35rem;
+.classic-lss-meta__cell .classic-static--wrap,
+.classic-lss-meta__cell .classic-fit-input.classic-static--wrap {
+  max-height: 2.35rem;
   word-break: normal;
   overflow-wrap: anywhere;
-  overflow: visible;
   hyphens: manual;
 }
 
-.classic-lss-id-grid input,
-.classic-lss-level input,
-.classic-lss-hp input,
-.classic-lss-hd input,
-.classic-lss-combat-bar input,
-.classic-lss-spell-stats input,
-.classic-lss-phys-bar input {
-  width: 100%;
-  padding: 0.15rem 0.2rem;
-  border: 1px solid var(--lss-soft);
-  border-radius: 0.2rem;
-  background: #fff;
-  font-size: 0.78rem;
-  color: var(--c-ink);
-  box-sizing: border-box;
-  /* Pass 9b: empty ink must keep the same cell height as filled. */
-  min-height: 1.55rem;
+.classic-lss-meta__cell .classic-static--pencil,
+.classic-lss-meta__cell .classic-static--pencil::after,
+.classic-lss-meta__cell .classic-static__pencil {
+  border-bottom: none;
 }
 
-.classic-lss-level {
-  flex: 0 0 0.68in;
-  display: flex;
-  flex-direction: column;
+/* Combat strip under identity: AC · HP · HD · Death in one row. */
+.classic-lss-vitals-row {
+  display: grid;
+  grid-template-columns: 0.95in minmax(0, 1.35fr) minmax(0, 0.85fr) 1.42in;
   gap: 0.08in;
-  justify-content: center;
-  min-height: 0;
+  align-items: stretch;
+  flex: 0 0 auto;
+  margin-bottom: 0.1in;
+  min-width: 0;
 }
 
 .classic-lss-ac {
-  flex: 0 0 0.88in;
   display: flex;
   align-items: stretch;
   justify-content: center;
+  min-width: 0;
 }
 
 .classic-lss-ac__shield {
   box-sizing: border-box;
-  width: 100%;
-  max-width: 1.05in;
-  min-height: 1.15in;
+  width: 0.88in;
+  height: 1.05in;
+  max-width: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0.06rem;
-  padding: 0.14in 0.08in 0.1in;
+  gap: 0.04rem;
+  padding: 0.1in 0.06in 0.08in;
   border: 2px solid var(--lss-line);
-  border-radius: 42% 42% 48% 48% / 16% 16% 58% 58%;
+  border-radius: 48% 48% 42% 42% / 18% 18% 52% 52%;
   background: linear-gradient(180deg, #fff, var(--c-paper-tint));
   text-align: center;
   overflow: hidden;
@@ -2728,15 +2739,19 @@
   line-height: 1.1;
 }
 
+.classic-lss-ac__shield .classic-static,
 .classic-lss-ac__shield input {
   width: 100%;
   border: 0;
+  border-bottom: none;
   background: transparent;
   text-align: center;
   font-family: var(--classic-ink-font);
-  font-size: 1.55rem;
+  font-size: 1.35rem;
   font-weight: 700;
   line-height: 1;
+  min-height: 0;
+  padding: 0;
 }
 
 .classic-lss-ac__shield-flag {
@@ -2749,35 +2764,30 @@
 }
 
 .classic-lss-hp {
-  flex: 1.2 1 0;
-  min-width: 1.25in;
+  min-width: 0;
 }
 
 .classic-lss-hd {
-  flex: 0.7 1 0;
-  min-width: 0.78in;
+  min-width: 0;
 }
 
 .classic-lss-death {
-  flex: 0 0 1.38in;
-  width: 1.38in;
-  min-width: 1.38in;
-  max-width: 1.42in;
   display: flex;
   flex-direction: column;
   justify-content: center;
   gap: 0.1rem;
   box-sizing: border-box;
+  min-width: 0;
 }
 
 .classic-lss-hp,
 .classic-lss-hd,
 .classic-lss-death {
-  padding: 0.05in;
+  padding: 0.05in 0.06in;
   border: 1.25px solid var(--lss-line);
   border-radius: 0.28rem;
   background: var(--c-paper-tint);
-  overflow: visible;
+  overflow: hidden;
   min-height: 0;
 }
 
@@ -2795,12 +2805,71 @@
   min-width: 0;
 }
 
+.classic-lss-hp .classic-static,
+.classic-lss-hd .classic-static,
 .classic-lss-hp input,
 .classic-lss-hd input {
   min-width: 0;
+  min-height: 1.35rem;
   font-size: 0.78rem;
   font-weight: 700;
   text-align: center;
+  border: 1px solid var(--lss-soft);
+  border-radius: 0.16rem;
+  background: #fff;
+  padding: 0.08rem 0.1rem;
+}
+
+.classic-lss-combat-bar input,
+.classic-lss-spell-stats input,
+.classic-lss-phys-bar input {
+  width: 100%;
+  padding: 0.15rem 0.2rem;
+  border: 1px solid var(--lss-soft);
+  border-radius: 0.2rem;
+  background: #fff;
+  font-size: 0.78rem;
+  color: var(--c-ink);
+  box-sizing: border-box;
+  min-height: 1.55rem;
+}
+
+.classic-lss-page-mark {
+  display: grid;
+  grid-template-columns: 0.72in minmax(0, 1fr);
+  gap: 0.12in;
+  align-items: stretch;
+  flex: 0 0 auto;
+  margin-bottom: 0.1in;
+  min-width: 0;
+}
+
+.classic-lss-page-mark > .classic-brand {
+  min-height: 0.95in;
+}
+
+.classic-lss-page-mark__name {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 0.04rem;
+  min-width: 0;
+  padding: 0.08rem 0.2rem 0.1rem;
+  border: var(--c-frame-accent);
+  border-radius: 0.28rem;
+  background: #fff;
+}
+
+.classic-lss-page-mark__name .classic-fit-input,
+.classic-lss-page-mark__name .classic-static {
+  width: 100%;
+  font-family: var(--classic-ink-font);
+  font-size: 1rem;
+  font-weight: 700;
+  border: 0;
+  background: transparent;
+  --classic-fit-max-px: 16;
+  --classic-fit-wrap-height: 2.2rem;
 }
 
 .classic-lss-death .classic-death-line {
@@ -2857,6 +2926,7 @@
   line-height: 1.1;
 }
 
+/* Legacy brand-rule kept for overflow continuation pages only. */
 .classic-lss-brand-rule {
   display: flex;
   align-items: center;
@@ -2866,13 +2936,12 @@
 }
 
 .classic-lss-brand-rule .classic-brand {
-  flex: 0 0 auto;
+  flex: 0 0 0.72in;
+  width: 0.72in;
 }
 
 .classic-lss-brand-rule__line {
-  flex: 1 1 auto;
-  height: 1px;
-  background: linear-gradient(90deg, var(--lss-line), transparent);
+  display: none;
 }
 
 .classic-lss-p1-body {
@@ -3027,9 +3096,10 @@
   list-style: none;
   margin: 0;
   padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 0;
+  display: grid;
+  grid-auto-rows: minmax(0.16in, auto);
+  align-content: start;
+  gap: 0.01in;
   min-width: 0;
   flex: 1 1 auto;
   overflow: hidden;
@@ -3049,12 +3119,12 @@
 
 .classic-lss-ability__skills li {
   display: grid;
-  grid-template-columns: 0.18in 0.42in minmax(0, 1fr);
+  grid-template-columns: 0.18in 0.48in minmax(0, 1fr);
   align-items: center;
-  column-gap: 0.12rem;
+  column-gap: 0.14rem;
   font-size: 0.5rem;
   line-height: 1.1;
-  min-height: 0.15in;
+  min-height: 0.16in;
   min-width: 0;
 }
 
@@ -3064,12 +3134,15 @@
   padding-right: 0.08rem;
   min-height: 0.7rem;
   box-sizing: border-box;
+  font-variant-numeric: tabular-nums;
+  font-family: var(--font-ui);
 }
 
 .classic-lss-ability__skills span {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  font-family: var(--font-ui);
 }
 
 .classic-lss-exhaust {
@@ -3180,7 +3253,50 @@
 
 .classic-lss-weapons-head,
 .classic-lss-weapon-row {
-  grid-template-columns: 1.4fr 0.7fr 1.1fr 0.8fr;
+  display: grid;
+  grid-template-columns: 1.35fr 0.7fr 1.15fr 0.9fr;
+  column-gap: 0.06rem;
+  align-items: stretch;
+}
+
+.classic-lss-weapons-head > span {
+  padding: 0 0.06rem 0.04rem;
+  border-bottom: 0.7pt solid var(--lss-line);
+}
+
+.classic-lss-weapon-row {
+  margin-bottom: 0;
+  min-height: 0.95rem;
+}
+
+.classic-lss-weapon-row .classic-weapon__cell {
+  background: transparent;
+  clip-path: none;
+  border-radius: 0;
+  border-bottom: 0.55pt solid var(--lss-soft);
+  min-height: 0.95rem;
+  padding: 0.04rem 0.06rem;
+  place-items: center start;
+}
+
+.classic-lss-weapon-row .classic-weapon__cell--bonus {
+  place-items: center;
+}
+
+.classic-lss-weapon-row .classic-weapon__cell--notes {
+  place-items: center start;
+}
+
+.classic-lss-weapon-row .classic-static {
+  border-bottom: none;
+  min-height: 0.85rem;
+  width: 100%;
+  font-size: 0.66rem;
+  padding: 0;
+}
+
+.classic-lss-weapon-row.classic-weapon--slot .classic-weapon__cell {
+  background: transparent;
 }
 
 .classic-lss-weapon-row input {
@@ -3200,15 +3316,48 @@
 }
 
 .classic-lss-features {
+  display: flex;
+  flex-direction: column;
   flex: 1 1 0;
   min-width: 0;
   min-height: 1.6in;
   max-height: 100%;
   overflow: hidden;
-  background-image:
-    linear-gradient(var(--lss-grid) 1px, transparent 1px),
-    linear-gradient(90deg, var(--lss-grid) 1px, transparent 1px);
-  background-size: 10px 10px;
+  background-image: none;
+}
+
+.classic-lss-features > .classic-text-block {
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: 100%;
+  overflow: hidden;
+}
+
+.classic-lss-features .classic-expand--fill {
+  flex: 1 1 auto;
+  min-height: 0 !important;
+  height: 100% !important;
+  max-height: var(--print-max-height, 100%);
+  overflow: hidden;
+  font-family: var(--font-ui);
+  font-size: 7.5pt;
+  line-height: 1.25 !important;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+
+.classic-lss-features .classic-expand--fill:not(.classic-expand--pencil),
+.classic-lss-p1-bottom .classic-expand--fill:not(.classic-expand--pencil) {
+  background-image: none;
+}
+
+.classic-lss-p1-bottom .classic-expand--fill {
+  max-height: var(--print-max-height, 100%);
+  font-family: var(--font-ui);
+  font-size: 7.5pt;
+  line-height: 1.25 !important;
+  overflow: hidden;
+  word-break: break-word;
 }
 
 .classic-lss-p1-bottom {
@@ -3742,6 +3891,18 @@
 
   .classic-weapon:not(.classic-weapon--slot) .classic-weapon__cell {
     background: transparent !important;
+  }
+
+  /* PRINT-15: 2024 weapons rows align to hairlines; filled traits without notebook grid. */
+  .classic-lss-weapon-row .classic-weapon__cell {
+    background: transparent !important;
+    border-bottom: 0.55pt solid #9a9a9a !important;
+  }
+
+  .classic-lss-features .classic-expand--fill:not(.classic-expand--pencil),
+  .classic-lss-p1-bottom .classic-expand--fill:not(.classic-expand--pencil) {
+    background-image: none !important;
+    line-height: 1.25 !important;
   }
 
   .classic-ability__svg path,

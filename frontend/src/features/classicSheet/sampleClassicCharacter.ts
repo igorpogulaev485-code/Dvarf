@@ -351,6 +351,127 @@ export const sampleClassic2014Character: CharacterDetail = {
   },
 }
 
+/**
+ * PRINT-15 acceptance fixture: fighter 1, Soldier, 3+ weapons,
+ * long background feature text (must wrap inside the traits box).
+ */
+export const samplePrint15HeroCharacter: CharacterDetail = {
+  id: 'preview-print15-hero',
+  name: 'Герой игрока',
+  avatar_url: null,
+  level: 1,
+  class_name: 'Воин',
+  race_name: 'Человек',
+  hp_current: 12,
+  hp_max: 12,
+  rules_edition: '2014',
+  sheet_version: 1,
+  is_draft: false,
+  created_at: '2026-01-01T00:00:00Z',
+  updated_at: '2026-01-01T00:00:00Z',
+  sheet: {
+    ui: { classic_sheet_layout: '2024' },
+    identity: {
+      background: 'Солдат',
+      alignment: 'Законно-нейтральный',
+      experience: 0,
+      player_name: 'Игорь',
+      subclass_name: '',
+    },
+    proficiency: { bonus: 2 },
+    abilities: {
+      str: { score: 16 },
+      dex: { score: 14 },
+      con: { score: 15 },
+      int: { score: 10 },
+      wis: { score: 12 },
+      cha: { score: 8 },
+    },
+    saves: {
+      str: { is_proficient: true },
+      con: { is_proficient: true },
+    },
+    skills: {
+      athletics: { is_proficient: true },
+      intimidation: { is_proficient: true },
+      perception: { is_proficient: true },
+      survival: { is_proficient: true },
+    },
+    classes: [{ id: 'fighter', name: 'Воин', level: 1, subclass_name: '' }],
+    combat: {
+      ac: 16,
+      initiative: 2,
+      speed: 30,
+      hp_temp: 0,
+      hp_dice_current: 1,
+      hit_die: 'к10',
+      death_successes: 0,
+      death_fails: 0,
+      training_armor_light: true,
+      training_armor_medium: true,
+      training_armor_heavy: true,
+      training_shield: true,
+      training_weapon_simple: true,
+      training_weapon_martial: true,
+      shield_equipped: true,
+    },
+    text_blocks: {
+      traits: {
+        value:
+          'Военное звание. Будучи солдатом, вы заслужили звание. Солдаты, верные военной организации, которой вы раньше принадлежали, всё ещё признают вашу власть и влияние, и они подчиняются вам, если их звание ниже вашего. С помощью своего звания вы можете оказывать влияние на других солдат и брать во временное пользование простое снаряжение или лошадей. Возможно, вас пропустят внутрь военного лагеря или крепости, если к вашему званию отнесутся с уважением. Дополнительно: Второй ветер (бонусным действием восстанавливаете 1к10 + уровень воина хитов, 1/короткий отдых); Боевой стиль: Защита (+2 КД союзнику в 5 футах, если держите щит).',
+      },
+      feats: { value: '' },
+      attacks: { value: '' },
+    },
+    weapons: [
+      {
+        id: 'w1',
+        name: 'Длинный меч',
+        ability: 'str',
+        is_proficient: true,
+        damage: '1к8+3',
+        damage_type: 'рубящий',
+      },
+      {
+        id: 'w2',
+        name: 'Тяжёлый арбалет',
+        ability: 'dex',
+        is_proficient: true,
+        damage: '1к10+2',
+        damage_type: 'колющий',
+      },
+      {
+        id: 'w3',
+        name: 'Ручной топор',
+        ability: 'str',
+        is_proficient: true,
+        damage: '1к6+3',
+        damage_type: 'рубящий',
+      },
+      {
+        id: 'w4',
+        name: 'Кинжал',
+        ability: 'dex',
+        is_proficient: true,
+        damage: '1к4+2',
+        damage_type: 'колющий',
+      },
+    ],
+    inventory: {
+      coins: { cp: 0, sp: 10, ep: 0, gp: 15, pp: 0 },
+      items: [
+        { name: 'Кольчуга' },
+        { name: 'Щит' },
+        { name: 'Набор путешественника' },
+      ],
+      notes: '',
+    },
+    notes: {
+      proficiencies: 'Все доспехи, щиты, простое и воинское оружие.\nОбщий, орчий.',
+    },
+  },
+}
+
 /** R1 Quack clone for M6 print profile table (Art15 / Warlock5). */
 export const sampleQuackClassicCharacter: CharacterDetail = {
   id: 'preview-classic-quack',

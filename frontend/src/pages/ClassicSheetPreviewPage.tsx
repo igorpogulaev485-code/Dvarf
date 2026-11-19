@@ -8,22 +8,24 @@ import {
 import { ClassicSheetUiProvider } from '../features/classicSheet/classicSheetUi'
 import {
   sampleClassic2014Character,
+  samplePrint15HeroCharacter,
   sampleQuackClassicCharacter,
 } from '../features/classicSheet/sampleClassicCharacter'
 import type { CharacterDetail } from '../shared/api/characters'
 import { Button } from '../ui'
 
-type FixtureId = 'torin' | 'quack'
+type FixtureId = 'torin' | 'quack' | 'print15'
 
 const FIXTURES: Record<FixtureId, CharacterDetail> = {
   torin: sampleClassic2014Character,
   quack: sampleQuackClassicCharacter,
+  print15: samplePrint15HeroCharacter,
 }
 
 /** DEV-only visual sandbox for classic printable layouts (no API). */
 export function ClassicSheetPreviewPage() {
-  const [fixture, setFixture] = useState<FixtureId>('quack')
-  const [character, setCharacter] = useState<CharacterDetail>(FIXTURES.quack)
+  const [fixture, setFixture] = useState<FixtureId>('print15')
+  const [character, setCharacter] = useState<CharacterDetail>(FIXTURES.print15)
   const [editing, setEditing] = useState(false)
   const layout = readClassicSheetLayout(character)
 
@@ -65,13 +67,25 @@ export function ClassicSheetPreviewPage() {
             Classic · preview
             <small>
               Локальный образец без API · макет {layout} ·{' '}
-              {fixture === 'quack' ? 'Квакк R1' : 'Торин mono'}
+              {fixture === 'print15'
+                ? 'Герой PRINT-15'
+                : fixture === 'quack'
+                  ? 'Квакк R1'
+                  : 'Торин mono'}
             </small>
           </div>
         </div>
         <div className="classic-toolbar-actions">
           <div className="classic-layout-switch" role="group" aria-label="Фикстура">
             <span className="classic-layout-switch__label">Лист</span>
+            <button
+              type="button"
+              className={fixture === 'print15' ? 'is-active' : undefined}
+              data-testid="classic-fixture-print15"
+              onClick={() => loadFixture('print15')}
+            >
+              Герой
+            </button>
             <button
               type="button"
               className={fixture === 'quack' ? 'is-active' : undefined}
