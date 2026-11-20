@@ -581,6 +581,44 @@ export function PlayDeskTop({ model }: { model: SheetModel }) {
               }))
             }
             onInitiativeRoll={() => {
+              const te = model.turnEconomyApi as
+                | {
+                    diceOnTable?: boolean
+                    openEnterOwnNumber?: (o: {
+                      title: string
+                      mode?: 'total' | 'd20' | 'formula'
+                      modifier?: number
+                      advantageMode?: 'normal' | 'advantage' | 'disadvantage'
+                      bonusDice?: Array<{ dice: string; label: string }> | null
+                      onDone?: (total: number) => void
+                    }) => void
+                  }
+                | undefined
+              if (te?.diceOnTable && te.openEnterOwnNumber) {
+                const mode = mergeDeskRollMode(
+                  model.effectiveRollMode(),
+                  initiativeAdvantageFromSheet(model),
+                )
+                const bonus = listRollDieChips(
+                  model.draft.play.effects ?? [],
+                  'initiative',
+                ).map((chip) => ({
+                  dice: chip.dice,
+                  label: chip.name,
+                }))
+                te.openEnterOwnNumber({
+                  title: 'Инициатива',
+                  mode: 'd20',
+                  modifier: model.initiativeValue,
+                  advantageMode: mode,
+                  bonusDice: bonus.length ? bonus : null,
+                  // Host пишет тост/журнал с пометкой «кубик на столе»; бардовское — только после «Записать».
+                  onDone: () => {
+                    model.applyBardInitiativeInspiration()
+                  },
+                })
+                return
+              }
               model.emitToast(formatInitiativeToast(model))
               model.applyBardInitiativeInspiration()
             }}

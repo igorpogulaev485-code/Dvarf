@@ -38,6 +38,12 @@ export function PlayDeskLayout({ model }: { model: SheetModel }) {
         .filter(Boolean)
         .join(' ')}
     >
+      {/*
+        TurnEconomy wraps the whole desk (header + scenes + dialogs) so death save /
+        HP pad / rest / initiative consumers share diceOnTable + EnterOwn.
+        SCN-01: SceneTurnControls still live in the scene toolbar.
+      */}
+      <TurnEconomyDeskHost model={model}>
       <PlayDeskTop model={model} />
 
       <div className="play-desk__body">
@@ -67,11 +73,6 @@ export function PlayDeskLayout({ model }: { model: SheetModel }) {
             stageRef.current = node
           }}
         >
-          {/*
-            SCN-01: TurnEconomy wraps modes so SceneTurnControls (Новый ход / кубики)
-            live in the scene toolbar — no separate card row under tabs.
-          */}
-          <TurnEconomyDeskHost model={model}>
           {model.isPlayDesk ? (
             <div
               className="play-desk__modes"
@@ -697,7 +698,6 @@ export function PlayDeskLayout({ model }: { model: SheetModel }) {
 
         <SheetIdentityDialog model={model} />
         <PlayDeskScenes model={model} />
-          </TurnEconomyDeskHost>
 
       {model.error ? (
         <div className="sheet-save-error" role="alert">
@@ -860,6 +860,7 @@ export function PlayDeskLayout({ model }: { model: SheetModel }) {
       <SheetDialogsRolls model={model} />
       <SheetDialogsResources model={model} />
       <SheetDialogsSetup model={model} />
+      </TurnEconomyDeskHost>
     </div>
   )
 }

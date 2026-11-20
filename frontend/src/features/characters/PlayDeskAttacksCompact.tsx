@@ -249,6 +249,10 @@ import {
   type DivineSmiteSlotSource,
 } from './divineSmite'
 import {
+  divineSmiteEnterOwnFormula,
+  formatDivineSmitePhysicalChip,
+} from './physicalDiceDeferred'
+import {
   effectiveMartialArtsDamage,
   isMonkUnarmedAttack,
   isMonkWeaponName,
@@ -908,6 +912,8 @@ export function PlayDeskAttacksCompact({
     attackName: string
     advantageMode?: DeskRollMode
     bonusDice?: BonusDiePart[] | null
+    /** After attack confirm — open formula damage (companions). */
+    followUpDamage?: { title: string; formula: string } | null
   } | null>(null)
   const isMobile =
     typeof window !== 'undefined' && window.matchMedia('(max-width: 959px)').matches
@@ -1352,31 +1358,8 @@ export function PlayDeskAttacksCompact({
       onToast?.('На это попадание кара уже добавлена. Ячейка не списана.')
       return
     }
-    smiteApplyLock.current = true
-    if (slotSource === 'pact') {
-      if (!spells.pact_slots) {
-        smiteApplyLock.current = false
-        onToast?.('Нет ячейки договора. Ячейка не списана.')
-        return
-      }
-      const spentPact = spendPactSlot(spells.pact_slots)
-      if (!spentPact.ok) {
-        smiteApplyLock.current = false
-        onToast?.('Нет ячейки договора. Ячейка не списана.')
-        return
-      }
-      const rolled = rollDivineSmiteExtra({
-        spend: smiteSpend,
-        slotLevel,
-        vsUndeadOrFiend: smiteIntent.vsUndeadOrFiend,
-        crit: openStrike.crit,
-      })
-      if (!rolled) {
-        smiteApplyLock.current = false
-        onToast?.('Не удалось бросить кару. Ячейка не списана.')
-        return
-      }
-      onSpellsChange({ ...spells, pact_slots: spentPact.pact })
+
+    const applyRolled = (rolled: { line: string; chip: string }) => {
       const text = `${openStrike.text}${rolled.line}`
       onToast?.(text)
       setOpenStrike({
@@ -1390,39 +1373,74 @@ export function PlayDeskAttacksCompact({
         slotSource: 'spell',
         vsUndeadOrFiend: smiteIntent.vsUndeadOrFiend,
       })
+    }
+
+    const spendThen = (rolled: { line: string; chip: string } | null) => {
+      if (!rolled) {
+        smiteApplyLock.current = false
+        onToast?.('Не удалось бросить кару. Ячейка не списана.')
+        return
+      }
+      if (slotSource === 'pact') {
+        if (!spells.pact_slots) {
+          smiteApplyLock.current = false
+          onToast?.('Нет ячейки договора. Ячейка не списана.')
+          return
+        }
+        const spentPact = spendPactSlot(spells.pact_slots)
+        if (!spentPact.ok) {
+          smiteApplyLock.current = false
+          onToast?.('Нет ячейки договора. Ячейка не списана.')
+          return
+        }
+        onSpellsChange({ ...spells, pact_slots: spentPact.pact })
+      } else {
+        const spent = spendSpellSlot(spells.slots, decision.slotLevel)
+        if (!spent.ok) {
+          smiteApplyLock.current = false
+          onToast?.(`Нет ячейки ${decision.slotLevel} ур. Ячейка не списана.`)
+          return
+        }
+        onSpellsChange({ ...spells, slots: spent.slots })
+      }
+      applyRolled(rolled)
+    }
+
+    // Physical: ввод граней — ячейка списывается только после «Записать».
+    if (turnEco?.diceOnTable && turnEco.openEnterOwnNumber) {
+      const own = divineSmiteEnterOwnFormula({
+        spend: smiteSpend,
+        slotLevel: decision.slotLevel,
+        vsUndeadOrFiend: smiteIntent.vsUndeadOrFiend,
+        crit: openStrike.crit,
+      })
+      turnEco.openEnterOwnNumber({
+        title: 'Божественная кара',
+        mode: 'formula',
+        formula: own.formula,
+        onDone: (total) => {
+          smiteApplyLock.current = true
+          spendThen(
+            formatDivineSmitePhysicalChip({
+              total,
+              formulaRu: own.formulaRu,
+              vsUndeadOrFiend: smiteIntent.vsUndeadOrFiend,
+              crit: openStrike.crit,
+            }),
+          )
+        },
+      })
       return
     }
-    const spent = spendSpellSlot(spells.slots, decision.slotLevel)
-    if (!spent.ok) {
-      smiteApplyLock.current = false
-      onToast?.(`Нет ячейки ${decision.slotLevel} ур. Ячейка не списана.`)
-      return
-    }
+
+    smiteApplyLock.current = true
     const rolled = rollDivineSmiteExtra({
       spend: smiteSpend,
       slotLevel: decision.slotLevel,
       vsUndeadOrFiend: smiteIntent.vsUndeadOrFiend,
       crit: openStrike.crit,
     })
-    if (!rolled) {
-      smiteApplyLock.current = false
-      onToast?.('Не удалось бросить кару. Ячейка не списана.')
-      return
-    }
-    onSpellsChange({ ...spells, slots: spent.slots })
-    const text = `${openStrike.text}${rolled.line}`
-    onToast?.(text)
-    setOpenStrike({
-      ...openStrike,
-      smiteApplied: true,
-      text,
-      radiantChip: rolled.chip,
-    })
-    setSmiteIntent({
-      slotLevel: null,
-      slotSource: 'spell',
-      vsUndeadOrFiend: smiteIntent.vsUndeadOrFiend,
-    })
+    spendThen(rolled)
   }
 
   const markSmiteMiss = () => {
@@ -1659,32 +1677,55 @@ export function PlayDeskAttacksCompact({
                       if (!turnEco || !breathKind || !breathAncestry) return
                       if (!turnEco.canFeature('action').ok) return
                       if (breathLeft <= 0) return
-                      turnEco.spendFeature('action')
-                      const rolled = rollBreathWeaponDamage({
-                        kind: breathKind,
-                        characterLevel,
-                        damageType: breathAncestry.damage,
-                      })
                       const dc = breathWeaponSaveDc({
                         conMod: abilityModifier(abilities.con),
                         proficiencyBonus,
                       })
                       const saveRu =
                         breathAncestry.save === 'con' ? 'Тел' : 'Лов'
+                      const spendBreath = () => {
+                        turnEco.spendFeature('action')
+                        if (breathPool && onSpendResource) {
+                          onSpendResource(breathPool.id)
+                        } else if (breathPool && onResourcesChange && resources) {
+                          onResourcesChange(
+                            resources.map((row) =>
+                              row.id === breathPool.id
+                                ? { ...row, used: Math.min(row.max, row.used + 1) }
+                                : row,
+                            ),
+                          )
+                        }
+                      }
+                      const expr = breathWeaponDamageExpr({
+                        kind: breathKind,
+                        characterLevel,
+                        damageType: breathAncestry.damage,
+                      })
+                      // Physical: грани → затем тот же тост про Сл цели (спас вручную).
+                      if (turnEco.diceOnTable && turnEco.openEnterOwnNumber) {
+                        turnEco.openEnterOwnNumber({
+                          title: 'Оружие дыхания',
+                          mode: 'formula',
+                          formula: expr,
+                          onDone: (total) => {
+                            spendBreath()
+                            onToast?.(
+                              `Оружие дыхания: ${breathAncestry.shapeRu} · Сл ${dc} (${saveRu}) · урон ${total} ${breathAncestry.damage}. Цели в линии/конусе — подтверди вручную.`,
+                            )
+                          },
+                        })
+                        return
+                      }
+                      spendBreath()
+                      const rolled = rollBreathWeaponDamage({
+                        kind: breathKind,
+                        characterLevel,
+                        damageType: breathAncestry.damage,
+                      })
                       onToast?.(
                         `Оружие дыхания: ${breathAncestry.shapeRu} · Сл ${dc} (${saveRu}) · урон ${rolled.total} ${breathAncestry.damage} (${rolled.detail}). Цели в линии/конусе — подтверди вручную.`,
                       )
-                      if (breathPool && onSpendResource) {
-                        onSpendResource(breathPool.id)
-                      } else if (breathPool && onResourcesChange && resources) {
-                        onResourcesChange(
-                          resources.map((row) =>
-                            row.id === breathPool.id
-                              ? { ...row, used: Math.min(row.max, row.used + 1) }
-                              : row,
-                          ),
-                        )
-                      }
                     },
                   }
                 : null
@@ -4088,12 +4129,39 @@ export function PlayDeskAttacksCompact({
                         shouldPostRollToSession(characterId) &&
                         Boolean(sessionId?.trim())
                       // Physical: ввод граней формулы — без цифрового rollDamage.
+                      // После базы — доп. кости (божественный удар / улучш. кара / …) тем же диалогом.
                       if (physical && turnEco?.openEnterOwnNumber && expr) {
+                        const extras: Array<{ title: string; formula: string }> = []
+                        if (divineStrike) {
+                          const d = String(divineStrike.dice).replace(/d/gi, 'к')
+                          extras.push({
+                            title: divineStrike.rollLabel ?? 'Божественный удар',
+                            formula: `${d}${divineStrike.type ? ` ${divineStrike.type}` : ''}`.trim(),
+                          })
+                        }
+                        if (meleeAttack && improvedSmite) {
+                          const d = String(improvedSmite.dice).replace(/d/gi, 'к')
+                          extras.push({
+                            title: improvedSmite.rollLabel ?? 'Улучшенная кара',
+                            formula: `${d}${improvedSmite.type ? ` ${improvedSmite.type}` : ''}`.trim(),
+                          })
+                        }
+                        const openExtra = (i: number) => {
+                          const row = extras[i]
+                          if (!row || !turnEco.openEnterOwnNumber) return
+                          turnEco.openEnterOwnNumber({
+                            title: row.title,
+                            mode: 'formula',
+                            formula: row.formula,
+                            onDone: () => openExtra(i + 1),
+                          })
+                        }
                         turnEco.openEnterOwnNumber({
                           title: `Урон: ${attack.name}`,
                           mode: 'formula',
                           // Тип урона — в формуле, не в заголовке («1к6+2 дробящий»).
                           formula: `${expr}${typeBit}`.trim(),
+                          onDone: extras.length ? () => openExtra(0) : undefined,
                         })
                         return
                       }
@@ -4435,11 +4503,18 @@ export function PlayDeskAttacksCompact({
                   return
                 }
                 if (turnEco?.diceOnTable) {
+                  const typeBit = atkDamageType ? ` ${atkDamageType}` : ''
                   setEnterNumberCtx({
                     title: `${atk.companionName}: ${atk.name}`,
                     attackBonus: atk.attackBonus,
                     attackName: atk.name,
                     advantageMode: rollMode,
+                    followUpDamage: atk.damageExpr
+                      ? {
+                          title: `Урон: ${atk.companionName} · ${atk.name}`,
+                          formula: `${atk.damageExpr}${typeBit}`.trim(),
+                        }
+                      : null,
                   })
                   setEnterNumberOpen(true)
                   return
@@ -4495,11 +4570,50 @@ export function PlayDeskAttacksCompact({
               <span className="play-desk-compact__mod">
                 {atk.attackBonus >= 0 ? `+${atk.attackBonus}` : String(atk.attackBonus)}
               </span>
-              <span className="play-desk-compact__dmg">
+            </button>
+            {atk.damageExpr ? (
+              <button
+                type="button"
+                className="play-desk-compact__dmg play-desk-compact__dmg--roll"
+                title={`Урон: ${atk.companionName} · ${atk.name}`}
+                aria-label={`Урон ${atk.name}`}
+                {...intentionalActivateProps(() => {
+                  const typeBit = atkDamageType ? ` ${atkDamageType}` : ''
+                  const formula = `${atk.damageExpr}${typeBit}`.trim()
+                  if (turnEco?.diceOnTable && turnEco.openEnterOwnNumber) {
+                    turnEco.openEnterOwnNumber({
+                      title: `Урон: ${atk.companionName} · ${atk.name}`,
+                      mode: 'formula',
+                      formula,
+                    })
+                    return
+                  }
+                  const rolled = rollDamage(atk.damageExpr)
+                  onToast?.(
+                    rolled
+                      ? `Урон: ${atk.companionName} · ${atk.name} · ${rolled.total}${typeBit} (${rolled.detail})`
+                      : `Урон: ${atk.companionName} · ${atk.name} · ${formula}`,
+                  )
+                  if (characterId && rolled) {
+                    recordDigitalRollLocal({
+                      characterId,
+                      openSessionId,
+                      title: `Урон: ${atk.companionName} · ${atk.name}`,
+                      expression: atk.damageExpr,
+                      total: rolled.total,
+                      dice: [],
+                      modifierTotal: 0,
+                      toastText: `Урон: ${atk.companionName} · ${atk.name} · ${rolled.total}${typeBit}`,
+                      skipSession: true,
+                      source: 'sheet',
+                    })
+                  }
+                })}
+              >
                 {atk.damageExpr}
                 {atkDamageType ? ` ${atkDamageType}` : ''}
-              </span>
-            </button>
+              </button>
+            ) : null}
           </div>
           {atk.selfForm && wildShapeFormAttacks ? (
             <div className="play-desk-compact__row is-dense" data-testid="p24-form-attack-riders">
@@ -4510,10 +4624,20 @@ export function PlayDeskAttacksCompact({
                   title="Природный удар: раз за ход при попадании"
                   onClick={() => {
                     const expr = `${wildShapeFormAttacks.primalStrikeDice}к8`
+                    const typeBit =
+                      ' холодом, огнём, электричеством или звуком'
+                    if (turnEco?.diceOnTable && turnEco.openEnterOwnNumber) {
+                      turnEco.openEnterOwnNumber({
+                        title: 'Природный удар',
+                        mode: 'formula',
+                        formula: `${expr}${typeBit}`,
+                      })
+                      return
+                    }
                     const rolled = rollDamage(expr)
                     onToast?.(
                       rolled
-                        ? `Природный удар: ${rolled.total} холодом, огнём, электричеством или звуком (${rolled.detail})`
+                        ? `Природный удар: ${rolled.total}${typeBit} (${rolled.detail})`
                         : `Природный удар: ${expr}`,
                     )
                     if (characterId && rolled) {
@@ -4524,7 +4648,7 @@ export function PlayDeskAttacksCompact({
                         total: rolled.total,
                         formula: expr,
                         breakdown: rolled.detail,
-                        physicalDice: Boolean(turnEco?.diceOnTable),
+                        physicalDice: false,
                         targetName: null,
                       })
                     }
@@ -5006,6 +5130,7 @@ export function PlayDeskAttacksCompact({
       modifiersSlot={enterNumberCtx ? targetModifiersSlot : undefined}
       onClose={() => setEnterNumberOpen(false)}
       onConfirm={({ total, breakdown }) => {
+        const follow = enterNumberCtx?.followUpDamage ?? null
         if (characterId && enterNumberCtx) {
           if (shouldPostRollToSession(characterId)) {
             void postSheetRollToSession({
@@ -5028,6 +5153,16 @@ export function PlayDeskAttacksCompact({
           turnEco?.spendAttack()
         }
         setEnterNumberOpen(false)
+        setEnterNumberCtx(null)
+        if (follow && turnEco?.openEnterOwnNumber) {
+          queueMicrotask(() => {
+            turnEco.openEnterOwnNumber({
+              title: follow.title,
+              mode: 'formula',
+              formula: follow.formula,
+            })
+          })
+        }
       }}
     />
     <WeaponAttackBreakdownDialog

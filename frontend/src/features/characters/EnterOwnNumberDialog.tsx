@@ -24,10 +24,17 @@ type Props = {
   /** Подпись поля: итог, выпавшее на к20, или грани формулы урона/лечения. */
   mode?: EnterOwnNumberMode
   modifier?: number
+  /**
+   * Подпись к модификатору в formula-режиме (например «Тел» → «Модификатор +3 (Тел)»).
+   * Сам modifier прибавляется к итогу, если в формуле нет своего ±N.
+   */
+  modifierLabel?: string | null
   /** Advantage / disadvantage — два поля к20 (только mode=d20). */
   advantageMode?: DeskRollMode
   /** Для mode=formula: выражение вроде `2d6+3` / `1к10 дробящий`. */
   formula?: string | null
+  /** Скрыть строку формулы и «Брось кN…» — достаточно подписи поля «Выпало на кN». */
+  hideFormulaChrome?: boolean
   /** Mark d4 / Bless — ввод лицом, не цифровой RNG. */
   bonusDice?: BonusDiePart[] | null
   busy?: boolean
@@ -100,8 +107,10 @@ export function EnterOwnNumberDialog({
   title = 'Ввести своё число',
   mode = 'total',
   modifier = 0,
+  modifierLabel = null,
   advantageMode = 'normal',
   formula = null,
+  hideFormulaChrome = false,
   bonusDice = null,
   busy = false,
   onClose,
@@ -115,6 +124,9 @@ export function EnterOwnNumberDialog({
   )
   const faceCount = parsed ? parsed.count : 0
   const bonusSlots = useMemo(() => expandBonusSlots(bonusDice), [bonusDice])
+  /** CON / etc. when formula itself has no ±N (hit die). */
+  const formulaExtraMod =
+    mode === 'formula' && parsed && parsed.modifier === 0 ? modifier : 0
 
   const [value, setValue] = useState<number | null>(null)
   const [value2, setValue2] = useState<number | null>(null)
@@ -165,7 +177,9 @@ export function EnterOwnNumberDialog({
       : null
 
   const formulaSum =
-    formulaDiceSum != null && parsed ? formulaDiceSum + parsed.modifier : null
+    formulaDiceSum != null && parsed
+      ? formulaDiceSum + parsed.modifier + formulaExtraMod
+      : null
 
   const total = useMemo(() => {
     if (mode === 'd20') {
@@ -193,6 +207,15 @@ export function EnterOwnNumberDialog({
     formulaSum,
     value,
   ])
+
+  const formulaModLine = useMemo(() => {
+    if (mode !== 'formula') return null
+    const mod = parsed && parsed.modifier !== 0 ? parsed.modifier : formulaExtraMod
+    if (!mod) return null
+    const bit = mod > 0 ? `+${mod}` : String(mod)
+    const label = modifierLabel?.trim()
+    return label ? `Модификатор ${bit} (${label})` : `Модификатор ${bit}`
+  }, [mode, parsed, formulaExtraMod, modifierLabel])
 
   const canConfirm =
     !busy && total != null && facesReady && bonusReady && d20Ready
@@ -246,12 +269,13 @@ export function EnterOwnNumberDialog({
           }
           if (modifier) bits.push(modifier > 0 ? `+${modifier}` : String(modifier))
         } else if (mode === 'formula' && parsed && filledFaces) {
+          const modBit = parsed.modifier || formulaExtraMod
           bits.push(
             `${parsed.count}к${parsed.sides}: ${filledFaces.join('+')}${
-              parsed.modifier
-                ? parsed.modifier > 0
-                  ? `+${parsed.modifier}`
-                  : String(parsed.modifier)
+              modBit
+                ? modBit > 0
+                  ? `+${modBit}`
+                  : String(modBit)
                 : ''
             }`,
           )
@@ -332,14 +356,21 @@ export function EnterOwnNumberDialog({
           ) : null}
           {mode === 'formula' ? (
             <>
-              {formula?.trim() ? (
+              {!hideFormulaChrome && formula?.trim() ? (
                 <Text tone="muted" data-testid="enter-own-formula-expr">
                   {formula.trim()}
                 </Text>
               ) : null}
-              <Text tone="muted" data-testid="enter-own-formula-hint">
-                {formulaHint}
-              </Text>
+              {!hideFormulaChrome ? (
+                <Text tone="muted" data-testid="enter-own-formula-hint">
+                  {formulaHint}
+                </Text>
+              ) : null}
+              {formulaModLine ? (
+                <Text tone="muted" data-testid="enter-own-formula-mod">
+                  {formulaModLine}
+                </Text>
+              ) : null}
               {parsed
                 ? faces.map((face, i) => (
                     <Field
@@ -390,11 +421,11 @@ export function EnterOwnNumberDialog({
               {showLiveFormulaPartial ? (
                 <Text tone="muted" data-testid="enter-own-live-total">
                   Пока {formulaSum}
-                  {parsed?.modifier
+                  {parsed?.modifier || formulaExtraMod
                     ? ` (кости + мод ${
-                        parsed.modifier > 0
-                          ? `+${parsed.modifier}`
-                          : parsed.modifier
+                        (parsed?.modifier || formulaExtraMod) > 0
+                          ? `+${parsed?.modifier || formulaExtraMod}`
+                          : parsed?.modifier || formulaExtraMod
                       })`
                     : ''}
                   — ещё введи доп. кости ниже.

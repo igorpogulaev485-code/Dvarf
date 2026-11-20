@@ -24,6 +24,7 @@ import {
   stabilizePlayPatch,
 } from '../../shared/dnd/o09DeathInspirationAmmo'
 import { rollCheck } from './deskRolls'
+import { useTurnEconomy } from './TurnEconomyContext'
 import {
   coinsToGp,
   formatCoinBreakdown,
@@ -273,6 +274,7 @@ export function PlayDeskHeader({
   needsSetupItems: _needsSetupItems = [],
   onNeedsSetupSelect: _onNeedsSetupSelect,
 }: PlayDeskHeaderProps) {
+  const turnEco = useTurnEconomy()
   const alignmentLabel = alignment.trim()
   const editionLabel = String(rulesEdition).trim() || '2014'
   /* name stays ≤2 lines; full string in title (no expand that blows header height) */
@@ -448,28 +450,40 @@ export function PlayDeskHeader({
 
   function rollDeathSave() {
     if (!(play.isDying || atZeroHp)) return
+    const applyFace = (die: number) => {
+      const result = resolveDeathSaveRoll(die, play.deathSuccesses, play.deathFails)
+      const diceNote = `к20=${die}`
+      if (result.revived) {
+        onCombatChange({ hpCurrent: 1 })
+        onPlayChange({ ...play, ...stabilizePlayPatch() })
+        onToast(`${result.note} · ${diceNote}`)
+        return
+      }
+      if (result.stabilized) {
+        onPlayChange({ ...play, ...stabilizePlayPatch() })
+        onToast(`${result.note} · ${diceNote}`)
+        return
+      }
+      onPlayChange({
+        ...play,
+        isDying: true,
+        deathSuccesses: result.successes,
+        deathFails: result.fails,
+      })
+      onToast(`${result.note} · ${diceNote}`)
+    }
+    // Минимальное изменение шапки: тот же applyFace, ввод через общий EnterOwn.
+    if (turnEco?.diceOnTable && turnEco.openEnterOwnNumber) {
+      turnEco.openEnterOwnNumber({
+        title: 'Спас от смерти',
+        mode: 'd20',
+        modifier: 0,
+        onDone: (total) => applyFace(total),
+      })
+      return
+    }
     const check = rollCheck(0, 'normal')
-    const result = resolveDeathSaveRoll(check.die, play.deathSuccesses, play.deathFails)
-    const diceNote =
-      check.otherDie != null ? `к20=${check.die}/${check.otherDie}` : `к20=${check.die}`
-    if (result.revived) {
-      onCombatChange({ hpCurrent: 1 })
-      onPlayChange({ ...play, ...stabilizePlayPatch() })
-      onToast(`${result.note} · ${diceNote}`)
-      return
-    }
-    if (result.stabilized) {
-      onPlayChange({ ...play, ...stabilizePlayPatch() })
-      onToast(`${result.note} · ${diceNote}`)
-      return
-    }
-    onPlayChange({
-      ...play,
-      isDying: true,
-      deathSuccesses: result.successes,
-      deathFails: result.fails,
-    })
-    onToast(`${result.note} · ${diceNote}`)
+    applyFace(check.die)
   }
 
   return (
@@ -982,6 +996,8 @@ export function PlayDeskHeader({
         canRedirectToMount={canRedirectToMount}
         mountName={mountName}
         onRedirectDamageToMount={onRedirectDamageToMount}
+        diceOnTable={Boolean(turnEco?.diceOnTable)}
+        openEnterOwnNumber={turnEco?.openEnterOwnNumber}
       />
 
       <CoinPadDialog

@@ -19,6 +19,12 @@ import {
   stabilizePlayPatch,
 } from '../../shared/dnd/o09DeathInspirationAmmo'
 import { rollCheck } from './deskRolls'
+import {
+  blackBloodPhysicalNote,
+  hitDieEnterOwnFormula,
+  hitDieRuLabel,
+} from './physicalDiceDeferred'
+import { useTurnEconomy } from './TurnEconomyContext'
 import { Button, SlotPips } from '../../ui'
 import {
   DAMAGE_TYPES,
@@ -92,6 +98,15 @@ type HpPadDialogProps = {
   canRedirectToMount?: boolean
   mountName?: string | null
   onRedirectDamageToMount?: (amount: number, note: string) => void
+  /** Physical dice — prefer explicit props (portal + header); fallback to context. */
+  diceOnTable?: boolean
+  openEnterOwnNumber?: (opts: {
+    title: string
+    mode?: 'total' | 'd20' | 'formula'
+    modifier?: number
+    formula?: string | null
+    onDone?: (total: number) => void
+  }) => void
 }
 
 const KEYS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', 'C', '0', '⌫'] as const
@@ -131,7 +146,12 @@ export function HpPadDialog({
   canRedirectToMount = false,
   mountName = null,
   onRedirectDamageToMount,
+  diceOnTable: diceOnTableProp,
+  openEnterOwnNumber: openEnterOwnProp,
 }: HpPadDialogProps) {
+  const turnEco = useTurnEconomy()
+  const diceOnTable = diceOnTableProp ?? Boolean(turnEco?.diceOnTable)
+  const openEnterOwnNumber = openEnterOwnProp ?? turnEco?.openEnterOwnNumber
   const blackBlood = hasBlackBloodHealing(raceSlug)
   const [digits, setDigits] = useState('')
   const [damageType, setDamageType] = useState<DamageType | null>(null)
@@ -315,6 +335,25 @@ export function HpPadDialog({
     setDigits((prev) => (prev + key).replace(/^0+(?=\d)/, '').slice(0, 8))
   }
 
+  function applyHitDieFace(pool: ClassHitDicePool, faceValue: number, note?: string) {
+    const spent = spendHitDieFromPool(pools, pool.classEntryId)
+    if (!spent) return
+    const healAmount = Math.max(0, Math.floor(faceValue) + Math.floor(constitutionMod))
+    const healed =
+      applyHitDieHeal({
+        hpCurrent: current,
+        hpMax,
+        healAmount,
+      }) ?? current
+    onPlayChange(withSyncedHitDiceSummary({ ...play, hitDiceByClass: spent }))
+    onCombatChange({ hpCurrent: healed })
+    onToast(
+      `Кость ${pool.className} (${pool.die}): +${Math.max(0, healed - current)} хитов (${
+        note ?? `бросок ${faceValue} + ТЕЛ`
+      })`,
+    )
+  }
+
   function spendPool(pool: ClassHitDicePool) {
     if (pool.current <= 0) {
       onToast(`Нет костей «${pool.className}»`)
@@ -322,6 +361,54 @@ export function HpPadDialog({
     }
     if (hpMax == null) {
       onToast('Сначала задай максимум хитов')
+      return
+    }
+    // Physical: ввод грани живого кубика. Закрываем пад — иначе EnterOwn под backdrop.
+    if (diceOnTable && openEnterOwnNumber) {
+      onClose()
+      const dieRu = hitDieRuLabel(pool.die)
+      const openFace = (opts: {
+        title: string
+        onFace: (face: number) => void
+      }) => {
+        openEnterOwnNumber({
+          title: opts.title,
+          mode: 'formula',
+          formula: hitDieEnterOwnFormula(pool.die),
+          modifier: Math.floor(constitutionMod),
+          modifierLabel: 'Тел',
+          hideFormulaChrome: true,
+          onDone: (_total, detail) => {
+            const face = detail?.faces?.[0]
+            if (face == null || !Number.isFinite(face)) return
+            opts.onFace(face)
+          },
+        })
+      }
+      openFace({
+        title: `Кость хитов · ${pool.className} · ${dieRu}`,
+        onFace: (first) => {
+          if (blackBlood && (first === 1 || first === 2)) {
+            openFace({
+              title: `Чёрная кровь · переброс ${dieRu}`,
+              onFace: (finalFace) => {
+                const note = blackBloodPhysicalNote({
+                  dieLabel: dieRu,
+                  first,
+                  final: finalFace,
+                })
+                applyHitDieFace(
+                  pool,
+                  finalFace,
+                  note ?? `кубик на столе ${finalFace} + ТЕЛ`,
+                )
+              },
+            })
+            return
+          }
+          applyHitDieFace(pool, first, `кубик на столе ${first} + ТЕЛ`)
+        },
+      })
       return
     }
     const spent = spendHitDieFromPool(pools, pool.classEntryId)
@@ -745,34 +832,47 @@ export function HpPadDialog({
                 className="hp-pad__death-roll"
                 title={DEATH_SAVE_HINT}
                 onClick={() => {
+                  const applyFace = (die: number) => {
+                    const result = resolveDeathSaveRoll(
+                      die,
+                      play.deathSuccesses,
+                      play.deathFails,
+                    )
+                    const diceNote = `к20=${die}`
+                    if (result.revived) {
+                      onCombatChange({ hpCurrent: 1 })
+                      onPlayChange({ ...play, ...stabilizePlayPatch() })
+                      onToast(`${result.note} · ${diceNote}`)
+                      return
+                    }
+                    if (result.stabilized) {
+                      onPlayChange({ ...play, ...stabilizePlayPatch() })
+                      onToast(`${result.note} · ${diceNote}`)
+                      return
+                    }
+                    onPlayChange({
+                      ...play,
+                      isDying: true,
+                      deathSuccesses: result.successes,
+                      deathFails: result.fails,
+                    })
+                    onToast(`${result.note} · ${diceNote}`)
+                  }
+                  if (diceOnTable && openEnterOwnNumber) {
+                    onClose()
+                    openEnterOwnNumber({
+                      title: 'Спас от смерти',
+                      mode: 'd20',
+                      modifier: 0,
+                      onDone: (total) => {
+                        // EnterOwn returns d20+mod; mod=0 → face == total.
+                        applyFace(total)
+                      },
+                    })
+                    return
+                  }
                   const check = rollCheck(0, 'normal')
-                  const result = resolveDeathSaveRoll(
-                    check.die,
-                    play.deathSuccesses,
-                    play.deathFails,
-                  )
-                  const diceNote =
-                    check.otherDie != null
-                      ? `к20=${check.die}/${check.otherDie}`
-                      : `к20=${check.die}`
-                  if (result.revived) {
-                    onCombatChange({ hpCurrent: 1 })
-                    onPlayChange({ ...play, ...stabilizePlayPatch() })
-                    onToast(`${result.note} · ${diceNote}`)
-                    return
-                  }
-                  if (result.stabilized) {
-                    onPlayChange({ ...play, ...stabilizePlayPatch() })
-                    onToast(`${result.note} · ${diceNote}`)
-                    return
-                  }
-                  onPlayChange({
-                    ...play,
-                    isDying: true,
-                    deathSuccesses: result.successes,
-                    deathFails: result.fails,
-                  })
-                  onToast(`${result.note} · ${diceNote}`)
+                  applyFace(check.die)
                 }}
               >
                 Спас от смерти

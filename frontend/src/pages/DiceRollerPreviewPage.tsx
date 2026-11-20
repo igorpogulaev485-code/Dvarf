@@ -1,6 +1,7 @@
 /**
- * DEV harness for DICE-01 — real Play Desk fixture + dice FAB.
+ * DEV harness for DICE — real Play Desk fixture + dice FAB.
  * ?edition=2014|2024 · ?open=1 · ?clean=1 · ?heal=1 · ?bless=1
+ * Deferred physical: ?dying=1 · ?companion=1 · ?breath=1 · ?heroic=1 · ?hd=1 · ?smite=1
  */
 import { useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
@@ -11,6 +12,8 @@ import type { CharacterDetail } from '../shared/api/characters'
 import type { DiceLogEntry } from '../features/diceRoller/types'
 import { buildBuffEffect } from '../shared/dnd/activeEffects'
 import { Text } from '../ui'
+import { DIVINE_SMITE_FEATURE_ID } from '../features/characters/divineSmite'
+import { breathWeaponResourceId } from '../shared/dnd/o06StylesBreathInvocations'
 
 const CURE_WOUNDS_PREVIEW = {
   id: 'preview-cure-wounds',
@@ -29,13 +32,27 @@ const CURE_WOUNDS_PREVIEW = {
     'Существо, которого вы касаетесь, восстанавливает количество хитов, равное 1к8 + ваш модификатор заклинательной характеристики.',
 }
 
-function withHealAndBless(
+type PreviewOpts = {
+  heal?: boolean
+  bless?: boolean
+  dying?: boolean
+  companion?: boolean
+  breath?: boolean
+  heroic?: boolean
+  hd?: boolean
+  smite?: boolean
+  rogue20?: boolean
+}
+
+function withPreviewOpts(
   character: CharacterDetail,
-  opts?: { heal?: boolean; bless?: boolean },
+  opts?: PreviewOpts,
 ): CharacterDetail {
-  if (!opts?.heal && !opts?.bless) return character
+  if (!opts) return character
   const sheet = { ...(character.sheet ?? {}) } as Record<string, unknown>
-  if (opts?.heal) {
+  const combat = { ...((sheet.combat as Record<string, unknown> | undefined) ?? {}) }
+
+  if (opts.heal) {
     const spells = { ...((sheet.spells as Record<string, unknown> | undefined) ?? {}) }
     const known = Array.isArray(spells.known) ? [...spells.known] : []
     if (!known.some((row) => (row as { id?: string })?.id === CURE_WOUNDS_PREVIEW.id)) {
@@ -44,8 +61,7 @@ function withHealAndBless(
     spells.known = known
     sheet.spells = spells
   }
-  if (opts?.bless) {
-    const combat = { ...((sheet.combat as Record<string, unknown> | undefined) ?? {}) }
+  if (opts.bless) {
     const bless = buildBuffEffect({
       name: 'Благословение',
       slug: 'bless',
@@ -53,14 +69,140 @@ function withHealAndBless(
       sourceName: 'Превью',
     })
     combat.effects = bless ? [bless] : []
-    sheet.combat = combat
   }
+  if (opts.dying) {
+    combat.is_dying = true
+    combat.death_successes = 0
+    combat.death_fails = 0
+    combat.hp_current = 0
+  }
+  if (opts.hd) {
+    // Pool die must be canonical HitDie ('d6'..), not «к6».
+    combat.hit_dice_by_class = [
+      {
+        classEntryId: 'preview-wizard',
+        className: 'Волшебник',
+        die: 'd6',
+        current: 3,
+        max: 5,
+      },
+    ]
+    combat.hit_die = 'd6'
+    combat.hp_dice_current = 3
+  }
+  if (opts.heroic) {
+    combat.inspiration = true
+  }
+  sheet.combat = combat
+
+  if (opts.dying) {
+    character = { ...character, hp_current: 0 }
+  }
+
+  if (opts.companion) {
+    const companions = Array.isArray(sheet.companions) ? [...sheet.companions] : []
+    const ally = companions.find(
+      (row) => (row as { id?: string })?.id === 'comp-lirael',
+    ) as Record<string, unknown> | undefined
+    if (ally) {
+      ally.active = true
+      ally.actions = 'Длинный лук +6 1к8+3 колющий'
+    } else {
+      companions.push({
+        id: 'comp-lirael',
+        kind: 'ally',
+        name: 'Лираэль',
+        active: true,
+        catalog_ref: null,
+        source: null,
+        stats: { hp: 28, ac: 14, speed: 30 },
+        actions: 'Длинный лук +6 1к8+3 колющий',
+        notes: 'Превью напарника для physical dice',
+      })
+    }
+    sheet.companions = companions
+  }
+
+  if (opts.breath) {
+    sheet.race_grant = {
+      slug: 'dragonborn',
+      raceCatalogId: 'dragonborn',
+      ancestryId: 'brass',
+      parentSlug: null,
+      speed: 30,
+      size: 'medium',
+      darkvision: 60,
+      abilityBonuses: {},
+      languages: [],
+      skills: [],
+      tools: [],
+      armorKeys: [],
+      weaponNames: [],
+      traitsText: '',
+      traitCards: [],
+      featNoteRu: null,
+      naturalArmor: null,
+      naturalWeapons: [],
+      movement: { climb: null, swim: null, fly: null },
+      activatedMovement: [],
+      damageResistances: [],
+      combatBonuses: { initiative: null },
+      racialSpells: [],
+      rollBonuses: [],
+      racialResources: [],
+    }
+    const resources = Array.isArray(sheet.resources) ? [...sheet.resources] : []
+    const breathId = breathWeaponResourceId()
+    if (!resources.some((row) => (row as { id?: string })?.id === breathId)) {
+      resources.push({
+        id: breathId,
+        name: 'Оружие дыхания',
+        max: 1,
+        used: 0,
+        reset: 'short',
+      })
+    }
+    sheet.resources = resources
+    character = {
+      ...character,
+      race_name: 'Драконорождённый (латунный)',
+    }
+  }
+
+  if (opts.smite) {
+    const features = Array.isArray(sheet.features) ? [...sheet.features] : []
+    if (!features.some((row) => (row as { id?: string })?.id === DIVINE_SMITE_FEATURE_ID)) {
+      features.push({
+        id: DIVINE_SMITE_FEATURE_ID,
+        name_ru: 'Божественная кара',
+        classEntryId: 'preview-paladin',
+        classLevel: 5,
+        slot_spend: {
+          kind: 'spell_slot',
+          min_slot: 1,
+          dice_base: 2,
+          dice_per_slot: 1,
+          dice_size: 8,
+        },
+      })
+    }
+    sheet.features = features
+    const spells = { ...((sheet.spells as Record<string, unknown> | undefined) ?? {}) }
+    spells.slots = { '1': { max: 4, used: 0 }, '2': { max: 2, used: 0 } }
+    sheet.spells = spells
+    character = {
+      ...character,
+      class_name: 'Паладин',
+      name: 'Торин Камнебород (кара)',
+    }
+  }
+
   return { ...character, sheet }
 }
 
 function editionCharacter(
   edition: '2014' | '2024',
-  opts?: { rogue20?: boolean; heal?: boolean; bless?: boolean },
+  opts?: PreviewOpts,
 ): CharacterDetail {
   const base = sampleClassic2014Character
   if (opts?.rogue20) {
@@ -75,7 +217,7 @@ function editionCharacter(
       ui.classic_sheet_layout = '2024'
       sheet.ui = ui
     }
-    return withHealAndBless(
+    return withPreviewOpts(
       {
         ...base,
         id: edition === '2024' ? 'preview-dice-rogue20-2024' : 'preview-dice-rogue20-2014',
@@ -90,7 +232,7 @@ function editionCharacter(
     )
   }
   if (edition === '2014') {
-    return withHealAndBless(
+    return withPreviewOpts(
       {
         ...base,
         id: 'preview-dice-2014',
@@ -104,7 +246,7 @@ function editionCharacter(
   const ui = { ...((sheet.ui as Record<string, unknown> | undefined) ?? {}) }
   ui.classic_sheet_layout = '2024'
   sheet.ui = ui
-  return withHealAndBless(
+  return withPreviewOpts(
     {
       ...base,
       id: 'preview-dice-2024',
@@ -172,9 +314,25 @@ export function DiceRollerPreviewPage() {
   const rogue20 = params.get('rogue20') === '1'
   const heal = params.get('heal') === '1'
   const bless = params.get('bless') === '1'
+  const dying = params.get('dying') === '1'
+  const companion = params.get('companion') === '1'
+  const breath = params.get('breath') === '1'
+  const heroic = params.get('heroic') === '1' || edition === '2024'
+  const hd = params.get('hd') === '1'
+  const smite = params.get('smite') === '1'
   const withMiss = params.get('miss') === '1' || rogue20
   const [character, setCharacter] = useState(() =>
-    editionCharacter(edition, { rogue20, heal, bless }),
+    editionCharacter(edition, {
+      rogue20,
+      heal,
+      bless,
+      dying,
+      companion,
+      breath,
+      heroic,
+      hd,
+      smite,
+    }),
   )
 
   const missSeed: DiceLogEntry[] = useMemo(

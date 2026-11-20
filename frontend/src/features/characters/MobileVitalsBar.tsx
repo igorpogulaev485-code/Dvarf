@@ -8,6 +8,7 @@ import {
   stabilizePlayPatch,
 } from '../../shared/dnd/o09DeathInspirationAmmo'
 import { rollCheck } from './deskRolls'
+import { useTurnEconomy } from './TurnEconomyContext'
 import type { CharacterDetail } from '../../shared/api/characters'
 import { formatModifier } from './sheetTypes'
 import {
@@ -233,6 +234,7 @@ export function MobileVitalsBar({
   needsSetupItems: _needsSetupItems = [],
   onNeedsSetupSelect: _onNeedsSetupSelect,
 }: MobileVitalsBarProps) {
+  const turnEco = useTurnEconomy()
   const [collapsed, setCollapsed] = useState(readCollapsed)
   const [hpPadOpen, setHpPadOpen] = useState(false)
   const [coinPadOpen, setCoinPadOpen] = useState(false)
@@ -372,28 +374,39 @@ export function MobileVitalsBar({
 
   function rollDeathSave() {
     if (!isDying) return
+    const applyFace = (die: number) => {
+      const result = resolveDeathSaveRoll(die, play.deathSuccesses, play.deathFails)
+      const diceNote = `к20=${die}`
+      if (result.revived) {
+        onCombatChange({ hpCurrent: 1 })
+        onPlayChange({ ...play, ...stabilizePlayPatch() })
+        onToast(`${result.note} · ${diceNote}`)
+        return
+      }
+      if (result.stabilized) {
+        onPlayChange({ ...play, ...stabilizePlayPatch() })
+        onToast(`${result.note} · ${diceNote}`)
+        return
+      }
+      onPlayChange({
+        ...play,
+        isDying: true,
+        deathSuccesses: result.successes,
+        deathFails: result.fails,
+      })
+      onToast(`${result.note} · ${diceNote}`)
+    }
+    if (turnEco?.diceOnTable && turnEco.openEnterOwnNumber) {
+      turnEco.openEnterOwnNumber({
+        title: 'Спас от смерти',
+        mode: 'd20',
+        modifier: 0,
+        onDone: (total) => applyFace(total),
+      })
+      return
+    }
     const check = rollCheck(0, 'normal')
-    const result = resolveDeathSaveRoll(check.die, play.deathSuccesses, play.deathFails)
-    const diceNote =
-      check.otherDie != null ? `к20=${check.die}/${check.otherDie}` : `к20=${check.die}`
-    if (result.revived) {
-      onCombatChange({ hpCurrent: 1 })
-      onPlayChange({ ...play, ...stabilizePlayPatch() })
-      onToast(`${result.note} · ${diceNote}`)
-      return
-    }
-    if (result.stabilized) {
-      onPlayChange({ ...play, ...stabilizePlayPatch() })
-      onToast(`${result.note} · ${diceNote}`)
-      return
-    }
-    onPlayChange({
-      ...play,
-      isDying: true,
-      deathSuccesses: result.successes,
-      deathFails: result.fails,
-    })
-    onToast(`${result.note} · ${diceNote}`)
+    applyFace(check.die)
   }
 
   function deathCard() {
@@ -813,6 +826,8 @@ export function MobileVitalsBar({
           canRedirectToMount={canRedirectToMount}
           mountName={mountName}
           onRedirectDamageToMount={onRedirectDamageToMount}
+          diceOnTable={Boolean(turnEco?.diceOnTable)}
+          openEnterOwnNumber={turnEco?.openEnterOwnNumber}
         />
         <CoinPadDialog
           open={coinPadOpen}
