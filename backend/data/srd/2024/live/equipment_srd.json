@@ -242,7 +242,7 @@
           "unit": "gp"
         },
         "utilize_ru": "Использование: рассыпать на площадь 10×10 фт; входящий — спас Лов 10 или опрокинут.",
-        "name_ru_pending": true
+        "name_ru_pending": false
       }
     },
     {
@@ -853,7 +853,7 @@
           "amount": 2,
           "unit": "gp"
         },
-        "name_ru_pending": true
+        "name_ru_pending": false
       }
     },
     {
@@ -943,7 +943,7 @@
         },
         "utilize_ru": "Нанести грим (Сл 10).",
         "tool_ability": "charisma",
-        "name_ru_pending": true
+        "name_ru_pending": false
       }
     },
     {
@@ -982,7 +982,7 @@
       "data": {
         "equipment_group": "spellcasting_focus",
         "summary_ru": "Друидическая фокусировка — обыденное снаряжение редакции 2024.",
-        "name_ru_pending": true
+        "name_ru_pending": false
       }
     },
     {
@@ -1010,7 +1010,7 @@
     {
       "kind": "item",
       "slug": "dulcimer",
-      "name_ru": "Дульцимер",
+      "name_ru": "Цимбалы",
       "name_en": "Dulcimer",
       "source": "srd-5.2",
       "sort_order": 460,
@@ -1027,7 +1027,7 @@
           "amount": 25,
           "unit": "gp"
         },
-        "name_ru_pending": true
+        "name_ru_pending": false
       }
     },
     {
@@ -1380,7 +1380,7 @@
       "data": {
         "equipment_group": "spellcasting_focus",
         "summary_ru": "Священный символ — обыденное снаряжение редакции 2024.",
-        "name_ru_pending": true
+        "name_ru_pending": false
       }
     },
     {
@@ -2036,7 +2036,7 @@
     {
       "kind": "item",
       "slug": "pan-flute",
-      "name_ru": "Флейта Пана",
+      "name_ru": "Свирель",
       "name_en": "Pan Flute",
       "source": "srd-5.2",
       "sort_order": 920,
@@ -2053,7 +2053,7 @@
           "amount": 12,
           "unit": "gp"
         },
-        "name_ru_pending": true
+        "name_ru_pending": false
       }
     },
     {
@@ -2146,7 +2146,7 @@
     {
       "kind": "item",
       "slug": "poisoners-kit",
-      "name_ru": "Инструменты отравителя",
+      "name_ru": "Набор отравителя",
       "name_en": "Poisoner’s Kit",
       "source": "srd-5.2",
       "sort_order": 970,
@@ -2165,7 +2165,7 @@
         },
         "utilize_ru": "Обнаружить отравленный объект (Сл 10).",
         "tool_ability": "intelligence",
-        "name_ru_pending": true
+        "name_ru_pending": false
       }
     },
     {
@@ -2256,7 +2256,7 @@
           "amount": 5,
           "unit": "sp"
         },
-        "name_ru_pending": true
+        "name_ru_pending": false
       }
     },
     {
@@ -2323,7 +2323,7 @@
           "amount": 5,
           "unit": "sp"
         },
-        "name_ru_pending": true
+        "name_ru_pending": false
       }
     },
     {
@@ -2368,7 +2368,7 @@
           "amount": 1,
           "unit": "gp"
         },
-        "name_ru_pending": true
+        "name_ru_pending": false
       }
     },
     {
@@ -2658,7 +2658,7 @@
           "amount": 1,
           "unit": "sp"
         },
-        "name_ru_pending": true
+        "name_ru_pending": false
       }
     },
     {
@@ -2839,7 +2839,7 @@
     {
       "kind": "item",
       "slug": "viol",
-      "name_ru": "Виола да гамба",
+      "name_ru": "Виола",
       "name_en": "Viol",
       "source": "srd-5.2",
       "sort_order": 1280,
@@ -2856,7 +2856,7 @@
           "amount": 30,
           "unit": "gp"
         },
-        "name_ru_pending": true
+        "name_ru_pending": false
       }
     },
     {

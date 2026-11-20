@@ -25,9 +25,23 @@ import {
   elementalFuryChoice2024,
   knownFormsBudget2024,
 } from './druid2024Features'
+import {
+  EXPERTISE_9_MIN_LEVEL_2024,
+  EXPERTISE_MIN_LEVEL_2024,
+  expertise9Choice2024,
+  expertiseChoice2024,
+  LORE_DISCOVERIES_FEATURE_ID_2024,
+  LORE_MAGICAL_DISCOVERIES_PICKS_2024,
+  loreDiscoveriesOutstanding2024,
+} from './bard2024Features'
 import { metamagicPickGainAtLevel2024 } from './sorcerer2024Features'
 import { invocationPickGainAtLevel2024 } from './warlock2024Features'
-import { getFeatureChoicePick, type FeaturePicksState } from './featurePicks'
+import {
+  getFeatureChoicePick,
+  getFeatureChoicePickList,
+  getFeaturePickList,
+  type FeaturePicksState,
+} from './featurePicks'
 import {
   withWizardSpellbookPicksStep,
   type GuidedWizardStep,
@@ -133,6 +147,10 @@ export function savantBookPicksStepId2024(
   picks: number,
 ): string {
   return `savant-book-picks:${classEntryId}:${Math.max(1, Math.floor(classLevel) || 1)}:${picks}`
+}
+
+export function loreDiscoveriesStepId2024(classEntryId: string): string {
+  return `lore-discoveries:${classEntryId}`
 }
 
 export function epicBoonStepId2024(classEntryId: string): string {
@@ -252,6 +270,59 @@ export function buildPendingWizardSteps2024(input: PendingWizardInput2024): Guid
         featureNameRu: blessedStrikesChoice2024.label_ru,
         featureLevel: BLESSED_STRIKES_MIN_LEVEL_2024,
         choice: blessedStrikesChoice2024,
+      })
+    }
+  }
+
+  if (slug === 'bard') {
+    const rows = [
+      { featureId: 'expertise', choice: expertiseChoice2024, minLevel: EXPERTISE_MIN_LEVEL_2024 },
+      { featureId: 'expertise_9', choice: expertise9Choice2024, minLevel: EXPERTISE_9_MIN_LEVEL_2024 },
+    ]
+    for (const row of rows) {
+      if (level < row.minLevel) continue
+      const picked = input.featurePicks
+        ? getFeatureChoicePickList(
+            input.featurePicks,
+            input.classEntryId,
+            row.featureId,
+            row.choice.id,
+          ).length >= (row.choice.max_picks ?? 2)
+        : false
+      if (picked) continue
+      steps.push({
+        id: `feature_choice:${input.classEntryId}:${row.featureId}`,
+        kind: 'feature_choice',
+        classEntryId: input.classEntryId,
+        className: input.className,
+        classLevel: level,
+        featureId: row.featureId,
+        featureNameRu: row.choice.label_ru,
+        featureLevel: row.minLevel,
+        choice: row.choice,
+      })
+    }
+  }
+
+  if (slug === 'bard' && input.featurePicks) {
+    const picked = getFeaturePickList(
+      input.featurePicks,
+      input.classEntryId,
+      LORE_DISCOVERIES_FEATURE_ID_2024,
+    ).length
+    const picksNeeded = loreDiscoveriesOutstanding2024({
+      bardLevel: level,
+      subclassSlug: input.subclassSlug,
+      picked,
+    })
+    if (picksNeeded > 0) {
+      steps.push({
+        id: loreDiscoveriesStepId2024(input.classEntryId),
+        kind: 'lore_discoveries',
+        classEntryId: input.classEntryId,
+        className: input.className,
+        classLevel: level,
+        picksNeeded: Math.min(picksNeeded, LORE_MAGICAL_DISCOVERIES_PICKS_2024),
       })
     }
   }

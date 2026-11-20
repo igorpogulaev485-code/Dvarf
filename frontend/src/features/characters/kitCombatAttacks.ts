@@ -72,13 +72,14 @@ export function resolveKitUnarmedDamage(input: {
 
 export function buildKitUnarmedAttack(input: {
   damage: string
+  ability?: 'str' | 'dex'
 }): WeaponAttack {
   return {
     id: KIT_UNARMED_ATTACK_ID,
     name: KIT_UNARMED_NAME,
     catalog_id: null,
     source_kind: 'custom',
-    ability: 'str',
+    ability: input.ability ?? 'str',
     is_proficient: true,
     damage: input.damage,
     damage_type: 'дробящий',
@@ -160,6 +161,8 @@ export function listDeskCombatAttacks(input: {
     wear_slot?: string | null
   }>
   featUnarmedDamage?: string | null
+  /** 2024 College of Dance Bardic Damage: unarmed = Bardic Inspiration die + Dex. */
+  danceBardicDie?: string | null
 }): WeaponAttack[] {
   const base = input.weapons.filter(
     (row) => row.name.trim() && !isDraftUnarmedOrImprovisedDuplicate(row),
@@ -175,7 +178,9 @@ export function listDeskCombatAttacks(input: {
   })
 
   const out = [...base]
-  if (!hasMonkUnarmed) {
+  if (!hasMonkUnarmed && input.danceBardicDie) {
+    out.push(buildKitUnarmedAttack({ damage: input.danceBardicDie, ability: 'dex' }))
+  } else if (!hasMonkUnarmed) {
     out.push(
       buildKitUnarmedAttack({
         damage: resolveKitUnarmedDamage({

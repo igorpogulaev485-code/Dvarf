@@ -129,18 +129,18 @@ boon-of-truesight,Boon of Truesight,Дар истинного зрения,PH24,
 charger,Charger,Налётчик,PH24,feats,https://next.dnd.su/feats/323-charger,https://new.ttg.club/feats/charger-phb,false,general,Универсальная черта
 chef,Chef,Шеф-повар,PH24,feats,https://next.dnd.su/feats/324-chef,https://new.ttg.club/feats/chef-phb,false,general,Универсальная черта
 crafter,Crafter,Мастеровой,PH24,feats,https://next.dnd.su/feats/311-crafter,https://new.ttg.club/feats/crafter-phb,false,origin,Черта происхождения
-crossbow-expert,Crossbow Expert,Эксперт по арбалетам,PH24,feats,https://next.dnd.su/feats/325-crossbow-expert,https://new.ttg.club/feats/crossbow-expert-phb,false,general,Универсальная черта
+crossbow-expert,Crossbow Expert,Эксперт в арбалетах,PH24,feats,https://next.dnd.su/feats/325-crossbow-expert,https://new.ttg.club/feats/crossbow-expert-phb,false,general,Универсальная черта
 crusher,Crusher,Дробитель,PH24,feats,https://next.dnd.su/feats/326-crusher,https://new.ttg.club/feats/crusher-phb,false,general,Универсальная черта
 defense,Defense,Оборона,PH24,feats,https://next.dnd.su/feats/365-defense,https://new.ttg.club/feats/defense-phb,true,fighting_style,Боевой стиль
-defensive-duelist,Defensive Duelist,Парирующий дуэлянт,PH24,feats,https://next.dnd.su/feats/327-defensive-duelist,https://new.ttg.club/feats/defensive-duelist-phb,false,general,Универсальная черта
-dual-wielder,Dual Wielder,Мастер боя двумя оружиями,PH24,feats,https://next.dnd.su/feats/328-dual-wielder,https://new.ttg.club/feats/dual-wielder-phb,false,general,Универсальная черта
+defensive-duelist,Defensive Duelist,Оборонительный дуэлянт,PH24,feats,https://next.dnd.su/feats/327-defensive-duelist,https://new.ttg.club/feats/defensive-duelist-phb,false,general,Универсальная черта
+dual-wielder,Dual Wielder,Мастер двуоружия,PH24,feats,https://next.dnd.su/feats/328-dual-wielder,https://new.ttg.club/feats/dual-wielder-phb,false,general,Универсальная черта
 dueling,Dueling,Дуэлянт,PH24,feats,https://next.dnd.su/feats/366-dueling,https://new.ttg.club/feats/dueling-phb,false,fighting_style,Боевой стиль
 durable,Durable,Стойкий,PH24,feats,https://next.dnd.su/feats/329-durable,https://new.ttg.club/feats/durable-phb,false,general,Универсальная черта
 elemental-adept,Elemental Adept,Стихийный адепт,PH24,feats,https://next.dnd.su/feats/330-elemental-adept,https://new.ttg.club/feats/elemental-adept-phb,false,general,Универсальная черта
 fey-touched,Fey-Touched,Отмеченный феями,PH24,feats,https://next.dnd.su/feats/331-fey-touched,https://new.ttg.club/feats/fey-touched-phb,false,general,Универсальная черта
 grappler,Grappler,Борец,PH24,feats,https://next.dnd.su/feats/332-grappler,https://new.ttg.club/feats/grappler-phb,true,general,Универсальная черта
 great-weapon-fighting,Great Weapon Fighting,Сражение большим оружием,PH24,feats,https://next.dnd.su/feats/367-great-weapon-fighting,https://new.ttg.club/feats/great-weapon-fighting-phb,true,fighting_style,Боевой стиль
-great-weapon-master,Great Weapon Master,Мастер тяжёлого оружия,PH24,feats,https://next.dnd.su/feats/333-great-weapon-master,https://new.ttg.club/feats/great-weapon-master-phb,false,general,Универсальная черта
+great-weapon-master,Great Weapon Master,Мастер большого оружия,PH24,feats,https://next.dnd.su/feats/333-great-weapon-master,https://new.ttg.club/feats/great-weapon-master-phb,false,general,Универсальная черта
 healer,Healer,Целитель,PH24,feats,https://next.dnd.su/feats/312-healer,https://new.ttg.club/feats/healer-phb,false,origin,Черта происхождения
 heavily-armored,Heavily Armored,Тяжелобронированный,PH24,feats,https://next.dnd.su/feats/334-heavily-armored,https://new.ttg.club/feats/heavily-armored-phb,false,general,Универсальная черта
 heavy-armor-master,Heavy Armor Master,Мастер тяжёлых доспехов,PH24,feats,https://next.dnd.su/feats/335-heavy-armor-master,https://new.ttg.club/feats/heavy-armor-master-phb,false,general,Универсальная черта
@@ -156,14 +156,14 @@ medium-armor-master,Medium Armor Master,Мастер средних доспех
 moderately-armored,Moderately Armored,Среднебронированный,PH24,feats,https://next.dnd.su/feats/342-moderately-armored,https://new.ttg.club/feats/moderately-armored-phb,false,general,Универсальная черта
 mounted-combatant,Mounted Combatant,Верховой боец,PH24,feats,https://next.dnd.su/feats/343-mounted-combatant,https://new.ttg.club/feats/mounted-combatant-phb,false,general,Универсальная черта
 musician,Musician,Музыкант,PH24,feats,https://next.dnd.su/feats/315-musician,https://new.ttg.club/feats/musician-phb,false,origin,Черта происхождения
-observant,Observant,Внимательный,PH24,feats,https://next.dnd.su/feats/344-observant,https://new.ttg.club/feats/observant-phb,false,general,Универсальная черта
+observant,Observant,Наблюдательный,PH24,feats,https://next.dnd.su/feats/344-observant,https://new.ttg.club/feats/observant-phb,false,general,Универсальная черта
 piercer,Piercer,Пронзатель,PH24,feats,https://next.dnd.su/feats/345-piercer,https://new.ttg.club/feats/piercer-phb,false,general,Универсальная черта
 poisoner,Poisoner,Отравитель,PH24,feats,https://next.dnd.su/feats/346-poisoner,https://new.ttg.club/feats/poisoner-phb,false,general,Универсальная черта
 polearm-master,Polearm Master,Мастер древкового оружия,PH24,feats,https://next.dnd.su/feats/347-polearm-master,https://new.ttg.club/feats/polearm-master-phb,false,general,Универсальная черта
 protection,Protection,Защита,PH24,feats,https://next.dnd.su/feats/369-protection,https://new.ttg.club/feats/protection-phb,false,fighting_style,Боевой стиль
 resilient,Resilient,Устойчивый,PH24,feats,https://next.dnd.su/feats/348-resilient,https://new.ttg.club/feats/resilient-phb,false,general,Универсальная черта
 ritual-caster,Ritual Caster,Заклинатель ритуалов,PH24,feats,https://next.dnd.su/feats/349-ritual-caster,https://new.ttg.club/feats/ritual-caster-phb,false,general,Универсальная черта
-savage-attacker,Savage Attacker,Неистово атакующий,PH24,feats,https://next.dnd.su/feats/316-savage-attacker,https://new.ttg.club/feats/savage-attacker-phb,true,origin,Черта происхождения
+savage-attacker,Savage Attacker,Свирепый атакующий,PH24,feats,https://next.dnd.su/feats/316-savage-attacker,https://new.ttg.club/feats/savage-attacker-phb,true,origin,Черта происхождения
 sentinel,Sentinel,Страж,PH24,feats,https://next.dnd.su/feats/350-sentinel,https://new.ttg.club/feats/sentinel-phb,false,general,Универсальная черта
 shadow-touched,Shadow-Touched,Отмеченный тенями,PH24,feats,https://next.dnd.su/feats/351-shadow-touched,https://new.ttg.club/feats/shadow-touched-phb,false,general,Универсальная черта
 sharpshooter,Sharpshooter,Меткий стрелок,PH24,feats,https://next.dnd.su/feats/352-sharpshooter,https://new.ttg.club/feats/sharpshooter-phb,false,general,Универсальная черта
@@ -174,7 +174,7 @@ skulker,Skulker,Скрытный,PH24,feats,https://next.dnd.su/feats/355-skulke
 slasher,Slasher,Рубака,PH24,feats,https://next.dnd.su/feats/356-slasher,https://new.ttg.club/feats/slasher-phb,false,general,Универсальная черта
 speedy,Speedy,Быстрый,PH24,feats,https://next.dnd.su/feats/357-speedy,https://new.ttg.club/feats/speedy-phb,false,general,Универсальная черта
 spell-sniper,Spell Sniper,Заклинательный снайпер,PH24,feats,https://next.dnd.su/feats/358-spell-sniper,https://new.ttg.club/feats/spell-sniper-phb,false,general,Универсальная черта
-tavern-brawler,Tavern Brawler,Дебошир,PH24,feats,https://next.dnd.su/feats/318-tavern-brawler,https://new.ttg.club/feats/tavern-brawler-phb,false,origin,Черта происхождения
+tavern-brawler,Tavern Brawler,Драчун,PH24,feats,https://next.dnd.su/feats/318-tavern-brawler,https://new.ttg.club/feats/tavern-brawler-phb,false,origin,Черта происхождения
 telekinetic,Telekinetic,Телекинез,PH24,feats,https://next.dnd.su/feats/359-telekinetic,https://new.ttg.club/feats/telekinetic-phb,false,general,Универсальная черта
 telepathic,Telepathic,Телепат,PH24,feats,https://next.dnd.su/feats/360-telepathic,https://new.ttg.club/feats/telepathic-phb,false,general,Универсальная черта
 thrown-weapon-fighting,Thrown Weapon Fighting,Сражение метательным оружием,PH24,feats,https://next.dnd.su/feats/370-thrown-weapon-fighting,https://new.ttg.club/feats/thrown-weapon-fighting-phb,false,fighting_style,Боевой стиль

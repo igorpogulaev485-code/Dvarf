@@ -174,7 +174,7 @@
         "origin_feat": {
           "id": "savage-attacker",
           "slug": "savage-attacker",
-          "name_ru": "Неистово атакующий",
+          "name_ru": "Свирепый атакующий",
           "name_en": "Savage Attacker"
         },
         "skill_proficiencies": [

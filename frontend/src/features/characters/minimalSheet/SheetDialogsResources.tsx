@@ -32,6 +32,12 @@ import { Sorcerer2024UseDialog } from '../Sorcerer2024UseDialog'
 import { Monk2024UseDialog } from '../Monk2024UseDialog'
 import { Warlock2024UseDialog } from '../Warlock2024UseDialog'
 import { Cleric2024UseDialog, type ClericFeatureRequest } from '../Cleric2024UseDialog'
+import { Bard2024UseDialog, type BardFeatureRequest } from '../Bard2024UseDialog'
+import {
+  BARD_SUBCLASS_SLUGS_2024,
+  bard2024UseFeatureId,
+  type Bard2024UseResult,
+} from '../../../shared/dnd/bard2024Features'
 import type { WizardFeatureUseResult } from '../../../shared/dnd/wizardTradition'
 import {
   applySelfDamage2024,
@@ -124,6 +130,8 @@ export function SheetDialogsResources({ model }: { model: SheetModel }) {
     casterMod?: number
     slotLevel?: number
     auraAllyDefaultOff?: boolean
+    edition?: string
+    combatInspiration?: boolean
   } | null>(null)
 
   const onWizardUseConfirm = (result: WizardFeatureUseResult) => {
@@ -320,6 +328,49 @@ export function SheetDialogsResources({ model }: { model: SheetModel }) {
     }))
     model.onToast(result.feedLineRu)
     model.setClericFeatureUse(null)
+  }
+
+  const onBardUseConfirm = (result: Bard2024UseResult) => {
+    if (!result.ok) {
+      model.onToast(result.message ?? 'Не удалось применить умение')
+      return
+    }
+    const featureId = bard2024UseFeatureId(model.bardFeatureUse?.featureId) ?? 'bard'
+    const patches = result.patches
+    const request = model.bardFeatureUse as BardFeatureRequest | null
+    model.setDraft((prev) => ({
+      ...prev,
+      ...(result.slots ? { spells: { ...prev.spells, slots: result.slots } } : {}),
+      play: {
+        ...prev.play,
+        resources: result.resources,
+        concentration: patches?.concentrationName
+          ? setConcentration({
+              spellId: `feature:${featureId}`,
+              name: patches.concentrationName,
+            })
+          : prev.play.concentration,
+      },
+    }))
+    model.onToast(result.feedLineRu)
+    // 2024 BI grant: same ally path as 2014 (UseAllyAbilityDialog → applyFeatureBuff).
+    if (patches?.grantedDieLabel && featureId === 'bardic-inspiration') {
+      const entryId = request?.classEntryId ?? ''
+      const subclass =
+        (entryId && model.subclassSlugByEntryId?.[entryId]) ||
+        model.draft.classes.find((row) => row.id === entryId)?.subclass_catalog_id ||
+        ''
+      const isValor = String(subclass) === BARD_SUBCLASS_SLUGS_2024.valor
+      setPendingAllyBuff({
+        slug: 'bardic_inspiration',
+        name: 'Бардовское вдохновение',
+        die: patches.grantedDieLabel,
+        classLevel: bardLevel,
+        edition: '2024',
+        combatInspiration: isValor,
+      })
+    }
+    model.setBardFeatureUse(null)
   }
 
   const onDruidUseConfirm = (result: Druid2024ConfirmResult) => {
@@ -667,6 +718,26 @@ export function SheetDialogsResources({ model }: { model: SheetModel }) {
     let level = 0
     for (const row of model.draft.classes) {
       if (resolveClassCasterSlug(row.name) === 'cleric' || /жрец/i.test(row.name)) {
+        level += Math.max(0, row.level || 0)
+      }
+    }
+    return level
+  })()
+
+  const bardRequest = model.bardFeatureUse as BardFeatureRequest | null
+  const bard2024Use =
+    model.rulesEdition === '2024' &&
+    bardRequest != null &&
+    bard2024UseFeatureId(bardRequest.featureId)
+
+  const bardLevel = (() => {
+    const entry = bardRequest
+      ? model.draft.classes.find((row) => row.id === bardRequest.classEntryId)
+      : null
+    if (entry) return Math.max(0, entry.level || 0)
+    let level = 0
+    for (const row of model.draft.classes) {
+      if (resolveClassCasterSlug(row.name) === 'bard' || /бард/i.test(row.name)) {
         level += Math.max(0, row.level || 0)
       }
     }
@@ -1149,6 +1220,20 @@ export function SheetDialogsResources({ model }: { model: SheetModel }) {
         />
       ) : null}
 
+      {bard2024Use ? (
+        <Bard2024UseDialog
+          key={`${bardRequest?.featureId}:${bardRequest?.classEntryId}`}
+          open
+          request={bardRequest}
+          resources={model.draft.play.resources}
+          slots={model.draft.spells.slots}
+          bardLevel={bardLevel}
+          chaScore={model.draft.abilities.cha}
+          onClose={() => model.setBardFeatureUse(null)}
+          onConfirm={onBardUseConfirm}
+        />
+      ) : null}
+
       {druid2024Use ? (
         <Druid2024UseDialog
           key={`${druidRequest?.featureId}:${druidRequest?.classEntryId}`}
@@ -1326,10 +1411,27 @@ export function SheetDialogsResources({ model }: { model: SheetModel }) {
           characterName={model.draft.name?.trim() || model.baseCharacter.name || 'Персонаж'}
           abilityName={pendingAllyBuff.name}
           targetCount={pendingAllyBuff.slug === 'mantle_of_inspiration' ? 3 : 1}
+          requireNonSelfTarget={
+            pendingAllyBuff.edition === '2024' &&
+            pendingAllyBuff.slug === 'bardic_inspiration'
+          }
           onClose={() => setPendingAllyBuff(null)}
           onConfirm={(targetIds) => {
-            const targets =
-              targetIds.length > 0 ? targetIds : [String(model.baseCharacter.id)]
+            const selfId = String(model.baseCharacter.id)
+            const is2024Bi =
+              pendingAllyBuff.edition === '2024' &&
+              pendingAllyBuff.slug === 'bardic_inspiration'
+            const targets = is2024Bi
+              ? targetIds.filter((id) => id && id !== selfId)
+              : targetIds.length > 0
+                ? targetIds
+                : [selfId]
+            if (is2024Bi && !targets.length) {
+              model.onToast(
+                'Бардовское вдохновение нельзя даровать себе — выбери союзника',
+              )
+              return
+            }
             void model
               .applyFeatureBuff?.({
                 slug: pendingAllyBuff.slug,
@@ -1340,6 +1442,8 @@ export function SheetDialogsResources({ model }: { model: SheetModel }) {
                 casterMod: pendingAllyBuff.casterMod,
                 slotLevel: pendingAllyBuff.slotLevel,
                 auraAllyDefaultOff: pendingAllyBuff.auraAllyDefaultOff,
+                edition: pendingAllyBuff.edition,
+                combatInspiration: pendingAllyBuff.combatInspiration,
               })
               .then((res: { error?: string; applied?: number } | undefined) => {
                 if (res?.error) model.onToast(res.error)

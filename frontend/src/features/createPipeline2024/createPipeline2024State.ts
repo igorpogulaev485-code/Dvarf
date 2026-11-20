@@ -18,6 +18,10 @@ import {
   knownFormsBudget2024,
   LAND_TERRAINS_2024,
 } from '../../shared/dnd/druid2024Features'
+import {
+  MAGICAL_SECRETS_MIN_LEVEL_2024,
+  magicalSecretsOffListCap2024,
+} from '../../shared/dnd/bard2024Features'
 import { readKnownForms } from '../characters/knownForms'
 import type { CatalogEntry } from '../../shared/api/catalog'
 import {
@@ -35,6 +39,7 @@ import {
   originFeatSlugOf,
   pickFieldsMissing,
   speciesPickFields,
+  spellOnClassList,
   type FeatPickContext,
 } from './create2024FeatPicks'
 import {
@@ -479,6 +484,27 @@ function abilitiesIssues(state: Create2024State): string[] {
   return []
 }
 
+/** Bard 2024 create-time picks: Expertise from level 2 (2) and 9 (4), Lore bonus skills at 3. */
+export function bardCreatePicksNeed2024(state: Create2024State): {
+  bardLevel: number
+  expertise: number
+  lore: number
+  /** College of Lore level 6: two Wizard/Druid/Cleric spells (Magical Discoveries). */
+  discoveries: number
+} {
+  if (state.classSlug !== 'bard') return { bardLevel: 0, expertise: 0, lore: 0, discoveries: 0 }
+  const primary =
+    state.classes.find((row) => row.id === state.primaryClassEntryId) ?? state.classes[0]
+  const bardLevel = Math.max(1, primary?.level ?? state.characterLevel ?? 1)
+  const subclass = (primary && state.subclassByEntryId[primary.id]) || state.subclassSlug || ''
+  return {
+    bardLevel,
+    expertise: bardLevel >= 9 ? 4 : bardLevel >= 2 ? 2 : 0,
+    lore: bardLevel >= 3 && subclass === 'bard__lore' ? 3 : 0,
+    discoveries: bardLevel >= 6 && subclass === 'bard__lore' ? 2 : 0,
+  }
+}
+
 function levelingIssues(state: Create2024State, ctx: StepIssueCtx): string[] {
   const issues: string[] = []
   const wizardLevel = Math.max(
@@ -503,6 +529,27 @@ function levelingIssues(state: Create2024State, ctx: StepIssueCtx): string[] {
       pick !== 'potent_spellcasting'
     ) {
       issues.push('Выберите Благословленные удары (с 7 ур. жреца)')
+    }
+  }
+  if (state.classSlug === 'bard') {
+    const need = bardCreatePicksNeed2024(state)
+    const expertise = Array.isArray(state.classOptionPicks.expertise)
+      ? (state.classOptionPicks.expertise as string[])
+      : []
+    if (need.expertise > 0 && !uniqueCount(expertise, need.expertise)) {
+      issues.push(`Компетентность: выбрано ${expertise.length} из ${need.expertise}`)
+    }
+    const lore = Array.isArray(state.classOptionPicks.lore_skills)
+      ? (state.classOptionPicks.lore_skills as string[])
+      : []
+    if (need.lore > 0 && !uniqueCount(lore, need.lore)) {
+      issues.push(`Доп. навыки Коллегии знаний: выбрано ${lore.length} из ${need.lore}`)
+    }
+    const discoveries = Array.isArray(state.classOptionPicks.magical_discoveries)
+      ? (state.classOptionPicks.magical_discoveries as string[])
+      : []
+    if (need.discoveries > 0 && !uniqueCount(discoveries, need.discoveries)) {
+      issues.push(`Доп. магические тайны: выбрано ${discoveries.length} из ${need.discoveries}`)
     }
   }
   if (state.classSlug === 'druid') {
@@ -602,6 +649,35 @@ function levelingIssues(state: Create2024State, ctx: StepIssueCtx): string[] {
         issues.push(
           `Подготовка: нельзя брать круг выше ${maxCircle} (на ур. ${classLevel} нет таких ячеек)`,
         )
+      }
+      if (state.classSlug === 'bard') {
+        const spells = ctx.catalog?.spells ?? []
+        const offList = state.preparedSpellIds.filter((id) => {
+          const entry = spells.find((row) => row.slug === id || row.id === id)
+          if (!entry) return false
+          return !spellOnClassList(entry, 'bard')
+        })
+        const cap = magicalSecretsOffListCap2024(classLevel)
+        if (classLevel < MAGICAL_SECRETS_MIN_LEVEL_2024 && offList.length) {
+          issues.push(
+            `Магические тайны с ${MAGICAL_SECRETS_MIN_LEVEL_2024} ур.: пока только список Барда (чужих ${offList.length})`,
+          )
+        } else if (offList.length > cap) {
+          issues.push(`Магические тайны: вне списка Барда ${offList.length}/${cap}`)
+        }
+        for (const id of offList) {
+          const entry = spells.find((row) => row.slug === id || row.id === id)
+          if (!entry) continue
+          const okExtra =
+            classLevel >= MAGICAL_SECRETS_MIN_LEVEL_2024 &&
+            (spellOnClassList(entry, 'wizard') ||
+              spellOnClassList(entry, 'druid') ||
+              spellOnClassList(entry, 'cleric'))
+          if (!okExtra) {
+            issues.push(`Подготовка: ${entry.name_ru || id} не из списков Магических тайн`)
+            break
+          }
+        }
       }
       if (
         state.preparedSpellIds.length < sc.prepared_spells ||

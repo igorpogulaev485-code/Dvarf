@@ -877,7 +877,7 @@
     {
       "kind": "spell",
       "slug": "shillelagh",
-      "name_ru": "Шилейла",
+      "name_ru": "Дубинка",
       "name_en": "Shillelagh",
       "source": "srd-5.2",
       "sort_order": 19,
@@ -912,7 +912,7 @@
         "damage": null,
         "summary_ru": "Заговор (преобразование); бонусное; друид.",
         "source_book": "SRD 5.2.1",
-        "name_ru_pending": true,
+        "name_ru_pending": false,
         "description": "Заговор (преобразование); бонусное; друид."
       }
     },
@@ -1002,7 +1002,7 @@
         "damage": "1d8 кислота",
         "summary_ru": "Заговор (воплощение); действие «Магия»; 1d8 кислота; атака заклинанием; чародей.",
         "source_book": "SRD 5.2.1",
-        "name_ru_pending": true,
+        "name_ru_pending": false,
         "damage_at_character_level": {
           "1": "1d8",
           "5": "2d8",
@@ -1093,7 +1093,7 @@
         "damage": "1d8 излучение",
         "summary_ru": "Заговор (воплощение); действие «Магия»; 1d8 излучение; атака заклинанием; бард/друид.",
         "source_book": "SRD 5.2.1",
-        "name_ru_pending": true,
+        "name_ru_pending": false,
         "damage_at_character_level": {
           "1": "1d8",
           "5": "2d8",
@@ -1519,7 +1519,7 @@
     {
       "kind": "spell",
       "slug": "chromatic-orb",
-      "name_ru": "Хроматический шар",
+      "name_ru": "Цветной шарик",
       "name_en": "Chromatic Orb",
       "source": "srd-5.2",
       "sort_order": 1033,
@@ -1556,7 +1556,7 @@
         "damage": "3d8 кислота",
         "summary_ru": "1 круг, воплощение; действие «Магия»; 3d8 кислота; атака заклинанием; чародей/волшебник.",
         "source_book": "SRD 5.2.1",
-        "name_ru_pending": true,
+        "name_ru_pending": false,
         "damage_at_slot_level": {
           "1": "3d8",
           "2": "4d8",
@@ -1894,7 +1894,7 @@
     {
       "kind": "spell",
       "slug": "detect-poison-and-disease",
-      "name_ru": "Обнаружение болезней и ядов",
+      "name_ru": "Обнаружение болезней и яда",
       "name_en": "Detect Poison and Disease",
       "source": "srd-5.2",
       "sort_order": 1041,
@@ -1932,7 +1932,7 @@
         "damage": null,
         "summary_ru": "1 круг, прорицание; действие «Магия»; ритуал; конц. жрец/друид/паладин/следопыт.",
         "source_book": "SRD 5.2.1",
-        "name_ru_pending": true,
+        "name_ru_pending": false,
         "description": "1 круг, прорицание; действие «Магия»; ритуал; конц.; жрец/друид/паладин/следопыт."
       }
     },
@@ -2390,7 +2390,7 @@
     {
       "kind": "spell",
       "slug": "find-familiar",
-      "name_ru": "Обретение фамильяра",
+      "name_ru": "Поиск фамильяра",
       "name_en": "Find Familiar",
       "source": "srd-5.2",
       "sort_order": 1052,
@@ -2428,7 +2428,7 @@
         "damage": null,
         "summary_ru": "1 круг, вызов; часы; ритуал; волшебник.",
         "source_book": "SRD 5.2.1",
-        "name_ru_pending": true,
+        "name_ru_pending": false,
         "description": "1 круг, вызов; часы; ритуал; волшебник."
       }
     },
@@ -2469,7 +2469,7 @@
         "damage": null,
         "summary_ru": "1 круг, вызов; действие «Магия»; ритуал; волшебник.",
         "source_book": "SRD 5.2.1",
-        "name_ru_pending": true,
+        "name_ru_pending": false,
         "description": "1 круг, вызов; действие «Магия»; ритуал; волшебник."
       }
     },
@@ -2520,7 +2520,7 @@
     {
       "kind": "spell",
       "slug": "goodberry",
-      "name_ru": "Добряника",
+      "name_ru": "Чудо-ягоды",
       "name_en": "Goodberry",
       "source": "srd-5.2",
       "sort_order": 1055,
@@ -2556,14 +2556,14 @@
         "damage": null,
         "summary_ru": "1 круг, вызов; действие «Магия»; друид/следопыт.",
         "source_book": "SRD 5.2.1",
-        "name_ru_pending": true,
+        "name_ru_pending": false,
         "description": "1 круг, вызов; действие «Магия»; друид/следопыт."
       }
     },
     {
       "kind": "spell",
       "slug": "grease",
-      "name_ru": "Намасливание",
+      "name_ru": "Скольжение",
       "name_en": "Grease",
       "source": "srd-5.2",
       "sort_order": 1056,
@@ -2600,7 +2600,7 @@
         "damage": null,
         "summary_ru": "1 круг, вызов; действие «Магия»; спас ЛОВ; чародей/волшебник.",
         "source_book": "SRD 5.2.1",
-        "name_ru_pending": true,
+        "name_ru_pending": false,
         "description": "1 круг, вызов; действие «Магия»; спас ЛОВ; чародей/волшебник."
       }
     },
@@ -2890,7 +2890,7 @@
         "damage": null,
         "summary_ru": "1 круг, очарование; действие «Магия»; конц. спас МДР; бард/колдун/волшебник.",
         "source_book": "SRD 5.2.1",
-        "name_ru_pending": true,
+        "name_ru_pending": false,
         "higher_levels": "Усиление при ячейке выше базового круга (см. кубы/цели в данных).",
         "description": "1 круг, очарование; действие «Магия»; конц.; спас МДР; бард/колдун/волшебник."
       }
@@ -3902,7 +3902,7 @@
         "damage": "4d4 кислота",
         "summary_ru": "2 круг, воплощение; действие «Магия»; 4d4 кислота; атака заклинанием; волшебник.",
         "source_book": "SRD 5.2.1",
-        "name_ru_pending": true,
+        "name_ru_pending": false,
         "damage_at_slot_level": {
           "2": "4d4",
           "3": "5d4",
@@ -4100,7 +4100,7 @@
     {
       "kind": "spell",
       "slug": "arcanists-magic-aura",
-      "name_ru": "Аура чародея",
+      "name_ru": "Ложная аура",
       "name_en": "Arcanist's Magic Aura",
       "source": "srd-5.2",
       "sort_order": 2089,
@@ -4135,7 +4135,7 @@
         "damage": null,
         "summary_ru": "2 круг, иллюзия; действие «Магия»; волшебник.",
         "source_book": "SRD 5.2.1",
-        "name_ru_pending": true,
+        "name_ru_pending": false,
         "description": "2 круг, иллюзия; действие «Магия»; волшебник."
       }
     },
@@ -4721,7 +4721,7 @@
     {
       "kind": "spell",
       "slug": "find-steed",
-      "name_ru": "Обретение скакуна",
+      "name_ru": "Поиск скакуна",
       "name_en": "Find Steed",
       "source": "srd-5.2",
       "sort_order": 2103,
@@ -4755,7 +4755,7 @@
         "damage": null,
         "summary_ru": "2 круг, вызов; действие «Магия»; паладин.",
         "source_book": "SRD 5.2.1",
-        "name_ru_pending": true,
+        "name_ru_pending": false,
         "higher_levels": "Усиление при ячейке выше базового круга (см. кубы/цели в данных).",
         "description": "2 круг, вызов; действие «Магия»; паладин."
       }
@@ -5000,7 +5000,7 @@
     {
       "kind": "spell",
       "slug": "heat-metal",
-      "name_ru": "Нагрев металла",
+      "name_ru": "Раскалённый металл",
       "name_en": "Heat Metal",
       "source": "srd-5.2",
       "sort_order": 2109,
@@ -5037,7 +5037,7 @@
         "damage": "2d8 огонь",
         "summary_ru": "2 круг, преобразование; действие «Магия»; конц. 2к8 огонь; спас ТЕЛ; бард/друид.",
         "source_book": "SRD 5.2.1",
-        "name_ru_pending": true,
+        "name_ru_pending": false,
         "damage_at_slot_level": {
           "2": "2d8",
           "3": "3d8",
@@ -6163,7 +6163,7 @@
     {
       "kind": "spell",
       "slug": "spider-climb",
-      "name_ru": "Паучье лазанье",
+      "name_ru": "Паук",
       "name_en": "Spider Climb",
       "source": "srd-5.2",
       "sort_order": 2134,
@@ -6201,7 +6201,7 @@
         "damage": null,
         "summary_ru": "2 круг, преобразование; действие «Магия»; конц. чародей/колдун/волшебник.",
         "source_book": "SRD 5.2.1",
-        "name_ru_pending": true,
+        "name_ru_pending": false,
         "higher_levels": "Усиление при ячейке выше базового круга (см. кубы/цели в данных).",
         "description": "2 круг, преобразование; действие «Магия»; конц.; чародей/колдун/волшебник."
       }
@@ -6209,7 +6209,7 @@
     {
       "kind": "spell",
       "slug": "spike-growth",
-      "name_ru": "Поросль шипов",
+      "name_ru": "Шипы",
       "name_en": "Spike Growth",
       "source": "srd-5.2",
       "sort_order": 2135,
@@ -6245,7 +6245,7 @@
         "damage": "2d4 колющий",
         "summary_ru": "2 круг, преобразование; действие «Магия»; конц. 2к4 колющий; друид/следопыт.",
         "source_book": "SRD 5.2.1",
-        "name_ru_pending": true,
+        "name_ru_pending": false,
         "damage_at_slot_level": {
           "2": "2d4"
         },
@@ -6255,7 +6255,7 @@
     {
       "kind": "spell",
       "slug": "spiritual-weapon",
-      "name_ru": "Духовное оружие",
+      "name_ru": "Божественное оружие",
       "name_en": "Spiritual Weapon",
       "source": "srd-5.2",
       "sort_order": 2136,
@@ -6289,7 +6289,7 @@
         "damage": "1d8 силовой",
         "summary_ru": "2 круг, воплощение; бонусное; конц. 1к8 силовой; жрец.",
         "source_book": "SRD 5.2.1",
-        "name_ru_pending": true,
+        "name_ru_pending": false,
         "damage_at_slot_level": {
           "2": "1d8",
           "3": "2d8",
@@ -6482,7 +6482,7 @@
     {
       "kind": "spell",
       "slug": "animate-dead",
-      "name_ru": "Поднятие мертвеца",
+      "name_ru": "Восставший труп",
       "name_en": "Animate Dead",
       "source": "srd-5.2",
       "sort_order": 3141,
@@ -6518,7 +6518,7 @@
         "damage": null,
         "summary_ru": "3 круг, некромантия; минуты; жрец/волшебник.",
         "source_book": "SRD 5.2.1",
-        "name_ru_pending": true,
+        "name_ru_pending": false,
         "higher_levels": "Усиление при ячейке выше базового круга (см. кубы/цели в данных).",
         "description": "3 круг, некромантия; минуты; жрец/волшебник."
       }
@@ -6566,7 +6566,7 @@
     {
       "kind": "spell",
       "slug": "bestow-curse",
-      "name_ru": "Наложение проклятия",
+      "name_ru": "Проклятие",
       "name_en": "Bestow Curse",
       "source": "srd-5.2",
       "sort_order": 3143,
@@ -6602,7 +6602,7 @@
         "damage": "1d8 некротический",
         "summary_ru": "3 круг, некромантия; действие «Магия»; конц. 1к8 некротический; спас МДР; бард/жрец/волшебник.",
         "source_book": "SRD 5.2.1",
-        "name_ru_pending": true,
+        "name_ru_pending": false,
         "damage_at_slot_level": {
           "3": "1d8"
         },
@@ -6788,7 +6788,7 @@
         "damage": "3d10 силовой",
         "summary_ru": "3 круг, вызов; действие «Магия»; конц. 3к10 силовой; спас СИЛ; друид/следопыт.",
         "source_book": "SRD 5.2.1",
-        "name_ru_pending": true,
+        "name_ru_pending": false,
         "damage_at_slot_level": {
           "3": "3d10",
           "4": "4d10",
@@ -7208,7 +7208,7 @@
         "damage": null,
         "summary_ru": "3 круг, ограждение; часы; бард/жрец/волшебник.",
         "source_book": "SRD 5.2.1",
-        "name_ru_pending": true,
+        "name_ru_pending": false,
         "damage_at_slot_level": {
           "4": "6d8",
           "5": "7d8",
@@ -7761,14 +7761,14 @@
         "damage": null,
         "summary_ru": "3 круг, ограждение; действие «Магия»; жрец/паладин/колдун/волшебник.",
         "source_book": "SRD 5.2.1",
-        "name_ru_pending": true,
+        "name_ru_pending": false,
         "description": "3 круг, ограждение; действие «Магия»; жрец/паладин/колдун/волшебник."
       }
     },
     {
       "kind": "spell",
       "slug": "revivify",
-      "name_ru": "Оживление",
+      "name_ru": "Возрождение",
       "name_en": "Revivify",
       "source": "srd-5.2",
       "sort_order": 3169,
@@ -7809,7 +7809,7 @@
         "damage": null,
         "summary_ru": "3 круг, некромантия; действие «Магия»; жрец/друид/паладин/следопыт.",
         "source_book": "SRD 5.2.1",
-        "name_ru_pending": true,
+        "name_ru_pending": false,
         "description": "3 круг, некромантия; действие «Магия»; жрец/друид/паладин/следопыт."
       }
     },
@@ -8161,7 +8161,7 @@
         "damage": null,
         "summary_ru": "3 круг, воплощение; минуты; ритуал; бард/волшебник.",
         "source_book": "SRD 5.2.1",
-        "name_ru_pending": true,
+        "name_ru_pending": false,
         "description": "3 круг, воплощение; минуты; ритуал; бард/волшебник."
       }
     },
@@ -8391,7 +8391,7 @@
         "damage": "4d8 дробящий",
         "summary_ru": "3 круг, воплощение; действие «Магия»; конц. 4к8 дробящий; спас СИЛ; друид/следопыт.",
         "source_book": "SRD 5.2.1",
-        "name_ru_pending": true,
+        "name_ru_pending": false,
         "damage_at_slot_level": {
           "3": "4d8"
         },
@@ -8565,7 +8565,7 @@
         "damage": "3d6 дробящий",
         "summary_ru": "4 круг, вызов; действие «Магия»; конц. 3к6 дробящий; спас СИЛ; волшебник.",
         "source_book": "SRD 5.2.1",
-        "name_ru_pending": true,
+        "name_ru_pending": false,
         "damage_at_slot_level": {
           "4": "3d6"
         },
@@ -8795,7 +8795,7 @@
         "damage": "2d8 кислота",
         "summary_ru": "4 круг, вызов; действие «Магия»; конц. 2к8 кислота; друид/волшебник.",
         "source_book": "SRD 5.2.1",
-        "name_ru_pending": true,
+        "name_ru_pending": false,
         "damage_at_slot_level": {
           "4": "2d8",
           "5": "3d8",
@@ -8846,7 +8846,7 @@
         "damage": "5d8 силовой",
         "summary_ru": "4 круг, вызов; действие «Магия»; конц. 5к8 силовой; спас МДР; друид/следопыт.",
         "source_book": "SRD 5.2.1",
-        "name_ru_pending": true,
+        "name_ru_pending": false,
         "damage_at_slot_level": {
           "4": "5d8",
           "5": "6d8",
@@ -9155,7 +9155,7 @@
         "damage": "4d8 силовой",
         "summary_ru": "4 круг, вызов; действие «Магия»; 4d8 силовой; спас ЛОВ; волшебник.",
         "source_book": "SRD 5.2.1",
-        "name_ru_pending": true,
+        "name_ru_pending": false,
         "damage_at_slot_level": {
           "4": "4d8"
         },
@@ -9613,7 +9613,7 @@
         "damage": null,
         "summary_ru": "4 круг, преобразование; действие «Магия»; конц. спас МДР; бард/друид/чародей/волшебник.",
         "source_book": "SRD 5.2.1",
-        "name_ru_pending": true,
+        "name_ru_pending": false,
         "description": "4 круг, преобразование; действие «Магия»; конц.; спас МДР; бард/друид/чародей/волшебник."
       }
     },
@@ -9654,7 +9654,7 @@
         "damage": null,
         "summary_ru": "4 круг, ограждение; минуты; волшебник.",
         "source_book": "SRD 5.2.1",
-        "name_ru_pending": true,
+        "name_ru_pending": false,
         "higher_levels": "Усиление при ячейке выше базового круга (см. кубы/цели в данных).",
         "description": "4 круг, ограждение; минуты; волшебник."
       }
@@ -9697,7 +9697,7 @@
         "damage": null,
         "summary_ru": "4 круг, ограждение; действие «Магия»; конц. спас ЛОВ; волшебник.",
         "source_book": "SRD 5.2.1",
-        "name_ru_pending": true,
+        "name_ru_pending": false,
         "description": "4 круг, ограждение; действие «Магия»; конц.; спас ЛОВ; волшебник."
       }
     },
@@ -9740,7 +9740,7 @@
         "damage": null,
         "summary_ru": "4 круг, вызов; действие «Магия»; волшебник.",
         "source_book": "SRD 5.2.1",
-        "name_ru_pending": true,
+        "name_ru_pending": false,
         "description": "4 круг, вызов; действие «Магия»; волшебник."
       }
     },
@@ -9926,7 +9926,7 @@
         "damage": "5d8 огонь",
         "summary_ru": "4 круг, воплощение; действие «Магия»; конц. 5к8 огонь; спас ЛОВ; друид/чародей/волшебник.",
         "source_book": "SRD 5.2.1",
-        "name_ru_pending": true,
+        "name_ru_pending": false,
         "damage_at_slot_level": {
           "4": "5d8",
           "5": "6d8",
@@ -10061,7 +10061,7 @@
         "damage": null,
         "summary_ru": "5 круг, воплощение; действие «Магия»; конц. чародей/волшебник.",
         "source_book": "SRD 5.2.1",
-        "name_ru_pending": true,
+        "name_ru_pending": false,
         "higher_levels": "Усиление при ячейке выше базового круга (см. кубы/цели в данных).",
         "description": "5 круг, воплощение; действие «Магия»; конц.; чародей/волшебник."
       }
@@ -10332,7 +10332,7 @@
         "damage": "8d8 холод",
         "summary_ru": "5 круг, вызов; действие «Магия»; конц. 8к8 холод; спас ЛОВ; друид/волшебник.",
         "source_book": "SRD 5.2.1",
-        "name_ru_pending": true,
+        "name_ru_pending": false,
         "damage_at_slot_level": {
           "5": "8d8",
           "6": "9d8",
@@ -10565,7 +10565,7 @@
     {
       "kind": "spell",
       "slug": "dream",
-      "name_ru": "Грёзы",
+      "name_ru": "Вещий сон",
       "name_en": "Dream",
       "source": "srd-5.2",
       "sort_order": 5231,
@@ -10602,7 +10602,7 @@
         "damage": "3d6 психический",
         "summary_ru": "5 круг, иллюзия; минуты; 3d6 психический; спас МДР; бард/колдун/волшебник.",
         "source_book": "SRD 5.2.1",
-        "name_ru_pending": true,
+        "name_ru_pending": false,
         "damage_at_slot_level": {
           "5": "3d6"
         },
@@ -10661,7 +10661,7 @@
     {
       "kind": "spell",
       "slug": "geas",
-      "name_ru": "Гейс",
+      "name_ru": "Обет",
       "name_en": "Geas",
       "source": "srd-5.2",
       "sort_order": 5233,
@@ -10699,7 +10699,7 @@
         "damage": "5d10 психический",
         "summary_ru": "5 круг, очарование; минуты; 5d10 психический; спас МДР; бард/жрец/друид/паладин/волшебник.",
         "source_book": "SRD 5.2.1",
-        "name_ru_pending": true,
+        "name_ru_pending": false,
         "damage_at_slot_level": {
           "5": "5d10"
         },
@@ -10801,7 +10801,7 @@
     {
       "kind": "spell",
       "slug": "hold-monster",
-      "name_ru": "Удержание монстра",
+      "name_ru": "Удержание чудовища",
       "name_en": "Hold Monster",
       "source": "srd-5.2",
       "sort_order": 5236,
@@ -10839,7 +10839,7 @@
         "damage": null,
         "summary_ru": "5 круг, очарование; действие «Магия»; конц. спас МДР; бард/чародей/колдун/волшебник.",
         "source_book": "SRD 5.2.1",
-        "name_ru_pending": true,
+        "name_ru_pending": false,
         "higher_levels": "Усиление при ячейке выше базового круга (см. кубы/цели в данных).",
         "description": "5 круг, очарование; действие «Магия»; конц.; спас МДР; бард/чародей/колдун/волшебник."
       }
@@ -11166,7 +11166,7 @@
     {
       "kind": "spell",
       "slug": "raise-dead",
-      "name_ru": "Возвращение к жизни",
+      "name_ru": "Оживление",
       "name_en": "Raise Dead",
       "source": "srd-5.2",
       "sort_order": 5244,
@@ -11205,7 +11205,7 @@
         "damage": null,
         "summary_ru": "5 круг, некромантия; часы; бард/жрец/паладин.",
         "source_book": "SRD 5.2.1",
-        "name_ru_pending": true,
+        "name_ru_pending": false,
         "description": "5 круг, некромантия; часы; бард/жрец/паладин."
       }
     },
@@ -11346,7 +11346,7 @@
     {
       "kind": "spell",
       "slug": "summon-dragon",
-      "name_ru": "Вызов дракона",
+      "name_ru": "Призыв духа дракона",
       "name_en": "Summon Dragon",
       "source": "srd-5.2",
       "sort_order": 5248,
@@ -11382,7 +11382,7 @@
         "damage": null,
         "summary_ru": "5 круг, вызов; действие «Магия»; конц. волшебник.",
         "source_book": "SRD 5.2.1",
-        "name_ru_pending": true,
+        "name_ru_pending": false,
         "higher_levels": "Усиление при ячейке выше базового круга (см. кубы/цели в данных).",
         "description": "5 круг, вызов; действие «Магия»; конц.; волшебник."
       }
@@ -11467,7 +11467,7 @@
         "damage": null,
         "summary_ru": "5 круг, прорицание; действие «Магия»; ритуал; бард/волшебник.",
         "source_book": "SRD 5.2.1",
-        "name_ru_pending": true,
+        "name_ru_pending": false,
         "description": "5 круг, прорицание; действие «Магия»; ритуал; бард/волшебник."
       }
     },
@@ -11596,7 +11596,7 @@
         "damage": null,
         "summary_ru": "5 круг, воплощение; действие «Магия»; конц. волшебник.",
         "source_book": "SRD 5.2.1",
-        "name_ru_pending": true,
+        "name_ru_pending": false,
         "description": "5 круг, воплощение; действие «Магия»; конц.; волшебник."
       }
     },
@@ -11641,7 +11641,7 @@
         "damage": null,
         "summary_ru": "5 круг, воплощение; действие «Магия»; конц. спас ЛОВ; друид/чародей/волшебник.",
         "source_book": "SRD 5.2.1",
-        "name_ru_pending": true,
+        "name_ru_pending": false,
         "description": "5 круг, воплощение; действие «Магия»; конц.; спас ЛОВ; друид/чародей/волшебник."
       }
     },
@@ -11691,7 +11691,7 @@
     {
       "kind": "spell",
       "slug": "chain-lightning",
-      "name_ru": "Пляшущая молния",
+      "name_ru": "Цепная молния",
       "name_en": "Chain Lightning",
       "source": "srd-5.2",
       "sort_order": 6256,
@@ -11821,7 +11821,7 @@
         "damage": "3d12 психический",
         "summary_ru": "6 круг, вызов; действие «Магия»; конц. 3к12 психический; друид.",
         "source_book": "SRD 5.2.1",
-        "name_ru_pending": true,
+        "name_ru_pending": false,
         "damage_at_slot_level": {
           "6": "3d12",
           "7": "4d12",
@@ -11922,7 +11922,7 @@
     {
       "kind": "spell",
       "slug": "disintegrate",
-      "name_ru": "Дезинтеграция",
+      "name_ru": "Распад",
       "name_en": "Disintegrate",
       "source": "srd-5.2",
       "sort_order": 6261,
@@ -11958,7 +11958,7 @@
         "damage": "10d6 + 40 силовой",
         "summary_ru": "6 круг, преобразование; действие «Магия»; 10d6 + 40 силовой; спас ЛОВ; чародей/волшебник.",
         "source_book": "SRD 5.2.1",
-        "name_ru_pending": true,
+        "name_ru_pending": false,
         "damage_at_slot_level": {
           "6": "10d6 + 40",
           "7": "13d6",
@@ -12184,7 +12184,7 @@
         "damage": "10d6 холод",
         "summary_ru": "6 круг, воплощение; действие «Магия»; 10d6 холод; спас ТЕЛ; чародей/волшебник.",
         "source_book": "SRD 5.2.1",
-        "name_ru_pending": true,
+        "name_ru_pending": false,
         "damage_at_slot_level": {
           "6": "10d6"
         },
@@ -12238,7 +12238,7 @@
     {
       "kind": "spell",
       "slug": "guards-and-wards",
-      "name_ru": "Стражи и обереги",
+      "name_ru": "Стражи",
       "name_en": "Guards and Wards",
       "source": "srd-5.2",
       "sort_order": 6268,
@@ -12275,7 +12275,7 @@
         "damage": null,
         "summary_ru": "6 круг, ограждение; часы; бард/волшебник.",
         "source_book": "SRD 5.2.1",
-        "name_ru_pending": true,
+        "name_ru_pending": false,
         "description": "6 круг, ограждение; часы; бард/волшебник."
       }
     },
@@ -12452,7 +12452,7 @@
         "damage": null,
         "summary_ru": "6 круг, вызов; минуты; ритуал; волшебник.",
         "source_book": "SRD 5.2.1",
-        "name_ru_pending": true,
+        "name_ru_pending": false,
         "description": "6 круг, вызов; минуты; ритуал; волшебник."
       }
     },
@@ -12494,7 +12494,7 @@
         "damage": null,
         "summary_ru": "6 круг, очарование; действие «Магия»; конц. спас МДР; бард/волшебник.",
         "source_book": "SRD 5.2.1",
-        "name_ru_pending": true,
+        "name_ru_pending": false,
         "description": "6 круг, очарование; действие «Магия»; конц.; спас МДР; бард/волшебник."
       }
     },
@@ -12800,7 +12800,7 @@
     {
       "kind": "spell",
       "slug": "true-seeing",
-      "name_ru": "Истинный взор",
+      "name_ru": "Истинное зрение",
       "name_en": "True Seeing",
       "source": "srd-5.2",
       "sort_order": 6281,
@@ -12841,7 +12841,7 @@
         "damage": null,
         "summary_ru": "6 круг, прорицание; действие «Магия»; бард/жрец/чародей/колдун/волшебник.",
         "source_book": "SRD 5.2.1",
-        "name_ru_pending": true,
+        "name_ru_pending": false,
         "description": "6 круг, прорицание; действие «Магия»; бард/жрец/чародей/колдун/волшебник."
       }
     },
@@ -12883,7 +12883,7 @@
         "damage": "10d6 холод",
         "summary_ru": "6 круг, воплощение; действие «Магия»; конц. 10к6 холод; спас ЛОВ; волшебник.",
         "source_book": "SRD 5.2.1",
-        "name_ru_pending": true,
+        "name_ru_pending": false,
         "damage_at_slot_level": {
           "6": "10d6",
           "7": "11d6",
@@ -12932,7 +12932,7 @@
         "damage": "7d8 колющий",
         "summary_ru": "6 круг, вызов; действие «Магия»; конц. 7к8 колющий; спас ЛОВ; друид.",
         "source_book": "SRD 5.2.1",
-        "name_ru_pending": true,
+        "name_ru_pending": false,
         "damage_at_slot_level": {
           "6": "7d8",
           "7": "8d8",
@@ -13064,7 +13064,7 @@
         "damage": "4d12 силовой",
         "summary_ru": "7 круг, воплощение; действие «Магия»; конц. 4к12 силовой; атака заклинанием; бард/волшебник.",
         "source_book": "SRD 5.2.1",
-        "name_ru_pending": true,
+        "name_ru_pending": false,
         "damage_at_slot_level": {
           "7": "4d12"
         },
@@ -13108,7 +13108,7 @@
         "damage": null,
         "summary_ru": "7 круг, вызов; действие «Магия»; конц. жрец.",
         "source_book": "SRD 5.2.1",
-        "name_ru_pending": true,
+        "name_ru_pending": false,
         "damage_at_slot_level": {
           "8": "2d12",
           "9": "3d12"
@@ -13382,7 +13382,7 @@
         "damage": null,
         "summary_ru": "7 круг, воплощение; действие «Магия»; конц. спас ХАР; бард/колдун/волшебник.",
         "source_book": "SRD 5.2.1",
-        "name_ru_pending": true,
+        "name_ru_pending": false,
         "description": "7 круг, воплощение; действие «Магия»; конц.; спас ХАР; бард/колдун/волшебник."
       }
     },
@@ -13426,7 +13426,7 @@
         "damage": null,
         "summary_ru": "7 круг, вызов; минуты; бард/волшебник.",
         "source_book": "SRD 5.2.1",
-        "name_ru_pending": true,
+        "name_ru_pending": false,
         "description": "7 круг, вызов; минуты; бард/волшебник."
       }
     },
@@ -13475,7 +13475,7 @@
     {
       "kind": "spell",
       "slug": "plane-shift",
-      "name_ru": "Планарный переход",
+      "name_ru": "Уход в иной мир",
       "name_en": "Plane Shift",
       "source": "srd-5.2",
       "sort_order": 7296,
@@ -13515,7 +13515,7 @@
         "damage": null,
         "summary_ru": "7 круг, вызов; действие «Магия»; жрец/друид/чародей/колдун/волшебник.",
         "source_book": "SRD 5.2.1",
-        "name_ru_pending": true,
+        "name_ru_pending": false,
         "description": "7 круг, вызов; действие «Магия»; жрец/друид/чародей/колдун/волшебник."
       }
     },
@@ -13694,7 +13694,7 @@
         "damage": null,
         "summary_ru": "7 круг, некромантия; часы; бард/жрец.",
         "source_book": "SRD 5.2.1",
-        "name_ru_pending": true,
+        "name_ru_pending": false,
         "description": "7 круг, некромантия; часы; бард/жрец."
       }
     },
@@ -13787,7 +13787,7 @@
     {
       "kind": "spell",
       "slug": "simulacrum",
-      "name_ru": "Симулякр",
+      "name_ru": "Подобие",
       "name_en": "Simulacrum",
       "source": "srd-5.2",
       "sort_order": 7303,
@@ -13824,7 +13824,7 @@
         "damage": null,
         "summary_ru": "7 круг, иллюзия; часы; волшебник.",
         "source_book": "SRD 5.2.1",
-        "name_ru_pending": true,
+        "name_ru_pending": false,
         "description": "7 круг, иллюзия; часы; волшебник."
       }
     },
@@ -14085,7 +14085,7 @@
         "damage": "10d12 психический",
         "summary_ru": "8 круг, очарование; действие «Магия»; 10d12 психический; спас ИНТ; бард/друид/колдун/волшебник.",
         "source_book": "SRD 5.2.1",
-        "name_ru_pending": true,
+        "name_ru_pending": false,
         "damage_at_slot_level": {
           "8": "10d12"
         },
@@ -14095,7 +14095,7 @@
     {
       "kind": "spell",
       "slug": "clone",
-      "name_ru": "Клон",
+      "name_ru": "Двойник",
       "name_en": "Clone",
       "source": "srd-5.2",
       "sort_order": 8310,
@@ -14132,7 +14132,7 @@
         "damage": null,
         "summary_ru": "8 круг, некромантия; часы; волшебник.",
         "source_book": "SRD 5.2.1",
-        "name_ru_pending": true,
+        "name_ru_pending": false,
         "description": "8 круг, некромантия; часы; волшебник."
       }
     },
@@ -14227,7 +14227,7 @@
     {
       "kind": "spell",
       "slug": "dominate-monster",
-      "name_ru": "Подчинение монстра",
+      "name_ru": "Подчинение чудовища",
       "name_en": "Dominate Monster",
       "source": "srd-5.2",
       "sort_order": 8313,
@@ -14264,7 +14264,7 @@
         "damage": null,
         "summary_ru": "8 круг, очарование; действие «Магия»; конц. спас МДР; бард/чародей/колдун/волшебник.",
         "source_book": "SRD 5.2.1",
-        "name_ru_pending": true,
+        "name_ru_pending": false,
         "higher_levels": "Усиление при ячейке выше базового круга (см. кубы/цели в данных).",
         "description": "8 круг, очарование; действие «Магия»; конц.; спас МДР; бард/чародей/колдун/волшебник."
       }
@@ -15052,7 +15052,7 @@
     {
       "kind": "spell",
       "slug": "shapechange",
-      "name_ru": "Преображение",
+      "name_ru": "Полное превращение",
       "name_en": "Shapechange",
       "source": "srd-5.2",
       "sort_order": 9332,
@@ -15089,7 +15089,7 @@
         "damage": null,
         "summary_ru": "9 круг, преобразование; действие «Магия»; конц. друид/волшебник.",
         "source_book": "SRD 5.2.1",
-        "name_ru_pending": true,
+        "name_ru_pending": false,
         "description": "9 круг, преобразование; действие «Магия»; конц.; друид/волшебник."
       }
     },
@@ -15220,7 +15220,7 @@
         "damage": null,
         "summary_ru": "9 круг, преобразование; действие «Магия»; конц. спас МДР; бард/колдун/волшебник.",
         "source_book": "SRD 5.2.1",
-        "name_ru_pending": true,
+        "name_ru_pending": false,
         "description": "9 круг, преобразование; действие «Магия»; конц.; спас МДР; бард/колдун/волшебник."
       }
     },

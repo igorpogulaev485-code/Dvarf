@@ -25,6 +25,10 @@ export async function applyFeatureBuffToTargets(
     slotLevel?: number | null
     /** Р10: ally aura starts «вне ауры» until the target toggles. */
     auraAllyDefaultOff?: boolean
+    /** 2024 Bardic Inspiration: 1 hour + after-fail spend. */
+    edition?: string | null
+    /** Valor 2024: AC / damage modes on the granted die. */
+    combatInspiration?: boolean | null
   } & ApplySpellBuffHooks,
 ): Promise<{ applied: number; error?: string; effect: ActiveEffect | null }> {
   let effect = buildBuffEffect({
@@ -37,6 +41,8 @@ export async function applyFeatureBuffToTargets(
     casterMod: input.casterMod,
     option: input.option,
     slotLevel: input.slotLevel,
+    edition: input.edition,
+    combatInspiration: input.combatInspiration,
   })
   if (!effect) return { applied: 0, error: 'Нет спеки умения', effect: null }
 

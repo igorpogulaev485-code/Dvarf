@@ -14,6 +14,7 @@ import {
   formatNamedCantripBudgets,
   resolveSpellAcquisitionSlug,
   resolveSpellLearnBudgets,
+  spellOnShelfExtraLists,
   totalCantripsBudget,
   type GrimoireShelfSource,
 } from '../../shared/dnd/castProfiles'
@@ -30,7 +31,15 @@ import {
   type SubclassCasterOverlay,
 } from '../../shared/dnd/casterProgression'
 import type { ClassLevelEntry } from '../../shared/dnd/classLevels'
-import type { FeaturePicksState } from '../../shared/dnd/featurePicks'
+import { getFeaturePick, type FeaturePicksState } from '../../shared/dnd/featurePicks'
+import {
+  BARD_PREPARED_SWAP_PICK_ID_2024,
+  bardSwapAvailable2024,
+  isBardPreparedBudgetRow2024,
+  magicalSecretsOffListCap2024,
+  magicalSecretsOffListHintRu2024,
+} from '../../shared/dnd/bard2024Features'
+import { ensureBardSpells2024, isOffBardList2024 } from './bardSpellCatalog2024'
 import {
   catalogEntryClasses,
   catalogEntryLevel,
@@ -60,7 +69,7 @@ import {
   pickWizardSavantSlug,
   resolveWizardCopyMods2024,
 } from '../../shared/dnd/wizardSpellbook2024'
-import { resolveSubclassFeatureSlug } from '../../shared/dnd/classFeatures'
+import { resolveClassFeatureSlug, resolveSubclassFeatureSlug } from '../../shared/dnd/classFeatures'
 import { pack04ExtraClassList } from '../../shared/dnd/pack04SorcererWarlock'
 import { Dialog, Field, Input, Stack, Text } from '../../ui'
 import {
@@ -302,7 +311,7 @@ export function GrimoireDialog({
   })
 
   /** M5: one shelf per caster profile (alone-max, not shared slots). */
-  const shelves: GrimoireShelfSource[] = useMemo(() => {
+  const baseShelves: GrimoireShelfSource[] = useMemo(() => {
     const built = buildGrimoireShelfSources(access.profiles)
     if (!featurePicks) return built
     return built.map((shelf) => {
@@ -313,6 +322,51 @@ export function GrimoireDialog({
       return kind ? { ...shelf, genieKind: kind } : shelf
     })
   }, [access.profiles, classes, featurePicks])
+  const [bardSpellsTick, setBardSpellsTick] = useState(0)
+  const bardRow2024 = useMemo(() => {
+    if (!is2024Edition(edition)) return null
+    return (
+      classes.find((row) => row.level > 0 && resolveClassFeatureSlug(row.name) === 'bard') ?? null
+    )
+  }, [classes, edition])
+  useEffect(() => {
+    if (!open || !bardRow2024) return undefined
+    let alive = true
+    void ensureBardSpells2024().then(() => {
+      if (alive) setBardSpellsTick((tick) => tick + 1)
+    })
+    return () => {
+      alive = false
+    }
+  }, [open, bardRow2024])
+  const bardSecrets = useMemo(() => {
+    if (!bardRow2024) return null
+    const bardLevel = Math.max(1, Math.floor(bardRow2024.level) || 1)
+    const cap = magicalSecretsOffListCap2024(bardLevel)
+    const used = spells.known.filter(
+      (spell) => isBardPreparedBudgetRow2024(spell, 'bard') && isOffBardList2024(spell),
+    ).length
+    const swapRaw = featurePicks
+      ? getFeaturePick(featurePicks, bardRow2024.id, BARD_PREPARED_SWAP_PICK_ID_2024)
+      : null
+    return {
+      bardLevel,
+      cap,
+      used,
+      open: cap > 0 && used < cap,
+      swapAvailable: bardSwapAvailable2024(swapRaw, bardLevel),
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [bardRow2024, spells.known, featurePicks, bardSpellsTick])
+  /** Magical Secrets: 2024 bard sees Wizard / Druid / Cleric leveled spells from level 10. */
+  const shelves: GrimoireShelfSource[] = useMemo(() => {
+    if (!bardSecrets || bardSecrets.cap <= 0) return baseShelves
+    return baseShelves.map((shelf) =>
+      shelf.slug === 'bard' && !shelf.extraListSlugs
+        ? { ...shelf, extraListSlugs: ['wizard', 'druid', 'cleric'] }
+        : shelf,
+    )
+  }, [baseShelves, bardSecrets])
   const wizardRow = useMemo(() => {
     return (
       classes.find((item) => {
@@ -505,6 +559,21 @@ export function GrimoireDialog({
         ) {
           return false
         }
+        if (
+          bardSecrets &&
+          !bardSecrets.open &&
+          level > 0 &&
+          !spells.known.some((spell) => spell.catalog_id === entry.id) &&
+          !catalogSpellMatchesAnyShelf(
+            classSlugs,
+            level,
+            baseShelves,
+            parsed.subclasses,
+            entry.slug,
+          )
+        ) {
+          return false
+        }
       } else {
         const onList = access.classSlugs.some((slug) => {
           const shelf = shelves.find((row) => row.slug === slug)
@@ -534,7 +603,7 @@ export function GrimoireDialog({
 
       return true
     })
-  }, [entries, access, shelves, wizardSubclassSlug])
+  }, [entries, access, shelves, baseShelves, bardSecrets, spells.known, wizardSubclassSlug])
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
@@ -784,11 +853,26 @@ export function GrimoireDialog({
           shelfSlug: slug,
           subclassSlug,
           genieKind: shelf?.genieKind,
-        })
+        }) ||
+        (shelf ? spellOnShelfExtraLists(parsed.classes, level, shelf) : false)
       )
     })
     if (!onList) {
       onToast?.('Нет в списке заклинаний твоих классов')
+      return
+    }
+    if (
+      bardSecrets &&
+      level > 0 &&
+      !parsed.classes.includes('bard') &&
+      acquisitionSlugPreview === 'bard' &&
+      !bardSecrets.open
+    ) {
+      onToast?.(
+        bardSecrets.cap <= 0
+          ? 'Магические тайны открываются с 10 уровня барда'
+          : `Вне списка Барда уже ${bardSecrets.used}/${bardSecrets.cap}: новый выбор откроется на следующем уровне барда`,
+      )
       return
     }
     if (level > 0) {
@@ -1321,6 +1405,19 @@ export function GrimoireDialog({
     >
       <Stack gap={12}>
         <Text tone="muted">{budgetHint}</Text>
+        {bardSecrets ? (
+          <Text tone="muted" data-testid="bard-secrets-hint">
+            {bardSecrets.cap > 0
+              ? magicalSecretsOffListHintRu2024({
+                  bardLevel: bardSecrets.bardLevel,
+                  used: bardSecrets.used,
+                  swapAvailable: bardSecrets.swapAvailable,
+                })
+              : `Барду можно заменить одно подготовленное заклинание при получении уровня; замена ${
+                  bardSecrets.swapAvailable ? 'доступна' : 'использована'
+                }. Длинный отдых список не пересобирает.`}
+          </Text>
+        ) : null}
         {bookStatus ? (
           <div className="chip-row">
             <span

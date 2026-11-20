@@ -11,10 +11,10 @@ greatclub,Greatclub,Двуручная дубина,PH24,weapons,https://next.dn
 greatsword,Greatsword,Двуручный меч,PH24,weapons,https://next.dnd.su/equipment/15-greatsword,https://new.ttg.club/items/greatsword-phb,true,graze,Секущее,melee_martial_weapon
 halberd,Halberd,Алебарда,PH24,weapons,https://next.dnd.su/equipment/11-halberd,https://new.ttg.club/items/halberd-phb,true,cleave,Прорубающее,melee_martial_weapon
 hand-crossbow,Hand Crossbow,Одноручный арбалет,PH24,weapons,https://next.dnd.su/equipment/37-hand-crossbow,https://new.ttg.club/items/hand-crossbow-phb,true,vex,Отвлекающее,ranged_martial_weapon
-handaxe,Handaxe,Одноручный топор,PH24,weapons,https://next.dnd.su/equipment/9-handaxe,https://new.ttg.club/items/handaxe-phb,true,vex,Отвлекающее,melee_simple_weapon
+handaxe,Handaxe,Ручной топор,PH24,weapons,https://next.dnd.su/equipment/9-handaxe,https://new.ttg.club/items/handaxe-phb,true,vex,Отвлекающее,melee_simple_weapon
 heavy-crossbow,Heavy Crossbow,Тяжёлый арбалет,PH24,weapons,https://next.dnd.su/equipment/38-heavy-crossbow,https://new.ttg.club/items/heavy-crossbow-phb,true,push,Отталкивающее,ranged_martial_weapon
 javelin,Javelin,Метательное копьё,PH24,weapons,https://next.dnd.su/equipment/7-javelin,https://new.ttg.club/items/javelin-phb,true,slow,Замедляющее,melee_simple_weapon
-lance,Lance,Кавалерийское копьё,PH24,weapons,https://next.dnd.su/equipment/17-lance,https://new.ttg.club/items/lance-phb,true,topple,Опрокидывающее,melee_martial_weapon
+lance,Lance,Длинное копьё,PH24,weapons,https://next.dnd.su/equipment/17-lance,https://new.ttg.club/items/lance-phb,true,topple,Опрокидывающее,melee_martial_weapon
 light-crossbow,Light Crossbow,Лёгкий арбалет,PH24,weapons,https://next.dnd.su/equipment/31-light-crossbow,https://new.ttg.club/items/light-crossbow-phb,true,slow,Замедляющее,ranged_simple_weapon
 light-hammer,Light Hammer,Лёгкий молот,PH24,weapons,https://next.dnd.su/equipment/6-light-hammer,https://new.ttg.club/items/light-hammer-phb,true,nick,Быстрое,melee_simple_weapon
 longbow,Longbow,Длинный лук,PH24,weapons,https://next.dnd.su/equipment/33-longbow,https://new.ttg.club/items/longbow-phb,true,slow,Замедляющее,ranged_martial_weapon

@@ -101,6 +101,14 @@ export type GuidedWizardStep =
     }
   | {
       id: string
+      kind: 'lore_discoveries'
+      classEntryId: string
+      className: string
+      classLevel: number
+      picksNeeded: number
+    }
+  | {
+      id: string
       kind: 'known_forms'
       classEntryId: string
       className: string

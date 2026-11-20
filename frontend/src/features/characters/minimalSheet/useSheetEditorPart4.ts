@@ -14,6 +14,7 @@ import type { SorcererFeatureRequest } from '../SorcererFeatureUseDialog'
 import type { MonkFeatureRequest } from '../Monk2024UseDialog'
 import type { WarlockFeatureRequest } from '../Warlock2024UseDialog'
 import type { ClericFeatureRequest } from '../Cleric2024UseDialog'
+import type { BardFeatureRequest } from '../Bard2024UseDialog'
 import type { DruidFeatureRequest } from '../Druid2024UseDialog'
 import { type FamiliarCastMode } from '../familiarForms'
 import { withInitiativeBonus } from '../modifiers'
@@ -214,6 +215,14 @@ export function useSheetEditorPart4(model: SheetModel) {
   } | null>(null)
   model.magicalGuidanceOffer = magicalGuidanceOffer
   model.setMagicalGuidanceOffer = setMagicalGuidanceOffer
+  const [bardicInspirationSpendOffer, setBardicInspirationSpendOffer] = useState<{
+    label: string
+    effectId: string
+    dieLabelRu: string
+    mode: 'after_fail' | 'combat_ac' | 'combat_damage'
+  } | null>(null)
+  model.bardicInspirationSpendOffer = bardicInspirationSpendOffer
+  model.setBardicInspirationSpendOffer = setBardicInspirationSpendOffer
   const [bardicInspirationSpendId, setBardicInspirationSpendId] = useState<
     string | null
   >(null)
@@ -250,6 +259,9 @@ export function useSheetEditorPart4(model: SheetModel) {
     useState<ClericFeatureRequest | null>(null)
   model.clericFeatureUse = clericFeatureUse
   model.setClericFeatureUse = setClericFeatureUse
+  const [bardFeatureUse, setBardFeatureUse] = useState<BardFeatureRequest | null>(null)
+  model.bardFeatureUse = bardFeatureUse
+  model.setBardFeatureUse = setBardFeatureUse
   const [druidFeatureUse, setDruidFeatureUse] = useState<DruidFeatureRequest | null>(null)
   model.druidFeatureUse = druidFeatureUse
   model.setDruidFeatureUse = setDruidFeatureUse

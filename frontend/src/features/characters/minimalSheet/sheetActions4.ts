@@ -64,6 +64,12 @@ import {
 import { exhaustionRollFlagsForEdition } from '../../../shared/dnd/exhaustionRules'
 import { usesHeroicInspiration } from '../../../shared/dnd/heroicInspiration'
 import {
+  bardicDieLabelRu,
+  bardicInspirationAllowsAfterFail,
+  bardicInspirationDieFromEffect,
+  findSpendableBardicInspirationEffect,
+} from '../../../shared/dnd/bardicInspirationTarget2024'
+import {
   conditionModeForSelf,
   coverBonusBeyondEffects,
   hasFortifiedHalfCover,
@@ -1768,6 +1774,7 @@ export function installSheetActions4(model: SheetModel) {
     const bonusDice = buffDiceFor('check')
     const rollMod = mod - exhPen
     const checkTitle = `Проверка · ${ABILITY_NAMES[key] ?? ABILITY_LABELS[key]}`
+    const abilityLabel = ABILITY_NAMES[key] ?? ABILITY_LABELS[key]
     const te = model.turnEconomyApi as
       | {
           diceOnTable?: boolean
@@ -1850,6 +1857,7 @@ export function installSheetActions4(model: SheetModel) {
         })
       }
     }
+        model.offerBardicInspirationAfterFail?.(abilityLabel)
     consumeOnceBuffDice('check')
   }
 
@@ -2002,6 +2010,7 @@ export function installSheetActions4(model: SheetModel) {
       }
     }
     offerHeroicRerollAfter(saveTitle, 20)
+    model.offerBardicInspirationAfterFail?.(saveTitle)
     consumeOnceBuffDice('save')
   }
 
@@ -2126,6 +2135,8 @@ export function installSheetActions4(model: SheetModel) {
     option?: string | null
     slotLevel?: number | null
     auraAllyDefaultOff?: boolean
+    edition?: string | null
+    combatInspiration?: boolean | null
   }) {
     const { applyFeatureBuffToTargets } = await import('../applyFeatureBuff')
     return applyFeatureBuffToTargets({
@@ -2137,10 +2148,30 @@ export function installSheetActions4(model: SheetModel) {
       option: input.option,
       slotLevel: input.slotLevel,
       auraAllyDefaultOff: input.auraAllyDefaultOff,
+      edition: input.edition,
+      combatInspiration: input.combatInspiration,
       sourceCharacterId: String(model.baseCharacter.id),
       sourceName:
         model.draft.name?.trim() || model.baseCharacter.name || 'Персонаж',
       ...model.featureBuffHooks(),
+    })
+  }
+
+  model.offerBardicInspirationAfterFail = function offerBardicInspirationAfterFail(
+    label: string,
+  ) {
+    if (String(model.baseCharacter?.rules_edition ?? model.rulesEdition ?? '') !== '2024') {
+      return
+    }
+    const effect = findSpendableBardicInspirationEffect(model.draft.play.effects ?? [])
+    if (!effect || !bardicInspirationAllowsAfterFail(effect)) return
+    if (typeof model.setBardicInspirationSpendOffer !== 'function') return
+    const die = bardicInspirationDieFromEffect(effect)
+    model.setBardicInspirationSpendOffer({
+      label,
+      effectId: effect.id,
+      dieLabelRu: bardicDieLabelRu(die),
+      mode: 'after_fail',
     })
   }
 }

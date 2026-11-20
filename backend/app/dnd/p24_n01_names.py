@@ -62,6 +62,45 @@ N02_NAME_OVERRIDES: dict[tuple[str, str], str] = {
     ("class", "artificer"): "Артефактор",
 }
 
+# N01R / names-decisions-17-11: owner overrides that win over the 2014 pair and dnd.su.
+# SRD cards drop wizard eponyms (acid-arrow); PH24 eponym cards keep the 2014-style name.
+# Item SRD/DMG24 alias pairs share one RU name; spell SRD/PH24 alias pairs may differ on purpose.
+N17_11_NAME_OVERRIDES: dict[tuple[str, str], str] = {
+    ('item', 'daerns-instant-fortress'): 'Мгновенная крепость',
+    ('item', 'iron-bands-of-bilarro'): 'Железные ленты',
+    ('item', 'nolzurs-marvelous-pigments'): 'Чудесные краски',
+    ('item', 'iron-bands'): 'Железные ленты',
+    ('item', 'marvelous-pigments'): 'Чудесные краски',
+    ('spell', 'tensers-floating-disk'): 'Парящий диск Тензера',
+    ('spell', 'melfs-acid-arrow'): 'Кислотная стрела Мельфа',
+    ('spell', 'nystuls-magic-aura'): 'Волшебная аура Нистула',
+    ('spell', 'leomunds-tiny-hut'): 'Хижина Леомунда',
+    ('spell', 'evards-black-tentacles'): 'Чёрные щупальца Эварда',
+    ('spell', 'leomunds-secret-chest'): 'Потайной сундук Леомунда',
+    ('spell', 'otilukes-resilient-sphere'): 'Упругий шар Отилюка',
+    ('spell', 'drawmijs-instant-summons'): 'Мгновенный вызов Дромиджа',
+    ('spell', 'otilukes-freezing-sphere'): 'Ледяной шар Отилюка',
+    ('spell', 'floating-disk'): 'Парящий диск',
+    ('spell', 'hideous-laughter'): 'Жуткий смех',
+    ('spell', 'acid-arrow'): 'Кислотная стрела',
+    ('spell', 'arcanists-magic-aura'): 'Ложная аура',
+    ('spell', 'tiny-hut'): 'Крошечная хижина',
+    ('spell', 'black-tentacles'): 'Чёрные щупальца',
+    ('spell', 'faithful-hound'): 'Верный пёс',
+    ('spell', 'private-sanctum'): 'Личный кабинет',
+    ('spell', 'resilient-sphere'): 'Упругий шар',
+    ('spell', 'secret-chest'): 'Потайной сундук',
+    ('spell', 'arcane-hand'): 'Чародейская длань',
+    ('spell', 'summon-dragon'): 'Призыв духа дракона',
+    ('spell', 'telepathic-bond'): 'Ментальная связь',
+    ('spell', 'chain-lightning'): 'Цепная молния',
+    ('spell', 'freezing-sphere'): 'Ледяной шар',
+    ('spell', 'instant-summons'): 'Мгновенный вызов',
+    ('spell', 'irresistible-dance'): 'Неудержимая пляска',
+    ('spell', 'arcane-sword'): 'Чародейский меч',
+    ('spell', 'magnificent-mansion'): 'Великолепный особняк',
+}
+
 # discrepancies.md uses plural table names in the category column.
 DISC_CATEGORY_TO_KIND = {
     "species": "race",
@@ -338,6 +377,19 @@ def decide_name(
             pending=False,
         )
 
+    n17 = N17_11_NAME_OVERRIDES.get((mapped_kind, norm_slug(slug)))
+    if n17 is not None:
+        return NameDecision(
+            slug=slug,
+            kind=kind,
+            file=file_name,
+            name_en=name_en,
+            old_ru=old_ru,
+            new_ru=n17,
+            basis="n17_11",
+            pending=False,
+        )
+
     pair, how = find_2014_pair(
         kind=kind,
         slug=slug,
@@ -475,16 +527,14 @@ def unify_srd_aliases(decisions: dict[str, NameDecision], live_rows: Iterable[di
             continue
         if left.pending or right.pending:
             continue
+        if left.kind == "spell" and "n17_11" in (left.basis, right.basis):
+            continue
         preferred = left
-        for cand in (left, right):
-            if cand.basis == "2014":
-                preferred = cand
+        for basis in ("n17_11", "2014", "dnd.su"):
+            hit = next((c for c in (left, right) if c.basis == basis), None)
+            if hit is not None:
+                preferred = hit
                 break
-        else:
-            for cand in (left, right):
-                if cand.basis == "dnd.su":
-                    preferred = cand
-                    break
         for dec in (left, right):
             if dec.new_ru != preferred.new_ru:
                 dec.new_ru = preferred.new_ru

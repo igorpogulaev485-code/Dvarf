@@ -894,6 +894,11 @@ def _spellcasting_for_class(
         # Druidic (2024): always prepared Speak with Animals.
         if "druidic" in unlocked_ids and "speak-with-animals" not in free:
             free.append("speak-with-animals")
+        # Bard Words of Creation (2024, L20): Power Word Heal / Power Word Kill.
+        if slug == "bard" and "words-of-creation" in unlocked_ids:
+            for spell_id in ("power-word-heal", "power-word-kill"):
+                if spell_id not in free:
+                    free.append(spell_id)
 
     return SpellcastingBlock(
         class_slug=slug,

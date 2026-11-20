@@ -24,6 +24,7 @@ import {
   mergeDeskRollMode,
   resolveAdvantageFromEffects,
 } from '../../../shared/dnd/activeEffects'
+import { spendBardicInspirationOnTarget } from '../../../shared/dnd/bardicInspirationTarget2024'
 import { formatSaveAdvantageNote } from '../gearEffects'
 import { setConcentration } from '../../../shared/dnd/concentration'
 import { equippedArmorPieces } from '../inventory'
@@ -211,6 +212,9 @@ export function SheetDialogsRolls({ model }: { model: SheetModel }) {
         warlockLevel={
           model.draft.classes.find((row) => /колдун|warlock/i.test(row.name))?.level ??
           model.characterLevel
+        }
+        bardLevel={
+          model.draft.classes.find((row) => /бард|bard/i.test(row.name))?.level ?? 0
         }
         potentSpellcastingBonus={potentSheet.bonus}
         potentSpellcastingClass={potentSheet.classSlug}
@@ -611,6 +615,53 @@ export function SheetDialogsRolls({ model }: { model: SheetModel }) {
       </Dialog>
 
       <Dialog
+        open={model.bardicInspirationSpendOffer != null}
+        title="Бардовское вдохновение"
+        primaryLabel={
+          model.bardicInspirationSpendOffer?.mode === 'combat_ac'
+            ? `КД +${model.bardicInspirationSpendOffer.dieLabelRu}`
+            : model.bardicInspirationSpendOffer?.mode === 'combat_damage'
+              ? `Урон +${model.bardicInspirationSpendOffer.dieLabelRu}`
+              : `Прибавить ${model.bardicInspirationSpendOffer?.dieLabelRu ?? ''}`
+        }
+        secondaryLabel="Не сейчас"
+        onPrimary={() => {
+          const offer = model.bardicInspirationSpendOffer
+          if (!offer) return
+          const spent = spendBardicInspirationOnTarget({
+            effects: model.draft.play.effects ?? [],
+            mode: offer.mode,
+            effectId: offer.effectId,
+          })
+          if (!spent.ok) {
+            model.onToast(spent.message ?? 'Не удалось потратить вдохновение')
+            model.setBardicInspirationSpendOffer?.(null)
+            return
+          }
+          model.setDraft((prev: typeof model.draft) => ({
+            ...prev,
+            play: { ...prev.play, effects: spent.effects },
+          }))
+          model.emitToast?.(
+            spent.feedLineRu ??
+              `Бардовское вдохновение: ${spent.dieLabelRu} → ${spent.face} · к «${offer.label}»`,
+          )
+          model.setBardicInspirationSpendOffer?.(null)
+        }}
+        onSecondary={() => model.setBardicInspirationSpendOffer?.(null)}
+      >
+        <Stack gap={8}>
+          <Text>
+            {model.bardicInspirationSpendOffer?.mode === 'combat_ac'
+              ? `Реакция: прибавить ${model.bardicInspirationSpendOffer.dieLabelRu} к КД против попавшей атаки — кость потратится.`
+              : model.bardicInspirationSpendOffer?.mode === 'combat_damage'
+                ? `Прибавить ${model.bardicInspirationSpendOffer.dieLabelRu} к урону попавшей атаки — кость потратится.`
+                : `При провале «${model.bardicInspirationSpendOffer?.label}» можно один раз бросить ${model.bardicInspirationSpendOffer?.dieLabelRu} и прибавить к Тесту к20 — это может сменить провал на успех. Кость потратится.`}
+          </Text>
+        </Stack>
+      </Dialog>
+
+      <Dialog
         open={model.relentlessEndurancePending != null}
         title="Непоколебимая стойкость"
         primaryLabel="Остаться с 1 хитом"
@@ -761,6 +812,7 @@ export function SheetDialogsRolls({ model }: { model: SheetModel }) {
               bonus,
             ),
           )
+          model.applyBardInitiativeInspiration()
         }}
         onClose={() => model.setInitiativeBreakdownOpen(false)}
       />

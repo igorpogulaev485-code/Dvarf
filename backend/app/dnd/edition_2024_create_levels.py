@@ -1100,6 +1100,98 @@ def normalize_sheet_for_equivalence(sheet: Mapping[str, Any]) -> dict[str, Any]:
     }
 
 
+def _rollback_bard_state(sheet: dict[str, Any], classes: Sequence[Mapping[str, Any]]) -> None:
+    """Drop bard picks and College grants that no longer fit the lowered level."""
+    row = next(
+        (r for r in classes if e24.normalize_class_slug(str(r.get("slug") or "")) == "bard"),
+        None,
+    )
+    if row is None:
+        return
+    level = int(row.get("level") or 1)
+    entry = str(row.get("id") or "class-bard")
+    skills = sheet.get("skills") if isinstance(sheet.get("skills"), dict) else {}
+
+    def unset_expertise(keys: Sequence[str]) -> None:
+        for key in keys:
+            if isinstance(skills.get(key), dict):
+                skills[key]["is_expertise"] = False
+
+    picks = sheet.get("feature_picks")
+    values = dict(picks.get("values") or {}) if isinstance(picks, dict) else {}
+    if level < 9 and f"{entry}:expertise_9" in values:
+        unset_expertise([x for x in str(values.pop(f"{entry}:expertise_9")).split(",") if x])
+    # Broken create/store: all four Expertise skills in the L2 pick — keep two below L9.
+    if level < 9 and f"{entry}:expertise" in values:
+        exp2 = [x for x in str(values.get(f"{entry}:expertise") or "").split(",") if x]
+        if len(exp2) > 2:
+            unset_expertise(exp2[2:])
+            values[f"{entry}:expertise"] = ",".join(exp2[:2])
+    if level < 2 and f"{entry}:expertise" in values:
+        unset_expertise([x for x in str(values.pop(f"{entry}:expertise")).split(",") if x])
+    if level < 6:
+        values.pop(f"{entry}:magical_discoveries", None)
+        values.pop(f"{entry}:discoveries_swap", None)
+    if level < 10:
+        values.pop(f"{entry}:prepared_swap", None)
+        # Magical Secrets: drop prepared spells that are not on the Bard list.
+        bard_list = create24._class_spell_list_slugs("bard")
+        spells = sheet.get("spells") if isinstance(sheet.get("spells"), dict) else {}
+        known = spells.get("known")
+        if isinstance(known, list) and bard_list:
+            kept_known: list[Any] = []
+            for spell in known:
+                if not isinstance(spell, dict):
+                    kept_known.append(spell)
+                    continue
+                if int(spell.get("level") or 0) <= 0:
+                    kept_known.append(spell)
+                    continue
+                if spell.get("prepared_locked"):
+                    kept_known.append(spell)
+                    continue
+                sid = str(spell.get("id") or "")
+                if sid.startswith("feature-spell:"):
+                    kept_known.append(spell)
+                    continue
+                slug = create24._normalize_slug(
+                    str(spell.get("slug") or spell.get("catalog_id") or sid)
+                )
+                slug = slug.replace("seed-spell-", "")
+                if slug and slug not in bard_list:
+                    continue
+                kept_known.append(spell)
+            sheet["spells"] = {**spells, "known": kept_known}
+    if isinstance(picks, dict):
+        sheet["feature_picks"] = {**picks, "values": values}
+
+    if level >= 3:
+        return
+    prof = sheet.get("proficiency") if isinstance(sheet.get("proficiency"), dict) else {}
+    kept_grants: list[dict[str, Any]] = []
+    for grant in sheet.get("subclass_grants") or []:
+        if not isinstance(grant, dict) or grant.get("classEntryId") != entry:
+            kept_grants.append(grant)
+            continue
+        for key in grant.get("skills") or []:
+            unset_expertise([key])
+            if isinstance(skills.get(key), dict):
+                skills[key]["is_proficient"] = False
+            if isinstance(prof.get("skills"), list):
+                prof["skills"] = [x for x in prof["skills"] if x != key]
+        armor = prof.get("armor")
+        if isinstance(armor, dict):
+            for key in grant.get("armorKeys") or []:
+                if key in armor and key != "light":
+                    armor[key] = False
+        weapons = prof.get("weapons")
+        if isinstance(weapons, dict):
+            for key in grant.get("weaponKeys") or []:
+                if key in weapons and key != "simple":
+                    weapons[key] = False
+    sheet["subclass_grants"] = kept_grants
+
+
 def rollback_last_level_gain(sheet: dict[str, Any]) -> dict[str, Any]:
     """Remove the last recorded level gain (cascade-safe only for the tip level).
 
@@ -1142,6 +1234,8 @@ def rollback_last_level_gain(sheet: dict[str, Any]) -> dict[str, Any]:
             code="create_2024_rollback",
         )
     sheet["classes"] = kept
+    if class_slug == "bard":
+        _rollback_bard_state(sheet, kept)
 
     combat = sheet.setdefault("combat", {})
     combat["hp_max"] = max(1, int(combat.get("hp_max") or 0) - hp_gain)

@@ -28,7 +28,7 @@
       "data": {
         "schema_version": 1,
         "facility_kind": "rules",
-        "name_ru_pending": true,
+        "name_ru_pending": false,
         "text_ru_pending": false,
         "bastion_turn_days": 7,
         "special_facility_totals_by_level": {
@@ -180,7 +180,7 @@
         "schema_version": 1,
         "facility_kind": "order",
         "order_id": "craft",
-        "name_ru_pending": true,
+        "name_ru_pending": false,
         "text_ru_pending": false,
         "summary_ru": "Наёмники мастерят предмет, доступный этому помещению. Пока работа идёт, то же помещение нельзя снова использовать для Изготовить.",
         "bastion_wide": false
@@ -202,7 +202,7 @@
         "schema_version": 1,
         "facility_kind": "order",
         "order_id": "empower",
-        "name_ru_pending": true,
+        "name_ru_pending": false,
         "text_ru_pending": false,
         "summary_ru": "Помещение даёт временное усиление владельцу или другому существу (см. карточку помещения).",
         "bastion_wide": false
@@ -224,7 +224,7 @@
         "schema_version": 1,
         "facility_kind": "order",
         "order_id": "harvest",
-        "name_ru_pending": true,
+        "name_ru_pending": false,
         "text_ru_pending": false,
         "summary_ru": "Наёмники собирают ресурс помещения. Пока сбор идёт, то же помещение нельзя снова использовать для Собрать.",
         "bastion_wide": false
@@ -246,7 +246,7 @@
         "schema_version": 1,
         "facility_kind": "order",
         "order_id": "maintain",
-        "name_ru_pending": true,
+        "name_ru_pending": false,
         "text_ru_pending": false,
         "summary_ru": "Приказ всему бастиону: другие приказы в этот ход бастиона нельзя. Мастер бросает по таблице событий бастиона.",
         "bastion_wide": true
@@ -268,7 +268,7 @@
         "schema_version": 1,
         "facility_kind": "order",
         "order_id": "recruit",
-        "name_ru_pending": true,
+        "name_ru_pending": false,
         "text_ru_pending": false,
         "summary_ru": "Наёмники привлекают существ в бастион, в том числе защитников бастиона.",
         "bastion_wide": false
@@ -290,7 +290,7 @@
         "schema_version": 1,
         "facility_kind": "order",
         "order_id": "research",
-        "name_ru_pending": true,
+        "name_ru_pending": false,
         "text_ru_pending": false,
         "summary_ru": "Наёмники собирают сведения по теме или заданию помещения.",
         "bastion_wide": false
@@ -312,7 +312,7 @@
         "schema_version": 1,
         "facility_kind": "order",
         "order_id": "trade",
-        "name_ru_pending": true,
+        "name_ru_pending": false,
         "text_ru_pending": false,
         "summary_ru": "Наёмники покупают или продают товары и услуги, связанные с помещением.",
         "bastion_wide": false
@@ -379,7 +379,7 @@
             }
           }
         },
-        "name_ru_pending": true,
+        "name_ru_pending": false,
         "text_ru_pending": false,
         "summary_ru": "Базовое помещение «Спальня»: обстановка без игровой механики. Размер тесное/просторное/обширное (4/16/36 клеток). Строительство и расширение — по таблице стоимости базовых помещений.",
         "order_effects_ru": []
@@ -446,7 +446,7 @@
             }
           }
         },
-        "name_ru_pending": true,
+        "name_ru_pending": false,
         "text_ru_pending": false,
         "summary_ru": "Базовое помещение «Столовая»: обстановка без игровой механики. Размер тесное/просторное/обширное (4/16/36 клеток). Строительство и расширение — по таблице стоимости базовых помещений.",
         "order_effects_ru": []
@@ -513,7 +513,7 @@
             }
           }
         },
-        "name_ru_pending": true,
+        "name_ru_pending": false,
         "text_ru_pending": false,
         "summary_ru": "Базовое помещение «Гостиная»: обстановка без игровой механики. Размер тесное/просторное/обширное (4/16/36 клеток). Строительство и расширение — по таблице стоимости базовых помещений.",
         "order_effects_ru": []
@@ -580,7 +580,7 @@
             }
           }
         },
-        "name_ru_pending": true,
+        "name_ru_pending": false,
         "text_ru_pending": false,
         "summary_ru": "Базовое помещение «Двор»: обстановка без игровой механики. Размер тесное/просторное/обширное (4/16/36 клеток). Строительство и расширение — по таблице стоимости базовых помещений.",
         "order_effects_ru": []
@@ -647,7 +647,7 @@
             }
           }
         },
-        "name_ru_pending": true,
+        "name_ru_pending": false,
         "text_ru_pending": false,
         "summary_ru": "Базовое помещение «Кухня»: обстановка без игровой механики. Размер тесное/просторное/обширное (4/16/36 клеток). Строительство и расширение — по таблице стоимости базовых помещений.",
         "order_effects_ru": []
@@ -714,7 +714,7 @@
             }
           }
         },
-        "name_ru_pending": true,
+        "name_ru_pending": false,
         "text_ru_pending": false,
         "summary_ru": "Базовое помещение «Кладовая»: обстановка без игровой механики. Размер тесное/просторное/обширное (4/16/36 клеток). Строительство и расширение — по таблице стоимости базовых помещений.",
         "order_effects_ru": []
@@ -758,7 +758,7 @@
           "craft"
         ],
         "prerequisite_ru": "Умение пользоваться магической фокусировкой или инструментом как фокусировкой заклинаний",
-        "name_ru_pending": true,
+        "name_ru_pending": false,
         "text_ru_pending": false,
         "summary_ru": "Тихий кабинет для исследований с столами и полками. После продолжительного отдыха в бастионе — временный талисман «Опознание» без ячейки и материалов (7 дней или до применения).",
         "order_effects_ru": [
@@ -808,7 +808,7 @@
           "trade"
         ],
         "prerequisite_ru": null,
-        "name_ru_pending": true,
+        "name_ru_pending": false,
         "text_ru_pending": false,
         "summary_ru": "Стойки для доспехов, щитов, оружия и боеприпасов.",
         "order_effects_ru": [
@@ -859,7 +859,7 @@
           "recruit"
         ],
         "prerequisite_ru": null,
-        "name_ru_pending": true,
+        "name_ru_pending": false,
         "text_ru_pending": false,
         "summary_ru": "Спальни для защитников бастиона; можно иметь несколько казарм. Расширение до обширной: 2000 зм.",
         "order_effects_ru": [
@@ -914,7 +914,7 @@
           "harvest"
         ],
         "prerequisite_ru": null,
-        "name_ru_pending": true,
+        "name_ru_pending": false,
         "text_ru_pending": false,
         "summary_ru": "Сад одного типа: декоративный, пищевой, травяной или ядовитый; тип можно сменить за 21 день.",
         "order_effects_ru": [
@@ -964,7 +964,7 @@
           "research"
         ],
         "prerequisite_ru": null,
-        "name_ru_pending": true,
+        "name_ru_pending": false,
         "text_ru_pending": false,
         "summary_ru": "Книги, столы и места для чтения.",
         "order_effects_ru": [
@@ -1014,7 +1014,7 @@
           "craft"
         ],
         "prerequisite_ru": "Умение пользоваться священным символом или друидической фокусировкой как фокусировкой заклинаний",
-        "name_ru_pending": true,
+        "name_ru_pending": false,
         "text_ru_pending": false,
         "summary_ru": "Место для молитв и священных обрядов. После продолжительного отдыха — временный талисман священного заговора (см. карточку; 7 дней или до применения).",
         "order_effects_ru": [
@@ -1064,7 +1064,7 @@
           "craft"
         ],
         "prerequisite_ru": null,
-        "name_ru_pending": true,
+        "name_ru_pending": false,
         "text_ru_pending": false,
         "summary_ru": "Горн, наковальня и кузнечный инструмент.",
         "order_effects_ru": [
@@ -1114,7 +1114,7 @@
           "trade"
         ],
         "prerequisite_ru": null,
-        "name_ru_pending": true,
+        "name_ru_pending": false,
         "text_ru_pending": false,
         "summary_ru": "Прохладное хранилище для торговых товаров и снаряжения.",
         "order_effects_ru": [
@@ -1169,7 +1169,7 @@
           "craft"
         ],
         "prerequisite_ru": null,
-        "name_ru_pending": true,
+        "name_ru_pending": false,
         "text_ru_pending": false,
         "summary_ru": "Творческое пространство с выбранными ремесленными инструментами (6 видов; +3 при расширении). Полный короткий отдых здесь даёт героическое вдохновение (раз за продолжительный отдых). Расширение: 2000 зм.",
         "order_effects_ru": [
@@ -1219,7 +1219,7 @@
           "trade"
         ],
         "prerequisite_ru": null,
-        "name_ru_pending": true,
+        "name_ru_pending": false,
         "text_ru_pending": false,
         "summary_ru": "Зал для игр и ставок.",
         "order_effects_ru": [
@@ -1269,7 +1269,7 @@
           "harvest"
         ],
         "prerequisite_ru": null,
-        "name_ru_pending": true,
+        "name_ru_pending": false,
         "text_ru_pending": false,
         "summary_ru": "Закрытый климат для редких растений и грибов. Растение с тремя плодами «малое восстановление» (обновляются на рассвете; сорванные теряют силу через 24 часа).",
         "order_effects_ru": [
@@ -1319,7 +1319,7 @@
           "craft"
         ],
         "prerequisite_ru": null,
-        "name_ru_pending": true,
+        "name_ru_pending": false,
         "text_ru_pending": false,
         "summary_ru": "Место для алхимии и смесей.",
         "order_effects_ru": [
@@ -1369,7 +1369,7 @@
           "craft"
         ],
         "prerequisite_ru": "Умение пользоваться священным символом или друидической фокусировкой как фокусировкой заклинаний",
-        "name_ru_pending": true,
+        "name_ru_pending": false,
         "text_ru_pending": false,
         "summary_ru": "Хранилище священных принадлежностей. После продолжительного отдыха можно восстановить одну потраченную ячейку заклинаний 2 ур. или ниже.",
         "order_effects_ru": [
@@ -1419,7 +1419,7 @@
           "craft"
         ],
         "prerequisite_ru": null,
-        "name_ru_pending": true,
+        "name_ru_pending": false,
         "text_ru_pending": false,
         "summary_ru": "Мастерская переписчиков.",
         "order_effects_ru": [
@@ -1470,7 +1470,7 @@
           "trade"
         ],
         "prerequisite_ru": null,
-        "name_ru_pending": true,
+        "name_ru_pending": false,
         "text_ru_pending": false,
         "summary_ru": "Содержание ездовых и животных.",
         "order_effects_ru": [
@@ -1520,7 +1520,7 @@
           "recruit"
         ],
         "prerequisite_ru": null,
-        "name_ru_pending": true,
+        "name_ru_pending": false,
         "text_ru_pending": false,
         "summary_ru": "Постоянный круг телепортации в бастионе.",
         "order_effects_ru": [
@@ -1570,7 +1570,7 @@
           "empower"
         ],
         "prerequisite_ru": null,
-        "name_ru_pending": true,
+        "name_ru_pending": false,
         "text_ru_pending": false,
         "summary_ru": "Сцена для концертов и постановок.",
         "order_effects_ru": [
@@ -1620,7 +1620,7 @@
           "empower"
         ],
         "prerequisite_ru": null,
-        "name_ru_pending": true,
+        "name_ru_pending": false,
         "text_ru_pending": false,
         "summary_ru": "Площадка для боевой и физической подготовки.",
         "order_effects_ru": [
@@ -1670,7 +1670,7 @@
           "research"
         ],
         "prerequisite_ru": null,
-        "name_ru_pending": true,
+        "name_ru_pending": false,
         "text_ru_pending": false,
         "summary_ru": "Витрины с трофеями и редкостями.",
         "order_effects_ru": [
@@ -1721,7 +1721,7 @@
           "research"
         ],
         "prerequisite_ru": null,
-        "name_ru_pending": true,
+        "name_ru_pending": false,
         "text_ru_pending": false,
         "summary_ru": "Хранилище ценных книг и свитков, обычно за библиотекой. Одна справочная книга даёт преимущество на проверки Интеллекта выбранной области (магия, история, расследование, природа или религия).",
         "order_effects_ru": [
@@ -1771,7 +1771,7 @@
           "empower"
         ],
         "prerequisite_ru": null,
-        "name_ru_pending": true,
+        "name_ru_pending": false,
         "text_ru_pending": false,
         "summary_ru": "Уединённое место для сосредоточения. 7 дней непрерывной медитации — преимущество на два случайных спасброска на 7 дней.",
         "order_effects_ru": [
@@ -1821,7 +1821,7 @@
           "recruit"
         ],
         "prerequisite_ru": null,
-        "name_ru_pending": true,
+        "name_ru_pending": false,
         "text_ru_pending": false,
         "summary_ru": "Вольеры для существ.",
         "order_effects_ru": [
@@ -1871,7 +1871,7 @@
           "empower"
         ],
         "prerequisite_ru": "Умение пользоваться фокусировкой заклинаний",
-        "name_ru_pending": true,
+        "name_ru_pending": false,
         "text_ru_pending": false,
         "summary_ru": "Место для наблюдения за небом и знамениями. После продолжительного отдыха — временный талисман обсерватории.",
         "order_effects_ru": [
@@ -1926,7 +1926,7 @@
           "research"
         ],
         "prerequisite_ru": null,
-        "name_ru_pending": true,
+        "name_ru_pending": false,
         "text_ru_pending": false,
         "summary_ru": "Таверна, гостиница или кофейня при бастионе. «Специаль трактира» — напиток с магическим эффектом на 24 часа; смена раз в 7 дней; обширная даёт два варианта.",
         "order_effects_ru": [
@@ -1976,7 +1976,7 @@
           "harvest"
         ],
         "prerequisite_ru": "Умение пользоваться священным символом или друидической фокусировкой как фокусировкой заклинаний",
-        "name_ru_pending": true,
+        "name_ru_pending": false,
         "text_ru_pending": false,
         "summary_ru": "Хранилище священных реликвий. После продолжительного отдыха — временный талисман реликвария.",
         "order_effects_ru": [
@@ -2026,7 +2026,7 @@
           "empower"
         ],
         "prerequisite_ru": "Умение пользоваться магической фокусировкой или инструментом как фокусировкой заклинаний",
-        "name_ru_pending": true,
+        "name_ru_pending": false,
         "text_ru_pending": false,
         "summary_ru": "Дверь в личный демиплан внутри другого помещения бастиона; можно переносить в ход бастиона, если вы на месте. Действием «Магия» создать немагический предмет до 5 футов и до 5 зм из обычных материалов.",
         "order_effects_ru": [
@@ -2076,7 +2076,7 @@
           "recruit"
         ],
         "prerequisite_ru": "Экспертиза в навыке",
-        "name_ru_pending": true,
+        "name_ru_pending": false,
         "text_ru_pending": false,
         "summary_ru": "Зал заседаний вашей гильдии; вы — мастер гильдии выбранного типа.",
         "order_effects_ru": [
@@ -2126,7 +2126,7 @@
           "empower"
         ],
         "prerequisite_ru": "Умение пользоваться священным символом или друидической фокусировкой как фокусировкой заклинаний",
-        "name_ru_pending": true,
+        "name_ru_pending": false,
         "text_ru_pending": false,
         "summary_ru": "Высшее священное убежище. Талисман обители; возможность вспомнить/вернуться в обитель по правилам карточки.",
         "order_effects_ru": [
@@ -2141,7 +2141,7 @@
     {
       "kind": "bastion",
       "slug": "war-room",
-      "name_ru": "Военный кабинет",
+      "name_ru": "Штаб",
       "name_en": "War Room",
       "source": "dmg24",
       "sort_order": 480,
@@ -2177,7 +2177,7 @@
           "recruit"
         ],
         "prerequisite_ru": "Умение «Боевой стиль» или «Защита без доспехов»",
-        "name_ru_pending": true,
+        "name_ru_pending": false,
         "text_ru_pending": false,
         "summary_ru": "Штаб с картой и верными лейтенантами-ветеранами. Каждый лейтенант на месте снижает число костей потерь защитников при атаке на 1.",
         "order_effects_ru": [

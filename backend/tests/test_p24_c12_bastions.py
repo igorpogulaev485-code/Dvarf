@@ -115,7 +115,9 @@ def test_community_ref_edition_and_pending():
         assert row["id"] == entry_id(kind="bastion", slug=row["slug"])
         fk = row["data"]["facility_kind"]
         if fk in {"basic", "special", "order"}:
-            assert row["data"].get("name_ru_pending") is True
+            assert row["data"].get("name_ru_pending") is False  # cleared by names-decisions-17-11
+        if row["slug"] == "war-room":
+            assert row["name_ru"] == "Штаб"
         assert isinstance(row["data"].get("text_ru_pending"), bool)
         assert row["data"].get("summary_ru")
 

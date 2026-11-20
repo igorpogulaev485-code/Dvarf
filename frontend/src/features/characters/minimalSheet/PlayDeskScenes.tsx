@@ -33,6 +33,7 @@ import { ClassFeaturesPanel } from '../ClassFeaturesPanel'
 import { WeaponMasteryPanel } from '../WeaponMasteryPanel'
 import { WeaponMasteryAttackPanel } from '../WeaponMasteryAttackPanel'
 import { ClassOptions2024Panel } from '../ClassOptions2024Panel'
+import { Bard2024CombatBlock } from '../Bard2024CombatBlock'
 import { ClassOptions2024CombatPanel } from '../ClassOptions2024CombatPanel'
 import {
   SRD_WEAPONS_2024_MASTERY,
@@ -326,6 +327,7 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
             infusionByItem={model.infusionBonuses.weaponByItem}
             shillelagh={model.draft.play.shillelagh ?? null}
             martialArtsDie={model.martialArtsDie}
+            danceBardicDie={model.danceBardicDie ?? null}
             resources={model.draft.play.resources}
             inventoryItems={model.draft.inventory.items}
             favoriteConsumableIds={model.draft.sheetUi.combatConsumableFavoriteIds}
@@ -515,7 +517,7 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
             })}
             featurePicks={model.draft.featurePicks}
             spells={model.draft.spells}
-            onSpellsChange={(spells) => model.setDraft((prev) => ({ ...prev, spells }))}
+            onSpellsChange={(spells) => model.applySpellsChange(spells)}
             divineSmiteIntent={divineSmiteIntent}
             onDivineSmiteIntent={setDivineSmiteIntent}
             rollMode={model.attackRollMode()}
@@ -774,14 +776,17 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
                   }))
                 }
               }
-              if (!chips.length) return
-              model.setDraft((prev) => ({
-                ...prev,
-                play: {
-                  ...prev.play,
-                  effects: consumeRollDieChips(prev.play.effects ?? [], chips),
-                },
-              }))
+              if (chips.length) {
+                model.setDraft((prev) => ({
+                  ...prev,
+                  play: {
+                    ...prev.play,
+                    effects: consumeRollDieChips(prev.play.effects ?? [], chips),
+                  },
+                }))
+              }
+              // 2024 BI on target: offer spend after attack Test (player decides if failed).
+              model.offerBardicInspirationAfterFail?.('Атака')
             }}
             onConsumeDamageRiders={(used) => {
               if (!used.length) return
@@ -1324,6 +1329,15 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
         characterId={model.baseCharacter?.id ?? model.character?.id}
         onToast={(message) => model.onToast?.(message)}
       />
+      <Bard2024CombatBlock
+        rulesEdition={model.rulesEdition}
+        classes={model.draft.classes}
+        subclassSlugByEntryId={model.subclassSlugByEntryId}
+        resources={model.draft.play.resources}
+        dexMod={abilityModifier(model.effectiveAbilities?.dex ?? model.draft.abilities.dex)}
+        danceActive={Boolean(model.danceBardicDie)}
+        onBardFeatureUse={(request) => model.setBardFeatureUse(request)}
+      />
       <ClassFeaturesPanel
         classes={model.draft.classes}
         characterLevel={model.characterLevel}
@@ -1637,6 +1651,7 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
         onMonkFeatureUse={(request) => model.setMonkFeatureUse(request)}
         onWarlockFeatureUse={(request) => model.setWarlockFeatureUse(request)}
         onClericFeatureUse={(request) => model.setClericFeatureUse(request)}
+        onBardFeatureUse={(request) => model.setBardFeatureUse(request)}
         onDruidFeatureUse={(request) => model.setDruidFeatureUse(request)}
         onSorceryPointsSpend={(resourceId) => model.setSorcerySpendId(resourceId)}
         onMoonFormSlotHeal={({ slotLevel, diceCount, diceSize }) => {
@@ -1712,7 +1727,7 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
               if (!model.isPlayDesk) model.setMobileSpellSurface('book')
               model.setSpellsSettingsOpen(true)
             }}
-            onSpellsChange={(spells) => model.setDraft((prev) => ({ ...prev, spells }))}
+            onSpellsChange={(spells) => model.applySpellsChange(spells)}
             onCastSpell={(spell) => {
               model.setDeskCastMetamagic?.(null)
               void spellReadyToCast(spell, model.rulesEdition).then((ready) =>
@@ -1801,7 +1816,7 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
               }))
             }
             title={model.isPlayDesk ? 'Магия' : 'Книга заклинаний'}
-            onChange={(spells) => model.setDraft((prev) => ({ ...prev, spells }))}
+            onChange={(spells) => model.applySpellsChange(spells)}
             onClose={() => {
               model.setSpellsSettingsOpen(false)
               if (!model.isPlayDesk) model.setMobileSpellSurface('combat')
@@ -1851,7 +1866,8 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
           inventoryItems={model.draft.inventory.items}
           inventory={model.draft.inventory}
           concentration={model.draft.play.concentration}
-          onChange={(spells) => model.setDraft((prev) => ({ ...prev, spells }))}
+          onChange={(spells) => model.applySpellsChange(spells)}
+          featurePicks={model.draft.featurePicks}
           resources={model.draft.play.resources}
           metamagicIds={model.sorcererMetamagicIds ?? []}
           voiceOfAuthority={model.unlockedFeatures.some(

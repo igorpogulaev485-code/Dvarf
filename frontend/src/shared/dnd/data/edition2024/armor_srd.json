@@ -37,7 +37,7 @@
     {
       "kind": "armor",
       "slug": "chain-mail",
-      "name_ru": "Кольчужный доспех",
+      "name_ru": "Кольчуга",
       "name_en": "Chain Mail",
       "source": "srd-5.2",
       "sort_order": 20,
@@ -60,7 +60,7 @@
         "don_time": "10 мин",
         "doff_time": "5 мин",
         "summary_ru": "Доспех (тяжёлый): КД 16.",
-        "name_ru_pending": true
+        "name_ru_pending": false
       }
     },
     {
@@ -206,7 +206,7 @@
     {
       "kind": "armor",
       "slug": "plate-armor",
-      "name_ru": "Латный доспех",
+      "name_ru": "Латы",
       "name_en": "Plate Armor",
       "source": "srd-5.2",
       "sort_order": 80,
@@ -229,7 +229,7 @@
         "don_time": "10 мин",
         "doff_time": "5 мин",
         "summary_ru": "Доспех (тяжёлый): КД 18.",
-        "name_ru_pending": true
+        "name_ru_pending": false
       }
     },
     {
@@ -258,7 +258,7 @@
         "don_time": "10 мин",
         "doff_time": "5 мин",
         "summary_ru": "Доспех (тяжёлый): КД 14.",
-        "name_ru_pending": true
+        "name_ru_pending": false
       }
     },
     {
@@ -320,7 +320,7 @@
     {
       "kind": "armor",
       "slug": "splint-armor",
-      "name_ru": "Пластинчатый доспех",
+      "name_ru": "Наборный доспех",
       "name_en": "Splint Armor",
       "source": "srd-5.2",
       "sort_order": 120,
@@ -343,13 +343,13 @@
         "don_time": "10 мин",
         "doff_time": "5 мин",
         "summary_ru": "Доспех (тяжёлый): КД 17.",
-        "name_ru_pending": true
+        "name_ru_pending": false
       }
     },
     {
       "kind": "armor",
       "slug": "studded-leather-armor",
-      "name_ru": "Проклёпанный кожаный доспех",
+      "name_ru": "Клёпаный кожаный доспех",
       "name_en": "Studded Leather Armor",
       "source": "srd-5.2",
       "sort_order": 130,
@@ -372,7 +372,7 @@
         "don_time": "1 мин",
         "doff_time": "1 мин",
         "summary_ru": "Доспех (лёгкий): КД 12 + Ловк..",
-        "name_ru_pending": true
+        "name_ru_pending": false
       }
     }
   ]

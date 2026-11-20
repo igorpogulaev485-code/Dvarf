@@ -52,7 +52,7 @@
     {
       "kind": "feat",
       "slug": "savage-attacker",
-      "name_ru": "Неистово атакующий",
+      "name_ru": "Свирепый атакующий",
       "name_en": "Savage Attacker",
       "source": "srd-5.2",
       "sort_order": 30,
@@ -63,7 +63,7 @@
       },
       "data": {
         "category": "origin",
-        "name_ru_pending": true,
+        "name_ru_pending": false,
         "prerequisites": {},
         "repeatable": false,
         "ability_score_increase": null,
@@ -106,7 +106,7 @@
       },
       "data": {
         "category": "general",
-        "name_ru_pending": true,
+        "name_ru_pending": false,
         "prerequisites": {
           "level": 4
         },
@@ -282,7 +282,7 @@
       },
       "data": {
         "category": "epic_boon",
-        "name_ru_pending": true,
+        "name_ru_pending": false,
         "prerequisites": {
           "level": 19
         },
@@ -311,7 +311,7 @@
       },
       "data": {
         "category": "epic_boon",
-        "name_ru_pending": true,
+        "name_ru_pending": false,
         "prerequisites": {
           "level": 19
         },
@@ -368,7 +368,7 @@
       },
       "data": {
         "category": "epic_boon",
-        "name_ru_pending": true,
+        "name_ru_pending": false,
         "prerequisites": {
           "level": 19
         },
@@ -400,7 +400,7 @@
       },
       "data": {
         "category": "epic_boon",
-        "name_ru_pending": true,
+        "name_ru_pending": false,
         "prerequisites": {
           "level": 19,
           "spellcasting_feature": true
@@ -434,7 +434,7 @@
       },
       "data": {
         "category": "epic_boon",
-        "name_ru_pending": true,
+        "name_ru_pending": false,
         "prerequisites": {
           "level": 19
         },

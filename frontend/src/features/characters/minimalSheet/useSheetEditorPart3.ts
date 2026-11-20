@@ -1,6 +1,6 @@
 /** Состояние и эффекты листа, часть 3. Порядок хуков совпадает с прежним компонентом. */
 import type { SheetModel } from './sheetModel'
-import { useCallback, useEffect, useMemo, useRef } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { getCharacter, updateCharacter } from '../../../shared/api/characters'
 import { ApiRequestError } from '../../../shared/api/client'
 import { publishSheetSync } from '../../../shared/sync/characterSheetChannel'
@@ -57,7 +57,10 @@ import {
   applyMediumArmorMasterCap,
   dualWielderAcBonus,
 } from '../../../shared/dnd/b07FeatCombat'
-import { proficiencyBonusForTotalLevel } from '../../../shared/dnd/classFeatures'
+import {
+  proficiencyBonusForTotalLevel,
+  resolveClassFeatureSlug,
+} from '../../../shared/dnd/classFeatures'
 import { classWalkSpeedBonusFt } from '../../../shared/dnd/classMovement'
 import {
   featurePicksToSheet,
@@ -115,6 +118,14 @@ import { syncPactChainFamiliar } from '../pactChainEffects'
 import { syncCastWithoutSlotGrants } from '../castWithoutSlots'
 import { syncPactTomeCantrips } from '../pactTomeEffects'
 import { syncMagicalSecrets } from '../bardSecretsSync'
+import { ensureBardSpells2024 } from '../bardSpellCatalog2024'
+import {
+  bardicInspirationDieLabelRu2024,
+  danceAcFormula2024,
+  danceFootworkActive2024,
+  hasDazzlingFootwork2024,
+  jackOfAllTradesBonus2024,
+} from '../../../shared/dnd/bard2024Features'
 import {
   isMantleCommandSpell,
   MANTLE_CONCENTRATION_ID,
@@ -443,12 +454,29 @@ export function useSheetEditorPart3(model: SheetModel) {
     })
   }, [model.draft.classes, model.draft.featurePicks])
 
+  const [bardSpells2024Tick, setBardSpells2024Tick] = useState(0)
+  const hasBardClass = model.draft.classes.some(
+    (row) => resolveClassFeatureSlug(row.name) === 'bard' && row.level > 0,
+  )
+  useEffect(() => {
+    if (model.rulesEdition !== '2024' || !hasBardClass) return undefined
+    let alive = true
+    void ensureBardSpells2024().then(() => {
+      if (alive) setBardSpells2024Tick((tick) => tick + 1)
+    })
+    return () => {
+      alive = false
+    }
+  }, [model.rulesEdition, hasBardClass])
+
   useEffect(() => {
     model.setDraft((prev) => {
       const synced = syncMagicalSecrets({
         spells: prev.spells,
         featurePicks: prev.featurePicks,
         classes: prev.classes,
+        edition: model.rulesEdition,
+        subclassSlugByEntryId: model.subclassSlugByEntryId,
       })
       const hasSpirits = Object.values(model.subclassSlugByEntryId).includes('college_of_spirits')
       const known = hasSpirits
@@ -465,7 +493,13 @@ export function useSheetEditorPart3(model: SheetModel) {
       if (same) return prev
       return { ...prev, spells: { ...prev.spells, known } }
     })
-  }, [model.draft.classes, model.draft.featurePicks, model.subclassSlugByEntryId])
+  }, [
+    model.draft.classes,
+    model.draft.featurePicks,
+    model.subclassSlugByEntryId,
+    model.rulesEdition,
+    bardSpells2024Tick,
+  ])
 
   useEffect(() => {
     model.setDraft((prev) => {
@@ -811,9 +845,22 @@ export function useSheetEditorPart3(model: SheetModel) {
             return magicianSkillBonus2024(wisMod)
           })()
         : null
+    const bardLevel2024 =
+      model.rulesEdition === '2024'
+        ? model.draft.classes
+            .filter((row) => resolveClassFeatureSlug(row.name) === 'bard')
+            .reduce((sum, row) => sum + Math.max(0, Math.floor(row.level) || 0), 0)
+        : 0
     for (const skill of SKILL_DEFS) {
       const state = model.draft.skills[skill.key]
       const proficient = Boolean(state?.is_proficient || state?.is_expertise)
+      const jack = jackOfAllTradesBonus2024({
+        bardLevel: bardLevel2024,
+        proficiencyBonus: model.proficiencyBonus,
+        isSkillCheck: true,
+        skillProficient: Boolean(state?.is_proficient),
+        skillExpertise: Boolean(state?.is_expertise),
+      })
       const athlete = remarkableAthleteCheckBonus({
         features: model.unlockedFeatures,
         proficiencyBonus: model.proficiencyBonus,
@@ -834,7 +881,7 @@ export function useSheetEditorPart3(model: SheetModel) {
         if (skill.key === 'arcana') thaum += magicianBonus.arcana
         if (skill.key === 'nature') thaum += magicianBonus.nature
       }
-      const total = athlete + courtier + thaum
+      const total = athlete + courtier + thaum + jack
       if (total) out[skill.key] = total
     }
     return out
@@ -846,8 +893,23 @@ export function useSheetEditorPart3(model: SheetModel) {
     model.rulesEdition,
     model.draft.classOptions2024,
     model.draft.featurePicks,
+    model.draft.classes,
   ])
   model.featureSkillBonuses = featureSkillBonuses
+
+  const danceBardicDie = useMemo(() => {
+    if (model.rulesEdition !== '2024') return null
+    if (!hasDazzlingFootwork2024(model.unlockedFeatures)) return null
+    const pieces = equippedArmorPieces(model.draft.inventory.items)
+    if (!danceFootworkActive2024({ wearingArmor: Boolean(pieces.armor), wearingShield: Boolean(pieces.shield) }).active) {
+      return null
+    }
+    const bardLevel = model.draft.classes
+      .filter((row) => resolveClassFeatureSlug(row.name) === 'bard')
+      .reduce((sum, row) => sum + Math.max(0, Math.floor(row.level) || 0), 0)
+    return bardLevel > 0 ? bardicInspirationDieLabelRu2024(bardLevel) : null
+  }, [model.rulesEdition, model.unlockedFeatures, model.draft.inventory.items, model.draft.classes])
+  model.danceBardicDie = danceBardicDie
 
   const abilitySaveExtras = useMemo(() => {
     const out: Partial<Record<AbilityKey, number>> = {}
@@ -959,6 +1021,15 @@ export function useSheetEditorPart3(model: SheetModel) {
         allowsShield: true,
       }
     })()
+    const dance = (() => {
+      if (pieces.armor || pieces.shield) return null
+      const edition = String(
+        model.rulesEdition ?? model.baseCharacter?.rules_edition ?? '2014',
+      ).trim()
+      if (edition !== '2024') return null
+      if (!hasDazzlingFootwork2024(model.unlockedFeatures)) return null
+      return danceAcFormula2024(mods.cha)
+    })()
     const extraFormulas = pieces.armor
       ? []
       : [
@@ -966,6 +1037,7 @@ export function useSheetEditorPart3(model: SheetModel) {
           ...(mageFromConcFormula ? [mageFromConcFormula] : []),
           ...effectFormulas,
           ...(draconic ? [draconic] : []),
+          ...(dance ? [dance] : []),
         ]
     const acMinFloor = acMinFromActiveEffects(effectsRaw)
     const preferredKey = model.draft.acFormulaKey

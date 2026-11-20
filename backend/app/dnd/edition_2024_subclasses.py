@@ -299,10 +299,13 @@ SHARED_OPTIONS: dict[str, list[SharedPoolOption]] = {
     ],
     # Bard colleges — spend Bardic Inspiration
     "bard__lore": [
-        SharedPoolOption("cutting-words", "Острое словцо", "bardic_inspiration", kind="reaction"),
+        SharedPoolOption("cutting-words", "Острые слова", "bardic_inspiration", kind="reaction"),
+        SharedPoolOption(
+            "peerless-skill", "Бесподобный навык", "bardic_inspiration", kind="passive", min_level=14
+        ),
     ],
     "bard__glamour": [
-        SharedPoolOption("mantle-of-inspiration", "Ореол вдохновения", "bardic_inspiration", kind="bonus"),
+        SharedPoolOption("mantle-of-inspiration", "Мантия вдохновения", "bardic_inspiration", kind="bonus"),
     ],
     "bard__valor": [
         SharedPoolOption("combat-inspiration", "Боевое вдохновение", "bardic_inspiration", kind="passive"),
@@ -538,6 +541,16 @@ def build_permanent_bonuses(
                 {"death_save_18_plus_is_20": True, "regen_bloodied": True},
                 min_level=18,
             )
+
+    # Bard College of Dance (2024): unarmored AC 10 + Dex + Cha (no armor, no shield).
+    if subclass_slug == "bard__dance":
+        add(
+            "dazzling-footwork",
+            "Ослепительные фуэте: Защита без доспехов",
+            "ac_formula",
+            {"base": 10, "mods": ["dex", "cha"], "allows_shield": False, "requires_no_armor": True},
+            note_ru="КД 10+Лов+Хар без доспеха и щита",
+        )
 
     # Sorcerer Draconic
     if subclass_slug == "sorcerer__draconic-sorcery":
@@ -1535,14 +1548,32 @@ def build_subclass_resources(
             )
 
     # --- Bard extras ---
-    elif subclass_slug == "bard__glamour" and class_level >= 6:
+    elif subclass_slug == "bard__glamour":
+        add(
+            "beguiling_magic",
+            name_ru="Чарующая магия",
+            max_uses=1,
+            reset="long",
+            feature_id="beguiling-magic",
+            min_level=3,
+            extra_meta={"regain_by": "bardic_inspiration_use"},
+        )
         add(
             "mantle_of_majesty",
-            name_ru="Мантия величества",
+            name_ru="Мантия величия",
             max_uses=1,
             reset="long",
             feature_id="mantle-of-majesty",
             min_level=6,
+            extra_meta={"regain_by": "slot_3_plus"},
+        )
+        add(
+            "unbreakable_majesty",
+            name_ru="Несокрушимое величие",
+            max_uses=1,
+            reset="short",
+            feature_id="unbreakable-majesty",
+            min_level=14,
         )
 
     # --- Paladin L20 capstones often 1/long ---

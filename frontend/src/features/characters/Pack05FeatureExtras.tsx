@@ -11,6 +11,7 @@ import {
 import { abilityModifier } from './sheetTypes'
 import {
   ADDITIONAL_MAGICAL_SECRETS_ID,
+  MAGICAL_DISCOVERIES_ID_2024,
   MAGICAL_SECRETS_PICK_LIMIT,
   bardSecretsMaxSpellLevel,
   isMagicalSecretsFeature,
@@ -33,6 +34,7 @@ import {
   spiritTaleByRoll,
   type CreationSize,
 } from '../../shared/dnd/bardCollege'
+import { LoreDiscoveriesPicker } from './LoreDiscoveriesPicker'
 import { rollDie } from './deskRolls'
 import {
   findFeatureResource,
@@ -85,6 +87,17 @@ export { pack05CustomSpendFeature }
 
 export function Pack05FeatureExtras(props: ExtraProps) {
   const id = props.feature.id
+  if (id === MAGICAL_DISCOVERIES_ID_2024) {
+    return (
+      <LoreDiscoveriesPicker
+        classEntryId={props.feature.classEntryId}
+        bardLevel={props.feature.classLevel}
+        featurePicks={props.featurePicks}
+        onFeaturePicksChange={props.onFeaturePicksChange}
+        onToast={props.onToast}
+      />
+    )
+  }
   if (isMagicalSecretsFeature(id)) return <SecretsPicker {...props} />
   if (id === 'mantle_of_majesty') return <MantleOfMajesty {...props} />
   if (id === 'spirit_session') return <SpiritSession {...props} />
@@ -178,7 +191,9 @@ function SecretsPicker({
         })}
       </div>
       {!q ? (
-        <Text tone="muted">Введите название: ищутся все классы, не только полка барда.</Text>
+        <Text tone="muted">
+          Введите название: ищутся все классы, не только полка барда.
+        </Text>
       ) : null}
       {q && filtered.length === 0 ? <Text tone="muted">Ничего не найдено в этом круге.</Text> : null}
     </div>

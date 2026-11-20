@@ -830,7 +830,7 @@ export function MobileVitalsBar({
           hpCurrent={hpCurrent}
           draconicResilience={draconicResilience}
           dwarvenToughness={dwarvenToughness}
-        extraFlatBonuses={maxHpExtraBonuses}
+          extraFlatBonuses={maxHpExtraBonuses}
           onClose={() => setMaxDialogOpen(false)}
           onApply={({ hpMax: nextMax, hpCurrent: nextCurrent }) => {
             onCombatChange({ hpMax: nextMax, hpCurrent: nextCurrent })

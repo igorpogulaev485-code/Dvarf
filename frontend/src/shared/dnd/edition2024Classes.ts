@@ -15,6 +15,7 @@ import type {
 import type { ClassLevelEntry } from './classLevels'
 import type { DesiredFeatureResource } from './featureResources'
 import type { SheetResource } from './rest'
+import { expertise9Choice2024, expertiseChoice2024 } from './bard2024Features'
 import {
   blessedStrikesChoice2024,
   clericBaseChannelOptionsAtLevel2024,
@@ -646,6 +647,7 @@ function buildResourceFeature(
   classLevel: number,
   _totalLevel: number,
   unlockLevel?: number,
+  summaryRu?: string,
 ): { def: ClassFeatureDef; desired: DesiredFeatureResource } | null {
   const meta = RESOURCE_META[poolKey]
   if (!meta || max <= 0) return null
@@ -670,7 +672,7 @@ function buildResourceFeature(
     level: badgeLevel,
     name_ru: meta.name_ru,
     name_en: poolKey,
-    summary_ru: meta.name_ru,
+    summary_ru: (summaryRu || '').trim() || meta.name_ru,
     kind: featureKindFor(meta.feature_id, meta),
     resource,
   }
@@ -811,6 +813,8 @@ export function computeProgression2024(input: {
           scaleValue: null,
           resourceUses: null,
           ...(fid === 'scholar' ? { choice: SCHOLAR_CHOICE_2024 } : {}),
+          ...(cls.slug === 'bard' && fid === 'expertise' ? { choice: expertiseChoice2024 } : {}),
+          ...(cls.slug === 'bard' && fid === 'expertise_9' ? { choice: expertise9Choice2024 } : {}),
           ...(fid === 'blessed_strikes' && cls.slug === 'cleric'
             ? { choice: blessedStrikesChoice2024 }
             : {}),
@@ -846,6 +850,8 @@ export function computeProgression2024(input: {
     const subclassResourceFids = new Set(subclassPools.map((p) => p.feature_id))
     /** Badge = catalog unlock level for subclass resource pools (not current class level). */
     const subclassResourceUnlock = new Map<string, number>()
+    /** Catalog summary for synthetic subclass resource cards (avoid name-only stubs). */
+    const subclassResourceSummary = new Map<string, string>()
     const sharedByFid = new Map(subclassShared.map((o) => [o.feature_id, o]))
     const calcFids = new Set(subclassBonuses.map((b) => b.feature_id))
 
@@ -861,6 +867,10 @@ export function computeProgression2024(input: {
             if (subclassResourceFids.has(fidRaw)) {
               if (!subclassResourceUnlock.has(fidRaw)) {
                 subclassResourceUnlock.set(fidRaw, blv)
+              }
+              const summary = String(feat.summary_ru || '').trim()
+              if (summary && !subclassResourceSummary.has(fidRaw)) {
+                subclassResourceSummary.set(fidRaw, summary)
               }
               continue
             }
@@ -986,6 +996,9 @@ export function computeProgression2024(input: {
       }
       const max = resolveResourceMax(meta, key, value, totalLevel, input.abilities || {})
       if (max <= 0) continue
+      const catalogSummary =
+        catalogSummaryFor(levels, meta.feature_id) ||
+        catalogSummaryFor(levels, meta.feature_id.replace(/_/g, '-'))
       const built = buildResourceFeature(
         cls.slug,
         cls.entryId,
@@ -994,6 +1007,7 @@ export function computeProgression2024(input: {
         cls.level,
         totalLevel,
         resourceUnlockLevels.get(key),
+        catalogSummary,
       )
       if (!built) continue
       const arcanumSummary = mysticArcanumSummary.get(key)
@@ -1148,6 +1162,11 @@ export function computeProgression2024(input: {
       if (unlockedIds.has('druidic') && !free.includes('speak-with-animals')) {
         free.push('speak-with-animals')
       }
+      if (cls.slug === 'bard' && unlockedIds.has('words-of-creation')) {
+        for (const spellId of ['power-word-heal', 'power-word-kill']) {
+          if (!free.includes(spellId)) free.push(spellId)
+        }
+      }
 
       spellcasting.push({
         class_slug: cls.slug,
@@ -1166,12 +1185,18 @@ export function computeProgression2024(input: {
         subclassResourceUnlock.get(pool.feature_id) ??
         subclassResourceUnlock.get(pool.feature_id.replace(/_/g, '-')) ??
         null
+      const poolSummary =
+        subclassResourceSummary.get(pool.feature_id) ||
+        subclassResourceSummary.get(pool.feature_id.replace(/_/g, '-')) ||
+        subclassResourceSummary.get(pool.feature_id.replace(/-/g, '_')) ||
+        ''
       features.push({
         id: pool.feature_id.replace(/-/g, '_'),
         level: unlock != null && unlock > 0 ? unlock : cls.level,
         name_ru: pool.name,
         name_en: pool.pool_id,
-        summary_ru: pool.die ? `${pool.name} (${pool.die})` : pool.name,
+        summary_ru:
+          poolSummary || (pool.die ? `${pool.name} (${pool.die})` : pool.name),
         kind: 'resource',
         resource: {
           uses: pool.max,
