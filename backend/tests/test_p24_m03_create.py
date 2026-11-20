@@ -465,6 +465,45 @@ def test_languages_and_tools_are_russian_on_sheet():
     assert sheet["create_2024"]["languages_chosen"] == ["elvish", "dwarvish"]
 
 
+def test_fighter_pack_a_creates_weapon_attack_cards():
+    """Class starting weapons must appear as sheet.weapons (not only inventory)."""
+    payload = build_valid_payload("fighter", class_equipment="a")
+    sheet = create24.validate_create_2024(create24.payload_from_dict(payload)).sheet
+    inv_by_slug = {
+        str(i.get("slug")): i for i in sheet["inventory"]["items"] if i.get("slug")
+    }
+    assert "greatsword" in inv_by_slug
+    assert "flail" in inv_by_slug
+    assert "javelin" in inv_by_slug
+    weapons = sheet["weapons"]
+    by_catalog = {str(w.get("catalog_id")): w for w in weapons}
+    assert "greatsword" in by_catalog
+    assert "flail" in by_catalog
+    assert "javelin" in by_catalog
+    great = by_catalog["greatsword"]
+    assert great["name"] == "Двуручный меч"
+    assert great["damage"] == "2к6"
+    assert great["damage_type"] == "рубящий"
+    assert great["inventory_item_id"] == inv_by_slug["greatsword"]["id"]
+    assert great["source_kind"] == "weapon"
+    javelin = by_catalog["javelin"]
+    assert javelin["qty"] == 8
+    assert javelin["inventory_item_id"] == inv_by_slug["javelin"]["id"]
+
+
+def test_fighter_gold_route_skips_class_weapons_in_attacks():
+    payload = build_valid_payload("fighter", class_equipment="gold")
+    sheet = create24.validate_create_2024(create24.payload_from_dict(payload)).sheet
+    assert sheet["inventory"]["coins"]["gp"] >= 155
+    inv_slugs = {str(i.get("slug")) for i in sheet["inventory"]["items"] if i.get("slug")}
+    assert "greatsword" not in inv_slugs
+    assert "flail" not in inv_slugs
+    attack_slugs = {str(w.get("catalog_id")) for w in sheet["weapons"]}
+    assert "greatsword" not in attack_slugs
+    assert "flail" not in attack_slugs
+    assert "javelin" not in attack_slugs
+
+
 def test_druid_gets_druidic_in_russian():
     payload = build_valid_payload("druid")
     sheet = create24.validate_create_2024(create24.payload_from_dict(payload)).sheet

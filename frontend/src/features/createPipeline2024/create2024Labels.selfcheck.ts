@@ -130,4 +130,45 @@ assert.deepEqual(
   'ruPlural: prepared-spell phrase matches the server',
 )
 
+// English Open5e dump must not poison tool chip labels on the background step.
+const poisoned = buildItemNameIndex([
+  {
+    id: 'x1',
+    slug: 'alchemists_supplies',
+    kind: 'item',
+    name_ru: "Alchemist's Supplies (50 GP)",
+    name_en: "Alchemist's Supplies (50 GP)",
+    rules_edition: '2024',
+    source: 'srd',
+    is_active: true,
+    data: {},
+  } as never,
+  {
+    id: 'x2',
+    slug: 'dice_set',
+    kind: 'item',
+    name_ru: 'Dice set',
+    name_en: 'Dice set',
+    rules_edition: '2024',
+    source: 'srd',
+    is_active: true,
+    data: {},
+  } as never,
+  {
+    id: 'x3',
+    slug: 'playing_card_set',
+    kind: 'item',
+    name_ru: 'Playing card set',
+    name_en: 'Playing card set',
+    rules_edition: '2024',
+    source: 'srd',
+    is_active: true,
+    data: {},
+  } as never,
+])
+assert.equal(itemNameRu('alchemists-supplies', poisoned), 'Инструменты алхимика')
+assert.equal(itemNameRu('dice-set', poisoned), 'Набор игральных костей')
+assert.equal(itemNameRu('playing-card-set', poisoned), 'Набор игральных карт')
+assert.ok(!poisoned.has('dice-set'), 'EN dump rows must not enter the name index')
+
 console.log('create2024Labels.selfcheck: ok')

@@ -171,10 +171,21 @@ export function hitDieLabel(hitDie: unknown): string {
 
 export type ItemNameIndex = ReadonlyMap<string, string>
 
+/** Live equipment slugs for create-wizard tool ids (gaming sets). */
+const TOOL_SLUG_ALIASES: Readonly<Record<string, readonly string[]>> = {
+  'dice-set': ['dice'],
+  'playing-card-set': ['playing-cards'],
+  'dragonchess-set': ['dragonchess'],
+  'three-dragon-ante-set': ['three-dragon-ante'],
+}
+
 export function buildItemNameIndex(entries: readonly CatalogEntry[]): ItemNameIndex {
   const map = new Map<string, string>()
   for (const entry of entries) {
-    if (entry.slug && entry.name_ru) map.set(normalizeSlug(entry.slug), entry.name_ru)
+    if (!entry.slug || !entry.name_ru) continue
+    // Skip Open5e dump rows where name_ru was left as English.
+    if (!hasCyrillic(entry.name_ru)) continue
+    map.set(normalizeSlug(entry.slug), entry.name_ru)
   }
   return map
 }
@@ -183,12 +194,19 @@ export function buildItemNameIndex(entries: readonly CatalogEntry[]): ItemNameIn
 export function itemNameRu(id: string, index: ItemNameIndex | null | undefined): string {
   if (hasCyrillic(id)) return id
   const slug = normalizeSlug(id).replace(/\s+/g, '-')
-  const candidates = [slug, slug.replace(/-s-/g, 's-')]
+  const candidates = [
+    slug,
+    slug.replace(/-s-/g, 's-'),
+    ...(TOOL_SLUG_ALIASES[slug] ?? []),
+  ]
+  // Prefer canonical tool labels (gaming sets / artisans) over dump or short live names.
   for (const candidate of candidates) {
-    const fromCatalog = index?.get(candidate)
-    if (fromCatalog) return fromCatalog
     const fallback = TOOL_NAME_FALLBACK_RU[candidate]
     if (fallback) return fallback
+  }
+  for (const candidate of candidates) {
+    const fromCatalog = index?.get(candidate)
+    if (fromCatalog && hasCyrillic(fromCatalog)) return fromCatalog
   }
   return 'Предмет'
 }

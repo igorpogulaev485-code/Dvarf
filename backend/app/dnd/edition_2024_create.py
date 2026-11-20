@@ -16,6 +16,7 @@ NOTES (wizard spellbook, for the M02 sheet UI):
 from __future__ import annotations
 
 import json
+import re
 from dataclasses import dataclass, field
 from functools import lru_cache
 from pathlib import Path
@@ -3557,21 +3558,111 @@ def _normalize_tool_key(value: str) -> str:
     return key.replace("-s-", "s-")
 
 
+def _has_cyrillic(value: str) -> bool:
+    return any("а" <= ch.lower() <= "я" or ch.lower() == "ё" for ch in value)
+
+
+# Create wizard / live equipment slug aliases (gaming sets etc.).
+_TOOL_SLUG_ALIASES: dict[str, tuple[str, ...]] = {
+    "dice-set": ("dice",),
+    "playing-card-set": ("playing-cards",),
+    "dragonchess-set": ("dragonchess",),
+    "three-dragon-ante-set": ("three-dragon-ante",),
+}
+
+_DAMAGE_TYPE_RU = {
+    "bludgeoning": "дробящий",
+    "piercing": "колющий",
+    "slashing": "рубящий",
+    "дробящий": "дробящий",
+    "колющий": "колющий",
+    "рубящий": "рубящий",
+}
+
+
+def _ru_damage_dice(expr: str) -> str:
+    """Catalog `2d6` → sheet `2к6` (Play Desk notation)."""
+    return re.sub(
+        r"\b(\d*)[dD](\d+)\b",
+        lambda m: f"{m.group(1)}к{m.group(2)}",
+        str(expr or "").strip(),
+    )
+
+
+def _weapon_attack_ability(cat_data: Mapping[str, Any]) -> str:
+    props = {str(p).lower() for p in (cat_data.get("properties") or [])}
+    range_kind = str(cat_data.get("range_kind") or "melee").lower()
+    if range_kind == "ranged" or "finesse" in props:
+        return "dex"
+    return "str"
+
+
+def _starting_weapon_attack_cards(
+    items: Sequence[Mapping[str, Any]],
+    item_catalog: Mapping[str, Mapping[str, Any]],
+) -> list[dict[str, Any]]:
+    """Emit sheet.weapons rows linked to starting inventory weapons.
+
+    Without these cards the desk only shows kit unarmed / improvised attacks
+    even when greatsword / flail / javelins sit in inventory.
+    """
+    weapons: list[dict[str, Any]] = []
+    for item in items:
+        if not isinstance(item, Mapping):
+            continue
+        slug = str(item.get("slug") or "").strip()
+        cat = item_catalog.get(slug) if slug else None
+        cat = cat if isinstance(cat, Mapping) else {}
+        cat_data = cat.get("data") if isinstance(cat.get("data"), dict) else {}
+        is_weapon = str(cat.get("kind") or "") == "weapon" or bool(item.get("weapon_grip"))
+        damage_raw = item.get("damage") or cat_data.get("damage")
+        if not is_weapon or not damage_raw:
+            continue
+        qty = max(1, int(item.get("qty") or 1))
+        damage_type_raw = str(item.get("damage_type") or cat_data.get("damage_type") or "")
+        damage_type = _DAMAGE_TYPE_RU.get(damage_type_raw.lower(), damage_type_raw)
+        if damage_type and not _has_cyrillic(damage_type):
+            damage_type = _DAMAGE_TYPE_RU.get(damage_type.lower(), "дробящий")
+        item_id = str(item.get("id") or f"start-{slug or 'weapon'}-{len(weapons)}")
+        name = str(item.get("name_ru") or item.get("name") or cat.get("name_ru") or slug or "Оружие")
+        weapons.append(
+            {
+                "id": f"start-atk:{item_id}",
+                "name": name,
+                "catalog_id": slug or None,
+                "source_kind": "weapon",
+                "ability": _weapon_attack_ability(cat_data),
+                "is_proficient": True,
+                "damage": _ru_damage_dice(str(damage_raw)),
+                "damage_type": damage_type or "",
+                "qty": qty if qty > 1 else None,
+                "inventory_item_id": item_id,
+                "held": False,
+                "range_kind": str(cat_data.get("range_kind") or "melee"),
+            }
+        )
+    return weapons
+
+
 def tool_name_ru(tool_id: str) -> str:
     """Russian tool name: item catalog first, then the fallback map; never a Latin id."""
     raw = (tool_id or "").strip()
     if not raw:
         return ""
-    if any("а" <= ch.lower() <= "я" or ch.lower() == "ё" for ch in raw):
+    if _has_cyrillic(raw):
         return raw
     key = _normalize_tool_key(raw)
     catalog = load_item_catalog()
-    for candidate in (key, key.replace("-s-", "s-")):
+    candidates = [key, key.replace("-s-", "s-"), *_TOOL_SLUG_ALIASES.get(key, ())]
+    for candidate in candidates:
         row = catalog.get(candidate)
-        if row and row.get("name_ru"):
-            return str(row["name_ru"])
+        name = str((row or {}).get("name_ru") or "").strip()
+        if name and _has_cyrillic(name):
+            return name
         if candidate in TOOL_NAME_FALLBACK_RU:
             return TOOL_NAME_FALLBACK_RU[candidate]
+    if key in TOOL_NAME_FALLBACK_RU:
+        return TOOL_NAME_FALLBACK_RU[key]
     return "Инструмент"
 
 
@@ -4145,6 +4236,10 @@ def _build_sheet(
         "coins": {"cp": 0, "sp": 0, "ep": 0, "gp": coins_gp, "pp": 0},
         "items": items,
     }
+
+    # Attack cards from starting weapons (class/background packs). Inventory alone is
+    # not enough — Play Desk reads sheet.weapons (+ kit unarmed/improvised).
+    sheet["weapons"] = _starting_weapon_attack_cards(items, item_catalog)
 
     # Rough AC from equipped armor names in pack
     ac = 10 + dex_mod
