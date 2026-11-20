@@ -3,6 +3,7 @@
  */
 
 import { useMemo, useState } from 'react'
+import { displayDiceNotation } from '../../shared/dnd/diceNotation'
 import { Button, Dialog, Field, Input, NumberInput, Stack, Text } from '../../ui'
 import type { SheetResource } from '../../shared/dnd/rest'
 import type { SpellSlotState } from '../../shared/dnd/spells'
@@ -660,7 +661,7 @@ export function Sorcerer2024UseDialog({
                   key={row.id}
                   type="button"
                   className={`sheet-chip${revelationId === row.id ? ' is-on' : ''}`}
-                  title={row.summaryRu}
+                  title={displayDiceNotation(row.summaryRu)}
                   onClick={() => setRevelationId(row.id)}
                 >
                   {row.nameRu}

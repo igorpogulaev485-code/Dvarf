@@ -1,6 +1,7 @@
 /** One guided dialog for create / level-up pending picks (grant → expertise → ASI…). */
 
 import { useEffect, useMemo, useState } from 'react'
+import { displayDiceNotation } from '../../shared/dnd/diceNotation'
 import {
   equipmentLinesFor,
   equipmentPackagesFor,
@@ -1492,7 +1493,7 @@ export function GuidedWizardDialog({
                     key={row.id}
                     type="button"
                     className={`sheet-chip${selected ? ' is-on' : ''}`}
-                    title={`${row.summaryRu} (−${row.cost})`}
+                    title={displayDiceNotation(`${row.summaryRu} (−${row.cost})`)}
                     onClick={() => {
                       if (!classOptions2024 || !onClassOptions2024Change) return
                       const cur = new Set(classOptions2024.metamagic)
@@ -1611,7 +1612,7 @@ export function GuidedWizardDialog({
                     disabled={locked}
                     aria-disabled={locked}
                     style={locked ? { opacity: 0.45 } : undefined}
-                    title={locked ? `${row.summaryRu} — ${reason}` : row.summaryRu}
+                    title={displayDiceNotation(locked ? `${row.summaryRu} — ${reason}` : row.summaryRu)}
                     onClick={() => {
                       if (!classOptions2024 || !onClassOptions2024Change) return
                       const cur = new Set(classOptions2024.eldritch_invocations)

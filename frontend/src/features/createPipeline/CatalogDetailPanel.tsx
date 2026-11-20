@@ -1,6 +1,7 @@
 /** Rich right-panel detail for race / background / class / feat catalog picks. */
 
 import type { ReactNode } from 'react'
+import { displayDiceNotation } from '../../shared/dnd/diceNotation'
 import { Stack, Text } from '../../ui'
 import type { CatalogEntry } from '../../shared/api/catalog'
 import { ABILITY_LABELS, SKILL_DEFS, type AbilityKey } from '../characters/sheetTypes'
@@ -259,7 +260,7 @@ function ClassDetail({ entry, def }: { entry: CatalogEntry; def: ClassGrantDef }
             {levelOne.map((feature) => (
               <li key={feature.id}>
                 <strong>{feature.name_ru}</strong>
-                {feature.summary_ru ? ` — ${feature.summary_ru}` : ''}
+                {feature.summary_ru ? ` — ${displayDiceNotation(feature.summary_ru)}` : ''}
               </li>
             ))}
           </ul>

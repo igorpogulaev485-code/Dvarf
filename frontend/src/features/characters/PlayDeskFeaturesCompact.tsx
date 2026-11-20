@@ -1,3 +1,4 @@
+import { displayDiceNotation } from '../../shared/dnd/diceNotation'
 import { resourceShownCurrent, type SheetResource } from '../../shared/dnd/rest'
 import type { UnlockedFeature } from '../../shared/dnd/classFeatures'
 import type { AppliedFeatGrant } from '../../shared/dnd/featGrants'
@@ -99,7 +100,9 @@ export function PlayDeskFeaturesCompact({
 
         {topFeatures.map((feature) => {
           const gateSubclass = subclassNameForGate(feature, features)
-          const summary = gateSubclass || feature.summary_ru || feature.className
+          const summary = displayDiceNotation(
+            gateSubclass || feature.summary_ru || feature.className,
+          )
           return (
           <button
             key={`${feature.classEntryId}:${feature.id}`}

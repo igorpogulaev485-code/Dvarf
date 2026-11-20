@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { displayDiceNotation } from '../../shared/dnd/diceNotation'
 import { itemCastSlotLevel } from './itemSpellCast'
 import {
   findDualCastSiblings,
@@ -1687,7 +1688,7 @@ export function CastSpellDialog({
                         rest={rest}
                         checked={checked}
                         disabled={disabled}
-                        title={def.summaryRu}
+                        title={displayDiceNotation(def.summaryRu)}
                         onChange={(next) => {
                           if (stackable) {
                             if (def.id === 'empowered') setUseEmpowered(next)

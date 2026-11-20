@@ -4,6 +4,7 @@
  */
 
 import { useMemo, useState } from 'react'
+import { displayDiceNotation } from '../../shared/dnd/diceNotation'
 import { Dialog, Field, Input, Stack, Text } from '../../ui'
 import type { SheetResource } from '../../shared/dnd/rest'
 import type { FeaturePicksState } from '../../shared/dnd/featurePicks'
@@ -414,7 +415,7 @@ export function Monk2024UseDialog({
                 key={row.id}
                 type="button"
                 className={`sheet-chip${choice === row.id ? ' is-on' : ''}`}
-                title={row.summaryRu}
+                title={displayDiceNotation(row.summaryRu)}
                 onClick={() => setChoice(row.id)}
               >
                 {row.nameRu}

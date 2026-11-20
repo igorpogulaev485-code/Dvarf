@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { displayDiceNotation } from '../../shared/dnd/diceNotation'
 import { useTurnEconomy } from './TurnEconomyContext'
 import { inferFeatureTiming } from '../../shared/dnd/turnEconomy'
 import {
@@ -412,7 +413,7 @@ function compareFeaturesForAbl(
 }
 
 function previewSummary(value: string, max = 110): string {
-  const flat = value.replace(/\s+/g, ' ').trim()
+  const flat = displayDiceNotation(value.replace(/\s+/g, ' ').trim())
   if (!flat) return ''
   if (flat.length <= max) return flat
   return `${flat.slice(0, max - 1)}…`

@@ -1,4 +1,5 @@
 import { useMemo } from 'react'
+import { displayDiceNotation } from '../../shared/dnd/diceNotation'
 import type { UnlockedFeature } from '../../shared/dnd/classFeatures'
 import { FEATURE_RESOURCE_PREFIX } from '../../shared/dnd/featureResources'
 import {
@@ -94,7 +95,7 @@ export function PsionicDiceSpendDialog({
                   <b>{option.nameRu}</b>
                   <span>
                     {option.cost}{' '}
-                    {option.cost === 1 ? 'кость' : 'кости'} · {option.summaryRu}
+                    {option.cost === 1 ? 'кость' : 'кости'} · {displayDiceNotation(option.summaryRu)}
                   </span>
                 </div>
                 <Button

@@ -1,4 +1,5 @@
 import type { CharacterDetail } from '../../shared/api/characters'
+import { displayDiceNotation } from '../../shared/dnd/diceNotation'
 import {
   ABILITY_NAMES,
   SKILL_DEFS,
@@ -563,7 +564,7 @@ export function ClassicPrint2024({ character: c, onPrintSettings }: Props) {
                     </div>
                     <div className="classic-weapon__cell classic-weapon__cell--dmg">
                       <ClassicStaticField
-                        value={row.damageLine}
+                        value={displayDiceNotation(row.damageLine)}
                         wrap
                         tone="compact"
                         pencilLine={false}
@@ -572,7 +573,7 @@ export function ClassicPrint2024({ character: c, onPrintSettings }: Props) {
                     </div>
                     <div className="classic-weapon__cell classic-weapon__cell--notes">
                       <ClassicStaticField
-                        value={masteryNote}
+                        value={displayDiceNotation(masteryNote)}
                         wrap
                         tone="compact"
                         pencilLine={false}

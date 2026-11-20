@@ -1,4 +1,5 @@
 import { useMemo } from 'react'
+import { displayDiceNotation } from '../../shared/dnd/diceNotation'
 import type { UnlockedFeature } from '../../shared/dnd/classFeatures'
 import { FEATURE_RESOURCE_PREFIX } from '../../shared/dnd/featureResources'
 import {
@@ -80,7 +81,7 @@ export function SoulTrinketsSpendDialog({
               <div key={option.key} className="sorcery-spend-row">
                 <div className="sorcery-spend-row__text">
                   <b>{option.nameRu}</b>
-                  <span>{option.summaryRu}</span>
+                  <span>{displayDiceNotation(option.summaryRu)}</span>
                 </div>
                 <Button
                   type="button"

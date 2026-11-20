@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState, type DragEvent as ReactDragEvent } from 'react'
+import { displayDiceNotation } from '../../shared/dnd/diceNotation'
 import { HoverTipCard, PANEL_HELP, panelExplain } from '../onboarding'
 import {
   Button,
@@ -706,14 +707,14 @@ export function TextBlocksPanel({
             {pairs.map((row) => (
               <li key={row.label}>
                 <span className="text-physique__pair-label">{row.label}</span>
-                <span>{row.value}</span>
+                <span>{displayDiceNotation(row.value)}</span>
               </li>
             ))}
           </ul>
         ) : (
           <Text tone="muted">Поля роста, глаз и прочего пока пустые</Text>
         )}
-        {text ? <p className="text-physique__desc">{text}</p> : null}
+        {text ? <p className="text-physique__desc">{displayDiceNotation(text)}</p> : null}
         <div className="text-physique__view-actions">
           <Button type="button" onClick={beginPhysiqueEdit}>
             Изменить
@@ -922,7 +923,7 @@ export function TextBlocksPanel({
           </div>
           <h3 className="text-block__view-title">{label}</h3>
           {viewText ? (
-            <p className="text-block__view-body">{viewText}</p>
+            <p className="text-block__view-body">{displayDiceNotation(viewText)}</p>
           ) : (
             <Text tone="muted">Пусто</Text>
           )}
@@ -956,7 +957,7 @@ export function TextBlocksPanel({
           {spoilerCount > 0 ? <span className="attack-held-tag">спойлер</span> : null}
           <span className="inventory-card__glance-spacer" aria-hidden />
           <span className="text-block__glance-preview">
-            {viewText || 'нажми, чтобы открыть'}
+            {viewText ? displayDiceNotation(viewText) : 'нажми, чтобы открыть'}
           </span>
         </button>
         <div className="inventory-card__glance-actions">

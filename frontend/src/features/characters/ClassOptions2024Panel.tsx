@@ -3,6 +3,7 @@
  * Artificer EFA: известные схемы + активные реплики (лимит / старейшая / настройка).
  */
 import { useState } from 'react'
+import { displayDiceNotation } from '../../shared/dnd/diceNotation'
 import { Button, Text } from '../../ui'
 import {
   ARTIFICER_REPLICATE_PLANS_2024,
@@ -135,7 +136,7 @@ export function ClassOptions2024Panel({
                   disabled={locked}
                   aria-disabled={locked}
                   style={locked ? { opacity: 0.45 } : undefined}
-                  title={locked ? `${row.summaryRu} — ${reason}` : row.summaryRu}
+                  title={displayDiceNotation(locked ? `${row.summaryRu} — ${reason}` : row.summaryRu)}
                   onClick={() => toggleList('eldritch_invocations', row.id, invLimit)}
                 >
                   {row.nameRu}
@@ -160,7 +161,7 @@ export function ClassOptions2024Panel({
                   key={row.id}
                   type="button"
                   className={`sheet-chip${on ? ' is-on' : ''}`}
-                  title={`${row.summaryRu} (−${row.cost} очк.)`}
+                  title={displayDiceNotation(`${row.summaryRu} (−${row.cost} очк.)`)}
                   onClick={() => toggleList('metamagic', row.id, metaLimit)}
                 >
                   {row.nameRu} ·{row.cost}

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { displayDiceNotation } from '../../shared/dnd/diceNotation'
 import {
   infusionById,
   RESISTANT_ARMOR_DAMAGE_TYPES,
@@ -424,7 +425,7 @@ export function InfusionsActiveDialog({
                 <div key={`${def.id}#${index}`} className="sorcery-spend-row">
                   <div className="sorcery-spend-row__text">
                     <b>{def.nameRu}</b>
-                    <span>{def.abilityRu || def.summaryRu}</span>
+                    <span>{displayDiceNotation(def.abilityRu || def.summaryRu)}</span>
                     {on && row ? (
                       <span>
                         Цель: {targetLabel(row.target)}

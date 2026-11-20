@@ -1,4 +1,5 @@
 import { useCallback, useRef, type CSSProperties, type PointerEvent as ReactPointerEvent } from 'react'
+import { displayDiceNotation } from '../../shared/dnd/diceNotation'
 import type { CharacterDetail } from '../../shared/api/characters'
 import type { ClassicPatch } from './fromApi'
 import {
@@ -120,7 +121,7 @@ export function ClassicTextBlock({
         />
       ) : null}
       <Expanding
-        value={value}
+        value={displayDiceNotation(value)}
         printMaxHeight={heightHint}
         ariaLabel={ariaLabel}
         className={className}
