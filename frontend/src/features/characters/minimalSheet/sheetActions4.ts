@@ -1859,7 +1859,8 @@ export function installSheetActions4(model: SheetModel) {
         })
       }
     }
-        model.offerBardicInspirationAfterFail?.(abilityLabel)
+    offerHeroicRerollAfter(abilityLabel, 20)
+    model.offerBardicInspirationAfterFail?.(abilityLabel)
     consumeOnceBuffDice('check')
   }
 
