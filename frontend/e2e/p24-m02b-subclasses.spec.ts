@@ -9,7 +9,7 @@ test.describe('P24-M02b subclass automation preview', () => {
   test('catalog + key subclass cards', async ({ page }) => {
     await page.goto('/dev/p24-m02b-preview')
     await expect(page.getByTestId('p24-m02b-preview')).toBeVisible()
-    await expect(page.getByTestId('p24-m02b-flag')).toContainText('закрыт')
+    await expect(page.getByTestId('p24-m02b-flag')).toContainText('открыт')
     await expect(page.getByTestId('p24-m02b-count')).toContainText('76')
 
     await expect(

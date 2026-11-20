@@ -1,6 +1,6 @@
 /**
  * DEV preview for P24-02 Playwright: 2014 vs 2024 core rules isolation.
- * Does not open the 2024 create button (RULES_EDITION_2024_OPEN stays off).
+ * Reflects current RULES_EDITION_2024_OPEN (open since 20.11.2026).
  */
 import { useMemo, useState } from 'react'
 import { CreateCharacterButton } from '../features/characters/CreateCharacterButton'
@@ -101,14 +101,19 @@ export function P24CoreRulesPreviewPage() {
       <Stack gap={20}>
         <h1 className="ui-text">P24-02 preview · базовые правила 2024</h1>
         <Text tone="muted">
-          Флаг RULES_EDITION_2024_OPEN = {String(RULES_EDITION_2024_OPEN)}. Кнопка
-          создания 2024 скрыта.
+          Флаг RULES_EDITION_2024_OPEN = {String(RULES_EDITION_2024_OPEN)}.
+          {RULES_EDITION_2024_OPEN
+            ? ' Кнопка создания 2024 видна.'
+            : ' Кнопка создания 2024 скрыта.'}
         </Text>
 
-        <Panel title="Создание 2014 (регрессия)">
+        <Panel title="Создание (регрессия 2014 + CTA)">
           <CreateCharacterButton onCreate={() => undefined} />
-          <p className="ui-text ui-text--muted" data-testid="p24-02-flag-off">
-            2024 закрыт
+          <p
+            className="ui-text ui-text--muted"
+            data-testid={RULES_EDITION_2024_OPEN ? 'p24-02-flag-on' : 'p24-02-flag-off'}
+          >
+            {RULES_EDITION_2024_OPEN ? '2024 открыт' : '2024 закрыт'}
           </p>
         </Panel>
 

@@ -13,10 +13,10 @@ test.beforeAll(() => {
 })
 
 test.describe('P24-M02a classes 2024', () => {
-  test('воин 5 + волшебник 5; флаг закрыт; surge≠magic', async ({ page }, testInfo) => {
+  test('воин 5 + волшебник 5; флаг открыт; surge≠magic', async ({ page }, testInfo) => {
     await page.goto('/dev/p24-m02a-preview')
     await expect(page.getByTestId('p24-m02a-preview')).toBeVisible()
-    await expect(page.getByTestId('p24-m02a-flag')).toContainText('закрыт')
+    await expect(page.getByTestId('p24-m02a-flag')).toContainText('открыт')
     await expect(page.getByTestId('p24-m02a-class-count')).toContainText('13')
     await expect(page.getByTestId('p24-m02a-surge-magic')).toContainText('запрещено')
     await expect(page.getByTestId('p24-m02a-bardic-heroic')).toContainText('отдельный пул')

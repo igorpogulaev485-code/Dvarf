@@ -1,7 +1,7 @@
 /**
- * P24-M06 smoke: 2024 differences onboarding (DEV preview + product gate).
+ * P24-M06 smoke: 2024 differences onboarding + open flag CTA.
  * Product create route needs auth; onboarding UI is proven on /dev/p24-m06-preview
- * and wired into CreateCharacter2024Page for ?preview=1 after login.
+ * and wired into CreateCharacter2024Page for ?edition=2024 (preview=1 still ok).
  */
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -22,20 +22,20 @@ async function shot(page: Page, stem: string, projectName: string) {
   await page.screenshot({ path: file, fullPage: false })
 }
 
-test.describe('P24-M06 onboarding + gate', () => {
-  test('public create CTA hides 2024 while flag false', async ({ page }, testInfo) => {
+test.describe('P24-M06 onboarding + open gate', () => {
+  test('public create CTA shows 2024 while flag open', async ({ page }, testInfo) => {
     await page.goto('/dev/p24-m06-preview')
     await expect(page.getByTestId('p24-m06-preview')).toBeVisible()
-    await expect(page.getByTestId('create-character-2024')).toHaveCount(0)
+    await expect(page.getByTestId('create-character-2024')).toBeVisible()
     await expect(page.getByTestId('create-character-2014')).toBeVisible()
-    await expect(page.getByTestId('p24-m06-flag-off')).toBeVisible()
+    await expect(page.getByTestId('p24-m06-flag-on')).toContainText('открыт')
     // Dismiss auto-open dialog so the CTA panel is visible in the gate frame.
     const dialog = page.getByTestId('edition-2024-diff-dialog')
     if (await dialog.count()) {
       await page.getByRole('button', { name: 'Понятно' }).click()
       await expect(dialog).toHaveCount(0)
     }
-    await shot(page, 'gate-no-2024-cta', testInfo.project.name)
+    await shot(page, 'gate-with-2024-cta', testInfo.project.name)
   })
 
   test('preview shows 2024 differences onboarding', async ({ page }, testInfo) => {
@@ -99,9 +99,16 @@ test.describe('P24-M06 onboarding + gate', () => {
     await shot(page, 'create-2024-after-diff', testInfo.project.name)
   })
 
-  test('create 2024 without auth redirects to login (flag still closed)', async ({ page }) => {
+  test('create 2024 without auth redirects to login (flag open, no preview needed)', async ({
+    page,
+  }) => {
     await page.goto('/characters/create?edition=2024')
     await expect(page).toHaveURL(/\/login/)
     await expect(page.getByTestId('edition-2024-diff-dialog')).toHaveCount(0)
+  })
+
+  test('legacy ?preview=1 still opens create route when flag open', async ({ page }) => {
+    await page.goto('/characters/create?edition=2024&preview=1')
+    await expect(page).toHaveURL(/\/login/)
   })
 })

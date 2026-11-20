@@ -1,6 +1,7 @@
 /**
- * P24-01: client mirror of RULES_EDITION_2024_OPEN (default off).
- * M06 ships onboarding + path readiness with this still false.
- * Flip to true only after Игорь decides (post merge/deploy), together with BE env.
+ * P24-01 / M06: client mirror of RULES_EDITION_2024_OPEN.
+ * Флаг открыт по решению Игоря 20.11.2026.
+ * BE на VPS включается отдельно: RULES_EDITION_2024_OPEN=true в .env
+ * (compose default остаётся false; config.py default False).
  */
-export const RULES_EDITION_2024_OPEN = false
+export const RULES_EDITION_2024_OPEN = true

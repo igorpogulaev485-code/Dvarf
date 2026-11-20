@@ -59,7 +59,7 @@ import { buildCreate2024SheetPreview } from '../../features/createPipeline2024/c
 import { buildCreate2024Fixtures, FIXTURE_LANGUAGES } from '../../features/createPipeline2024/createPipeline2024Fixtures'
 import type { CatalogEntry } from '../api/catalog'
 
-assert.equal(RULES_EDITION_2024_OPEN, false, '2024 flag stays closed')
+assert.equal(RULES_EDITION_2024_OPEN, true, 'FE flag open (Igor 20.11.2026)')
 
 assert.deepEqual(
   [...CREATE_2024_STEPS],
@@ -269,7 +269,11 @@ assert.match(shellSrc, /stepLabels/, 'shell accepts custom step labels')
 const wizardSrc = readFileSync(join(here, '../../pages/CreateCharacter2024Page.tsx'), 'utf8')
 assert.match(wizardSrc, /p24-m03-next/)
 assert.match(wizardSrc, /p24-m03-finish/)
-assert.match(wizardSrc, /isPreview:\s*!RULES_EDITION_2024_OPEN/, 'preview flag follows the edition gate')
+assert.match(
+  wizardSrc,
+  /isPreview:\s*!RULES_EDITION_2024_OPEN\s*\|\|\s*previewQuery/,
+  'preview=1 keeps preview finalize when flag open',
+)
 assert.match(wizardSrc, /CreatePipelineShell/, 'wizard uses the shared 2014 shell')
 assert.match(wizardSrc, /CREATE_2024_STEP_LABELS/)
 assert.match(wizardSrc, /visibleCreate2024Steps\(speciesEntry\)/, 'feat step follows the species')

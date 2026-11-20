@@ -399,25 +399,35 @@ const WALKS: Walk[] = [
 ]
 
 test.describe('P24-M03 create 2024 wizard v2', () => {
-  test('без edition: мастер 2014 жив, нет CTA 2024, нет служебного текста', async ({
+  test('без edition: мастер 2014 жив; на списке CTA 2024 виден; дефолт create = 2014', async ({
     page,
   }, testInfo) => {
     const project = testInfo.project.name
     await loginViaApi(page)
 
     await page.goto('/characters')
-    await expect(page.getByTestId('create-character-2024')).toHaveCount(0)
-    await expect(page.getByRole('button', { name: /2024/ })).toHaveCount(0)
-    await expect(page.getByRole('link', { name: /2024/ })).toHaveCount(0)
+    await expect(page.getByTestId('create-character-2024')).toBeVisible()
+    await expect(page.getByTestId('create-character-2014')).toBeVisible()
+    await expect(page.getByRole('button', { name: /D&D 2024/ })).toBeVisible()
 
     await page.goto('/characters/create')
     await expect(page.locator('.create-pipeline')).toBeVisible({ timeout: 45_000 })
     // Subtitle is hidden on phone, so check it is attached and the first step chip says «Раса».
     await expect(page.getByText(/^Раса → черта\*/)).toBeAttached()
     await expect(page.locator('.create-pipeline__step-label').first()).toHaveText('Раса')
-    await expect(page.getByTestId('create-character-2024')).toHaveCount(0)
     await expect(page.getByTestId('p24-m03-step-species')).toHaveCount(0)
     await shot(page, 'create-2014-route', project)
+  })
+
+  test('вход 2024 по ?edition=2024 без preview (флаг открыт)', async ({ page }, testInfo) => {
+    test.skip(process.env.P24_E2E_SKIP_LIVE === '1', 'live API skipped')
+    const project = testInfo.project.name
+    await loginViaApi(page)
+    await page.goto('/characters/create?edition=2024')
+    await expect(page.getByTestId('create-character-2024')).toBeVisible({ timeout: 45_000 })
+    await expect(page.getByTestId('p24-m03-step-species')).toBeVisible({ timeout: 45_000 })
+    await expect(page.locator('.create-pipeline__step-label').first()).toHaveText('Вид')
+    await shot(page, 'create-2024-no-preview', project)
   })
 
   test('вход 2024 по ?edition=2024&preview=1: порядок шагов, без латиницы', async ({

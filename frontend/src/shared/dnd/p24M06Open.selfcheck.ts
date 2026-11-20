@@ -1,5 +1,5 @@
 /**
- * P24-M06: flag stays false; onboarding + CTA path ready for a future flip.
+ * P24-M06 / open: FE flag true; BE default false; CTA + lobby path live.
  * Run: npm run selfcheck:p24-m06
  */
 import assert from 'node:assert/strict'
@@ -17,7 +17,7 @@ import {
 const here = dirname(fileURLToPath(import.meta.url))
 const repoRoot = join(here, '../../../..')
 
-assert.equal(RULES_EDITION_2024_OPEN, false, 'FE flag in tip must stay false')
+assert.equal(RULES_EDITION_2024_OPEN, true, 'FE flag open (Igor 20.11.2026)')
 
 const envExample = readFileSync(join(repoRoot, 'backend/.env.example'), 'utf8')
 assert.match(envExample, /RULES_EDITION_2024_OPEN=false/, 'BE .env.example stays false')
@@ -34,19 +34,26 @@ assert.match(
   'BE Settings default False',
 )
 
+const composeSrc = readFileSync(join(repoRoot, 'docker-compose.prod.yml'), 'utf8')
+assert.match(
+  composeSrc,
+  /RULES_EDITION_2024_OPEN:\s*\$\{RULES_EDITION_2024_OPEN:-false\}/,
+  'prod compose passes BE flag (default false)',
+)
+
 const btnSrc = readFileSync(
   join(here, '../../features/characters/CreateCharacterButton.tsx'),
   'utf8',
 )
-assert.match(btnSrc, /if\s*\(\s*!RULES_EDITION_2024_OPEN\s*\)/, 'CTA gated while flag false')
-assert.match(btnSrc, /create-character-2024/, '2024 CTA branch ready when flag true')
+assert.match(btnSrc, /if\s*\(\s*!RULES_EDITION_2024_OPEN\s*\)/, 'CTA still gated by flag')
+assert.match(btnSrc, /create-character-2024/, '2024 CTA branch present')
 assert.match(btnSrc, /D&D 2024/, '2024 CTA label ready')
 
 const createPageSrc = readFileSync(join(here, '../../pages/CreateCharacterPage.tsx'), 'utf8')
 assert.match(
   createPageSrc,
   /preview.+!==\s*'1'.+!RULES_EDITION_2024_OPEN|!RULES_EDITION_2024_OPEN[\s\S]*preview/,
-  'create 2024 without preview stays closed when flag false',
+  'create 2024 without preview still gated when flag false',
 )
 assert.match(
   createPageSrc,
@@ -54,9 +61,21 @@ assert.match(
   'create route embeds 2024 wizard when allowed',
 )
 
+const charactersSrc = readFileSync(join(here, '../../pages/CharactersPage.tsx'), 'utf8')
+assert.match(
+  charactersSrc,
+  /edition === ['"]2024['"][\s\S]*create\?edition=2024|create\?edition=2024/,
+  'list CTA navigates to ?edition=2024',
+)
+
 const lobbiesSrc = readFileSync(join(here, '../../pages/LobbiesPage.tsx'), 'utf8')
 assert.match(lobbiesSrc, /RULES_EDITION_2024_OPEN/, 'lobby edition select gated')
 assert.match(lobbiesSrc, /lobby-create-rules-edition/, 'lobby select test id ready')
+assert.match(
+  lobbiesSrc,
+  /useState<LobbyRulesEdition>\(['"]2014['"]\)/,
+  'lobby default edition stays 2014',
+)
 
 assert.equal(EDITION_HINT, EDITION_HINT_2014)
 assert.match(EDITION_HINT_2024, /2024/)
@@ -87,9 +106,9 @@ assert.match(lobbyDetailSrc, /Edition2024DiffDialog/, 'lobby wires 2024 diff coa
 const previewSrc = readFileSync(join(here, '../../pages/P24M06OpenPreviewPage.tsx'), 'utf8')
 assert.match(previewSrc, /p24-m06-preview/)
 assert.match(previewSrc, /Edition2024DiffDialog/)
-assert.doesNotMatch(previewSrc, /RULES_EDITION_2024_OPEN\s*=\s*true/)
+assert.match(previewSrc, /p24-m06-flag-on/)
 
 const appSrc = readFileSync(join(here, '../../App.tsx'), 'utf8')
 assert.match(appSrc, /\/dev\/p24-m06-preview/, 'DEV preview route registered')
 
-console.log('p24M06Open.selfcheck ok — flag false; onboarding+CTA path ready')
+console.log('p24M06Open.selfcheck ok — FE flag true; BE default false; CTA+lobby path live')

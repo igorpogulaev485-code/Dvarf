@@ -2867,12 +2867,12 @@ function CreateCharacterPage2014() {
 }
 
 
-/** Same route `/characters/create`; 2024 via `?edition=2024&preview=1` (internal). */
+/** Same route `/characters/create`; 2024 via `?edition=2024` (or `&preview=1` for DEV/legacy). */
 export function CreateCharacterPage() {
   const [searchParams] = useSearchParams()
   const edition2024 = searchParams.get('edition') === '2024'
   if (edition2024) {
-    // Flag closed: only preview=1 (tests / internal). Player CTA opens when Игорь flips the flag.
+    // Open flag: players use ?edition=2024. preview=1 still works for DEV / legacy links.
     if (searchParams.get('preview') !== '1' && !RULES_EDITION_2024_OPEN) {
       return (
         <main className="page page--app page--create-pipeline">
