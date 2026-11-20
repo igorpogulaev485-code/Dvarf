@@ -1,0 +1,72 @@
+[
+  {
+    "id": "start-atk:start-greatsword-1",
+    "name": "Двуручный меч",
+    "catalog_id": "greatsword",
+    "source_kind": "weapon",
+    "ability": "str",
+    "is_proficient": true,
+    "damage": "2к6",
+    "damage_type": "рубящий",
+    "qty": null,
+    "inventory_item_id": "start-greatsword-1",
+    "held": false,
+    "range_kind": "melee"
+  },
+  {
+    "id": "start-atk:start-flail-2",
+    "name": "Цеп",
+    "catalog_id": "flail",
+    "source_kind": "weapon",
+    "ability": "str",
+    "is_proficient": true,
+    "damage": "1к8",
+    "damage_type": "дробящий",
+    "qty": null,
+    "inventory_item_id": "start-flail-2",
+    "held": false,
+    "range_kind": "melee"
+  },
+  {
+    "id": "start-atk:start-javelin-3",
+    "name": "Метательное копьё",
+    "catalog_id": "javelin",
+    "source_kind": "weapon",
+    "ability": "str",
+    "is_proficient": true,
+    "damage": "1к6",
+    "damage_type": "колющий",
+    "qty": 8,
+    "inventory_item_id": "start-javelin-3",
+    "held": false,
+    "range_kind": "melee"
+  },
+  {
+    "id": "start-atk:start-spear-5",
+    "name": "Копьё",
+    "catalog_id": "spear",
+    "source_kind": "weapon",
+    "ability": "str",
+    "is_proficient": true,
+    "damage": "1к6",
+    "damage_type": "колющий",
+    "qty": null,
+    "inventory_item_id": "start-spear-5",
+    "held": false,
+    "range_kind": "melee"
+  },
+  {
+    "id": "start-atk:start-shortbow-6",
+    "name": "Короткий лук",
+    "catalog_id": "shortbow",
+    "source_kind": "weapon",
+    "ability": "dex",
+    "is_proficient": true,
+    "damage": "1к6",
+    "damage_type": "колющий",
+    "qty": null,
+    "inventory_item_id": "start-shortbow-6",
+    "held": false,
+    "range_kind": "ranged"
+  }
+]
