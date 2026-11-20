@@ -1,0 +1,122 @@
+{
+  "coins": {
+    "cp": 0,
+    "sp": 0,
+    "ep": 0,
+    "gp": 15,
+    "pp": 0
+  },
+  "items": [
+    {
+      "id": "start-chain-mail-0",
+      "slug": "chain-mail",
+      "name": "Кольчуга",
+      "name_ru": "Кольчуга",
+      "qty": 1,
+      "weight_lb": 55,
+      "notes": null,
+      "equipped": true,
+      "armor_kind": "heavy",
+      "base_ac": 16
+    },
+    {
+      "id": "start-greatsword-1",
+      "slug": "greatsword",
+      "name": "Двуручный меч",
+      "name_ru": "Двуручный меч",
+      "qty": 1,
+      "weight_lb": 6,
+      "notes": null,
+      "equipped": false,
+      "damage": "2d6",
+      "damage_type": "slashing",
+      "weapon_grip": "two_hand"
+    },
+    {
+      "id": "start-flail-2",
+      "slug": "flail",
+      "name": "Цеп",
+      "name_ru": "Цеп",
+      "qty": 1,
+      "weight_lb": 2,
+      "notes": null,
+      "equipped": false,
+      "damage": "1d8",
+      "damage_type": "bludgeoning",
+      "weapon_grip": "one_hand"
+    },
+    {
+      "id": "start-javelin-3",
+      "slug": "javelin",
+      "name": "Метательное копьё",
+      "name_ru": "Метательное копьё",
+      "qty": 8,
+      "weight_lb": 2,
+      "notes": null,
+      "equipped": false,
+      "damage": "1d6",
+      "damage_type": "piercing",
+      "weapon_grip": "one_hand"
+    },
+    {
+      "id": "start-dungeoneers-pack-4",
+      "slug": "dungeoneers-pack",
+      "name": "Набор исследователя подземелий",
+      "name_ru": "Набор исследователя подземелий",
+      "qty": 1,
+      "weight_lb": 55,
+      "notes": null,
+      "equipped": false
+    },
+    {
+      "id": "start-bagpipes-5",
+      "slug": "bagpipes",
+      "name": "Волынка",
+      "name_ru": "Волынка",
+      "qty": 1,
+      "weight_lb": 6,
+      "notes": null,
+      "equipped": false
+    },
+    {
+      "id": "start-costume-6",
+      "slug": "costume",
+      "name": "Костюм",
+      "name_ru": "Костюм",
+      "qty": 2,
+      "weight_lb": 4,
+      "notes": null,
+      "equipped": false
+    },
+    {
+      "id": "start-mirror-7",
+      "slug": "mirror",
+      "name": "Зеркало",
+      "name_ru": "Зеркало",
+      "qty": 1,
+      "weight_lb": 0.5,
+      "notes": null,
+      "equipped": false
+    },
+    {
+      "id": "start-perfume-8",
+      "slug": "perfume",
+      "name": "Духи",
+      "name_ru": "Духи",
+      "qty": 1,
+      "weight_lb": 0,
+      "notes": null,
+      "equipped": false
+    },
+    {
+      "id": "start-travelers-clothes-9",
+      "slug": "travelers-clothes",
+      "name": "Дорожная одежда",
+      "name_ru": "Дорожная одежда",
+      "qty": 1,
+      "weight_lb": 4,
+      "notes": null,
+      "equipped": false
+    }
+  ]
+}

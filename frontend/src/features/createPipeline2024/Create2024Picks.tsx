@@ -112,10 +112,14 @@ import {
   PRIMAL_ORDER_OPTIONS,
   itemNameRu,
   languageKindLabelRu,
-  ruDice,
   sizeLabelRu,
   type ItemNameIndex,
 } from './create2024Labels'
+import {
+  backgroundToolChoicesOf,
+  formatBackgroundPackPreview,
+  formatClassPackPreview,
+} from './create2024PackExpand'
 import {
   featPickFields,
   originFeatSlugOf,
@@ -482,7 +486,13 @@ export function ClassPicks({
           options={packs.map((p) => ({
             id: p.id,
             label: p.labelRu,
-            rest: p.isGold ? undefined : p.summaryRu,
+            rest: p.isGold
+              ? undefined
+              : formatClassPackPreview({
+                  pack: p,
+                  classToolIds: state.classToolIds,
+                  items,
+                }) || p.summaryRu,
           }))}
           selected={packs.some((p) => p.id === state.classEquipment) ? [state.classEquipment] : []}
           max={1}
@@ -1108,7 +1118,14 @@ export function BackgroundPicks({
           {
             id: 'pack',
             label: 'Набор предыстории',
-            rest: gear?.pack_summary_ru ? ruDice(gear.pack_summary_ru) : undefined,
+            rest: gear?.pack_summary_ru
+              ? formatBackgroundPackPreview({
+                  packSummaryRu: gear.pack_summary_ru,
+                  backgroundToolId: state.backgroundToolId,
+                  toolChoices: backgroundToolChoicesOf(backgroundEntry),
+                  items,
+                })
+              : undefined,
           },
           { id: 'gold', label: `Золото (${gold} зм)` },
         ]}

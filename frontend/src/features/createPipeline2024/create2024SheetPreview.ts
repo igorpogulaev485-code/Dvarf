@@ -22,6 +22,11 @@ import {
   type ItemNameIndex,
 } from './create2024Labels'
 import {
+  backgroundToolChoicesOf,
+  expandBackgroundPackSummary,
+  resolveClassPackToolItem,
+} from './create2024PackExpand'
+import {
   featPickFields,
   featPicksLabelsRu,
   originFeatNameOf,
@@ -371,12 +376,21 @@ export function buildCreate2024SheetPreview(input: SheetPreviewInput): SheetPrev
   let coinsGp = pack?.coinsGp ?? 0
   let armorSlug: string | null = null
   let shieldWorn = false
+  const classToolCursor = { index: 0 }
   for (const row of pack?.items ?? []) {
-    const slug = normalizeSlug(row.id || '')
-    const name = row.id ? itemNameRu(row.id, items) : row.nameRu
+    const resolved = resolveClassPackToolItem({
+      itemId: row.id,
+      choice: row.choice,
+      nameRu: row.nameRu,
+      classToolIds: state.classToolIds,
+      toolCursor: classToolCursor,
+      items,
+    })
+    const slug = resolved?.slug ?? normalizeSlug(row.id || '')
+    const name = resolved?.name ?? (row.id ? itemNameRu(row.id, items) : row.nameRu)
     if (!name) continue
     let equipped = false
-    if (slug in ARMOR_BASE && !armorSlug) {
+    if (slug && slug in ARMOR_BASE && !armorSlug) {
       armorSlug = slug
       equipped = true
     }
@@ -391,12 +405,26 @@ export function buildCreate2024SheetPreview(input: SheetPreviewInput): SheetPrev
   } else {
     const summary = (bgData.equipment_or_gold as { pack_summary_ru?: string } | undefined)
       ?.pack_summary_ru
-    inventory.push({
-      name: 'Пакет предыстории',
-      qty: 1,
-      equipped: false,
-      note: summary || undefined,
+    const expanded = expandBackgroundPackSummary({
+      packSummaryRu: summary || '',
+      backgroundToolId: state.backgroundToolId,
+      toolChoices: backgroundToolChoicesOf(backgroundEntry),
+      items,
     })
+    coinsGp += expanded.coinsGp
+    for (const row of expanded.items) {
+      const slug = row.slug ? normalizeSlug(row.slug) : ''
+      let equipped = false
+      if (slug && slug in ARMOR_BASE && !armorSlug) {
+        armorSlug = slug
+        equipped = true
+      }
+      if (slug === 'shield') {
+        shieldWorn = true
+        equipped = true
+      }
+      inventory.push({ name: row.name, qty: row.qty, equipped })
+    }
   }
 
   let ac = 10 + dexMod
@@ -478,21 +506,68 @@ export function buildCreate2024SheetPreview(input: SheetPreviewInput): SheetPrev
   }
 }
 
-/** Apply server validate numbers (live mode) over the local mirror. */
+/** Apply server validate sheet over the local mirror (combat + inventory). */
 export function overlayServerCombat(
   model: SheetPreviewModel,
   sheet: Record<string, unknown> | null | undefined,
 ): SheetPreviewModel {
-  const combat = sheet && typeof sheet.combat === 'object' ? (sheet.combat as Record<string, unknown>) : null
-  if (!combat) return model
+  if (!sheet || typeof sheet !== 'object') return model
+  const combat =
+    typeof sheet.combat === 'object' && sheet.combat
+      ? (sheet.combat as Record<string, unknown>)
+      : null
   const num = (value: unknown, fallback: number) =>
     typeof value === 'number' && Number.isFinite(value) ? value : fallback
-  return {
-    ...model,
-    hpMax: num(combat.hp_max, model.hpMax),
-    ac: num(combat.ac, model.ac),
-    initiative: num(combat.initiative, model.initiative),
-    speed: num(combat.speed, model.speed),
-    darkvision: num(combat.darkvision, model.darkvision),
+
+  let next: SheetPreviewModel = model
+  if (combat) {
+    next = {
+      ...next,
+      hpMax: num(combat.hp_max, next.hpMax),
+      ac: num(combat.ac, next.ac),
+      initiative: num(combat.initiative, next.initiative),
+      speed: num(combat.speed, next.speed),
+      darkvision: num(combat.darkvision, next.darkvision),
+    }
   }
+
+  const inv =
+    typeof sheet.inventory === 'object' && sheet.inventory
+      ? (sheet.inventory as Record<string, unknown>)
+      : null
+  if (inv) {
+    const coins =
+      typeof inv.coins === 'object' && inv.coins
+        ? (inv.coins as Record<string, unknown>)
+        : null
+    const rawItems = Array.isArray(inv.items) ? inv.items : null
+    if (rawItems) {
+      const inventory: SheetPreviewItem[] = rawItems
+        .filter((row): row is Record<string, unknown> => Boolean(row && typeof row === 'object'))
+        .map((row) => ({
+          name: String(row.name_ru || row.name || 'Предмет'),
+          qty: Number(row.qty || 1),
+          equipped: Boolean(row.equipped),
+          note: typeof row.notes === 'string' && row.notes ? row.notes : undefined,
+        }))
+      next = {
+        ...next,
+        inventory,
+        coinsGp: coins ? num(coins.gp, next.coinsGp) : next.coinsGp,
+      }
+    }
+  }
+
+  const proficiency =
+    typeof sheet.proficiency === 'object' && sheet.proficiency
+      ? (sheet.proficiency as Record<string, unknown>)
+      : null
+  if (proficiency && Array.isArray(proficiency.tools)) {
+    next = {
+      ...next,
+      tools: proficiency.tools.map((t) => String(t)).filter(Boolean),
+    }
+  }
+
+  return next
 }

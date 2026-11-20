@@ -1083,6 +1083,8 @@ export function CreateCharacter2024Page({
         emptyTitle={emptyTitle}
         feats={catalogData.feats}
         items={items}
+        backgroundToolId={state.backgroundToolId}
+        classToolIds={state.classToolIds}
       >
         {withPicks && entry ? (
           <div className="create-2024__setup" data-testid={`${testId}-setup`}>

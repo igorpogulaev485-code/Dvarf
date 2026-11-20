@@ -16,6 +16,11 @@ import {
   spellSchoolLabelRu,
   type ItemNameIndex,
 } from './create2024Labels'
+import {
+  backgroundToolChoicesOf,
+  formatBackgroundPackPreview,
+  formatClassPackPreview,
+} from './create2024PackExpand'
 import { featTraitsText, originFeatNameOf, originFeatSlugOf, skillLabelRu } from './create2024FeatPicks'
 import { WEAPON_MASTERY_NAME_RU } from '../../shared/dnd/paladin2024Features'
 import {
@@ -55,6 +60,10 @@ type Create2024DetailPanelProps = {
   emptyHint?: string
   feats?: readonly CatalogEntry[]
   items?: ItemNameIndex
+  /** Selected background tool — resolves pack preview placeholders. */
+  backgroundToolId?: string | null
+  /** Selected class tools — resolves class pack tool slots. */
+  classToolIds?: readonly string[]
   /** Class slug → Russian name (spell list line). */
   classNames?: ReadonlyMap<string, string>
   /** Picks / CTAs rendered below the description. */
@@ -97,9 +106,11 @@ function abilityList(values: unknown): string {
 function ClassDetail({
   entry,
   items,
+  classToolIds = [],
 }: {
   entry: CatalogEntry
   items: ItemNameIndex | undefined
+  classToolIds?: readonly string[]
 }) {
   const data = entryData(entry)
   const armor = Array.isArray(data.armor)
@@ -202,12 +213,23 @@ function ClassDetail({
       {packs.length ? (
         <DetailSection title="Стартовое снаряжение">
           <ul className="create-pipeline__detail-list">
-            {packs.map((pack) => (
-              <li key={pack.id}>
-                <strong>{pack.labelRu}</strong>
-                {pack.summaryRu && !pack.isGold ? `: ${pack.summaryRu}` : ''}
-              </li>
-            ))}
+            {packs.map((pack) => {
+              const resolved =
+                !pack.isGold && items
+                  ? formatClassPackPreview({
+                      pack,
+                      classToolIds,
+                      items,
+                    })
+                  : ''
+              const line = resolved || pack.summaryRu || ''
+              return (
+                <li key={pack.id}>
+                  <strong>{pack.labelRu}</strong>
+                  {line && !pack.isGold ? `: ${line}` : ''}
+                </li>
+              )
+            })}
           </ul>
         </DetailSection>
       ) : null}
@@ -220,10 +242,12 @@ function BackgroundDetail({
   entry,
   feats,
   items,
+  backgroundToolId = null,
 }: {
   entry: CatalogEntry
   feats: readonly CatalogEntry[]
   items: ItemNameIndex | undefined
+  backgroundToolId?: string | null
 }) {
   const data = entryData(entry)
   const trio = backgroundAsiTrio(entry)
@@ -284,7 +308,19 @@ function BackgroundDetail({
       {gear ? (
         <DetailSection title="Снаряжение">
           <ul className="create-pipeline__detail-list">
-            {gear.pack_summary_ru ? <li>Пакет: {cleanText(gear.pack_summary_ru, 400)}</li> : null}
+            {gear.pack_summary_ru ? (
+              <li>
+                Пакет:{' '}
+                {items
+                  ? formatBackgroundPackPreview({
+                      packSummaryRu: gear.pack_summary_ru,
+                      backgroundToolId,
+                      toolChoices: backgroundToolChoicesOf(entry),
+                      items,
+                    })
+                  : cleanText(gear.pack_summary_ru, 400)}
+              </li>
+            ) : null}
             <li>Вместо пакета: {gear.gold_alternative_gp ?? 50} зм</li>
           </ul>
         </DetailSection>
@@ -400,6 +436,8 @@ export function Create2024DetailPanel({
   emptyHint = 'Выберите карточку слева.',
   feats = [],
   items,
+  backgroundToolId = null,
+  classToolIds = [],
   classNames,
   children,
 }: Create2024DetailPanelProps) {
@@ -413,9 +451,18 @@ export function Create2024DetailPanel({
     )
   }
   let body: ReactNode
-  if (kind === 'class') body = <ClassDetail entry={entry} items={items} />
-  else if (kind === 'background') body = <BackgroundDetail entry={entry} feats={feats} items={items} />
-  else if (kind === 'species') body = <SpeciesDetail entry={entry} />
+  if (kind === 'class') {
+    body = <ClassDetail entry={entry} items={items} classToolIds={classToolIds} />
+  } else if (kind === 'background') {
+    body = (
+      <BackgroundDetail
+        entry={entry}
+        feats={feats}
+        items={items}
+        backgroundToolId={backgroundToolId}
+      />
+    )
+  } else if (kind === 'species') body = <SpeciesDetail entry={entry} />
   else if (kind === 'spell') body = <SpellDetail entry={entry} classNames={classNames} />
   else body = <FeatDetail entry={entry} />
 
