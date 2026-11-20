@@ -42,10 +42,12 @@ import {
   type WizardSeedSpells,
 } from '../features/createPipeline2024/e2eWizardSeed2024'
 import {
+  buildMysticArtsSeedSpells,
   monkAsiChoicesForLevel,
   parseMonkSeed,
 } from '../features/createPipeline2024/e2eMonkSeed2024'
 import { createClassLevel, totalCharacterLevel } from '../shared/dnd/classLevels'
+import { thirdCasterBlock2024 } from '../shared/dnd/edition2024Subclasses'
 import { ensureHpChoices } from '../features/createPipeline/LevelingStep'
 import type { AbilityScores } from '../shared/dnd/multiclassRules'
 import {
@@ -461,6 +463,10 @@ export function CreateCharacter2024Page({
     const monkSpec = parseMonkSeed(e2eSeed)
     const monkClass = bySlug(catalog.classes, 'monk')
     if (monkSpec && monkClass) {
+      const mysticSpells =
+        monkSpec.subclassSlug === 'monk__warrior-of-the-mystic-arts'
+          ? buildMysticArtsSeedSpells(catalog.spells, monkSpec.level)
+          : null
       seeds[e2eSeed] = {
         name: `Монах ${monkSpec.level}`,
         classSlug: 'monk',
@@ -477,6 +483,7 @@ export function CreateCharacter2024Page({
         classToolIds: ['smiths-tools'],
         backgroundAsi: { con: 2, dex: 1 },
         asi: monkAsiChoicesForLevel(monkSpec.level),
+        ...(mysticSpells ? { spells: mysticSpells } : {}),
       }
     }
     const seed = seeds[e2eSeed] || seeds.fighter5
@@ -1278,6 +1285,34 @@ export function CreateCharacter2024Page({
                 }
                 if (picksChanged) patchBody.classOptionPicks = nextPicks
               }
+              if (state.classSlug === 'monk') {
+                const sub =
+                  (primary && state.subclassByEntryId[primary.id]) || state.subclassSlug || null
+                const mystic = sub === 'monk__warrior-of-the-mystic-arts'
+                if (mystic && newLevel < 3) {
+                  patchBody.subclassSlug = null
+                  if (primary) {
+                    patchBody.subclassByEntryId = {
+                      ...state.subclassByEntryId,
+                      [primary.id]: null,
+                    }
+                  }
+                  patchBody.cantripIds = []
+                  patchBody.preparedSpellIds = []
+                } else if (mystic) {
+                  const third = thirdCasterBlock2024(sub, newLevel)
+                  if (third) {
+                    const canNeed = Number(third.cantrips || 0)
+                    const prepNeed = Number(third.prepared_spells || 0)
+                    if (state.cantripIds.length > canNeed) {
+                      patchBody.cantripIds = state.cantripIds.slice(0, canNeed)
+                    }
+                    if (state.preparedSpellIds.length > prepNeed) {
+                      patchBody.preparedSpellIds = state.preparedSpellIds.slice(0, prepNeed)
+                    }
+                  }
+                }
+              }
               patch(patchBody)
             }}
             onHpChoicesChange={(hpChoices) => patch({ hpChoices })}
@@ -1302,6 +1337,15 @@ export function CreateCharacter2024Page({
                   ARCANE_TRICKSTER_LOCKED_CANTRIP,
                   ...state.cantripIds.filter((id) => id !== ARCANE_TRICKSTER_LOCKED_CANTRIP),
                 ]
+              }
+              // Leaving mystic arts clears its third-caster picks.
+              if (
+                classEntryId === state.primaryClassEntryId &&
+                state.subclassSlug === 'monk__warrior-of-the-mystic-arts' &&
+                subclassSlug !== 'monk__warrior-of-the-mystic-arts'
+              ) {
+                patchBody.cantripIds = []
+                patchBody.preparedSpellIds = []
               }
               patch(patchBody)
             }}

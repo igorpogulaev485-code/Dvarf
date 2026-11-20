@@ -396,9 +396,21 @@ SHARED_OPTIONS: dict[str, list[SharedPoolOption]] = {
         ),
     ],
     "monk__warrior-of-the-mystic-arts": [
-        SharedPoolOption("mystic-focus", "Мистический фокус", "focus_points", kind="bonus", min_level=6),
         SharedPoolOption(
-            "focused-strike", "Сосредоточенный удар", "focus_points", kind="passive", min_level=11
+            "mystic-focus",
+            "Мистическая сосредоточенность",
+            "focus_points",
+            cost=0,
+            kind="action",
+            min_level=6,
+        ),
+        SharedPoolOption(
+            "focused-strike",
+            "Сфокусированный удар",
+            "focus_points",
+            cost=0,
+            kind="passive",
+            min_level=11,
         ),
     ],
     # Druid — Wild Shape spends
@@ -2207,11 +2219,19 @@ def third_caster_block(
     slots = {str(i + 1): int(row[i]) for i in range(9)}
     budget = THIRD_CASTER_SPELLS_KNOWN[lv - 1]
     # EK + Arcane Trickster 2024: prepare wizard spells (no enchantment/illusion-only lock).
-    # Mystic Arts (monk) stays known-style.
+    # Mystic Arts (monk): prepare sorcerer spells (Wisdom).
     wizard_prepared = subclass_slug in {
         "fighter__eldritch-knight",
         "rogue__arcane-trickster",
     }
+    mystic_prepared = subclass_slug == "monk__warrior-of-the-mystic-arts"
+    prepared = wizard_prepared or mystic_prepared
+    if wizard_prepared:
+        spell_list = "wizard"
+    elif mystic_prepared:
+        spell_list = "sorcerer"
+    else:
+        spell_list = None
     return {
         "class_slug": subclass_parent(subclass_slug) or "class",
         "subclass_slug": subclass_slug,
@@ -2219,15 +2239,15 @@ def third_caster_block(
         "ability": meta["ability"],
         "name_ru": meta["name_ru"],
         "cantrips": THIRD_CASTER_CANTRIPS[lv - 1],
-        "prepared_spells": budget if wizard_prepared else 0,
-        "spells_known": 0 if wizard_prepared else budget,
+        "prepared_spells": budget if prepared else 0,
+        "spells_known": 0 if prepared else budget,
         "slots": slots,
         "pact_slots": None,
         "always_prepared": [],
-        "spell_list": "wizard" if wizard_prepared else None,
-        "prepare_mode": "prepared" if wizard_prepared else "known",
-        "replace_one_on_level": wizard_prepared,
-        "school_restriction": None if wizard_prepared else "2014_known",
+        "spell_list": spell_list,
+        "prepare_mode": "prepared" if prepared else "known",
+        "replace_one_on_level": prepared,
+        "school_restriction": None if prepared else "2014_known",
     }
 
 

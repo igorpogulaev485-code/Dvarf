@@ -1192,6 +1192,67 @@ def _rollback_bard_state(sheet: dict[str, Any], classes: Sequence[Mapping[str, A
     sheet["subclass_grants"] = kept_grants
 
 
+def _rollback_monk_mystic_state(sheet: dict[str, Any], classes: Sequence[Mapping[str, Any]]) -> None:
+    """Trim Мистический воин third-caster picks when level/budget drops."""
+    from app.dnd import edition_2024_subclasses as e24sub
+
+    row = next(
+        (r for r in classes if e24.normalize_class_slug(str(r.get("slug") or "")) == "monk"),
+        None,
+    )
+    if row is None:
+        return
+    level = int(row.get("level") or 1)
+    sub = str(row.get("subclass_slug") or row.get("subclass_catalog_id") or "")
+    meta = sheet.get("create_2024") if isinstance(sheet.get("create_2024"), dict) else {}
+    spells = sheet.get("spells") if isinstance(sheet.get("spells"), dict) else {}
+    known = list(spells.get("known") or []) if isinstance(spells.get("known"), list) else []
+
+    if level < 3 or sub != "monk__warrior-of-the-mystic-arts":
+        if meta:
+            meta["cantrip_ids"] = []
+            meta["prepared_spell_ids"] = []
+            sheet["create_2024"] = meta
+        if known:
+            # Drop monk-tagged third-caster rows; keep racial/feat grants.
+            kept = [
+                s
+                for s in known
+                if not (
+                    isinstance(s, Mapping)
+                    and str(s.get("class_slug") or "") == "monk"
+                    and not s.get("prepared_locked")
+                )
+            ]
+            spells["known"] = kept
+            sheet["spells"] = spells
+        return
+
+    block = e24sub.third_caster_block(sub, level) or {}
+    can_need = int(block.get("cantrips") or 0)
+    prep_need = int(block.get("prepared_spells") or 0)
+    cantrips = [str(x) for x in (meta.get("cantrip_ids") or [])][:can_need]
+    prepared = [str(x) for x in (meta.get("prepared_spell_ids") or [])][:prep_need]
+    if meta:
+        meta["cantrip_ids"] = cantrips
+        meta["prepared_spell_ids"] = prepared
+        sheet["create_2024"] = meta
+    allowed = set(cantrips) | set(prepared)
+    if known and allowed:
+        kept = []
+        for s in known:
+            if not isinstance(s, Mapping):
+                kept.append(s)
+                continue
+            slug = str(s.get("catalog_id") or s.get("id") or "")
+            if str(s.get("class_slug") or "") == "monk" and slug and slug not in allowed:
+                if not s.get("prepared_locked"):
+                    continue
+            kept.append(s)
+        spells["known"] = kept
+        sheet["spells"] = spells
+
+
 def _rollback_rogue_state(sheet: dict[str, Any], classes: Sequence[Mapping[str, Any]]) -> None:
     """Drop rogue Expertise picks that no longer fit the lowered level (2024)."""
     row = next(
@@ -1277,6 +1338,8 @@ def rollback_last_level_gain(sheet: dict[str, Any]) -> dict[str, Any]:
         _rollback_bard_state(sheet, kept)
     if class_slug == "rogue":
         _rollback_rogue_state(sheet, kept)
+    if class_slug == "monk":
+        _rollback_monk_mystic_state(sheet, kept)
 
     combat = sheet.setdefault("combat", {})
     combat["hp_max"] = max(1, int(combat.get("hp_max") or 0) - hp_gain)

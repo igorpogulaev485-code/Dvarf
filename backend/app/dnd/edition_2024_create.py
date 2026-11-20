@@ -1436,7 +1436,7 @@ def _validate_third_caster_spells_2024(
     subclass_slug: str,
     class_level: int,
 ) -> None:
-    """Enforce AT/EK 2024 create budgets (wizard list, no 2014 school lock)."""
+    """Enforce AT/EK/Mystic Arts 2024 create budgets (prepared list, no 2014 school lock)."""
     block = e24sub.third_caster_block(subclass_slug, class_level)
     if not block:
         return
@@ -1466,6 +1466,10 @@ def _validate_third_caster_spells_2024(
             code="create_2024_spells",
         )
     spell_list_slug = str(block.get("spell_list") or "wizard")
+    list_label = {
+        "wizard": "волшебника",
+        "sorcerer": "чародея",
+    }.get(spell_list_slug, spell_list_slug)
     spell_list = _class_spell_list_slugs(spell_list_slug)
     spells = load_spell_catalog()
     slots = block.get("slots") or {}
@@ -1481,7 +1485,7 @@ def _validate_third_caster_spells_2024(
             raise Create2024Error(f"{cid} не заговор", code="create_2024_spells")
         if spell_list and cid not in spell_list:
             raise Create2024Error(
-                f"Заговор {cid} не из списка волшебника",
+                f"Заговор {cid} не из списка {list_label}",
                 code="create_2024_spells",
             )
     for sid in prepared:
@@ -1496,7 +1500,7 @@ def _validate_third_caster_spells_2024(
             )
         if spell_list and sid not in spell_list:
             raise Create2024Error(
-                f"Заклинание {sid} не из списка волшебника",
+                f"Заклинание {sid} не из списка {list_label}",
                 code="create_2024_spells",
             )
 

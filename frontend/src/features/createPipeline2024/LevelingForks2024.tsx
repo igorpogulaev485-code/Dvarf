@@ -75,6 +75,7 @@ const CASTER_SLUGS = new Set([
 const THIRD_CASTER_SUBS = new Set([
   'fighter__eldritch-knight',
   'rogue__arcane-trickster',
+  'monk__warrior-of-the-mystic-arts',
 ])
 
 export type AsiChoice2024 = {

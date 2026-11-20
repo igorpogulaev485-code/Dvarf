@@ -321,6 +321,9 @@ export function SheetDialogsResources({ model }: { model: SheetModel }) {
     model.setDraft((prev) => ({
       ...prev,
       ...(result.featurePicks ? { featurePicks: result.featurePicks } : {}),
+      ...(result.slots
+        ? { spells: { ...prev.spells, slots: { ...prev.spells.slots, ...result.slots } } }
+        : {}),
       play: {
         ...prev.play,
         resources: result.resources,
@@ -1610,6 +1613,22 @@ export function SheetDialogsResources({ model }: { model: SheetModel }) {
           featurePicks={model.draft.featurePicks}
           monkLevel={monkLevel}
           wisMod={abilityModifier(model.draft.abilities.wis)}
+          subclassSlug={
+            (model.monkFeatureUse?.classEntryId &&
+              model.subclassSlugByEntryId?.[model.monkFeatureUse.classEntryId]) ||
+            model.draft.classes.find((r) => r.id === model.monkFeatureUse?.classEntryId)
+              ?.subclass_catalog_id ||
+            null
+          }
+          slots={model.draft.spells.slots}
+          cantripIds={model.draft.spells.known
+            .filter((s) => Number(s.level) === 0)
+            .map((s) => String(s.catalog_id || s.id || ''))
+            .filter(Boolean)}
+          preparedSpellIds={model.draft.spells.known
+            .filter((s) => Number(s.level) >= 1 && Boolean(s.prepared))
+            .map((s) => String(s.catalog_id || s.id || ''))
+            .filter(Boolean)}
           onClose={() => model.setMonkFeatureUse(null)}
           onConfirm={onMonkUseConfirm}
         />

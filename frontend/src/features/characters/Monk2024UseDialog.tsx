@@ -21,8 +21,19 @@ import {
   patientDefenseTempHpDice2024,
   SELF_RESTORATION_CONDITIONS_2024,
   slowFallReduce2024,
+  STUNNING_STRIKE_NAME_RU,
+  UNCANNY_METABOLISM_NAME_RU,
   type MonkFeatureUseResult,
 } from '../../shared/dnd/monk2024Features'
+import {
+  FOCUSED_STRIKE_NAME_RU,
+  IMPROVED_MYSTIC_FIGHTING_STYLE_NAME_RU,
+  isMysticArtsMonk2024,
+  MYSTIC_FIGHTING_STYLE_NAME_RU,
+  MYSTIC_FOCUS_NAME_RU,
+  MYSTIC_FOCUS_SLOT_RESTORE,
+} from '../../shared/dnd/monkBook2024Features'
+import type { SpellSlotState } from '../../shared/dnd/spells'
 
 export type MonkFeatureRequest = {
   featureId: string
@@ -39,6 +50,10 @@ type Props = {
   featurePicks: FeaturePicksState
   monkLevel: number
   wisMod?: number
+  subclassSlug?: string | null
+  slots?: Record<string, SpellSlotState> | null
+  cantripIds?: string[] | null
+  preparedSpellIds?: string[] | null
   onConfirm: (result: MonkFeatureUseResult) => void
   onClose: () => void
 }
@@ -50,6 +65,10 @@ export function Monk2024UseDialog({
   featurePicks,
   monkLevel,
   wisMod = 0,
+  subclassSlug = null,
+  slots = null,
+  cantripIds = null,
+  preparedSpellIds = null,
   onConfirm,
   onClose,
 }: Props) {
@@ -58,6 +77,7 @@ export function Monk2024UseDialog({
   const [paid, setPaid] = useState(false)
   const [choice, setChoice] = useState('')
   const [target, setTarget] = useState('')
+  const [slotLevel, setSlotLevel] = useState(1)
 
   const featureId =
     monk2024UseFeatureId(request?.featureId) ??
@@ -94,6 +114,16 @@ export function Monk2024UseDialog({
     ) {
       useMode = paid ? 'paid' : 'free'
     }
+    let useChoice = choice || undefined
+    let useAmount: number | undefined
+    if (featureId === 'mystic-focus') {
+      useMode = mode || 'slot-to-focus'
+      useChoice = String(slotLevel)
+      useAmount = slotLevel
+    }
+    if (featureId === 'improved-mystic-fighting-style') {
+      useAmount = Math.max(1, Math.min(2, slotLevel))
+    }
     const result = applyMonk2024FeatureUse({
       featureId: useFeatureId,
       resourceId: request!.resourceId,
@@ -103,12 +133,17 @@ export function Monk2024UseDialog({
       focusMax: focus?.max,
       focusUsed: focus?.used,
       mode: useMode,
-      choice: choice || undefined,
+      choice: useChoice,
       target: target || undefined,
+      amount: useAmount,
       featurePicks,
       cloakOfShadowsActive: cloakOn,
       metabolismUsed: metabolismRow ? metabolismRow.used >= metabolismRow.max : undefined,
       wisMod,
+      subclassSlug,
+      slots,
+      cantripIds,
+      preparedSpellIds,
     })
     onConfirm(result)
   }
@@ -292,6 +327,17 @@ export function Monk2024UseDialog({
                 Успех → ½ скорости
               </button>
             </div>
+            {isMysticArtsMonk2024(subclassSlug) && monkLevel >= 11 ? (
+              <>
+                <Text tone="muted">
+                  {FOCUSED_STRIKE_NAME_RU}: цель с помехой к спасам от твоих заклинаний до начала
+                  твоего следующего хода (даже при успехе).
+                </Text>
+                <Field label="Цель">
+                  <Input value={target} onChange={(e) => setTarget(e.target.value)} />
+                </Field>
+              </>
+            ) : null}
           </>
         ) : null}
 
@@ -540,6 +586,144 @@ export function Monk2024UseDialog({
           featureId,
         ) ? (
           <Text tone="muted">Справка по правилу — подтверди, чтобы записать в ленту.</Text>
+        ) : null}
+
+        {featureId === 'mystic-focus' ? (
+          <>
+            <Text>{MYSTIC_FOCUS_NAME_RU}: обмен ячеек ↔ очков.</Text>
+            <div className="chip-row">
+              <button
+                type="button"
+                className={`sheet-chip${mode !== 'focus-to-slot' ? ' is-on' : ''}`}
+                onClick={() => setMode('slot-to-focus')}
+              >
+                Ячейка → очки
+              </button>
+              <button
+                type="button"
+                className={`sheet-chip${mode === 'focus-to-slot' ? ' is-on' : ''}`}
+                onClick={() => setMode('focus-to-slot')}
+              >
+                Очки → ячейка
+              </button>
+            </div>
+            {mode !== 'focus-to-slot' ? (
+              <>
+                <Text tone="muted">Потрать ячейку (без действия) → очки = уровень ячейки.</Text>
+                <div className="chip-row">
+                  {[1, 2, 3, 4].map((lv) => (
+                    <button
+                      key={lv}
+                      type="button"
+                      className={`sheet-chip${slotLevel === lv ? ' is-on' : ''}`}
+                      onClick={() => setSlotLevel(lv)}
+                    >
+                      {lv} кр.
+                    </button>
+                  ))}
+                </div>
+              </>
+            ) : (
+              <>
+                <Text tone="muted">
+                  После короткого отдыха / {UNCANNY_METABOLISM_NAME_RU}: восстановить одну ячейку.
+                </Text>
+                <div className="chip-row">
+                  {MYSTIC_FOCUS_SLOT_RESTORE.filter((row) => monkLevel >= row.minMonkLevel).map(
+                    (row) => (
+                      <button
+                        key={row.slotLevel}
+                        type="button"
+                        className={`sheet-chip${slotLevel === row.slotLevel ? ' is-on' : ''}`}
+                        onClick={() => setSlotLevel(row.slotLevel)}
+                      >
+                        {row.slotLevel} кр. (−{row.focusCost})
+                      </button>
+                    ),
+                  )}
+                </div>
+              </>
+            )}
+          </>
+        ) : null}
+
+        {featureId === 'mystic-fighting-style' ? (
+          <>
+            <Text>
+              {MYSTIC_FIGHTING_STYLE_NAME_RU}: заменить один Безоружный удар заговором Чародея
+              (время — действие).
+            </Text>
+            <div className="chip-row">
+              {(cantripIds ?? []).length
+                ? (cantripIds ?? []).map((id) => (
+                    <button
+                      key={id}
+                      type="button"
+                      className={`sheet-chip${choice === id ? ' is-on' : ''}`}
+                      onClick={() => setChoice(id)}
+                    >
+                      {id}
+                    </button>
+                  ))
+                : null}
+            </div>
+            {!(cantripIds ?? []).length ? (
+              <Field label="Заговор (slug)">
+                <Input value={choice} onChange={(e) => setChoice(e.target.value)} />
+              </Field>
+            ) : null}
+          </>
+        ) : null}
+
+        {featureId === 'focused-strike' ? (
+          <Text tone="muted">
+            {FOCUSED_STRIKE_NAME_RU}: срабатывает при {STUNNING_STRIKE_NAME_RU} (см. кнопку
+            «Ошеломить»).
+          </Text>
+        ) : null}
+
+        {featureId === 'improved-mystic-fighting-style' ? (
+          <>
+            <Text>
+              {IMPROVED_MYSTIC_FIGHTING_STYLE_NAME_RU}: при Шквале заменить два Безоружных удара
+              заклинанием 1–2 круга (то же бонусное действие).
+            </Text>
+            <div className="chip-row">
+              <button
+                type="button"
+                className={`sheet-chip${slotLevel === 1 ? ' is-on' : ''}`}
+                onClick={() => setSlotLevel(1)}
+              >
+                1 кр.
+              </button>
+              <button
+                type="button"
+                className={`sheet-chip${slotLevel === 2 ? ' is-on' : ''}`}
+                onClick={() => setSlotLevel(2)}
+              >
+                2 кр.
+              </button>
+            </div>
+            <div className="chip-row">
+              {(preparedSpellIds ?? []).length
+                ? (preparedSpellIds ?? []).map((id) => (
+                    <button
+                      key={id}
+                      type="button"
+                      className={`sheet-chip${choice === id ? ' is-on' : ''}`}
+                      onClick={() => setChoice(id)}
+                    >
+                      {id}
+                    </button>
+                  ))
+                : null}
+            </div>
+            {!(preparedSpellIds ?? []).length ? (
+              <Field label="Заклинание (slug)">
+                <Input value={choice} onChange={(e) => setChoice(e.target.value)} />
+              </Field>
+            ) : null}
+          </>
         ) : null}
       </Stack>
     </Dialog>

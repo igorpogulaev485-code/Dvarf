@@ -1,0 +1,6 @@
+f2c233b50a0042d7485904f72cac93c4  after-create-2014-monk-class-390.png
+593794cbc8945111beb093cf3ee71614  after-create-2014-race-marker-390.png
+465120be46ff43cae1ab144faa64579e  after-sheet-2014-monk-abilities-390.png
+407732cabd39675ed8428994291537f8  after-sheet-2014-monk-features-390.png
+f5e786b38e911e416ec129e3636cb94c  after-sheet-2014-monk-header-390.png
+59dffb86a4328e3e37f469ebcaf09ff7  after-sheet-2014-openhand-features-390.png
