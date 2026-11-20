@@ -36,6 +36,11 @@ import { Paladin2024UseDialog, type PaladinFeatureRequest } from '../Paladin2024
 import { Ranger2024UseDialog, type RangerFeatureRequest } from '../Ranger2024UseDialog'
 import { Fighter2024UseDialog, type FighterFeatureRequest } from '../Fighter2024UseDialog'
 import { Barbarian2024UseDialog, type BarbarianFeatureRequest } from '../Barbarian2024UseDialog'
+import {
+  Rogue2024UseDialog,
+  type RogueFeatureRequestUi,
+  type Rogue2024UseResult,
+} from '../Rogue2024UseDialog'
 import { Artificer2024UseDialog, type ArtificerFeatureRequest } from '../Artificer2024UseDialog'
 import {
   artificer2024UseFeatureId,
@@ -99,6 +104,7 @@ import {
   barbarian2024UseFeatureId,
   type Barbarian2024UseResult,
 } from '../../../shared/dnd/barbarian2024Features'
+import { rogue2024UseFeatureId } from '../../../shared/dnd/rogue2024Features'
 import { Druid2024UseDialog, type DruidFeatureRequest, type Druid2024ConfirmResult } from '../Druid2024UseDialog'
 import { druid2024UseFeatureId } from '../../../shared/dnd/druid2024Features'
 import { addFlexibleSpellSlot } from '../../../shared/dnd/spells'
@@ -482,6 +488,22 @@ export function SheetDialogsResources({ model }: { model: SheetModel }) {
     }
     model.onToast(result.message)
     model.setBarbarianFeatureUse(null)
+  }
+
+  const onRogueUseConfirm = (result: Rogue2024UseResult) => {
+    if (!result.ok) {
+      model.onToast(result.message ?? 'Не удалось применить умение')
+      return
+    }
+    model.setDraft((prev) => ({
+      ...prev,
+      play: {
+        ...prev.play,
+        resources: result.resources,
+      },
+    }))
+    model.onToast(result.message)
+    model.setRogueFeatureUse(null)
   }
 
   const onArtificerUseConfirm = (result: Artificer2024UseResult) => {
@@ -1003,6 +1025,26 @@ export function SheetDialogsResources({ model }: { model: SheetModel }) {
         : null) ??
       null
     )
+  })()
+
+  const rogueRequest = model.rogueFeatureUse as RogueFeatureRequestUi | null
+  const rogue2024Use =
+    model.rulesEdition === '2024' &&
+    rogueRequest != null &&
+    rogue2024UseFeatureId(rogueRequest.featureId)
+
+  const rogueLevel = (() => {
+    const entry = rogueRequest
+      ? model.draft.classes.find((row) => row.id === rogueRequest.classEntryId)
+      : null
+    if (entry) return Math.max(0, entry.level || 0)
+    let level = 0
+    for (const row of model.draft.classes) {
+      if (resolveClassCasterSlug(row.name) === 'rogue' || /плут|разбойник/i.test(row.name)) {
+        level += Math.max(0, row.level || 0)
+      }
+    }
+    return level
   })()
 
   const artificerRequest = model.artificerFeatureUse as ArtificerFeatureRequest | null
@@ -1584,6 +1626,18 @@ export function SheetDialogsResources({ model }: { model: SheetModel }) {
           classOptions2024={model.draft.classOptions2024}
           onClose={() => model.setBarbarianFeatureUse(null)}
           onConfirm={onBarbarianUseConfirm}
+        />
+      ) : null}
+
+      {rogue2024Use ? (
+        <Rogue2024UseDialog
+          key={`${rogueRequest?.featureId}:${rogueRequest?.classEntryId}`}
+          open
+          request={rogueRequest}
+          resources={model.draft.play.resources}
+          rogueLevel={rogueLevel}
+          onClose={() => model.setRogueFeatureUse(null)}
+          onConfirm={onRogueUseConfirm}
         />
       ) : null}
 

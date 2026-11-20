@@ -23,6 +23,7 @@ from typing import Any, Mapping, Sequence
 
 from app.dnd import edition_2024_classes as e24
 from app.dnd import edition_2024_class_options as e24opt
+from app.dnd import edition_2024_subclasses as e24sub
 from app.dnd import weapon_mastery as wm
 from app.dnd.edition_2024_languages import (
     COMMON_LANGUAGE_ID,
@@ -1299,6 +1300,80 @@ BARD_MAGICAL_SECRETS_LEVEL_2024 = 10
 BARD_MAGICAL_SECRETS_LISTS_2024 = ("bard", "wizard", "druid", "cleric")
 
 
+ARCANE_TRICKSTER_LOCKED_CANTRIP_2024 = "mage-hand"
+
+
+def _validate_third_caster_spells_2024(
+    payload: Create2024Payload,
+    *,
+    subclass_slug: str,
+    class_level: int,
+) -> None:
+    """Enforce AT/EK 2024 create budgets (wizard list, no 2014 school lock)."""
+    block = e24sub.third_caster_block(subclass_slug, class_level)
+    if not block:
+        return
+    cantrips = [_normalize_slug(x) for x in payload.cantrip_ids]
+    prepared = [_normalize_slug(x) for x in payload.prepared_spell_ids]
+    locked: list[str] = []
+    if subclass_slug == "rogue__arcane-trickster":
+        locked = [ARCANE_TRICKSTER_LOCKED_CANTRIP_2024]
+        if ARCANE_TRICKSTER_LOCKED_CANTRIP_2024 not in cantrips:
+            raise Create2024Error(
+                "Мистический ловкач: «Волшебная рука» обязательна",
+                code="create_2024_spells",
+            )
+    cantrip_need = int(block.get("cantrips") or 0) + len(locked)
+    prep_need = int(block.get("prepared_spells") or 0)
+    if len(cantrips) != cantrip_need or len(set(cantrips)) != len(cantrips):
+        raise Create2024Error(
+            f"Нужно {cantrip_need} {_ru_plural(cantrip_need, 'заговор', 'заговора', 'заговоров')}, "
+            f"выбрано {len(cantrips)}",
+            code="create_2024_spells",
+        )
+    if len(prepared) != prep_need or len(set(prepared)) != len(prepared):
+        raise Create2024Error(
+            f"Нужно {prep_need} "
+            f"{_ru_plural(prep_need, 'подготовленное заклинание', 'подготовленных заклинания', 'подготовленных заклинаний')}, "
+            f"выбрано {len(prepared)}",
+            code="create_2024_spells",
+        )
+    spell_list_slug = str(block.get("spell_list") or "wizard")
+    spell_list = _class_spell_list_slugs(spell_list_slug)
+    spells = load_spell_catalog()
+    slots = block.get("slots") or {}
+    max_circle = max(
+        (int(k) for k, n in slots.items() if int(n or 0) > 0),
+        default=1,
+    )
+    for cid in cantrips:
+        row = spells.get(cid)
+        if row is None:
+            raise Create2024Error(f"Неизвестный заговор: {cid}", code="create_2024_spells")
+        if _spell_level(row) != 0:
+            raise Create2024Error(f"{cid} не заговор", code="create_2024_spells")
+        if spell_list and cid not in spell_list:
+            raise Create2024Error(
+                f"Заговор {cid} не из списка волшебника",
+                code="create_2024_spells",
+            )
+    for sid in prepared:
+        row = spells.get(sid)
+        if row is None:
+            raise Create2024Error(f"Неизвестное заклинание: {sid}", code="create_2024_spells")
+        circle = _spell_level(row)
+        if circle < 1 or circle > max_circle:
+            raise Create2024Error(
+                f"{sid}: на ур. {class_level} доступны круги 1–{max_circle}",
+                code="create_2024_spells",
+            )
+        if spell_list and sid not in spell_list:
+            raise Create2024Error(
+                f"Заклинание {sid} не из списка волшебника",
+                code="create_2024_spells",
+            )
+
+
 def _bard_prepared_column_2024(bard_level: int) -> int:
     """Prepared-spells column for a single-class bard (table, no subclass free spells)."""
     level = max(1, min(20, int(bard_level or 1)))
@@ -1383,6 +1458,54 @@ def _bard_expertise_need_2024(bard_level: int) -> int:
     if bard_level >= 2:
         return 2
     return 0
+
+
+def _rogue_expertise_need_2024(rogue_level: int) -> int:
+    """Rogue Expertise picks: 2 @1, 4 @6+."""
+    if rogue_level >= 6:
+        return 4
+    if rogue_level >= 1:
+        return 2
+    return 0
+
+
+def _validate_rogue_options_2024(payload: Create2024Payload, picks: Mapping[str, Any]) -> dict[str, Any]:
+    """Rogue 2024 create picks: Expertise 2 @ L1, 4 @ L6+ (skills or thieves' tools)."""
+    out: dict[str, Any] = {}
+    rogue_level = _planned_class_level(payload, "rogue")
+    need = _rogue_expertise_need_2024(rogue_level)
+    expertise = [str(x) for x in (picks.get("expertise") or [])]
+    if need:
+        if len(expertise) != need or len(set(expertise)) != need:
+            raise Create2024Error(
+                f"Плут {rogue_level}: выберите {need} различных навыка/инструмента для Компетентности",
+                code="create_2024_class_options",
+            )
+        out["expertise"] = expertise
+    elif expertise:
+        raise Create2024Error(
+            "Плут: Компетентность на 1+ уровне",
+            code="create_2024_class_options",
+        )
+    return out
+
+
+def _sync_rogue_picks(sheet: dict[str, Any], class_options: Mapping[str, Any]) -> None:
+    """Mirror Expertise picks into feature_picks (expertise + expertise_6)."""
+    for row in sheet.get("classes") or []:
+        if not isinstance(row, dict):
+            continue
+        if e24.normalize_class_slug(str(row.get("slug") or "")) != "rogue":
+            continue
+        class_entry = str(row.get("id") or "class-rogue")
+        expertise = [str(x) for x in (class_options.get("expertise") or [])]
+        if expertise:
+            picks = sheet.get("feature_picks")
+            values = dict(picks.get("values") or {}) if isinstance(picks, dict) else {}
+            values[f"{class_entry}:expertise"] = ",".join(expertise[:2])
+            if len(expertise) > 2:
+                values[f"{class_entry}:expertise_6"] = ",".join(expertise[2:4])
+            sheet["feature_picks"] = {"values": values}
 
 
 def _planned_primary_subclass(payload: Create2024Payload) -> str:
@@ -2051,13 +2174,7 @@ def _validate_class_options(
     if payload.class_slug == "bard":
         out.update(_validate_bard_options_2024(payload, picks))
     if payload.class_slug == "rogue":
-        expertise = [str(x) for x in (picks.get("expertise") or [])]
-        if len(expertise) != 2 or len(set(expertise)) != 2:
-            raise Create2024Error(
-                "Плут: выберите два навыка/инструмента для компетентности",
-                code="create_2024_class_options",
-            )
-        out["expertise"] = expertise
+        out.update(_validate_rogue_options_2024(payload, picks))
     if payload.class_slug == "warlock":
         raw_inv = picks.get("eldritch_invocations") or picks.get("invocations") or []
         inv = [_normalize_slug(str(x)) for x in raw_inv]
@@ -2326,12 +2443,57 @@ def validate_create_2024(payload: Create2024Payload) -> Create2024Result:
     _sync_land_choice_pick(sheet)
     _sync_known_forms(sheet, class_options)
     _sync_bard_picks(sheet, class_options)
+    _sync_rogue_picks(sheet, class_options)
     _sync_blessed_warrior_picks(sheet, class_options, fighting_style=fighting_style)
     _sync_druidic_warrior_picks(sheet, class_options, fighting_style=fighting_style)
     _sync_ranger_subclass_picks(sheet, class_options)
     _sync_artificer_subclass_picks(sheet, class_options)
     # Magical Secrets: create-at-N prepared may use Wizard/Druid/Cleric lists from bard 10+.
     _validate_bard_magical_secrets_prepared_2024(payload)
+
+    # Third-caster subclass (AT/EK): require wizard-list cantrips/prepared by final level.
+    third_sub = ""
+    third_lv = 0
+    if levels_plan and levels_plan.class_levels:
+        for row in levels_plan.class_levels:
+            sub = _normalize_slug(str(row.subclass_slug or ""))
+            if sub in e24sub.THIRD_CASTER_SUBCLASSES:
+                third_sub = sub
+                third_lv = max(third_lv, int(row.level or 0))
+    if not third_sub:
+        top_sub = _normalize_slug(str(payload.subclass_slug or ""))
+        if top_sub in e24sub.THIRD_CASTER_SUBCLASSES:
+            third_sub = top_sub
+            third_lv = final_level if final_level > 1 else _planned_class_level(payload, payload.class_slug)
+    if third_sub and third_lv >= 3:
+        _validate_third_caster_spells_2024(
+            payload,
+            subclass_slug=third_sub,
+            class_level=third_lv,
+        )
+        # Stamp INT casting + third-caster slots onto the sheet (rogue/fighter L1 has no caster).
+        block = e24sub.third_caster_block(third_sub, third_lv) or {}
+        meta = e24sub.THIRD_CASTER_SUBCLASSES.get(third_sub) or {}
+        spells_sheet = sheet.get("spells")
+        if isinstance(spells_sheet, dict):
+            ability = str(meta.get("ability") or block.get("ability") or "int")
+            spells_sheet["casting_ability"] = ability
+            slots = block.get("slots") or {}
+            if slots:
+                # Sheet slots are {circle: {max, used}} or bare counts depending on path;
+                # normalize to max/used objects when values are ints.
+                normalized: dict[str, Any] = {}
+                for key, raw in dict(slots).items():
+                    if isinstance(raw, Mapping):
+                        normalized[str(key)] = {
+                            "max": int(raw.get("max") or raw.get("count") or 0),
+                            "used": int(raw.get("used") or 0),
+                        }
+                    else:
+                        normalized[str(key)] = {"max": int(raw or 0), "used": 0}
+                spells_sheet["slots"] = normalized
+            # AT: cantrips already include Mage Hand from payload; keep known rows.
+            sheet["spells"] = spells_sheet
 
     # Class name line: primary + multiclass summary.
     class_name = str(class_row.get("name_ru") or class_slug)
@@ -2602,6 +2764,10 @@ def _build_sheet(
 
     # Saves
     save_prof = {str(x).lower() for x in (class_data.get("saving_throws") or [])}
+    # Slippery Mind 2024 (L15+): Wis AND Cha (2014 path is Wis-only via 2014 pack).
+    planned_rogue = _planned_class_level(payload, "rogue") if payload.class_slug == "rogue" else 0
+    if payload.class_slug == "rogue" and planned_rogue >= 15:
+        save_prof |= {"wis", "cha"}
     sheet["saves"] = {
         k: {"is_proficient": k in save_prof} for k in ABILITY_KEYS
     }

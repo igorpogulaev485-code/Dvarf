@@ -392,6 +392,16 @@ RESOURCE_META: dict[str, dict[str, Any]] = {
         "feature_id": "arcane-recovery",
         "fixed_uses": 1,
     },
+    # Rogue L20 Stroke of Luck (2024): D20 Test → 20; 1 / short or long.
+    "stroke_of_luck": {
+        "name_ru": "Удача",
+        "reset": "short",
+        "track": "spend",
+        "on_hot": True,
+        "feature_id": "stroke-of-luck",
+        "fixed_uses": 1,
+        "note_ru": "При провале проверки к20 (атака, проверка, спас) — результат кости = 20.",
+    },
 }
 
 # Divine Sense is a Channel Divinity *option* for Paladin 2024, not a separate pool.
@@ -653,9 +663,13 @@ def _feature_rows_for_class(
             # Placeholder markers — real subclass features come from subclass pack.
             if fid.endswith("-subclass") or fid == "subclass-feature":
                 continue
+            # Rogue catalog keeps id «expertise» at L1 and L6 — second unlock → expertise_6.
+            out_id = fid.replace("-", "_")
+            if slug == "rogue" and out_id == "expertise" and lv >= 6:
+                out_id = "expertise_6"
             rows.append(
                 ClassFeatureRow(
-                    id=fid.replace("-", "_"),
+                    id=out_id,
                     class_slug=slug,
                     class_level=lv,
                     name_ru=str(feat.get("name_ru") or fid),
@@ -862,6 +876,18 @@ def _build_resources_for_class(
             raw.setdefault("tireless_uses", True)
         if "natures-veil" in ranger_features:
             raw.setdefault("natures_veil_uses", True)
+
+    # Rogue Stroke of Luck (L20) — not listed as a numeric pool in the class table.
+    if slug == "rogue" and catalog and level >= 20:
+        has_stroke = False
+        for lr in catalog["data"].get("levels") or []:
+            if int(lr.get("level") or 0) > level:
+                continue
+            for f in lr.get("features") or []:
+                if f.get("id") in {"stroke-of-luck", "stroke_of_luck"}:
+                    has_stroke = True
+        if has_stroke:
+            raw.setdefault("stroke_of_luck", 1)
 
     # Artificer Magic of Making / Flash of Genius / Magic Item Tinker / Spell-Storing —
     # derived pools (not always listed as numeric resources in the class table).

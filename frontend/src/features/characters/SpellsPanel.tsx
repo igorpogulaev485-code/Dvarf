@@ -231,9 +231,23 @@ export function SpellsPanel({
     onInitialCastConsumed?.()
   }, [initialCastSpellId, spells.known, onInitialCastConsumed])
 
-  const abilityKey = spells.casting_ability
+  const castProfilesEarly = useMemo(() => {
+    const rows = classes?.filter((row) => row.name.trim() && row.level > 0) ?? []
+    if (rows.length === 0) return []
+    return buildCastProfiles({
+      classes: rows,
+      subclassCasters,
+      abilityModFor: (ability) => abilityModifier(abilities[ability]),
+      proficiencyBonus,
+    })
+  }, [classes, subclassCasters, abilities, proficiencyBonus])
+  const abilityKey =
+    spells.casting_ability ??
+    (castProfilesEarly.length === 1 ? castProfilesEarly[0]?.ability ?? null : null)
   const abilityMod = abilityKey ? abilityModifier(abilities[abilityKey]) : 0
   const preparedCount = countPreparedLeveled(spells.known)
+  const isThirdCasterOnly =
+    castProfilesEarly.length > 0 && castProfilesEarly.every((row) => row.kind === 'third')
 
   const suggestion = useMemo(
     () =>
@@ -274,16 +288,7 @@ export function SpellsPanel({
       : budgets
   }, [classes, subclassCasters, abilities, proficiencyBonus, edition, extraCantripsBySlug])
 
-  const castProfiles = useMemo(() => {
-    const rows = classes?.filter((row) => row.name.trim() && row.level > 0) ?? []
-    if (rows.length === 0) return []
-    return buildCastProfiles({
-      classes: rows,
-      subclassCasters,
-      abilityModFor: (ability) => abilityModifier(abilities[ability]),
-      proficiencyBonus,
-    })
-  }, [classes, subclassCasters, abilities, proficiencyBonus])
+  const castProfiles = castProfilesEarly
 
   const headerClass = castProfiles.length === 1 ? castProfiles[0]?.slug ?? null : null
   const castStats = withSpellCastBonuses({
@@ -293,8 +298,9 @@ export function SpellsPanel({
     vars: formulaVars,
     classSlug: headerClass,
   })
-  const dc = castStats.dc
-  const attack = castStats.attack
+  const dc = castStats.dc ?? (castProfiles.length === 1 ? castProfiles[0]?.saveDc ?? null : null)
+  const attack =
+    castStats.attack ?? (castProfiles.length === 1 ? castProfiles[0]?.attackBonus ?? null : null)
 
   const combatPool = useMemo(() => {
     if (showAllKnown) return spells.known
@@ -900,9 +906,11 @@ export function SpellsPanel({
     >
       <Stack gap={14}>
         <Text tone="muted">
-          {knownCaster
-            ? 'Известные заклинания всегда доступны для каста. Каст тратит ячейку или ячейку договора. Новые — из гримуара.'
-            : 'Боевой список = заговоры + подготовленные. Каст тратит ячейку. Новые — из гримуара, затем подготовь.'}
+          {isThirdCasterOnly
+            ? 'Боевой список = заговоры + подготовленные из списка волшебника. Каст тратит ячейку. Книги заклинаний нет.'
+            : knownCaster
+              ? 'Известные заклинания всегда доступны для каста. Каст тратит ячейку или ячейку договора. Новые — из гримуара.'
+              : 'Боевой список = заговоры + подготовленные. Каст тратит ячейку. Новые — из гримуара, затем подготовь.'}
         </Text>
 
         <div className="spells-summary">
@@ -1014,10 +1022,12 @@ export function SpellsPanel({
               Подготовить
             </Button>
           ) : null}
-          <Button variant="secondary" onClick={() => setGrimoireOpen(true)}>
-            <IconSpellBook className="spells-btn-icon" />
-            Гримуар
-          </Button>
+          {!isThirdCasterOnly ? (
+            <Button variant="secondary" onClick={() => setGrimoireOpen(true)}>
+              <IconSpellBook className="spells-btn-icon" />
+              Гримуар
+            </Button>
+          ) : null}
           {ritualBookLabel && onOpenRitualBook ? (
             <Button variant="secondary" onClick={onOpenRitualBook}>
               <IconSpellBook className="spells-btn-icon" />

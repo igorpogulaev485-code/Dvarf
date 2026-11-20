@@ -524,9 +524,21 @@ export function applyAttackSpend(state: TurnEconomyState): TurnEconomyState {
 const STEADY_AIM_HINT =
   'Точное прицеливание: бонусным — преимущество на следующую атаку, если ещё не двигался; скорость 0 до конца хода'
 
-/** L-20 / T-02: «Точное прицеливание» (TCE, плут 3+). */
-export function canSpendSteadyAim(state: TurnEconomyState): TurnSpendResult {
-  if (state.moved) {
+const STEADY_AIM_HINT_INFILTRATION =
+  'Точное прицеливание (Мастерство внедрения): бонусным — преимущество на следующую атаку; можно после движения, скорость не 0'
+
+export type SteadyAimOptions = {
+  /** Assassin Infiltration Expertise 2024: ignore «already moved» and speed 0. */
+  allowsMoved?: boolean
+  noSpeedZero?: boolean
+}
+
+/** L-20 / T-02: «Точное прицеливание» (TCE / PHB 2024, плут 3+). */
+export function canSpendSteadyAim(
+  state: TurnEconomyState,
+  options?: SteadyAimOptions,
+): TurnSpendResult {
+  if (state.moved && !options?.allowsMoved) {
     return {
       ok: false,
       reason: 'уже двигался в этот ход',
@@ -544,13 +556,22 @@ export function canSpendSteadyAim(state: TurnEconomyState): TurnSpendResult {
   return { ok: true }
 }
 
-export function applySteadyAim(state: TurnEconomyState): TurnEconomyState {
-  if (!canSpendSteadyAim(state).ok) return state
+export function applySteadyAim(
+  state: TurnEconomyState,
+  options?: SteadyAimOptions,
+): TurnEconomyState {
+  if (!canSpendSteadyAim(state, options).ok) return state
   return {
     ...state,
     bonus: true,
     steadyAim: true,
   }
+}
+
+export function steadyAimHintRu(options?: SteadyAimOptions): string {
+  return options?.allowsMoved || options?.noSpeedZero
+    ? STEADY_AIM_HINT_INFILTRATION
+    : STEADY_AIM_HINT
 }
 
 export function setMoved(

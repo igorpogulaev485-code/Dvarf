@@ -2599,16 +2599,16 @@ export function PlayDeskAttacksCompact({
       ) : null}
 
       {hasAssassinate2024 ? (
-        <div className="chip-row" style={{ marginBottom: 8 }} role="group" aria-label="Ликвидация 2024">
+        <div className="chip-row" style={{ marginBottom: 8 }} role="group" aria-label="Убийство 2024">
           <button
             type="button"
             className={`sheet-chip${assassinateRound1On ? ' is-on' : ''}`}
             aria-pressed={assassinateRound1On}
             data-testid="assassinate-round1-chip"
-            title="1-й раунд · цель ещё не ходила · доп. урон Коварной = ур. плута (без авто-крита)"
+            title="1-й раунд · цель ещё не ходила · доп. урон Скрытой атаки = ур. плута (без авто-крита)"
             onClick={() => setAssassinateRound1On((v) => !v)}
           >
-            Ликвидация · ещё не ходила
+            Убийство · ещё не ходила
           </button>
         </div>
       ) : null}

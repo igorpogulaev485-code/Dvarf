@@ -36,6 +36,12 @@ import {
   loreDiscoveriesOutstanding2024,
 } from './bard2024Features'
 import {
+  EXPERTISE_6_MIN_LEVEL_2024,
+  EXPERTISE_MIN_LEVEL_2024 as ROGUE_EXPERTISE_MIN_LEVEL_2024,
+  expertise6Choice2024,
+  expertiseChoice2024 as rogueExpertiseChoice2024,
+} from './rogue2024Features'
+import {
   DEFENSIVE_TACTICS_MIN_LEVEL_2024,
   DEFT_EXPLORER_MIN_LEVEL_2024,
   DEFT_EXPLORER_FEATURE_ID_2024,
@@ -300,6 +306,44 @@ export function buildPendingWizardSteps2024(input: PendingWizardInput2024): Guid
     const rows = [
       { featureId: 'expertise', choice: expertiseChoice2024, minLevel: EXPERTISE_MIN_LEVEL_2024 },
       { featureId: 'expertise_9', choice: expertise9Choice2024, minLevel: EXPERTISE_9_MIN_LEVEL_2024 },
+    ]
+    for (const row of rows) {
+      if (level < row.minLevel) continue
+      const picked = input.featurePicks
+        ? getFeatureChoicePickList(
+            input.featurePicks,
+            input.classEntryId,
+            row.featureId,
+            row.choice.id,
+          ).length >= (row.choice.max_picks ?? 2)
+        : false
+      if (picked) continue
+      steps.push({
+        id: `feature_choice:${input.classEntryId}:${row.featureId}`,
+        kind: 'feature_choice',
+        classEntryId: input.classEntryId,
+        className: input.className,
+        classLevel: level,
+        featureId: row.featureId,
+        featureNameRu: row.choice.label_ru,
+        featureLevel: row.minLevel,
+        choice: row.choice,
+      })
+    }
+  }
+
+  if (slug === 'rogue') {
+    const rows = [
+      {
+        featureId: 'expertise',
+        choice: rogueExpertiseChoice2024,
+        minLevel: ROGUE_EXPERTISE_MIN_LEVEL_2024,
+      },
+      {
+        featureId: 'expertise_6',
+        choice: expertise6Choice2024,
+        minLevel: EXPERTISE_6_MIN_LEVEL_2024,
+      },
     ]
     for (const row of rows) {
       if (level < row.minLevel) continue

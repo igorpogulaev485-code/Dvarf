@@ -1,0 +1,6 @@
+593794cbc8945111beb093cf3ee71614  before-create-2014-race-marker-390.png
+f81359a1f771c507d0baab41b50e9651  before-create-2014-rogue-class-390.png
+eeda9a80896263106c6995e3f6742134  before-sheet-2014-rogue-header-390.png
+361a3ff19807d3c8663ed14af09d5c36  before-sheet-2014-rogue-abilities-390.png
+1c2d37c0b36a9cbc08acca9f9fdc20ca  before-sheet-2014-rogue-features-390.png
+84a63b1a2ff77dbfc319c08568bcfb94  before-sheet-2014-assassin-features-390.png

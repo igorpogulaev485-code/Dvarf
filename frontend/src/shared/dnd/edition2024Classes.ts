@@ -17,6 +17,10 @@ import type { DesiredFeatureResource } from './featureResources'
 import type { SheetResource } from './rest'
 import { expertise9Choice2024, expertiseChoice2024 } from './bard2024Features'
 import {
+  expertise6Choice2024,
+  expertiseChoice2024 as rogueExpertiseChoice2024,
+} from './rogue2024Features'
+import {
   deftExplorerChoice2024,
   defensiveTacticsChoice2024,
   huntersPreyChoice2024,
@@ -393,6 +397,15 @@ const RESOURCE_META: Record<string, ResourceMeta> = {
     kind: 'resource',
     on_hot: false,
     unlock_level: 2,
+  },
+  stroke_of_luck: {
+    name_ru: 'Удача',
+    reset: 'short',
+    feature_id: 'stroke-of-luck',
+    fixed_uses: 1,
+    kind: 'resource',
+    on_hot: true,
+    unlock_level: 20,
   },
   contact_patron: {
     name_ru: 'Связь с покровителем',
@@ -895,8 +908,13 @@ export function computeProgression2024(input: {
           }
           continue
         }
+        // Rogue catalog keeps id «expertise» at L1 and L6 — second unlock → expertise_6.
+        let outId = fid
+        if (cls.slug === 'rogue' && fid === 'expertise' && lv >= 6) {
+          outId = 'expertise_6'
+        }
         features.push({
-          id: fid,
+          id: outId,
           level: lv,
           name_ru: String(feat.name_ru || fid),
           name_en: String(feat.name_en || fid),
@@ -913,6 +931,12 @@ export function computeProgression2024(input: {
           ...(fid === 'scholar' ? { choice: SCHOLAR_CHOICE_2024 } : {}),
           ...(cls.slug === 'bard' && fid === 'expertise' ? { choice: expertiseChoice2024 } : {}),
           ...(cls.slug === 'bard' && fid === 'expertise_9' ? { choice: expertise9Choice2024 } : {}),
+          ...(cls.slug === 'rogue' && outId === 'expertise'
+            ? { choice: rogueExpertiseChoice2024 }
+            : {}),
+          ...(cls.slug === 'rogue' && outId === 'expertise_6'
+            ? { choice: expertise6Choice2024 }
+            : {}),
           ...(cls.slug === 'ranger' && fid === 'deft_explorer' ? { choice: deftExplorerChoice2024 } : {}),
           ...(cls.slug === 'ranger' && fid === 'expertise' ? { choice: rangerExpertiseChoice2024 } : {}),
           ...(fid === 'blessed_strikes' && cls.slug === 'cleric'
@@ -926,6 +950,10 @@ export function computeProgression2024(input: {
             : {}),
           // Disciplined Survivor (2024): proficiency in all saving throws (like Diamond Soul 2014).
           ...(fid === 'disciplined_survivor' ? { save_proficiency: 'all' as const } : {}),
+          // Slippery Mind 2024: Wis + Cha (2014 pack is Wis-only).
+          ...(cls.slug === 'rogue' && fid === 'slippery_mind'
+            ? { save_proficiency: ['wis', 'cha'] as const }
+            : {}),
         })
       }
     }
@@ -1075,6 +1103,16 @@ export function computeProgression2024(input: {
     if (hasArcane && cls.slug === 'wizard') rawRes.arcane_recovery = 1
     if (hasSorcerousRestoration && cls.slug === 'sorcerer') rawRes.sorcerous_restoration = 1
     if (hasUncannyMetabolism && cls.slug === 'monk') rawRes.uncanny_metabolism = 1
+    if (cls.slug === 'rogue' && cls.level >= 20) {
+      for (const lr of levels) {
+        if (Number(lr.level || 0) > cls.level) continue
+        for (const f of (lr.features as Array<Record<string, unknown>>) || []) {
+          if (f.id === 'stroke-of-luck' || f.id === 'stroke_of_luck') {
+            rawRes.stroke_of_luck = 1
+          }
+        }
+      }
+    }
     if (cls.slug === 'artificer' && cls.level >= 1) {
       rawRes.magic_of_making = true
       let hasFlash = false
@@ -1476,10 +1514,15 @@ export function computeProgression2024(input: {
     if (cls.subclassSlug && THIRD_CASTER_SUBCLASSES[cls.subclassSlug]) {
       const third = thirdCasterBlock2024(cls.subclassSlug, cls.level)
       if (third) {
+        // Arcane Trickster: Mage Hand is a free locked grant on top of the table column.
+        const cantrips =
+          cls.subclassSlug === 'rogue__arcane-trickster'
+            ? Number(third.cantrips || 0) + 1
+            : Number(third.cantrips || 0)
         spellcasting.push({
           class_slug: third.class_slug,
           progression: 'third',
-          cantrips: third.cantrips,
+          cantrips,
           prepared_spells: third.prepared_spells,
           slots: third.slots,
           pact_slots: null,

@@ -1192,6 +1192,45 @@ def _rollback_bard_state(sheet: dict[str, Any], classes: Sequence[Mapping[str, A
     sheet["subclass_grants"] = kept_grants
 
 
+def _rollback_rogue_state(sheet: dict[str, Any], classes: Sequence[Mapping[str, Any]]) -> None:
+    """Drop rogue Expertise picks that no longer fit the lowered level (2024)."""
+    row = next(
+        (r for r in classes if e24.normalize_class_slug(str(r.get("slug") or "")) == "rogue"),
+        None,
+    )
+    if row is None:
+        return
+    level = int(row.get("level") or 1)
+    entry = str(row.get("id") or "class-rogue")
+    skills = sheet.get("skills") if isinstance(sheet.get("skills"), dict) else {}
+
+    def unset_expertise(keys: Sequence[str]) -> None:
+        for key in keys:
+            if isinstance(skills.get(key), dict):
+                skills[key]["is_expertise"] = False
+
+    picks = sheet.get("feature_picks")
+    values = dict(picks.get("values") or {}) if isinstance(picks, dict) else {}
+    if level < 6 and f"{entry}:expertise_6" in values:
+        unset_expertise([x for x in str(values.pop(f"{entry}:expertise_6")).split(",") if x])
+    if level < 6 and f"{entry}:expertise" in values:
+        exp2 = [x for x in str(values.get(f"{entry}:expertise") or "").split(",") if x]
+        if len(exp2) > 2:
+            unset_expertise(exp2[2:])
+            values[f"{entry}:expertise"] = ",".join(exp2[:2])
+    if level < 1 and f"{entry}:expertise" in values:
+        unset_expertise([x for x in str(values.pop(f"{entry}:expertise")).split(",") if x])
+    # Slippery Mind 2024: drop Cha/Wis grant when falling below 15 (keep class Dex/Int).
+    if level < 15:
+        saves = sheet.get("saves") if isinstance(sheet.get("saves"), dict) else {}
+        for key in ("wis", "cha"):
+            block = saves.get(key)
+            if isinstance(block, dict):
+                block["is_proficient"] = False
+    if isinstance(picks, dict):
+        sheet["feature_picks"] = {**picks, "values": values}
+
+
 def rollback_last_level_gain(sheet: dict[str, Any]) -> dict[str, Any]:
     """Remove the last recorded level gain (cascade-safe only for the tip level).
 
@@ -1236,6 +1275,8 @@ def rollback_last_level_gain(sheet: dict[str, Any]) -> dict[str, Any]:
     sheet["classes"] = kept
     if class_slug == "bard":
         _rollback_bard_state(sheet, kept)
+    if class_slug == "rogue":
+        _rollback_rogue_state(sheet, kept)
 
     combat = sheet.setdefault("combat", {})
     combat["hp_max"] = max(1, int(combat.get("hp_max") or 0) - hp_gain)

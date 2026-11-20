@@ -49,16 +49,20 @@ function suggestionFromProgression2024(
     return null
   }
   const primary = snap.spellcasting[0]
+  // Prefer ability from the 2024 block (third-caster AT/EK → int).
+  const fromBlock = String(primary?.ability || '').trim().toLowerCase()
   const ability =
-    primary?.class_slug === 'wizard' || primary?.class_slug === 'artificer'
-      ? 'int'
-      : primary?.class_slug === 'cleric' ||
-          primary?.class_slug === 'druid' ||
-          primary?.class_slug === 'ranger'
-        ? 'wis'
-        : primary
-          ? 'cha'
-          : null
+    fromBlock === 'int' || fromBlock === 'wis' || fromBlock === 'cha'
+      ? (fromBlock as 'int' | 'wis' | 'cha')
+      : primary?.class_slug === 'wizard' || primary?.class_slug === 'artificer'
+        ? 'int'
+        : primary?.class_slug === 'cleric' ||
+            primary?.class_slug === 'druid' ||
+            primary?.class_slug === 'ranger'
+          ? 'wis'
+          : primary
+            ? 'cha'
+            : null
   const slots = Object.fromEntries(
     Object.entries(snap.multiclass_slots).map(([k, max]) => [k, clampSlot({ max, used: 0 })]),
   )
@@ -210,8 +214,17 @@ export function useSpellcastingSheetSync({
   const appliedClassLevel = useRef<string | null>(null)
   useEffect(() => {
     if (!enabled) return
-    if (appliedClassLevel.current == null) {
+    const firstMount = appliedClassLevel.current == null
+    if (firstMount) {
       appliedClassLevel.current = classLevelKey
+      // Create-at-N third casters (AT/EK) may arrive with casting_ability null —
+      // fill from the 2024/2014 suggestion once so DC/атака не «—».
+      if (suggestion && spells.casting_ability == null && suggestion.casting_ability) {
+        const next = applySpellcastingSuggestion(spells, suggestion)
+        if (spellcastingTableChanged(spells, next)) {
+          onChange({ ...spells, ...next })
+        }
+      }
       return
     }
     if (appliedClassLevel.current === classLevelKey) return

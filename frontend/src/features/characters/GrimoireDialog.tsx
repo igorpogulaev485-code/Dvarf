@@ -286,7 +286,7 @@ export function GrimoireDialog({
     const maxSpellLevel = suggestion
       ? highestSpellSlotLevel(suggestion.slots, suggestion.pact_slots)
       : 0
-    const schoolGate = thirdCasterSchoolGate(activeClasses, subclassCasters)
+    const schoolGate = thirdCasterSchoolGate(activeClasses, subclassCasters, edition)
     return {
       classSlugs,
       maxSpellLevel,

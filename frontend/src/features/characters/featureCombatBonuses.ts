@@ -354,7 +354,7 @@ export function assassinate2024ExtraDamage(input: {
   const amount = Math.max(1, Math.floor(feature.classLevel ?? 1))
   return {
     amount,
-    label: `Ликвидация +${amount}`,
+    label: `Убийство +${amount}`,
   }
 }
 

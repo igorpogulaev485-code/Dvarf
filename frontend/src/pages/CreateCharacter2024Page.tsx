@@ -20,8 +20,9 @@ import {
   BackgroundPicks,
   BardLevelingPicks,
   ArtificerLevelingPicks,
-  RangerLevelingPicks,
   BarbarianLevelingPicks,
+  RangerLevelingPicks,
+  RogueLevelingPicks,
   ClassPicks,
   SpeciesFeatPicks,
   SpeciesPicks,
@@ -82,6 +83,7 @@ import {
   toggleUniquePick,
 } from '../features/createPipeline2024/createPipeline2024State'
 import {
+  ARCANE_TRICKSTER_LOCKED_CANTRIP,
   CREATE_2024_STEP_LABELS,
   classL1Spellcasting,
   classSpellcastingAtLevel,
@@ -1024,6 +1026,10 @@ export function CreateCharacter2024Page({
   if (step === 'leveling') {
     detailPrimary = true
     const classSlug = state.classSlug || ''
+    const primaryRow =
+      state.classes.find((row) => row.id === state.primaryClassEntryId) ?? state.classes[0]
+    const subclassSlug =
+      (primaryRow && state.subclassByEntryId[primaryRow.id]) || state.subclassSlug || null
     const wizardLevel = Math.max(
       1,
       state.classes.find((c) => c.name === classEntry?.name_ru || classSlug === 'wizard')?.level ??
@@ -1035,21 +1041,27 @@ export function CreateCharacter2024Page({
           classSlug === 'cleric' ? String(state.classOptionPicks.divine_order || '') : null,
         primalOrder:
           classSlug === 'druid' ? String(state.classOptionPicks.primal_order || '') : null,
-      }) ?? classL1Spellcasting(classEntry)
+        subclassSlug,
+      }) ?? (subclassSlug ? null : classL1Spellcasting(classEntry))
+    const spellListSlug = sc?.spellListSlug || classSlug
+    const lockedCantrips = sc?.lockedCantrips ?? []
     const maxBookCircle = Math.max(
       1,
       sc && sc.maxSlotLevel > 0
         ? sc.maxSlotLevel
-        : maxSpellLevelForClassAlone('full', wizardLevel) || 1,
+        : maxSpellLevelForClassAlone(
+            sc?.spellListSlug && sc.spellListSlug !== classSlug ? 'third' : 'full',
+            wizardLevel,
+          ) || 1,
     )
-    const cantrips = spellsByLevelForClass(catalogData.spells, 0, [classSlug])
-    const bookPool = spellsUpToLevelForClass(catalogData.spells, maxBookCircle, [classSlug])
+    const cantrips = spellsByLevelForClass(catalogData.spells, 0, [spellListSlug])
+    const bookPool = spellsUpToLevelForClass(catalogData.spells, maxBookCircle, [spellListSlug])
     // Magical Secrets (bard 10+): prepared picker unions Bard + Wizard + Druid + Cleric
     // (same extra lists as GrimoireDialog extraListSlugs).
     const preparedListSlugs =
       classSlug === 'bard' && wizardLevel >= 10
         ? (['bard', 'wizard', 'druid', 'cleric'] as const)
-        : ([classSlug] as const)
+        : ([spellListSlug] as const)
     // Prepared casters (sorcerer 2024 etc.): same circle cap as slots — not L1-only.
     const preparedPool = spellsUpToLevelForClass(
       catalogData.spells,
@@ -1208,7 +1220,22 @@ export function CreateCharacter2024Page({
               }
               const primarySub =
                 classEntryId === state.primaryClassEntryId ? subclassSlug : state.subclassSlug
-              patch({ subclassByEntryId: next, subclassSlug: primarySub })
+              const patchBody: Partial<Create2024State> = {
+                subclassByEntryId: next,
+                subclassSlug: primarySub,
+              }
+              // Arcane Trickster: Mage Hand is mandatory from 3rd — lock it into cantrips.
+              if (
+                classEntryId === state.primaryClassEntryId &&
+                subclassSlug === 'rogue__arcane-trickster' &&
+                !state.cantripIds.includes(ARCANE_TRICKSTER_LOCKED_CANTRIP)
+              ) {
+                patchBody.cantripIds = [
+                  ARCANE_TRICKSTER_LOCKED_CANTRIP,
+                  ...state.cantripIds.filter((id) => id !== ARCANE_TRICKSTER_LOCKED_CANTRIP),
+                ]
+              }
+              patch(patchBody)
             }}
             onAsiChoicesChange={(asiChoices) => patch({ asiChoices })}
             blessedStrikesPick={
@@ -1262,6 +1289,7 @@ export function CreateCharacter2024Page({
               allSkillIds={model.skills.map((row) => row.key)}
             />
           ) : null}
+          {classSlug === 'rogue' ? <RogueLevelingPicks state={state} patch={patch} /> : null}
           {classSlug === 'ranger' ? <RangerLevelingPicks state={state} patch={patch} /> : null}
           {classSlug === 'barbarian' ? (
             <BarbarianLevelingPicks state={state} patch={patch} catalog={catalog} />
@@ -1336,10 +1364,15 @@ export function CreateCharacter2024Page({
                       {wizardBook && tab === 'book'
                         ? `. Книга: ≥6 первого круга, далее любой доступный · круги 1–${maxBookCircle}.`
                         : null}
+                      {!wizardBook && tab === 'cantrips' && lockedCantrips.includes(ARCANE_TRICKSTER_LOCKED_CANTRIP)
+                        ? '. «Волшебная рука» обязательна; ещё заговоры волшебника (её заменить нельзя).'
+                        : null}
                       {!wizardBook && tab === 'level1' && maxBookCircle > 0
                         ? classSlug === 'bard' && wizardLevel >= 10
                           ? `. Магические тайны: списки Барда, Волшебника, Друида, Жреца · круги 1–${maxBookCircle}.`
-                          : `. Подготовка из списка класса · круги 1–${maxBookCircle} (по ячейкам).`
+                          : spellListSlug === 'wizard' && classSlug !== 'wizard'
+                            ? `. Подготовка из списка Волшебника (без ограничения школ) · круги 1–${maxBookCircle}.`
+                            : `. Подготовка из списка класса · круги 1–${maxBookCircle} (по ячейкам).`
                         : null}
                     </p>
                   </Stack>
@@ -1363,9 +1396,30 @@ export function CreateCharacter2024Page({
                     const entry = catalogData.spells.find((row) => row.slug === slug)
                     if (entry && catalogSpellLevel(entry) > maxBookCircle) return
                   }
+                  if (tab === 'cantrips' && lockedCantrips.includes(slug) && selected.includes(slug)) {
+                    // Locked AT Mage Hand (and similar) cannot be deselected.
+                    return
+                  }
                   const nextList = toggleUniquePick(selected, slug, max)
-                  if (tab === 'cantrips') patch({ cantripIds: nextList })
-                  else patch({ preparedSpellIds: nextList })
+                  if (tab === 'cantrips') {
+                    const withLocked = [
+                      ...lockedCantrips.filter((id) => !nextList.includes(id)),
+                      ...nextList,
+                    ].slice(0, Math.max(max, lockedCantrips.length))
+                    // Keep locked cantrips even if toggleUniquePick dropped them for cap.
+                    const merged = Array.from(
+                      new Set([...lockedCantrips, ...withLocked]),
+                    ).slice(0, max)
+                    // If over cap after forcing locked, drop non-locked from the end.
+                    while (merged.length > max) {
+                      const idx = [...merged].reverse().findIndex((id) => !lockedCantrips.includes(id))
+                      if (idx < 0) break
+                      merged.splice(merged.length - 1 - idx, 1)
+                    }
+                    patch({ cantripIds: merged })
+                  } else {
+                    patch({ preparedSpellIds: nextList })
+                  }
                 }}
               />
               {focus ? (

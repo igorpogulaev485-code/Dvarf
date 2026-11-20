@@ -97,6 +97,13 @@ import {
 } from '../../shared/dnd/barbarian2024Features'
 import type { BarbarianFeatureRequest } from './Barbarian2024UseDialog'
 import {
+  ROGUE_2024_CARD_BUTTONS,
+  isRogueClassSlug,
+  rogue2024UseFeatureId,
+  rogueFeatureNameRu2024,
+} from '../../shared/dnd/rogue2024Features'
+import type { RogueFeatureRequestUi } from './Rogue2024UseDialog'
+import {
   ARTIFICER_2024_CARD_BUTTONS,
   artificer2024UseFeatureId,
 } from '../../shared/dnd/artificer2024Features'
@@ -292,6 +299,7 @@ type ClassFeaturesPanelProps = {
   onRangerFeatureUse?: (request: RangerFeatureRequest) => void
   onFighterFeatureUse?: (request: FighterFeatureRequest) => void
   onBarbarianFeatureUse?: (request: BarbarianFeatureRequest) => void
+  onRogueFeatureUse?: (request: RogueFeatureRequestUi) => void
   onArtificerFeatureUse?: (request: ArtificerFeatureRequest) => void
   /** Open sorcery-points spend dialog (2024 metamagic / font). */
   onSorceryPointsSpend?: (resourceId: string) => void
@@ -474,6 +482,7 @@ function FeatureResourceControls({
   onRangerFeatureUse,
   onFighterFeatureUse,
   onBarbarianFeatureUse,
+  onRogueFeatureUse,
   onFeatureBuffApply,
   moonCombatWildShape = false,
   scaleText = null,
@@ -504,6 +513,7 @@ function FeatureResourceControls({
   onRangerFeatureUse?: (request: RangerFeatureRequest) => void
   onFighterFeatureUse?: (request: FighterFeatureRequest) => void
   onBarbarianFeatureUse?: (request: BarbarianFeatureRequest) => void
+  onRogueFeatureUse?: (request: RogueFeatureRequestUi) => void
   onFeatureBuffApply?: ClassFeaturesPanelProps['onFeatureBuffApply']
   /** Circle of the Moon: Wild Shape is a bonus action. */
   moonCombatWildShape?: boolean
@@ -1059,6 +1069,23 @@ function FeatureResourceControls({
             }
           >
             {BARBARIAN_2024_CARD_BUTTONS[feature.id] ?? 'Применить…'}
+          </Button>
+        ) : edition === '2024' &&
+          onRogueFeatureUse &&
+          rogue2024UseFeatureId(feature.id) ? (
+          <Button
+            type="button"
+            onClick={() =>
+              onRogueFeatureUse({
+                featureId: feature.id,
+                resourceId: pool.id,
+                classSlug,
+                classEntryId: feature.classEntryId,
+                name: feature.name_ru,
+              })
+            }
+          >
+            {ROGUE_2024_CARD_BUTTONS[feature.id] ?? 'Применить…'}
           </Button>
         ) : edition === '2024' &&
           onDruidFeatureUse &&
@@ -2340,6 +2367,7 @@ function FeatureRow({
   onRangerFeatureUse,
   onFighterFeatureUse,
   onBarbarianFeatureUse,
+  onRogueFeatureUse,
   onArtificerFeatureUse,
   onSorceryPointsSpend,
   moonCombatWildShape = false,
@@ -2401,6 +2429,7 @@ function FeatureRow({
   onRangerFeatureUse?: (request: RangerFeatureRequest) => void
   onFighterFeatureUse?: (request: FighterFeatureRequest) => void
   onBarbarianFeatureUse?: (request: BarbarianFeatureRequest) => void
+  onRogueFeatureUse?: (request: RogueFeatureRequestUi) => void
   onArtificerFeatureUse?: (request: ArtificerFeatureRequest) => void
   onSorceryPointsSpend?: (resourceId: string) => void
   moonCombatWildShape?: boolean
@@ -2487,6 +2516,11 @@ function FeatureRow({
     ? !asiEntry
     : (Boolean(feature.choice) && !isFeatureChoiceComplete(feature, featurePicks)) ||
       tomeCantripsPending
+
+  const featureDisplayName =
+    edition === '2024' && isRogueClassSlug(classSlug)
+      ? rogueFeatureNameRu2024(feature.id) || feature.name_ru
+      : feature.name_ru
 
   const druidFormula2024 =
     edition === '2024'
@@ -2590,7 +2624,7 @@ function FeatureRow({
           <span className="feature-card__level" aria-hidden>
             {feature.level}
           </span>
-          <b className="feature-card__name">{feature.name_ru}</b>
+          <b className="feature-card__name">{featureDisplayName}</b>
           <span className={`inventory-role inventory-role--${roleClass}`}>{role}</span>
           {replacementBadge}
           {optionalBadge && !showReplacementBadge ? (
@@ -2614,7 +2648,7 @@ function FeatureRow({
           <span className="feature-card__level" aria-hidden>
             {feature.level}
           </span>
-          <b className="feature-card__name">{feature.name_ru}</b>
+          <b className="feature-card__name">{featureDisplayName}</b>
           <span className={`inventory-role inventory-role--${roleClass}`}>{role}</span>
           {replacementBadge}
           {optionalBadge && !showReplacementBadge ? (
@@ -2665,7 +2699,7 @@ function FeatureRow({
         </button>
       </div>
       <h3 className="feature-card__title">
-        {feature.name_ru}
+        {featureDisplayName}
         {scaleShown ? (
           <strong className="feature-row__scale"> · {scaleShown}</strong>
         ) : null}
@@ -2952,6 +2986,28 @@ function FeatureRow({
       ) : null}
       {replacementStatus === 'active' &&
       edition === '2024' &&
+      onRogueFeatureUse &&
+      !feature.resource?.pool_id &&
+      rogue2024UseFeatureId(feature.id) ? (
+        <div className="feature-resource__actions">
+          <Button
+            type="button"
+            onClick={() =>
+              onRogueFeatureUse({
+                featureId: feature.id,
+                resourceId: null,
+                classSlug,
+                classEntryId: feature.classEntryId,
+                name: feature.name_ru,
+              })
+            }
+          >
+            {ROGUE_2024_CARD_BUTTONS[feature.id] ?? 'Применить…'}
+          </Button>
+        </div>
+      ) : null}
+      {replacementStatus === 'active' &&
+      edition === '2024' &&
       onArtificerFeatureUse &&
       artificer2024UseFeatureId(feature.id) &&
       (!feature.resource?.pool_id ||
@@ -3145,6 +3201,7 @@ function FeatureRow({
           onRangerFeatureUse={onRangerFeatureUse}
           onFighterFeatureUse={onFighterFeatureUse}
           onBarbarianFeatureUse={onBarbarianFeatureUse}
+          onRogueFeatureUse={onRogueFeatureUse}
           onFeatureBuffApply={onFeatureBuffApply}
           moonCombatWildShape={moonCombatWildShape}
           scaleText={scaleShown}
@@ -3369,6 +3426,7 @@ export function ClassFeaturesPanel({
   onRangerFeatureUse,
   onFighterFeatureUse,
   onBarbarianFeatureUse,
+  onRogueFeatureUse,
   onArtificerFeatureUse,
   onSorceryPointsSpend,
   onMoonFormSlotHeal,
@@ -3958,6 +4016,7 @@ export function ClassFeaturesPanel({
                             onRangerFeatureUse={onRangerFeatureUse}
                             onFighterFeatureUse={onFighterFeatureUse}
                             onBarbarianFeatureUse={onBarbarianFeatureUse}
+                            onRogueFeatureUse={onRogueFeatureUse}
                             onArtificerFeatureUse={onArtificerFeatureUse}
                             onSorceryPointsSpend={onSorceryPointsSpend}
                             moonCombatWildShape={moonCombatWildShape}

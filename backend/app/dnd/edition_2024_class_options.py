@@ -48,6 +48,8 @@ class StrikeOption:
     min_level: int = 5
     summary_ru: str = ""
     requires_kit: str | None = None
+    # Optional subclass gate (parent__child slug fragment or exact slug).
+    requires_subclass: str | None = None
 
 
 # —— Eldritch Invocations (SRD 5.2.1, 28) ——
@@ -146,14 +148,25 @@ def metamagic_known_limit(sorcerer_level: int) -> int:
     return 2
 
 
-# —— Cunning Strike (SRD base + Devious Strikes) ——
+# —— Cunning Strike (SRD base + Devious Strikes + Thief Supreme Sneak) ——
 CUNNING_STRIKE_2024: tuple[StrikeOption, ...] = (
-    StrikeOption("poison", "Poison", "Яд", 1, "con", 5, "Спас Тел. или Отравлен 1 мин.", requires_kit="poisoners-kit"),
-    StrikeOption("trip", "Trip", "Подножка", 1, "dex", 5, "Большое или меньше: спас Лов. или Опрокинут."),
-    StrikeOption("withdraw", "Withdraw", "Отход", 1, None, 5, "Перемещение до половины скорости без провоцированных."),
-    StrikeOption("daze", "Daze", "Оглушение", 2, "con", 14, "Спас Тел. или на след. ходу только движение ИЛИ действие ИЛИ бонусное."),
-    StrikeOption("knock-out", "Knock Out", "Нокаут", 6, "con", 14, "Спас Тел. или Бессознателен 1 мин. / до урона."),
-    StrikeOption("obscure", "Obscure", "Затмение", 3, "dex", 14, "Спас Лов. или Слепота до конца своего след. хода."),
+    StrikeOption("poison", "Poison", "Отравление", 1, "con", 5, "Спас Тел. или Отравлена 1 мин.; повтор в конце каждого своего хода. Нужны инструменты отравителя.", requires_kit="poisoners-kit"),
+    StrikeOption("trip", "Trip", "Подсечка", 1, "dex", 5, "Цель Большая или меньше: спас Лов. или Опрокинута."),
+    StrikeOption("withdraw", "Withdraw", "Отступление", 1, None, 5, "Сразу после атаки переместиться до половины скорости без провоцированных."),
+    StrikeOption("daze", "Daze", "Шок", 2, "con", 14, "Спас Тел. или в следующий свой ход цель может только либо переместиться, либо совершить одно действие, либо бонусное."),
+    StrikeOption("knock-out", "Knock Out", "Нокаут", 6, "con", 14, "Спас Тел. или Бессознательна 1 мин. / до урона; повтор в конце каждого своего хода."),
+    StrikeOption("obscure", "Obscure", "Ослепление", 3, "dex", 14, "Спас Лов. или Ослеплена до конца своего следующего хода."),
+    # Thief L9+: Supreme Sneak as a Cunning Strike option (1 die).
+    StrikeOption(
+        "supreme-sneak",
+        "Supreme Sneak",
+        "Скрытная атака",
+        1,
+        None,
+        9,
+        "До конца текущего хода — преимущество на проверки Скрытности (Хитрое действие: Засада).",
+        requires_subclass="rogue__thief",
+    ),
 )
 CUNNING_BY_ID = {row.id: row for row in CUNNING_STRIKE_2024}
 
@@ -386,6 +399,14 @@ def apply_metamagic_spend(
     }
 
 
+def _subclass_matches(required: str | None, subclass_slug: str | None) -> bool:
+    if not required:
+        return True
+    key = str(subclass_slug or "").strip().lower().replace("_", "-")
+    need = str(required).strip().lower().replace("_", "-")
+    return bool(key) and (key == need or key.endswith(need) or need in key)
+
+
 def resolve_cunning_strike(
     *,
     option_ids: Sequence[str],
@@ -394,6 +415,7 @@ def resolve_cunning_strike(
     dex_mod: int,
     proficiency_bonus: int,
     has_poisoners_kit: bool = False,
+    subclass_slug: str | None = None,
 ) -> dict[str, Any]:
     if rogue_level < 5:
         raise Edition2024ClassError("Хитрый удар с 5 ур. плута", code="cunning_level")
@@ -416,9 +438,14 @@ def resolve_cunning_strike(
                 f"«{opt.name_ru}» с {opt.min_level} ур.",
                 code="cunning_option_level",
             )
+        if opt.requires_subclass and not _subclass_matches(opt.requires_subclass, subclass_slug):
+            raise Edition2024ClassError(
+                f"«{opt.name_ru}» доступен подклассу Вор (с 9 ур.)",
+                code="cunning_subclass",
+            )
         if opt.requires_kit == "poisoners-kit" and not has_poisoners_kit:
             raise Edition2024ClassError(
-                "Для «Яда» нужен набор отравителя",
+                "Для «Отравления» нужен набор отравителя",
                 code="cunning_kit",
             )
         cost += opt.cost_dice
@@ -761,6 +788,7 @@ def validate_class_options_update(
                     "save": r.save,
                     "min_level": r.min_level,
                     "summary_ru": r.summary_ru,
+                    "requires_subclass": r.requires_subclass,
                 }
                 for r in CUNNING_STRIKE_2024
             ],
