@@ -137,12 +137,27 @@ export const SUBCLASS_CATALOG_2024 = buildCatalog()
 /** PHB 2024 create wizard: core PHB/SRD subclasses only (no XGE/SCAG/FRHoF/AU). */
 const CREATE_SUBCLASS_SOURCES_2024 = new Set(['ph24', 'srd-5.2', 'srd'])
 
+/** EFA Artificer specialties (Forge of the Artificer) — allowed in create; not RTW Reanimator. */
+const EFA_ARTIFICER_SUBCLASS_SLUGS = new Set([
+  'artificer__alchemist',
+  'artificer__armorer',
+  'artificer__artillerist',
+  'artificer__battle-smith',
+  'artificer__cartographer',
+])
+
 export function isPhb2024CreateSubclass(slug: string, source?: string | null): boolean {
-  const row = SUBCLASS_CATALOG_2024[slug]
+  const key = String(slug || '')
+    .trim()
+    .toLowerCase()
+  const row = SUBCLASS_CATALOG_2024[key] || SUBCLASS_CATALOG_2024[slug]
   const src = String(source || row?.source || '')
     .trim()
     .toLowerCase()
   if (CREATE_SUBCLASS_SOURCES_2024.has(src)) return true
+  // Artificer EFA specialties (P24-M02-artificer); exclude Reanimator (rtw / out of pack).
+  if (src === 'efa' && EFA_ARTIFICER_SUBCLASS_SLUGS.has(key)) return true
+  if (!src && EFA_ARTIFICER_SUBCLASS_SLUGS.has(key)) return true
   // Catalog API may omit source; fall back to known PHB table rows.
   return Boolean(row && CREATE_SUBCLASS_SOURCES_2024.has(String(row.source || '').toLowerCase()))
 }
@@ -629,12 +644,12 @@ export function buildSubclassResources2024(input: {
     push('arcane_shot', 'Чародейный выстрел', Math.max(1, intMod), 'long', 'arcane-shot')
   } else if (subclassSlug === 'artificer__alchemist') {
     push('experimental_elixir', 'Экспериментальный эликсир', scaleUses(classLevel, { 3: 2, 5: 3, 9: 4, 15: 5 }), 'long', 'experimental-elixir')
-    if (classLevel >= 9) push('restorative_reagents', 'Малое восстановление (реагенты)', Math.max(1, intMod), 'long', 'restorative-reagents')
+    if (classLevel >= 9) push('restorative_reagents', 'Восстанавливающие реагенты', Math.max(1, intMod), 'long', 'restorative-reagents')
   } else if (subclassSlug === 'artificer__artillerist') {
     push('eldritch_cannon', 'Мистическая пушка', 1, 'long', 'eldritch-cannon')
   } else if (subclassSlug === 'artificer__battle-smith') {
     push('steel_defender', 'Стальной защитник', 1, 'long', 'steel-defender')
-    if (classLevel >= 9) push('arcane_jolt', 'Мистический импульс', Math.max(1, intMod), 'long', 'arcane-jolt')
+    if (classLevel >= 9) push('arcane_jolt', 'Магический импульс', Math.max(1, intMod), 'long', 'arcane-jolt')
   } else if (subclassSlug === 'artificer__cartographer') {
     push('adventure_atlas', 'Атлас приключений', Math.max(1, intMod), 'long', 'adventure-atlas')
   } else if (subclassSlug === 'artificer__reanimator') {

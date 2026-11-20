@@ -86,6 +86,11 @@ import {
   RANGER_2024_CARD_BUTTONS,
   ranger2024UseFeatureId,
 } from '../../shared/dnd/ranger2024Features'
+import {
+  ARTIFICER_2024_CARD_BUTTONS,
+  artificer2024UseFeatureId,
+} from '../../shared/dnd/artificer2024Features'
+import type { ArtificerFeatureRequest } from './Artificer2024UseDialog'
 import type { WizardFeatureRequest } from './WizardFeatureUseDialog'
 import type { SorcererFeatureRequest } from './SorcererFeatureUseDialog'
 import type { MonkFeatureRequest } from './Monk2024UseDialog'
@@ -275,6 +280,7 @@ type ClassFeaturesPanelProps = {
   onBardFeatureUse?: (request: BardFeatureRequest) => void
   onDruidFeatureUse?: (request: DruidFeatureRequest) => void
   onRangerFeatureUse?: (request: RangerFeatureRequest) => void
+  onArtificerFeatureUse?: (request: ArtificerFeatureRequest) => void
   /** Open sorcery-points spend dialog (2024 metamagic / font). */
   onSorceryPointsSpend?: (resourceId: string) => void
   /**
@@ -2279,6 +2285,7 @@ function FeatureRow({
   onBardFeatureUse,
   onDruidFeatureUse,
   onRangerFeatureUse,
+  onArtificerFeatureUse,
   onSorceryPointsSpend,
   moonCombatWildShape = false,
   onMoonFormSlotHeal,
@@ -2337,6 +2344,7 @@ function FeatureRow({
   onBardFeatureUse?: (request: BardFeatureRequest) => void
   onDruidFeatureUse?: (request: DruidFeatureRequest) => void
   onRangerFeatureUse?: (request: RangerFeatureRequest) => void
+  onArtificerFeatureUse?: (request: ArtificerFeatureRequest) => void
   onSorceryPointsSpend?: (resourceId: string) => void
   moonCombatWildShape?: boolean
   onMoonFormSlotHeal?: (input: {
@@ -2842,6 +2850,33 @@ function FeatureRow({
       ) : null}
       {replacementStatus === 'active' &&
       edition === '2024' &&
+      onArtificerFeatureUse &&
+      artificer2024UseFeatureId(feature.id) &&
+      (!feature.resource?.pool_id ||
+        /spell-storing|spell_storing|replicate-magic|replicate_magic/i.test(feature.id)) ? (
+        <div className="feature-resource__actions">
+          <Button
+            type="button"
+            onClick={() =>
+              onArtificerFeatureUse({
+                featureId: feature.id,
+                resourceId: feature.resource
+                  ? `feat:${classSlug}:${feature.resource.pool_id}:${feature.classEntryId}`
+                  : null,
+                classSlug,
+                classEntryId: feature.classEntryId,
+                name: feature.name_ru,
+              })
+            }
+          >
+            {ARTIFICER_2024_CARD_BUTTONS[feature.id] ??
+              ARTIFICER_2024_CARD_BUTTONS[feature.id.replace(/_/g, '-')] ??
+              'Применить…'}
+          </Button>
+        </div>
+      ) : null}
+      {replacementStatus === 'active' &&
+      edition === '2024' &&
       onDruidFeatureUse &&
       !feature.resource?.pool_id &&
       feature.id !== 'wild_shape' &&
@@ -3228,6 +3263,7 @@ export function ClassFeaturesPanel({
   onBardFeatureUse,
   onDruidFeatureUse,
   onRangerFeatureUse,
+  onArtificerFeatureUse,
   onSorceryPointsSpend,
   onMoonFormSlotHeal,
   divineSmiteIntent,
@@ -3814,6 +3850,7 @@ export function ClassFeaturesPanel({
                             onBardFeatureUse={onBardFeatureUse}
                             onDruidFeatureUse={onDruidFeatureUse}
                             onRangerFeatureUse={onRangerFeatureUse}
+                            onArtificerFeatureUse={onArtificerFeatureUse}
                             onSorceryPointsSpend={onSorceryPointsSpend}
                             moonCombatWildShape={moonCombatWildShape}
                             onMoonFormSlotHeal={onMoonFormSlotHeal}

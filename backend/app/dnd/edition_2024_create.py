@@ -1046,6 +1046,65 @@ def _validate_ranger_options_2024(
     return out
 
 
+def _validate_artificer_options_2024(
+    payload: Create2024Payload,
+    picks: Mapping[str, Any],
+) -> dict[str, Any]:
+    """Armor model, replicate plans (exact N), spell-storing spell @11+."""
+    out: dict[str, Any] = {}
+    artificer_level = _planned_class_level(payload, "artificer")
+    subclass = _planned_primary_subclass(payload)
+
+    if (
+        subclass == "artificer__armorer"
+        and artificer_level >= 3
+    ):
+        model = str(picks.get("armor_model") or "").strip().lower().replace("_", "-")
+        if model not in {"dreadnaught", "infiltrator", "guardian"}:
+            raise Create2024Error(
+                "Бронник 3+: выберите модель доспеха (dreadnaught/infiltrator/guardian)",
+                code="create_2024_class_options",
+            )
+        out["armor_model"] = model
+
+    plans_limit = 0
+    if artificer_level >= 2:
+        row = e24.class_level_row("artificer", artificer_level)
+        plans_limit = int((row or {}).get("resources", {}).get("replicate_plans_known") or 0)
+    if plans_limit > 0:
+        raw_plans = picks.get("replicate_plans") or []
+        if not isinstance(raw_plans, (list, tuple)):
+            raise Create2024Error(
+                "Артефактор: передайте список известных схем",
+                code="create_2024_class_options",
+            )
+        try:
+            plans = e24opt.validate_replicate_plans(
+                list(raw_plans),
+                artificer_level=artificer_level,
+                plans_known_limit=plans_limit,
+            )
+        except e24opt.Edition2024ClassError as exc:
+            raise Create2024Error(str(exc), code="create_2024_class_options") from exc
+        if len(plans) != plans_limit:
+            raise Create2024Error(
+                f"Известные схемы: выбрано {len(plans)} из {plans_limit}",
+                code="create_2024_class_options",
+            )
+        out["replicate_plans"] = plans
+
+    if artificer_level >= 11:
+        spell = str(picks.get("spell_storing_spell") or "").strip().lower().replace("_", "-")
+        if not spell:
+            raise Create2024Error(
+                "Артефактор 11+: выберите заклинание для «Предмет, хранящий заклинание»",
+                code="create_2024_class_options",
+            )
+        out["spell_storing_spell"] = spell
+
+    return out
+
+
 def _validate_spells(payload: Create2024Payload) -> dict[str, Any]:
     snap = e24.compute_progression(
         [{"slug": payload.class_slug, "level": 1}],
@@ -1514,6 +1573,40 @@ def _sync_ranger_subclass_picks(sheet: dict[str, Any], class_options: Mapping[st
         return
 
 
+def _sync_artificer_subclass_picks(sheet: dict[str, Any], class_options: Mapping[str, Any]) -> None:
+    """Mirror armor model + spell-storing spell into feature_picks; stamp plans onto options."""
+    for row in sheet.get("classes") or []:
+        if not isinstance(row, dict):
+            continue
+        if e24.normalize_class_slug(str(row.get("slug") or "")) != "artificer":
+            continue
+        entry_id = str(row.get("id") or "class-artificer")
+        picks = sheet.get("feature_picks")
+        values = dict(picks.get("values") or {}) if isinstance(picks, dict) else {}
+
+        model = str(class_options.get("armor_model") or "").lower().replace("_", "-")
+        if model in {"dreadnaught", "infiltrator", "guardian"}:
+            values[f"{entry_id}:armor_model"] = model
+            values[f"{entry_id}:armor-model"] = model
+
+        spell = str(class_options.get("spell_storing_spell") or "").strip().lower().replace("_", "-")
+        if spell:
+            values[f"{entry_id}:spell_storing_spell"] = spell
+            values[f"{entry_id}:spell-storing-item"] = spell
+
+        sheet["feature_picks"] = {"values": values}
+
+        options = sheet.get("class_options_2024")
+        if isinstance(options, dict):
+            plans = class_options.get("replicate_plans")
+            if isinstance(plans, list):
+                options["replicate_plans"] = list(plans)
+            if spell:
+                options["spell_storing_spell"] = spell
+            sheet["class_options_2024"] = options
+        return
+
+
 def _sync_primal_order_pick(sheet: dict[str, Any]) -> None:
     """Mirror class_options_2024.primal_order into feature_picks so the Primal Order card shows it."""
     options = sheet.get("class_options_2024")
@@ -1871,6 +1964,8 @@ def _validate_class_options(
                 fighting_style=fighting_style,
             )
         )
+    if payload.class_slug == "artificer":
+        out.update(_validate_artificer_options_2024(payload, picks))
     if payload.class_slug == "cleric":
         order = str(picks.get("divine_order") or "").lower()
         if order not in DIVINE_ORDER_OPTIONS:
@@ -2197,6 +2292,7 @@ def validate_create_2024(payload: Create2024Payload) -> Create2024Result:
     _sync_blessed_warrior_picks(sheet, class_options, fighting_style=fighting_style)
     _sync_druidic_warrior_picks(sheet, class_options, fighting_style=fighting_style)
     _sync_ranger_subclass_picks(sheet, class_options)
+    _sync_artificer_subclass_picks(sheet, class_options)
     # Magical Secrets: create-at-N prepared may use Wizard/Druid/Cleric lists from bard 10+.
     _validate_bard_magical_secrets_prepared_2024(payload)
 
@@ -2921,7 +3017,9 @@ def _build_sheet(
     options_sheet: dict[str, Any] = {
         "eldritch_invocations": list(class_options.get("eldritch_invocations") or []),
         "metamagic": [],
-        "replicate_plans": [],
+        "replicate_plans": list(class_options.get("replicate_plans") or []),
+        "replicate_active": [],
+        "spell_storing_spell": class_options.get("spell_storing_spell") or None,
         "rage": {"active": False, "rounds_extended": 0, "max_minutes": 10},
     }
     if class_options.get("divine_order"):

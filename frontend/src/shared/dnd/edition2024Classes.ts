@@ -145,11 +145,13 @@ export const MULTICLASS_PROFICIENCIES_2024: Record<
   sorcerer: { armor: [], weapons: [], tools: [], skills: 0 },
   warlock: { armor: ['light'], weapons: [], tools: [], skills: 0 },
   wizard: { armor: [], weapons: [], tools: [], skills: 0 },
+  // EFA 2024 multiclass (next.dnd.su): tinker's tools; 1 Artificer skill;
+  // light+medium+shields. 2014 path is separate.
   artificer: {
     armor: ['light', 'medium', 'shields'],
-    weapons: ['simple'],
-    tools: ['thieves_tools', 'tinkers_tools', 'one_artisan'],
-    skills: 0,
+    weapons: [],
+    tools: ['tinkers_tools'],
+    skills: 1,
   },
 }
 
@@ -202,7 +204,12 @@ type ResourceMeta = {
   feature_id: string
   blocks_magic_action?: boolean
   distinct_from_heroic?: boolean
-  uses_from?: 'proficiency_bonus' | 'cha_mod_min_1' | 'int_mod_min_1' | 'wis_mod_min_1'
+  uses_from?:
+    | 'proficiency_bonus'
+    | 'cha_mod_min_1'
+    | 'int_mod_min_1'
+    | 'int_mod_x2_min_2'
+    | 'wis_mod_min_1'
   fixed_uses?: number
   kind?: FeatureKind
   /** Unlock level for the badge (defaults to current class level if omitted). */
@@ -284,6 +291,41 @@ const RESOURCE_META: Record<string, ResourceMeta> = {
     feature_id: 'magic-of-making',
     uses_from: 'int_mod_min_1',
     kind: 'resource',
+  },
+  flash_of_genius: {
+    name_ru: 'Вспышка гениальности',
+    reset: 'long',
+    feature_id: 'flash-of-genius',
+    uses_from: 'int_mod_min_1',
+    kind: 'resource',
+    unlock_level: 7,
+  },
+  magic_item_tinker_drain: {
+    name_ru: 'Вытягивание энергии',
+    reset: 'long',
+    feature_id: 'magic-item-tinker-drain',
+    fixed_uses: 1,
+    kind: 'resource',
+    on_hot: false,
+    unlock_level: 6,
+  },
+  magic_item_tinker_transform: {
+    name_ru: 'Преобразование реплики',
+    reset: 'long',
+    feature_id: 'magic-item-tinker-transform',
+    fixed_uses: 1,
+    kind: 'resource',
+    on_hot: false,
+    unlock_level: 6,
+  },
+  spell_storing_item: {
+    name_ru: 'Предмет, хранящий заклинание',
+    reset: 'long',
+    feature_id: 'spell-storing-item',
+    uses_from: 'int_mod_x2_min_2',
+    kind: 'resource',
+    on_hot: false,
+    unlock_level: 11,
   },
   lay_on_hands_hp: {
     name_ru: 'Возложение рук',
@@ -677,6 +719,9 @@ function resolveResourceMax(
   if (meta.uses_from === 'int_mod_min_1') {
     return Math.max(1, abilityMod2024(abilities.int ?? 10))
   }
+  if (meta.uses_from === 'int_mod_x2_min_2') {
+    return Math.max(2, abilityMod2024(abilities.int ?? 10) * 2)
+  }
   if (meta.uses_from === 'wis_mod_min_1') {
     return Math.max(1, abilityMod2024(abilities.wis ?? 10))
   }
@@ -1020,7 +1065,26 @@ export function computeProgression2024(input: {
     if (hasArcane && cls.slug === 'wizard') rawRes.arcane_recovery = 1
     if (hasSorcerousRestoration && cls.slug === 'sorcerer') rawRes.sorcerous_restoration = 1
     if (hasUncannyMetabolism && cls.slug === 'monk') rawRes.uncanny_metabolism = 1
-    if (cls.slug === 'artificer' && cls.level >= 1) rawRes.magic_of_making = true
+    if (cls.slug === 'artificer' && cls.level >= 1) {
+      rawRes.magic_of_making = true
+      let hasFlash = false
+      let hasTinker = false
+      let hasSpellStore = false
+      for (const lr of levels) {
+        if (Number(lr.level || 0) > cls.level) continue
+        for (const f of (lr.features as Array<Record<string, unknown>>) || []) {
+          if (f.id === 'flash-of-genius') hasFlash = true
+          if (f.id === 'magic-item-tinker') hasTinker = true
+          if (f.id === 'spell-storing-item') hasSpellStore = true
+        }
+      }
+      if (hasFlash) rawRes.flash_of_genius = true
+      if (hasTinker) {
+        rawRes.magic_item_tinker_drain = true
+        rawRes.magic_item_tinker_transform = true
+      }
+      if (hasSpellStore) rawRes.spell_storing_item = true
+    }
     if (cls.slug === 'cleric' && cls.level >= 10) {
       for (const lr of levels) {
         if (Number(lr.level || 0) > cls.level) continue

@@ -43,6 +43,7 @@ import { applyFeatureSaveProficiencies, ironMindSaveKey, wisdomSaveAlreadyGrante
 import { revokeFalseSubclassCompanions } from '../companions'
 import { backfillCompanionStatsFromTemplates } from '../companionBackfill'
 import { syncPrimalCompanion2024 } from '../primalCompanion2024'
+import { syncArtificerCompanions2024 } from '../artificerCompanions2024'
 import {
   fighterSkillAndLanguageGrants,
   hydrateTotemSpiritFromGrants,
@@ -481,6 +482,27 @@ export function useSheetEditorPart2(model: SheetModel) {
     model.draft.classes,
     model.draft.classOptions2024,
     model.draft.abilities.wis,
+    model.rulesEdition,
+    model.baseCharacter?.rules_edition,
+  ])
+
+  useEffect(() => {
+    model.setDraft((prev) => {
+      const edition =
+        model.rulesEdition ?? model.baseCharacter?.rules_edition ?? '2014'
+      const synced = syncArtificerCompanions2024({
+        companions: prev.companions,
+        classes: prev.classes,
+        rulesEdition: edition,
+        characterLevel: totalCharacterLevel(prev.classes),
+        intMod: abilityModifier(prev.abilities.int ?? 10),
+      })
+      if (!synced.changed) return prev
+      return { ...prev, companions: synced.companions }
+    })
+  }, [
+    model.draft.classes,
+    model.draft.abilities.int,
     model.rulesEdition,
     model.baseCharacter?.rules_edition,
   ])

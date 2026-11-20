@@ -1,0 +1,5 @@
+593794cbc8945111beb093cf3ee71614  after-create-2014-race-marker-390.png
+5ee4564f0d152b3574b1be5092d8c50a  after-create-2014-artificer-class-390.png
+4e9568e5b2b7be482839b3c05ecfb050  after-sheet-2014-artificer-header-390.png
+074a76598b71a20a371b83b5e08a3e0a  after-sheet-2014-artificer-abilities-390.png
+fa3f72fbe9108e59613a40f00cf075a7  after-sheet-2014-artificer-features-390.png

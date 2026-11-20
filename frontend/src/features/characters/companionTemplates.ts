@@ -23,6 +23,10 @@ import {
   primalCompanionStats2024,
   type PrimalCompanionType2024,
 } from '../../shared/dnd/ranger2024Features'
+import {
+  eldritchCannonStats2024,
+  steelDefenderStats2024,
+} from '../../shared/dnd/artificer2024Features'
 
 export type CompanionTemplateContext = {
   hostClassLevel: number
@@ -132,7 +136,7 @@ function primalTemplate(
   }
 }
 
-function steelDefenderTemplate(ctx: CompanionTemplateContext): CompanionTemplatePatch {
+function steelDefenderTemplate2014(ctx: CompanionTemplateContext): CompanionTemplatePatch {
   const level = clampLevel(ctx.hostClassLevel)
   const intMod = Math.floor(ctx.hostIntMod ?? 0)
   const hp = Math.max(1, 2 + intMod + 5 * level)
@@ -151,7 +155,32 @@ function steelDefenderTemplate(ctx: CompanionTemplateContext): CompanionTemplate
   }
 }
 
-function eldritchCannonTemplate(
+/** EFA 2024 Steel Defender — AC 12+INT, HP 5+5×level (not Tasha). */
+function steelDefenderTemplate2024(ctx: CompanionTemplateContext): CompanionTemplatePatch {
+  const block = steelDefenderStats2024({
+    artificerLevel: clampLevel(ctx.hostClassLevel),
+    intMod: Math.floor(ctx.hostIntMod ?? ctx.spellMod ?? 0),
+  })
+  return {
+    kind: 'steel_defender',
+    defaultName: 'Стальной защитник',
+    stats: { hp: block.hp, hp_max: block.hp, ac: block.ac, speed: block.speed },
+    actions: block.actionsRu,
+    notes: block.notesRu,
+    nature: 'construct',
+    control: 'bonus_action_command',
+    resources: [
+      { id: 'repair', name: 'Ремонт', max: block.repairMax, used: 0, reset: 'long' },
+    ],
+  }
+}
+
+function steelDefenderTemplate(ctx: CompanionTemplateContext): CompanionTemplatePatch {
+  if (ctx.rulesEdition === '2024') return steelDefenderTemplate2024(ctx)
+  return steelDefenderTemplate2014(ctx)
+}
+
+function eldritchCannonTemplate2014(
   variant: 'flamethrower' | 'force_ballista' | 'protector' | string,
   ctx: CompanionTemplateContext,
 ): CompanionTemplatePatch {
@@ -186,6 +215,41 @@ function eldritchCannonTemplate(
       },
     ],
   }
+}
+
+/** EFA 2024: one cannon, mode chosen on each activation (not at creation). */
+function eldritchCannonTemplate2024(ctx: CompanionTemplateContext): CompanionTemplatePatch {
+  const block = eldritchCannonStats2024({
+    artificerLevel: clampLevel(ctx.hostClassLevel),
+    intMod: Math.floor(ctx.hostIntMod ?? ctx.spellMod ?? 0),
+  })
+  const notes = [block.notesRu, block.detonationRu].filter(Boolean).join(' ')
+  return {
+    kind: 'eldritch_cannon',
+    defaultName: 'Мистическая пушка',
+    stats: { hp: block.hp, hp_max: block.hp, ac: block.ac, speed: 0 },
+    actions: block.modesRu,
+    notes,
+    nature: 'construct',
+    control: 'bonus_action_command',
+    resources: [
+      {
+        id: 'cannon_summon',
+        name: 'Создать пушку',
+        max: block.maxCannons,
+        used: 0,
+        reset: 'long',
+      },
+    ],
+  }
+}
+
+function eldritchCannonTemplate(
+  variant: 'flamethrower' | 'force_ballista' | 'protector' | string,
+  ctx: CompanionTemplateContext,
+): CompanionTemplatePatch {
+  if (ctx.rulesEdition === '2024') return eldritchCannonTemplate2024(ctx)
+  return eldritchCannonTemplate2014(variant, ctx)
 }
 
 function drakeTemplate(ctx: CompanionTemplateContext): CompanionTemplatePatch {

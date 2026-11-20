@@ -25,6 +25,16 @@ import {
   PRIMAL_COMPANION_NAME_RU,
   RANGER_SUBCLASS_SLUGS_2024,
 } from '../../shared/dnd/ranger2024Features'
+import {
+  ARMOR_MODEL_NAME_RU,
+  ARTIFICER_SUBCLASS_SLUGS_2024,
+  isArmorModel2024,
+  PLANS_KNOWN_COLUMN_RU,
+  replicateLimits2024,
+  SPELL_STORING_ITEM_MIN_LEVEL_2024,
+  SPELL_STORING_ITEM_NAME_RU,
+  SUBCLASS_MIN_LEVEL_2024 as ARTIFICER_SUBCLASS_MIN_LEVEL_2024,
+} from '../../shared/dnd/artificer2024Features'
 import { ELDRITCH_INVOCATIONS_2024 } from '../../shared/dnd/edition2024ClassOptions'
 import { SKILL_DEFS } from '../characters/sheetTypes'
 import {
@@ -533,7 +543,40 @@ function abilitiesIssues(state: Create2024State): string[] {
   return []
 }
 
-/** Bard 2024 create-time picks: Expertise from level 2 (2) and 9 (4), Lore bonus skills at 3. */
+/** Artificer 2024 create-time picks: armor model, replicate plans N/M, SSI spell @11+. */
+export function artificerCreatePicksNeed2024(state: Create2024State): {
+  artificerLevel: number
+  subclassSlug: string
+  armorModel: boolean
+  plansKnown: number
+  spellStoring: boolean
+} {
+  if (state.classSlug !== 'artificer') {
+    return {
+      artificerLevel: 0,
+      subclassSlug: '',
+      armorModel: false,
+      plansKnown: 0,
+      spellStoring: false,
+    }
+  }
+  const primary =
+    state.classes.find((row) => row.id === state.primaryClassEntryId) ?? state.classes[0]
+  const artificerLevel = Math.max(1, primary?.level ?? state.characterLevel ?? 1)
+  const subclass =
+    (primary && state.subclassByEntryId[primary.id]) || state.subclassSlug || ''
+  const { plansKnown } = replicateLimits2024(artificerLevel)
+  return {
+    artificerLevel,
+    subclassSlug: subclass,
+    armorModel:
+      subclass === ARTIFICER_SUBCLASS_SLUGS_2024.armorer &&
+      artificerLevel >= ARTIFICER_SUBCLASS_MIN_LEVEL_2024,
+    plansKnown,
+    spellStoring: artificerLevel >= SPELL_STORING_ITEM_MIN_LEVEL_2024,
+  }
+}
+
 export function rangerCreatePicksNeed2024(state: Create2024State): {
   rangerLevel: number
   subclassSlug: string
@@ -667,6 +710,30 @@ function levelingIssues(state: Create2024State, ctx: StepIssueCtx): string[] {
       const land = String(state.classOptionPicks.land_choice || '')
       if (!LAND_TERRAINS_2024.some((row) => row.id === land)) {
         issues.push('Выберите местность Круга земли (с 3 ур. друида)')
+      }
+    }
+  }
+  if (state.classSlug === 'artificer') {
+    const need = artificerCreatePicksNeed2024(state)
+    const model = String(state.classOptionPicks.armor_model || '')
+    if (need.armorModel && !isArmorModel2024(model)) {
+      issues.push(`Выберите ${ARMOR_MODEL_NAME_RU} (с 3 ур. артефактора)`)
+    }
+    if (need.plansKnown > 0) {
+      const plans = Array.isArray(state.classOptionPicks.replicate_plans)
+        ? (state.classOptionPicks.replicate_plans as string[])
+        : []
+      const unique = [...new Set(plans.map((id) => String(id).trim()).filter(Boolean))]
+      if (unique.length !== need.plansKnown) {
+        issues.push(
+          `${PLANS_KNOWN_COLUMN_RU}: выбрано ${unique.length} из ${need.plansKnown}`,
+        )
+      }
+    }
+    if (need.spellStoring) {
+      const spell = String(state.classOptionPicks.spell_storing_spell || '').trim()
+      if (!spell) {
+        issues.push(`Выберите заклинание для «${SPELL_STORING_ITEM_NAME_RU}» (1–3 круг)`)
       }
     }
   }

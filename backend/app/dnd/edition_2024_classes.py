@@ -114,11 +114,14 @@ MULTICLASS_PROFICIENCIES: dict[str, dict[str, Any]] = {
     "sorcerer": {"armor": [], "weapons": [], "tools": [], "skills": 0},
     "warlock": {"armor": ["light"], "weapons": [], "tools": [], "skills": 0},
     "wizard": {"armor": [], "weapons": [], "tools": [], "skills": 0},
+    # EFA 2024 multiclass (next.dnd.su): tinker's tools; 1 skill from Artificer list;
+    # light+medium+shields. No simple weapons / thieves / artisan grant on dip.
+    # 2014 multiclass stays on the 2014 path — this table is edition-2024 only.
     "artificer": {
         "armor": ["light", "medium", "shields"],
-        "weapons": ["simple"],
-        "tools": ["thieves_tools", "tinkers_tools", "one_artisan"],
-        "skills": 0,
+        "weapons": [],
+        "tools": ["tinkers_tools"],
+        "skills": 1,
     },
 }
 
@@ -209,6 +212,42 @@ RESOURCE_META: dict[str, dict[str, Any]] = {
         "on_hot": True,
         "feature_id": "magic-of-making",
         "uses_from": "int_mod_min_1",
+    },
+    "flash_of_genius": {
+        "name_ru": "Вспышка гениальности",
+        "reset": "long",
+        "track": "spend",
+        "on_hot": True,
+        "feature_id": "flash-of-genius",
+        "uses_from": "int_mod_min_1",
+        "note_ru": "Реакция при провале проверки или спасброска (вы или видимое существо в 30 футах).",
+    },
+    "magic_item_tinker_drain": {
+        "name_ru": "Вытягивание энергии",
+        "reset": "long",
+        "track": "spend",
+        "on_hot": False,
+        "feature_id": "magic-item-tinker-drain",
+        "fixed_uses": 1,
+        "note_ru": "Развоплотить реплику → ячейка 1-го (Обычный) или 2-го (Необычный/Редкий).",
+    },
+    "magic_item_tinker_transform": {
+        "name_ru": "Преобразование реплики",
+        "reset": "long",
+        "track": "spend",
+        "on_hot": False,
+        "feature_id": "magic-item-tinker-transform",
+        "fixed_uses": 1,
+        "note_ru": "Действием Магия превратить реплику в другую известную схему.",
+    },
+    "spell_storing_item": {
+        "name_ru": "Предмет, хранящий заклинание",
+        "reset": "long",
+        "track": "spend",
+        "on_hot": False,
+        "feature_id": "spell-storing-item",
+        "uses_from": "int_mod_x2_min_2",
+        "note_ru": "Заряды = мод. ИНТ × 2 (мин. 2); заклинание артефактора 1–3 круга.",
     },
     "lay_on_hands_hp": {
         "name_ru": "Возложение рук",
@@ -692,6 +731,8 @@ def _resource_max(
         return max(1, ability_mod(int(abilities.get("cha") or 10)))
     if uses_from == "int_mod_min_1":
         return max(1, ability_mod(int(abilities.get("int") or 10)))
+    if uses_from == "int_mod_x2_min_2":
+        return max(2, ability_mod(int(abilities.get("int") or 10)) * 2)
     if uses_from == "wis_mod_min_1":
         return max(1, ability_mod(int(abilities.get("wis") or 10)))
     if uses_from == "one_plus_cha":
@@ -816,9 +857,24 @@ def _build_resources_for_class(
         if "natures-veil" in ranger_features:
             raw.setdefault("natures_veil_uses", True)
 
-    # Artificer Magic of Making — INT mod uses / long rest (not in resources table).
+    # Artificer Magic of Making / Flash of Genius / Magic Item Tinker / Spell-Storing —
+    # derived pools (not always listed as numeric resources in the class table).
     if slug == "artificer" and level >= 1:
         raw.setdefault("magic_of_making", True)
+        if catalog:
+            art_features: set[str] = set()
+            for lr in catalog["data"].get("levels") or []:
+                if int(lr.get("level") or 0) > level:
+                    continue
+                for f in lr.get("features") or []:
+                    art_features.add(str(f.get("id")))
+            if "flash-of-genius" in art_features:
+                raw.setdefault("flash_of_genius", True)
+            if "magic-item-tinker" in art_features:
+                raw.setdefault("magic_item_tinker_drain", True)
+                raw.setdefault("magic_item_tinker_transform", True)
+            if "spell-storing-item" in art_features:
+                raw.setdefault("spell_storing_item", True)
 
     for key, value in raw.items():
         if key in SCALE_KEYS or key == "weapon_mastery":

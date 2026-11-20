@@ -19,6 +19,7 @@ import {
 import { fightingStyleById } from './fightingStyles'
 import { elementalDisciplineById } from './monkElementalDisciplines'
 import { rangerChoiceLabel } from './rangerChoices'
+import { armorModelLabelRu2024 } from './artificer2024Features'
 import { primalCompanionTypeLabelRu2024 } from './ranger2024Features'
 import { metamagicById } from './sorcererMetamagic'
 import {
@@ -175,6 +176,8 @@ export function featureChoiceOptionLabel(
   if (fromChoice) return fromChoice
   const primalType = primalCompanionTypeLabelRu2024(optionId)
   if (primalType) return primalType
+  const armorModel2024 = armorModelLabelRu2024(optionId)
+  if (armorModel2024) return armorModel2024
   if (FEATURE_OPTION_LABELS_RU[optionId]) return FEATURE_OPTION_LABELS_RU[optionId]
 
   // Use *ById / null-returning helpers — *Label helpers fall back to the raw

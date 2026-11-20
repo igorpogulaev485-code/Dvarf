@@ -11,6 +11,7 @@ import {
   SCHOLAR_CHOICE_2024,
 } from './edition2024Classes'
 import {
+  ARTIFICER_REPLICATE_PLANS_2024,
   metamagicKnownLimit2024,
   warlockInvocationLimit2024,
   type ClassOptions2024State,
@@ -48,6 +49,13 @@ import {
   RANGER_SUBCLASS_SLUGS_2024,
   rangerExpertiseChoice2024,
 } from './ranger2024Features'
+import {
+  armorModelChoice2024,
+  ARTIFICER_SUBCLASS_SLUGS_2024,
+  replicateLimits2024,
+  SPELL_STORING_ITEM_MIN_LEVEL_2024,
+  SUBCLASS_MIN_LEVEL_2024 as ARTIFICER_SUBCLASS_MIN_LEVEL_2024,
+} from './artificer2024Features'
 import { metamagicPickGainAtLevel2024 } from './sorcerer2024Features'
 import { invocationPickGainAtLevel2024 } from './warlock2024Features'
 import {
@@ -470,6 +478,65 @@ export function buildPendingWizardSteps2024(input: PendingWizardInput2024): Guid
     }
   }
 
+  if (slug === 'artificer') {
+    const { plansKnown } = replicateLimits2024(level)
+    if (plansKnown > 0) {
+      const known = input.classOptions?.replicate_plans ?? []
+      const eligible = ARTIFICER_REPLICATE_PLANS_2024.filter((row) => row.minLevel <= level).length
+      const picksNeeded = Math.min(plansKnown, eligible) - known.length
+      if (picksNeeded > 0) {
+        steps.push({
+          id: `replicate-plans:${input.classEntryId}:${level}`,
+          kind: 'replicate_plans',
+          classEntryId: input.classEntryId,
+          className: input.className,
+          classLevel: level,
+          picksNeeded,
+        })
+      }
+    }
+    if (level >= SPELL_STORING_ITEM_MIN_LEVEL_2024) {
+      const stored = String(input.classOptions?.spell_storing_spell || '').trim()
+      if (!stored) {
+        steps.push({
+          id: `spell-storing:${input.classEntryId}:${level}`,
+          kind: 'spell_storing_spell',
+          classEntryId: input.classEntryId,
+          className: input.className,
+          classLevel: level,
+        })
+      }
+    }
+    if (level >= ARTIFICER_SUBCLASS_MIN_LEVEL_2024) {
+      const sub = (input.subclassSlug ?? '').trim()
+      if (sub === ARTIFICER_SUBCLASS_SLUGS_2024.armorer) {
+        const modelPicked = input.featurePicks
+          ? Boolean(
+              getFeatureChoicePick(
+                input.featurePicks,
+                input.classEntryId,
+                'armor_model',
+                armorModelChoice2024.id,
+              ),
+            )
+          : false
+        if (!modelPicked) {
+          steps.push({
+            id: `feature_choice:${input.classEntryId}:armor_model`,
+            kind: 'feature_choice',
+            classEntryId: input.classEntryId,
+            className: input.className,
+            classLevel: level,
+            featureId: 'armor_model',
+            featureNameRu: armorModelChoice2024.label_ru,
+            featureLevel: ARTIFICER_SUBCLASS_MIN_LEVEL_2024,
+            choice: armorModelChoice2024,
+          })
+        }
+      }
+    }
+  }
+
   if (slug === 'bard' && input.featurePicks) {
     const picked = getFeaturePickList(
       input.featurePicks,
@@ -683,6 +750,31 @@ export function trimClassOptionsForLevel2024(input: {
     const cap = metamagicKnownLimit2024(level)
     if (classOptions.metamagic.length > cap) {
       classOptions = { ...classOptions, metamagic: classOptions.metamagic.slice(0, cap) }
+    }
+  }
+  if (input.slug === 'artificer') {
+    const { plansKnown, magicItems } = replicateLimits2024(level)
+    if (classOptions.replicate_plans.length > plansKnown) {
+      classOptions = {
+        ...classOptions,
+        replicate_plans: classOptions.replicate_plans.slice(0, plansKnown),
+      }
+    }
+    const knownSet = new Set(classOptions.replicate_plans)
+    let active = classOptions.replicate_active.filter(
+      (row) => knownSet.has(row.planId) && (plansKnown > 0 || false),
+    )
+    if (level < 2) {
+      active = []
+      classOptions = { ...classOptions, replicate_plans: [], replicate_active: [] }
+    } else if (active.length > magicItems) {
+      active = [...active].sort((a, b) => a.seq - b.seq).slice(-magicItems)
+      classOptions = { ...classOptions, replicate_active: active }
+    } else if (active.length !== classOptions.replicate_active.length) {
+      classOptions = { ...classOptions, replicate_active: active }
+    }
+    if (level < SPELL_STORING_ITEM_MIN_LEVEL_2024 && classOptions.spell_storing_spell) {
+      classOptions = { ...classOptions, spell_storing_spell: null }
     }
   }
   if (input.slug === 'druid') {

@@ -23,6 +23,9 @@ assert(maxAttunementsForClasses([cls('Изобретатель', 9)]) === 3, 'ar
 assert(maxAttunementsForClasses([cls('Изобретатель', 10)]) === 4, 'artificer 10 → 4')
 assert(maxAttunementsForClasses([cls('Изобретатель', 14)]) === 5, 'artificer 14 → 5')
 assert(maxAttunementsForClasses([cls('Изобретатель', 18)]) === 6, 'artificer 18 → 6')
+assert(maxAttunementsForClasses([cls('Артефактор', 10)]) === 4, 'Артефактор 10 → 4')
+assert(maxAttunementsForClasses([cls('Артефактор', 14)]) === 5, 'Артефактор 14 → 5')
+assert(maxAttunementsForClasses([cls('Артефактор', 18)]) === 6, 'Артефактор 18 → 6')
 assert(maxAttunementsForClasses([cls('Воин', 20)]) === 3, 'fighter 20 → 3')
 assert(
   maxAttunementsForClasses([cls('Воин', 10), cls('Изобретатель', 2)]) === 3,

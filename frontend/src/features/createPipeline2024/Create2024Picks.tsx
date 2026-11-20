@@ -13,7 +13,13 @@ import {
   OTHERWORLDLY_GLAMOUR_SKILLS_2024,
   PRIMAL_COMPANION_TYPES_2024,
 } from '../../shared/dnd/ranger2024Features'
-import { rangerCreatePicksNeed2024 } from './createPipeline2024State'
+import {
+  ARMOR_MODELS_2024,
+  PLANS_KNOWN_COLUMN_RU,
+  SPELL_STORING_ITEM_NAME_RU,
+} from '../../shared/dnd/artificer2024Features'
+import { ARTIFICER_REPLICATE_PLANS_2024 } from '../../shared/dnd/edition2024ClassOptions'
+import { artificerCreatePicksNeed2024, rangerCreatePicksNeed2024 } from './createPipeline2024State'
 import {
   emptyFeaturePicks,
   getFeaturePickList,
@@ -395,8 +401,79 @@ export function ClassPicks({
 
 const BARD_CREATE_ENTRY_ID = 'create-bard'
 
-/** Bard 2024 leveling picks: Expertise (2 / 9) and College of Lore bonus skills. */
-/** Ranger 2024 conclave picks on the leveling step (create-at-N). */
+/** Artificer 2024 leveling picks: armor model, known plans, spell-storing spell. */
+export function ArtificerLevelingPicks({
+  state,
+  patch,
+  catalog,
+}: {
+  state: Create2024State
+  patch: (partial: Partial<Create2024State>) => void
+  catalog?: Create2024CatalogBundle
+}) {
+  const need = artificerCreatePicksNeed2024(state)
+  if (!need.armorModel && need.plansKnown <= 0 && !need.spellStoring) return null
+  const setPicks = (partial: Record<string, unknown>) =>
+    patch({ classOptionPicks: { ...state.classOptionPicks, ...partial } })
+  const plansSelected = Array.isArray(state.classOptionPicks.replicate_plans)
+    ? (state.classOptionPicks.replicate_plans as string[])
+    : []
+  const ssiSpell = String(state.classOptionPicks.spell_storing_spell || '')
+  const ssiOptions = (catalog?.spells ?? [])
+    .filter((spell) => {
+      const lv = spellLevel(spell)
+      return lv >= 1 && lv <= 3 && spellOnClassList(spell, 'artificer')
+    })
+    .map((spell) => ({ id: spell.slug, label: spell.name_ru }))
+    .sort((a, b) => a.label.localeCompare(b.label, 'ru'))
+  return (
+    <Stack gap={14}>
+      {need.armorModel ? (
+        <PickChipGroup
+          label="Модель доспеха"
+          hint="Дредноут, Диверсант или Страж (EFA 2024)."
+          options={ARMOR_MODELS_2024.map((row) => ({ id: row.id, label: row.nameRu }))}
+          selected={state.classOptionPicks.armor_model ? [String(state.classOptionPicks.armor_model)] : []}
+          max={1}
+          multi={false}
+          testIdPrefix="p24-m03-pick-armor_model"
+          onChange={(picked) => setPicks({ armor_model: picked[0] ?? null })}
+        />
+      ) : null}
+      {need.plansKnown > 0 ? (
+        <PickChipGroup
+          label={PLANS_KNOWN_COLUMN_RU}
+          hint={`Выберите ${need.plansKnown} схем(ы) по таблице артефактора.`}
+          options={ARTIFICER_REPLICATE_PLANS_2024.filter(
+            (row) => row.minLevel <= need.artificerLevel,
+          ).map((row) => ({
+            id: row.id,
+            label: row.nameRu,
+            rest: `с ${row.minLevel} ур. · ${row.rarity}`,
+          }))}
+          selected={plansSelected}
+          max={need.plansKnown}
+          multi
+          testIdPrefix="p24-m03-pick-replicate_plan"
+          onChange={(picked) => setPicks({ replicate_plans: picked })}
+        />
+      ) : null}
+      {need.spellStoring && ssiOptions.length > 0 ? (
+        <PickChipGroup
+          label={SPELL_STORING_ITEM_NAME_RU}
+          hint="Заклинание артефактора 1–3 круга (не обязательно из подготовленных)."
+          options={ssiOptions}
+          selected={ssiSpell ? [ssiSpell] : []}
+          max={1}
+          multi={false}
+          testIdPrefix="p24-m03-pick-spell_storing"
+          onChange={(picked) => setPicks({ spell_storing_spell: picked[0] ?? null })}
+        />
+      ) : null}
+    </Stack>
+  )
+}
+
 export function RangerLevelingPicks({
   state,
   patch,
