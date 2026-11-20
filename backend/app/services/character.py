@@ -185,7 +185,7 @@ class CharacterService:
         return [to_summary(item) for item in self.characters.list_for_user(user.id)]
 
     def create(self, user: User, payload: CharacterCreateRequest) -> CharacterDetail:
-        # P24-01: флаг RULES_EDITION_2024_OPEN (по умолчанию выкл.). Открытие — P24-M06.
+        # P24-01 / M06: флаг RULES_EDITION_2024_OPEN (по умолчанию выкл.). Включает Игорь.
         from app.core.config import settings
 
         edition = payload.rules_edition

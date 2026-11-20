@@ -77,6 +77,8 @@ export type OnboardingState = {
   lobbyTourSeenSteps: LobbyTourStepId[]
   /** /join «что здесь» card dismissed (local; reset with restart tips). */
   joinIntroDone: boolean
+  /** P24-M06: 2024 differences coach dismissed (local; reset with restart tips). */
+  edition2024DiffDone: boolean
 }
 
 export const ONBOARDING_STORAGE_KEY = 'creed20.onboarding.v1'
@@ -98,6 +100,7 @@ export function defaultOnboardingState(): OnboardingState {
     pendingLobbyTour: false,
     lobbyTourSeenSteps: [],
     joinIntroDone: false,
+    edition2024DiffDone: false,
   }
 }
 

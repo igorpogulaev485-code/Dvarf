@@ -107,6 +107,13 @@ import {
 import { createClassLevel, totalCharacterLevel } from '../shared/dnd/classLevels'
 import { thirdCasterBlock2024 } from '../shared/dnd/edition2024Subclasses'
 import { ensureHpChoices } from '../features/createPipeline/LevelingStep'
+import {
+  Edition2024DiffDialog,
+  EDITION_HINT_2024,
+  EDITION_2024_DIFF,
+  useOnboardingState,
+} from '../features/onboarding'
+import { getMe } from '../shared/api/auth'
 import type { AbilityScores } from '../shared/dnd/multiclassRules'
 import {
   buildItemNameIndex,
@@ -294,6 +301,24 @@ export function CreateCharacter2024Page({
   const e2eEmptySpells = params.get('e2eEmptySpells') === '1'
   // Even when embedded in `/characters/create`, keep the M06 gate (preview or flag).
   const blocked = !harness && !previewQuery && !RULES_EDITION_2024_OPEN
+
+  const [userId, setUserId] = useState<string | null>(null)
+  const onboarding = useOnboardingState(userId)
+  const [diffManualOpen, setDiffManualOpen] = useState(false)
+
+  useEffect(() => {
+    let cancelled = false
+    void getMe()
+      .then((me) => {
+        if (!cancelled) setUserId(me.id)
+      })
+      .catch(() => {
+        if (!cancelled) setUserId(null)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   const [state, setState] = useState<Create2024State>(() => createEmptyCreate2024State())
   const [catalog, setCatalog] = useState<Create2024CatalogBundle | null>(harness?.catalog ?? null)
@@ -928,6 +953,44 @@ export function CreateCharacter2024Page({
     }
   }
 
+  const showDiffDialog =
+    !blocked && (onboarding.showEdition2024Diff || diffManualOpen)
+
+  const diffDialog = (
+    <Edition2024DiffDialog
+      open={showDiffDialog}
+      onDone={() => {
+        setDiffManualOpen(false)
+        onboarding.markEdition2024DiffDone()
+      }}
+    />
+  )
+
+  const create2024Topbar = (
+    <div className="create-pipeline__topbar">
+      {embedded ? null : (
+        <Link className="back-link" to="/characters">
+          ← К списку
+        </Link>
+      )}
+      <Text tone="muted">Создание · D&D 2024</Text>
+      <p className="onboarding-edition-hint" data-testid="edition-hint-2024">
+        {EDITION_HINT_2024}
+      </p>
+      <Button
+        type="button"
+        variant="ghost"
+        data-testid="edition-2024-diff-reopen"
+        onClick={() => {
+          setDiffManualOpen(true)
+          onboarding.reopenEdition2024Diff()
+        }}
+      >
+        {EDITION_2024_DIFF.reopenLabel}
+      </Button>
+    </div>
+  )
+
   if (blocked) {
     return (
       <CreateShellMessage rootTestId={rootTestId} title="Создание персонажа 2024 пока закрыто">
@@ -945,6 +1008,7 @@ export function CreateCharacter2024Page({
         <div>
           <Button onClick={() => setReloadKey((k) => k + 1)}>Повторить</Button>
         </div>
+        {diffDialog}
       </CreateShellMessage>
     )
   }
@@ -952,7 +1016,9 @@ export function CreateCharacter2024Page({
   if (!catalog || !languages) {
     return (
       <main className="page page--app page--create-pipeline" data-testid={rootTestId}>
+        {create2024Topbar}
         <Text tone="muted">Загрузка каталога правил 2024…</Text>
+        {diffDialog}
       </main>
     )
   }
@@ -1970,14 +2036,7 @@ export function CreateCharacter2024Page({
 
   return (
     <main className="page page--app page--create-pipeline" data-testid={rootTestId}>
-      {embedded ? null : (
-        <div className="create-pipeline__topbar">
-          <Link className="back-link" to="/characters">
-            ← К списку
-          </Link>
-          <Text tone="muted">Создание · D&D 2024</Text>
-        </div>
-      )}
+      {create2024Topbar}
       {error ? (
         <Text tone="danger" data-testid="p24-m03-error">
           {error}
@@ -1997,6 +2056,7 @@ export function CreateCharacter2024Page({
         onBack={prev ? () => goToStep(prev) : () => navigate('/characters')}
       />
       {setupDialog}
+      {diffDialog}
     </main>
   )
 }

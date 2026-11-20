@@ -4,6 +4,7 @@ import { MinimalSheetEditor } from '../features/characters/MinimalSheetEditor'
 import { DiceRollerHost } from '../features/diceRoller'
 import {
   CharacterReadyDialog,
+  Edition2024DiffDialog,
   HelpDrawer,
   SheetTour,
   WelcomeDialog,
@@ -470,6 +471,17 @@ export function CharacterDetailPage() {
           setTourArmed(false)
         }}
         onDismiss={() => setWelcomeSessionHide(true)}
+      />
+      <Edition2024DiffDialog
+        open={
+          Boolean(character) &&
+          character?.rules_edition === '2024' &&
+          onboarding.showEdition2024Diff &&
+          !onboarding.showWelcome &&
+          !welcomeSessionHide &&
+          !onboarding.showReadyBridge
+        }
+        onDone={() => onboarding.markEdition2024DiffDone()}
       />
       <HelpDrawer
         open={helpOpen}

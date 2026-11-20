@@ -53,8 +53,8 @@ class Settings(BaseSettings):
     # Первый полный админ — почта из окружения (значение в git не класть).
     admin_panel_enabled: bool = False
     admin_bootstrap_email: str = ""
-    # P24-01: редакция 2024 закрыта до финальной пачки открытия (P24-M06).
-    # Env: RULES_EDITION_2024_OPEN=true|false. По умолчанию выключен.
+    # P24-01 / M06: редакция 2024 закрыта по умолчанию.
+    # Env: RULES_EDITION_2024_OPEN=true|false. Включает Игорь после merge/deploy (не коммитить true).
     rules_edition_2024_open: bool = False
 
     @property

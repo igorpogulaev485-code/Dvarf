@@ -47,7 +47,7 @@ export async function createCharacter(
   name?: string,
   options?: { isDraft?: boolean },
 ): Promise<CharacterDetail> {
-  // P24-01: client gate mirrors RULES_EDITION_2024_OPEN (opens in P24-M06).
+  // P24-01 / M06: client gate mirrors RULES_EDITION_2024_OPEN (flip after Igor decision).
   if (rulesEdition === '2024' && !RULES_EDITION_2024_OPEN) {
     throw new Error('Редакция 2024 ещё не открыта')
   }

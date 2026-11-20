@@ -8,6 +8,7 @@ import {
   shouldRunLobbyTour,
   shouldRunSheetTour,
   shouldShowCreateHints,
+  shouldShowEdition2024Diff,
   shouldShowJoinIntro,
   shouldShowSceneIntros,
   toServerPayload,
@@ -105,6 +106,7 @@ export function useOnboardingState(userId?: string | null) {
         sheetTourDone: segment === 'skip' ? true : prev.sheetTourDone,
         lobbyTourDone: segment === 'skip' ? true : prev.lobbyTourDone,
         joinIntroDone: segment === 'skip' ? true : prev.joinIntroDone,
+        edition2024DiffDone: segment === 'skip' ? true : prev.edition2024DiffDone,
         lobbyTourSeenSteps: segment === 'skip' ? [] : prev.lobbyTourSeenSteps,
       }))
     },
@@ -213,6 +215,15 @@ export function useOnboardingState(userId?: string | null) {
     commit((prev) => ({ ...prev, joinIntroDone: true }), { sync: false })
   }, [commit])
 
+  const markEdition2024DiffDone = useCallback(() => {
+    commit((prev) => ({ ...prev, edition2024DiffDone: true }), { sync: false })
+  }, [commit])
+
+  /** Re-open the 2024 differences coach without resetting the whole tour. */
+  const reopenEdition2024Diff = useCallback(() => {
+    commit((prev) => ({ ...prev, edition2024DiffDone: false }), { sync: false })
+  }, [commit])
+
   /**
    * Kept for storage compatibility: panel «?» buttons were removed from the sheet.
    * ONB-03 may reuse dismissedPanelHelp if tips return.
@@ -270,6 +281,8 @@ export function useOnboardingState(userId?: string | null) {
     skipLobbyTour,
     markLobbyTourStep,
     markJoinIntroDone,
+    markEdition2024DiffDone,
+    reopenEdition2024Diff,
     dismissPanelHelp,
     markHelpOpened,
     restartTips,
@@ -281,5 +294,6 @@ export function useOnboardingState(userId?: string | null) {
     showLobbyTour,
     showJoinIntro: hydrated && shouldShowJoinIntro(state),
     showSceneIntros: hydrated && shouldShowSceneIntros(state),
+    showEdition2024Diff: hydrated && shouldShowEdition2024Diff(state),
   }
 }

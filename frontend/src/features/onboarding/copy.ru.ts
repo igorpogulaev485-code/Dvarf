@@ -423,6 +423,15 @@ export const CHECKLIST_ITEMS: Array<{
   { id: 'setup', label: 'Нужно настроить', hint: 'Бейдж в шапке — незакрытые выборы' },
 ]
 
-/** Shown near create — edition is fixed at creation (no «сменишь на листе»). */
-export const EDITION_HINT =
+/**
+ * Shown near create — edition is fixed at creation (no «сменишь на листе»).
+ * P24-M06: separate copy for 2014 vs 2024 paths; public CTA still gated by flag.
+ */
+export const EDITION_HINT_2014 =
   'Сейчас создаём по правилам D&D 5e 2014 — классика большинства столов в СНГ. Редакция фиксируется при создании.'
+
+export const EDITION_HINT_2024 =
+  'Создаём по правилам D&D 5e 2024: вид вместо расы, предыстория с чертой происхождения. Редакция фиксируется при создании.'
+
+/** Default (=2014) for empty character list / 2014 wizard while the 2024 CTA is closed. */
+export const EDITION_HINT = EDITION_HINT_2014

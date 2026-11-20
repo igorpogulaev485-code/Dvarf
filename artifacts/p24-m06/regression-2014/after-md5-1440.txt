@@ -1,0 +1,5 @@
+9830fb7a6c0acc068819fff2aeb16b0e  after-create-2014-race-marker-1440.png
+c6e2b150cc76a60544407f69cb8b92c1  after-create-2014-rogue-class-1440.png
+ab102b685a25912f8ad3f4d98692201e  after-sheet-2014-rogue-1440.png
+b0893248a87147a48bf5837a88842e11  after-sheet-2014-rogue-features-1440.png
+a5378c3f735b6d0ba6f47d7e39f89f06  after-sheet-2014-assassin-features-1440.png
