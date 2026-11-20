@@ -72,13 +72,19 @@ export type TurnEconomyContextValue = {
   /** Открыть «Ввести своё число» для любого броска. */
   openEnterOwnNumber: (opts: {
     title: string
-    mode?: 'total' | 'd20'
+    mode?: 'total' | 'd20' | 'formula'
     modifier?: number
-    /** Extra dice (mark d4 / Bless) rolled into the recorded total. */
+    advantageMode?: 'normal' | 'advantage' | 'disadvantage'
+    /** Для mode=formula: выражение урона/лечения. */
+    formula?: string | null
+    /** Extra dice (mark d4 / Bless) — ввод лицом в диалоге. */
     bonusDice?: Array<{ dice: string; label: string }> | null
     onDone?: (total: number) => void
   }) => void
-  /** Кубики на столе: Спас / Провал. */
+  /**
+   * Кубики на столе (legacy): Спас / Провал без числа.
+   * Для спасбросков листа при diceOnTable используйте openEnterOwnNumber (d20+мод).
+   */
   openTableSave: (title: string) => void
 }
 

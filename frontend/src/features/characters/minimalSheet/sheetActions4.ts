@@ -150,6 +150,7 @@ import {
   spendSpellSlot,
   type SpellcastingAbility,
 } from '../../../shared/dnd/spells'
+import { offerPhysicalSpellFollowUp } from '../physicalSpellFollowUp'
 import { isShillelaghSpell, pickShillelaghAttack } from '../shillelagh'
 import {
   ABILITY_LABELS,
@@ -481,6 +482,9 @@ export function installSheetActions4(model: SheetModel) {
 
   model.runDeskCast = function runDeskCast(spell: SheetSpell, choice: CastChoice): boolean {
     let castSucceeded = false
+    // Filled after resolveCastEffect; read by successToast / cantrip path for physical follow-up.
+    let physicalEffect = ''
+    let physicalAttackBonus = 0
     const ritualCastEarly = Boolean(choice.ritual && spell.ritual && spell.level > 0)
     const teApi = model.turnEconomyApi as
       | {
@@ -718,6 +722,34 @@ export function installSheetActions4(model: SheetModel) {
           ? `${message}${spareNote} · ${metaNotes.join(' · ')}`
           : `${message}${spareNote}`
       model.onToast(spellBreakerToast(full))
+      // Physical dice: после каста — ввод атаки/урона/лечения (только при галке).
+      queueMicrotask(() => {
+        const te = model.turnEconomyApi as
+          | {
+              diceOnTable?: boolean
+              openEnterOwnNumber?: (o: {
+                title: string
+                mode?: 'total' | 'd20' | 'formula'
+                modifier?: number
+                advantageMode?: DeskRollMode
+                formula?: string | null
+                onDone?: (total: number) => void
+              }) => void
+            }
+          | undefined
+        offerPhysicalSpellFollowUp({
+          te,
+          spellName: spell.name || 'Заклинание',
+          attackOrSave: spell.attack_or_save,
+          effect: physicalEffect,
+          spellAttackBonus: physicalAttackBonus,
+          advantageMode:
+            typeof model.attackRollMode === 'function'
+              ? model.attackRollMode()
+              : 'normal',
+          description: spell.description,
+        })
+      })
       const sourceId = String(model.baseCharacter.id)
       void (async () => {
         if (spell.concentration) {
@@ -928,6 +960,8 @@ export function installSheetActions4(model: SheetModel) {
       damageChoice: choice.damageChoice,
       affinity,
     })
+    physicalEffect = effect
+    physicalAttackBonus = castStats.attackBonus ?? 0
     if (
       isEldritchBlastSpell({ name: spell.name, catalogId: spell.catalog_id })
     ) {
@@ -950,6 +984,7 @@ export function installSheetActions4(model: SheetModel) {
       if (hasRepellingBlast(warlockInvocationIds)) {
         effect = `${effect} · ${REPELLING_BLAST_HINT}`
       }
+      physicalEffect = effect
     }
     if (choice.noSlot) {
       const spent = spendItemCharges(
@@ -1091,6 +1126,35 @@ export function installSheetActions4(model: SheetModel) {
           ? `Каст: ${name}${effectNote}${consumeNote}${allyNote} (концентрация)${naparnikNote}${formNote}${cantripNote}`
           : `Каст: ${name}${effectNote}${consumeNote}${allyNote}${naparnikNote}${formNote}${cantripNote}`,
       )
+      // Cantrips bypass successToast — still offer physical attack/damage when галка on.
+      castSucceeded = true
+      queueMicrotask(() => {
+        const te = model.turnEconomyApi as
+          | {
+              diceOnTable?: boolean
+              openEnterOwnNumber?: (o: {
+                title: string
+                mode?: 'total' | 'd20' | 'formula'
+                modifier?: number
+                advantageMode?: DeskRollMode
+                formula?: string | null
+                onDone?: (total: number) => void
+              }) => void
+            }
+          | undefined
+        offerPhysicalSpellFollowUp({
+          te,
+          spellName: name,
+          attackOrSave: spell.attack_or_save,
+          effect: physicalEffect,
+          spellAttackBonus: physicalAttackBonus,
+          advantageMode:
+            typeof model.attackRollMode === 'function'
+              ? model.attackRollMode()
+              : 'normal',
+          description: spell.description,
+        })
+      })
       return true
     }
     if (grantCast && grantRow) {
@@ -1635,8 +1699,10 @@ export function installSheetActions4(model: SheetModel) {
           diceOnTable?: boolean
           openEnterOwnNumber?: (o: {
             title: string
-            mode?: 'total' | 'd20'
+            mode?: 'total' | 'd20' | 'formula'
             modifier?: number
+            advantageMode?: DeskRollMode
+            formula?: string | null
             bonusDice?: BonusDiePart[] | null
             onDone?: (total: number) => void
           }) => void
@@ -1649,6 +1715,7 @@ export function installSheetActions4(model: SheetModel) {
         title: `Проверка: ${skill.label}`,
         mode: 'd20',
         modifier: rollMod,
+        advantageMode: mode,
         bonusDice,
       })
       if (profNote) model.emitToast(`${skill.label}${profNote}`)
@@ -1814,8 +1881,12 @@ export function installSheetActions4(model: SheetModel) {
           diceOnTable?: boolean
           openEnterOwnNumber?: (o: {
             title: string
-            mode?: 'total' | 'd20'
+            mode?: 'total' | 'd20' | 'formula'
             modifier?: number
+            advantageMode?: DeskRollMode
+            formula?: string | null
+            bonusDice?: BonusDiePart[] | null
+            onDone?: (total: number) => void
           }) => void
         }
       | undefined
@@ -1825,6 +1896,8 @@ export function installSheetActions4(model: SheetModel) {
         title: checkTitle,
         mode: 'd20',
         modifier: rollMod,
+        advantageMode: model.effectiveRollMode(),
+        bonusDice,
       })
     } else {
       const suffix = `${note}${model.inspirationRollArmed ? ' · вдохновение' : ''}`
@@ -1984,15 +2057,26 @@ export function installSheetActions4(model: SheetModel) {
           openTableSave?: (title: string) => void
           openEnterOwnNumber?: (o: {
             title: string
-            mode?: 'total' | 'd20'
+            mode?: 'total' | 'd20' | 'formula'
             modifier?: number
+            advantageMode?: DeskRollMode
+            formula?: string | null
+            bonusDice?: BonusDiePart[] | null
+            onDone?: (total: number) => void
           }) => void
         }
       | undefined
-    if (teSave?.diceOnTable && teSave.openTableSave) {
-      teSave.openTableSave(saveTitle)
-      if (saveProfNote) model.emitToast(`${saveTitle}${saveProfNote}`)
+    if (teSave?.diceOnTable && teSave.openEnterOwnNumber) {
+      // Physical: ввод к20 + мод (как навыки). «Спас/Провал» только при выкл. галке — не здесь.
       if (model.inspirationRollArmed && !isHeroicSave) model.spendInspirationForRoll?.()
+      teSave.openEnterOwnNumber({
+        title: saveTitle,
+        mode: 'd20',
+        modifier: saveRollMod,
+        advantageMode: model.saveRollMode(key),
+        bonusDice,
+      })
+      if (saveProfNote) model.emitToast(`${saveTitle}${saveProfNote}`)
     } else {
       const suffix = `${note}${songNote}${coverNote}${spellNote}${saveProfNote}${
         model.inspirationRollArmed ? ' · вдохновение' : ''
