@@ -1725,6 +1725,8 @@ export function installSheetActions4(model: SheetModel) {
       })
       model.emitToast(`${MAGICAL_GUIDANCE_SHEET_NAME}: при провале можно перебросить за 1 очко`)
     }
+    offerHeroicRerollAfter(skill.label, 20)
+    model.offerBardicInspirationAfterFail?.(skill.label)
     consumeOnceBuffDice('check')
   }
 
