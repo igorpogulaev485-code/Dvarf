@@ -27,6 +27,7 @@ import {
   BardLevelingPicks,
   BardBookLevelingPicks,
   PaladinBookLevelingPicks,
+  FighterBookLevelingPicks,
   ArtificerLevelingPicks,
   BarbarianLevelingPicks,
   RangerLevelingPicks,
@@ -92,6 +93,11 @@ import {
   buildArtificerClassOptionPicks,
   artificerAsiChoicesForLevel,
 } from '../features/createPipeline2024/e2eArtificerSeed2024'
+import {
+  parseFighterSeed,
+  buildFighterClassOptionPicks,
+  fighterAsiChoicesForLevel,
+} from '../features/createPipeline2024/e2eFighterSeed2024'
 import { createClassLevel, totalCharacterLevel } from '../shared/dnd/classLevels'
 import { thirdCasterBlock2024 } from '../shared/dnd/edition2024Subclasses'
 import { ensureHpChoices } from '../features/createPipeline/LevelingStep'
@@ -689,6 +695,46 @@ export function CreateCharacter2024Page({
         classOptionPicks: buildArtificerClassOptionPicks(
           artificerSpec.level,
           artificerSpec.subclassSlug,
+        ),
+      }
+    }
+    const fighterSpec = parseFighterSeed(e2eSeed)
+    if (fighterSpec) {
+      const isArcher = fighterSpec.subclassSlug === 'fighter__arcane-archer'
+      const isBanneret = fighterSpec.subclassSlug === 'fighter__banneret'
+      seeds[e2eSeed] = {
+        name: isArcher
+          ? `Мистический лучник ${fighterSpec.level}`
+          : isBanneret
+            ? `Знаменосец ${fighterSpec.level}`
+            : `Воин ${fighterSpec.level}`,
+        classSlug: 'fighter',
+        // Standard-array permutation (15/14/13/12/10/8). Archer: DEX+INT; Banneret: STR+CHA.
+        abilities: isArcher
+          ? { str: 12, dex: 15, con: 13, int: 14, wis: 10, cha: 8 }
+          : isBanneret
+            ? { str: 15, dex: 12, con: 13, int: 8, wis: 10, cha: 14 }
+            : { str: 15, dex: 14, con: 13, int: 8, wis: 12, cha: 10 },
+        rows: [
+          {
+            slug: 'fighter',
+            level: fighterSpec.level,
+            ...(fighterSpec.subclassSlug ? { subclass: fighterSpec.subclassSlug } : {}),
+          },
+        ],
+        skills: isArcher ? ['athletics', 'perception'] : ['athletics', 'perception'],
+        // Soldier ASI is only str/dex/con — CHA for Banneret comes from the array.
+        backgroundAsi: isArcher
+          ? { dex: 2, con: 1 }
+          : isBanneret
+            ? { str: 2, con: 1 }
+            : { str: 2, con: 1 },
+        asi: fighterAsiChoicesForLevel(fighterSpec.level, fighterSpec.subclassSlug),
+        fighting: 'defense',
+        mastery: Math.min(6, fighterSpec.level >= 16 ? 6 : fighterSpec.level >= 10 ? 5 : fighterSpec.level >= 4 ? 4 : 3),
+        classOptionPicks: buildFighterClassOptionPicks(
+          fighterSpec.level,
+          fighterSpec.subclassSlug,
         ),
       }
     }
@@ -1544,6 +1590,24 @@ export function CreateCharacter2024Page({
                 }
                 if (picksChanged) patchBody.classOptionPicks = nextPicks
               }
+              if (state.classSlug === 'fighter') {
+                const nextPicks = { ...state.classOptionPicks }
+                let picksChanged = false
+                if (newLevel < 3) {
+                  for (const key of [
+                    'arcane_archer_lore_cantrip',
+                    'arcane_shot_options',
+                    'knightly_envoy_language',
+                    'knightly_envoy_skill',
+                  ]) {
+                    if (nextPicks[key] != null) {
+                      delete nextPicks[key]
+                      picksChanged = true
+                    }
+                  }
+                }
+                if (picksChanged) patchBody.classOptionPicks = nextPicks
+              }
               patch(patchBody)
             }}
             onHpChoicesChange={(hpChoices) => patch({ hpChoices })}
@@ -1667,6 +1731,7 @@ export function CreateCharacter2024Page({
           ) : null}
           {classSlug === 'bard' ? <BardBookLevelingPicks state={state} patch={patch} /> : null}
           {classSlug === 'paladin' ? <PaladinBookLevelingPicks state={state} patch={patch} /> : null}
+          {classSlug === 'fighter' ? <FighterBookLevelingPicks state={state} patch={patch} /> : null}
           {classSlug === 'rogue' ? <RogueLevelingPicks state={state} patch={patch} /> : null}
           {classSlug === 'ranger' ? <RangerLevelingPicks state={state} patch={patch} /> : null}
           {classSlug === 'warlock' ? <WarlockLevelingPicks state={state} patch={patch} /> : null}

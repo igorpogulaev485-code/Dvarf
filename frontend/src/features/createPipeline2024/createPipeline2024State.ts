@@ -81,6 +81,13 @@ import {
   ELEMENTAL_SHIELDING_TYPES_2024,
   GENIES_SPLENDOR_SKILLS_2024,
 } from '../../shared/dnd/paladinBook2024Features'
+import {
+  ARCANE_ARCHER_LORE_CANTRIPS_2024,
+  ARCANE_SHOT_IDS_2024,
+  KNIGHTLY_ENVOY_LANGUAGE_OPTIONS_2024,
+  KNIGHTLY_ENVOY_SKILLS_2024,
+  arcaneShotsKnown2024,
+} from '../../shared/dnd/fighterBook2024Features'
 import { wizardCreateBookNeed2024 } from '../../shared/dnd/wizardSpellbook2024'
 import {
   isVestigeCompanionType2024,
@@ -826,6 +833,50 @@ export function paladinBookCreatePicksNeed2024(state: Create2024State): {
   }
 }
 
+/** P24-M02B-fighter: Arcane Archer + Banneret (UI «Знаменосец») mandatory create picks. */
+export function fighterBookCreatePicksNeed2024(state: Create2024State): {
+  fighterLevel: number
+  subclassSlug: string
+  loreCantrip: boolean
+  arcaneShots: boolean
+  arcaneShotsNeed: number
+  envoyLanguage: boolean
+  envoySkill: boolean
+  any: boolean
+} {
+  if (state.classSlug !== 'fighter') {
+    return {
+      fighterLevel: 0,
+      subclassSlug: '',
+      loreCantrip: false,
+      arcaneShots: false,
+      arcaneShotsNeed: 0,
+      envoyLanguage: false,
+      envoySkill: false,
+      any: false,
+    }
+  }
+  const primary =
+    state.classes.find((row) => row.id === state.primaryClassEntryId) ?? state.classes[0]
+  const fighterLevel = Math.max(1, primary?.level ?? state.characterLevel ?? 1)
+  const subclass = String(
+    (primary && state.subclassByEntryId[primary.id]) || state.subclassSlug || '',
+  ).toLowerCase()
+  const archer = subclass === 'fighter__arcane-archer' && fighterLevel >= 3
+  const banneret = subclass === 'fighter__banneret' && fighterLevel >= 3
+  const shotNeed = archer ? arcaneShotsKnown2024(fighterLevel) : 0
+  return {
+    fighterLevel,
+    subclassSlug: subclass,
+    loreCantrip: archer,
+    arcaneShots: archer,
+    arcaneShotsNeed: shotNeed,
+    envoyLanguage: banneret,
+    envoySkill: banneret,
+    any: archer || banneret,
+  }
+}
+
 export function rangerCreatePicksNeed2024(state: Create2024State): {
   rangerLevel: number
   subclassSlug: string
@@ -1267,6 +1318,58 @@ function levelingIssues(state: Create2024State, ctx: StepIssueCtx): string[] {
         .replace(/-/g, '_')
       if (!(ELEMENTAL_SHIELDING_TYPES_2024 as readonly string[]).includes(pick)) {
         issues.push('Клятва благородных гениев 7+: выберите тип «Ауры стихийной защиты»')
+      }
+    }
+  }
+  if (state.classSlug === 'fighter') {
+    const need = fighterBookCreatePicksNeed2024(state)
+    if (need.loreCantrip) {
+      const raw = state.classOptionPicks.arcane_archer_lore_cantrip
+      const pick = String(Array.isArray(raw) ? raw[0] || '' : raw || '')
+        .trim()
+        .toLowerCase()
+        .replace(/_/g, '-')
+      if (!(ARCANE_ARCHER_LORE_CANTRIPS_2024 as readonly string[]).includes(pick as (typeof ARCANE_ARCHER_LORE_CANTRIPS_2024)[number])) {
+        issues.push('Мистический лучник 3+: выберите заговор «Знаний чародейных стрелков»')
+      }
+    }
+    if (need.arcaneShots) {
+      const raw = state.classOptionPicks.arcane_shot_options
+      const picks = Array.isArray(raw)
+        ? raw.map((x) => String(x || '').trim().toLowerCase().replace(/-/g, '_'))
+        : String(raw || '')
+            .split(',')
+            .map((x) => x.trim().toLowerCase().replace(/-/g, '_'))
+            .filter(Boolean)
+      const uniq = [...new Set(picks)].filter((id) =>
+        (ARCANE_SHOT_IDS_2024 as readonly string[]).includes(id),
+      )
+      if (uniq.length < need.arcaneShotsNeed) {
+        issues.push(
+          `Мистический лучник: выберите ${need.arcaneShotsNeed} варианта Чародейного выстрела`,
+        )
+      }
+    }
+    if (need.envoyLanguage) {
+      const pick = String(state.classOptionPicks.knightly_envoy_language || '')
+        .trim()
+        .toLowerCase()
+        .replace(/_/g, '-')
+      if (
+        !(KNIGHTLY_ENVOY_LANGUAGE_OPTIONS_2024 as readonly string[]).includes(
+          pick as (typeof KNIGHTLY_ENVOY_LANGUAGE_OPTIONS_2024)[number],
+        )
+      ) {
+        issues.push('Знаменосец 3+: выберите язык «Посланника рыцарства»')
+      }
+    }
+    if (need.envoySkill) {
+      const pick = String(state.classOptionPicks.knightly_envoy_skill || '')
+        .trim()
+        .toLowerCase()
+        .replace(/-/g, '_')
+      if (!(KNIGHTLY_ENVOY_SKILLS_2024 as readonly string[]).includes(pick as (typeof KNIGHTLY_ENVOY_SKILLS_2024)[number])) {
+        issues.push('Знаменосец 3+: выберите навык «Поставленной речи»')
       }
     }
   }

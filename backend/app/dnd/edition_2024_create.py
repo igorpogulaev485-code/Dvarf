@@ -1073,6 +1073,117 @@ PALADIN_NOBLE_GENIES_SUBCLASS_2024 = "paladin__oath-of-the-noble-genies"
 PALADIN_SUBCLASS_LEVEL_2024 = 3
 PALADIN_ELEMENTAL_SHIELDING_LEVEL_2024 = 7
 
+# P24-M02B-fighter book paths
+FIGHTER_ARCANE_ARCHER_SUBCLASS_2024 = "fighter__arcane-archer"
+FIGHTER_BANNERET_SUBCLASS_2024 = "fighter__banneret"
+FIGHTER_SUBCLASS_LEVEL_2024 = 3
+ARCANE_ARCHER_LORE_CANTRIP_KEY = "arcane_archer_lore_cantrip"
+ARCANE_SHOT_OPTIONS_KEY = "arcane_shot_options"
+KNIGHTLY_ENVOY_LANGUAGE_KEY = "knightly_envoy_language"
+KNIGHTLY_ENVOY_SKILL_KEY = "knightly_envoy_skill"
+ARCANE_ARCHER_LORE_CANTRIPS_2024 = frozenset({"druidcraft", "prestidigitation"})
+ARCANE_SHOT_OPTION_IDS_2024 = (
+    "bursting_shot",
+    "banishing_shot",
+    "seeking_shot",
+    "enfeebling_shot",
+    "piercing_shot",
+    "shadow_shot",
+    "grasping_shot",
+    "beguiling_shot",
+)
+ARCANE_SHOT_OPTION_SET_2024 = frozenset(ARCANE_SHOT_OPTION_IDS_2024)
+KNIGHTLY_ENVOY_SKILLS_2024 = frozenset(
+    {"performance", "intimidation", "insight", "persuasion"}
+)
+KNIGHTLY_ENVOY_LANGUAGES_2024 = frozenset(
+    {
+        "elvish",
+        "dwarvish",
+        "giant",
+        "gnomish",
+        "goblin",
+        "halfling",
+        "orc",
+        "draconic",
+        "infernal",
+        "celestial",
+        "abyssal",
+        "primordial",
+        "sylvan",
+        "undercommon",
+    }
+)
+
+
+def _arcane_shots_known_2024(level: int) -> int:
+    lv = max(0, int(level or 0))
+    if lv < 3:
+        return 0
+    known = 2
+    if lv >= 7:
+        known += 1
+    if lv >= 10:
+        known += 1
+    if lv >= 15:
+        known += 1
+    if lv >= 18:
+        known += 1
+    return known
+
+
+def _validate_fighter_book_options_2024(
+    payload: Create2024Payload,
+    picks: Mapping[str, Any],
+) -> dict[str, Any]:
+    """P24-M02B-fighter: Arcane Archer cantrip/shots + Banneret language/skill."""
+    out: dict[str, Any] = {}
+    fighter_level = _planned_class_level(payload, "fighter")
+    subclass = _planned_primary_subclass(payload)
+    if subclass == FIGHTER_ARCANE_ARCHER_SUBCLASS_2024 and fighter_level >= FIGHTER_SUBCLASS_LEVEL_2024:
+        cantrip = str(picks.get(ARCANE_ARCHER_LORE_CANTRIP_KEY) or "").lower().replace("_", "-")
+        if cantrip not in ARCANE_ARCHER_LORE_CANTRIPS_2024:
+            raise Create2024Error(
+                "Мистический лучник 3+: выберите заговор «Знаний чародейных стрелков»",
+                code="create_2024_class_options",
+            )
+        out[ARCANE_ARCHER_LORE_CANTRIP_KEY] = cantrip
+        raw = picks.get(ARCANE_SHOT_OPTIONS_KEY)
+        if isinstance(raw, str):
+            shot_list = [x.strip() for x in raw.split(",") if x.strip()]
+        elif isinstance(raw, list):
+            shot_list = [str(x).strip() for x in raw if str(x).strip()]
+        else:
+            shot_list = []
+        shots = []
+        for item in shot_list:
+            key = item.lower().replace("-", "_")
+            if key in ARCANE_SHOT_OPTION_SET_2024 and key not in shots:
+                shots.append(key)
+        need = _arcane_shots_known_2024(fighter_level)
+        if len(shots) < need:
+            raise Create2024Error(
+                f"Мистический лучник: выберите {need} варианта Чародейного выстрела",
+                code="create_2024_class_options",
+            )
+        out[ARCANE_SHOT_OPTIONS_KEY] = shots[:need]
+    if subclass == FIGHTER_BANNERET_SUBCLASS_2024 and fighter_level >= FIGHTER_SUBCLASS_LEVEL_2024:
+        lang = str(picks.get(KNIGHTLY_ENVOY_LANGUAGE_KEY) or "").lower().replace("_", "-")
+        if lang not in KNIGHTLY_ENVOY_LANGUAGES_2024:
+            raise Create2024Error(
+                "Знаменосец 3+: выберите язык «Посланника рыцарства»",
+                code="create_2024_class_options",
+            )
+        out[KNIGHTLY_ENVOY_LANGUAGE_KEY] = lang
+        skill = str(picks.get(KNIGHTLY_ENVOY_SKILL_KEY) or "").lower().replace("-", "_")
+        if skill not in KNIGHTLY_ENVOY_SKILLS_2024:
+            raise Create2024Error(
+                "Знаменосец 3+: выберите навык «Поставленной речи»",
+                code="create_2024_class_options",
+            )
+        out[KNIGHTLY_ENVOY_SKILL_KEY] = skill
+    return out
+
 
 def _validate_paladin_options_2024(
     payload: Create2024Payload,
@@ -2193,6 +2304,146 @@ def _sync_bard_book_picks(sheet: dict[str, Any], class_options: Mapping[str, Any
 
 
 
+def _sync_fighter_book_picks(sheet: dict[str, Any], class_options: Mapping[str, Any]) -> None:
+    """P24-M02B-fighter: Arcane Archer / Banneret («Знаменосец») picks → feature_picks / grants."""
+    for row in sheet.get("classes") or []:
+        if not isinstance(row, dict):
+            continue
+        if e24.normalize_class_slug(str(row.get("slug") or "")) != "fighter":
+            continue
+        level = int(row.get("level") or 0)
+        subclass = _normalize_slug(str(row.get("subclass_slug") or ""))
+        entry_id = str(row.get("id") or "class-fighter")
+        picks = sheet.get("feature_picks")
+        values = dict(picks.get("values") or {}) if isinstance(picks, dict) else {}
+        prof = sheet.get("proficiency") if isinstance(sheet.get("proficiency"), dict) else {}
+        skills_meta = sheet.get("skills") if isinstance(sheet.get("skills"), dict) else {}
+
+        book_keys = (
+            f"{entry_id}:{ARCANE_ARCHER_LORE_CANTRIP_KEY}",
+            f"{entry_id}:{ARCANE_SHOT_OPTIONS_KEY}",
+            f"{entry_id}:arcane-archer-lore",
+            f"{entry_id}:arcane-shot",
+            f"{entry_id}:{KNIGHTLY_ENVOY_LANGUAGE_KEY}",
+            f"{entry_id}:{KNIGHTLY_ENVOY_SKILL_KEY}",
+            f"{entry_id}:knightly-envoy",
+        )
+        if subclass not in (
+            FIGHTER_ARCANE_ARCHER_SUBCLASS_2024,
+            FIGHTER_BANNERET_SUBCLASS_2024,
+        ) or level < FIGHTER_SUBCLASS_LEVEL_2024:
+            for key in book_keys:
+                values.pop(key, None)
+            sheet["feature_picks"] = {"values": values}
+            sheet["subclass_grants"] = [
+                item
+                for item in (sheet.get("subclass_grants") or [])
+                if not (
+                    isinstance(item, dict)
+                    and item.get("classEntryId") == entry_id
+                    and item.get("slug")
+                    in (FIGHTER_ARCANE_ARCHER_SUBCLASS_2024, FIGHTER_BANNERET_SUBCLASS_2024)
+                )
+            ]
+            return
+
+        grant_skills: list[str] = []
+        grant_languages: list[str] = []
+        grant_picks: dict[str, Any] = {}
+
+        if subclass == FIGHTER_ARCANE_ARCHER_SUBCLASS_2024:
+            cantrip = str(class_options.get(ARCANE_ARCHER_LORE_CANTRIP_KEY) or "").lower().replace(
+                "_", "-"
+            )
+            if cantrip in ARCANE_ARCHER_LORE_CANTRIPS_2024:
+                values[f"{entry_id}:{ARCANE_ARCHER_LORE_CANTRIP_KEY}"] = cantrip
+                values[f"{entry_id}:arcane-archer-lore"] = cantrip
+                grant_picks[ARCANE_ARCHER_LORE_CANTRIP_KEY] = cantrip
+            raw_shots = class_options.get(ARCANE_SHOT_OPTIONS_KEY) or []
+            if isinstance(raw_shots, list):
+                shots = [
+                    str(x).lower().replace("-", "_")
+                    for x in raw_shots
+                    if str(x).lower().replace("-", "_") in ARCANE_SHOT_OPTION_SET_2024
+                ]
+                values[f"{entry_id}:{ARCANE_SHOT_OPTIONS_KEY}"] = ",".join(shots)
+                values[f"{entry_id}:arcane-shot"] = ",".join(shots)
+                grant_picks[ARCANE_SHOT_OPTIONS_KEY] = shots
+            # Lore grants Nature + Arcana (substitution handled lightly: just grant).
+            for skill in ("nature", "arcana"):
+                grant_skills.append(skill)
+                if isinstance(skills_meta.get(skill), dict):
+                    skills_meta[skill]["is_proficient"] = True
+                skill_list = list(prof.get("skills") or []) if isinstance(prof, dict) else []
+                if skill not in skill_list:
+                    skill_list.append(skill)
+                    if isinstance(prof, dict):
+                        prof["skills"] = skill_list
+
+        if subclass == FIGHTER_BANNERET_SUBCLASS_2024:
+            lang = str(class_options.get(KNIGHTLY_ENVOY_LANGUAGE_KEY) or "").lower().replace(
+                "_", "-"
+            )
+            if lang in KNIGHTLY_ENVOY_LANGUAGES_2024:
+                values[f"{entry_id}:{KNIGHTLY_ENVOY_LANGUAGE_KEY}"] = lang
+                grant_languages.append(lang)
+                grant_picks[KNIGHTLY_ENVOY_LANGUAGE_KEY] = lang
+                lang_list = list(prof.get("languages") or []) if isinstance(prof, dict) else []
+                if lang not in lang_list:
+                    lang_list.append(lang)
+                    if isinstance(prof, dict):
+                        prof["languages"] = lang_list
+            skill = str(class_options.get(KNIGHTLY_ENVOY_SKILL_KEY) or "").lower().replace(
+                "-", "_"
+            )
+            if skill in KNIGHTLY_ENVOY_SKILLS_2024:
+                values[f"{entry_id}:{KNIGHTLY_ENVOY_SKILL_KEY}"] = skill
+                values[f"{entry_id}:knightly-envoy"] = skill
+                grant_skills.append(skill)
+                grant_picks[KNIGHTLY_ENVOY_SKILL_KEY] = skill
+                if isinstance(skills_meta.get(skill), dict):
+                    skills_meta[skill]["is_proficient"] = True
+                skill_list = list(prof.get("skills") or []) if isinstance(prof, dict) else []
+                if skill not in skill_list:
+                    skill_list.append(skill)
+                    if isinstance(prof, dict):
+                        prof["skills"] = skill_list
+
+        ledger = [
+            dict(item)
+            for item in (sheet.get("subclass_grants") or [])
+            if isinstance(item, dict) and item.get("classEntryId") != entry_id
+        ]
+        ledger.append(
+            {
+                "classEntryId": entry_id,
+                "catalogId": subclass,
+                "slug": subclass,
+                "parentSlug": "fighter",
+                "skills": grant_skills,
+                "armorKeys": [],
+                "weaponKeys": [],
+                "weaponExtras": [],
+                "tools": [],
+                "languages": grant_languages,
+                "caster": None,
+                "grantedSpellIds": (
+                    [grant_picks[ARCANE_ARCHER_LORE_CANTRIP_KEY]]
+                    if ARCANE_ARCHER_LORE_CANTRIP_KEY in grant_picks
+                    else []
+                ),
+                "picks": grant_picks,
+            }
+        )
+        sheet["subclass_grants"] = ledger
+        sheet["feature_picks"] = {"values": values}
+        if isinstance(prof, dict):
+            sheet["proficiency"] = prof
+        if isinstance(skills_meta, dict):
+            sheet["skills"] = skills_meta
+        return
+
+
 def _sync_paladin_book_picks(sheet: dict[str, Any], class_options: Mapping[str, Any]) -> None:
     """P24-M02B-paladin: Genie's Splendor skill + Elemental Shielding type → feature_picks / grants."""
     for row in sheet.get("classes") or []:
@@ -2831,6 +3082,8 @@ def _validate_class_options(
                 fighting_style=fighting_style,
             )
         )
+    if payload.class_slug == "fighter":
+        out.update(_validate_fighter_book_options_2024(payload, picks))
     if payload.class_slug == "ranger":
         out.update(
             _validate_ranger_options_2024(
@@ -3192,6 +3445,7 @@ def validate_create_2024(payload: Create2024Payload) -> Create2024Result:
     _sync_rogue_picks(sheet, class_options)
     _sync_blessed_warrior_picks(sheet, class_options, fighting_style=fighting_style)
     _sync_paladin_book_picks(sheet, class_options)
+    _sync_fighter_book_picks(sheet, class_options)
     _sync_druidic_warrior_picks(sheet, class_options, fighting_style=fighting_style)
     _sync_ranger_subclass_picks(sheet, class_options)
     _sync_artificer_subclass_picks(sheet, class_options)

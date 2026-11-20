@@ -469,9 +469,29 @@ SHARED_OPTIONS: dict[str, list[SharedPoolOption]] = {
             min_level=14,
         ),
     ],
-    # Fighter Banneret — rides Second Wind
+    # Fighter Banneret (UI «Знаменосец») — rides Second Wind / Action Surge / Indomitable
     "fighter__banneret": [
-        SharedPoolOption("group-recovery", "Групповое оздоровление", "second_wind", kind="passive"),
+        SharedPoolOption(
+            "group-recovery",
+            "Групповое оздоровление",
+            "second_wind",
+            kind="passive",
+            min_level=3,
+        ),
+        SharedPoolOption(
+            "rallying-surge",
+            "Воодушевляющий всплеск",
+            "action_surge",
+            kind="passive",
+            min_level=10,
+        ),
+        SharedPoolOption(
+            "shared-resilience",
+            "Устойчивость команды",
+            "indomitable",
+            kind="reaction",
+            min_level=15,
+        ),
     ],
 }
 
@@ -1654,13 +1674,31 @@ def build_subclass_resources(
             },
         )
     elif subclass_slug == "fighter__arcane-archer":
+        # Book: Int mod (min 1); reset on Short or Long rest (not long-only).
         add(
             "arcane_shot",
             name_ru="Чародейный выстрел",
             max_uses=max(1, int_m),
-            reset="long",
+            reset="short",
             feature_id="arcane-shot",
         )
+        if class_level >= 7:
+            add(
+                "magical_ammunition",
+                name_ru="Магические боеприпасы",
+                max_uses=1,
+                reset="short",
+                feature_id="magical-ammunition",
+            )
+    elif subclass_slug == "fighter__banneret":
+        if class_level >= 3:
+            add(
+                "group_recovery",
+                name_ru="Групповое оздоровление",
+                max_uses=1,
+                reset="short",
+                feature_id="group-recovery",
+            )
 
     # --- Artificer ---
     elif subclass_slug == "artificer__alchemist":

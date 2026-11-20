@@ -67,6 +67,20 @@ import {
   OATH_OF_THE_NOBLE_GENIES_NAME_RU,
 } from '../../shared/dnd/paladinBook2024Features'
 import {
+  ARCANE_ARCHER_LORE_CANTRIPS_2024,
+  ARCANE_ARCHER_LORE_NAME_RU,
+  ARCANE_ARCHER_NAME_RU,
+  ARCANE_SHOT_NAME_RU,
+  ARCANE_SHOTS_2024,
+  BANNERET_NAME_RU,
+  KNIGHTLY_ENVOY_LANGUAGE_OPTIONS_2024,
+  KNIGHTLY_ENVOY_NAME_RU,
+  KNIGHTLY_ENVOY_SKILLS_2024,
+  arcaneArcherLoreCantripChoice2024,
+  knightlyEnvoyLanguageChoice2024,
+  knightlyEnvoySkillChoice2024,
+} from '../../shared/dnd/fighterBook2024Features'
+import {
   ARMOR_MODELS_2024,
   PLANS_KNOWN_COLUMN_RU,
   SPELL_STORING_ITEM_NAME_RU,
@@ -142,6 +156,7 @@ import {
   clericBookCreatePicksNeed2024,
   bardBookCreatePicksNeed2024,
   paladinBookCreatePicksNeed2024,
+  fighterBookCreatePicksNeed2024,
   setAsiFlat1,
   setAsiPlus2Plus1,
   speciesLineages,
@@ -1508,6 +1523,108 @@ export function PaladinBookLevelingPicks({
             multi={false}
             testIdPrefix="p24-m02b-pick-elemental-shield"
             onChange={(picked) => setPicks({ elemental_shielding_type: picked[0] ?? null })}
+          />
+        ) : null}
+      </Stack>
+    </div>
+  )
+}
+
+/** P24-M02B book fighter: Arcane Archer shots/cantrip + Banneret («Знаменосец») language/skill. */
+export function FighterBookLevelingPicks({
+  state,
+  patch,
+}: {
+  state: Create2024State
+  patch: (partial: Partial<Create2024State>) => void
+}) {
+  const need = fighterBookCreatePicksNeed2024(state)
+  if (!need.any) return null
+  const setPicks = (partial: Record<string, unknown>) =>
+    patch({ classOptionPicks: { ...state.classOptionPicks, ...partial } })
+  const cantripLabels = arcaneArcherLoreCantripChoice2024.option_labels_ru ?? {}
+  const langLabels = knightlyEnvoyLanguageChoice2024.option_labels_ru ?? {}
+  const skillLabels = knightlyEnvoySkillChoice2024.option_labels_ru ?? {}
+  const shotSelected = Array.isArray(state.classOptionPicks.arcane_shot_options)
+    ? (state.classOptionPicks.arcane_shot_options as string[])
+    : String(state.classOptionPicks.arcane_shot_options || '')
+        .split(',')
+        .map((x) => x.trim())
+        .filter(Boolean)
+
+  return (
+    <div data-testid="p24-m02b-fighter-book-picks">
+      <Stack gap={14}>
+        {need.loreCantrip ? (
+          <PickChipGroup
+            label={`${ARCANE_ARCHER_LORE_NAME_RU} (${ARCANE_ARCHER_NAME_RU}): Заговор`}
+            hint="Искусство друидов или Фокусы. Заклинательная характеристика — Интеллект."
+            options={ARCANE_ARCHER_LORE_CANTRIPS_2024.map((id) => ({
+              id,
+              label: cantripLabels[id] ?? id,
+            }))}
+            selected={
+              state.classOptionPicks.arcane_archer_lore_cantrip
+                ? [String(state.classOptionPicks.arcane_archer_lore_cantrip)]
+                : []
+            }
+            max={1}
+            multi={false}
+            testIdPrefix="p24-m02b-pick-aa-cantrip"
+            onChange={(picked) => setPicks({ arcane_archer_lore_cantrip: picked[0] ?? null })}
+          />
+        ) : null}
+        {need.arcaneShots ? (
+          <PickChipGroup
+            label={`${ARCANE_SHOT_NAME_RU} (${ARCANE_ARCHER_NAME_RU})`}
+            hint={`Выберите ${need.arcaneShotsNeed} варианта «…выстрел» (не 2014 «…стрела»).`}
+            options={ARCANE_SHOTS_2024.map((row) => ({
+              id: row.id,
+              label: row.nameRu,
+            }))}
+            selected={shotSelected}
+            max={need.arcaneShotsNeed}
+            multi
+            testIdPrefix="p24-m02b-pick-arcane-shot"
+            onChange={(picked) => setPicks({ arcane_shot_options: picked })}
+          />
+        ) : null}
+        {need.envoyLanguage ? (
+          <PickChipGroup
+            label={`${KNIGHTLY_ENVOY_NAME_RU} (${BANNERET_NAME_RU}): Полиглот`}
+            hint="Один язык из Обычных / Редких / Языков Фаэруна."
+            options={KNIGHTLY_ENVOY_LANGUAGE_OPTIONS_2024.map((id) => ({
+              id,
+              label: langLabels[id] ?? id,
+            }))}
+            selected={
+              state.classOptionPicks.knightly_envoy_language
+                ? [String(state.classOptionPicks.knightly_envoy_language)]
+                : []
+            }
+            max={1}
+            multi={false}
+            testIdPrefix="p24-m02b-pick-envoy-lang"
+            onChange={(picked) => setPicks({ knightly_envoy_language: picked[0] ?? null })}
+          />
+        ) : null}
+        {need.envoySkill ? (
+          <PickChipGroup
+            label={`${KNIGHTLY_ENVOY_NAME_RU} (${BANNERET_NAME_RU}): Поставленная речь`}
+            hint="Выступление, Запугивание, Проницательность или Убеждение."
+            options={KNIGHTLY_ENVOY_SKILLS_2024.map((id) => ({
+              id,
+              label: skillLabels[id] ?? skillLabelRu(id),
+            }))}
+            selected={
+              state.classOptionPicks.knightly_envoy_skill
+                ? [String(state.classOptionPicks.knightly_envoy_skill)]
+                : []
+            }
+            max={1}
+            multi={false}
+            testIdPrefix="p24-m02b-pick-envoy-skill"
+            onChange={(picked) => setPicks({ knightly_envoy_skill: picked[0] ?? null })}
           />
         ) : null}
       </Stack>

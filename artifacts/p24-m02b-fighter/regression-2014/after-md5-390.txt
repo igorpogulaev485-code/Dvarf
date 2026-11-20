@@ -1,0 +1,6 @@
+593794cbc8945111beb093cf3ee71614  after-create-2014-race-marker-390.png
+c03631dbce9fc7ab7a2ede961183cebe  after-create-2014-fighter-class-390.png
+381ffa6eeccb852a982b1693123d29e9  after-sheet-2014-fighter-header-390.png
+0667dd3fa3565388cb50ffdd0d955ea5  after-sheet-2014-fighter-abilities-390.png
+a246a07dd3a65b15742a87826a6deee7  after-sheet-2014-fighter-features-390.png
+e7264bee60b1cdec45cafb3905b63e07  after-sheet-2014-battlemaster-features-390.png
