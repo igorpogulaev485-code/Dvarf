@@ -278,6 +278,7 @@ assert.match(wizardSrc, /CreatePipelineShell/, 'wizard uses the shared 2014 shel
 assert.match(wizardSrc, /CREATE_2024_STEP_LABELS/)
 assert.match(wizardSrc, /visibleCreate2024Steps\(speciesEntry\)/, 'feat step follows the species')
 assert.match(wizardSrc, /embedded/, 'wizard can be embedded without an own route')
+assert.match(wizardSrc, /create-2024-back|← К списку/, '2024 topbar has same back link as 2014')
 assert.match(wizardSrc, /RULES_EDITION_2024_OPEN/)
 for (const id of ['species', 'feat', 'background', 'class', 'abilities', 'leveling']) {
   assert.match(wizardSrc, new RegExp(`p24-m03-step-${id}`), `step test id ${id}`)
