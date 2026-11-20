@@ -11,7 +11,17 @@ export type TurnEconomyMarkKey =
   | 'reaction'
   | 'object_interaction'
 
-export type ActionSpentAs = 'attack' | 'cast' | 'feature' | 'search' | null
+export type ActionSpentAs =
+  | 'attack'
+  | 'cast'
+  | 'feature'
+  | 'search'
+  /** P24-02: 2024 Magic / Study / Influence / Utilize (2014 ignores). */
+  | 'magic'
+  | 'study'
+  | 'influence'
+  | 'utilize'
+  | null
 
 export type TurnCastTiming = 'action' | 'bonus' | 'reaction'
 
@@ -31,6 +41,11 @@ export type TurnEconomyState = {
   objectInteraction: boolean
   /** Неиспользованные доп. действия (Всплеск — T-02). */
   extraActions: number
+  /**
+   * P24-M02a: сколько из extraActions от Action Surge 2024
+   * (нельзя потратить на действие «Магия»).
+   */
+  blocksMagicExtras: number
   /** Чем потратили основное действие в этот ход. */
   actionSpentAs: ActionSpentAs
   castsThisTurn: TurnCastRecord[]
@@ -112,6 +127,7 @@ export function emptyTurnEconomy(): TurnEconomyState {
     reaction: false,
     objectInteraction: false,
     extraActions: 0,
+    blocksMagicExtras: 0,
     actionSpentAs: null,
     castsThisTurn: [],
     moved: false,
@@ -195,13 +211,22 @@ export function readTurnEconomy(raw: unknown): TurnEconomyState {
     spent === 'attack' ||
     spent === 'cast' ||
     spent === 'feature' ||
-    spent === 'search'
+    spent === 'search' ||
+    spent === 'magic' ||
+    spent === 'study' ||
+    spent === 'influence' ||
+    spent === 'utilize'
       ? spent
       : null
   const extraRaw = row.extra_actions ?? row.extraActions
   const extraActions =
     typeof extraRaw === 'number' && Number.isFinite(extraRaw)
       ? Math.max(0, Math.floor(extraRaw))
+      : 0
+  const blocksMagicRaw = row.blocks_magic_extras ?? row.blocksMagicExtras
+  const blocksMagicExtras =
+    typeof blocksMagicRaw === 'number' && Number.isFinite(blocksMagicRaw)
+      ? Math.max(0, Math.floor(blocksMagicRaw))
       : 0
   const kiRaw = row.ki_spent_as ?? row.kiSpentAs
   const kiSpentAs: TurnCastTiming | null =
@@ -216,6 +241,7 @@ export function readTurnEconomy(raw: unknown): TurnEconomyState {
       row.object_interaction ?? row.objectInteraction,
     ),
     extraActions,
+    blocksMagicExtras,
     actionSpentAs,
     castsThisTurn,
     moved: Boolean(row.moved),
@@ -337,6 +363,7 @@ export function serializeTurnEconomy(
     reaction: Boolean(state.reaction),
     object_interaction: Boolean(state.objectInteraction),
     extra_actions: Math.max(0, Math.floor(state.extraActions || 0)),
+    blocks_magic_extras: Math.max(0, Math.floor(state.blocksMagicExtras || 0)),
     action_spent_as: state.actionSpentAs,
     casts_this_turn: state.castsThisTurn.map((c) => ({
       id: c.id,
@@ -487,8 +514,7 @@ export function applyAttackSpend(state: TurnEconomyState): TurnEconomyState {
   }
   if (base.extraActions > 0) {
     return {
-      ...base,
-      extraActions: base.extraActions - 1,
+      ...consumeExtraAction(base),
       actionSpentAs: base.actionSpentAs ?? 'attack',
     }
   }
@@ -701,11 +727,41 @@ export function canCastSpell(
 }
 
 /** Э7: «Всплеск действий» — +1 доп. действие, само умение отметку не тратит. */
-export function applyActionSurge(state: TurnEconomyState): TurnEconomyState {
+export function applyActionSurge(
+  state: TurnEconomyState,
+  opts?: { blocksMagic?: boolean },
+): TurnEconomyState {
   return {
     ...state,
     extraActions: state.extraActions + 1,
+    blocksMagicExtras:
+      (state.blocksMagicExtras || 0) + (opts?.blocksMagic ? 1 : 0),
   }
+}
+
+export const ACTION_SURGE_MAGIC_BLOCK_HINT =
+  'Всплеск действий (2024) нельзя потратить на действие «Магия»'
+
+function consumeExtraAction(state: TurnEconomyState): TurnEconomyState {
+  return {
+    ...state,
+    extraActions: Math.max(0, state.extraActions - 1),
+    blocksMagicExtras: Math.max(0, (state.blocksMagicExtras || 0) - 1),
+  }
+}
+
+/**
+ * P24-M02a: Magic action cannot consume an Action Surge extra.
+ * Main action still free → Magic OK; only surge extras left → blocked.
+ */
+export function canSpendMagicAction2024(state: TurnEconomyState): TurnSpendResult {
+  if (!state.action) return { ok: true }
+  if (state.extraActions <= 0) return block('action')
+  const blocked = Math.max(0, Math.floor(state.blocksMagicExtras || 0))
+  if (blocked > 0 && state.extraActions <= blocked) {
+    return { ok: false, reason: ACTION_SURGE_MAGIC_BLOCK_HINT, mark: 'action' }
+  }
+  return { ok: true }
 }
 
 export type HideSpendTiming = 'action' | 'bonus'
@@ -737,7 +793,28 @@ export function applySearchSpend(state: TurnEconomyState): TurnEconomyState {
     return { ...state, action: true, actionSpentAs: 'search' }
   }
   if (state.extraActions > 0) {
-    return { ...state, extraActions: state.extraActions - 1 }
+    return consumeExtraAction(state)
+  }
+  return state
+}
+
+/** P24-02: spend the action mark as Magic / Study / Influence / Utilize. */
+export function applyNamedActionSpend(
+  state: TurnEconomyState,
+  spentAs: Exclude<ActionSpentAs, null>,
+): TurnEconomyState {
+  if (spentAs === 'magic' || spentAs === 'cast') {
+    const gate = canSpendMagicAction2024(state)
+    if (!gate.ok) return state
+  }
+  if (!state.action) {
+    return { ...state, action: true, actionSpentAs: spentAs }
+  }
+  if (state.extraActions > 0) {
+    return {
+      ...consumeExtraAction(state),
+      actionSpentAs: state.actionSpentAs ?? spentAs,
+    }
   }
   return state
 }
@@ -795,8 +872,7 @@ export function applyCastSpend(
     return next
   }
   if (next.extraActions > 0) {
-    next.extraActions -= 1
-    return next
+    return consumeExtraAction(next)
   }
   return next
 }
@@ -847,7 +923,7 @@ export function applyFeatureSpend(
     return { ...state, action: true, actionSpentAs: 'feature' }
   }
   if (state.extraActions > 0) {
-    return { ...state, extraActions: state.extraActions - 1 }
+    return consumeExtraAction(state)
   }
   return state
 }

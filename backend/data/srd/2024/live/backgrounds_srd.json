@@ -1,0 +1,198 @@
+{
+  "meta": {
+    "pack": "P24-C01",
+    "rules_edition": "2024",
+    "source": "srd-5.2",
+    "notes_ru": "Четыре предыстории SRD 5.2.1. ASI и черта происхождения на предыстории. Черты C02 ещё нет — origin_feat только id+имя, без падения."
+  },
+  "entries": [
+    {
+      "kind": "background",
+      "slug": "acolyte",
+      "name_ru": "Послушник",
+      "name_en": "Acolyte",
+      "source": "srd-5.2",
+      "sort_order": 10,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/backgrounds/862-acolyte/",
+        "url_ttg": "https://new.ttg.club/backgrounds/acolyte-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "asi": {
+          "abilities": [
+            "int",
+            "wis",
+            "cha"
+          ],
+          "options": [
+            "+2/+1",
+            "+1/+1/+1"
+          ],
+          "cap": 20
+        },
+        "origin_feat": {
+          "id": "magic-initiate",
+          "slug": "magic-initiate",
+          "name_ru": "Посвящённый в магию",
+          "name_en": "Magic Initiate",
+          "variant": "cleric"
+        },
+        "skill_proficiencies": [
+          "insight",
+          "religion"
+        ],
+        "tool_proficiencies": [
+          "calligraphers_supplies"
+        ],
+        "tool_choices": null,
+        "equipment_or_gold": {
+          "gold_alternative_gp": 50,
+          "pack_summary_ru": "Инструменты каллиграфа, книга (молитвенник), священный символ, пергамент ×10, мантия, 8 зм"
+        },
+        "traits_text": "Послушник (2024): ИНТ/МУД/ХАР (+2/+1 или +1/+1/+1). Черта: Посвящённый в магию (жрец). Навыки: Проницательность, Религия. Инструмент: каллиграф. Пакет снаряжения или 50 зм."
+      }
+    },
+    {
+      "kind": "background",
+      "slug": "criminal",
+      "name_ru": "Преступник",
+      "name_en": "Criminal",
+      "source": "srd-5.2",
+      "sort_order": 20,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/backgrounds/894-criminal/",
+        "url_ttg": "https://new.ttg.club/backgrounds/criminal-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "asi": {
+          "abilities": [
+            "dex",
+            "con",
+            "int"
+          ],
+          "options": [
+            "+2/+1",
+            "+1/+1/+1"
+          ],
+          "cap": 20
+        },
+        "origin_feat": {
+          "id": "alert",
+          "slug": "alert",
+          "name_ru": "Бдительный",
+          "name_en": "Alert"
+        },
+        "skill_proficiencies": [
+          "sleight_of_hand",
+          "stealth"
+        ],
+        "tool_proficiencies": [
+          "thieves_tools"
+        ],
+        "tool_choices": null,
+        "equipment_or_gold": {
+          "gold_alternative_gp": 50,
+          "pack_summary_ru": "2 кинжала, воровские инструменты, ломик, 2 кошеля, дорожная одежда, 16 зм"
+        },
+        "traits_text": "Преступник (2024): ЛОВ/ТЕЛ/ИНТ (+2/+1 или +1/+1/+1). Черта: Бдительный. Навыки: Ловкость рук, Скрытность. Инструмент: воровские. Пакет или 50 зм."
+      }
+    },
+    {
+      "kind": "background",
+      "slug": "sage",
+      "name_ru": "Мудрец",
+      "name_en": "Sage",
+      "source": "srd-5.2",
+      "sort_order": 30,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/backgrounds/902-sage/",
+        "url_ttg": "https://new.ttg.club/backgrounds/sage-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "asi": {
+          "abilities": [
+            "con",
+            "int",
+            "wis"
+          ],
+          "options": [
+            "+2/+1",
+            "+1/+1/+1"
+          ],
+          "cap": 20
+        },
+        "origin_feat": {
+          "id": "magic-initiate",
+          "slug": "magic-initiate",
+          "name_ru": "Посвящённый в магию",
+          "name_en": "Magic Initiate",
+          "variant": "wizard"
+        },
+        "skill_proficiencies": [
+          "arcana",
+          "history"
+        ],
+        "tool_proficiencies": [
+          "calligraphers_supplies"
+        ],
+        "tool_choices": null,
+        "equipment_or_gold": {
+          "gold_alternative_gp": 50,
+          "pack_summary_ru": "Боевой посох, инструменты каллиграфа, книга (история), пергамент ×8, мантия, 8 зм"
+        },
+        "traits_text": "Мудрец (2024): ТЕЛ/ИНТ/МУД (+2/+1 или +1/+1/+1). Черта: Посвящённый в магию (волшебник). Навыки: Магия, История. Инструмент: каллиграф. Пакет или 50 зм."
+      }
+    },
+    {
+      "kind": "background",
+      "slug": "soldier",
+      "name_ru": "Солдат",
+      "name_en": "Soldier",
+      "source": "srd-5.2",
+      "sort_order": 40,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/backgrounds/905-soldier/",
+        "url_ttg": "https://new.ttg.club/backgrounds/soldier-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "asi": {
+          "abilities": [
+            "str",
+            "dex",
+            "con"
+          ],
+          "options": [
+            "+2/+1",
+            "+1/+1/+1"
+          ],
+          "cap": 20
+        },
+        "origin_feat": {
+          "id": "savage-attacker",
+          "slug": "savage-attacker",
+          "name_ru": "Неистово атакующий",
+          "name_en": "Savage Attacker"
+        },
+        "skill_proficiencies": [
+          "athletics",
+          "intimidation"
+        ],
+        "tool_proficiencies": [],
+        "tool_choices": {
+          "count": 1,
+          "from_category": "gaming_set",
+          "label_ru": "Игровой набор (один вид)"
+        },
+        "equipment_or_gold": {
+          "gold_alternative_gp": 50,
+          "pack_summary_ru": "Копьё, короткий лук, 20 стрел, игровой набор, комплект целителя, колчан, дорожная одежда, 14 зм"
+        },
+        "traits_text": "Солдат (2024): СИЛ/ЛОВ/ТЕЛ (+2/+1 или +1/+1/+1). Черта: Неистово атакующий. Навыки: Атлетика, Запугивание. Инструмент: игровой набор. Пакет или 50 зм."
+      }
+    }
+  ]
+}

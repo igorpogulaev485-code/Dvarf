@@ -5,10 +5,11 @@ import {
   type ActiveEffect,
 } from './activeEffects'
 import {
-  recoverHitDicePoolsOnLongRest,
+  recoverHitDicePoolsOnLongRestForEdition,
   type ClassHitDicePool,
 } from './classHitDice'
-import { recoverHitDiceOnLongRest } from './hitDice'
+import { recoverHitDiceOnLongRestForEdition } from './hitDice'
+import { canStartLongRest2024 } from './rest2024'
 import { clampSlot, type SpellSlotState } from './spells'
 
 export { filterEffectsAfterRest }
@@ -34,6 +35,8 @@ export type SheetResource = {
   activeLabel?: string
   /** Arcane Ward has been created since the last long rest. */
   wardCreated?: boolean
+  /** Times used since the last long rest (2024 Overchannel: later uses hurt). */
+  useCount?: number
   /** Does not deplete (PHB barbarian rage at 20). */
   unlimited?: boolean
   /**
@@ -44,6 +47,8 @@ export type SheetResource = {
   rechargeDice?: string
   /** Shown when the last charge is spent. The sheet does not destroy the item. */
   depleteHint?: string
+  /** P24-M02a: on short rest regain N uses while reset remains long (Second Wind). */
+  shortRestRegain?: number
 }
 
 export function clampExhaustion(value: number): number {
@@ -70,6 +75,10 @@ export function clampResource(resource: SheetResource): SheetResource {
         .filter((value) => Number.isFinite(value))
         .map((value) => Math.min(20, Math.max(1, Math.floor(value))))
     : undefined
+  const shortRestRegain =
+    typeof resource.shortRestRegain === 'number' && Number.isFinite(resource.shortRestRegain)
+      ? Math.max(0, Math.floor(resource.shortRestRegain))
+      : undefined
   return {
     ...resource,
     max,
@@ -81,9 +90,15 @@ export function clampResource(resource: SheetResource): SheetResource {
       ? { activeLabel: resource.activeLabel.trim() }
       : { activeLabel: undefined }),
     ...(resource.wardCreated ? { wardCreated: true } : { wardCreated: undefined }),
+    ...(typeof resource.useCount === 'number' && resource.useCount > 0
+      ? { useCount: Math.floor(resource.useCount) }
+      : { useCount: undefined }),
     ...(resource.unlimited ? { unlimited: true, used: 0 } : { unlimited: undefined }),
     ...(rechargeDice ? { rechargeDice } : { rechargeDice: undefined }),
     ...(depleteHint ? { depleteHint } : { depleteHint: undefined }),
+    ...(shortRestRegain != null && shortRestRegain > 0
+      ? { shortRestRegain }
+      : { shortRestRegain: undefined }),
   }
 }
 
@@ -139,7 +154,20 @@ export function resetResourcesOnRest(
     if (resource.reset === 'manual') return resource
     // Dawn and midnight roll (or refill) in rechargeFormulaResources, not here.
     if (resource.reset === 'dawn' || resource.reset === 'midnight') return resource
-    if (kind === 'short' && resource.reset !== 'short') return resource
+    if (kind === 'short') {
+      if (resource.reset === 'short') {
+        return clearExpiredPack07Label({ ...resource, used: 0 })
+      }
+      // P24-M02a Second Wind: long-reset pool that regains N on short rest.
+      const regain = resource.shortRestRegain
+      if (typeof regain === 'number' && regain > 0 && resource.used > 0) {
+        return clearExpiredPack07Label({
+          ...resource,
+          used: Math.max(0, resource.used - regain),
+        })
+      }
+      return resource
+    }
     // long rest clears short- and long-reset resources
     return clearExpiredPack07Label({ ...resource, used: 0 })
   })
@@ -309,11 +337,38 @@ export function applyLongRest(input: {
   rng?: () => number
   /** B-01 / Р26: effects with duration ≤ 8h (and until_*_rest). */
   effects?: ActiveEffect[]
-}): RestResult & { effects?: ActiveEffect[]; removed_effects?: ActiveEffect[] } {
+  /**
+   * P24-02: `2024` restores all Hit Point Dice; requires ≥1 HP to start
+   * (caller should gate UI; here we refuse to restore HP/dice if blocked).
+   * Default `2014` keeps half-dice recovery.
+   */
+  rules_edition?: string | null
+  /** Current HP — used for 2024 «≥1 HP to start» gate. */
+  hp_current?: number | null
+}): RestResult & {
+  effects?: ActiveEffect[]
+  removed_effects?: ActiveEffect[]
+  blocked?: boolean
+  block_reason?: string
+} {
+  const edition = String(input.rules_edition ?? '2014').trim() || '2014'
+  if (edition === '2024') {
+    const hpNow =
+      input.hp_current !== undefined ? input.hp_current : input.hp_max
+    if (!canStartLongRest2024(hpNow)) {
+      return {
+        resources: input.resources,
+        blocked: true,
+        block_reason: 'нужен хотя бы 1 хит, чтобы начать длинный отдых',
+      }
+    }
+  }
   const pact = input.pact_slots
   const pools = input.hit_dice_by_class
   const recoveredPools =
-    pools && pools.length > 0 ? recoverHitDicePoolsOnLongRest(pools) : undefined
+    pools && pools.length > 0
+      ? recoverHitDicePoolsOnLongRestForEdition(pools, edition)
+      : undefined
   const recharged = rechargeFormulaResources(
     resetResourcesOnRest(input.resources, 'long'),
     input.rng,
@@ -332,7 +387,11 @@ export function applyLongRest(input: {
     hp_temp: 0,
     hit_dice_current: recoveredPools
       ? recoveredPools.reduce((sum, pool) => sum + pool.current, 0)
-      : recoverHitDiceOnLongRest(input.hit_dice_current, input.hit_dice_max),
+      : recoverHitDiceOnLongRestForEdition(
+          input.hit_dice_current,
+          input.hit_dice_max,
+          edition,
+        ),
     hit_dice_by_class: recoveredPools,
     ...(effectResult
       ? { effects: effectResult.kept, removed_effects: effectResult.removed }

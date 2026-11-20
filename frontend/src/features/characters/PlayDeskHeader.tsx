@@ -1,13 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
 import type { ClassLevelEntry } from '../../shared/dnd/classLevels'
-import { conditionLevelLabel } from '../../shared/dnd/conditions'
 import {
-  exhaustionHpCurrent,
-  exhaustionHpMax,
-  exhaustionHpNote,
-  exhaustionSpeedFt,
-  exhaustionSpeedNote,
-} from '../../shared/dnd/exhaustion2014'
+  exhaustionHpCurrentForEdition,
+  exhaustionHpMaxForEdition,
+  exhaustionHpNoteForEdition,
+  exhaustionSpeedFtForEdition,
+  exhaustionSpeedNoteForEdition,
+  exhaustionStageLabelForEdition,
+} from '../../shared/dnd/exhaustionRules'
 import { clampExhaustion } from '../../shared/dnd/rest'
 import {
   formatXp,
@@ -33,6 +33,7 @@ import {
 } from '../../shared/dnd/weight'
 import { HoverTipCard, VITAL_TIPS } from '../onboarding'
 import {
+  Chip,
   ChipStack,
   ClassChipRow,
   DetailsMenu,
@@ -101,8 +102,10 @@ type PlayDeskHeaderProps = {
   hasShieldMasterEvasion?: boolean
   /** B-05: Draconic Resilience for max-HP-by-levels dialog. */
   draconicResilience?: boolean
-  /** Hill/Gold Dwarf toughness for max-HP-by-levels dialog. */
+  /** Hill/Gold Dwarf toughness for max-HP-by-levels dialog (main #498). */
   dwarvenToughness?: boolean
+  /** 2024 flat species/edition bonuses for Max HP dialog (e.g. Dwarven Toughness). */
+  maxHpExtraBonuses?: Array<{ label: string; amount: number }>
   play: PlayState
   autoAc: number
   acHint: string
@@ -114,6 +117,11 @@ type PlayDeskHeaderProps = {
   shieldAvailable?: boolean
   /** Draw / stow shield from the AC vital. */
   onToggleShield?: () => void
+  /**
+   * 2024 Wild Shape only: UI-kit caption that AC/speed tiles show form values.
+   * Omit / null outside of form — must not affect 2014 layout or md5.
+   */
+  formVitalLabel?: string | null
   speed: number | null
   /** Extra walk-speed note (e.g. gear bonus) for title tooltip. */
   movementHint?: string | null
@@ -223,6 +231,7 @@ export function PlayDeskHeader({
   onRedirectDamageToMount,
   draconicResilience = false,
   dwarvenToughness = false,
+  maxHpExtraBonuses = [],
   play,
   autoAc,
   acHint,
@@ -230,6 +239,7 @@ export function PlayDeskHeader({
   shieldInHand = false,
   shieldAvailable = false,
   onToggleShield,
+  formVitalLabel = null,
   speed,
   movementHint = null,
   climbSpeed = null,
@@ -329,16 +339,23 @@ export function PlayDeskHeader({
   const atZeroHp = hpCurrent != null && hpCurrent <= 0
   const showDeath = play.isDying || atZeroHp
   const deathTracksActive = play.isDying || atZeroHp
-  const exhaustionStage =
-    play.exhaustion > 0 ? conditionLevelLabel('exhaustion', play.exhaustion) : null
-  const shownHpMax = exhaustionHpMax(hpMax, play.exhaustion)
-  const shownHpCurrent = exhaustionHpCurrent(hpCurrent, hpMax, play.exhaustion)
-  const hpExhaustNote = exhaustionHpNote(play.exhaustion)
-  const speedExhaustNote = exhaustionSpeedNote(play.exhaustion)
-  const shownSpeed = exhaustionSpeedFt(speed, play.exhaustion)
-  const shownClimb = exhaustionSpeedFt(climbSpeed, play.exhaustion)
-  const shownSwim = exhaustionSpeedFt(swimSpeed, play.exhaustion)
-  const shownFly = exhaustionSpeedFt(flySpeed, play.exhaustion)
+  const exhaustionStage = exhaustionStageLabelForEdition(
+    play.exhaustion,
+    editionLabel,
+  )
+  const shownHpMax = exhaustionHpMaxForEdition(hpMax, play.exhaustion, editionLabel)
+  const shownHpCurrent = exhaustionHpCurrentForEdition(
+    hpCurrent,
+    hpMax,
+    play.exhaustion,
+    editionLabel,
+  )
+  const hpExhaustNote = exhaustionHpNoteForEdition(play.exhaustion, editionLabel)
+  const speedExhaustNote = exhaustionSpeedNoteForEdition(play.exhaustion, editionLabel)
+  const shownSpeed = exhaustionSpeedFtForEdition(speed, play.exhaustion, editionLabel)
+  const shownClimb = exhaustionSpeedFtForEdition(climbSpeed, play.exhaustion, editionLabel)
+  const shownSwim = exhaustionSpeedFtForEdition(swimSpeed, play.exhaustion, editionLabel)
+  const shownFly = exhaustionSpeedFtForEdition(flySpeed, play.exhaustion, editionLabel)
 
   const altModes: SpeedMode[] = []
   if (shownClimb != null) altModes.push({ key: 'climb', label: 'лаз.', value: shownClimb })
@@ -583,15 +600,15 @@ export function PlayDeskHeader({
               showValueTips
                 ? undefined
                 : onOpenAc
-                  ? `Класс доспеха ${autoAc}. ${acHint}. Нажми — разборка и бонусы`
-                  : `Класс доспеха ${autoAc}. ${acHint}`
+                  ? `Класс доспеха ${autoAc}${formVitalLabel ? ` (${formVitalLabel})` : ''}. ${acHint}. Нажми — разборка и бонусы`
+                  : `Класс доспеха ${autoAc}${formVitalLabel ? ` (${formVitalLabel})` : ''}. ${acHint}`
             }
             role={onOpenAc ? 'button' : undefined}
             tabIndex={onOpenAc ? 0 : undefined}
             aria-label={
               onOpenAc
-                ? `Класс доспеха ${autoAc}. Открыть разборку`
-                : `Класс доспеха ${autoAc}`
+                ? `Класс доспеха ${autoAc}${formVitalLabel ? `, ${formVitalLabel}` : ''}. Открыть разборку`
+                : `Класс доспеха ${autoAc}${formVitalLabel ? `, ${formVitalLabel}` : ''}`
             }
             onClick={() => onOpenAc?.()}
             onKeyDown={(event) => {
@@ -601,6 +618,7 @@ export function PlayDeskHeader({
               onOpenAc()
             }}
           >
+            {formVitalLabel ? <Chip>{formVitalLabel}</Chip> : null}
             {showValueTips ? <HoverTipCard tip={VITAL_TIPS.ac} /> : null}
           </VitalTile>
           <DetailsMenu
@@ -755,10 +773,18 @@ export function PlayDeskHeader({
               }`}
               onClick={onToggleInspiration}
               aria-pressed={inspiration}
-              title={showValueTips ? undefined : 'Вдохновение — нажми, чтобы переключить'}
+              title={
+                showValueTips
+                  ? undefined
+                  : editionLabel === '2024'
+                    ? 'Героическое вдохновение — нажми, чтобы переключить'
+                    : 'Вдохновение — нажми, чтобы переключить'
+              }
             >
               <IconSpark className="play-desk-header__chip-icon" />
-              <span className="play-desk-vital__label-row">Вдохн.</span>
+              <span className="play-desk-vital__label-row">
+                {editionLabel === '2024' ? 'Г.вдохн.' : 'Вдохн.'}
+              </span>
               <b>{inspiration ? 'да' : '—'}</b>
               {showValueTips ? <HoverTipCard tip={VITAL_TIPS.inspiration} /> : null}
             </button>
@@ -1079,6 +1105,7 @@ export function PlayDeskHeader({
         hpCurrent={hpCurrent}
         draconicResilience={draconicResilience}
         dwarvenToughness={dwarvenToughness}
+        extraFlatBonuses={maxHpExtraBonuses}
         onClose={() => setMaxDialogOpen(false)}
         onApply={({ hpMax: nextMax, hpCurrent: nextCurrent }) => {
           onCombatChange({ hpMax: nextMax, hpCurrent: nextCurrent })

@@ -110,6 +110,8 @@ type CompanionsPanelProps = {
     mountName: string
     onResolved: (rollTotal: number) => void
   }) => void
+  /** Sheet rules edition; the mobile edit-dialog «Сбросить облик» is 2024-only. */
+  rulesEdition?: '2014' | '2024' | string | null
 }
 
 function useIsPhone(): boolean {
@@ -248,6 +250,7 @@ export function CompanionsPanel({
   focusCompanionId = null,
   onHostProneFromMountFall,
   onMountFallDexSave,
+  rulesEdition = '2014',
 }: CompanionsPanelProps) {
   const turnEco = useTurnEconomy()
   const isPhone = useIsPhone()
@@ -1581,6 +1584,20 @@ export function CompanionsPanel({
                     }
                   />
                 </Field>
+                {rulesEdition === '2024' && isSelfForm(editRow) && editRow.active ? (
+                  <div className="sheet-actions">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      onClick={() => {
+                        removeOrDismiss(editRow)
+                        closeDialogEdit()
+                      }}
+                    >
+                      Сбросить облик
+                    </Button>
+                  </div>
+                ) : null}
                 {!isSelfForm(editRow) && isPermanentCompanionSlot(editRow) ? (
                   <div className="sheet-actions">
                     {editRow.active ? (

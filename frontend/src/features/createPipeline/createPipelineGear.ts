@@ -62,6 +62,7 @@ function emptyIdentity(): BackgroundGrantDraftSlice['identity'] {
     subclassName: '',
     background: '',
     backgroundSlug: null,
+    speciesSlug: null,
     alignment: '',
     alignmentText: '',
     gender: null,

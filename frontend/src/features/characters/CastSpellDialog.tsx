@@ -15,6 +15,15 @@ import {
   type DamageTypeChoice,
 } from '../../shared/dnd/spellCatalog'
 import {
+  applyPotentSpellcastingToDamage2024,
+  isPotentSpellcastingCantrip2024,
+} from '../../shared/dnd/cleric2024Features'
+import {
+  potentSpellcastingRangeApplies2024,
+  potentSpellcastingRangeText2024,
+  produceFlameHurlFt2024,
+} from '../../shared/dnd/druid2024Features'
+import {
   availableCastSlotLevels,
   canSpendPactSlot,
   levelLabel,
@@ -44,6 +53,7 @@ import {
   metamagicDisableReason,
   metamagicSelectionCost,
   metamagicShortLabel,
+  metamagicSpendCostForCast,
   metamagicStackOk,
   STACKABLE_METAMAGIC_IDS,
   type MetamagicCastFlags,
@@ -66,7 +76,9 @@ import { abilityModifier, formatModifier, type AbilityKey } from './sheetTypes'
 import {
   agonizingBlastDamageBonus,
   eldritchBlastBeamCount,
+  eldritchSpearRangeFt,
   formatEldritchBlastDamagePreview,
+  formatEldritchSpearRangeRu,
   hasRepellingBlast,
   isEldritchBlastSpell,
   REPELLING_BLAST_HINT,
@@ -250,6 +262,14 @@ type CastSpellDialogProps = {
   elementalAffinity?: { damageType: string; amount: number } | null
   /** O-06: выбранные воззвания колдуна. */
   knownInvocationIds?: string[]
+  /** Warlock class level — EB beams / Eldritch Spear 2024. */
+  warlockLevel?: number
+  /** 2024 Cleric Potent Spellcasting: +Wis to cleric cantrip damage (0 = off). */
+  potentSpellcastingBonus?: number
+  /** Class that holds Potent Spellcasting (cleric by default, druid for Elemental Fury). */
+  potentSpellcastingClass?: 'cleric' | 'druid'
+  /** 2024 Druid L15 Potent Spellcasting: +ft to druid cantrip range (0 = off). */
+  potentSpellcastingRangeBonusFt?: number
   /** Feature / ki pools, for cards that do not spend a spell slot. */
   resources?: SheetResource[]
   /** T-02: выбранные варианты метамагии чародея (id из sorcererMetamagic). */
@@ -258,6 +278,14 @@ type CastSpellDialogProps = {
   initialMetamagicId?: string | null
   /** O-02: у кастера есть «Магическое вдохновение» и книга Таши вкл. */
   magicalInspirationAvailable?: boolean
+  rulesEdition?: string | null
+  sorcererLevel?: number
+  innateSorceryActive?: boolean
+  /**
+   * 2024 Wild Shape (Beast Spells / Moon circle): free non-consumed M may be cast
+   * without a focus, pouch, or the component itself.
+   */
+  waiveFreeMaterialComponents?: boolean
   /**
    * Spell scroll: these numbers replace the character's attack and DC.
    * Item bonuses from the sheet are not added.
@@ -295,10 +323,18 @@ export function CastSpellDialog({
   voiceOfAuthority = false,
   elementalAffinity = null,
   knownInvocationIds = [],
+  warlockLevel,
+  potentSpellcastingBonus = 0,
+  potentSpellcastingClass = 'cleric',
+  potentSpellcastingRangeBonusFt = 0,
   resources,
   metamagicIds = [],
   initialMetamagicId = null,
   magicalInspirationAvailable = false,
+  rulesEdition = '2014',
+  waiveFreeMaterialComponents = false,
+  sorcererLevel = 1,
+  innateSorceryActive = false,
   statLock = null,
   scrollItemId = null,
 }: CastSpellDialogProps) {
@@ -686,33 +722,71 @@ export function CastSpellDialog({
       damageChoice,
       affinity,
     })
-    if (!isEb) return summary
-    const beams = eldritchBlastBeamCount(characterLevel)
+    if (!isEb) {
+      if (
+        potentSpellcastingBonus > 0 &&
+        spell &&
+        isPotentSpellcastingCantrip2024(
+          { level: rulesSpell.level, class_slug: spell.class_slug },
+          potentSpellcastingClass,
+        )
+      ) {
+        const effect = applyPotentSpellcastingToDamage2024(summary.effect, potentSpellcastingBonus)
+        return {
+          ...summary,
+          effect,
+          lines: summary.lines.map((line) => (line === summary.effect ? effect : line)),
+        }
+      }
+      return summary
+    }
+    const beamLevel =
+      rulesEdition === '2024' && warlockLevel != null && warlockLevel > 0
+        ? warlockLevel
+        : characterLevel
+    const beams = eldritchBlastBeamCount(beamLevel)
     const preview = formatEldritchBlastDamagePreview({
-      characterLevel,
+      characterLevel: beamLevel,
       chaMod,
       hasAgonizing: agonizing !== 0,
     })
     const lines = [...summary.lines]
     if (beams > 1) {
-      lines.unshift(`${beams} луча · каждый: ${preview.replace(/\s*×\d+\s*луча/, '')}`)
+      lines.unshift(preview)
+    } else if (agonizing !== 0) {
+      lines.unshift(preview)
+    }
+    const spearFt = eldritchSpearRangeFt({
+      knownInvocationIds,
+      warlockLevel: warlockLevel ?? characterLevel,
+      rulesEdition,
+    })
+    if (spearFt != null) {
+      lines.push(
+        `Мистическое копьё: дальность ${formatEldritchSpearRangeRu(spearFt)}` +
+          (rulesEdition === '2024' ? ' (база +30×ур. колдуна)' : ' (300 фт)'),
+      )
     }
     if (hasRepellingBlast(knownInvocationIds)) {
       lines.push(REPELLING_BLAST_HINT)
     }
     return {
-      effect: beams > 1 ? preview : summary.effect || preview,
-      scaled: summary.scaled || beams > 1 || agonizing !== 0,
+      effect: beams > 1 || agonizing !== 0 ? preview : summary.effect || preview,
+      scaled: summary.scaled || beams > 1 || agonizing !== 0 || spearFt != null,
       lines,
     }
   }, [
     rulesSpell,
     spell,
     characterLevel,
+    warlockLevel,
+    rulesEdition,
     castSlot,
     damageChoice,
     elementalAffinity,
     knownInvocationIds,
+    potentSpellcastingBonus,
+    potentSpellcastingClass,
     abilities,
     castProfiles,
     proficiencyBonus,
@@ -793,8 +867,16 @@ export function CastSpellDialog({
     return null
   }
 
+  const freeMaterialWaived = Boolean(
+    waiveFreeMaterialComponents &&
+      materialCheck.requirement &&
+      materialCheck.requirement.minCostGp <= 0 &&
+      !/расход|поглощ|consumed|consumes/i.test(materialCheck.requirement.raw || ''),
+  )
   const materialsOk =
-    borne || ((materialCheck.ok || haveMaterial) && focusGate.ok)
+    borne ||
+    freeMaterialWaived ||
+    ((materialCheck.ok || haveMaterial) && focusGate.ok)
   const chargePool = itemCast?.resourceId
     ? resources?.find((row) => row.id === itemCast.resourceId) ?? null
     : null
@@ -847,9 +929,45 @@ export function CastSpellDialog({
     ? Math.max(0, spells.pact_slots.max - spells.pact_slots.used)
     : 0
 
+  const isEbMeta = isEldritchBlastSpell({
+    name: spell.name,
+    catalogId: spell.catalog_id,
+    slug: (rulesSpell as { slug?: string } | null)?.slug,
+  })
+  const spearRangeFt = isEbMeta
+    ? eldritchSpearRangeFt({
+        knownInvocationIds,
+        warlockLevel: warlockLevel ?? characterLevel,
+        rulesEdition,
+      })
+    : null
+  const baseSpellRange = rulesSpell?.range || spell.range
+  const potentHurlFt = produceFlameHurlFt2024({
+    name: spell.name,
+    slug: (rulesSpell as { slug?: string } | null | undefined)?.slug,
+    catalog_id: spell.catalog_id,
+  })
+  const potentRangeBonusFt =
+    potentSpellcastingRangeBonusFt > 0 &&
+    !isEbMeta &&
+    isPotentSpellcastingCantrip2024(
+      { level: rulesSpell?.level ?? spell.level, class_slug: spell.class_slug },
+      'druid',
+    ) &&
+    potentSpellcastingRangeApplies2024(
+      baseSpellRange,
+      potentSpellcastingRangeBonusFt,
+      potentHurlFt,
+    )
+      ? potentSpellcastingRangeBonusFt
+      : 0
+  const spellRangeText =
+    potentRangeBonusFt > 0
+      ? potentSpellcastingRangeText2024(baseSpellRange, potentRangeBonusFt, false, potentHurlFt)
+      : baseSpellRange
   const metaPartsBase = [
     rulesSpell?.casting_time || spell.casting_time,
-    rulesSpell?.range || spell.range,
+    spearRangeFt != null ? formatEldritchSpearRangeRu(spearRangeFt) : spellRangeText,
     (rulesSpell?.duration || spell.duration)
       ? `длится ${rulesSpell?.duration || spell.duration}`
       : '',
@@ -886,7 +1004,9 @@ export function CastSpellDialog({
     embodimentRemaining > 0 && enchantment && !isCantrip && !notOneAction,
   )
   const knownMetamagic =
-    spell && !useRitual ? listKnownMetamagic(metamagicIds) : []
+    spell && !useRitual
+      ? listKnownMetamagic(metamagicIds, { rulesEdition })
+      : []
   const castingIsAction = !/бонус|реакц|мин|час|bonus|reaction|minute|hour/i.test(
     spell.casting_time ?? '',
   )
@@ -905,9 +1025,25 @@ export function CastSpellDialog({
   const metaSlotLevel = usePact
     ? (spells.pact_slots?.level ?? spell.level)
     : Math.max(spell.level, slotLevel)
-  const metaCost = metamagicSelectionCost(metaFlags, metaSlotLevel)
-  const metaAffordable = metaCost <= sorceryLeft && metamagicStackOk(metaFlags)
-  const metaPreview = applyMetamagicToCastParams(rulesSpell ?? spell, metaFlags)
+  const metaCost = metamagicSelectionCost(metaFlags, metaSlotLevel, rulesEdition)
+  const metaAffordable =
+    metaCost <= sorceryLeft &&
+    metamagicStackOk(metaFlags, {
+      rulesEdition,
+      sorcererLevel,
+      innateSorceryActive,
+      metamagicKnown: metamagicIds,
+      spell: {
+        level: spell?.level ?? spellLevel,
+        casting_time: spell?.casting_time ?? '',
+      },
+    })
+  const metaSpellSource = rulesSpell ?? spell
+  const metaPreview = applyMetamagicToCastParams(
+    potentRangeBonusFt > 0 ? { ...metaSpellSource, range: spellRangeText } : metaSpellSource,
+    metaFlags,
+    rulesEdition,
+  )
   const metaActive = metaCost > 0 || Boolean(metaFlags.transmutedType)
   const metaSelectedLabels = knownMetamagic
     .filter((def) => {
@@ -1418,7 +1554,11 @@ export function CastSpellDialog({
         {materialCheck.requirement ? (
           <div className="cast-material-box">
             <Text tone={materialsOk ? 'muted' : 'danger'}>
-              {focusGate.ok ? materialCheck.message : focusGate.message}
+              {freeMaterialWaived
+                ? 'Дикий облик: свободный материальный компонент не требуется'
+                : focusGate.ok
+                  ? materialCheck.message
+                  : focusGate.message}
             </Text>
             {materialCheck.requirement.raw ? (
               <Text tone="muted">М: {materialCheck.requirement.raw}</Text>
@@ -1485,7 +1625,7 @@ export function CastSpellDialog({
             {metamagicOpen ? (
               <div className="chip-row cast-source-row cast-metamagic-block__body">
                 {knownMetamagic.map((def) => {
-                  const cost = metamagicSpendCost(def, metaSlotLevel)
+                  const cost = metamagicSpendCostForCast(def, metaSlotLevel, rulesEdition)
                   const stackable = STACKABLE_METAMAGIC_IDS.has(def.id)
                   const checked =
                     def.id === 'careful'
@@ -1515,6 +1655,7 @@ export function CastSpellDialog({
                     checked,
                     castingIsAction,
                     useEmbodiment,
+                    rulesEdition,
                   })
                   const disabled = useRitual || Boolean(reason)
                   const rest = reason

@@ -681,3 +681,257 @@
   font-size: 0.85rem;
 }
 
+
+/* P24-M03: 2024 create wizard (scoped to .page--create-2024) */
+.create-2024__pick-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.create-2024__pick-grid--dense {
+  max-height: 320px;
+  overflow-y: auto;
+  padding-right: 4px;
+  overscroll-behavior: contain;
+}
+
+.create-2024__setup {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+}
+
+.create-2024__setup-bar {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--card, #fff);
+  position: sticky;
+  bottom: calc(72px + env(safe-area-inset-bottom, 0px));
+  z-index: 5;
+}
+
+.create-2024__issues {
+  padding: 10px 12px;
+  border: 1px dashed var(--line);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--accent-soft) 45%, transparent);
+}
+
+.create-2024__list {
+  margin: 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 4px;
+}
+
+.create-2024__list--cols {
+  columns: 2;
+  column-gap: 20px;
+  display: block;
+}
+
+.create-2024__list--cols > li {
+  break-inside: avoid;
+  margin-bottom: 4px;
+}
+
+.create-2024__list--nested {
+  margin-top: 2px;
+  font-size: 0.88rem;
+  color: var(--muted);
+}
+
+.create-2024__note {
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.create-2024__tabs,
+.create-2024__gender {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.create-2024__name-row {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+}
+
+.create-2024__name-row > .ui-input,
+.create-2024__name-row > input {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.create-2024__sheet {
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--card, #fff);
+}
+
+.create-2024__sheet-section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.create-2024__vitals {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.create-2024__vital {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 8px 4px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--accent-soft) 35%, var(--card, #fff));
+}
+
+.create-2024__vital-value {
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+.create-2024__vital-label {
+  color: var(--muted);
+  font-size: 0.7rem;
+  text-align: center;
+}
+
+.create-2024__abilities {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.create-2024__ability {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 8px 6px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  text-align: center;
+}
+
+.create-2024__ability-name {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.create-2024__ability-score {
+  font-size: 1.35rem;
+  font-weight: 700;
+}
+
+.create-2024__ability-mod {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.create-2024__ability-save,
+.create-2024__ability-bonus {
+  color: var(--muted);
+  font-size: 0.72rem;
+}
+
+@media (max-width: 860px) {
+  /*
+   * Phone create-2024: pin the step rail in a flex column and scroll the body under it.
+   * Sticky-on-page-scroll previously floated the tall rail over mid-list content.
+   */
+  .page--create-2024 {
+    display: flex;
+    flex-direction: column;
+    min-height: 100dvh;
+    padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px));
+    overflow: hidden;
+  }
+
+  .page--create-2024 .create-pipeline__topbar {
+    flex-shrink: 0;
+  }
+
+  .page--create-2024 .create-pipeline {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .page--create-2024 .create-pipeline__steprrail {
+    position: relative;
+    top: auto;
+    flex-shrink: 0;
+    background: var(--panel, #fffdf8);
+    padding-top: 4px;
+    padding-bottom: 6px;
+    box-shadow: 0 6px 10px -8px rgba(45, 45, 42, 0.35);
+  }
+
+  .page--create-2024 .create-pipeline__steprrail-intro {
+    display: none;
+  }
+
+  .page--create-2024 .create-pipeline__progress-meta {
+    font-size: 0.75rem;
+  }
+
+  .page--create-2024 .create-pipeline__body {
+    flex: 1;
+    min-height: 0;
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-top: 4px;
+  }
+
+  .page--create-2024 .create-pipeline__cards,
+  .page--create-2024 .create-pipeline__detail {
+    max-height: none;
+    overflow: visible;
+  }
+
+  .page--create-2024 .create-pipeline__card {
+    scroll-margin-top: 8px;
+  }
+
+  .create-2024__setup {
+    max-height: min(60dvh, 520px);
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .create-2024__pick-grid,
+  .create-2024__pick-grid--dense {
+    max-height: min(40dvh, 320px);
+    overflow: auto;
+  }
+
+  .create-2024__list--cols {
+    columns: 1;
+  }
+
+  .create-2024__vitals {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}

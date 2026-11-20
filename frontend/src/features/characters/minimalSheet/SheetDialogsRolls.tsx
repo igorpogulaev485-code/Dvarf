@@ -28,6 +28,7 @@ import { formatSaveAdvantageNote } from '../gearEffects'
 import { setConcentration } from '../../../shared/dnd/concentration'
 import { equippedArmorPieces } from '../inventory'
 import { CastSpellDialog } from '../CastSpellDialog'
+import { collectWarlockInvocationIds } from '../../../shared/dnd/o06StylesBreathInvocations'
 import { normalizeCampaignRules } from '../../lobby/campaignRules'
 import { listActiveInfusionBindings } from '../../../shared/dnd/infusionsActive'
 import { ScrollCastGate, useScrollSpellClasses } from '../ScrollCastGate'
@@ -41,7 +42,12 @@ import {
 import { ignoresClassRaceLevel } from '../attunementRules'
 import { abilityModifier } from '../sheetTypes'
 import { getFeaturePick } from '../../../shared/dnd/featurePicks'
+import {
+  moonCircleSpellCastableInForm2024,
+  potentSpellcastingForSheet2024,
+} from '../../../shared/dnd/druid2024Features'
 import { elementalAffinityPreview } from '../../../shared/dnd/pack04SorcererWarlock'
+import { activeBeastWildShape } from '../wildShape'
 
 function infusedItemIdsFor(model: SheetModel): string[] {
   const ids: string[] = []
@@ -58,6 +64,13 @@ function infusedItemIdsFor(model: SheetModel): string[] {
 }
 
 export function SheetDialogsRolls({ model }: { model: SheetModel }) {
+  const potentSheet = potentSpellcastingForSheet2024({
+    rulesEdition: model.baseCharacter.rules_edition,
+    classes: model.draft.classes,
+    featurePicks: model.draft.featurePicks,
+    classOptions: model.draft.classOptions2024,
+    wisScore: model.effectiveAbilities?.wis ?? model.draft.abilities.wis,
+  })
   const sorcerer = model.draft.classes.find((row) => /чародей|sorcerer/i.test(row.name))
   const elementalAffinity = sorcerer
     ? elementalAffinityPreview({
@@ -156,6 +169,26 @@ export function SheetDialogsRolls({ model }: { model: SheetModel }) {
         )}
         resources={model.draft.play.resources}
         metamagicIds={model.sorcererMetamagicIds ?? []}
+        rulesEdition={model.rulesEdition ?? model.baseCharacter?.rules_edition ?? '2014'}
+        waiveFreeMaterialComponents={Boolean(
+          (model.rulesEdition ?? model.baseCharacter?.rules_edition) === '2024' &&
+            activeBeastWildShape(model.draft.companions) &&
+            model.deskCastSpell &&
+            (model.druidLevel >= 18 ||
+              moonCircleSpellCastableInForm2024({
+                rulesEdition: model.rulesEdition,
+                druidLevel: model.druidLevel,
+                subclassSlug: model.druidSubclassSlug,
+                spell: model.deskCastSpell,
+              })),
+        )}
+        sorcererLevel={model.draft.classes.reduce((sum, row) => {
+          if (!/чародей|sorcerer/i.test(row.name)) return sum
+          return sum + Math.max(0, row.level || 0)
+        }, 0)}
+        innateSorceryActive={model.draft.play.resources.some(
+          (row) => /врождённ.*чародей/i.test(row.name) && row.activeLabel,
+        )}
         initialMetamagicId={model.deskCastMetamagic ?? null}
         magicalInspirationAvailable={
           model.campaignRulesRaw != null &&
@@ -167,19 +200,21 @@ export function SheetDialogsRolls({ model }: { model: SheetModel }) {
           )
         }
         elementalAffinity={elementalAffinity}
-        knownInvocationIds={(() => {
-          const ids: string[] = []
-          for (const row of model.draft.classes) {
-            if (!/колдун|warlock/i.test(row.name)) continue
-            const raw =
-              model.draft.featurePicks.values[`${row.id}:eldritch_invocations`] ?? ''
-            for (const id of raw.split(',')) {
-              const t = id.trim()
-              if (t) ids.push(t)
-            }
-          }
-          return ids
-        })()}
+        knownInvocationIds={collectWarlockInvocationIds({
+          classes: model.draft.classes,
+          featurePickValues: model.draft.featurePicks.values,
+          classOptionsInvocations:
+            model.baseCharacter.rules_edition === '2024'
+              ? model.draft.classOptions2024?.eldritch_invocations
+              : null,
+        })}
+        warlockLevel={
+          model.draft.classes.find((row) => /колдун|warlock/i.test(row.name))?.level ??
+          model.characterLevel
+        }
+        potentSpellcastingBonus={potentSheet.bonus}
+        potentSpellcastingClass={potentSheet.classSlug}
+        potentSpellcastingRangeBonusFt={potentSheet.rangeBonusFt}
         abilities={model.effectiveAbilities}
         proficiencyBonus={model.proficiencyBonus}
         castProfiles={model.spellcastingSync.castProfiles}
@@ -448,6 +483,34 @@ export function SheetDialogsRolls({ model }: { model: SheetModel }) {
       />
 
       <TempHpReplaceDialog request={model.tempHpReplaceAsk ?? null} />
+
+      <Dialog
+        open={model.heroicRerollPending != null}
+        title="Героическое вдохновение"
+        primaryLabel="Перебросить"
+        secondaryLabel="Не сейчас"
+        onPrimary={() => {
+          const pending = model.heroicRerollPending
+          if (!pending) return
+          if (!model.spendHeroicInspirationReroll?.()) return
+          const sides = Math.max(2, Math.floor(pending.sides || 20))
+          const face = 1 + Math.floor(Math.random() * sides)
+          model.emitToast?.(
+            `Героическое вдохновение: ${pending.label} — переброс к${sides} → ${face} (новый результат)`,
+          )
+        }}
+        onSecondary={() => model.setHeroicRerollPending?.(null)}
+      >
+        <Stack gap={8}>
+          <Text>
+            Потратить героическое вдохновение и перебросить любой кубик
+            {model.heroicRerollPending
+              ? ` (к${model.heroicRerollPending.sides} · ${model.heroicRerollPending.label})`
+              : ''}
+            ? Новый результат обязателен.
+          </Text>
+        </Stack>
+      </Dialog>
 
       <Dialog
         open={model.halflingLuckyPending != null}

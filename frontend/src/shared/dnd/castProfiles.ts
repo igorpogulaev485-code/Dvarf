@@ -493,6 +493,29 @@ export function formatNamedPrepareBudgets(
 }
 
 /**
+ * Single-wizard spellbook quota: «подготовлено 9 из 9 · в книге 14».
+ * Plain words instead of «подг. 9/9», so «из» is clearly the daily prepare cap.
+ */
+export function formatSpellbookQuotaRu(input: {
+  prepared: number
+  maxPrepared: number | null
+  inBook: number | null
+  alwaysPrepared?: number
+}): string | null {
+  const parts: string[] = []
+  if (input.maxPrepared != null && input.maxPrepared > 0) {
+    parts.push(`подготовлено ${input.prepared} из ${input.maxPrepared}`)
+  } else if (input.prepared > 0) {
+    parts.push(`подготовлено ${input.prepared}`)
+  }
+  if (input.inBook != null) parts.push(`в книге ${input.inBook}`)
+  if (input.alwaysPrepared && input.alwaysPrepared > 0) {
+    parts.push(`всегда ${input.alwaysPrepared}`)
+  }
+  return parts.length > 0 ? parts.join(' · ') : null
+}
+
+/**
  * Per-class known meta: «Бард изв. 2/2 · Колдун изв. 2/2».
  * Avoids the false global «изв. 17/5» on multiclass.
  */

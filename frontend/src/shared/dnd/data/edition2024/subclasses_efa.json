@@ -1,0 +1,604 @@
+{
+  "meta": {
+    "pack": "P24-C15",
+    "rules_edition": "2024",
+    "source": "efa",
+    "notes_ru": "5 специальностей артефактора EFA (без Реаниматора UA, если не в эталоне)."
+  },
+  "entries": [
+    {
+      "kind": "subclass",
+      "slug": "artificer__alchemist",
+      "name_ru": "Алхимик",
+      "name_en": "Alchemist",
+      "source": "efa",
+      "sort_order": 10,
+      "parent_id": "046f7ee4-9b7c-5fd1-abb7-464676313f54",
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/class/artificer",
+        "url_ttg": null,
+        "book": "EFA"
+      },
+      "data": {
+        "parent_class": "artificer",
+        "subclass_level": 3,
+        "features": [
+          {
+            "level": 3,
+            "features": [
+              {
+                "id": "tools-of-the-trade",
+                "name_en": "Tools of the Trade",
+                "name_ru": "Инструменты специализации",
+                "summary_ru": "Владение алхимическими принадлежностями; бесплатное изготовление."
+              },
+              {
+                "id": "alchemist-spells",
+                "name_en": "Alchemist Spells",
+                "name_ru": "Заклинания алхимика",
+                "summary_ru": "Всегда подготовлены заклинания алхимика по таблице уровней."
+              },
+              {
+                "id": "experimental-elixir",
+                "name_en": "Experimental Elixir",
+                "name_ru": "Экспериментальный эликсир",
+                "summary_ru": "Создаёте эликсиры со случайным/выбираемым эффектом; число растёт с уровнем."
+              }
+            ]
+          },
+          {
+            "level": 5,
+            "features": [
+              {
+                "id": "alchemical-savant",
+                "name_en": "Alchemical Savant",
+                "name_ru": "Учёный-алхимик",
+                "summary_ru": "Бонусный урон/лечение ИНТ к подходящим заклинаниям и эликсирам."
+              }
+            ]
+          },
+          {
+            "level": 9,
+            "features": [
+              {
+                "id": "restorative-reagents",
+                "name_en": "Restorative Reagents",
+                "name_ru": "Восстанавливающие реагенты",
+                "summary_ru": "Эликсиры дают временные хиты; бесплатные малые восстановления."
+              }
+            ]
+          },
+          {
+            "level": 15,
+            "features": [
+              {
+                "id": "chemical-mastery",
+                "name_en": "Chemical Mastery",
+                "name_ru": "Мастерство алхимика",
+                "summary_ru": "Сопротивление кислоте/яду; усиленные эликсиры и мощные заклинания."
+              }
+            ]
+          }
+        ],
+        "spell_list": [
+          {
+            "level": 3,
+            "spells": [
+              "healing-word",
+              "ray-of-sickness"
+            ]
+          },
+          {
+            "level": 5,
+            "spells": [
+              "melfs-acid-arrow",
+              "flaming-sphere"
+            ]
+          },
+          {
+            "level": 9,
+            "spells": [
+              "gaseous-form",
+              "mass-healing-word"
+            ]
+          },
+          {
+            "level": 13,
+            "spells": [
+              "vitriolic-sphere",
+              "death-ward"
+            ]
+          },
+          {
+            "level": 17,
+            "spells": [
+              "cloudkill",
+              "revivify"
+            ]
+          }
+        ],
+        "spell_list_note_ru": "Всегда подготовленные заклинания подкласса по таблице уровней.",
+        "summary_ru": "Алхимия: эликсиры, лечение и кислот/яд."
+      }
+    },
+    {
+      "kind": "subclass",
+      "slug": "artificer__armorer",
+      "name_ru": "Бронник",
+      "name_en": "Armorer",
+      "source": "efa",
+      "sort_order": 20,
+      "parent_id": "046f7ee4-9b7c-5fd1-abb7-464676313f54",
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/class/artificer",
+        "url_ttg": null,
+        "book": "EFA"
+      },
+      "data": {
+        "parent_class": "artificer",
+        "subclass_level": 3,
+        "features": [
+          {
+            "level": 3,
+            "features": [
+              {
+                "id": "tools-of-the-trade",
+                "name_en": "Tools of the Trade",
+                "name_ru": "Инструменты специализации",
+                "summary_ru": "Владение тяжёлыми доспехами и кузнечными инструментами."
+              },
+              {
+                "id": "armorer-spells",
+                "name_en": "Armorer Spells",
+                "name_ru": "Заклинания бронника",
+                "summary_ru": "Всегда подготовлены заклинания бронника."
+              },
+              {
+                "id": "arcane-armor",
+                "name_en": "Arcane Armor",
+                "name_ru": "Арканный доспех",
+                "summary_ru": "Доспех становится арканным: настройка, сила вместо требований, встроенное оружие."
+              },
+              {
+                "id": "armor-model",
+                "name_en": "Armor Model",
+                "name_ru": "Модель доспеха",
+                "summary_ru": "Выбор модели страж/штурмовик с особыми атаками."
+              }
+            ]
+          },
+          {
+            "level": 5,
+            "features": [
+              {
+                "id": "extra-attack",
+                "name_en": "Extra Attack",
+                "name_ru": "Дополнительная атака",
+                "summary_ru": "Две атаки действием Атака."
+              }
+            ]
+          },
+          {
+            "level": 9,
+            "features": [
+              {
+                "id": "improved-armorer",
+                "name_en": "Improved Armorer",
+                "name_ru": "Лучший бронник",
+                "summary_ru": "Усиление модели доспеха и урона встроенного оружия."
+              }
+            ]
+          },
+          {
+            "level": 15,
+            "features": [
+              {
+                "id": "perfected-armor",
+                "name_en": "Perfected Armor",
+                "name_ru": "Идеальный доспех",
+                "summary_ru": "Финал модели: контроль/притяжение или телепорт с атакой."
+              }
+            ]
+          }
+        ],
+        "spell_list": [
+          {
+            "level": 3,
+            "spells": [
+              "thunderwave",
+              "magic-missile"
+            ]
+          },
+          {
+            "level": 5,
+            "spells": [
+              "shatter",
+              "mirror-image"
+            ]
+          },
+          {
+            "level": 9,
+            "spells": [
+              "hypnotic-pattern",
+              "lightning-bolt"
+            ]
+          },
+          {
+            "level": 13,
+            "spells": [
+              "greater-invisibility",
+              "fire-shield"
+            ]
+          },
+          {
+            "level": 17,
+            "spells": [
+              "passwall",
+              "wall-of-force"
+            ]
+          }
+        ],
+        "spell_list_note_ru": "Всегда подготовленные заклинания подкласса по таблице уровней.",
+        "summary_ru": "Арканный доспех: страж или штурмовик."
+      }
+    },
+    {
+      "kind": "subclass",
+      "slug": "artificer__artillerist",
+      "name_ru": "Артиллерист",
+      "name_en": "Artillerist",
+      "source": "efa",
+      "sort_order": 30,
+      "parent_id": "046f7ee4-9b7c-5fd1-abb7-464676313f54",
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/class/artificer",
+        "url_ttg": null,
+        "book": "EFA"
+      },
+      "data": {
+        "parent_class": "artificer",
+        "subclass_level": 3,
+        "features": [
+          {
+            "level": 3,
+            "features": [
+              {
+                "id": "tools-of-the-trade",
+                "name_en": "Tools of the Trade",
+                "name_ru": "Инструменты специализации",
+                "summary_ru": "Владение инструментами резчика по дереву."
+              },
+              {
+                "id": "artillerist-spells",
+                "name_en": "Artillerist Spells",
+                "name_ru": "Заклинания артиллериста",
+                "summary_ru": "Всегда подготовлены заклинания артиллериста."
+              },
+              {
+                "id": "eldritch-cannon",
+                "name_en": "Eldritch Cannon",
+                "name_ru": "Мистическая пушка",
+                "summary_ru": "Создаёте пушку (огнемёт/силовой/защитник); активация бонусным действием."
+              }
+            ]
+          },
+          {
+            "level": 5,
+            "features": [
+              {
+                "id": "arcane-firearm",
+                "name_en": "Arcane Firearm",
+                "name_ru": "Магострельное оружие",
+                "summary_ru": "Жезл/посох/палочка как фокус; доп. к1к8 к одному броску урона заклинания."
+              }
+            ]
+          },
+          {
+            "level": 9,
+            "features": [
+              {
+                "id": "explosive-cannon",
+                "name_en": "Explosive Cannon",
+                "name_ru": "Взрывная пушка",
+                "summary_ru": "Усиленный урон пушки; действие — взорвать пушку областью."
+              }
+            ]
+          },
+          {
+            "level": 15,
+            "features": [
+              {
+                "id": "fortified-position",
+                "name_en": "Fortified Position",
+                "name_ru": "Укреплённая позиция",
+                "summary_ru": "Вторая пушка; полуприкрытие союзникам у пушки."
+              }
+            ]
+          }
+        ],
+        "spell_list": [
+          {
+            "level": 3,
+            "spells": [
+              "thunderwave",
+              "shield"
+            ]
+          },
+          {
+            "level": 5,
+            "spells": [
+              "shatter",
+              "scorching-ray"
+            ]
+          },
+          {
+            "level": 9,
+            "spells": [
+              "fireball",
+              "wind-wall"
+            ]
+          },
+          {
+            "level": 13,
+            "spells": [
+              "ice-storm",
+              "wall-of-fire"
+            ]
+          },
+          {
+            "level": 17,
+            "spells": [
+              "cone-of-cold",
+              "wall-of-force"
+            ]
+          }
+        ],
+        "spell_list_note_ru": "Всегда подготовленные заклинания подкласса по таблице уровней.",
+        "summary_ru": "Мистическая пушка и магострельное оружие."
+      }
+    },
+    {
+      "kind": "subclass",
+      "slug": "artificer__battle-smith",
+      "name_ru": "Боевой кузнец",
+      "name_en": "Battle Smith",
+      "source": "efa",
+      "sort_order": 40,
+      "parent_id": "046f7ee4-9b7c-5fd1-abb7-464676313f54",
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/class/artificer",
+        "url_ttg": null,
+        "book": "EFA"
+      },
+      "data": {
+        "parent_class": "artificer",
+        "subclass_level": 3,
+        "features": [
+          {
+            "level": 3,
+            "features": [
+              {
+                "id": "tools-of-the-trade",
+                "name_en": "Tools of the Trade",
+                "name_ru": "Инструменты специализации",
+                "summary_ru": "Владение воинским оружием и кузнечными инструментами."
+              },
+              {
+                "id": "battle-smith-spells",
+                "name_en": "Battle Smith Spells",
+                "name_ru": "Заклинания боевого кузнеца",
+                "summary_ru": "Всегда подготовлены заклинания боевого кузнеца."
+              },
+              {
+                "id": "battle-ready",
+                "name_en": "Battle Ready",
+                "name_ru": "Боевая готовность",
+                "summary_ru": "Атаки магическим оружием от ИНТ."
+              },
+              {
+                "id": "steel-defender",
+                "name_en": "Steel Defender",
+                "name_ru": "Стальной защитник",
+                "summary_ru": "Создаёте стального защитника-компаньона."
+              }
+            ]
+          },
+          {
+            "level": 5,
+            "features": [
+              {
+                "id": "extra-attack",
+                "name_en": "Extra Attack",
+                "name_ru": "Дополнительная атака",
+                "summary_ru": "Две атаки действием Атака."
+              }
+            ]
+          },
+          {
+            "level": 9,
+            "features": [
+              {
+                "id": "arcane-jolt",
+                "name_en": "Arcane Jolt",
+                "name_ru": "Магическая встряска",
+                "summary_ru": "При попадании — силовой урон или лечение через защитника/оружие."
+              }
+            ]
+          },
+          {
+            "level": 15,
+            "features": [
+              {
+                "id": "improved-defender",
+                "name_en": "Improved Defender",
+                "name_ru": "Улучшенный защитник",
+                "summary_ru": "Сильнее защитник и встряска; реакция защитника отражает урон."
+              }
+            ]
+          }
+        ],
+        "spell_list": [
+          {
+            "level": 3,
+            "spells": [
+              "heroism",
+              "shield"
+            ]
+          },
+          {
+            "level": 5,
+            "spells": [
+              "warding-bond",
+              "shining-smite"
+            ]
+          },
+          {
+            "level": 9,
+            "spells": [
+              "aura-of-vitality",
+              "conjure-barrage"
+            ]
+          },
+          {
+            "level": 13,
+            "spells": [
+              "aura-of-purity",
+              "fire-shield"
+            ]
+          },
+          {
+            "level": 17,
+            "spells": [
+              "banishing-smite",
+              "mass-cure-wounds"
+            ]
+          }
+        ],
+        "spell_list_note_ru": "Всегда подготовленные заклинания подкласса по таблице уровней.",
+        "summary_ru": "Стальной защитник и бои на Интеллекте."
+      }
+    },
+    {
+      "kind": "subclass",
+      "slug": "artificer__cartographer",
+      "name_ru": "Картограф",
+      "name_en": "Cartographer",
+      "source": "efa",
+      "sort_order": 50,
+      "parent_id": "046f7ee4-9b7c-5fd1-abb7-464676313f54",
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/class/artificer",
+        "url_ttg": null,
+        "book": "EFA"
+      },
+      "data": {
+        "parent_class": "artificer",
+        "subclass_level": 3,
+        "features": [
+          {
+            "level": 3,
+            "features": [
+              {
+                "id": "tools-of-the-trade",
+                "name_en": "Tools of the Trade",
+                "name_ru": "Инструменты специализации",
+                "summary_ru": "Владение инструментами картографа и навигатора."
+              },
+              {
+                "id": "cartographer-spells",
+                "name_en": "Cartographer Spells",
+                "name_ru": "Заклинания картографа",
+                "summary_ru": "Всегда подготовлены заклинания картографа."
+              },
+              {
+                "id": "adventure-atlas",
+                "name_en": "Adventure Atlas",
+                "name_ru": "Атлас приключений",
+                "summary_ru": "Магический атлас: метки союзников, ориентация, помощь на расстоянии."
+              },
+              {
+                "id": "mapping-magic",
+                "name_en": "Mapping Magic",
+                "name_ru": "Магия карты",
+                "summary_ru": "Доп. магия карт: порталы/позиции по атласу."
+              }
+            ]
+          },
+          {
+            "level": 5,
+            "features": [
+              {
+                "id": "guided-precision",
+                "name_en": "Guided Precision",
+                "name_ru": "Направленная точность",
+                "summary_ru": "Атлас усиливает атаки/проверки отмеченных существ."
+              }
+            ]
+          },
+          {
+            "level": 9,
+            "features": [
+              {
+                "id": "brilliant-path",
+                "name_en": "Brilliant Path",
+                "name_ru": "Гениальный ход",
+                "summary_ru": "Телепорт/маршрут по атласу; защита от потери пути."
+              }
+            ]
+          },
+          {
+            "level": 15,
+            "features": [
+              {
+                "id": "superior-atlas",
+                "name_en": "Superior Atlas",
+                "name_ru": "Превосходный атлас",
+                "summary_ru": "Финал атласа: мощные перемещения и поддержка отряда."
+              }
+            ]
+          }
+        ],
+        "spell_list": [
+          {
+            "level": 3,
+            "spells": [
+              "healing-word",
+              "guiding-bolt",
+              "faerie-fire"
+            ]
+          },
+          {
+            "level": 5,
+            "spells": [
+              "locate-object",
+              "mind-spike"
+            ]
+          },
+          {
+            "level": 9,
+            "spells": [
+              "clairvoyance",
+              "call-lightning"
+            ]
+          },
+          {
+            "level": 13,
+            "spells": [
+              "banishment",
+              "locate-creature"
+            ]
+          },
+          {
+            "level": 17,
+            "spells": [
+              "scrying",
+              "teleportation-circle"
+            ]
+          }
+        ],
+        "spell_list_note_ru": "Всегда подготовленные заклинания подкласса по таблице уровней.",
+        "summary_ru": "Атлас приключений и магия карты."
+      }
+    }
+  ]
+}

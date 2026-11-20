@@ -1,0 +1,39 @@
+id,name_en,name_ru,book,category,url_dndsu,url_ttg,srd,mastery,mastery_ru,equipment_group
+battleaxe,Battleaxe,Боевой топор,PH24,weapons,https://next.dnd.su/equipment/13-battleaxe,https://new.ttg.club/items/battleaxe-phb,true,topple,Опрокидывающее,melee_martial_weapon
+blowgun,Blowgun,Духовая трубка,PH24,weapons,https://next.dnd.su/equipment/34-blowgun,https://new.ttg.club/items/blowgun-phb,true,vex,Отвлекающее,ranged_martial_weapon
+club,Club,Дубинка,PH24,weapons,https://next.dnd.su/equipment/3-club,https://new.ttg.club/items/club-phb,true,slow,Замедляющее,melee_simple_weapon
+dagger,Dagger,Кинжал,PH24,weapons,https://next.dnd.su/equipment/4-dagger,https://new.ttg.club/items/dagger-phb,true,nick,Быстрое,melee_simple_weapon
+dart,Dart,Дротик,PH24,weapons,https://next.dnd.su/equipment/29-dart,https://new.ttg.club/items/dart-phb,true,vex,Отвлекающее,ranged_simple_weapon
+flail,Flail,Цеп,PH24,weapons,https://next.dnd.su/equipment/28-flail,https://new.ttg.club/items/flail-phb,true,sap,Ослабляющее,melee_martial_weapon
+glaive,Glaive,Глефа,PH24,weapons,https://next.dnd.su/equipment/14-glaive,https://new.ttg.club/items/glaive-phb,true,graze,Секущее,melee_martial_weapon
+greataxe,Greataxe,Секира,PH24,weapons,https://next.dnd.su/equipment/25-greataxe,https://new.ttg.club/items/greataxe-phb,true,cleave,Прорубающее,melee_martial_weapon
+greatclub,Greatclub,Двуручная дубина,PH24,weapons,https://next.dnd.su/equipment/8-greatclub,https://new.ttg.club/items/greatclub-phb,true,push,Отталкивающее,melee_simple_weapon
+greatsword,Greatsword,Двуручный меч,PH24,weapons,https://next.dnd.su/equipment/15-greatsword,https://new.ttg.club/items/greatsword-phb,true,graze,Секущее,melee_martial_weapon
+halberd,Halberd,Алебарда,PH24,weapons,https://next.dnd.su/equipment/11-halberd,https://new.ttg.club/items/halberd-phb,true,cleave,Прорубающее,melee_martial_weapon
+hand-crossbow,Hand Crossbow,Одноручный арбалет,PH24,weapons,https://next.dnd.su/equipment/37-hand-crossbow,https://new.ttg.club/items/hand-crossbow-phb,true,vex,Отвлекающее,ranged_martial_weapon
+handaxe,Handaxe,Одноручный топор,PH24,weapons,https://next.dnd.su/equipment/9-handaxe,https://new.ttg.club/items/handaxe-phb,true,vex,Отвлекающее,melee_simple_weapon
+heavy-crossbow,Heavy Crossbow,Тяжёлый арбалет,PH24,weapons,https://next.dnd.su/equipment/38-heavy-crossbow,https://new.ttg.club/items/heavy-crossbow-phb,true,push,Отталкивающее,ranged_martial_weapon
+javelin,Javelin,Метательное копьё,PH24,weapons,https://next.dnd.su/equipment/7-javelin,https://new.ttg.club/items/javelin-phb,true,slow,Замедляющее,melee_simple_weapon
+lance,Lance,Кавалерийское копьё,PH24,weapons,https://next.dnd.su/equipment/17-lance,https://new.ttg.club/items/lance-phb,true,topple,Опрокидывающее,melee_martial_weapon
+light-crossbow,Light Crossbow,Лёгкий арбалет,PH24,weapons,https://next.dnd.su/equipment/31-light-crossbow,https://new.ttg.club/items/light-crossbow-phb,true,slow,Замедляющее,ranged_simple_weapon
+light-hammer,Light Hammer,Лёгкий молот,PH24,weapons,https://next.dnd.su/equipment/6-light-hammer,https://new.ttg.club/items/light-hammer-phb,true,nick,Быстрое,melee_simple_weapon
+longbow,Longbow,Длинный лук,PH24,weapons,https://next.dnd.su/equipment/33-longbow,https://new.ttg.club/items/longbow-phb,true,slow,Замедляющее,ranged_martial_weapon
+longsword,Longsword,Длинный меч,PH24,weapons,https://next.dnd.su/equipment/16-longsword,https://new.ttg.club/items/longsword-phb,true,sap,Ослабляющее,melee_martial_weapon
+mace,Mace,Булава,PH24,weapons,https://next.dnd.su/equipment/2-mace,https://new.ttg.club/items/mace-phb,true,sap,Ослабляющее,melee_simple_weapon
+maul,Maul,Молот,PH24,weapons,https://next.dnd.su/equipment/21-maul,https://new.ttg.club/items/maul-phb,true,topple,Опрокидывающее,melee_martial_weapon
+morningstar,Morningstar,Моргенштерн,PH24,weapons,https://next.dnd.su/equipment/22-morningstar,https://new.ttg.club/items/morningstar-phb,true,sap,Ослабляющее,melee_martial_weapon
+musket,Musket,Мушкет,PH24,weapons,https://next.dnd.su/equipment/35-musket,https://new.ttg.club/items/musket-phb,true,slow,Замедляющее,ranged_martial_weapon
+pike,Pike,Пика,PH24,weapons,https://next.dnd.su/equipment/23-pike,https://new.ttg.club/items/pike-phb,true,push,Отталкивающее,melee_martial_weapon
+pistol,Pistol,Пистоль,PH24,weapons,https://next.dnd.su/equipment/36-pistol,https://new.ttg.club/items/pistol-phb,true,vex,Отвлекающее,ranged_martial_weapon
+quarterstaff,Quarterstaff,Боевой посох,PH24,weapons,https://next.dnd.su/equipment/1-quarterstaff,https://new.ttg.club/items/quarterstaff-phb,true,topple,Опрокидывающее,melee_simple_weapon
+rapier,Rapier,Рапира,PH24,weapons,https://next.dnd.su/equipment/24-rapier,https://new.ttg.club/items/rapier-phb,true,vex,Отвлекающее,melee_martial_weapon
+scimitar,Scimitar,Ятаган,PH24,weapons,https://next.dnd.su/equipment/26-scimitar,https://new.ttg.club/items/scimitar-phb,true,nick,Быстрое,melee_martial_weapon
+shortbow,Shortbow,Короткий лук,PH24,weapons,https://next.dnd.su/equipment/30-shortbow,https://new.ttg.club/items/shortbow-phb,true,vex,Отвлекающее,ranged_simple_weapon
+shortsword,Shortsword,Короткий меч,PH24,weapons,https://next.dnd.su/equipment/20-shortsword,https://new.ttg.club/items/shortsword-phb,true,vex,Отвлекающее,melee_martial_weapon
+sickle,Sickle,Серп,PH24,weapons,https://next.dnd.su/equipment/10-sickle,https://new.ttg.club/items/sickle-phb,true,nick,Быстрое,melee_simple_weapon
+sling,Sling,Праща,PH24,weapons,https://next.dnd.su/equipment/32-sling,https://new.ttg.club/items/sling-phb,true,slow,Замедляющее,ranged_simple_weapon
+spear,Spear,Копьё,PH24,weapons,https://next.dnd.su/equipment/5-spear,https://new.ttg.club/items/spear-phb,true,sap,Ослабляющее,melee_simple_weapon
+trident,Trident,Трезубец,PH24,weapons,https://next.dnd.su/equipment/27-trident,https://new.ttg.club/items/trident-phb,true,topple,Опрокидывающее,melee_martial_weapon
+war-pick,War Pick,Клевец,PH24,weapons,https://next.dnd.su/equipment/18-war-pick,https://new.ttg.club/items/war-pick-phb,true,sap,Ослабляющее,melee_martial_weapon
+warhammer,Warhammer,Боевой молот,PH24,weapons,https://next.dnd.su/equipment/12-warhammer,https://new.ttg.club/items/warhammer-phb,true,push,Отталкивающее,melee_martial_weapon
+whip,Whip,Кнут,PH24,weapons,https://next.dnd.su/equipment/19-whip,https://new.ttg.club/items/whip-phb,true,slow,Замедляющее,melee_martial_weapon

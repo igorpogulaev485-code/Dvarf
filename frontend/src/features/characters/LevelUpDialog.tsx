@@ -9,10 +9,78 @@ import {
   isClassEligibleForMulticlass,
   type AbilityScores,
 } from '../../shared/dnd/multiclassRules'
-import { formatAverageHpLabel } from '../../shared/dnd/hpPassiveBonuses'
 import type { HitDie } from '../../shared/dnd/hitDice'
+import {
+  checkMulticlassPrerequisites2024,
+  classCatalog2024,
+  normalizeClassSlug2024,
+} from '../../shared/dnd/edition2024Classes'
+import { SUBCLASS_CATALOG_2024 } from '../../shared/dnd/edition2024Subclasses'
+import { draconicResilienceHpDelta2024 } from '../../shared/dnd/sorcerer2024Features'
+import {
+  DWARVEN_TOUGHNESS_NAME_RU,
+  dwarvenToughnessHpDelta2024,
+  hasDwarvenToughness2024,
+} from '../../shared/dnd/speciesHpBonus2024'
 import { CatalogCombobox } from '../catalog'
 import { Dialog, Field, NumberInput, Stack, Text } from '../../ui'
+
+/** Class / subclass feature names the character gains when landing on `newClassLevel`. */
+function upcomingFeatureNames2024(input: {
+  classSlug: string | null
+  newClassLevel: number
+  subclassSlug: string | null
+}): string[] {
+  const slug = input.classSlug
+  if (!slug) return []
+  const lv = Math.max(1, Math.floor(input.newClassLevel) || 1)
+  const cat = classCatalog2024()[slug]
+  const levelRows = Array.isArray(cat?.data?.levels)
+    ? (cat!.data.levels as Array<{ level?: number; features?: unknown[] }>)
+    : []
+  const levelRow = levelRows.find((r) => Number(r?.level) === lv)
+  const levelFeatures = Array.isArray(levelRow?.features) ? levelRow!.features! : []
+  const skip = new Set([
+    'ability-score-improvement',
+    'epic-boon',
+    `${slug}-subclass`,
+    'monk-subclass',
+  ])
+  const out: string[] = []
+  for (const raw of levelFeatures) {
+    if (!raw || typeof raw !== 'object') continue
+    const feat = raw as { id?: string; name_ru?: string }
+    const id = String(feat.id || '')
+    if (!id || skip.has(id) || id.endsWith('-subclass')) continue
+    if (id === 'subclass-feature') {
+      const subSlug = input.subclassSlug
+      if (!subSlug) {
+        out.push(`Умение подкласса (${lv} ур.)`)
+        continue
+      }
+      const sub = SUBCLASS_CATALOG_2024[subSlug]
+      const blocks =
+        (sub?.data?.features as Array<{
+          level?: number
+          features?: Array<{ id?: string; name_ru?: string }>
+        }>) || []
+      const block = blocks.find((b) => Number(b?.level) === lv)
+      const subFeats = Array.isArray(block?.features) ? block!.features! : []
+      if (subFeats.length) {
+        for (const sf of subFeats) {
+          const name = String(sf?.name_ru || sf?.id || '').trim()
+          if (name) out.push(name)
+        }
+      } else {
+        out.push(`Умение подкласса (${lv} ур.)`)
+      }
+      continue
+    }
+    const name = String(feat.name_ru || id).trim()
+    if (name) out.push(name)
+  }
+  return out
+}
 
 export type LevelUpChoice =
   | {
@@ -41,8 +109,10 @@ type LevelUpDialogProps = {
   constitutionMod: number
   /** B-05: +1 HP per sorcerer level (Draconic Resilience). */
   draconicResilience?: boolean
-  /** Hill/Gold Dwarf: +1 HP every level. */
+  /** Hill/Gold Dwarf Dwarven Toughness +1 HP per level (2014 / main #498). */
   dwarvenToughness?: boolean
+  /** 2024 species slug for Dwarven Toughness (+1 HP / character level). */
+  speciesSlug?: string | null
   /** L-08: разрешить мультикласс (дефолт true). */
   allowMulticlass?: boolean
   /** L-08: среднее | бросок — стартовый режим хитов кампании. */
@@ -59,6 +129,7 @@ export function LevelUpDialog({
   constitutionMod,
   draconicResilience = false,
   dwarvenToughness = false,
+  speciesSlug = null,
   allowMulticlass = true,
   defaultHpMode = 'average',
   onConfirm,
@@ -117,24 +188,85 @@ export function LevelUpDialog({
     [targetClass],
   )
 
+  const sameClassRow = mode === 'same' ? classes.find((c) => c.id === classId) ?? classes[0] : null
+  const oldCharacterLevel = classes.reduce(
+    (sum, row) => sum + Math.max(0, Math.floor(row.level || 0)),
+    0,
+  )
+  const toughnessDelta =
+    edition === '2024'
+      ? dwarvenToughnessHpDelta2024({
+          oldCharacterLevel,
+          newCharacterLevel: oldCharacterLevel + 1,
+          speciesSlug,
+        })
+      : 0
+  const showToughnessNote =
+    edition === '2024' && hasDwarvenToughness2024(speciesSlug) && toughnessDelta > 0
+
+  const upcomingFeatures = useMemo(() => {
+    if (edition !== '2024' || mode !== 'same' || !sameClassRow) return [] as string[]
+    const classSlug =
+      normalizeClassSlug2024(sameClassRow.catalog_id) ||
+      normalizeClassSlug2024(sameClassRow.name)
+    const newClassLevel = Math.max(0, Math.floor(sameClassRow.level || 0)) + 1
+    return upcomingFeatureNames2024({
+      classSlug,
+      newClassLevel,
+      subclassSlug: sameClassRow.subclass_catalog_id,
+    })
+  }, [edition, mode, sameClassRow])
+
   const averageGain = hitDie
-    ? averageHpGain(hitDie, constitutionMod, {
-        draconicResilience:
-          draconicResilience &&
-          /чародей|sorcerer/i.test(targetClass.name),
-        dwarvenToughness,
-      })
+    ? (() => {
+        const isSorcerer = /чародей|sorcerer/i.test(targetClass.name)
+        // 2014 path unchanged: +1 per sorcerer level when Draconic Resilience is on.
+        if (edition !== '2024') {
+          return averageHpGain(hitDie, constitutionMod, {
+            draconicResilience: draconicResilience && isSorcerer,
+            dwarvenToughness,
+          })
+        }
+        // 2024: +3 at sorcerer 3 (when subclass is already/will be draconic), then +1.
+        const base = averageHpGain(hitDie, constitutionMod)
+        if (!isSorcerer) return base + toughnessDelta
+        const oldLv = sameClassRow?.level ?? 0
+        const newLv = oldLv + 1
+        const subclassSlug =
+          sameClassRow?.subclass_catalog_id ||
+          sameClassRow?.subclass_name ||
+          (draconicResilience ? 'draconic' : null)
+        return (
+          base +
+          toughnessDelta +
+          draconicResilienceHpDelta2024({
+            oldLevel: oldLv,
+            newLevel: newLv,
+            subclassSlug,
+          })
+        )
+      })()
     : null
 
   const multiclassGate = useMemo(() => {
     if (mode !== 'multiclass') return null
     if (!newClassName.trim()) return null
+    if (edition === '2024') {
+      const check = checkMulticlassPrerequisites2024({
+        currentClasses: currentClassNames,
+        newClass: newCatalogSlug || newClassName,
+        abilities,
+      })
+      return check.ok
+        ? { ok: true as const, slug: newCatalogSlug ?? '' }
+        : { ok: false as const, reason: check.reasonRu, slug: null }
+    }
     return canTakeMulticlassLevel({
       newClassName,
       currentClassNames,
       abilities,
     })
-  }, [mode, newClassName, currentClassNames, abilities])
+  }, [edition, mode, newClassName, newCatalogSlug, currentClassNames, abilities])
 
   const hpGain =
     hpMode === 'average'
@@ -154,12 +286,18 @@ export function LevelUpDialog({
 
   const filterEligibleClassStable = useCallback(
     (entry: CatalogEntry) =>
-      isClassEligibleForMulticlass({
-        className: entry.name_ru,
-        currentClassNames,
-        abilities,
-      }),
-    [currentClassNames, abilities],
+      edition === '2024'
+        ? checkMulticlassPrerequisites2024({
+            currentClasses: currentClassNames,
+            newClass: entry.slug || entry.name_ru,
+            abilities,
+          }).ok
+        : isClassEligibleForMulticlass({
+            className: entry.name_ru,
+            currentClassNames,
+            abilities,
+          }),
+    [edition, currentClassNames, abilities],
   )
 
   return (
@@ -189,7 +327,10 @@ export function LevelUpDialog({
       <Stack gap={12}>
         <Text tone="muted">
           Куда идёт новый уровень персонажа? Можно прокачать уже взятый класс или взять 1 уровень
-          другого (мультикласс). Характеристики должны удовлетворять требованиям PHB 2014.
+          другого (мультикласс).{' '}
+          {edition === '2024'
+            ? 'Характеристики должны удовлетворять требованиям мультикласса 2024 (редакция 2024).'
+            : 'Характеристики должны удовлетворять требованиям PHB 2014.'}
         </Text>
 
         <div className="chip-row">
@@ -252,8 +393,9 @@ export function LevelUpDialog({
               <Text tone="danger">{multiclassGate.reason}</Text>
             ) : null}
             <Text tone="muted">
-              Как на create: пороги PHB на новый класс и на уже взятые. Не хватает характеристик —
-              класс не выбрать, пока не поднимешь Увеличение характеристик / не перераспределишь.
+              {edition === '2024'
+                ? 'Как на create: основные характеристики 13+ у нового класса и у уже взятых (у части классов достаточно одной из двух). Не хватает — класс не выбрать, пока не поднимешь характеристики.'
+                : 'Как на create: пороги PHB на новый класс и на уже взятые. Не хватает характеристик — класс не выбрать, пока не поднимешь Увеличение характеристик / не перераспределишь.'}
             </Text>
           </Stack>
         )}
@@ -278,19 +420,20 @@ export function LevelUpDialog({
         </Field>
 
         {hpMode === 'average' ? (
-          <Text tone="muted">
-            {hitDie && averageGain != null
-              ? formatAverageHpLabel({
-                  hitDie,
-                  constitutionMod,
-                  averageGain,
-                  draconicResilience:
-                    draconicResilience &&
-                    /чародей|sorcerer/i.test(targetClass.name),
-                  dwarvenToughness,
-                })
-              : 'Не удалось определить кость хитов класса — выбери класс из справочника или введи хиты вручную.'}
-          </Text>
+          <Stack gap={4}>
+            <Text tone="muted">
+              {hitDie && averageGain != null
+                ? `Среднее по ${hitDie}: ⌊${hitDie.slice(1)}/2⌋+1 + ТЕЛ (${constitutionMod >= 0 ? '+' : ''}${constitutionMod}) = +${averageGain} к макс. хитам`
+                : 'Не удалось определить кость хитов класса — выбери класс из справочника или введи хиты вручную.'}
+            </Text>
+            {showToughnessNote ? (
+              <div data-testid="level-up-dwarven-toughness">
+                <Text tone="muted">
+                  В том числе +{toughnessDelta} от «{DWARVEN_TOUGHNESS_NAME_RU}».
+                </Text>
+              </div>
+            ) : null}
+          </Stack>
         ) : (
           <Field label="Прибавка к макс. хитам" hint="Бросок кости + модификатор ТЕЛ">
             <NumberInput
@@ -301,6 +444,19 @@ export function LevelUpDialog({
             />
           </Field>
         )}
+
+        {upcomingFeatures.length ? (
+          <div data-testid="level-up-features">
+            <Text>
+              На {(sameClassRow?.level ?? 0) + 1} ур. появятся:
+            </Text>
+            <ul className="create-2024__list">
+              {upcomingFeatures.map((name) => (
+                <li key={name}>{name}</li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
 
         {!canConfirm ? (
           <Text tone="muted">

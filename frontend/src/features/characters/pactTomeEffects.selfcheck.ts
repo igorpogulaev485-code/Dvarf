@@ -10,6 +10,7 @@ import {
 } from './spells'
 import {
   clearPactTomeCantripsIfNeeded,
+  isPactTomeActive,
   isPactTomeSpellId,
   PACT_BOON_FEATURE_ID,
   PACT_TOME_CANTRIPS_FEATURE_ID,
@@ -149,5 +150,34 @@ const complete = withPactTomeCantripsStep([], {
   featurePicks: picks,
 })
 assert(complete.length === 0, 'no step when 3 cantrips picked')
+
+{
+  const tome2024 = { edition: '2024', invocations2024: ['pact-of-the-tome'] }
+  const picks24 = setFeaturePick(emptyFeaturePicks(), classId, PACT_TOME_CANTRIPS_FEATURE_ID, 'guidance,fire_bolt,sacred_flame')
+  assert(isPactTomeActive(picks24, classId, tome2024), '2024 tome active without pact_boon')
+  assert(!isPactTomeActive(picks24, classId), '2014 path ignores 2024 invocations')
+  assert(!isPactTomeActive(picks24, classId, { edition: '2024', invocations2024: [] }), '2024 without invocation')
+  const synced24 = syncPactTomeCantrips({
+    spells: emptySpells(),
+    featurePicks: picks24,
+    classes: [{ id: classId, name: 'Колдун', level: 3 }],
+    resolveSpell,
+    ...tome2024,
+  })
+  assert(synced24.spells.known.length === 3, '2024 tome cantrips materialized')
+  const synced14 = syncPactTomeCantrips({
+    spells: emptySpells(),
+    featurePicks: picks24,
+    classes: [{ id: classId, name: 'Колдун', level: 3 }],
+    resolveSpell,
+  })
+  assert(synced14.spells.known.length === 0, '2014 still needs pact_boon')
+  const kept = sanitizeFeaturePicksForPactBoons({
+    featurePicks: picks24,
+    classes: [{ id: classId, name: 'Колдун', level: 3 }],
+    ...tome2024,
+  })
+  assert(kept.values[`${classId}:${PACT_TOME_CANTRIPS_FEATURE_ID}`] === 'guidance,fire_bolt,sacred_flame', '2024 sanitize keeps tome picks')
+}
 
 console.log('pactTomeEffects.selfcheck: ok')

@@ -139,6 +139,25 @@ export function recoverHitDicePoolsOnLongRest(
   return next
 }
 
+/** SRD 5.2.1: restore every spent Hit Point Die. */
+export function recoverHitDicePoolsOnLongRest2024(
+  pools: ClassHitDicePool[],
+): ClassHitDicePool[] {
+  return pools.map((pool) => ({
+    ...pool,
+    current: clampHitDiceCurrent(pool.max, pool.max),
+  }))
+}
+
+export function recoverHitDicePoolsOnLongRestForEdition(
+  pools: ClassHitDicePool[],
+  edition?: string | null,
+): ClassHitDicePool[] {
+  return String(edition ?? '2014').trim() === '2024'
+    ? recoverHitDicePoolsOnLongRest2024(pools)
+    : recoverHitDicePoolsOnLongRest(pools)
+}
+
 export function readHitDicePools(raw: unknown): ClassHitDicePool[] | null {
   if (!Array.isArray(raw)) return null
   const out: ClassHitDicePool[] = []

@@ -40,6 +40,10 @@ import {
 import { asRecord, readNullableNumber, readNumber } from './sheetTypes'
 import { readShillelagh, type ShillelaghState } from './shillelagh'
 import {
+  readWizard2024RestSwaps,
+  type Wizard2024RestSwapFlags,
+} from '../../shared/dnd/wizard2024Features'
+import {
   readCoverLevel,
   type CoverLevel,
 } from '../../shared/dnd/o08ActionsCoverConditions'
@@ -80,6 +84,11 @@ export type PlayState = {
    * Хранится в sheet.combat.underwater.
    */
   underwater?: boolean
+  /**
+   * 2024 Wizard: which rest swaps (Memorize Spell, cantrip, Spell Mastery) were already
+   * used this rest cycle. Stored in sheet.combat.wizard2024_rest_swaps.
+   */
+  wizard2024RestSwaps?: Wizard2024RestSwapFlags
 }
 
 export type { ConcentrationState }
@@ -161,6 +170,9 @@ function readResource(raw: unknown, index: number): SheetResource {
     ...(dice?.length ? { dice } : {}),
     ...(typeof row.activeLabel === 'string' ? { activeLabel: row.activeLabel } : {}),
     ...(row.wardCreated === true ? { wardCreated: true } : {}),
+    ...(typeof row.useCount === 'number' && row.useCount > 0
+      ? { useCount: Math.floor(row.useCount) }
+      : {}),
     ...(typeof row.rechargeDice === 'string'
       ? { rechargeDice: row.rechargeDice }
       : typeof row.recharge_dice === 'string'
@@ -202,6 +214,7 @@ export function readPlay(sheet: Record<string, unknown>, level = 1): PlayState {
     })
   }
 
+  const wizard2024RestSwaps = readWizard2024RestSwaps(combat.wizard2024_rest_swaps)
   const hitDiceMax = Math.max(1, Math.floor(level))
   const hitDiceRaw = readNullableNumber(combat.hp_dice_current)
   const poolsFromSheet = readHitDicePools(combat.hit_dice_by_class)
@@ -231,6 +244,7 @@ export function readPlay(sheet: Record<string, unknown>, level = 1): PlayState {
     noLongRestDays: Math.max(0, Math.floor(readNumber(combat.no_long_rest_days, 0))),
     cover: readCoverLevel(combat.cover),
     underwater: Boolean(combat.underwater),
+    ...(wizard2024RestSwaps ? { wizard2024RestSwaps } : {}),
   }
 }
 
@@ -252,6 +266,7 @@ export function playToSheet(play: PlayState): {
     no_long_rest_days: number
     cover: CoverLevel
     underwater: boolean
+    wizard2024_rest_swaps?: Wizard2024RestSwapFlags
   }
   resources: SheetResource[]
 } {
@@ -287,6 +302,9 @@ export function playToSheet(play: PlayState): {
       no_long_rest_days: Math.max(0, Math.floor(play.noLongRestDays ?? 0)),
       cover: readCoverLevel(play.cover),
       underwater: Boolean(play.underwater),
+      ...(play.wizard2024RestSwaps && Object.keys(play.wizard2024RestSwaps).length > 0
+        ? { wizard2024_rest_swaps: play.wizard2024RestSwaps }
+        : {}),
     },
     resources: play.resources.map((item) => clampResource(item)),
   }

@@ -1,0 +1,693 @@
+{
+  "meta": {
+    "pack": "P24-C15",
+    "rules_edition": "2024",
+    "source": "efa",
+    "notes_ru": "Артефактор EFA 2024. Не Таша 2014. Реплики = схемы/планы. spell_list из next.dnd.su + homunculus-servant."
+  },
+  "entries": [
+    {
+      "kind": "class",
+      "slug": "artificer",
+      "name_ru": "Артефактор",
+      "name_en": "Artificer",
+      "source": "efa",
+      "sort_order": 5,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/class/artificer",
+        "url_ttg": "https://new.ttg.club/classes/artificer-efa",
+        "book": "EFA"
+      },
+      "data": {
+        "hit_die": 8,
+        "primary_abilities": [
+          "int"
+        ],
+        "saving_throws": [
+          "con",
+          "int"
+        ],
+        "armor": [
+          "light",
+          "medium",
+          "shields"
+        ],
+        "weapons": {
+          "simple": true,
+          "martial": false,
+          "extras": []
+        },
+        "tools_fixed": [
+          "thieves-tools",
+          "tinkers-tools"
+        ],
+        "tool_choices": {
+          "category": "artisans_tools",
+          "count": 1
+        },
+        "skill_choices": {
+          "count": 2,
+          "from": [
+            "arcana",
+            "history",
+            "investigation",
+            "medicine",
+            "nature",
+            "perception",
+            "sleight_of_hand"
+          ]
+        },
+        "subclass_level": 3,
+        "feat_levels": [
+          4,
+          8,
+          12,
+          16
+        ],
+        "epic_boon_level": 19,
+        "weapon_mastery": {
+          "enabled": false
+        },
+        "starting_equipment": [
+          {
+            "id": "a",
+            "label_ru": "Вариант A",
+            "summary_ru": "Проклёпанная кожа, кинжал, воровские инструменты, инструменты ремонтника, набор исследователя подземелий, 16 зм",
+            "items": [
+              {
+                "qty": 1,
+                "id": "studded-leather-armor"
+              },
+              {
+                "qty": 1,
+                "id": "dagger"
+              },
+              {
+                "qty": 1,
+                "id": "thieves-tools"
+              },
+              {
+                "qty": 1,
+                "id": "tinkers-tools"
+              },
+              {
+                "qty": 1,
+                "id": "dungeoneers-pack"
+              }
+            ],
+            "coins_gp": 16
+          },
+          {
+            "id": "gold",
+            "label_ru": "Золото",
+            "summary_ru": "150 зм",
+            "items": [],
+            "coins_gp": 150
+          }
+        ],
+        "levels": [
+          {
+            "level": 1,
+            "proficiency_bonus": 2,
+            "features": [
+              {
+                "id": "spellcasting",
+                "name_en": "Spellcasting",
+                "name_ru": "Сотворение заклинаний",
+                "summary_ru": "Полукастер (ИНТ). Фокус — воровские/ремонтные/ремесленные инструменты в руке; все заклинания с М. Заговоры и подготовка по таблице; смена заговоров и списка после длинного отдыха."
+              },
+              {
+                "id": "magic-of-making",
+                "name_en": "Magic of Making",
+                "name_ru": "Магия вещей",
+                "summary_ru": "Всегда «Починка». Действием Магия с инструментами ремонтника создать 1 предмет из списка (верёвка, ломик, сеть и др.) на 5 фт. исчезнет после длинного отдыха. Использований = мод. ИНТ (мин. 1)/длинный."
+              }
+            ],
+            "resources": {},
+            "spellcasting": {
+              "cantrips": 2,
+              "prepared_spells": 2,
+              "slots": {
+                "1": 2
+              }
+            }
+          },
+          {
+            "level": 2,
+            "proficiency_bonus": 2,
+            "features": [
+              {
+                "id": "replicate-magic-item",
+                "name_en": "Replicate Magic Item",
+                "name_ru": "Реплики магических предметов",
+                "summary_ru": "Схемы реплик (известные/макс. предметов по таблице). Создаёте реплики магических предметов по схемам; смена схем при повышении уровня."
+              }
+            ],
+            "resources": {
+              "replicate_plans_known": 4,
+              "replicate_magic_items": 2
+            },
+            "spellcasting": {
+              "cantrips": 2,
+              "prepared_spells": 3,
+              "slots": {
+                "1": 2
+              }
+            }
+          },
+          {
+            "level": 3,
+            "proficiency_bonus": 2,
+            "features": [
+              {
+                "id": "artificer-subclass",
+                "name_en": "Artificer Subclass",
+                "name_ru": "Подкласс артефактора",
+                "summary_ru": "Выберите специальность артефактора (3-й уровень)."
+              }
+            ],
+            "resources": {
+              "replicate_plans_known": 4,
+              "replicate_magic_items": 2
+            },
+            "spellcasting": {
+              "cantrips": 2,
+              "prepared_spells": 4,
+              "slots": {
+                "1": 3
+              }
+            }
+          },
+          {
+            "level": 4,
+            "proficiency_bonus": 2,
+            "features": [
+              {
+                "id": "asi",
+                "name_en": "Ability Score Improvement",
+                "name_ru": "Увеличение характеристик",
+                "summary_ru": "Черта или повышение характеристик."
+              }
+            ],
+            "resources": {
+              "replicate_plans_known": 4,
+              "replicate_magic_items": 2
+            },
+            "spellcasting": {
+              "cantrips": 2,
+              "prepared_spells": 5,
+              "slots": {
+                "1": 3
+              }
+            }
+          },
+          {
+            "level": 5,
+            "proficiency_bonus": 3,
+            "features": [
+              {
+                "id": "subclass-feature",
+                "name_en": "Subclass Feature",
+                "name_ru": "Умение подкласса",
+                "summary_ru": "Умение специальности 5-го уровня."
+              }
+            ],
+            "resources": {
+              "replicate_plans_known": 4,
+              "replicate_magic_items": 2
+            },
+            "spellcasting": {
+              "cantrips": 2,
+              "prepared_spells": 6,
+              "slots": {
+                "1": 4,
+                "2": 2
+              }
+            }
+          },
+          {
+            "level": 6,
+            "proficiency_bonus": 3,
+            "features": [
+              {
+                "id": "magic-item-tinker",
+                "name_en": "Magic Item Tinker",
+                "name_ru": "Магический мастеровой",
+                "summary_ru": "Улучшение работы с репликами и настройкой магических предметов (по таблице схем/предметов)."
+              }
+            ],
+            "resources": {
+              "replicate_plans_known": 5,
+              "replicate_magic_items": 3
+            },
+            "spellcasting": {
+              "cantrips": 2,
+              "prepared_spells": 6,
+              "slots": {
+                "1": 4,
+                "2": 2
+              }
+            }
+          },
+          {
+            "level": 7,
+            "proficiency_bonus": 3,
+            "features": [
+              {
+                "id": "flash-of-genius",
+                "name_en": "Flash of Genius",
+                "name_ru": "Проблеск гениальности",
+                "summary_ru": "Реакцией добавить мод. ИНТ к проверке или спасброску в пределах 30 фт. Использований = мод. ИНТ / длинный отдых."
+              }
+            ],
+            "resources": {
+              "replicate_plans_known": 5,
+              "replicate_magic_items": 3
+            },
+            "spellcasting": {
+              "cantrips": 2,
+              "prepared_spells": 7,
+              "slots": {
+                "1": 4,
+                "2": 3
+              }
+            }
+          },
+          {
+            "level": 8,
+            "proficiency_bonus": 3,
+            "features": [
+              {
+                "id": "asi",
+                "name_en": "Ability Score Improvement",
+                "name_ru": "Увеличение характеристик",
+                "summary_ru": "Черта или повышение характеристик."
+              }
+            ],
+            "resources": {
+              "replicate_plans_known": 5,
+              "replicate_magic_items": 3
+            },
+            "spellcasting": {
+              "cantrips": 2,
+              "prepared_spells": 7,
+              "slots": {
+                "1": 4,
+                "2": 3
+              }
+            }
+          },
+          {
+            "level": 9,
+            "proficiency_bonus": 4,
+            "features": [
+              {
+                "id": "subclass-feature",
+                "name_en": "Subclass Feature",
+                "name_ru": "Умение подкласса",
+                "summary_ru": "Умение специальности 9-го уровня."
+              }
+            ],
+            "resources": {
+              "replicate_plans_known": 5,
+              "replicate_magic_items": 3
+            },
+            "spellcasting": {
+              "cantrips": 2,
+              "prepared_spells": 9,
+              "slots": {
+                "1": 4,
+                "2": 3,
+                "3": 2
+              }
+            }
+          },
+          {
+            "level": 10,
+            "proficiency_bonus": 4,
+            "features": [
+              {
+                "id": "magic-item-adept",
+                "name_en": "Magic Item Adept",
+                "name_ru": "Искусник магических предметов",
+                "summary_ru": "Больше схем и одновременных реплик; настройка на большее число предметов."
+              }
+            ],
+            "resources": {
+              "replicate_plans_known": 6,
+              "replicate_magic_items": 4
+            },
+            "spellcasting": {
+              "cantrips": 3,
+              "prepared_spells": 9,
+              "slots": {
+                "1": 4,
+                "2": 3,
+                "3": 2
+              }
+            }
+          },
+          {
+            "level": 11,
+            "proficiency_bonus": 4,
+            "features": [
+              {
+                "id": "spell-storing-item",
+                "name_en": "Spell-Storing Item",
+                "name_ru": "Хранящий заклинания предмет",
+                "summary_ru": "Записать заклинание артефактора 1–2 ур. в предмет; другие могут выпускать его, пока есть заряды."
+              }
+            ],
+            "resources": {
+              "replicate_plans_known": 6,
+              "replicate_magic_items": 4
+            },
+            "spellcasting": {
+              "cantrips": 3,
+              "prepared_spells": 10,
+              "slots": {
+                "1": 4,
+                "2": 3,
+                "3": 3
+              }
+            }
+          },
+          {
+            "level": 12,
+            "proficiency_bonus": 4,
+            "features": [
+              {
+                "id": "asi",
+                "name_en": "Ability Score Improvement",
+                "name_ru": "Увеличение характеристик",
+                "summary_ru": "Черта или повышение характеристик."
+              }
+            ],
+            "resources": {
+              "replicate_plans_known": 6,
+              "replicate_magic_items": 4
+            },
+            "spellcasting": {
+              "cantrips": 3,
+              "prepared_spells": 10,
+              "slots": {
+                "1": 4,
+                "2": 3,
+                "3": 3
+              }
+            }
+          },
+          {
+            "level": 13,
+            "proficiency_bonus": 5,
+            "features": [],
+            "resources": {
+              "replicate_plans_known": 6,
+              "replicate_magic_items": 4
+            },
+            "spellcasting": {
+              "cantrips": 3,
+              "prepared_spells": 11,
+              "slots": {
+                "1": 4,
+                "2": 3,
+                "3": 3,
+                "4": 1
+              }
+            }
+          },
+          {
+            "level": 14,
+            "proficiency_bonus": 5,
+            "features": [
+              {
+                "id": "magic-item-savant",
+                "name_en": "Magic Item Savant",
+                "name_ru": "Изобретательность",
+                "summary_ru": "Ещё больше схем/реплик; игнор части ограничений расы/заклинаний на настройку."
+              }
+            ],
+            "resources": {
+              "replicate_plans_known": 7,
+              "replicate_magic_items": 5
+            },
+            "spellcasting": {
+              "cantrips": 4,
+              "prepared_spells": 11,
+              "slots": {
+                "1": 4,
+                "2": 3,
+                "3": 3,
+                "4": 1
+              }
+            }
+          },
+          {
+            "level": 15,
+            "proficiency_bonus": 5,
+            "features": [
+              {
+                "id": "subclass-feature",
+                "name_en": "Subclass Feature",
+                "name_ru": "Умение подкласса",
+                "summary_ru": "Умение специальности 15-го уровня."
+              }
+            ],
+            "resources": {
+              "replicate_plans_known": 7,
+              "replicate_magic_items": 5
+            },
+            "spellcasting": {
+              "cantrips": 4,
+              "prepared_spells": 12,
+              "slots": {
+                "1": 4,
+                "2": 3,
+                "3": 3,
+                "4": 2
+              }
+            }
+          },
+          {
+            "level": 16,
+            "proficiency_bonus": 5,
+            "features": [
+              {
+                "id": "asi",
+                "name_en": "Ability Score Improvement",
+                "name_ru": "Увеличение характеристик",
+                "summary_ru": "Черта или повышение характеристик."
+              }
+            ],
+            "resources": {
+              "replicate_plans_known": 7,
+              "replicate_magic_items": 5
+            },
+            "spellcasting": {
+              "cantrips": 4,
+              "prepared_spells": 12,
+              "slots": {
+                "1": 4,
+                "2": 3,
+                "3": 3,
+                "4": 2
+              }
+            }
+          },
+          {
+            "level": 17,
+            "proficiency_bonus": 6,
+            "features": [],
+            "resources": {
+              "replicate_plans_known": 7,
+              "replicate_magic_items": 5
+            },
+            "spellcasting": {
+              "cantrips": 4,
+              "prepared_spells": 14,
+              "slots": {
+                "1": 4,
+                "2": 3,
+                "3": 3,
+                "4": 3,
+                "5": 1
+              }
+            }
+          },
+          {
+            "level": 18,
+            "proficiency_bonus": 6,
+            "features": [
+              {
+                "id": "magic-item-master",
+                "name_en": "Magic Item Master",
+                "name_ru": "Мастер магических предметов",
+                "summary_ru": "Максимум схем и одновременных реплик по таблице; расширенная настройка."
+              }
+            ],
+            "resources": {
+              "replicate_plans_known": 8,
+              "replicate_magic_items": 6
+            },
+            "spellcasting": {
+              "cantrips": 4,
+              "prepared_spells": 14,
+              "slots": {
+                "1": 4,
+                "2": 3,
+                "3": 3,
+                "4": 3,
+                "5": 1
+              }
+            }
+          },
+          {
+            "level": 19,
+            "proficiency_bonus": 6,
+            "features": [
+              {
+                "id": "epic-boon",
+                "name_en": "Epic Boon",
+                "name_ru": "Эпический дар",
+                "summary_ru": "Получите черту эпического дара или другую подходящую черту."
+              }
+            ],
+            "resources": {
+              "replicate_plans_known": 8,
+              "replicate_magic_items": 6
+            },
+            "spellcasting": {
+              "cantrips": 4,
+              "prepared_spells": 15,
+              "slots": {
+                "1": 4,
+                "2": 3,
+                "3": 3,
+                "4": 3,
+                "5": 2
+              }
+            }
+          },
+          {
+            "level": 20,
+            "proficiency_bonus": 6,
+            "features": [
+              {
+                "id": "soul-of-artifice",
+                "name_en": "Soul of Artifice",
+                "name_ru": "Душа творения",
+                "summary_ru": "Бонус к спасброскам за каждую настройку; при снижении до 0 хитов можно потратить настройку, чтобы остаться при 1 хит."
+              }
+            ],
+            "resources": {
+              "replicate_plans_known": 8,
+              "replicate_magic_items": 6
+            },
+            "spellcasting": {
+              "cantrips": 4,
+              "prepared_spells": 15,
+              "slots": {
+                "1": 4,
+                "2": 3,
+                "3": 3,
+                "4": 3,
+                "5": 2
+              }
+            }
+          }
+        ],
+        "spell_list": [
+          "acid-splash",
+          "dancing-lights",
+          "elementalism",
+          "fire-bolt",
+          "guidance",
+          "light",
+          "mage-hand",
+          "mending",
+          "message",
+          "poison-spray",
+          "prestidigitation",
+          "ray-of-frost",
+          "resistance",
+          "shocking-grasp",
+          "spare-the-dying",
+          "thorn-whip",
+          "thunderclap",
+          "true-strike",
+          "alarm",
+          "cure-wounds",
+          "detect-magic",
+          "disguise-self",
+          "expeditious-retreat",
+          "faerie-fire",
+          "false-life",
+          "feather-fall",
+          "grease",
+          "identify",
+          "jump",
+          "longstrider",
+          "purify-food-and-drink",
+          "sanctuary",
+          "aid",
+          "alter-self",
+          "arcane-lock",
+          "arcane-vigor",
+          "blur",
+          "continual-flame",
+          "darkvision",
+          "dragons-breath",
+          "dueling-ground",
+          "enhance-ability",
+          "enlarge-reduce",
+          "heat-metal",
+          "homunculus-servant",
+          "invisibility",
+          "lesser-restoration",
+          "levitate",
+          "magic-mouth",
+          "magic-weapon",
+          "protection-from-poison",
+          "rope-trick",
+          "see-invisibility",
+          "spider-climb",
+          "uncertain-footing",
+          "web",
+          "blink",
+          "catnap",
+          "create-food-and-water",
+          "dispel-magic",
+          "elemental-weapon",
+          "fly",
+          "glyph-of-warding",
+          "haste",
+          "protection-from-energy",
+          "revivify",
+          "water-breathing",
+          "water-walk",
+          "arcane-eye",
+          "distorted-distance",
+          "fabricate",
+          "freedom-of-movement",
+          "leomunds-secret-chest",
+          "mordenkainens-faithful-hound",
+          "mordenkainens-private-sanctum",
+          "otilukes-resilient-sphere",
+          "stone-shape",
+          "stoneskin",
+          "summon-construct",
+          "animate-objects",
+          "bigbys-hand",
+          "circle-of-power",
+          "creation",
+          "greater-restoration",
+          "spirit-lantern",
+          "wall-of-stone"
+        ],
+        "spell_list_note_ru": "Список заклинаний артефактора EFA (next.dnd.su); exclusive EFA — «Гомункул-слуга». Плюс заклинания книги «Неудержимая магия» (идентификаторы карточек 2024).",
+        "summary_ru": "К8, Интеллект; полукастер через инструменты; реплики магических предметов (схемы).",
+        "infusions_note_ru": "В EFA 2024 — «Реплики магических предметов» (схемы/планы), не инфузии Таши 2014."
+      }
+    }
+  ]
+}

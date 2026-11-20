@@ -245,7 +245,13 @@ assert(!panel.includes('Строка — статус; клик — правка
     classes: [{ id: 'd1', name: 'Друид', level: 2 }],
   })
   assert(druid.kind === 'druid', 'druid hint')
-  assert(/Дикий облик/.test(druid.actionLabel), 'druid CTA')
+  assert(/Дикий облик/.test(druid.actionLabel), 'druid CTA 2014')
+  const druid2024 = resolveCompanionsEmptyHint({
+    classes: [{ id: 'd1', name: 'Друид', level: 2 }],
+    rulesEdition: '2024',
+  })
+  assert(/Дикий спутник/.test(druid2024.actionLabel), 'druid CTA 2024')
+  assert(/Дикий спутник/.test(druid2024.description), 'druid copy 2024')
 
   const wiz = resolveCompanionsEmptyHint({
     classes: [{ id: 'w1', name: 'Волшебник', level: 3 }],

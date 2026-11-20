@@ -306,9 +306,12 @@ export function familiarModeLabelRu(mode: FamiliarCastMode): string {
   return 'Поиск фамильяра'
 }
 
-export function familiarModeHintRu(mode: FamiliarCastMode): string {
+export function familiarModeHintRu(mode: FamiliarCastMode, edition: '2014' | '2024' = '2014'): string {
   if (mode === 'pact_chain') {
     return 'Звери PHB + особые формы Цепи (бес, квазит, спрайт, псевдодракон). Каст — ритуал или ячейка.'
+  }
+  if (mode === 'wild_companion' && edition === '2024') {
+    return 'Дикий спутник: «Обретение фамильяра» без материальных компонентов, тип — фея. Фамильяр исчезает, когда ты завершаешь долгий отдых.'
   }
   if (mode === 'wild_companion') {
     return 'Как «Поиск фамильяра», но тип — фея. Тратится использование Дикого облика; длительность = ½ ур. друида (часы).'
@@ -355,9 +358,11 @@ export function applyFindFamiliarCompanion(input: {
   slotLevel?: number
   characterLevel?: number
   druidLevel?: number
+  edition?: '2014' | '2024'
 }): { companions: CompanionEntry[]; name: string; refreshed: boolean } {
   const pick = input.pick
   const mode = input.mode
+  const wild2024 = mode === 'wild_companion' && input.edition === '2024'
   const hours =
     mode === 'wild_companion'
       ? Math.max(1, Math.floor((input.druidLevel ?? 1) / 2))
@@ -371,8 +376,11 @@ export function applyFindFamiliarCompanion(input: {
         ? 'Особая форма Пакта Цепи.'
         : 'Форма PHB «Поиск фамильяра».'
 
-  const costNote =
-    mode === 'wild_companion'
+  const costNote = wild2024
+    ? input.slotLevel != null && input.slotLevel > 0
+      ? `Обретение фамильяра без материалов · ячейка ${input.slotLevel} круга · исчезнет после долгого отдыха`
+      : 'Обретение фамильяра без материалов · Дикий облик · исчезнет после долгого отдыха'
+    : mode === 'wild_companion'
       ? `Дикий облик · ${hours} ч.`
       : input.slotLevel != null && input.slotLevel > 0
         ? `ячейка ${input.slotLevel} списана`

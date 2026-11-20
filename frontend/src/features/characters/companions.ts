@@ -1303,15 +1303,41 @@ export function dismissSelfForm(input: {
 export function dismissSelfFormsOnRest(
   companions: CompanionEntry[],
   kind: 'short' | 'long',
+  options?: { edition?: string | null },
 ): { companions: CompanionEntry[]; dismissedNames: string[] } {
   const before = dismissSelfForm({ companions })
   const names = before.dismissedName
     ? before.dismissedName.split(', ').filter(Boolean)
     : []
+  let rows = before.companions
+  if (kind === 'long' && options?.edition === '2024') {
+    const wild = dismissWildCompanionOnLongRest2024(rows)
+    rows = wild.companions
+    names.push(...wild.dismissedNames)
+  }
   return {
-    companions: resetCompanionResourcesOnRest(before.companions, kind),
+    companions: resetCompanionResourcesOnRest(rows, kind),
     dismissedNames: names,
   }
+}
+
+/** 2024 Wild Companion: the fey familiar disappears when the druid finishes a Long Rest. */
+export function dismissWildCompanionOnLongRest2024(companions: CompanionEntry[]): {
+  companions: CompanionEntry[]
+  dismissedNames: string[]
+} {
+  const gone = companions.filter((row) => row.source?.feature === 'wild_companion')
+  if (gone.length === 0) return { companions, dismissedNames: [] }
+  const kept = companions.filter((row) => row.source?.feature !== 'wild_companion')
+  const primaryLost = gone.some((row) => row.is_primary)
+  const next =
+    primaryLost && !kept.some((row) => row.is_primary)
+      ? (() => {
+          const ally = kept.find((row) => row.role === 'ally' && row.active)
+          return ally ? setPrimaryCompanion(kept, ally.id) : kept
+        })()
+      : kept
+  return { companions: next, dismissedNames: gone.map((row) => row.name) }
 }
 
 export type SelfFormDamageResult = {

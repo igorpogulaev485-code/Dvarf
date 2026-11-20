@@ -246,6 +246,12 @@
   overflow: auto;
 }
 
+/* Flat species/edition bonuses stay pinned under the scrollable per-level rows. */
+.hp-levels__list--extras {
+  max-height: none;
+  overflow: visible;
+}
+
 .hp-levels__row {
   display: grid;
   grid-template-columns: 1fr auto auto;

@@ -1,0 +1,330 @@
+{
+  "meta": {
+    "pack": "P24-C15",
+    "source": "EFA magic items (community_ref)",
+    "count": 9,
+    "notes": [
+      "Реплики/инфузии артефактора как магические предметы EFA.",
+      "source=efa → community_ref."
+    ]
+  },
+  "entries": [
+    {
+      "kind": "item",
+      "slug": "boots-of-the-winding-path",
+      "name_ru": "Сапоги извилистого пути",
+      "name_en": "Boots of the Winding Path",
+      "source": "efa",
+      "sort_order": 10,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/items/17569-boots-of-the-winding-path",
+        "url_ttg": "https://new.ttg.club/magic-items/boots-of-the-winding-path-efa",
+        "book": "EFA"
+      },
+      "data": {
+        "schema_version": 1,
+        "equipment_group": "magic_item",
+        "magic_item_type": "wondrous",
+        "magic_item_type_ru": "чудесный предмет",
+        "rarity": "uncommon",
+        "rarity_ru": "необычный",
+        "requires_attunement": true,
+        "attunement_restriction_ru": "требуется настройка",
+        "charges": null,
+        "recharge_ru": null,
+        "bonus_attack": null,
+        "bonus_damage": null,
+        "bonus_ac": null,
+        "bonus_spell_attack": null,
+        "spell_refs": [],
+        "base_item_categories": [],
+        "summary_ru": "Пока вы носите эти сапоги, вы можете Бонусным действием телепортироваться в видимое вами в пределах 15 футов незанятое пространство. Вы можете сделать это только если занимали это пространство ранее в течение текущего хода.",
+        "sentient": false,
+        "artifact": false
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "dazzling-weapon",
+      "name_ru": "Ослепительное оружие",
+      "name_en": "Dazzling Weapon",
+      "source": "efa",
+      "sort_order": 20,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/items/17570-dazzling-weapon",
+        "url_ttg": "https://new.ttg.club/magic-items/dazzling-weapon-efa",
+        "book": "EFA"
+      },
+      "data": {
+        "schema_version": 1,
+        "equipment_group": "magic_item",
+        "magic_item_type": "weapon",
+        "magic_item_type_ru": "оружие",
+        "rarity": "rare",
+        "rarity_ru": "редкий",
+        "requires_attunement": true,
+        "attunement_restriction_ru": "требуется настройка",
+        "charges": 4,
+        "recharge_ru": null,
+        "bonus_attack": 1,
+        "bonus_damage": 1,
+        "bonus_ac": null,
+        "bonus_spell_attack": null,
+        "spell_refs": [],
+        "base_item_categories": [
+          "weapon:simple",
+          "weapon:martial"
+        ],
+        "summary_ru": "Это магическое оружие дарует бонус +1 к броскам атаки и урона, совершаемым с ним. Пока вы держите его, вы можете Бонусным действием заставить оружие излучать Яркий свет в радиусе 30 футов и Тусклый свет ещё на 30 футов. Вы можете снова погасить свет Бонусным действием.",
+        "sentient": false,
+        "artifact": false
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "helm-of-awareness",
+      "name_ru": "Шлем осведомлённости",
+      "name_en": "Helm of Awareness",
+      "source": "efa",
+      "sort_order": 30,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/items/17571-helm-of-awareness",
+        "url_ttg": "https://new.ttg.club/magic-items/helm-of-awareness-efa",
+        "book": "EFA"
+      },
+      "data": {
+        "schema_version": 1,
+        "equipment_group": "magic_item",
+        "magic_item_type": "wondrous",
+        "magic_item_type_ru": "чудесный предмет",
+        "rarity": "uncommon",
+        "rarity_ru": "необычный",
+        "requires_attunement": false,
+        "attunement_restriction_ru": null,
+        "charges": null,
+        "recharge_ru": null,
+        "bonus_attack": null,
+        "bonus_damage": null,
+        "bonus_ac": null,
+        "bonus_spell_attack": null,
+        "spell_refs": [],
+        "base_item_categories": [],
+        "summary_ru": "Пока вы носите этот шлем, вы совершаете с Преимуществом броски Инициативы.",
+        "sentient": false,
+        "artifact": false
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "manifold-tool",
+      "name_ru": "Многообразный инструмент",
+      "name_en": "Manifold Tool",
+      "source": "efa",
+      "sort_order": 40,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/items/17572-manifold-tool",
+        "url_ttg": "https://new.ttg.club/magic-items/manifold-tool-efa",
+        "book": "EFA"
+      },
+      "data": {
+        "schema_version": 1,
+        "equipment_group": "magic_item",
+        "magic_item_type": "wondrous",
+        "magic_item_type_ru": "чудесный предмет",
+        "rarity": "common",
+        "rarity_ru": "обычный",
+        "requires_attunement": true,
+        "attunement_restriction_ru": "требуется настройка",
+        "charges": null,
+        "recharge_ru": null,
+        "bonus_attack": null,
+        "bonus_damage": null,
+        "bonus_ac": null,
+        "bonus_spell_attack": null,
+        "spell_refs": [],
+        "base_item_categories": [],
+        "summary_ru": "Этот инструмент выглядит как гаечный ключ, отвертка или аналогично несложный инструмент. Действием Магия вы можете коснуться инструмента и преобразовать его в любой тип Ремесленных инструментов на ваш выбор. Какой бы тип вы ни выбрали, когда вы используете этот инструмент, вы владеете им.",
+        "sentient": false,
+        "artifact": false
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "mind-sharpener",
+      "name_ru": "Усилитель разума",
+      "name_en": "Mind Sharpener",
+      "source": "efa",
+      "sort_order": 50,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/items/17573-mind-sharpener",
+        "url_ttg": "https://new.ttg.club/magic-items/mind-sharpener-efa",
+        "book": "EFA"
+      },
+      "data": {
+        "schema_version": 1,
+        "equipment_group": "magic_item",
+        "magic_item_type": "ring",
+        "magic_item_type_ru": "кольцо",
+        "rarity": "uncommon",
+        "rarity_ru": "необычный",
+        "requires_attunement": true,
+        "attunement_restriction_ru": "требуется настройка",
+        "charges": 4,
+        "recharge_ru": null,
+        "bonus_attack": null,
+        "bonus_damage": null,
+        "bonus_ac": null,
+        "bonus_spell_attack": null,
+        "spell_refs": [],
+        "base_item_categories": [],
+        "summary_ru": "У этого предмета есть 4 заряда. Когда вы проваливаете спасбросок Телосложения для поддержания Концентрации, вы можете Реакцией потратить 1 заряд, чтобы изменить провал этого спасброска на успех. Предмет восстанавливает 1к4 потраченных зарядов на каждом рассвете.",
+        "sentient": false,
+        "artifact": false
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "repeating-shot",
+      "name_ru": "Оружие повторного выстрела",
+      "name_en": "Repeating Shot",
+      "source": "efa",
+      "sort_order": 60,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/items/17574-repeating-shot",
+        "url_ttg": "https://new.ttg.club/magic-items/repeating-shot-efa",
+        "book": "EFA"
+      },
+      "data": {
+        "schema_version": 1,
+        "equipment_group": "magic_item",
+        "magic_item_type": "weapon",
+        "magic_item_type_ru": "оружие",
+        "rarity": "uncommon",
+        "rarity_ru": "необычный",
+        "requires_attunement": true,
+        "attunement_restriction_ru": "требуется настройка",
+        "charges": null,
+        "recharge_ru": null,
+        "bonus_attack": 1,
+        "bonus_damage": 1,
+        "bonus_ac": null,
+        "bonus_spell_attack": null,
+        "spell_refs": [],
+        "base_item_categories": [
+          "weapon:simple",
+          "weapon:martial"
+        ],
+        "summary_ru": "Это магическое оружие дарует бонус +1 к броскам атаки и урона, совершаемым при дальнобойных атаках этим оружием; кроме того, оно игнорирует свойство Перезарядка, если оно у него есть.",
+        "sentient": false,
+        "artifact": false
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "repulsion-shield",
+      "name_ru": "Отталкивающий щит",
+      "name_en": "Repulsion Shield",
+      "source": "efa",
+      "sort_order": 70,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/items/17575-repulsion-shield",
+        "url_ttg": "https://new.ttg.club/magic-items/repulsion-shield-efa",
+        "book": "EFA"
+      },
+      "data": {
+        "schema_version": 1,
+        "equipment_group": "magic_item",
+        "magic_item_type": "armor",
+        "magic_item_type_ru": "доспех",
+        "rarity": "uncommon",
+        "rarity_ru": "необычный",
+        "requires_attunement": false,
+        "attunement_restriction_ru": null,
+        "charges": 4,
+        "recharge_ru": null,
+        "bonus_attack": null,
+        "bonus_damage": null,
+        "bonus_ac": 1,
+        "bonus_spell_attack": null,
+        "spell_refs": [],
+        "base_item_categories": [
+          "armor:shield"
+        ],
+        "summary_ru": "Пока вы держите этот щит, вы получаете бонус +1 к Классу Защиты. У этого Щита есть 4 заряда. Когда существо Большого размера или меньше попадает по вам броском рукопашной атаки, а вы держите этот щит, можете Реакцие й потратить 1 заряд, чтобы отбросить атакующее существо на 15",
+        "sentient": false,
+        "artifact": false
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "returning-weapon",
+      "name_ru": "Возвращающееся оружие",
+      "name_en": "Returning Weapon",
+      "source": "efa",
+      "sort_order": 80,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/items/17576-returning-weapon",
+        "url_ttg": "https://new.ttg.club/magic-items/returning-weapon-efa",
+        "book": "EFA"
+      },
+      "data": {
+        "schema_version": 1,
+        "equipment_group": "magic_item",
+        "magic_item_type": "weapon",
+        "magic_item_type_ru": "оружие",
+        "rarity": "uncommon",
+        "rarity_ru": "необычный",
+        "requires_attunement": false,
+        "attunement_restriction_ru": null,
+        "charges": null,
+        "recharge_ru": null,
+        "bonus_attack": 1,
+        "bonus_damage": 1,
+        "bonus_ac": null,
+        "bonus_spell_attack": null,
+        "spell_refs": [],
+        "base_item_categories": [
+          "weapon:simple",
+          "weapon:martial"
+        ],
+        "summary_ru": "Это магическое оружие даёт бонус +1 к броскам атаки и урона с использованием этого оружия; кроме того, оно возвращается в вашу руку немедленно после совершения вами дальнобойной атаки этим оружием.",
+        "sentient": false,
+        "artifact": false
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "spell-refueling-ring",
+      "name_ru": "Кольцо восстановления заклинаний",
+      "name_en": "Spell-Refueling Ring",
+      "source": "efa",
+      "sort_order": 90,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/items/17577-spell-refueling-ring",
+        "url_ttg": "https://new.ttg.club/magic-items/spell-refueling-ring-efa",
+        "book": "EFA"
+      },
+      "data": {
+        "schema_version": 1,
+        "equipment_group": "magic_item",
+        "magic_item_type": "ring",
+        "magic_item_type_ru": "кольцо",
+        "rarity": "uncommon",
+        "rarity_ru": "необычный",
+        "requires_attunement": true,
+        "attunement_restriction_ru": "требуется настройка заклинателем",
+        "charges": null,
+        "recharge_ru": null,
+        "bonus_attack": null,
+        "bonus_damage": null,
+        "bonus_ac": null,
+        "bonus_spell_attack": null,
+        "spell_refs": [],
+        "base_item_categories": [],
+        "summary_ru": "Пока вы носите это кольцо, вы можете Бонусным действием восстановить одну потраченную ячейку заклинаний. Восстановленная ячейка может быть 3-го уровня или ниже. Как только кольцо использовано, его нельзя использовать снова до следующего рассвета.",
+        "sentient": false,
+        "artifact": false
+      }
+    }
+  ]
+}

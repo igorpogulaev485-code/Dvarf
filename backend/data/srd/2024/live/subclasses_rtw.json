@@ -1,0 +1,685 @@
+{
+  "meta": {
+    "pack": "P24-C20",
+    "rules_edition": "2024",
+    "source": "rtw",
+    "notes_ru": "7 подклассов RTW к классам C04/C15. parent_id = UUID класса 2024. Имена — subclasses.csv; умения — короткие карточки next.dnd.su."
+  },
+  "entries": [
+    {
+      "kind": "subclass",
+      "slug": "artificer__reanimator",
+      "name_ru": "Реаниматор",
+      "name_en": "Reanimator",
+      "source": "rtw",
+      "sort_order": 10,
+      "parent_id": "046f7ee4-9b7c-5fd1-abb7-464676313f54",
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/class/artificer",
+        "url_ttg": null,
+        "book": "RTW"
+      },
+      "data": {
+        "parent_class": "artificer",
+        "subclass_level": 3,
+        "features": [
+          {
+            "level": 3,
+            "features": [
+              {
+                "id": "reanimator-spells",
+                "name_en": "Reanimator Spells",
+                "name_ru": "Заклинания Реаниматора",
+                "summary_ru": "С момента достижения вами уровня Артефактора, указанного в следующей таблице, у вас всегда будут подготовлены соответствующие этому уровню"
+              },
+              {
+                "id": "reanimator-s-skill-set",
+                "name_en": "Reanimator’s Skill Set",
+                "name_ru": "Навыки Реаниматора",
+                "summary_ru": "Оживляющий разряд: Когда вы сотворяете Уход за умирающим, вы можете изменить это заклинание так, чтобы оно посылало электрический разряд"
+              },
+              {
+                "id": "reanimated-companion",
+                "name_en": "Reanimated Companion",
+                "name_ru": "Реанимированный спутник",
+                "summary_ru": "Спутник в бою: Он может перемещаться и использовать свою Реакцию самостоятельно, но единственное действие, которое он совершает в свой"
+              }
+            ]
+          },
+          {
+            "level": 5,
+            "features": [
+              {
+                "id": "strange-modifications",
+                "name_en": "Strange Modifications",
+                "name_ru": "Чуждые модификации",
+                "summary_ru": "Магический проводник: Вы можете сотворять заклинания так, как если бы находились в пространстве спутника, но должны при этом использовать"
+              }
+            ]
+          },
+          {
+            "level": 9,
+            "features": [
+              {
+                "id": "improved-reanimation",
+                "name_en": "Improved Reanimation",
+                "name_ru": "Улучшенная реанимация",
+                "summary_ru": "Урон Взрыва смерти вашего спутника увеличивается до 4к4."
+              },
+              {
+                "id": "macabre-modifications",
+                "name_en": "Macabre Modifications",
+                "name_ru": "Ужасные модификации",
+                "summary_ru": "Раздутый: Спутник становится Большого размера. Тощий: Скорость спутника увеличивается до 45 футов, и он получает Скорость лазания, равную"
+              }
+            ]
+          },
+          {
+            "level": 15,
+            "features": [
+              {
+                "id": "refined-reanimation",
+                "name_en": "Refined Reanimation",
+                "name_ru": "Отточенная реанимация",
+                "summary_ru": "Облегчённое воскрешение: Вы можете сотворить Возвращение к жизни без траты ячейки и без Материальных компонентов — при условии что использу"
+              }
+            ]
+          }
+        ],
+        "spell_list": [
+          {
+            "level": 3,
+            "spells": [
+              "witch-bolt",
+              "false-life",
+              "spare-the-dying"
+            ]
+          },
+          {
+            "level": 5,
+            "spells": [
+              "blindness-deafness",
+              "enhance-ability"
+            ]
+          },
+          {
+            "level": 9,
+            "spells": [
+              "lightning-bolt",
+              "animate-dead"
+            ]
+          },
+          {
+            "level": 13,
+            "spells": [
+              "death-ward",
+              "blight"
+            ]
+          },
+          {
+            "level": 17,
+            "spells": [
+              "raise-dead",
+              "antilife-shell"
+            ]
+          }
+        ],
+        "spell_list_note_ru": "Всегда подготовленные заклинания подкласса по таблице уровней.",
+        "summary_ru": "Пересобирайте трупы и поднимайте мёртвых"
+      }
+    },
+    {
+      "kind": "subclass",
+      "slug": "bard__college-of-the-spirits",
+      "name_ru": "Коллегия духов",
+      "name_en": "College of Spirits",
+      "source": "rtw",
+      "sort_order": 20,
+      "parent_id": "0334ad8f-7e8c-5ccd-a59d-ae5e8ea97acf",
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/class/bard",
+        "url_ttg": null,
+        "book": "RTW"
+      },
+      "data": {
+        "parent_class": "bard",
+        "subclass_level": 3,
+        "features": [
+          {
+            "level": 3,
+            "features": [
+              {
+                "id": "channeler",
+                "name_en": "Channeler",
+                "name_ru": "Проводник",
+                "summary_ru": "Направляющий шёпот: Вы узнаёте заговор Указание. Спиритическая фокусировка: Вы используете инструменты, помогающие вам связываться с"
+              },
+              {
+                "id": "spirits-from-beyond",
+                "name_en": "Spirits from Beyond",
+                "name_ru": "Замогильные духи",
+                "summary_ru": "Управляемый призыв: Бонусным действием вы можете потратить использование вашего Бардовского вдохновения и призвать конкретного духа: в тако"
+              }
+            ]
+          },
+          {
+            "level": 6,
+            "features": [
+              {
+                "id": "empowered-channeling",
+                "name_en": "Empowered Channeling",
+                "name_ru": "Улучшенный призыв",
+                "summary_ru": "Силы с того света: Один раз в ход, когда вы сотворяете с ячейкой заклинаний заклинание Барда, наносящее урон или восстанавливающее Хиты"
+              }
+            ]
+          },
+          {
+            "level": 14,
+            "features": [
+              {
+                "id": "mystical-connection",
+                "name_en": "Mystical Connection",
+                "name_ru": "Мистическая связь",
+                "summary_ru": "Вы научились особенно искусно призывать духов."
+              }
+            ]
+          }
+        ],
+        "spell_list": [],
+        "spell_list_note_ru": "Расширенный список (если есть) — в умениях подкласса про заклинания; отдельного списка в этой карточке нет.",
+        "summary_ru": "Взывайте к духам за завесой могилы"
+      }
+    },
+    {
+      "kind": "subclass",
+      "slug": "cleric__grave-domain",
+      "name_ru": "Домен упокоения",
+      "name_en": "Grave Domain",
+      "source": "rtw",
+      "sort_order": 30,
+      "parent_id": "2386b535-f364-596c-8f03-78123adf9c91",
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/class/cleric",
+        "url_ttg": null,
+        "book": "RTW"
+      },
+      "data": {
+        "parent_class": "cleric",
+        "subclass_level": 3,
+        "features": [
+          {
+            "level": 3,
+            "features": [
+              {
+                "id": "grave-domain-spells",
+                "name_en": "Grave Domain Spells",
+                "name_ru": "Заклинания домена упокоения",
+                "summary_ru": "Ваша связь с этим божественным доменом гарантирует, что у вас всегда будут подготовлены определённые заклинания."
+              },
+              {
+                "id": "circle-of-mortality",
+                "name_en": "Circle of Mortality",
+                "name_ru": "Круговорот жизни и смерти",
+                "summary_ru": "Толчок к смерти: Один раз в ход, когда вы наносите заклинанием или броском атаки урон существу, Хиты которого ниже максимума, это существо…"
+              },
+              {
+                "id": "path-to-the-grave",
+                "name_en": "Path to the Grave",
+                "name_ru": "Путь к могиле",
+                "summary_ru": "Бонусным действием вы демонстрируете ваш Священный символ и тратите одно использование Проведения божественности, чтобы проклясть одно види"
+              }
+            ]
+          },
+          {
+            "level": 6,
+            "features": [
+              {
+                "id": "sentinel-at-death-s-door",
+                "name_en": "Sentinel at Death’s Door",
+                "name_ru": "Страж на пороге смерти",
+                "summary_ru": "Когда по вам или Окровавленному существу, видимому вами в пределах 60 футов от вас, попадают броском атаки, вы можете Реакцией уменьшить"
+              }
+            ]
+          },
+          {
+            "level": 17,
+            "features": [
+              {
+                "id": "divine-reaper",
+                "name_en": "Divine Reaper",
+                "name_ru": "Божественный жнец",
+                "summary_ru": "Усовершенствованная некромантия: Когда вы сотворяете заклинание Некромантии 5-го уровня или ниже, нацеливающееся только на одно существо, и"
+              }
+            ]
+          }
+        ],
+        "spell_list": [
+          {
+            "level": 3,
+            "spells": [
+              "ray-of-enfeeblement",
+              "gentle-repose",
+              "false-life",
+              "spare-the-dying",
+              "detect-evil-and-good"
+            ]
+          },
+          {
+            "level": 5,
+            "spells": [
+              "revivify",
+              "vampiric-touch"
+            ]
+          },
+          {
+            "level": 7,
+            "spells": [
+              "death-ward",
+              "blight"
+            ]
+          },
+          {
+            "level": 9,
+            "spells": [
+              "raise-dead",
+              "dispel-evil-and-good"
+            ]
+          }
+        ],
+        "spell_list_note_ru": "Всегда подготовленные заклинания подкласса по таблице уровней.",
+        "summary_ru": "Воплощайте божественные силы Смерти"
+      }
+    },
+    {
+      "kind": "subclass",
+      "slug": "ranger__hollow-warden",
+      "name_ru": "Страж пустошей",
+      "name_en": "Hollow Warden",
+      "source": "rtw",
+      "sort_order": 40,
+      "parent_id": "b63f10ad-fc00-5436-bba3-a3f4f62d5a91",
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/class/ranger",
+        "url_ttg": null,
+        "book": "RTW"
+      },
+      "data": {
+        "parent_class": "ranger",
+        "subclass_level": 3,
+        "features": [
+          {
+            "level": 3,
+            "features": [
+              {
+                "id": "wrath-of-the-wild",
+                "name_en": "Wrath of the Wild",
+                "name_ru": "Ярость дикой природы",
+                "summary_ru": "Древняя броня: Ваше тело покрывается гниющей корой и звериной щетиной. Рыскающее возмездие: Немедленно после того, как видимое вами в пред"
+              },
+              {
+                "id": "hollow-warden-spells",
+                "name_en": "Hollow Warden Spells",
+                "name_ru": "Заклинания стража пустошей",
+                "summary_ru": "С момента достижения вами уровня Следопыта, указанного в следующей таблице, у вас всегда будут подготовлены соответствующие этому уровню за"
+              }
+            ]
+          },
+          {
+            "level": 7,
+            "features": [
+              {
+                "id": "hungering-might",
+                "name_en": "Hungering Might",
+                "name_ru": "Алчущая мощь",
+                "summary_ru": "Вы получаете бонус к спасброскам Телосложения, равный вашему модификатору Мудрости (минимум +1)."
+              }
+            ]
+          },
+          {
+            "level": 11,
+            "features": [
+              {
+                "id": "rot-and-violence",
+                "name_en": "Rot and Violence",
+                "name_ru": "Гниль и жестокость",
+                "summary_ru": "Ужасающая аура: Когда существо проваливает спасбросок против вашей Пугающей ауры, это существо также не может восстанавливать Хиты или сове"
+              }
+            ]
+          },
+          {
+            "level": 15,
+            "features": [
+              {
+                "id": "ancient-might",
+                "name_en": "Ancient Might",
+                "name_ru": "Древняя мощь",
+                "summary_ru": "Зловещие удары: Когда вы попадаете броском атаки по существу, у которого есть состояние Испуганный, эта атака наносит дополнительный урон,…"
+              }
+            ]
+          }
+        ],
+        "spell_list": [
+          {
+            "level": 3,
+            "spells": [
+              "wrathful-smite"
+            ]
+          },
+          {
+            "level": 5,
+            "spells": [
+              "alter-self"
+            ]
+          },
+          {
+            "level": 9,
+            "spells": [
+              "phantom-steed"
+            ]
+          },
+          {
+            "level": 13,
+            "spells": [
+              "dominate-beast"
+            ]
+          },
+          {
+            "level": 17,
+            "spells": [
+              "steel-wind-strike"
+            ]
+          }
+        ],
+        "spell_list_note_ru": "Всегда подготовленные заклинания подкласса по таблице уровней.",
+        "summary_ru": "Используйте ужасные силы древности"
+      }
+    },
+    {
+      "kind": "subclass",
+      "slug": "rogue__phantom",
+      "name_ru": "Фантом",
+      "name_en": "Phantom",
+      "source": "rtw",
+      "sort_order": 50,
+      "parent_id": "2e084915-6666-578c-916e-f50a85f17c85",
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/class/rogue",
+        "url_ttg": null,
+        "book": "RTW"
+      },
+      "data": {
+        "parent_class": "rogue",
+        "subclass_level": 3,
+        "features": [
+          {
+            "level": 3,
+            "features": [
+              {
+                "id": "whispers-of-the-dead",
+                "name_en": "Whispers of the Dead",
+                "name_ru": "Шёпот мёртвых",
+                "summary_ru": "Каждый раз, когда вы завершаете Короткий или Долгий отдых, вы можете выбрать владение навыком или инструментом, которым ещё не обладаете"
+              },
+              {
+                "id": "wails-from-the-grave",
+                "name_en": "Wails from the Grave",
+                "name_ru": "Могильные стенания",
+                "summary_ru": "Немедленно после того, как в ваш ход вы наносите урон существу Коварной атакой, вы можете выбрать второе существо, видимое вами в пределах"
+              }
+            ]
+          },
+          {
+            "level": 9,
+            "features": [
+              {
+                "id": "tokens-of-the-departed",
+                "name_en": "Tokens of the Departed",
+                "name_ru": "Сувениры усопших",
+                "summary_ru": "Использование сувениров: Вы можете использовать сувениры усопших следующим образом:; Перезвон смерти: Когда в ваш ход вы наносите урон Кова"
+              },
+              {
+                "id": "voice-of-death",
+                "name_en": "Voice of Death",
+                "name_ru": "Голос мёртвых",
+                "summary_ru": "Вы можете один раз сотворить Разговор с мёртвыми, не предоставляя компонентов заклинания и используя Ловкость в качестве заклинательной"
+              }
+            ]
+          },
+          {
+            "level": 13,
+            "features": [
+              {
+                "id": "ghost-walk",
+                "name_en": "Ghost Walk",
+                "name_ru": "Призрачная походка",
+                "summary_ru": "Полёт: Вы получаете Скорость полёта 10 футов и можете парить. Зыбкий силуэт: Броски атаки по вам совершаются с Помехой. Бестелесное перем"
+              }
+            ]
+          },
+          {
+            "level": 17,
+            "features": [
+              {
+                "id": "death-s-friend",
+                "name_en": "Death’s Friend",
+                "name_ru": "Друг смерти",
+                "summary_ru": "Скорбный вой: Когда вы используете Могильные стенания, вы можете нанести Некротический урон этого умения и второму, и первому существам"
+              }
+            ]
+          }
+        ],
+        "spell_list": [],
+        "spell_list_note_ru": "Расширенный список (если есть) — в умениях подкласса про заклинания; отдельного списка в этой карточке нет.",
+        "summary_ru": "Владейте силой призраков в объятьях смерти"
+      }
+    },
+    {
+      "kind": "subclass",
+      "slug": "sorcerer__shadow-sorcery",
+      "name_ru": "Теневое чародейство",
+      "name_en": "Shadow Sorcery",
+      "source": "rtw",
+      "sort_order": 60,
+      "parent_id": "b67a807b-39dd-59d4-8c58-a6c5016f1aab",
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/class/sorcerer",
+        "url_ttg": null,
+        "book": "RTW"
+      },
+      "data": {
+        "parent_class": "sorcerer",
+        "subclass_level": 3,
+        "features": [
+          {
+            "level": 3,
+            "features": [
+              {
+                "id": "power-of-shadow",
+                "name_en": "Power of Shadow",
+                "name_ru": "Сила тени",
+                "summary_ru": "Глаза тьмы: Вы получаете Тёмное зрение дальностью 120 футов и Слепое зрение дальностью 10 футов. Сила могилы: Если ваши Хиты опускаются до"
+              },
+              {
+                "id": "shadow-spells",
+                "name_en": "Shadow Spells",
+                "name_ru": "Заклинания теней",
+                "summary_ru": "С момента достижения вами уровня Чародея, указанного в следующей таблице, у вас всегда будут подготовлены соответствующие этому уровню закл"
+              }
+            ]
+          },
+          {
+            "level": 6,
+            "features": [
+              {
+                "id": "beasts-of-ill-omen",
+                "name_en": "Beasts of Ill Omen",
+                "name_ru": "Звери дурных знамений",
+                "summary_ru": "Вы умеете призвать сотканное из тьмы воющее существо, преследующее ваших врагов."
+              }
+            ]
+          },
+          {
+            "level": 14,
+            "features": [
+              {
+                "id": "shadow-walk",
+                "name_en": "Shadow Walk",
+                "name_ru": "Хождение по теням",
+                "summary_ru": "Пока вы находитесь в области Тусклого света или Темноты, вы можете Бонусным действием телепортироваться в видимое вами в пределах 120 футов"
+              }
+            ]
+          },
+          {
+            "level": 18,
+            "features": [
+              {
+                "id": "umbral-form",
+                "name_en": "Umbral Form",
+                "name_ru": "Форма абсолютной тени",
+                "summary_ru": "Теневая устойчивость: Вы обладаете Сопротивлением всему урону за исключением Силового урона и урона Излучением. Бестелесное перемещение"
+              }
+            ]
+          }
+        ],
+        "spell_list": [
+          {
+            "level": 3,
+            "spells": [
+              "pass-without-trace",
+              "inflict-wounds",
+              "bane",
+              "darkness"
+            ]
+          },
+          {
+            "level": 5,
+            "spells": [
+              "hunger-of-hadar",
+              "nondetection"
+            ]
+          },
+          {
+            "level": 7,
+            "spells": [
+              "phantasmal-killer",
+              "greater-invisibility"
+            ]
+          },
+          {
+            "level": 9,
+            "spells": [
+              "contagion",
+              "creation"
+            ]
+          }
+        ],
+        "spell_list_note_ru": "Всегда подготовленные заклинания подкласса по таблице уровней.",
+        "summary_ru": "Подчиняйте вашей воле тьму и сам рок"
+      }
+    },
+    {
+      "kind": "subclass",
+      "slug": "warlock__undead",
+      "name_ru": "Нежить",
+      "name_en": "Undead Patron",
+      "source": "rtw",
+      "sort_order": 70,
+      "parent_id": "98426500-b77c-503b-be0c-fa779c0dae3a",
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/class/warlock",
+        "url_ttg": null,
+        "book": "RTW"
+      },
+      "data": {
+        "parent_class": "warlock",
+        "subclass_level": 3,
+        "features": [
+          {
+            "level": 3,
+            "features": [
+              {
+                "id": "undead-patron-spells",
+                "name_en": "Undead Patron Spells",
+                "name_ru": "Заклинания покровителя-Нежити",
+                "summary_ru": "С момента достижения вами уровня Колдуна, указанного в следующей таблице, у вас всегда будут подготовлены соответствующие этому уровню закл"
+              },
+              {
+                "id": "form-of-dread",
+                "name_en": "Form of Dread",
+                "name_ru": "Аватар ужаса",
+                "summary_ru": "Отпечаток жизни: Вы получаете Временные хиты в количестве, равном 1к10 плюс ваш уровень Колдуна. Бесстрашный облик: Вы обладаете Иммунитет"
+              }
+            ]
+          },
+          {
+            "level": 6,
+            "features": [
+              {
+                "id": "grave-touched",
+                "name_en": "Grave Touched",
+                "name_ru": "Прикосновение могилы",
+                "summary_ru": "Магический некроз: Некротический урон, наносимый вашими атаками, заклинаниями Колдуна и умениями Колдуна, игнорирует Сопротивление Некротич"
+              }
+            ]
+          },
+          {
+            "level": 10,
+            "features": [
+              {
+                "id": "necrotic-husk",
+                "name_en": "Necrotic Husk",
+                "name_ru": "Некротическая оболочка",
+                "summary_ru": "Некротическая устойчивость: Вы получаете Сопротивление Некротическому урону. Нечестивое оживление: Если ваши Хиты опускаются до 0, но вы"
+              }
+            ]
+          },
+          {
+            "level": 14,
+            "features": [
+              {
+                "id": "superior-dread",
+                "name_en": "Superior Dread",
+                "name_ru": "Совершенный ужас",
+                "summary_ru": "Защита ужасом: Вы обладаете Сопротивлением Дробящему, Колющему и Рубящему урону. Призрачный полёт: Вы обладаете Скоростью полёта, равной"
+              }
+            ]
+          }
+        ],
+        "spell_list": [
+          {
+            "level": 3,
+            "spells": [
+              "phantasmal-force",
+              "blindness-deafness",
+              "ray-of-sickness",
+              "bane"
+            ]
+          },
+          {
+            "level": 5,
+            "spells": [
+              "summon-undead",
+              "speak-with-dead"
+            ]
+          },
+          {
+            "level": 7,
+            "spells": [
+              "phantasmal-killer",
+              "greater-invisibility"
+            ]
+          },
+          {
+            "level": 9,
+            "spells": [
+              "cloudkill",
+              "antilife-shell"
+            ]
+          }
+        ],
+        "spell_list_note_ru": "Всегда подготовленные заклинания подкласса по таблице уровней.",
+        "summary_ru": "Получите нечестивые силы, отринув смерть"
+      }
+    }
+  ]
+}

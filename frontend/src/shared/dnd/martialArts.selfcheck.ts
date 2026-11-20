@@ -3,9 +3,12 @@ import {
   damageDieFaces,
   effectiveMartialArtsDamage,
   isMonkUnarmedAttack,
+  isMonkWeapon2024,
   isMonkWeaponName,
   martialArtsDieFromFeatures,
+  martialArtsDieFromScales,
   monkAttackAbility,
+  resolveMartialArtsDie,
   syncMonkUnarmedAttack,
 } from './martialArts'
 import type { UnlockedFeature } from './classFeatures'
@@ -18,6 +21,13 @@ assert(isMonkWeaponName('Короткий меч'), 'shortsword is monk weapon')
 assert(isMonkWeaponName('Боевой посох'), 'quarterstaff is monk weapon')
 assert(!isMonkWeaponName('Длинный меч'), 'longsword is not monk weapon')
 assert(!isMonkWeaponName('Палица'), 'greatclub is not monk weapon')
+// 2014 list unchanged when edition omitted / 2014.
+assert(!isMonkWeaponName('Ятаган'), 'scimitar not 2014 monk weapon')
+assert(isMonkWeapon2024('Ятаган'), 'scimitar is 2024 Light martial')
+assert(isMonkWeaponName('Ятаган', '2024'), 'scimitar via edition gate')
+assert(isMonkWeapon2024('Боевой посох'), 'quarterstaff simple melee 2024')
+assert(!isMonkWeapon2024('Длинный меч'), 'longsword not Light')
+assert(!isMonkWeapon2024('Короткий лук'), 'ranged not monk weapon 2024')
 
 assert(damageDieFaces('1к6') === 6, '1к6 faces')
 assert(damageDieFaces('1к10') === 10, '1к10 faces')
@@ -60,6 +70,26 @@ const features = [
   },
 ] as UnlockedFeature[]
 assert(martialArtsDieFromFeatures(features) === '1к10', 'die from feature')
+assert(
+  martialArtsDieFromScales({ 'monk:martial_arts_die': '1d8' }) === '1к8',
+  'die from scales normalizes d→к',
+)
+assert(
+  resolveMartialArtsDie({
+    features: [{ id: 'martial_arts', scaleValue: null } as UnlockedFeature],
+    rulesEdition: '2024',
+    scales: { 'monk:martial_arts_die': '1d10' },
+  }) === '1к10',
+  '2024 falls back to scales',
+)
+assert(
+  resolveMartialArtsDie({
+    features: [{ id: 'martial_arts', scaleValue: null } as UnlockedFeature],
+    rulesEdition: '2014',
+    scales: { 'monk:martial_arts_die': '1d10' },
+  }) === null,
+  '2014 does not use 2024 scales fallback',
+)
 
 const synced = syncMonkUnarmedAttack({
   weapons: [{ id: 'w1', name: 'Короткий меч' }],

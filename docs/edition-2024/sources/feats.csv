@@ -1,0 +1,196 @@
+id,name_en,name_ru,book,category,url_dndsu,url_ttg,srd,feat_category,feat_category_ru
+bloodlust,Bloodlust,Жажда крови,ABH,feats,https://next.dnd.su/feats/424-bloodlust,https://new.ttg.club/feats/bloodlust-abh,false,general,Универсальная черта
+bomber,Bomber,Бомбометатель,ABH,feats,https://next.dnd.su/feats/425-bomber,https://new.ttg.club/feats/bomber-abh,false,general,Универсальная черта
+boon-of-blazing-dawn,Boon of Blazing Dawn,Дар опаляющего рассвета,ABH,feats,https://next.dnd.su/feats/434-boon-of-blazing-dawn,https://new.ttg.club/feats/boon-of-blazing-dawn-abh,false,epic_boon,Эпический дар
+boon-of-looming-shadows,Boon of Looming Shadows,Дар движущихся теней,ABH,feats,https://next.dnd.su/feats/435-boon-of-looming-shadows,https://new.ttg.club/feats/boon-of-looming-shadows-abh,false,epic_boon,Эпический дар
+boon-of-misty-escape,Boon of Misty Escape,Дар туманного побега,ABH,feats,https://next.dnd.su/feats/436-boon-of-misty-escape,https://new.ttg.club/feats/boon-of-misty-escape-abh,false,epic_boon,Эпический дар
+cloying-mists,Cloying Mists,Ползучий туман,ABH,feats,https://next.dnd.su/feats/426-cloying-mists,https://new.ttg.club/feats/cloying-mists-abh,false,general,Универсальная черта
+delicious-pain,Delicious Pain,Сладкая боль,ABH,feats,https://next.dnd.su/feats/427-delicious-pain,https://new.ttg.club/feats/delicious-pain-abh,false,general,Универсальная черта
+light-bringer,Light Bringer,Несущий свет,ABH,feats,https://next.dnd.su/feats/428-light-bringer,https://new.ttg.club/feats/light-bringer-abh,false,general,Универсальная черта
+love-bites,Love Bites,Укус любви,ABH,feats,https://next.dnd.su/feats/429-love-bites,https://new.ttg.club/feats/love-bites-abh,false,general,Универсальная черта
+putrefy,Putrefy,Гниение,ABH,feats,https://next.dnd.su/feats/430-putrefy,https://new.ttg.club/feats/putrefy-abh,false,general,Универсальная черта
+rebuke,Rebuke,Осуждение,ABH,feats,https://next.dnd.su/feats/431-rebuke,https://new.ttg.club/feats/rebuke-abh,false,general,Универсальная черта
+tireless-reveler,Tireless Reveler,Неустанный гуляка,ABH,feats,https://next.dnd.su/feats/421-tireless-reveler,https://new.ttg.club/feats/tireless-reveler-abh,false,origin,Черта происхождения
+treacherous-allure,Treacherous Allure,Обманчивая привлекательность,ABH,feats,https://next.dnd.su/feats/432-treacherous-allure,https://new.ttg.club/feats/treacherous-allure-abh,false,general,Универсальная черта
+vampire-hunter,Vampire Hunter,Охотник на вампиров,ABH,feats,https://next.dnd.su/feats/422-vampire-hunter,https://new.ttg.club/feats/vampire-hunter-abh,false,origin,Черта происхождения
+vampire-touched,Vampire Touched,Затронутый вампиром,ABH,feats,https://next.dnd.su/feats/433-vampire-touched,https://new.ttg.club/feats/vampire-touched-abh,false,general,Универсальная черта
+vampires-plaything,Vampire’s Plaything,Игрушка вампира,ABH,feats,https://next.dnd.su/feats/423-vampires-plaything,https://new.ttg.club/feats/vampire-s-plaything-abh,false,origin,Черта происхождения
+abjuration-adept,Abjuration Adept,Адепт Ограждения,AU,feats,https://next.dnd.su/feats/519-abjuration-adept,https://new.ttg.club/feats/abjuration-adept-au,false,general,Универсальная черта
+arcane-artist,Arcane Artist,Мистический артист,AU,feats,https://next.dnd.su/feats/509-arcane-artist,https://new.ttg.club/feats/arcane-artist-au,false,origin,Черта происхождения
+arcane-eloquence,Arcane Eloquence,Колдовское красноречие,AU,feats,https://next.dnd.su/feats/510-arcane-eloquence,https://new.ttg.club/feats/arcane-eloquence-au,false,origin,Черта происхождения
+arcane-infiltrator,Arcane Infiltrator,Мистический лазутчик,AU,feats,https://next.dnd.su/feats/511-arcane-infiltrator,https://new.ttg.club/feats/arcane-infiltrator-au,false,origin,Черта происхождения
+arcane-omens,Arcane Omens,Мистические предвестия,AU,feats,https://next.dnd.su/feats/512-arcane-omens,https://new.ttg.club/feats/arcane-omens-au,false,origin,Черта происхождения
+arcane-overload,Arcane Overload,Магическая перегрузка,AU,feats,https://next.dnd.su/feats/513-arcane-overload,https://new.ttg.club/feats/arcane-overload-au,false,origin,Черта происхождения
+arcane-safeguard,Arcane Safeguard,Магический заслон,AU,feats,https://next.dnd.su/feats/514-arcane-safeguard,https://new.ttg.club/feats/arcane-safeguard-au,false,origin,Черта происхождения
+arcane-undertaker,Arcane Undertaker,Колдовской могильщик,AU,feats,https://next.dnd.su/feats/515-arcane-undertaker,https://new.ttg.club/feats/arcane-undertaker-au,false,origin,Черта происхождения
+arcane-warrior,Arcane Warrior,Воин-маг,AU,feats,https://next.dnd.su/feats/534-arcane-warrior,https://new.ttg.club/feats/arcane-warrior-au,false,fighting_style,Боевой стиль
+boon-of-erupting-spellpower,Boon of Erupting Spellpower,Дар заклинательной мощи,AU,feats,https://next.dnd.su/feats/535-boon-of-erupting-spellpower,https://new.ttg.club/feats/boon-of-erupting-spellpower-au,false,epic_boon,Эпический дар
+boon-of-magic-school-mastery,Boon of Magic School Mastery,Дар мастерства школы магии,AU,feats,https://next.dnd.su/feats/537-boon-of-magic-school-mastery,https://new.ttg.club/feats/boon-of-magic-school-mastery-au,false,epic_boon,Эпический дар
+boon-of-the-iron-mind,Boon of the Iron Mind,Дар железного разума,AU,feats,https://next.dnd.su/feats/536-boon-of-the-iron-mind,https://new.ttg.club/feats/boon-of-the-iron-mind-au,false,epic_boon,Эпический дар
+conjuration-adept,Conjuration Adept,Адепт Призыва,AU,feats,https://next.dnd.su/feats/520-conjuration-adept,https://new.ttg.club/feats/conjuration-adept-au,false,general,Универсальная черта
+divination-adept,Divination Adept,Адепт Прорицания,AU,feats,https://next.dnd.su/feats/521-divination-adept,https://new.ttg.club/feats/divination-adept-au,false,general,Универсальная черта
+elemental-familiar,Elemental Familiar,Стихийный фамильяр,AU,feats,https://next.dnd.su/feats/523-elemental-familiar,https://new.ttg.club/feats/elemental-familiar-au,false,general,Универсальная черта
+enchantment-adept,Enchantment Adept,Адепт Очарования,AU,feats,https://next.dnd.su/feats/522-enchantment-adept,https://new.ttg.club/feats/enchantment-adept-au,false,general,Универсальная черта
+evocation-adept,Evocation Adept,Адепт Воплощения,AU,feats,https://next.dnd.su/feats/524-evocation-adept,https://new.ttg.club/feats/evocation-adept-au,false,general,Универсальная черта
+familiar-friend,Familiar Friend,Друг-фамильяр,AU,feats,https://next.dnd.su/feats/516-familiar-friend,https://new.ttg.club/feats/familiar-friend-au,false,origin,Черта происхождения
+illusion-adept,Illusion Adept,Адепт Иллюзии,AU,feats,https://next.dnd.su/feats/525-illusion-adept,https://new.ttg.club/feats/illusion-adept-au,false,general,Универсальная черта
+magic-connoisseur,Magic Connoisseur,Сведущий в магии,AU,feats,https://next.dnd.su/feats/528-magic-connoisseur,https://new.ttg.club/feats/magic-connoisseur-au,false,general,Универсальная черта
+necromancy-adept,Necromancy Adept,Адепт Некромантии,AU,feats,https://next.dnd.su/feats/526-necromancy-adept,https://new.ttg.club/feats/necromancy-adept-au,false,general,Универсальная черта
+otherworldly-familiar,Otherworldly Familiar,Потусторонний фамильяр,AU,feats,https://next.dnd.su/feats/529-otherworldly-familiar,https://new.ttg.club/feats/otherworldly-familiar-au,false,general,Универсальная черта
+portal-jumper,Portal Jumper,Портальный прыгун,AU,feats,https://next.dnd.su/feats/517-portal-jumper,https://new.ttg.club/feats/portal-jumper-au,false,origin,Черта происхождения
+soothing-familiar,Soothing Familiar,Благодатный фамильяр,AU,feats,https://next.dnd.su/feats/530-soothing-familiar,https://new.ttg.club/feats/soothing-familiar-au,false,general,Универсальная черта
+spell-resistant,Spell Resistant,Сопротивление заклинаниям,AU,feats,https://next.dnd.su/feats/531-spell-resistant,https://new.ttg.club/feats/spell-resistant-au,false,general,Универсальная черта
+spell-subterfuge,Spell Subterfuge,Хитрый заклинатель,AU,feats,https://next.dnd.su/feats/532-spell-subterfuge,https://new.ttg.club/feats/spell-subterfuge-au,false,general,Универсальная черта
+transmutation-adept,Transmutation Adept,Адепт Преобразования,AU,feats,https://next.dnd.su/feats/527-transmutation-adept,https://new.ttg.club/feats/transmutation-adept-au,false,general,Универсальная черта
+transmuted-anatomy,Transmuted Anatomy,Преобразованная анатомия,AU,feats,https://next.dnd.su/feats/518-transmuted-anatomy,https://new.ttg.club/feats/transmuted-anatomy-au,false,origin,Черта происхождения
+warlike-familiar,Warlike Familiar,Воинственный фамильяр,AU,feats,https://next.dnd.su/feats/533-warlike-familiar,https://new.ttg.club/feats/warlike-familiar-au,false,general,Универсальная черта
+aberrant-dragonmark,Aberrant Dragonmark,Аберрантный драконий знак,EFA,feats,https://next.dnd.su/feats/439-aberrant-dragonmark,,false,dragonmark,Драконья метка
+boon-of-siberys,Boon of Siberys,Дар Сибериса,EFA,feats,https://next.dnd.su/feats/466-boon-of-siberys,,false,epic_boon,Эпический дар
+greater-aberrant-mark,Greater Aberrant Mark,Старшая аберрантная метка,EFA,feats,https://next.dnd.su/feats/452-greater-aberrant-mark,,false,general,Универсальная черта
+greater-mark-of-detection,Greater Mark of Detection,Старшая метка обнаружения,EFA,feats,https://next.dnd.su/feats/453-greater-mark-of-detection,https://new.ttg.club/feats/greater-mark-of-detection-efa,false,general,Универсальная черта
+greater-mark-of-finding,Greater Mark of Finding,Старшая метка поиска,EFA,feats,https://next.dnd.su/feats/454-greater-mark-of-finding,https://new.ttg.club/feats/greater-mark-of-finding-efa,false,general,Универсальная черта
+greater-mark-of-handling,Greater Mark of Handling,Старшая метка обхождения,EFA,feats,https://next.dnd.su/feats/455-greater-mark-of-handling,,false,general,Универсальная черта
+greater-mark-of-healing,Greater Mark of Healing,Старшая метка исцеления,EFA,feats,https://next.dnd.su/feats/456-greater-mark-of-healing,https://new.ttg.club/feats/greater-mark-of-healing-efa,false,general,Универсальная черта
+greater-mark-of-hospitality,Greater Mark of Hospitality,Старшая метка гостеприимства,EFA,feats,https://next.dnd.su/feats/457-greater-mark-of-hospitality,https://new.ttg.club/feats/greater-mark-of-hospitality-efa,false,general,Универсальная черта
+greater-mark-of-making,Greater Mark of Making,Старшая метка создания,EFA,feats,https://next.dnd.su/feats/458-greater-mark-of-making,https://new.ttg.club/feats/greater-mark-of-making-efa,false,general,Универсальная черта
+greater-mark-of-passage,Greater Mark of Passage,Старшая метка прохода,EFA,feats,https://next.dnd.su/feats/459-greater-mark-of-passage,,false,general,Универсальная черта
+greater-mark-of-scribing,Greater Mark of Scribing,Старшая метка письма,EFA,feats,https://next.dnd.su/feats/460-greater-mark-of-scribing,https://new.ttg.club/feats/greater-mark-of-scribing-efa,false,general,Универсальная черта
+greater-mark-of-sentinel,Greater Mark of Sentinel,Старшая метка стража,EFA,feats,https://next.dnd.su/feats/461-greater-mark-of-sentinel,https://new.ttg.club/feats/greater-mark-of-sentinel-efa,false,general,Универсальная черта
+greater-mark-of-shadow,Greater Mark of Shadow,Старшая метка тени,EFA,feats,https://next.dnd.su/feats/462-greater-mark-of-shadow,,false,general,Универсальная черта
+greater-mark-of-storm,Greater Mark of Storm,Старшая метка бури,EFA,feats,https://next.dnd.su/feats/463-greater-mark-of-storm,,false,general,Универсальная черта
+greater-mark-of-warding,Greater Mark of Warding,Старшая метка охранения,EFA,feats,https://next.dnd.su/feats/464-greater-mark-of-warding,https://new.ttg.club/feats/greater-mark-of-warding-efa,false,general,Универсальная черта
+mark-of-detection,Mark of Detection,Метка обнаружения,EFA,feats,https://next.dnd.su/feats/440-mark-of-detection,,false,dragonmark,Драконья метка
+mark-of-finding,Mark of Finding,Метка поиска,EFA,feats,https://next.dnd.su/feats/441-mark-of-finding,https://new.ttg.club/feats/mark-of-finding-efa,false,dragonmark,Драконья метка
+mark-of-handling,Mark of Handling,Метка обхождения,EFA,feats,https://next.dnd.su/feats/442-mark-of-handling,https://new.ttg.club/feats/mark-of-handling-efa,false,dragonmark,Драконья метка
+mark-of-healing,Mark of Healing,Метка исцеления,EFA,feats,https://next.dnd.su/feats/443-mark-of-healing,https://new.ttg.club/feats/mark-of-healing-efa,false,dragonmark,Драконья метка
+mark-of-hospitality,Mark of Hospitality,Метка гостеприимства,EFA,feats,https://next.dnd.su/feats/444-mark-of-hospitality,,false,dragonmark,Драконья метка
+mark-of-making,Mark of Making,Метка создания,EFA,feats,https://next.dnd.su/feats/445-mark-of-making,https://new.ttg.club/feats/mark-of-making-efa,false,dragonmark,Драконья метка
+mark-of-passage,Mark of Passage,Метка прохода,EFA,feats,https://next.dnd.su/feats/446-mark-of-passage,,false,dragonmark,Драконья метка
+mark-of-scribing,Mark of Scribing,Метка письма,EFA,feats,https://next.dnd.su/feats/447-mark-of-scribing,https://new.ttg.club/feats/mark-of-scribing-efa,false,dragonmark,Драконья метка
+mark-of-sentinel,Mark of Sentinel,Метка стража,EFA,feats,https://next.dnd.su/feats/448-mark-of-sentinel,,false,dragonmark,Драконья метка
+mark-of-shadow,Mark of Shadow,Метка тени,EFA,feats,https://next.dnd.su/feats/449-mark-of-shadow,,false,dragonmark,Драконья метка
+mark-of-storm,Mark of Storm,Метка бури,EFA,feats,https://next.dnd.su/feats/450-mark-of-storm,,false,dragonmark,Драконья метка
+mark-of-warding,Mark of Warding,Метка охранения,EFA,feats,https://next.dnd.su/feats/451-mark-of-warding,,false,dragonmark,Драконья метка
+potent-dragonmark,Potent Dragonmark,Могущественная драконья метка,EFA,feats,https://next.dnd.su/feats/465-potent-dragonmark,https://new.ttg.club/feats/potent-dragonmark-efa,false,general,Универсальная черта
+boon-of-bloodshed,Boon of Bloodshed,Дар кровопролития,FRHoF,feats,https://next.dnd.su/feats/406-boon-of-bloodshed,https://new.ttg.club/feats/boon-of-bloodshed-frhof,false,epic_boon,Эпический дар
+boon-of-bountiful-health,Boon of Bountiful Health,Дар изобильного здоровья,FRHoF,feats,https://next.dnd.su/feats/419-boon-of-bountiful-health,https://new.ttg.club/feats/boon-of-bountiful-health-frhof,false,epic_boon,Эпический дар
+boon-of-communication,Boon of Communication,Дар общения,FRHoF,feats,https://next.dnd.su/feats/418-boon-of-communication,https://new.ttg.club/feats/boon-of-communication-frhof,false,epic_boon,Эпический дар
+boon-of-desperate-resilience,Boon of Desperate Resilience,Дар отчаянного упорства,FRHoF,feats,https://next.dnd.su/feats/417-boon-of-desperate-resilience,https://new.ttg.club/feats/boon-of-desperate-resilience-frhof,false,epic_boon,Эпический дар
+boon-of-exquisite-radiance,Boon of Exquisite Radiance,Дар совершенного излучения,FRHoF,feats,https://next.dnd.su/feats/415-boon-of-exquisite-radiance,https://new.ttg.club/feats/boon-of-exquisite-radiance-frhof,false,epic_boon,Эпический дар
+boon-of-fluid-forms,Boon of Fluid Forms,Дар изменчивых форм,FRHoF,feats,https://next.dnd.su/feats/416-boon-of-fluid-forms,https://new.ttg.club/feats/boon-of-fluid-forms-frhof,false,epic_boon,Эпический дар
+boon-of-fortunes-favor,Boon of Fortune’s Favor,Дар благоволения судьбы,FRHoF,feats,https://next.dnd.su/feats/414-boon-of-fortunes-favor,https://new.ttg.club/feats/boon-of-fortune-s-favor-frhof,false,epic_boon,Эпический дар
+boon-of-poison-mastery,Boon of Poison Mastery,Дар владения ядами,FRHoF,feats,https://next.dnd.su/feats/413-boon-of-poison-mastery,https://new.ttg.club/feats/boon-of-poison-mastery-frhof,false,epic_boon,Эпический дар
+boon-of-revelry,Boon of Revelry,Дар безудержного веселья,FRHoF,feats,https://next.dnd.su/feats/412-boon-of-revelry,https://new.ttg.club/feats/boon-of-revelry-frhof,false,epic_boon,Эпический дар
+boon-of-terror,Boon of Terror,Дар устрашения,FRHoF,feats,https://next.dnd.su/feats/411-boon-of-terror,https://new.ttg.club/feats/boon-of-terror-frhof,false,epic_boon,Эпический дар
+boon-of-the-bright-sun,Boon of the Bright Sun,Дар яркого солнца,FRHoF,feats,https://next.dnd.su/feats/410-boon-of-the-bright-sun,https://new.ttg.club/feats/boon-of-the-bright-sun-frhof,false,epic_boon,Эпический дар
+boon-of-the-furious-storm,Boon of the Furious Storm,Дар неистовой бури,FRHoF,feats,https://next.dnd.su/feats/408-boon-of-the-furious-storm,https://new.ttg.club/feats/boon-of-the-furious-storm-frhof,false,epic_boon,Эпический дар
+boon-of-the-soul-drinker,Boon of the Soul Drinker,Дар пьющего души,FRHoF,feats,https://next.dnd.su/feats/409-boon-of-the-soul-drinker,https://new.ttg.club/feats/boon-of-the-soul-drinker-frhof,false,epic_boon,Эпический дар
+cold-caster,Cold Caster,Холодный заклинатель,FRHoF,feats,https://next.dnd.su/feats/393-cold-caster,https://new.ttg.club/feats/cold-caster-frhof,false,general,Универсальная черта
+cult-of-the-dragon-initiate,Cult of the Dragon Initiate,Посвящённый Культа дракона,FRHoF,feats,https://next.dnd.su/feats/385-cult-of-the-dragon-initiate,https://new.ttg.club/feats/cult-of-the-dragon-initiate-frhof,false,origin,Черта происхождения
+dragonscarred,Dragonscarred,Изуродованный драконом,FRHoF,feats,https://next.dnd.su/feats/394-dragonscarred,https://new.ttg.club/feats/dragonscarred-frhof,false,general,Универсальная черта
+emerald-enclave-fledgling,Emerald Enclave Fledgling,Птенец Изумрудного анклава,FRHoF,feats,https://next.dnd.su/feats/386-emerald-enclave-fledgling,https://new.ttg.club/feats/emerald-enclave-fledgling-frhof,false,origin,Черта происхождения
+enclave-magic,Enclave Magic,Магия Анклава,FRHoF,feats,https://next.dnd.su/feats/395-enclave-magic,,false,general,Универсальная черта
+fairy-trickster,Fairy Trickster,Фейский хитрец,FRHoF,feats,https://next.dnd.su/feats/396-fairy-trickster,https://new.ttg.club/feats/fairy-trickster-frhof,false,general,Универсальная черта
+genie-magic,Genie Magic,Магия гениев,FRHoF,feats,https://next.dnd.su/feats/397-genie-magic,https://new.ttg.club/feats/genie-magic-frhof,false,general,Универсальная черта
+harper-agent,Harper Agent,Агент Арфистов,FRHoF,feats,https://next.dnd.su/feats/387-harper-agent,https://new.ttg.club/feats/harper-agent-frhof,false,origin,Черта происхождения
+harper-teamwork,Harper Teamwork,Командная работа Арфистов,FRHoF,feats,https://next.dnd.su/feats/398-harper-teamwork,https://new.ttg.club/feats/harper-teamwork-frhof,false,general,Универсальная черта
+lordly-resolve,Lordly Resolve,Решимость лордов,FRHoF,feats,https://next.dnd.su/feats/399-lordly-resolve,https://new.ttg.club/feats/lordly-resolve-frhof,false,general,Универсальная черта
+lords-alliance-agent,Lords’ Alliance Agent,Агент Альянса лордов,FRHoF,feats,https://next.dnd.su/feats/388-lords-alliance-agent,https://new.ttg.club/feats/lords-alliance-agent-frhof,false,origin,Черта происхождения
+mythal-touched,Mythal Touched,Затронутый мифалом,FRHoF,feats,https://next.dnd.su/feats/400-mythal-touched,https://new.ttg.club/feats/mythal-touched-frhof,false,general,Универсальная черта
+orders-resilience,Order’s Resilience,Устойчивость Ордена,FRHoF,feats,https://next.dnd.su/feats/401-orders-resilience,https://new.ttg.club/feats/order-s-resilience-frhof,false,general,Универсальная черта
+purple-dragon-commandant,Purple Dragon Commandant,Командир Пурпурного дракона,FRHoF,feats,https://next.dnd.su/feats/402-purple-dragon-commandant,https://new.ttg.club/feats/purple-dragon-commandant-frhof,false,general,Универсальная черта
+purple-dragon-rook,Purple Dragon Rook,Новобранец Пурпурного дракона,FRHoF,feats,https://next.dnd.su/feats/389-purple-dragon-rook,https://new.ttg.club/feats/purple-dragon-rook-frhof,false,origin,Черта происхождения
+spellfire-adept,Spellfire Adept,Адепт чаропламени,FRHoF,feats,https://next.dnd.su/feats/403-spellfire-adept,https://new.ttg.club/feats/spellfire-adept-frhof,false,general,Универсальная черта
+spellfire-spark,Spellfire Spark,Искра чаропламени,FRHoF,feats,https://next.dnd.su/feats/390-spellfire-spark,https://new.ttg.club/feats/spellfire-spark-frhof,false,origin,Черта происхождения
+street-justice,Street Justice,Уличная справедливость,FRHoF,feats,https://next.dnd.su/feats/405-street-justice,https://new.ttg.club/feats/street-justice-frhof,false,general,Универсальная черта
+tyro-of-the-gauntlet,Tyro of the Gauntlet,Новичок Латной перчатки,FRHoF,feats,https://next.dnd.su/feats/391-tyro-of-the-gauntlet,https://new.ttg.club/feats/tyro-of-the-gauntlet-frhof,false,origin,Черта происхождения
+zhentarim-ruffian,Zhentarim Ruffian,Бандит Жентарима,FRHoF,feats,https://next.dnd.su/feats/392-zhentarim-ruffian,https://new.ttg.club/feats/zhentarim-ruffian-frhof,false,origin,Черта происхождения
+zhentarim-tactics,Zhentarim Tactics,Тактика Жентарима,FRHoF,feats,https://next.dnd.su/feats/404-zhentarim-tactics,https://new.ttg.club/feats/zhentarim-tactics-frhof,false,general,Универсальная черта
+child-of-the-sun,Child of the Sun,Дитя солнца,LFL,feats,https://next.dnd.su/feats/438-child-of-the-sun,https://new.ttg.club/feats/child-of-the-sun-lfl,false,origin,Черта происхождения
+shadowmoor-hexer,Shadowmoor Hexer,Проклинатель Шэдоумура,LFL,feats,https://next.dnd.su/feats/437-shadowmoor-hexer,https://new.ttg.club/feats/shadowmoor-hexer-lfl,false,origin,Черта происхождения
+ability-score-improvement,Ability Score Improvement,Увеличение характеристик,PH24,feats,https://next.dnd.su/feats/320-ability-score-improvement,https://new.ttg.club/feats/ability-score-improvement-phb,true,general,Универсальная черта
+actor,Actor,Актёр,PH24,feats,https://next.dnd.su/feats/321-actor,https://new.ttg.club/feats/actor-phb,false,general,Универсальная черта
+alert,Alert,Бдительный,PH24,feats,https://next.dnd.su/feats/310-alert,https://new.ttg.club/feats/alert-phb,true,origin,Черта происхождения
+archery,Archery,Стрельба,PH24,feats,https://next.dnd.su/feats/363-archery,https://new.ttg.club/feats/archery-phb,true,fighting_style,Боевой стиль
+athlete,Athlete,Атлет,PH24,feats,https://next.dnd.su/feats/322-athlete,https://new.ttg.club/feats/athlete-phb,false,general,Универсальная черта
+blind-fighting,Blind Fighting,Сражение вслепую,PH24,feats,https://next.dnd.su/feats/364-blind-fighting,https://new.ttg.club/feats/blind-fighting-phb,false,fighting_style,Боевой стиль
+boon-of-combat-prowess,Boon of Combat Prowess,Дар боевой удали,PH24,feats,https://next.dnd.su/feats/373-boon-of-combat-prowess,https://new.ttg.club/feats/boon-of-combat-prowess-phb,true,epic_boon,Эпический дар
+boon-of-dimensional-travel,Boon of Dimensional Travel,Дар межпространственного перемещения,PH24,feats,https://next.dnd.su/feats/374-boon-of-dimensional-travel,https://new.ttg.club/feats/boon-of-dimensional-travel-phb,true,epic_boon,Эпический дар
+boon-of-energy-resistance,Boon of Energy Resistance,Дар сопротивления энергии,PH24,feats,https://next.dnd.su/feats/375-boon-of-energy-resistance,https://new.ttg.club/feats/boon-of-energy-resistance-phb,false,epic_boon,Эпический дар
+boon-of-fate,Boon of Fate,Дар судьбы,PH24,feats,https://next.dnd.su/feats/376-boon-of-fate,https://new.ttg.club/feats/boon-of-fate-phb,true,epic_boon,Эпический дар
+boon-of-fortitude,Boon of Fortitude,Дар стойкости,PH24,feats,https://next.dnd.su/feats/377-boon-of-fortitude,https://new.ttg.club/feats/boon-of-fortitude-phb,false,epic_boon,Эпический дар
+boon-of-irresistible-offense,Boon of Irresistible Offense,Дар неотразимого нападения,PH24,feats,https://next.dnd.su/feats/378-boon-of-irresistible-offense,https://new.ttg.club/feats/boon-of-irresistible-offense-phb,true,epic_boon,Эпический дар
+boon-of-recovery,Boon of Recovery,Дар восстановления,PH24,feats,https://next.dnd.su/feats/379-boon-of-recovery,https://new.ttg.club/feats/boon-of-recovery-phb,false,epic_boon,Эпический дар
+boon-of-skill,Boon of Skill,Дар умелости,PH24,feats,https://next.dnd.su/feats/380-boon-of-skill,https://new.ttg.club/feats/boon-of-skill-phb,false,epic_boon,Эпический дар
+boon-of-speed,Boon of Speed,Дар скорости,PH24,feats,https://next.dnd.su/feats/381-boon-of-speed,https://new.ttg.club/feats/boon-of-speed-phb,false,epic_boon,Эпический дар
+boon-of-spell-recall,Boon of Spell Recall,Дар восстановления заклинаний,PH24,feats,https://next.dnd.su/feats/382-boon-of-spell-recall,https://new.ttg.club/feats/boon-of-spell-recall-phb,true,epic_boon,Эпический дар
+boon-of-the-night-spirit,Boon of the Night Spirit,Дар ночного духа,PH24,feats,https://next.dnd.su/feats/383-boon-of-the-night-spirit,https://new.ttg.club/feats/boon-of-the-night-spirit-phb,true,epic_boon,Эпический дар
+boon-of-truesight,Boon of Truesight,Дар истинного зрения,PH24,feats,https://next.dnd.su/feats/384-boon-of-truesight,https://new.ttg.club/feats/boon-of-truesight-phb,true,epic_boon,Эпический дар
+charger,Charger,Налётчик,PH24,feats,https://next.dnd.su/feats/323-charger,https://new.ttg.club/feats/charger-phb,false,general,Универсальная черта
+chef,Chef,Шеф-повар,PH24,feats,https://next.dnd.su/feats/324-chef,https://new.ttg.club/feats/chef-phb,false,general,Универсальная черта
+crafter,Crafter,Мастеровой,PH24,feats,https://next.dnd.su/feats/311-crafter,https://new.ttg.club/feats/crafter-phb,false,origin,Черта происхождения
+crossbow-expert,Crossbow Expert,Эксперт по арбалетам,PH24,feats,https://next.dnd.su/feats/325-crossbow-expert,https://new.ttg.club/feats/crossbow-expert-phb,false,general,Универсальная черта
+crusher,Crusher,Дробитель,PH24,feats,https://next.dnd.su/feats/326-crusher,https://new.ttg.club/feats/crusher-phb,false,general,Универсальная черта
+defense,Defense,Оборона,PH24,feats,https://next.dnd.su/feats/365-defense,https://new.ttg.club/feats/defense-phb,true,fighting_style,Боевой стиль
+defensive-duelist,Defensive Duelist,Парирующий дуэлянт,PH24,feats,https://next.dnd.su/feats/327-defensive-duelist,https://new.ttg.club/feats/defensive-duelist-phb,false,general,Универсальная черта
+dual-wielder,Dual Wielder,Мастер боя двумя оружиями,PH24,feats,https://next.dnd.su/feats/328-dual-wielder,https://new.ttg.club/feats/dual-wielder-phb,false,general,Универсальная черта
+dueling,Dueling,Дуэлянт,PH24,feats,https://next.dnd.su/feats/366-dueling,https://new.ttg.club/feats/dueling-phb,false,fighting_style,Боевой стиль
+durable,Durable,Стойкий,PH24,feats,https://next.dnd.su/feats/329-durable,https://new.ttg.club/feats/durable-phb,false,general,Универсальная черта
+elemental-adept,Elemental Adept,Стихийный адепт,PH24,feats,https://next.dnd.su/feats/330-elemental-adept,https://new.ttg.club/feats/elemental-adept-phb,false,general,Универсальная черта
+fey-touched,Fey-Touched,Отмеченный феями,PH24,feats,https://next.dnd.su/feats/331-fey-touched,https://new.ttg.club/feats/fey-touched-phb,false,general,Универсальная черта
+grappler,Grappler,Борец,PH24,feats,https://next.dnd.su/feats/332-grappler,https://new.ttg.club/feats/grappler-phb,true,general,Универсальная черта
+great-weapon-fighting,Great Weapon Fighting,Сражение большим оружием,PH24,feats,https://next.dnd.su/feats/367-great-weapon-fighting,https://new.ttg.club/feats/great-weapon-fighting-phb,true,fighting_style,Боевой стиль
+great-weapon-master,Great Weapon Master,Мастер тяжёлого оружия,PH24,feats,https://next.dnd.su/feats/333-great-weapon-master,https://new.ttg.club/feats/great-weapon-master-phb,false,general,Универсальная черта
+healer,Healer,Целитель,PH24,feats,https://next.dnd.su/feats/312-healer,https://new.ttg.club/feats/healer-phb,false,origin,Черта происхождения
+heavily-armored,Heavily Armored,Тяжелобронированный,PH24,feats,https://next.dnd.su/feats/334-heavily-armored,https://new.ttg.club/feats/heavily-armored-phb,false,general,Универсальная черта
+heavy-armor-master,Heavy Armor Master,Мастер тяжёлых доспехов,PH24,feats,https://next.dnd.su/feats/335-heavy-armor-master,https://new.ttg.club/feats/heavy-armor-master-phb,false,general,Универсальная черта
+inspiring-leader,Inspiring Leader,Вдохновляющий лидер,PH24,feats,https://next.dnd.su/feats/336-inspiring-leader,https://new.ttg.club/feats/inspiring-leader-phb,false,general,Универсальная черта
+interception,Interception,Перехват,PH24,feats,https://next.dnd.su/feats/368-interception,https://new.ttg.club/feats/interception-phb,false,fighting_style,Боевой стиль
+keen-mind,Keen Mind,Острый ум,PH24,feats,https://next.dnd.su/feats/337-keen-mind,https://new.ttg.club/feats/keen-mind-phb,false,general,Универсальная черта
+lightly-armored,Lightly Armored,Легкобронированный,PH24,feats,https://next.dnd.su/feats/338-lightly-armored,https://new.ttg.club/feats/lightly-armored-phb,false,general,Универсальная черта
+lucky,Lucky,Везучий,PH24,feats,https://next.dnd.su/feats/313-lucky,https://new.ttg.club/feats/lucky-phb,false,origin,Черта происхождения
+mage-slayer,Mage Slayer,Убийца магов,PH24,feats,https://next.dnd.su/feats/339-mage-slayer,https://new.ttg.club/feats/mage-slayer-phb,false,general,Универсальная черта
+magic-initiate,Magic Initiate,Посвящённый в магию,PH24,feats,https://next.dnd.su/feats/314-magic-initiate,https://new.ttg.club/feats/magic-initiate-phb,true,origin,Черта происхождения
+martial-weapon-training,Martial Weapon Training,Обученность воинскому оружию,PH24,feats,https://next.dnd.su/feats/340-martial-weapon-training,https://new.ttg.club/feats/martial-weapon-training-phb,false,general,Универсальная черта
+medium-armor-master,Medium Armor Master,Мастер средних доспехов,PH24,feats,https://next.dnd.su/feats/341-medium-armor-master,https://new.ttg.club/feats/medium-armor-master-phb,false,general,Универсальная черта
+moderately-armored,Moderately Armored,Среднебронированный,PH24,feats,https://next.dnd.su/feats/342-moderately-armored,https://new.ttg.club/feats/moderately-armored-phb,false,general,Универсальная черта
+mounted-combatant,Mounted Combatant,Верховой боец,PH24,feats,https://next.dnd.su/feats/343-mounted-combatant,https://new.ttg.club/feats/mounted-combatant-phb,false,general,Универсальная черта
+musician,Musician,Музыкант,PH24,feats,https://next.dnd.su/feats/315-musician,https://new.ttg.club/feats/musician-phb,false,origin,Черта происхождения
+observant,Observant,Внимательный,PH24,feats,https://next.dnd.su/feats/344-observant,https://new.ttg.club/feats/observant-phb,false,general,Универсальная черта
+piercer,Piercer,Пронзатель,PH24,feats,https://next.dnd.su/feats/345-piercer,https://new.ttg.club/feats/piercer-phb,false,general,Универсальная черта
+poisoner,Poisoner,Отравитель,PH24,feats,https://next.dnd.su/feats/346-poisoner,https://new.ttg.club/feats/poisoner-phb,false,general,Универсальная черта
+polearm-master,Polearm Master,Мастер древкового оружия,PH24,feats,https://next.dnd.su/feats/347-polearm-master,https://new.ttg.club/feats/polearm-master-phb,false,general,Универсальная черта
+protection,Protection,Защита,PH24,feats,https://next.dnd.su/feats/369-protection,https://new.ttg.club/feats/protection-phb,false,fighting_style,Боевой стиль
+resilient,Resilient,Устойчивый,PH24,feats,https://next.dnd.su/feats/348-resilient,https://new.ttg.club/feats/resilient-phb,false,general,Универсальная черта
+ritual-caster,Ritual Caster,Заклинатель ритуалов,PH24,feats,https://next.dnd.su/feats/349-ritual-caster,https://new.ttg.club/feats/ritual-caster-phb,false,general,Универсальная черта
+savage-attacker,Savage Attacker,Неистово атакующий,PH24,feats,https://next.dnd.su/feats/316-savage-attacker,https://new.ttg.club/feats/savage-attacker-phb,true,origin,Черта происхождения
+sentinel,Sentinel,Страж,PH24,feats,https://next.dnd.su/feats/350-sentinel,https://new.ttg.club/feats/sentinel-phb,false,general,Универсальная черта
+shadow-touched,Shadow-Touched,Отмеченный тенями,PH24,feats,https://next.dnd.su/feats/351-shadow-touched,https://new.ttg.club/feats/shadow-touched-phb,false,general,Универсальная черта
+sharpshooter,Sharpshooter,Меткий стрелок,PH24,feats,https://next.dnd.su/feats/352-sharpshooter,https://new.ttg.club/feats/sharpshooter-phb,false,general,Универсальная черта
+shield-master,Shield Master,Мастер щита,PH24,feats,https://next.dnd.su/feats/353-shield-master,https://new.ttg.club/feats/shield-master-phb,false,general,Универсальная черта
+skill-expert,Skill Expert,Эксперт в навыке,PH24,feats,https://next.dnd.su/feats/354-skill-expert,https://new.ttg.club/feats/skill-expert-phb,false,general,Универсальная черта
+skilled,Skilled,Умелый,PH24,feats,https://next.dnd.su/feats/317-skilled,https://new.ttg.club/feats/skilled-phb,true,origin,Черта происхождения
+skulker,Skulker,Скрытный,PH24,feats,https://next.dnd.su/feats/355-skulker,https://new.ttg.club/feats/skulker-phb,false,general,Универсальная черта
+slasher,Slasher,Рубака,PH24,feats,https://next.dnd.su/feats/356-slasher,https://new.ttg.club/feats/slasher-phb,false,general,Универсальная черта
+speedy,Speedy,Быстрый,PH24,feats,https://next.dnd.su/feats/357-speedy,https://new.ttg.club/feats/speedy-phb,false,general,Универсальная черта
+spell-sniper,Spell Sniper,Заклинательный снайпер,PH24,feats,https://next.dnd.su/feats/358-spell-sniper,https://new.ttg.club/feats/spell-sniper-phb,false,general,Универсальная черта
+tavern-brawler,Tavern Brawler,Дебошир,PH24,feats,https://next.dnd.su/feats/318-tavern-brawler,https://new.ttg.club/feats/tavern-brawler-phb,false,origin,Черта происхождения
+telekinetic,Telekinetic,Телекинез,PH24,feats,https://next.dnd.su/feats/359-telekinetic,https://new.ttg.club/feats/telekinetic-phb,false,general,Универсальная черта
+telepathic,Telepathic,Телепат,PH24,feats,https://next.dnd.su/feats/360-telepathic,https://new.ttg.club/feats/telepathic-phb,false,general,Универсальная черта
+thrown-weapon-fighting,Thrown Weapon Fighting,Сражение метательным оружием,PH24,feats,https://next.dnd.su/feats/370-thrown-weapon-fighting,https://new.ttg.club/feats/thrown-weapon-fighting-phb,false,fighting_style,Боевой стиль
+tough,Tough,Крепкий,PH24,feats,https://next.dnd.su/feats/319-tough,https://new.ttg.club/feats/tough-phb,false,origin,Черта происхождения
+two-weapon-fighting,Two-Weapon Fighting,Сражение двумя оружиями,PH24,feats,https://next.dnd.su/feats/371-two-weapon-fighting,https://new.ttg.club/feats/two-weapon-fighting-phb,true,fighting_style,Боевой стиль
+unarmed-fighting,Unarmed Fighting,Сражение без оружия,PH24,feats,https://next.dnd.su/feats/372-unarmed-fighting,https://new.ttg.club/feats/unarmed-fighting-phb,false,fighting_style,Боевой стиль
+war-caster,War Caster,Боевой заклинатель,PH24,feats,https://next.dnd.su/feats/361-war-caster,https://new.ttg.club/feats/war-caster-phb,false,general,Универсальная черта
+weapon-master,Weapon Master,Мастер оружия,PH24,feats,https://next.dnd.su/feats/362-weapon-master,https://new.ttg.club/feats/weapon-master-phb,false,general,Универсальная черта
+aberrant-anatomy,Aberrant Anatomy,Аберрантная анатомия,RTW,feats,https://next.dnd.su/feats/483-aberrant-anatomy,https://new.ttg.club/feats/aberrant-anatomy-rhw,false,dark_gift,Тёмный дар
+echoing-soul,Echoing Soul,Эхо прошлых жизней,RTW,feats,https://next.dnd.su/feats/484-echoing-soul,https://new.ttg.club/feats/echoing-soul-rhw,false,dark_gift,Тёмный дар
+gathered-whispers,Gathered Whispers,Сонм голосов,RTW,feats,https://next.dnd.su/feats/485-gathered-whispers,https://new.ttg.club/feats/gathered-whispers-rhw,false,dark_gift,Тёмный дар
+living-shadow,Living Shadow,Живая тень,RTW,feats,https://next.dnd.su/feats/486-living-shadow,https://new.ttg.club/feats/living-shadow-rhw,false,dark_gift,Тёмный дар
+mist-walker,Mist Walker,Ходок Туманов,RTW,feats,https://next.dnd.su/feats/487-mist-walker,https://new.ttg.club/feats/mist-walker-rhw,false,dark_gift,Тёмный дар
+second-skin,Second Skin,Волк среди овец,RTW,feats,https://next.dnd.su/feats/488-second-skin,https://new.ttg.club/feats/second-skin-rhw,false,dark_gift,Тёмный дар
+sharp-eye,Sharp Eye,Остроглазый,RTW,feats,https://next.dnd.su/feats/481-sharp-eye,https://new.ttg.club/feats/sharp-eye-rhw,false,origin,Черта происхождения
+survivor,Survivor,Выживший,RTW,feats,https://next.dnd.su/feats/482-survivor,https://new.ttg.club/feats/survivor-rhw,false,origin,Черта происхождения
+symbiotic-being,Symbiotic Being,Симбионт,RTW,feats,https://next.dnd.su/feats/489-symbiotic-being,https://new.ttg.club/feats/symbiotic-being-rhw,false,dark_gift,Тёмный дар
+touch-of-death,Touch of Death,Касание смерти,RTW,feats,https://next.dnd.su/feats/490-touch-of-death,https://new.ttg.club/feats/touch-of-death-rhw,false,dark_gift,Тёмный дар
+watchers,Watchers,Наблюдаемый,RTW,feats,https://next.dnd.su/feats/491-watchers,https://new.ttg.club/feats/watchers-rhw,false,dark_gift,Тёмный дар

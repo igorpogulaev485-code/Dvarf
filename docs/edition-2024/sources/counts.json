@@ -1,0 +1,125 @@
+{
+  "by_category": {
+    "species": 26,
+    "classes": 13,
+    "subclasses": 76,
+    "backgrounds": 70,
+    "feats": 195,
+    "spells": 461,
+    "weapons": 38,
+    "armor": 13,
+    "equipment": 146,
+    "magic_items": 574,
+    "creatures": 657,
+    "bastions": 35,
+    "glossary": 155
+  },
+  "by_category_book": {
+    "species": {
+      "EFA": 5,
+      "LFL": 7,
+      "PH24": 10,
+      "RTW": 4
+    },
+    "classes": {
+      "EFA": 1,
+      "PH24": 12
+    },
+    "subclasses": {
+      "AU": 8,
+      "EFA": 5,
+      "FRHoF": 8,
+      "PH24": 48,
+      "RTW": 7
+    },
+    "backgrounds": {
+      "ABH": 3,
+      "AU": 10,
+      "EFA": 17,
+      "FRHoF": 18,
+      "LFL": 2,
+      "PH24": 16,
+      "RTW": 4
+    },
+    "feats": {
+      "ABH": 16,
+      "AU": 29,
+      "EFA": 28,
+      "FRHoF": 34,
+      "LFL": 2,
+      "PH24": 75,
+      "RTW": 11
+    },
+    "spells": {
+      "AU": 33,
+      "EFA": 1,
+      "FRHoF": 19,
+      "PH24": 408
+    },
+    "weapons": {
+      "PH24": 38
+    },
+    "armor": {
+      "PH24": 13
+    },
+    "equipment": {
+      "FRHoF": 12,
+      "PH24": 134
+    },
+    "magic_items": {
+      "AU": 47,
+      "AUD": 14,
+      "DMG24": 480,
+      "EFA": 9,
+      "FRAiF": 12,
+      "FRHoF": 2,
+      "NsF": 8,
+      "PH24": 1,
+      "RTW": 1
+    },
+    "creatures": {
+      "ABH": 5,
+      "AU": 19,
+      "AUD": 6,
+      "FRAiF": 40,
+      "LFL": 8,
+      "MM24": 503,
+      "NsF": 8,
+      "RTW": 68
+    },
+    "bastions": {
+      "DMG24": 35
+    },
+    "glossary": {
+      "PH24": 155
+    }
+  },
+  "generated": "2026-11-15",
+  "notes": [
+    "DDBD (Dragon Delves): 0 записей на обоих сайтах на дату опроса.",
+    "P24-C19: DDBD live=0 (свой разбор открытых EN-источников; эксклюзивных карточек нет; дубли MM24/DMG24 не сидить).",
+    "bastions: 35 — P24-C12 свой перевод DMG 2024 (сайты пусты; см. gaps.md).",
+    "Доправка: url_ttg суффикс ↔ книга; elf-phb; EFA без UAEU-ссылок; elf__lfl с ttg.",
+    "P24-C03: srd-флаги armor/equipment сверстаны с SRD 5.2.1; в equipment.csv добавлены 10 пропущенных SRD-предметов (без зелья/свитков — они в magic_items).",
+    "P24-C05: srd-флаги spells сверстаны с SRD 5.2.1 (339); добавлены 17 строк с именами SRD без эпонима (Acid Arrow и т.п.); 22 ложных negative → true.",
+    "P24-C06: srd-флаги magic_items сверстаны с SRD 5.2.1 (285); добавлены строки с именами SRD без эпонима (Apparatus of the Crab и т.п.).",
+    "P24-C07: srd_section monsters=235, animals=95; сид только Monsters.",
+    "P24-C08: animals_srd=95; total SRD bestiary=330.",
+    "P24-C13: creatures_mm24_w1=86 (MM24 srd=false, name_en < Kuo-toa Archpriest).",
+    "P24-C14: creatures_mm24_w2=87 (MM24 srd=false, name_en >= Kuo-toa Archpriest).",
+    "P24-C07R: creatures_srd=235, animals_srd=95 (text rebuild from next.dnd.su).",
+    "P24-C15: EFA live waves seeded (1+5+5+17+28+1+9=66); source=efa; Reanimator not in CSV.",
+    "P24-C17: FRHoF live waves seeded (8+18+34+19+12+2=93); source=frhof; species/creatures FRHoF=0.",
+    "P24-C12: bastions DMG24=35 facilities in CSV; live wave 43 (6 basic + 29 special + 7 orders + 1 rules); source=dmg24; own short RU.",
+    "P24-C18: FRAiF+ABH+LFL+NsF live=111 cards (target 111).",
+    "P24-C20: RTW live=95 cards (target 95).",
+    "P24-C19: DDBD exclusive catalog = 0 (adventures/maps out of scope).",
+    "P24-C21: AU+AUD live=166 cards (target 166)."
+  ],
+  "srd_creatures": {
+    "monsters": 235,
+    "animals": 95,
+    "total_srd": 330,
+    "animals_seeded": true
+  }
+}

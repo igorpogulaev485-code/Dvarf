@@ -10,6 +10,11 @@ import {
 import { formatConditionLabel } from '../../../shared/dnd/conditions'
 import { type SpellSelfFormSlug } from '../spellForms'
 import type { WizardFeatureRequest } from '../WizardFeatureUseDialog'
+import type { SorcererFeatureRequest } from '../SorcererFeatureUseDialog'
+import type { MonkFeatureRequest } from '../Monk2024UseDialog'
+import type { WarlockFeatureRequest } from '../Warlock2024UseDialog'
+import type { ClericFeatureRequest } from '../Cleric2024UseDialog'
+import type { DruidFeatureRequest } from '../Druid2024UseDialog'
 import { type FamiliarCastMode } from '../familiarForms'
 import { withInitiativeBonus } from '../modifiers'
 import { type ToastInput } from '../../../ui'
@@ -25,11 +30,23 @@ import {
 import { jumpDistances } from '../../../shared/dnd/jumpDistance'
 import { useSpellcastingSheetSync } from '../useSpellcastingSheetSync'
 import { collectSorcererMetamagicIds } from '../../../shared/dnd/sorcererMetamagicIds'
+import {
+  is2024Edition,
+  overlayLearnBudget2024,
+  overlayLearnBudgets2024,
+} from '../../../shared/dnd/spellBudgets2024'
+import { getFeaturePickList } from '../../../shared/dnd/featurePicks'
+import {
+  magicianExtraCantrips2024,
+  PRIMAL_ORDER_MAGICIAN,
+  readPrimalOrder2024,
+} from '../../../shared/dnd/druid2024Features'
 import { isPactChainActive } from '../pactChainEffects'
 import { isWarlockClassName } from '../pactTomeEffects'
 import { parseInfusionSlotsResourceId } from '../InfusionsActiveDialog'
 import { useLobbyParty } from '../../lobby/useLobbyParty'
 import { useLobbyRealtime } from '../../lobby/useLobbyRealtime'
+import { potionSelfTiming } from '../../lobby/campaignRules2024'
 import { armorGivesStealthDisadvantage, type DeskRollMode } from '../deskRolls'
 import {
   appendRollHistory,
@@ -63,6 +80,7 @@ import { resolveSpellLearnBudget } from '../../../shared/dnd/casterProgression'
 import { equippedArmorPieces } from '../inventory'
 import { type CastChoice } from '../CastSpellDialog'
 import { isCastableSpellScroll } from '../spellScroll'
+import { normalizeClassSlug2024 } from '../../../shared/dnd/edition2024Classes'
 import { applyInstantDice, instantDice } from '../gearCharges'
 import { type SheetSpell } from '../spells'
 import { abilityModifier, formatModifier, type AbilityKey } from '../sheetTypes'
@@ -217,6 +235,24 @@ export function useSheetEditorPart4(model: SheetModel) {
   )
   model.wizardFeatureUse = wizardFeatureUse
   model.setWizardFeatureUse = setWizardFeatureUse
+  const [sorcererFeatureUse, setSorcererFeatureUse] =
+    useState<SorcererFeatureRequest | null>(null)
+  model.sorcererFeatureUse = sorcererFeatureUse
+  model.setSorcererFeatureUse = setSorcererFeatureUse
+  const [monkFeatureUse, setMonkFeatureUse] = useState<MonkFeatureRequest | null>(null)
+  model.monkFeatureUse = monkFeatureUse
+  model.setMonkFeatureUse = setMonkFeatureUse
+  const [warlockFeatureUse, setWarlockFeatureUse] =
+    useState<WarlockFeatureRequest | null>(null)
+  model.warlockFeatureUse = warlockFeatureUse
+  model.setWarlockFeatureUse = setWarlockFeatureUse
+  const [clericFeatureUse, setClericFeatureUse] =
+    useState<ClericFeatureRequest | null>(null)
+  model.clericFeatureUse = clericFeatureUse
+  model.setClericFeatureUse = setClericFeatureUse
+  const [druidFeatureUse, setDruidFeatureUse] = useState<DruidFeatureRequest | null>(null)
+  model.druidFeatureUse = druidFeatureUse
+  model.setDruidFeatureUse = setDruidFeatureUse
   const [infusionsSpendId, setInfusionsSpendId] = useState<string | null>(null)
   model.infusionsSpendId = infusionsSpendId
   model.setInfusionsSpendId = setInfusionsSpendId
@@ -362,7 +398,7 @@ export function useSheetEditorPart4(model: SheetModel) {
   model.pendingSpellSelfForm = pendingSpellSelfForm
   model.setPendingSpellSelfForm = setPendingSpellSelfForm
   const [pendingFamiliar, setPendingFamiliar] = useState<{
-    spell: SheetSpell
+    spell: SheetSpell | null
     mode: FamiliarCastMode
     slotLevel: number
   } | null>(null)
@@ -460,6 +496,39 @@ export function useSheetEditorPart4(model: SheetModel) {
     }
     model.setDraft((prev) => ({ ...prev, inspiration: false }))
     setInspirationRollArmed(false)
+    return true
+  }
+  /** P24-02: Heroic Inspiration — post-roll reroll chip (any die). */
+  const [heroicRerollPending, setHeroicRerollPending] = useState<{
+    label: string
+    sides: number
+  } | null>(null)
+  model.heroicRerollPending = heroicRerollPending
+  model.setHeroicRerollPending = setHeroicRerollPending
+  model.spendHeroicInspirationReroll = function spendHeroicInspirationReroll() {
+    if (!model.draft.inspiration) {
+      model.onToast?.('Нет героического вдохновения')
+      setHeroicRerollPending(null)
+      return false
+    }
+    model.setDraft((prev) => ({ ...prev, inspiration: false }))
+    setHeroicRerollPending(null)
+    return true
+  }
+  model.transferHeroicInspirationToAlly = function transferHeroicInspirationToAlly(
+    allyId: string,
+  ) {
+    if (!model.draft.inspiration) {
+      model.onToast?.('Нет героического вдохновения для передачи')
+      return false
+    }
+    if (!allyId) {
+      model.onToast?.('Выберите союзника без вдохновения')
+      return false
+    }
+    // Sheet flag clears locally; lobby/session sync of the ally is caller's job.
+    model.setDraft((prev) => ({ ...prev, inspiration: false }))
+    model.onToast?.(`Героическое вдохновение передано союзнику (${allyId})`)
     return true
   }
   const [luckyPickPending, setLuckyPickPending] = useState<{
@@ -721,7 +790,10 @@ export function useSheetEditorPart4(model: SheetModel) {
         | undefined
       let potionTiming: 'action' | 'bonus' | null = null
       if (heal) {
-        potionTiming = homebrew?.potion_bonus_self ? 'bonus' : 'action'
+        potionTiming = potionSelfTiming({
+          edition: model.baseCharacter?.rules_edition ?? model.rulesEdition,
+          potion_bonus_self: Boolean(homebrew?.potion_bonus_self),
+        })
         if (teApi) {
           const gate = teApi.canFeature(potionTiming)
           if (!gate.ok) {
@@ -1046,27 +1118,53 @@ export function useSheetEditorPart4(model: SheetModel) {
   )
   model.subclassCastersForSpells = subclassCastersForSpells
 
+  const sheetIs2024 = is2024Edition(model.rulesEdition ?? model.baseCharacter?.rules_edition)
+  const primalOrderExtraCantrips = useMemo(
+    () =>
+      sheetIs2024 &&
+      (readPrimalOrder2024(model.draft.classOptions2024) ??
+        readPrimalOrder2024(model.draft.featurePicks)) === PRIMAL_ORDER_MAGICIAN
+        ? { druid: magicianExtraCantrips2024() }
+        : undefined,
+    [sheetIs2024, model.draft.classOptions2024, model.draft.featurePicks],
+  )
+  model.primalOrderExtraCantrips = primalOrderExtraCantrips
   const spellLearnBudget = useMemo(() => {
     const rows = model.draft.classes.filter((row) => row.name.trim() && row.level > 0)
     if (rows.length === 0) return null
-    return resolveSpellLearnBudget({
+    const budget = resolveSpellLearnBudget({
       classes: rows,
       subclassCasters: subclassCastersForSpells,
       abilityModFor: (ability) => abilityModifier(model.draft.abilities[ability]),
     })
-  }, [model.draft.classes, subclassCastersForSpells, model.draft.abilities])
+    return sheetIs2024 ? overlayLearnBudget2024(budget, rows, primalOrderExtraCantrips) : budget
+  }, [
+    model.draft.classes,
+    subclassCastersForSpells,
+    model.draft.abilities,
+    sheetIs2024,
+    primalOrderExtraCantrips,
+  ])
   model.spellLearnBudget = spellLearnBudget
 
   const spellLearnBudgets = useMemo(() => {
     const rows = model.draft.classes.filter((row) => row.name.trim() && row.level > 0)
     if (rows.length === 0) return null
-    return resolveSpellLearnBudgets({
+    const budgets = resolveSpellLearnBudgets({
       classes: rows,
       subclassCasters: subclassCastersForSpells,
       abilityModFor: (ability) => abilityModifier(model.draft.abilities[ability]),
       proficiencyBonus: model.proficiencyBonus,
     })
-  }, [model.draft.classes, subclassCastersForSpells, model.draft.abilities, model.proficiencyBonus])
+    return sheetIs2024 ? overlayLearnBudgets2024(budgets, rows, primalOrderExtraCantrips) : budgets
+  }, [
+    model.draft.classes,
+    subclassCastersForSpells,
+    model.draft.abilities,
+    model.proficiencyBonus,
+    sheetIs2024,
+    primalOrderExtraCantrips,
+  ])
   model.spellLearnBudgets = spellLearnBudgets
 
   const spellcastingSync = useSpellcastingSheetSync({
@@ -1080,18 +1178,29 @@ export function useSheetEditorPart4(model: SheetModel) {
     proficiencyBonus: model.proficiencyBonus,
     onChange: (spells) => model.setDraft((prev) => ({ ...prev, spells })),
     onToast: model.onToast,
+    rulesEdition: model.rulesEdition ?? model.baseCharacter?.rules_edition ?? '2014',
   })
   model.spellcastingSync = spellcastingSync
 
-  const sorcererMetamagicIds = useMemo(
-    () =>
-      collectSorcererMetamagicIds({
-        classes: model.draft.classes,
-        featurePicks: model.draft.featurePicks,
-        unlockedFeatures: model.unlockedFeatures,
-      }),
-    [model.draft.classes, model.draft.featurePicks, model.unlockedFeatures],
-  )
+  const sorcererMetamagicIds = useMemo(() => {
+    const is2024 =
+      (model.rulesEdition ?? model.baseCharacter?.rules_edition ?? '2014') === '2024'
+    if (is2024) {
+      return [...new Set(model.draft.classOptions2024?.metamagic ?? [])]
+    }
+    return collectSorcererMetamagicIds({
+      classes: model.draft.classes,
+      featurePicks: model.draft.featurePicks,
+      unlockedFeatures: model.unlockedFeatures,
+    })
+  }, [
+    model.draft.classes,
+    model.draft.featurePicks,
+    model.draft.classOptions2024,
+    model.unlockedFeatures,
+    model.rulesEdition,
+    model.baseCharacter?.rules_edition,
+  ])
   model.sorcererMetamagicIds = sorcererMetamagicIds
 
   const sorceryResource =
@@ -1135,9 +1244,16 @@ export function useSheetEditorPart4(model: SheetModel) {
   const arcaneRecoveryWizardLevel = useMemo(() => {
     if (!arcaneRecoverySpendId) return 1
     // feat:wizard:arcane_recovery:{classEntryId}
+    // 2024 progression ids end with the feature id, not the class row id: feat:wizard:arcane_recovery:arcane_recovery
     const parts = arcaneRecoverySpendId.split(':')
     const classEntryId = parts[parts.length - 1]
-    const row = model.draft.classes.find((c) => c.id === classEntryId)
+    const row =
+      model.draft.classes.find((c) => c.id === classEntryId) ??
+      model.draft.classes.find(
+        (c) =>
+          normalizeClassSlug2024(c.catalog_id || undefined) === parts[1] ||
+          normalizeClassSlug2024(c.name) === parts[1],
+      )
     return Math.max(1, Math.floor(row?.level ?? 1))
   }, [arcaneRecoverySpendId, model.draft.classes])
   model.arcaneRecoveryWizardLevel = arcaneRecoveryWizardLevel

@@ -4,6 +4,7 @@ import {
   type CharacterGender,
 } from '../../shared/dnd/characterGender'
 import { canonicalLanguageList } from '../../shared/dnd/languages'
+import { canonicalToolName } from '../../shared/dnd/toolNames'
 import { readNameList } from './languagesTools'
 import { asRecord, readNumber } from './sheetTypes'
 
@@ -39,6 +40,8 @@ export type IdentityExtras = {
   background: string
   /** Catalog slug when picked from kind=background; used for feat prereqs. */
   backgroundSlug: string | null
+  /** 2024 species slug from create (`identity.species_slug`), e.g. dwarf. */
+  speciesSlug: string | null
   /** Catalog slug (lawful_good, …). Empty when the old text was not recognized. */
   alignment: string
   /** Original wording kept when it did not match the catalog. */
@@ -118,6 +121,12 @@ export function readIdentityExtras(sheet: Record<string, unknown>): IdentityExtr
         : typeof identity.backgroundSlug === 'string' && identity.backgroundSlug.trim()
           ? identity.backgroundSlug.trim()
           : null,
+    speciesSlug:
+      typeof identity.species_slug === 'string' && identity.species_slug.trim()
+        ? identity.species_slug.trim().toLowerCase()
+        : typeof identity.speciesSlug === 'string' && identity.speciesSlug.trim()
+          ? identity.speciesSlug.trim().toLowerCase()
+          : null,
     ...readAlignmentFields(identity),
     gender: parseCharacterGender(identity.gender),
     size: typeof identity.size === 'string' && identity.size.trim() ? identity.size : 'medium',
@@ -136,7 +145,7 @@ export function readIdentityExtras(sheet: Record<string, unknown>): IdentityExtr
       extras: readNameList(weapons.extras),
     },
     languages: canonicalLanguageList(readNameList(proficiency.languages)),
-    tools: readNameList(proficiency.tools),
+    tools: readNameList(readNameList(proficiency.tools).map(canonicalToolName)),
     raceAppliedLanguages: canonicalLanguageList(readNameList(identity.race_applied_languages)),
     physique: {
       age: readPhysiqueString(identity.age),
@@ -165,6 +174,7 @@ export function identityExtrasToSheet(extras: IdentityExtras): {
       subclass_name: extras.subclassName.trim() || null,
       background: extras.background.trim() || null,
       background_slug: extras.backgroundSlug?.trim() || null,
+      species_slug: extras.speciesSlug?.trim() || null,
       alignment: extras.alignment.trim() || null,
       alignment_text: extras.alignmentText.trim() || null,
       gender: extras.gender,

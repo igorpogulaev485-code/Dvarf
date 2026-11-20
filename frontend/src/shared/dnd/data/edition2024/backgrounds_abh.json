@@ -1,0 +1,148 @@
+{
+  "meta": {
+    "pack": "P24-C18",
+    "rules_edition": "2024",
+    "source": "abh",
+    "notes_ru": "3 предысторий ABH. ASI + origin_feat. RU: backgrounds.csv / next.dnd.su."
+  },
+  "entries": [
+    {
+      "kind": "background",
+      "slug": "carouser",
+      "name_ru": "Кутила",
+      "name_en": "Carouser",
+      "source": "abh",
+      "sort_order": 10,
+      "external_ref": {
+        "book": "ABH",
+        "url_dndsu": "https://next.dnd.su/backgrounds/926-carouser",
+        "url_ttg": "https://new.ttg.club/backgrounds/carouser-abh"
+      },
+      "data": {
+        "asi": {
+          "abilities": [
+            "dex",
+            "int",
+            "cha"
+          ],
+          "options": [
+            "+2/+1",
+            "+1/+1/+1"
+          ],
+          "cap": 20
+        },
+        "origin_feat": {
+          "id": "tireless-reveler",
+          "slug": "tireless-reveler",
+          "name_ru": "Неустанный гуляка",
+          "name_en": "Tireless Reveler"
+        },
+        "skill_proficiencies": [
+          "deception",
+          "persuasion"
+        ],
+        "tool_proficiencies": [
+          "Игровой набор"
+        ],
+        "tool_choices": null,
+        "equipment_or_gold": {
+          "gold_alternative_gp": 50,
+          "pack_summary_ru": "Выберите А или Б: (А) Кинжал, Игровой набор (выбранный выше), Отличная одежда, Стеклянная бутылка, Зеркало, Духи, Кошель, Трутница, 19 ЗМ;…"
+        },
+        "traits_text": "Кутила: ЛОВ/ИНТ/ХАР (+2/+1 или +1/+1/+1). Черта: Неустанный гуляка. Навыки: обман, убеждение. Инструмент: Игровой набор. Снаряжение: Выберите А или Б: (А) Кинжал, Игровой набор (выбранный выше), Отличная одежда, Стеклянная бутылка, Зеркало, Духи, Кошель, Трутница, 19 ЗМ;…."
+      }
+    },
+    {
+      "kind": "background",
+      "slug": "vampire-devotee",
+      "name_ru": "Посвящённый вампира",
+      "name_en": "Vampire Devotee",
+      "source": "abh",
+      "sort_order": 20,
+      "external_ref": {
+        "book": "ABH",
+        "url_dndsu": "https://next.dnd.su/backgrounds/927-vampire-devotee",
+        "url_ttg": "https://new.ttg.club/backgrounds/vampire-devotee-abh"
+      },
+      "data": {
+        "asi": {
+          "abilities": [
+            "str",
+            "con",
+            "cha"
+          ],
+          "options": [
+            "+2/+1",
+            "+1/+1/+1"
+          ],
+          "cap": 20
+        },
+        "origin_feat": {
+          "id": "vampires-plaything",
+          "slug": "vampires-plaything",
+          "name_ru": "Игрушка вампира",
+          "name_en": "Vampire’s Plaything"
+        },
+        "skill_proficiencies": [
+          "stealth",
+          "persuasion"
+        ],
+        "tool_proficiencies": [
+          "Кухонная утварь"
+        ],
+        "tool_choices": null,
+        "equipment_or_gold": {
+          "gold_alternative_gp": 50,
+          "pack_summary_ru": "Выберите А или Б: (А) Кухонная утварь, Отличная одежда, 2 Стеклянных бутылки, Комплект целителя, Духи, Лампа, 3 фляги Масла, Бурдюк, 19…"
+        },
+        "traits_text": "Посвящённый вампира: СИЛ/ТЕЛ/ХАР (+2/+1 или +1/+1/+1). Черта: Игрушка вампира. Навыки: скрытность, убеждение. Инструмент: Кухонная утварь. Снаряжение: Выберите А или Б: (А) Кухонная утварь, Отличная одежда, 2 Стеклянных бутылки, Комплект целителя, Духи, Лампа, 3 фляги Масла, Бурдюк, 19…."
+      }
+    },
+    {
+      "kind": "background",
+      "slug": "vampire-survivor",
+      "name_ru": "Переживший атаку вампира",
+      "name_en": "Vampire Survivor",
+      "source": "abh",
+      "sort_order": 30,
+      "external_ref": {
+        "book": "ABH",
+        "url_dndsu": "https://next.dnd.su/backgrounds/928-vampire-survivor",
+        "url_ttg": "https://new.ttg.club/backgrounds/vampire-survivor-abh"
+      },
+      "data": {
+        "asi": {
+          "abilities": [
+            "dex",
+            "con",
+            "wis"
+          ],
+          "options": [
+            "+2/+1",
+            "+1/+1/+1"
+          ],
+          "cap": 20
+        },
+        "origin_feat": {
+          "id": "vampire-hunter",
+          "slug": "vampire-hunter",
+          "name_ru": "Охотник на вампиров",
+          "name_en": "Vampire Hunter"
+        },
+        "skill_proficiencies": [
+          "insight",
+          "religion"
+        ],
+        "tool_proficiencies": [
+          "Инструменты резчика по дереву"
+        ],
+        "tool_choices": null,
+        "equipment_or_gold": {
+          "gold_alternative_gp": 50,
+          "pack_summary_ru": "Выберите А или Б: (А) Инструменты резчика по дереву, Ломик, Закрытый фонарь, Священный символ (реликварий), Святая вода, Зеркало, 3 фляги…"
+        },
+        "traits_text": "Переживший атаку вампира: ЛОВ/ТЕЛ/МУД (+2/+1 или +1/+1/+1). Черта: Охотник на вампиров. Навыки: проницательность, религия. Инструмент: Инструменты резчика по дереву. Снаряжение: Выберите А или Б: (А) Инструменты резчика по дереву, Ломик, Закрытый фонарь, Священный символ (реликварий), Святая вода, Зеркало, 3 фляги…."
+      }
+    }
+  ]
+}

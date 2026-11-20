@@ -39,6 +39,8 @@ export type WizardSheetSpell = {
 }
 
 export const SIGNATURE_PREPARE_LABEL = 'Фирменное заклинание'
+/** PHB 2024 Spell Mastery: always prepared, free at the base level, unlimited (no charge). */
+export const SPELL_MASTERY_PREPARE_LABEL_2024 = 'Мастерство заклинателя'
 export const SPELL_MASTERY_FEATURE_ID = 'spell_mastery'
 export const SIGNATURE_SPELLS_FEATURE_ID = 'signature_spells'
 
@@ -244,10 +246,16 @@ export function syncWizardCapstoneSpells<T extends WizardSheetSpell>(input: {
   known: T[]
   featurePicks: FeaturePicksState
   classEntryId: string
+  /** `'2024'`: Spell Mastery is always prepared and free at its base level (no charge). */
+  edition?: string | null
 }): { known: T[]; changed: boolean } {
   const signatureIds = new Set(
     getFeaturePickList(input.featurePicks, input.classEntryId, SIGNATURE_SPELLS_FEATURE_ID),
   )
+  const masteryIds2024 =
+    input.edition === '2024'
+      ? new Set(getFeaturePickList(input.featurePicks, input.classEntryId, SPELL_MASTERY_FEATURE_ID))
+      : new Set<string>()
   let changed = false
   const known = input.known.map((spell) => {
     const pinned = signatureIds.has(spell.id) && spell.level === 3
@@ -276,9 +284,37 @@ export function syncWizardCapstoneSpells<T extends WizardSheetSpell>(input: {
         },
       }
     }
-    if (spell.prepare_source_label === SIGNATURE_PREPARE_LABEL || spell.grant_cast?.label === SIGNATURE_PREPARE_LABEL) {
+    if (masteryIds2024.has(spell.id) && (spell.level === 1 || spell.level === 2)) {
+      const same =
+        spell.prepared === true &&
+        spell.prepared_locked === true &&
+        spell.prepare_source_label === SPELL_MASTERY_PREPARE_LABEL_2024 &&
+        spell.grant_cast == null
+      if (same) return spell
       changed = true
-      const next = { ...spell, prepared_locked: false }
+      const next = {
+        ...spell,
+        prepared: true,
+        prepared_locked: true,
+        prepare_source_label: SPELL_MASTERY_PREPARE_LABEL_2024,
+      }
+      delete next.grant_cast
+      return next
+    }
+    if (
+      spell.prepare_source_label === SIGNATURE_PREPARE_LABEL ||
+      spell.grant_cast?.label === SIGNATURE_PREPARE_LABEL ||
+      (input.edition === '2024' &&
+        spell.prepare_source_label === SPELL_MASTERY_PREPARE_LABEL_2024)
+    ) {
+      changed = true
+      const releasedMastery2024 =
+        input.edition === '2024' && spell.prepare_source_label === SPELL_MASTERY_PREPARE_LABEL_2024
+      const next = {
+        ...spell,
+        prepared_locked: false,
+        ...(releasedMastery2024 ? { prepared: false } : {}),
+      }
       delete next.prepare_source_label
       if (next.grant_cast?.label === SIGNATURE_PREPARE_LABEL) delete next.grant_cast
       return next
@@ -348,6 +384,9 @@ export function finishWizardResourcesOnRest(
     if (poolId === 'portent' && kind === 'long') {
       const dice = rollPortentDice(row.max, rng)
       return clampResource({ ...row, dice, used: dice.length, track: 'stock' })
+    }
+    if (poolId === 'overchannel' && kind === 'long') {
+      return clampResource({ ...row, used: 0, useCount: undefined })
     }
     if (poolId === 'arcane_ward' && kind === 'long') {
       return clampResource({
@@ -546,6 +585,12 @@ export type WizardFeatureUseResult = {
   concentrationName: string | null
   activeLabels: string[]
   companion: { id: string; name: string; notes: string } | null
+  /** 2024: the feature spends one spell slot of this level. */
+  spendSlotLevel?: number
+  /** 2024: the feature returns one expended spell slot of this level. */
+  restoreSlotLevel?: number
+  /** 2024: Overchannel necrotic damage to the caster (ignores resistance/immunity). */
+  selfDamage?: number
 }
 
 export function applyWizardFeatureUse(input: WizardFeatureUseInput): WizardFeatureUseResult {
@@ -817,7 +862,15 @@ export function bladesongBonuses(input: {
 export function thirdEyeDarkvisionBonus(resources: SheetResource[]): number {
   const row = resourceByPool(resources, 'the_third_eye')
   if (!row?.activeLabel) return 0
+  if (row.activeLabel.includes('120')) return 0
   if (row.activeLabel.includes('Тёмное зрение')) return 60
+  return 0
+}
+
+/** 2024 Third Eye: Darkvision 120 ft replaces a shorter base (not additive). */
+export function thirdEyeDarkvisionFloor2024(resources: SheetResource[]): number {
+  const row = resourceByPool(resources, 'the_third_eye')
+  if (row?.activeLabel?.includes('Тёмное зрение 120')) return 120
   return 0
 }
 

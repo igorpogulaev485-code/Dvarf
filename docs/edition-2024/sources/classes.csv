@@ -1,0 +1,14 @@
+id,name_en,name_ru,book,category,url_dndsu,url_ttg,srd
+artificer,Artificer,Изобретатель,EFA,classes,https://next.dnd.su/class/artificer,https://new.ttg.club/classes/artificer-efa,false
+barbarian,Barbarian,Варвар,PH24,classes,https://next.dnd.su/class/barbarian,https://new.ttg.club/classes/barbarian-phb,true
+bard,Bard,Бард,PH24,classes,https://next.dnd.su/class/bard,https://new.ttg.club/classes/bard-phb,true
+cleric,Cleric,Жрец,PH24,classes,https://next.dnd.su/class/cleric,https://new.ttg.club/classes/cleric-phb,true
+druid,Druid,Друид,PH24,classes,https://next.dnd.su/class/druid,https://new.ttg.club/classes/druid-phb,true
+fighter,Fighter,Воин,PH24,classes,https://next.dnd.su/class/fighter,https://new.ttg.club/classes/fighter-phb,true
+monk,Monk,Монах,PH24,classes,https://next.dnd.su/class/monk,https://new.ttg.club/classes/monk-phb,true
+paladin,Paladin,Паладин,PH24,classes,https://next.dnd.su/class/paladin,https://new.ttg.club/classes/paladin-phb,true
+ranger,Ranger,Следопыт,PH24,classes,https://next.dnd.su/class/ranger,https://new.ttg.club/classes/ranger-phb,true
+rogue,Rogue,Плут,PH24,classes,https://next.dnd.su/class/rogue,https://new.ttg.club/classes/rogue-phb,true
+sorcerer,Sorcerer,Чародей,PH24,classes,https://next.dnd.su/class/sorcerer,https://new.ttg.club/classes/sorcerer-phb,true
+warlock,Warlock,Колдун,PH24,classes,https://next.dnd.su/class/warlock,https://new.ttg.club/classes/warlock-phb,true
+wizard,Wizard,Волшебник,PH24,classes,https://next.dnd.su/class/wizard,https://new.ttg.club/classes/wizard-phb,true

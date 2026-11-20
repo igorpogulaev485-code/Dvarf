@@ -29,6 +29,8 @@ import {
   speedModsFromActiveEffects,
 } from '../../../shared/dnd/activeEffects'
 import { withSpeedBonus } from '../modifiers'
+import { wildShapeHeaderVitals2024 } from '../../../shared/dnd/druid2024Features'
+import { activeBeastWildShape } from '../wildShape'
 import { applyFeatureSaveProficiencies, ironMindSaveKey, wisdomSaveAlreadyGranted } from '../../../shared/dnd/featureSaveProficiency'
 import { revokeFalseSubclassCompanions } from '../companions'
 import { backfillCompanionStatsFromTemplates } from '../companionBackfill'
@@ -45,12 +47,20 @@ import {
 import { syncMonkUnarmedAttack } from '../../../shared/dnd/martialArts'
 import { darkvisionFtFromFeatures, initiativeBonusFromFeatures, initiativeBonusFromRace } from '../featureCombatBonuses'
 import { raceDarkvisionFallbackFt } from '../../../shared/dnd/race'
-import { createSheetSpell } from '../spells'
+import { createSheetSpell, sheetSpellFromCatalog } from '../spells'
+import {
+  spellResistanceSaveNote2024,
+  syncWizardSubclassSpells2024,
+  wizard2024Context,
+  wizard2024Flags,
+  wizardSubclassSpellSlugs2024,
+} from '../../../shared/dnd/wizard2024Features'
 import {
   bladesongBonuses,
   syncWizardCapstoneSpells,
   syncWizardSchoolSpellbook,
   thirdEyeDarkvisionBonus,
+  thirdEyeDarkvisionFloor2024,
 } from '../../../shared/dnd/wizardTradition'
 import { saveBonusFromFeatures } from '../ClassFeaturesPanel'
 import { ensureRaceNaturalWeaponAttacks, raceNaturalWeaponAttacksMatch, syncRaceSpellsForSheetState } from '../raceEffects'
@@ -708,6 +718,7 @@ export function useSheetEditorPart2(model: SheetModel) {
           known,
           featurePicks: prev.featurePicks,
           classEntryId: row.id,
+          edition: model.rulesEdition,
         })
         if (cap.changed) {
           known = cap.known
@@ -718,6 +729,48 @@ export function useSheetEditorPart2(model: SheetModel) {
       return { ...prev, spells: { ...prev.spells, known } }
     })
   }, [model.draft.subclassGrants, model.draft.classes, model.draft.featurePicks])
+
+  useEffect(() => {
+    if (model.rulesEdition !== '2024') return
+    const contextFor = (classes: typeof model.draft.classes) =>
+      wizard2024Context({
+        rulesEdition: model.rulesEdition,
+        classes,
+        subclassSlugByEntryId: model.subclassSlugByEntryId,
+      })
+    const run = (resolve: (slug: string) => ReturnType<typeof sheetSpellFromCatalog> | null) => {
+      model.setDraft((prev) => {
+        const synced = syncWizardSubclassSpells2024({
+          known: prev.spells.known,
+          ctx: contextFor(prev.classes),
+          resolve,
+        })
+        if (!synced.changed) return prev
+        return { ...prev, spells: { ...prev.spells, known: synced.known } }
+      })
+    }
+    const ctx = contextFor(model.draft.classes)
+    const slugs = wizardSubclassSpellSlugs2024(ctx?.subclassSlug, ctx?.level ?? 0)
+    if (slugs.length === 0) {
+      run(() => null)
+      return
+    }
+    let active = true
+    listCatalogEntries({ kind: 'spell', edition: '2024' })
+      .then((entries) => {
+        if (!active) return
+        const bySlug = new Map((entries ?? []).map((entry) => [entry.slug, entry]))
+        run((slug) => {
+          const entry = bySlug.get(slug)
+          return entry ? sheetSpellFromCatalog(entry) : null
+        })
+      })
+      .catch(() => undefined)
+    return () => {
+      active = false
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- classes + subclass drive the sync
+  }, [model.rulesEdition, model.draft.classes, model.subclassSlugByEntryId])
 
   // QA 22.10: backfill always-prepared mechanics (Bless concentration) + Artillerist lists.
   useEffect(() => {
@@ -837,9 +890,11 @@ export function useSheetEditorPart2(model: SheetModel) {
       parentSlug: model.draft.raceGrant?.parentSlug,
       raceName: model.draft.raceName,
     })
-    const baseDarkvision =
+    const baseDarkvision = Math.max(
       Math.max(model.draft.identity.darkvision, raceDv) +
-      thirdEyeDarkvisionBonus(model.draft.play.resources)
+        thirdEyeDarkvisionBonus(model.draft.play.resources),
+      thirdEyeDarkvisionFloor2024(model.draft.play.resources),
+    )
     return darkvisionFtFromFeatures({
       features: model.unlockedFeatures,
       baseDarkvision,
@@ -962,34 +1017,66 @@ export function useSheetEditorPart2(model: SheetModel) {
   ])
   model.displaySpeedAuto = displaySpeedAuto
 
+  const formHeaderVitals = useMemo(
+    () =>
+      wildShapeHeaderVitals2024({
+        rulesEdition: model.rulesEdition ?? model.baseCharacter?.rules_edition,
+        formStats: activeBeastWildShape(model.draft.companions)?.stats ?? null,
+      }),
+    [
+      model.rulesEdition,
+      model.baseCharacter?.rules_edition,
+      model.draft.companions,
+    ],
+  )
+  model.wildShapeFormLabel2024 = formHeaderVitals?.labelRu ?? null
+
   const displaySpeed = useMemo(() => {
+    if (formHeaderVitals) return formHeaderVitals.speedWalk
     return withSpeedBonus({
       core: displaySpeedAuto,
       target: 'speed',
       modifiers: model.draft.modifiers,
       vars: model.formulaVarsBase ?? {},
     })
-  }, [displaySpeedAuto, model.draft.modifiers, model.formulaVarsBase])
+  }, [
+    formHeaderVitals,
+    displaySpeedAuto,
+    model.draft.modifiers,
+    model.formulaVarsBase,
+  ])
   model.displaySpeed = displaySpeed
 
   const displayClimbSpeed = useMemo(() => {
+    if (formHeaderVitals) return formHeaderVitals.speedClimb
     return withSpeedBonus({
       core: model.draft.climbSpeed,
       target: 'speed_climb',
       modifiers: model.draft.modifiers,
       vars: model.formulaVarsBase ?? {},
     })
-  }, [model.draft.climbSpeed, model.draft.modifiers, model.formulaVarsBase])
+  }, [
+    formHeaderVitals,
+    model.draft.climbSpeed,
+    model.draft.modifiers,
+    model.formulaVarsBase,
+  ])
   model.displayClimbSpeed = displayClimbSpeed
 
   const displaySwimSpeed = useMemo(() => {
+    if (formHeaderVitals) return formHeaderVitals.speedSwim
     return withSpeedBonus({
       core: model.draft.swimSpeed,
       target: 'speed_swim',
       modifiers: model.draft.modifiers,
       vars: model.formulaVarsBase ?? {},
     })
-  }, [model.draft.swimSpeed, model.draft.modifiers, model.formulaVarsBase])
+  }, [
+    formHeaderVitals,
+    model.draft.swimSpeed,
+    model.draft.modifiers,
+    model.formulaVarsBase,
+  ])
   model.displaySwimSpeed = displaySwimSpeed
 
   const displayFlySpeedAuto = useMemo(() => {
@@ -1018,13 +1105,19 @@ export function useSheetEditorPart2(model: SheetModel) {
   model.displayFlySpeedAuto = displayFlySpeedAuto
 
   const displayFlySpeed = useMemo(() => {
+    if (formHeaderVitals) return formHeaderVitals.speedFly
     return withSpeedBonus({
       core: displayFlySpeedAuto,
       target: 'speed_fly',
       modifiers: model.draft.modifiers,
       vars: model.formulaVarsBase ?? {},
     })
-  }, [displayFlySpeedAuto, model.draft.modifiers, model.formulaVarsBase])
+  }, [
+    formHeaderVitals,
+    displayFlySpeedAuto,
+    model.draft.modifiers,
+    model.formulaVarsBase,
+  ])
   model.displayFlySpeed = displayFlySpeed
 
   model.raceSaveAdvantageNotes = useMemo(() => {
@@ -1033,6 +1126,25 @@ export function useSheetEditorPart2(model: SheetModel) {
       parentSlug: model.draft.raceGrant?.parentSlug ?? null,
     })
     const note = formatRaceSaveAdvantageNote(rows)
-    return note ? note.split(' · ') : []
-  }, [model.draft.raceGrant?.slug, model.draft.raceGrant?.parentSlug])
+    const notes = note ? note.split(' · ') : []
+    if (model.rulesEdition === '2024') {
+      const spellNote = spellResistanceSaveNote2024(
+        wizard2024Flags(
+          wizard2024Context({
+            rulesEdition: model.rulesEdition,
+            classes: model.draft.classes,
+            subclassSlugByEntryId: model.subclassSlugByEntryId,
+          }),
+        ),
+      )
+      if (spellNote) notes.push(spellNote)
+    }
+    return notes
+  }, [
+    model.draft.raceGrant?.slug,
+    model.draft.raceGrant?.parentSlug,
+    model.rulesEdition,
+    model.draft.classes,
+    model.subclassSlugByEntryId,
+  ])
 }

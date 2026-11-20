@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react'
+import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
 
 /** Features with bespoke turn chips — skip generic personal wiring. */
 const TURN_SPECIAL_FEATURE_IDS = new Set([
@@ -194,6 +194,11 @@ import {
 } from '../../shared/dnd/fightingStyles'
 import type { FeaturePicksState } from '../../shared/dnd/featurePicks'
 import {
+  ELEMENTAL_FURY_PRIMAL_STRIKE,
+  primalStrikeDice2024,
+  readElementalFury2024,
+} from '../../shared/dnd/druid2024Features'
+import {
   attackBonusFromActiveEffects,
   weaponBonusesFromActiveEffects,
   type ActiveEffect,
@@ -208,7 +213,10 @@ import {
 import type { SpellsState } from './spells'
 import { resolveB04FeatureSpend } from './b04FeatureSpend'
 import {
+  assassinate2024ExtraDamage,
+  critThresholdFromFeatures,
   divineStrikeRider,
+  frenzy2024Rider,
   improvedDivineSmiteRider,
   symbioticNecroticRider,
 } from './featureCombatBonuses'
@@ -222,6 +230,13 @@ import {
   focusedAimKiClamp,
   hasO02Feature,
 } from '../../shared/dnd/o02TashaFeatures'
+import {
+  BLESSED_STRIKES_DIVINE_STRIKE,
+  BLESSED_STRIKES_POTENT_SPELLCASTING,
+  divineStrikeDice2024,
+  readBlessedStrikes2024,
+} from '../../shared/dnd/cleric2024Features'
+import { damageTypeDisplayRu } from '../../shared/dnd/damageTypes'
 import { DivineSmiteCombatBlock } from './DivineSmiteCombatBlock'
 import {
   decideSmiteSlotClick,
@@ -330,6 +345,8 @@ type PlayDeskAttacksCompactProps = {
   favoriteConsumableIds?: string[]
   /** Combat-desk class features (e.g. Reckless Attack). */
   combatFeatures?: UnlockedFeature[]
+  /** 2024 druid in Wild Shape: show form attacks + Primal Strike / Moon radiant riders. */
+  wildShapeFormAttacks?: { primalStrikeDice: number; radiant: boolean } | null
   /** T-02: «Хитрое действие» — Засада бонусным. */
   hasCunningAction?: boolean
   /** O-01: TCE book on in lobby (table buttons). */
@@ -431,6 +448,8 @@ type PlayDeskAttacksCompactProps = {
   /** O-09: Inspiration armed — advantage on this attack (spend handled by parent). */
   inspirationArmed?: boolean
   onInspirationSpent?: () => void
+  /** P24-02: 2024 turn actions / Hide DC / no L-21 surprise round. */
+  rulesEdition?: string | null
   /** O-09: inventory item ids with repeating_shot infusion (no ammo spend). */
   repeatingShotItemIds?: string[]
   /** O-09: bind ammo stack to weapon attack card. */
@@ -518,6 +537,7 @@ export function PlayDeskAttacksCompact({
   inventoryItems,
   favoriteConsumableIds = [],
   combatFeatures = [],
+  wildShapeFormAttacks = null,
   hasCunningAction = false,
   tceAllowed = false,
   masterRules = {},
@@ -567,6 +587,7 @@ export function PlayDeskAttacksCompact({
   onLuckySpent,
   inspirationArmed = false,
   onInspirationSpent,
+  rulesEdition = '2014',
   repeatingShotItemIds = [],
   onBindAmmo,
   onSpendAttackQty,
@@ -816,9 +837,11 @@ export function PlayDeskAttacksCompact({
         characterLevel,
         spellMod,
         proficiencyBonus,
+        selfFormAttacks: Boolean(wildShapeFormAttacks),
       }),
-    [companions, characterLevel, spellMod, proficiencyBonus],
+    [companions, characterLevel, spellMod, proficiencyBonus, wildShapeFormAttacks],
   )
+  const [formRadiant, setFormRadiant] = useState(false)
   const [attackBreakdown, setAttackBreakdown] = useState<{
     attackId: string
     name: string
@@ -873,15 +896,63 @@ export function PlayDeskAttacksCompact({
   } | null>(null)
   const isMobile =
     typeof window !== 'undefined' && window.matchMedia('(max-width: 959px)').matches
-  const divineStrike = useMemo(() => divineStrikeRider(combatFeatures), [combatFeatures])
-  const blessedStrikes = useMemo(
-    () =>
-      blessedStrikesRider({
-        features: combatFeatures,
-        tceAllowed,
-      }),
-    [combatFeatures, tceAllowed],
+  const attackCritThreshold = useMemo(
+    () => critThresholdFromFeatures(combatFeatures, rulesEdition),
+    [combatFeatures, rulesEdition],
   )
+  const divineStrike = useMemo(() => {
+    // 2014 domain Divine Strike (unchanged).
+    const from2014 = divineStrikeRider(combatFeatures)
+    if (String(rulesEdition ?? '2014').trim() !== '2024') return from2014
+    // 2024 Blessed Strikes → Divine Strike choice (class feature, not domain).
+    if (!featurePicks) return from2014
+    for (const row of combatFeatures) {
+      if (!row.classEntryId) continue
+      if (readBlessedStrikes2024(featurePicks, row.classEntryId) !== BLESSED_STRIKES_DIVINE_STRIKE) {
+        continue
+      }
+      const diceCount = divineStrikeDice2024(row.classLevel || 0)
+      if (diceCount <= 0) continue
+      return {
+        dice: `${diceCount}d8`,
+        type: 'излучением или некротическим',
+        label: `${diceCount}к8 излучением или некротическим, раз в ход`,
+        rollLabel: `Божественный удар, ${diceCount}к8`,
+      }
+    }
+    // 2024 druid Elemental Fury → Primal Strike (weapon hit, once per turn).
+    for (const row of combatFeatures) {
+      if (row.id !== 'elemental_fury' || !row.classEntryId) continue
+      if (readElementalFury2024(featurePicks, row.classEntryId) !== ELEMENTAL_FURY_PRIMAL_STRIKE) {
+        continue
+      }
+      const diceCount = primalStrikeDice2024(row.classLevel || 0)
+      if (diceCount <= 0) continue
+      return {
+        dice: `${diceCount}d8`,
+        type: 'холодом, огнём, электричеством или звуком',
+        label: `${diceCount}к8 холодом, огнём, электричеством или звуком, раз в ход`,
+        rollLabel: `Природный удар, ${diceCount}к8`,
+      }
+    }
+    return from2014
+  }, [combatFeatures, featurePicks, rulesEdition])
+  const blessedStrikes = useMemo(() => {
+    // 2024 Potent Spellcasting is a cantrip rider — not the TCE Blessed Strikes weapon chip.
+    if (String(rulesEdition ?? '2014').trim() === '2024' && featurePicks) {
+      for (const row of combatFeatures) {
+        if (!row.classEntryId) continue
+        const pick = readBlessedStrikes2024(featurePicks, row.classEntryId)
+        if (pick === BLESSED_STRIKES_DIVINE_STRIKE || pick === BLESSED_STRIKES_POTENT_SPELLCASTING) {
+          return null
+        }
+      }
+    }
+    return blessedStrikesRider({
+      features: combatFeatures,
+      tceAllowed,
+    })
+  }, [combatFeatures, tceAllowed, featurePicks, rulesEdition])
   const improvedSmite = useMemo(
     () => improvedDivineSmiteRider(combatFeatures),
     [combatFeatures],
@@ -907,6 +978,23 @@ export function PlayDeskAttacksCompact({
       }),
     [combatFeatures, resources, hpTemp, activeEffects],
   )
+  const isRaging = (activeEffects ?? []).some(
+    (e) => e.slug === 'rage' && !e.inactive,
+  )
+  const isReckless = (activeEffects ?? []).some(
+    (e) => e.slug === 'reckless_attack' && !e.inactive,
+  )
+  const hasAssassinate2024 =
+    String(rulesEdition ?? '2014').trim() === '2024' &&
+    combatFeatures.some((f) => {
+      const id = String(f.id || '').replace(/-/g, '_')
+      return id === 'assassinate'
+    })
+  const [frenzyUsedThisTurn, setFrenzyUsedThisTurn] = useState(false)
+  const [assassinateRound1On, setAssassinateRound1On] = useState(false)
+  useEffect(() => {
+    if (!isRaging || !isReckless) setFrenzyUsedThisTurn(false)
+  }, [isRaging, isReckless])
   const smiteSpend = useMemo(() => divineSmiteSpendOf(combatFeatures), [combatFeatures])
   const [riderOn, setRiderOn] = useState<Record<string, boolean>>({})
   const riderEnabled = (row: { effectId: string; optional?: boolean; defaultChecked?: boolean }) => {
@@ -1428,6 +1516,7 @@ export function PlayDeskAttacksCompact({
           <div className="play-desk-turn-actions-wrap">
           <TurnEconomyCombatActions
             mode="all"
+            rulesEdition={rulesEdition}
             hasCunningAction={
               hasCunningAction ||
               combatFeatures.some((f) => f.id === 'cunning_action')
@@ -1479,10 +1568,15 @@ export function PlayDeskAttacksCompact({
                       if (!turnEco || !actionSurgePool) return
                       if (resourceShownCurrent(actionSurgePool) <= 0) return
                       onSpendResource?.(actionSurgePool.id)
-                      turnEco.grantActionSurge()
+                      turnEco.grantActionSurge({
+                        blocksMagic:
+                          String(rulesEdition ?? '2014').trim() === '2024',
+                      })
                       onToast?.(
                         actionSurgeFeature
-                          ? `${actionSurgeFeature.name_ru}: +1 дополнительное действие`
+                          ? String(rulesEdition ?? '2014').trim() === '2024'
+                            ? `${actionSurgeFeature.name_ru}: +1 действие (не «Магия»)`
+                            : `${actionSurgeFeature.name_ru}: +1 дополнительное действие`
                           : 'Всплеск действий: +1 дополнительное действие',
                       )
                     },
@@ -2499,6 +2593,21 @@ export function PlayDeskAttacksCompact({
         </div>
       ) : null}
 
+      {hasAssassinate2024 ? (
+        <div className="chip-row" style={{ marginBottom: 8 }} role="group" aria-label="Ликвидация 2024">
+          <button
+            type="button"
+            className={`sheet-chip${assassinateRound1On ? ' is-on' : ''}`}
+            aria-pressed={assassinateRound1On}
+            data-testid="assassinate-round1-chip"
+            title="1-й раунд · цель ещё не ходила · доп. урон Коварной = ур. плута (без авто-крита)"
+            onClick={() => setAssassinateRound1On((v) => !v)}
+          >
+            Ликвидация · ещё не ходила
+          </button>
+        </div>
+      ) : null}
+
 
       {focusedAimOffer && hasFocusedAim ? (
         <div
@@ -2607,7 +2716,8 @@ export function PlayDeskAttacksCompact({
             const kitComputed = isKitComputedAttack(attack)
             const monkWeapon =
               Boolean(martialArtsDie) &&
-              (isMonkUnarmedAttack(attack) || isMonkWeaponName(attack.name))
+              (isMonkUnarmedAttack(attack) ||
+                isMonkWeaponName(attack.name, rulesEdition))
             const shillelaghOn =
               shillelagh != null &&
               shillelagh.attackId === attack.id &&
@@ -2646,7 +2756,13 @@ export function PlayDeskAttacksCompact({
                     !isKitImprovisedAttack(attack)
                   ? tavernBrawlerUnarmedDamage(rawBaseDamage || '1к4')
                   : rawBaseDamage
-            const shownType = face.damageType || attack.damage_type
+            const rawType = face.damageType || attack.damage_type
+            // 2024 catalog weapons store English keys (slashing/…); sheet shows Russian.
+            // 2014 catalog/presets already store Russian — leave display as-is (separate fix if needed).
+            const shownType =
+              String(rulesEdition ?? '2014').trim() === '2024'
+                ? damageTypeDisplayRu(rawType)
+                : rawType
             const mod = abilityModifier(abilities[attackAbility])
             const gear =
               attack.inventory_item_id && attack.held && requirementOk
@@ -2782,12 +2898,26 @@ export function PlayDeskAttacksCompact({
                     hasTwoWeaponFightingStyle: hasTwoWeaponStyle,
                   })
                 : mod
+            const assassinateExtra = assassinate2024ExtraDamage({
+              features: combatFeatures,
+              rulesEdition,
+              applyRound1Bonus: assassinateRound1On,
+            })
+            const frenzyRider = frenzy2024Rider({
+              features: combatFeatures,
+              rulesEdition,
+              raging: isRaging,
+              recklessAttack: isReckless,
+              strengthBased: attackAbility === 'str',
+              alreadyUsedThisTurn: frenzyUsedThisTurn,
+            })
             const baseDamageBonusBeforeManual =
               abilityDmgMod +
               (gear?.damageBonus ?? 0) +
               infusionDmg +
               flatFxDamage +
-              chargerFlat
+              chargerFlat +
+              (assassinateExtra?.amount ?? 0)
             const dmgBonus =
               baseDamageBonusBeforeManual +
               manualDmg +
@@ -2977,6 +3107,8 @@ export function PlayDeskAttacksCompact({
               divineStrike ? ` + ${divineStrike.label}` : ''
             }${meleeAttack && improvedSmite ? ` + ${improvedSmite.label}` : ''}${
               meleeAttack && symbioticRider ? ` + ${symbioticRider.label}` : ''
+            }${frenzyRider ? ` + ${frenzyRider.label}` : ''}${
+              assassinateExtra ? ` · ${assassinateExtra.label}` : ''
             }${powerKind ? ' · −5/+10' : ''}${chargerFlat ? ' · +5 Налётчик' : ''}${
               twfBonusArmed && meleeAttack ? ' · 2-е оружие' : ''
             }${gwfApplies ? ' · GWF' : ''}${coverBonusNote}${fireResistNote}${mountAimNote}${
@@ -3240,9 +3372,16 @@ export function PlayDeskAttacksCompact({
                       const naturalDie =
                         opts?.naturalDie ??
                         (opts?.crit ? 20 : null)
+                      const rollCrit = (die: number | null | undefined, flagged?: boolean) =>
+                        Boolean(
+                          flagged ||
+                            (die != null &&
+                              Number.isFinite(die) &&
+                              (die === 20 || die >= attackCritThreshold)),
+                        )
                       const resolved =
                         opts?.tableHit
-                          ? { hit: true, crit: Boolean(opts?.crit || naturalDie === 20) }
+                          ? { hit: true, crit: rollCrit(naturalDie, opts?.crit) }
                           : opts?.tableMiss
                             ? { hit: false, crit: false }
                             : target
@@ -3250,9 +3389,10 @@ export function PlayDeskAttacksCompact({
                                   attackTotal: opts?.manualTotal ?? opts?.hitTotal,
                                   natural: naturalDie,
                                   ac: target.ac,
+                                  critThreshold: attackCritThreshold,
                                 })
                               : opts?.hitTotal != null || opts?.manualTotal != null
-                                ? { hit: true, crit: Boolean(opts?.crit || naturalDie === 20) }
+                                ? { hit: true, crit: rollCrit(naturalDie, opts?.crit) }
                                 : null
                       const knownOutcome = resolved != null
                       const hitOk = resolved?.hit === true
@@ -3675,6 +3815,7 @@ export function PlayDeskAttacksCompact({
                         flamesOfPhlegethos &&
                         /огн|fire/i.test(String(attack.damage_type || shownType || '')),
                       greatWeaponFighting: gwfApplies,
+                      critThreshold: attackCritThreshold,
                       extraDamages: [
                         ...(divineStrike
                           ? [
@@ -3726,6 +3867,15 @@ export function PlayDeskAttacksCompact({
                               },
                             ]
                           : []),
+                        ...(frenzyRider
+                          ? [
+                              {
+                                expression: frenzyRider.dice,
+                                type: frenzyRider.type ?? attack.damage_type,
+                                label: frenzyRider.rollLabel ?? frenzyRider.label,
+                              },
+                            ]
+                          : []),
                         ...activeRiders.map((row) => ({
                           expression: row.dice,
                           type: row.damageType ?? null,
@@ -3736,6 +3886,9 @@ export function PlayDeskAttacksCompact({
                       ],
                       mode: attackMode,
                     })
+                    if (frenzyRider) {
+                      setFrenzyUsedThisTurn(true)
+                    }
                     const boundItem = attack.inventory_item_id
                       ? inventoryItems.find((row) => row.id === attack.inventory_item_id)
                       : undefined
@@ -4226,8 +4379,12 @@ export function PlayDeskAttacksCompact({
           })
         )}
 
-        {companionAttacks.map((atk) => (
-          <div key={atk.id} className="play-desk-compact__row is-dense">
+        {companionAttacks.map((atk) => {
+          const radiantOn = Boolean(atk.selfForm && wildShapeFormAttacks?.radiant && formRadiant)
+          const atkDamageType = radiantOn ? 'излучением' : atk.damageType
+          return (
+          <Fragment key={atk.id}>
+          <div className="play-desk-compact__row is-dense">
             <button
               type="button"
               className="play-desk-compact__hit"
@@ -4260,7 +4417,7 @@ export function PlayDeskAttacksCompact({
                   name: `${atk.companionName}: ${atk.name}`,
                   attackBonus: atk.attackBonus,
                   damageExpr: atk.damageExpr,
-                  damageType: atk.damageType,
+                  damageType: atkDamageType,
                   mode: rollMode,
                 })
                 turnEco?.spendAttack()
@@ -4309,11 +4466,58 @@ export function PlayDeskAttacksCompact({
               </span>
               <span className="play-desk-compact__dmg">
                 {atk.damageExpr}
-                {atk.damageType ? ` ${atk.damageType}` : ''}
+                {atkDamageType ? ` ${atkDamageType}` : ''}
               </span>
             </button>
           </div>
-        ))}
+          {atk.selfForm && wildShapeFormAttacks ? (
+            <div className="play-desk-compact__row is-dense" data-testid="p24-form-attack-riders">
+              {wildShapeFormAttacks.primalStrikeDice > 0 ? (
+                <button
+                  type="button"
+                  className="play-desk-compact__dmg play-desk-compact__dmg--roll"
+                  title="Природный удар: раз за ход при попадании"
+                  onClick={() => {
+                    const expr = `${wildShapeFormAttacks.primalStrikeDice}к8`
+                    const rolled = rollDamage(expr)
+                    onToast?.(
+                      rolled
+                        ? `Природный удар: ${rolled.total} холодом, огнём, электричеством или звуком (${rolled.detail})`
+                        : `Природный удар: ${expr}`,
+                    )
+                    if (characterId && rolled) {
+                      void postSheetRollToSession({
+                        openSessionId: openSessionId ?? turnEco?.openSessionId,
+                        characterId,
+                        title: 'Природный удар',
+                        total: rolled.total,
+                        formula: expr,
+                        breakdown: rolled.detail,
+                        physicalDice: Boolean(turnEco?.diceOnTable),
+                        targetName: null,
+                      })
+                    }
+                  }}
+                >
+                  Природный удар +{wildShapeFormAttacks.primalStrikeDice}к8 (раз за ход)
+                </button>
+              ) : null}
+              {wildShapeFormAttacks.radiant ? (
+                <button
+                  type="button"
+                  className="play-desk-compact__tag"
+                  aria-pressed={formRadiant}
+                  title="Улучшенные формы круга: урон облика может быть излучением"
+                  onClick={() => setFormRadiant((v) => !v)}
+                >
+                  Излучение: {formRadiant ? 'вкл' : 'выкл'}
+                </button>
+              ) : null}
+            </div>
+          ) : null}
+          </Fragment>
+          )
+        })}
 
         {combatResources.map((row) => {
           const remaining = resourceShownCurrent(row)

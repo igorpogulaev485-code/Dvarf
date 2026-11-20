@@ -1,0 +1,928 @@
+{
+  "meta": {
+    "pack": "P24-C18",
+    "source": "NsF creatures (community_ref)",
+    "count": 8,
+    "notes": [
+      "8 существ NsF; source=nsf.",
+      "Короткие RU-карточки; spell_refs только из блока заклинаний."
+    ]
+  },
+  "entries": [
+    {
+      "kind": "bestiary",
+      "slug": "caldron-magen",
+      "name_ru": "Маген-котельник",
+      "name_en": "Caldron Magen",
+      "source": "nsf",
+      "sort_order": 10,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/bestiary/27186-caldron-magen",
+        "url_ttg": "https://new.ttg.club/bestiary/caldron-magen-nf",
+        "book": "NsF"
+      },
+      "data": {
+        "schema_version": 1,
+        "size": "medium",
+        "size_ru": "средний",
+        "type": "construct",
+        "type_ru": "Конструкт",
+        "subtype": null,
+        "alignment": "без мировоззрения",
+        "ac": 20,
+        "hp_average": 67,
+        "hp_formula": "9к8+27",
+        "speed": {
+          "walk": 30
+        },
+        "cr": "4",
+        "xp": 1100,
+        "proficiency_bonus": 2,
+        "initiative": {
+          "mod": 3,
+          "score": 13
+        },
+        "abilities": {
+          "str": 18,
+          "dex": 13,
+          "con": 16,
+          "int": 10,
+          "wis": 10,
+          "cha": 10
+        },
+        "ability_mods": {
+          "str": 4,
+          "dex": 1,
+          "con": 3,
+          "int": 0,
+          "wis": 0,
+          "cha": 0
+        },
+        "ability_saves": {
+          "str": 4,
+          "dex": 1,
+          "con": 3,
+          "int": 0,
+          "wis": 0,
+          "cha": 0
+        },
+        "skills": {
+          "Внимательность": 4
+        },
+        "senses": {
+          "passive_perception": 14
+        },
+        "languages": [
+          "знает Общий плюс два других языка",
+          "но не говорит"
+        ],
+        "source_book": "NsF",
+        "srd_section": "monsters",
+        "summary_ru": "средний конструкт, ПО 4; КД 20, хиты 67 (9к8+27); инициатива +3 (ср. 13), БМ +2.",
+        "name_ru_pending": false,
+        "gear_refs": [],
+        "spell_refs": [],
+        "traits": [
+          {
+            "name_ru": "Распад",
+            "text_ru": "Если маген умирает, он распадается в пыль, роняя всё, что он носил или нёс.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Сопротивление магии",
+            "text_ru": "Маген совершает с Преимуществом спасброски от заклинаний и прочих магических эффектов.",
+            "name_ru_pending": false
+          }
+        ],
+        "actions": [
+          {
+            "name_ru": "Мультиатака",
+            "text_ru": "Маген совершает две атаки Выдвижным кулаком или Кислотным плевком в любой комбинации.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Выдвижной кулак",
+            "text_ru": "Бросок рукопашной атаки: +6, досягаемость 15 фт. Попадание: 8 (1к8 + 4) Дробящего урона плюс 5 (1к10) урона Кислотой. Если цель — существо Среднего размера или меньше, она становится Схваченной (Сл освобождения от захвата 14) одним из двух кулаков.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Кислотный плевок",
+            "text_ru": "Бросок дальнобойной атаки: +6, дистанция 60 фт. Попадание: 13 (2к8 + 4) урона Кислотой.",
+            "name_ru_pending": false
+          }
+        ]
+      }
+    },
+    {
+      "kind": "bestiary",
+      "slug": "eldritch-eddy",
+      "name_ru": "Магический вихрь",
+      "name_en": "Eldritch Eddy",
+      "source": "nsf",
+      "sort_order": 20,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/bestiary/27185-eldritch-eddy",
+        "url_ttg": "https://new.ttg.club/bestiary/eldritch-eddy-nf",
+        "book": "NsF"
+      },
+      "data": {
+        "schema_version": 1,
+        "size": "large",
+        "size_ru": "большой",
+        "type": "construct",
+        "type_ru": "Конструкт",
+        "subtype": null,
+        "alignment": "нейтральный",
+        "ac": 11,
+        "hp_average": 144,
+        "hp_formula": "17к10+51",
+        "speed": {
+          "walk": 10,
+          "fly": 40
+        },
+        "cr": "6",
+        "xp": 2300,
+        "proficiency_bonus": 3,
+        "initiative": {
+          "mod": 1,
+          "score": 11
+        },
+        "abilities": {
+          "str": 10,
+          "dex": 12,
+          "con": 16,
+          "int": 12,
+          "wis": 9,
+          "cha": 17
+        },
+        "ability_mods": {
+          "str": 0,
+          "dex": 1,
+          "con": 3,
+          "int": 1,
+          "wis": -1,
+          "cha": 3
+        },
+        "ability_saves": {
+          "str": 0,
+          "dex": 4,
+          "con": 3,
+          "int": 4,
+          "wis": -1,
+          "cha": 6
+        },
+        "skills": {},
+        "senses": {
+          "passive_perception": 9
+        },
+        "languages": [
+          "знает Общий плюс один другой язык",
+          "но не говорит"
+        ],
+        "source_book": "NsF",
+        "srd_section": "monsters",
+        "summary_ru": "большой конструкт, ПО 6; КД 11, хиты 144 (17к10+51); инициатива +1 (ср. 11), БМ +3.",
+        "name_ru_pending": false,
+        "gear_refs": [],
+        "spell_refs": [],
+        "traits": [
+          {
+            "name_ru": "Сопротивление магии",
+            "text_ru": "Вихрь совершает с Преимуществом спасброски от заклинаний и прочих магических эффектов.",
+            "name_ru_pending": false
+          }
+        ],
+        "actions": [
+          {
+            "name_ru": "Мультиатака",
+            "text_ru": "Вихрь совершает две атаки Жгучим замахом или Волшебным снарядом в любой комбинации.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Жгучий замах",
+            "text_ru": "Бросок рукопашной атаки: +6, досягаемость 10 фт. Попадание: 13 (3к6 + 3) урона Огнём или Электричеством (по выбору вихря).",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Волшебный снаряд",
+            "text_ru": "Бросок дальнобойной атаки: +6, дистанция 120 фт. Попадание: 14 (2к10 + 3) Силового урона.",
+            "name_ru_pending": false
+          }
+        ],
+        "damage_resistances": [
+          "силовой"
+        ]
+      }
+    },
+    {
+      "kind": "bestiary",
+      "slug": "phaerimm-agent",
+      "name_ru": "Фаэримм-агент",
+      "name_en": "Phaerimm Agent",
+      "source": "nsf",
+      "sort_order": 30,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/bestiary/27191-phaerimm-agent",
+        "url_ttg": "",
+        "book": "NsF"
+      },
+      "data": {
+        "schema_version": 1,
+        "size": "large",
+        "size_ru": "большой",
+        "type": "aberration",
+        "type_ru": "Аберрация",
+        "subtype": null,
+        "alignment": "нейтральный",
+        "ac": 15,
+        "hp_average": 123,
+        "hp_formula": "19к10+19",
+        "speed": {
+          "walk": 10,
+          "fly": 40
+        },
+        "cr": "8",
+        "xp": 3900,
+        "proficiency_bonus": 3,
+        "initiative": {
+          "mod": 4,
+          "score": 14
+        },
+        "abilities": {
+          "str": 12,
+          "dex": 18,
+          "con": 12,
+          "int": 17,
+          "wis": 16,
+          "cha": 18
+        },
+        "ability_mods": {
+          "str": 1,
+          "dex": 4,
+          "con": 1,
+          "int": 3,
+          "wis": 3,
+          "cha": 4
+        },
+        "ability_saves": {
+          "str": 1,
+          "dex": 4,
+          "con": 4,
+          "int": 6,
+          "wis": 6,
+          "cha": 7
+        },
+        "skills": {
+          "Внимательность": 6,
+          "Проницательность": 6,
+          "Магия": 9
+        },
+        "senses": {
+          "passive_perception": 16
+        },
+        "languages": [
+          "знает Общий и Глубинную речь",
+          "но не говорит",
+          "Телепатия 120 фт."
+        ],
+        "source_book": "NsF",
+        "srd_section": "monsters",
+        "summary_ru": "большая аберрация, ПО 8; КД 15, хиты 123 (19к10+19); инициатива +4 (ср. 14), БМ +3; есть заклинания.",
+        "name_ru_pending": false,
+        "gear_refs": [],
+        "spell_refs": [
+          "mage-hand",
+          "detect-magic",
+          "detect-thoughts",
+          "major-image",
+          "clairvoyance",
+          "synaptic-static"
+        ],
+        "traits": [
+          {
+            "name_ru": "Сопротивление магии",
+            "text_ru": "Фаэримм совершает с Преимуществом спасброски от заклинаний и прочих магических эффектов.",
+            "name_ru_pending": false
+          }
+        ],
+        "actions": [
+          {
+            "name_ru": "Мультиатака",
+            "text_ru": "Фаэримм совершает три атаки Кошмарным жалом или Лучом искажения разума в любой комбинации.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Кошмарное жало",
+            "text_ru": "Бросок рукопашной атаки: +7, досягаемость 5 фт. Попадание: 7 (1к6 + 4) Колющего урона плюс 13 (2к12) урона Ядом.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Луч искажения разума",
+            "text_ru": "Бросок дальнобойной атаки: +7, дистанция 120 фт. Попадание: 13 (2к8 + 4) Психического урона, и цель получает состояние Очарованный до начала следующего хода фаэримма.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Сотворение заклинаний",
+            "text_ru": "Фаэримм-агент сотворяет одно из следующих заклинаний, не нуждаясь в компонентах заклинания (заклинательная характеристика — Харизма, Сл спасброска заклинаний 15): Неограниченно: Волшебная рука, Обнаружение магии, Обнаружение мыслей 1/день каждое: Образ, Подсматривание, Синаптический разряд",
+            "name_ru_pending": false
+          }
+        ],
+        "bonus_actions": [
+          {
+            "name_ru": "Телепортация",
+            "text_ru": "Фаэримм телепортируется на расстояние до 30 футов в видимое им незанятое пространство.",
+            "name_ru_pending": false
+          }
+        ],
+        "reactions": [
+          {
+            "name_ru": "Защитная магия (3/день)",
+            "text_ru": "Фаэримм сотворяет Контрзаклинание или Щит в ответ на условие этого заклинания (заклинательная характеристика — та же, что для Сотворения заклинаний).",
+            "name_ru_pending": false
+          }
+        ]
+      }
+    },
+    {
+      "kind": "bestiary",
+      "slug": "phaerimm-elder",
+      "name_ru": "Фаэримм-старейшина",
+      "name_en": "Phaerimm Elder",
+      "source": "nsf",
+      "sort_order": 40,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/bestiary/27192-phaerimm-elder",
+        "url_ttg": "https://new.ttg.club/bestiary/phaerimm-elder-nf",
+        "book": "NsF"
+      },
+      "data": {
+        "schema_version": 1,
+        "size": "huge",
+        "size_ru": "огромный",
+        "type": "aberration",
+        "type_ru": "Аберрация",
+        "subtype": null,
+        "alignment": "нейтральный",
+        "ac": 17,
+        "hp_average": 218,
+        "hp_formula": "23к12+69",
+        "speed": {
+          "walk": 30,
+          "fly": 60
+        },
+        "cr": "14",
+        "xp": 11500,
+        "proficiency_bonus": 5,
+        "initiative": {
+          "mod": 8,
+          "score": 18
+        },
+        "abilities": {
+          "str": 18,
+          "dex": 16,
+          "con": 17,
+          "int": 17,
+          "wis": 16,
+          "cha": 18
+        },
+        "ability_mods": {
+          "str": 4,
+          "dex": 3,
+          "con": 3,
+          "int": 3,
+          "wis": 3,
+          "cha": 4
+        },
+        "ability_saves": {
+          "str": 4,
+          "dex": 3,
+          "con": 8,
+          "int": 8,
+          "wis": 8,
+          "cha": 9
+        },
+        "skills": {
+          "Внимательность": 8,
+          "Проницательность": 8,
+          "Магия": 13
+        },
+        "senses": {
+          "passive_perception": 18
+        },
+        "languages": [
+          "знает Общий и Глубинную речь",
+          "но не говорит",
+          "Телепатия 120 фт."
+        ],
+        "source_book": "NsF",
+        "srd_section": "monsters",
+        "summary_ru": "огромная аберрация, ПО 14; КД 17, хиты 218 (23к12+69); инициатива +8 (ср. 18), БМ +5; есть заклинания.",
+        "name_ru_pending": false,
+        "gear_refs": [],
+        "spell_refs": [
+          "mage-hand",
+          "detect-magic",
+          "detect-thoughts",
+          "command",
+          "geas",
+          "major-image",
+          "clairvoyance",
+          "mirage-arcane"
+        ],
+        "traits": [
+          {
+            "name_ru": "Сопротивление магии",
+            "text_ru": "Фаэримм совершает с Преимуществом спасброски от заклинаний и прочих магических эффектов.",
+            "name_ru_pending": false
+          }
+        ],
+        "actions": [
+          {
+            "name_ru": "Мультиатака",
+            "text_ru": "Фаэримм совершает три атаки Психической плетью. Он может заменить одну атаку на (А) атаку Безобразным жалом или (Б) сотворение Приказа (версии 3-го уровня) от Сотворения заклинаний.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Психическая плеть",
+            "text_ru": "Бросок рукопашной или дальнобойной атаки: +9, досягаемость 10 фт. или дистанция 120 фт. Попадание: 32 (6к8 + 4) Психического урона.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Безобразное жало",
+            "text_ru": "Бросок рукопашной атаки: +9, досягаемость 5 фт. Попадание: 11 (2к6 + 4) Колющего урона плюс 26 (4к12) урона Ядом, и Скорость цели снижается до 0 до начала следующего хода фаэримма.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Высасывание магии (Перезарядка 5–6)",
+            "text_ru": "Фаэримм сосредотачивается на видимом им магическом предмете в пределах 10 футов. Когда фаэримм делает так, он истощает магический предмет, лишая его всех зарядов. Независимо от того, имелись ли в предмете заряды, фаэримм может сотворять Гейс, Образ, Подсматривание и Таинственный мираж ещё один раз в этот день.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Сотворение заклинаний",
+            "text_ru": "Фаэримм-старейшина сотворяет одно из следующих заклинаний, не нуждаясь в компонентах заклинания (заклинательная характеристика — Харизма, Сл спасброска заклинаний 17): Неограниченно: Волшебная рука, Обнаружение магии, Обнаружение мыслей, Приказ (версия 3-го уровня) 1/день каждое: Гейс, Образ, Подсматривание, Таинственный мираж",
+            "name_ru_pending": false
+          }
+        ],
+        "bonus_actions": [
+          {
+            "name_ru": "Телепортация",
+            "text_ru": "Фаэримм телепортируется на расстояние до 30 футов в видимое им незанятое пространство.",
+            "name_ru_pending": false
+          }
+        ],
+        "reactions": [
+          {
+            "name_ru": "Защитная магия (3/день)",
+            "text_ru": "Фаэримм сотворяет Контрзаклинание или Щит в ответ на условие этого заклинания (заклинательная характеристика — та же, что для Сотворения заклинаний).",
+            "name_ru_pending": false
+          }
+        ]
+      }
+    },
+    {
+      "kind": "bestiary",
+      "slug": "phaerimm-hatchling",
+      "name_ru": "Фаэримм-детёныш",
+      "name_en": "Phaerimm Hatchling",
+      "source": "nsf",
+      "sort_order": 50,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/bestiary/27189-phaerimm-hatchling",
+        "url_ttg": "",
+        "book": "NsF"
+      },
+      "data": {
+        "schema_version": 1,
+        "size": "small",
+        "size_ru": "маленький",
+        "type": "aberration",
+        "type_ru": "Аберрация",
+        "subtype": null,
+        "alignment": "нейтральный",
+        "ac": 12,
+        "hp_average": 13,
+        "hp_formula": "3к6+3",
+        "speed": {
+          "walk": 10,
+          "fly": 30
+        },
+        "cr": "1/4",
+        "xp": 50,
+        "proficiency_bonus": 2,
+        "initiative": {
+          "mod": 1,
+          "score": 11
+        },
+        "abilities": {
+          "str": 11,
+          "dex": 12,
+          "con": 12,
+          "int": 14,
+          "wis": 16,
+          "cha": 14
+        },
+        "ability_mods": {
+          "str": 0,
+          "dex": 1,
+          "con": 1,
+          "int": 2,
+          "wis": 3,
+          "cha": 2
+        },
+        "ability_saves": {
+          "str": 0,
+          "dex": 1,
+          "con": 1,
+          "int": 2,
+          "wis": 3,
+          "cha": 2
+        },
+        "skills": {
+          "Внимательность": 5
+        },
+        "senses": {
+          "passive_perception": 15
+        },
+        "languages": [
+          "знает Общий и Глубинную речь",
+          "но не говорит",
+          "Телепатия 30 фт."
+        ],
+        "source_book": "NsF",
+        "srd_section": "monsters",
+        "summary_ru": "маленькая аберрация, ПО 1/4; КД 12, хиты 13 (3к6+3); инициатива +1 (ср. 11), БМ +2; есть заклинания.",
+        "name_ru_pending": false,
+        "gear_refs": [],
+        "spell_refs": [
+          "mage-hand",
+          "detect-thoughts"
+        ],
+        "traits": [
+          {
+            "name_ru": "Сопротивление магии",
+            "text_ru": "Фаэримм совершает с Преимуществом спасброски от заклинаний и прочих магических эффектов.",
+            "name_ru_pending": false
+          }
+        ],
+        "actions": [
+          {
+            "name_ru": "Мультиатака",
+            "text_ru": "Фаеримм совершает две атаки Жалом.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Жало",
+            "text_ru": "Бросок рукопашной атаки: +3, досягаемость 5 фт. Попадание: 3 (1к4 + 1) Колющего урона.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Сотворение заклинаний",
+            "text_ru": "Фаэримм-детёныш сотворяет одно из следующих заклинаний, не нуждаясь в компонентах заклинания (заклинательная характеристика — Харизма, Сл спасброска заклинаний 12): Неограниченно: Волшебная рука, Обнаружение мыслей",
+            "name_ru_pending": false
+          }
+        ]
+      }
+    },
+    {
+      "kind": "bestiary",
+      "slug": "phaerimm-scout",
+      "name_ru": "Фаэримм-разведчик",
+      "name_en": "Phaerimm Scout",
+      "source": "nsf",
+      "sort_order": 60,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/bestiary/27190-phaerimm-scout",
+        "url_ttg": "https://new.ttg.club/bestiary/phaerimm-scout-nf",
+        "book": "NsF"
+      },
+      "data": {
+        "schema_version": 1,
+        "size": "medium",
+        "size_ru": "средний",
+        "type": "aberration",
+        "type_ru": "Аберрация",
+        "subtype": null,
+        "alignment": "нейтральный",
+        "ac": 13,
+        "hp_average": 44,
+        "hp_formula": "8к8+8",
+        "speed": {
+          "walk": 10,
+          "fly": 40
+        },
+        "cr": "2",
+        "xp": 450,
+        "proficiency_bonus": 2,
+        "initiative": {
+          "mod": 3,
+          "score": 13
+        },
+        "abilities": {
+          "str": 12,
+          "dex": 13,
+          "con": 12,
+          "int": 15,
+          "wis": 16,
+          "cha": 16
+        },
+        "ability_mods": {
+          "str": 1,
+          "dex": 1,
+          "con": 1,
+          "int": 2,
+          "wis": 3,
+          "cha": 3
+        },
+        "ability_saves": {
+          "str": 1,
+          "dex": 1,
+          "con": 1,
+          "int": 4,
+          "wis": 3,
+          "cha": 5
+        },
+        "skills": {
+          "Внимательность": 5
+        },
+        "senses": {
+          "passive_perception": 15
+        },
+        "languages": [
+          "знает Общий и Глубинную речь",
+          "но не говорит",
+          "Телепатия 120 фт."
+        ],
+        "source_book": "NsF",
+        "srd_section": "monsters",
+        "summary_ru": "средняя аберрация, ПО 2; КД 13, хиты 44 (8к8+8); инициатива +3 (ср. 13), БМ +2; есть заклинания.",
+        "name_ru_pending": false,
+        "gear_refs": [],
+        "spell_refs": [
+          "mage-hand",
+          "detect-magic",
+          "detect-thoughts",
+          "clairvoyance"
+        ],
+        "traits": [
+          {
+            "name_ru": "Сопротивление магии",
+            "text_ru": "Фаэримм совершает с Преимуществом спасброски от заклинаний и прочих магических эффектов.",
+            "name_ru_pending": false
+          }
+        ],
+        "actions": [
+          {
+            "name_ru": "Мультиатака",
+            "text_ru": "Фаэримм совершает две атаки Жалом или Лучом искажения разума в любой комбинации.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Жало",
+            "text_ru": "Бросок рукопашной атаки: +3, досягаемость 5 фт. Попадание: 4 (1к6 + 1) Колющего урона плюс 9 (2к8) урона Ядом.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Луч искажения разума",
+            "text_ru": "Бросок дальнобойной атаки: +5, дистанция 120 фт. Попадание: 6 (1к6 + 3) Психического урона, и цель получает состояние Очарованный до начала следующего хода фаэримма.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Сотворение заклинаний",
+            "text_ru": "Фаэримм-разведчик сотворяет одно из следующих заклинаний, не нуждаясь в компонентах заклинания (заклинательная характеристика — Харизма, Сл спасброска заклинаний 13): Неограниченно: Волшебная рука, Обнаружение магии, Обнаружение мыслей 1/день: Подсматривание",
+            "name_ru_pending": false
+          }
+        ]
+      }
+    },
+    {
+      "kind": "bestiary",
+      "slug": "terran-magen",
+      "name_ru": "Маген-земельник",
+      "name_en": "Terran Magen",
+      "source": "nsf",
+      "sort_order": 70,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/bestiary/27187-terran-magen",
+        "url_ttg": "https://new.ttg.club/bestiary/terran-magen-nf",
+        "book": "NsF"
+      },
+      "data": {
+        "schema_version": 1,
+        "size": "medium",
+        "size_ru": "средний",
+        "type": "construct",
+        "type_ru": "Конструкт",
+        "subtype": null,
+        "alignment": "без мировоззрения",
+        "ac": 21,
+        "hp_average": 121,
+        "hp_formula": "22к8+22",
+        "speed": {
+          "walk": 30,
+          "fly": 20
+        },
+        "cr": "8",
+        "xp": 3900,
+        "proficiency_bonus": 3,
+        "initiative": {
+          "mod": 3,
+          "score": 13
+        },
+        "abilities": {
+          "str": 16,
+          "dex": 10,
+          "con": 12,
+          "int": 10,
+          "wis": 18,
+          "cha": 10
+        },
+        "ability_mods": {
+          "str": 3,
+          "dex": 0,
+          "con": 1,
+          "int": 0,
+          "wis": 4,
+          "cha": 0
+        },
+        "ability_saves": {
+          "str": 3,
+          "dex": 0,
+          "con": 1,
+          "int": 0,
+          "wis": 7,
+          "cha": 0
+        },
+        "skills": {
+          "Внимательность": 7
+        },
+        "senses": {
+          "passive_perception": 17
+        },
+        "languages": [
+          "знает Общий плюс два других языка",
+          "но не говорит"
+        ],
+        "source_book": "NsF",
+        "srd_section": "monsters",
+        "summary_ru": "средний конструкт, ПО 8; КД 21, хиты 121 (22к8+22); инициатива +3 (ср. 13), БМ +3; есть заклинания.",
+        "name_ru_pending": false,
+        "gear_refs": [
+          "maul"
+        ],
+        "spell_refs": [
+          "mage-hand",
+          "mending",
+          "prestidigitation",
+          "move-earth",
+          "disintegrate",
+          "stone-shape"
+        ],
+        "traits": [
+          {
+            "name_ru": "Распад",
+            "text_ru": "Если маген умирает, он распадается в пыль, роняя всё, что он носил или нёс.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Сопротивление магии",
+            "text_ru": "Маген совершает с Преимуществом спасброски от заклинаний и прочих магических эффектов.",
+            "name_ru_pending": false
+          }
+        ],
+        "actions": [
+          {
+            "name_ru": "Мультиатака",
+            "text_ru": "Маген совершает две атаки Кулаком-молотом или Громовым раскатом в любой комбинации.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Кулак-молот",
+            "text_ru": "Бросок рукопашной атаки: +6, досягаемость 5 фт. Попадание: 16 (3к8 + 3) Дробящего урона плюс 13 (3к8) Силового урона.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Громовой раскат",
+            "text_ru": "Бросок дальнобойной атаки: +7, дистанция 60 фт. Попадание: 28 (8к6) урона Звуком.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Сотворение заклинаний",
+            "text_ru": "Маген-земельник сотворяет одно из следующих заклинаний, не нуждаясь в Материальных компонентах (заклинательная характеристика — Мудрость, Сл спасброска заклинаний 15): Неограниченно: Волшебная рука, Починка, Фокусы 1/день каждое: Движение почвы, Дезинтеграция, Изменение формы камня",
+            "name_ru_pending": false
+          }
+        ]
+      }
+    },
+    {
+      "kind": "bestiary",
+      "slug": "virvos-magen",
+      "name_ru": "Маген-морочник",
+      "name_en": "Virvos Magen",
+      "source": "nsf",
+      "sort_order": 80,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/bestiary/27188-virvos-magen",
+        "url_ttg": "",
+        "book": "NsF"
+      },
+      "data": {
+        "schema_version": 1,
+        "size": "medium",
+        "size_ru": "средний",
+        "type": "construct",
+        "type_ru": "Конструкт",
+        "subtype": null,
+        "alignment": "без мировоззрения",
+        "ac": 21,
+        "hp_average": 110,
+        "hp_formula": "17к8+34",
+        "speed": {
+          "walk": 30,
+          "fly": 20
+        },
+        "cr": "6",
+        "xp": 2300,
+        "proficiency_bonus": 3,
+        "initiative": {
+          "mod": 3,
+          "score": 13
+        },
+        "abilities": {
+          "str": 12,
+          "dex": 10,
+          "con": 14,
+          "int": 10,
+          "wis": 10,
+          "cha": 16
+        },
+        "ability_mods": {
+          "str": 1,
+          "dex": 0,
+          "con": 2,
+          "int": 0,
+          "wis": 0,
+          "cha": 3
+        },
+        "ability_saves": {
+          "str": 1,
+          "dex": 0,
+          "con": 2,
+          "int": 0,
+          "wis": 0,
+          "cha": 3
+        },
+        "skills": {
+          "Внимательность": 6
+        },
+        "senses": {
+          "passive_perception": 16
+        },
+        "languages": [
+          "знает Общий плюс два других языка",
+          "но не говорит"
+        ],
+        "source_book": "NsF",
+        "srd_section": "monsters",
+        "summary_ru": "средний конструкт, ПО 6; КД 21, хиты 110 (17к8+34); инициатива +3 (ср. 13), БМ +3; есть заклинания.",
+        "name_ru_pending": false,
+        "gear_refs": [],
+        "spell_refs": [
+          "minor-illusion",
+          "dancing-lights",
+          "hypnotic-pattern",
+          "major-image"
+        ],
+        "traits": [
+          {
+            "name_ru": "Распад",
+            "text_ru": "Если маген умирает, он распадается в пыль, роняя всё, что он носил или нёс.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Сопротивление магии",
+            "text_ru": "Маген совершает с Преимуществом спасброски от заклинаний и прочих магических эффектов.",
+            "name_ru_pending": false
+          }
+        ],
+        "actions": [
+          {
+            "name_ru": "Мультиатака",
+            "text_ru": "Маген совершает две атаки Психическим взрывом.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Психический взрыв",
+            "text_ru": "Бросок рукопашной или дальнобойной атаки: +6, досягаемость 5 фт. или дистанция 60 фт. Попадание: 21 (6к6) Психического урона.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Сотворение заклинаний",
+            "text_ru": "Маген-морочник сотворяет одно из следующих заклинаний, не нуждаясь в Материальных компонентах (заклинательная характеристика — Харизма, Сл спасброска заклинаний 14): Неограниченно: Малая иллюзия, Пляшущие огоньки 1/день каждое: Гипнотический узор, Образ",
+            "name_ru_pending": false
+          }
+        ]
+      }
+    }
+  ],
+  "skipped": []
+}

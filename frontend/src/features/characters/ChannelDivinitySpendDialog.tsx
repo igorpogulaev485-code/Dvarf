@@ -13,9 +13,15 @@ import {
   isHarnessDivinePowerFeature,
   spentSlotLevels,
 } from '../../shared/dnd/harnessDivinePower'
+import {
+  CLERIC_2024_CARD_BUTTONS,
+  cleric2024UseFeatureId,
+} from '../../shared/dnd/cleric2024Features'
 import type { SheetResource } from '../../shared/dnd/rest'
+import type { RulesEdition } from '../../shared/api/characters'
 import type { SpellSlotState } from '../../shared/dnd/spells'
 import { Button, Dialog, Stack, Text } from '../../ui'
+import type { ClericFeatureRequest } from './Cleric2024UseDialog'
 
 type ChannelDivinitySpendDialogProps = {
   open: boolean
@@ -34,6 +40,9 @@ type ChannelDivinitySpendDialogProps = {
   }) => void
   onToast: (message: string) => void
   onClose: () => void
+  /** 2024 Cleric: Divine Spark / Turn Undead / domain options open the Cleric use dialog. */
+  edition?: RulesEdition
+  onClericFeatureUse?: (request: ClericFeatureRequest) => void
 }
 
 function parseChannelResourceId(
@@ -65,6 +74,8 @@ export function ChannelDivinitySpendDialog({
   onHarnessDivinePower,
   onToast,
   onClose,
+  edition = '2014',
+  onClericFeatureUse,
 }: ChannelDivinitySpendDialogProps) {
   const remaining = resource ? Math.max(0, resource.max - resource.used) : 0
   const parsed = resource ? parseChannelResourceId(resource.id) : null
@@ -209,6 +220,14 @@ export function ChannelDivinitySpendDialog({
                 )
               }
 
+              const clericUse =
+                edition === '2024' &&
+                onClericFeatureUse &&
+                resource &&
+                cleric2024UseFeatureId(feature.id)
+                  ? onClericFeatureUse
+                  : null
+
               return (
                 <div key={featureKey(feature)} className="sorcery-spend-row">
                   <div className="sorcery-spend-row__text">
@@ -219,9 +238,27 @@ export function ChannelDivinitySpendDialog({
                     type="button"
                     variant="secondary"
                     disabled={remaining <= 0}
-                    onClick={() => spend(feature.name_ru)}
+                    onClick={() => {
+                      if (!clericUse || !resource) {
+                        spend(feature.name_ru)
+                        return
+                      }
+                      if (remaining <= 0) {
+                        onToast('Нет использований Проведения божественности')
+                        return
+                      }
+                      clericUse({
+                        featureId: feature.id,
+                        resourceId: resource.id,
+                        classSlug: classSlugForFeature(feature),
+                        classEntryId: feature.classEntryId,
+                        name: feature.name_ru,
+                      })
+                    }}
                   >
-                    −1
+                    {clericUse
+                      ? (CLERIC_2024_CARD_BUTTONS[feature.id] ?? 'Применить…')
+                      : '−1'}
                   </Button>
                 </div>
               )

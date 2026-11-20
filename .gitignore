@@ -27,3 +27,11 @@ build/
 frontend/dist/
 frontend/node_modules/
 mockups/
+
+# Local purge backups (P24-01)
+backups/
+backend/backups/
+
+# Playwright ephemeral
+artifacts/**/test-results/
+frontend/test-results/

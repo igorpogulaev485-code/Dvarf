@@ -1,0 +1,3083 @@
+{
+  "meta": {
+    "pack": "P24-C09",
+    "rules_edition": "2024",
+    "source": "ph24",
+    "notes_ru": "36 подклассов PHB сверх 12 SRD (C04). Имена — subclasses.csv; умения — короткие карточки по next.dnd.su. parent_id = UUID класса 2024 из C04. Артефактор не входит."
+  },
+  "entries": [
+    {
+      "kind": "subclass",
+      "slug": "barbarian__wild-heart",
+      "name_ru": "Путь дикого сердца",
+      "name_en": "Path of the Wild Heart",
+      "source": "ph24",
+      "sort_order": 10,
+      "parent_id": "29e4797c-5d99-5b80-a300-87e928bc38db",
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/class/barbarian",
+        "url_ttg": "",
+        "book": "PH24"
+      },
+      "data": {
+        "parent_class": "barbarian",
+        "subclass_level": 3,
+        "features": [
+          {
+            "level": 3,
+            "features": [
+              {
+                "id": "animal-speaker",
+                "name_en": "Animal Speaker",
+                "name_ru": "Говорящий с животными",
+                "summary_ru": "Ритуалы «Животные чувства» и «Разговор с животными» (МУД)."
+              },
+              {
+                "id": "rage-of-the-wilds",
+                "name_en": "Rage of the Wilds",
+                "name_ru": "Ярость дикой природы",
+                "summary_ru": "При ярости выбор: волк (союзники с преимуществом рядом), медведь (широкое сопротивление) или орёл (Отход+Рывок)."
+              }
+            ]
+          },
+          {
+            "level": 6,
+            "features": [
+              {
+                "id": "aspect-of-the-wilds",
+                "name_en": "Aspect of the Wilds",
+                "name_ru": "Аспект дикой природы",
+                "summary_ru": "После длинного: плавание, лазание или тёмное зрение (+60)."
+              }
+            ]
+          },
+          {
+            "level": 10,
+            "features": [
+              {
+                "id": "nature-speaker",
+                "name_en": "Nature Speaker",
+                "name_ru": "Говорящий с природой",
+                "summary_ru": "Ритуал «Общение с природой» (МУД)."
+              }
+            ]
+          },
+          {
+            "level": 14,
+            "features": [
+              {
+                "id": "power-of-the-wilds",
+                "name_en": "Power of the Wilds",
+                "name_ru": "Сила дикой природы",
+                "summary_ru": "При ярости: полёт без доспехов, аура помехи врагам или опрокидывание ударом."
+              }
+            ]
+          }
+        ],
+        "summary_ru": "Подкласс варвара: ярость животных и речь с природой.",
+        "spell_list": [],
+        "spell_list_note_ru": "У подкласса нет отдельного списка заклинаний в этой карточке (или список пуст)."
+      }
+    },
+    {
+      "kind": "subclass",
+      "slug": "barbarian__world-tree",
+      "name_ru": "Путь Мирового древа",
+      "name_en": "Path of the World Tree",
+      "source": "ph24",
+      "sort_order": 20,
+      "parent_id": "29e4797c-5d99-5b80-a300-87e928bc38db",
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/class/barbarian",
+        "url_ttg": "",
+        "book": "PH24"
+      },
+      "data": {
+        "parent_class": "barbarian",
+        "subclass_level": 3,
+        "features": [
+          {
+            "level": 3,
+            "features": [
+              {
+                "id": "vitality-of-the-tree",
+                "name_en": "Vitality of the Tree",
+                "name_ru": "Жизненная сила Древа",
+                "summary_ru": "При ярости — временные хиты = уровень; пока ярость — раздавать временные хиты союзнику."
+              }
+            ]
+          },
+          {
+            "level": 6,
+            "features": [
+              {
+                "id": "branches-of-the-tree",
+                "name_en": "Branches of the Tree",
+                "name_ru": "Ветви Древа",
+                "summary_ru": "Реакция: телепорт цели к себе (спас СИЛ) и обнулить скорость."
+              }
+            ]
+          },
+          {
+            "level": 10,
+            "features": [
+              {
+                "id": "battering-roots",
+                "name_en": "Battering Roots",
+                "name_ru": "Колотящее дубьё",
+                "summary_ru": "+10 фт досягаемости тяжёлым/универсальным; доп. Толчок или Опрокидывание."
+              }
+            ]
+          },
+          {
+            "level": 14,
+            "features": [
+              {
+                "id": "travel-along-the-tree",
+                "name_en": "Travel along the Tree",
+                "name_ru": "Путешествие по Древу",
+                "summary_ru": "Телепорт до 60 фт в ярости; раз за ярость — до 150 фт с союзниками."
+              }
+            ]
+          }
+        ],
+        "summary_ru": "Подкласс варвара: жизненная сила и телепорты Мирового древа.",
+        "spell_list": [],
+        "spell_list_note_ru": "У подкласса нет отдельного списка заклинаний в этой карточке (или список пуст)."
+      }
+    },
+    {
+      "kind": "subclass",
+      "slug": "barbarian__zealot",
+      "name_ru": "Путь фанатика",
+      "name_en": "Path of the Zealot",
+      "source": "ph24",
+      "sort_order": 30,
+      "parent_id": "29e4797c-5d99-5b80-a300-87e928bc38db",
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/class/barbarian",
+        "url_ttg": "",
+        "book": "PH24"
+      },
+      "data": {
+        "parent_class": "barbarian",
+        "subclass_level": 3,
+        "features": [
+          {
+            "level": 3,
+            "features": [
+              {
+                "id": "divine-fury",
+                "name_en": "Divine Fury",
+                "name_ru": "Божественная ярость",
+                "summary_ru": "В ярости первая попавшая атака за ход: +1к6 + пол-уровня некрот./излучение."
+              },
+              {
+                "id": "warrior-of-the-gods",
+                "name_en": "Warrior of the Gods",
+                "name_ru": "Воин богов",
+                "summary_ru": "Пул к12 на самолечение (растёт с уровнем); полный на длинном."
+              }
+            ]
+          },
+          {
+            "level": 6,
+            "features": [
+              {
+                "id": "fanatical-focus",
+                "name_en": "Fanatical Focus",
+                "name_ru": "Фанатичная сосредоточенность",
+                "summary_ru": "Раз за ярость: переброс проваленного спасброска с бонусом урона ярости."
+              }
+            ]
+          },
+          {
+            "level": 10,
+            "features": [
+              {
+                "id": "zealous-presence",
+                "name_en": "Zealous Presence",
+                "name_ru": "Фанатичное присутствие",
+                "summary_ru": "Бонусным: до 10 союзников с преимуществом к атакам/спасам на 1 раунд (1/длинный или за ярость)."
+              }
+            ]
+          },
+          {
+            "level": 14,
+            "features": [
+              {
+                "id": "rage-of-the-gods",
+                "name_en": "Rage of the Gods",
+                "name_ru": "Ярость богов",
+                "summary_ru": "В ярости — полёт и усиленная божественная мощь (короткая карточка)."
+              }
+            ]
+          }
+        ],
+        "summary_ru": "Подкласс варвара: божественная ярость и исцеление богов.",
+        "spell_list": [],
+        "spell_list_note_ru": "У подкласса нет отдельного списка заклинаний в этой карточке (или список пуст)."
+      }
+    },
+    {
+      "kind": "subclass",
+      "slug": "bard__dance",
+      "name_ru": "Коллегия танца",
+      "name_en": "College of Dance",
+      "source": "ph24",
+      "sort_order": 40,
+      "parent_id": "0334ad8f-7e8c-5ccd-a59d-ae5e8ea97acf",
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/class/bard",
+        "url_ttg": "",
+        "book": "PH24"
+      },
+      "data": {
+        "parent_class": "bard",
+        "subclass_level": 3,
+        "features": [
+          {
+            "level": 3,
+            "features": [
+              {
+                "id": "dazzling-footwork",
+                "name_en": "Dazzling Footwork",
+                "name_ru": "Ослепительные фуэте",
+                "summary_ru": "КД без доспехов с ХАР; безоружные удары; реакцией снижать урон."
+              }
+            ]
+          },
+          {
+            "level": 6,
+            "features": [
+              {
+                "id": "inspiring-movement",
+                "name_en": "Inspiring Movement",
+                "name_ru": "Вдохновляющие движения",
+                "summary_ru": "После атаки врага — переместить союзника (трата вдохновения)."
+              },
+              {
+                "id": "tandem-footwork",
+                "name_en": "Tandem Footwork",
+                "name_ru": "Совместный танец",
+                "summary_ru": "При броске инициативы раздать бонус союзникам за вдохновение."
+              }
+            ]
+          },
+          {
+            "level": 14,
+            "features": [
+              {
+                "id": "leading-evasion",
+                "name_en": "Leading Evasion",
+                "name_ru": "Ведущее уклонение",
+                "summary_ru": "Увёртливость себе и союзникам в 5 фт."
+              }
+            ]
+          }
+        ],
+        "summary_ru": "Подкласс барда: танец, КД и мобильность.",
+        "spell_list": [],
+        "spell_list_note_ru": "У подкласса нет отдельного списка заклинаний в этой карточке (или список пуст)."
+      }
+    },
+    {
+      "kind": "subclass",
+      "slug": "bard__glamour",
+      "name_ru": "Коллегия очарования",
+      "name_en": "College of Glamour",
+      "source": "ph24",
+      "sort_order": 50,
+      "parent_id": "0334ad8f-7e8c-5ccd-a59d-ae5e8ea97acf",
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/class/bard",
+        "url_ttg": "",
+        "book": "PH24"
+      },
+      "data": {
+        "parent_class": "bard",
+        "subclass_level": 3,
+        "features": [
+          {
+            "level": 3,
+            "features": [
+              {
+                "id": "beguiling-magic",
+                "name_en": "Beguiling Magic",
+                "name_ru": "Чарующая магия",
+                "summary_ru": "Всегда «Очарование личности» и «Зеркальный образ»; после обаяния/страха — очаровать другую цель."
+              },
+              {
+                "id": "mantle-of-inspiration",
+                "name_en": "Mantle of Inspiration",
+                "name_ru": "Ореол вдохновения",
+                "summary_ru": "Трата вдохновения: временные хиты и реакция-перемещение союзникам."
+              }
+            ]
+          },
+          {
+            "level": 6,
+            "features": [
+              {
+                "id": "mantle-of-majesty",
+                "name_en": "Mantle of Majesty",
+                "name_ru": "Ореол величия",
+                "summary_ru": "Бонусным «Приказ» без ячейки на 1 мин; в облике величие (1/длинный или за 5-ю ячейку)."
+              }
+            ]
+          },
+          {
+            "level": 14,
+            "features": [
+              {
+                "id": "unbreakable-majesty",
+                "name_en": "Unbreakable Majesty",
+                "name_ru": "Несокрушимое величие",
+                "summary_ru": "Бонусным — величие; атаки по вам с помехой, провал спас → «Приказ»."
+              }
+            ]
+          }
+        ],
+        "summary_ru": "Подкласс барда: очарование фей и ореолы.",
+        "spell_list": [],
+        "spell_list_note_ru": "У подкласса нет отдельного списка заклинаний в этой карточке (или список пуст)."
+      }
+    },
+    {
+      "kind": "subclass",
+      "slug": "bard__valor",
+      "name_ru": "Коллегия доблести",
+      "name_en": "College of Valor",
+      "source": "ph24",
+      "sort_order": 60,
+      "parent_id": "0334ad8f-7e8c-5ccd-a59d-ae5e8ea97acf",
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/class/bard",
+        "url_ttg": "",
+        "book": "PH24"
+      },
+      "data": {
+        "parent_class": "bard",
+        "subclass_level": 3,
+        "features": [
+          {
+            "level": 3,
+            "features": [
+              {
+                "id": "combat-inspiration",
+                "name_en": "Combat Inspiration",
+                "name_ru": "Боевое вдохновение",
+                "summary_ru": "Кость вдохновения на урон или КД реакции."
+              },
+              {
+                "id": "martial-training",
+                "name_en": "Martial Training",
+                "name_ru": "Боевая подготовка",
+                "summary_ru": "Владение воинским оружием и средними доспехами; мастерство оружия ×1."
+              }
+            ]
+          },
+          {
+            "level": 6,
+            "features": [
+              {
+                "id": "extra-attack",
+                "name_en": "Extra Attack",
+                "name_ru": "Дополнительная атака",
+                "summary_ru": "Две атаки; можно заменить одну заговором."
+              }
+            ]
+          },
+          {
+            "level": 14,
+            "features": [
+              {
+                "id": "battle-magic",
+                "name_en": "Battle Magic",
+                "name_ru": "Боевая магия",
+                "summary_ru": "После заклинания действием — атака оружием бонусным."
+              }
+            ]
+          }
+        ],
+        "summary_ru": "Подкласс барда: оружие, доспехи и боевая магия.",
+        "spell_list": [],
+        "spell_list_note_ru": "У подкласса нет отдельного списка заклинаний в этой карточке (или список пуст)."
+      }
+    },
+    {
+      "kind": "subclass",
+      "slug": "cleric__light-domain",
+      "name_ru": "Домен света",
+      "name_en": "Light Domain",
+      "source": "ph24",
+      "sort_order": 70,
+      "parent_id": "2386b535-f364-596c-8f03-78123adf9c91",
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/class/cleric",
+        "url_ttg": "",
+        "book": "PH24"
+      },
+      "data": {
+        "parent_class": "cleric",
+        "subclass_level": 3,
+        "features": [
+          {
+            "level": 3,
+            "features": [
+              {
+                "id": "light-domain-spells",
+                "name_en": "Light Domain Spells",
+                "name_ru": "Заклинания домена света",
+                "summary_ru": "Всегда подготовлены заклинания домена света."
+              },
+              {
+                "id": "warding-flare",
+                "name_en": "Warding Flare",
+                "name_ru": "Ограждающая вспышка",
+                "summary_ru": "Реакция: помеха к атаке видимого существа в 30 фт. Число = Мудрость (мин. 1); сброс на долгом (с 6 — также на коротком)."
+              },
+              {
+                "id": "radiance-of-the-dawn",
+                "name_en": "Radiance of the Dawn",
+                "name_ru": "Сияние рассвета",
+                "summary_ru": "Проведение (Магия): 30-фт. эманация — развеять магическую тьму; выбранные существа — спас Тел, 2к10 + уровень Жреца урона Излучением."
+              }
+            ]
+          },
+          {
+            "level": 6,
+            "features": [
+              {
+                "id": "improved-warding-flare",
+                "name_en": "Improved Warding Flare",
+                "name_ru": "Улучшенная ограждающая вспышка",
+                "summary_ru": "Вспышка также на коротком отдыхе; при использовании можно дать цели атаки временные хиты 2к6 + Мудрость."
+              }
+            ]
+          },
+          {
+            "level": 17,
+            "features": [
+              {
+                "id": "corona-of-light",
+                "name_en": "Corona of Light",
+                "name_ru": "Корона света",
+                "summary_ru": "Действие Магия: аура яркого света 60 фт. (+тусклый 30). Враги в ярком свете — помеха на спас против Сияния рассвета и заклинаний с уроном Излучением/Огнём. Число = Мудрость (мин. 1) / долгий."
+              }
+            ]
+          }
+        ],
+        "summary_ru": "Домен жреца: свет, вспышки и излучение.",
+        "spell_list": [
+          {
+            "level": 3,
+            "spells": [
+              "burning-hands",
+              "faerie-fire",
+              "scorching-ray",
+              "see-invisibility"
+            ]
+          },
+          {
+            "level": 5,
+            "spells": [
+              "daylight",
+              "fireball"
+            ]
+          },
+          {
+            "level": 7,
+            "spells": [
+              "arcane-eye",
+              "wall-of-fire"
+            ]
+          },
+          {
+            "level": 9,
+            "spells": [
+              "flame-strike",
+              "scrying"
+            ]
+          }
+        ],
+        "spell_list_note_ru": "Всегда подготовленные заклинания подкласса (короткий список; полный текст книги не копируем)."
+      }
+    },
+    {
+      "kind": "subclass",
+      "slug": "cleric__trickery-domain",
+      "name_ru": "Домен обмана",
+      "name_en": "Trickery Domain",
+      "source": "ph24",
+      "sort_order": 80,
+      "parent_id": "2386b535-f364-596c-8f03-78123adf9c91",
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/class/cleric",
+        "url_ttg": "",
+        "book": "PH24"
+      },
+      "data": {
+        "parent_class": "cleric",
+        "subclass_level": 3,
+        "features": [
+          {
+            "level": 3,
+            "features": [
+              {
+                "id": "blessing-of-the-trickster",
+                "name_en": "Blessing of the Trickster",
+                "name_ru": "Благословение обманщика",
+                "summary_ru": "Действие Магия: себе или согласному в 30 фт. — преимущество к Ловкости (Скрытность) до долгого отдыха или повторного использования."
+              },
+              {
+                "id": "invoke-duplicity",
+                "name_en": "Invoke Duplicity",
+                "name_ru": "Двуличность",
+                "summary_ru": "Бонусное действие, тратит проведение: иллюзия себя на 1 минуту; каст из её пространства; преимущество к атакам, если вы и иллюзия в 5 фт. от цели."
+              },
+              {
+                "id": "trickery-domain-spells",
+                "name_en": "Trickery Domain Spells",
+                "name_ru": "Заклинания домена обмана",
+                "summary_ru": "Всегда подготовлены заклинания домена обмана."
+              }
+            ]
+          },
+          {
+            "level": 6,
+            "features": [
+              {
+                "id": "tricksters-transposition",
+                "name_en": "Trickster's Transposition",
+                "name_ru": "Рокировка",
+                "summary_ru": "При создании или перемещении иллюзии бонусным можно обменяться с ней местами."
+              }
+            ]
+          },
+          {
+            "level": 17,
+            "features": [
+              {
+                "id": "improved-duplicity",
+                "name_en": "Improved Duplicity",
+                "name_ru": "Улучшенная двуличность",
+                "summary_ru": "Вы и союзники с преимуществом атакуете существ в 5 фт. от иллюзии; когда иллюзия исчезает — вы или существо в 5 фт. восстанавливаете хиты = уровень Жреца."
+              }
+            ]
+          }
+        ],
+        "summary_ru": "Домен жреца: обман, двойник и рокировка.",
+        "spell_list": [
+          {
+            "level": 3,
+            "spells": [
+              "charm-person",
+              "disguise-self",
+              "invisibility",
+              "pass-without-trace"
+            ]
+          },
+          {
+            "level": 5,
+            "spells": [
+              "hypnotic-pattern",
+              "nondetection"
+            ]
+          },
+          {
+            "level": 7,
+            "spells": [
+              "confusion",
+              "dimension-door"
+            ]
+          },
+          {
+            "level": 9,
+            "spells": [
+              "dominate-person",
+              "modify-memory"
+            ]
+          }
+        ],
+        "spell_list_note_ru": "Всегда подготовленные заклинания подкласса (короткий список; полный текст книги не копируем)."
+      }
+    },
+    {
+      "kind": "subclass",
+      "slug": "cleric__war-domain",
+      "name_ru": "Домен войны",
+      "name_en": "War Domain",
+      "source": "ph24",
+      "sort_order": 90,
+      "parent_id": "2386b535-f364-596c-8f03-78123adf9c91",
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/class/cleric",
+        "url_ttg": "",
+        "book": "PH24"
+      },
+      "data": {
+        "parent_class": "cleric",
+        "subclass_level": 3,
+        "features": [
+          {
+            "level": 3,
+            "features": [
+              {
+                "id": "war-priest",
+                "name_en": "War Priest",
+                "name_ru": "Боевой священник",
+                "summary_ru": "Бонусным действием — атака оружием или Безоружный удар. Число = модификатор Мудрости (мин. 1); сброс на коротком или долгом отдыхе."
+              },
+              {
+                "id": "war-domain-spells",
+                "name_en": "War Domain Spells",
+                "name_ru": "Заклинания домена войны",
+                "summary_ru": "Всегда подготовлены заклинания домена войны."
+              },
+              {
+                "id": "guided-strike",
+                "name_en": "Guided Strike",
+                "name_ru": "Направленный удар",
+                "summary_ru": "Потратить проведение: +10 к броску атаки (своей или чужой в 30 футах; для чужой — реакцией)."
+              }
+            ]
+          },
+          {
+            "level": 6,
+            "features": [
+              {
+                "id": "war-gods-blessing",
+                "name_en": "War God's Blessing",
+                "name_ru": "Благословение бога войны",
+                "summary_ru": "Сотворяя «Щит веры» или «Духовное оружие», можно потратить проведение вместо ячейки; без концентрации, 1 минута."
+              }
+            ]
+          },
+          {
+            "level": 17,
+            "features": [
+              {
+                "id": "avatar-of-battle",
+                "name_en": "Avatar of Battle",
+                "name_ru": "Воплощение битвы",
+                "summary_ru": "Сопротивление дробящему, колющему и рубящему урону."
+              }
+            ]
+          }
+        ],
+        "summary_ru": "Домен жреца: доп. атаки и направленный удар.",
+        "spell_list": [
+          {
+            "level": 3,
+            "spells": [
+              "guiding-bolt",
+              "shield-of-faith",
+              "magic-weapon",
+              "spiritual-weapon"
+            ]
+          },
+          {
+            "level": 5,
+            "spells": [
+              "crusaders-mantle",
+              "spirit-guardians"
+            ]
+          },
+          {
+            "level": 7,
+            "spells": [
+              "fire-shield",
+              "freedom-of-movement"
+            ]
+          },
+          {
+            "level": 9,
+            "spells": [
+              "hold-monster",
+              "steel-wind-strike"
+            ]
+          }
+        ],
+        "spell_list_note_ru": "Всегда подготовленные заклинания подкласса (короткий список; полный текст книги не копируем)."
+      }
+    },
+    {
+      "kind": "subclass",
+      "slug": "druid__moon",
+      "name_ru": "Круг луны",
+      "name_en": "Circle of the Moon",
+      "source": "ph24",
+      "sort_order": 100,
+      "parent_id": "e9ac921b-7c7c-53d9-b2a3-2d801e0d58c9",
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/class/druid",
+        "url_ttg": "",
+        "book": "PH24"
+      },
+      "data": {
+        "parent_class": "druid",
+        "subclass_level": 3,
+        "features": [
+          {
+            "level": 3,
+            "features": [
+              {
+                "id": "circle-forms",
+                "name_en": "Circle Forms",
+                "name_ru": "Облики Круга",
+                "summary_ru": "Дикий облик сильнее: выше КП и временные хиты."
+              },
+              {
+                "id": "circle-of-the-moon-spells",
+                "name_en": "Circle of the Moon Spells",
+                "name_ru": "Заклинания Круга луны",
+                "summary_ru": "Всегда подготовленные лунные заклинания."
+              }
+            ]
+          },
+          {
+            "level": 6,
+            "features": [
+              {
+                "id": "improved-circle-forms",
+                "name_en": "Improved Circle Forms",
+                "name_ru": "Улучшенные облики Круга",
+                "summary_ru": "Удары зверя считаются магическими; больше форм."
+              }
+            ]
+          },
+          {
+            "level": 10,
+            "features": [
+              {
+                "id": "moonlight-step",
+                "name_en": "Moonlight Step",
+                "name_ru": "Шаг в лунный свет",
+                "summary_ru": "Бонусным телепорт; преимущество к след. проверке/атаке."
+              }
+            ]
+          },
+          {
+            "level": 14,
+            "features": [
+              {
+                "id": "lunar-form",
+                "name_en": "Lunar Form",
+                "name_ru": "Лунный облик",
+                "summary_ru": "В облике — излучение по удару или частичный полёт."
+              }
+            ]
+          }
+        ],
+        "summary_ru": "Круг друида: усиленный дикий облик.",
+        "spell_list": [
+          {
+            "level": 3,
+            "spells": [
+              "cure-wounds",
+              "moonbeam",
+              "starry-wisp"
+            ]
+          }
+        ],
+        "spell_list_note_ru": "Всегда подготовленные заклинания подкласса (короткий список; полный текст книги не копируем)."
+      }
+    },
+    {
+      "kind": "subclass",
+      "slug": "druid__sea",
+      "name_ru": "Круг моря",
+      "name_en": "Circle of the Sea",
+      "source": "ph24",
+      "sort_order": 110,
+      "parent_id": "e9ac921b-7c7c-53d9-b2a3-2d801e0d58c9",
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/class/druid",
+        "url_ttg": "",
+        "book": "PH24"
+      },
+      "data": {
+        "parent_class": "druid",
+        "subclass_level": 3,
+        "features": [
+          {
+            "level": 3,
+            "features": [
+              {
+                "id": "circle-of-the-sea-spells",
+                "name_en": "Circle of the Sea Spells",
+                "name_ru": "Заклинания круга моря",
+                "summary_ru": "Всегда подготовленные морские заклинания."
+              },
+              {
+                "id": "wrath-of-the-sea",
+                "name_en": "Wrath of the Sea",
+                "name_ru": "Гнев морей",
+                "summary_ru": "Бонусным: аура брызг — урон и толчок (МУД)."
+              }
+            ]
+          },
+          {
+            "level": 6,
+            "features": [
+              {
+                "id": "aquatic-affinity",
+                "name_en": "Aquatic Affinity",
+                "name_ru": "Связь с водами",
+                "summary_ru": "Плавание = скорость; усиленный Гнев морей."
+              }
+            ]
+          },
+          {
+            "level": 10,
+            "features": [
+              {
+                "id": "stormborn",
+                "name_en": "Stormborn",
+                "name_ru": "Рождённый бурей",
+                "summary_ru": "В Гневе морей — сопротивление и полёт."
+              }
+            ]
+          },
+          {
+            "level": 14,
+            "features": [
+              {
+                "id": "oceanic-gift",
+                "name_en": "Oceanic Gift",
+                "name_ru": "Дар океана",
+                "summary_ru": "Делиться Гневом морей с союзником."
+              }
+            ]
+          }
+        ],
+        "summary_ru": "Круг друида: гнев морей и буря.",
+        "spell_list": [
+          {
+            "level": 3,
+            "spells": [
+              "fog-cloud",
+              "thunderwave",
+              "gust-of-wind",
+              "shatter"
+            ]
+          },
+          {
+            "level": 5,
+            "spells": [
+              "lightning-bolt",
+              "water-breathing"
+            ]
+          },
+          {
+            "level": 7,
+            "spells": [
+              "control-water",
+              "ice-storm"
+            ]
+          },
+          {
+            "level": 9,
+            "spells": [
+              "conjure-elemental",
+              "hold-monster"
+            ]
+          }
+        ],
+        "spell_list_note_ru": "Всегда подготовленные заклинания подкласса (короткий список; полный текст книги не копируем)."
+      }
+    },
+    {
+      "kind": "subclass",
+      "slug": "druid__stars",
+      "name_ru": "Круг звёзд",
+      "name_en": "Circle of the Stars",
+      "source": "ph24",
+      "sort_order": 120,
+      "parent_id": "e9ac921b-7c7c-53d9-b2a3-2d801e0d58c9",
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/class/druid",
+        "url_ttg": "",
+        "book": "PH24"
+      },
+      "data": {
+        "parent_class": "druid",
+        "subclass_level": 3,
+        "features": [
+          {
+            "level": 3,
+            "features": [
+              {
+                "id": "star-map",
+                "name_en": "Star Map",
+                "name_ru": "Звёздная карта",
+                "summary_ru": "Фокус; бесплатный Наведение и Направляющий снаряд."
+              },
+              {
+                "id": "starry-form",
+                "name_en": "Starry Form",
+                "name_ru": "Звёздный облик",
+                "summary_ru": "Бонусным вместо зверя: лучник/чаша/дракон."
+              }
+            ]
+          },
+          {
+            "level": 6,
+            "features": [
+              {
+                "id": "cosmic-omen",
+                "name_en": "Cosmic Omen",
+                "name_ru": "Космическое знамение",
+                "summary_ru": "После долгого: знамения «благо»/«напасть» на броски (ПБ/длинный)."
+              }
+            ]
+          },
+          {
+            "level": 10,
+            "features": [
+              {
+                "id": "twinkling-constellations",
+                "name_en": "Twinkling Constellations",
+                "name_ru": "Мерцающие созвездия",
+                "summary_ru": "Усиленные созвездия; смена облика бонусным."
+              }
+            ]
+          },
+          {
+            "level": 14,
+            "features": [
+              {
+                "id": "full-of-stars",
+                "name_en": "Full of Stars",
+                "name_ru": "Звёздное тело",
+                "summary_ru": "В облике сопротивление дробящему/колющему/рубящему."
+              }
+            ]
+          }
+        ],
+        "summary_ru": "Круг друида: звёздный облик и знамения.",
+        "spell_list": [],
+        "spell_list_note_ru": "У подкласса нет отдельного списка заклинаний в этой карточке (или список пуст)."
+      }
+    },
+    {
+      "kind": "subclass",
+      "slug": "fighter__battlemaster",
+      "name_ru": "Мастер боевых искусств",
+      "name_en": "Battle Master",
+      "source": "ph24",
+      "sort_order": 130,
+      "parent_id": "10a79318-6a27-5182-99f4-4c9507694bd1",
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/class/fighter",
+        "url_ttg": "",
+        "book": "PH24"
+      },
+      "data": {
+        "parent_class": "fighter",
+        "subclass_level": 3,
+        "features": [
+          {
+            "level": 3,
+            "features": [
+              {
+                "id": "combat-superiority",
+                "name_en": "Combat Superiority",
+                "name_ru": "Боевое превосходство",
+                "summary_ru": "Кости превосходства и манёвры; Сл манёвров."
+              },
+              {
+                "id": "student-of-war",
+                "name_en": "Student of War",
+                "name_ru": "Изучающий войну",
+                "summary_ru": "Владение ремесленным инструментом."
+              }
+            ]
+          },
+          {
+            "level": 7,
+            "features": [
+              {
+                "id": "know-your-enemy",
+                "name_en": "Know Your Enemy",
+                "name_ru": "Познай своего врага",
+                "summary_ru": "Изучить существо: защиты, иммунитеты, сопротивление."
+              }
+            ]
+          },
+          {
+            "level": 10,
+            "features": [
+              {
+                "id": "improved-combat-superiority",
+                "name_en": "Improved Combat Superiority",
+                "name_ru": "Улучшенное боевое превосходство",
+                "summary_ru": "Кость превосходства растёт (к10)."
+              }
+            ]
+          },
+          {
+            "level": 15,
+            "features": [
+              {
+                "id": "relentless",
+                "name_en": "Relentless",
+                "name_ru": "Неутомимость",
+                "summary_ru": "Если кости пусты в начале боя — получить одну."
+              }
+            ]
+          },
+          {
+            "level": 18,
+            "features": [
+              {
+                "id": "ultimate-combat-superiority",
+                "name_en": "Ultimate Combat Superiority",
+                "name_ru": "Абсолютное боевое превосходство",
+                "summary_ru": "Кость превосходства к12."
+              }
+            ]
+          }
+        ],
+        "summary_ru": "Подкласс воина: манёвры и кости превосходства.",
+        "spell_list": [],
+        "spell_list_note_ru": "У подкласса нет отдельного списка заклинаний в этой карточке (или список пуст)."
+      }
+    },
+    {
+      "kind": "subclass",
+      "slug": "fighter__eldritch-knight",
+      "name_ru": "Мистический рыцарь",
+      "name_en": "Eldritch Knight",
+      "source": "ph24",
+      "sort_order": 140,
+      "parent_id": "10a79318-6a27-5182-99f4-4c9507694bd1",
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/class/fighter",
+        "url_ttg": "",
+        "book": "PH24"
+      },
+      "data": {
+        "parent_class": "fighter",
+        "subclass_level": 3,
+        "features": [
+          {
+            "level": 3,
+            "features": [
+              {
+                "id": "spellcasting",
+                "name_en": "Spellcasting",
+                "name_ru": "Сотворение заклинаний",
+                "summary_ru": "Подготовка заклинаний волшебника (школы ограждения/воплощения в фокусе)."
+              },
+              {
+                "id": "weapon-bond",
+                "name_en": "Weapon Bond",
+                "name_ru": "Связь с оружием",
+                "summary_ru": "Связать оружие; призвать бонусным; нельзя обезоружить."
+              }
+            ]
+          },
+          {
+            "level": 7,
+            "features": [
+              {
+                "id": "war-magic",
+                "name_en": "War Magic",
+                "name_ru": "Боевая магия",
+                "summary_ru": "После заговора — атака оружием бонусным."
+              }
+            ]
+          },
+          {
+            "level": 10,
+            "features": [
+              {
+                "id": "eldritch-strike",
+                "name_en": "Eldritch Strike",
+                "name_ru": "Мистический удар",
+                "summary_ru": "Попадание оружием: помеха к следующему спасброску от вашего заклинания."
+              }
+            ]
+          },
+          {
+            "level": 15,
+            "features": [
+              {
+                "id": "arcane-charge",
+                "name_en": "Arcane Charge",
+                "name_ru": "Волшебный рывок",
+                "summary_ru": "При Всплеске действий — телепорт до 30 фт."
+              }
+            ]
+          },
+          {
+            "level": 18,
+            "features": [
+              {
+                "id": "improved-war-magic",
+                "name_en": "Improved War Magic",
+                "name_ru": "Улучшенная боевая магия",
+                "summary_ru": "После заклинания 1–2 круга — атака бонусным."
+              }
+            ]
+          }
+        ],
+        "summary_ru": "Подкласс воина: заклинания волшебника и связь с оружием.",
+        "spell_list": [],
+        "spell_list_note_ru": "У подкласса нет отдельного списка заклинаний в этой карточке (или список пуст)."
+      }
+    },
+    {
+      "kind": "subclass",
+      "slug": "fighter__psi-warrior",
+      "name_ru": "Пси-воин",
+      "name_en": "Psi Warrior",
+      "source": "ph24",
+      "sort_order": 150,
+      "parent_id": "10a79318-6a27-5182-99f4-4c9507694bd1",
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/class/fighter",
+        "url_ttg": "",
+        "book": "PH24"
+      },
+      "data": {
+        "parent_class": "fighter",
+        "subclass_level": 3,
+        "features": [
+          {
+            "level": 3,
+            "features": [
+              {
+                "id": "psionic-power",
+                "name_en": "Psionic Power",
+                "name_ru": "Псионическая сила",
+                "summary_ru": "Кости псионики: защитное поле, толчок/рывок, усиленный удар."
+              }
+            ]
+          },
+          {
+            "level": 7,
+            "features": [
+              {
+                "id": "telekinetic-adept",
+                "name_en": "Telekinetic Adept",
+                "name_ru": "Адепт-телекинетик",
+                "summary_ru": "Пси-рывок полётом; «Малая телекинез» бонусным."
+              }
+            ]
+          },
+          {
+            "level": 10,
+            "features": [
+              {
+                "id": "guarded-mind",
+                "name_en": "Guarded Mind",
+                "name_ru": "Защищённый разум",
+                "summary_ru": "Сопротивление психическому; сброс очарования/страха за кость."
+              }
+            ]
+          },
+          {
+            "level": 15,
+            "features": [
+              {
+                "id": "bulwark-of-force",
+                "name_en": "Bulwark of Force",
+                "name_ru": "Оплот силы",
+                "summary_ru": "Временные хиты союзникам в полусфере (1/длинный или за кость)."
+              }
+            ]
+          },
+          {
+            "level": 18,
+            "features": [
+              {
+                "id": "telekinetic-master",
+                "name_en": "Telekinetic Master",
+                "name_ru": "Мастер телекинеза",
+                "summary_ru": "Бесплатный «Телекинез»; при поддержании — атака бонусным."
+              }
+            ]
+          }
+        ],
+        "summary_ru": "Подкласс воина: псионика и телекинез.",
+        "spell_list": [],
+        "spell_list_note_ru": "У подкласса нет отдельного списка заклинаний в этой карточке (или список пуст)."
+      }
+    },
+    {
+      "kind": "subclass",
+      "slug": "monk__warrior-of-mercy",
+      "name_ru": "Воин милосердия",
+      "name_en": "Warrior of Mercy",
+      "source": "ph24",
+      "sort_order": 160,
+      "parent_id": "630b4b6f-7121-5950-9347-69dace3dc48e",
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/class/monk",
+        "url_ttg": "",
+        "book": "PH24"
+      },
+      "data": {
+        "parent_class": "monk",
+        "subclass_level": 3,
+        "features": [
+          {
+            "level": 3,
+            "features": [
+              {
+                "id": "implements-of-mercy",
+                "name_en": "Implements of Mercy",
+                "name_ru": "Орудия милосердия",
+                "summary_ru": "Владение Проницательностью и Медициной; набор целителя; маска."
+              },
+              {
+                "id": "hand-of-healing",
+                "name_en": "Hand of Healing",
+                "name_ru": "Исцеляющая рука",
+                "summary_ru": "За 1 очко (или через Шквал исцеления без очка): касанием лечение = кость БИ + Мдр."
+              },
+              {
+                "id": "hand-of-harm",
+                "name_en": "Hand of Harm",
+                "name_ru": "Повреждающая рука",
+                "summary_ru": "1/ход при ударе за 1 очко (или через Шквал без очка): доп. некротический урон = кость БИ + Мдр."
+              }
+            ]
+          },
+          {
+            "level": 6,
+            "features": [
+              {
+                "id": "physicians-care",
+                "name_en": "Physician's Care",
+                "name_ru": "Прикосновение целителя",
+                "summary_ru": "При лечении Исцеляющей рукой — снять болезнь или яд; усиление рук милосердия."
+              }
+            ]
+          },
+          {
+            "level": 11,
+            "features": [
+              {
+                "id": "flurry-of-healing-and-harm",
+                "name_en": "Flurry of Healing and Harm",
+                "name_ru": "Шквал исцеления и повреждения",
+                "summary_ru": "При Шквале: Исцеляющая/Повреждающая рука без очков; применения = Мдр / длинный."
+              }
+            ]
+          },
+          {
+            "level": 17,
+            "features": [
+              {
+                "id": "hand-of-ultimate-mercy",
+                "name_en": "Hand of Ultimate Mercy",
+                "name_ru": "Рука абсолютного милосердия",
+                "summary_ru": "За 5 очков (1/длинный): коснуться существа, умершего за последний час — вернуть к жизни с хитами 4к10+Мдр."
+              }
+            ]
+          }
+        ],
+        "summary_ru": "Подкласс монаха: лечение и вред руками.",
+        "spell_list": [],
+        "spell_list_note_ru": "У подкласса нет отдельного списка заклинаний в этой карточке (или список пуст)."
+      }
+    },
+    {
+      "kind": "subclass",
+      "slug": "monk__warrior-of-shadow",
+      "name_ru": "Воин тени",
+      "name_en": "Warrior of Shadow",
+      "source": "ph24",
+      "sort_order": 170,
+      "parent_id": "630b4b6f-7121-5950-9347-69dace3dc48e",
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/class/monk",
+        "url_ttg": "",
+        "book": "PH24"
+      },
+      "data": {
+        "parent_class": "monk",
+        "subclass_level": 3,
+        "features": [
+          {
+            "level": 3,
+            "features": [
+              {
+                "id": "shadow-arts",
+                "name_en": "Shadow Arts",
+                "name_ru": "Тёмные искусства",
+                "summary_ru": "Малая иллюзия (заговор, Мдр). За 1 очко — Тьма; видишь в своей тьме, можно двигать область."
+              }
+            ]
+          },
+          {
+            "level": 6,
+            "features": [
+              {
+                "id": "shadow-step",
+                "name_en": "Shadow Step",
+                "name_ru": "Шаг в тень",
+                "summary_ru": "Бонусным: телепорт 60 фт. из/в тусклый свет или тьму; преимущество к следующей рукопашной атаке."
+              }
+            ]
+          },
+          {
+            "level": 11,
+            "features": [
+              {
+                "id": "improved-shadow-step",
+                "name_en": "Improved Shadow Step",
+                "name_ru": "Улучшенный шаг в тень",
+                "summary_ru": "За 1 очко при Шаге в тень: игнорировать требование тусклого света/тьмы и сразу совершить безоружный удар."
+              }
+            ]
+          },
+          {
+            "level": 17,
+            "features": [
+              {
+                "id": "cloak-of-shadows",
+                "name_en": "Cloak of Shadows",
+                "name_ru": "Покров теней",
+                "summary_ru": "За 3 очка (1 мин): Невидимый; пока действует — Шквал ударов без траты очков."
+              }
+            ]
+          }
+        ],
+        "summary_ru": "Подкласс монаха: тьма и шаг в тень.",
+        "spell_list": [],
+        "spell_list_note_ru": "У подкласса нет отдельного списка заклинаний в этой карточке (или список пуст)."
+      }
+    },
+    {
+      "kind": "subclass",
+      "slug": "monk__warrior-of-the-elements",
+      "name_ru": "Воин стихий",
+      "name_en": "Warrior of the Elements",
+      "source": "ph24",
+      "sort_order": 180,
+      "parent_id": "630b4b6f-7121-5950-9347-69dace3dc48e",
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/class/monk",
+        "url_ttg": "",
+        "book": "PH24"
+      },
+      "data": {
+        "parent_class": "monk",
+        "subclass_level": 3,
+        "features": [
+          {
+            "level": 3,
+            "features": [
+              {
+                "id": "elemental-attunement",
+                "name_en": "Elemental Attunement",
+                "name_ru": "Сродство со стихиями",
+                "summary_ru": "За 1 очко (10 мин): досягаемость безоружных +10 футов; урон можно заменить на выбранный стихийный тип."
+              },
+              {
+                "id": "manipulate-elements",
+                "name_en": "Manipulate Elements",
+                "name_ru": "Управление стихиями",
+                "summary_ru": "Знаешь заговор Элементализм (характеристика — Мудрость): малый контроль ветра, огня, воды или земли."
+              }
+            ]
+          },
+          {
+            "level": 6,
+            "features": [
+              {
+                "id": "elemental-burst",
+                "name_en": "Elemental Burst",
+                "name_ru": "Стихийный выброс",
+                "summary_ru": "За 2 очка: сфера 20 фт. — 3×кость БИ стихийного урона, спас Ловкости."
+              }
+            ]
+          },
+          {
+            "level": 11,
+            "features": [
+              {
+                "id": "stride-of-the-elements",
+                "name_en": "Stride of the Elements",
+                "name_ru": "Поступь стихий",
+                "summary_ru": "Пока действует Сродство: после атаки — Рывок/полёт/плавание на короткое время."
+              }
+            ]
+          },
+          {
+            "level": 17,
+            "features": [
+              {
+                "id": "elemental-epitome",
+                "name_en": "Elemental Epitome",
+                "name_ru": "Воплощение стихий",
+                "summary_ru": "Пока действует Сродство: сопротивление выбранной стихии; усиленные удары и разрушительная поступь."
+              }
+            ]
+          }
+        ],
+        "summary_ru": "Подкласс монаха: удары и выбросы стихий.",
+        "spell_list": [],
+        "spell_list_note_ru": "У подкласса нет отдельного списка заклинаний в этой карточке (или список пуст)."
+      }
+    },
+    {
+      "kind": "subclass",
+      "slug": "paladin__oath-of-glory",
+      "name_ru": "Клятва славы",
+      "name_en": "Oath of Glory",
+      "source": "ph24",
+      "sort_order": 190,
+      "parent_id": "732795f4-824e-5435-bdb9-db8637705ca4",
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/class/paladin",
+        "url_ttg": "",
+        "book": "PH24"
+      },
+      "data": {
+        "parent_class": "paladin",
+        "subclass_level": 3,
+        "features": [
+          {
+            "level": 3,
+            "features": [
+              {
+                "id": "oath-of-glory-spells",
+                "name_en": "Oath of Glory Spells",
+                "name_ru": "Заклинания Клятвы славы",
+                "summary_ru": "Всегда подготовленные заклинания клятвы."
+              },
+              {
+                "id": "inspiring-smite",
+                "name_en": "Inspiring Smite",
+                "name_ru": "Воодушевляющий удар",
+                "summary_ru": "После кары — временные хиты себе и союзникам."
+              },
+              {
+                "id": "peerless-athlete",
+                "name_en": "Peerless Athlete",
+                "name_ru": "Несравненный атлет",
+                "summary_ru": "Бонусным: преимущество к СИЛ/ЛОВ проверкам, прыжки."
+              }
+            ]
+          },
+          {
+            "level": 7,
+            "features": [
+              {
+                "id": "aura-of-alacrity",
+                "name_en": "Aura of Alacrity",
+                "name_ru": "Аура рвения",
+                "summary_ru": "+скорость вам; аура ускоряет союзников."
+              }
+            ]
+          },
+          {
+            "level": 15,
+            "features": [
+              {
+                "id": "glorious-defense",
+                "name_en": "Glorious Defense",
+                "name_ru": "Блестящая оборона",
+                "summary_ru": "Реакция: повысить КД; при промахе — контратака."
+              }
+            ]
+          },
+          {
+            "level": 20,
+            "features": [
+              {
+                "id": "living-legend",
+                "name_en": "Living Legend",
+                "name_ru": "Живая легенда",
+                "summary_ru": "Преображение: преимущество к Харизме, перебросы, «Убеждение»-чудо (1/длинный)."
+              }
+            ]
+          }
+        ],
+        "summary_ru": "Клятва паладина: слава, атлетизм и аура рвения.",
+        "spell_list": [
+          {
+            "level": 3,
+            "spells": [
+              "guiding-bolt",
+              "heroism",
+              "enhance-ability",
+              "magic-weapon"
+            ]
+          },
+          {
+            "level": 5,
+            "spells": [
+              "haste",
+              "protection-from-energy"
+            ]
+          },
+          {
+            "level": 9,
+            "spells": [
+              "commune",
+              "flame-strike"
+            ]
+          }
+        ],
+        "spell_list_note_ru": "Всегда подготовленные заклинания подкласса (короткий список; полный текст книги не копируем)."
+      }
+    },
+    {
+      "kind": "subclass",
+      "slug": "paladin__oath-of-the-ancients",
+      "name_ru": "Клятва древних",
+      "name_en": "Oath of the Ancients",
+      "source": "ph24",
+      "sort_order": 200,
+      "parent_id": "732795f4-824e-5435-bdb9-db8637705ca4",
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/class/paladin",
+        "url_ttg": "",
+        "book": "PH24"
+      },
+      "data": {
+        "parent_class": "paladin",
+        "subclass_level": 3,
+        "features": [
+          {
+            "level": 3,
+            "features": [
+              {
+                "id": "oath-of-the-ancients-spells",
+                "name_en": "Oath of the Ancients Spells",
+                "name_ru": "Заклинания Клятвы древних",
+                "summary_ru": "Всегда подготовленные заклинания клятвы."
+              },
+              {
+                "id": "natures-wrath",
+                "name_en": "Nature's Wrath",
+                "name_ru": "Гнев природы",
+                "summary_ru": "Канал: опутать врагов призрачными лозами (спас СИЛ)."
+              }
+            ]
+          },
+          {
+            "level": 7,
+            "features": [
+              {
+                "id": "aura-of-warding",
+                "name_en": "Aura of Warding",
+                "name_ru": "Аура опеки",
+                "summary_ru": "Сопротивление урону от заклинаний в ауре."
+              }
+            ]
+          },
+          {
+            "level": 15,
+            "features": [
+              {
+                "id": "undying-sentinel",
+                "name_en": "Undying Sentinel",
+                "name_ru": "Бессмертный страж",
+                "summary_ru": "Раз за длинный: не упасть в 0 хитов; иммунитет к истощению от возраста."
+              }
+            ]
+          },
+          {
+            "level": 20,
+            "features": [
+              {
+                "id": "elder-champion",
+                "name_en": "Elder Champion",
+                "name_ru": "Древний чемпион",
+                "summary_ru": "Форма: реген, ускоренный каст, помеха врагам к спасам от ваших заклинаний."
+              }
+            ]
+          }
+        ],
+        "summary_ru": "Клятва паладина: природа и опека.",
+        "spell_list": [
+          {
+            "level": 3,
+            "spells": [
+              "ensnaring-strike",
+              "speak-with-animals",
+              "misty-step",
+              "moonbeam"
+            ]
+          },
+          {
+            "level": 5,
+            "spells": [
+              "plant-growth",
+              "protection-from-energy"
+            ]
+          },
+          {
+            "level": 9,
+            "spells": [
+              "commune-with-nature",
+              "tree-stride"
+            ]
+          }
+        ],
+        "spell_list_note_ru": "Всегда подготовленные заклинания подкласса (короткий список; полный текст книги не копируем)."
+      }
+    },
+    {
+      "kind": "subclass",
+      "slug": "paladin__oath-of-vengeance",
+      "name_ru": "Клятва мести",
+      "name_en": "Oath of Vengeance",
+      "source": "ph24",
+      "sort_order": 210,
+      "parent_id": "732795f4-824e-5435-bdb9-db8637705ca4",
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/class/paladin",
+        "url_ttg": "",
+        "book": "PH24"
+      },
+      "data": {
+        "parent_class": "paladin",
+        "subclass_level": 3,
+        "features": [
+          {
+            "level": 3,
+            "features": [
+              {
+                "id": "oath-of-vengeance-spells",
+                "name_en": "Oath of Vengeance Spells",
+                "name_ru": "Заклинания Клятвы возмездия",
+                "summary_ru": "Всегда подготовленные заклинания клятвы."
+              },
+              {
+                "id": "vow-of-enmity",
+                "name_en": "Vow of Enmity",
+                "name_ru": "Обет вражды",
+                "summary_ru": "Канал/бонусным: преимущество к атакам по одной цели."
+              }
+            ]
+          },
+          {
+            "level": 7,
+            "features": [
+              {
+                "id": "relentless-avenger",
+                "name_en": "Relentless Avenger",
+                "name_ru": "Неумолимый мститель",
+                "summary_ru": "При возможности атаки — уменьшить скорость цели и подойти."
+              }
+            ]
+          },
+          {
+            "level": 15,
+            "features": [
+              {
+                "id": "soul-of-vengeance",
+                "name_en": "Soul of Vengeance",
+                "name_ru": "Душа мести",
+                "summary_ru": "Реакция атакой по цели Обета, если она атакует."
+              }
+            ]
+          },
+          {
+            "level": 20,
+            "features": [
+              {
+                "id": "avenging-angel",
+                "name_en": "Avenging Angel",
+                "name_ru": "Ангел отмщения",
+                "summary_ru": "Крылья, полёт, аура страха (1/длинный)."
+              }
+            ]
+          }
+        ],
+        "summary_ru": "Клятва паладина: обет вражды и месть.",
+        "spell_list": [
+          {
+            "level": 3,
+            "spells": [
+              "bane",
+              "hunters-mark",
+              "hold-person",
+              "misty-step"
+            ]
+          },
+          {
+            "level": 5,
+            "spells": [
+              "haste",
+              "protection-from-energy"
+            ]
+          },
+          {
+            "level": 9,
+            "spells": [
+              "hold-monster",
+              "scrying"
+            ]
+          }
+        ],
+        "spell_list_note_ru": "Всегда подготовленные заклинания подкласса (короткий список; полный текст книги не копируем)."
+      }
+    },
+    {
+      "kind": "subclass",
+      "slug": "ranger__beastmaster",
+      "name_ru": "Повелитель зверей",
+      "name_en": "Beast Master",
+      "source": "ph24",
+      "sort_order": 220,
+      "parent_id": "b63f10ad-fc00-5436-bba3-a3f4f62d5a91",
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/class/ranger",
+        "url_ttg": "",
+        "book": "PH24"
+      },
+      "data": {
+        "parent_class": "ranger",
+        "subclass_level": 3,
+        "features": [
+          {
+            "level": 3,
+            "features": [
+              {
+                "id": "primal-companion",
+                "name_en": "Primal Companion",
+                "name_ru": "Первичный спутник",
+                "summary_ru": "Призвать зверя-спутника (статы по таблице); командовать бонусным."
+              }
+            ]
+          },
+          {
+            "level": 7,
+            "features": [
+              {
+                "id": "exceptional-training",
+                "name_en": "Exceptional Training",
+                "name_ru": "Исключительная дрессировка",
+                "summary_ru": "Спутник — Рывок/Отход/Помощь бонусным; магические атаки."
+              }
+            ]
+          },
+          {
+            "level": 11,
+            "features": [
+              {
+                "id": "bestial-fury",
+                "name_en": "Bestial Fury",
+                "name_ru": "Звериная ярость",
+                "summary_ru": "Спутник атакует дважды; делится Меткой охотника."
+              }
+            ]
+          },
+          {
+            "level": 15,
+            "features": [
+              {
+                "id": "share-spells",
+                "name_en": "Share Spells",
+                "name_ru": "Общие заклинания",
+                "summary_ru": "Заклинания на себя могут действовать и на спутника."
+              }
+            ]
+          }
+        ],
+        "summary_ru": "Подкласс следопыта: зверь-спутник.",
+        "spell_list": [],
+        "spell_list_note_ru": "У подкласса нет отдельного списка заклинаний в этой карточке (или список пуст)."
+      }
+    },
+    {
+      "kind": "subclass",
+      "slug": "ranger__fey-wanderer",
+      "name_ru": "Странник фей",
+      "name_en": "Fey Wanderer",
+      "source": "ph24",
+      "sort_order": 230,
+      "parent_id": "b63f10ad-fc00-5436-bba3-a3f4f62d5a91",
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/class/ranger",
+        "url_ttg": "",
+        "book": "PH24"
+      },
+      "data": {
+        "parent_class": "ranger",
+        "subclass_level": 3,
+        "features": [
+          {
+            "level": 3,
+            "features": [
+              {
+                "id": "dreadful-strikes",
+                "name_en": "Dreadful Strikes",
+                "name_ru": "Ужасающие удары",
+                "summary_ru": "Доп. психический урон раз за ход."
+              },
+              {
+                "id": "fey-wanderer-spells",
+                "name_en": "Fey Wanderer Spells",
+                "name_ru": "Заклинания странника фей",
+                "summary_ru": "Всегда подготовленные заклинания подкласса."
+              },
+              {
+                "id": "otherworldly-glamour",
+                "name_en": "Otherworldly Glamour",
+                "name_ru": "Потустороннее очарование",
+                "summary_ru": "Бонус ХАР-проверкам; доп. навык."
+              }
+            ]
+          },
+          {
+            "level": 7,
+            "features": [
+              {
+                "id": "beguiling-twist",
+                "name_en": "Beguiling Twist",
+                "name_ru": "Заманивающий трюк",
+                "summary_ru": "Реакция: перенаправить очарование/страх или наложить страх."
+              }
+            ]
+          },
+          {
+            "level": 11,
+            "features": [
+              {
+                "id": "fey-reinforcement",
+                "name_en": "Fey Reinforcement",
+                "name_ru": "Подкрепление фей",
+                "summary_ru": "Призыв фей без концентрации; усиление ударов."
+              }
+            ]
+          },
+          {
+            "level": 15,
+            "features": [
+              {
+                "id": "misty-wanderer",
+                "name_en": "Misty Wanderer",
+                "name_ru": "Туманный странник",
+                "summary_ru": "Бесплатный Туманный шаг себе и союзнику."
+              }
+            ]
+          }
+        ],
+        "summary_ru": "Подкласс следопыта: фейская магия и очарование.",
+        "spell_list": [
+          {
+            "level": 3,
+            "spells": [
+              "charm-person"
+            ]
+          },
+          {
+            "level": 5,
+            "spells": [
+              "misty-step"
+            ]
+          },
+          {
+            "level": 9,
+            "spells": [
+              "summon-fey"
+            ]
+          },
+          {
+            "level": 13,
+            "spells": [
+              "dimension-door"
+            ]
+          },
+          {
+            "level": 17,
+            "spells": [
+              "mislead"
+            ]
+          }
+        ],
+        "spell_list_note_ru": "Всегда подготовленные заклинания подкласса (короткий список; полный текст книги не копируем)."
+      }
+    },
+    {
+      "kind": "subclass",
+      "slug": "ranger__gloom-stalker",
+      "name_ru": "Сумрачный охотник",
+      "name_en": "Gloom Stalker",
+      "source": "ph24",
+      "sort_order": 240,
+      "parent_id": "b63f10ad-fc00-5436-bba3-a3f4f62d5a91",
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/class/ranger",
+        "url_ttg": "",
+        "book": "PH24"
+      },
+      "data": {
+        "parent_class": "ranger",
+        "subclass_level": 3,
+        "features": [
+          {
+            "level": 3,
+            "features": [
+              {
+                "id": "dread-ambusher",
+                "name_en": "Dread Ambusher",
+                "name_ru": "Угроза из засады",
+                "summary_ru": "Бонус к инициативе; доп. атака в первом ходу боя."
+              },
+              {
+                "id": "gloom-stalker-spells",
+                "name_en": "Gloom Stalker Spells",
+                "name_ru": "Заклинания сумрачного охотника",
+                "summary_ru": "Всегда подготовленные заклинания подкласса."
+              },
+              {
+                "id": "umbral-sight",
+                "name_en": "Umbral Sight",
+                "name_ru": "Теневой взор",
+                "summary_ru": "Тёмное зрение; в тьме невидимы для тёмного зрения врагов."
+              }
+            ]
+          },
+          {
+            "level": 7,
+            "features": [
+              {
+                "id": "iron-mind",
+                "name_en": "Iron Mind",
+                "name_ru": "Железный разум",
+                "summary_ru": "Владение спасом МУД (или ИНТ/ХАР)."
+              }
+            ]
+          },
+          {
+            "level": 11,
+            "features": [
+              {
+                "id": "stalkers-flurry",
+                "name_en": "Stalker's Flurry",
+                "name_ru": "Охотничья ярость",
+                "summary_ru": "При промахе — доп. атака; усиленный ужас засады."
+              }
+            ]
+          },
+          {
+            "level": 15,
+            "features": [
+              {
+                "id": "shadowy-dodge",
+                "name_en": "Shadowy Dodge",
+                "name_ru": "Теневое уклонение",
+                "summary_ru": "Реакция: помеха к атаке по вам; телепорт в тень."
+              }
+            ]
+          }
+        ],
+        "summary_ru": "Подкласс следопыта: засада и теневой взор.",
+        "spell_list": [
+          {
+            "level": 3,
+            "spells": [
+              "disguise-self"
+            ]
+          },
+          {
+            "level": 5,
+            "spells": [
+              "rope-trick"
+            ]
+          },
+          {
+            "level": 9,
+            "spells": [
+              "fear"
+            ]
+          },
+          {
+            "level": 13,
+            "spells": [
+              "greater-invisibility"
+            ]
+          },
+          {
+            "level": 17,
+            "spells": [
+              "seeming"
+            ]
+          }
+        ],
+        "spell_list_note_ru": "Всегда подготовленные заклинания подкласса (короткий список; полный текст книги не копируем)."
+      }
+    },
+    {
+      "kind": "subclass",
+      "slug": "rogue__arcane-trickster",
+      "name_ru": "Мистический ловкач",
+      "name_en": "Arcane Trickster",
+      "source": "ph24",
+      "sort_order": 250,
+      "parent_id": "2e084915-6666-578c-916e-f50a85f17c85",
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/class/rogue",
+        "url_ttg": "",
+        "book": "PH24"
+      },
+      "data": {
+        "parent_class": "rogue",
+        "subclass_level": 3,
+        "features": [
+          {
+            "level": 3,
+            "features": [
+              {
+                "id": "spellcasting",
+                "name_en": "Spellcasting",
+                "name_ru": "Сотворение заклинаний",
+                "summary_ru": "Заговоры и заклинания волшебника (иллюзии/очарование в фокусе)."
+              },
+              {
+                "id": "mage-hand-legerdemain",
+                "name_en": "Mage Hand Legerdemain",
+                "name_ru": "Ловкость волшебной руки",
+                "summary_ru": "Невидимая «Волшебная рука»; карманные кражи и отмычки ею."
+              }
+            ]
+          },
+          {
+            "level": 9,
+            "features": [
+              {
+                "id": "magical-ambush",
+                "name_en": "Magical Ambush",
+                "name_ru": "Магическая засада",
+                "summary_ru": "Скрыты — помеха к спасам целей от ваших заклинаний."
+              }
+            ]
+          },
+          {
+            "level": 13,
+            "features": [
+              {
+                "id": "versatile-trickster",
+                "name_en": "Versatile Trickster",
+                "name_ru": "Многогранный ловкач",
+                "summary_ru": "Рукой дать себе преимущество к атаке."
+              }
+            ]
+          },
+          {
+            "level": 17,
+            "features": [
+              {
+                "id": "spell-thief",
+                "name_en": "Spell Thief",
+                "name_ru": "Вор заклинаний",
+                "summary_ru": "Реакция: украсть заклинание, нацеленное на вас (1/длинный)."
+              }
+            ]
+          }
+        ],
+        "summary_ru": "Подкласс плута: иллюзии и волшебная рука.",
+        "spell_list": [],
+        "spell_list_note_ru": "У подкласса нет отдельного списка заклинаний в этой карточке (или список пуст)."
+      }
+    },
+    {
+      "kind": "subclass",
+      "slug": "rogue__assassin",
+      "name_ru": "Убийца",
+      "name_en": "Assassin",
+      "source": "ph24",
+      "sort_order": 260,
+      "parent_id": "2e084915-6666-578c-916e-f50a85f17c85",
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/class/rogue",
+        "url_ttg": "",
+        "book": "PH24"
+      },
+      "data": {
+        "parent_class": "rogue",
+        "subclass_level": 3,
+        "features": [
+          {
+            "level": 3,
+            "features": [
+              {
+                "id": "assassinate",
+                "name_en": "Assassinate",
+                "name_ru": "Ликвидация",
+                "summary_ru": "Преим. к инициативе; в 1-м раунде преим. к атакам по ещё не ходившим; Коварная в 1-м раунде +ур. плута урона (без авто-крита по застигнутым врасплох)."
+              },
+              {
+                "id": "assassins-tools",
+                "name_en": "Assassin's Tools",
+                "name_ru": "Инструменты убийцы",
+                "summary_ru": "Набор для грима и яда; владения."
+              }
+            ]
+          },
+          {
+            "level": 9,
+            "features": [
+              {
+                "id": "infiltration-expertise",
+                "name_en": "Infiltration Expertise",
+                "name_ru": "Мастер проникновения",
+                "summary_ru": "Создать личность/легенду за время; преимущество к Обману."
+              }
+            ]
+          },
+          {
+            "level": 13,
+            "features": [
+              {
+                "id": "envenom-weapon",
+                "name_en": "Envenom Weapon",
+                "name_ru": "Покрытое ядом оружие",
+                "summary_ru": "Бонусным отравить оружие; доп. урон ядом при скрытой атаке."
+              }
+            ]
+          },
+          {
+            "level": 17,
+            "features": [
+              {
+                "id": "death-strike",
+                "name_en": "Death Strike",
+                "name_ru": "Смертельный удар",
+                "summary_ru": "По захваченному врасплох: удвоить урон при провале спаса ТЕЛ."
+              }
+            ]
+          }
+        ],
+        "summary_ru": "Подкласс плута: ликвидация и яды.",
+        "spell_list": [],
+        "spell_list_note_ru": "У подкласса нет отдельного списка заклинаний в этой карточке (или список пуст)."
+      }
+    },
+    {
+      "kind": "subclass",
+      "slug": "rogue__soulknife",
+      "name_ru": "Клинок души",
+      "name_en": "Soulknife",
+      "source": "ph24",
+      "sort_order": 270,
+      "parent_id": "2e084915-6666-578c-916e-f50a85f17c85",
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/class/rogue",
+        "url_ttg": "",
+        "book": "PH24"
+      },
+      "data": {
+        "parent_class": "rogue",
+        "subclass_level": 3,
+        "features": [
+          {
+            "level": 3,
+            "features": [
+              {
+                "id": "psionic-power",
+                "name_en": "Psionic Power",
+                "name_ru": "Псионическая сила",
+                "summary_ru": "Кости псионики для проверок и телепатии."
+              },
+              {
+                "id": "psychic-blades",
+                "name_en": "Psychic Blades",
+                "name_ru": "Психические клинки",
+                "summary_ru": "Проявлять психическое оружие вместо обычного; бонусная лёгкая атака."
+              }
+            ]
+          },
+          {
+            "level": 9,
+            "features": [
+              {
+                "id": "soul-blades",
+                "name_en": "Soul Blades",
+                "name_ru": "Клинки души",
+                "summary_ru": "Гомеинг и телепорт за кости псионики."
+              }
+            ]
+          },
+          {
+            "level": 13,
+            "features": [
+              {
+                "id": "psychic-veil",
+                "name_en": "Psychic Veil",
+                "name_ru": "Психическая завеса",
+                "summary_ru": "Невидимость на 1 час (1/длинный или за кости)."
+              }
+            ]
+          },
+          {
+            "level": 17,
+            "features": [
+              {
+                "id": "rend-mind",
+                "name_en": "Rend Mind",
+                "name_ru": "Раздирание разума",
+                "summary_ru": "При скрытой атаке клинком — спас ИНТ или ошеломление."
+              }
+            ]
+          }
+        ],
+        "summary_ru": "Подкласс плута: психические клинки.",
+        "spell_list": [],
+        "spell_list_note_ru": "У подкласса нет отдельного списка заклинаний в этой карточке (или список пуст)."
+      }
+    },
+    {
+      "kind": "subclass",
+      "slug": "sorcerer__aberrant-sorcery",
+      "name_ru": "Аберрантное чародейство",
+      "name_en": "Aberrant Sorcery",
+      "source": "ph24",
+      "sort_order": 280,
+      "parent_id": "b67a807b-39dd-59d4-8c58-a6c5016f1aab",
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/class/sorcerer",
+        "url_ttg": "",
+        "book": "PH24"
+      },
+      "data": {
+        "parent_class": "sorcerer",
+        "subclass_level": 3,
+        "features": [
+          {
+            "level": 3,
+            "features": [
+              {
+                "id": "psionic-spells",
+                "name_en": "Psionic Spells",
+                "name_ru": "Псионические заклинания",
+                "summary_ru": "Всегда подготовленные псионические заклинания."
+              },
+              {
+                "id": "telepathic-speech",
+                "name_en": "Telepathic Speech",
+                "name_ru": "Телепатическая речь",
+                "summary_ru": "Телепатия с существом на минуты = уровень чародея."
+              }
+            ]
+          },
+          {
+            "level": 6,
+            "features": [
+              {
+                "id": "psionic-sorcery",
+                "name_en": "Psionic Sorcery",
+                "name_ru": "Псионическое чародейство",
+                "summary_ru": "Заклинание из псионического списка — ячейкой или очками = круг; без В/С и без М без цены."
+              },
+              {
+                "id": "psychic-defenses",
+                "name_en": "Psychic Defenses",
+                "name_ru": "Психическая защита",
+                "summary_ru": "Сопротивление психическому; преимущество против Очарованный и Испуганный."
+              }
+            ]
+          },
+          {
+            "level": 14,
+            "features": [
+              {
+                "id": "revelation-in-flesh",
+                "name_en": "Revelation in Flesh",
+                "name_ru": "Откровение во плоти",
+                "summary_ru": "Бонусным: плавание, полёт, видеть невидимое и т.п. за единицы."
+              }
+            ]
+          },
+          {
+            "level": 18,
+            "features": [
+              {
+                "id": "warping-explosion",
+                "name_en": "Warping Explosion",
+                "name_ru": "Искажающий взрыв",
+                "summary_ru": "Телепорт 120 фт; существа в 30 фт от точки старта — спас Силы, 3к10 силового. 1/долгий или 5 очков."
+              }
+            ]
+          }
+        ],
+        "summary_ru": "Подкласс чародея: псионика Плетения.",
+        "spell_list": [
+          {
+            "level": 3,
+            "spells": [
+              "arms-of-hadar",
+              "dissonant-whispers",
+              "mind-sliver",
+              "calm-emotions",
+              "detect-thoughts"
+            ]
+          },
+          {
+            "level": 5,
+            "spells": [
+              "hunger-of-hadar",
+              "sending"
+            ]
+          },
+          {
+            "level": 7,
+            "spells": [
+              "black-tentacles",
+              "summon-aberration"
+            ]
+          },
+          {
+            "level": 9,
+            "spells": [
+              "telekinesis",
+              "telepathic-bond"
+            ]
+          }
+        ],
+        "spell_list_note_ru": "Всегда подготовленные заклинания подкласса (короткий список; полный текст книги не копируем)."
+      }
+    },
+    {
+      "kind": "subclass",
+      "slug": "sorcerer__clockwork-sorcery",
+      "name_ru": "Заводное чародейство",
+      "name_en": "Clockwork Sorcery",
+      "source": "ph24",
+      "sort_order": 290,
+      "parent_id": "b67a807b-39dd-59d4-8c58-a6c5016f1aab",
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/class/sorcerer",
+        "url_ttg": "",
+        "book": "PH24"
+      },
+      "data": {
+        "parent_class": "sorcerer",
+        "subclass_level": 3,
+        "features": [
+          {
+            "level": 3,
+            "features": [
+              {
+                "id": "clockwork-spells",
+                "name_en": "Clockwork Spells",
+                "name_ru": "Заводные заклинания",
+                "summary_ru": "Всегда подготовленные заклинания порядка."
+              },
+              {
+                "id": "restore-balance",
+                "name_en": "Restore Balance",
+                "name_ru": "Восстановление баланса",
+                "summary_ru": "Реакция: снять преимущество и помеху с броска. Использований = мод. Хар. (мин. 1)."
+              }
+            ]
+          },
+          {
+            "level": 6,
+            "features": [
+              {
+                "id": "bastion-of-law",
+                "name_en": "Bastion of Law",
+                "name_ru": "Бастион закона",
+                "summary_ru": "Трата единиц: кубы, снижающие урон по вам."
+              }
+            ]
+          },
+          {
+            "level": 14,
+            "features": [
+              {
+                "id": "trance-of-order",
+                "name_en": "Trance of Order",
+                "name_ru": "Транс упорядоченности",
+                "summary_ru": "1 мин: атаки без преимущества по вам; d20 ≤9 → 10. 1/долгий или 5 очков."
+              }
+            ]
+          },
+          {
+            "level": 18,
+            "features": [
+              {
+                "id": "clockwork-cavalcade",
+                "name_en": "Clockwork Cavalcade",
+                "name_ru": "Заводная кавалькада",
+                "summary_ru": "Куб 30 фт: лечение до 100, рассеять ≤6, починить объекты. 1/долгий или 7 очков."
+              }
+            ]
+          }
+        ],
+        "summary_ru": "Подкласс чародея: порядок Механуса.",
+        "spell_list": [
+          {
+            "level": 3,
+            "spells": [
+              "alarm",
+              "protection-from-evil-and-good",
+              "aid",
+              "lesser-restoration"
+            ]
+          },
+          {
+            "level": 5,
+            "spells": [
+              "dispel-magic",
+              "protection-from-energy"
+            ]
+          },
+          {
+            "level": 7,
+            "spells": [
+              "freedom-of-movement",
+              "summon-construct"
+            ]
+          },
+          {
+            "level": 9,
+            "spells": [
+              "greater-restoration",
+              "wall-of-force"
+            ]
+          }
+        ],
+        "spell_list_note_ru": "Всегда подготовленные заклинания подкласса (короткий список; полный текст книги не копируем)."
+      }
+    },
+    {
+      "kind": "subclass",
+      "slug": "sorcerer__wild-magic-sorcery",
+      "name_ru": "Чародейство дикой магии",
+      "name_en": "Wild Magic Sorcery",
+      "source": "ph24",
+      "sort_order": 300,
+      "parent_id": "b67a807b-39dd-59d4-8c58-a6c5016f1aab",
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/class/sorcerer",
+        "url_ttg": "",
+        "book": "PH24"
+      },
+      "data": {
+        "parent_class": "sorcerer",
+        "subclass_level": 3,
+        "features": [
+          {
+            "level": 3,
+            "features": [
+              {
+                "id": "wild-magic-surge",
+                "name_en": "Wild Magic Surge",
+                "name_ru": "Всплеск дикой магии",
+                "summary_ru": "После заклинания ячейкой можно бросить 1к20; на 20 — таблица всплесков 2024."
+              },
+              {
+                "id": "tides-of-chaos",
+                "name_en": "Tides of Chaos",
+                "name_ru": "Волны хаоса",
+                "summary_ru": "Преимущество к Тесту к20 (1/долгий); при касте ячейкой восстанавливается и вызывает всплеск."
+              }
+            ]
+          },
+          {
+            "level": 6,
+            "features": [
+              {
+                "id": "bend-luck",
+                "name_en": "Bend Luck",
+                "name_ru": "Искривление удачи",
+                "summary_ru": "Реакция после чужого Теста к20: 1 очко, ±1к4 к броску."
+              }
+            ]
+          },
+          {
+            "level": 14,
+            "features": [
+              {
+                "id": "controlled-chaos",
+                "name_en": "Controlled Chaos",
+                "name_ru": "Контролируемый хаос",
+                "summary_ru": "При всплеске — два броска, выбрать результат."
+              }
+            ]
+          },
+          {
+            "level": 18,
+            "features": [
+              {
+                "id": "tamed-surge",
+                "name_en": "Tamed Surge",
+                "name_ru": "Укрощённый всплеск дикой магии",
+                "summary_ru": "После каста ячейкой выбрать эффект всплеска (кроме последней строки). 1/долгий."
+              }
+            ]
+          }
+        ],
+        "summary_ru": "Подкласс чародея: всплески дикой магии.",
+        "spell_list": [],
+        "spell_list_note_ru": "У подкласса нет отдельного списка заклинаний в этой карточке (или список пуст)."
+      }
+    },
+    {
+      "kind": "subclass",
+      "slug": "warlock__archfey",
+      "name_ru": "Архифея",
+      "name_en": "Archfey Patron",
+      "source": "ph24",
+      "sort_order": 310,
+      "parent_id": "98426500-b77c-503b-be0c-fa779c0dae3a",
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/class/warlock",
+        "url_ttg": "",
+        "book": "PH24"
+      },
+      "data": {
+        "parent_class": "warlock",
+        "subclass_level": 3,
+        "features": [
+          {
+            "level": 3,
+            "features": [
+              {
+                "id": "archfey-spells",
+                "name_en": "Archfey Spells",
+                "name_ru": "Заклинания Архифеи",
+                "summary_ru": "Всегда подготовленные заклинания покровителя."
+              },
+              {
+                "id": "steps-of-the-fey",
+                "name_en": "Steps of the Fey",
+                "name_ru": "Шаг феи",
+                "summary_ru": "Бесплатный Туманный шаг; доп. эффекты очарования/страха."
+              }
+            ]
+          },
+          {
+            "level": 6,
+            "features": [
+              {
+                "id": "misty-escape",
+                "name_en": "Misty Escape",
+                "name_ru": "Туманное исчезновение",
+                "summary_ru": "«Туманный шаг» реакцией при получении урона. У «Шага феи» — эффекты Скрывающий и Ужасающий шаг."
+              }
+            ]
+          },
+          {
+            "level": 10,
+            "features": [
+              {
+                "id": "beguiling-defenses",
+                "name_en": "Beguiling Defenses",
+                "name_ru": "Чарующая защита",
+                "summary_ru": "Иммунитет к Очарованному. Реакция: уменьшить урон атаки вдвое и спас Мудрости атакующего; 1/долгий (или ячейка договора)."
+              }
+            ]
+          },
+          {
+            "level": 14,
+            "features": [
+              {
+                "id": "bewitching-magic",
+                "name_en": "Bewitching Magic",
+                "name_ru": "Завораживающая магия",
+                "summary_ru": "После заклинания Очарования или Иллюзии с ячейкой — «Туманный шаг» без ячейки частью того же действия."
+              }
+            ]
+          }
+        ],
+        "summary_ru": "Покровитель колдуна: архифея.",
+        "spell_list": [
+          {
+            "level": 3,
+            "spells": [
+              "faerie-fire",
+              "sleep",
+              "calm-emotions",
+              "misty-step",
+              "phantasmal-force"
+            ]
+          },
+          {
+            "level": 5,
+            "spells": [
+              "blink",
+              "plant-growth"
+            ]
+          },
+          {
+            "level": 7,
+            "spells": [
+              "dominate-beast",
+              "greater-invisibility"
+            ]
+          },
+          {
+            "level": 9,
+            "spells": [
+              "dominate-person",
+              "seeming"
+            ]
+          }
+        ],
+        "spell_list_note_ru": "Всегда подготовленные заклинания подкласса (короткий список; полный текст книги не копируем)."
+      }
+    },
+    {
+      "kind": "subclass",
+      "slug": "warlock__celestial-patron",
+      "name_ru": "Небожитель",
+      "name_en": "Celestial Patron",
+      "source": "ph24",
+      "sort_order": 320,
+      "parent_id": "98426500-b77c-503b-be0c-fa779c0dae3a",
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/class/warlock",
+        "url_ttg": "",
+        "book": "PH24"
+      },
+      "data": {
+        "parent_class": "warlock",
+        "subclass_level": 3,
+        "features": [
+          {
+            "level": 3,
+            "features": [
+              {
+                "id": "celestial-spells",
+                "name_en": "Celestial Spells",
+                "name_ru": "Заклинания Небожителя",
+                "summary_ru": "Всегда подготовленные заклинания покровителя."
+              },
+              {
+                "id": "healing-light",
+                "name_en": "Healing Light",
+                "name_ru": "Лечащий свет",
+                "summary_ru": "Пул к6 на лечение бонусным (ХАР+1 костей)."
+              }
+            ]
+          },
+          {
+            "level": 6,
+            "features": [
+              {
+                "id": "radiant-soul",
+                "name_en": "Radiant Soul",
+                "name_ru": "Сияющая душа",
+                "summary_ru": "Сопротивление излучению; 1/ход к урону излучением или огнём — мод. Харизмы по одной цели."
+              }
+            ]
+          },
+          {
+            "level": 10,
+            "features": [
+              {
+                "id": "celestial-resilience",
+                "name_en": "Celestial Resilience",
+                "name_ru": "Небесная стойкость",
+                "summary_ru": "После искусности или отдыха — временные хиты себе и до 5 союзникам."
+              }
+            ]
+          },
+          {
+            "level": 14,
+            "features": [
+              {
+                "id": "searing-vengeance",
+                "name_en": "Searing Vengeance",
+                "name_ru": "Опаляющее возмездие",
+                "summary_ru": "Когда вам или союзнику в 60 фт. нужен спас от смерти — спасти существо и нанести излучение вокруг; 1/долгий."
+              }
+            ]
+          }
+        ],
+        "summary_ru": "Покровитель колдуна: небожитель и свет.",
+        "spell_list": [
+          {
+            "level": 3,
+            "spells": [
+              "cure-wounds",
+              "guiding-bolt",
+              "light",
+              "sacred-flame",
+              "flaming-sphere",
+              "lesser-restoration"
+            ]
+          },
+          {
+            "level": 5,
+            "spells": [
+              "daylight",
+              "revivify"
+            ]
+          },
+          {
+            "level": 7,
+            "spells": [
+              "guardian-of-faith",
+              "wall-of-fire"
+            ]
+          },
+          {
+            "level": 9,
+            "spells": [
+              "flame-strike",
+              "greater-restoration"
+            ]
+          }
+        ],
+        "spell_list_note_ru": "Всегда подготовленные заклинания подкласса (короткий список; полный текст книги не копируем)."
+      }
+    },
+    {
+      "kind": "subclass",
+      "slug": "warlock__greate-old-one-patron",
+      "name_ru": "Великий древний",
+      "name_en": "Great Old One Patron",
+      "source": "ph24",
+      "sort_order": 330,
+      "parent_id": "98426500-b77c-503b-be0c-fa779c0dae3a",
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/class/warlock",
+        "url_ttg": "",
+        "book": "PH24"
+      },
+      "data": {
+        "parent_class": "warlock",
+        "subclass_level": 3,
+        "features": [
+          {
+            "level": 3,
+            "features": [
+              {
+                "id": "great-old-one-spells",
+                "name_en": "Great Old One Spells",
+                "name_ru": "Заклинания Великого древнего",
+                "summary_ru": "Всегда подготовленные заклинания покровителя."
+              },
+              {
+                "id": "awakened-mind",
+                "name_en": "Awakened Mind",
+                "name_ru": "Пробуждённый разум",
+                "summary_ru": "Бонусом — телепатическая связь с видимым существом в 30 футах; длительность в минутах = уровень колдуна."
+              },
+              {
+                "id": "psychic-spells",
+                "name_en": "Psychic Spells",
+                "name_ru": "Психические заклинания",
+                "summary_ru": "Урон заклинания колдуна можно сменить на психический; Очарование/Иллюзия без V/S."
+              }
+            ]
+          },
+          {
+            "level": 6,
+            "features": [
+              {
+                "id": "clairvoyant-combatant",
+                "name_en": "Clairvoyant Combatant",
+                "name_ru": "Провидящий боец",
+                "summary_ru": "Навязать ментальную связь с врагом: преимущество к атакам."
+              }
+            ]
+          },
+          {
+            "level": 10,
+            "features": [
+              {
+                "id": "eldritch-hex",
+                "name_en": "Eldritch Hex",
+                "name_ru": "Мистический сглаз",
+                "summary_ru": "«Сглаз» всегда подготовлен; цель с помехой на спасброски выбранной характеристики."
+              },
+              {
+                "id": "thought-shield",
+                "name_en": "Thought Shield",
+                "name_ru": "Ментальный щит",
+                "summary_ru": "Мысли закрыты; сопротивление психическому; отражение психического урона атакующему."
+              }
+            ]
+          },
+          {
+            "level": 14,
+            "features": [
+              {
+                "id": "create-thrall",
+                "name_en": "Create Thrall",
+                "name_ru": "Порабощение",
+                "summary_ru": "«Вызов аберрации» без концентрации на 1 минуту + временные хиты; доп. психический урон по цели под «Сглазом»."
+              }
+            ]
+          }
+        ],
+        "summary_ru": "Покровитель колдуна: великий древний.",
+        "spell_list": [
+          {
+            "level": 3,
+            "spells": [
+              "detect-thoughts",
+              "dissonant-whispers",
+              "phantasmal-force",
+              "tashas-hideous-laughter"
+            ]
+          },
+          {
+            "level": 5,
+            "spells": [
+              "clairvoyance",
+              "hunger-of-hadar"
+            ]
+          },
+          {
+            "level": 7,
+            "spells": [
+              "confusion",
+              "summon-aberration"
+            ]
+          },
+          {
+            "level": 9,
+            "spells": [
+              "modify-memory",
+              "telekinesis"
+            ]
+          }
+        ],
+        "spell_list_note_ru": "Всегда подготовленные заклинания подкласса (короткий список; полный текст книги не копируем)."
+      }
+    },
+    {
+      "kind": "subclass",
+      "slug": "wizard__abjurer",
+      "name_ru": "Оградитель",
+      "name_en": "Abjurer",
+      "source": "ph24",
+      "sort_order": 340,
+      "parent_id": "e8ce8efb-affc-5761-a167-ecae99168949",
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/class/wizard",
+        "url_ttg": "",
+        "book": "PH24"
+      },
+      "data": {
+        "parent_class": "wizard",
+        "subclass_level": 3,
+        "features": [
+          {
+            "level": 3,
+            "features": [
+              {
+                "id": "abjuration-savant",
+                "name_en": "Abjuration Savant",
+                "name_ru": "Учёный-Оградитель",
+                "summary_ru": "Два заклинания школы ограждения (до 2 круга) бесплатно в книгу на 3 уровне; затем по одному бесплатно при новом круге слотов."
+              },
+              {
+                "id": "arcane-ward",
+                "name_en": "Arcane Ward",
+                "name_ru": "Волшебный щит",
+                "summary_ru": "При Ограждении с ячейкой: щит хитов = Инт + 2×ур. волшебника; пополнение 2×круг ячейки; до долгого отдыха."
+              }
+            ]
+          },
+          {
+            "level": 6,
+            "features": [
+              {
+                "id": "projected-ward",
+                "name_en": "Projected Ward",
+                "name_ru": "Проецированный щит",
+                "summary_ru": "Реакция: когда существо в 30 фт получает урон, щит поглощает его вместо него."
+              }
+            ]
+          },
+          {
+            "level": 10,
+            "features": [
+              {
+                "id": "spell-breaker",
+                "name_en": "Spell Breaker",
+                "name_ru": "Разрушитель заклинаний",
+                "summary_ru": "Контрзаклинание и Рассеивание магии всегда подготовлены; Рассеивание — бонусным действием; к проверке +бонус мастерства; слот не тратится, если заклинание не остановлено."
+              }
+            ]
+          },
+          {
+            "level": 14,
+            "features": [
+              {
+                "id": "spell-resistance",
+                "name_en": "Spell Resistance",
+                "name_ru": "Сопротивление заклинаниям",
+                "summary_ru": "Преимущество к спасам от заклинаний; сопротивление урону заклинаний."
+              }
+            ]
+          }
+        ],
+        "summary_ru": "Школа волшебника: ограждение и щит.",
+        "spell_list": [
+          {
+            "level": 10,
+            "spells": [
+              "counterspell",
+              "dispel-magic"
+            ]
+          }
+        ],
+        "spell_list_note_ru": "Контрзаклинание и Рассеивание магии всегда подготовлены с 10 уровня (вне лимита книги)."
+      }
+    },
+    {
+      "kind": "subclass",
+      "slug": "wizard__diviner",
+      "name_ru": "Прорицатель",
+      "name_en": "Diviner",
+      "source": "ph24",
+      "sort_order": 350,
+      "parent_id": "e8ce8efb-affc-5761-a167-ecae99168949",
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/class/wizard",
+        "url_ttg": "",
+        "book": "PH24"
+      },
+      "data": {
+        "parent_class": "wizard",
+        "subclass_level": 3,
+        "features": [
+          {
+            "level": 3,
+            "features": [
+              {
+                "id": "divination-savant",
+                "name_en": "Divination Savant",
+                "name_ru": "Учёный-Прорицатель",
+                "summary_ru": "Два заклинания школы прорицания (до 2 круга) бесплатно в книгу на 3 уровне; затем по одному бесплатно при новом круге слотов."
+              },
+              {
+                "id": "portent",
+                "name_en": "Portent",
+                "name_ru": "Знамение",
+                "summary_ru": "После долгого отдыха бросьте d20 (2; 3 на 14 ур.); решайте до броска, раз в ход подменить бросок значением кубика."
+              }
+            ]
+          },
+          {
+            "level": 6,
+            "features": [
+              {
+                "id": "expert-divination",
+                "name_en": "Expert Divination",
+                "name_ru": "Эксперт прорицания",
+                "summary_ru": "Каст прорицания 2+ круга ячейкой возвращает одну ячейку ниже (не выше 5 круга)."
+              }
+            ]
+          },
+          {
+            "level": 10,
+            "features": [
+              {
+                "id": "the-third-eye",
+                "name_en": "The Third Eye",
+                "name_ru": "Третий глаз",
+                "summary_ru": "Бонусным действием на выбор: тёмное зрение 120 фт, лучшее понимание (чтение любых языков) или Видение невидимого без ячейки. Раз за короткий или долгий отдых."
+              }
+            ]
+          },
+          {
+            "level": 14,
+            "features": [
+              {
+                "id": "greater-portent",
+                "name_en": "Greater Portent",
+                "name_ru": "Великое знамение",
+                "summary_ru": "Третья кость Знамения (три d20 после долгого отдыха)."
+              }
+            ]
+          }
+        ],
+        "summary_ru": "Школа волшебника: знамение и прорицание.",
+        "spell_list": [],
+        "spell_list_note_ru": "У подкласса нет отдельного списка заклинаний в этой карточке (или список пуст)."
+      }
+    },
+    {
+      "kind": "subclass",
+      "slug": "wizard__illusionist",
+      "name_ru": "Иллюзионист",
+      "name_en": "Illusionist",
+      "source": "ph24",
+      "sort_order": 360,
+      "parent_id": "e8ce8efb-affc-5761-a167-ecae99168949",
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/class/wizard",
+        "url_ttg": "",
+        "book": "PH24"
+      },
+      "data": {
+        "parent_class": "wizard",
+        "subclass_level": 3,
+        "features": [
+          {
+            "level": 3,
+            "features": [
+              {
+                "id": "illusion-savant",
+                "name_en": "Illusion Savant",
+                "name_ru": "Учёный-Иллюзионист",
+                "summary_ru": "Два заклинания школы иллюзий (до 2 круга) бесплатно в книгу на 3 уровне; затем по одному бесплатно при новом круге слотов."
+              },
+              {
+                "id": "improved-illusions",
+                "name_en": "Improved Illusions",
+                "name_ru": "Улучшенные иллюзии",
+                "summary_ru": "Малая иллюзия — бесплатный заговор; без словесного компонента; дальность +60 фт (если от 10 фт); звук и образ вместе; творится бонусным действием."
+              }
+            ]
+          },
+          {
+            "level": 6,
+            "features": [
+              {
+                "id": "phantasmal-creatures",
+                "name_en": "Phantasmal Creatures",
+                "name_ru": "Призрачные существа",
+                "summary_ru": "Вызов зверя и Вызов феи всегда подготовлены; версию школы иллюзии каждого можно сотворить без ячейки раз за долгий отдых (хиты существа вдвое меньше)."
+              }
+            ]
+          },
+          {
+            "level": 10,
+            "features": [
+              {
+                "id": "illusory-self",
+                "name_en": "Illusory Self",
+                "name_ru": "Собственная иллюзорность",
+                "summary_ru": "Реакция: атака по вам промахивается по иллюзорному двойнику. Раз за короткий отдых; вернуть — потратить ячейку 2+ круга."
+              }
+            ]
+          },
+          {
+            "level": 14,
+            "features": [
+              {
+                "id": "illusory-reality",
+                "name_en": "Illusory Reality",
+                "name_ru": "Иллюзорная реальность",
+                "summary_ru": "Бонусным действием, пока идёт иллюзия: один неживой немагический предмет иллюзии становится реальным на 1 минуту."
+              }
+            ]
+          }
+        ],
+        "summary_ru": "Школа волшебника: иллюзии.",
+        "spell_list": [
+          {
+            "level": 6,
+            "spells": [
+              "summon-beast",
+              "summon-fey"
+            ]
+          }
+        ],
+        "spell_list_note_ru": "Вызов зверя и Вызов феи всегда подготовлены с 6 уровня (вне лимита книги)."
+      }
+    }
+  ]
+}

@@ -36,6 +36,7 @@ class CatalogKind(str, enum.Enum):
     item = "item"
     condition = "condition"
     bestiary = "bestiary"
+    bastion = "bastion"
 
 
 class CatalogRulesEdition(str, enum.Enum):

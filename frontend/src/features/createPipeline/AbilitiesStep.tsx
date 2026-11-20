@@ -28,6 +28,8 @@ type AbilitiesStepProps = {
   onBaseChange: (scores: AbilityScores) => void
   /** L-16: если задано — показать только эти методы (вкл. скрытие manual). */
   allowedMethods?: AbilityMethod[] | null
+  /** Overlay label (2014 «раса», 2024 «предыстория»). */
+  bonusLabel?: string
 }
 
 type MethodCard = {
@@ -44,13 +46,13 @@ const METHOD_CARDS: MethodCard[] = [
   },
   {
     id: 'point_buy',
-    title: 'Point buy',
+    title: 'Покупка очков',
     subtitle: `${POINT_BUY_BUDGET} очков · до ${POINT_BUY_MAX}`,
   },
   {
     id: 'roll',
     title: 'Бросок',
-    subtitle: '4d6, отбросить младший',
+    subtitle: '4к6, отбросить младший',
   },
   {
     id: 'manual',
@@ -77,6 +79,7 @@ export function AbilitiesStep({
   onMethodChange,
   onBaseChange,
   allowedMethods,
+  bonusLabel = 'раса',
 }: AbilitiesStepProps) {
   const methodCards =
     allowedMethods && allowedMethods.length > 0
@@ -137,8 +140,8 @@ export function AbilitiesStep({
         Характеристики
       </Text>
       <Text tone="muted">
-        База без расовых бонусов. Справа в сумме уже с расой. Point buy — {POINT_BUY_BUDGET} очков,
-        до расы максимум {POINT_BUY_MAX}.
+        База без бонусов ({bonusLabel}). Справа в сумме уже с бонусом. Покупка очков —{' '}
+        {POINT_BUY_BUDGET} очков, до бонуса максимум {POINT_BUY_MAX}.
       </Text>
 
       <div className="create-pipeline__method-cards" role="group" aria-label="Метод характеристик">
@@ -176,7 +179,7 @@ export function AbilitiesStep({
       {method === 'roll' ? (
         <Stack gap={8}>
           <Text tone="muted">
-            Для каждой характеристики: 4d6, младший в скобках не считается. Можно перебросить одну
+            Для каждой характеристики: 4к6, младший в скобках не считается. Можно перебросить одну
             или все.
           </Text>
           <Button variant="secondary" onClick={rerollAll}>
@@ -195,7 +198,7 @@ export function AbilitiesStep({
                 <Text className="create-pipeline__ability-label">{ABILITY_LABEL_RU[key]}</Text>
                 {bonus ? (
                   <Text tone="muted" className="create-pipeline__ability-bonus">
-                    раса {bonus > 0 ? `+${bonus}` : bonus}
+                    {bonusLabel} {bonus > 0 ? `+${bonus}` : bonus}
                   </Text>
                 ) : null}
                 {method === 'roll' && detail ? (

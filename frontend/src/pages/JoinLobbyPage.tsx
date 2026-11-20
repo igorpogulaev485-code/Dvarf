@@ -10,6 +10,7 @@ import {
 import { getMe } from '../shared/api/auth'
 import { listCharacters, type CharacterSummary } from '../shared/api/characters'
 import { ApiRequestError, getAccessToken } from '../shared/api/client'
+import { RULES_EDITION_2024_OPEN } from '../shared/dnd/rulesEdition2024'
 import { JoinIntroCard, useOnboardingState } from '../features/onboarding'
 import {
   createHeroForLobbyHref,
@@ -59,10 +60,28 @@ export function JoinLobbyPage() {
   const [startMismatch, setStartMismatch] = useState<string[] | null>(null)
 
   const codeReady = code.trim().length >= 4
+  const lobbyEdition = (inviteMeta?.rules_edition || '2014').trim() || '2014'
+
+  const seatableCharacters = useMemo(() => {
+    // Пока 2024 закрыт — список как в main (все персонажи). Фильтр редакции — после открытия.
+    if (!RULES_EDITION_2024_OPEN) return characters
+    return characters.filter((c) => (c.rules_edition || '2014') === lobbyEdition)
+  }, [characters, lobbyEdition])
+
   const selected = useMemo(
-    () => characters.find((c) => c.id === characterId) ?? null,
-    [characters, characterId],
+    () => seatableCharacters.find((c) => c.id === characterId) ?? null,
+    [seatableCharacters, characterId],
   )
+
+  useEffect(() => {
+    if (seatableCharacters.length === 0) {
+      if (characterId) setCharacterId('')
+      return
+    }
+    if (!seatableCharacters.some((c) => c.id === characterId)) {
+      setCharacterId(seatableCharacters[0].id)
+    }
+  }, [seatableCharacters, characterId])
 
   const startLevel = useMemo(() => {
     if (!inviteMeta) return null
@@ -95,7 +114,6 @@ export function JoinLobbyPage() {
       .then((items) => {
         if (!active) return
         setCharacters(items)
-        if (items[0]) setCharacterId(items[0].id)
       })
       .catch((err: unknown) => {
         if (!active) return
@@ -318,19 +336,26 @@ export function JoinLobbyPage() {
                         }}
                         required
                       >
-                        {characters.map((c) => (
+                        {seatableCharacters.map((c) => (
                           <option key={c.id} value={c.id}>
                             {c.name} · {characterMeta(c)}
                           </option>
                         ))}
                       </Select>
                     </Field>
+                    {RULES_EDITION_2024_OPEN &&
+                    inviteMeta &&
+                    seatableCharacters.length === 0 ? (
+                      <Text tone="muted">
+                        Нет персонажей редакции {lobbyEdition} для этого стола.
+                      </Text>
+                    ) : null}
                   </div>
 
                   <fieldset className="join-flow__cards" disabled={!codeReady}>
                     <legend className="join-flow__cards-legend">Какого персонажа добавить</legend>
                     <div className="join-flow__card-list" role="listbox" aria-label="Персонажи">
-                      {characters.map((c) => {
+                      {seatableCharacters.map((c) => {
                         const active = c.id === characterId
                         return (
                           <button

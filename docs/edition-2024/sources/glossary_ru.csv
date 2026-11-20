@@ -1,0 +1,2470 @@
+id,category,name_en,name_ru,book
+breastplate,armor,Breastplate,Кираса,PH24
+chain-mail,armor,Chain Mail,Кольчужный доспех,PH24
+chain-shirt,armor,Chain Shirt,Кольчужная рубаха,PH24
+half-plate-armor,armor,Half Plate Armor,Полулаты,PH24
+hide-armor,armor,Hide Armor,Шкурный доспех,PH24
+leather-armor,armor,Leather Armor,Кожаный доспех,PH24
+padded-armor,armor,Padded Armor,Стёганый доспех,PH24
+plate-armor,armor,Plate Armor,Латный доспех,PH24
+ring-mail,armor,Ring Mail,Колечный доспех,PH24
+scale-mail,armor,Scale Mail,Чешуйчатый доспех,PH24
+shield,armor,Shield,Щит,PH24
+splint-armor,armor,Splint Armor,Пластинчатый доспех,PH24
+studded-leather-armor,armor,Studded Leather Armor,Проклёпанный кожаный доспех,PH24
+carouser,backgrounds,Carouser,Кутила,ABH
+vampire-devotee,backgrounds,Vampire Devotee,Посвящённый вампира,ABH
+vampire-survivor,backgrounds,Vampire Survivor,Переживший атаку вампира,ABH
+agent-of-the-ninth-quill,backgrounds,Agent of the Ninth Quill,Агент Девятого пера,AU
+bejeweled-conclave-spy,backgrounds,Bejeweled Conclave Spy,Шпион Самоцветного конклава,AU
+cosmic-dawn-experiment,backgrounds,Cosmic Dawn Experiment,Эксперимент Зари мироздания,AU
+covenant-of-the-grave-recruit,backgrounds,Covenant of the Grave Recruit,Рекрут Могильного ковенанта,AU
+crucible-storm-chaser,backgrounds,Crucible Storm Chaser,Ищущий бурю Горнила,AU
+familiar-trainer,backgrounds,Familiar Trainer,Дрессировщик фамильяров,AU
+horizon-weaver-initiate,backgrounds,Horizon Weaver Initiate,Посвящённый Плетущих горизонты,AU
+phantasmic-circus-trouper,backgrounds,Phantasmic Circus Trouper,Член труппы Театра фантазмов,AU
+seer-apprentice,backgrounds,Seer Apprentice,Ученик Провидцев,AU
+ward-of-the-sheltering-hands,backgrounds,Ward of the Sheltering Hands,Подопечный Оберегающих дланей,AU
+aberrant-heir,backgrounds,Aberrant Heir,Аберрантный наследник,EFA
+archaeologist,backgrounds,Archaeologist,Археолог,EFA
+house-agent,backgrounds,House Agent,Агент дома,EFA
+house-cannith-heir,backgrounds,House Cannith Heir,Наследник дома Каннит,EFA
+house-deneith-heir,backgrounds,House Deneith Heir,Наследник дома Денейт,EFA
+house-ghallanda-heir,backgrounds,House Ghallanda Heir,Наследник дома Галланда,EFA
+house-jorasco-heir,backgrounds,House Jorasco Heir,Наследник дома Джораско,EFA
+house-kundarak-heir,backgrounds,House Kundarak Heir,Наследник дома Кундарак,EFA
+house-lyrandar-heir,backgrounds,House Lyrandar Heir,Наследник дома Лирандар,EFA
+house-medani-heir,backgrounds,House Medani Heir,Наследник дома Медани,EFA
+house-orien-heir,backgrounds,House Orien Heir,Наследник дома Ориен,EFA
+house-phiarlan-heir,backgrounds,House Phiarlan Heir,Наследник дома Фиарлан,EFA
+house-sivis-heir,backgrounds,House Sivis Heir,Наследник дома Сивис,EFA
+house-tharashk-heir,backgrounds,House Tharashk Heir,Наследник дома Тарашк,EFA
+house-thuranni-heir,backgrounds,House Thuranni Heir,Наследник дома Туранни,EFA
+house-vadalis-heir,backgrounds,House Vadalis Heir,Наследник дома Вадалис,EFA
+inquisitive,backgrounds,Inquisitive,Сыскной,EFA
+arfist,backgrounds,,Арфист,FRHoF
+chondathan-freebooter,backgrounds,Chondathan Freebooter,Чондатский флибустьер,FRHoF
+dead-magic-dweller,backgrounds,Dead Magic Dweller,Обитатель зон мёртвой магии,FRHoF
+dragon-cultist,backgrounds,Dragon Cultist,Культист Дракона,FRHoF
+emerald-enclave-caretaker,backgrounds,Emerald Enclave Caretaker,Смотритель Изумрудного анклава,FRHoF
+flaming-fist-mercenary,backgrounds,Flaming Fist Mercenary,Наёмник Пламенного кулака,FRHoF
+genie-touched,backgrounds,Genie Touched,Затронутый гением,FRHoF
+ice-fisher,backgrounds,Ice Fisher,Подлёдный рыболов,FRHoF
+knight-of-the-gauntlet,backgrounds,Knight of the Gauntlet,Рыцарь Латной перчатки,FRHoF
+lords-alliance-vassal,backgrounds,Lords’ Alliance Vassal,Вассал Альянса лордов,FRHoF
+moonwell-pilgrim,backgrounds,Moonwell Pilgrim,Пилигрим лунного колодца,FRHoF
+mulhorandi-tomb-raider,backgrounds,Mulhorandi Tomb Raider,Расхититель гробниц Мулхоранда,FRHoF
+mythalkeeper,backgrounds,Mythalkeeper,Хранитель мифала,FRHoF
+purple-dragon-squire,backgrounds,Purple Dragon Squire,Оруженосец Пурпурного дракона,FRHoF
+rashemi-wanderer,backgrounds,Rashemi Wanderer,Рашеменский странник,FRHoF
+shadowmasters-exile,backgrounds,Shadowmasters Exile,Изгнанник Владык теней,FRHoF
+spellfire-initiate,backgrounds,Spellfire Initiate,Посвящённый чаропламени,FRHoF
+zhentarim-mercenary,backgrounds,Zhentarim Mercenary,Наёмник Жентарима,FRHoF
+lorwyn-expert,backgrounds,Lorwyn Expert,Эксперт Лорвина,LFL
+shadowmoor-expert,backgrounds,Shadowmoor Expert,Эксперт Шэдоумура,LFL
+acolyte,backgrounds,Acolyte,Послушник,PH24
+artisan,backgrounds,Artisan,Ремесленник,PH24
+charlatan,backgrounds,Charlatan,Шарлатан,PH24
+criminal,backgrounds,Criminal,Преступник,PH24
+entertainer,backgrounds,Entertainer,Артист,PH24
+farmer,backgrounds,Farmer,Фермер,PH24
+guard,backgrounds,Guard,Стражник,PH24
+guide,backgrounds,Guide,Проводник,PH24
+hermit,backgrounds,Hermit,Отшельник,PH24
+merchant,backgrounds,Merchant,Торговец,PH24
+noble,backgrounds,Noble,Дворянин,PH24
+sage,backgrounds,Sage,Мудрец,PH24
+sailor,backgrounds,Sailor,Моряк,PH24
+scribe,backgrounds,Scribe,Писарь,PH24
+soldier,backgrounds,Soldier,Солдат,PH24
+wayfarer,backgrounds,Wayfarer,Бродяга,PH24
+haunted-one,backgrounds,Haunted One,Преследуемый,RTW
+investigator,backgrounds,Investigator,Следователь,RTW
+mist-wanderer,backgrounds,Mist Wanderer,Странник Туманов,RTW
+spirit-medium,backgrounds,Spirit Medium,Медиум,RTW
+artificer,classes,Artificer,Артефактор,EFA
+barbarian,classes,Barbarian,Варвар,PH24
+bard,classes,Bard,Бард,PH24
+cleric,classes,Cleric,Жрец,PH24
+druid,classes,Druid,Друид,PH24
+fighter,classes,Fighter,Воин,PH24
+monk,classes,Monk,Монах,PH24
+paladin,classes,Paladin,Паладин,PH24
+ranger,classes,Ranger,Следопыт,PH24
+rogue,classes,Rogue,Плут,PH24
+sorcerer,classes,Sorcerer,Чародей,PH24
+warlock,classes,Warlock,Колдун,PH24
+wizard,classes,Wizard,Волшебник,PH24
+fiendish-icon,creatures,Fiendish Icon,Идол исчадия,ABH
+harvester-devil,creatures,Harvester Devil,Дьявол-собиратель (фальксугон),ABH
+speaker-devil,creatures,Speaker Devil,Дьявол-златоуст (логокрон),ABH
+vampire-infernalist,creatures,Vampire Infernalist,Вампир-инферналист,ABH
+vampire-warden,creatures,Vampire Warden,Вампир-страж,ABH
+abjurer-archmage,creatures,Abjurer Archmage,Архимаг-оградитель,AU
+baelnorn,creatures,Baelnorn,Баэлнорн,AU
+conjurer-archmage,creatures,Conjurer Archmage,Архимаг-призыватель,AU
+darkenbeast,creatures,Darkenbeast,Темнозверь,AU
+diviner-archmage,creatures,Diviner Archmage,Архимаг-прорицатель,AU
+enchanter-archmage,creatures,Enchanter Archmage,Архимаг-очарователь,AU
+evoker-archmage,creatures,Evoker Archmage,Архимаг-воплотитель,AU
+groundling-grunt,creatures,Groundling Grunt,Земельникус-боец,AU
+groundling-slayer,creatures,Groundling Slayer,Земельникус-ликвидатор,AU
+groundling-stalker,creatures,Groundling Stalker,Земельникус-охотник,AU
+illusionist-archmage,creatures,Illusionist Archmage,Архимаг-иллюзионист,AU
+living-cone-of-cold,creatures,Living Cone of Cold,Живой конус холода,AU
+living-thunderwave,creatures,Living Thunderwave,Живая волна грома,AU
+living-vitriolic-sphere,creatures,Living Vitriolic Sphere,Живой едкий шар,AU
+necromancer-archmage,creatures,Necromancer Archmage,Архимаг-некромант,AU
+spellguard,creatures,Spellguard,Страж заклятий,AU
+taisus,creatures,Taisus,Тайсу,AU
+transmuter-archmage,creatures,Transmuter Archmage,Архимаг-преобразователь,AU
+venger,creatures,Venger,Венгер,AU
+abveku,creatures,Abveku,Абвеку,AUD
+arisen-sarrukh,creatures,Arisen Sarrukh,Саррух восставший,AUD
+rendelith,creatures,Rendelith,Ренделит,AUD
+sarrukh-tyrant,creatures,Sarrukh Tyrant,Саррух деспот,AUD
+szass-tam,creatures,Szass Tam,Сзасс Тэм,AUD
+xelnene-thrul,creatures,Xelnene Thrul,Зелнена Трул,AUD
+adult-deep-dragon,creatures,Adult Deep Dragon,Взрослый глубинный дракон,FRAiF
+adult-spirit-dragon,creatures,Adult Spirit Dragon,Взрослый духовный дракон,FRAiF
+ancient-deep-dragon,creatures,Ancient Deep Dragon,Древний глубинный дракон,FRAiF
+ancient-spirit-dragon,creatures,Ancient Spirit Dragon,Древний духовный дракон,FRAiF
+aranea,creatures,Aranea,Аранея,FRAiF
+beast-of-malar,creatures,Beast of Malar,Зверь Малара,FRAiF
+biha-babir,creatures,Biha Babir,Биха Бабир,FRAiF
+cultist-of-bane,creatures,Cultist of Bane,Культист Бейна,FRAiF
+cultist-of-bhaal,creatures,Cultist of Bhaal,Культист Баала,FRAiF
+cultist-of-myrkul,creatures,Cultist of Myrkul,Культист Миркула,FRAiF
+dead-three-scion,creatures,Dead Three Scion,Наследник Мёртвой троицы,FRAiF
+deep-dragon-wyrmling,creatures,Deep Dragon Wyrmling,Вирмлинг глубинного дракона,FRAiF
+domestic-wonder,creatures,Domestic Wonder,Диво домашнее,FRAiF
+drow-elite-warrior-of-lolth,creatures,Drow Elite Warrior of Lolth,"Элитный воин-дроу, посвящённый Лолс",FRAiF
+drow-mage-of-lolth,creatures,Drow Mage of Lolth,"Дроу-маг, посвящённый Лолс",FRAiF
+drow-of-lolth,creatures,Drow of Lolth,"Дроу, посвящённый Лолс",FRAiF
+drow-priestess-of-lolth,creatures,Drow Priestess of Lolth,"Дроу, жрица Лолс",FRAiF
+flying-wonder,creatures,Flying Wonder,Диво летающее,FRAiF
+karas-chembryl,creatures,Karas Chembryl,Карас Кхембрил,FRAiF
+manshoon,creatures,Manshoon,Маншун,FRAiF
+nimblewright-guard,creatures,Nimblewright Guard,Шустрабо-страж,FRAiF
+nimblewright-hulk,creatures,Nimblewright Hulk,Шустрабо-бастион,FRAiF
+nimblewright-steed,creatures,Nimblewright Steed,Шустрабо-скакун,FRAiF
+polar-serpent,creatures,Polar Serpent,Полярный змей,FRAiF
+queen-forfallen,creatures,Queen Forfallen,Королева Фарфалле,FRAiF
+rusted-behemoth,creatures,Rusted Behemoth,Оржавевшее чудище,FRAiF
+rusted-berserker,creatures,Rusted Berserker,Оржавевший берсерк,FRAiF
+rusted-wyrm,creatures,Rusted Wyrm,Оржавевший вирм,FRAiF
+sammaster-dracolich-form,creatures,Sammaster (Dracolich Form),Саммастер (форма драколича),FRAiF
+sammaster-lich-form,creatures,Sammaster (Lich Form),Саммастер (форма лича),FRAiF
+spirit-dragon-wyrmling,creatures,Spirit Dragon Wyrmling,Вирмлинг духовного дракона,FRAiF
+spore-of-moander,creatures,Spore of Moander,Спора Моандера,FRAiF
+swanmay,creatures,Swanmay,Лебединая дева,FRAiF
+valindra-shadowmantle,creatures,Valindra Shadowmantle,Валиндра Теневая Мантия,FRAiF
+werewyvern,creatures,Werewyvern,Вервиверна,FRAiF
+young-deep-dragon,creatures,Young Deep Dragon,Молодой глубинный дракон,FRAiF
+young-spirit-dragon,creatures,Young Spirit Dragon,Молодой духовный дракон,FRAiF
+zhentilar-paladin-of-bane,creatures,Zhentilar Paladin of Bane,Жентиларский паладин Бейна,FRAiF
+zhentilar-soldier,creatures,Zhentilar Soldier,Жентиларский солдат,FRAiF
+zlan,creatures,Zlan,Злан,FRAiF
+incarnation-of-transience,creatures,Incarnation of Transience,Воплощение мимолётности,LFL
+incarnation-of-vibrance,creatures,Incarnation of Vibrance,Воплощение яркости,LFL
+lorwyn-giant,creatures,Lorwyn Giant,Великан Лорвина,LFL
+merrow-doublespeaker,creatures,Merrow Doublespeaker,Мерроу-двуязыкий,LFL
+merrow-haranguer,creatures,Merrow Haranguer,Мерроу-крикун,LFL
+noggle-ransacker,creatures,Noggle Ransacker,Ноггл-грабитель,LFL
+noggle-wild-mage,creatures,Noggle Wild Mage,Ноггл-дикий маг,LFL
+shadowmoor-giant,creatures,Shadowmoor Giant,Великан Шэдоумура,LFL
+aarakocra-aeromancer,creatures,Aarakocra Aeromancer,Ааракокра аэромант,MM24
+aarakocra-skirmisher,creatures,Aarakocra Skirmisher,Ааракокра застрельщик,MM24
+aberrant-cultist,creatures,Aberrant Cultist,Последователь культа аберрации,MM24
+aboleth,creatures,Aboleth,Аболет,MM24
+abominable-yeti,creatures,Abominable Yeti,Отвратительный йети,MM24
+adult-black-dragon,creatures,Adult Black Dragon,Взрослый чёрный дракон,MM24
+adult-blue-dragon,creatures,Adult Blue Dragon,Взрослый синий дракон,MM24
+adult-brass-dragon,creatures,Adult Brass Dragon,Взрослый латунный дракон,MM24
+adult-bronze-dragon,creatures,Adult Bronze Dragon,Взрослый бронзовый дракон,MM24
+adult-copper-dragon,creatures,Adult Copper Dragon,Взрослый медный дракон,MM24
+adult-gold-dragon,creatures,Adult Gold Dragon,Взрослый золотой дракон,MM24
+adult-green-dragon,creatures,Adult Green Dragon,Взрослый зелёный дракон,MM24
+adult-red-dragon,creatures,Adult Red Dragon,Взрослый красный дракон,MM24
+adult-silver-dragon,creatures,Adult Silver Dragon,Взрослый серебряный дракон,MM24
+adult-white-dragon,creatures,Adult White Dragon,Взрослый белый дракон,MM24
+air-elemental,creatures,Air Elemental,Воздушный элементаль,MM24
+allosaurus,creatures,Allosaurus,Аллозавр,MM24
+ancient-black-dragon,creatures,Ancient Black Dragon,Древний чёрный дракон,MM24
+ancient-blue-dragon,creatures,Ancient Blue Dragon,Древний синий дракон,MM24
+ancient-brass-dragon,creatures,Ancient Brass Dragon,Древний латунный дракон,MM24
+ancient-bronze-dragon,creatures,Ancient Bronze Dragon,Древний бронзовый дракон,MM24
+ancient-copper-dragon,creatures,Ancient Copper Dragon,Древний медный дракон,MM24
+ancient-gold-dragon,creatures,Ancient Gold Dragon,Древний золотой дракон,MM24
+ancient-green-dragon,creatures,Ancient Green Dragon,Древний зелёный дракон,MM24
+ancient-red-dragon,creatures,Ancient Red Dragon,Древний красный дракон,MM24
+ancient-silver-dragon,creatures,Ancient Silver Dragon,Древний серебряный дракон,MM24
+ancient-white-dragon,creatures,Ancient White Dragon,Древний белый дракон,MM24
+animal-lord,creatures,Animal Lord,Владыка зверей,MM24
+animated-armor,creatures,Animated Armor,Живой доспех,MM24
+animated-broom,creatures,Animated Broom,Живая метла,MM24
+animated-flying-sword,creatures,Animated Flying Sword,Живой летающий меч,MM24
+animated-rug-of-smothering,creatures,Animated Rug of Smothering,Живой ковёр удушения,MM24
+ankheg,creatures,Ankheg,Анкег,MM24
+ankylosaurus,creatures,Ankylosaurus,Анкилозавр,MM24
+ape,creatures,Ape,Человекообразная обезьяна,MM24
+arcanaloth,creatures,Arcanaloth,Арканалот,MM24
+arch-hag,creatures,Arch-hag,Архикарга,MM24
+archelon,creatures,Archelon,Архелон,MM24
+archmage,creatures,Archmage,Архимаг,MM24
+archpriest,creatures,Archpriest,Архиепископ,MM24
+assassin,creatures,Assassin,Ассасин,MM24
+awakened-shrub,creatures,Awakened Shrub,Пробуждённый куст,MM24
+awakened-tree,creatures,Awakened Tree,Пробуждённое дерево,MM24
+axe-beak,creatures,Axe Beak,Топороклюв,MM24
+azer-pyromancer,creatures,Azer Pyromancer,Эйзер пиромант,MM24
+azer-sentinel,creatures,Azer Sentinel,Эйзер страж,MM24
+baboon,creatures,Baboon,Бабуин,MM24
+badger,creatures,Badger,Барсук,MM24
+balor,creatures,Balor,Балор,MM24
+bandit,creatures,Bandit,Бандит,MM24
+bandit-captain,creatures,Bandit Captain,Атаман бандитов,MM24
+bandit-crime-lord,creatures,Bandit Crime Lord,Преступный лорд бандитов,MM24
+bandit-deceiver,creatures,Bandit Deceiver,Бандит-обманщик,MM24
+banshee,creatures,Banshee,Банши,MM24
+barbed-devil,creatures,Barbed Devil,Шипастый дьявол (гаматула),MM24
+barlgura,creatures,Barlgura,Барлгура,MM24
+basilisk,creatures,Basilisk,Василиск,MM24
+bat,creatures,Bat,Летучая мышь,MM24
+bearded-devil,creatures,Bearded Devil,Бородатый дьявол (барбазу),MM24
+behir,creatures,Behir,Бехир,MM24
+beholder,creatures,Beholder,Бехолдер,MM24
+beholder-zombie,creatures,Beholder Zombie,Бехолдер-зомби,MM24
+berserker,creatures,Berserker,Берсерк,MM24
+berserker-commander,creatures,Berserker Commander,Предводитель берсерков,MM24
+black-bear,creatures,Black bear,Чёрный медведь,MM24
+black-dragon-wyrmling,creatures,Black Dragon Wyrmling,Вирмлинг чёрного дракона,MM24
+black-pudding,creatures,Black Pudding,Чёрная слизь,MM24
+blink-dog,creatures,Blink Dog,Мерцающий пёс,MM24
+blob-of-annihilation,creatures,Blob of Annihilation,Сгусток уничтожения,MM24
+blood-hawk,creatures,Blood Hawk,Кровавый ястреб,MM24
+blue-dragon-wyrmling,creatures,Blue Dragon Wyrmling,Вирмлинг синего дракона,MM24
+blue-slaad,creatures,Blue Slaad,Синий слаад,MM24
+boar,creatures,Boar,Кабан,MM24
+bone-devil,creatures,Bone Devil,Костяной дьявол (осилут),MM24
+bone-naga,creatures,Bone Naga,Костяная нага,MM24
+brass-dragon-wyrmling,creatures,Brass Dragon Wyrmling,Вирмлинг латунного дракона,MM24
+brazen-gorgon,creatures,Brazen Gorgon,Бронзовая горгона,MM24
+bronze-dragon-wyrmling,creatures,Bronze Dragon Wyrmling,Вирмлинг бронзового дракона,MM24
+brown-bear,creatures,Brown bear,Бурый медведь,MM24
+bugbear-stalker,creatures,Bugbear Stalker,Медвежатник-охотник,MM24
+bugbear-warrior,creatures,Bugbear Warrior,Медвежатник-воин,MM24
+bulette,creatures,Bulette,Панцирница,MM24
+bulette-pup,creatures,Bulette Pup,Щенок панцирницы,MM24
+bullywug-bog-sage,creatures,Bullywug Bog Sage,Болотный мудрец-жаболюд,MM24
+bullywug-warrior,creatures,Bullywug Warrior,Жаболюд-воитель,MM24
+cambion,creatures,Cambion,Камбион,MM24
+camel,creatures,Camel,Верблюд,MM24
+carrion-crawler,creatures,Carrion Crawler,Ползающий падальщик,MM24
+cat,creatures,Cat,Кошка,MM24
+centaur-trooper,creatures,Centaur Trooper,Кентавр-кавалерист,MM24
+centaur-warden,creatures,Centaur Warden,Кентавр смотритель,MM24
+chain-devil,creatures,Chain Devil,Цепной дьявол (китон),MM24
+chasme,creatures,Chasme,Чазм,MM24
+chimera,creatures,Chimera,Химера,MM24
+chuul,creatures,Chuul,Чууль,MM24
+clay-golem,creatures,Clay Golem,Глиняный голем,MM24
+cloaker,creatures,Cloaker,Плащевик,MM24
+cloud-giant,creatures,Cloud Giant,Облачный великан,MM24
+cockatrice,creatures,Cockatrice,Куролиск,MM24
+cockatrice-regent,creatures,Cockatrice Regent,Королевский куролиск,MM24
+colossus,creatures,Colossus,Колосс,MM24
+commoner,creatures,Commoner,Обыватель,MM24
+constrictor-snake,creatures,Constrictor Snake,Удав,MM24
+copper-dragon-wyrmling,creatures,Copper Dragon Wyrmling,Вирмлинг медного дракона,MM24
+couatl,creatures,Couatl,Коатль,MM24
+crab,creatures,Crab,Краб,MM24
+crawling-claw,creatures,Crawling Claw,Ползающая рука,MM24
+crocodile,creatures,Crocodile,Крокодил,MM24
+cultist,creatures,Cultist,Культист,MM24
+cultist-fanatic,creatures,Cultist Fanatic,Культист фанатик,MM24
+cultist-hierophant,creatures,Cultist Hierophant,Культист иерофант,MM24
+cyclops-oracle,creatures,Cyclops Oracle,Циклоп оракул,MM24
+cyclops-sentry,creatures,Cyclops Sentry,Циклоп дозорный,MM24
+dao,creatures,Dao,Дао,MM24
+darkmantle,creatures,Darkmantle,Тёмная мантия,MM24
+death-cultist,creatures,Death Cultist,Последователь культа смерти,MM24
+death-dog,creatures,Death Dog,Пёс смерти,MM24
+death-knight,creatures,Death Knight,Рыцарь смерти,MM24
+death-knight-aspirant,creatures,Death Knight Aspirant,Апостол рыцаря смерти,MM24
+death-slaad,creatures,Death Slaad,Смертельный слаад,MM24
+death-tyrant,creatures,Death Tyrant,Тиран смерти,MM24
+deer,creatures,Deer,Олень,MM24
+demilich,creatures,Demilich,Демилич,MM24
+deva,creatures,Deva,Дэв,MM24
+dire-wolf,creatures,Dire Wolf,Лютый волк,MM24
+dire-worg,creatures,Dire Worg,Лютый ворг,MM24
+displacer-beast,creatures,Displacer Beast,Ускользающий зверь,MM24
+djinni,creatures,Djinni,Джинн,MM24
+doppelganger,creatures,Doppelganger,Доппельгангер,MM24
+dracolich,creatures,Dracolich,Драколич,MM24
+draft-horse,creatures,Draft Horse,Упряжная лошадь,MM24
+dragon-turtle,creatures,Dragon Turtle,Драконочерепаха,MM24
+dretch,creatures,Dretch,Дретч,MM24
+drider,creatures,Drider,Драук,MM24
+druid,creatures,Druid,Друид,MM24
+dryad,creatures,Dryad,Дриада,MM24
+dust-mephit,creatures,Dust Mephit,Пылевой мефит,MM24
+eagle,creatures,Eagle,Орёл,MM24
+earth-elemental,creatures,Earth Elemental,Земляной элементаль,MM24
+efreeti,creatures,Efreeti,Ифрит,MM24
+elemental-cataclysm,creatures,Elemental Cataclysm,Стихийный катаклизм,MM24
+elemental-cultist,creatures,Elemental Cultist,Последователь культа стихии,MM24
+elephant,creatures,Elephant,Слон,MM24
+elk,creatures,Elk,Лось,MM24
+empyrean,creatures,Empyrean,Эмпирей,MM24
+empyrean-iota,creatures,Empyrean Iota,Йота эмпирея,MM24
+erinyes,creatures,Erinyes,Эриния,MM24
+ettercap,creatures,Ettercap,Эттеркап,MM24
+ettin,creatures,Ettin,Эттин,MM24
+faerie-dragon-adult,creatures,Faerie Dragon Adult,Взрослый волшебный дракончик,MM24
+faerie-dragon-youth,creatures,Faerie Dragon Youth,Молодой волшебный дракончик,MM24
+fiend-cultist,creatures,Fiend Cultist,Последователь культа исчадий,MM24
+fire-elemental,creatures,Fire Elemental,Огненный элементаль,MM24
+fire-giant,creatures,Fire Giant,Огненный великан,MM24
+flameskull,creatures,Flameskull,Пылающий череп,MM24
+flaming-skeleton,creatures,Flaming Skeleton,Пылающий скелет,MM24
+flesh-golem,creatures,Flesh Golem,Мясной голем,MM24
+flumph,creatures,Flumph,Фламф,MM24
+flying-snake,creatures,Flying Snake,Летающая змея,MM24
+fomorian,creatures,Fomorian,Фомор,MM24
+frog,creatures,Frog,Лягушка,MM24
+frost-giant,creatures,Frost Giant,Ледяной великан,MM24
+galeb-duhr,creatures,Galeb Duhr,Галеб дур,MM24
+gargoyle,creatures,Gargoyle,Гаргулья,MM24
+gas-spore-fungus,creatures,Gas Spore Fungus,Газовая спора-гриб,MM24
+gelatinous-cube,creatures,Gelatinous Cube,Студенистый куб,MM24
+ghast,creatures,Ghast,Вурдалак,MM24
+ghast-gravecaller,creatures,Ghast Gravecaller,"Вурдалак, могильный призыватель",MM24
+ghost,creatures,Ghost,Привидение,MM24
+ghoul,creatures,Ghoul,Упырь,MM24
+giant-ape,creatures,Giant Ape,Гигантская человекообразная обезьяна,MM24
+giant-axe-beak,creatures,Giant Axe Beak,Гигантский топороклюв,MM24
+giant-badger,creatures,Giant Badger,Гигантский барсук,MM24
+giant-bat,creatures,Giant Bat,Гигантская летучая мышь,MM24
+giant-boar,creatures,Giant Boar,Гигантский кабан,MM24
+giant-centipede,creatures,Giant Centipede,Гигантская многоножка,MM24
+giant-constrictor-snake,creatures,Giant Constrictor Snake,Гигантский удав,MM24
+giant-crab,creatures,Giant Crab,Гигантский краб,MM24
+giant-crocodile,creatures,Giant Crocodile,Гигантский крокодил,MM24
+giant-eagle,creatures,Giant Eagle,Гигантский орёл,MM24
+giant-elk,creatures,Giant Elk,Гигантский лось,MM24
+giant-fire-beetle,creatures,Giant Fire Beetle,Гигантский огненный жук,MM24
+giant-frog,creatures,Giant Frog,Гигантская лягушка,MM24
+giant-goat,creatures,Giant Goat,Гигантский козел,MM24
+giant-hyena,creatures,Giant Hyena,Гигантская гиена,MM24
+giant-lizard,creatures,Giant Lizard,Гигантская ящерица,MM24
+giant-octopus,creatures,Giant Octopus,Гигантский осьминог,MM24
+giant-owl,creatures,Giant Owl,Гигантская сова,MM24
+giant-rat,creatures,Giant Rat,Гигантская крыса,MM24
+giant-scorpion,creatures,Giant Scorpion,Гигантский скорпион,MM24
+giant-seahorse,creatures,Giant Seahorse,Гигантский морской конёк,MM24
+giant-shark,creatures,Giant Shark,Гигантская акула,MM24
+giant-spider,creatures,Giant Spider,Гигантский паук,MM24
+giant-squid,creatures,Giant Squid,Гигантский кальмар,MM24
+giant-toad,creatures,Giant Toad,Гигантская жаба,MM24
+giant-venomous-snake,creatures,Giant Venomous Snake,Гигантская ядовитая змея,MM24
+giant-vulture,creatures,Giant Vulture,Гигантский гриф,MM24
+giant-wasp,creatures,Giant Wasp,Гигантская оса,MM24
+giant-weasel,creatures,Giant Weasel,Гигантская куница,MM24
+giant-wolf-spider,creatures,Giant Wolf Spider,Гигантский паук-волк,MM24
+gibbering-mouther,creatures,Gibbering Mouther,Бормочущий ротовик,MM24
+githyanki-dracomancer,creatures,Githyanki Dracomancer,Гитьянки-дракономант,MM24
+githyanki-knight,creatures,Githyanki Knight,Гитьянки-рыцарь,MM24
+githyanki-warrior,creatures,Githyanki Warrior,Гитьянки-воитель,MM24
+githzerai-monk,creatures,Githzerai Monk,Гитцерай монах,MM24
+githzerai-psion,creatures,Githzerai Psion,Гитцерай псион,MM24
+githzerai-zerth,creatures,Githzerai Zerth,Гитцерай зерт,MM24
+glabrezu,creatures,Glabrezu,Глабрезу,MM24
+gladiator,creatures,Gladiator,Гладиатор,MM24
+gnoll-demoniac,creatures,Gnoll Demoniac,Одержимый гнолл,MM24
+gnoll-fang-of-yeenoghu,creatures,Gnoll Fang of Yeenoghu,"Гнолл, клык Йеногу",MM24
+gnoll-pack-lord,creatures,Gnoll Pack Lord,Вожак стаи гноллов,MM24
+gnoll-warrior,creatures,Gnoll Warrior,Гнолл-воитель,MM24
+goat,creatures,Goat,Козёл,MM24
+goblin-boss,creatures,Goblin Boss,Босс гоблинов,MM24
+goblin-hexer,creatures,Goblin Hexer,Гоблин-проклинатель,MM24
+goblin-minion,creatures,Goblin Minion,Гоблин-приспешник,MM24
+goblin-warrior,creatures,Goblin Warrior,Гоблин-воитель,MM24
+gold-dragon-wyrmling,creatures,Gold Dragon Wyrmling,Вирмлинг золотого дракона,MM24
+gorgon,creatures,Gorgon,Горгона,MM24
+goristro,creatures,Goristro,Гористро,MM24
+graveyard-revenant,creatures,Graveyard Revenant,Кладбищенский ревенант,MM24
+gray-ooze,creatures,Gray Ooze,Серая слизь,MM24
+gray-slaad,creatures,Gray Slaad,Серый слаад,MM24
+green-dragon-wyrmling,creatures,Green Dragon Wyrmling,Вирмлинг зелёного дракона,MM24
+green-hag,creatures,Green Hag,Зелёная карга,MM24
+green-slaad,creatures,Green Slaad,Зелёный слаад,MM24
+grell,creatures,Grell,Грелл,MM24
+grick,creatures,Grick,Грик,MM24
+grick-ancient,creatures,Grick Ancient,Древний грик,MM24
+griffon,creatures,Griffon,Грифон,MM24
+grimlock,creatures,Grimlock,Гримлок,MM24
+guard,creatures,Guard,Страж,MM24
+guard-captain,creatures,Guard Captain,Капитан стражи,MM24
+guardian-naga,creatures,Guardian Naga,Охранная нага,MM24
+gulthias-blight,creatures,Gulthias Blight,Галтиасская зараза,MM24
+half-dragon,creatures,Half-Dragon,Полудракон,MM24
+harpy,creatures,Harpy,Гарпия,MM24
+haunting-revenant,creatures,Haunting Revenant,Одержимый ревенант,MM24
+hawk,creatures,Hawk,Ястреб,MM24
+hell-hound,creatures,Hell Hound,Адская гончая,MM24
+helmed-horror,creatures,Helmed Horror,Шлемоносный ужас,MM24
+hezrou,creatures,Hezrou,Хезроу,MM24
+hill-giant,creatures,Hill Giant,Холмовой великан,MM24
+hippogriff,creatures,Hippogriff,Гиппогриф,MM24
+hippopotamus,creatures,Hippopotamus,Гиппопотам,MM24
+hobgoblin-captain,creatures,Hobgoblin Captain,Капитан хобгоблинов,MM24
+hobgoblin-warlord,creatures,Hobgoblin Warlord,Военачальник хобгоблинов,MM24
+hobgoblin-warrior,creatures,Hobgoblin Warrior,Хобгоблин воин,MM24
+homunculus,creatures,Homunculus,Гомункул,MM24
+hook-horror,creatures,Hook Horror,Крюкастый ужас,MM24
+horned-devil,creatures,Horned Devil,Рогатый дьявол (мальбранш),MM24
+hunter-shark,creatures,Hunter Shark,Охотничья акула,MM24
+hydra,creatures,Hydra,Гидра,MM24
+hyena,creatures,Hyena,Гиена,MM24
+ice-devil,creatures,Ice Devil,Ледяной дьявол (гелюгон),MM24
+ice-mephit,creatures,Ice Mephit,Ледяной мефит,MM24
+imp,creatures,Imp,Бес,MM24
+incubus,creatures,Incubus,Инкуб,MM24
+intellect-devourer,creatures,Intellect Devourer,Пожиратель интеллекта,MM24
+invisible-stalker,creatures,Invisible Stalker,Невидимый охотник,MM24
+iron-golem,creatures,Iron Golem,Железный голем,MM24
+jackal,creatures,Jackal,Шакал,MM24
+jackalwere,creatures,Jackalwere,Шакальник,MM24
+juvenile-shadow-dragon,creatures,Juvenile Shadow Dragon,Юный теневой дракон,MM24
+kenku,creatures,Kenku,Кенку,MM24
+killer-whale,creatures,Killer Whale,Косатка,MM24
+knight,creatures,Knight,Рыцарь,MM24
+kobold-warrior,creatures,Kobold Warrior,Кобольд-воитель,MM24
+kraken,creatures,Kraken,Кракен,MM24
+kuo-toa,creatures,Kuo-toa,Куо-тоа,MM24
+kuo-toa-archpriest,creatures,Kuo-toa Archpriest,Верховный жрец Куо-тоа,MM24
+kuo-toa-monitor,creatures,Kuo-toa Monitor,Куо-тоа надзиратель,MM24
+kuo-toa-whip,creatures,Kuo-toa Whip,Куо-тоа кнут,MM24
+lacedon-ghoul,creatures,Lacedon Ghoul,Водяной упырь (ласедон),MM24
+lamia,creatures,Lamia,Ламия,MM24
+larva,creatures,Larva,Ларва,MM24
+lemure,creatures,Lemure,Лемур,MM24
+lich,creatures,Lich,Лич,MM24
+lion,creatures,Lion,Лев,MM24
+lizard,creatures,Lizard,Ящерица,MM24
+lizardfolk-geomancer,creatures,Lizardfolk Geomancer,Людоящер-геомант,MM24
+lizardfolk-sovereign,creatures,Lizardfolk Sovereign,Верховный людоящер,MM24
+mage,creatures,Mage,Маг,MM24
+mage-apprentice,creatures,Mage Apprentice,Ученик мага,MM24
+magma-mephit,creatures,Magma Mephit,Магмовый мефит,MM24
+magmin,creatures,Magmin,Магмин,MM24
+mammoth,creatures,Mammoth,Мамонт,MM24
+manes,creatures,Manes,Ман,MM24
+manes-vaporspawn,creatures,Manes Vaporspawn,Ман дитя отчаяния,MM24
+manticore,creatures,Manticore,Мантикора,MM24
+marid,creatures,Marid,Марид,MM24
+marilith,creatures,Marilith,Марилит,MM24
+mastiff,creatures,Mastiff,Мастиф,MM24
+medusa,creatures,Medusa,Медуза,MM24
+merfolk-skirmisher,creatures,Merfolk Skirmisher,Мерфолк застрельщик,MM24
+merfolk-wavebender,creatures,Merfolk Wavebender,Мерфолк ваятель волн,MM24
+merrow,creatures,Merrow,Мерроу,MM24
+mezzoloth,creatures,Mezzoloth,Меззолот,MM24
+mimic,creatures,Mimic,Мимик,MM24
+mind-flayer,creatures,Mind Flayer,Свежеватель разума,MM24
+mind-flayer-arcanist,creatures,Mind Flayer Arcanist,Свежеватель разума заклинатель,MM24
+minotaur-of-baphomet,creatures,Minotaur of Baphomet,Минотавр Бафомета,MM24
+minotaur-skeleton,creatures,Minotaur Skeleton,Скелет минотавра,MM24
+modron-duodrone,creatures,Modron Duodrone,Модрон дуодрон,MM24
+modron-monodrone,creatures,Modron Monodrone,Модрон монодрон,MM24
+modron-pentadrone,creatures,Modron Pentadrone,Модрон пентадрон,MM24
+modron-quadrone,creatures,Modron Quadrone,Модрон квадрон,MM24
+modron-tridrone,creatures,Modron Tridrone,Модрон тридрон,MM24
+mud-mephit,creatures,Mud Mephit,Грязевой мефит,MM24
+mule,creatures,Mule,Мул,MM24
+mummy,creatures,Mummy,Мумия,MM24
+mummy-lord,creatures,Mummy Lord,Мумия-владыка,MM24
+myconid-adult,creatures,Myconid Adult,Взрослый миконид,MM24
+myconid-sovereign,creatures,Myconid Sovereign,Верховный миконид,MM24
+myconid-spore-servant,creatures,Myconid Spore Servant,Споровый слуга миконидов,MM24
+myconid-sprout,creatures,Myconid Sprout,Росток миконида,MM24
+nalfeshnee,creatures,Nalfeshnee,Нальфешни,MM24
+needle-blight,creatures,Needle Blight,Игольчатая зараза,MM24
+night-hag,creatures,Night Hag,Ночная карга,MM24
+nightmare,creatures,Nightmare,Кошмар,MM24
+noble,creatures,Noble,Дворянин,MM24
+noble-prodigy,creatures,Noble Prodigy,Одарённый дворянин,MM24
+nothic,creatures,Nothic,Нотик,MM24
+nycaloth,creatures,Nycaloth,Никалот,MM24
+ochre-jelly,creatures,Ochre Jelly,Золотистый студень,MM24
+octopus,creatures,Octopus,Осьминог,MM24
+ogre,creatures,Ogre,Огр,MM24
+ogre-zombie,creatures,Ogre Zombie,Огр зомби,MM24
+ogrillon-ogre,creatures,Ogrillon Ogre,Огриллон,MM24
+oni,creatures,Oni,Они,MM24
+otyugh,creatures,Otyugh,Отъяг,MM24
+owl,creatures,Owl,Сова,MM24
+owlbear,creatures,Owlbear,Совомедведь,MM24
+panther,creatures,Panther,Пантера,MM24
+pegasus,creatures,Pegasus,Пегас,MM24
+performer,creatures,Performer,Артист,MM24
+performer-legend,creatures,Performer Legend,Легендарный артист,MM24
+performer-maestro,creatures,Performer Maestro,Виртуозный артист,MM24
+peryton,creatures,Peryton,Перитон,MM24
+phase-spider,creatures,Phase Spider,Исчезающий паук,MM24
+piercer,creatures,Piercer,Пронзатель,MM24
+piranha,creatures,Piranha,Пиранья,MM24
+pirate,creatures,Pirate,Пират,MM24
+pirate-admiral,creatures,Pirate Admiral,Адмирал пиратов,MM24
+pirate-captain,creatures,Pirate Captain,Капитан пиратов,MM24
+pit-fiend,creatures,Pit Fiend,Исчадие преисподней,MM24
+pixie,creatures,Pixie,Пикси,MM24
+pixie-wonderbringer,creatures,Pixie Wonderbringer,Чудоносная пикси,MM24
+planetar,creatures,Planetar,Планетар,MM24
+plesiosaurus,creatures,Plesiosaurus,Плезиозавр,MM24
+polar-bear,creatures,Polar Bear,Белый медведь,MM24
+poltergeist,creatures,Poltergeist,Полтергейст,MM24
+pony,creatures,Pony,Пони,MM24
+priest,creatures,Priest,Священник,MM24
+priest-acolyte,creatures,Priest Acolyte,Послушник священника,MM24
+primeval-owlbear,creatures,Primeval Owlbear,Первобытный совомедведь,MM24
+pseudodragon,creatures,Pseudodragon,Псевдодракон,MM24
+psychic-gray-ooze,creatures,Psychic Gray Ooze,Психическая серая слизь,MM24
+pteranodon,creatures,Pteranodon,Птеранодон,MM24
+purple-worm,creatures,Purple Worm,Лиловый червь,MM24
+quaggoth,creatures,Quaggoth,Кваггот,MM24
+quaggoth-thonot,creatures,Quaggoth Thonot,Кваггот тонот,MM24
+quasit,creatures,Quasit,Квазит,MM24
+questing-knight,creatures,Questing Knight,Странствующий рыцарь,MM24
+rakshasa,creatures,Rakshasa,Ракшас,MM24
+rat,creatures,Rat,Крыса,MM24
+raven,creatures,Raven,Ворон,MM24
+red-dragon-wyrmling,creatures,Red Dragon Wyrmling,Вирмлинг красного дракона,MM24
+red-slaad,creatures,Red Slaad,Красный слаад,MM24
+reef-shark,creatures,Reef Shark,Рифовая акула,MM24
+remorhaz,creatures,Remorhaz,Ремораз,MM24
+revenant,creatures,Revenant,Ревенант,MM24
+rhinoceros,creatures,Rhinoceros,Носорог,MM24
+riding-horse,creatures,Riding Horse,Ездовая лошадь,MM24
+roc,creatures,Roc,Рух,MM24
+roper,creatures,Roper,Верёвочник,MM24
+rust-monster,creatures,Rust Monster,Ржавник,MM24
+saber-toothed-tiger,creatures,Saber-Toothed Tiger,Саблезубый тигр,MM24
+sahuagin-baron,creatures,Sahuagin Baron,Барон сахуагинов,MM24
+sahuagin-priest,creatures,Sahuagin Priest,Сахуагин жрец,MM24
+sahuagin-warrior,creatures,Sahuagin Warrior,Сахуагин воин,MM24
+salamander,creatures,Salamander,Саламандра,MM24
+salamander-fire-snake,creatures,Salamander Fire Snake,Саламандра огненная змея,MM24
+salamander-inferno-master,creatures,Salamander Inferno Master,Инфернальная саламандра,MM24
+satyr,creatures,Satyr,Сатир,MM24
+satyr-revelmaster,creatures,Satyr Revelmaster,Сатир заводила,MM24
+scarecrow,creatures,Scarecrow,Пугало,MM24
+scorpion,creatures,Scorpion,Скорпион,MM24
+scout,creatures,Scout,Разведчик,MM24
+scout-captain,creatures,Scout Captain,Капитан разведчиков,MM24
+sea-hag,creatures,Sea Hag,Морская карга,MM24
+seahorse,creatures,Seahorse,Морской конёк,MM24
+shadow,creatures,Shadow,Тень,MM24
+shadow-demon,creatures,Shadow Demon,Теневой демон,MM24
+shadow-dragon,creatures,Shadow Dragon,Теневой дракон,MM24
+shambling-mound,creatures,Shambling Mound,Ползающая насыпь,MM24
+shield-guardian,creatures,Shield Guardian,Щитостраж,MM24
+shrieker-fungus,creatures,Shrieker Fungus,Гриб-визгун,MM24
+silver-dragon-wyrmling,creatures,Silver Dragon Wyrmling,Вирмлинг серебряного дракона,MM24
+skeleton,creatures,Skeleton,Скелет,MM24
+slaad-tadpole,creatures,Slaad Tadpole,Слаад головастик,MM24
+smoke-mephit,creatures,Smoke Mephit,Дымовой мефит,MM24
+solar,creatures,Solar,Солар,MM24
+spectator,creatures,Spectator,Наблюдатель,MM24
+specter,creatures,Specter,Спектр,MM24
+sphinx-of-lore,creatures,Sphinx of Lore,Сфинкс знаний,MM24
+sphinx-of-secrets,creatures,Sphinx of Secrets,Сфинкс загадок,MM24
+sphinx-of-valor,creatures,Sphinx of Valor,Сфинкс доблести,MM24
+sphinx-of-wonder,creatures,Sphinx of Wonder,Сфинкс любознательности,MM24
+spider,creatures,Spider,Паук,MM24
+spined-devil,creatures,Spined Devil,Игольчатый дьявол (спинагон),MM24
+spirit-naga,creatures,Spirit Naga,Духовная нага,MM24
+sprite,creatures,Sprite,Спрайт,MM24
+spy,creatures,Spy,Шпион,MM24
+spy-master,creatures,Spy Master,Шпион мастер,MM24
+steam-mephit,creatures,Steam Mephit,Паровой мефит,MM24
+stirge,creatures,Stirge,Кровопийца,MM24
+stone-giant,creatures,Stone Giant,Каменный великан,MM24
+stone-golem,creatures,Stone Golem,Каменный голем,MM24
+storm-giant,creatures,Storm Giant,Штормовой великан,MM24
+succubus,creatures,Succubus,Суккуб,MM24
+swarm-of-bats,creatures,Swarm of Bats,Рой летучих мышей,MM24
+swarm-of-crawling-claws,creatures,Swarm of Crawling Claws,Рой ползающих рук,MM24
+swarm-of-dretches,creatures,Swarm of Dretches,Рой дретчей,MM24
+swarm-of-insects,creatures,Swarm of Insects,Рой насекомых,MM24
+swarm-of-larvae,creatures,Swarm of Larvae,Рой ларв,MM24
+swarm-of-lemures,creatures,Swarm of Lemures,Рой лемуров,MM24
+swarm-of-piranhas,creatures,Swarm of Piranhas,Рой пираний,MM24
+swarm-of-rats,creatures,Swarm of Rats,Рой крыс,MM24
+swarm-of-ravens,creatures,Swarm of Ravens,Рой воронов,MM24
+swarm-of-stirges,creatures,Swarm of Stirges,Рой кровопийц,MM24
+swarm-of-venomous-snakes,creatures,Swarm of Venomous Snakes,Рой ядовитых змей,MM24
+tarrasque,creatures,Tarrasque,Тараск,MM24
+thri-kreen-marauder,creatures,Thri-kreen Marauder,Три-крин мародёр,MM24
+thri-kreen-psion,creatures,Thri-kreen Psion,Три-крин псион,MM24
+tiger,creatures,Tiger,Тигр,MM24
+tough,creatures,Tough,Громила,MM24
+tough-boss,creatures,Tough Boss,Босс громил,MM24
+treant,creatures,Treant,Трент,MM24
+tree-blight,creatures,Tree Blight,Древесная зараза,MM24
+triceratops,creatures,Triceratops,Трицератопс,MM24
+troglodyte,creatures,Troglodyte,Троглодит,MM24
+troll,creatures,Troll,Тролль,MM24
+troll-limb,creatures,Troll Limb,Конечность тролля,MM24
+twig-blight,creatures,Twig Blight,Ветвистая зараза,MM24
+tyrannosaurus-rex,creatures,Tyrannosaurus Rex,Тираннозавр рекс,MM24
+ultroloth,creatures,Ultroloth,Ультролот,MM24
+umber-hulk,creatures,Umber Hulk,Бурый увалень,MM24
+unicorn,creatures,Unicorn,Единорог,MM24
+vampire,creatures,Vampire,Вампир,MM24
+vampire-familiar,creatures,Vampire Familiar,Фамильяр вампира,MM24
+vampire-nightbringer,creatures,Vampire Nightbringer,"Вампир, предвестник ночи",MM24
+vampire-spawn,creatures,Vampire Spawn,Порождение вампира,MM24
+vampire-umbral-lord,creatures,Vampire Umbral Lord,"Вампир, повелитель теней",MM24
+venomous-snake,creatures,Venomous Snake,Ядовитая змея,MM24
+vine-blight,creatures,Vine Blight,Вьющаяся зараза,MM24
+violet-fungus,creatures,Violet Fungus,Фиолетовый сморчок,MM24
+violet-fungus-necrohulk,creatures,Violet Fungus Necrohulk,Некроколония фиолетовых сморчков,MM24
+vrock,creatures,Vrock,Врок,MM24
+vulture,creatures,Vulture,Гриф,MM24
+warhorse,creatures,Warhorse,Боевой конь,MM24
+warhorse-skeleton,creatures,Warhorse Skeleton,Скелет боевого коня,MM24
+warrior-commander,creatures,Warrior Commander,Командир воителей,MM24
+warrior-infantry,creatures,Warrior Infantry,Пеший воитель,MM24
+warrior-veteran,creatures,Warrior Veteran,Воитель-ветеран,MM24
+water-elemental,creatures,Water Elemental,Водяной элементаль,MM24
+water-weird,creatures,Water Weird,Водная аномалия,MM24
+weasel,creatures,Weasel,Куница,MM24
+werebear,creatures,Werebear,Вермедведь,MM24
+wereboar,creatures,Wereboar,Вервепрь,MM24
+wererat,creatures,Wererat,Веркрыс,MM24
+weretiger,creatures,Weretiger,Вертигр,MM24
+werewolf,creatures,Werewolf,Верволк,MM24
+white-dragon-wyrmling,creatures,White Dragon Wyrmling,Вирмлинг белого дракона,MM24
+wight,creatures,Wight,Умертвие,MM24
+will-o-wisp,creatures,Will-o’-Wisp,Блуждающий огонёк,MM24
+winged-kobold,creatures,Winged Kobold,Крылатый кобольд,MM24
+winter-wolf,creatures,Winter Wolf,Полярный волк,MM24
+wolf,creatures,Wolf,Волк,MM24
+worg,creatures,Worg,Ворг,MM24
+wraith,creatures,Wraith,Призрак,MM24
+wyvern,creatures,Wyvern,Виверна,MM24
+xorn,creatures,Xorn,Зорн,MM24
+yeti,creatures,Yeti,Йети,MM24
+yochlol,creatures,Yochlol,Йоклол,MM24
+young-black-dragon,creatures,Young Black Dragon,Молодой чёрный дракон,MM24
+young-blue-dragon,creatures,Young Blue Dragon,Молодой синий дракон,MM24
+young-brass-dragon,creatures,Young Brass Dragon,Молодой латунный дракон,MM24
+young-bronze-dragon,creatures,Young Bronze Dragon,Молодой бронзовый дракон,MM24
+young-copper-dragon,creatures,Young Copper Dragon,Молодой медный дракон,MM24
+young-gold-dragon,creatures,Young Gold Dragon,Молодой золотой дракон,MM24
+young-green-dragon,creatures,Young Green Dragon,Молодой зелёный дракон,MM24
+young-red-dragon,creatures,Young Red Dragon,Молодой красный дракон,MM24
+young-remorhaz,creatures,Young Remorhaz,Молодой ремораз,MM24
+young-silver-dragon,creatures,Young Silver Dragon,Молодой серебряный дракон,MM24
+young-white-dragon,creatures,Young White Dragon,Молодой белый дракон,MM24
+yuan-ti-abomination,creatures,Yuan-ti Abomination,Отродье юань-ти,MM24
+yuan-ti-infiltrator,creatures,Yuan-ti Infiltrator,Юань-ти подражатель,MM24
+yuan-ti-malison-type-1,creatures,Yuan-ti Malison (Type 1),Юань-ти проклинатель (Вид 1),MM24
+yuan-ti-malison-type-2,creatures,Yuan-ti Malison (Type 2),Юань-ти проклинатель (Вид 2),MM24
+yuan-ti-malison-type-3,creatures,Yuan-ti Malison (Type 3),Юань-ти проклинатель (Вид 3),MM24
+zombie,creatures,Zombie,Зомби,MM24
+caldron-magen,creatures,Caldron Magen,Маген-котельник,NsF
+eldritch-eddy,creatures,Eldritch Eddy,Магический вихрь,NsF
+phaerimm-agent,creatures,Phaerimm Agent,Фаэримм-агент,NsF
+phaerimm-elder,creatures,Phaerimm Elder,Фаэримм-старейшина,NsF
+phaerimm-hatchling,creatures,Phaerimm Hatchling,Фаэримм-детёныш,NsF
+phaerimm-scout,creatures,Phaerimm Scout,Фаэримм-разведчик,NsF
+terran-magen,creatures,Terran Magen,Маген-земельник,NsF
+virvos-magen,creatures,Virvos Magen,Маген-морочник,NsF
+aberrant-deaths-head,creatures,Aberrant Death’s Head,Аберрантная мёртвая голова,RTW
+ankhtepot,creatures,Ankhtepot,Анхтепот,RTW
+azalin-rex,creatures,Azalin Rex,Азалин Рекс,RTW
+bodytaker-plant,creatures,Bodytaker Plant,Телоглот особь,RTW
+bodytaker-podling,creatures,Bodytaker Podling,Телоглот выплодок,RTW
+boneless,creatures,Boneless,Бескостный,RTW
+brain-in-a-jar,creatures,Brain in a Jar,Мозг в банке,RTW
+carrion-stalker,creatures,Carrion Stalker,Ловчий падальщик,RTW
+carrionette,creatures,Carrionette,Мертвионетка,RTW
+chakuna,creatures,Chakuna,Чакуна,RTW
+cthulhu,creatures,Cthulhu,Ктулху,RTW
+deaths-head,creatures,Death’s Head,Мёртвая голова,RTW
+deaths-head-tree,creatures,Death’s Head Tree,Древо мёртвых голов,RTW
+dullahan,creatures,Dullahan,Дуллахан,RTW
+ebonbane,creatures,Ebonbane,Чёрная Погибель,RTW
+elder-thing,creatures,Elder Thing,Старец,RTW
+ez-davenir,creatures,Ez d’Avenir,Эсмеральда (Эс) д’Авенир,RTW
+gallows-speaker,creatures,Gallows Speaker,Предвестник гибели,RTW
+gennifer-weathermay-foxgrove,creatures,Gennifer Weathermay-Foxgrove,Дженнифер Везермэй-Фоксгроув,RTW
+greater-star-spawn-emissary,creatures,Greater Star Spawn Emissary,Старший эмиссар звёздных порождений,RTW
+gremishka,creatures,Gremishka,Гремишка,RTW
+gug,creatures,Gug,Гуг,RTW
+harkon-lukas,creatures,Harkon Lukas,Харкон Лукас,RTW
+hazlik,creatures,Hazlik,Хазлик,RTW
+inquisitor-of-the-mind-fire,creatures,Inquisitor of the Mind Fire,Инквизитор огня разума,RTW
+inquisitor-of-the-sword,creatures,Inquisitor of the Sword,Инквизитор меча,RTW
+inquisitor-of-the-tome,creatures,Inquisitor of the Tome,Инквизитор тома,RTW
+ivan-dilisnya,creatures,Ivan Dilisnya,Иван Дилисния,RTW
+ivana-boritsi,creatures,Ivana Boritsi,Иванна Борицы,RTW
+jiangshi,creatures,Jiangshi,Цзянши,RTW
+laurie-weathermay-foxgrove,creatures,Laurie Weathermay-Foxgrove,Лори Везермэй-Фоксгроув,RTW
+lesser-star-spawn-emissary,creatures,Lesser Star Spawn Emissary,Младший эмиссар звёздных порождений,RTW
+lord-soth-of-sithicus,creatures,Lord Soth of Sithicus,Лорд Сот Ситикусский,RTW
+loup-garou,creatures,Loup Garou,Лугару,RTW
+madam-eva,creatures,Madam Eva,Мадам Ева,RTW
+mi-go,creatures,Mi-Go,Ми-го,RTW
+mist-horror,creatures,Mist Horror,Туманный ужас,RTW
+mist-wanderer,creatures,Mist Wanderer,Скиталец Туманов,RTW
+mordenheims-monster,creatures,Mordenheim’s Monster,Чудовище Морденхайм,RTW
+mother-lorinda,creatures,Mother Lorinda,Матерь Лоринда,RTW
+necrichor,creatures,Necrichor,Некрихор,RTW
+nightgaunt,creatures,Nightgaunt,Ночная бестия,RTW
+petrifying-deaths-head,creatures,Petrifying Death’s Head,Окаменяющая мёртвая голова,RTW
+priest-of-osybus,creatures,Priest of Osybus,Жрец Осибуса,RTW
+ramya-vasavadan,creatures,Ramya Vasavadan,Рамья Васавадан,RTW
+relentless-juggernaut,creatures,Relentless Juggernaut,Изувер джаггернаут,RTW
+relentless-nightmare,creatures,Relentless Nightmare,Изувер кошмар,RTW
+relentless-slasher,creatures,Relentless Slasher,Изувер потрошитель,RTW
+rudolph-van-richten,creatures,Rudolph van Richten,Рудольф ван Рихтен,RTW
+saidra-dhonaire,creatures,Saidra d’Honaire,Саидра д’Онэр,RTW
+shoggoth,creatures,Shoggoth,Шоггот,RTW
+strahd-skeleton,creatures,Strahd Skeleton,Скелет Страда,RTW
+strahd-von-zarovich,creatures,Strahd von Zarovich,Страд фон Зарович,RTW
+strigoi,creatures,Strigoi,Стригой,RTW
+swarm-of-infesting-insects,creatures,Swarm of Infesting Insects,Рой паразитических насекомых,RTW
+swarm-of-ravenous-insects,creatures,Swarm of Ravenous Insects,Рой прожорливых насекомых,RTW
+swarm-of-zombie-limbs,creatures,Swarm of Zombie Limbs,Рой конечностей зомби,RTW
+unspeakable-horror,creatures,Unspeakable Horror,Невыразимый ужас,RTW
+vampire-mind-flayer,creatures,Vampire Mind Flayer,Вампир свежеватель разума,RTW
+vampire-nosferatu,creatures,Vampire Nosferatu,Вампир носферату,RTW
+viktra-mordenheim,creatures,Viktra Mordenheim,Виктра Морденхайм,RTW
+vladeska-drakov,creatures,Vladeska Drakov,Владеска Дракова,RTW
+waxwork,creatures,Waxwork,Восковик,RTW
+wereraven,creatures,Wereraven,Верворон,RTW
+wilfred-godefroy,creatures,Wilfred Godefroy,Вилфред Годфрой,RTW
+yithian,creatures,Yithian,Йитианин,RTW
+zombie-clot,creatures,Zombie Clot,Сращение зомби,RTW
+zombie-plague-spreader,creatures,Zombie Plague Spreader,Зомби разносчик чумы,RTW
+bandore,equipment,Bandore,Бандура,FRHoF
+bright-fungal-cloak,equipment,Bright Fungal Cloak,Плащ светящейся грибницы,FRHoF
+cittern,equipment,Cittern,Цистра,FRHoF
+desert-clothing,equipment,Desert Clothing,Одежда для пустыни,FRHoF
+devil-mask,equipment,Devil Mask,Маска дьявола,FRHoF
+garb-of-light-and-shadow,equipment,Garb of Light and Shadow,Одеяние света и тьмы,FRHoF
+genie-robe,equipment,Genie Robe,Мантия гения,FRHoF
+locking-spellbook,equipment,Locking Spellbook,Книга заклинаний с замком,FRHoF
+monster-camouflage,equipment,Monster Camouflage,Набор маскировки под монстра,FRHoF
+warm-fungal-clothing,equipment,Warm Fungal Clothing,Тёплый грибной плащ,FRHoF
+winter-camouflage,equipment,Winter Camouflage,Зимняя маскировка,FRHoF
+yarting,equipment,Yarting,Яртинг,FRHoF
+acid,equipment,Acid,Кислота,PH24
+alchemists-fire,equipment,Alchemist's Fire,Алхимический огонь,PH24
+alchemists-supplies,equipment,Alchemist's Supplies,Инструменты алхимика,PH24
+ammunition,equipment,Ammunition,Боеприпасы,PH24
+amulet,equipment,Amulet,Амулет,PH24
+antitoxin,equipment,Antitoxin,Противоядие,PH24
+arcane-focus,equipment,Arcane Focus,Магическая фокусировка,PH24
+arrows,equipment,Arrows,Стрелы,PH24
+backpack,equipment,Backpack,Рюкзак,PH24
+bagpipes,equipment,Bagpipes,Волынка,PH24
+ball-bearings,equipment,Ball Bearings,Металлические шарики,PH24
+barrel,equipment,Barrel,Бочка,PH24
+basic-poison,equipment,Basic Poison,Простой яд,PH24
+basket,equipment,Basket,Корзина,PH24
+bedroll,equipment,Bedroll,Спальник,PH24
+bell,equipment,Bell,Колокольчик,PH24
+blanket,equipment,Blanket,Одеяло,PH24
+block-and-tackle,equipment,Block and Tackle,Блок и лебёдка,PH24
+book,equipment,Book,Книга,PH24
+brewers-supplies,equipment,Brewer’s Supplies,Инструменты пивовара,PH24
+bucket,equipment,Bucket,Ведро,PH24
+bullseye-lantern,equipment,Bullseye Lantern,Направленный фонарь,PH24
+burglars-pack,equipment,Burglar's Pack,Набор взломщика,PH24
+calligraphers-supplies,equipment,Calligrapher’s Supplies,Инструменты каллиграфа,PH24
+caltrops,equipment,Caltrops,Калтропы,PH24
+candle,equipment,Candle,Свеча,PH24
+carpenters-tools,equipment,Carpenter’s Tools,Инструменты плотника,PH24
+cartographers-tools,equipment,Cartographer’s Tools,Инструменты картографа,PH24
+chain,equipment,Chain,Цепь,PH24
+chest,equipment,Chest,Сундук,PH24
+climbers-kit,equipment,Climber's Kit,Комплект для лазания,PH24
+cobblers-tools,equipment,Cobbler’s Tools,Инструменты сапожника,PH24
+component-pouch,equipment,Component Pouch,Мешочек с компонентами,PH24
+cooks-utensils,equipment,Cook’s Utensils,Инструменты повара,PH24
+costume,equipment,Costume,Костюм,PH24
+crossbow-bolt-case,equipment,Crossbow Bolt Case,Футляр для арбалетных болтов,PH24
+crossbow-bolts,equipment,Crossbow Bolts,Болты,PH24
+crowbar,equipment,Crowbar,Ломик,PH24
+crystal,equipment,Crystal,Кристалл,PH24
+dice,equipment,Dice,Кости,PH24
+diplomats-pack,equipment,Diplomat’s Pack,Набор дипломата,PH24
+disguise-kit,equipment,Disguise Kit,Набор для грима,PH24
+dragonchess,equipment,Dragonchess,Драконьи шахматы,PH24
+druidic-focus,equipment,Druidic Focus,Друидическая фокусировка,PH24
+drum,equipment,Drum,Барабан,PH24
+dulcimer,equipment,Dulcimer,Дульцимер,PH24
+dungeoneers-pack,equipment,Dungeoneer’s Pack,Набор исследователя подземелий,PH24
+emblem,equipment,Emblem,Эмблема,PH24
+entertainers-pack,equipment,Entertainer’s Pack,Набор артиста,PH24
+explorers-pack,equipment,Explorer’s Pack,Набор путешественника,PH24
+fine-clothes,equipment,Fine Clothes,Отличная одежда,PH24
+firearm-bullets,equipment,Firearm Bullets,Пули,PH24
+flask,equipment,Flask,Фляга,PH24
+flute,equipment,Flute,Флейта,PH24
+forgery-kit,equipment,Forgery Kit,Набор для фальсификации,PH24
+gaming-set,equipment,Gaming Set,Игровой набор,PH24
+glass-bottle,equipment,Glass Bottle,Стеклянная бутылка,PH24
+glassblowers-tools,equipment,Glassblower’s Tools,Инструменты стеклодува,PH24
+grappling-hook,equipment,Grappling Hook,Крюк-кошка,PH24
+healers-kit,equipment,Healer's Kit,Комплект целителя,PH24
+herbalism-kit,equipment,Herbalism Kit,Набор травника,PH24
+holy-symbol,equipment,Holy Symbol,Священный символ,PH24
+holy-water,equipment,Holy Water,Святая вода,PH24
+hooded-lantern,equipment,Hooded Lantern,Закрытый фонарь,PH24
+horn,equipment,Horn,Рожок,PH24
+hunting-trap,equipment,Hunting Trap,Охотничий капкан,PH24
+ink,equipment,Ink,Чернила,PH24
+ink-pen,equipment,Ink Pen,Писчее перо,PH24
+iron-pot,equipment,Iron Pot,Железный горшок,PH24
+iron-spikes,equipment,Iron Spikes,Железные шипы,PH24
+jewelers-tools,equipment,Jeweler’s Tools,Инструменты ювелира,PH24
+jug,equipment,Jug,Кувшин,PH24
+ladder,equipment,Ladder,Лестница,PH24
+lamp,equipment,Lamp,Лампа,PH24
+leatherworkers-tools,equipment,Leatherworker’s Tools,Инструменты кожевника,PH24
+lock,equipment,Lock,Замок,PH24
+lute,equipment,Lute,Лютня,PH24
+lyre,equipment,Lyre,Лира,PH24
+magnifying-glass,equipment,Magnifying Glass,Увеличительное стекло,PH24
+manacles,equipment,Manacles,Кандалы,PH24
+map,equipment,Map,Карта,PH24
+map-or-scroll-case,equipment,Map or Scroll Case,Тубус для карт и свитков,PH24
+masons-tools,equipment,Mason's Tools,Инструменты каменщика,PH24
+mirror,equipment,Mirror,Зеркало,PH24
+musical-instrument,equipment,Musical Instrument,Музыкальный инструмент,PH24
+navigators-tools,equipment,Navigator’s Tools,Инструменты навигатора,PH24
+needles,equipment,Needles,Иглы,PH24
+net,equipment,Net,Сеть,PH24
+oil,equipment,Oil,Масло,PH24
+orb,equipment,Orb,Сфера,PH24
+painters-supplies,equipment,Painter's Supplies,Инструменты художника,PH24
+pan-flute,equipment,Pan Flute,Флейта Пана,PH24
+paper,equipment,Paper,Бумага,PH24
+parchment,equipment,Parchment,Пергамент,PH24
+perfume,equipment,Perfume,Духи,PH24
+playing-cards,equipment,Playing cards,Игральные карты,PH24
+poisoners-kit,equipment,Poisoner’s Kit,Инструменты отравителя,PH24
+pole,equipment,Pole,Шест,PH24
+portable-ram,equipment,Portable Ram,Портативный таран,PH24
+potters-tools,equipment,Potter's Tools,Инструменты гончара,PH24
+pouch,equipment,Pouch,Кошель,PH24
+priests-pack,equipment,Priest’s Pack,Набор священника,PH24
+quiver,equipment,Quiver,Колчан,PH24
+rations,equipment,Rations,Рационы,PH24
+reliquary,equipment,Reliquary,Реликварий,PH24
+robe,equipment,Robe,Мантия,PH24
+rod,equipment,Rod,Жезл,PH24
+rope,equipment,Rope,Верёвка,PH24
+sack,equipment,Sack,Мешок,PH24
+scholars-pack,equipment,Scholar’s Pack,Набор учёного,PH24
+shawm,equipment,Shawm,Шалмей,PH24
+shovel,equipment,Shovel,Лопата,PH24
+signal-whistle,equipment,Signal Whistle,Сигнальный свисток,PH24
+sling-bullets,equipment,Sling Bullets,Снаряды для пращи,PH24
+smiths-tools,equipment,Smith's Tools,Инструменты кузнеца,PH24
+sprig-of-mistletoe,equipment,Sprig of Mistletoe,Веточка омелы,PH24
+spyglass,equipment,Spyglass,Подзорная труба,PH24
+staff,equipment,Staff,Посох,PH24
+string,equipment,String,Леска,PH24
+tent,equipment,Tent,Палатка,PH24
+thieves-tools,equipment,Thieves’ Tools,Воровские инструменты,PH24
+three-dragon-ante,equipment,Three-dragon ante,Ставка трёх драконов,PH24
+tinderbox,equipment,Tinderbox,Трутница,PH24
+tinkers-tools,equipment,Tinker’s Tools,Инструменты ремонтника,PH24
+torch,equipment,Torch,Факел,PH24
+travelers-clothes,equipment,Traveler's Clothes,Дорожная одежда,PH24
+vial,equipment,Vial,Флакон,PH24
+viol,equipment,Viol,Виола да гамба,PH24
+wand,equipment,Wand,Волшебная палочка,PH24
+waterskin,equipment,Waterskin,Бурдюк,PH24
+weavers-tools,equipment,Weaver’s Tools,Инструменты ткача,PH24
+woodcarvers-tools,equipment,Woodcarver’s Tools,Инструменты резчика по дереву,PH24
+wooden-staff,equipment,Wooden Staff,Деревянный посох,PH24
+yew-wand,equipment,Yew Wand,Тисовая палочка,PH24
+bloodlust,feats,Bloodlust,Жажда крови,ABH
+bomber,feats,Bomber,Бомбометатель,ABH
+boon-of-blazing-dawn,feats,Boon of Blazing Dawn,Дар опаляющего рассвета,ABH
+boon-of-looming-shadows,feats,Boon of Looming Shadows,Дар движущихся теней,ABH
+boon-of-misty-escape,feats,Boon of Misty Escape,Дар туманного побега,ABH
+cloying-mists,feats,Cloying Mists,Ползучий туман,ABH
+delicious-pain,feats,Delicious Pain,Сладкая боль,ABH
+light-bringer,feats,Light Bringer,Несущий свет,ABH
+love-bites,feats,Love Bites,Укус любви,ABH
+putrefy,feats,Putrefy,Гниение,ABH
+rebuke,feats,Rebuke,Осуждение,ABH
+tireless-reveler,feats,Tireless Reveler,Неустанный гуляка,ABH
+treacherous-allure,feats,Treacherous Allure,Обманчивая привлекательность,ABH
+vampire-hunter,feats,Vampire Hunter,Охотник на вампиров,ABH
+vampire-touched,feats,Vampire Touched,Затронутый вампиром,ABH
+vampires-plaything,feats,Vampire’s Plaything,Игрушка вампира,ABH
+abjuration-adept,feats,Abjuration Adept,Адепт Ограждения,AU
+arcane-artist,feats,Arcane Artist,Мистический артист,AU
+arcane-eloquence,feats,Arcane Eloquence,Колдовское красноречие,AU
+arcane-infiltrator,feats,Arcane Infiltrator,Мистический лазутчик,AU
+arcane-omens,feats,Arcane Omens,Мистические предвестия,AU
+arcane-overload,feats,Arcane Overload,Магическая перегрузка,AU
+arcane-safeguard,feats,Arcane Safeguard,Магический заслон,AU
+arcane-undertaker,feats,Arcane Undertaker,Колдовской могильщик,AU
+arcane-warrior,feats,Arcane Warrior,Воин-маг,AU
+boon-of-erupting-spellpower,feats,Boon of Erupting Spellpower,Дар заклинательной мощи,AU
+boon-of-magic-school-mastery,feats,Boon of Magic School Mastery,Дар мастерства школы магии,AU
+boon-of-the-iron-mind,feats,Boon of the Iron Mind,Дар железного разума,AU
+conjuration-adept,feats,Conjuration Adept,Адепт Призыва,AU
+divination-adept,feats,Divination Adept,Адепт Прорицания,AU
+elemental-familiar,feats,Elemental Familiar,Стихийный фамильяр,AU
+enchantment-adept,feats,Enchantment Adept,Адепт Очарования,AU
+evocation-adept,feats,Evocation Adept,Адепт Воплощения,AU
+familiar-friend,feats,Familiar Friend,Друг-фамильяр,AU
+illusion-adept,feats,Illusion Adept,Адепт Иллюзии,AU
+magic-connoisseur,feats,Magic Connoisseur,Сведущий в магии,AU
+necromancy-adept,feats,Necromancy Adept,Адепт Некромантии,AU
+otherworldly-familiar,feats,Otherworldly Familiar,Потусторонний фамильяр,AU
+portal-jumper,feats,Portal Jumper,Портальный прыгун,AU
+soothing-familiar,feats,Soothing Familiar,Благодатный фамильяр,AU
+spell-resistant,feats,Spell Resistant,Сопротивление заклинаниям,AU
+spell-subterfuge,feats,Spell Subterfuge,Хитрый заклинатель,AU
+transmutation-adept,feats,Transmutation Adept,Адепт Преобразования,AU
+transmuted-anatomy,feats,Transmuted Anatomy,Преобразованная анатомия,AU
+warlike-familiar,feats,Warlike Familiar,Воинственный фамильяр,AU
+aberrant-dragonmark,feats,Aberrant Dragonmark,Аберрантная метка,EFA
+boon-of-siberys,feats,Boon of Siberys,Дар Сибериса,EFA
+greater-aberrant-mark,feats,Greater Aberrant Mark,Старшая аберрантная метка,EFA
+greater-mark-of-detection,feats,Greater Mark of Detection,Старшая метка обнаружения,EFA
+greater-mark-of-finding,feats,Greater Mark of Finding,Старшая метка поиска,EFA
+greater-mark-of-handling,feats,Greater Mark of Handling,Старшая метка обхождения,EFA
+greater-mark-of-healing,feats,Greater Mark of Healing,Старшая метка исцеления,EFA
+greater-mark-of-hospitality,feats,Greater Mark of Hospitality,Старшая метка гостеприимства,EFA
+greater-mark-of-making,feats,Greater Mark of Making,Старшая метка создания,EFA
+greater-mark-of-passage,feats,Greater Mark of Passage,Старшая метка прохода,EFA
+greater-mark-of-scribing,feats,Greater Mark of Scribing,Старшая метка письма,EFA
+greater-mark-of-sentinel,feats,Greater Mark of Sentinel,Старшая метка стража,EFA
+greater-mark-of-shadow,feats,Greater Mark of Shadow,Старшая метка тени,EFA
+greater-mark-of-storm,feats,Greater Mark of Storm,Старшая метка бури,EFA
+greater-mark-of-warding,feats,Greater Mark of Warding,Старшая метка охранения,EFA
+mark-of-detection,feats,Mark of Detection,Метка обнаружения,EFA
+mark-of-finding,feats,Mark of Finding,Метка поиска,EFA
+mark-of-handling,feats,Mark of Handling,Метка обхождения,EFA
+mark-of-healing,feats,Mark of Healing,Метка исцеления,EFA
+mark-of-hospitality,feats,Mark of Hospitality,Метка гостеприимства,EFA
+mark-of-making,feats,Mark of Making,Метка создания,EFA
+mark-of-passage,feats,Mark of Passage,Метка прохода,EFA
+mark-of-scribing,feats,Mark of Scribing,Метка письма,EFA
+mark-of-sentinel,feats,Mark of Sentinel,Метка стража,EFA
+mark-of-shadow,feats,Mark of Shadow,Метка тени,EFA
+mark-of-storm,feats,Mark of Storm,Метка бури,EFA
+mark-of-warding,feats,Mark of Warding,Метка охранения,EFA
+potent-dragonmark,feats,Potent Dragonmark,Могущественная драконья метка,EFA
+boon-of-bloodshed,feats,Boon of Bloodshed,Дар кровопролития,FRHoF
+boon-of-bountiful-health,feats,Boon of Bountiful Health,Дар изобильного здоровья,FRHoF
+boon-of-communication,feats,Boon of Communication,Дар общения,FRHoF
+boon-of-desperate-resilience,feats,Boon of Desperate Resilience,Дар отчаянного упорства,FRHoF
+boon-of-exquisite-radiance,feats,Boon of Exquisite Radiance,Дар совершенного излучения,FRHoF
+boon-of-fluid-forms,feats,Boon of Fluid Forms,Дар изменчивых форм,FRHoF
+boon-of-fortunes-favor,feats,Boon of Fortune’s Favor,Дар благоволения судьбы,FRHoF
+boon-of-poison-mastery,feats,Boon of Poison Mastery,Дар владения ядами,FRHoF
+boon-of-revelry,feats,Boon of Revelry,Дар безудержного веселья,FRHoF
+boon-of-terror,feats,Boon of Terror,Дар устрашения,FRHoF
+boon-of-the-bright-sun,feats,Boon of the Bright Sun,Дар яркого солнца,FRHoF
+boon-of-the-furious-storm,feats,Boon of the Furious Storm,Дар неистовой бури,FRHoF
+boon-of-the-soul-drinker,feats,Boon of the Soul Drinker,Дар пьющего души,FRHoF
+cold-caster,feats,Cold Caster,Холодный заклинатель,FRHoF
+cult-of-the-dragon-initiate,feats,Cult of the Dragon Initiate,Посвящённый Культа дракона,FRHoF
+dragonscarred,feats,Dragonscarred,Изуродованный драконом,FRHoF
+emerald-enclave-fledgling,feats,Emerald Enclave Fledgling,Птенец Изумрудного анклава,FRHoF
+enclave-magic,feats,Enclave Magic,Магия Анклава,FRHoF
+fairy-trickster,feats,Fairy Trickster,Фейский хитрец,FRHoF
+genie-magic,feats,Genie Magic,Магия гениев,FRHoF
+harper-agent,feats,Harper Agent,Агент Арфистов,FRHoF
+harper-teamwork,feats,Harper Teamwork,Командная работа Арфистов,FRHoF
+lordly-resolve,feats,Lordly Resolve,Решимость лордов,FRHoF
+lords-alliance-agent,feats,Lords’ Alliance Agent,Агент Альянса лордов,FRHoF
+mythal-touched,feats,Mythal Touched,Затронутый мифалом,FRHoF
+orders-resilience,feats,Order’s Resilience,Устойчивость Ордена,FRHoF
+purple-dragon-commandant,feats,Purple Dragon Commandant,Командир Пурпурного дракона,FRHoF
+purple-dragon-rook,feats,Purple Dragon Rook,Новобранец Пурпурного дракона,FRHoF
+spellfire-adept,feats,Spellfire Adept,Адепт чаропламени,FRHoF
+spellfire-spark,feats,Spellfire Spark,Искра чаропламени,FRHoF
+street-justice,feats,Street Justice,Уличная справедливость,FRHoF
+tyro-of-the-gauntlet,feats,Tyro of the Gauntlet,Новичок Латной перчатки,FRHoF
+zhentarim-ruffian,feats,Zhentarim Ruffian,Бандит Жентарима,FRHoF
+zhentarim-tactics,feats,Zhentarim Tactics,Тактика Жентарима,FRHoF
+child-of-the-sun,feats,Child of the Sun,Дитя солнца,LFL
+shadowmoor-hexer,feats,Shadowmoor Hexer,Проклинатель Шэдоумура,LFL
+ability-score-improvement,feats,Ability Score Improvement,Увеличение характеристик,PH24
+actor,feats,Actor,Актёр,PH24
+alert,feats,Alert,Бдительный,PH24
+archery,feats,Archery,Стрельба,PH24
+athlete,feats,Athlete,Атлет,PH24
+blind-fighting,feats,Blind Fighting,Сражение вслепую,PH24
+boon-of-combat-prowess,feats,Boon of Combat Prowess,Дар боевой удали,PH24
+boon-of-dimensional-travel,feats,Boon of Dimensional Travel,Дар межпространственного перемещения,PH24
+boon-of-energy-resistance,feats,Boon of Energy Resistance,Дар сопротивления энергии,PH24
+boon-of-fate,feats,Boon of Fate,Дар судьбы,PH24
+boon-of-fortitude,feats,Boon of Fortitude,Дар стойкости,PH24
+boon-of-irresistible-offense,feats,Boon of Irresistible Offense,Дар неотразимого нападения,PH24
+boon-of-recovery,feats,Boon of Recovery,Дар восстановления,PH24
+boon-of-skill,feats,Boon of Skill,Дар умелости,PH24
+boon-of-speed,feats,Boon of Speed,Дар скорости,PH24
+boon-of-spell-recall,feats,Boon of Spell Recall,Дар восстановления заклинаний,PH24
+boon-of-the-night-spirit,feats,Boon of the Night Spirit,Дар ночного духа,PH24
+boon-of-truesight,feats,Boon of Truesight,Дар истинного зрения,PH24
+charger,feats,Charger,Налётчик,PH24
+chef,feats,Chef,Шеф-повар,PH24
+crafter,feats,Crafter,Мастеровой,PH24
+crossbow-expert,feats,Crossbow Expert,Эксперт по арбалетам,PH24
+crusher,feats,Crusher,Крушитель,PH24
+defense,feats,Defense,Оборона,PH24
+defensive-duelist,feats,Defensive Duelist,Парирующий дуэлянт,PH24
+dual-wielder,feats,Dual Wielder,Мастер боя двумя оружиями,PH24
+dueling,feats,Dueling,Дуэлянт,PH24
+durable,feats,Durable,Стойкий,PH24
+elemental-adept,feats,Elemental Adept,Стихийный адепт,PH24
+fey-touched,feats,Fey-Touched,Затронутый феями,PH24
+grappler,feats,Grappler,Борец,PH24
+great-weapon-fighting,feats,Great Weapon Fighting,Сражение большим оружием,PH24
+great-weapon-master,feats,Great Weapon Master,Мастер тяжёлого оружия,PH24
+healer,feats,Healer,Лекарь,PH24
+heavily-armored,feats,Heavily Armored,Знаток тяжёлых доспехов,PH24
+heavy-armor-master,feats,Heavy Armor Master,Мастер тяжёлых доспехов,PH24
+inspiring-leader,feats,Inspiring Leader,Воодушевляющий лидер,PH24
+interception,feats,Interception,Перехват,PH24
+keen-mind,feats,Keen Mind,Острый ум,PH24
+lightly-armored,feats,Lightly Armored,Знаток лёгких доспехов,PH24
+lucky,feats,Lucky,Везучий,PH24
+mage-slayer,feats,Mage Slayer,Убийца магов,PH24
+magic-initiate,feats,Magic Initiate,Посвящённый в магию,PH24
+martial-weapon-training,feats,Martial Weapon Training,Обученность воинскому оружию,PH24
+medium-armor-master,feats,Medium Armor Master,Мастер средних доспехов,PH24
+moderately-armored,feats,Moderately Armored,Знаток средних доспехов,PH24
+mounted-combatant,feats,Mounted Combatant,Верховой боец,PH24
+musician,feats,Musician,Музыкант,PH24
+observant,feats,Observant,Внимательный,PH24
+piercer,feats,Piercer,Пронзатель,PH24
+poisoner,feats,Poisoner,Отравитель,PH24
+polearm-master,feats,Polearm Master,Мастер древкового оружия,PH24
+protection,feats,Protection,Защита,PH24
+resilient,feats,Resilient,Устойчивый,PH24
+ritual-caster,feats,Ritual Caster,Ритуальный заклинатель,PH24
+savage-attacker,feats,Savage Attacker,Неистово атакующий,PH24
+sentinel,feats,Sentinel,Страж,PH24
+shadow-touched,feats,Shadow-Touched,Затронутый тенью,PH24
+sharpshooter,feats,Sharpshooter,Меткий стрелок,PH24
+shield-master,feats,Shield Master,Мастер щита,PH24
+skill-expert,feats,Skill Expert,Эксперт в навыке,PH24
+skilled,feats,Skilled,Одарённый,PH24
+skulker,feats,Skulker,Проныра,PH24
+slasher,feats,Slasher,Рубака,PH24
+speedy,feats,Speedy,Быстрый,PH24
+spell-sniper,feats,Spell Sniper,Меткий заклинатель,PH24
+tavern-brawler,feats,Tavern Brawler,Дебошир,PH24
+telekinetic,feats,Telekinetic,Телекинетик,PH24
+telepathic,feats,Telepathic,Телепат,PH24
+thrown-weapon-fighting,feats,Thrown Weapon Fighting,Сражение метательным оружием,PH24
+tough,feats,Tough,Крепкий,PH24
+two-weapon-fighting,feats,Two-Weapon Fighting,Сражение двумя оружиями,PH24
+unarmed-fighting,feats,Unarmed Fighting,Сражение без оружия,PH24
+war-caster,feats,War Caster,Боевой заклинатель,PH24
+weapon-master,feats,Weapon Master,Мастер оружия,PH24
+aberrant-anatomy,feats,Aberrant Anatomy,Аберрантная анатомия,RTW
+echoing-soul,feats,Echoing Soul,Эхо прошлых жизней,RTW
+gathered-whispers,feats,Gathered Whispers,Сонм голосов,RTW
+living-shadow,feats,Living Shadow,Живая тень,RTW
+mist-walker,feats,Mist Walker,Ходок Туманов,RTW
+second-skin,feats,Second Skin,Волк среди овец,RTW
+sharp-eye,feats,Sharp Eye,Остроглазый,RTW
+survivor,feats,Survivor,Выживший,RTW
+symbiotic-being,feats,Symbiotic Being,Симбионт,RTW
+touch-of-death,feats,Touch of Death,Касание смерти,RTW
+watchers,feats,Watchers,Наблюдаемый,RTW
+ability-check,glossary,Ability Check,Проверка характеристики,PH24
+ability-score-and-modifier,glossary,Ability Score and Modifier,Значения и модификаторы характеристик,PH24
+action,glossary,Action,Действие,PH24
+advantage,glossary,Advantage,Преимущество,PH24
+adventure,glossary,Adventure,Приключение,PH24
+alignment,glossary,Alignment,Мировоззрение,PH24
+ally,glossary,Ally,Союзник,PH24
+area-of-effect,glossary,Area of Effect,Область воздействия,PH24
+armor-class,glossary,Armor Class,Класс Защиты,PH24
+armor-training,glossary,Armor Training,Тренированность с доспехами,PH24
+attack,glossary,Attack,Атака,PH24
+attack-roll,glossary,Attack Roll,Бросок атаки,PH24
+attitude,glossary,Attitude,Отношение,PH24
+attunement,glossary,Attunement,Настройка,PH24
+blinded,glossary,Blinded,Ослеплённый,PH24
+blindsight,glossary,Blindsight,Слепое зрение,PH24
+bloodied,glossary,Bloodied,Окровавленный,PH24
+bonus-action,glossary,Bonus Action,Бонусное действие,PH24
+breaking-objects,glossary,Breaking Objects,Уничтожение объектов,PH24
+bright-light,glossary,Bright Light,Яркий свет,PH24
+burning,glossary,Burning,Горение,PH24
+burrow-speed,glossary,Burrow Speed,Скорость копания,PH24
+campaign,glossary,Campaign,Кампания,PH24
+cantrip,glossary,Cantrip,Заговор,PH24
+carrying-capacity,glossary,Carrying Capacity,Грузоподъёмность,PH24
+challenge-rating,glossary,Challenge Rating,Показатель опасности,PH24
+character-sheet,glossary,Character Sheet,Лист персонажа,PH24
+charmed,glossary,Charmed,Очарованный,PH24
+climb-speed,glossary,Climb Speed,Скорость лазания,PH24
+climbing,glossary,Climbing,Лазание,PH24
+concentration,glossary,Concentration,Концентрация,PH24
+condition,glossary,Condition,Состояние,PH24
+cone,glossary,Cone,Конус,PH24
+cover,glossary,Cover,Укрытие,PH24
+crawling,glossary,Crawling,Ползание,PH24
+creature,glossary,Creature,Существо,PH24
+creature-type,glossary,Creature Type,Тип существа,PH24
+critical-hit,glossary,Critical Hit,Критическое попадание,PH24
+cube,glossary,Cube,Куб,PH24
+curses,glossary,Curses,Проклятия,PH24
+cylinder,glossary,Cylinder,Цилиндр,PH24
+d20-test,glossary,D20 Test,Тест к20,PH24
+damage,glossary,Damage,Урон,PH24
+damage-roll,glossary,Damage Roll,Бросок урона,PH24
+damage-threshold,glossary,Damage Threshold,Порог урона,PH24
+damage-types,glossary,Damage Types,Типы урона,PH24
+darkness,glossary,Darkness,Темнота,PH24
+darkvision,glossary,Darkvision,Тёмное зрение,PH24
+dash,glossary,Dash,Рывок,PH24
+dead,glossary,Dead,Смерть,PH24
+deafened,glossary,Deafened,Оглохший,PH24
+death-saving-throw,glossary,Death Saving Throw,Спасбросок от Cмерти,PH24
+dehydration,glossary,Dehydration,Обезвоживание,PH24
+difficult-terrain,glossary,Difficult Terrain,Труднопроходимая местность,PH24
+difficulty-class,glossary,Difficulty Class,Сложность,PH24
+dim-light,glossary,Dim Light,Тусклый свет,PH24
+disadvantage,glossary,Disadvantage,Помеха,PH24
+disengage,glossary,Disengage,Отход,PH24
+dodge,glossary,Dodge,Уклонение,PH24
+emanation,glossary,Emanation,Эманация,PH24
+encounter,glossary,Encounter,Столкновение,PH24
+enemy,glossary,Enemy,Враг,PH24
+exhaustion,glossary,Exhaustion,Истощение,PH24
+experience-points,glossary,Experience Points,Очки опыта,PH24
+expertise,glossary,Expertise,Экспертность,PH24
+falling,glossary,Falling,Падение,PH24
+fly-speed,glossary,Fly Speed,Скорость полёта,PH24
+flying,glossary,Flying,Полёт,PH24
+friendly,glossary,Friendly,Дружелюбное отношение,PH24
+frightened,glossary,Frightened,Испуганный,PH24
+grappled,glossary,Grappled,Схваченный,PH24
+grappling,glossary,Grappling,Захват,PH24
+hazard,glossary,Hazard,Угроза окружения,PH24
+healing,glossary,Healing,Лечение,PH24
+heavily-obscured,glossary,Heavily Obscured,Сильное заслонение,PH24
+help,glossary,Help,Помощь,PH24
+heroic-inspiration,glossary,Heroic Inspiration,Героическое вдохновение,PH24
+hide,glossary,Hide,Затаивание,PH24
+high-jump,glossary,High Jump,Прыжок в высоту,PH24
+hit-point-dice,glossary,Hit Point Dice,Кости хитов,PH24
+hit-points,glossary,Hit Points,Хиты,PH24
+hostile,glossary,Hostile,Враждебное отношение,PH24
+hover,glossary,Hover,Парение,PH24
+illusions,glossary,Illusions,Иллюзии,PH24
+immunity,glossary,Immunity,Иммунитет,PH24
+improvised-weapons,glossary,Improvised Weapons,Импровизированное оружие,PH24
+incapacitated,glossary,Incapacitated,Недееспособный,PH24
+indifferent,glossary,Indifferent,Безразличное отношение,PH24
+influence,glossary,Influence,Влияние,PH24
+initiative,glossary,Initiative,Инициатива,PH24
+invisible,glossary,Invisible,Невидимый,PH24
+jumping,glossary,Jumping,Прыжки,PH24
+knocking-out-a-creature,glossary,Knocking Out a Creature,Нокаутирование существа,PH24
+lightly-obscured,glossary,Lightly Obscured,Слабое заслонение,PH24
+line,glossary,Line,Линия,PH24
+line-of-sight,glossary,Line of Sight,Линия видимости,PH24
+long-jump,glossary,Long Jump,Прыжок в длину,PH24
+long-rest,glossary,Long Rest,Долгий отдых,PH24
+magic,glossary,Magic,Магия,PH24
+magical-effect,glossary,Magical Effect,Магический эффект,PH24
+malnutrition,glossary,Malnutrition,Недоедание,PH24
+monster,glossary,Monster,Монстр,PH24
+nonplayer-character,glossary,Nonplayer Character,Неигровой персонаж,PH24
+object,glossary,Object,Объект,PH24
+occupied-space,glossary,Occupied Space,Занятое пространство,PH24
+opportunity-attacks,glossary,Opportunity Attacks,Провоцированные атаки,PH24
+paralyzed,glossary,Paralyzed,Парализованный,PH24
+passive-perception,glossary,Passive Perception,Пассивное Восприятие,PH24
+per-day,glossary,Per Day,В день,PH24
+petrified,glossary,Petrified,Окаменевший,PH24
+player-character,glossary,Player Character,Персонаж игрока,PH24
+poisoned,glossary,Poisoned,Отравленный,PH24
+possession,glossary,Possession,Одержимость,PH24
+proficiency,glossary,Proficiency,Владение,PH24
+prone,glossary,Prone,Опрокинутый,PH24
+reach,glossary,Reach,Досягаемость,PH24
+reaction,glossary,Reaction,Реакция,PH24
+ready,glossary,Ready,Подготовка,PH24
+resistance,glossary,Resistance,Сопротивление,PH24
+restrained,glossary,Restrained,Опутанный,PH24
+ritual,glossary,Ritual,Ритуал,PH24
+round-down,glossary,Round Down,Округление вниз,PH24
+saving-throw,glossary,Saving Throw,Спасбросок,PH24
+search,glossary,Search,Поиск,PH24
+shape-shifting,glossary,Shape-Shifting,Перевоплощение,PH24
+short-rest,glossary,Short Rest,Короткий отдых,PH24
+simultaneous-effects,glossary,Simultaneous Effects,Одновременные эффекты,PH24
+size,glossary,Size,Размер,PH24
+skill,glossary,Skill,Навык,PH24
+speed,glossary,Speed,Скорость,PH24
+spell,glossary,Spell,Заклинание,PH24
+spell-attack,glossary,Spell Attack,Атака заклинанием,PH24
+spellcasting-focus,glossary,Spellcasting Focus,Заклинательная фокусировка,PH24
+sphere,glossary,Sphere,Сфера,PH24
+stable,glossary,Stable,Стабилизированный,PH24
+stat-block,glossary,Stat Block,Блок статистики,PH24
+study,glossary,Study,Изучение,PH24
+stunned,glossary,Stunned,Ошеломлённый,PH24
+suffocation,glossary,Suffocation,Удушение,PH24
+surprise,glossary,Surprise,Застигнуты врасплох,PH24
+swim-speed,glossary,Swim Speed,Скорость плавания,PH24
+swimming,glossary,Swimming,Плавание,PH24
+target,glossary,Target,Цель,PH24
+telepathy,glossary,Telepathy,Телепатия,PH24
+teleportation,glossary,Teleportation,Телепортация,PH24
+temporary-hit-points,glossary,Temporary Hit Points,Временные хиты,PH24
+tremorsense,glossary,Tremorsense,Чувство вибрации,PH24
+truesight,glossary,Truesight,Истинное зрение,PH24
+unarmed-strike,glossary,Unarmed Strike,Безоружный удар,PH24
+unconscious,glossary,Unconscious,Бессознательный,PH24
+unoccupied-space,glossary,Unoccupied Space,Незанятое пространство,PH24
+utilize,glossary,Utilize,Использование,PH24
+vulnerability,glossary,Vulnerability,Уязвимость,PH24
+weapon,glossary,Weapon,Оружие,PH24
+weapon-attack,glossary,Weapon Attack,Атака оружием,PH24
+arcane-chatelaine,magic_items,Arcane Chatelaine,Волшебный шатлен,AU
+arcanists-bestiary,magic_items,Arcanist's Bestiary,Бестиарий арканиста,AU
+bellows-of-strangulation,magic_items,Bellows of Strangulation,Меха удушения,AU
+blood-amulet,magic_items,Blood Amulet,Амулет крови,AU
+boon-companions-bands,magic_items,Boon Companions' Bands,Кольца верных товарищей,AU
+conjurers-canopy,magic_items,Conjurer's Canopy,Навес призывателя,AU
+diamond-staff,magic_items,Diamond Staff,Алмазный посох,AU
+dictation-quill,magic_items,Dictation Quill,Перо диктата,AU
+dispelling-ammunition,magic_items,Dispelling Ammunition,Боеприпас рассеивания,AU
+dissuader,magic_items,Dissuader,Посох отваживания,AU
+dream-weaver,magic_items,Dream Weaver,Ткач снов,AU
+elocutionists-lexicon,magic_items,Elocutionist's Lexicon,Словарь оратора,AU
+ensorcelled-missive,magic_items,Ensorcelled Missive,Зачарованное послание,AU
+evergreen-fertilizer,magic_items,Evergreen Fertilizer,Удобрение вечной зелени,AU
+goading-ammunition,magic_items,Goading Ammunition,Боеприпас провокации,AU
+grave-reaper,magic_items,Grave Reaper,Могильный жнец,AU
+homeward-compass,magic_items,Homeward Compass,Компас возвращения домой,AU
+lucky-foot,magic_items,Lucky Foot,Кроличья лапка,AU
+mage-breaker,magic_items,Mage Breaker,Разрушитель чар,AU
+mages-manacle,magic_items,Mage's Manacle,Оковы магов,AU
+magewrights-gloves,magic_items,Magewright's Gloves,Перчатки магического ремесла,AU
+martialists-quarterstaff,magic_items,Martialist's Quarterstaff,Посох мастера боя,AU
+namers-needle,magic_items,Namer's Needle,Игла имён,AU
+necklace-of-the-beastly-familiar,magic_items,Necklace of the Beastly Familiar,Ошейник звериного фамильяра,AU
+orb-of-divination-detection,magic_items,Orb of Divination Detection,Сфера обнаружения прорицания,AU
+orb-of-sorcery,magic_items,Orb of Sorcery,Сфера чародейства,AU
+potion-of-dragons-breath,magic_items,Potion of Dragon's Breath,Зелье дыхания дракона,AU
+potion-of-tirelessness,magic_items,Potion of Tirelessness,Зелье неустанности,AU
+prismatic-rune,magic_items,Prismatic Rune,Многоцветная руна,AU
+queen-ehlissas-marvelous-nightingale,magic_items,Queen Ehlissa's Marvelous Nightingale,Дивный соловей королевы Элиссы,AU
+ring-of-dedicated-focus,magic_items,Ring of Dedicated Focus,Кольцо совершенной концентрации,AU
+scholars-anchoring-bangle,magic_items,Scholar's Anchoring Bangle,Браслет сосредоточенности учёного,AU
+secret-keepers-circlet,magic_items,Secret Keeper's Circlet,Обруч хранителя тайн,AU
+spell-component-ring,magic_items,Spell Component Ring,Кольцо компонентов заклинаний,AU
+spell-duelists-trophy,magic_items,Spell Duelist's Trophy,Трофей заклинателя-дуэлянта,AU
+spell-slingers-puppet,magic_items,Spell-Slinger's Puppet,Кукла заклинателя,AU
+staff-of-the-lost,magic_items,Staff of the Lost,Посох блужданий,AU
+sweeping-broom,magic_items,Sweeping Broom,Метущая метла,AU
+thespians-playbill,magic_items,Thespian's Playbill,Театральная программка,AU
+thiefs-thimble,magic_items,Thief's Thimble,Напёрсток вора,AU
+tramontane-armor,magic_items,Tramontane Armor,Доспех трамонтаны,AU
+travelers-pearl,magic_items,Traveler's Pearl,Жемчужина путешественника,AU
+universal-pantograph,magic_items,Universal Pantograph,Универсальный пантограф,AU
+wand-of-freshness,magic_items,Wand of Freshness,Волшебная палочка свежести,AU
+wand-of-slumber,magic_items,Wand of Slumber,Волшебная палочка сновидений,AU
+wand-of-teeth,magic_items,Wand of Teeth,Волшебная палочка зубов,AU
+workshop-wrecker,magic_items,Workshop Wrecker,Разрушитель мастерских,AU
+crystal-ball-of-ominous-portent,magic_items,Crystal Ball of Ominous Portent,Хрустальный шар дурных знамений,AUD
+eyes-of-deceit,magic_items,Eyes of Deceit,Очи обмана,AUD
+life-sapping-blade,magic_items,Life-Sapping Blade,Клинок иссушения жизни,AUD
+masqueraders-brooch,magic_items,Masquerader's Brooch,Брошь маскарада,AUD
+ring-of-candor,magic_items,Ring of Candor,Кольцо искренности,AUD
+robe-of-thayan-arcana,magic_items,Robe of Thayan Arcana,Мантия тэйского мага,AUD
+scarlet-spellbook,magic_items,Scarlet Spellbook,Алая книга заклинаний,AUD
+snipers-bracelet,magic_items,Sniper's Bracelet,Браслет меткого стрелка,AUD
+spell-fueling-armor,magic_items,Spell-Fueling Armor,Доспех восстановления заклинаний,AUD
+spirit-binding-censer,magic_items,Spirit-Binding Censer,Кадило пленения духов,AUD
+staff-of-the-spirit-aegis,magic_items,Staff of the Spirit Aegis,Посох эгиды духов,AUD
+thayan-sword,magic_items,Thayan Sword,Тэйский меч,AUD
+trick-weapon,magic_items,Trick Weapon,Потайное оружие,AUD
+wand-of-enthralling,magic_items,Wand of Enthralling,Волшебная палочка златоуста,AUD
+adamantine-armor,magic_items,Adamantine Armor,Адамантиновый доспех,DMG24
+adamantine-weapon,magic_items,Adamantine Weapon,Адамантиновое оружие,DMG24
+alchemy-jug,magic_items,Alchemy Jug,Алхимический сосуд,DMG24
+ammunition-1,magic_items,"Ammunition, +1",Боеприпас +1,DMG24
+ammunition-1-2-or-3,magic_items,"Ammunition, +1, +2, or +3","Боеприпас +1, +2, +3",DMG24
+ammunition-2,magic_items,"Ammunition, +2",Боеприпас +2,DMG24
+ammunition-3,magic_items,"Ammunition, +3",Боеприпас +3,DMG24
+ammunition-of-slaying,magic_items,Ammunition of Slaying,Боеприпас убийства,DMG24
+amulet-of-health,magic_items,Amulet of Health,Амулет здоровья,DMG24
+amulet-of-proof-against-detection-and-location,magic_items,Amulet of Proof against Detection and Location,Амулет защиты от обнаружения и поиска,DMG24
+amulet-of-the-planes,magic_items,Amulet of the Planes,Амулет планов,DMG24
+animated-shield,magic_items,Animated Shield,Живой щит,DMG24
+anstruth-harp,magic_items,Anstruth harp,Арфа Анструт,DMG24
+apparatus-of-kwalish,magic_items,Apparatus of Kwalish,Аппарат Квалиша,DMG24
+apparatus-of-the-crab,magic_items,Apparatus of the Crab,Аппарат краба,DMG24
+armor-1,magic_items,"Armor, +1",Доспех +1,DMG24
+armor-1-2-or-3,magic_items,"Armor, +1, +2, or +3","Доспех +1, +2, +3",DMG24
+armor-2,magic_items,"Armor, +2",Доспех +2,DMG24
+armor-3,magic_items,"Armor, +3",Доспех +3,DMG24
+armor-of-gleaming,magic_items,Armor of Gleaming,Сверкающий доспех,DMG24
+armor-of-invulnerability,magic_items,Armor of Invulnerability,Доспех неуязвимости,DMG24
+armor-of-resistance,magic_items,Armor of Resistance,Доспех сопротивления,DMG24
+armor-of-vulnerability,magic_items,Armor of Vulnerability,Доспех уязвимости,DMG24
+arrow-catching-shield,magic_items,Arrow-Catching Shield,Ловящий стрелы щит,DMG24
+axe-of-the-dwarvish-lords,magic_items,Axe of the Dwarvish Lords,Топор дварфийских владык,DMG24
+baba-yagas-dancing-broom,magic_items,Baba Yaga’s Dancing Broom,Танцующая метла Бабы Яги,DMG24
+bag-of-beans,magic_items,Bag of Beans,Сумка с бобами,DMG24
+bag-of-devouring,magic_items,Bag of Devouring,Сумка пожирания,DMG24
+bag-of-holding,magic_items,Bag of Holding,Сумка хранения,DMG24
+bag-of-tricks,magic_items,Bag of Tricks,Сумка фокусов,DMG24
+bead-of-force,magic_items,Bead of Force,Бусина силы,DMG24
+bead-of-nourishment,magic_items,Bead of Nourishment,Бусина насыщения,DMG24
+bead-of-refreshment,magic_items,Bead of Refreshment,Освежающая бусина,DMG24
+belt-of-cloud-giant-strength,magic_items,Belt of Cloud Giant Strength,Пояс силы облачного великана,DMG24
+belt-of-dwarvenkind,magic_items,Belt of Dwarvenkind,Пояс дварфов,DMG24
+belt-of-fire-giant-strength,magic_items,Belt of Fire Giant Strength,Пояс силы огненного великана,DMG24
+belt-of-frost-giant-strength,magic_items,Belt of Frost Giant Strength,Пояс силы ледяного великана,DMG24
+belt-of-giant-strength,magic_items,Belt of Giant Strength,Пояс силы великана,DMG24
+belt-of-hill-giant-strength,magic_items,Belt of Hill Giant Strength,Пояс силы холмового великана,DMG24
+belt-of-stone-giant-strength,magic_items,Belt of Stone Giant Strength,Пояс силы каменного великана,DMG24
+belt-of-storm-giant-strength,magic_items,Belt of Storm Giant Strength,Пояс силы штормового великана,DMG24
+berserker-axe,magic_items,Berserker Axe,Топор берсерка,DMG24
+blackrazor,magic_items,Blackrazor,Чёрный клинок,DMG24
+book-of-exalted-deeds,magic_items,Book of Exalted Deeds,Книга превозносимых деяний,DMG24
+book-of-vile-darkness,magic_items,Book of Vile Darkness,Книга мерзкой тьмы,DMG24
+boots-of-elvenkind,magic_items,Boots of Elvenkind,Эльфийские сапоги,DMG24
+boots-of-false-tracks,magic_items,Boots of False Tracks,Сапоги ложных следов,DMG24
+boots-of-levitation,magic_items,Boots of Levitation,Сапоги левитации,DMG24
+boots-of-speed,magic_items,Boots of Speed,Сапоги скорости,DMG24
+boots-of-striding-and-springing,magic_items,Boots of Striding and Springing,Сапоги ходьбы и прыжков,DMG24
+boots-of-the-winterlands,magic_items,Boots of the Winterlands,Заполярные сапоги,DMG24
+bowl-of-commanding-water-elementals,magic_items,Bowl of Commanding Water Elementals,Чаша командования водяными элементалями,DMG24
+bracers-of-archery,magic_items,Bracers of Archery,Наручи стрельбы из лука,DMG24
+bracers-of-defense,magic_items,Bracers of Defense,Наручи защиты,DMG24
+brazier-of-commanding-fire-elementals,magic_items,Brazier of Commanding Fire Elementals,Жаровня командования огненными элементалями,DMG24
+brooch-of-shielding,magic_items,Brooch of Shielding,Брошь защиты,DMG24
+broom-of-flying,magic_items,Broom of Flying,Помело полёта,DMG24
+canaith-mandolin,magic_items,Canaith mandolin,Мандолина Канаит,DMG24
+candle-of-invocation,magic_items,Candle of Invocation,Свеча мольбы,DMG24
+candle-of-the-deep,magic_items,Candle of the Deep,Свеча глубин,DMG24
+cap-of-water-breathing,magic_items,Cap of Water Breathing,Шапка подводного дыхания,DMG24
+cape-of-the-mountebank,magic_items,Cape of the Mountebank,Плащ шарлатана,DMG24
+carpet-of-flying,magic_items,Carpet of Flying,Ковёр-самолёт,DMG24
+cast-off-armor,magic_items,Cast-Off Armor,Доспех сбрасывания,DMG24
+cauldron-of-rebirth,magic_items,Cauldron of Rebirth,Котёл перерождения,DMG24
+censer-of-controlling-air-elementals,magic_items,Censer of Controlling Air Elementals,Кадило контролирования воздушных элементалей,DMG24
+charlatans-die,magic_items,Charlatan’s Die,Кость шарлатана,DMG24
+chime-of-opening,magic_items,Chime of Opening,Колокольчик открывания,DMG24
+circlet-of-blasting,magic_items,Circlet of Blasting,Обруч сжигания,DMG24
+cli-lyre,magic_items,Cli lyre,Лира Кли,DMG24
+cloak-of-arachnida,magic_items,Cloak of Arachnida,Плащ паука,DMG24
+cloak-of-billowing,magic_items,Cloak of Billowing,Развевающийся плащ,DMG24
+cloak-of-displacement,magic_items,Cloak of Displacement,Плащ ускользания,DMG24
+cloak-of-elvenkind,magic_items,Cloak of Elvenkind,Эльфийский плащ,DMG24
+cloak-of-invisibility,magic_items,Cloak of Invisibility,Плащ невидимости,DMG24
+cloak-of-many-fashions,magic_items,Cloak of Many Fashions,Плащ множества стилей,DMG24
+cloak-of-protection,magic_items,Cloak of Protection,Плащ защиты,DMG24
+cloak-of-the-bat,magic_items,Cloak of the Bat,Плащ летучей мыши,DMG24
+cloak-of-the-manta-ray,magic_items,Cloak of the Manta Ray,Плащ ската,DMG24
+clockwork-amulet,magic_items,Clockwork Amulet,Механистический амулет,DMG24
+clothes-of-mending,magic_items,Clothes of Mending,Самочинящаяся одежда,DMG24
+crystal-ball,magic_items,Crystal Ball,Хрустальный шар,DMG24
+crystal-ball-of-mind-reading,magic_items,Crystal Ball of Mind Reading,Хрустальный шар чтения мыслей,DMG24
+crystal-ball-of-telepathy,magic_items,Crystal Ball of Telepathy,Хрустальный шар телепатии,DMG24
+crystal-ball-of-true-seeing,magic_items,Crystal Ball of True Seeing,Хрустальный шар истинного зрения,DMG24
+cube-of-force,magic_items,Cube of Force,Куб силы,DMG24
+cube-of-summoning,magic_items,Cube of Summoning,Куб вызова,DMG24
+cubic-gate,magic_items,Cubic Gate,Куб врат,DMG24
+daerns-instant-fortress,magic_items,Daern’s Instant Fortress,Мгновенная крепость Даэрн,DMG24
+dagger-of-venom,magic_items,Dagger of Venom,Кинжал яда,DMG24
+dancing-sword,magic_items,Dancing Sword,Танцующий меч,DMG24
+dark-shard-amulet,magic_items,Dark Shard Amulet,Амулет тёмного осколка,DMG24
+decanter-of-endless-water,magic_items,Decanter of Endless Water,Графин бесконечной воды,DMG24
+deck-of-illusions,magic_items,Deck of Illusions,Колода иллюзий,DMG24
+deck-of-many-things,magic_items,Deck of Many Things,Колода многих вещей,DMG24
+defender,magic_items,Defender,Защитник,DMG24
+demon-armor,magic_items,Demon Armor,Демонический доспех,DMG24
+demonomicon-of-iggwilv,magic_items,Demonomicon of Iggwilv,Демономикон Иггвилв,DMG24
+dimensional-shackles,magic_items,Dimensional Shackles,Оковы измерений,DMG24
+doss-lute,magic_items,Doss lute,Лютня Досс,DMG24
+dragon-orb,magic_items,Dragon Orb,Драконий шар,DMG24
+dragon-scale-mail,magic_items,Dragon Scale Mail,Доспех из драконьей чешуи,DMG24
+dragon-slayer,magic_items,Dragon Slayer,Убийца драконов,DMG24
+dread-helm,magic_items,Dread Helm,Шлем ужаса,DMG24
+driftglobe,magic_items,Driftglobe,Парящая сфера,DMG24
+dust-of-disappearance,magic_items,Dust of Disappearance,Порошок исчезновения,DMG24
+dust-of-dryness,magic_items,Dust of Dryness,Порошок сухости,DMG24
+dust-of-sneezing-and-choking,magic_items,Dust of Sneezing and Choking,Порошок чихания и удушья,DMG24
+dwarven-plate,magic_items,Dwarven Plate,Латы дварфов,DMG24
+dwarven-thrower,magic_items,Dwarven Thrower,Дварфийский метатель,DMG24
+ear-horn-of-hearing,magic_items,Ear Horn of Hearing,Слуховой рог,DMG24
+efficient-quiver,magic_items,Efficient Quiver,Вместительный колчан,DMG24
+efreeti-bottle,magic_items,Efreeti Bottle,Бутылка с ифритом,DMG24
+efreeti-chain,magic_items,Efreeti Chain,Кольчуга ифритов,DMG24
+elemental-gem,magic_items,Elemental Gem,Камень элементаля,DMG24
+elixir-of-health,magic_items,Elixir of Health,Эликсир здоровья,DMG24
+elven-chain,magic_items,Elven Chain,Эльфийская кольчуга,DMG24
+enduring-spellbook,magic_items,Enduring Spellbook,Износостойкая книга заклинаний,DMG24
+energy-bow,magic_items,Energy Bow,Энергетический лук,DMG24
+enspelled-armor,magic_items,Enspelled Armor,Заговорённый доспех,DMG24
+enspelled-armor-cantrip,magic_items,Enspelled Armor (cantrip),Заговорённый доспех (заговор),DMG24
+enspelled-armor-level-1,magic_items,Enspelled Armor (level 1),Заговорённый доспех (1-й уровень),DMG24
+enspelled-armor-level-2,magic_items,Enspelled Armor (level 2),Заговорённый доспех (2-й уровень),DMG24
+enspelled-armor-level-3,magic_items,Enspelled Armor (level 3),Заговорённый доспех (3-й уровень),DMG24
+enspelled-armor-level-4,magic_items,Enspelled Armor (level 4),Заговорённый доспех (4-й уровень),DMG24
+enspelled-armor-level-5,magic_items,Enspelled Armor (level 5),Заговорённый доспех (5-й уровень),DMG24
+enspelled-armor-level-6,magic_items,Enspelled Armor (level 6),Заговорённый доспех (6-й уровень),DMG24
+enspelled-armor-level-7,magic_items,Enspelled Armor (level 7),Заговорённый доспех (7-й уровень),DMG24
+enspelled-armor-level-8,magic_items,Enspelled Armor (level 8),Заговорённый доспех (8-й уровень),DMG24
+enspelled-staff,magic_items,Enspelled Staff,Заговорённый посох,DMG24
+enspelled-staff-cantrip,magic_items,Enspelled Staff (cantrip),Заговорённый посох (заговор),DMG24
+enspelled-staff-level-1,magic_items,Enspelled Staff (level 1),Заговорённый посох (1-й уровень),DMG24
+enspelled-staff-level-2,magic_items,Enspelled Staff (level 2),Заговорённый посох (2-й уровень),DMG24
+enspelled-staff-level-3,magic_items,Enspelled Staff (level 3),Заговорённый посох (3-й уровень),DMG24
+enspelled-staff-level-4,magic_items,Enspelled Staff (level 4),Заговорённый посох (4-й уровень),DMG24
+enspelled-staff-level-5,magic_items,Enspelled Staff (level 5),Заговорённый посох (5-й уровень),DMG24
+enspelled-staff-level-6,magic_items,Enspelled Staff (level 6),Заговорённый посох (6-й уровень),DMG24
+enspelled-staff-level-7,magic_items,Enspelled Staff (level 7),Заговорённый посох (7-й уровень),DMG24
+enspelled-staff-level-8,magic_items,Enspelled Staff (level 8),Заговорённый посох (8-й уровень),DMG24
+enspelled-weapon,magic_items,Enspelled Weapon,Заговорённое оружие,DMG24
+enspelled-weapon-cantrip,magic_items,Enspelled Weapon (cantrip),Заговорённое оружие (заговор),DMG24
+enspelled-weapon-level-1,magic_items,Enspelled Weapon (level 1),Заговорённое оружие (1-й уровень),DMG24
+enspelled-weapon-level-2,magic_items,Enspelled Weapon (level 2),Заговорённое оружие (2-й уровень),DMG24
+enspelled-weapon-level-3,magic_items,Enspelled Weapon (level 3),Заговорённое оружие (3-й уровень),DMG24
+enspelled-weapon-level-4,magic_items,Enspelled Weapon (level 4),Заговорённое оружие (4-й уровень),DMG24
+enspelled-weapon-level-5,magic_items,Enspelled Weapon (level 5),Заговорённое оружие (5-й уровень),DMG24
+enspelled-weapon-level-6,magic_items,Enspelled Weapon (level 6),Заговорённое оружие (6-й уровень),DMG24
+enspelled-weapon-level-7,magic_items,Enspelled Weapon (level 7),Заговорённое оружие (7-й уровень),DMG24
+enspelled-weapon-level-8,magic_items,Enspelled Weapon (level 8),Заговорённое оружие (8-й уровень),DMG24
+ersatz-eye,magic_items,Ersatz Eye,Запасной глаз,DMG24
+eversmoking-bottle,magic_items,Eversmoking Bottle,Вечнодымящаяся бутылка,DMG24
+executioners-axe,magic_items,Executioner’s Axe,Топор палача,DMG24
+eye-and-hand-of-vecna,magic_items,Eye and Hand of Vecna,Глаз и рука Векны,DMG24
+eyes-of-charming,magic_items,Eyes of Charming,Очи обольщения,DMG24
+eyes-of-minute-seeing,magic_items,Eyes of Minute Seeing,Очки детального зрения,DMG24
+eyes-of-the-eagle,magic_items,Eyes of the Eagle,Очки орлиного зрения,DMG24
+feather-token,magic_items,Feather Token,Перо-токен,DMG24
+figurine-of-wondrous-power,magic_items,Figurine of Wondrous Power,Статуэтка чудесной силы,DMG24
+figurine-of-wondrous-power-bronze-griffon,magic_items,Figurine of Wondrous Power (bronze griffon),Статуэтка чудесной силы (бронзовый грифон),DMG24
+figurine-of-wondrous-power-ebony-fly,magic_items,Figurine of Wondrous Power (ebony fly),Статуэтка чудесной силы (эбеновая муха),DMG24
+figurine-of-wondrous-power-golden-lions,magic_items,Figurine of Wondrous Power (golden lions),Статуэтка чудесной силы (золотые львы),DMG24
+figurine-of-wondrous-power-ivory-goats,magic_items,Figurine of Wondrous Power (ivory goats),Статуэтка чудесной силы (костяные козлы),DMG24
+figurine-of-wondrous-power-marble-elephant,magic_items,Figurine of Wondrous Power (marble elephant),Статуэтка чудесной силы (мраморный слон),DMG24
+figurine-of-wondrous-power-obsidian-steed,magic_items,Figurine of Wondrous Power (obsidian steed),Статуэтка чудесной силы (обсидиановый скакун),DMG24
+figurine-of-wondrous-power-onyx-dog,magic_items,Figurine of Wondrous Power (onyx dog),Статуэтка чудесной силы (ониксовая собака),DMG24
+figurine-of-wondrous-power-serpentine-owl,magic_items,Figurine of Wondrous Power (serpentine owl),Статуэтка чудесной силы (серпентиновая сова),DMG24
+figurine-of-wondrous-power-silver-raven,magic_items,Figurine of Wondrous Power (silver raven),Статуэтка чудесной силы (серебряный ворон),DMG24
+flame-tongue,magic_items,Flame Tongue,Язык пламени,DMG24
+fochlucan-bandore,magic_items,Fochlucan bandore,Бандура Фоклучан,DMG24
+folding-boat,magic_items,Folding Boat,Складная лодка,DMG24
+frost-brand,magic_items,Frost Brand,Морозный клинок,DMG24
+gauntlets-of-ogre-power,magic_items,Gauntlets of Ogre Power,Рукавицы силы огра,DMG24
+gem-of-brightness,magic_items,Gem of Brightness,Камень сияния,DMG24
+gem-of-seeing,magic_items,Gem of Seeing,Камень зрения,DMG24
+giant-slayer,magic_items,Giant Slayer,Убийца великанов,DMG24
+glamoured-studded-leather,magic_items,Glamoured Studded Leather,Очарованный проклёпанный кожаный доспех,DMG24
+gloves-of-missile-snaring,magic_items,Gloves of Missile Snaring,Перчатки ловли снарядов,DMG24
+gloves-of-swimming-and-climbing,magic_items,Gloves of Swimming and Climbing,Перчатки плавания и лазания,DMG24
+gloves-of-thievery,magic_items,Gloves of Thievery,Перчатки воровства,DMG24
+goggles-of-night,magic_items,Goggles of Night,Ночные очки,DMG24
+hag-eye,magic_items,Hag Eye,Ведьмин глаз,DMG24
+hammer-of-thunderbolts,magic_items,Hammer of Thunderbolts,Молот грома,DMG24
+handy-haversack,magic_items,Handy Haversack,Удобный рюкзак,DMG24
+hat-of-disguise,magic_items,Hat of Disguise,Шапка маскировки,DMG24
+hat-of-many-spells,magic_items,Hat of Many Spells,Шляпа множества заклинаний,DMG24
+hat-of-vermin,magic_items,Hat of Vermin,Шляпа вредителей,DMG24
+hat-of-wizardry,magic_items,Hat of Wizardry,Шляпа волшебства,DMG24
+headband-of-intellect,magic_items,Headband of Intellect,Повязка интеллекта,DMG24
+helm-of-brilliance,magic_items,Helm of Brilliance,Шлем блеска,DMG24
+helm-of-comprehending-languages,magic_items,Helm of Comprehending Languages,Шлем понимания языков,DMG24
+helm-of-telepathy,magic_items,Helm of Telepathy,Шлем телепатии,DMG24
+helm-of-teleportation,magic_items,Helm of Teleportation,Шлем телепортации,DMG24
+hewards-handy-haversack,magic_items,Heward’s Handy Haversack,Удобный рюкзак Хеварда,DMG24
+hewards-handy-spice-pouch,magic_items,Heward’s Handy Spice Pouch,Удобный мешочек специй Хеварда,DMG24
+holy-avenger,magic_items,Holy Avenger,Святой мститель,DMG24
+horn-of-blasting,magic_items,Horn of Blasting,Рог взрыва,DMG24
+horn-of-silent-alarm,magic_items,Horn of Silent Alarm,Рог беззвучного сигнала,DMG24
+horn-of-valhalla,magic_items,Horn of Valhalla,Рог Вальхаллы,DMG24
+horn-of-valhalla-brass,magic_items,Horn of Valhalla (Brass),Рог Вальхаллы (латунный),DMG24
+horn-of-valhalla-bronze,magic_items,Horn of Valhalla (Bronze),Рог Вальхаллы (бронзовый),DMG24
+horn-of-valhalla-iron,magic_items,Horn of Valhalla (Iron),Рог Вальхаллы (железный),DMG24
+horn-of-valhalla-silver,magic_items,Horn of Valhalla (Silver),Рог Вальхаллы (серебряный),DMG24
+horseshoes-of-a-zephyr,magic_items,Horseshoes of a Zephyr,Подковы ветра,DMG24
+horseshoes-of-speed,magic_items,Horseshoes of Speed,Подковы скорости,DMG24
+immovable-rod,magic_items,Immovable Rod,Неподвижный жезл,DMG24
+instant-fortress,magic_items,Instant Fortress,Мгновенная крепость,DMG24
+instrument-of-illusions,magic_items,Instrument of Illusions,Инструмент иллюзий,DMG24
+instrument-of-scribing,magic_items,Instrument of Scribing,Инструмент надписей,DMG24
+instrument-of-the-bards,magic_items,Instrument of the Bards,Инструмент бардов,DMG24
+ioun-stone,magic_items,Ioun Stone,Камень Айун,DMG24
+ioun-stone-absorption,magic_items,Ioun Stone (absorption),Камень Айун (поглощение),DMG24
+ioun-stone-agility,magic_items,Ioun Stone (agility),Камень Айун (проворство),DMG24
+ioun-stone-awareness,magic_items,Ioun Stone (awareness),Камень Айун (осведомлённость),DMG24
+ioun-stone-fortitude,magic_items,Ioun Stone (fortitude),Камень Айун (стойкость),DMG24
+ioun-stone-greater-absorption,magic_items,Ioun Stone (greater absorption),Камень Айун (большое поглощение),DMG24
+ioun-stone-insight,magic_items,Ioun Stone (insight),Камень Айун (проницательность),DMG24
+ioun-stone-intellect,magic_items,Ioun Stone (intellect),Камень Айун (рассудок),DMG24
+ioun-stone-leadership,magic_items,Ioun Stone (leadership),Камень Айун (лидерство),DMG24
+ioun-stone-mastery,magic_items,Ioun Stone (mastery),Камень Айун (искусность),DMG24
+ioun-stone-protection,magic_items,Ioun Stone (protection),Камень Айун (защита),DMG24
+ioun-stone-regeneration,magic_items,Ioun Stone (regeneration),Камень Айун (регенерация),DMG24
+ioun-stone-reserve,magic_items,Ioun Stone (reserve),Камень Айун (резерв),DMG24
+ioun-stone-strength,magic_items,Ioun Stone (strength),Камень Айун (сила),DMG24
+ioun-stone-sustenance,magic_items,Ioun Stone (sustenance),Камень Айун (питание),DMG24
+iron-bands,magic_items,Iron Bands,Железные оковы,DMG24
+iron-bands-of-bilarro,magic_items,Iron Bands of Bilarro,Железные ленты Биларро,DMG24
+iron-flask,magic_items,Iron Flask,Железная фляга,DMG24
+javelin-of-lightning,magic_items,Javelin of Lightning,Метательное копьё молнии,DMG24
+keoghtoms-ointment,magic_items,Keoghtom’s Ointment,Мазь Кеогтома,DMG24
+lantern-of-revealing,magic_items,Lantern of Revealing,Фонарь обнаружения,DMG24
+lock-of-trickery,magic_items,Lock of Trickery,Плутовской замок,DMG24
+luck-blade,magic_items,Luck Blade,Клинок удачи,DMG24
+lute-of-thunderous-thumping,magic_items,Lute of Thunderous Thumping,Лютня громовых ударов,DMG24
+mac-fuirmidh-cittern,magic_items,Mac-Fuirmidh cittern,Цистра Мак-Фурми,DMG24
+mace-of-disruption,magic_items,Mace of Disruption,Булава распада,DMG24
+mace-of-smiting,magic_items,Mace of Smiting,Булава кары,DMG24
+mace-of-terror,magic_items,Mace of Terror,Булава ужаса,DMG24
+mantle-of-spell-resistance,magic_items,Mantle of Spell Resistance,Мантия сопротивления заклинаниям,DMG24
+manual-of-bodily-health,magic_items,Manual of Bodily Health,Справочник телесного здоровья,DMG24
+manual-of-gainful-exercise,magic_items,Manual of Gainful Exercise,Справочник полезных упражнений,DMG24
+manual-of-golems,magic_items,Manual of Golems,Справочник по големам,DMG24
+manual-of-golems-clay,magic_items,Manual of Golems (Clay),Справочник по глиняным големам,DMG24
+manual-of-golems-flesh,magic_items,Manual of Golems (Flesh),Справочник по мясным големам,DMG24
+manual-of-golems-iron,magic_items,Manual of Golems (Iron),Справочник по железным големам,DMG24
+manual-of-golems-stone,magic_items,Manual of Golems (Stone),Справочник по каменным големам,DMG24
+manual-of-quickness-of-action,magic_items,Manual of Quickness of Action,Справочник быстроты действий,DMG24
+mariners-armor,magic_items,Mariner’s Armor,Доспех моряка,DMG24
+marvelous-pigments,magic_items,Marvelous Pigments,Чудесные краски,DMG24
+medallion-of-thoughts,magic_items,Medallion of Thoughts,Медальон мыслей,DMG24
+mirror-of-life-trapping,magic_items,Mirror of Life Trapping,Зеркало похищения жизни,DMG24
+mithral-armor,magic_items,Mithral Armor,Мифрильный доспех,DMG24
+moon-touched-sword,magic_items,Moon-Touched Sword,Осенённый луной меч,DMG24
+moonblade,magic_items,Moonblade,Лунный клинок,DMG24
+mysterious-deck,magic_items,Mysterious Deck,Таинственная колода,DMG24
+mystery-key,magic_items,Mystery Key,Таинственный ключ,DMG24
+natures-mantle,magic_items,Nature’s Mantle,Одеяние природы,DMG24
+necklace-of-adaptation,magic_items,Necklace of Adaptation,Ожерелье адаптации,DMG24
+necklace-of-fireballs,magic_items,Necklace of Fireballs,Ожерелье огненных шаров,DMG24
+necklace-of-prayer-beads,magic_items,Necklace of Prayer Beads,Ожерелье молитвенных чёток,DMG24
+nine-lives-stealer,magic_items,Nine Lives Stealer,Вор девяти жизней,DMG24
+nolzurs-marvelous-pigments,magic_items,Nolzur’s Marvelous Pigments,Чудесные краски Нолзура,DMG24
+oathbow,magic_items,Oathbow,Лук клятвы,DMG24
+oil-of-etherealness,magic_items,Oil of Etherealness,Масло эфирности,DMG24
+oil-of-sharpness,magic_items,Oil of Sharpness,Масло остроты,DMG24
+oil-of-slipperiness,magic_items,Oil of Slipperiness,Масло ускользания,DMG24
+ollamh-harp,magic_items,Ollamh harp,Арфа Оллав,DMG24
+orb-of-direction,magic_items,Orb of Direction,Сфера направления,DMG24
+orb-of-dragonkind,magic_items,Orb of Dragonkind,Око Дракона,DMG24
+orb-of-time,magic_items,Orb of Time,Сфера времени,DMG24
+pearl-of-power,magic_items,Pearl of Power,Жемчужина силы,DMG24
+perfume-of-bewitching,magic_items,Perfume of Bewitching,Парфюм очарования,DMG24
+periapt-of-health,magic_items,Periapt of Health,Медальон здоровья,DMG24
+periapt-of-proof-against-poison,magic_items,Periapt of Proof against Poison,Медальон защиты от яда,DMG24
+periapt-of-wound-closure,magic_items,Periapt of Wound Closure,Медальон затягивающихся ран,DMG24
+philter-of-love,magic_items,Philter of Love,Любовное зелье,DMG24
+pipe-of-smoke-monsters,magic_items,Pipe of Smoke Monsters,Трубка дымных чудовищ,DMG24
+pipes-of-haunting,magic_items,Pipes of Haunting,Свирель ужаса,DMG24
+pipes-of-the-sewers,magic_items,Pipes of the Sewers,Свирель канализации,DMG24
+plate-armor-of-etherealness,magic_items,Plate Armor of Etherealness,Латный доспех эфирности,DMG24
+pole-of-angling,magic_items,Pole of Angling,Шест рыболовства,DMG24
+pole-of-collapsing,magic_items,Pole of Collapsing,Складной шест,DMG24
+portable-hole,magic_items,Portable Hole,Переносная дыра,DMG24
+pot-of-awakening,magic_items,Pot of Awakening,Горшок пробуждения,DMG24
+potion-of-animal-friendship,magic_items,Potion of Animal Friendship,Зелье дружбы с животными,DMG24
+potion-of-clairvoyance,magic_items,Potion of Clairvoyance,Зелье ясновидения,DMG24
+potion-of-climbing,magic_items,Potion of Climbing,Зелье лазания,DMG24
+potion-of-comprehension,magic_items,Potion of Comprehension,Зелье понимания,DMG24
+potion-of-diminution,magic_items,Potion of Diminution,Зелье уменьшения,DMG24
+potion-of-fire-breath,magic_items,Potion of Fire Breath,Зелье огненного дыхания,DMG24
+potion-of-flying,magic_items,Potion of Flying,Зелье полёта,DMG24
+potion-of-gaseous-form,magic_items,Potion of Gaseous Form,Зелье газообразной формы,DMG24
+potion-of-giant-strength,magic_items,Potion of Giant Strength,Зелье силы великана,DMG24
+potion-of-giant-strength-cloud,magic_items,Potion of Giant Strength (cloud),Зелье силы облачного великана,DMG24
+potion-of-giant-strength-fire,magic_items,Potion of Giant Strength (fire),Зелье силы огненного великана,DMG24
+potion-of-giant-strength-frost,magic_items,Potion of Giant Strength (frost),Зелье силы ледяного великана,DMG24
+potion-of-giant-strength-hill,magic_items,Potion of Giant Strength (hill),Зелье силы холмового великана,DMG24
+potion-of-giant-strength-stone,magic_items,Potion of Giant Strength (stone),Зелье силы каменного великана,DMG24
+potion-of-giant-strength-storm,magic_items,Potion of Giant Strength (storm),Зелье силы штормового великана,DMG24
+potion-of-greater-healing,magic_items,Potion of Greater Healing,Зелье большого лечения,DMG24
+potion-of-greater-invisibility,magic_items,Potion of Greater Invisibility,Зелье высшей невидимости,DMG24
+potion-of-growth,magic_items,Potion of Growth,Зелье увеличения,DMG24
+potion-of-healing__dmg24,magic_items,Potion of Healing,Зелье лечения,DMG24
+potion-of-heroism,magic_items,Potion of Heroism,Зелье героизма,DMG24
+potion-of-invisibility,magic_items,Potion of Invisibility,Зелье невидимости,DMG24
+potion-of-invulnerability,magic_items,Potion of Invulnerability,Зелье неуязвимости,DMG24
+potion-of-longevity,magic_items,Potion of Longevity,Зелье долголетия,DMG24
+potion-of-mind-reading,magic_items,Potion of Mind Reading,Зелье чтения мыслей,DMG24
+potion-of-poison,magic_items,Potion of Poison,Зелье яда,DMG24
+potion-of-pugilism,magic_items,Potion of Pugilism,Зелье кулачного боя,DMG24
+potion-of-resistance,magic_items,Potion of Resistance,Зелье сопротивления,DMG24
+potion-of-speed,magic_items,Potion of Speed,Зелье скорости,DMG24
+potion-of-superior-healing,magic_items,Potion of Superior Healing,Зелье отличного лечения,DMG24
+potion-of-supreme-healing,magic_items,Potion of Supreme Healing,Зелье превосходного лечения,DMG24
+potion-of-vitality,magic_items,Potion of Vitality,Зелье живучести,DMG24
+potion-of-water-breathing,magic_items,Potion of Water Breathing,Зелье подводного дыхания,DMG24
+prosthetic-limb,magic_items,Prosthetic Limb,Протез конечности,DMG24
+quaals-feather-token,magic_items,Quaal’s Feather Token,Перо Кваля,DMG24
+quaals-feather-token-anchor,magic_items,Quaal’s Feather Token (anchor),Перо Кваля (якорь),DMG24
+quaals-feather-token-bird,magic_items,Quaal’s Feather Token (bird),Перо Кваля (птица),DMG24
+quaals-feather-token-fan,magic_items,Quaal’s Feather Token (fan),Перо Кваля (веер),DMG24
+quaals-feather-token-swan-boat,magic_items,Quaal’s Feather Token (swan boat),Перо Кваля (лодка-лебедь),DMG24
+quaals-feather-token-tree,magic_items,Quaal’s Feather Token (tree),Перо Кваля (дерево),DMG24
+quaals-feather-token-whip,magic_items,Quaal’s Feather Token (whip),Перо Кваля (кнут),DMG24
+quarterstaff-of-the-acrobat,magic_items,Quarterstaff of the Acrobat,Посох акробата,DMG24
+quiver-of-ehlonna,magic_items,Quiver of Ehlonna,Колчан Элонны,DMG24
+ring-of-animal-influence,magic_items,Ring of Animal Influence,Кольцо влияния на животных,DMG24
+ring-of-djinni-summoning,magic_items,Ring of Djinni Summoning,Кольцо призыва джинна,DMG24
+ring-of-elemental-command,magic_items,Ring of Elemental Command,Кольцо командования элементалями,DMG24
+ring-of-elemental-command-air,magic_items,Ring of Elemental Command (air),Кольцо командования элементалями (воздух),DMG24
+ring-of-elemental-command-earth,magic_items,Ring of Elemental Command (earth),Кольцо командования элементалями (земля),DMG24
+ring-of-elemental-command-fire,magic_items,Ring of Elemental Command (fire),Кольцо командования элементалями (огонь),DMG24
+ring-of-elemental-command-water,magic_items,Ring of Elemental Command (water),Кольцо командования элементалями (вода),DMG24
+ring-of-evasion,magic_items,Ring of Evasion,Кольцо уклонения,DMG24
+ring-of-feather-falling,magic_items,Ring of Feather Falling,Кольцо падения пёрышком,DMG24
+ring-of-free-action,magic_items,Ring of Free Action,Кольцо свободных действий,DMG24
+ring-of-invisibility,magic_items,Ring of Invisibility,Кольцо невидимости,DMG24
+ring-of-jumping,magic_items,Ring of Jumping,Кольцо прыжков,DMG24
+ring-of-mind-shielding,magic_items,Ring of Mind Shielding,Кольцо защиты разума,DMG24
+ring-of-protection,magic_items,Ring of Protection,Кольцо защиты,DMG24
+ring-of-regeneration,magic_items,Ring of Regeneration,Кольцо регенерации,DMG24
+ring-of-resistance,magic_items,Ring of Resistance,Кольцо сопротивления,DMG24
+ring-of-shooting-stars,magic_items,Ring of Shooting Stars,Кольцо падающих звёзд,DMG24
+ring-of-spell-storing,magic_items,Ring of Spell Storing,Кольцо хранения заклинаний,DMG24
+ring-of-spell-turning,magic_items,Ring of Spell Turning,Кольцо отражения заклинаний,DMG24
+ring-of-swimming,magic_items,Ring of Swimming,Кольцо плавания,DMG24
+ring-of-telekinesis,magic_items,Ring of Telekinesis,Кольцо телекинеза,DMG24
+ring-of-the-ram,magic_items,Ring of the Ram,Кольцо барана,DMG24
+ring-of-three-wishes,magic_items,Ring of Three Wishes,Кольцо трёх желаний,DMG24
+ring-of-warmth,magic_items,Ring of Warmth,Кольцо тепла,DMG24
+ring-of-water-walking,magic_items,Ring of Water Walking,Кольцо хождения по воде,DMG24
+ring-of-x-ray-vision,magic_items,Ring of X-ray Vision,Кольцо проникающего зрения,DMG24
+rival-coin,magic_items,Rival Coin,Монета вражды,DMG24
+robe-of-eyes,magic_items,Robe of Eyes,Мантия глаз,DMG24
+robe-of-scintillating-colors,magic_items,Robe of Scintillating Colors,Мантия сияющих цветов,DMG24
+robe-of-stars,magic_items,Robe of Stars,Мантия звёзд,DMG24
+robe-of-the-archmagi,magic_items,Robe of the Archmagi,Мантия архимага,DMG24
+robe-of-useful-items,magic_items,Robe of Useful Items,Мантия полезных предметов,DMG24
+rod-of-absorption,magic_items,Rod of Absorption,Жезл поглощения,DMG24
+rod-of-alertness,magic_items,Rod of Alertness,Жезл бдительности,DMG24
+rod-of-lordly-might,magic_items,Rod of Lordly Might,Жезл величественной мощи,DMG24
+rod-of-resurrection,magic_items,Rod of Resurrection,Жезл воскрешения,DMG24
+rod-of-rulership,magic_items,Rod of Rulership,Жезл правления,DMG24
+rod-of-security,magic_items,Rod of Security,Жезл безопасности,DMG24
+rod-of-the-pact-keeper,magic_items,Rod of the Pact Keeper,Жезл хранителя договора,DMG24
+rod-of-the-pact-keeper-1,magic_items,"Rod of the Pact Keeper, +1",Жезл хранителя договора +1,DMG24
+rod-of-the-pact-keeper-2,magic_items,"Rod of the Pact Keeper, +2",Жезл хранителя договора +2,DMG24
+rod-of-the-pact-keeper-3,magic_items,"Rod of the Pact Keeper, +3",Жезл хранителя договора +3,DMG24
+rope-of-climbing,magic_items,Rope of Climbing,Верёвка лазания,DMG24
+rope-of-entanglement,magic_items,Rope of Entanglement,Верёвка опутывания,DMG24
+rope-of-mending,magic_items,Rope of Mending,Срастающаяся верёвка,DMG24
+ruby-of-the-war-mage,magic_items,Ruby of the War Mage,Рубин боевого мага,DMG24
+saddle-of-the-cavalier,magic_items,Saddle of the Cavalier,Седло кавалериста,DMG24
+scarab-of-protection,magic_items,Scarab of Protection,Скарабей защиты,DMG24
+scimitar-of-speed,magic_items,Scimitar of Speed,Скимитар скорости,DMG24
+scroll-of-protection,magic_items,Scroll of Protection,Свиток защиты,DMG24
+scroll-of-titan-summoning,magic_items,Scroll of Titan Summoning,Свиток призыва титанов,DMG24
+sending-stones,magic_items,Sending Stones,Камни послания,DMG24
+sentinel-shield,magic_items,Sentinel Shield,Щит часового,DMG24
+shield-1,magic_items,"Shield, +1",Щит +1,DMG24
+shield-1-2-or-3,magic_items,"Shield, +1, +2, or +3","Щит +1, +2, +3",DMG24
+shield-2,magic_items,"Shield, +2",Щит +2,DMG24
+shield-3,magic_items,"Shield, +3",Щит +3,DMG24
+shield-of-expression,magic_items,Shield of Expression,Щит экспрессии,DMG24
+shield-of-missile-attraction,magic_items,Shield of Missile Attraction,Щит притягивания снарядов,DMG24
+shield-of-the-cavalier,magic_items,Shield of the Cavalier,Щит рыцаря,DMG24
+silvered-weapon,magic_items,Silvered Weapon,Посеребрённое оружие,DMG24
+slippers-of-spider-climbing,magic_items,Slippers of Spider Climbing,Туфли паука,DMG24
+smoldering-armor,magic_items,Smoldering Armor,Дымящий доспех,DMG24
+sovereign-glue,magic_items,Sovereign Glue,Превосходный клей,DMG24
+spell-scroll,magic_items,Spell Scroll,Свиток заклинания,DMG24
+spell-scroll-cantrip,magic_items,Spell Scroll (cantrip),Свиток заклинания (заговор),DMG24
+spell-scroll-level-1,magic_items,Spell Scroll (level 1),Свиток заклинания (1-й уровень),DMG24
+spell-scroll-level-2,magic_items,Spell Scroll (level 2),Свиток заклинания (2-й уровень),DMG24
+spell-scroll-level-3,magic_items,Spell Scroll (level 3),Свиток заклинания (3-й уровень),DMG24
+spell-scroll-level-4,magic_items,Spell Scroll (level 4),Свиток заклинания (4-й уровень),DMG24
+spell-scroll-level-5,magic_items,Spell Scroll (level 5),Свиток заклинания (5-й уровень),DMG24
+spell-scroll-level-6,magic_items,Spell Scroll (level 6),Свиток заклинания (6-й уровень),DMG24
+spell-scroll-level-7,magic_items,Spell Scroll (level 7),Свиток заклинания (7-й уровень),DMG24
+spell-scroll-level-8,magic_items,Spell Scroll (level 8),Свиток заклинания (8-й уровень),DMG24
+spell-scroll-level-9,magic_items,Spell Scroll (level 9),Свиток заклинания (9-й уровень),DMG24
+spellguard-shield,magic_items,Spellguard Shield,Щит ограждения от заклятий,DMG24
+sphere-of-annihilation,magic_items,Sphere of Annihilation,Сфера аннигиляции,DMG24
+spirit-board,magic_items,Spirit Board,Доска спиритизма,DMG24
+staff-of-adornment,magic_items,Staff of Adornment,Посох украшения,DMG24
+staff-of-birdcalls,magic_items,Staff of Birdcalls,Посох птичьего щебета,DMG24
+staff-of-charming,magic_items,Staff of Charming,Посох очарования,DMG24
+staff-of-fire,magic_items,Staff of Fire,Посох огня,DMG24
+staff-of-flowers,magic_items,Staff of Flowers,Посох цветов,DMG24
+staff-of-frost,magic_items,Staff of Frost,Посох мороза,DMG24
+staff-of-healing,magic_items,Staff of Healing,Посох лечения,DMG24
+staff-of-power,magic_items,Staff of Power,Посох силы,DMG24
+staff-of-striking,magic_items,Staff of Striking,Посох ударов,DMG24
+staff-of-swarming-insects,magic_items,Staff of Swarming Insects,Посох роя насекомых,DMG24
+staff-of-the-adder,magic_items,Staff of the Adder,Посох гадюки,DMG24
+staff-of-the-magi,magic_items,Staff of the Magi,Посох магов,DMG24
+staff-of-the-python,magic_items,Staff of the Python,Посох питона,DMG24
+staff-of-the-woodlands,magic_items,Staff of the Woodlands,Посох леса,DMG24
+staff-of-thunder-and-lightning,magic_items,Staff of Thunder and Lightning,Посох грома и молнии,DMG24
+staff-of-withering,magic_items,Staff of Withering,Посох иссушения,DMG24
+stone-of-controlling-earth-elementals,magic_items,Stone of Controlling Earth Elementals,Камень контролирования земляных элементалей,DMG24
+stone-of-good-luck-luckstone,magic_items,Stone of Good Luck (Luckstone),Камень удачи,DMG24
+sun-blade,magic_items,Sun Blade,Солнечный клинок,DMG24
+sword-of-answering,magic_items,Sword of Answering,Меч ответа,DMG24
+sword-of-kas,magic_items,Sword of Kas,Меч Каса,DMG24
+sword-of-life-stealing,magic_items,Sword of Life Stealing,Меч кражи жизни,DMG24
+sword-of-sharpness,magic_items,Sword of Sharpness,Меч остроты,DMG24
+sword-of-vengeance,magic_items,Sword of Vengeance,Меч мести,DMG24
+sword-of-wounding,magic_items,Sword of Wounding,Меч ранения,DMG24
+sylvan-talon,magic_items,Sylvan Talon,Коготь сильван,DMG24
+talisman-of-pure-good,magic_items,Talisman of Pure Good,Талисман чистого добра,DMG24
+talisman-of-the-sphere,magic_items,Talisman of the Sphere,Талисман сферы,DMG24
+talisman-of-ultimate-evil,magic_items,Talisman of Ultimate Evil,Талисман абсолютного зла,DMG24
+talking-doll,magic_items,Talking Doll,Говорящая кукла,DMG24
+tankard-of-sobriety,magic_items,Tankard of Sobriety,Кружка трезвости,DMG24
+tentacle-rod,magic_items,Tentacle Rod,Жезл щупалец,DMG24
+thunderous-greatclub,magic_items,Thunderous Greatclub,Громыхающая палица,DMG24
+tome-of-clear-thought,magic_items,Tome of Clear Thought,Фолиант чистых мыслей,DMG24
+tome-of-leadership-and-influence,magic_items,Tome of Leadership and Influence,Фолиант лидерства и влияния,DMG24
+tome-of-the-stilled-tongue,magic_items,Tome of the Stilled Tongue,Гримуар молчаливого языка,DMG24
+tome-of-understanding,magic_items,Tome of Understanding,Фолиант понимания,DMG24
+trident-of-fish-command,magic_items,Trident of Fish Command,Трезубец командования рыбами,DMG24
+universal-solvent,magic_items,Universal Solvent,Универсальный растворитель,DMG24
+veterans-cane,magic_items,Veteran’s Cane,Трость ветерана,DMG24
+vicious-weapon,magic_items,Vicious Weapon,Жестокое оружие,DMG24
+vorpal-sword,magic_items,Vorpal Sword,Вострый меч,DMG24
+walloping-ammunition,magic_items,Walloping Ammunition,Опрокидывающий боеприпас,DMG24
+wand-of-binding,magic_items,Wand of Binding,Волшебная палочка сковывания,DMG24
+wand-of-conducting,magic_items,Wand of Conducting,Дирижёрская палочка,DMG24
+wand-of-enemy-detection,magic_items,Wand of Enemy Detection,Волшебная палочка обнаружения врагов,DMG24
+wand-of-fear,magic_items,Wand of Fear,Волшебная палочка страха,DMG24
+wand-of-fireballs,magic_items,Wand of Fireballs,Волшебная палочка огненных шаров,DMG24
+wand-of-lightning-bolts,magic_items,Wand of Lightning Bolts,Волшебная палочка молний,DMG24
+wand-of-magic-detection,magic_items,Wand of Magic Detection,Волшебная палочка обнаружения магии,DMG24
+wand-of-magic-missiles,magic_items,Wand of Magic Missiles,Волшебная палочка стрел,DMG24
+wand-of-orcus,magic_items,Wand of Orcus,Волшебная палочка Оркуса,DMG24
+wand-of-paralysis,magic_items,Wand of Paralysis,Волшебная палочка паралича,DMG24
+wand-of-polymorph,magic_items,Wand of Polymorph,Волшебная палочка превращения,DMG24
+wand-of-pyrotechnics,magic_items,Wand of Pyrotechnics,Палочка пиротехники,DMG24
+wand-of-secrets,magic_items,Wand of Secrets,Волшебная палочка секретов,DMG24
+wand-of-the-war-mage-1,magic_items,"Wand of the War Mage, +1",Волшебная палочка боевого мага +1,DMG24
+wand-of-the-war-mage-1-2-or-3,magic_items,"Wand of the War Mage, +1, +2, or +3","Волшебная палочка боевого мага +1, +2, +3",DMG24
+wand-of-the-war-mage-2,magic_items,"Wand of the War Mage, +2",Волшебная палочка боевого мага +2,DMG24
+wand-of-the-war-mage-3,magic_items,"Wand of the War Mage, +3",Волшебная палочка боевого мага +3,DMG24
+wand-of-web,magic_items,Wand of Web,Волшебная палочка паутины,DMG24
+wand-of-wonder,magic_items,Wand of Wonder,Волшебная палочка чудес,DMG24
+wave,magic_items,Wave,Волна,DMG24
+weapon-1,magic_items,"Weapon, +1",Оружие +1,DMG24
+weapon-1-2-or-3,magic_items,"Weapon, +1, +2, or +3","Оружие +1, +2, +3",DMG24
+weapon-2,magic_items,"Weapon, +2",Оружие +2,DMG24
+weapon-3,magic_items,"Weapon, +3",Оружие +3,DMG24
+weapon-of-warning,magic_items,Weapon of Warning,Оружие предупреждения,DMG24
+well-of-many-worlds,magic_items,Well of Many Worlds,Колодец многих миров,DMG24
+whelm,magic_items,Whelm,Сокрушитель,DMG24
+wind-fan,magic_items,Wind Fan,Веер ветра,DMG24
+winged-boots,magic_items,Winged Boots,Крылатые сапоги,DMG24
+wings-of-flying,magic_items,Wings of Flying,Крылья полёта,DMG24
+wraps-of-unarmed-power,magic_items,Wraps of Unarmed Power,Обмотки безоружной мощи,DMG24
+wraps-of-unarmed-power-1,magic_items,"Wraps of Unarmed Power, +1",Обмотки безоружной мощи +1,DMG24
+wraps-of-unarmed-power-2,magic_items,"Wraps of Unarmed Power, +2",Обмотки безоружной мощи +2,DMG24
+wraps-of-unarmed-power-3,magic_items,"Wraps of Unarmed Power, +3",Обмотки безоружной мощи +3,DMG24
+boots-of-the-winding-path,magic_items,Boots of the Winding Path,Сапоги извилистого пути,EFA
+dazzling-weapon,magic_items,Dazzling Weapon,Ослепительное оружие,EFA
+helm-of-awareness,magic_items,Helm of Awareness,Шлем осведомлённости,EFA
+manifold-tool,magic_items,Manifold Tool,Многообразный инструмент,EFA
+mind-sharpener,magic_items,Mind Sharpener,Усилитель разума,EFA
+repeating-shot,magic_items,Repeating Shot,Оружие повторного выстрела,EFA
+repulsion-shield,magic_items,Repulsion Shield,Отталкивающий щит,EFA
+returning-weapon,magic_items,Returning Weapon,Возвращающееся оружие,EFA
+spell-refueling-ring,magic_items,Spell-Refueling Ring,Кольцо восстановления заклинаний,EFA
+calimemnon-crystal,magic_items,Calimemnon Crystal,Кристалл Калимемнона,FRAiF
+crown-of-horns,magic_items,Crown of Horns,Корона рогов,FRAiF
+golden-harper-pin,magic_items,Golden Harper Pin,Золотая брошь Арфиста,FRAiF
+harper-pin,magic_items,Harper Pin,Брошь Арфиста,FRAiF
+mechanical-domestic-wonder,magic_items,Mechanical Domestic Wonder,Механическое диво домашнее,FRAiF
+mechanical-flying-wonder,magic_items,Mechanical Flying Wonder,Механическое диво летающее,FRAiF
+mechanical-gyrocopter-wonder,magic_items,Mechanical Gyrocopter Wonder,Механическое диво-гирокоптер,FRAiF
+mechanical-mobility-wonder,magic_items,Mechanical Mobility Wonder,Механическое диво подвижности,FRAiF
+mechanical-wonder,magic_items,Mechanical Wonder,Механическое диво,FRAiF
+orb-of-damara,magic_items,Orb of Damara,Сфера Дамара,FRAiF
+silver-harper-pin,magic_items,Silver Harper Pin,Серебряная брошь Арфиста,FRAiF
+tome-of-the-dragon,magic_items,Tome of the Dragon,Гримуар дракона,FRAiF
+adventurers-ring,magic_items,Adventurer’s Ring,Кольцо авантюриста,FRHoF
+windskiff,magic_items,Windskiff,Ветряной челнок,FRHoF
+arcane-battery,magic_items,Arcane Battery,Магический накопитель,NsF
+brooch-of-the-elements,magic_items,Brooch of the Elements,Брошь стихий,NsF
+fork-of-eddy-summoning,magic_items,Fork of Eddy Summoning,Камертон призыва вихря,NsF
+hat-of-vortexes,magic_items,Hat of Vortexes,Шляпа вихрей,NsF
+magen-handbell,magic_items,Magen Handbell,Колокольчик магена,NsF
+mask-of-changed-appearance,magic_items,Mask of Changed Appearance,Маска изменённого облика,NsF
+mythallar-bracelet,magic_items,Mythallar Bracelet,Браслет из мифаллара,NsF
+mythallar-cloak,magic_items,Mythallar Cloak,Плащ мифаллара,NsF
+potion-of-healing,magic_items,Potion of Healing,Зелье лечения,PH24
+ebonbane,magic_items,Ebonbane,Чёрная Погибель,RTW
+changeling,species,Changeling,Ченжлинг,EFA
+kalashtar,species,Kalashtar,Калаштар,EFA
+khoravar,species,Khoravar,Кхоравар,EFA
+shifter,species,Shifter,Шифтер,EFA
+warforged,species,Warforged,Кованый,EFA
+boggart,species,Boggart,Боггарт,LFL
+elf__lfl,species,Elf,Эльф,LFL
+faerie,species,Faerie,Феери,LFL
+flamekin,species,Flamekin,Огневик,LFL
+kithkin,species,Kithkin,Свояк,LFL
+lorwyn-changeling,species,Lorwyn Changeling,Пересад Лорвина,LFL
+rimekin,species,Rimekin,Измороз,LFL
+aasimar,species,Aasimar,Аасимар,PH24
+dragonborn,species,Dragonborn,Драконорождённый,PH24
+dwarf,species,Dwarf,Дварф,PH24
+elf,species,Elf,Эльф,PH24
+gnome,species,Gnome,Гном,PH24
+goliath,species,Goliath,Голиаф,PH24
+halfling,species,Halfling,Полурослик,PH24
+human,species,Human,Человек,PH24
+orc,species,Orc,Орк,PH24
+tiefling,species,Tiefling,Тифлинг,PH24
+dhampir,species,Dhampir,Дампир,RTW
+hexblood,species,Hexblood,Ведьмовская кровь,RTW
+lupin,species,Lupin,Волколак,RTW
+reborn,species,Reborn,Возрождённый,RTW
+aura-of-evasion,spells,Aura of Evasion,Аура увёртливости,AU
+battle-familiar,spells,Battle Familiar,Боевой фамильяр,AU
+catnap,spells,Catnap,Дрёма,AU
+detonate,spells,Detonate,Детонация,AU
+disruptive-tune,spells,Disruptive Tune,Сбивающая мелодия,AU
+distorted-distance,spells,Distorted Distance,Искривление расстояния,AU
+dueling-ground,spells,Dueling Ground,Дуэльная площадка,AU
+enervation,spells,Enervation,Обессиливание,AU
+entrancing-mirrors,spells,Entrancing Mirrors,Пленяющие зеркала,AU
+festering-blast,spells,Festering Blast,Гнилостный выброс,AU
+fractured-awareness,spells,Fractured Awareness,Расколотое сознание,AU
+grave-ground,spells,Grave Ground,Погост,AU
+hindsight,spells,Hindsight,Взгляд в прошлое,AU
+illusory-dragon,spells,Illusory Dragon,Иллюзорный дракон,AU
+inflict-doubt,spells,Inflict Doubt,Снедающие сомнения,AU
+invulnerability,spells,Invulnerability,Неуязвимость,AU
+iron-body,spells,Iron Body,Железное тело,AU
+lightning-ring,spells,Lightning Ring,Кольцо молний,AU
+moment-of-prescience,spells,Moment of Prescience,Миг провидения,AU
+mordenkainens-lucubration,spells,Mordenkainen's Lucubration,Корпение Морденкайнена,AU
+negative-energy-flood,spells,Negative Energy Flood,Поток негативной энергии,AU
+power-word-pain,spells,Power Word Pain,Слово силы: боль,AU
+reweave-fate,spells,Reweave Fate,Переплетение судьбы,AU
+spirit-lantern,spells,Spirit Lantern,Фонарь духов,AU
+summon-dinosaur,spells,Summon Dinosaur,Вызов динозавра,AU
+summon-plant,spells,Summon Plant,Вызов растения,AU
+transfix,spells,Transfix,Завораживающий взгляд,AU
+uncertain-footing,spells,Uncertain Footing,Мнимые препоны,AU
+vision-of-elapsing-eons,spells,Vision of Elapsing Eons,Фантазм канувших эпох,AU
+wail-of-the-banshee,spells,Wail of the Banshee,Вой банши,AU
+waves-of-exhaustion,spells,Waves of Exhaustion,Волны истощения,AU
+wither-and-bloom,spells,Wither and Bloom,Увядание и цветение,AU
+zone-of-amicability,spells,Zone of Amicability,Область дружелюбия,AU
+homunculus-servant,spells,Homunculus Servant,Гомункул-слуга,EFA
+alustriels-mooncloak,spells,Alustriel’s Mooncloak,Лунный покров Алустриэли,FRHoF
+backlash,spells,Backlash,Ответный урон,FRHoF
+blade-of-disaster,spells,Blade of Disaster,Клинок разрушения,FRHoF
+cacophonic-shield,spells,Cacophonic Shield,Щит какофонии,FRHoF
+conjure-constructs,spells,Conjure Constructs,Призыв конструктов,FRHoF
+death-armor,spells,Death Armor,Броня смерти,FRHoF
+deryans-helpful-homunculi,spells,Deryan’s Helpful Homunculi,Услужливые гомункулы Дериан,FRHoF
+dirge,spells,Dirge,Панихида,FRHoF
+doomtide,spells,Doomtide,Погибель,FRHoF
+elminsters-effulgent-spheres,spells,Elminster’s Effulgent Spheres,Лучезарные сферы Эльминстера,FRHoF
+elminsters-elusion,spells,Elminster’s Elusion,Увёртливость Эльминстера,FRHoF
+holy-star-of-mystra,spells,Holy Star of Mystra,Священная звезда Мистры,FRHoF
+laerals-silver-lance,spells,Laeral’s Silver Lance,Серебряное копьё Лаэрали,FRHoF
+simbuls-synostodweomer,spells,Simbul’s Synostodweomer,Синостодвеомер Симбул,FRHoF
+songals-elemental-suffusion,spells,Songal’s Elemental Suffusion,Стихийное насыщение Сонгалы,FRHoF
+spellfire-flare,spells,Spellfire Flare,Вспышка чаропламени,FRHoF
+spellfire-storm,spells,Spellfire Storm,Буря чаропламени,FRHoF
+sylunes-viper,spells,Syluné’s Viper,Гадюка Силунэй,FRHoF
+wardaway,spells,Wardaway,Оберегающий разряд,FRHoF
+acid-arrow,spells,Acid Arrow,Кислотная стрела,PH24
+acid-splash,spells,Acid Splash,Брызги кислоты,PH24
+aid,spells,Aid,Подмога,PH24
+alarm,spells,Alarm,Сигнал тревоги,PH24
+alter-self,spells,Alter Self,Смена обличья,PH24
+animal-friendship,spells,Animal Friendship,Дружба с животными,PH24
+animal-messenger,spells,Animal Messenger,Почтовое животное,PH24
+animal-shapes,spells,Animal Shapes,Превращение в животных,PH24
+animate-dead,spells,Animate Dead,Поднятие мертвеца,PH24
+animate-objects,spells,Animate Objects,Оживление вещей,PH24
+antilife-shell,spells,Antilife Shell,Преграда жизни,PH24
+antimagic-field,spells,Antimagic Field,Поле антимагии,PH24
+antipathy-sympathy,spells,Antipathy/Sympathy,Антипатия/симпатия,PH24
+arcane-eye,spells,Arcane Eye,Магический глаз,PH24
+arcane-gate,spells,Arcane Gate,Магические врата,PH24
+arcane-hand,spells,Arcane Hand,Чародейская длань,PH24
+arcane-lock,spells,Arcane Lock,Волшебный замок,PH24
+arcane-sword,spells,Arcane Sword,Чародейский меч,PH24
+arcane-vigor,spells,Arcane Vigor,Мистическая бодрость,PH24
+arcanists-magic-aura,spells,Arcanist's Magic Aura,Аура чародея,PH24
+armor-of-agathys,spells,Armor of Agathys,Доспех Агатиса,PH24
+arms-of-hadar,spells,Arms of Hadar,Руки Хадара,PH24
+astral-projection,spells,Astral Projection,Проекция в астрал,PH24
+augury,spells,Augury,Гадание,PH24
+aura-of-life,spells,Aura of Life,Аура жизни,PH24
+aura-of-purity,spells,Aura of Purity,Аура очищения,PH24
+aura-of-vitality,spells,Aura of Vitality,Аура живучести,PH24
+awaken,spells,Awaken,Пробуждение разума,PH24
+bane,spells,Bane,Порча,PH24
+banishing-smite,spells,Banishing Smite,Изгоняющая кара,PH24
+banishment,spells,Banishment,Изгнание,PH24
+barkskin,spells,Barkskin,Дубовая кожа,PH24
+beacon-of-hope,spells,Beacon of Hope,Маяк надежды,PH24
+beast-sense,spells,Beast Sense,Животные чувства,PH24
+befuddlement,spells,Befuddlement,Помутнение разума,PH24
+bestow-curse,spells,Bestow Curse,Наложение проклятия,PH24
+bigbys-hand,spells,Bigby’s Hand,Длань Бигби,PH24
+black-tentacles,spells,Black Tentacles,Чёрные щупальца,PH24
+blade-barrier,spells,Blade Barrier,Стена клинков,PH24
+blade-ward,spells,Blade Ward,Защита от оружия,PH24
+bless,spells,Bless,Благословение,PH24
+blight,spells,Blight,Усыхание,PH24
+blinding-smite,spells,Blinding Smite,Ослепляющая кара,PH24
+blindness-deafness,spells,Blindness/Deafness,Глухота/слепота,PH24
+blink,spells,Blink,Мерцание,PH24
+blur,spells,Blur,Размытый образ,PH24
+burning-hands,spells,Burning Hands,Огненные ладони,PH24
+call-lightning,spells,Call Lightning,Призыв молнии,PH24
+calm-emotions,spells,Calm Emotions,Умиротворение,PH24
+chain-lightning,spells,Chain Lightning,Цепная молния,PH24
+charm-monster,spells,Charm Monster,Очарование монстра,PH24
+charm-person,spells,Charm Person,Очарование личности,PH24
+chill-touch,spells,Chill Touch,Леденящее прикосновение,PH24
+chromatic-orb,spells,Chromatic Orb,Хроматический шар,PH24
+circle-of-death,spells,Circle of Death,Круг смерти,PH24
+circle-of-power,spells,Circle of Power,Круг силы,PH24
+clairvoyance,spells,Clairvoyance,Подсматривание,PH24
+clone,spells,Clone,Клон,PH24
+cloud-of-daggers,spells,Cloud of Daggers,Облако кинжалов,PH24
+cloudkill,spells,Cloudkill,Облако смерти,PH24
+color-spray,spells,Color Spray,Сверкающие брызги,PH24
+command,spells,Command,Приказ,PH24
+commune,spells,Commune,Общение,PH24
+commune-with-nature,spells,Commune with Nature,Общение с природой,PH24
+compelled-duel,spells,Compelled Duel,Вызов на дуэль,PH24
+comprehend-languages,spells,Comprehend Languages,Понимание языков,PH24
+compulsion,spells,Compulsion,Принуждение,PH24
+cone-of-cold,spells,Cone of Cold,Конус холода,PH24
+confusion,spells,Confusion,Смятение,PH24
+conjure-animals,spells,Conjure Animals,Призыв животных,PH24
+conjure-barrage,spells,Conjure Barrage,Призыв шквала снарядов,PH24
+conjure-celestial,spells,Conjure Celestial,Призыв небожителя,PH24
+conjure-elemental,spells,Conjure Elemental,Призыв элементаля,PH24
+conjure-fey,spells,Conjure Fey,Призыв феи,PH24
+conjure-minor-elementals,spells,Conjure Minor Elementals,Призыв малых элементалей,PH24
+conjure-volley,spells,Conjure Volley,Призыв залпа,PH24
+conjure-woodland-beings,spells,Conjure Woodland Beings,Призыв лесных обитателей,PH24
+contact-other-plane,spells,Contact Other Plane,Связь с иным планом,PH24
+contagion,spells,Contagion,Заражение,PH24
+contingency,spells,Contingency,Предосторожность,PH24
+continual-flame,spells,Continual Flame,Вечный огонь,PH24
+control-water,spells,Control Water,Власть над водами,PH24
+control-weather,spells,Control Weather,Власть над погодой,PH24
+cordon-of-arrows,spells,Cordon of Arrows,Завеса стрел,PH24
+counterspell,spells,Counterspell,Контрзаклинание,PH24
+create-food-and-water,spells,Create Food and Water,Сотворение пищи и воды,PH24
+create-or-destroy-water,spells,Create or Destroy Water,Сотворение или уничтожение воды,PH24
+create-undead,spells,Create Undead,Сотворение нежити,PH24
+creation,spells,Creation,Сотворение,PH24
+crown-of-madness,spells,Crown of Madness,Корона безумия,PH24
+crusaders-mantle,spells,Crusader’s Mantle,Ореол крестоносца,PH24
+cure-wounds,spells,Cure Wounds,Лечение ран,PH24
+dancing-lights,spells,Dancing Lights,Пляшущие огоньки,PH24
+darkness,spells,Darkness,Тьма,PH24
+darkvision,spells,Darkvision,Тёмное зрение,PH24
+daylight,spells,Daylight,Дневной свет,PH24
+death-ward,spells,Death Ward,Защита от смерти,PH24
+delayed-blast-fireball,spells,Delayed Blast Fireball,Замедленный огненный шар,PH24
+demiplane,spells,Demiplane,Демиплан,PH24
+destructive-wave,spells,Destructive Wave,Разрушительная волна,PH24
+detect-evil-and-good,spells,Detect Evil and Good,Обнаружение добра и зла,PH24
+detect-magic,spells,Detect Magic,Обнаружение магии,PH24
+detect-poison-and-disease,spells,Detect Poison and Disease,Обнаружение болезней и ядов,PH24
+detect-thoughts,spells,Detect Thoughts,Обнаружение мыслей,PH24
+dimension-door,spells,Dimension Door,Переносящая дверь,PH24
+disguise-self,spells,Disguise Self,Маскировка,PH24
+disintegrate,spells,Disintegrate,Дезинтеграция,PH24
+dispel-evil-and-good,spells,Dispel Evil and Good,Рассеивание добра и зла,PH24
+dispel-magic,spells,Dispel Magic,Рассеивание магии,PH24
+dissonant-whispers,spells,Dissonant Whispers,Диссонирующий шёпот,PH24
+divination,spells,Divination,Предсказание,PH24
+divine-favor,spells,Divine Favor,Божественное благоволение,PH24
+divine-smite,spells,Divine Smite,Божественная кара,PH24
+divine-word,spells,Divine Word,Божественное слово,PH24
+dominate-beast,spells,Dominate Beast,Подчинение зверя,PH24
+dominate-monster,spells,Dominate Monster,Подчинение монстра,PH24
+dominate-person,spells,Dominate Person,Подчинение личности,PH24
+dragons-breath,spells,Dragon’s Breath,Дыхание дракона,PH24
+drawmijs-instant-summons,spells,Drawmij’s Instant Summons,Мгновенный вызов Дромиджа,PH24
+dream,spells,Dream,Грёзы,PH24
+druidcraft,spells,Druidcraft,Искусство друидов,PH24
+earthquake,spells,Earthquake,Землетрясение,PH24
+eldritch-blast,spells,Eldritch Blast,Мистический заряд,PH24
+elemental-weapon,spells,Elemental Weapon,Стихийное оружие,PH24
+elementalism,spells,Elementalism,Элементализм,PH24
+enhance-ability,spells,Enhance Ability,Улучшение характеристики,PH24
+enlarge-reduce,spells,Enlarge/Reduce,Увеличение/уменьшение,PH24
+ensnaring-strike,spells,Ensnaring Strike,Опутывающий удар,PH24
+entangle,spells,Entangle,Опутывание,PH24
+enthrall,spells,Enthrall,Речь златоуста,PH24
+etherealness,spells,Etherealness,Эфирность,PH24
+evards-black-tentacles,spells,Evard’s Black Tentacles,Чёрные щупальца Эварда,PH24
+expeditious-retreat,spells,Expeditious Retreat,Поспешное отступление,PH24
+eyebite,spells,Eyebite,Разящее око,PH24
+fabricate,spells,Fabricate,Изготовление,PH24
+faerie-fire,spells,Faerie Fire,Огонь фей,PH24
+faithful-hound,spells,Faithful Hound,Верный пёс,PH24
+false-life,spells,False Life,Псевдожизнь,PH24
+fear,spells,Fear,Ужас,PH24
+feather-fall,spells,Feather Fall,Падение пёрышком,PH24
+feign-death,spells,Feign Death,Притворная смерть,PH24
+find-familiar,spells,Find Familiar,Обретение фамильяра,PH24
+find-steed,spells,Find Steed,Обретение скакуна,PH24
+find-the-path,spells,Find the Path,Поиск пути,PH24
+find-traps,spells,Find Traps,Поиск ловушек,PH24
+finger-of-death,spells,Finger of Death,Перст смерти,PH24
+fire-bolt,spells,Fire Bolt,Огненный снаряд,PH24
+fire-shield,spells,Fire Shield,Огненный щит,PH24
+fire-storm,spells,Fire Storm,Огненная буря,PH24
+fireball,spells,Fireball,Огненный шар,PH24
+flame-blade,spells,Flame Blade,Горящий клинок,PH24
+flame-strike,spells,Flame Strike,Небесный огонь,PH24
+flaming-sphere,spells,Flaming Sphere,Пылающий шар,PH24
+flesh-to-stone,spells,Flesh to Stone,Окаменение,PH24
+floating-disk,spells,Floating Disk,Парящий диск,PH24
+fly,spells,Fly,Полёт,PH24
+fog-cloud,spells,Fog Cloud,Туманное облако,PH24
+forbiddance,spells,Forbiddance,Запрет,PH24
+forcecage,spells,Forcecage,Узилище,PH24
+foresight,spells,Foresight,Предвидение,PH24
+fount-of-moonlight,spells,Fount of Moonlight,Источник лунного света,PH24
+freedom-of-movement,spells,Freedom of Movement,Свобода перемещения,PH24
+freezing-sphere,spells,Freezing Sphere,Ледяной шар,PH24
+friends,spells,Friends,Дружба,PH24
+gaseous-form,spells,Gaseous Form,Газообразная форма,PH24
+gate,spells,Gate,Врата,PH24
+geas,spells,Geas,Гейс,PH24
+gentle-repose,spells,Gentle Repose,Нетленные останки,PH24
+giant-insect,spells,Giant Insect,Гигантское насекомое,PH24
+glibness,spells,Glibness,Находчивость,PH24
+globe-of-invulnerability,spells,Globe of Invulnerability,Сфера неуязвимости,PH24
+glyph-of-warding,spells,Glyph of Warding,Охранная руна,PH24
+goodberry,spells,Goodberry,Добряника,PH24
+grasping-vine,spells,Grasping Vine,Цепкая лоза,PH24
+grease,spells,Grease,Намасливание,PH24
+greater-invisibility,spells,Greater Invisibility,Высшая невидимость,PH24
+greater-restoration,spells,Greater Restoration,Высшее восстановление,PH24
+guardian-of-faith,spells,Guardian of Faith,Страж веры,PH24
+guards-and-wards,spells,Guards and Wards,Стражи и обереги,PH24
+guidance,spells,Guidance,Наставление,PH24
+guiding-bolt,spells,Guiding Bolt,Направляющий снаряд,PH24
+gust-of-wind,spells,Gust of Wind,Порыв ветра,PH24
+hail-of-thorns,spells,Hail of Thorns,Град шипов,PH24
+hallow,spells,Hallow,Святилище,PH24
+hallucinatory-terrain,spells,Hallucinatory Terrain,Мираж,PH24
+harm,spells,Harm,Поражение,PH24
+haste,spells,Haste,Ускорение,PH24
+heal,spells,Heal,Исцеление,PH24
+healing-word,spells,Healing Word,Лечащее слово,PH24
+heat-metal,spells,Heat Metal,Нагрев металла,PH24
+hellish-rebuke,spells,Hellish Rebuke,Адское возмездие,PH24
+heroes-feast,spells,Heroes’ Feast,Пир героев,PH24
+heroism,spells,Heroism,Героизм,PH24
+hex,spells,Hex,Сглаз,PH24
+hideous-laughter,spells,Hideous Laughter,Жуткий смех,PH24
+hold-monster,spells,Hold Monster,Удержание монстра,PH24
+hold-person,spells,Hold Person,Удержание личности,PH24
+holy-aura,spells,Holy Aura,Аура святости,PH24
+hunger-of-hadar,spells,Hunger of Hadar,Голод Хадара,PH24
+hunters-mark,spells,Hunter's Mark,Метка охотника,PH24
+hypnotic-pattern,spells,Hypnotic Pattern,Гипнотический узор,PH24
+ice-knife,spells,Ice Knife,Ледяной кинжал,PH24
+ice-storm,spells,Ice Storm,Град,PH24
+identify,spells,Identify,Опознание,PH24
+illusory-script,spells,Illusory Script,Иллюзорные письмена,PH24
+imprisonment,spells,Imprisonment,Заточение,PH24
+incendiary-cloud,spells,Incendiary Cloud,Воспламеняющаяся туча,PH24
+inflict-wounds,spells,Inflict Wounds,Нанесение ран,PH24
+insect-plague,spells,Insect Plague,Нашествие насекомых,PH24
+instant-summons,spells,Instant Summons,Мгновенный вызов,PH24
+invisibility,spells,Invisibility,Невидимость,PH24
+irresistible-dance,spells,Irresistible Dance,Неудержимая пляска,PH24
+jallarzis-storm-of-radiance,spells,Jallarzi’s Storm of Radiance,Сияющий шторм Джалларзи,PH24
+jump,spells,Jump,Прыжок,PH24
+knock,spells,Knock,Стук,PH24
+legend-lore,spells,Legend Lore,Знание легенд,PH24
+leomunds-secret-chest,spells,Leomund’s Secret Chest,Потайной сундук Леомунда,PH24
+leomunds-tiny-hut,spells,Leomund’s Tiny Hut,Хижина Леомунда,PH24
+lesser-restoration,spells,Lesser Restoration,Малое восстановление,PH24
+levitate,spells,Levitate,Левитация,PH24
+light,spells,Light,Свет,PH24
+lightning-arrow,spells,Lightning Arrow,Молниевая стрела,PH24
+lightning-bolt,spells,Lightning Bolt,Молния,PH24
+locate-animals-or-plants,spells,Locate Animals or Plants,Поиск животных или растений,PH24
+locate-creature,spells,Locate Creature,Поиск существа,PH24
+locate-object,spells,Locate Object,Поиск объекта,PH24
+longstrider,spells,Longstrider,Скороход,PH24
+mage-armor,spells,Mage Armor,Доспехи мага,PH24
+mage-hand,spells,Mage Hand,Волшебная рука,PH24
+magic-circle,spells,Magic Circle,Магический круг,PH24
+magic-jar,spells,Magic Jar,Волшебный сосуд,PH24
+magic-missile,spells,Magic Missile,Волшебная стрела,PH24
+magic-mouth,spells,Magic Mouth,Волшебные уста,PH24
+magic-weapon,spells,Magic Weapon,Магическое оружие,PH24
+magnificent-mansion,spells,Magnificent Mansion,Великолепный особняк,PH24
+major-image,spells,Major Image,Образ,PH24
+mass-cure-wounds,spells,Mass Cure Wounds,Множественное лечение ран,PH24
+mass-heal,spells,Mass Heal,Множественное исцеление,PH24
+mass-healing-word,spells,Mass Healing Word,Множественное лечащее слово,PH24
+mass-suggestion,spells,Mass Suggestion,Множественное внушение,PH24
+maze,spells,Maze,Лабиринт,PH24
+meld-into-stone,spells,Meld into Stone,Слияние с камнем,PH24
+melfs-acid-arrow,spells,Melf’s Acid Arrow,Кислотная стрела Мельфа,PH24
+mending,spells,Mending,Починка,PH24
+message,spells,Message,Сообщение,PH24
+meteor-swarm,spells,Meteor Swarm,Метеоритный дождь,PH24
+mind-blank,spells,Mind Blank,Сокрытие разума,PH24
+mind-sliver,spells,Mind Sliver,Расщепление разума,PH24
+mind-spike,spells,Mind Spike,Пронзание разума,PH24
+minor-illusion,spells,Minor Illusion,Малая иллюзия,PH24
+mirage-arcane,spells,Mirage Arcane,Таинственный мираж,PH24
+mirror-image,spells,Mirror Image,Отражения,PH24
+mislead,spells,Mislead,Фальшивый двойник,PH24
+misty-step,spells,Misty Step,Туманный шаг,PH24
+modify-memory,spells,Modify Memory,Изменение памяти,PH24
+moonbeam,spells,Moonbeam,Лунный луч,PH24
+mordenkainens-faithful-hound,spells,Mordenkainen’s Faithful Hound,Верный пёс Морденкайнена,PH24
+mordenkainens-magnificent-mansion,spells,Mordenkainen’s Magnificent Mansion,Великолепный особняк Морденкайнена,PH24
+mordenkainens-private-sanctum,spells,Mordenkainen’s Private Sanctum,Кабинет Морденкайнена,PH24
+mordenkainens-sword,spells,Mordenkainen’s Sword,Меч Морденкайнена,PH24
+move-earth,spells,Move Earth,Движение почвы,PH24
+nondetection,spells,Nondetection,Необнаружимость,PH24
+nystuls-magic-aura,spells,Nystul’s Magic Aura,Волшебная аура Нистула,PH24
+otilukes-freezing-sphere,spells,Otiluke’s Freezing Sphere,Ледяной шар Отилюка,PH24
+otilukes-resilient-sphere,spells,Otiluke’s Resilient Sphere,Упругий шар Отилюка,PH24
+ottos-irresistible-dance,spells,Otto’s Irresistible Dance,Неудержимая пляска Отто,PH24
+pass-without-trace,spells,Pass without Trace,Бесследное передвижение,PH24
+passwall,spells,Passwall,Создание прохода,PH24
+phantasmal-force,spells,Phantasmal Force,Воображаемая сила,PH24
+phantasmal-killer,spells,Phantasmal Killer,Воображаемый убийца,PH24
+phantom-steed,spells,Phantom Steed,Призрачный скакун,PH24
+planar-ally,spells,Planar Ally,Планарный союзник,PH24
+planar-binding,spells,Planar Binding,Планарные узы,PH24
+plane-shift,spells,Plane Shift,Планарный переход,PH24
+plant-growth,spells,Plant Growth,Рост растений,PH24
+poison-spray,spells,Poison Spray,Ядовитые брызги,PH24
+polymorph,spells,Polymorph,Превращение,PH24
+power-word-fortify,spells,Power Word Fortify,Слово силы: укрепление,PH24
+power-word-heal,spells,Power Word Heal,Слово силы: исцеление,PH24
+power-word-kill,spells,Power Word Kill,Слово силы: смерть,PH24
+power-word-stun,spells,Power Word Stun,Слово силы: ошеломление,PH24
+prayer-of-healing,spells,Prayer of Healing,Молебен лечения,PH24
+prestidigitation,spells,Prestidigitation,Фокусы,PH24
+prismatic-spray,spells,Prismatic Spray,Радужные брызги,PH24
+prismatic-wall,spells,Prismatic Wall,Радужная стена,PH24
+private-sanctum,spells,Private Sanctum,Личный кабинет,PH24
+produce-flame,spells,Produce Flame,Сотворение пламени,PH24
+programmed-illusion,spells,Programmed Illusion,Заданная иллюзия,PH24
+project-image,spells,Project Image,Проекция,PH24
+protection-from-energy,spells,Protection from Energy,Защита от энергии,PH24
+protection-from-evil-and-good,spells,Protection from Evil and Good,Защита от зла и добра,PH24
+protection-from-poison,spells,Protection from Poison,Защита от яда,PH24
+purify-food-and-drink,spells,Purify Food and Drink,Очищение пищи и питья,PH24
+raise-dead,spells,Raise Dead,Возвращение к жизни,PH24
+rarys-telepathic-bond,spells,Rary’s Telepathic Bond,Ментальная связь Рэри,PH24
+ray-of-enfeeblement,spells,Ray of Enfeeblement,Луч слабости,PH24
+ray-of-frost,spells,Ray of Frost,Луч холода,PH24
+ray-of-sickness,spells,Ray of Sickness,Луч болезни,PH24
+regenerate,spells,Regenerate,Регенерация,PH24
+reincarnate,spells,Reincarnate,Реинкарнация,PH24
+remove-curse,spells,Remove Curse,Снятие проклятия,PH24
+resilient-sphere,spells,Resilient Sphere,Упругий шар,PH24
+resistance,spells,Resistance,Сопротивление,PH24
+resurrection,spells,Resurrection,Воскрешение,PH24
+reverse-gravity,spells,Reverse Gravity,Изменение тяготения,PH24
+revivify,spells,Revivify,Оживление,PH24
+rope-trick,spells,Rope Trick,Трюк с верёвкой,PH24
+sacred-flame,spells,Sacred Flame,Священное пламя,PH24
+sanctuary,spells,Sanctuary,Убежище,PH24
+scorching-ray,spells,Scorching Ray,Палящий луч,PH24
+scrying,spells,Scrying,Наблюдение,PH24
+searing-smite,spells,Searing Smite,Палящая кара,PH24
+secret-chest,spells,Secret Chest,Потайной сундук,PH24
+see-invisibility,spells,See Invisibility,Видение невидимого,PH24
+seeming,spells,Seeming,Притворство,PH24
+sending,spells,Sending,Послание,PH24
+sequester,spells,Sequester,Изоляция,PH24
+shapechange,spells,Shapechange,Преображение,PH24
+shatter,spells,Shatter,Дребезги,PH24
+shield,spells,Shield,Щит,PH24
+shield-of-faith,spells,Shield of Faith,Щит веры,PH24
+shillelagh,spells,Shillelagh,Шилейла,PH24
+shining-smite,spells,Shining Smite,Сияющая кара,PH24
+shocking-grasp,spells,Shocking Grasp,Электрошок,PH24
+silence,spells,Silence,Тишина,PH24
+silent-image,spells,Silent Image,Безмолвный образ,PH24
+simulacrum,spells,Simulacrum,Симулякр,PH24
+sleep,spells,Sleep,Усыпление,PH24
+sleet-storm,spells,Sleet Storm,Метель,PH24
+slow,spells,Slow,Замедление,PH24
+sorcerous-burst,spells,Sorcerous Burst,Чародейский выброс,PH24
+spare-the-dying,spells,Spare the Dying,Уход за умирающим,PH24
+speak-with-animals,spells,Speak with Animals,Разговор с животными,PH24
+speak-with-dead,spells,Speak with Dead,Разговор с мёртвыми,PH24
+speak-with-plants,spells,Speak with Plants,Разговор с растениями,PH24
+spider-climb,spells,Spider Climb,Паучье лазанье,PH24
+spike-growth,spells,Spike Growth,Поросль шипов,PH24
+spirit-guardians,spells,Spirit Guardians,Духовные стражи,PH24
+spiritual-weapon,spells,Spiritual Weapon,Духовное оружие,PH24
+staggering-smite,spells,Staggering Smite,Оглушающая кара,PH24
+starry-wisp,spells,Starry Wisp,Звёздный светлячок,PH24
+steel-wind-strike,spells,Steel Wind Strike,Удар стального ветра,PH24
+stinking-cloud,spells,Stinking Cloud,Зловонное облако,PH24
+stone-shape,spells,Stone Shape,Изменение формы камня,PH24
+stoneskin,spells,Stoneskin,Каменная кожа,PH24
+storm-of-vengeance,spells,Storm of Vengeance,Гроза гнева,PH24
+suggestion,spells,Suggestion,Внушение,PH24
+summon-aberration,spells,Summon Aberration,Вызов аберрации,PH24
+summon-beast,spells,Summon Beast,Вызов зверя,PH24
+summon-celestial,spells,Summon Celestial,Вызов небожителя,PH24
+summon-construct,spells,Summon Construct,Вызов конструкта,PH24
+summon-dragon,spells,Summon Dragon,Вызов дракона,PH24
+summon-elemental,spells,Summon Elemental,Вызов элементаля,PH24
+summon-fey,spells,Summon Fey,Вызов феи,PH24
+summon-fiend,spells,Summon Fiend,Вызов исчадия,PH24
+summon-undead,spells,Summon Undead,Вызов нежити,PH24
+sunbeam,spells,Sunbeam,Солнечный луч,PH24
+sunburst,spells,Sunburst,Солнечный ожог,PH24
+swift-quiver,spells,Swift Quiver,Быстрый колчан,PH24
+symbol,spells,Symbol,Знак,PH24
+synaptic-static,spells,Synaptic Static,Синаптический разряд,PH24
+tashas-bubbling-cauldron,spells,Tasha’s Bubbling Cauldron,Бурлящий котёл Таши,PH24
+tashas-hideous-laughter,spells,Tasha’s Hideous Laughter,Жуткий смех Таши,PH24
+telekinesis,spells,Telekinesis,Телекинез,PH24
+telepathic-bond,spells,Telepathic Bond,Ментальная связь,PH24
+telepathy,spells,Telepathy,Телепатия,PH24
+teleport,spells,Teleport,Телепортация,PH24
+teleportation-circle,spells,Teleportation Circle,Круг телепортации,PH24
+tensers-floating-disk,spells,Tenser’s Floating Disk,Парящий диск Тензера,PH24
+thaumaturgy,spells,Thaumaturgy,Чудотворство,PH24
+thorn-whip,spells,Thorn Whip,Терновый кнут,PH24
+thunderclap,spells,Thunderclap,Раскат грома,PH24
+thunderous-smite,spells,Thunderous Smite,Громовая кара,PH24
+thunderwave,spells,Thunderwave,Волна грома,PH24
+time-stop,spells,Time Stop,Остановка времени,PH24
+tiny-hut,spells,Tiny Hut,Крошечная хижина,PH24
+toll-the-dead,spells,Toll the Dead,Погребальный звон,PH24
+tongues,spells,Tongues,Языки,PH24
+transport-via-plants,spells,Transport via Plants,Путешествие через растения,PH24
+tree-stride,spells,Tree Stride,Древесный путь,PH24
+true-polymorph,spells,True Polymorph,Истинное превращение,PH24
+true-resurrection,spells,True Resurrection,Истинное воскрешение,PH24
+true-seeing,spells,True Seeing,Истинный взор,PH24
+true-strike,spells,True Strike,Меткий удар,PH24
+tsunami,spells,Tsunami,Цунами,PH24
+unseen-servant,spells,Unseen Servant,Невидимый слуга,PH24
+vampiric-touch,spells,Vampiric Touch,Прикосновение вампира,PH24
+vicious-mockery,spells,Vicious Mockery,Злая насмешка,PH24
+vitriolic-sphere,spells,Vitriolic Sphere,Едкий шар,PH24
+wall-of-fire,spells,Wall of Fire,Огненная стена,PH24
+wall-of-force,spells,Wall of Force,Силовая стена,PH24
+wall-of-ice,spells,Wall of Ice,Ледяная стена,PH24
+wall-of-stone,spells,Wall of Stone,Каменная стена,PH24
+wall-of-thorns,spells,Wall of Thorns,Терновая стена,PH24
+warding-bond,spells,Warding Bond,Охраняющая связь,PH24
+water-breathing,spells,Water Breathing,Подводное дыхание,PH24
+water-walk,spells,Water Walk,Хождение по воде,PH24
+web,spells,Web,Паутина,PH24
+weird,spells,Weird,Жуть,PH24
+wind-walk,spells,Wind Walk,Хождение по ветру,PH24
+wind-wall,spells,Wind Wall,Стена ветров,PH24
+wish,spells,Wish,Желание,PH24
+witch-bolt,spells,Witch Bolt,Ведьмин снаряд,PH24
+word-of-radiance,spells,Word of Radiance,Слово сияния,PH24
+word-of-recall,spells,Word of Recall,Слово возврата,PH24
+wrathful-smite,spells,Wrathful Smite,Гневная кара,PH24
+yolandes-regal-presence,spells,Yolande’s Regal Presence,Царственное величие Йоланды,PH24
+zone-of-truth,spells,Zone of Truth,Область истины,PH24
+cleric__arcana-domain,subclasses,Arcana Domain,Домен магии,AU
+fighter__arcane-archer,subclasses,Arcane Archer,Чародейный стрелок,AU
+monk__warrior-of-the-mystic-arts,subclasses,Warrior of the Mystic Arts,Мистический воин,AU
+warlock__vestige-patron,subclasses,Vestige Patron,Предтеча,AU
+wizard__conjurer,subclasses,Conjurer,Призыватель,AU
+wizard__enchanter,subclasses,Enchanter,Очарователь,AU
+wizard__necromancer,subclasses,Necromancer,Некромант,AU
+wizard__transmuter,subclasses,Transmuter,Преобразователь,AU
+artificer__alchemist,subclasses,Alchemist,Алхимик,EFA
+artificer__armorer,subclasses,Armorer,Бронник,EFA
+artificer__artillerist,subclasses,Artillerist,Артиллерист,EFA
+artificer__battle-smith,subclasses,Battle Smith,Боевой кузнец,EFA
+artificer__cartographer,subclasses,Cartographer,Картограф,EFA
+bard__college-of-the-moon,subclasses,College of the Moon,Коллегия луны,FRHoF
+cleric__knowledge-domain,subclasses,Knowledge Domain,Домен знаний,FRHoF
+fighter__banneret,subclasses,Banneret,Баннерет,FRHoF
+paladin__oath-of-the-noble-genies,subclasses,Oath of the Noble Genies,Клятва благородных гениев,FRHoF
+ranger__winter-walker,subclasses,Winter Walker,Зимний ходок,FRHoF
+rogue__scion-of-the-three,subclasses,Scion of the Three,Наследник троицы,FRHoF
+sorcerer__spellfire-sorcery,subclasses,Spellfire Sorcery,Чародейство чаропламени,FRHoF
+wizard__bladesinger,subclasses,Bladesinger,Певец клинка,FRHoF
+barbarian__berserker,subclasses,Path of the Berserker,Путь берсерка,PH24
+barbarian__wild-heart,subclasses,Path of the Wild Heart,Путь дикого сердца,PH24
+barbarian__world-tree,subclasses,Path of the World Tree,Путь Мирового древа,PH24
+barbarian__zealot,subclasses,Path of the Zealot,Путь фанатика,PH24
+bard__dance,subclasses,College of Dance,Коллегия танца,PH24
+bard__glamour,subclasses,College of Glamour,Коллегия очарования,PH24
+bard__lore,subclasses,College of Lore,Коллегия знаний,PH24
+bard__valor,subclasses,College of Valor,Коллегия доблести,PH24
+cleric__life-domain,subclasses,Life Domain,Домен жизни,PH24
+cleric__light-domain,subclasses,Light Domain,Домен света,PH24
+cleric__trickery-domain,subclasses,Trickery Domain,Домен обмана,PH24
+cleric__war-domain,subclasses,War Domain,Домен войны,PH24
+druid__land,subclasses,Circle of the Land,Круг земли,PH24
+druid__moon,subclasses,Circle of the Moon,Круг луны,PH24
+druid__sea,subclasses,Circle of the Sea,Круг моря,PH24
+druid__stars,subclasses,Circle of the Stars,Круг звёзд,PH24
+fighter__battlemaster,subclasses,Battle Master,Мастер боя,PH24
+fighter__champion,subclasses,Champion,Чемпион,PH24
+fighter__eldritch-knight,subclasses,Eldritch Knight,Мистический рыцарь,PH24
+fighter__psi-warrior,subclasses,Psi Warrior,Пси-воин,PH24
+monk__warrior-of-mercy,subclasses,Warrior of Mercy,Воин милосердия,PH24
+monk__warrior-of-shadow,subclasses,Warrior of Shadow,Воин тени,PH24
+monk__warrior-of-the-elements,subclasses,Warrior of the Elements,Воин стихий,PH24
+monk__warrior-of-the-hand,subclasses,Warrior of the Open Hand,Воин открытой ладони,PH24
+paladin__oath-of-devotion,subclasses,Oath of Devotion,Клятва преданности,PH24
+paladin__oath-of-glory,subclasses,Oath of Glory,Клятва славы,PH24
+paladin__oath-of-the-ancients,subclasses,Oath of the Ancients,Клятва древних,PH24
+paladin__oath-of-vengeance,subclasses,Oath of Vengeance,Клятва возмездия,PH24
+ranger__beastmaster,subclasses,Beast Master,Повелитель зверей,PH24
+ranger__fey-wanderer,subclasses,Fey Wanderer,Странник фей,PH24
+ranger__gloom-stalker,subclasses,Gloom Stalker,Сумрачный охотник,PH24
+ranger__hunter-ranger,subclasses,Hunter,Охотник,PH24
+rogue__arcane-trickster,subclasses,Arcane Trickster,Мистический ловкач,PH24
+rogue__assassin,subclasses,Assassin,Убийца,PH24
+rogue__soulknife,subclasses,Soulknife,Клинок душ,PH24
+rogue__thief,subclasses,Thief,Вор,PH24
+sorcerer__aberrant-sorcery,subclasses,Aberrant Sorcery,Аберрантное чародейство,PH24
+sorcerer__clockwork-sorcery,subclasses,Clockwork Sorcery,Заводное чародейство,PH24
+sorcerer__draconic-sorcery,subclasses,Draconic Sorcery,Драконье чародейство,PH24
+sorcerer__wild-magic-sorcery,subclasses,Wild Magic Sorcery,Чародейство дикой магии,PH24
+warlock__archfey,subclasses,Archfey Patron,Архифея,PH24
+warlock__celestial-patron,subclasses,Celestial Patron,Небожитель,PH24
+warlock__fiend-patron,subclasses,Fiend Patron,Исчадие,PH24
+warlock__greate-old-one-patron,subclasses,Great Old One Patron,Великий древний,PH24
+wizard__abjurer,subclasses,Abjurer,Оградитель,PH24
+wizard__diviner,subclasses,Diviner,Прорицатель,PH24
+wizard__evoker,subclasses,Evoker,Воплотитель,PH24
+wizard__illusionist,subclasses,Illusionist,Иллюзионист,PH24
+artificer__reanimator,subclasses,Reanimator,Реаниматор,RTW
+bard__college-of-the-spirits,subclasses,College of Spirits,Коллегия духов,RTW
+cleric__grave-domain,subclasses,Grave Domain,Домен упокоения,RTW
+ranger__hollow-warden,subclasses,Hollow Warden,Страж пустошей,RTW
+rogue__phantom,subclasses,Phantom,Фантом,RTW
+sorcerer__shadow-sorcery,subclasses,Shadow Sorcery,Теневое чародейство,RTW
+warlock__undead,subclasses,Undead Patron,Нежить,RTW
+battleaxe,weapons,Battleaxe,Боевой топор,PH24
+blowgun,weapons,Blowgun,Духовая трубка,PH24
+club,weapons,Club,Дубинка,PH24
+dagger,weapons,Dagger,Кинжал,PH24
+dart,weapons,Dart,Дротик,PH24
+flail,weapons,Flail,Цеп,PH24
+glaive,weapons,Glaive,Глефа,PH24
+greataxe,weapons,Greataxe,Секира,PH24
+greatclub,weapons,Greatclub,Палица,PH24
+greatsword,weapons,Greatsword,Двуручный меч,PH24
+halberd,weapons,Halberd,Алебарда,PH24
+hand-crossbow,weapons,Hand Crossbow,Одноручный арбалет,PH24
+handaxe,weapons,Handaxe,Одноручный топор,PH24
+heavy-crossbow,weapons,Heavy Crossbow,Тяжёлый арбалет,PH24
+javelin,weapons,Javelin,Метательное копьё,PH24
+lance,weapons,Lance,Кавалерийское копьё,PH24
+light-crossbow,weapons,Light Crossbow,Лёгкий арбалет,PH24
+light-hammer,weapons,Light Hammer,Лёгкий молот,PH24
+longbow,weapons,Longbow,Длинный лук,PH24
+longsword,weapons,Longsword,Длинный меч,PH24
+mace,weapons,Mace,Булава,PH24
+maul,weapons,Maul,Молот,PH24
+morningstar,weapons,Morningstar,Моргенштерн,PH24
+musket,weapons,Musket,Мушкет,PH24
+pike,weapons,Pike,Пика,PH24
+pistol,weapons,Pistol,Пистоль,PH24
+quarterstaff,weapons,Quarterstaff,Боевой посох,PH24
+rapier,weapons,Rapier,Рапира,PH24
+scimitar,weapons,Scimitar,Скимитар,PH24
+shortbow,weapons,Shortbow,Короткий лук,PH24
+shortsword,weapons,Shortsword,Короткий меч,PH24
+sickle,weapons,Sickle,Серп,PH24
+sling,weapons,Sling,Праща,PH24
+spear,weapons,Spear,Копьё,PH24
+trident,weapons,Trident,Трезубец,PH24
+war-pick,weapons,War Pick,Клевец,PH24
+warhammer,weapons,Warhammer,Боевой молот,PH24
+whip,weapons,Whip,Кнут,PH24
+bastion-term-bastion,glossary,Bastion,Бастион,DMG24
+bastion-term-bastion-turn,glossary,Bastion Turn,Ход бастиона,DMG24
+bastion-term-special-facility,glossary,Special Facility,Особое помещение,DMG24
+bastion-term-basic-facility,glossary,Basic Facility,Базовое помещение,DMG24
+bastion-term-order,glossary,Order,Приказ,DMG24
+bastion-term-hireling,glossary,Hireling,Наёмный работник,DMG24
+bastion-term-defender,glossary,Defender,Защитник,DMG24
+bastion-term-cramped,glossary,Cramped,Тесное,DMG24
+bastion-term-roomy,glossary,Roomy,Просторное,DMG24
+bastion-term-vast,glossary,Vast,Обширное,DMG24
+bedroom,bastions,Bedroom,Спальня,DMG24
+dining-room,bastions,Dining Room,Столовая,DMG24
+parlor,bastions,Parlor,Гостиная,DMG24
+courtyard,bastions,Courtyard,Двор,DMG24
+kitchen,bastions,Kitchen,Кухня,DMG24
+storage,bastions,Storage,Кладовая,DMG24
+arcane-study,bastions,Arcane Study,Чародейский кабинет,DMG24
+armory,bastions,Armory,Оружейная,DMG24
+barrack,bastions,Barrack,Казарма,DMG24
+garden,bastions,Garden,Сад,DMG24
+library,bastions,Library,Библиотека,DMG24
+sanctuary,bastions,Sanctuary,Святилище,DMG24
+smithy,bastions,Smithy,Кузница,DMG24
+storehouse,bastions,Storehouse,Склад,DMG24
+workshop,bastions,Workshop,Мастерская,DMG24
+gaming-hall,bastions,Gaming Hall,Игорный зал,DMG24
+greenhouse,bastions,Greenhouse,Оранжерея,DMG24
+laboratory,bastions,Laboratory,Лаборатория,DMG24
+sacristy,bastions,Sacristy,Ризница,DMG24
+scriptorium,bastions,Scriptorium,Скрипторий,DMG24
+stable,bastions,Stable,Конюшня,DMG24
+teleportation-circle,bastions,Teleportation Circle,Круг телепортации,DMG24
+theater,bastions,Theater,Театр,DMG24
+training-area,bastions,Training Area,Тренировочная площадка,DMG24
+trophy-room,bastions,Trophy Room,Комната трофеев,DMG24
+archive,bastions,Archive,Архив,DMG24
+meditation-chamber,bastions,Meditation Chamber,Зал медитации,DMG24
+menagerie,bastions,Menagerie,Зверинец,DMG24
+observatory,bastions,Observatory,Обсерватория,DMG24
+pub,bastions,Pub,Трактир,DMG24
+reliquary,bastions,Reliquary,Реликварий,DMG24
+demiplane,bastions,Demiplane,Демиплан,DMG24
+guildhall,bastions,Guildhall,Гильдейский зал,DMG24
+sanctum,bastions,Sanctum,Святая обитель,DMG24
+war-room,bastions,War Room,Военный кабинет,DMG24

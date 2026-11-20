@@ -69,7 +69,15 @@ class LobbyRepository:
             ).all()
         )
 
-    def create(self, *, owner_id: UUID, name: str) -> Lobby:
+    def create(
+        self,
+        *,
+        owner_id: UUID,
+        name: str,
+        rules_edition=None,
+    ) -> Lobby:
+        from app.models.character import RulesEdition
+
         code = generate_invite_code()
         # редкий коллизионный ретрай
         for _ in range(8):
@@ -77,7 +85,13 @@ class LobbyRepository:
             if exists is None:
                 break
             code = generate_invite_code()
-        lobby = Lobby(owner_id=owner_id, name=name, invite_code=code)
+        edition = rules_edition or RulesEdition.edition_2014
+        lobby = Lobby(
+            owner_id=owner_id,
+            name=name,
+            invite_code=code,
+            rules_edition=edition,
+        )
         self.db.add(lobby)
         self.db.flush()
         return lobby

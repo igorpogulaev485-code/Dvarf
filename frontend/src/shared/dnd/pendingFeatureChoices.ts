@@ -73,6 +73,8 @@ export type GuidedWizardStep =
       classLevel: number
       /** How many free research fills to pick in this step (6 at L1, +2 per level). */
       picksNeeded: number
+      /** 2024 school Savant: free school spells (feature rows, not level-up research). */
+      savant?: { maxSpellLevel: number }
     }
   | {
       id: string
@@ -80,6 +82,32 @@ export type GuidedWizardStep =
       classEntryId: string
       className: string
       classLevel: number
+    }
+  | {
+      id: string
+      kind: 'metamagic_picks'
+      classEntryId: string
+      className: string
+      classLevel: number
+      picksNeeded: number
+    }
+  | {
+      id: string
+      kind: 'invocation_picks'
+      classEntryId: string
+      className: string
+      classLevel: number
+      picksNeeded: number
+    }
+  | {
+      id: string
+      kind: 'known_forms'
+      classEntryId: string
+      className: string
+      classLevel: number
+      /** Wild Shape known-form budget at this druid level (2024). */
+      budget: number
+      subclassSlug: string | null
     }
 
 export function backgroundWizardStep(): GuidedWizardStep {

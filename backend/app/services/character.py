@@ -19,6 +19,10 @@ from app.schemas.character import (
     CharacterUpdateRequest,
     ClearConcentrationEffectsResponse,
 )
+from app.schemas.character_create_2024 import (
+    CharacterCreate2024Request,
+    CharacterCreate2024ValidateResponse,
+)
 from app.services.sheet_effects import (
     append_effect,
     broadcast_sheet_effects_changed,
@@ -161,6 +165,16 @@ def to_detail(
     return data.model_copy(update=updates)
 
 
+def _link_class_catalog_ids_2024(sheet: dict) -> None:
+    """Sheet class rows need the catalog id so level-up can filter subclasses by parent."""
+    from app.services.edition_2024_catalog_seed import entry_id
+
+    for row in sheet.get("classes") or []:
+        slug = str(row.get("slug") or "").strip()
+        if slug and not row.get("catalog_id"):
+            row["catalog_id"] = entry_id(kind="class", slug=slug)
+
+
 class CharacterService:
     def __init__(self, db: Session) -> None:
         self.db = db
@@ -171,14 +185,17 @@ class CharacterService:
         return [to_summary(item) for item in self.characters.list_for_user(user.id)]
 
     def create(self, user: User, payload: CharacterCreateRequest) -> CharacterDetail:
-        # FIX-hide2024: создание 2024 закрыто до готовности редакции (полный флаг — P24-01).
+        # P24-01: флаг RULES_EDITION_2024_OPEN (по умолчанию выкл.). Открытие — P24-M06.
+        from app.core.config import settings
+
         edition = payload.rules_edition
         if edition == RulesEdition.edition_2024 or edition == "2024":
-            raise AppError(
-                "Редакция 2024 ещё не открыта",
-                code="rules_edition_closed",
-                status_code=400,
-            )
+            if not settings.rules_edition_2024_open:
+                raise AppError(
+                    "Редакция 2024 ещё не открыта",
+                    code="rules_edition_closed",
+                    status_code=400,
+                )
         name = (payload.name or "Новый персонаж").strip() or "Новый персонаж"
         character = self.characters.create(
             user_id=user.id,
@@ -200,6 +217,73 @@ class CharacterService:
             user_id=user.id,
             rules_edition=str(edition) if edition else None,
         )
+        return to_detail(character, db=self.db)
+
+    def validate_create_2024(
+        self,
+        payload: CharacterCreate2024Request,
+    ) -> CharacterCreate2024ValidateResponse:
+        from app.dnd.edition_2024_create import (
+            Create2024Error,
+            payload_from_dict,
+            validate_create_2024,
+        )
+
+        try:
+            result = validate_create_2024(payload_from_dict(payload.model_dump()))
+        except Create2024Error as exc:
+            raise AppError(exc.message, code=exc.code, status_code=400) from exc
+        return CharacterCreate2024ValidateResponse(
+            ok=True,
+            name=result.name,
+            level=result.level,
+            class_name=result.class_name,
+            race_name=result.race_name,
+            hp_max=result.hp_max,
+            sheet=result.sheet,
+            warnings=list(result.warnings),
+        )
+
+    def create_2024(self, user: User, payload: CharacterCreate2024Request) -> CharacterDetail:
+        """Finalize a 2024 level-1 character.
+
+        Player CTA stays closed until M06. Preview/tests may pass ``is_preview=True``
+        while ``RULES_EDITION_2024_OPEN`` is still false.
+        """
+        from app.core.config import settings
+        from app.dnd.edition_2024_create import (
+            Create2024Error,
+            payload_from_dict,
+            validate_create_2024,
+        )
+
+        if not settings.rules_edition_2024_open and not payload.is_preview:
+            raise AppError(
+                "Редакция 2024 ещё не открыта",
+                code="rules_edition_closed",
+                status_code=400,
+            )
+
+        try:
+            result = validate_create_2024(payload_from_dict(payload.model_dump()))
+        except Create2024Error as exc:
+            raise AppError(exc.message, code=exc.code, status_code=400) from exc
+
+        _link_class_catalog_ids_2024(result.sheet)
+        character = self.characters.create(
+            user_id=user.id,
+            rules_edition=RulesEdition.edition_2024,
+            name=result.name,
+            sheet=result.sheet,
+            is_draft=bool(payload.is_draft),
+        )
+        character.level = result.level
+        character.class_name = result.class_name
+        character.race_name = result.race_name
+        character.hp_max = result.hp_max
+        character.hp_current = result.hp_current
+        self.db.commit()
+        self.db.refresh(character)
         return to_detail(character, db=self.db)
 
     def get_mine(self, user: User, character_id: UUID) -> CharacterDetail:
@@ -260,8 +344,18 @@ class CharacterService:
             character.hp_current = payload.hp_current
         if payload.hp_max is not None:
             character.hp_max = payload.hp_max
+        # P24-01: редакция фиксируется при создании; PATCH её не меняет.
         if payload.rules_edition is not None:
-            character.rules_edition = payload.rules_edition
+            current = character.rules_edition
+            incoming = payload.rules_edition
+            current_val = current.value if isinstance(current, RulesEdition) else str(current)
+            incoming_val = incoming.value if isinstance(incoming, RulesEdition) else str(incoming)
+            if incoming_val != current_val:
+                raise AppError(
+                    "Редакцию персонажа нельзя сменить после создания",
+                    code="rules_edition_locked",
+                    status_code=400,
+                )
         if payload.is_draft is not None:
             character.is_draft = payload.is_draft
 
@@ -269,6 +363,21 @@ class CharacterService:
             # L-21: владелец не может снять отметки мастера / блок неожиданности
             # через updateCharacter — мержим turn_economy.
             from app.services import session_turn_economy as stec
+            from app.dnd.weapon_mastery import (
+                WeaponMasteryValidationError,
+                strip_weapon_mastery_from_sheet_for_2014,
+                validate_weapon_mastery_update,
+                weapon_mastery_to_sheet,
+            )
+            from app.dnd.edition_2024_classes import (
+                Edition2024ClassError,
+                strip_class_progress_from_sheet_for_2014,
+                validate_class_progress_update,
+            )
+            from app.dnd.edition_2024_class_options import (
+                strip_class_options_from_sheet_for_2014,
+                validate_class_options_update,
+            )
 
             prev_sheet = character.sheet if isinstance(character.sheet, dict) else {}
             prev_combat = (
@@ -294,6 +403,99 @@ class CharacterService:
                         next_combat.get("turn_economy"),
                     )
                     next_sheet["combat"] = next_combat
+
+                # P24-M01: weapon mastery picks — 2024 only; validated server-side.
+                edition_val = character.rules_edition
+                edition_s = (
+                    edition_val.value
+                    if isinstance(edition_val, RulesEdition)
+                    else str(edition_val or "2014")
+                )
+                if edition_s != "2024":
+                    next_sheet = strip_weapon_mastery_from_sheet_for_2014(next_sheet)
+                    next_sheet = strip_class_progress_from_sheet_for_2014(next_sheet)
+                    next_sheet = strip_class_options_from_sheet_for_2014(next_sheet)
+                elif "weapon_mastery" in next_sheet or prev_sheet.get("weapon_mastery"):
+                    prof = (
+                        next_sheet.get("proficiency")
+                        if isinstance(next_sheet.get("proficiency"), dict)
+                        else {}
+                    )
+                    weapons_prof = (
+                        prof.get("weapons") if isinstance(prof.get("weapons"), dict) else {}
+                    )
+                    try:
+                        wm_state = validate_weapon_mastery_update(
+                            rules_edition=edition_s,
+                            previous=prev_sheet.get("weapon_mastery"),
+                            incoming=next_sheet.get("weapon_mastery"),
+                            sheet=next_sheet,
+                            has_simple_prof=bool(weapons_prof.get("simple")),
+                            has_martial_prof=bool(weapons_prof.get("martial")),
+                        )
+                    except WeaponMasteryValidationError as exc:
+                        raise AppError(
+                            str(exc),
+                            code=exc.code,
+                            status_code=400,
+                        ) from exc
+                    if wm_state is None or (
+                        not wm_state.known
+                        and not wm_state.source_class
+                        and not wm_state.swap_available
+                    ):
+                        next_sheet.pop("weapon_mastery", None)
+                    else:
+                        next_sheet["weapon_mastery"] = weapon_mastery_to_sheet(wm_state)
+
+                # P24-M02a: class progress (features/resources/spell prep) — 2024 only.
+                if edition_s == "2024" and (
+                    "class_progress_2024" in next_sheet
+                    or prev_sheet.get("class_progress_2024")
+                    or next_sheet.get("classes")
+                ):
+                    try:
+                        progress = validate_class_progress_update(
+                            rules_edition=edition_s,
+                            previous=prev_sheet.get("class_progress_2024"),
+                            incoming=next_sheet.get("class_progress_2024"),
+                            sheet=next_sheet,
+                        )
+                    except Edition2024ClassError as exc:
+                        raise AppError(
+                            str(exc),
+                            code=exc.code,
+                            status_code=400,
+                        ) from exc
+                    if progress is None:
+                        next_sheet.pop("class_progress_2024", None)
+                    else:
+                        next_sheet["class_progress_2024"] = progress
+
+                # P24-M02a+: class options (invocations/metamagic/plans/rage) — 2024 only.
+                if edition_s == "2024" and (
+                    "class_options_2024" in next_sheet
+                    or prev_sheet.get("class_options_2024")
+                    or next_sheet.get("classes")
+                ):
+                    try:
+                        options = validate_class_options_update(
+                            rules_edition=edition_s,
+                            previous=prev_sheet.get("class_options_2024"),
+                            incoming=next_sheet.get("class_options_2024"),
+                            sheet=next_sheet,
+                        )
+                    except Edition2024ClassError as exc:
+                        raise AppError(
+                            str(exc),
+                            code=exc.code,
+                            status_code=400,
+                        ) from exc
+                    if options is None:
+                        next_sheet.pop("class_options_2024", None)
+                    else:
+                        next_sheet["class_options_2024"] = options
+
                 character.sheet = next_sheet
             else:
                 character.sheet = payload.sheet

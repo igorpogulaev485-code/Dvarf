@@ -39,6 +39,8 @@ export type DesiredFeatureResource = {
   classLabelRu?: string
   /** PHB rage at 20: the pool does not run out. */
   unlimited?: boolean
+  /** P24-M02a: regain N uses on short rest while reset stays long (Second Wind). */
+  shortRestRegain?: number
 }
 
 export function isFeatureManagedResourceId(id: string): boolean {
@@ -415,6 +417,7 @@ export function syncFeatureResources(
         reset: preserveManualLock ? 'manual' : want.reset,
         track: want.track,
         unlimited: want.unlimited || undefined,
+        shortRestRegain: want.shortRestRegain,
       }),
     )
   }
@@ -436,6 +439,7 @@ export function syncFeatureResources(
         reset: want.reset,
         track: want.track,
         unlimited: want.unlimited || undefined,
+        shortRestRegain: want.shortRestRegain,
       }),
     )
   }
@@ -450,7 +454,16 @@ export function findFeatureResource(
   classEntryId: string,
 ): SheetResource | null {
   const id = featureResourceId(classSlug, poolId, classEntryId)
-  return resources.find((row) => row.id === id) ?? null
+  const exact = resources.find((row) => row.id === id)
+  if (exact) return exact
+  // Create-at-N / remount can leave the pool keyed under a previous entry id while
+  // the unlocked feature already points at the live class row — fall back by slug+pool.
+  return (
+    resources.find((row) => {
+      const parsed = parseFeatureResourceId(row.id)
+      return parsed?.classSlug === classSlug && parsed.poolId === poolId
+    }) ?? null
+  )
 }
 
 /** Remaining uses for a spend pool (max - used). */

@@ -1,0 +1,797 @@
+{
+  "meta": {
+    "pack": "P24-C15",
+    "rules_edition": "2024",
+    "source": "efa",
+    "notes_ru": "17 предысторий EFA. ASI + origin_feat (метки/SRD). RU: backgrounds.csv / next.dnd.su."
+  },
+  "entries": [
+    {
+      "kind": "background",
+      "slug": "aberrant-heir",
+      "name_ru": "Аберрантный наследник",
+      "name_en": "Aberrant Heir",
+      "source": "efa",
+      "sort_order": 10,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/backgrounds/932-aberrant-heir/",
+        "url_ttg": "https://new.ttg.club/backgrounds/aberrant-heir-efa",
+        "book": "EFA"
+      },
+      "data": {
+        "asi": {
+          "abilities": [
+            "str",
+            "con",
+            "cha"
+          ],
+          "options": [
+            "+2/+1",
+            "+1/+1/+1"
+          ],
+          "cap": 20
+        },
+        "origin_feat": {
+          "id": "aberrant-dragonmark",
+          "slug": "aberrant-dragonmark",
+          "name_ru": "Аберрантный драконий знак",
+          "name_en": "Aberrant Dragonmark"
+        },
+        "skill_proficiencies": [
+          "intimidation",
+          "history"
+        ],
+        "tool_proficiencies": [
+          "Набор для грима"
+        ],
+        "tool_choices": null,
+        "equipment_or_gold": {
+          "gold_alternative_gp": 50,
+          "pack_summary_ru": "Выберите А или Б: (А) Кинжал, Набор для грима, Костюм, Дорожная одежда, 16 ЗМ; или (Б) 50 ЗМ"
+        },
+        "traits_text": "Аберрантный наследник (EFA): STR/CON/CHA (+2/+1 или +1/+1/+1). Черта: Аберрантный драконий знак. Навыки: intimidation, history. Инструмент: Набор для грима. Пакет или 50 зм."
+      }
+    },
+    {
+      "kind": "background",
+      "slug": "archaeologist",
+      "name_ru": "Археолог",
+      "name_en": "Archaeologist",
+      "source": "efa",
+      "sort_order": 20,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/backgrounds/933-archaeologist/",
+        "url_ttg": "https://new.ttg.club/backgrounds/archaeologist-efa",
+        "book": "EFA"
+      },
+      "data": {
+        "asi": {
+          "abilities": [
+            "dex",
+            "int",
+            "wis"
+          ],
+          "options": [
+            "+2/+1",
+            "+1/+1/+1"
+          ],
+          "cap": 20
+        },
+        "origin_feat": {
+          "id": "skilled",
+          "slug": "skilled",
+          "name_ru": "Умелый",
+          "name_en": "Skilled"
+        },
+        "skill_proficiencies": [
+          "survival",
+          "history"
+        ],
+        "tool_proficiencies": [
+          "Инструменты картографа"
+        ],
+        "tool_choices": null,
+        "equipment_or_gold": {
+          "gold_alternative_gp": 50,
+          "pack_summary_ru": "Выберите А или Б: (А) Инструменты картографа, Направленный фонарь, Карта, Тубус для карт и свитков, Лопата, Палатка, Дорожная одежда, 17 ЗМ; или (Б) 50 ЗМ"
+        },
+        "traits_text": "Археолог (EFA): DEX/INT/WIS (+2/+1 или +1/+1/+1). Черта: Умелый. Навыки: survival, history. Инструмент: Инструменты картографа. Пакет или 50 зм."
+      }
+    },
+    {
+      "kind": "background",
+      "slug": "house-agent",
+      "name_ru": "Агент Дома",
+      "name_en": "House Agent",
+      "source": "efa",
+      "sort_order": 30,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/backgrounds/934-house-agent/",
+        "url_ttg": "https://new.ttg.club/backgrounds/house-agent-efa",
+        "book": "EFA"
+      },
+      "data": {
+        "asi": {
+          "abilities": [
+            "str",
+            "int",
+            "cha"
+          ],
+          "options": [
+            "+2/+1",
+            "+1/+1/+1"
+          ],
+          "cap": 20
+        },
+        "origin_feat": {
+          "id": "lucky",
+          "slug": "lucky",
+          "name_ru": "Везучий",
+          "name_en": "Lucky"
+        },
+        "skill_proficiencies": [
+          "investigation",
+          "persuasion"
+        ],
+        "tool_proficiencies": [],
+        "tool_choices": {
+          "category": "artisans_tools",
+          "count": 1
+        },
+        "equipment_or_gold": {
+          "gold_alternative_gp": 50,
+          "pack_summary_ru": "Выберите А или Б: (А) Ремесленные инструменты (выбранные выше), Отличная одежда, 20 ЗМ; или (Б) 50 ЗМ"
+        },
+        "traits_text": "Агент Дома (EFA): STR/INT/CHA (+2/+1 или +1/+1/+1). Черта: Везучий. Навыки: investigation, persuasion. Инструмент: Ремесленные инструменты. Пакет или 50 зм."
+      }
+    },
+    {
+      "kind": "background",
+      "slug": "house-cannith-heir",
+      "name_ru": "Наследник дома Каннит",
+      "name_en": "House Cannith Heir",
+      "source": "efa",
+      "sort_order": 40,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/backgrounds/935-house-cannith-heir/",
+        "url_ttg": "https://new.ttg.club/backgrounds/house-cannith-heir-efa",
+        "book": "EFA"
+      },
+      "data": {
+        "asi": {
+          "abilities": [
+            "str",
+            "dex",
+            "int"
+          ],
+          "options": [
+            "+2/+1",
+            "+1/+1/+1"
+          ],
+          "cap": 20
+        },
+        "origin_feat": {
+          "id": "mark-of-making",
+          "slug": "mark-of-making",
+          "name_ru": "Метка создания",
+          "name_en": "Mark of Making"
+        },
+        "skill_proficiencies": [
+          "investigation",
+          "sleight_of_hand"
+        ],
+        "tool_proficiencies": [],
+        "tool_choices": {
+          "category": "artisans_tools",
+          "count": 1
+        },
+        "equipment_or_gold": {
+          "gold_alternative_gp": 50,
+          "pack_summary_ru": "Выберите А или Б: (А) Ремесленные инструменты (выбранные выше), Ломик, Отличная одежда, 2 Кошеля, 17 ЗМ; или (Б) 50 ЗМ"
+        },
+        "traits_text": "Наследник дома Каннит (EFA): STR/DEX/INT (+2/+1 или +1/+1/+1). Черта: Метка создания. Навыки: investigation, sleight_of_hand. Инструмент: Ремесленные инструменты. Пакет или 50 зм."
+      }
+    },
+    {
+      "kind": "background",
+      "slug": "house-deneith-heir",
+      "name_ru": "Наследник дома Денейт",
+      "name_en": "House Deneith Heir",
+      "source": "efa",
+      "sort_order": 50,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/backgrounds/936-house-deneith-heir/",
+        "url_ttg": "https://new.ttg.club/backgrounds/house-deneith-heir-efa",
+        "book": "EFA"
+      },
+      "data": {
+        "asi": {
+          "abilities": [
+            "str",
+            "con",
+            "wis"
+          ],
+          "options": [
+            "+2/+1",
+            "+1/+1/+1"
+          ],
+          "cap": 20
+        },
+        "origin_feat": {
+          "id": "mark-of-sentinel",
+          "slug": "mark-of-sentinel",
+          "name_ru": "Метка стража",
+          "name_en": "Mark of Sentinel"
+        },
+        "skill_proficiencies": [
+          "insight",
+          "perception"
+        ],
+        "tool_proficiencies": [],
+        "tool_choices": {
+          "category": "gaming_set",
+          "count": 1
+        },
+        "equipment_or_gold": {
+          "gold_alternative_gp": 50,
+          "pack_summary_ru": "Выберите А или Б: (А) Копьё, Короткий лук, 20 Стрелы, Игровой набор (выбранный выше), Отличная одежда, Комплект целителя, Колчан, 1 ЗМ; или (Б) 50 ЗМ"
+        },
+        "traits_text": "Наследник дома Денейт (EFA): STR/CON/WIS (+2/+1 или +1/+1/+1). Черта: Метка стража. Навыки: insight, perception. Инструмент: Игровой набор. Пакет или 50 зм."
+      }
+    },
+    {
+      "kind": "background",
+      "slug": "house-ghallanda-heir",
+      "name_ru": "Наследник дома Галланда",
+      "name_en": "House Ghallanda Heir",
+      "source": "efa",
+      "sort_order": 60,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/backgrounds/937-house-ghallanda-heir/",
+        "url_ttg": "https://new.ttg.club/backgrounds/house-ghallanda-heir-efa",
+        "book": "EFA"
+      },
+      "data": {
+        "asi": {
+          "abilities": [
+            "dex",
+            "wis",
+            "cha"
+          ],
+          "options": [
+            "+2/+1",
+            "+1/+1/+1"
+          ],
+          "cap": 20
+        },
+        "origin_feat": {
+          "id": "mark-of-hospitality",
+          "slug": "mark-of-hospitality",
+          "name_ru": "Метка гостеприимства",
+          "name_en": "Mark of Hospitality"
+        },
+        "skill_proficiencies": [
+          "insight",
+          "persuasion"
+        ],
+        "tool_proficiencies": [
+          "Кухонная утварь"
+        ],
+        "tool_choices": null,
+        "equipment_or_gold": {
+          "gold_alternative_gp": 50,
+          "pack_summary_ru": "Выберите А или Б: (А) Кухонная утварь, Отличная одежда, Железный горшок, Лампа, 5 фляг Масла, Духи, 26 ЗМ; или (Б) 50 ЗМ"
+        },
+        "traits_text": "Наследник дома Галланда (EFA): DEX/WIS/CHA (+2/+1 или +1/+1/+1). Черта: Метка гостеприимства. Навыки: insight, persuasion. Инструмент: Кухонная утварь. Пакет или 50 зм."
+      }
+    },
+    {
+      "kind": "background",
+      "slug": "house-jorasco-heir",
+      "name_ru": "Наследник дома Джораско",
+      "name_en": "House Jorasco Heir",
+      "source": "efa",
+      "sort_order": 70,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/backgrounds/938-house-jorasco-heir/",
+        "url_ttg": "https://new.ttg.club/backgrounds/house-jorasco-heir-efa",
+        "book": "EFA"
+      },
+      "data": {
+        "asi": {
+          "abilities": [
+            "dex",
+            "con",
+            "wis"
+          ],
+          "options": [
+            "+2/+1",
+            "+1/+1/+1"
+          ],
+          "cap": 20
+        },
+        "origin_feat": {
+          "id": "mark-of-healing",
+          "slug": "mark-of-healing",
+          "name_ru": "Метка исцеления",
+          "name_en": "Mark of Healing"
+        },
+        "skill_proficiencies": [
+          "stealth",
+          "medicine"
+        ],
+        "tool_proficiencies": [
+          "Набор травника"
+        ],
+        "tool_choices": null,
+        "equipment_or_gold": {
+          "gold_alternative_gp": 50,
+          "pack_summary_ru": "Выберите А или Б: (А) Набор травника, Отличная одежда, Комплект целителя, 25 ЗМ; или (Б) 50 ЗМ"
+        },
+        "traits_text": "Наследник дома Джораско (EFA): DEX/CON/WIS (+2/+1 или +1/+1/+1). Черта: Метка исцеления. Навыки: stealth, medicine. Инструмент: Набор травника. Пакет или 50 зм."
+      }
+    },
+    {
+      "kind": "background",
+      "slug": "house-kundarak-heir",
+      "name_ru": "Наследник дома Кундарак",
+      "name_en": "House Kundarak Heir",
+      "source": "efa",
+      "sort_order": 80,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/backgrounds/939-house-kundarak-heir/",
+        "url_ttg": "https://new.ttg.club/backgrounds/house-kundarak-heir-efa",
+        "book": "EFA"
+      },
+      "data": {
+        "asi": {
+          "abilities": [
+            "str",
+            "con",
+            "int"
+          ],
+          "options": [
+            "+2/+1",
+            "+1/+1/+1"
+          ],
+          "cap": 20
+        },
+        "origin_feat": {
+          "id": "mark-of-warding",
+          "slug": "mark-of-warding",
+          "name_ru": "Метка охранения",
+          "name_en": "Mark of Warding"
+        },
+        "skill_proficiencies": [
+          "investigation",
+          "arcana"
+        ],
+        "tool_proficiencies": [
+          "Воровские инструменты"
+        ],
+        "tool_choices": null,
+        "equipment_or_gold": {
+          "gold_alternative_gp": 50,
+          "pack_summary_ru": "Выберите А или Б: (А) Воровские инструменты, Отличная одежда, 10 ЗМ; или (Б) 50 ЗМ"
+        },
+        "traits_text": "Наследник дома Кундарак (EFA): STR/CON/INT (+2/+1 или +1/+1/+1). Черта: Метка охранения. Навыки: investigation, arcana. Инструмент: Воровские инструменты. Пакет или 50 зм."
+      }
+    },
+    {
+      "kind": "background",
+      "slug": "house-lyrandar-heir",
+      "name_ru": "Наследник дома Лирандар",
+      "name_en": "House Lyrandar Heir",
+      "source": "efa",
+      "sort_order": 90,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/backgrounds/940-house-lyrandar-heir/",
+        "url_ttg": "https://new.ttg.club/backgrounds/house-lyrandar-heir-efa",
+        "book": "EFA"
+      },
+      "data": {
+        "asi": {
+          "abilities": [
+            "str",
+            "dex",
+            "cha"
+          ],
+          "options": [
+            "+2/+1",
+            "+1/+1/+1"
+          ],
+          "cap": 20
+        },
+        "origin_feat": {
+          "id": "mark-of-storm",
+          "slug": "mark-of-storm",
+          "name_ru": "Метка бури",
+          "name_en": "Mark of Storm"
+        },
+        "skill_proficiencies": [
+          "acrobatics",
+          "nature"
+        ],
+        "tool_proficiencies": [
+          "Инструменты навигатора"
+        ],
+        "tool_choices": null,
+        "equipment_or_gold": {
+          "gold_alternative_gp": 50,
+          "pack_summary_ru": "Выберите А или Б: (А) Инструменты навигатора, Отличная одежда, 10 ЗМ; или (Б) 50 ЗМ"
+        },
+        "traits_text": "Наследник дома Лирандар (EFA): STR/DEX/CHA (+2/+1 или +1/+1/+1). Черта: Метка бури. Навыки: acrobatics, nature. Инструмент: Инструменты навигатора. Пакет или 50 зм."
+      }
+    },
+    {
+      "kind": "background",
+      "slug": "house-medani-heir",
+      "name_ru": "Наследник дома Медани",
+      "name_en": "House Medani Heir",
+      "source": "efa",
+      "sort_order": 100,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/backgrounds/941-house-medani-heir/",
+        "url_ttg": "https://new.ttg.club/backgrounds/house-medani-heir-efa",
+        "book": "EFA"
+      },
+      "data": {
+        "asi": {
+          "abilities": [
+            "dex",
+            "int",
+            "wis"
+          ],
+          "options": [
+            "+2/+1",
+            "+1/+1/+1"
+          ],
+          "cap": 20
+        },
+        "origin_feat": {
+          "id": "mark-of-detection",
+          "slug": "mark-of-detection",
+          "name_ru": "Метка обнаружения",
+          "name_en": "Mark of Detection"
+        },
+        "skill_proficiencies": [
+          "insight",
+          "investigation"
+        ],
+        "tool_proficiencies": [
+          "Набор для грима"
+        ],
+        "tool_choices": null,
+        "equipment_or_gold": {
+          "gold_alternative_gp": 50,
+          "pack_summary_ru": "Выберите А или Б: (А) Набор для грима, Отличная одежда, 10 ЗМ; или (Б) 50 ЗМ"
+        },
+        "traits_text": "Наследник дома Медани (EFA): DEX/INT/WIS (+2/+1 или +1/+1/+1). Черта: Метка обнаружения. Навыки: insight, investigation. Инструмент: Набор для грима. Пакет или 50 зм."
+      }
+    },
+    {
+      "kind": "background",
+      "slug": "house-orien-heir",
+      "name_ru": "Наследник дома Ориен",
+      "name_en": "House Orien Heir",
+      "source": "efa",
+      "sort_order": 110,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/backgrounds/942-house-orien-heir/",
+        "url_ttg": "https://new.ttg.club/backgrounds/house-orien-heir-efa",
+        "book": "EFA"
+      },
+      "data": {
+        "asi": {
+          "abilities": [
+            "dex",
+            "con",
+            "int"
+          ],
+          "options": [
+            "+2/+1",
+            "+1/+1/+1"
+          ],
+          "cap": 20
+        },
+        "origin_feat": {
+          "id": "mark-of-passage",
+          "slug": "mark-of-passage",
+          "name_ru": "Метка прохода",
+          "name_en": "Mark of Passage"
+        },
+        "skill_proficiencies": [
+          "acrobatics",
+          "athletics"
+        ],
+        "tool_proficiencies": [
+          "Инструменты картографа"
+        ],
+        "tool_choices": null,
+        "equipment_or_gold": {
+          "gold_alternative_gp": 50,
+          "pack_summary_ru": "Выберите А или Б: (А) Инструменты картографа, Отличная одежда, Карта, Тубус для карт и свитков, 18 ЗМ; или (Б) 50 ЗМ"
+        },
+        "traits_text": "Наследник дома Ориен (EFA): DEX/CON/INT (+2/+1 или +1/+1/+1). Черта: Метка прохода. Навыки: acrobatics, athletics. Инструмент: Инструменты картографа. Пакет или 50 зм."
+      }
+    },
+    {
+      "kind": "background",
+      "slug": "house-phiarlan-heir",
+      "name_ru": "Наследник дома Фиарлан",
+      "name_en": "House Phiarlan Heir",
+      "source": "efa",
+      "sort_order": 120,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/backgrounds/943-house-phiarlan-heir/",
+        "url_ttg": "https://new.ttg.club/backgrounds/house-phiarlan-heir-efa",
+        "book": "EFA"
+      },
+      "data": {
+        "asi": {
+          "abilities": [
+            "dex",
+            "wis",
+            "cha"
+          ],
+          "options": [
+            "+2/+1",
+            "+1/+1/+1"
+          ],
+          "cap": 20
+        },
+        "origin_feat": {
+          "id": "mark-of-shadow",
+          "slug": "mark-of-shadow",
+          "name_ru": "Метка тени",
+          "name_en": "Mark of Shadow"
+        },
+        "skill_proficiencies": [
+          "stealth",
+          "deception"
+        ],
+        "tool_proficiencies": [
+          "Набор для грима"
+        ],
+        "tool_choices": null,
+        "equipment_or_gold": {
+          "gold_alternative_gp": 50,
+          "pack_summary_ru": "Выберите А или Б: (А) Набор для грима, Отличная одежда, 10 ЗМ; или (Б) 50 ЗМ"
+        },
+        "traits_text": "Наследник дома Фиарлан (EFA): DEX/WIS/CHA (+2/+1 или +1/+1/+1). Черта: Метка тени. Навыки: stealth, deception. Инструмент: Набор для грима. Пакет или 50 зм."
+      }
+    },
+    {
+      "kind": "background",
+      "slug": "house-sivis-heir",
+      "name_ru": "Наследник дома Сивис",
+      "name_en": "House Sivis Heir",
+      "source": "efa",
+      "sort_order": 130,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/backgrounds/944-house-sivis-heir/",
+        "url_ttg": "https://new.ttg.club/backgrounds/house-sivis-heir-efa",
+        "book": "EFA"
+      },
+      "data": {
+        "asi": {
+          "abilities": [
+            "int",
+            "wis",
+            "cha"
+          ],
+          "options": [
+            "+2/+1",
+            "+1/+1/+1"
+          ],
+          "cap": 20
+        },
+        "origin_feat": {
+          "id": "mark-of-scribing",
+          "slug": "mark-of-scribing",
+          "name_ru": "Метка письма",
+          "name_en": "Mark of Scribing"
+        },
+        "skill_proficiencies": [
+          "perception",
+          "history"
+        ],
+        "tool_proficiencies": [
+          "Инструменты каллиграфа"
+        ],
+        "tool_choices": null,
+        "equipment_or_gold": {
+          "gold_alternative_gp": 50,
+          "pack_summary_ru": "Выберите А или Б: (А) Инструменты каллиграфа, Отличная одежда, Чернила, 5 Писчее перо, 30 листов Бумаги, 9 листов Пергамента, 8 ЗМ; или (Б) 50 ЗМ"
+        },
+        "traits_text": "Наследник дома Сивис (EFA): INT/WIS/CHA (+2/+1 или +1/+1/+1). Черта: Метка письма. Навыки: perception, history. Инструмент: Инструменты каллиграфа. Пакет или 50 зм."
+      }
+    },
+    {
+      "kind": "background",
+      "slug": "house-tharashk-heir",
+      "name_ru": "Наследник дома Тарашк",
+      "name_en": "House Tharashk Heir",
+      "source": "efa",
+      "sort_order": 140,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/backgrounds/945-house-tharashk-heir/",
+        "url_ttg": "https://new.ttg.club/backgrounds/house-tharashk-heir-efa",
+        "book": "EFA"
+      },
+      "data": {
+        "asi": {
+          "abilities": [
+            "con",
+            "int",
+            "wis"
+          ],
+          "options": [
+            "+2/+1",
+            "+1/+1/+1"
+          ],
+          "cap": 20
+        },
+        "origin_feat": {
+          "id": "mark-of-finding",
+          "slug": "mark-of-finding",
+          "name_ru": "Метка поиска",
+          "name_en": "Mark of Finding"
+        },
+        "skill_proficiencies": [
+          "perception",
+          "survival"
+        ],
+        "tool_proficiencies": [],
+        "tool_choices": {
+          "category": "gaming_set",
+          "count": 1
+        },
+        "equipment_or_gold": {
+          "gold_alternative_gp": 50,
+          "pack_summary_ru": "Выберите А или Б: (А) Игровой набор (выбранный выше), Комплект для лазания, Отличная одежда, Охотничий капкан, Кандалы, 2 ЗМ; или (Б) 50 ЗМ"
+        },
+        "traits_text": "Наследник дома Тарашк (EFA): CON/INT/WIS (+2/+1 или +1/+1/+1). Черта: Метка поиска. Навыки: perception, survival. Инструмент: Игровой набор. Пакет или 50 зм."
+      }
+    },
+    {
+      "kind": "background",
+      "slug": "house-thuranni-heir",
+      "name_ru": "Наследник дома Туранни",
+      "name_en": "House Thuranni Heir",
+      "source": "efa",
+      "sort_order": 150,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/backgrounds/946-house-thuranni-heir/",
+        "url_ttg": "https://new.ttg.club/backgrounds/house-thuranni-heir-efa",
+        "book": "EFA"
+      },
+      "data": {
+        "asi": {
+          "abilities": [
+            "dex",
+            "int",
+            "cha"
+          ],
+          "options": [
+            "+2/+1",
+            "+1/+1/+1"
+          ],
+          "cap": 20
+        },
+        "origin_feat": {
+          "id": "mark-of-shadow",
+          "slug": "mark-of-shadow",
+          "name_ru": "Метка тени",
+          "name_en": "Mark of Shadow"
+        },
+        "skill_proficiencies": [
+          "performance",
+          "stealth"
+        ],
+        "tool_proficiencies": [],
+        "tool_choices": {
+          "category": "musical_instrument",
+          "count": 1
+        },
+        "equipment_or_gold": {
+          "gold_alternative_gp": 50,
+          "pack_summary_ru": "Выберите А или Б: (А) Музыкальный инструмент (выбранный выше), Костюм, Отличная одежда, 13 ЗМ; или (Б) 50 ЗМ"
+        },
+        "traits_text": "Наследник дома Туранни (EFA): DEX/INT/CHA (+2/+1 или +1/+1/+1). Черта: Метка тени. Навыки: performance, stealth. Инструмент: Музыкальный инструмент. Пакет или 50 зм."
+      }
+    },
+    {
+      "kind": "background",
+      "slug": "house-vadalis-heir",
+      "name_ru": "Наследник дома Вадалис",
+      "name_en": "House Vadalis Heir",
+      "source": "efa",
+      "sort_order": 160,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/backgrounds/947-house-vadalis-heir/",
+        "url_ttg": "https://new.ttg.club/backgrounds/house-vadalis-heir-efa",
+        "book": "EFA"
+      },
+      "data": {
+        "asi": {
+          "abilities": [
+            "con",
+            "wis",
+            "cha"
+          ],
+          "options": [
+            "+2/+1",
+            "+1/+1/+1"
+          ],
+          "cap": 20
+        },
+        "origin_feat": {
+          "id": "mark-of-handling",
+          "slug": "mark-of-handling",
+          "name_ru": "Метка обхождения",
+          "name_en": "Mark of Handling"
+        },
+        "skill_proficiencies": [
+          "animal_handling",
+          "nature"
+        ],
+        "tool_proficiencies": [
+          "Набор травника"
+        ],
+        "tool_choices": null,
+        "equipment_or_gold": {
+          "gold_alternative_gp": 50,
+          "pack_summary_ru": "Выберите А или Б: (А) Набор травника, Отличная одежда, Сеть, 29 ЗМ; или (Б) 50 ЗМ"
+        },
+        "traits_text": "Наследник дома Вадалис (EFA): CON/WIS/CHA (+2/+1 или +1/+1/+1). Черта: Метка обхождения. Навыки: animal_handling, nature. Инструмент: Набор травника. Пакет или 50 зм."
+      }
+    },
+    {
+      "kind": "background",
+      "slug": "inquisitive",
+      "name_ru": "Сыскной",
+      "name_en": "Inquisitive",
+      "source": "efa",
+      "sort_order": 170,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/backgrounds/948-inquisitive/",
+        "url_ttg": "https://new.ttg.club/backgrounds/inquisitive-efa",
+        "book": "EFA"
+      },
+      "data": {
+        "asi": {
+          "abilities": [
+            "con",
+            "int",
+            "cha"
+          ],
+          "options": [
+            "+2/+1",
+            "+1/+1/+1"
+          ],
+          "cap": 20
+        },
+        "origin_feat": {
+          "id": "alert",
+          "slug": "alert",
+          "name_ru": "Бдительный",
+          "name_en": "Alert"
+        },
+        "skill_proficiencies": [
+          "insight",
+          "investigation"
+        ],
+        "tool_proficiencies": [
+          "Воровские инструменты"
+        ],
+        "tool_choices": null,
+        "equipment_or_gold": {
+          "gold_alternative_gp": 50,
+          "pack_summary_ru": "Выберите А или Б: (А) Воровские инструменты, Направленный фонарь, Ломик, 10 фляг Масла, Дорожная одежда, 10 ЗМ; или (Б) 50 ЗМ"
+        },
+        "traits_text": "Сыскной (EFA): CON/INT/CHA (+2/+1 или +1/+1/+1). Черта: Бдительный. Навыки: insight, investigation. Инструмент: Воровские инструменты. Пакет или 50 зм."
+      }
+    }
+  ]
+}

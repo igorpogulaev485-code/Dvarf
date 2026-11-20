@@ -27,6 +27,8 @@ import {
 
 /** One-off inline option ids (ancestries, ASI scaffold, affinity, …). */
 export const FEATURE_OPTION_LABELS_RU: Record<string, string> = {
+  divine_strike: 'Божественный удар',
+  potent_spellcasting: 'Могущественные заклинания',
   bear: 'Медведь',
   eagle: 'Орёл',
   wolf: 'Волк',

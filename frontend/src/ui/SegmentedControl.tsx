@@ -3,6 +3,8 @@ import type { ReactNode } from 'react'
 export type SegmentedOption<T extends string = string> = {
   id: T
   label: ReactNode
+  /** Optional `data-testid` on the option button (e2e). */
+  testId?: string
 }
 
 type Props<T extends string> = {
@@ -42,6 +44,7 @@ export function SegmentedControl<T extends string>({
             type="button"
             role="tab"
             aria-selected={on}
+            data-testid={opt.testId}
             className={`ui-segmented__item${on ? ' is-on' : ''}`}
             onClick={() => onChange(opt.id)}
           >

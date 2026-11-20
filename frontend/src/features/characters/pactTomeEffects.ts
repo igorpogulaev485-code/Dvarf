@@ -11,6 +11,10 @@ import {
   setFeaturePick,
   type FeaturePicksState,
 } from '../../shared/dnd/featurePicks'
+import {
+  hasPactOfTheTome2024,
+  PACT_TOME_RITUALS_FEATURE_ID_2024,
+} from '../../shared/dnd/warlock2024Features'
 import { invocationIsSelectable } from '../../shared/dnd/pack04SorcererWarlock'
 import type { GuidedWizardStep } from '../../shared/dnd/pendingFeatureChoices'
 import {
@@ -29,6 +33,7 @@ import {
 export const PACT_BOON_FEATURE_ID = 'pact_boon'
 export const PACT_TOME_CANTRIPS_FEATURE_ID =
   WARLOCK_PACT_BOON_GRANTS.tome.knownCantrips?.pickFeatureId ?? 'pact_tome_cantrips'
+export { PACT_TOME_RITUALS_FEATURE_ID_2024 }
 export const PACT_TOME_SPELL_SCOPE = 'pact_tome'
 export const PACT_TOME_CANTRIPS_LIMIT =
   WARLOCK_PACT_BOON_GRANTS.tome.knownCantrips?.count ?? 3
@@ -72,10 +77,18 @@ export function getPactBoonId(
   return null
 }
 
+/** Edition switch: 2024 reads the Tome from class invocations, not `pact_boon`. */
+export type PactTomeEditionOpts = {
+  edition?: string | null
+  invocations2024?: readonly string[] | null
+}
+
 export function isPactTomeActive(
   featurePicks: FeaturePicksState,
   classEntryId: string,
+  opts?: PactTomeEditionOpts,
 ): boolean {
+  if (opts?.edition === '2024') return hasPactOfTheTome2024(opts.invocations2024)
   return getPactBoonId(featurePicks, classEntryId) === 'tome'
 }
 
@@ -112,10 +125,12 @@ export function isPactTomeCantripsComplete(
 export function clearPactTomeCantripsIfNeeded(
   featurePicks: FeaturePicksState,
   classEntryId: string,
+  opts?: PactTomeEditionOpts,
 ): FeaturePicksState {
-  if (isPactTomeActive(featurePicks, classEntryId)) return featurePicks
+  if (isPactTomeActive(featurePicks, classEntryId, opts)) return featurePicks
   return clearFeaturePicksForFeatureIds(featurePicks, classEntryId, [
     PACT_TOME_CANTRIPS_FEATURE_ID,
+    ...(opts?.edition === '2024' ? [PACT_TOME_RITUALS_FEATURE_ID_2024] : []),
   ])
 }
 
@@ -126,11 +141,15 @@ export function clearPactTomeCantripsIfNeeded(
 export function sanitizeFeaturePicksForPactBoons(input: {
   featurePicks: FeaturePicksState
   classes: Array<{ id: string; name: string; level?: number }>
-}): FeaturePicksState {
+} & PactTomeEditionOpts): FeaturePicksState {
+  const editionOpts: PactTomeEditionOpts = {
+    edition: input.edition,
+    invocations2024: input.invocations2024,
+  }
   let next = input.featurePicks
   for (const row of input.classes) {
     if (!isWarlockClassName(row.name)) continue
-    next = clearPactTomeCantripsIfNeeded(next, row.id)
+    next = clearPactTomeCantripsIfNeeded(next, row.id, editionOpts)
     if (typeof row.level !== 'number') continue
     const level = Math.max(0, Math.floor(row.level))
     const pact = getPactBoonId(next, row.id)
@@ -164,13 +183,20 @@ export function syncPactTomeCantrips(input: {
   featurePicks: FeaturePicksState
   classes: Array<{ id: string; name: string; level: number }>
   resolveSpell: (slug: string) => PactTomeResolvedCantrip | null
-}): { spells: SpellsState; changed: boolean } {
+} & PactTomeEditionOpts): { spells: SpellsState; changed: boolean } {
   let known = stripPactTomeSpells(input.spells.known)
   let changed = known.length !== input.spells.known.length
 
   for (const row of input.classes) {
     if (!isWarlockClassName(row.name) || row.level <= 0) continue
-    if (!isPactTomeActive(input.featurePicks, row.id)) continue
+    if (
+      !isPactTomeActive(input.featurePicks, row.id, {
+        edition: input.edition,
+        invocations2024: input.invocations2024,
+      })
+    ) {
+      continue
+    }
 
     for (const slug of listPactTomeCantripSlugs(input.featurePicks, row.id)) {
       const resolved = input.resolveSpell(slug)

@@ -95,6 +95,9 @@ NAME_TO_SLUG['жрица'] = 'cleric'
 NAME_TO_SLUG['друидка'] = 'druid'
 NAME_TO_SLUG['артифицер'] = 'artificer'
 NAME_TO_SLUG['инженер'] = 'artificer'
+NAME_TO_SLUG['изобретатель'] = 'artificer'
+NAME_TO_SLUG['артефактор'] = 'artificer'
+NAME_TO_SLUG['боец'] = 'fighter'
 
 function clampLevel(level: number): number {
   return Math.min(20, Math.max(1, Math.floor(level) || 1))

@@ -20,8 +20,11 @@ import {
   resolveSubclassFeatureSlug,
   unlockFeaturesForClasses,
 } from '../../../shared/dnd/classFeatures'
-import { martialArtsDieFromFeatures } from '../../../shared/dnd/martialArts'
+import { computeProgression2024 } from '../../../shared/dnd/edition2024Classes'
+import { resolveMartialArtsDie } from '../../../shared/dnd/martialArts'
 import { type FeatureSelfFormRequest, type WildShapeForkRequest } from '../ClassFeaturesPanel'
+import { activeBeastWildShape } from '../wildShape'
+import { landChoiceByEntryId2024, WILD_SHAPE_TEMP_HP_PICK_ID_2024 } from '../../../shared/dnd/druid2024Features'
 import { characterHasMagicSources } from '../magicSources'
 import { blockPlainText, withBlockPlainText } from '../textBlocks'
 import { buildDraft, type MinimalSheetEditorProps } from './draft'
@@ -273,7 +276,11 @@ export function useSheetEditorPart1(model: SheetModel, props: MinimalSheetEditor
       const catalogKey = (row.subclass_catalog_id ?? '').trim()
       const fromName = resolveSubclassFeatureSlug(row.subclass_name)
       const fromCatalog = catalogKey ? resolveSubclassFeatureSlug(catalogKey) : null
+      // 2024 catalog slugs (`warlock__fiend-patron`) win over 2014 name matches
+      // («Исчадие» → 2014 `fiend`), otherwise the PHB 2024 pack never unlocks.
+      const catalog2024 = /^[a-z][a-z0-9-]*__[a-z0-9-]+$/i.test(catalogKey) ? catalogKey : ''
       const raw =
+        catalog2024 ||
         fromName ||
         fromCatalog ||
         (/^[a-z][a-z0-9_]*$/i.test(catalogKey) ? catalogKey : '')
@@ -304,16 +311,40 @@ export function useSheetEditorPart1(model: SheetModel, props: MinimalSheetEditor
     return map
   }, [draft.subclassTransitions])
   model.subclassTransitionByEntryId = subclassTransitionByEntryId
+  const sheetRulesEdition = (baseCharacter.rules_edition || '2014') as RulesEdition
+  const landChoiceKey = useMemo(
+    () =>
+      sheetRulesEdition === '2024'
+        ? JSON.stringify(
+            landChoiceByEntryId2024(draft.classes, draft.featurePicks, draft.classOptions2024),
+          )
+        : '',
+    [sheetRulesEdition, draft.classes, draft.featurePicks, draft.classOptions2024],
+  )
+  const progression2024 = useMemo(() => {
+    if (sheetRulesEdition !== '2024') return null
+    return computeProgression2024({
+      classes: draft.classes,
+      subclassSlugByEntryId,
+      abilities: draft.abilities,
+      landChoiceByEntryId: landChoiceKey ? JSON.parse(landChoiceKey) : undefined,
+    })
+  }, [sheetRulesEdition, draft.classes, subclassSlugByEntryId, draft.abilities, landChoiceKey])
+  model.progression2024 = progression2024
   const unlockedFeatures = useMemo(
     () =>
-      unlockFeaturesForClasses({
-        classes: draft.classes,
-        characterLevel,
-        abilities: draft.abilities,
-        subclassSlugByEntryId,
-        subclassTransitionByEntryId,
-      }),
+      sheetRulesEdition === '2024' && progression2024
+        ? progression2024.features
+        : unlockFeaturesForClasses({
+            classes: draft.classes,
+            characterLevel,
+            abilities: draft.abilities,
+            subclassSlugByEntryId,
+            subclassTransitionByEntryId,
+          }),
     [
+      sheetRulesEdition,
+      progression2024,
       draft.classes,
       characterLevel,
       draft.abilities,
@@ -341,13 +372,17 @@ export function useSheetEditorPart1(model: SheetModel, props: MinimalSheetEditor
   )
   model.playActiveFeatures = playActiveFeatures
   const featureDesiredResources = useMemo(() => {
+    const baseDesired =
+      sheetRulesEdition === '2024' && progression2024
+        ? progression2024.desiredResources
+        : desiredResourcesFromFeatures({
+            features: playActiveFeatures,
+            characterLevel,
+            abilities: draft.abilities,
+            featurePicks: draft.featurePicks,
+          })
     const withStyle = appendSuperiorTechniqueResources({
-      desired: desiredResourcesFromFeatures({
-        features: playActiveFeatures,
-        characterLevel,
-        abilities: draft.abilities,
-        featurePicks: draft.featurePicks,
-      }),
+      desired: baseDesired,
       featurePicks: draft.featurePicks,
       classes: draft.classes,
     })
@@ -372,6 +407,8 @@ export function useSheetEditorPart1(model: SheetModel, props: MinimalSheetEditor
       ftdAllowed,
     })
   }, [
+    sheetRulesEdition,
+    progression2024,
     playActiveFeatures,
     characterLevel,
     draft.abilities,
@@ -437,8 +474,13 @@ export function useSheetEditorPart1(model: SheetModel, props: MinimalSheetEditor
   ])
   model.resolvedBackgroundFeature = resolvedBackgroundFeature
   const martialArtsDie = useMemo(
-    () => martialArtsDieFromFeatures(unlockedFeatures),
-    [unlockedFeatures],
+    () =>
+      resolveMartialArtsDie({
+        features: unlockedFeatures,
+        rulesEdition: sheetRulesEdition,
+        scales: progression2024?.scales ?? null,
+      }),
+    [unlockedFeatures, sheetRulesEdition, progression2024?.scales],
   )
   model.martialArtsDie = martialArtsDie
   const featSpeedBonusFt = useMemo(
@@ -468,6 +510,30 @@ export function useSheetEditorPart1(model: SheetModel, props: MinimalSheetEditor
   const druidSubclassSlug =
     (druidClassRow && subclassSlugByEntryId[druidClassRow.id]) || null
   model.druidSubclassSlug = druidSubclassSlug
+
+  const wildShapeFormActive2024 = useMemo(
+    () => activeBeastWildShape(draft.companions) != null,
+    [draft.companions],
+  )
+  useEffect(() => {
+    if (String(rulesEdition ?? '2014') !== '2024') return
+    if (wildShapeFormActive2024) return
+    const marker = draft.featurePicks?.values
+      ? Object.keys(draft.featurePicks.values).find((key) =>
+          key.endsWith(`:${WILD_SHAPE_TEMP_HP_PICK_ID_2024}`),
+        )
+      : null
+    if (!marker) return
+    setDraft((prev) => {
+      const values = { ...prev.featurePicks.values }
+      delete values[marker]
+      return {
+        ...prev,
+        featurePicks: { values },
+        play: { ...prev.play, hpTemp: 0 },
+      }
+    })
+  }, [rulesEdition, wildShapeFormActive2024, draft.featurePicks])
 
   useEffect(() => {
     // New character open — full reset.

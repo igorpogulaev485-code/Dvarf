@@ -48,6 +48,22 @@ import {
   restDurationVariant,
 } from '../../shared/dnd/o04DmgAdvanced'
 import type { RestResult } from '../../shared/dnd/rest'
+import {
+  Wizard2024RestSwaps,
+  type Wizard2024RestDone,
+  type Wizard2024RestProps,
+} from './Wizard2024RestSwaps'
+import {
+  Warlock2024RestPanel,
+  type Warlock2024RestPanelProps,
+} from './Warlock2024RestPanel'
+import { Druid2024RestPanel, type Druid2024RestPanelProps } from './Druid2024RestPanel'
+import {
+  clearWizard2024RestSwaps,
+  markWizard2024RestSwap,
+  wizard2024RestSwapDone,
+  type Wizard2024RestSwapKey,
+} from '../../shared/dnd/wizard2024Features'
 
 type RestKind = 'short' | 'long'
 
@@ -94,6 +110,8 @@ type RestDialogProps = {
   grittyRest?: boolean
   /** O-04: эпический героизм — 5 минут / 1 час (взаимоисключается с gritty). */
   epicHeroism?: boolean
+  /** P24-02: long rest restores all Hit Point Dice on 2024. */
+  rulesEdition?: string | null
   /** S-07: подсветка блока после «Короткий/Долгий отдых» со стола. */
   preferKind?: 'short' | 'long' | null
   /** O-02: Формулы заговоров (TCE wizard) — один раз за этот короткий отдых. */
@@ -102,11 +120,18 @@ type RestDialogProps = {
     catalog: Array<{ id: string; name: string }>
     onSwap: (fromId: string, toCatalogId: string, toName: string) => void
   } | null
+  /** 2024 Wizard: Memorize Spell (short), cantrip and Spell Mastery swaps (long). */
+  wizard2024Rest?: Wizard2024RestProps | null
+  /** 2024 Warlock: Book of Shadows re-pick and Fiendish Resilience (null for 2014 / non-warlock). */
+  warlock2024Rest?: Omit<Warlock2024RestPanelProps, 'kind'> | null
+  druid2024Rest?: Omit<Druid2024RestPanelProps, 'kind'> | null
   onPlayChange: (play: PlayState) => void
   onSpellsChange: (spells: SpellsState) => void
   onCombatChange: (patch: { hpCurrent?: number | null }) => void
   /** Dismiss active self_forms and reset naparnik resources after short/long rest. */
   onCompanionRest?: (kind: 'short' | 'long') => void
+  /** P24-M01: after long rest — open weapon mastery swap window (2024). */
+  onLongRestComplete?: () => void
   onToast: (message: string) => void
   onClose: () => void
 }
@@ -124,12 +149,17 @@ export function RestDialog({
   raceSlug = null,
   grittyRest = false,
   epicHeroism = false,
+  rulesEdition = '2014',
   preferKind = null,
   cantripFormulas = null,
+  wizard2024Rest = null,
+  warlock2024Rest = null,
+  druid2024Rest = null,
   onPlayChange,
   onSpellsChange,
   onCombatChange,
   onCompanionRest,
+  onLongRestComplete,
   onToast,
   onClose,
 }: RestDialogProps) {
@@ -140,7 +170,19 @@ export function RestDialog({
   const [confirm, setConfirm] = useState<ConfirmState | null>(null)
   const [cantripFromId, setCantripFromId] = useState('')
   const [cantripToId, setCantripToId] = useState('')
-  const [cantripSwapped, setCantripSwapped] = useState(false)
+  const [cantripSwappedLocal, setCantripSwappedLocal] = useState(false)
+  const is2024 = rulesEdition === '2024'
+  const wizardSwapDone: Wizard2024RestDone = wizard2024RestSwapDone(play.wizard2024RestSwaps)
+  const cantripSwapped = is2024
+    ? play.wizard2024RestSwaps?.cantripFormulas === true
+    : cantripSwappedLocal
+
+  function markWizardSwap(key: Wizard2024RestSwapKey) {
+    onPlayChange({
+      ...play,
+      wizard2024RestSwaps: markWizard2024RestSwap(play.wizard2024RestSwaps, key),
+    })
+  }
   const activePool =
     pools.find((row) => row.classEntryId === spendPoolId) ??
     pools.find((row) => row.current > 0) ??
@@ -168,7 +210,7 @@ export function RestDialog({
     }
     setConfirm(null)
     setTab(preferKind === 'long' ? 'long' : 'short')
-    setCantripSwapped(false)
+    setCantripSwappedLocal(false)
     setCantripFromId(cantripFormulas?.known[0]?.id ?? '')
     setCantripToId(cantripFormulas?.catalog[0]?.id ?? '')
   }, [open, preferKind, cantripFormulas])
@@ -296,6 +338,9 @@ export function RestDialog({
     patchPlay({
       resources: finishWizardResourcesOnRest(result.resources, 'short'),
       ...(result.effects ? { effects: result.effects } : {}),
+      ...(play.wizard2024RestSwaps
+        ? { wizard2024RestSwaps: clearWizard2024RestSwaps(play.wizard2024RestSwaps, 'short') }
+        : {}),
     })
     const known = recoverGrantCastsOnRest(spells.known, 'short')
     const spellsTouched =
@@ -333,7 +378,12 @@ export function RestDialog({
       hit_dice_max: hitDiceMax,
       hit_dice_by_class: pools.length > 0 ? pools : undefined,
       effects: play.effects ?? [],
+      rules_edition: rulesEdition,
     })
+    if (result.blocked) {
+      onToast(result.block_reason || 'Длинный отдых недоступен')
+      return
+    }
     setConfirm({ kind: 'long', lines, result })
   }
 
@@ -359,6 +409,9 @@ export function RestDialog({
         effects: result.effects ?? play.effects ?? [],
         // O-03 / XGE: длинный отдых сбрасывает счётчик суток без отдыха
         noLongRestDays: 0,
+        ...(play.wizard2024RestSwaps
+          ? { wizard2024RestSwaps: clearWizard2024RestSwaps(play.wizard2024RestSwaps, 'long') }
+          : {}),
       }),
     )
     if (removed) {
@@ -383,6 +436,7 @@ export function RestDialog({
           ? ' · −1 истощение'
           : ''
     onCompanionRest?.('long')
+    onLongRestComplete?.()
     const rechargeNote = result.rechargeLines?.length
       ? ` · ${result.rechargeLines.join(' · ')}`
       : ''
@@ -476,7 +530,7 @@ export function RestDialog({
               >
                 {pools.map((pool) => (
                   <option key={pool.classEntryId} value={pool.classEntryId}>
-                    {pool.className} · {pool.die} · {pool.current}/{pool.max}
+                    {pool.className} {pool.die} · {pool.current} из {pool.max}
                   </option>
                 ))}
               </select>
@@ -597,7 +651,8 @@ export function RestDialog({
                         const to = cantripFormulas.catalog.find((r) => r.id === cantripToId)
                         if (!to) return
                         cantripFormulas.onSwap(cantripFromId, to.id, to.name)
-                        setCantripSwapped(true)
+                        if (is2024) markWizardSwap('cantripFormulas')
+                        else setCantripSwappedLocal(true)
                         onToast(`Формулы заговоров: заменён на «${to.name}»`)
                       }}
                     >
@@ -605,15 +660,30 @@ export function RestDialog({
                     </Button>
                   </div>
                 ) : null}
+                {wizard2024Rest ? (
+                  <Wizard2024RestSwaps
+                    kind="short"
+                    swaps={wizard2024Rest}
+                    done={wizardSwapDone}
+                    onDone={markWizardSwap}
+                  />
+                ) : null}
+                {is2024 && warlock2024Rest ? (
+                  <Warlock2024RestPanel kind="short" {...warlock2024Rest} />
+                ) : null}
+                {is2024 && druid2024Rest ? (
+                  <Druid2024RestPanel kind="short" {...druid2024Rest} />
+                ) : null}
                 {pools.length > 0 ? (
                   <div className="play-hit-dice">
                     {pools.map((pool) => (
                       <div key={pool.classEntryId} className="play-hit-dice__pool">
                         <Text>
                           <strong>
-                            {pool.className} · {pool.die}
-                          </strong>{' '}
-                          {pool.current}/{pool.max}
+                            Кости хитов · {pool.className} {pool.die}
+                          </strong>
+                          {': '}
+                          {pool.current} из {pool.max}
                         </Text>
                         <SlotPips
                           max={Math.max(1, pool.max)}
@@ -729,6 +799,20 @@ export function RestDialog({
                       : ''}
                   . Перед применением — сводка изменений.
                 </Text>
+                {wizard2024Rest ? (
+                  <Wizard2024RestSwaps
+                    kind="long"
+                    swaps={wizard2024Rest}
+                    done={wizardSwapDone}
+                    onDone={markWizardSwap}
+                  />
+                ) : null}
+                {is2024 && warlock2024Rest ? (
+                  <Warlock2024RestPanel kind="long" {...warlock2024Rest} />
+                ) : null}
+                {is2024 && druid2024Rest ? (
+                  <Druid2024RestPanel kind="long" {...druid2024Rest} />
+                ) : null}
                 <div className="play-rest-actions">
                   <Button type="button" onClick={requestLongRest}>
                     Сводка и применение…

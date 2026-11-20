@@ -1,0 +1,542 @@
+{
+  "meta": {
+    "pack": "P24-C21",
+    "source": "AUD magic items (community_ref)",
+    "count": 14,
+    "notes": [
+      "14 магических предметов AUD.",
+      "source=aud → community_ref."
+    ]
+  },
+  "entries": [
+    {
+      "kind": "item",
+      "slug": "crystal-ball-of-ominous-portent",
+      "name_ru": "Хрустальный шар дурных знамений",
+      "name_en": "Crystal Ball of Ominous Portent",
+      "source": "aud",
+      "sort_order": 10,
+      "external_ref": {
+        "book": "AUD",
+        "url_dndsu": "https://next.dnd.su/items/21318-crystal-ball-of-ominous-portent",
+        "url_ttg": "https://new.ttg.club/magic-items/crystal-ball-of-ominous-portent-aud"
+      },
+      "data": {
+        "schema_version": 1,
+        "equipment_group": "magic_item",
+        "magic_item_type": "wondrous",
+        "magic_item_type_ru": "чудесный предмет",
+        "rarity": "legendary",
+        "rarity_ru": "легендарный",
+        "requires_attunement": true,
+        "attunement_restriction_ru": "требуется настройка",
+        "charges": null,
+        "recharge_ru": null,
+        "bonus_attack": null,
+        "bonus_damage": null,
+        "bonus_ac": null,
+        "bonus_spell_attack": null,
+        "spell_refs": [
+          "hex",
+          "scrying"
+        ],
+        "base_item_categories": [],
+        "summary_ru": "Внутри этого хрустального шара клубятся чёрно-алые облака зловещей магии.",
+        "text_ru": "Внутри этого хрустального шара клубятся чёрно-алые облака зловещей магии. Касаясь шара, вы можете накладывать с его помощью заклинания Сглаз или Наблюдение (Сл. испытания 17). Кроме того, когда видимое вами существо в пределах 60 футов успешно проходит Тест к20, вы можете реакцией заменить выпавшее на кости число на 1. После использования это свойство нельзя использовать повторно до следующего рассвета.",
+        "sentient": false,
+        "artifact": false,
+        "source_book": "AUD"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "eyes-of-deceit",
+      "name_ru": "Очи обмана",
+      "name_en": "Eyes of Deceit",
+      "source": "aud",
+      "sort_order": 20,
+      "external_ref": {
+        "book": "AUD",
+        "url_dndsu": "https://next.dnd.su/items/21317-eyes-of-deceit",
+        "url_ttg": "https://new.ttg.club/magic-items/eyes-of-deceit-aud"
+      },
+      "data": {
+        "schema_version": 1,
+        "equipment_group": "magic_item",
+        "magic_item_type": "wondrous",
+        "magic_item_type_ru": "чудесный предмет",
+        "rarity": "uncommon",
+        "rarity_ru": "необычный",
+        "requires_attunement": false,
+        "attunement_restriction_ru": null,
+        "charges": null,
+        "recharge_ru": null,
+        "bonus_attack": null,
+        "bonus_damage": null,
+        "bonus_ac": null,
+        "bonus_spell_attack": null,
+        "spell_refs": [],
+        "base_item_categories": [],
+        "summary_ru": "Эти тонированные хрустальные линзы скрывают ваши глаза.",
+        "text_ru": "Эти тонированные хрустальные линзы скрывают ваши глаза. Пока вы носите их, вы получаете бонус +5 к проверкам Харизмы (Обман).",
+        "sentient": false,
+        "artifact": false,
+        "source_book": "AUD"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "life-sapping-blade",
+      "name_ru": "Клинок иссушения жизни",
+      "name_en": "Life-Sapping Blade",
+      "source": "aud",
+      "sort_order": 30,
+      "external_ref": {
+        "book": "AUD",
+        "url_dndsu": "https://next.dnd.su/items/21316-life-sapping-blade",
+        "url_ttg": "https://new.ttg.club/magic-items/life-sapping-blade-aud"
+      },
+      "data": {
+        "schema_version": 1,
+        "equipment_group": "magic_item",
+        "magic_item_type": "weapon",
+        "magic_item_type_ru": "оружие",
+        "rarity": "rare",
+        "rarity_ru": "редкий",
+        "requires_attunement": true,
+        "attunement_restriction_ru": "требуется настройка",
+        "charges": null,
+        "recharge_ru": null,
+        "bonus_attack": null,
+        "bonus_damage": null,
+        "bonus_ac": null,
+        "bonus_spell_attack": null,
+        "spell_refs": [
+          "resurrection",
+          "true-resurrection"
+        ],
+        "base_item_categories": [],
+        "summary_ru": "Этот тонкий клинок из чёрного железа популярен среди тэйских убийц и шпионов.",
+        "text_ru": "Этот тонкий клинок из чёрного железа популярен среди тэйских убийц и шпионов. Вы получаете бонус +1 к броскам атаки и урона этим магическим оружием. Когда вы попадаете атакой с использованием этого оружия, цель получает дополнительно 2к4 урона некротической энергией и не может восстанавливать хиты до конца своего следующего хода. Если атака этим оружием уменьшает количество хитов существа до 0, оно мгновенно умирает и может быть возвращено к жизни только заклинанием Высшее воскрешение или Истинное воскрешение.",
+        "sentient": false,
+        "artifact": false,
+        "source_book": "AUD"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "masqueraders-brooch",
+      "name_ru": "Брошь маскарада",
+      "name_en": "Masquerader's Brooch",
+      "source": "aud",
+      "sort_order": 40,
+      "external_ref": {
+        "book": "AUD",
+        "url_dndsu": "https://next.dnd.su/items/21323-masqueraders-brooch",
+        "url_ttg": "https://new.ttg.club/magic-items/masquerader-s-brooch-aud"
+      },
+      "data": {
+        "schema_version": 1,
+        "equipment_group": "magic_item",
+        "magic_item_type": "wondrous",
+        "magic_item_type_ru": "чудесный предмет",
+        "rarity": "rare",
+        "rarity_ru": "редкий",
+        "requires_attunement": false,
+        "attunement_restriction_ru": null,
+        "charges": null,
+        "recharge_ru": null,
+        "bonus_attack": null,
+        "bonus_damage": null,
+        "bonus_ac": null,
+        "bonus_spell_attack": null,
+        "spell_refs": [
+          "alter-self"
+        ],
+        "base_item_categories": [],
+        "summary_ru": "Броши лицедея бывают самых разных форм и размеров, но всегда выглядят слегка потускневшими.",
+        "text_ru": "Броши лицедея бывают самых разных форм и размеров, но всегда выглядят слегка потускневшими. Пока вы носите эту брошь, вы получаете следующие эффекты: Бонусным действием, держа брошь или надев её, вы можете окутать магической иллюзией свою одежду, доспехи, оружие, снаряжение и прочие находящиеся при вас вещи. Иллюзия длится 1 час и оканчивается досрочно, если вы снимаете брошь. Каждый раз, используя это свойство, вы определяете характер и масштабы иллюзии. Изменения могут быть незначительными, например сменить цвет вашей одежды, или существенными — превратить доспех в вечернее платье, а оружие в ножнах — в атласный пояс. brСозданные иллюзией изменения не выдерживают физического осмотра. Существо, совершающее действие изучение, чтобы осмотреть ваш внешний вид, распознаёт иллюзию при успешной проверке Интеллекта (Анализ) Сл. 13. Действием магия, держа брошь или надев её, вы можете наложить с её помощью заклинание Смена обличия (только вариант «Изменение внешности», концентрация не требуется).",
+        "sentient": false,
+        "artifact": false,
+        "source_book": "AUD"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "ring-of-candor",
+      "name_ru": "Кольцо искренности",
+      "name_en": "Ring of Candor",
+      "source": "aud",
+      "sort_order": 50,
+      "external_ref": {
+        "book": "AUD",
+        "url_dndsu": "https://next.dnd.su/items/21319-ring-of-candor",
+        "url_ttg": "https://new.ttg.club/magic-items/ring-of-candor-aud"
+      },
+      "data": {
+        "schema_version": 1,
+        "equipment_group": "magic_item",
+        "magic_item_type": "ring",
+        "magic_item_type_ru": "кольцо",
+        "rarity": "uncommon",
+        "rarity_ru": "необычный",
+        "requires_attunement": false,
+        "attunement_restriction_ru": null,
+        "charges": null,
+        "recharge_ru": null,
+        "bonus_attack": null,
+        "bonus_damage": null,
+        "bonus_ac": null,
+        "bonus_spell_attack": null,
+        "spell_refs": [
+          "zone-of-truth"
+        ],
+        "base_item_categories": [],
+        "summary_ru": "Пока вы носите это простое металлическое кольцо, вы получаете бонус +5 к проверкам Мудрости (Проницательность).",
+        "text_ru": "Пока вы носите это простое металлическое кольцо, вы получаете бонус +5 к проверкам Мудрости (Проницательность). Кроме того, с помощью кольца вы можете наложить заклинание Область истины (Сл. спасброска 13). Использовав кольцо для наложения этого заклинания, вы не сможете сделать это снова до следующего рассвета.",
+        "sentient": false,
+        "artifact": false,
+        "source_book": "AUD"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "robe-of-thayan-arcana",
+      "name_ru": "Мантия тэйского мага",
+      "name_en": "Robe of Thayan Arcana",
+      "source": "aud",
+      "sort_order": 60,
+      "external_ref": {
+        "book": "AUD",
+        "url_dndsu": "https://next.dnd.su/items/21324-robe-of-thayan-arcana",
+        "url_ttg": "https://new.ttg.club/magic-items/robe-of-thayan-arcana-aud"
+      },
+      "data": {
+        "schema_version": 1,
+        "equipment_group": "magic_item",
+        "magic_item_type": "wondrous",
+        "magic_item_type_ru": "чудесный предмет",
+        "rarity": "very_rare",
+        "rarity_ru": "очень редкий",
+        "requires_attunement": true,
+        "attunement_restriction_ru": "требуется настройка",
+        "charges": null,
+        "recharge_ru": null,
+        "bonus_attack": null,
+        "bonus_damage": null,
+        "bonus_ac": null,
+        "bonus_spell_attack": null,
+        "spell_refs": [],
+        "base_item_categories": [],
+        "summary_ru": "Эту тёмно-красную мантию украшают таинственные символы.",
+        "text_ru": "Эту тёмно-красную мантию украшают таинственные символы. Пока вы носите её, вы получаете следующие эффекты: Сл. спасброска от ваших заклинаний и ваш бонус к броскам атаки заклинаниями увеличиваются на 1. Когда вы совершаете бросок урона заклинания, можете считать любой результат 1 на кости урона результатом 2. Вы можете использовать мантию в качестве заклинательной фокусировки для своих заклинаний.",
+        "sentient": false,
+        "artifact": false,
+        "source_book": "AUD"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "scarlet-spellbook",
+      "name_ru": "Алая книга заклинаний",
+      "name_en": "Scarlet Spellbook",
+      "source": "aud",
+      "sort_order": 70,
+      "external_ref": {
+        "book": "AUD",
+        "url_dndsu": "https://next.dnd.su/items/21325-scarlet-spellbook",
+        "url_ttg": "https://new.ttg.club/magic-items/scarlet-spellbook-aud"
+      },
+      "data": {
+        "schema_version": 1,
+        "equipment_group": "magic_item",
+        "magic_item_type": "wondrous",
+        "magic_item_type_ru": "чудесный предмет",
+        "rarity": "rare",
+        "rarity_ru": "редкий",
+        "requires_attunement": true,
+        "attunement_restriction_ru": "требуется настройка",
+        "charges": null,
+        "recharge_ru": null,
+        "bonus_attack": null,
+        "bonus_damage": null,
+        "bonus_ac": null,
+        "bonus_spell_attack": null,
+        "spell_refs": [],
+        "base_item_categories": [],
+        "summary_ru": "Потрёпанный том обёрнут неровными лоскутами красной ткани.",
+        "text_ru": "Потрёпанный том обёрнут неровными лоскутами красной ткани. Настроившись на этот предмет, вы можете использовать его как книгу заклинаний и магическую фокусировку. Когда вы используете умение «Магическое восстановление», вы также восстанавливаете хиты в количестве, равном 2к6 + половина вашего уровня волшебника (с округлением вниз). Когда вы используете умение Запоминание заклинания, вы можете заменить ещё одно подготовленное вами заклинание волшебника 1-го уровня или выше из умения Использование заклинаний другим заклинанием 1-го уровня или выше, записанным в этой книге.",
+        "sentient": false,
+        "artifact": false,
+        "source_book": "AUD"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "snipers-bracelet",
+      "name_ru": "Браслет меткого стрелка",
+      "name_en": "Sniper's Bracelet",
+      "source": "aud",
+      "sort_order": 80,
+      "external_ref": {
+        "book": "AUD",
+        "url_dndsu": "https://next.dnd.su/items/21326-snipers-bracelet",
+        "url_ttg": "https://new.ttg.club/magic-items/sniper-s-bracelet-aud"
+      },
+      "data": {
+        "schema_version": 1,
+        "equipment_group": "magic_item",
+        "magic_item_type": "weapon",
+        "magic_item_type_ru": "оружие",
+        "rarity": "common",
+        "rarity_ru": "обычный",
+        "requires_attunement": true,
+        "attunement_restriction_ru": "требуется настройка",
+        "charges": null,
+        "recharge_ru": null,
+        "bonus_attack": null,
+        "bonus_damage": null,
+        "bonus_ac": null,
+        "bonus_spell_attack": null,
+        "spell_refs": [],
+        "base_item_categories": [],
+        "summary_ru": "Действием магия, касаясь этого оружия, вы можете превратить его в браслет или вернуть ему облик оружия.",
+        "text_ru": "Действием магия, касаясь этого оружия, вы можете превратить его в браслет или вернуть ему облик оружия. В облике браслета его нельзя использовать для совершения атак. Если у оружия в его обычном облике нет боеприпасов, оно создаёт их само: при совершении дальнобойной атаки с его помощью автоматически появляется один магический боеприпас. Этот боеприпас исчезает сразу после того, как попадает по цели или промахивается.",
+        "sentient": false,
+        "artifact": false,
+        "source_book": "AUD"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "spell-fueling-armor",
+      "name_ru": "Доспех восстановления заклинаний",
+      "name_en": "Spell-Fueling Armor",
+      "source": "aud",
+      "sort_order": 90,
+      "external_ref": {
+        "book": "AUD",
+        "url_dndsu": "https://next.dnd.su/items/21327-spell-fueling-armor",
+        "url_ttg": "https://new.ttg.club/magic-items/spell-fueling-armor-aud"
+      },
+      "data": {
+        "schema_version": 1,
+        "equipment_group": "magic_item",
+        "magic_item_type": "armor",
+        "magic_item_type_ru": "доспех",
+        "rarity": "very_rare",
+        "rarity_ru": "очень редкий",
+        "requires_attunement": true,
+        "attunement_restriction_ru": "требуется настройка",
+        "charges": null,
+        "recharge_ru": null,
+        "bonus_attack": null,
+        "bonus_damage": null,
+        "bonus_ac": null,
+        "bonus_spell_attack": null,
+        "spell_refs": [],
+        "base_item_categories": [],
+        "summary_ru": "По поверхности этого доспеха пересекаются желобки с магическими рунами.",
+        "text_ru": "По поверхности этого доспеха пересекаются желобки с магическими рунами. Такие доспехи особенно ценятся тайскими рыцарями-заклинателями. Когда вы совершаете бросок урона заклинания, нося этот доспех, вы можете считать любую выпавшую на кости урона 1 за 2. Когда вы заканчиваете короткий отдых, нося этот доспех, вы можете восстановить несколько потраченных ячеек заклинаний. Сумма уровней этих ячеек не должна превышать 3. Например, вы можете восстановить одну ячейку 3-го уровня или три ячейки 1-го уровня. После использования это свойство нельзя использовать снова до следующего рассвета.",
+        "sentient": false,
+        "artifact": false,
+        "source_book": "AUD"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "spirit-binding-censer",
+      "name_ru": "Кадило пленения духов",
+      "name_en": "Spirit-Binding Censer",
+      "source": "aud",
+      "sort_order": 100,
+      "external_ref": {
+        "book": "AUD",
+        "url_dndsu": "https://next.dnd.su/items/21328-spirit-binding-censer",
+        "url_ttg": "https://new.ttg.club/magic-items/spirit-binding-censer-aud"
+      },
+      "data": {
+        "schema_version": 1,
+        "equipment_group": "magic_item",
+        "magic_item_type": "wondrous",
+        "magic_item_type_ru": "чудесный предмет",
+        "rarity": "artifact",
+        "rarity_ru": "артефакт",
+        "requires_attunement": true,
+        "attunement_restriction_ru": "требуется настройка",
+        "charges": 10,
+        "recharge_ru": "1к6",
+        "bonus_attack": null,
+        "bonus_damage": null,
+        "bonus_ac": null,
+        "bonus_spell_attack": null,
+        "spell_refs": [
+          "banishment",
+          "bless",
+          "circle-of-power",
+          "dispel-magic",
+          "remove-curse",
+          "protection-from-evil-and-good"
+        ],
+        "base_item_categories": [],
+        "summary_ru": "Это латунное кадило приятно согревает на ощупь.",
+        "text_ru": "Это латунное кадило приятно согревает на ощупь. Кадило имеет 10 зарядов и ежедневно восстанавливает 1к6 зарядов на рассвете. Держа кадило, вы можете наложить с его помощью одно из заклинаний, приведённых в таблице «Заклинания кадила» (Сл. спасброска 18). В таблице указано, сколько зарядов необходимо потратить для наложения заклинания. Заклинания кадила — стоимость в зарядах: Изгнание — 4; Благословение — 1; Круг силы — 5; Рассеивание магии — 3; Снятие проклятия — 3. Держа кадило, вы можете действием магия заставить его испускать клубы волшебного дыма. На 1 час или пока вы не прекратите этот эффект (действие не требуется) кадило становится источником 30-футовой эманации, заполненной дымом. Область эманации считается слабо заслонённой, а выбранные вами существа (включая вас) получают преимущества заклинания Защита от зла и добра, пока находятся в эманации. После использования это свойство нельзя использовать повторно до следующего рассвета. Когда существо умирает в пределах 30 футов от вас, пока вы держите кадило, вы можете втянуть его душу в кадило, заточив её внутри. Пока душа существа заточена в кадиле, это существо нельзя вернуть к жизни. Если у существа была особенность, позволявшая ему возродиться, например Дьявольское восстановление шипастого дьявола или Сосуд духа лича, эта особенность не действует, пока душа существа заточена. Одновременно в кадиле может находиться только одна душа. Душа существа остаётся заточённой в кадиле в течение 100 лет, пока вы не освободите её действием магия или пока кадило не будет уничтожено (см. «Уничтожение кадила» ниже). Кадило обладает следующими случайными свойствами: 1 малое положительное свойство; 1 большое положительное свойство. Если в кадиле нет души, оно уничтожается, пробыв погружённым в реку Стикс в течение 1 года.",
+        "sentient": false,
+        "artifact": true,
+        "source_book": "AUD"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "staff-of-the-spirit-aegis",
+      "name_ru": "Посох эгиды духов",
+      "name_en": "Staff of the Spirit Aegis",
+      "source": "aud",
+      "sort_order": 110,
+      "external_ref": {
+        "book": "AUD",
+        "url_dndsu": "https://next.dnd.su/items/21329-staff-of-the-spirit-aegis",
+        "url_ttg": "https://new.ttg.club/magic-items/staff-of-the-spirit-aegis-aud"
+      },
+      "data": {
+        "schema_version": 1,
+        "equipment_group": "magic_item",
+        "magic_item_type": "staff",
+        "magic_item_type_ru": "посох",
+        "rarity": "legendary",
+        "rarity_ru": "легендарный",
+        "requires_attunement": false,
+        "attunement_restriction_ru": null,
+        "charges": null,
+        "recharge_ru": null,
+        "bonus_attack": null,
+        "bonus_damage": null,
+        "bonus_ac": null,
+        "bonus_spell_attack": null,
+        "spell_refs": [
+          "resistance"
+        ],
+        "base_item_categories": [],
+        "summary_ru": "Этот потрёпанный костяной посох увенчан черепом и украшен позвонками.",
+        "text_ru": "Этот потрёпанный костяной посох увенчан черепом и украшен позвонками. Его можно использовать как магический боевой посох, предоставляющий бонус +3 к броскам атаки и урона, совершённым с его помощью. Пока вы держите этот посох, вы обладаете сопротивлением к урону некротической энергией. Действием магия, держа посох, вы можете заставить его излучать сверхъестественную силу, которая заполняет исходящую от вас 30-футовую эманацию. Выбранные вами существа в этой эманации, включая вас, получают следующие преимущества: Отпугивание нежити. Нежить совершает с помехой броски атаки против этих существ. Нечестивая защита. Эти существа обладают сопротивлением урону холодом, некротической и психической энергией, а также совершают с преимуществом спасброски, позволяющие избежать состояния испуганный или окончить его на себе. brЭманация существует в течение 1 часа или пока вы её не прекратите (действие не требуется). После использования это свойство нельзя использовать снова до следующего рассвета. Бонусным действием, держа посох, вы можете заставить глазницы венчающего его черепа испускать потустороннее сияние. Оно сохраняется, пока вы его не погасите (действие не требуется). Пока посох сияет, он излучает яркий свет в радиусе 15 футов и тусклый свет ещё на 15 футов. Невидимые существа и предметы видимы, пока находятся в области яркого или тусклого света посоха.",
+        "sentient": false,
+        "artifact": false,
+        "source_book": "AUD"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "thayan-sword",
+      "name_ru": "Тэйский меч",
+      "name_en": "Thayan Sword",
+      "source": "aud",
+      "sort_order": 120,
+      "external_ref": {
+        "book": "AUD",
+        "url_dndsu": "https://next.dnd.su/items/21330-thayan-sword",
+        "url_ttg": "https://new.ttg.club/magic-items/thayan-sword-aud"
+      },
+      "data": {
+        "schema_version": 1,
+        "equipment_group": "magic_item",
+        "magic_item_type": "weapon",
+        "magic_item_type_ru": "оружие",
+        "rarity": "rare",
+        "rarity_ru": "редкий",
+        "requires_attunement": true,
+        "attunement_restriction_ru": "требуется настройка",
+        "charges": 4,
+        "recharge_ru": "1к4",
+        "bonus_attack": null,
+        "bonus_damage": null,
+        "bonus_ac": null,
+        "bonus_spell_attack": null,
+        "spell_refs": [
+          "searing-smite",
+          "thunderous-smite",
+          "wrathful-smite"
+        ],
+        "base_item_categories": [],
+        "summary_ru": "Тэйскими мечами часто награждают лучших тэйских рыцарей, завершивших обучение.",
+        "text_ru": "Тэйскими мечами часто награждают лучших тэйских рыцарей, завершивших обучение. Вы получаете бонус +1 к броскам атаки и урона этим магическим оружием. Меч имеет 4 заряда и ежедневно восстанавливает 1к4 заряда на рассвете. Держа меч, вы можете потратить 1 заряд, чтобы наложить одно из следующих заклинаний (Сл. спасброска 15): Палящая кара Громовая кара Гневная кара Если ваши хиты опускаются до 0, но вы не погибаете мгновенно, пока держите этот меч, вместо этого ваши хиты опускаются до 1. После использования это свойство нельзя использовать повторно до следующего рассвета.",
+        "sentient": false,
+        "artifact": false,
+        "source_book": "AUD"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "trick-weapon",
+      "name_ru": "Потайное оружие",
+      "name_en": "Trick Weapon",
+      "source": "aud",
+      "sort_order": 130,
+      "external_ref": {
+        "book": "AUD",
+        "url_dndsu": "https://next.dnd.su/items/21331-trick-weapon",
+        "url_ttg": "https://new.ttg.club/magic-items/trick-weapon-aud"
+      },
+      "data": {
+        "schema_version": 1,
+        "equipment_group": "magic_item",
+        "magic_item_type": "weapon",
+        "magic_item_type_ru": "оружие",
+        "rarity": "common",
+        "rarity_ru": "обычный",
+        "requires_attunement": false,
+        "attunement_restriction_ru": null,
+        "charges": null,
+        "recharge_ru": null,
+        "bonus_attack": null,
+        "bonus_damage": null,
+        "bonus_ac": null,
+        "bonus_spell_attack": null,
+        "spell_refs": [],
+        "base_item_categories": [],
+        "summary_ru": "Касаясь этого оружия, вы можете действием магия превратить его в немагический предмет или вернуть ему облик оружия.",
+        "text_ru": "Касаясь этого оружия, вы можете действием магия превратить его в немагический предмет или вернуть ему облик оружия. Пока оружие превращено в немагический предмет, его нельзя использовать для совершения атак. Разные оружия-обманки превращаются в разные предметы. Мастер выбирает немагический предмет или определяет его случайным образом, совершая бросок по следующей таблице. 1к10 — Оружие превращается в: 1 — Браслет; 2 — Гребень; 3 — Костыль; 4 — Фальшивую монету; 5 — Заколку для волос; 6 — Бубенчик; 7 — Ожерелье с подвеской; 8 — Игральную карту; 9 — Писчее перо; 10 — Ложку",
+        "sentient": false,
+        "artifact": false,
+        "source_book": "AUD"
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "wand-of-enthralling",
+      "name_ru": "Волшебная палочка златоуста",
+      "name_en": "Wand of Enthralling",
+      "source": "aud",
+      "sort_order": 140,
+      "external_ref": {
+        "book": "AUD",
+        "url_dndsu": "https://next.dnd.su/items/21332-wand-of-enthralling",
+        "url_ttg": "https://new.ttg.club/magic-items/wand-of-enthralling-aud"
+      },
+      "data": {
+        "schema_version": 1,
+        "equipment_group": "magic_item",
+        "magic_item_type": "rod",
+        "magic_item_type_ru": "палочка",
+        "rarity": "uncommon",
+        "rarity_ru": "необычный",
+        "requires_attunement": true,
+        "attunement_restriction_ru": "требуется настройка",
+        "charges": 4,
+        "recharge_ru": "1к4",
+        "bonus_attack": null,
+        "bonus_damage": null,
+        "bonus_ac": null,
+        "bonus_spell_attack": null,
+        "spell_refs": [
+          "enthrall"
+        ],
+        "base_item_categories": [],
+        "summary_ru": "У этой волшебной палочки 4 заряда, и ежедневно на рассвете она восстанавливает 1к4 израсходованных заряда.",
+        "text_ru": "У этой волшебной палочки 4 заряда, и ежедневно на рассвете она восстанавливает 1к4 израсходованных заряда. Держа её, вы можете потратить 1 заряд, чтобы наложить с её помощью заклинание Речь златоуста (Сл. спасброска 15).",
+        "sentient": false,
+        "artifact": false,
+        "source_book": "AUD"
+      }
+    }
+  ]
+}

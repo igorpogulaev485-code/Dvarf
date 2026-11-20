@@ -37,6 +37,7 @@ type AttacksSettingsDialogProps = {
   weaponProficiency: WeaponProficiency
   gearBonusesByItem?: Record<string, { attackBonus: number; damageBonus: number }>
   martialArtsDie?: string | null
+  rulesEdition?: string | null
   formulaVars?: FormulaVars
   onChange: (weapons: WeaponAttack[]) => void
   onToggleHeld?: (attack: WeaponAttack) => void
@@ -62,6 +63,7 @@ export function AttacksSettingsDialog({
   weaponProficiency,
   gearBonusesByItem,
   martialArtsDie = null,
+  rulesEdition = '2014',
   formulaVars = {},
   onChange,
   onToggleHeld,
@@ -124,7 +126,7 @@ export function AttacksSettingsDialog({
           const classMa = isClassMartialArtsAttack(attack)
           const monkWeapon =
             Boolean(martialArtsDie) &&
-            (classMa || isMonkWeaponName(attack.name))
+            (classMa || isMonkWeaponName(attack.name, rulesEdition))
           const attackAbility = monkWeapon
             ? monkAttackAbility({
                 str: abilities.str,

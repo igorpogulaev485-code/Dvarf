@@ -5,6 +5,13 @@ import {
   metamagicSpendCost,
   type MetamagicDef,
 } from '../../shared/dnd/sorcererMetamagic'
+import {
+  CREATE_SLOT_COST_2024,
+  createSlotFromPoints2024,
+  convertSlotToPoints2024,
+  FONT_OF_MAGIC_NAME_RU,
+} from '../../shared/dnd/sorcerer2024Features'
+import { metamagicById2024 } from '../../shared/dnd/edition2024ClassOptions'
 import { addFlexibleSpellSlot, clampSlot, type SpellSlotState } from '../../shared/dnd/spells'
 import type { SheetResource } from '../../shared/dnd/rest'
 import { Button, Dialog, Field, Stack, Text } from '../../ui'
@@ -14,10 +21,20 @@ type SorceryPointsSpendDialogProps = {
   resource: SheetResource | null
   metamagicIds: string[]
   slots: Record<string, SpellSlotState>
+  rulesEdition?: string
+  sorcererLevel?: number
   onSetUsed: (used: number) => void
   onSlotsChange: (slots: Record<string, SpellSlotState>) => void
   onToast: (message: string) => void
   onClose: () => void
+}
+
+type SpendOption = {
+  id: string
+  nameRu: string
+  summaryRu: string
+  cost: number
+  variableTwin?: boolean
 }
 
 export function SorceryPointsSpendDialog({
@@ -25,21 +42,44 @@ export function SorceryPointsSpendDialog({
   resource,
   metamagicIds,
   slots,
+  rulesEdition,
+  sorcererLevel = 1,
   onSetUsed,
   onSlotsChange,
   onToast,
   onClose,
 }: SorceryPointsSpendDialogProps) {
+  const is2024 = rulesEdition === '2024'
   const remaining = resource ? Math.max(0, resource.max - resource.used) : 0
-  const options = useMemo(() => {
+  const [twinLevel, setTwinLevel] = useState(1)
+  const options = useMemo((): SpendOption[] => {
+    if (is2024) {
+      const rows: SpendOption[] = []
+      for (const id of metamagicIds) {
+        const def = metamagicById2024(id)
+        if (!def) continue
+        rows.push({
+          id: def.id,
+          nameRu: def.nameRu,
+          summaryRu: def.summaryRu,
+          cost: def.cost,
+        })
+      }
+      return rows
+    }
     const rows: MetamagicDef[] = []
     for (const id of metamagicIds) {
       const def = metamagicById(id)
       if (def) rows.push(def)
     }
-    return rows
-  }, [metamagicIds])
-  const [twinLevel, setTwinLevel] = useState(1)
+    return rows.map((def) => ({
+      id: def.id,
+      nameRu: def.nameRu,
+      summaryRu: def.summaryRu,
+      cost: def.costPoints != null ? def.costPoints : metamagicSpendCost(def, twinLevel),
+      variableTwin: def.costPoints == null && def.id === 'twinned',
+    }))
+  }, [metamagicIds, is2024, twinLevel])
 
   function spend(cost: number, label: string) {
     if (!resource) return
@@ -54,6 +94,24 @@ export function SorceryPointsSpendDialog({
 
   function createSlot(level: number) {
     if (!resource) return
+    if (is2024) {
+      const result = createSlotFromPoints2024({
+        slots,
+        slotLevel: level,
+        sorcererLevel,
+        sorceryMax: resource.max,
+        sorceryUsed: resource.used,
+      })
+      if (!result.ok) {
+        onToast(result.reasonRu)
+        return
+      }
+      onSetUsed(result.sorceryUsed)
+      onSlotsChange(result.slots)
+      onToast(result.feedLineRu)
+      onClose()
+      return
+    }
     const cost = FLEXIBLE_CASTING_SLOT_COST[level]
     if (cost == null) return
     if (cost > remaining) {
@@ -70,6 +128,23 @@ export function SorceryPointsSpendDialog({
 
   function slotToPoints(level: number) {
     if (!resource) return
+    if (is2024) {
+      const result = convertSlotToPoints2024({
+        slots,
+        slotLevel: level,
+        sorceryMax: resource.max,
+        sorceryUsed: resource.used,
+      })
+      if (!result.ok) {
+        onToast(result.reasonRu)
+        return
+      }
+      onSlotsChange(result.slots)
+      onSetUsed(result.sorceryUsed)
+      onToast(result.feedLineRu)
+      onClose()
+      return
+    }
     const key = String(level)
     const current = clampSlot(slots[key] ?? { max: 0, used: 0 })
     const available = Math.max(0, current.max - current.used)
@@ -81,11 +156,15 @@ export function SorceryPointsSpendDialog({
       ...slots,
       [key]: clampSlot({ ...current, used: current.used + 1 }),
     })
-    // Gain SP equal to slot level (PHB).
     onSetUsed(Math.max(0, resource.used - level))
     onToast(`Гибкое колдовство: ячейка ${level} → +${level} очк.`)
     onClose()
   }
+
+  const flexTitle = is2024 ? FONT_OF_MAGIC_NAME_RU : 'Гибкое колдовство'
+  const metaHint = is2024
+    ? 'Нет выбранных вариантов — возьми метамагию в способностях (с 2 ур. чародея).'
+    : 'Нет выбранных вариантов — возьми метамагию в способностях (с 3 ур. чародея).'
 
   return (
     <Dialog
@@ -99,7 +178,10 @@ export function SorceryPointsSpendDialog({
     >
       <Stack gap={14}>
         <Text tone="muted">
-          Сейчас {remaining}/{resource?.max ?? 0}. Выбери метамагию или гибкое колдовство.
+          Сейчас {remaining}/{resource?.max ?? 0}.{' '}
+          {is2024
+            ? 'Выбери метамагию или Источник магии.'
+            : 'Выбери метамагию или гибкое колдовство.'}
         </Text>
 
         <div>
@@ -107,24 +189,19 @@ export function SorceryPointsSpendDialog({
             <strong>Метамагия</strong>
           </Text>
           {options.length === 0 ? (
-            <Text tone="muted">
-              Нет выбранных вариантов — возьми метамагию в способностях (с 3 ур. чародея).
-            </Text>
+            <Text tone="muted">{metaHint}</Text>
           ) : (
             <div className="sorcery-spend-list">
               {options.map((def) => {
-                const cost =
-                  def.costPoints != null
-                    ? def.costPoints
-                    : metamagicSpendCost(def, twinLevel)
+                const cost = def.cost
                 return (
                   <div key={def.id} className="sorcery-spend-row">
                     <div className="sorcery-spend-row__text">
                       <b>{def.nameRu}</b>
                       <span>
-                        {def.costRu} очк. · {def.summaryRu}
+                        {cost} очк. · {def.summaryRu}
                       </span>
-                      {def.costPoints == null ? (
+                      {def.variableTwin ? (
                         <Field label="Ур. ячейки для Разделённого">
                           <select
                             className="play-select"
@@ -158,21 +235,31 @@ export function SorceryPointsSpendDialog({
 
         <div>
           <Text>
-            <strong>Гибкое колдовство</strong>
+            <strong>{flexTitle}</strong>
           </Text>
           <Text tone="muted">
             Очки создают новую ячейку до 5 круга, даже если круг полон. Она исчезает после
-            продолжительного отдыха. Ячейка → очки (= уровень ячейки).
+            долгого отдыха. Ячейка → очки (= уровень ячейки).
           </Text>
           <div className="sorcery-spend-flex">
             {[1, 2, 3, 4, 5].map((level) => {
-              const cost = FLEXIBLE_CASTING_SLOT_COST[level]!
+              const cost = is2024
+                ? (CREATE_SLOT_COST_2024[level]?.cost ?? 99)
+                : FLEXIBLE_CASTING_SLOT_COST[level]!
+              const minLv = is2024 ? CREATE_SLOT_COST_2024[level]?.minSorcererLevel : 0
+              const disabled =
+                cost > remaining || (is2024 && minLv != null && sorcererLevel < minLv)
               return (
                 <Button
                   key={`make-${level}`}
                   type="button"
                   variant="secondary"
-                  disabled={cost > remaining}
+                  disabled={disabled}
+                  title={
+                    is2024 && minLv
+                      ? `Мин. ${minLv} ур. чародея`
+                      : 'Создать дополнительную ячейку'
+                  }
                   onClick={() => createSlot(level)}
                 >
                   Ячейка {level} (−{cost})

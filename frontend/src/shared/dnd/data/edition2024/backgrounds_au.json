@@ -1,0 +1,470 @@
+{
+  "meta": {
+    "pack": "P24-C21",
+    "rules_edition": "2024",
+    "source": "au",
+    "notes_ru": "10 предысторий AU. ASI + origin_feat. RU: backgrounds.csv / ttg / next.dnd.su."
+  },
+  "entries": [
+    {
+      "kind": "background",
+      "slug": "agent-of-the-ninth-quill",
+      "name_ru": "Агент Девятого пера",
+      "name_en": "Agent of the Ninth Quill",
+      "source": "au",
+      "sort_order": 10,
+      "external_ref": {
+        "book": "AU",
+        "url_dndsu": "https://next.dnd.su/backgrounds/954-agent-of-the-ninth-quill",
+        "url_ttg": "https://new.ttg.club/backgrounds/agent-of-the-ninth-quill-au"
+      },
+      "data": {
+        "asi": {
+          "abilities": [
+            "dex",
+            "int",
+            "cha"
+          ],
+          "options": [
+            "+2/+1",
+            "+1/+1/+1"
+          ],
+          "cap": 20
+        },
+        "origin_feat": {
+          "id": "arcane-infiltrator",
+          "slug": "arcane-infiltrator",
+          "name_ru": "Мистический лазутчик",
+          "name_en": "Arcane Infiltrator"
+        },
+        "skill_proficiencies": [
+          "arcana",
+          "sleight_of_hand"
+        ],
+        "tool_proficiencies": [
+          "Воровские инструменты"
+        ],
+        "tool_choices": null,
+        "equipment_or_gold": {
+          "gold_alternative_gp": 50,
+          "pack_summary_ru": "(А) Кинжал Лёгкий молот Воровские инструменты Колья, железные Верёвка Одежда путешественника 17 зм; (Б) 50 зм"
+        },
+        "traits_text": "Агент Девятого пера (Неудержимая магия): ЛОВ/ИНТ/ХАР (+2/+1 или +1/+1/+1). Черта: Мистический лазутчик. Навыки: тайная магия, ловкость рук. Инструмент: Воровские инструменты. Пакет или 50 зм."
+      }
+    },
+    {
+      "kind": "background",
+      "slug": "bejeweled-conclave-spy",
+      "name_ru": "Шпион Самоцветного конклава",
+      "name_en": "Bejeweled Conclave Spy",
+      "source": "au",
+      "sort_order": 20,
+      "external_ref": {
+        "book": "AU",
+        "url_dndsu": "https://next.dnd.su/backgrounds/955-bejeweled-conclave-spy",
+        "url_ttg": "https://new.ttg.club/backgrounds/bejeweled-conclave-spy-au"
+      },
+      "data": {
+        "asi": {
+          "abilities": [
+            "dex",
+            "wis",
+            "cha"
+          ],
+          "options": [
+            "+2/+1",
+            "+1/+1/+1"
+          ],
+          "cap": 20
+        },
+        "origin_feat": {
+          "id": "arcane-eloquence",
+          "slug": "arcane-eloquence",
+          "name_ru": "Колдовское красноречие",
+          "name_en": "Arcane Eloquence"
+        },
+        "skill_proficiencies": [
+          "deception",
+          "perception"
+        ],
+        "tool_proficiencies": [
+          "Набор для грима"
+        ],
+        "tool_choices": null,
+        "equipment_or_gold": {
+          "gold_alternative_gp": 50,
+          "pack_summary_ru": "(А) Набор для маскировки Парадная одежда Духи 5 зм; (Б) 50 зм"
+        },
+        "traits_text": "Шпион Самоцветного конклава (Неудержимая магия): ЛОВ/МУД/ХАР (+2/+1 или +1/+1/+1). Черта: Колдовское красноречие. Навыки: обман, внимательность. Инструмент: Набор для грима. Пакет или 50 зм."
+      }
+    },
+    {
+      "kind": "background",
+      "slug": "cosmic-dawn-experiment",
+      "name_ru": "Эксперимент Зари мироздания",
+      "name_en": "Cosmic Dawn Experiment",
+      "source": "au",
+      "sort_order": 30,
+      "external_ref": {
+        "book": "AU",
+        "url_dndsu": "https://next.dnd.su/backgrounds/956-cosmic-dawn-experiment",
+        "url_ttg": "https://new.ttg.club/backgrounds/cosmic-dawn-experiment-au"
+      },
+      "data": {
+        "asi": {
+          "abilities": [
+            "str",
+            "dex",
+            "con"
+          ],
+          "options": [
+            "+2/+1",
+            "+1/+1/+1"
+          ],
+          "cap": 20
+        },
+        "origin_feat": {
+          "id": "transmuted-anatomy",
+          "slug": "transmuted-anatomy",
+          "name_ru": "Преобразованная анатомия",
+          "name_en": "Transmuted Anatomy"
+        },
+        "skill_proficiencies": [
+          "athletics",
+          "survival"
+        ],
+        "tool_proficiencies": [
+          "Ремесленные инструменты"
+        ],
+        "tool_choices": null,
+        "equipment_or_gold": {
+          "gold_alternative_gp": 50,
+          "pack_summary_ru": "Выберите А или Б: (А) Ремесленные инструменты (выбранные выше), Рюкзак, Мантия, Дорожная одежда, 30 ЗМ; или (Б) 50 ЗМ Ваше тело было изменено магией преобразования Вестников Зари мироздания. Может быть, вы случайно оказались в области действия одного из экспериментов этой организации, а может быть, вы сами были Вестником и пытались мощью магии улучшить ваше тело. Как бы это ни произошло, теперь вы извлекаете пользу из необычности вашей анатомии"
+        },
+        "traits_text": "Эксперимент Зари мироздания (Неудержимая магия): СИЛ/ЛОВ/ТЕЛ (+2/+1 или +1/+1/+1). Черта: Преобразованная анатомия. Навыки: атлетика, выживание. Инструмент: Ремесленные инструменты. Пакет или 50 зм."
+      }
+    },
+    {
+      "kind": "background",
+      "slug": "covenant-of-the-grave-recruit",
+      "name_ru": "Рекрут Могильного ковенанта",
+      "name_en": "Covenant of the Grave Recruit",
+      "source": "au",
+      "sort_order": 40,
+      "external_ref": {
+        "book": "AU",
+        "url_dndsu": "https://next.dnd.su/backgrounds/957-covenant-of-the-grave-recruit",
+        "url_ttg": "https://new.ttg.club/backgrounds/covenant-of-the-grave-recruit-au"
+      },
+      "data": {
+        "asi": {
+          "abilities": [
+            "str",
+            "int",
+            "wis"
+          ],
+          "options": [
+            "+2/+1",
+            "+1/+1/+1"
+          ],
+          "cap": 20
+        },
+        "origin_feat": {
+          "id": "arcane-undertaker",
+          "slug": "arcane-undertaker",
+          "name_ru": "Колдовской могильщик",
+          "name_en": "Arcane Undertaker"
+        },
+        "skill_proficiencies": [
+          "history",
+          "medicine"
+        ],
+        "tool_proficiencies": [
+          "Набор травника"
+        ],
+        "tool_choices": null,
+        "equipment_or_gold": {
+          "gold_alternative_gp": 50,
+          "pack_summary_ru": "(А) Кинжал Набор травника Книга Лопата 16 зм; (Б) 50 зм"
+        },
+        "traits_text": "Рекрут Могильного ковенанта (Неудержимая магия): СИЛ/ИНТ/МУД (+2/+1 или +1/+1/+1). Черта: Колдовской могильщик. Навыки: история, медицина. Инструмент: Набор травника. Пакет или 50 зм."
+      }
+    },
+    {
+      "kind": "background",
+      "slug": "crucible-storm-chaser",
+      "name_ru": "Ищущий бурю Горнила",
+      "name_en": "Crucible Storm Chaser",
+      "source": "au",
+      "sort_order": 50,
+      "external_ref": {
+        "book": "AU",
+        "url_dndsu": "https://next.dnd.su/backgrounds/958-crucible-storm-chaser",
+        "url_ttg": "https://new.ttg.club/backgrounds/crucible-storm-chaser-au"
+      },
+      "data": {
+        "asi": {
+          "abilities": [
+            "str",
+            "con",
+            "int"
+          ],
+          "options": [
+            "+2/+1",
+            "+1/+1/+1"
+          ],
+          "cap": 20
+        },
+        "origin_feat": {
+          "id": "arcane-overload",
+          "slug": "arcane-overload",
+          "name_ru": "Магическая перегрузка",
+          "name_en": "Arcane Overload"
+        },
+        "skill_proficiencies": [
+          "athletics",
+          "nature"
+        ],
+        "tool_proficiencies": [
+          "glassblower s tools"
+        ],
+        "tool_choices": null,
+        "equipment_or_gold": {
+          "gold_alternative_gp": 50,
+          "pack_summary_ru": "(А) Инструменты стеклодува Рюкзак Верёвка Одежда путешественника 15 зм; (Б) 50 зм"
+        },
+        "traits_text": "Ищущий бурю Горнила (Неудержимая магия): СИЛ/ТЕЛ/ИНТ (+2/+1 или +1/+1/+1). Черта: Магическая перегрузка. Навыки: атлетика, природа. Инструмент: glassblower s tools. Пакет или 50 зм."
+      }
+    },
+    {
+      "kind": "background",
+      "slug": "familiar-trainer",
+      "name_ru": "Дрессировщик фамильяров",
+      "name_en": "Familiar Trainer",
+      "source": "au",
+      "sort_order": 60,
+      "external_ref": {
+        "book": "AU",
+        "url_dndsu": "https://next.dnd.su/backgrounds/959-familiar-trainer",
+        "url_ttg": "https://new.ttg.club/backgrounds/familiar-trainer-au"
+      },
+      "data": {
+        "asi": {
+          "abilities": [
+            "con",
+            "int",
+            "wis"
+          ],
+          "options": [
+            "+2/+1",
+            "+1/+1/+1"
+          ],
+          "cap": 20
+        },
+        "origin_feat": {
+          "id": "familiar-friend",
+          "slug": "familiar-friend",
+          "name_ru": "Друг-фамильяр",
+          "name_en": "Familiar Friend"
+        },
+        "skill_proficiencies": [
+          "animal_handling",
+          "arcana"
+        ],
+        "tool_proficiencies": [
+          "набор инструментов (на выбор)"
+        ],
+        "tool_choices": null,
+        "equipment_or_gold": {
+          "gold_alternative_gp": 50,
+          "pack_summary_ru": "(А) Боевой посох Игровой набор Спальник Колокольчик Бечёвка Трутница Одежда путешественника Бурдюк 44 зм; (Б) 50 зм"
+        },
+        "traits_text": "Дрессировщик фамильяров (Неудержимая магия): ТЕЛ/ИНТ/МУД (+2/+1 или +1/+1/+1). Черта: Друг-фамильяр. Навыки: обращение с животными, тайная магия. Инструмент: набор инструментов (на выбор). Пакет или 50 зм."
+      }
+    },
+    {
+      "kind": "background",
+      "slug": "horizon-weaver-initiate",
+      "name_ru": "Посвящённый Плетущих горизонты",
+      "name_en": "Horizon Weaver Initiate",
+      "source": "au",
+      "sort_order": 70,
+      "external_ref": {
+        "book": "AU",
+        "url_dndsu": "https://next.dnd.su/backgrounds/960-horizon-weaver-initiate",
+        "url_ttg": "https://new.ttg.club/backgrounds/horizon-weaver-initiate-au"
+      },
+      "data": {
+        "asi": {
+          "abilities": [
+            "dex",
+            "con",
+            "wis"
+          ],
+          "options": [
+            "+2/+1",
+            "+1/+1/+1"
+          ],
+          "cap": 20
+        },
+        "origin_feat": {
+          "id": "portal-jumper",
+          "slug": "portal-jumper",
+          "name_ru": "Портальный прыгун",
+          "name_en": "Portal Jumper"
+        },
+        "skill_proficiencies": [
+          "acrobatics",
+          "survival"
+        ],
+        "tool_proficiencies": [
+          "weaver s tools"
+        ],
+        "tool_choices": null,
+        "equipment_or_gold": {
+          "gold_alternative_gp": 50,
+          "pack_summary_ru": "(А) Короткий лук Стрела×20 Инструменты ткача Карта Колчан Верёвка Одежда путешественника 18 зм; (Б) 50 зм"
+        },
+        "traits_text": "Посвящённый Плетущих горизонты (Неудержимая магия): ЛОВ/ТЕЛ/МУД (+2/+1 или +1/+1/+1). Черта: Портальный прыгун. Навыки: акробатика, выживание. Инструмент: weaver s tools. Пакет или 50 зм."
+      }
+    },
+    {
+      "kind": "background",
+      "slug": "phantasmic-circus-trouper",
+      "name_ru": "Член труппы Театра фантазмов",
+      "name_en": "Phantasmic Circus Trouper",
+      "source": "au",
+      "sort_order": 80,
+      "external_ref": {
+        "book": "AU",
+        "url_dndsu": "https://next.dnd.su/backgrounds/961-phantasmic-circus-trouper",
+        "url_ttg": "https://new.ttg.club/backgrounds/phantasmic-circus-trouper-au"
+      },
+      "data": {
+        "asi": {
+          "abilities": [
+            "dex",
+            "con",
+            "cha"
+          ],
+          "options": [
+            "+2/+1",
+            "+1/+1/+1"
+          ],
+          "cap": 20
+        },
+        "origin_feat": {
+          "id": "arcane-artist",
+          "slug": "arcane-artist",
+          "name_ru": "Мистический артист",
+          "name_en": "Arcane Artist"
+        },
+        "skill_proficiencies": [
+          "deception",
+          "performance"
+        ],
+        "tool_proficiencies": [
+          "Набор для грима"
+        ],
+        "tool_choices": null,
+        "equipment_or_gold": {
+          "gold_alternative_gp": 50,
+          "pack_summary_ru": "(А) Набор для маскировки Игровой набор Костюм Зеркало Одежда путешественника 12 зм; (Б) 50 зм"
+        },
+        "traits_text": "Член труппы Театра фантазмов (Неудержимая магия): ЛОВ/ТЕЛ/ХАР (+2/+1 или +1/+1/+1). Черта: Мистический артист. Навыки: обман, выступление. Инструмент: Набор для грима. Пакет или 50 зм."
+      }
+    },
+    {
+      "kind": "background",
+      "slug": "seer-apprentice",
+      "name_ru": "Ученик Провидцев",
+      "name_en": "Seer Apprentice",
+      "source": "au",
+      "sort_order": 90,
+      "external_ref": {
+        "book": "AU",
+        "url_dndsu": "https://next.dnd.su/backgrounds/962-seer-apprentice",
+        "url_ttg": "https://new.ttg.club/backgrounds/seer-apprentice-au"
+      },
+      "data": {
+        "asi": {
+          "abilities": [
+            "int",
+            "wis",
+            "cha"
+          ],
+          "options": [
+            "+2/+1",
+            "+1/+1/+1"
+          ],
+          "cap": 20
+        },
+        "origin_feat": {
+          "id": "arcane-omens",
+          "slug": "arcane-omens",
+          "name_ru": "Мистические предвестия",
+          "name_en": "Arcane Omens"
+        },
+        "skill_proficiencies": [
+          "history",
+          "insight"
+        ],
+        "tool_proficiencies": [
+          "navigator s tools"
+        ],
+        "tool_choices": null,
+        "equipment_or_gold": {
+          "gold_alternative_gp": 50,
+          "pack_summary_ru": "(А) Инструменты навигатора Свеча×8 Чернила Писчее перо Пергамент×9 Сумка Трутница Одежда путешественника 11 зм; (Б) 50 зм"
+        },
+        "traits_text": "Ученик Провидцев (Неудержимая магия): ИНТ/МУД/ХАР (+2/+1 или +1/+1/+1). Черта: Мистические предвестия. Навыки: история, проницательность. Инструмент: navigator s tools. Пакет или 50 зм."
+      }
+    },
+    {
+      "kind": "background",
+      "slug": "ward-of-the-sheltering-hands",
+      "name_ru": "Подопечный Оберегающих дланей",
+      "name_en": "Ward of the Sheltering Hands",
+      "source": "au",
+      "sort_order": 100,
+      "external_ref": {
+        "book": "AU",
+        "url_dndsu": "https://next.dnd.su/backgrounds/963-ward-of-the-sheltering-hands",
+        "url_ttg": "https://new.ttg.club/backgrounds/ward-of-the-sheltering-hands-au"
+      },
+      "data": {
+        "asi": {
+          "abilities": [
+            "con",
+            "wis",
+            "cha"
+          ],
+          "options": [
+            "+2/+1",
+            "+1/+1/+1"
+          ],
+          "cap": 20
+        },
+        "origin_feat": {
+          "id": "arcane-safeguard",
+          "slug": "arcane-safeguard",
+          "name_ru": "Магический заслон",
+          "name_en": "Arcane Safeguard"
+        },
+        "skill_proficiencies": [
+          "insight",
+          "medicine"
+        ],
+        "tool_proficiencies": [
+          "cook s utensils"
+        ],
+        "tool_choices": null,
+        "equipment_or_gold": {
+          "gold_alternative_gp": 50,
+          "pack_summary_ru": "(А) Кухонная утварь Одеяло Комплект целителя Лампа Масло×3 Трутница Одежда путешественника Бурдюк 40 зм; (Б) 50 зм"
+        },
+        "traits_text": "Подопечный Оберегающих дланей (Неудержимая магия): ТЕЛ/МУД/ХАР (+2/+1 или +1/+1/+1). Черта: Магический заслон. Навыки: проницательность, медицина. Инструмент: cook s utensils. Пакет или 50 зм."
+      }
+    }
+  ]
+}

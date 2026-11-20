@@ -337,10 +337,14 @@ function CosmicOmen(props: ExtraProps) {
   )
   const omen = pool?.activeLabel?.startsWith('Знамение:') ? pool.activeLabel : ''
   const left = spendRemaining(pool)
+  // next.dnd.su (PHB 2024): «Благо» / «Напасть». The 2014 card keeps its original Weal / Woe labels.
+  const ru2024 = props.edition === '2024'
+  const wealLabel = ru2024 ? 'Благо' : 'Weal'
+  const woeLabel = ru2024 ? 'Напасть' : 'Woe'
   return (
     <Stack gap={8}>
       <Text tone="muted">
-        После продолжительного отдыха брось к6: чёт — Weal (бонус), нечёт — Woe (штраф). Реакция тратит заряд и добавляет ещё один к6 к броску в 30 фт.
+        После продолжительного отдыха брось к6: чёт — {wealLabel} (бонус), нечёт — {woeLabel} (штраф). Реакция тратит заряд и добавляет ещё один к6 к броску в 30 фт.
       </Text>
       <Text>{omen || 'Дневное знамение ещё не брошено.'}</Text>
       <Field label="Чей бросок">
@@ -352,7 +356,7 @@ function CosmicOmen(props: ExtraProps) {
           variant="secondary"
           onClick={() => {
             const roll = rollDie(6)
-            const kind = roll % 2 === 0 ? 'Weal' : 'Woe'
+            const kind = roll % 2 === 0 ? wealLabel : woeLabel
             props.onResourcesChange(
               markActive(props.resources, props.classSlug, props.feature, `Знамение: ${kind} (к6=${roll})`),
             )
@@ -375,7 +379,7 @@ function CosmicOmen(props: ExtraProps) {
               return
             }
             const die = rollDie(6)
-            const weal = omen.includes('Weal')
+            const weal = omen.includes(wealLabel) || omen.includes('Weal')
             const label = pool?.activeLabel
             props.onResourcesChange(
               label
@@ -383,7 +387,7 @@ function CosmicOmen(props: ExtraProps) {
                 : spent.resources,
             )
             props.onToast?.(
-              `${weal ? 'Weal' : 'Woe'}: ${weal ? '+' : '−'}${die} к броску «${target.trim()}» (к6). Реакция потрачена.`,
+              `${weal ? wealLabel : woeLabel}: ${weal ? '+' : '−'}${die} к броску «${target.trim()}» (к6). Реакция потрачена.`,
             )
           }}
         >
