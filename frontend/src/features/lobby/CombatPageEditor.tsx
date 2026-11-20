@@ -29,6 +29,8 @@ type Props = {
   onChange: (fields: CombatPageFields) => void
   busy?: boolean
   disabled?: boolean
+  /** P24-M04: бестиарий по редакции лобби (не зашивка 2014). */
+  rulesEdition?: string | null
 }
 
 const BAND_LABELS: Record<string, string> = {
@@ -45,8 +47,11 @@ export function CombatPageEditor({
   onChange,
   busy = false,
   disabled = false,
+  rulesEdition = '2014',
 }: Props) {
   const locked = busy || disabled
+  const catalogEdition =
+    String(rulesEdition ?? '2014').trim() === '2024' ? '2024' : '2014'
   const [levelsDraft, setLevelsDraft] = useState(() => value.party_levels.join(', '))
   const levelsKey = value.party_levels.join(',')
   const [pinnedLevelsKey, setPinnedLevelsKey] = useState(levelsKey)
@@ -274,6 +279,7 @@ export function CombatPageEditor({
 
           <WaveBestiaryAdd
             disabled={locked}
+            edition={catalogEdition}
             onAdd={(entry) => addBestiaryCombatant(wave.index, entry)}
           />
           <div className="inline-actions">
@@ -427,9 +433,11 @@ export function CombatPageEditor({
 
 function WaveBestiaryAdd({
   disabled,
+  edition,
   onAdd,
 }: {
   disabled?: boolean
+  edition: '2014' | '2024'
   onAdd: (entry: CatalogEntry) => void
 }) {
   /** L-20: живой поиск по имени как в AddCombatantDialog (не slug без подсказок). */
@@ -439,7 +447,7 @@ function WaveBestiaryAdd({
       <Field label="Добавить из бестиария">
         <CatalogCombobox
           kind="bestiary"
-          edition="2014"
+          edition={edition}
           value={query}
           disabled={disabled}
           placeholder="Гоблин, огр, волк…"

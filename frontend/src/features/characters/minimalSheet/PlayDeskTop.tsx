@@ -38,6 +38,7 @@ import {
   alignmentNeedsClarification,
   alignmentSheetLabel,
 } from '../../../shared/dnd/alignments'
+import { usesHeroicInspiration } from '../../../shared/dnd/heroicInspiration'
 import { ActiveEffectsPanel } from '../ActiveEffectsPanel'
 import { IconCompanions } from '../deskIcons'
 import {
@@ -553,9 +554,18 @@ export function PlayDeskTop({ model }: { model: SheetModel }) {
               })
             }}
             onRequestLevelUp={() => model.setLevelUpOpen(true)}
-            onToggleInspiration={() =>
+            onToggleInspiration={() => {
+              if (
+                usesHeroicInspiration(
+                  model.baseCharacter?.rules_edition ?? model.rulesEdition,
+                ) &&
+                typeof model.tryGrantHeroicInspiration === 'function'
+              ) {
+                model.tryGrantHeroicInspiration()
+                return
+              }
               model.setDraft((prev) => ({ ...prev, inspiration: !prev.inspiration }))
-            }
+            }}
             onExhaustionChange={(exhaustion) =>
               model.setDraft((prev) => ({
                 ...prev,
@@ -805,9 +815,18 @@ export function PlayDeskTop({ model }: { model: SheetModel }) {
           onOpenAbilities={() => model.setMobileAbilitiesOpen(true)}
           onOpenRest={() => model.setRestOpen(true)}
           onOpenConditions={() => model.setHotConditionsOpen(true)}
-          onToggleInspiration={() =>
+          onToggleInspiration={() => {
+            if (
+              usesHeroicInspiration(
+                model.baseCharacter?.rules_edition ?? model.rulesEdition,
+              ) &&
+              typeof model.tryGrantHeroicInspiration === 'function'
+            ) {
+              model.tryGrantHeroicInspiration()
+              return
+            }
             model.setDraft((prev) => ({ ...prev, inspiration: !prev.inspiration }))
-          }
+          }}
           onAvatarChanged={(updated) => {
             model.setBaseCharacter(updated)
             model.onSaved(updated)

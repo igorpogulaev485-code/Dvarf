@@ -19,6 +19,8 @@ export type SheetCombatView = {
   turnsUntil: number | null
   initiativePending: boolean
   pendingEntry: CombatEntry | null
+  /** P24-M04: this PC marked surprised in combat queue. */
+  combatSurprised: boolean
   diceOnTableSession: boolean
   targets: CombatTarget[]
   reload: () => void
@@ -128,6 +130,10 @@ export function useSheetSessionCombat(
             e.initiative_pending,
         ) ?? null
       : null
+  const ownEntry =
+    characterId && combatActive
+      ? entries.find((e) => e.kind === 'pc' && e.ref_id === characterId) ?? null
+      : null
   const turnsUntil =
     characterId && combatActive
       ? turnsUntilOwn(entries, activeIndex, characterId)
@@ -142,6 +148,8 @@ export function useSheetSessionCombat(
     turnsUntil,
     initiativePending: Boolean(pendingEntry),
     pendingEntry,
+    /** P24-M04: combat-entry surprise (2024 → initiative disadv, not L-21). */
+    combatSurprised: Boolean(ownEntry?.surprised),
     diceOnTableSession: Boolean(
       combat?.dice_on_table ?? false,
     ),

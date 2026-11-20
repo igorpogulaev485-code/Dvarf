@@ -5,6 +5,10 @@ import type {
   SessionCombatant,
   SessionSeat,
 } from '../../shared/api/lobbies'
+import {
+  SURPRISE_2024_HINT,
+  surpriseRoundAllowed,
+} from '../../shared/dnd/surprise2024'
 import { Dialog, Field, Input, NumberInput, Stack, Text } from '../../ui'
 import { seatCompanionInInitiativeSeed } from './companionCombatSeat'
 
@@ -19,6 +23,8 @@ type Props = {
   busy?: boolean
   seats: SessionSeat[]
   combatants: SessionCombatant[]
+  /** P24-M04: lobby edition — 2024 surprise = initiative disadv, not L-21. */
+  rulesEdition?: string | null
   onClose: () => void
   onSubmit: (payload: { entries: CombatEntryInput[]; waves: CombatWaveInput[] }) => void
 }
@@ -36,9 +42,14 @@ export function StartCombatDialog({
   busy = false,
   seats,
   combatants,
+  rulesEdition = '2014',
   onClose,
   onSubmit,
 }: Props) {
+  const edition = String(rulesEdition ?? '2014').trim() || '2014'
+  const surpriseHint = surpriseRoundAllowed(edition)
+    ? 'Застигнут врасплох: без действия, бонусного, реакции и движения до конца первого хода'
+    : SURPRISE_2024_HINT
   const seed = useMemo(() => {
     const rows: DraftRow[] = []
     for (const seat of seats) {
@@ -166,6 +177,10 @@ export function StartCombatDialog({
           сами; за врагов можно вписать число сейчас или позже. Бой можно начать и без противников —
           герои бьют друг друга выбором цели. Неожиданность — только здесь, в начале боя (не при
           волне и не у опоздавшего).
+          {' '}
+          {edition === '2024'
+            ? SURPRISE_2024_HINT
+            : 'Неожиданность 2014 (L-21): без действия, бонусного, реакции и движения до конца первого хода.'}
         </Text>
         {rows.length === 0 ? (
           <Text tone="muted">Некого сажать в бой — посади игроков или противников.</Text>
@@ -245,7 +260,7 @@ export function StartCombatDialog({
                   title={
                     row.surpriseImmune
                       ? 'Бдительный — нельзя застать врасплох'
-                      : 'Застигнут врасплох: без действия, бонусного, реакции и движения до конца первого хода'
+                      : surpriseHint
                   }
                 >
                   <input

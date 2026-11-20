@@ -547,6 +547,66 @@ export function useSheetEditorPart4(model: SheetModel) {
   } | null>(null)
   model.heroicRerollPending = heroicRerollPending
   model.setHeroicRerollPending = setHeroicRerollPending
+  model.offerHeroicRerollAfter = function offerHeroicRerollAfter(
+    label: string,
+    sides = 20,
+  ) {
+    const edition = model.baseCharacter?.rules_edition ?? model.rulesEdition
+    if (String(edition ?? '') !== '2024') return
+    if (!model.draft.inspiration) return
+    setHeroicRerollPending({ label, sides: Math.max(2, Math.floor(sides || 20)) })
+  }
+  const [heroicTransferOpen, setHeroicTransferOpen] = useState(false)
+  const [heroicTransferAllyId, setHeroicTransferAllyId] = useState('')
+  const [heroicTransferAllies, setHeroicTransferAllies] = useState<
+    Array<{ id: string; name: string }>
+  >([])
+  model.heroicTransferOpen = heroicTransferOpen
+  model.setHeroicTransferOpen = setHeroicTransferOpen
+  model.heroicTransferAllyId = heroicTransferAllyId
+  model.setHeroicTransferAllyId = setHeroicTransferAllyId
+  model.heroicTransferAllies = heroicTransferAllies
+  model.openHeroicTransfer = function openHeroicTransfer(
+    allies: Array<{ id: string; name: string }>,
+  ) {
+    setHeroicTransferAllies(allies)
+    setHeroicTransferAllyId(allies[0]?.id ?? '')
+    setHeroicTransferOpen(true)
+  }
+  /** Desk seats without heroic inspiration (filled by TurnEconomyDeskHost). */
+  model.deskHeroicAllies = model.deskHeroicAllies ?? []
+  /**
+   * P24-M04: grant heroic inspiration. Book limit 1 — second grant opens
+   * transfer to a desk ally without inspiration.
+   */
+  model.tryGrantHeroicInspiration = function tryGrantHeroicInspiration() {
+    const edition = model.baseCharacter?.rules_edition ?? model.rulesEdition
+    if (String(edition ?? '') !== '2024') {
+      model.setDraft((prev) => ({
+        ...prev,
+        inspiration: !prev.inspiration,
+      }))
+      return
+    }
+    if (!model.draft.inspiration) {
+      model.setDraft((prev) => ({
+        ...prev,
+        inspiration: true,
+      }))
+      return
+    }
+    const allies = (
+      (model.deskHeroicAllies as Array<{ id: string; name: string }> | undefined) ??
+      []
+    ).filter((a) => a.id && a.name)
+    if (allies.length === 0) {
+      model.onToast?.(
+        'Уже есть героическое вдохновение — отдайте союзнику за столом или потратьте на переброс',
+      )
+      return
+    }
+    model.openHeroicTransfer?.(allies)
+  }
   model.spendHeroicInspirationReroll = function spendHeroicInspirationReroll() {
     if (!model.draft.inspiration) {
       model.onToast?.('Нет героического вдохновения')
@@ -568,9 +628,11 @@ export function useSheetEditorPart4(model: SheetModel) {
       model.onToast?.('Выберите союзника без вдохновения')
       return false
     }
-    // Sheet flag clears locally; lobby/session sync of the ally is caller's job.
     model.setDraft((prev) => ({ ...prev, inspiration: false }))
-    model.onToast?.(`Героическое вдохновение передано союзнику (${allyId})`)
+    const allyName =
+      (model.heroicTransferAllies || []).find((a: { id: string }) => a.id === allyId)
+        ?.name || allyId
+    model.onToast?.(`Героическое вдохновение передано союзнику (${allyName})`)
     return true
   }
   const [luckyPickPending, setLuckyPickPending] = useState<{

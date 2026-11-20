@@ -48,6 +48,7 @@ import {
   restDurationVariant,
 } from '../../shared/dnd/o04DmgAdvanced'
 import type { RestResult } from '../../shared/dnd/rest'
+import { canStartLongRestAfterCooldown2024 } from '../../shared/dnd/rest2024'
 import {
   Wizard2024RestSwaps,
   type Wizard2024RestDone,
@@ -366,6 +367,21 @@ export function RestDialog({
   }
 
   function requestLongRest() {
+    if (is2024) {
+      const finishedAt = play.lastLongRestFinishedAt
+      const hoursSince =
+        finishedAt == null || !Number.isFinite(finishedAt)
+          ? null
+          : Math.max(0, (Date.now() - finishedAt) / 3_600_000)
+      const gate = canStartLongRestAfterCooldown2024({
+        hpCurrent,
+        hoursSinceLastLongRestFinished: hoursSince,
+      })
+      if (!gate.ok) {
+        onToast(gate.reason || 'Длинный отдых недоступен')
+        return
+      }
+    }
     const { lines, result } = buildLongRestSummary({
       resources: play.resources,
       slots: spells.slots,
@@ -407,6 +423,7 @@ export function RestDialog({
         deathFails: 0,
         concentration: null,
         effects: result.effects ?? play.effects ?? [],
+        ...(is2024 ? { lastLongRestFinishedAt: Date.now() } : {}),
         // O-03 / XGE: длинный отдых сбрасывает счётчик суток без отдыха
         noLongRestDays: 0,
         ...(play.wizard2024RestSwaps
@@ -493,12 +510,14 @@ export function RestDialog({
       onSecondary={onClose}
     >
       <Stack gap={14}>
-        <Text tone="muted">
+        <Text tone="muted" data-testid={is2024 ? 'rest-2024-hint' : undefined}>
           {grittyRest
             ? 'Суровый реализм: короткий отдых — 8 часов, долгий — 7 дней. Восстановление хитов и ячеек — как обычно.'
             : epicHeroism
               ? 'Эпический героизм: короткий отдых — 5 минут, долгий — 1 час. Восстановление хитов и ячеек — как обычно.'
-              : 'Короткий — кости хитов и сброс ресурсов «короткий». Продолжительный — полные хиты, ячейки, ресурсы и −1 истощение.'}
+              : is2024
+                ? 'Отдых 2024: короткий — кости хитов; длинный — все хиты и все кости хитов, −1 истощение, нужен ≥1 хит; следующий длинный не раньше чем через 16 ч.'
+                : 'Короткий — кости хитов и сброс ресурсов «короткий». Продолжительный — полные хиты, ячейки, ресурсы и −1 истощение.'}
         </Text>
 
         <div className="sheet-grid sheet-grid--2">

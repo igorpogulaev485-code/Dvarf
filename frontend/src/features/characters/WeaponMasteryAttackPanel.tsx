@@ -65,6 +65,9 @@ export function WeaponMasteryAttackPanel({
 }: WeaponMasteryAttackPanelProps) {
   const [substitute, setSubstitute] = useState<WeaponMasteryId | null>(null)
   const [appliedId, setAppliedId] = useState<string | null>(null)
+  // Graze needs a miss; desk often mounts the panel before a roll outcome is known.
+  const [outcomeHit, setOutcomeHit] = useState(hit)
+  const [outcomeDamage, setOutcomeDamage] = useState(damageDealt)
 
   const tactical = hasTacticalMaster(classes)
   const catalog = srdWeaponMasteryBySlug(weaponSlug)
@@ -88,8 +91,8 @@ export function WeaponMasteryAttackPanel({
 
   async function apply() {
     const result = applyMasteryProperty(propertyId!, {
-      hit,
-      damageDealt,
+      hit: outcomeHit,
+      damageDealt: outcomeDamage,
       attackAbilityMod,
       proficiencyBonus,
       damageType,
@@ -149,6 +152,30 @@ export function WeaponMasteryAttackPanel({
           ))}
         </div>
       ) : null}
+      <div className="sheet-chip-row" data-testid="weapon-mastery-outcome">
+        <button
+          type="button"
+          className={`sheet-chip${outcomeHit ? ' is-on' : ''}`}
+          data-testid="weapon-mastery-outcome-hit"
+          onClick={() => {
+            setOutcomeHit(true)
+            setOutcomeDamage(true)
+          }}
+        >
+          Попадание
+        </button>
+        <button
+          type="button"
+          className={`sheet-chip${!outcomeHit ? ' is-on' : ''}`}
+          data-testid="weapon-mastery-outcome-miss"
+          onClick={() => {
+            setOutcomeHit(false)
+            setOutcomeDamage(false)
+          }}
+        >
+          Промах
+        </button>
+      </div>
       <div className="sheet-chip-row">
         <button
           type="button"

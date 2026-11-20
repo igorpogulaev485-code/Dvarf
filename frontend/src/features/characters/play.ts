@@ -89,6 +89,11 @@ export type PlayState = {
    * used this rest cycle. Stored in sheet.combat.wizard2024_rest_swaps.
    */
   wizard2024RestSwaps?: Wizard2024RestSwapFlags
+  /**
+   * P24-M04 / SRD 5.2.1: epoch ms when last long rest finished (16h cooldown for 2024).
+   * Stored in sheet.combat.last_long_rest_finished_at.
+   */
+  lastLongRestFinishedAt?: number | null
 }
 
 export type { ConcentrationState }
@@ -245,6 +250,15 @@ export function readPlay(sheet: Record<string, unknown>, level = 1): PlayState {
     cover: readCoverLevel(combat.cover),
     underwater: Boolean(combat.underwater),
     ...(wizard2024RestSwaps ? { wizard2024RestSwaps } : {}),
+    lastLongRestFinishedAt: (() => {
+      const raw = combat.last_long_rest_finished_at
+      if (typeof raw === 'number' && Number.isFinite(raw)) return Math.floor(raw)
+      if (typeof raw === 'string' && raw.trim()) {
+        const ms = Date.parse(raw)
+        return Number.isFinite(ms) ? ms : null
+      }
+      return null
+    })(),
   }
 }
 
@@ -267,6 +281,7 @@ export function playToSheet(play: PlayState): {
     cover: CoverLevel
     underwater: boolean
     wizard2024_rest_swaps?: Wizard2024RestSwapFlags
+    last_long_rest_finished_at?: number | null
   }
   resources: SheetResource[]
 } {
@@ -304,6 +319,9 @@ export function playToSheet(play: PlayState): {
       underwater: Boolean(play.underwater),
       ...(play.wizard2024RestSwaps && Object.keys(play.wizard2024RestSwaps).length > 0
         ? { wizard2024_rest_swaps: play.wizard2024RestSwaps }
+        : {}),
+      ...(play.lastLongRestFinishedAt != null
+        ? { last_long_rest_finished_at: play.lastLongRestFinishedAt }
         : {}),
     },
     resources: play.resources.map((item) => clampResource(item)),

@@ -10,7 +10,6 @@ import {
 import { getMe } from '../shared/api/auth'
 import { listCharacters, type CharacterSummary } from '../shared/api/characters'
 import { ApiRequestError, getAccessToken } from '../shared/api/client'
-import { RULES_EDITION_2024_OPEN } from '../shared/dnd/rulesEdition2024'
 import { JoinIntroCard, useOnboardingState } from '../features/onboarding'
 import {
   createHeroForLobbyHref,
@@ -63,8 +62,7 @@ export function JoinLobbyPage() {
   const lobbyEdition = (inviteMeta?.rules_edition || '2014').trim() || '2014'
 
   const seatableCharacters = useMemo(() => {
-    // Пока 2024 закрыт — список как в main (все персонажи). Фильтр редакции — после открытия.
-    if (!RULES_EDITION_2024_OPEN) return characters
+    // P24-M04: посадка только в свою редакцию — фильтр всегда, флаг открывает лишь создание.
     return characters.filter((c) => (c.rules_edition || '2014') === lobbyEdition)
   }, [characters, lobbyEdition])
 
@@ -219,6 +217,16 @@ export function JoinLobbyPage() {
         setError(null)
         return
       }
+      if (
+        err instanceof ApiRequestError &&
+        err.code === 'lobby_rules_edition_mismatch'
+      ) {
+        setError(
+          err.message ||
+            'Персонаж другой редакции — сесть за этот стол нельзя. Смешанный стол запрещён.',
+        )
+        return
+      }
       setError(err instanceof ApiRequestError ? err.message : 'Не удалось войти в лобби')
     } finally {
       setBusy(false)
@@ -343,11 +351,10 @@ export function JoinLobbyPage() {
                         ))}
                       </Select>
                     </Field>
-                    {RULES_EDITION_2024_OPEN &&
-                    inviteMeta &&
-                    seatableCharacters.length === 0 ? (
+                    {inviteMeta && seatableCharacters.length === 0 ? (
                       <Text tone="muted">
                         Нет персонажей редакции {lobbyEdition} для этого стола.
+                        Смешанный стол 2014+2024 запрещён.
                       </Text>
                     ) : null}
                   </div>
@@ -381,6 +388,12 @@ export function JoinLobbyPage() {
                         )
                       })}
                     </div>
+                    {inviteMeta && seatableCharacters.length === 0 ? (
+                      <Text tone="muted" data-testid="join-edition-empty">
+                        Нет персонажей редакции {lobbyEdition} для этого стола.
+                        Смешанный стол 2014+2024 запрещён.
+                      </Text>
+                    ) : null}
                   </fieldset>
 
                   {selected && codeReady ? (

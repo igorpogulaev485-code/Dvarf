@@ -32,6 +32,8 @@ type Props = {
   open: boolean
   busy?: boolean
   hostName?: string | null
+  /** P24-M04: бестиарий по редакции лобби/сессии. */
+  rulesEdition?: string | null
   onClose: () => void
   onSubmit: (payload: StoryCompanionSubmit) => void
 }
@@ -40,9 +42,12 @@ export function AddStoryCompanionDialog({
   open,
   busy = false,
   hostName,
+  rulesEdition = '2014',
   onClose,
   onSubmit,
 }: Props) {
+  const catalogEdition =
+    String(rulesEdition ?? '2014').trim() === '2024' ? '2024' : '2014'
   const [mode, setMode] = useState<Mode>('bestiary')
   const [queryLabel, setQueryLabel] = useState('')
   const [selected, setSelected] = useState<CatalogEntry | null>(null)
@@ -157,7 +162,7 @@ export function AddStoryCompanionDialog({
           <Field label="Кто">
             <CatalogCombobox
               kind="bestiary"
-              edition="2014"
+              edition={catalogEdition}
               value={queryLabel}
               placeholder="Волк, медведь, наёмник…"
               onChange={(label, entry) => {
