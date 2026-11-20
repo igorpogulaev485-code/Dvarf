@@ -19,6 +19,8 @@ export type ClassOptions2024State = {
   elemental_fury?: 'potent_spellcasting' | 'primal_strike' | null
   /** Druid Circle of the Land terrain (2024): arid | polar | temperate | tropical. */
   land_choice?: 'arid' | 'polar' | 'temperate' | 'tropical' | null
+  /** Ranger Beast Master (2024, L3+): land | sea | sky. */
+  primal_companion?: 'land' | 'sea' | 'sky' | null
 }
 
 function readBlessedStrikes(raw: unknown): 'divine_strike' | 'potent_spellcasting' | null {
@@ -57,7 +59,13 @@ export function emptyClassOptions2024(): ClassOptions2024State {
     primal_order: null,
     elemental_fury: null,
     land_choice: null,
+    primal_companion: null,
   }
+}
+
+function readPrimalCompanion(raw: unknown): 'land' | 'sea' | 'sky' | null {
+  const key = String(raw ?? '').trim().toLowerCase()
+  return key === 'land' || key === 'sea' || key === 'sky' ? key : null
 }
 
 export function readClassOptions2024(raw: unknown): ClassOptions2024State {
@@ -86,6 +94,7 @@ export function readClassOptions2024(raw: unknown): ClassOptions2024State {
     primal_order: readPrimalOrder(row.primal_order),
     elemental_fury: readElementalFury(row.elemental_fury),
     land_choice: readLandChoice(row.land_choice),
+    primal_companion: readPrimalCompanion(row.primal_companion),
   }
 }
 
@@ -104,6 +113,7 @@ export function classOptions2024ToSheet(state: ClassOptions2024State): Record<st
     ...(state.primal_order ? { primal_order: state.primal_order } : {}),
     ...(state.elemental_fury ? { elemental_fury: state.elemental_fury } : {}),
     ...(state.land_choice ? { land_choice: state.land_choice } : {}),
+    ...(state.primal_companion ? { primal_companion: state.primal_companion } : {}),
   }
 }
 

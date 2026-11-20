@@ -91,6 +91,16 @@ ELEMENTAL_FURY_MIN_LEVEL_2024 = 7
 LAND_TERRAINS_2024 = frozenset({"arid", "polar", "temperate", "tropical"})
 LAND_CHOICE_MIN_LEVEL_2024 = 3
 
+HUNTERS_PREY_OPTIONS_2024 = frozenset({"colossus_slayer", "horde_breaker"})
+DEFENSIVE_TACTICS_OPTIONS_2024 = frozenset({"escape_the_horde", "multiattack_defense"})
+PRIMAL_COMPANION_TYPES_2024 = frozenset({"land", "sea", "sky"})
+OTHERWORLDLY_GLAMOUR_SKILLS_2024 = frozenset({"performance", "deception", "persuasion"})
+RANGER_SUBCLASS_BEASTMASTER_2024 = "ranger__beastmaster"
+RANGER_SUBCLASS_HUNTER_2024 = "ranger__hunter-ranger"
+RANGER_SUBCLASS_FEY_2024 = "ranger__fey-wanderer"
+RANGER_CONCLAVE_PICK_MIN_LEVEL_2024 = 3
+RANGER_DEFENSIVE_TACTICS_MIN_LEVEL_2024 = 7
+
 INVOCATIONS_BY_ID = {row.id: row for row in ELDRITCH_INVOCATIONS_2024}
 
 # Warlock invocation known count by level (from class table eldritch_invocations).

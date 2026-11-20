@@ -412,6 +412,7 @@ export function buildDraft(character: CharacterDetail): Draft {
     classes,
     wearingHeavyArmor: false,
     wearingArmorOrShield: false,
+    rulesEdition: String(character.rules_edition ?? sheet.rules_edition ?? '2014'),
   })
   if (speed != null && raceSpeed != null) {
     if (

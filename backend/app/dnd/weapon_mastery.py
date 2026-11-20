@@ -383,7 +383,7 @@ def validate_weapon_mastery_update(
     if edition != "2024":
         if has_incoming and read_weapon_mastery_state(incoming).known:
             raise WeaponMasteryValidationError(
-                "Мастерство оружия есть только в редакции 2024",
+                "Оружейное мастерство есть только в редакции 2024",
                 code="weapon_mastery_edition_2014",
             )
         # Allow clearing / omitting on 2014.
@@ -400,7 +400,7 @@ def validate_weapon_mastery_update(
     if rule is None or limit <= 0:
         if nxt.known:
             raise WeaponMasteryValidationError(
-                "У этого персонажа нет умения «Мастерство оружия»",
+                "У этого персонажа нет умения «Оружейное мастерство»",
                 code="weapon_mastery_not_available",
             )
         return empty_weapon_mastery_state()

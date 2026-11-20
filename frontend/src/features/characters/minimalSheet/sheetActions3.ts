@@ -453,7 +453,7 @@ export function installSheetActions3(model: SheetModel) {
         : 0
       const masteryNote =
         masteryGain > 0
-          ? ` · мастерство оружия +${masteryGain}: выбери виды на листе`
+          ? ` · Оружейное мастерство +${masteryGain}: выбери виды на листе`
           : ''
       model.onToast(
         choice.type === 'same'

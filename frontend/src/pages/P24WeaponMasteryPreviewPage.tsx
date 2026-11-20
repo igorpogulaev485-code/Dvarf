@@ -51,7 +51,7 @@ export function P24WeaponMasteryPreviewPage() {
   return (
     <main className="page page--app" data-testid="p24-m01-preview">
       <Stack gap={4}>
-        <Text as="h1">P24-M01 · Мастерство оружия</Text>
+        <Text as="h1">P24-M01 · Оружейное мастерство</Text>
         <p data-testid="p24-m01-flag">
           Флаг 2024: {RULES_EDITION_2024_OPEN ? 'открыт' : 'закрыт'}
         </p>

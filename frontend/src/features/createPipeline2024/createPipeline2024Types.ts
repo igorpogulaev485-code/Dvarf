@@ -59,6 +59,14 @@ export type Create2024State = {
     land_choice?: 'arid' | 'polar' | 'temperate' | 'tropical' | null
     /** Druid 2024 L2+ Wild Shape known forms (`KnownForm[]`); written to `sheet.known_forms`. */
     known_forms?: unknown[]
+    /** Ranger 2024 Hunter L3+: colossus_slayer | horde_breaker. */
+    hunters_prey?: string | null
+    /** Ranger 2024 Hunter L7+: escape_the_horde | multiattack_defense. */
+    defensive_tactics?: string | null
+    /** Ranger 2024 Beast Master L3+: land | sea | sky. */
+    primal_companion?: 'land' | 'sea' | 'sky' | null
+    /** Ranger 2024 Fey Wanderer L3+: performance | deception | persuasion. */
+    otherworldly_glamour?: string | null
   }
   /** Class tool proficiencies the player chooses (bard instruments, monk, artificer). */
   classToolIds: string[]

@@ -17,6 +17,7 @@ import type { ClericFeatureRequest } from '../Cleric2024UseDialog'
 import type { PaladinFeatureRequest } from '../Paladin2024UseDialog'
 import type { BardFeatureRequest } from '../Bard2024UseDialog'
 import type { DruidFeatureRequest } from '../Druid2024UseDialog'
+import type { RangerFeatureRequest } from '../Ranger2024UseDialog'
 import { type FamiliarCastMode } from '../familiarForms'
 import { withInitiativeBonus } from '../modifiers'
 import { type ToastInput } from '../../../ui'
@@ -270,6 +271,10 @@ export function useSheetEditorPart4(model: SheetModel) {
   const [druidFeatureUse, setDruidFeatureUse] = useState<DruidFeatureRequest | null>(null)
   model.druidFeatureUse = druidFeatureUse
   model.setDruidFeatureUse = setDruidFeatureUse
+  const [rangerFeatureUse, setRangerFeatureUse] =
+    useState<RangerFeatureRequest | null>(null)
+  model.rangerFeatureUse = rangerFeatureUse
+  model.setRangerFeatureUse = setRangerFeatureUse
   const [infusionsSpendId, setInfusionsSpendId] = useState<string | null>(null)
   model.infusionsSpendId = infusionsSpendId
   model.setInfusionsSpendId = setInfusionsSpendId

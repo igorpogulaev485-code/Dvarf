@@ -354,6 +354,7 @@ export function buildCreate2024SheetPreview(input: SheetPreviewInput): SheetPrev
     })),
     wearingArmorOrShield: false,
     wearingHeavyArmor: false,
+    rulesEdition: '2024',
   })
   const traits: string[] = []
   if (lineage) traits.push(`Родословная: ${lineage.name_ru}`)

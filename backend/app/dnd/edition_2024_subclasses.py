@@ -736,10 +736,10 @@ def build_permanent_bonuses(
         )
         add(
             "otherworldly-glamour",
-            "Инойшарм",
+            "Иной блеск",
             "other_calc",
             {"cha_check_bonus": "wis"},
-            note_ru="+мод. Мудр к проверкам Харизмы",
+            note_ru="+мод. Мудр к проверкам Харизмы (мин. +1)",
         )
 
     # Barbarian Berserker — 2024: dice count = Rage Damage bonus (not PB).
@@ -854,7 +854,7 @@ def build_permanent_bonuses(
         if class_level >= 7:
             add(
                 "defensive-tactics",
-                "Защитная тактика",
+                "Оборонительная тактика",
                 "other_calc",
                 {"choice": True},
                 min_level=7,

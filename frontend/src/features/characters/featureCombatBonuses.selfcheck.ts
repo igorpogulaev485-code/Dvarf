@@ -276,8 +276,20 @@ assert(
   'umbral grants 60',
 )
 assert(
-  darkvisionFtFromFeatures({ features: [{ id: 'umbral_sight' }], baseDarkvision: 60 }) === 90,
-  'umbral +30 if already have DV',
+  darkvisionFtFromFeatures({
+    features: [{ id: 'umbral_sight' }],
+    baseDarkvision: 60,
+    rulesEdition: '2014',
+  }) === 90,
+  'umbral +30 if already have DV (2014)',
+)
+assert(
+  darkvisionFtFromFeatures({
+    features: [{ id: 'umbral_sight' }],
+    baseDarkvision: 60,
+    rulesEdition: '2024',
+  }) === 120,
+  'umbral +60 if already have DV (2024)',
 )
 assert(
   darkvisionFtFromFeatures({ features: [], baseDarkvision: 60 }) === 60,

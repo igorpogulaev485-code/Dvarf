@@ -158,6 +158,7 @@ export function useSheetEditorPart3(model: SheetModel) {
       classes: model.draft.classes,
       wearingHeavyArmor: wearingHeavy,
       wearingArmorOrShield,
+      rulesEdition: model.rulesEdition ?? model.baseCharacter?.rules_edition ?? '2014',
     })
     const bits: string[] = []
     if (model.featSpeedBonusFt) bits.push(`черта +${model.featSpeedBonusFt}`)
@@ -176,6 +177,8 @@ export function useSheetEditorPart3(model: SheetModel) {
     model.featSpeedBonusFt,
     model.gearEffects.speedBonusFt,
     model.draft.play.effects,
+    model.rulesEdition,
+    model.baseCharacter?.rules_edition,
   ])
   model.classSpeedHint = classSpeedHint
   model.effectSpeedMods = speedModsFromActiveEffects(model.draft.play.effects)

@@ -889,6 +889,8 @@ function serializeSheet(input: {
     classes,
     wearingHeavyArmor: false,
     wearingArmorOrShield: false,
+    // 2014 create pipeline — never bake 2024 Roving into stored speed.
+    rulesEdition: '2014',
   })
   const classSpeedBonusMax = classSpeedBonus
   const featSpeedBonus = sumFeatSpeedBonus(draft.featGrants)

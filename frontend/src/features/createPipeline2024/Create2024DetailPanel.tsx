@@ -17,6 +17,7 @@ import {
   type ItemNameIndex,
 } from './create2024Labels'
 import { featTraitsText, originFeatNameOf, originFeatSlugOf, skillLabelRu } from './create2024FeatPicks'
+import { WEAPON_MASTERY_NAME_RU } from '../../shared/dnd/paladin2024Features'
 import {
   backgroundAsiTrio,
   classSkillNeed,
@@ -164,7 +165,7 @@ function ClassDetail({
           ) : null}
           {mastery > 0 ? (
             <li>
-              {entry.slug === 'paladin' ? 'Оружейное мастерство' : 'Мастерство оружия'}:{' '}
+              {WEAPON_MASTERY_NAME_RU}:{' '}
               {mastery} вида
             </li>
           ) : null}

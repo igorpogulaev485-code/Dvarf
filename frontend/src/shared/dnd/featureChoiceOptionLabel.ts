@@ -19,6 +19,7 @@ import {
 import { fightingStyleById } from './fightingStyles'
 import { elementalDisciplineById } from './monkElementalDisciplines'
 import { rangerChoiceLabel } from './rangerChoices'
+import { primalCompanionTypeLabelRu2024 } from './ranger2024Features'
 import { metamagicById } from './sorcererMetamagic'
 import {
   invocationById,
@@ -101,6 +102,8 @@ export const FEATURE_OPTION_LABELS_RU: Record<string, string> = {
   beast_of_the_land: 'Зверь суши (TCE)',
   beast_of_the_sea: 'Зверь моря (TCE)',
   beast_of_the_sky: 'Зверь неба (TCE)',
+  land: 'Земной',
+  sky: 'Небесный',
   archer: 'Лучник',
   chalice: 'Чаша',
   dragon: 'Дракон',
@@ -170,6 +173,8 @@ export function featureChoiceOptionLabel(
   }
   const fromChoice = choice?.option_labels_ru?.[optionId]?.trim()
   if (fromChoice) return fromChoice
+  const primalType = primalCompanionTypeLabelRu2024(optionId)
+  if (primalType) return primalType
   if (FEATURE_OPTION_LABELS_RU[optionId]) return FEATURE_OPTION_LABELS_RU[optionId]
 
   // Use *ById / null-returning helpers — *Label helpers fall back to the raw

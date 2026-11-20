@@ -225,6 +225,17 @@ export const COMPANION_KIND_LABELS: Record<CompanionKind, string> = {
   other: 'Напарник',
 }
 
+/** PHB 2024 uses «Первичный спутник»; TCE/2014 sheets keep «Первобытный». */
+export function companionKindLabel(
+  kind: CompanionKind,
+  rulesEdition?: '2014' | '2024' | string | null,
+): string {
+  if (kind === 'primal_companion' && rulesEdition === '2024') {
+    return 'Первичный спутник'
+  }
+  return COMPANION_KIND_LABELS[kind]
+}
+
 export const COMPANION_ROLE_LABELS: Record<CompanionRole, string> = {
   ally: 'Напарник',
   self_form: 'Облик (это ты)',
@@ -1151,6 +1162,9 @@ const REAL_SUBCLASS_COMPANION_FEATURES = new Set([
   'summon_wildfire_spirit',
   'rangers_companion',
   'drake_companion',
+  // PHB 2024 Beast Master «Первичный спутник» (land/sea/sky).
+  'primal-companion',
+  'primal_companion',
 ])
 
 function heuristicCompanionFeature(feature: string): boolean {

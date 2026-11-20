@@ -1,5 +1,5 @@
 /**
- * P24-M01: блок «Мастерство оружия» на листе 2024.
+ * P24-M01: блок «Оружейное мастерство» на листе 2024.
  * Chips из UI-кита (§2i Features / sheet-chip). Не показывается для 2014.
  */
 import { Text } from '../../ui'
@@ -15,6 +15,7 @@ import {
   type WeaponMasteryClassRules,
   type WeaponMasteryState,
 } from '../../shared/dnd/weaponMastery'
+import { WEAPON_MASTERY_NAME_RU } from '../../shared/dnd/paladin2024Features'
 import type { ClassLevelEntry } from './classLevels'
 
 export type WeaponMasteryPanelProps = {
@@ -114,10 +115,10 @@ export function WeaponMasteryPanel({
     <section
       className="sheet-section"
       data-testid="weapon-mastery-panel"
-      aria-label="Мастерство оружия"
+      aria-label={WEAPON_MASTERY_NAME_RU}
     >
       <header className="sheet-section__head">
-        <Text as="h3">Мастерство оружия</Text>
+        <Text as="h3">{WEAPON_MASTERY_NAME_RU}</Text>
         <Text tone="muted">
           {state.known.length}/{limit}
           {state.swapAvailable ? ' · можно сменить после отдыха' : ''}

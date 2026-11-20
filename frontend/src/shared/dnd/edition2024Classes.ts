@@ -17,6 +17,14 @@ import type { DesiredFeatureResource } from './featureResources'
 import type { SheetResource } from './rest'
 import { expertise9Choice2024, expertiseChoice2024 } from './bard2024Features'
 import {
+  deftExplorerChoice2024,
+  defensiveTacticsChoice2024,
+  huntersPreyChoice2024,
+  otherworldlyGlamourChoice2024,
+  primalCompanionChoice2024,
+  rangerExpertiseChoice2024,
+} from './ranger2024Features'
+import {
   blessedStrikesChoice2024,
   clericBaseChannelOptionsAtLevel2024,
   DIVINE_SPARK_FEATURE_ID,
@@ -194,7 +202,7 @@ type ResourceMeta = {
   feature_id: string
   blocks_magic_action?: boolean
   distinct_from_heroic?: boolean
-  uses_from?: 'proficiency_bonus' | 'cha_mod_min_1' | 'int_mod_min_1'
+  uses_from?: 'proficiency_bonus' | 'cha_mod_min_1' | 'int_mod_min_1' | 'wis_mod_min_1'
   fixed_uses?: number
   kind?: FeatureKind
   /** Unlock level for the badge (defaults to current class level if omitted). */
@@ -386,10 +394,26 @@ const RESOURCE_META: Record<string, ResourceMeta> = {
     unlock_level: 17,
   },
   favored_enemy_uses: {
-    name_ru: 'Заклятый враг',
+    name_ru: 'Метка охотника (бесплатно)',
     reset: 'long',
     feature_id: 'favored-enemy',
     kind: 'resource',
+  },
+  tireless_uses: {
+    name_ru: 'Неутомимость',
+    reset: 'long',
+    feature_id: 'tireless',
+    uses_from: 'wis_mod_min_1',
+    kind: 'action',
+    unlock_level: 10,
+  },
+  natures_veil_uses: {
+    name_ru: 'Природная завеса',
+    reset: 'long',
+    feature_id: 'natures-veil',
+    uses_from: 'wis_mod_min_1',
+    kind: 'bonus',
+    unlock_level: 14,
   },
   arcane_recovery: {
     name_ru: 'Магическое восстановление',
@@ -653,6 +677,9 @@ function resolveResourceMax(
   if (meta.uses_from === 'int_mod_min_1') {
     return Math.max(1, abilityMod2024(abilities.int ?? 10))
   }
+  if (meta.uses_from === 'wis_mod_min_1') {
+    return Math.max(1, abilityMod2024(abilities.wis ?? 10))
+  }
   if (meta.uses_from === 'proficiency_bonus') {
     return proficiencyBonusForLevel2024(totalLevel)
   }
@@ -837,6 +864,8 @@ export function computeProgression2024(input: {
           ...(fid === 'scholar' ? { choice: SCHOLAR_CHOICE_2024 } : {}),
           ...(cls.slug === 'bard' && fid === 'expertise' ? { choice: expertiseChoice2024 } : {}),
           ...(cls.slug === 'bard' && fid === 'expertise_9' ? { choice: expertise9Choice2024 } : {}),
+          ...(cls.slug === 'ranger' && fid === 'deft_explorer' ? { choice: deftExplorerChoice2024 } : {}),
+          ...(cls.slug === 'ranger' && fid === 'expertise' ? { choice: rangerExpertiseChoice2024 } : {}),
           ...(fid === 'blessed_strikes' && cls.slug === 'cleric'
             ? { choice: blessedStrikesChoice2024 }
             : {}),
@@ -952,6 +981,18 @@ export function computeProgression2024(input: {
               ...(fidRaw === 'circle-of-the-land-spells' && cls.subclassSlug === 'druid__land'
                 ? { choice: landTerrainChoice2024 }
                 : {}),
+              ...(fidRaw === 'hunters-prey' && cls.slug === 'ranger'
+                ? { choice: huntersPreyChoice2024 }
+                : {}),
+              ...(fidRaw === 'defensive-tactics' && cls.slug === 'ranger'
+                ? { choice: defensiveTacticsChoice2024 }
+                : {}),
+              ...(fidRaw === 'primal-companion' && cls.slug === 'ranger'
+                ? { choice: primalCompanionChoice2024 }
+                : {}),
+              ...(fidRaw === 'otherworldly-glamour' && cls.slug === 'ranger'
+                ? { choice: otherworldlyGlamourChoice2024 }
+                : {}),
             })
           }
         }
@@ -1018,6 +1059,20 @@ export function computeProgression2024(input: {
       }
       if (hasPaladinsSmite) rawRes.paladin_free_smite = 1
       if (hasFaithfulSteed) rawRes.paladin_free_steed = 1
+    }
+    // Ranger Tireless (L10+) / Nature's Veil (L14+) — Wis mod / long.
+    if (cls.slug === 'ranger') {
+      let hasTireless = false
+      let hasNaturesVeil = false
+      for (const lr of levels) {
+        if (Number(lr.level || 0) > cls.level) continue
+        for (const f of (lr.features as Array<Record<string, unknown>>) || []) {
+          if (f.id === 'tireless') hasTireless = true
+          if (f.id === 'natures-veil') hasNaturesVeil = true
+        }
+      }
+      if (hasTireless) rawRes.tireless_uses = true
+      if (hasNaturesVeil) rawRes.natures_veil_uses = true
     }
 
     for (const [key, value] of Object.entries(rawRes)) {

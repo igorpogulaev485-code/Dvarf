@@ -5,6 +5,7 @@
 import type { EffectDuration, SpellBuffSpec } from './activeEffects'
 import type { BuffBuildContext } from './b02BuffSpecs'
 import { damageTypeLabel, normalizeDamageType } from './damageTypes'
+import { huntersMarkExtraDie2024 } from './ranger2024Features'
 
 function hours(value: number): EffectDuration {
   return { unit: 'hours', value, remaining_rounds: value * 600 }
@@ -82,6 +83,33 @@ export const B03_BUFF_SPEC_BUILDERS: Record<string, SpecBuilder> = {
     mods: [{ target: 'label', op: 'set', condition: 'dash_bonus_action' }],
   }),
   hunters_mark: (ctx) => {
+    const edition = String(ctx.edition ?? '2014').trim()
+    if (edition === '2024') {
+      const die = huntersMarkExtraDie2024(Math.max(1, Math.floor(ctx.classLevel ?? 1)))
+      const hoursValue = 8
+      return {
+        name: 'Метка охотника',
+        slug: 'hunters_mark',
+        kind: 'spell',
+        concentration: true,
+        duration: hours(hoursValue),
+        mods: [
+          {
+            target: 'weapon_damage',
+            op: 'roll_die',
+            dice: `1${die}`,
+            condition: 'marked_target',
+            once: false,
+          },
+          {
+            target: 'advantage',
+            op: 'advantage',
+            condition: 'find_marked_target',
+          },
+          { target: 'label', op: 'set', condition: 'hunters_mark_target' },
+        ],
+      }
+    }
     const slot = slotOf(ctx, 1)
     const dice = slot >= 5 ? '3d6' : slot >= 3 ? '2d6' : '1d6'
     const hoursValue = slot >= 5 ? 24 : slot >= 3 ? 8 : 1

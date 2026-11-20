@@ -4,6 +4,10 @@ import {
   initiativeBonusFromRaceGrant,
   type AppliedRaceGrant,
 } from '../../shared/dnd/raceGrants'
+import {
+  feralSensesBlindsightFt2024,
+  hasFeralSensesBlindsight,
+} from '../../shared/dnd/ranger2024Features'
 import { abilityModifier, type AbilityKey } from './sheetTypes'
 
 type FeatureLike = { id: string }
@@ -254,18 +258,43 @@ export function initiativeBonusFromRace(input: {
 }
 
 /**
- * Umbral Sight (Gloom Stalker): darkvision 60 ft, or +30 ft if you already have it.
+ * Umbral Sight (Gloom Stalker): darkvision 60 ft if none;
+ * if you already have it — +30 ft (2014) or +60 ft (2024).
  * `baseDarkvision` is the sheet value before this feature (race / manual / gear separate).
  */
 export function darkvisionFtFromFeatures(input: {
   features: FeatureLike[]
   baseDarkvision: number
+  rulesEdition?: string | null
 }): number {
-  const hasUmbral = input.features.some((feature) => feature.id === 'umbral_sight')
+  const hasUmbral = input.features.some(
+    (feature) =>
+      feature.id === 'umbral_sight' ||
+      feature.id === 'umbral-sight' ||
+      String(feature.id || '').replace(/-/g, '_') === 'umbral_sight',
+  )
   const base = Math.max(0, Math.floor(input.baseDarkvision))
   if (!hasUmbral) return base
   if (base <= 0) return 60
-  return base + 30
+  const bump = String(input.rulesEdition ?? '').trim() === '2024' ? 60 : 30
+  return base + bump
+}
+
+/** Feral Senses (Ranger 2024, L18+): blindsight 30 ft. */
+export function blindsightFtFromFeatures(input: {
+  features: Array<{ id: string; classLevel?: number }>
+  rulesEdition?: string | null
+}): number {
+  if (!isRulesEdition2024(input.rulesEdition)) return 0
+  let rangerLevel = 0
+  for (const feature of input.features) {
+    const id = normalizeFeatureId(feature.id)
+    if (id === 'feral_senses') {
+      rangerLevel = Math.max(rangerLevel, Math.floor(feature.classLevel ?? 0))
+    }
+  }
+  if (!hasFeralSensesBlindsight(rangerLevel)) return 0
+  return feralSensesBlindsightFt2024(rangerLevel)
 }
 
 /** PHB 2024 Rage Damage bonus by barbarian level (same ladder as B-04). */

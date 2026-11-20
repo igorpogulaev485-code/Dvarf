@@ -19,6 +19,7 @@ import { Create2024DetailPanel } from '../features/createPipeline2024/Create2024
 import {
   BackgroundPicks,
   BardLevelingPicks,
+  RangerLevelingPicks,
   ClassPicks,
   SpeciesFeatPicks,
   SpeciesPicks,
@@ -1259,6 +1260,7 @@ export function CreateCharacter2024Page({
               allSkillIds={model.skills.map((row) => row.key)}
             />
           ) : null}
+          {classSlug === 'ranger' ? <RangerLevelingPicks state={state} patch={patch} /> : null}
           {sc ? (
             <div data-testid="p24-m03-step-spells">
               <CatalogCardList

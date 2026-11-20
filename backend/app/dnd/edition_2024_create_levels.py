@@ -1052,7 +1052,7 @@ def materialize_levels_on_sheet(
         known = list(mastery.get("known") or [])
         if len(known) > limit:
             raise create24.Create2024Error(
-                f"Мастерство оружия: выбрано {len(known)}, лимит {limit}",
+                f"Оружейное мастерство: выбрано {len(known)}, лимит {limit}",
                 code="create_2024_weapon_mastery",
             )
     return warnings

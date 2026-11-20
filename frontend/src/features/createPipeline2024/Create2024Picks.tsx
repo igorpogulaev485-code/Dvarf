@@ -8,6 +8,13 @@ import { PickChipGroup } from './PickChipGroup'
 import { LoreDiscoveriesPicker } from '../characters/LoreDiscoveriesPicker'
 import { LORE_DISCOVERIES_FEATURE_ID_2024 } from '../../shared/dnd/bard2024Features'
 import {
+  DEFENSIVE_TACTICS_OPTIONS_2024,
+  HUNTERS_PREY_OPTIONS_2024,
+  OTHERWORLDLY_GLAMOUR_SKILLS_2024,
+  PRIMAL_COMPANION_TYPES_2024,
+} from '../../shared/dnd/ranger2024Features'
+import { rangerCreatePicksNeed2024 } from './createPipeline2024State'
+import {
   emptyFeaturePicks,
   getFeaturePickList,
   setFeaturePick,
@@ -44,6 +51,12 @@ import {
   WEAPON_MASTERY_NAME_RU,
   isBlessedWarriorStyleId,
 } from '../../shared/dnd/paladin2024Features'
+import {
+  DRUIDIC_WARRIOR_CANTRIP_LIMIT_2024,
+  DRUIDIC_WARRIOR_ID,
+  DRUIDIC_WARRIOR_NAME_RU,
+  isDruidicWarriorStyleId,
+} from '../../shared/dnd/ranger2024Features'
 import {
   backgroundAsiTrio,
   backgroundNeedsToolPick,
@@ -136,14 +149,18 @@ export function ClassPicks({
   const packs = classStartingPacks(classEntry)
   const setOption = (key: string, value: unknown) =>
     patch({ classOptionPicks: { ...state.classOptionPicks, [key]: value } })
-  const paladinLevel = (() => {
-    if (state.classSlug !== 'paladin') return 0
+  const plannedClassLevel = (slug: 'paladin' | 'ranger') => {
+    if (state.classSlug !== slug) return 0
+    const re = slug === 'paladin' ? /paladin|паладин/i : /ranger|следопыт/i
     const fromClasses = state.classes
-      .filter((row) => /paladin|паладин/i.test(row.catalog_id || row.name || ''))
+      .filter((row) => re.test(row.catalog_id || row.name || ''))
       .reduce((max, row) => Math.max(max, row.level || 0), 0)
     return Math.max(fromClasses, state.characterLevel || 1)
-  })()
+  }
+  const paladinLevel = plannedClassLevel('paladin')
+  const rangerLevel = plannedClassLevel('ranger')
   const showPaladinFightingStyle = state.classSlug === 'paladin'
+  const showRangerFightingStyle = state.classSlug === 'ranger'
   const paladinStyleOptions = [
     ...styleFeats.map((f) => ({ id: f.slug, label: f.name_ru })),
     ...(styleFeats.some((f) => isBlessedWarriorStyleId(f.slug))
@@ -151,6 +168,13 @@ export function ClassPicks({
       : [{ id: BLESSED_WARRIOR_ID, label: BLESSED_WARRIOR_NAME_RU }]),
   ]
   const blessedCantrips = ids(state.classOptionPicks.blessed_warrior_cantrips)
+  const druidicCantrips = ids(state.classOptionPicks.druidic_warrior_cantrips)
+  const rangerStyleOptions = [
+    ...styleFeats.map((f) => ({ id: f.slug, label: f.name_ru })),
+    ...(styleFeats.some((f) => isDruidicWarriorStyleId(f.slug))
+      ? []
+      : [{ id: DRUIDIC_WARRIOR_ID, label: DRUIDIC_WARRIOR_NAME_RU }]),
+  ]
   const clericCantripOptions = catalog.spells
     .filter((spell) => spellLevel(spell) === 0 && spellOnClassList(spell, 'cleric'))
     .map((spell) => ({ id: spell.slug, label: spell.name_ru }))
@@ -191,9 +215,7 @@ export function ClassPicks({
       ) : null}
       {masteryLimit > 0 ? (
         <PickChipGroup
-          label={
-            state.classSlug === 'paladin' ? WEAPON_MASTERY_NAME_RU : 'Мастерство оружия'
-          }
+          label={WEAPON_MASTERY_NAME_RU}
           hint={`Выберите ${masteryLimit}. Свойство применяется, пока оружие в руках.`}
           options={masteryOptions.map(({ entry, mastery }) => ({
             id: entry.slug,
@@ -253,6 +275,49 @@ export function ClassPicks({
               max={BLESSED_WARRIOR_CANTRIP_LIMIT_2024}
               testIdPrefix="p24-m03-pick-blessed-cantrip"
               onChange={(next) => setOption('blessed_warrior_cantrips', next)}
+            />
+          ) : null}
+        </>
+      ) : null}
+      {showRangerFightingStyle ? (
+        <>
+          <PickChipGroup
+            label={FIGHTING_STYLE_NAME_RU}
+            hint={
+              rangerLevel >= FIGHTING_STYLE_MIN_LEVEL_2024
+                ? undefined
+                : `с ${FIGHTING_STYLE_MIN_LEVEL_2024} ур.`
+            }
+            options={rangerStyleOptions}
+            selected={state.fightingStyleSlug ? [state.fightingStyleSlug] : []}
+            max={1}
+            multi={false}
+            testIdPrefix="p24-m03-pick-style-ranger"
+            onChange={(picked) => {
+              const next = picked[0] ?? null
+              patch({
+                fightingStyleSlug: next,
+                classOptionPicks: {
+                  ...state.classOptionPicks,
+                  druidic_warrior_cantrips: isDruidicWarriorStyleId(next)
+                    ? druidicCantrips
+                    : [],
+                },
+              })
+            }}
+          />
+          {isDruidicWarriorStyleId(state.fightingStyleSlug) ? (
+            <PickChipGroup
+              label={`${DRUIDIC_WARRIOR_NAME_RU}: заговоры друида`}
+              hint={`Выберите ${DRUIDIC_WARRIOR_CANTRIP_LIMIT_2024}.`}
+              options={catalog.spells
+                .filter((spell) => spellLevel(spell) === 0 && spellOnClassList(spell, 'druid'))
+                .map((spell) => ({ id: spell.slug, label: spell.name_ru }))
+                .sort((a, b) => a.label.localeCompare(b.label, 'ru'))}
+              selected={druidicCantrips}
+              max={DRUIDIC_WARRIOR_CANTRIP_LIMIT_2024}
+              testIdPrefix="p24-m03-pick-druidic-cantrip"
+              onChange={(next) => setOption('druidic_warrior_cantrips', next)}
             />
           ) : null}
         </>
@@ -331,6 +396,95 @@ export function ClassPicks({
 const BARD_CREATE_ENTRY_ID = 'create-bard'
 
 /** Bard 2024 leveling picks: Expertise (2 / 9) and College of Lore bonus skills. */
+/** Ranger 2024 conclave picks on the leveling step (create-at-N). */
+export function RangerLevelingPicks({
+  state,
+  patch,
+}: {
+  state: Create2024State
+  patch: (partial: Partial<Create2024State>) => void
+}) {
+  const need = rangerCreatePicksNeed2024(state)
+  if (
+    !need.huntersPrey &&
+    !need.defensiveTactics &&
+    !need.primalCompanion &&
+    !need.otherworldlyGlamour
+  ) {
+    return null
+  }
+  const setPicks = (partial: Record<string, unknown>) =>
+    patch({ classOptionPicks: { ...state.classOptionPicks, ...partial } })
+
+  return (
+    <Stack gap={14}>
+      {need.huntersPrey ? (
+        <PickChipGroup
+          label="Добыча охотника"
+          hint="Выберите вариант с 3 уровня."
+          options={HUNTERS_PREY_OPTIONS_2024.map((row) => ({ id: row.id, label: row.nameRu }))}
+          selected={state.classOptionPicks.hunters_prey ? [String(state.classOptionPicks.hunters_prey)] : []}
+          max={1}
+          multi={false}
+          testIdPrefix="p24-m03-pick-hunters_prey"
+          onChange={(picked) => setPicks({ hunters_prey: picked[0] ?? null })}
+        />
+      ) : null}
+      {need.defensiveTactics ? (
+        <PickChipGroup
+          label="Оборонительная тактика"
+          hint="Выберите вариант с 7 уровня."
+          options={DEFENSIVE_TACTICS_OPTIONS_2024.map((row) => ({ id: row.id, label: row.nameRu }))}
+          selected={
+            state.classOptionPicks.defensive_tactics
+              ? [String(state.classOptionPicks.defensive_tactics)]
+              : []
+          }
+          max={1}
+          multi={false}
+          testIdPrefix="p24-m03-pick-defensive_tactics"
+          onChange={(picked) => setPicks({ defensive_tactics: picked[0] ?? null })}
+        />
+      ) : null}
+      {need.primalCompanion ? (
+        <PickChipGroup
+          label="Первичный спутник"
+          hint="Земной, Морской или Небесный блок (PHB 2024)."
+          options={PRIMAL_COMPANION_TYPES_2024.map((row) => ({ id: row.id, label: row.nameRu }))}
+          selected={
+            state.classOptionPicks.primal_companion
+              ? [String(state.classOptionPicks.primal_companion)]
+              : []
+          }
+          max={1}
+          multi={false}
+          testIdPrefix="p24-m03-pick-primal_companion"
+          onChange={(picked) => setPicks({ primal_companion: picked[0] ?? null })}
+        />
+      ) : null}
+      {need.otherworldlyGlamour ? (
+        <PickChipGroup
+          label="Иной блеск"
+          hint="Бонус к проверкам одного навыка."
+          options={OTHERWORLDLY_GLAMOUR_SKILLS_2024.map((id) => ({
+            id,
+            label: skillLabelRu(id),
+          }))}
+          selected={
+            state.classOptionPicks.otherworldly_glamour
+              ? [String(state.classOptionPicks.otherworldly_glamour)]
+              : []
+          }
+          max={1}
+          multi={false}
+          testIdPrefix="p24-m03-pick-otherworldly_glamour"
+          onChange={(picked) => setPicks({ otherworldly_glamour: picked[0] ?? null })}
+        />
+      ) : null}
+    </Stack>
+  )
+}
+
 export function BardLevelingPicks({
   state,
   patch,

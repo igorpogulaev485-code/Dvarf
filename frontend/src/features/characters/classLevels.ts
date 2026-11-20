@@ -36,7 +36,11 @@ export function readClassLevels(
             ? row.subclass_catalog_id
             : typeof row.subclassCatalogId === 'string'
               ? row.subclassCatalogId
-              : null,
+              : typeof row.subclass_slug === 'string'
+                ? row.subclass_slug
+                : typeof row.subclassSlug === 'string'
+                  ? row.subclassSlug
+                  : null,
       })
     })
   }
