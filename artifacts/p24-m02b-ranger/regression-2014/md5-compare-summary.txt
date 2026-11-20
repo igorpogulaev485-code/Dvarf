@@ -1,0 +1,21 @@
+# 2014 regression md5: before == after (P24-M02B-ranger)
+
+## 1440 (7 pairs)
+- create-2014-race-marker-1440.png: before=9830fb7a6c0acc068819fff2aeb16b0e after=9830fb7a6c0acc068819fff2aeb16b0e OK
+- create-2014-ranger-class-1440.png: before=1307038540c60d98466d7666e5b46de0 after=1307038540c60d98466d7666e5b46de0 OK
+- sheet-2014-ranger-1440.png: before=bfeb209532af5d4bccfb7353692ede46 after=bfeb209532af5d4bccfb7353692ede46 OK
+- sheet-2014-ranger-features-1440.png: before=ffae20c3beaadca229ce9d36632045f1 after=ffae20c3beaadca229ce9d36632045f1 OK
+- sheet-2014-ranger-hunter-1440.png: before=422e57a00cd02ac630321128129663d5 after=422e57a00cd02ac630321128129663d5 OK
+- sheet-2014-ranger-l6-speed-1440.png: before=000140958dca5447b546d6083e79b315 after=000140958dca5447b546d6083e79b315 OK
+- sheet-2014-ranger-l8-speed-1440.png: before=f11636a2a952ec0fb248ce98f74a43bb after=f11636a2a952ec0fb248ce98f74a43bb OK
+
+## 390 (8 pairs)
+- create-2014-race-marker-390.png: before=593794cbc8945111beb093cf3ee71614 after=593794cbc8945111beb093cf3ee71614 OK
+- create-2014-ranger-class-390.png: before=b081a82dcbaf5354425721fda00f4158 after=b081a82dcbaf5354425721fda00f4158 OK
+- sheet-2014-ranger-abilities-390.png: before=25e7b79a8e6516d1b726e69520059bc6 after=25e7b79a8e6516d1b726e69520059bc6 OK
+- sheet-2014-ranger-features-390.png: before=436bfc6f43510449ac05c72ac994a536 after=436bfc6f43510449ac05c72ac994a536 OK
+- sheet-2014-ranger-header-390.png: before=85f0294b4ec1d7e136d555330b80072f after=85f0294b4ec1d7e136d555330b80072f OK
+- sheet-2014-ranger-hunter-390.png: before=aa3d78767bb3c78a4f859a14eb6d7659 after=aa3d78767bb3c78a4f859a14eb6d7659 OK
+- sheet-2014-ranger-l6-speed-390.png: before=6eb4db7f2a49ba66dbcb36c62ac89e63 after=6eb4db7f2a49ba66dbcb36c62ac89e63 OK
+- sheet-2014-ranger-l8-speed-390.png: before=7dd9b9ff7a61f9d14c6948dbc26c4991 after=7dd9b9ff7a61f9d14c6948dbc26c4991 OK
+

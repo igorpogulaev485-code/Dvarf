@@ -203,6 +203,14 @@ export const M02B_PALADIN_BOOK_SUBCLASS_SLUGS = new Set([
   'paladin__oath-of-the-noble-genies',
 ])
 
+/**
+ * Book ranger paths opened by P24-M02B-ranger (FRHoF Winter Walker + RTW Hollow Warden).
+ */
+export const M02B_RANGER_BOOK_SUBCLASS_SLUGS = new Set([
+  'ranger__winter-walker',
+  'ranger__hollow-warden',
+])
+
 export function isPhb2024CreateSubclass(slug: string, source?: string | null): boolean {
   const key = String(slug || '')
     .trim()
@@ -229,6 +237,8 @@ export function isPhb2024CreateSubclass(slug: string, source?: string | null): b
   if (M02B_BARD_BOOK_SUBCLASS_SLUGS.has(key)) return true
   // P24-M02B-paladin: Noble Genies only.
   if (M02B_PALADIN_BOOK_SUBCLASS_SLUGS.has(key)) return true
+  // P24-M02B-ranger: Winter Walker + Hollow Warden only.
+  if (M02B_RANGER_BOOK_SUBCLASS_SLUGS.has(key)) return true
   // Catalog API may omit source; fall back to known PHB table rows.
   return Boolean(row && CREATE_SUBCLASS_SOURCES_2024.has(String(row.source || '').toLowerCase()))
 }
@@ -433,6 +443,17 @@ const SHARED_OPTIONS_2024: Record<string, SharedPoolOption2024[]> = {
   'fighter__banneret': [
     { feature_id: 'group-recovery', name_ru: 'Групповое оздоровление', spend_pool: 'second_wind', cost: 1, kind: 'passive', min_level: 3 },
   ],
+  // P24-M02B-ranger: Wrath spends Favored Enemy uses (not a separate pool).
+  'ranger__hollow-warden': [
+    {
+      feature_id: 'wrath-of-the-wild',
+      name_ru: 'Ярость дикой природы',
+      spend_pool: 'favored_enemy_uses',
+      cost: 1,
+      kind: 'bonus',
+      min_level: 3,
+    },
+  ],
 }
 
 export function sharedOptionsForSubclass2024(
@@ -496,6 +517,47 @@ export function buildPermanentBonuses2024(input: {
       },
       7,
       'Сопротивление выбранному типу в Ауре защиты; смена в начале хода без действия',
+    )
+  }
+  if (subclassSlug === 'ranger__winter-walker') {
+    add(
+      'frigid-explorer',
+      'Ледяной исследователь',
+      'other_calc',
+      {
+        cold_resistance: true,
+        ignore_cold_resistance: true,
+        polar_strikes_die: classLevel >= 11 ? '1d6' : '1d4',
+        polar_strikes_once_per_target_per_turn: true,
+      },
+      3,
+      'Сопротивление Холоду; игнор сопротивления Холоду; Полярные удары 1к4 (с 11 — 1к6), 1/цель/ход',
+    )
+  }
+  if (subclassSlug === 'ranger__hollow-warden') {
+    add(
+      'hungering-might',
+      'Алчущая мощь',
+      'other_calc',
+      {
+        con_save_bonus_wis_min_1: true,
+        bloodied_heal_while_wrath: '1d10+wis',
+        once_per_turn: true,
+      },
+      7,
+      'Бонус к спасброскам Тел = мод. Муд (мин. +1); хил 1к10+Муд при попадании в Ярости, если Окровавлены, 1/ход',
+    )
+    add(
+      'ancient-might',
+      'Древняя мощь',
+      'other_calc',
+      {
+        frightened_hit_bonus_damage_wis: true,
+        exhaustion_immunity: true,
+        undying_wrath_hp: 'ranger_level*2',
+      },
+      15,
+      'Зловещие удары (+Муд по Испуганным); Неугасающая ярость; иммунитет к Истощению',
     )
   }
   if (subclassSlug === 'sorcerer__draconic-sorcery') {
@@ -1393,9 +1455,29 @@ export function buildSubclassResources2024(input: {
   } else if (subclassSlug === 'ranger__gloom-stalker') {
     push('dread_ambusher_strike', 'Ужасающий удар', Math.max(1, wisMod), 'long', 'dread-ambusher', { die: 'd6' })
   } else if (subclassSlug === 'ranger__winter-walker') {
-    push('hunters_rime', 'Иней охотника', Math.max(1, wisMod), 'long', 'hunters-rime')
+    // Hunter's Rime has no separate pool — triggers on Hunter's Mark cast.
+    if (classLevel >= 7) {
+      push('fortifying_soul', 'Укрепляющий дух', 1, 'long', 'fortifying-soul')
+    }
+    if (classLevel >= 11) {
+      push(
+        'chilling_retribution',
+        'Выстужающее возмездие',
+        Math.max(1, wisMod),
+        'long',
+        'chilling-retribution',
+      )
+    }
+    if (classLevel >= 15) {
+      // Restore by spending a 4+ slot is desk-side (BE meta restore_with_slot_min).
+      push('frozen_haunt', 'Морозный призрак', 1, 'long', 'frozen-haunt')
+    }
   } else if (subclassSlug === 'ranger__hollow-warden') {
-    push('wrath_of_the_wild', 'Гнев дикой природы', Math.max(1, wisMod), 'long', 'wrath-of-the-wild')
+    // Wrath of the Wild spends favored_enemy_uses — no separate pool.
+    if (classLevel >= 15) {
+      // Restore by spending a 4+ slot is desk-side (BE meta restore_with_slot_min).
+      push('undying_wrath', 'Неугасающая ярость', 1, 'long', 'ancient-might')
+    }
   } else if (subclassSlug === 'rogue__phantom') {
     const pb = 2 + Math.floor((Math.min(20, Math.max(1, classLevel)) - 1) / 4)
     push('wails_from_the_grave', 'Вопли из могилы', pb, 'long', 'wails-from-the-grave')

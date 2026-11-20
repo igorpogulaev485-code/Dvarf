@@ -1,6 +1,7 @@
 /**
  * 2024 Ranger feature «use» dialog — edition branch only (`rules_edition === '2024'`).
- * Tireless, Nature's Veil, free Hunter's Mark, Dread Ambusher strike.
+ * Tireless, Nature's Veil, free Hunter's Mark, Dread Ambusher strike,
+ * plus P24-M02B-ranger book paths (Winter Walker / Hollow Warden).
  */
 
 import { useState } from 'react'
@@ -21,6 +22,37 @@ import {
   TIRELESS_POOL_ID,
   type Ranger2024UseResult,
 } from '../../shared/dnd/ranger2024Features'
+import {
+  ANCIENT_MIGHT_NAME_RU,
+  CHILLING_RETRIBUTION_FEATURE_ID,
+  CHILLING_RETRIBUTION_NAME_RU,
+  CHILLING_RETRIBUTION_POOL_ID,
+  FORTIFYING_SOUL_FEATURE_ID,
+  FORTIFYING_SOUL_NAME_RU,
+  FORTIFYING_SOUL_POOL_ID,
+  fortifyingSoulHealFormulaRu2024,
+  fortifyingSoulTargetCap2024,
+  FRIGID_EXPLORER_FEATURE_ID,
+  FRIGID_EXPLORER_NAME_RU,
+  FROZEN_HAUNT_FEATURE_ID,
+  FROZEN_HAUNT_NAME_RU,
+  FROZEN_HAUNT_POOL_ID,
+  HUNGERING_MIGHT_FEATURE_ID,
+  HUNGERING_MIGHT_NAME_RU,
+  hungeringMightHealFormulaRu2024,
+  HUNTERS_RIME_FEATURE_ID,
+  HUNTERS_RIME_NAME_RU,
+  huntersRimeTempHpFormulaRu2024,
+  polarStrikesDie2024,
+  ROT_AND_VIOLENCE_FEATURE_ID,
+  ROT_AND_VIOLENCE_NAME_RU,
+  UNDYING_WRATH_NAME_RU,
+  UNDYING_WRATH_POOL_ID,
+  undyingWrathHp2024,
+  WRATH_OF_THE_WILD_FEATURE_ID,
+  WRATH_OF_THE_WILD_NAME_RU,
+  wrathAcBonus2024,
+} from '../../shared/dnd/rangerBook2024Features'
 
 export type RangerFeatureRequest = {
   featureId: string
@@ -49,6 +81,15 @@ const FEATURE_TEXT: Record<string, string> = {
   'free-hunters-mark': `${FAVORED_ENEMY_NAME_RU}: «${HUNTERS_MARK_NAME_RU}» без ячейки (1/долг. отд.).`,
   'dread-ambusher-strike': `${DREAD_AMBUSHER_STRIKE_NAME_RU}: +2к6 психического при первом попадании по цели с меткой (1 раз за ход).`,
   dread_ambusher_strike: `${DREAD_AMBUSHER_STRIKE_NAME_RU}: +2к6 психического при первом попадании по цели с меткой (1 раз за ход).`,
+  [HUNTERS_RIME_FEATURE_ID]: `${HUNTERS_RIME_NAME_RU}: при сотворении «${HUNTERS_MARK_NAME_RU}» — временные хиты; цель с меткой не может совершать Отход. Отдельного пула нет.`,
+  [FRIGID_EXPLORER_FEATURE_ID]: `${FRIGID_EXPLORER_NAME_RU}: Полярные удары (холод), сопротивление Холоду, игнор сопротивления Холоду.`,
+  [FORTIFYING_SOUL_FEATURE_ID]: `${FORTIFYING_SOUL_NAME_RU}: действие «Магия» — хил и преимущество vs Испуганный (1/долг. отд.).`,
+  [CHILLING_RETRIBUTION_FEATURE_ID]: `${CHILLING_RETRIBUTION_NAME_RU}: реакция при попадании по вам — спас Мудрости, Ошеломлённый + скорость 0.`,
+  [FROZEN_HAUNT_FEATURE_ID]: `${FROZEN_HAUNT_NAME_RU}: форма на время «${HUNTERS_MARK_NAME_RU}» (1/долг. отд., возврат ячейкой 4+).`,
+  [WRATH_OF_THE_WILD_FEATURE_ID]: `${WRATH_OF_THE_WILD_NAME_RU}: бонусное — потратить одно использование Избранного врага; форма 1 мин.`,
+  [HUNGERING_MIGHT_FEATURE_ID]: `${HUNGERING_MIGHT_NAME_RU}: бонус к спасброскам Тел; хил в Ярости при Окровавленности 1/ход.`,
+  [ROT_AND_VIOLENCE_FEATURE_ID]: `${ROT_AND_VIOLENCE_NAME_RU}: в Ярости — усиление ауры и второе свойство мастерства.`,
+  'ancient-might': `${ANCIENT_MIGHT_NAME_RU}: ${UNDYING_WRATH_NAME_RU} при HP→0 в Ярости (1/долг. отд.); +Муд по Испуганным; иммунитет к Истощению.`,
 }
 
 export function Ranger2024UseDialog({
@@ -73,9 +114,17 @@ export function Ranger2024UseDialog({
       ? TIRELESS_POOL_ID
       : featureId === 'natures-veil'
         ? NATURES_VEIL_POOL_ID
-        : featureId === 'favored-enemy'
+        : featureId === 'favored-enemy' || featureId === WRATH_OF_THE_WILD_FEATURE_ID
           ? FAVORED_ENEMY_POOL_ID
-          : null
+          : featureId === FORTIFYING_SOUL_FEATURE_ID
+            ? FORTIFYING_SOUL_POOL_ID
+            : featureId === CHILLING_RETRIBUTION_FEATURE_ID
+              ? CHILLING_RETRIBUTION_POOL_ID
+              : featureId === FROZEN_HAUNT_FEATURE_ID
+                ? FROZEN_HAUNT_POOL_ID
+                : featureId === 'ancient-might'
+                  ? UNDYING_WRATH_POOL_ID
+                  : null
 
   const pool =
     poolId != null
@@ -111,8 +160,25 @@ export function Ranger2024UseDialog({
 
   const body =
     FEATURE_TEXT[featureId] ??
-  FEATURE_TEXT[request.featureId] ??
+    FEATURE_TEXT[request.featureId] ??
     request.name
+
+  const formulaHint =
+    featureId === 'tireless' && mode !== 'refund'
+      ? `Врем. хиты: ${tirelessTempHpFormulaRu2024(wisMod)}`
+      : featureId === HUNTERS_RIME_FEATURE_ID
+        ? `Врем. хиты: ${huntersRimeTempHpFormulaRu2024(rangerLevel)}`
+        : featureId === FRIGID_EXPLORER_FEATURE_ID
+          ? `Полярные удары: +${polarStrikesDie2024(rangerLevel)} холодом`
+          : featureId === FORTIFYING_SOUL_FEATURE_ID && mode !== 'refund'
+            ? `Хил: ${fortifyingSoulHealFormulaRu2024(rangerLevel)}; целей ≤ ${fortifyingSoulTargetCap2024(wisMod)}`
+            : featureId === WRATH_OF_THE_WILD_FEATURE_ID && mode !== 'refund'
+              ? `КД +${wrathAcBonus2024(rangerLevel)} на 1 мин.`
+              : featureId === HUNGERING_MIGHT_FEATURE_ID
+                ? `Хил: ${hungeringMightHealFormulaRu2024(wisMod)}`
+                : featureId === 'ancient-might' && mode !== 'refund'
+                  ? `Хиты при срабатывании: ${undyingWrathHp2024(rangerLevel)}`
+                  : null
 
   return (
     <Dialog
@@ -123,30 +189,30 @@ export function Ranger2024UseDialog({
       onPrimary={confirm}
       onSecondary={onClose}
     >
-      <Stack gap={12}>
-        {pool ? (
-          <Text tone="muted">
-            Осталось: {left}/{pool.max}
-          </Text>
-        ) : null}
-        {refundable ? (
-          <Field label="Режим">
-            <SegmentedControl
-              aria-label="Режим"
-              value={mode}
-              onChange={setMode}
-              options={[
-                { id: 'spend', label: 'Потратить' },
-                { id: 'refund', label: 'Вернуть' },
-              ]}
-            />
-          </Field>
-        ) : null}
-        <Text>{body}</Text>
-        {featureId === 'tireless' && mode !== 'refund' ? (
-          <Text tone="muted">Врем. хиты: {tirelessTempHpFormulaRu2024(wisMod)}</Text>
-        ) : null}
-      </Stack>
+      <div data-testid={`p24-m02b-ranger-use-${featureId}`}>
+        <Stack gap={12}>
+          {pool ? (
+            <Text tone="muted">
+              Осталось: {left}/{pool.max}
+            </Text>
+          ) : null}
+          {refundable ? (
+            <Field label="Режим">
+              <SegmentedControl
+                aria-label="Режим"
+                value={mode}
+                onChange={setMode}
+                options={[
+                  { id: 'spend', label: 'Потратить' },
+                  { id: 'refund', label: 'Вернуть' },
+                ]}
+              />
+            </Field>
+          ) : null}
+          <Text>{body}</Text>
+          {formulaHint ? <Text tone="muted">{formulaHint}</Text> : null}
+        </Stack>
+      </div>
     </Dialog>
   )
 }

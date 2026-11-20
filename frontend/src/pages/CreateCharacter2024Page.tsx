@@ -80,6 +80,12 @@ import {
   buildPaladinClassOptionPicks,
   paladinAsiChoicesForLevel,
 } from '../features/createPipeline2024/e2ePaladinSeed2024'
+import {
+  parseRangerSeed,
+  buildRangerSeedSpells,
+  buildRangerClassOptionPicks,
+  rangerAsiChoicesForLevel,
+} from '../features/createPipeline2024/e2eRangerSeed2024'
 import { createClassLevel, totalCharacterLevel } from '../shared/dnd/classLevels'
 import { thirdCasterBlock2024 } from '../shared/dnd/edition2024Subclasses'
 import { ensureHpChoices } from '../features/createPipeline/LevelingStep'
@@ -623,6 +629,34 @@ export function CreateCharacter2024Page({
         classOptionPicks: buildPaladinClassOptionPicks(
           paladinSpec.level,
           paladinSpec.subclassSlug,
+        ),
+      }
+    }
+    const rangerSpec = parseRangerSeed(e2eSeed)
+    const rangerClass = bySlug(catalog.classes, 'ranger')
+    if (rangerSpec && rangerClass) {
+      const rangerSkills = ['perception', 'survival', 'stealth']
+      seeds[e2eSeed] = {
+        name: `Следопыт ${rangerSpec.level}`,
+        classSlug: 'ranger',
+        // Standard array; WIS primary, DEX/CON next.
+        abilities: { str: 10, dex: 14, con: 13, int: 8, wis: 15, cha: 12 },
+        rows: [
+          {
+            slug: 'ranger',
+            level: rangerSpec.level,
+            ...(rangerSpec.subclassSlug ? { subclass: rangerSpec.subclassSlug } : {}),
+          },
+        ],
+        skills: rangerSkills,
+        backgroundAsi: { dex: 2, con: 1 },
+        asi: rangerAsiChoicesForLevel(rangerSpec.level),
+        fighting: rangerSpec.level >= 2 ? 'defense' : undefined,
+        mastery: Math.min(2, Math.max(0, rangerSpec.level >= 1 ? 2 : 0)),
+        spells: buildRangerSeedSpells(catalog.spells, rangerClass, rangerSpec.level),
+        classOptionPicks: buildRangerClassOptionPicks(
+          rangerSpec.level,
+          rangerSpec.subclassSlug,
         ),
       }
     }
