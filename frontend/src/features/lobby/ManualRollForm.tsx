@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import type { SessionSeat } from '../../shared/api/lobbies'
+import { displayDiceNotation, storageDiceNotation } from '../../shared/dnd/diceNotation'
 import { Button, Field, Input, NumberInput, Stack, Text } from '../../ui'
 
 export type ManualRollPayload = {
@@ -147,17 +148,17 @@ export function ManualRollForm({
         <div className="manual-roll-form__row">
           <Field label="Формула" hint="необязательно">
             <Input
-              value={formula}
+              value={displayDiceNotation(formula)}
               disabled={busy}
-              onChange={(e) => setFormula(e.target.value)}
-              placeholder="1d20+5"
+              onChange={(e) => setFormula(storageDiceNotation(e.target.value))}
+              placeholder="1к20+5"
             />
           </Field>
           <Field label="Разбор" hint="необязательно">
             <Input
-              value={breakdown}
+              value={displayDiceNotation(breakdown)}
               disabled={busy}
-              onChange={(e) => setBreakdown(e.target.value)}
+              onChange={(e) => setBreakdown(storageDiceNotation(e.target.value))}
               placeholder="17+5"
             />
           </Field>

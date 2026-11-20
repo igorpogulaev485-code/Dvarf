@@ -40,12 +40,12 @@ test.describe('DICE-01 free roller', () => {
     const dialog = page.getByRole('dialog', { name: 'Бросок кубиков' })
     await expect(dialog).toBeVisible()
 
-    await dialog.getByRole('button', { name: 'Добавить d6' }).click()
-    await dialog.getByRole('button', { name: 'Добавить d6' }).click()
-    await expect(dialog.getByLabel('Формула броска')).toHaveValue('2d6')
+    await dialog.getByRole('button', { name: 'Добавить к6' }).click()
+    await dialog.getByRole('button', { name: 'Добавить к6' }).click()
+    await expect(dialog.getByLabel('Формула броска')).toHaveValue('2к6')
     await dialog.getByTestId('dice-roll-submit').click()
     await expect(dialog.getByTestId('dice-log')).toBeVisible()
-    await expect(dialog.getByTestId('dice-log').locator('li').first()).toContainText('2d6')
+    await expect(dialog.getByTestId('dice-log').locator('li').first()).toContainText('2к6')
 
     await dialog.getByLabel('Формула броска').fill('@@@')
     await expect(dialog.getByText(/Не понял запись/i)).toBeVisible()
@@ -56,7 +56,7 @@ test.describe('DICE-01 free roller', () => {
     await dialog.getByTestId('dice-advantage').click()
     await dialog.getByTestId('dice-roll-submit').click()
     const first = dialog.getByTestId('dice-log').locator('li').first()
-    await expect(first).toContainText('1d20')
+    await expect(first).toContainText('1к20')
     await expect(first.locator('.dice-roller-panel__face')).toHaveCount(2)
     await expect(first.locator('.dice-roller-panel__face.is-dropped')).toHaveCount(1)
 
@@ -76,7 +76,7 @@ test.describe('DICE-01 free roller', () => {
     // openPreview navigates again; after reload storage should still hold entry
     await page.goto('/dev/dice-roller-preview?edition=2014&clean=1&open=1')
     await expect(page.getByRole('dialog', { name: 'Бросок кубиков' })).toBeVisible()
-    await expect(page.getByTestId('dice-log').locator('li').first()).toContainText('1d4')
+    await expect(page.getByTestId('dice-log').locator('li').first()).toContainText('1к4')
   })
 
   test('2014 header still present (regression smoke)', async ({ page }) => {

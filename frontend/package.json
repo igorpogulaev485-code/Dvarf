@@ -90,6 +90,7 @@
     "selfcheck:passives-sense-row": "tsx --tsconfig tsconfig.app.json src/features/characters/passivesSenseRow.selfcheck.ts",
     "selfcheck:adm01": "tsx --tsconfig tsconfig.app.json src/features/admin/adm01.selfcheck.ts",
     "selfcheck:dice-parser": "tsx --tsconfig tsconfig.app.json src/features/diceRoller/parseFormula.selfcheck.ts",
+    "selfcheck:dice-notation": "tsx --tsconfig tsconfig.app.json src/shared/dnd/diceNotation.selfcheck.ts",
     "selfcheck:dice-rng": "tsx --tsconfig tsconfig.app.json src/features/diceRoller/fairRandom.selfcheck.ts",
     "selfcheck:dice-roll": "tsx --tsconfig tsconfig.app.json src/features/diceRoller/rollFormula.selfcheck.ts",
     "selfcheck:dice-record": "tsx --tsconfig tsconfig.app.json src/features/diceRoller/recordDigitalRoll.selfcheck.ts",

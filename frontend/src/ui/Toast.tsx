@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { displayDiceNotation } from '../shared/dnd/diceNotation'
 
 /** Rich toast: string callers stay valid; action enables Undo etc. */
 export type ToastPayload = {
@@ -83,7 +84,7 @@ export function Toast({
       onPointerLeave={() => setPaused(false)}
       onClick={() => onClose()}
     >
-      <span className="ui-toast__text">{message}</span>
+      <span className="ui-toast__text">{displayDiceNotation(message)}</span>
       {hasAction ? (
         <button
           type="button"

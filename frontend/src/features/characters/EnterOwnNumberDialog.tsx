@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
+import { displayDiceNotation } from '../../shared/dnd/diceNotation'
 import { Dialog, Field, NumberInput, Stack, Text } from '../../ui'
 import {
   parseDamageExpression,
@@ -358,7 +359,7 @@ export function EnterOwnNumberDialog({
             <>
               {!hideFormulaChrome && formula?.trim() ? (
                 <Text tone="muted" data-testid="enter-own-formula-expr">
-                  {formula.trim()}
+                  {displayDiceNotation(formula.trim())}
                 </Text>
               ) : null}
               {!hideFormulaChrome ? (

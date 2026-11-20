@@ -148,8 +148,8 @@ test.describe('DICE-01 screenshots (branch)', () => {
     await shot(page, 'open')
 
     const dialog = page.getByRole('dialog', { name: 'Бросок кубиков' })
-    await dialog.getByRole('button', { name: 'Добавить d20' }).click()
-    await dialog.getByRole('button', { name: 'Добавить d6' }).click()
+    await dialog.getByRole('button', { name: 'Добавить к20' }).click()
+    await dialog.getByRole('button', { name: 'Добавить к6' }).click()
     const mod = dialog.getByRole('group', { name: 'Модификатор' })
     await mod.getByRole('button', { name: 'Больше' }).click()
     await mod.getByRole('button', { name: 'Больше' }).click()

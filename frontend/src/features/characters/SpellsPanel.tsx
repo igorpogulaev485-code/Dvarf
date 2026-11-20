@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { displayDiceNotation, storageDiceNotation } from '../../shared/dnd/diceNotation'
 import { CatalogCombobox } from '../catalog'
 import type { CatalogEntry } from '../../shared/api/catalog'
 import type { RulesEdition } from '../../shared/api/characters'
@@ -1327,10 +1328,12 @@ export function SpellsPanel({
                         </Field>
                         <Field label="Эффект">
                           <Input
-                            value={spell.damage}
-                            placeholder="1d8…"
+                            value={displayDiceNotation(spell.damage)}
+                            placeholder="1к8…"
                             onChange={(event) =>
-                              updateSpell(spell.id, { damage: event.target.value })
+                              updateSpell(spell.id, {
+                                damage: storageDiceNotation(event.target.value),
+                              })
                             }
                           />
                         </Field>

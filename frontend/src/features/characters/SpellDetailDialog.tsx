@@ -5,6 +5,7 @@ import {
   resolveCastEffectSummary,
   spellSchoolLabelRu,
 } from '../../shared/dnd/spellCatalog'
+import { displayDiceNotation } from '../../shared/dnd/diceNotation'
 import { levelLabel } from '../../shared/dnd/spells'
 import { listCatalogEntries, type CatalogEntry } from '../../shared/api/catalog'
 import type { RulesEdition } from '../../shared/api/characters'
@@ -257,7 +258,7 @@ export function SpellDetailDialog({
           {rows.map((row) => (
             <div key={row.label} className="spell-detail-grid__cell">
               <Text tone="muted">{row.label}</Text>
-              <div>{row.value}</div>
+              <div>{displayDiceNotation(row.value)}</div>
             </div>
           ))}
         </div>
@@ -265,7 +266,7 @@ export function SpellDetailDialog({
         <div className="spell-detail-body">
           <Text tone="muted">Описание</Text>
           {description ? (
-            <p className="spell-detail-body__text">{description}</p>
+            <p className="spell-detail-body__text">{displayDiceNotation(description)}</p>
           ) : catalogStatus === 'loading' ? (
             <Text tone="muted">Загружаем текст из справочника…</Text>
           ) : catalogStatus === 'error' ? (
@@ -284,7 +285,7 @@ export function SpellDetailDialog({
         {higherLevels ? (
           <div className="spell-detail-body">
             <Text tone="muted">На больших уровнях</Text>
-            <p className="spell-detail-body__text">{higherLevels}</p>
+            <p className="spell-detail-body__text">{displayDiceNotation(higherLevels)}</p>
           </div>
         ) : null}
 

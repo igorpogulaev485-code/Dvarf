@@ -1,4 +1,11 @@
 import type { ReactNode } from 'react'
+import { displayDiceNotation } from '../shared/dnd/diceNotation'
+
+function withDiceCopy(node: ReactNode): ReactNode {
+  if (typeof node === 'string') return displayDiceNotation(node)
+  if (Array.isArray(node)) return node.map(withDiceCopy)
+  return node
+}
 
 type TextProps = {
   children: ReactNode
@@ -22,11 +29,11 @@ export function Text({
   return (
     <Tag
       className={`ui-text ui-text--${tone} ${className}`.trim()}
-      title={title}
+      title={title ? displayDiceNotation(title) : title}
       role={role}
       data-testid={dataTestId}
     >
-      {children}
+      {withDiceCopy(children)}
     </Tag>
   )
 }

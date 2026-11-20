@@ -9,6 +9,7 @@ import {
   Text,
   ToggleChip,
 } from '../../ui'
+import { displayDiceNotation, storageDiceNotation } from '../../shared/dnd/diceNotation'
 import { parseFormula } from '../diceRoller/parseFormula'
 import type { AdvantageMode } from '../diceRoller/types'
 
@@ -98,8 +99,8 @@ export function SessionDigitalRollPanel({
       </Field>
       <Field label="Формула" hint={parsed.ok ? undefined : parsed.message}>
         <Input
-          value={formula}
-          onChange={(e) => setFormula(e.target.value)}
+          value={displayDiceNotation(formula)}
+          onChange={(e) => setFormula(storageDiceNotation(e.target.value))}
           data-testid="session-digital-formula"
         />
       </Field>

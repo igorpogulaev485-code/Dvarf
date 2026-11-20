@@ -102,7 +102,7 @@ test.describe('DICE-02a live session feed', () => {
     const beforeFree = await feedCount()
     await pcPage.getByTestId('dice-fab').click()
     await expect(pcPage.getByTestId('dice-only-me')).toHaveAttribute('aria-checked', 'false')
-    await pcPage.getByRole('button', { name: 'Добавить d20' }).click()
+    await pcPage.getByRole('button', { name: 'Добавить к20' }).click()
     await pcPage.getByTestId('dice-roll-submit').click()
     await expect.poll(async () => feedCount(), { timeout: 15_000 }).toBeGreaterThan(beforeFree)
     await ensureGmFeed(gmPage)

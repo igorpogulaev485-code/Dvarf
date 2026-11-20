@@ -139,7 +139,7 @@ export function Pack09FeatureExtras({
               )
             }}
           >
-            {controlled ? 'Бросить два d8' : 'Бросить d8'}
+            {controlled ? 'Бросить два к8' : 'Бросить к8'}
           </Button>
         </div>
         {surgeRolls.length > 0 ? (

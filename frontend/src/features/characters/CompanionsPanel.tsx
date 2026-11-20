@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { displayDiceNotation } from '../../shared/dnd/diceNotation'
 import { canSpendSlot, spendSpellSlot } from '../../shared/dnd/spells'
 import {
   Button,
@@ -851,7 +852,7 @@ export function CompanionsPanel({
                             atk.name,
                             atk.attackBonus != null ? `+${atk.attackBonus}` : null,
                             atk.damageExpr
-                              ? `${atk.damageExpr}${atk.damageType ? ` ${atk.damageType}` : ''}`
+                              ? `${displayDiceNotation(atk.damageExpr)}${atk.damageType ? ` ${atk.damageType}` : ''}`
                               : null,
                           ].filter(Boolean)
                           return (

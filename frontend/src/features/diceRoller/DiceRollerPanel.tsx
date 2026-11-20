@@ -31,6 +31,7 @@ import {
   subscribeStrokeOfLuckAvailable,
 } from './journalBridge'
 import { readOnlyMePref, writeOnlyMePref } from './onlyMePref'
+import { displayDiceNotation, storageDiceNotation } from '../../shared/dnd/diceNotation'
 import { formulaFromPool, parseFormula, poolHasDice } from './parseFormula'
 import { recordDigitalRoll } from './recordDigitalRoll'
 import { rollExpression } from './rollFormula'
@@ -288,7 +289,7 @@ export function DiceRollerPanel({
   }
 
   function onFormulaChange(value: string) {
-    setFormula(value)
+    setFormula(storageDiceNotation(value))
     setFormulaTouched(true)
     const p = parseFormula(value)
     if (p.ok && p.simplePool) {
@@ -405,7 +406,7 @@ export function DiceRollerPanel({
               <button
                 type="button"
                 className={`dice-roller-panel__die${count > 0 ? ' is-on' : ''}`}
-                aria-label={`Добавить d${sides}`}
+                aria-label={`Добавить к${sides}`}
                 title="Клик — добавить; удержание или правый клик — убрать"
                 onClick={() => onDieClick(sides)}
                 onContextMenu={(e) => onDieContextMenu(sides, e)}
@@ -414,7 +415,7 @@ export function DiceRollerPanel({
                 onPointerLeave={endHold}
                 onPointerCancel={endHold}
               >
-                <span className="dice-roller-panel__die-label">d{sides}</span>
+                <span className="dice-roller-panel__die-label">к{sides}</span>
                 {count > 0 ? (
                   <span className="dice-roller-panel__die-count">{count}</span>
                 ) : null}
@@ -423,7 +424,7 @@ export function DiceRollerPanel({
                 <button
                   type="button"
                   className="dice-roller-panel__die-dec"
-                  aria-label={`Убрать d${sides}`}
+                  aria-label={`Убрать к${sides}`}
                   title="Убрать одну"
                   onClick={(e) => {
                     e.stopPropagation()
@@ -455,9 +456,9 @@ export function DiceRollerPanel({
         ) : null}
         <Field label="Формула">
           <Input
-            value={formula}
+            value={displayDiceNotation(formula)}
             onChange={(e) => onFormulaChange(e.target.value)}
-            placeholder="например 2d6+3"
+            placeholder="например 2к6+3"
             aria-invalid={Boolean(formula.trim() && !parsed.ok)}
             aria-label="Формула броска"
             onKeyDown={(e) => {
@@ -477,7 +478,7 @@ export function DiceRollerPanel({
       >
         <div
           className="dice-roller-panel__adv-hit"
-          title={advDisabled ? 'Нужна одна кость d20' : undefined}
+          title={advDisabled ? 'Нужна одна кость к20' : undefined}
           onClick={() => {
             if (advDisabled) flashAdvHint()
           }}
@@ -492,7 +493,7 @@ export function DiceRollerPanel({
         </div>
         <div
           className="dice-roller-panel__adv-hit"
-          title={advDisabled ? 'Нужна одна кость d20' : undefined}
+          title={advDisabled ? 'Нужна одна кость к20' : undefined}
           onClick={() => {
             if (advDisabled) flashAdvHint()
           }}
@@ -520,7 +521,7 @@ export function DiceRollerPanel({
       </div>
       {advFlash ? (
         <Text tone="muted" className="dice-roller-panel__adv-hint" role="status">
-          Нужна одна кость d20
+          Нужна одна кость к20
         </Text>
       ) : null}
 
@@ -592,7 +593,7 @@ export function DiceRollerPanel({
                         <span>
                           {stub
                             ? 'Мастер бросил скрыто'
-                            : ev.title || ev.character_name || 'Бросок'}
+                            : displayDiceNotation(ev.title || ev.character_name || 'Бросок')}
                         </span>
                         {!stub && ev.total != null ? (
                           <strong>{ev.total}</strong>
@@ -609,7 +610,7 @@ export function DiceRollerPanel({
                         />
                       ) : null}
                       {!stub && ev.formula ? (
-                        <Text tone="muted">{ev.formula}</Text>
+                        <Text tone="muted">{displayDiceNotation(ev.formula)}</Text>
                       ) : null}
                     </li>
                   )
@@ -652,7 +653,7 @@ export function DiceRollerPanel({
                     <span className="dice-roller-panel__log-time">
                       {formatTime(entry.at)}
                     </span>
-                    <span className="dice-roller-panel__log-expr">{label}</span>
+                    <span className="dice-roller-panel__log-expr">{displayDiceNotation(label)}</span>
                     {entry.advantageMode === 'advantage' ? (
                       <span className="dice-roller-panel__log-tag">преим.</span>
                     ) : null}
@@ -665,7 +666,7 @@ export function DiceRollerPanel({
                     <div className="dice-roller-panel__log-detail">
                       {entry.title ? (
                         <Text tone="muted" className="dice-roller-panel__log-formula">
-                          {entry.expression}
+                          {displayDiceNotation(entry.expression)}
                         </Text>
                       ) : null}
                       {entry.dice.length > 0 ? (
@@ -711,7 +712,7 @@ export function DiceRollerPanel({
                           ) : null}
                         </div>
                       ) : entry.toastText ? (
-                        <Text tone="muted">{entry.toastText}</Text>
+                        <Text tone="muted">{displayDiceNotation(entry.toastText)}</Text>
                       ) : null}
                       <div className="dice-roller-panel__log-actions">
                         {canRepeat ? (
@@ -731,7 +732,7 @@ export function DiceRollerPanel({
                             variant="secondary"
                             size="sm"
                             data-testid="dice-stroke-of-luck"
-                            title="Удача: d20 проверки → 20 / промах атаки → попадание"
+                            title="Удача: к20 проверки → 20 / промах атаки → попадание"
                             onClick={(e: MouseEvent) => {
                               e.stopPropagation()
                               const result = requestStrokeOfLuck({

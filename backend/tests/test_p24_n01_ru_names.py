@@ -235,6 +235,7 @@ def test_alembic_single_head_is_p24_n01():
         "p24int01merge",
         "p24fixenum01",
         "p24n01r02",
+        "p24n01r03",
     }
     ancestor_ids = {
         rev.revision for rev in script.walk_revisions(base="base", head=heads[0])

@@ -4,6 +4,7 @@ import {
   parseSpellCatalogData,
   spellSchoolLabelRu,
 } from '../../shared/dnd/spellCatalog'
+import { displayDiceNotation } from '../../shared/dnd/diceNotation'
 import { Text } from '../../ui'
 
 type SpellCatalogDetailsProps = {
@@ -106,7 +107,7 @@ export function SpellCatalogDetails({ data, compact = false }: SpellCatalogDetai
         {parsed.damage ? (
           <div>
             <Text tone="muted">Эффект</Text>
-            <div>{parsed.damage}</div>
+            <div>{displayDiceNotation(parsed.damage)}</div>
           </div>
         ) : null}
       </div>
@@ -125,10 +126,10 @@ export function SpellCatalogDetails({ data, compact = false }: SpellCatalogDetai
           </button>
           {open ? (
             <div className="spell-catalog-details__body">
-              {parsed.description ? <p>{parsed.description}</p> : null}
+              {parsed.description ? <p>{displayDiceNotation(parsed.description)}</p> : null}
               {parsed.higher_levels ? (
                 <p>
-                  <strong>На больших уровнях.</strong> {parsed.higher_levels}
+                  <strong>На больших уровнях.</strong> {displayDiceNotation(parsed.higher_levels)}
                 </p>
               ) : null}
             </div>
