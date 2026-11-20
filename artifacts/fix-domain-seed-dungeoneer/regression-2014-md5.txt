@@ -1,0 +1,10 @@
+# 2014 regression md5 — vs origin/main tip 535de43f
+
+## Product 2014 paths (must be SAME)
+- `frontend/src/pages/CreateCharacterPage.tsx`: main=`c5dfbabe5a406375111c9d0bcc43b193` work=`c5dfbabe5a406375111c9d0bcc43b193` **SAME**
+- `backend/data/classes/phb2014_subclass_catalog_spec.json`: main=`d4aec25bca2406bd81cbd4d149ba7c39` work=`d4aec25bca2406bd81cbd4d149ba7c39` **SAME**
+- `backend/data/classes/official5e_subclass_catalog_spec.json`: main=`96d1a937f35d19d2adb49a7eeedfa16d` work=`96d1a937f35d19d2adb49a7eeedfa16d` **SAME**
+- `backend/data/classes/subclass_catalog_seed_2014.json`: main=`c1b655bf2b1b269004b091b4e18dc840` work=`c1b655bf2b1b269004b091b4e18dc840` **SAME**
+- `backend/data/srd/2014/catalog.json`: main=`da2b5ec3232bdb2a530470b495e0ea62` work=`da2b5ec3232bdb2a530470b495e0ea62` **SAME**
+- `frontend/src/index.css`: main=`31936aa1fd5709718ed05a8ebf707f2d` work=`31936aa1fd5709718ed05a8ebf707f2d` **SAME**
+- `frontend/src/styles/26-lobby-hub-lock.css`: main=`0e69be021d061d701ec041f404370f75` work=`0e69be021d061d701ec041f404370f75` **SAME**

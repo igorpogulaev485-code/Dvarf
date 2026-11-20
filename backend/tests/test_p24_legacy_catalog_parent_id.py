@@ -554,7 +554,7 @@ def test_p24_chain_from_wapi08_present():
         "p24c17frh01",
         "p24c20rtw01",
         "p24c21au01",
-        "p24int01merge", "p24fixenum01",
+        "p24int01merge", "p24fixenum01", "p24n01r02",
     }
     missing = required - ancestor_ids
     assert not missing, missing

@@ -3855,6 +3855,118 @@ def _ensure_wizard_spellbook_item(items: list[dict[str, Any]]) -> str:
     return item_id
 
 
+# Pack-summary coins: "11 зм" / "11 ЗМ" (not an inventory line).
+_PACK_COIN_RE = re.compile(r"^(?P<qty>\d+)\s*зм\.?$", re.IGNORECASE)
+# Leading count: "2 костюма", "20 стрел".
+_PACK_LEADING_QTY_RE = re.compile(r"^(?P<qty>\d+)\s+(?P<name>.+)$", re.UNICODE)
+# Trailing multiply with digits only — Cyrillic «х» must NOT split «духи».
+_PACK_TRAILING_QTY_RE = re.compile(
+    r"^(?P<name>.+?)\s*[×xXх]\s*(?P<qty>\d+)\s*$",
+    re.UNICODE,
+)
+_PACK_CHOICE_LABELS = frozenset(
+    {
+        "музыкальный инструмент",
+        "ремесленные инструменты",
+        "игровой набор",
+    }
+)
+
+
+def _pack_name_candidates(name: str) -> list[str]:
+    """Rough Russian singular / plural variants for catalog name_ru match."""
+    n = name.strip().lower()
+    if not n:
+        return []
+    out: list[str] = [n]
+    if "(" in n:
+        out.append(n.split("(", 1)[0].strip())
+    for suf in ("ами", "ями", "ов", "ев", "ей", "ы", "и", "а", "я"):
+        if n.endswith(suf) and len(n) > len(suf) + 2:
+            stem = n[: -len(suf)]
+            out.append(stem)
+            for add in ("", "а", "я", "ь", "ы", "и"):
+                out.append(stem + add)
+    for add in ("ы", "а", "я", "и", "ь"):
+        out.append(n + add)
+    seen: set[str] = set()
+    ordered: list[str] = []
+    for cand in out:
+        key = cand.strip()
+        if key and key not in seen:
+            seen.add(key)
+            ordered.append(key)
+    return ordered
+
+
+def _resolve_pack_item_slug(name: str, by_name: Mapping[str, str]) -> str | None:
+    for cand in _pack_name_candidates(name):
+        slug = by_name.get(cand)
+        if slug:
+            return slug
+    return None
+
+
+def _is_pack_tool_choice_chunk(
+    name: str,
+    *,
+    tool_choices: Mapping[str, Any] | None,
+) -> bool:
+    """True when this summary fragment is the background's chosen tool slot."""
+    low = name.strip().lower()
+    if "выбранн" in low:
+        return True
+    if not isinstance(tool_choices, Mapping):
+        return False
+    base = low.split("(", 1)[0].strip()
+    if base not in _PACK_CHOICE_LABELS:
+        return False
+    category = str(
+        tool_choices.get("category")
+        or tool_choices.get("from_category")
+        or tool_choices.get("from_group")
+        or ""
+    ).lower()
+    if "musical" in category or "instrument" in category:
+        return base == "музыкальный инструмент"
+    if "artisan" in category:
+        return base == "ремесленные инструменты"
+    if "gaming" in category:
+        return base == "игровой набор"
+    return False
+
+
+def _parse_pack_summary_chunk(chunk: str) -> tuple[str | None, int]:
+    """Parse one pack_summary_ru fragment.
+
+    Returns ``(name, qty)``. When the chunk is coins (``11 зм``), ``name`` is
+    ``None`` and ``qty`` is the GP amount to add to the purse.
+    """
+    text = chunk.strip().strip(".")
+    if not text:
+        return "", 1
+    coin = _PACK_COIN_RE.match(text)
+    if coin:
+        return None, int(coin.group("qty"))
+    trailing = _PACK_TRAILING_QTY_RE.match(text)
+    if trailing:
+        return trailing.group("name").strip(), int(trailing.group("qty"))
+    leading = _PACK_LEADING_QTY_RE.match(text)
+    if leading:
+        return leading.group("name").strip(), int(leading.group("qty"))
+    return text, 1
+
+
+def _resolve_tool_inventory_slug(tool_id: str, item_catalog: Mapping[str, Any]) -> str:
+    """Map background_tool_id to an equipment catalog slug when possible."""
+    key = _normalize_tool_key(tool_id)
+    candidates = [key, key.replace("-s-", "s-"), *_TOOL_SLUG_ALIASES.get(key, ())]
+    for candidate in candidates:
+        if candidate in item_catalog:
+            return candidate
+    return key
+
+
 def _build_sheet(
     *,
     payload: Create2024Payload,
@@ -4197,27 +4309,38 @@ def _build_sheet(
                     for slug, row in item_catalog.items()
                     if row.get("name_ru")
                 }
-                chunks = [c.strip() for c in pack_summary.replace(";", ",").split(",") if c.strip()]
+                chunks = [
+                    c.strip()
+                    for c in pack_summary.replace(";", ",").split(",")
+                    if c.strip()
+                ]
+                tool_choices = (
+                    bg_data.get("tool_choices")
+                    if isinstance(bg_data.get("tool_choices"), Mapping)
+                    else None
+                )
+                tool_slug = (
+                    _resolve_tool_inventory_slug(tool_id, item_catalog)
+                    if tool_id
+                    else None
+                )
+                tool_pushed = False
                 for chunk in chunks:
-                    # "пергамент ×10" / "стрелы ×20"
-                    qty = 1
-                    name = chunk
-                    for sep in ("×", "x", "х"):
-                        if sep in chunk.lower() if sep != "×" else sep in chunk:
-                            left, _, right = chunk.partition(sep) if sep == "×" else chunk.lower().partition(sep)
-                            if sep != "×":
-                                # rebuild with original casing roughly
-                                idx = chunk.lower().find(sep)
-                                left, right = chunk[:idx], chunk[idx + len(sep) :]
-                            try:
-                                qty = int("".join(ch for ch in right if ch.isdigit()) or "1")
-                                name = left.strip()
-                            except ValueError:
-                                qty = 1
-                            break
-                    slug = by_name.get(name.lower())
+                    name, qty = _parse_pack_summary_chunk(chunk)
+                    if name is None:
+                        coins_gp += qty
+                        continue
+                    if tool_slug and _is_pack_tool_choice_chunk(
+                        name, tool_choices=tool_choices
+                    ):
+                        _push_item(tool_slug, qty)
+                        tool_pushed = True
+                        continue
+                    slug = _resolve_pack_item_slug(name, by_name)
                     if slug:
                         _push_item(slug, qty)
+                        if tool_slug and slug == tool_slug:
+                            tool_pushed = True
                     else:
                         items.append(
                             {
@@ -4231,6 +4354,10 @@ def _build_sheet(
                                 "equipped": False,
                             }
                         )
+                # Choice packs always grant the picked tool even if the summary
+                # omitted a clear placeholder (Guard «игровой набор»).
+                if tool_slug and not tool_pushed and tool_choices:
+                    _push_item(tool_slug, 1)
 
     sheet["inventory"] = {
         "coins": {"cp": 0, "sp": 0, "ep": 0, "gp": coins_gp, "pp": 0},
