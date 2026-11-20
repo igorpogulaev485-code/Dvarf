@@ -516,9 +516,13 @@ test.describe('P24-M02 cleric — offline create2024_bridge tables', () => {
     expect(known.filter((x) => x.level === 0).length).toBe(4)
   })
 
-  test('2024 create preview stays gated behind ?preview=1 (RULES_EDITION_2024_OPEN untouched)', async ({ page }) => {
+  test('2024 create opens without preview; legacy ?preview=1 still works', async ({ page }) => {
     const store = createStore()
     await installClericHarness(page, store)
+    await page.goto('/characters/create?edition=2024')
+    await expect(page.getByTestId('create-character-2024')).toBeVisible({ timeout: 45_000 })
+    await expect(page.getByTestId('p24-m03-step-species')).toBeVisible()
+
     await page.goto('/characters/create?edition=2024&preview=1')
     await expect(page.getByTestId('create-character-2024')).toBeVisible({ timeout: 45_000 })
     await expect(page.getByTestId('p24-m03-step-species')).toBeVisible()

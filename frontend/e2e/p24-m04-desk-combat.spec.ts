@@ -32,7 +32,7 @@ test.describe('P24-M04 desk combat preview smoke', () => {
     const project = testInfo.project.name
     await page.goto('/dev/p24-m04-preview')
     await expect(page.getByTestId('p24-m04-preview')).toBeVisible()
-    await expect(page.getByTestId('p24-m04-flag')).toContainText('false')
+    await expect(page.getByTestId('p24-m04-flag')).toContainText('true')
 
     await expect(page.getByTestId('heroic-inspiration-reroll-chip')).toBeVisible()
     await page.getByTestId('heroic-inspiration-reroll-chip').click()

@@ -13,11 +13,12 @@ test.beforeAll(() => {
 })
 
 test.describe('P24-M01 weapon mastery', () => {
-  test('блок мастерства 2024 + словарь RU; флаг закрыт', async ({ page }, testInfo) => {
+  test('блок мастерства 2024 + словарь RU; флаг открыт', async ({ page }, testInfo) => {
     await page.goto('/dev/p24-m01-preview')
     await expect(page.getByTestId('p24-m01-preview')).toBeVisible()
-    await expect(page.getByTestId('p24-m01-flag')).toContainText('закрыт')
+    await expect(page.getByTestId('p24-m01-flag')).toContainText('открыт')
     await expect(page.getByTestId('p24-m01-2014-hidden')).toContainText('скрыт')
+
     await expect(page.getByTestId('weapon-mastery-panel')).toBeVisible()
     await expect(page.getByTestId('p24-m01-dict')).toContainText('Засечка')
     await expect(page.getByTestId('p24-m01-dict')).toContainText('Опрокидывание')

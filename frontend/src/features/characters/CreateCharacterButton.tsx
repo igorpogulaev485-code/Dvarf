@@ -12,8 +12,8 @@ type CreateCharacterButtonProps = {
 }
 
 /**
- * P24-01 / M06: кнопка «D&D 2024» скрыта, пока RULES_EDITION_2024_OPEN выключен.
- * Включение флага — решение Игоря после merge/deploy (не коммитить true в tip).
+ * P24-01 / M06: кнопка «D&D 2024» видна при RULES_EDITION_2024_OPEN.
+ * FE-флаг открыт по решению Игоря 20.11.2026; BE — .env на VPS.
  */
 export function CreateCharacterButton({ pending, onCreate }: CreateCharacterButtonProps) {
   if (!RULES_EDITION_2024_OPEN) {

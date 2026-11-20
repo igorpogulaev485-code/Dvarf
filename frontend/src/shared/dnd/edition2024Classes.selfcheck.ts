@@ -14,7 +14,7 @@ import { createClassLevel } from './classLevels'
 import { multiclassPackage2024, resolveClassGrantDef } from './classGrants'
 import { RULES_EDITION_2024_OPEN } from './rulesEdition2024'
 
-assert.equal(RULES_EDITION_2024_OPEN, false)
+assert.equal(RULES_EDITION_2024_OPEN, true, 'FE flag open (Igor 20.11.2026)')
 
 const slugs = listClassSlugs2024()
 assert.ok(slugs.includes('fighter'))

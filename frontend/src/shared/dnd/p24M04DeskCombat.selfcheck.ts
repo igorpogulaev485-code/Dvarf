@@ -19,7 +19,7 @@ import {
 import { applyLongRest } from './rest.ts'
 import { RULES_EDITION_2024_OPEN } from './rulesEdition2024.ts'
 
-assert.equal(RULES_EDITION_2024_OPEN, false, 'flag stays closed')
+assert.equal(RULES_EDITION_2024_OPEN, true, 'FE flag open (Igor 20.11.2026)')
 
 assert.equal(initiativeModeWithSurprise2024('normal', true), 'disadvantage')
 assert.equal(surpriseRoundAllowed('2024'), false)

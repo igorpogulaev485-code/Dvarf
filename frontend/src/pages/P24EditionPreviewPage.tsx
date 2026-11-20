@@ -1,6 +1,6 @@
 /**
  * DEV-only preview for P24-01 Playwright: create-character CTA + lobby form.
- * With RULES_EDITION_2024_OPEN off — lobby form matches main (no edition field).
+ * With RULES_EDITION_2024_OPEN on — CTA «D&D 2024» + lobby edition select (default 2014).
  */
 import { useState, type FormEvent } from 'react'
 import { CreateCharacterButton } from '../features/characters/CreateCharacterButton'
@@ -31,7 +31,9 @@ export function P24EditionPreviewPage() {
             Выбрано: {editionLog}
           </p>
           <Text tone="muted">
-            Кнопки «D&D 2024» быть не должно, пока флаг открытия выключен.
+            {RULES_EDITION_2024_OPEN
+              ? 'Флаг открыт: видны D&D 2014 и D&D 2024. Дефолт создания — 2014.'
+              : 'Кнопки «D&D 2024» быть не должно, пока флаг открытия выключен.'}
           </Text>
         </Panel>
 

@@ -133,8 +133,11 @@ export function CharactersPage() {
     )
   }
 
-  function handleCreate(_request: CreateCharacterRequest) {
-    // 2024 скрыт до готовности редакции — только пошаговая форма 2014.
+  function handleCreate(request: CreateCharacterRequest) {
+    if (request.edition === '2024') {
+      navigate('/characters/create?edition=2024')
+      return
+    }
     navigate('/characters/create')
   }
 

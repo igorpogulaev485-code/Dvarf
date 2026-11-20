@@ -13,15 +13,15 @@ test.beforeAll(() => {
 })
 
 test.describe('P24-02 core rules: 2014 isolation + 2024 modules', () => {
-  test('флаг выкл; истощение/отдых/вдохновение/тумблеры по редакции', async ({
+  test('флаг открыт; истощение/отдых/вдохновение/тумблеры по редакции', async ({
     page,
   }, testInfo) => {
     await page.goto('/dev/p24-02-preview')
     await expect(page.getByTestId('p24-02-preview')).toBeVisible()
 
     await expect(page.getByTestId('create-character-2014')).toBeVisible()
-    await expect(page.getByTestId('create-character-2024')).toHaveCount(0)
-    await expect(page.getByTestId('p24-02-flag-off')).toContainText('закрыт')
+    await expect(page.getByTestId('create-character-2024')).toBeVisible()
+    await expect(page.getByTestId('p24-02-flag-on')).toContainText('открыт')
 
     await expect(page.getByTestId('p24-02-exh-2024')).toContainText('−6')
     await expect(page.getByTestId('p24-02-exh-2024')).toContainText('15 фт')
@@ -65,18 +65,20 @@ test.describe('P24-02 core rules: 2014 isolation + 2024 modules', () => {
     await page.screenshot({ path: sheetShot, fullPage: true })
   })
 
-  test('лобби 2014 preview: нет поля редакции; кнопка 2024 скрыта', async ({
+  test('лобби preview: select редакции виден (дефолт 2014); кнопка 2024 есть', async ({
     page,
   }, testInfo) => {
     await page.goto('/dev/p24-01-preview')
     await expect(page.getByTestId('lobby-create-form')).toBeVisible()
-    await expect(page.getByTestId('lobby-create-rules-edition')).toHaveCount(0)
-    await expect(page.getByTestId('create-character-2024')).toHaveCount(0)
+    await expect(page.getByTestId('lobby-create-rules-edition')).toBeVisible()
+    await expect(page.getByLabel('Редакция лобби')).toHaveValue('2014')
+    await expect(page.getByTestId('create-character-2024')).toBeVisible()
 
     const lobbyShot = path.join(
       ARTIFACTS,
-      `lobby-2014-${testInfo.project.name}.png`,
+      `lobby-open-${testInfo.project.name}.png`,
     )
     await page.screenshot({ path: lobbyShot, fullPage: true })
   })
 })
+

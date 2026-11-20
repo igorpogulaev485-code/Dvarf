@@ -941,7 +941,8 @@ export function CreateCharacter2024Page({
         return
       }
       const payload = toCreate2024Request(state, {
-        isPreview: !RULES_EDITION_2024_OPEN,
+        // Open flag → real create. Legacy/DEV ?preview=1 still uses preview finalize.
+        isPreview: !RULES_EDITION_2024_OPEN || previewQuery,
         isDraft: asDraft,
       })
       const created = await createCharacter2024(payload)

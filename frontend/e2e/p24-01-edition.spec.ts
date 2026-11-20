@@ -12,29 +12,30 @@ test.beforeAll(() => {
   fs.mkdirSync(ARTIFACTS, { recursive: true })
 })
 
-test.describe('P24-01 flag off: create 2014 + lobby like main', () => {
-  test('нет кнопки D&D 2024; в форме лобби нет поля редакции', async ({
+test.describe('P24-01 flag open: CTA 2024 + lobby edition select (default 2014)', () => {
+  test('кнопка D&D 2024 видна; в форме лобби есть select редакции (дефолт 2014)', async ({
     page,
   }, testInfo) => {
     await page.goto('/dev/p24-01-preview')
     await expect(page.getByTestId('p24-01-preview')).toBeVisible()
 
     await expect(page.getByTestId('create-character-2014')).toBeVisible()
-    await expect(page.getByTestId('create-character-2024')).toHaveCount(0)
-    await expect(page.getByRole('button', { name: /D&D 2024/i })).toHaveCount(0)
+    await expect(page.getByTestId('create-character-2024')).toBeVisible()
+    await expect(page.getByRole('button', { name: /D&D 2024/i })).toBeVisible()
 
     await page.getByTestId('create-character-2014').click()
     await expect(page.getByTestId('create-edition-log')).toContainText('2014')
+    await page.getByTestId('create-character-2024').click()
+    await expect(page.getByTestId('create-edition-log')).toContainText('2024')
 
     await expect(page.getByTestId('lobby-create-form')).toBeVisible()
-    await expect(page.getByTestId('lobby-create-rules-edition')).toHaveCount(0)
-    await expect(page.getByLabel('Редакция лобби')).toHaveCount(0)
-    await expect(page.getByText('Редакция', { exact: true })).toHaveCount(0)
+    await expect(page.getByTestId('lobby-create-rules-edition')).toBeVisible()
+    await expect(page.getByLabel('Редакция лобби')).toHaveValue('2014')
 
     await page.getByTestId('lobby-preview-submit').click()
     await expect(page.getByTestId('lobby-created-ok')).toContainText('Лобби создано')
 
-    const shot = path.join(ARTIFACTS, `create-and-lobby-2014-${testInfo.project.name}.png`)
+    const shot = path.join(ARTIFACTS, `create-and-lobby-open-${testInfo.project.name}.png`)
     await page.screenshot({ path: shot, fullPage: true })
   })
 })
