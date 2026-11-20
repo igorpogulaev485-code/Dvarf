@@ -71,6 +71,10 @@ import {
   PRIMAL_LORE_CANTRIPS_2024,
   PRIMAL_LORE_SKILLS_2024,
 } from '../../shared/dnd/bardBook2024Features'
+import {
+  ELEMENTAL_SHIELDING_TYPES_2024,
+  GENIES_SPLENDOR_SKILLS_2024,
+} from '../../shared/dnd/paladinBook2024Features'
 import { wizardCreateBookNeed2024 } from '../../shared/dnd/wizardSpellbook2024'
 import {
   isVestigeCompanionType2024,
@@ -778,6 +782,38 @@ export function bardBookCreatePicksNeed2024(state: Create2024State): {
   }
 }
 
+export function paladinBookCreatePicksNeed2024(state: Create2024State): {
+  paladinLevel: number
+  subclassSlug: string
+  geniesSkill: boolean
+  shieldingType: boolean
+  any: boolean
+} {
+  if (state.classSlug !== 'paladin') {
+    return {
+      paladinLevel: 0,
+      subclassSlug: '',
+      geniesSkill: false,
+      shieldingType: false,
+      any: false,
+    }
+  }
+  const primary =
+    state.classes.find((row) => row.id === state.primaryClassEntryId) ?? state.classes[0]
+  const paladinLevel = Math.max(1, primary?.level ?? state.characterLevel ?? 1)
+  const subclass = String(
+    (primary && state.subclassByEntryId[primary.id]) || state.subclassSlug || '',
+  ).toLowerCase()
+  const open = subclass === 'paladin__oath-of-the-noble-genies' && paladinLevel >= 3
+  return {
+    paladinLevel,
+    subclassSlug: subclass,
+    geniesSkill: open,
+    shieldingType: open && paladinLevel >= 7,
+    any: open,
+  }
+}
+
 export function rangerCreatePicksNeed2024(state: Create2024State): {
   rangerLevel: number
   subclassSlug: string
@@ -1180,6 +1216,27 @@ function levelingIssues(state: Create2024State, ctx: StepIssueCtx): string[] {
       const key = pick.replace(/_/g, '-')
       if (!(PRIMAL_LORE_CANTRIPS_2024 as readonly string[]).includes(key as (typeof PRIMAL_LORE_CANTRIPS_2024)[number])) {
         issues.push('Коллегия луны 3+: выберите заговор друида «Древних знаний»')
+      }
+    }
+  }
+  if (state.classSlug === 'paladin') {
+    const need = paladinBookCreatePicksNeed2024(state)
+    if (need.geniesSkill) {
+      const pick = String(state.classOptionPicks.genies_splendor_skill || '')
+        .trim()
+        .toLowerCase()
+        .replace(/-/g, '_')
+      if (!(GENIES_SPLENDOR_SKILLS_2024 as readonly string[]).includes(pick)) {
+        issues.push('Клятва благородных гениев 3+: выберите навык «Великолепия гения»')
+      }
+    }
+    if (need.shieldingType) {
+      const pick = String(state.classOptionPicks.elemental_shielding_type || '')
+        .trim()
+        .toLowerCase()
+        .replace(/-/g, '_')
+      if (!(ELEMENTAL_SHIELDING_TYPES_2024 as readonly string[]).includes(pick)) {
+        issues.push('Клятва благородных гениев 7+: выберите тип «Ауры стихийной защиты»')
       }
     }
   }

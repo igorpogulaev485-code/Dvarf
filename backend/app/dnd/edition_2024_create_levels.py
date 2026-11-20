@@ -1394,6 +1394,61 @@ def _rollback_rogue_state(sheet: dict[str, Any], classes: Sequence[Mapping[str, 
         sheet["feature_picks"] = {**picks, "values": values}
 
 
+
+def _rollback_paladin_book_state(sheet: dict[str, Any], classes: Sequence[Mapping[str, Any]]) -> None:
+    """Drop Noble Genies picks / grants that no longer fit the lowered level."""
+    row = next(
+        (r for r in classes if e24.normalize_class_slug(str(r.get("slug") or "")) == "paladin"),
+        None,
+    )
+    if row is None:
+        return
+    level = int(row.get("level") or 1)
+    entry = str(row.get("id") or "class-paladin")
+    subclass = create24._normalize_slug(str(row.get("subclass_slug") or ""))
+    picks = sheet.get("feature_picks")
+    values = dict(picks.get("values") or {}) if isinstance(picks, dict) else {}
+    skills = sheet.get("skills") if isinstance(sheet.get("skills"), dict) else {}
+    prof = sheet.get("proficiency") if isinstance(sheet.get("proficiency"), dict) else {}
+
+    if level < 7:
+        values.pop(f"{entry}:elemental_shielding_type", None)
+        values.pop(f"{entry}:aura-of-elemental-shielding", None)
+
+    drop_subclass = level < 3 or subclass != create24.PALADIN_NOBLE_GENIES_SUBCLASS_2024
+    if drop_subclass:
+        for key in (
+            f"{entry}:genies_splendor_skill",
+            f"{entry}:genies-splendor",
+            f"{entry}:elemental_shielding_type",
+            f"{entry}:aura-of-elemental-shielding",
+        ):
+            values.pop(key, None)
+        kept_grants: list[dict[str, Any]] = []
+        for grant in sheet.get("subclass_grants") or []:
+            if not isinstance(grant, dict):
+                continue
+            if (
+                grant.get("classEntryId") == entry
+                and grant.get("slug") == create24.PALADIN_NOBLE_GENIES_SUBCLASS_2024
+            ):
+                for key in grant.get("skills") or []:
+                    if isinstance(skills.get(key), dict):
+                        skills[key]["is_proficient"] = False
+                    if isinstance(prof.get("skills"), list):
+                        prof["skills"] = [x for x in prof["skills"] if x != key]
+                continue
+            kept_grants.append(grant)
+        sheet["subclass_grants"] = kept_grants
+
+    if isinstance(picks, dict):
+        sheet["feature_picks"] = {**picks, "values": values}
+    if isinstance(skills, dict):
+        sheet["skills"] = skills
+    if isinstance(prof, dict):
+        sheet["proficiency"] = prof
+
+
 def rollback_last_level_gain(sheet: dict[str, Any]) -> dict[str, Any]:
     """Remove the last recorded level gain (cascade-safe only for the tip level).
 
@@ -1438,6 +1493,8 @@ def rollback_last_level_gain(sheet: dict[str, Any]) -> dict[str, Any]:
     sheet["classes"] = kept
     if class_slug == "bard":
         _rollback_bard_state(sheet, kept)
+    if class_slug == "paladin":
+        _rollback_paladin_book_state(sheet, kept)
     if class_slug == "rogue":
         _rollback_rogue_state(sheet, kept)
     if class_slug == "monk":

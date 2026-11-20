@@ -133,6 +133,10 @@ import {
   jackOfAllTradesBonus2024,
 } from '../../../shared/dnd/bard2024Features'
 import {
+  geniesSplendorAcFormula2024,
+  hasGeniesSplendor2024,
+} from '../../../shared/dnd/paladinBook2024Features'
+import {
   isMantleCommandSpell,
   MANTLE_CONCENTRATION_ID,
   stripMantleCommand,
@@ -1064,6 +1068,15 @@ export function useSheetEditorPart3(model: SheetModel) {
       if (!hasDazzlingFootwork2024(model.unlockedFeatures)) return null
       return danceAcFormula2024(mods.cha)
     })()
+    const genies = (() => {
+      if (pieces.armor) return null
+      const edition = String(
+        model.rulesEdition ?? model.baseCharacter?.rules_edition ?? '2014',
+      ).trim()
+      if (edition !== '2024') return null
+      if (!hasGeniesSplendor2024(model.unlockedFeatures)) return null
+      return geniesSplendorAcFormula2024(mods.cha)
+    })()
     const extraFormulas = pieces.armor
       ? []
       : [
@@ -1072,6 +1085,7 @@ export function useSheetEditorPart3(model: SheetModel) {
           ...effectFormulas,
           ...(draconic ? [draconic] : []),
           ...(dance ? [dance] : []),
+          ...(genies ? [genies] : []),
         ]
     const acMinFloor = acMinFromActiveEffects(effectsRaw)
     const preferredKey = model.draft.acFormulaKey

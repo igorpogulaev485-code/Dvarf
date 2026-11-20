@@ -26,6 +26,7 @@ import {
   BackgroundPicks,
   BardLevelingPicks,
   BardBookLevelingPicks,
+  PaladinBookLevelingPicks,
   ArtificerLevelingPicks,
   BarbarianLevelingPicks,
   RangerLevelingPicks,
@@ -73,6 +74,12 @@ import {
   buildBardClassOptionPicks,
   bardAsiChoicesForLevel,
 } from '../features/createPipeline2024/e2eBardSeed2024'
+import {
+  parsePaladinSeed,
+  buildPaladinSeedSpells,
+  buildPaladinClassOptionPicks,
+  paladinAsiChoicesForLevel,
+} from '../features/createPipeline2024/e2ePaladinSeed2024'
 import { createClassLevel, totalCharacterLevel } from '../shared/dnd/classLevels'
 import { thirdCasterBlock2024 } from '../shared/dnd/edition2024Subclasses'
 import { ensureHpChoices } from '../features/createPipeline/LevelingStep'
@@ -588,6 +595,34 @@ export function CreateCharacter2024Page({
           bardSpec.level,
           bardSpec.subclassSlug,
           bardSkills,
+        ),
+      }
+    }
+    const paladinSpec = parsePaladinSeed(e2eSeed)
+    const paladinClass = bySlug(catalog.classes, 'paladin')
+    if (paladinSpec && paladinClass) {
+      const paladinSkills = ['athletics', 'persuasion']
+      seeds[e2eSeed] = {
+        name: `Паладин ${paladinSpec.level}`,
+        classSlug: 'paladin',
+        // Standard array; soldier ASI only str/dex/con — keep CHA high in base.
+        abilities: { str: 13, dex: 10, con: 14, int: 8, wis: 12, cha: 15 },
+        rows: [
+          {
+            slug: 'paladin',
+            level: paladinSpec.level,
+            ...(paladinSpec.subclassSlug ? { subclass: paladinSpec.subclassSlug } : {}),
+          },
+        ],
+        skills: paladinSkills,
+        backgroundAsi: { str: 2, con: 1 },
+        asi: paladinAsiChoicesForLevel(paladinSpec.level),
+        fighting: 'defense',
+        mastery: Math.min(2, Math.max(0, paladinSpec.level >= 1 ? 2 : 0)),
+        spells: buildPaladinSeedSpells(catalog.spells, paladinClass, paladinSpec.level),
+        classOptionPicks: buildPaladinClassOptionPicks(
+          paladinSpec.level,
+          paladinSpec.subclassSlug,
         ),
       }
     }
@@ -1430,6 +1465,19 @@ export function CreateCharacter2024Page({
                   patchBody.classOptionPicks = cleared
                 }
               }
+              if (state.classSlug === 'paladin') {
+                const nextPicks = { ...state.classOptionPicks }
+                let picksChanged = false
+                if (newLevel < 7 && nextPicks.elemental_shielding_type != null) {
+                  delete nextPicks.elemental_shielding_type
+                  picksChanged = true
+                }
+                if (newLevel < 3 && nextPicks.genies_splendor_skill != null) {
+                  delete nextPicks.genies_splendor_skill
+                  picksChanged = true
+                }
+                if (picksChanged) patchBody.classOptionPicks = nextPicks
+              }
               patch(patchBody)
             }}
             onHpChoicesChange={(hpChoices) => patch({ hpChoices })}
@@ -1552,6 +1600,7 @@ export function CreateCharacter2024Page({
             />
           ) : null}
           {classSlug === 'bard' ? <BardBookLevelingPicks state={state} patch={patch} /> : null}
+          {classSlug === 'paladin' ? <PaladinBookLevelingPicks state={state} patch={patch} /> : null}
           {classSlug === 'rogue' ? <RogueLevelingPicks state={state} patch={patch} /> : null}
           {classSlug === 'ranger' ? <RangerLevelingPicks state={state} patch={patch} /> : null}
           {classSlug === 'warlock' ? <WarlockLevelingPicks state={state} patch={patch} /> : null}

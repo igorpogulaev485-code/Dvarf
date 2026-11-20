@@ -1733,6 +1733,7 @@ export function SheetDialogsResources({ model }: { model: SheetModel }) {
           request={paladinRequest}
           resources={model.draft.play.resources}
           slots={model.draft.spells.slots}
+          featurePicks={model.draft.featurePicks}
           paladinLevel={paladinLevel}
           chaMod={abilityModifier(model.draft.abilities.cha)}
           proficiencyBonus={model.proficiencyBonus ?? 2}

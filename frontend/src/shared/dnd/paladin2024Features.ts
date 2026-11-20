@@ -19,6 +19,48 @@ import { parseFeatureResourceId } from './featureResources'
 import { clampResource, type SheetResource } from './rest'
 import type { SpellSlotState } from './spells'
 import type { SharedPoolOption2024 } from './edition2024Subclasses'
+import {
+  AURA_OF_ELEMENTAL_SHIELDING_NAME_RU,
+  ELEMENTAL_REBUKE_FEATURE_ID,
+  ELEMENTAL_REBUKE_NAME_RU,
+  ELEMENTAL_REBUKE_POOL_ID,
+  ELEMENTAL_SHIELDING_TYPE_LABELS_RU,
+  ELEMENTAL_SHIELDING_TYPES_2024,
+  ELEMENTAL_SMITE_FEATURE_ID,
+  ELEMENTAL_SMITE_MODE_LABELS_RU,
+  ELEMENTAL_SMITE_MODES_2024,
+  ELEMENTAL_SMITE_NAME_RU,
+  elementalRebukeDamageFormulaRu2024,
+  elementalShieldingTypeLabelRu2024,
+  elementalSmiteModeFeedRu2024,
+  GENIES_SPLENDOR_NAME_RU,
+  MINOR_WISH_NAME_RU,
+  NOBLE_SCION_FEATURE_ID,
+  NOBLE_SCION_FLIGHT_NAME_RU,
+  NOBLE_SCION_NAME_RU,
+  NOBLE_SCION_POOL_ID,
+  readElementalShieldingType2024,
+  writeElementalShieldingType2024,
+  type ElementalShieldingType2024,
+  type ElementalSmiteMode2024,
+} from './paladinBook2024Features'
+
+export {
+  ELEMENTAL_REBUKE_FEATURE_ID,
+  ELEMENTAL_REBUKE_NAME_RU,
+  ELEMENTAL_REBUKE_POOL_ID,
+  ELEMENTAL_SMITE_FEATURE_ID,
+  ELEMENTAL_SMITE_NAME_RU,
+  GENIES_SPLENDOR_NAME_RU,
+  MINOR_WISH_NAME_RU,
+  NOBLE_SCION_FEATURE_ID,
+  NOBLE_SCION_FLIGHT_NAME_RU,
+  NOBLE_SCION_NAME_RU,
+  NOBLE_SCION_POOL_ID,
+  elementalRebukeDamageFormulaRu2024,
+  type ElementalShieldingType2024,
+  type ElementalSmiteMode2024,
+}
 
 /* ------------------------------------------------------------------ */
 /* Names (RU — FINAL)                                                  */
@@ -70,6 +112,8 @@ export const RELENTLESS_AVENGER_NAME_RU = 'Неумолимый мститель
 export const SOUL_OF_VENGEANCE_NAME_RU = 'Душа мести'
 export const AVENGING_ANGEL_NAME_RU = 'Ангел возмездия'
 
+/* Book oath names re-exported via paladinBook2024Features imports above. */
+
 /* ------------------------------------------------------------------ */
 /* Ids / pools                                                         */
 /* ------------------------------------------------------------------ */
@@ -102,6 +146,7 @@ export const PALADIN_L20_CAPSTONE_POOL_IDS_2024 = [
   LIVING_LEGEND_POOL_ID,
   ELDER_CHAMPION_POOL_ID,
   AVENGING_ANGEL_POOL_ID,
+  NOBLE_SCION_POOL_ID,
 ] as const
 
 export const BLESSED_WARRIOR_ID = 'blessed-warrior'
@@ -219,6 +264,16 @@ export const PALADIN_FEATURE_NAMES_BY_ID: Record<string, string> = {
   soul_of_vengeance: SOUL_OF_VENGEANCE_NAME_RU,
   'avenging-angel': AVENGING_ANGEL_NAME_RU,
   avenging_angel: AVENGING_ANGEL_NAME_RU,
+  'elemental-smite': ELEMENTAL_SMITE_NAME_RU,
+  elemental_smite: ELEMENTAL_SMITE_NAME_RU,
+  'genies-splendor': GENIES_SPLENDOR_NAME_RU,
+  genies_splendor: GENIES_SPLENDOR_NAME_RU,
+  'aura-of-elemental-shielding': 'Аура стихийной защиты',
+  aura_of_elemental_shielding: 'Аура стихийной защиты',
+  'elemental-rebuke': ELEMENTAL_REBUKE_NAME_RU,
+  elemental_rebuke: ELEMENTAL_REBUKE_NAME_RU,
+  'noble-scion': NOBLE_SCION_NAME_RU,
+  noble_scion: NOBLE_SCION_NAME_RU,
   'free-smite': `${PALADINS_SMITE_NAME_RU} (бесплатно)`,
   free_smite: `${PALADINS_SMITE_NAME_RU} (бесплатно)`,
   'paladin-free-smite': `${PALADINS_SMITE_NAME_RU} (бесплатно)`,
@@ -231,6 +286,7 @@ export const PALADIN_FEATURE_NAMES_BY_ID: Record<string, string> = {
   'oath-of-glory': OATH_OF_GLORY_NAME_RU,
   'oath-of-the-ancients': OATH_OF_THE_ANCIENTS_NAME_RU,
   'oath-of-vengeance': OATH_OF_VENGEANCE_NAME_RU,
+  'oath-of-the-noble-genies': 'Клятва благородных гениев',
 }
 
 /* ------------------------------------------------------------------ */
@@ -472,6 +528,14 @@ export const PALADIN_2024_CARD_BUTTONS: Record<string, string> = {
   elder_champion: 'Чемпион…',
   'avenging-angel': 'Ангел…',
   avenging_angel: 'Ангел…',
+  'elemental-smite': 'Стихийная…',
+  elemental_smite: 'Стихийная…',
+  'elemental-rebuke': 'Возмездие…',
+  elemental_rebuke: 'Возмездие…',
+  'noble-scion': 'Гений…',
+  noble_scion: 'Гений…',
+  'aura-of-elemental-shielding': 'Аура стихий…',
+  aura_of_elemental_shielding: 'Аура стихий…',
 }
 
 /** Base Channel Divinity options for the class table (Divine Sense L3+, Abjure Foes L9+). */
@@ -510,16 +574,20 @@ const PALADIN_USE_FEATURE_IDS = new Set([
   'vow-of-enmity',
   'inspiring-smite',
   'peerless-athlete',
+  'elemental-smite',
   'free-smite',
   'paladin-free-smite',
   'free-steed',
   'paladin-free-steed',
   'glorious-defense',
   'undying-sentinel',
+  'elemental-rebuke',
+  'aura-of-elemental-shielding',
   'holy-nimbus',
   'living-legend',
   'elder-champion',
   'avenging-angel',
+  'noble-scion',
 ])
 
 const CHANNEL_OPTION_IDS = new Set([
@@ -530,6 +598,7 @@ const CHANNEL_OPTION_IDS = new Set([
   'vow-of-enmity',
   'inspiring-smite',
   'peerless-athlete',
+  'elemental-smite',
 ])
 
 const FREE_SMITE_IDS = new Set(['free-smite', 'paladin-free-smite', 'paladins-smite'])
@@ -540,6 +609,7 @@ const CAPSTONE_BY_FEATURE: Record<string, { poolId: string; nameRu: string }> = 
   'living-legend': { poolId: LIVING_LEGEND_POOL_ID, nameRu: LIVING_LEGEND_NAME_RU },
   'elder-champion': { poolId: ELDER_CHAMPION_POOL_ID, nameRu: ELDER_CHAMPION_NAME_RU },
   'avenging-angel': { poolId: AVENGING_ANGEL_POOL_ID, nameRu: AVENGING_ANGEL_NAME_RU },
+  'noble-scion': { poolId: NOBLE_SCION_POOL_ID, nameRu: NOBLE_SCION_NAME_RU },
 }
 
 /** Normalize feature ids that open the dialog (`_` → `-`). */
@@ -669,6 +739,12 @@ export type Paladin2024UseInput = {
   slotLevel?: number
   slots?: Record<string, SpellSlotState>
   featurePicks?: FeaturePicksState | null
+  /** Elemental Smite mode: marid | dao | djinn | efreet. */
+  smiteMode?: string | null
+  /** Elemental Rebuke outgoing damage type. */
+  damageType?: string | null
+  /** Noble Scion: `end` ends the 10-min form early; `minor_wish` is the reaction. */
+  nobleMode?: string | null
 }
 
 export type Paladin2024Patches = {
@@ -796,6 +872,8 @@ function channelOptionName(fid: string): string {
       return INSPIRING_SMITE_NAME_RU
     case 'peerless-athlete':
       return PEERLESS_ATHLETE_NAME_RU
+    case 'elemental-smite':
+      return ELEMENTAL_SMITE_NAME_RU
     default:
       return fid
   }
@@ -806,7 +884,7 @@ function channelOptionMinLevel(fid: string): number {
   return CHANNEL_DIVINITY_MIN_LEVEL_2024
 }
 
-function channelOptionFeed(fid: string, level: number): string {
+function channelOptionFeed(fid: string, level: number, smiteMode?: string | null): string {
   const name = channelOptionName(fid)
   switch (fid) {
     case 'divine-sense':
@@ -823,6 +901,18 @@ function channelOptionFeed(fid: string, level: number): string {
       return `${CHANNEL_DIVINITY_NAME_RU}: ${name} — после «${DIVINE_SMITE_SPELL_NAME_RU}» раздай врем. хиты ${inspiringSmiteTempHpFormulaRu2024(level)} существам в 30 фт. (бонусное)`
     case 'peerless-athlete':
       return `${CHANNEL_DIVINITY_NAME_RU}: ${name} — преимущество к СИЛ/ЛОВ проверкам и прыжкам (1 час, бонусное)`
+    case 'elemental-smite': {
+      const modeKey = String(smiteMode || '')
+        .trim()
+        .toLowerCase() as ElementalSmiteMode2024
+      const mode = (ELEMENTAL_SMITE_MODES_2024 as readonly string[]).includes(modeKey)
+        ? modeKey
+        : null
+      if (!mode) {
+        return `${CHANNEL_DIVINITY_NAME_RU}: ${name} — сразу после «${DIVINE_SMITE_SPELL_NAME_RU}» (марид / дао / джинн / ифрит)`
+      }
+      return `${CHANNEL_DIVINITY_NAME_RU}: ${name} (${ELEMENTAL_SMITE_MODE_LABELS_RU[mode]}) — ${elementalSmiteModeFeedRu2024(mode)}`
+    }
     default:
       return `${CHANNEL_DIVINITY_NAME_RU}: ${name}`
   }
@@ -897,6 +987,25 @@ function applyCapstone(
     return refuse(input, `${meta.nameRu} с ${CAPSTONE_MIN_LEVEL_2024} уровня паладина`)
   }
   const mode = (input.mode ?? 'spend').trim().toLowerCase()
+  const nobleMode = String(input.nobleMode || '')
+    .trim()
+    .toLowerCase()
+  if (fid === 'noble-scion' && (nobleMode === 'minor_wish' || nobleMode === 'minor-wish')) {
+    return ok(
+      input,
+      `${NOBLE_SCION_NAME_RU}: ${MINOR_WISH_NAME_RU} (реакция) — провал Теста к20 себя/союзника в Ауре защиты → успех`,
+      {
+        resources: input.resources,
+        patches: { activeLabels: [MINOR_WISH_NAME_RU] },
+      },
+    )
+  }
+  if (fid === 'noble-scion' && nobleMode === 'end') {
+    return ok(input, `${NOBLE_SCION_NAME_RU}: форма окончена`, {
+      resources: input.resources,
+      patches: { activeLabels: [] },
+    })
+  }
   if (mode === 'regain' || mode === 'refund') {
     return regainCapstoneViaSlot(input, meta.poolId, meta.nameRu)
   }
@@ -937,6 +1046,16 @@ function applyCapstone(
       { resources: spent.resources, patches: { activeLabels: [ELDER_CHAMPION_NAME_RU] } },
     )
   }
+  if (fid === 'noble-scion') {
+    return ok(
+      input,
+      `${NOBLE_SCION_NAME_RU}: 10 мин. — ${NOBLE_SCION_FLIGHT_NAME_RU} 60 фт. (парение); ${MINOR_WISH_NAME_RU} реакцией на провал d20 в Ауре защиты`,
+      {
+        resources: spent.resources,
+        patches: { activeLabels: [NOBLE_SCION_NAME_RU, NOBLE_SCION_FLIGHT_NAME_RU] },
+      },
+    )
+  }
   return ok(
     input,
     `${AVENGING_ANGEL_NAME_RU}: крылья (полёт), аура страха на 1 час`,
@@ -965,6 +1084,17 @@ export function applyPaladin2024FeatureUse(input: Paladin2024UseInput): Paladin2
         { resources: refunded.resources },
       )
     }
+    if (fid === 'elemental-smite' && mode !== 'refund') {
+      const modeKey = String(input.smiteMode || '')
+        .trim()
+        .toLowerCase()
+      if (!(ELEMENTAL_SMITE_MODES_2024 as readonly string[]).includes(modeKey)) {
+        return refuse(
+          input,
+          `${ELEMENTAL_SMITE_NAME_RU}: выберите режим (Всплеск марида / Давление дао / Побег джинна / Ярость ифрита)`,
+        )
+      }
+    }
     const spent = spendChannel(input)
     if (!spent.ok) return spent.result
     const patches: Paladin2024Patches | undefined =
@@ -973,10 +1103,22 @@ export function applyPaladin2024FeatureUse(input: Paladin2024UseInput): Paladin2
             diceExpression: inspiringSmiteTempHpFormulaRu2024(level),
             tempHp: undefined,
           }
-        : fid === 'sacred-weapon' || fid === 'vow-of-enmity' || fid === 'peerless-athlete'
-          ? { activeLabels: [channelOptionName(fid)] }
-          : undefined
-    return ok(input, channelOptionFeed(fid, level), {
+        : fid === 'elemental-smite'
+          ? {
+              activeLabels: [
+                ELEMENTAL_SMITE_MODE_LABELS_RU[
+                  String(input.smiteMode || '').trim().toLowerCase() as ElementalSmiteMode2024
+                ] ?? ELEMENTAL_SMITE_NAME_RU,
+              ],
+              diceExpression:
+                String(input.smiteMode || '').trim().toLowerCase() === 'efreet' ? '2к4' : undefined,
+              damageType:
+                String(input.smiteMode || '').trim().toLowerCase() === 'efreet' ? 'fire' : undefined,
+            }
+          : fid === 'sacred-weapon' || fid === 'vow-of-enmity' || fid === 'peerless-athlete'
+            ? { activeLabels: [channelOptionName(fid)] }
+            : undefined
+    return ok(input, channelOptionFeed(fid, level, input.smiteMode), {
       resources: spent.resources,
       ...(patches ? { patches } : {}),
     })
@@ -1091,6 +1233,73 @@ export function applyPaladin2024FeatureUse(input: Paladin2024UseInput): Paladin2
       )
     }
 
+    case 'aura-of-elemental-shielding': {
+      if (level < 7) {
+        return refuse(input, `${AURA_OF_ELEMENTAL_SHIELDING_NAME_RU} с 7 уровня паладина`)
+      }
+      const dtype = String(input.damageType || '')
+        .trim()
+        .toLowerCase() as ElementalShieldingType2024
+      if (!(ELEMENTAL_SHIELDING_TYPES_2024 as readonly string[]).includes(dtype)) {
+        return refuse(
+          input,
+          `${AURA_OF_ELEMENTAL_SHIELDING_NAME_RU}: выберите тип (Звук / Кислота / Огонь / Холод / Электричество)`,
+        )
+      }
+      const prev = readElementalShieldingType2024(input.featurePicks, input.classEntryId)
+      const nextPicks = writeElementalShieldingType2024(
+        input.featurePicks,
+        input.classEntryId,
+        dtype,
+      )
+      const typeRu = elementalShieldingTypeLabelRu2024(dtype)
+      const prevRu = elementalShieldingTypeLabelRu2024(prev)
+      const feed =
+        prev && prev !== dtype
+          ? `${AURA_OF_ELEMENTAL_SHIELDING_NAME_RU}: тип ${prevRu} → ${typeRu} (начало хода, без действия)`
+          : `${AURA_OF_ELEMENTAL_SHIELDING_NAME_RU}: сопротивление «${typeRu}» (смена в начале хода, без действия)`
+      return ok(input, feed, {
+        patches: { featurePicks: nextPicks, damageType: dtype, activeLabels: [typeRu] },
+      })
+    }
+
+    case 'elemental-rebuke': {
+      if (level < 15) return refuse(input, `${ELEMENTAL_REBUKE_NAME_RU} с 15 уровня паладина`)
+      if (mode === 'refund') {
+        const refunded = refundPool(input, ELEMENTAL_REBUKE_POOL_ID, ELEMENTAL_REBUKE_NAME_RU)
+        if (!refunded.ok) return refunded.result
+        return ok(input, `${ELEMENTAL_REBUKE_NAME_RU}: использование возвращено`, {
+          resources: refunded.resources,
+        })
+      }
+      const dtype = String(input.damageType || '')
+        .trim()
+        .toLowerCase() as ElementalShieldingType2024
+      if (!(ELEMENTAL_SHIELDING_TYPES_2024 as readonly string[]).includes(dtype)) {
+        return refuse(
+          input,
+          `${ELEMENTAL_REBUKE_NAME_RU}: выберите тип урона (Звук / Кислота / Огонь / Холод / Электричество)`,
+        )
+      }
+      const spent = spendPool(
+        input,
+        ELEMENTAL_REBUKE_POOL_ID,
+        `Ресурс «${ELEMENTAL_REBUKE_NAME_RU}» не найден`,
+        `${ELEMENTAL_REBUKE_NAME_RU}: использования закончились`,
+      )
+      if (!spent.ok) return spent.result
+      const dmg = elementalRebukeDamageFormulaRu2024(chaMod)
+      const typeRu = ELEMENTAL_SHIELDING_TYPE_LABELS_RU[dtype]
+      return ok(
+        input,
+        `${ELEMENTAL_REBUKE_NAME_RU} (реакция): входящий урон ×½; атакующий — спас Ловкости, провал ${dmg} (${typeRu}), успех — половина`,
+        {
+          resources: spent.resources,
+          patches: { diceExpression: dmg, damageType: dtype },
+        },
+      )
+    }
+
     case 'undying-sentinel': {
       if (level < 15) return refuse(input, `${UNDYING_SENTINEL_NAME_RU} с 15 уровня паладина`)
       if (mode === 'refund') {
@@ -1118,6 +1327,7 @@ export function applyPaladin2024FeatureUse(input: Paladin2024UseInput): Paladin2
     case 'living-legend':
     case 'elder-champion':
     case 'avenging-angel':
+    case 'noble-scion':
       return applyCapstone(input, fid, level, chaMod, pb)
 
     default:

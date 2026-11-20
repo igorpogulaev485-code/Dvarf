@@ -58,6 +58,15 @@ import {
   PRIMAL_LORE_SKILLS_2024,
 } from '../../shared/dnd/bardBook2024Features'
 import {
+  AURA_OF_ELEMENTAL_SHIELDING_NAME_RU,
+  ELEMENTAL_SHIELDING_TYPE_LABELS_RU,
+  ELEMENTAL_SHIELDING_TYPES_2024,
+  GENIES_SPLENDOR_NAME_RU,
+  GENIES_SPLENDOR_SKILL_LABELS_RU,
+  GENIES_SPLENDOR_SKILLS_2024,
+  OATH_OF_THE_NOBLE_GENIES_NAME_RU,
+} from '../../shared/dnd/paladinBook2024Features'
+import {
   ARMOR_MODELS_2024,
   PLANS_KNOWN_COLUMN_RU,
   SPELL_STORING_ITEM_NAME_RU,
@@ -131,6 +140,7 @@ import {
   wizardBookCreatePicksNeed2024,
   clericBookCreatePicksNeed2024,
   bardBookCreatePicksNeed2024,
+  paladinBookCreatePicksNeed2024,
   setAsiFlat1,
   setAsiPlus2Plus1,
   speciesLineages,
@@ -1410,6 +1420,65 @@ export function BardBookLevelingPicks({
             multi={false}
             testIdPrefix="p24-m02b-pick-primal-cantrip"
             onChange={(picked) => setPicks({ primal_lore_cantrip: picked[0] ?? null })}
+          />
+        ) : null}
+      </Stack>
+    </div>
+  )
+}
+
+/** P24-M02B book paladin: Genie's Splendor skill + Elemental Shielding type. */
+export function PaladinBookLevelingPicks({
+  state,
+  patch,
+}: {
+  state: Create2024State
+  patch: (partial: Partial<Create2024State>) => void
+}) {
+  const need = paladinBookCreatePicksNeed2024(state)
+  if (!need.geniesSkill && !need.shieldingType) return null
+  const setPicks = (partial: Record<string, unknown>) =>
+    patch({ classOptionPicks: { ...state.classOptionPicks, ...partial } })
+
+  return (
+    <div data-testid="p24-m02b-paladin-book-picks">
+      <Stack gap={14}>
+        {need.geniesSkill ? (
+          <PickChipGroup
+            label={`${GENIES_SPLENDOR_NAME_RU} (${OATH_OF_THE_NOBLE_GENIES_NAME_RU}): навык`}
+            hint="Один навык: Акробатика, Выступление, Запугивание или Убеждение."
+            options={GENIES_SPLENDOR_SKILLS_2024.map((id) => ({
+              id,
+              label: GENIES_SPLENDOR_SKILL_LABELS_RU[id] ?? skillLabelRu(id),
+            }))}
+            selected={
+              state.classOptionPicks.genies_splendor_skill
+                ? [String(state.classOptionPicks.genies_splendor_skill)]
+                : []
+            }
+            max={1}
+            multi={false}
+            testIdPrefix="p24-m02b-pick-genies-skill"
+            onChange={(picked) => setPicks({ genies_splendor_skill: picked[0] ?? null })}
+          />
+        ) : null}
+        {need.shieldingType ? (
+          <PickChipGroup
+            label={`${AURA_OF_ELEMENTAL_SHIELDING_NAME_RU}: тип урона`}
+            hint="Сопротивление выбранному типу в Ауре защиты; можно менять в начале хода."
+            options={ELEMENTAL_SHIELDING_TYPES_2024.map((id) => ({
+              id,
+              label: ELEMENTAL_SHIELDING_TYPE_LABELS_RU[id],
+            }))}
+            selected={
+              state.classOptionPicks.elemental_shielding_type
+                ? [String(state.classOptionPicks.elemental_shielding_type)]
+                : []
+            }
+            max={1}
+            multi={false}
+            testIdPrefix="p24-m02b-pick-elemental-shield"
+            onChange={(picked) => setPicks({ elemental_shielding_type: picked[0] ?? null })}
           />
         ) : null}
       </Stack>

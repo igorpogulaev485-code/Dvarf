@@ -196,6 +196,13 @@ export const M02B_BARD_BOOK_SUBCLASS_SLUGS = new Set([
   'bard__college-of-the-spirits',
 ])
 
+/**
+ * Book paladin path opened by P24-M02B-paladin (FRHoF Noble Genies only).
+ */
+export const M02B_PALADIN_BOOK_SUBCLASS_SLUGS = new Set([
+  'paladin__oath-of-the-noble-genies',
+])
+
 export function isPhb2024CreateSubclass(slug: string, source?: string | null): boolean {
   const key = String(slug || '')
     .trim()
@@ -220,6 +227,8 @@ export function isPhb2024CreateSubclass(slug: string, source?: string | null): b
   if (M02B_CLERIC_BOOK_SUBCLASS_SLUGS.has(key)) return true
   // P24-M02B-bard: Moon + Spirits only.
   if (M02B_BARD_BOOK_SUBCLASS_SLUGS.has(key)) return true
+  // P24-M02B-paladin: Noble Genies only.
+  if (M02B_PALADIN_BOOK_SUBCLASS_SLUGS.has(key)) return true
   // Catalog API may omit source; fall back to known PHB table rows.
   return Boolean(row && CREATE_SUBCLASS_SOURCES_2024.has(String(row.source || '').toLowerCase()))
 }
@@ -465,6 +474,28 @@ export function buildPermanentBonuses2024(input: {
       { base: 10, mods: ['dex', 'cha'], allows_shield: false, requires_no_armor: true },
       3,
       'КД 10+Лов+Хар без доспеха и щита',
+    )
+  }
+  if (subclassSlug === 'paladin__oath-of-the-noble-genies') {
+    add(
+      'genies-splendor',
+      'Великолепие гения',
+      'ac_formula',
+      { base: 10, mods: ['dex', 'cha'], allows_shield: true, requires_no_armor: true },
+      3,
+      'КД 10+Лов+Хар без доспеха; щит разрешён',
+    )
+    add(
+      'aura-of-elemental-shielding',
+      'Аура стихийной защиты',
+      'other_calc',
+      {
+        elemental_resistance_chosen: true,
+        change_at_start_of_turn: true,
+        types: ['thunder', 'acid', 'fire', 'cold', 'lightning'],
+      },
+      7,
+      'Сопротивление выбранному типу в Ауре защиты; смена в начале хода без действия',
     )
   }
   if (subclassSlug === 'sorcerer__draconic-sorcery') {
@@ -1392,6 +1423,19 @@ export function buildSubclassResources2024(input: {
     if (classLevel >= 6) {
       push('spirit_guardians_free', 'Духовные стражи (без ячейки)', 1, 'long', 'empowered-channeling')
       push('spirit_guardians_cover', 'Проявление духов (укрытие)', 1, 'short', 'empowered-channeling')
+    }
+  } else if (subclassSlug === 'paladin__oath-of-the-noble-genies') {
+    if (classLevel >= 15) {
+      push(
+        'elemental_rebuke',
+        'Стихийное возмездие',
+        Math.max(1, chaMod),
+        'long',
+        'elemental-rebuke',
+      )
+    }
+    if (classLevel >= 20) {
+      push('noble_scion', 'Благородный гений', 1, 'long', 'noble-scion')
     }
   }
   return out

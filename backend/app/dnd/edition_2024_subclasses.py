@@ -576,6 +576,28 @@ def build_permanent_bonuses(
             note_ru="КД 10+Лов+Хар без доспеха и щита",
         )
 
+    # Paladin Oath of the Noble Genies (FRHoF): unarmored AC 10 + Dex + Cha; shield OK.
+    if subclass_slug == "paladin__oath-of-the-noble-genies":
+        add(
+            "genies-splendor",
+            "Великолепие гения",
+            "ac_formula",
+            {"base": 10, "mods": ["dex", "cha"], "allows_shield": True, "requires_no_armor": True},
+            note_ru="КД 10+Лов+Хар без доспеха; щит разрешён",
+        )
+        add(
+            "aura-of-elemental-shielding",
+            "Аура стихийной защиты",
+            "other_calc",
+            {
+                "elemental_resistance_chosen": True,
+                "change_at_start_of_turn": True,
+                "types": ["thunder", "acid", "fire", "cold", "lightning"],
+            },
+            min_level=7,
+            note_ru="Сопротивление выбранному типу в Ауре защиты; смена в начале хода без действия",
+        )
+
     # Sorcerer Draconic
     if subclass_slug == "sorcerer__draconic-sorcery":
         add(
@@ -2406,6 +2428,17 @@ def build_subclass_resources(
             max_uses=max(1, cha_m),
             reset="long",
             feature_id="glorious-defense",
+            min_level=15,
+            on_hot=True,
+        )
+    if subclass_slug == "paladin__oath-of-the-noble-genies" and class_level >= 15:
+        cha_m = ability_mod(int(abilities.get("cha") or 10))
+        add(
+            "elemental_rebuke",
+            name_ru="Стихийное возмездие",
+            max_uses=max(1, cha_m),
+            reset="long",
+            feature_id="elemental-rebuke",
             min_level=15,
             on_hot=True,
         )

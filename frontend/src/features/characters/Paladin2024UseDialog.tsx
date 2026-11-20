@@ -1,11 +1,13 @@
 /**
  * 2024 Paladin feature «use» dialog — edition branch only (`rules_edition === '2024'`).
- * Channel options / free smite / free steed / Glorious Defense / Undying Sentinel / L20 capstones.
+ * Channel options / free smite / free steed / Glorious Defense / Undying Sentinel /
+ * Elemental Smite (4 modes) / Elemental Rebuke / L20 capstones (incl. Noble Scion).
  * UI kit only (Dialog / Field / Stack / Text / SegmentedControl / NumberInput).
  */
 
 import { useMemo, useState } from 'react'
 import { Dialog, Field, NumberInput, SegmentedControl, Stack, Text } from '../../ui'
+import type { FeaturePicksState } from '../../shared/dnd/featurePicks'
 import type { SheetResource } from '../../shared/dnd/rest'
 import type { SpellSlotState } from '../../shared/dnd/spells'
 import {
@@ -18,6 +20,9 @@ import {
   DIVINE_SENSE_NAME_RU,
   DIVINE_SMITE_SPELL_NAME_RU,
   ELDER_CHAMPION_NAME_RU,
+  ELEMENTAL_REBUKE_NAME_RU,
+  ELEMENTAL_SMITE_NAME_RU,
+  elementalRebukeDamageFormulaRu2024,
   FAITHFUL_STEED_NAME_RU,
   FIND_STEED_SPELL_NAME_RU,
   findPaladinPool2024,
@@ -26,7 +31,10 @@ import {
   INSPIRING_SMITE_NAME_RU,
   inspiringSmiteTempHpFormulaRu2024,
   LIVING_LEGEND_NAME_RU,
+  MINOR_WISH_NAME_RU,
   NATURES_WRATH_NAME_RU,
+  NOBLE_SCION_FLIGHT_NAME_RU,
+  NOBLE_SCION_NAME_RU,
   PALADINS_SMITE_NAME_RU,
   paladin2024UseFeatureId,
   PEERLESS_ATHLETE_NAME_RU,
@@ -35,6 +43,17 @@ import {
   VOW_OF_ENMITY_NAME_RU,
   type Paladin2024UseResult,
 } from '../../shared/dnd/paladin2024Features'
+import {
+  AURA_OF_ELEMENTAL_SHIELDING_NAME_RU,
+  ELEMENTAL_SHIELDING_TYPE_LABELS_RU,
+  ELEMENTAL_SHIELDING_TYPES_2024,
+  ELEMENTAL_SMITE_MODE_LABELS_RU,
+  ELEMENTAL_SMITE_MODES_2024,
+  elementalShieldingTypeLabelRu2024,
+  readElementalShieldingType2024,
+  type ElementalShieldingType2024,
+  type ElementalSmiteMode2024,
+} from '../../shared/dnd/paladinBook2024Features'
 
 export type PaladinFeatureRequest = {
   featureId: string
@@ -49,6 +68,7 @@ type Props = {
   request: PaladinFeatureRequest | null
   resources: SheetResource[]
   slots: Record<string, SpellSlotState>
+  featurePicks?: FeaturePicksState | null
   paladinLevel: number
   chaMod?: number
   proficiencyBonus?: number
@@ -64,6 +84,7 @@ const CHANNEL_OPTION_TEXT: Record<string, string> = {
   'vow-of-enmity': `${VOW_OF_ENMITY_NAME_RU}: при действии Атака — преимущество к атакам по одной цели в 30 фт. (1 мин.).`,
   'inspiring-smite': `${INSPIRING_SMITE_NAME_RU}: после «${DIVINE_SMITE_SPELL_NAME_RU}» раздай врем. хиты существам в 30 фт. (бонусное).`,
   'peerless-athlete': `${PEERLESS_ATHLETE_NAME_RU}: преимущество к СИЛ/ЛОВ проверкам и прыжкам (1 час, бонусное).`,
+  'elemental-smite': `${ELEMENTAL_SMITE_NAME_RU}: сразу после «${DIVINE_SMITE_SPELL_NAME_RU}» потратьте Проведение божественности и выберите один режим.`,
 }
 
 const CHANNEL_OPTION_IDS = new Set(Object.keys(CHANNEL_OPTION_TEXT))
@@ -73,6 +94,7 @@ const CAPSTONE_IDS = new Set([
   'living-legend',
   'elder-champion',
   'avenging-angel',
+  'noble-scion',
 ])
 
 const CAPSTONE_TEXT: Record<string, string> = {
@@ -80,6 +102,7 @@ const CAPSTONE_TEXT: Record<string, string> = {
   'living-legend': LIVING_LEGEND_NAME_RU,
   'elder-champion': ELDER_CHAMPION_NAME_RU,
   'avenging-angel': AVENGING_ANGEL_NAME_RU,
+  'noble-scion': `${NOBLE_SCION_NAME_RU}: 10 мин. — ${NOBLE_SCION_FLIGHT_NAME_RU} 60 фт. (парение); ${MINOR_WISH_NAME_RU} реакцией на провал d20 в Ауре защиты.`,
 }
 
 export function Paladin2024UseDialog({
@@ -87,6 +110,7 @@ export function Paladin2024UseDialog({
   request,
   resources,
   slots,
+  featurePicks = null,
   paladinLevel,
   chaMod = 0,
   proficiencyBonus = 2,
@@ -95,6 +119,10 @@ export function Paladin2024UseDialog({
 }: Props) {
   const [mode, setMode] = useState('spend')
   const [slotLevel, setSlotLevel] = useState(CAPSTONE_REGAIN_SLOT_MIN_2024)
+  const [smiteMode, setSmiteMode] = useState<ElementalSmiteMode2024>('marid')
+  const [rebukeType, setRebukeType] = useState<ElementalShieldingType2024>('fire')
+  const [shieldingType, setShieldingType] = useState<ElementalShieldingType2024 | null>(null)
+  const [nobleMode, setNobleMode] = useState('spend')
 
   const featureId =
     paladin2024UseFeatureId(request?.featureId) ??
@@ -106,6 +134,14 @@ export function Paladin2024UseDialog({
     [resources, request?.classEntryId],
   )
 
+  const currentShielding = useMemo(() => {
+    if (!request) return null
+    return readElementalShieldingType2024(featurePicks, request.classEntryId)
+  }, [featurePicks, request])
+
+  const activeShieldingType =
+    shieldingType ?? currentShielding ?? ('fire' as ElementalShieldingType2024)
+
   if (!request) return null
 
   const channelLeft = channelRow ? Math.max(0, channelRow.max - channelRow.used) : 0
@@ -113,12 +149,17 @@ export function Paladin2024UseDialog({
   const isCapstone = CAPSTONE_IDS.has(featureId)
   const isFreeSmite = featureId === 'free-smite'
   const isFreeSteed = featureId === 'free-steed'
+  const isElementalSmite = featureId === 'elemental-smite'
+  const isElementalRebuke = featureId === 'elemental-rebuke'
+  const isElementalShielding = featureId === 'aura-of-elemental-shielding'
+  const isNobleScion = featureId === 'noble-scion'
   const isRefundable =
     usesChannel ||
     isFreeSmite ||
     isFreeSteed ||
     featureId === 'glorious-defense' ||
-    featureId === 'undying-sentinel'
+    featureId === 'undying-sentinel' ||
+    isElementalRebuke
 
   const slotLevels = [5, 6, 7, 8, 9].filter((level) => (slots[String(level)]?.max ?? 0) > 0)
   const activeSlot =
@@ -127,6 +168,9 @@ export function Paladin2024UseDialog({
   function confirm() {
     let useMode = mode
     if (isCapstone && mode === 'regain_slot5') useMode = 'regain'
+    if (isNobleScion && (nobleMode === 'minor_wish' || nobleMode === 'end')) {
+      useMode = 'spend'
+    }
     const result = applyPaladin2024FeatureUse({
       featureId: request!.featureId,
       resourceId: request!.resourceId,
@@ -138,21 +182,39 @@ export function Paladin2024UseDialog({
       mode: useMode,
       slotLevel: isCapstone && useMode === 'regain' ? activeSlot : undefined,
       slots,
+      featurePicks,
+      smiteMode: isElementalSmite ? smiteMode : undefined,
+      damageType: isElementalRebuke
+        ? rebukeType
+        : isElementalShielding
+          ? activeShieldingType
+          : undefined,
+      nobleMode: isNobleScion ? nobleMode : undefined,
     })
     onConfirm(result)
   }
 
-  const modeOptions = isCapstone
+  const modeOptions = isNobleScion
     ? [
-        { id: 'spend', label: 'Применить' },
+        { id: 'spend', label: 'Включить' },
+        { id: 'end', label: 'Окончить' },
+        { id: 'minor_wish', label: MINOR_WISH_NAME_RU },
         { id: 'regain_slot5', label: `Вернуть (ячейка ${CAPSTONE_REGAIN_SLOT_MIN_2024}+)` },
       ]
-    : isRefundable
+    : isCapstone
       ? [
-          { id: 'spend', label: 'Потратить' },
-          { id: 'refund', label: 'Вернуть' },
+          { id: 'spend', label: 'Применить' },
+          { id: 'regain_slot5', label: `Вернуть (ячейка ${CAPSTONE_REGAIN_SLOT_MIN_2024}+)` },
         ]
-      : [{ id: 'spend', label: 'Применить' }]
+      : isRefundable
+        ? [
+            { id: 'spend', label: 'Потратить' },
+            { id: 'refund', label: 'Вернуть' },
+          ]
+        : [{ id: 'spend', label: 'Применить' }]
+
+  const activeModeControl = isNobleScion ? nobleMode : mode
+  const setActiveModeControl = isNobleScion ? setNobleMode : setMode
 
   return (
     <Dialog
@@ -174,8 +236,8 @@ export function Paladin2024UseDialog({
           <Field label="Режим">
             <SegmentedControl
               aria-label="Режим"
-              value={mode}
-              onChange={setMode}
+              value={activeModeControl}
+              onChange={setActiveModeControl}
               options={modeOptions}
             />
           </Field>
@@ -188,6 +250,20 @@ export function Paladin2024UseDialog({
               ? ` Пул: ${inspiringSmiteTempHpFormulaRu2024(paladinLevel)}.`
               : ''}
           </Text>
+        ) : null}
+
+        {isElementalSmite && mode !== 'refund' ? (
+          <Field label="Режим стихии">
+            <SegmentedControl
+              aria-label="Режим стихии"
+              value={smiteMode}
+              onChange={(next) => setSmiteMode(next as ElementalSmiteMode2024)}
+              options={ELEMENTAL_SMITE_MODES_2024.map((id) => ({
+                id,
+                label: ELEMENTAL_SMITE_MODE_LABELS_RU[id],
+              }))}
+            />
+          </Field>
         ) : null}
 
         {isFreeSmite ? (
@@ -209,6 +285,50 @@ export function Paladin2024UseDialog({
           </Text>
         ) : null}
 
+        {isElementalShielding ? (
+          <>
+            <Text data-testid="p24-m02b-elemental-shielding-indicator">
+              {AURA_OF_ELEMENTAL_SHIELDING_NAME_RU}: текущий тип —{' '}
+              <strong>{elementalShieldingTypeLabelRu2024(currentShielding)}</strong>. Вы и союзники
+              в Ауре защиты имеют сопротивление. В начале хода можно сменить тип (без действия).
+            </Text>
+            <div data-testid="p24-m02b-elemental-shielding-picker">
+              <Field label="Тип сопротивления">
+                <SegmentedControl
+                  aria-label="Тип сопротивления ауры"
+                  value={activeShieldingType}
+                  onChange={(next) => setShieldingType(next as ElementalShieldingType2024)}
+                  options={ELEMENTAL_SHIELDING_TYPES_2024.map((id) => ({
+                    id,
+                    label: ELEMENTAL_SHIELDING_TYPE_LABELS_RU[id],
+                    testId: `p24-m02b-elemental-shielding-${id}`,
+                  }))}
+                />
+              </Field>
+            </div>
+          </>
+        ) : null}
+
+        {isElementalRebuke && mode !== 'refund' ? (
+          <>
+            <Text>
+              {ELEMENTAL_REBUKE_NAME_RU} (реакция): входящий урон ×½; атакующий — спас Ловкости,
+              урон {elementalRebukeDamageFormulaRu2024(chaMod)} (половина при успехе).
+            </Text>
+            <Field label="Тип урона">
+              <SegmentedControl
+                aria-label="Тип урона"
+                value={rebukeType}
+                onChange={(next) => setRebukeType(next as ElementalShieldingType2024)}
+                options={ELEMENTAL_SHIELDING_TYPES_2024.map((id) => ({
+                  id,
+                  label: ELEMENTAL_SHIELDING_TYPE_LABELS_RU[id],
+                }))}
+              />
+            </Field>
+          </>
+        ) : null}
+
         {featureId === 'undying-sentinel' ? (
           <Text>
             {UNDYING_SENTINEL_NAME_RU}: при снижении до 0 хитов без мгновенной смерти — остаёшься с
@@ -222,7 +342,7 @@ export function Paladin2024UseDialog({
               {CAPSTONE_TEXT[featureId] ?? request.name}: 1/долгий отдых. Можно вернуть, потратив
               ячейку {CAPSTONE_REGAIN_SLOT_MIN_2024}+ круга (без действия).
             </Text>
-            {mode === 'regain_slot5' ? (
+            {(isNobleScion ? nobleMode === 'regain_slot5' : mode === 'regain_slot5') ? (
               slotLevels.length > 0 ? (
                 <Field label="Ячейка">
                   <NumberInput
