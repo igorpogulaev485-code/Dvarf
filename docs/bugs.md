@@ -1094,6 +1094,13 @@
 - Ожидание: все 14 типов способностей из редактора вики живут в `item.effects` по правилам надето/настроено, без второй прибавки к уже запечённым числам. Потолок характеристики сохраняется. Уже выданные артефакты поднимаются из снимка или из `setting_artifacts` при открытии, без миграции.
 - Статус: хотфикс, без новой ревизии Alembic.
 
+### 2026-11-20 — Deploy #90: alembic FK на legacy 2024 catalog parent_id
+
+- Где: прод Deploy #90 (`70b36daf` на `main`), `deploy/ci-release.sh` → `alembic upgrade head`, переход `wapi08partych01 -> p2401lobbyed01`.
+- Симптом: `ForeignKeyViolation` на INSERT `barbarian__berserker` — `parent_id=29e4797c-…` (UUID5) отсутствует в `catalog_entries`. В БД остался legacy id класса `cf870cb5-…` из архивной `c2b8b2062024` / `catalog.json` (после `n3c4d5e6f7a8` строки `is_active=false`, не удалены). Транзакция откатилась; ревизия прода = `wapi08partych01`.
+- Ожидание: сид резолвит `parent_id` в фактический id родителя по `(kind, slug, rules_edition='2024')`, сохраняет старые id, идемпотентен; 2014 не трогает; `RULES_EDITION_2024_OPEN=false`.
+- Статус: фикс в PR (ветка `cursor/fix-p24-legacy-parent-id-eb35`).
+
 ### 2026-11-17 — d4 меток дракона (2014) не на броске
 
 - Где: Play Desk / лист, расы ERLW с «Интуиция … (d4 к навыку)»; пример — метка тени, Скрытность.

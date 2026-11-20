@@ -675,28 +675,22 @@ def deactivate_legacy_2024_stubs(conn: sa.Connection) -> int:
     return int(result.rowcount or 0)
 
 
-def apply_edition_2024_catalog_seed(conn: sa.Connection) -> SeedStats:
-    """Idempotent apply: upsert live waves and deactivate stubs."""
-    stats = SeedStats()
-    stats.deactivated_stubs = deactivate_legacy_2024_stubs(conn)
-    rows = load_wave_rows()
-    for row in rows:
-        # 2024 species must never carry ASI, even if a wave file regresses.
-        if row.get("kind") == "race":
-            data = dict(row.get("data") or {})
-            data["ability_bonuses"] = {}
-            row = {**row, "data": data}
-        stats.upserted += _upsert_row(conn, row)
-    _migration_logger.info(
-        "P24 edition 2024 seed: upserted=%s deactivated_stubs=%s waves=%s",
-        stats.upserted,
-        stats.deactivated_stubs,
-        len(EDITION_2024_CATALOG_WAVES),
-    )
-    return stats
+def _lookup_entry_id(
+    conn: sa.Connection,
+    *,
+    kind: str,
+    slug: str,
+    edition: str = LIVE_EDITION,
+) -> str | None:
+    """Return the actual catalog_entries.id for (kind, slug, edition), if any.
 
-
-def _upsert_row(conn: sa.Connection, row: Mapping[str, Any]) -> int:
+    Includes inactive rows: prod may still hold deactivated legacy 2024 stubs
+    whose primary key must be reused (never rewritten) by later upserts.
+    """
+    kind_norm = str(kind or "").strip()
+    slug_norm = str(slug or "").strip().lower()
+    if not kind_norm or not slug_norm:
+        return None
     existing = conn.execute(
         sa.text(
             """
@@ -707,23 +701,122 @@ def _upsert_row(conn: sa.Connection, row: Mapping[str, Any]) -> int:
             LIMIT 1
             """
         ),
-        {"kind": row["kind"], "slug": row["slug"], "edition": LIVE_EDITION},
+        {"kind": kind_norm, "slug": slug_norm, "edition": edition},
     ).first()
+    return str(existing[0]) if existing else None
+
+
+def _resolve_parent_id(
+    conn: sa.Connection,
+    row: Mapping[str, Any],
+    id_by_key: Mapping[tuple[str, str], str] | None = None,
+) -> str | None:
+    """Map planned parent_id / parent_class to the real parent row id in DB.
+
+    Live wave JSON hardcodes UUID5 parents. On prod, legacy ``catalog.json``
+    rows may already occupy the same (kind, slug, 2024) with a different id.
+    Child rows must FK to that actual id — never to a missing UUID5.
+    """
+    data = row.get("data") if isinstance(row.get("data"), Mapping) else {}
+    cache = id_by_key or {}
+
+    parent_class = str(data.get("parent_class") or "").strip().lower() or None
+    if parent_class:
+        cached = cache.get(("class", parent_class))
+        if cached:
+            return cached
+        found = _lookup_entry_id(conn, kind="class", slug=parent_class)
+        if found:
+            return found
+
+    # Generic parent slug hints (species lineage / future kinds).
+    for hint_kind, hint_key in (
+        ("race", "parent_race"),
+        ("race", "parent_slug"),
+        ("class", "parent_slug"),
+    ):
+        hint = str(data.get(hint_key) or "").strip().lower() or None
+        if not hint:
+            continue
+        cached = cache.get((hint_kind, hint))
+        if cached:
+            return cached
+        found = _lookup_entry_id(conn, kind=hint_kind, slug=hint)
+        if found:
+            return found
+
+    raw_parent = row.get("parent_id")
+    if raw_parent in (None, ""):
+        return None
+    raw_parent_s = str(raw_parent)
+    # Planned UUID5 that we already upserted in this run (clean CI path).
+    if raw_parent_s in cache.values():
+        return raw_parent_s
+    # Orphan UUID5 with no resolvable slug hint — do not insert a dangling FK.
+    # Live subclass waves always set data.parent_class; this branch is a safety net.
+    logger.warning(
+        "edition 2024 seed: dropping unresolved parent_id=%s for %s/%s",
+        raw_parent_s,
+        row.get("kind"),
+        row.get("slug"),
+    )
+    return None
+
+
+def apply_edition_2024_catalog_seed(conn: sa.Connection) -> SeedStats:
+    """Idempotent apply: upsert live waves and deactivate stubs."""
+    stats = SeedStats()
+    stats.deactivated_stubs = deactivate_legacy_2024_stubs(conn)
+    rows = load_wave_rows()
+    # Actual DB ids for rows upserted in this run (legacy ids preserved).
+    id_by_key: dict[tuple[str, str], str] = {}
+    for row in rows:
+        # 2024 species must never carry ASI, even if a wave file regresses.
+        if row.get("kind") == "race":
+            data = dict(row.get("data") or {})
+            data["ability_bonuses"] = {}
+            row = {**row, "data": data}
+        actual_id = _upsert_row(conn, row, id_by_key=id_by_key)
+        id_by_key[(str(row["kind"]), str(row["slug"]))] = actual_id
+        stats.upserted += 1
+    _migration_logger.info(
+        "P24 edition 2024 seed: upserted=%s deactivated_stubs=%s waves=%s",
+        stats.upserted,
+        stats.deactivated_stubs,
+        len(EDITION_2024_CATALOG_WAVES),
+    )
+    return stats
+
+
+def _upsert_row(
+    conn: sa.Connection,
+    row: Mapping[str, Any],
+    *,
+    id_by_key: Mapping[tuple[str, str], str] | None = None,
+) -> str:
+    """Upsert one catalog row. Preserves existing id; returns the actual id used."""
+    existing_id = _lookup_entry_id(
+        conn, kind=str(row["kind"]), slug=str(row["slug"])
+    )
+    parent_id = _resolve_parent_id(conn, row, id_by_key=id_by_key)
+    # Keep the DB primary key when a legacy/live row already exists; only use
+    # the planned UUID5 when inserting a brand-new (kind, slug, edition).
+    actual_id = existing_id or str(row["id"])
     payload = {
-        "id": row["id"],
+        "id": actual_id,
         "kind": row["kind"],
         "slug": row["slug"],
         "name_ru": row["name_ru"],
         "name_en": row.get("name_en"),
         "edition": LIVE_EDITION,
-        "parent_id": row.get("parent_id"),
+        "parent_id": parent_id,
         "source": row["source"],
         "external_ref": json.dumps(row.get("external_ref")) if row.get("external_ref") is not None else None,
         "data": json.dumps(row.get("data") or {}),
         "sort_order": row.get("sort_order") or 0,
         "is_active": bool(row.get("is_active", True)),
     }
-    if existing is None:
+    if existing_id is None:
         conn.execute(
             sa.text(
                 """
@@ -746,7 +839,7 @@ def _upsert_row(conn: sa.Connection, row: Mapping[str, Any]) -> int:
             ),
             payload,
         )
-        return 1
+        return actual_id
     conn.execute(
         sa.text(
             """
@@ -766,6 +859,6 @@ def _upsert_row(conn: sa.Connection, row: Mapping[str, Any]) -> int:
                )
             """
         ),
-        {**payload, "id": str(existing[0])},
+        payload,
     )
-    return 1
+    return actual_id
