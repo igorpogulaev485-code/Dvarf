@@ -14,6 +14,16 @@ import {
   PRIMAL_COMPANION_TYPES_2024,
 } from '../../shared/dnd/ranger2024Features'
 import {
+  BLADESINGER_WAR_SONG_SKILLS_2024,
+  ENCHANTER_ORATOR_SKILLS_2024,
+  TRANSMUTER_STONE_BENEFITS_2024,
+  TRANSMUTER_STONE_POTENT_EXTRA_2024,
+  enchantingConversationalistChoice2024,
+  trainingInWarAndSongChoice2024,
+  transmuterStoneBenefit2Choice2024,
+  transmuterStoneBenefitChoice2024,
+} from '../../shared/dnd/wizardBook2024Features'
+import {
   ARMOR_MODELS_2024,
   PLANS_KNOWN_COLUMN_RU,
   SPELL_STORING_ITEM_NAME_RU,
@@ -83,6 +93,7 @@ import {
   plannedPrimaryClassLevel,
   rangerCreatePicksNeed2024,
   rogueCreatePicksNeed2024,
+  wizardBookCreatePicksNeed2024,
   setAsiFlat1,
   setAsiPlus2Plus1,
   speciesLineages,
@@ -1001,5 +1012,110 @@ export function SpeciesFeatPicks({
       onChange={(speciesFeatPicks) => patch({ speciesFeatPicks })}
       testIdPrefix="p24-m03-pick-human"
     />
+  )
+}
+
+/** P24-M02B book wizard: orator / war-song skill / transmuter stone benefits. */
+export function WizardBookLevelingPicks({
+  state,
+  patch,
+}: {
+  state: Create2024State
+  patch: (partial: Partial<Create2024State>) => void
+}) {
+  const need = wizardBookCreatePicksNeed2024(state)
+  if (!need.oratorSkill && !need.warSongSkill && !need.stoneBenefit && !need.stoneBenefit2) {
+    return null
+  }
+  const setPicks = (partial: Record<string, unknown>) =>
+    patch({ classOptionPicks: { ...state.classOptionPicks, ...partial } })
+  const oratorLabels = enchantingConversationalistChoice2024.option_labels_ru ?? {}
+  const warLabels = trainingInWarAndSongChoice2024.option_labels_ru ?? {}
+  const stoneLabels = transmuterStoneBenefitChoice2024.option_labels_ru ?? {}
+  const stone2Labels = transmuterStoneBenefit2Choice2024.option_labels_ru ?? {}
+  const stone2Options = [
+    ...TRANSMUTER_STONE_BENEFITS_2024,
+    ...TRANSMUTER_STONE_POTENT_EXTRA_2024,
+  ]
+
+  return (
+    <Stack gap={14}>
+      {need.oratorSkill ? (
+        <PickChipGroup
+          label="Чарующий оратор"
+          hint="Владение одним навыком + бонус Интеллекта к проверкам."
+          options={ENCHANTER_ORATOR_SKILLS_2024.map((id) => ({
+            id,
+            label: oratorLabels[id] ?? skillLabelRu(id),
+          }))}
+          selected={
+            state.classOptionPicks.enchanting_conversationalist
+              ? [String(state.classOptionPicks.enchanting_conversationalist)]
+              : []
+          }
+          max={1}
+          multi={false}
+          testIdPrefix="p24-m02b-pick-orator"
+          onChange={(picked) => setPicks({ enchanting_conversationalist: picked[0] ?? null })}
+        />
+      ) : null}
+      {need.warSongSkill ? (
+        <PickChipGroup
+          label="Учение песни и войны"
+          hint="Владение одним навыком из списка Учения."
+          options={BLADESINGER_WAR_SONG_SKILLS_2024.map((id) => ({
+            id,
+            label: warLabels[id] ?? skillLabelRu(id),
+          }))}
+          selected={
+            state.classOptionPicks.training_in_war_and_song
+              ? [String(state.classOptionPicks.training_in_war_and_song)]
+              : []
+          }
+          max={1}
+          multi={false}
+          testIdPrefix="p24-m02b-pick-war-song"
+          onChange={(picked) => setPicks({ training_in_war_and_song: picked[0] ?? null })}
+        />
+      ) : null}
+      {need.stoneBenefit ? (
+        <PickChipGroup
+          label="Камень преобразования"
+          hint="Одно преимущество камня после долгого отдыха."
+          options={TRANSMUTER_STONE_BENEFITS_2024.map((id) => ({
+            id,
+            label: stoneLabels[id] ?? id,
+          }))}
+          selected={
+            state.classOptionPicks.transmuter_stone_benefit
+              ? [String(state.classOptionPicks.transmuter_stone_benefit)]
+              : []
+          }
+          max={1}
+          multi={false}
+          testIdPrefix="p24-m02b-pick-stone"
+          onChange={(picked) => setPicks({ transmuter_stone_benefit: picked[0] ?? null })}
+        />
+      ) : null}
+      {need.stoneBenefit2 ? (
+        <PickChipGroup
+          label="Могущественный камень (2-е)"
+          hint="Второе преимущество камня (с 10 ур.)."
+          options={stone2Options.map((id) => ({
+            id,
+            label: stone2Labels[id] ?? id,
+          }))}
+          selected={
+            state.classOptionPicks.transmuter_stone_benefit_2
+              ? [String(state.classOptionPicks.transmuter_stone_benefit_2)]
+              : []
+          }
+          max={1}
+          multi={false}
+          testIdPrefix="p24-m02b-pick-stone-2"
+          onChange={(picked) => setPicks({ transmuter_stone_benefit_2: picked[0] ?? null })}
+        />
+      ) : null}
+    </Stack>
   )
 }

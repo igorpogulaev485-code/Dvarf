@@ -77,6 +77,10 @@ import {
   thirdEyeDarkvisionBonus,
   thirdEyeDarkvisionFloor2024,
 } from '../../../shared/dnd/wizardTradition'
+import {
+  bladesongBonuses2024,
+  wizardBookSkillGrants2024,
+} from '../../../shared/dnd/wizardBook2024Features'
 import { saveBonusFromFeatures } from '../ClassFeaturesPanel'
 import { ensureRaceNaturalWeaponAttacks, raceNaturalWeaponAttacksMatch, syncRaceSpellsForSheetState } from '../raceEffects'
 import { characterHasCasterClass, highestSpellSlotLevelForClasses } from '../../../shared/dnd/casterProgression'
@@ -370,6 +374,7 @@ export function useSheetEditorPart2(model: SheetModel) {
   }, [model.unlockedFeatures, model.draft.featurePicks])
 
   // Cavalier / samurai skill-or-language, Royal Envoy proficiency and expertise.
+  // P24-M02B: enchanter orator / bladesinger war-song skill picks.
   useEffect(() => {
     model.setDraft((prev) => {
       const persuasionFromOtherSources = [
@@ -403,6 +408,24 @@ export function useSheetEditorPart2(model: SheetModel) {
           changed = true
         }
       }
+      if ((model.rulesEdition ?? model.baseCharacter?.rules_edition) === '2024') {
+        for (const cls of prev.classes) {
+          if (!/волшебник|wizard/i.test(cls.name)) continue
+          const bookSkills = wizardBookSkillGrants2024({
+            subclassSlug: model.subclassSlugByEntryId?.[cls.id] ?? null,
+            classEntryId: cls.id,
+            featurePicks: prev.featurePicks,
+            wizardLevel: cls.level,
+          })
+          for (const key of bookSkills) {
+            const current = skills[key] ?? { is_proficient: false, is_expertise: false }
+            if (!current.is_proficient) {
+              skills[key] = { ...current, is_proficient: true }
+              changed = true
+            }
+          }
+        }
+      }
       const languages = [...prev.identity.languages]
       for (const name of plan.languages) {
         if (languages.some((item) => item.trim().toLowerCase() === name.toLowerCase())) continue
@@ -416,7 +439,13 @@ export function useSheetEditorPart2(model: SheetModel) {
         identity: { ...prev.identity, languages },
       }
     })
-  }, [model.unlockedFeatures, model.draft.featurePicks])
+  }, [
+    model.unlockedFeatures,
+    model.draft.featurePicks,
+    model.rulesEdition,
+    model.baseCharacter?.rules_edition,
+    model.subclassSlugByEntryId,
+  ])
 
   const companionBackfillToastSent = useRef(false)
   useEffect(() => {
@@ -1076,10 +1105,24 @@ export function useSheetEditorPart2(model: SheetModel) {
       wearingArmorOrShield: false,
       rulesEdition: edition2024 ? '2024' : '2014',
     })
-    const song = bladesongBonuses({
+    const song2024 = bladesongBonuses2024({
+      rulesEdition: edition2024 ? '2024' : '2014',
+      subclassSlug:
+        Object.values(model.subclassSlugByEntryId ?? {}).find(
+          (slug): slug is string =>
+            typeof slug === 'string' && slug.toLowerCase().includes('bladesinger'),
+        ) ?? null,
       resources: model.draft.play.resources,
       intelligenceScore: model.draft.abilities.int ?? 10,
+      wizardLevel:
+        model.draft.classes.find((row) => /волшебник|wizard/i.test(row.name))?.level ?? 0,
     })
+    const song = edition2024
+      ? song2024
+      : bladesongBonuses({
+          resources: model.draft.play.resources,
+          intelligenceScore: model.draft.abilities.int ?? 10,
+        })
     const alacrityBonus = edition2024
       ? auraOfAlacritySpeedBonusFt2024(model.unlockedFeatures ?? [])
       : 0

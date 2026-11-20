@@ -62,6 +62,7 @@ import { readAppliedRaceGrant } from '../raceEffects'
 import { hydrateArtifactSheet } from '../artifactGear'
 import { readInventory, type InventoryState } from '../inventory'
 import { classifySpellTooling, inferFocusKind, withSpellFocusFlags } from '../spellFocus'
+import { markBladesingerMeleeFocusItems2024 } from '../../../shared/dnd/wizardBook2024Features'
 import { readPlay, type PlayState } from '../play'
 import { readSpells, type SpellsState } from '../spells'
 import { readTextBlocks, type TextBlock } from '../textBlocks'
@@ -489,11 +490,24 @@ export function buildDraft(character: CharacterDetail): Draft {
               : null,
         }
       })
-      const nextInventory = { ...inventory, items }
-      const spells = withSpellFocusFlags(readSpells(sheet), items)
+      const edition2024 =
+        String(character.rules_edition ?? sheet.rules_edition ?? '') === '2024'
+      const bladesinger2024 =
+        edition2024 &&
+        classes.some((row) => {
+          const slug = String(row.subclass_catalog_id || '').toLowerCase()
+          const name = String(row.subclass_name || identityExtras.subclassName || '')
+          return (
+            slug === 'wizard__bladesinger' ||
+            /певец клинка|bladesinger/i.test(name)
+          )
+        })
+      const focusItems = markBladesingerMeleeFocusItems2024(items, bladesinger2024)
+      const nextInventory = { ...inventory, items: focusItems }
+      const spells = withSpellFocusFlags(readSpells(sheet), focusItems)
       return {
         inventory: nextInventory,
-        weapons: syncAttacksHeldFromInventory(readWeapons(sheet), items),
+        weapons: syncAttacksHeldFromInventory(readWeapons(sheet), focusItems),
         spells,
       }
     })(),

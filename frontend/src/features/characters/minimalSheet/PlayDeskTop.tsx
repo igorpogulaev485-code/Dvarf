@@ -50,6 +50,7 @@ import {
   hasDraconicResilienceFeature,
   initiativeAdvantageFromFeatures,
 } from '../featureCombatBonuses'
+import { isBladesongActive2024 } from '../../../shared/dnd/wizardBook2024Features'
 import {
   DWARVEN_TOUGHNESS_NAME_RU,
   dwarvenToughnessHpTotal2024,
@@ -698,7 +699,12 @@ export function PlayDeskTop({ model }: { model: SheetModel }) {
           maxHpExtraBonuses={maxHpExtraBonuses}
           play={model.draft.play}
           autoAc={model.armorClass.ac}
-          acOverride={model.wildShapeFormLabel2024 ? null : model.draft.ac}
+          acOverride={
+            model.wildShapeFormLabel2024 ||
+            isBladesongActive2024(model.draft.play.resources)
+              ? null
+              : model.draft.ac
+          }
           acHint={model.armorClass.summary}
           formVitalLabel={model.wildShapeFormLabel2024 ?? null}
           onOpenAc={() => model.setAcBreakdownOpen(true)}

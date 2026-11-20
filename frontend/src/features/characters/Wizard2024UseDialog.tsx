@@ -327,6 +327,135 @@ export function Wizard2024UseDialog({ open, request, resources, slots, onConfirm
             ) : null}
           </>
         ) : null}
+
+        {featureId === 'benign_transposition' ? (
+          <>
+            <Text>Бонусное действие. Потрать использование переноса.</Text>
+            <div className="chip-row">
+              <button
+                type="button"
+                className={`sheet-chip${(mode || 'self') === 'self' ? ' is-on' : ''}`}
+                onClick={() => setMode('self')}
+              >
+                Телепорт себя
+              </button>
+              <button
+                type="button"
+                className={`sheet-chip${mode === 'swap' ? ' is-on' : ''}`}
+                onClick={() => setMode('swap')}
+              >
+                Обмен с союзником
+              </button>
+            </div>
+            {mode === 'swap' ? (
+              <Text tone="muted">Выбери согласное существо Среднего или меньше в пределах дистанции на столе.</Text>
+            ) : null}
+          </>
+        ) : null}
+
+        {featureId === 'distant_transposition' ? (
+          <>
+            <Text>Восстановить одно использование Безопасного переноса ячейкой 3+ (действий не требуется).</Text>
+            <LevelChips
+              levels={freeLevels.filter((level) => level >= 3)}
+              value={slotLevel}
+              onPick={setSlotLevel}
+            />
+          </>
+        ) : null}
+
+        {featureId === 'hypnotic_presence' ? (
+          <Text>
+            Действие «Магия»: одно видимое существо в 10 фт. — спас Мудрости, иначе Очарованный и
+            Недееспособный, скорость 0.
+          </Text>
+        ) : null}
+
+        {featureId === 'bladesong' ? (
+          <Text>
+            {(resource?.activeLabel
+              ? 'Окончить Песнь клинка (действий не требуется).'
+              : 'Бонусное действие (без доспеха и щита): Песнь на 1 минуту — +Инт к КЗ, скорость +10, Преимущество на Акробатику, Инт для атаки/урона, +Инт к концентрации.')}
+          </Text>
+        ) : null}
+
+        {featureId === 'song_of_defense' ? (
+          <>
+            <Text>Реакция при уроне, пока Песнь активна: потрать ячейку — урон − (круг × 5).</Text>
+            <LevelChips levels={freeLevels} value={slotLevel} onPick={setSlotLevel} />
+          </>
+        ) : null}
+
+        {featureId === 'song_of_victory' ? (
+          <Text>После заклинания со временем «действие» — бонусным действием одна атака оружием.</Text>
+        ) : null}
+
+        {featureId === 'instinctive_charm' ? (
+          <Text>
+            Реакция: атакующий в 30 фт. попал по вам — спас Мудрости; при провале промах и возможное
+            перенацеливание (цель выбираете вы).
+          </Text>
+        ) : null}
+
+        {featureId === 'splintered_summons' ? (
+          <>
+            <div className="chip-row">
+              <button
+                type="button"
+                className={`sheet-chip${mode !== 'recover' ? ' is-on' : ''}`}
+                onClick={() => setMode('use')}
+              >
+                Призвать двух
+              </button>
+              <button
+                type="button"
+                className={`sheet-chip${mode === 'recover' ? ' is-on' : ''}`}
+                onClick={() => setMode('recover')}
+              >
+                Вернуть ячейкой 5+
+              </button>
+            </div>
+            {mode === 'recover' ? (
+              <LevelChips
+                levels={freeLevels.filter((level) => level >= 5)}
+                value={slotLevel}
+                onPick={setSlotLevel}
+              />
+            ) : (
+              <Text tone="muted">Два духа вместо одного; хиты каждого вдвое.</Text>
+            )}
+          </>
+        ) : null}
+
+        {featureId === 'master_transmuter' ? (
+          <>
+            <Text>Действие «Магия»: поглотить камень. Чтобы сохранить камень — ячейка 7+.</Text>
+            <div className="chip-row">
+              {[
+                ['panacea', 'Панацея'],
+                ['major', 'Высшее преобразование'],
+                ['restore_life', 'Восстановление жизни'],
+                ['restore_youth', 'Восстановление юности'],
+              ].map(([id, label]) => (
+                <button
+                  key={id}
+                  type="button"
+                  className={`sheet-chip${(mode || 'panacea') === id ? ' is-on' : ''}`}
+                  onClick={() => setMode(id)}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+            <Field label="Сохранить камень ячейкой 7+ (необязательно)">
+              <LevelChips
+                levels={freeLevels.filter((level) => level >= 7)}
+                value={slotLevel}
+                onPick={setSlotLevel}
+              />
+            </Field>
+          </>
+        ) : null}
       </Stack>
     </Dialog>
   )

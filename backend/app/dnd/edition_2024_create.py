@@ -115,6 +115,87 @@ TOOL_NAME_FALLBACK_RU: dict[str, str] = {
 WIZARD_CLASS_SLUG = "wizard"
 WIZARD_BOOK_SPELLS_AT_L1 = 6
 SPELLBOOK_ITEM_NAME_RU = "Книга заклинаний"
+# School Savant free-book totals (PHB + AU). Bladesinger is not a school Savant.
+WIZARD_SAVANT_SUBCLASS_SLUGS = frozenset(
+    {
+        "wizard__abjurer",
+        "wizard__diviner",
+        "wizard__evoker",
+        "wizard__illusionist",
+        "wizard__conjurer",
+        "wizard__enchanter",
+        "wizard__necromancer",
+        "wizard__transmuter",
+    }
+)
+# Full-caster levels that open a new slot tier (same as FE NEW_SLOT_TIER_BY_WIZARD_LEVEL).
+_WIZARD_NEW_SLOT_TIER_LEVELS = frozenset({1, 3, 5, 7, 9, 11, 13, 15, 17})
+ENCHANTER_ORATOR_SKILLS_2024 = frozenset({"intimidation", "deception", "persuasion"})
+BLADESINGER_WAR_SONG_SKILLS_2024 = frozenset(
+    {"acrobatics", "athletics", "performance", "persuasion"}
+)
+TRANSMUTER_STONE_BENEFITS_2024 = frozenset(
+    {
+        "darkvision",
+        "speed",
+        "resist_acid",
+        "resist_cold",
+        "resist_fire",
+        "resist_lightning",
+        "resist_thunder",
+        "resist_poison",
+    }
+)
+TRANSMUTER_STONE_BENEFITS_2_2024 = TRANSMUTER_STONE_BENEFITS_2024 | frozenset(
+    {"mighty_build", "tremorsense"}
+)
+
+
+def _savant_free_book_total_through_level(wizard_lv: int, subclass_slug: str | None) -> int:
+    slug = (subclass_slug or "").strip().lower()
+    if wizard_lv < 3 or slug not in WIZARD_SAVANT_SUBCLASS_SLUGS:
+        return 0
+    total = 2  # two ≤2nd-circle school spells when the subclass is taken
+    for lv in range(4, wizard_lv + 1):
+        if lv in _WIZARD_NEW_SLOT_TIER_LEVELS:
+            total += 1
+    return total
+
+
+def wizard_create_book_need_2024(wizard_lv: int, subclass_slug: str | None) -> int:
+    """Create-at / leveling book quota: free research + Savant free school spells."""
+    level = max(1, int(wizard_lv or 1))
+    free = WIZARD_BOOK_SPELLS_AT_L1 + max(0, level - 1) * 2
+    return free + _savant_free_book_total_through_level(level, subclass_slug)
+
+
+def trim_wizard_book_picks_on_level_down_2024(
+    values: Mapping[str, Any],
+    class_entry_id: str,
+    new_wizard_level: int,
+) -> dict[str, Any]:
+    """Mirror FE trimWizardBookPicksOnLevelDown2024 for orator / war-song / stone picks."""
+    level = max(0, int(new_wizard_level or 0))
+    out = dict(values or {})
+    prefix = f"{class_entry_id}:"
+
+    def drop(*keys: str) -> None:
+        for key in keys:
+            out.pop(f"{prefix}{key}", None)
+
+    if level < 3:
+        drop(
+            "enchanting-conversationalist",
+            "enchanting_conversationalist",
+            "training-in-war-and-song",
+            "training_in_war_and_song",
+            "transmuter_stone_benefit",
+            "transmuter-s-stone",
+            "transmuters_stone",
+        )
+    if level < 10:
+        drop("transmuter_stone_benefit_2")
+    return out
 
 SKILL_IDS = frozenset(
     {
@@ -253,6 +334,9 @@ def fighting_style_feat_slugs() -> frozenset[str]:
 
 
 LIGHT_MARTIAL_MELEE_RU = "Воинское рукопашное оружие со свойством «лёгкое»"
+BLADESINGER_MARTIAL_MELEE_RU = (
+    "Воинское рукопашное оружие без свойств «Двуручное» и «Тяжёлое»"
+)
 
 
 def _weapons_proficiency_from_class_data(weapons_raw: Any) -> dict[str, Any]:
@@ -995,6 +1079,49 @@ def _validate_paladin_options_2024(
     return out
 
 
+def _validate_wizard_book_options_2024(
+    payload: Create2024Payload,
+    picks: Mapping[str, Any],
+) -> dict[str, Any]:
+    """P24-M02B book-path picks: orator / war-song skill / transmuter stone."""
+    out: dict[str, Any] = {}
+    wizard_level = _planned_class_level(payload, "wizard")
+    subclass = _planned_primary_subclass(payload)
+    if subclass == "wizard__enchanter" and wizard_level >= 3:
+        skill = str(picks.get("enchanting_conversationalist") or "").lower()
+        if skill not in ENCHANTER_ORATOR_SKILLS_2024:
+            raise Create2024Error(
+                "Очарователь 3+: выберите навык «Чарующего оратора»",
+                code="create_2024_class_options",
+            )
+        out["enchanting_conversationalist"] = skill
+    if subclass == "wizard__bladesinger" and wizard_level >= 3:
+        skill = str(picks.get("training_in_war_and_song") or "").lower()
+        if skill not in BLADESINGER_WAR_SONG_SKILLS_2024:
+            raise Create2024Error(
+                "Певец клинка 3+: выберите навык «Учения песни и войны»",
+                code="create_2024_class_options",
+            )
+        out["training_in_war_and_song"] = skill
+    if subclass == "wizard__transmuter" and wizard_level >= 3:
+        benefit = str(picks.get("transmuter_stone_benefit") or "").lower()
+        if benefit not in TRANSMUTER_STONE_BENEFITS_2024:
+            raise Create2024Error(
+                "Преобразователь 3+: выберите свойство «Камня преобразования»",
+                code="create_2024_class_options",
+            )
+        out["transmuter_stone_benefit"] = benefit
+    if subclass == "wizard__transmuter" and wizard_level >= 10:
+        benefit2 = str(picks.get("transmuter_stone_benefit_2") or "").lower()
+        if benefit2 not in TRANSMUTER_STONE_BENEFITS_2_2024:
+            raise Create2024Error(
+                "Преобразователь 10+: выберите второе свойство «Могущественного камня»",
+                code="create_2024_class_options",
+            )
+        out["transmuter_stone_benefit_2"] = benefit2
+    return out
+
+
 def _validate_ranger_options_2024(
     payload: Create2024Payload,
     picks: Mapping[str, Any],
@@ -1698,6 +1825,40 @@ def _sync_elemental_fury_pick(sheet: dict[str, Any]) -> None:
         return
 
 
+def _sync_wizard_book_picks(sheet: dict[str, Any], class_options: Mapping[str, Any]) -> None:
+    """Mirror P24-M02B book-path picks into feature_picks for the wizard class row."""
+    for row in sheet.get("classes") or []:
+        if not isinstance(row, dict):
+            continue
+        if e24.normalize_class_slug(str(row.get("slug") or "")) != "wizard":
+            continue
+        entry_id = str(row.get("id") or "class-wizard")
+        picks = sheet.get("feature_picks")
+        values = dict(picks.get("values") or {}) if isinstance(picks, dict) else {}
+
+        orator = str(class_options.get("enchanting_conversationalist") or "").lower()
+        if orator in ENCHANTER_ORATOR_SKILLS_2024:
+            values[f"{entry_id}:enchanting_conversationalist"] = orator
+            values[f"{entry_id}:enchanting-conversationalist"] = orator
+
+        war_song = str(class_options.get("training_in_war_and_song") or "").lower()
+        if war_song in BLADESINGER_WAR_SONG_SKILLS_2024:
+            values[f"{entry_id}:training_in_war_and_song"] = war_song
+            values[f"{entry_id}:training-in-war-and-song"] = war_song
+
+        stone = str(class_options.get("transmuter_stone_benefit") or "").lower()
+        if stone in TRANSMUTER_STONE_BENEFITS_2024:
+            values[f"{entry_id}:transmuter_stone_benefit"] = stone
+            values[f"{entry_id}:transmuter-s-stone"] = stone
+
+        stone2 = str(class_options.get("transmuter_stone_benefit_2") or "").lower()
+        if stone2 in TRANSMUTER_STONE_BENEFITS_2_2024:
+            values[f"{entry_id}:transmuter_stone_benefit_2"] = stone2
+
+        sheet["feature_picks"] = {"values": values}
+        return
+
+
 def _sync_ranger_subclass_picks(sheet: dict[str, Any], class_options: Mapping[str, Any]) -> None:
     """Mirror ranger conclave picks into feature_picks for the ranger class row."""
     for row in sheet.get("classes") or []:
@@ -2175,6 +2336,8 @@ def _validate_class_options(
         out.update(_validate_bard_options_2024(payload, picks))
     if payload.class_slug == "rogue":
         out.update(_validate_rogue_options_2024(payload, picks))
+    if payload.class_slug == "wizard":
+        out.update(_validate_wizard_book_options_2024(payload, picks))
     if payload.class_slug == "warlock":
         raw_inv = picks.get("eldritch_invocations") or picks.get("invocations") or []
         inv = [_normalize_slug(str(x)) for x in raw_inv]
@@ -2322,12 +2485,17 @@ def validate_create_2024(payload: Create2024Payload) -> Create2024Result:
                 }
         # Stash remaining wizard book spells for post-level overlay.
         if payload.class_slug == WIZARD_CLASS_SLUG and wizard_lv > 1:
-            book_need = WIZARD_BOOK_SPELLS_AT_L1 + max(0, wizard_lv - 1) * 2
+            subclass_for_book = _planned_primary_subclass(payload)
+            book_need = wizard_create_book_need_2024(wizard_lv, subclass_for_book)
+            savant_extra = _savant_free_book_total_through_level(wizard_lv, subclass_for_book)
             all_book = [_normalize_slug(x) for x in payload.spellbook_spell_ids]
             if len(all_book) != book_need or len(set(all_book)) != len(all_book):
+                detail = f"6 на 1 ур. + 2×{wizard_lv - 1}"
+                if savant_extra:
+                    detail += f" + {savant_extra} савант"
                 raise Create2024Error(
                     f"Волшебник {wizard_lv} ур.: в книге ровно {book_need} заклинаний "
-                    f"(6 на 1 ур. + 2×{wizard_lv - 1}), выбрано {len(all_book)}",
+                    f"({detail}), выбрано {len(all_book)}",
                     code="create_2024_spells",
                 )
             slots = e24.slots_for_caster_level(wizard_lv)
@@ -2448,6 +2616,7 @@ def validate_create_2024(payload: Create2024Payload) -> Create2024Result:
     _sync_druidic_warrior_picks(sheet, class_options, fighting_style=fighting_style)
     _sync_ranger_subclass_picks(sheet, class_options)
     _sync_artificer_subclass_picks(sheet, class_options)
+    _sync_wizard_book_picks(sheet, class_options)
     # Magical Secrets: create-at-N prepared may use Wizard/Druid/Cleric lists from bard 10+.
     _validate_bard_magical_secrets_prepared_2024(payload)
 
@@ -2915,6 +3084,17 @@ def _build_sheet(
     ):
         weapons_prof = {**weapons_prof, "martial": True}
         armor = list(armor) + [x for x in ("medium", "shields") if x not in armor and "all" not in armor]
+    # Bladesinger (2024) Training in War and Song: martial melee without Two-Handed/Heavy.
+    # Do NOT set martial: True (that would include heavy / two-handed).
+    if (
+        payload.class_slug == "wizard"
+        and _planned_primary_subclass(payload) == "wizard__bladesinger"
+        and _planned_class_level(payload, "wizard") >= 3
+    ):
+        extras = list(weapons_prof.get("extras") or [])
+        if BLADESINGER_MARTIAL_MELEE_RU not in extras:
+            extras.append(BLADESINGER_MARTIAL_MELEE_RU)
+        weapons_prof = {**weapons_prof, "extras": extras}
     sheet["proficiency"] = {
         "bonus": 2,
         "armor": {
@@ -3174,6 +3354,15 @@ def _build_sheet(
         ),
         "known": known,
     }
+    # Wizard (and other prepared casters later): never leave max_prepared null —
+    # classic SpellsPanel would otherwise flip to «Известно N/…» and count the book.
+    if payload.class_slug == WIZARD_CLASS_SLUG:
+        wizard_lv = _planned_class_level(payload, WIZARD_CLASS_SLUG)
+        row = e24.class_level_row("wizard", wizard_lv) or e24.class_level_row("wizard", 1) or {}
+        sc = row.get("spellcasting") if isinstance(row, Mapping) else None
+        sheet["spells"]["max_prepared"] = int(
+            (sc or {}).get("prepared_spells") if isinstance(sc, Mapping) else 4
+        ) or 4
     if payload.class_slug == WIZARD_CLASS_SLUG:
         book_item_id = _ensure_wizard_spellbook_item(items)
         sheet["spells"]["wizard_spellbook"] = {

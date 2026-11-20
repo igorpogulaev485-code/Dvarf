@@ -42,6 +42,7 @@ import { clearFeaturePicksAboveClassLevel, listUnlockedExpertiseKeys } from '../
 import { revokeFeatGrantFromDraft, revokeFeatGrantsForAsi, revokeFeatGrantsForBackground, syncFeatProficiencyResources } from '../featEffects'
 import { syncHitDicePools } from '../../../shared/dnd/classHitDice'
 import { trimLevelUpSpellbookRows } from '../../../shared/dnd/wizardSpellbook'
+import { trimWizardBookPicksOnLevelDown2024 } from '../../../shared/dnd/wizardBook2024Features'
 import { trimSavantSpellsOnLevelDown2024 } from '../../../shared/dnd/wizard2024Features'
 import { averageHpGain, hitDieForClass } from '../../../shared/dnd/multiclassRules'
 import {
@@ -111,6 +112,12 @@ function levelDownClassState2024(
       newLevel,
     )
     if (known !== next.spells.known) next = { ...next, spells: { ...next.spells, known } }
+    const featurePicks = trimWizardBookPicksOnLevelDown2024(
+      next.featurePicks,
+      row.id,
+      newLevel,
+    )
+    if (featurePicks !== next.featurePicks) next = { ...next, featurePicks }
   }
   if (slug === 'druid') {
     const featurePicks = trimDruid2024PicksOnLevelDown(next.featurePicks, row.id, newLevel)

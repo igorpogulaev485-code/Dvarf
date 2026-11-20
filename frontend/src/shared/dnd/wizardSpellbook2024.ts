@@ -34,14 +34,27 @@ const SCHOOL_BY_SUBCLASS_2024: Record<string, WizardSchoolKey2024> = {
   wizard__diviner: 'divination',
   wizard__evoker: 'evocation',
   wizard__illusionist: 'illusion',
+  // AU book schools (P24-M02B-wizard) — same Savant free-book contour as PHB.
+  wizard__conjurer: 'conjuration',
+  wizard__enchanter: 'enchantment',
+  wizard__necromancer: 'necromancy',
+  wizard__transmuter: 'transmutation',
   abjurer: 'abjuration',
   diviner: 'divination',
   evoker: 'evocation',
   illusionist: 'illusion',
+  conjurer: 'conjuration',
+  enchanter: 'enchantment',
+  necromancer: 'necromancy',
+  transmuter: 'transmutation',
   оградитель: 'abjuration',
   прорицатель: 'divination',
   воплотитель: 'evocation',
   иллюзионист: 'illusion',
+  призыватель: 'conjuration',
+  очарователь: 'enchantment',
+  некромант: 'necromancy',
+  преобразователь: 'transmutation',
   school_of_abjuration: 'abjuration',
   school_of_conjuration: 'conjuration',
   school_of_divination: 'divination',
@@ -191,4 +204,30 @@ export function savantFreePicksAtWizardLevel(input: {
   const tier = newSlotTiersGainedAtWizardLevel(level)
   if (tier == null) return { picks: 0, maxSpellLevel: 0 }
   return { picks: savantFreeBookSlotOnNewTier(), maxSpellLevel: tier }
+}
+
+/**
+ * Cumulative free school spells through `wizardLevel` (create-at / sheet book size).
+ * L3 → 2, L5 → 3, L11 → 6 for any school Savant; 0 when no school subclass.
+ */
+export function savantFreeBookTotalThroughLevel(input: {
+  wizardLevel: number
+  subclassSlug: string | null | undefined
+}): number {
+  const level = Math.max(0, Math.floor(input.wizardLevel) || 0)
+  if (!wizardSavantSchool(input.subclassSlug) || level < WIZARD_SUBCLASS_LEVEL_2024) return 0
+  let total = savantFreeBookSlotsOnSubclass()
+  for (let lv = WIZARD_SUBCLASS_LEVEL_2024 + 1; lv <= level; lv += 1) {
+    if (newSlotTiersGainedAtWizardLevel(lv) != null) total += savantFreeBookSlotOnNewTier()
+  }
+  return total
+}
+
+/** Create-at / leveling book quota: free research + Savant free school spells. */
+export function wizardCreateBookNeed2024(input: {
+  wizardLevel: number
+  subclassSlug: string | null | undefined
+}): number {
+  const level = Math.max(1, Math.floor(input.wizardLevel) || 1)
+  return freeBookCap(level) + savantFreeBookTotalThroughLevel(input)
 }

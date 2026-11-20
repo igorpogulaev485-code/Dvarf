@@ -112,6 +112,7 @@ import {
   isAbjurationSchool,
   wizardLeveledCastGate,
 } from '../../../shared/dnd/wizardTradition'
+import { bladesongBonuses2024 } from '../../../shared/dnd/wizardBook2024Features'
 import { type CastChoice } from '../CastSpellDialog'
 import {
   applyMetamagicToCastParams,
@@ -1447,12 +1448,30 @@ export function installSheetActions4(model: SheetModel) {
   model.effectiveRollMode = function effectiveRollMode(skillKey?: string): DeskRollMode {
     const armor = skillKey === 'stealth' && model.stealthArmorDisadvantage
     const exhaustion = model.exhaustionFlags().disadvantageOnChecks
-    const song =
-      skillKey === 'acrobatics' &&
-      bladesongBonuses({
+    const edition2024 =
+      (model.baseCharacter?.rules_edition ?? model.rulesEdition) === '2024'
+    const songActive = (() => {
+      if (skillKey !== 'acrobatics') return false
+      if (edition2024) {
+        return bladesongBonuses2024({
+          rulesEdition: '2024',
+          subclassSlug:
+            Object.values(model.subclassSlugByEntryId ?? {}).find(
+              (slug): slug is string =>
+                typeof slug === 'string' && slug.toLowerCase().includes('bladesinger'),
+            ) ?? null,
+          resources: model.draft.play.resources,
+          intelligenceScore: model.draft.abilities.int ?? 10,
+          wizardLevel:
+            model.draft.classes.find((row) => /волшебник|wizard/i.test(row.name))?.level ?? 0,
+        }).acrobaticsAdvantage
+      }
+      return bladesongBonuses({
         resources: model.draft.play.resources,
         intelligenceScore: model.draft.abilities.int ?? 10,
       }).active
+    })()
+    const song = songActive
     const fromFx = resolveAdvantageFromEffects(model.draft.play.effects, {
       rollKind: 'check',
       abilityKey: skillKey ?? null,
@@ -1879,12 +1898,28 @@ export function installSheetActions4(model: SheetModel) {
   }
 
   model.rollAbilitySave = function rollAbilitySave(key: AbilityKey, mod: number) {
+    const edition2024 =
+      (model.baseCharacter?.rules_edition ?? model.rulesEdition) === '2024'
     const song =
       key === 'con' && model.draft.play.concentration
-        ? bladesongBonuses({
-            resources: model.draft.play.resources,
-            intelligenceScore: model.draft.abilities.int ?? 10,
-          })
+        ? edition2024
+          ? bladesongBonuses2024({
+              rulesEdition: '2024',
+              subclassSlug:
+                Object.values(model.subclassSlugByEntryId ?? {}).find(
+                  (slug): slug is string =>
+                    typeof slug === 'string' && slug.toLowerCase().includes('bladesinger'),
+                ) ?? null,
+              resources: model.draft.play.resources,
+              intelligenceScore: model.draft.abilities.int ?? 10,
+              wizardLevel:
+                model.draft.classes.find((row) => /волшебник|wizard/i.test(row.name))?.level ??
+                0,
+            })
+          : bladesongBonuses({
+              resources: model.draft.play.resources,
+              intelligenceScore: model.draft.abilities.int ?? 10,
+            })
         : null
     const effectSave =
       saveBonusFromActiveEffects(model.draft.play.effects, key) +

@@ -10,6 +10,7 @@ import {
   savantFreeBookSlotsOnSubclass,
   savantFreePicksAtWizardLevel,
   scrollCopyDc,
+  wizardCreateBookNeed2024,
   wizardSavantSchool,
   wizardSavantSchoolLabelRu,
 } from './wizardSpellbook2024'
@@ -23,9 +24,18 @@ assert(wizardSavantSchool('wizard__abjurer') === 'abjuration', 'abjurer')
 assert(wizardSavantSchool('wizard__diviner') === 'divination', 'diviner')
 assert(wizardSavantSchool('wizard__evoker') === 'evocation', 'evoker')
 assert(wizardSavantSchool('wizard__illusionist') === 'illusion', 'illusionist')
+assert(wizardSavantSchool('wizard__conjurer') === 'conjuration', 'conjurer')
+assert(wizardSavantSchool('wizard__enchanter') === 'enchantment', 'enchanter')
+assert(wizardSavantSchool('wizard__necromancer') === 'necromancy', 'necromancer')
+assert(wizardSavantSchool('wizard__transmuter') === 'transmutation', 'transmuter')
+assert(wizardSavantSchool('wizard__bladesinger') === null, 'bladesinger no school')
 assert(wizardSavantSchool('fighter__champion') === null, 'non-wizard subclass')
 assert(wizardSavantSchool(null) === null, 'null slug')
 assert(wizardSavantSchoolLabelRu('wizard__evoker') === 'воплощение', 'evoker label')
+assert(wizardSavantSchoolLabelRu('wizard__conjurer') === 'вызов', 'conjurer UI school')
+assert(wizardSavantSchoolLabelRu('wizard__enchanter') === 'очарование', 'enchanter UI school')
+assert(wizardSavantSchoolLabelRu('wizard__necromancer') === 'некромантия', 'necromancer UI school')
+assert(wizardSavantSchoolLabelRu('wizard__transmuter') === 'преобразование', 'transmuter UI school')
 
 // no half price: savant school does not change tariffs
 const mods = resolveWizardCopyMods2024({ subclassSlug: 'wizard__evoker', wizardLevel: 5 })
@@ -99,5 +109,27 @@ assert(scrollCopyDc(9) === 19, 'DC 9')
 // free book numbers match 2014 helpers
 assert(freeBookSlotsAtLevel(1) === 6 && freeBookSlotsAtLevel(2) === 2, 'free slots')
 assert(freeBookCap(5) === 14, 'free cap')
+
+// AU Savant create-at book need (free research + school free spells)
+assert(
+  wizardCreateBookNeed2024({ wizardLevel: 3, subclassSlug: 'wizard__conjurer' }) === 12,
+  'AU savant L3 book = 12',
+)
+assert(
+  wizardCreateBookNeed2024({ wizardLevel: 5, subclassSlug: 'wizard__enchanter' }) === 17,
+  'AU savant L5 book = 17',
+)
+assert(
+  wizardCreateBookNeed2024({ wizardLevel: 11, subclassSlug: 'wizard__necromancer' }) === 32,
+  'AU savant L11 book = 32',
+)
+assert(
+  wizardCreateBookNeed2024({ wizardLevel: 3, subclassSlug: 'wizard__bladesinger' }) === 10,
+  'bladesinger is not a school Savant',
+)
+assert(
+  wizardCreateBookNeed2024({ wizardLevel: 5, subclassSlug: null }) === 14,
+  'no subclass = free research only',
+)
 
 console.log('wizardSpellbook2024.selfcheck ok')

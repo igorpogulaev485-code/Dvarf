@@ -83,6 +83,16 @@ import {
   WIZARD_SUBCLASS_LEVEL_2024,
 } from './wizardSpellbook2024'
 import {
+  ENCHANTING_CONVERSATIONALIST_FEATURE_ID,
+  TRAINING_IN_WAR_AND_SONG_FEATURE_ID,
+  TRANSMUTER_STONE_BENEFIT_PICK_ID,
+  TRANSMUTER_STONE_BENEFIT_2_PICK_ID,
+  enchantingConversationalistChoice2024,
+  trainingInWarAndSongChoice2024,
+  transmuterStoneBenefitChoice2024,
+  transmuterStoneBenefit2Choice2024,
+} from './wizardBook2024Features'
+import {
   masteryLimitForClass,
   WEAPON_MASTERY_CLASS_RULES,
   type WeaponMasteryState,
@@ -680,17 +690,82 @@ export function buildPendingWizardSteps2024(input: PendingWizardInput2024): Guid
       picksNeeded: freeBookSlotsAtLevel(level),
     })
     const savant = savantBookPicksStep2024(input, level)
+    const bookChoices = wizardBookFeatureChoiceSteps2024(input, level)
     const ordered = scholarStep ? [scholarStep, ...withBook] : withBook
-    if (!savant) return ordered
-    const bookIdx = ordered.findIndex(
-      (row) => row.kind === 'spellbook_picks' && row.classEntryId === input.classEntryId,
-    )
-    return bookIdx >= 0
-      ? [...ordered.slice(0, bookIdx + 1), savant, ...ordered.slice(bookIdx + 1)]
-      : [...ordered, savant]
+    const withSavant = (() => {
+      if (!savant) return ordered
+      const bookIdx = ordered.findIndex(
+        (row) => row.kind === 'spellbook_picks' && row.classEntryId === input.classEntryId,
+      )
+      return bookIdx >= 0
+        ? [...ordered.slice(0, bookIdx + 1), savant, ...ordered.slice(bookIdx + 1)]
+        : [...ordered, savant]
+    })()
+    return bookChoices.length ? [...withSavant, ...bookChoices] : withSavant
   }
 
   return steps
+}
+
+/** P24-M02B book-path mandatory picks (orator / war-song skill / stone benefit). */
+function wizardBookFeatureChoiceSteps2024(
+  input: PendingWizardInput2024,
+  level: number,
+): GuidedWizardStep[] {
+  if (level < WIZARD_SUBCLASS_LEVEL_2024 || !input.hasSubclass) return []
+  const slug = String(input.subclassSlug || '')
+    .trim()
+    .toLowerCase()
+  const out: GuidedWizardStep[] = []
+  const pushIfMissing = (
+    featureId: string,
+    choice: typeof enchantingConversationalistChoice2024,
+    featureLevel: number,
+  ) => {
+    const picked = input.featurePicks
+      ? Boolean(
+          getFeatureChoicePick(input.featurePicks, input.classEntryId, featureId, choice.id) ??
+            getFeatureChoicePick(input.featurePicks, input.classEntryId, featureId.replace(/-/g, '_'), choice.id),
+        )
+      : false
+    if (picked) return
+    out.push({
+      id: `feature_choice:${input.classEntryId}:${featureId}`,
+      kind: 'feature_choice',
+      classEntryId: input.classEntryId,
+      className: input.className,
+      classLevel: level,
+      featureId,
+      featureNameRu: choice.label_ru,
+      featureLevel,
+      choice,
+    })
+  }
+  if (slug === 'wizard__enchanter') {
+    pushIfMissing(
+      ENCHANTING_CONVERSATIONALIST_FEATURE_ID,
+      enchantingConversationalistChoice2024,
+      WIZARD_SUBCLASS_LEVEL_2024,
+    )
+  }
+  if (slug === 'wizard__bladesinger') {
+    pushIfMissing(
+      TRAINING_IN_WAR_AND_SONG_FEATURE_ID,
+      trainingInWarAndSongChoice2024,
+      WIZARD_SUBCLASS_LEVEL_2024,
+    )
+  }
+  if (slug === 'wizard__transmuter') {
+    pushIfMissing(
+      TRANSMUTER_STONE_BENEFIT_PICK_ID,
+      transmuterStoneBenefitChoice2024,
+      WIZARD_SUBCLASS_LEVEL_2024,
+    )
+    if (level >= 10) {
+      pushIfMissing(TRANSMUTER_STONE_BENEFIT_2_PICK_ID, transmuterStoneBenefit2Choice2024, 10)
+    }
+  }
+  return out
 }
 
 /**

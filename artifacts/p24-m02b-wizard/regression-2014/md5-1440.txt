@@ -1,0 +1,5 @@
+OK  create-2014-race-marker-1440.png
+OK  create-2014-wizard-class-1440.png
+OK  sheet-2014-evocation-features-1440.png
+OK  sheet-2014-wizard-1440.png
+OK  sheet-2014-wizard-features-1440.png

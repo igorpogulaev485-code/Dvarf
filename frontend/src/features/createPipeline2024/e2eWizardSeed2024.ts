@@ -1,10 +1,17 @@
 /**
  * Internal e2e seeds for the 2024 create wizard (`?e2eLeveling=1&e2eSeed=wizard11abjurer`).
- * Builds an honest wizard build from the loaded catalog: spellbook = 6 + 2×(level − 1),
- * prepared and cantrips from the class table, every prepared spell lives in the book.
+ * Builds an honest wizard build from the loaded catalog: spellbook = freeBookCap + Savant
+ * free school spells (when the subclass is a school Savant), prepared and cantrips from the
+ * class table, every prepared spell lives in the book.
  */
 import type { CatalogEntry } from '../../shared/api/catalog'
 import { freeBookCap } from '../../shared/dnd/wizardSpellbook'
+import {
+  savantFreeBookTotalThroughLevel,
+  wizardCreateBookNeed2024,
+  wizardSavantSchool,
+  type WizardSchoolKey2024,
+} from '../../shared/dnd/wizardSpellbook2024'
 import { spellOnClassList } from './create2024FeatPicks'
 
 const PREFERRED: Record<number, string[]> = {
@@ -31,10 +38,19 @@ const PREFERRED: Record<number, string[]> = {
   9: ['wish', 'time-stop', 'foresight', 'meteor-swarm', 'power-word-kill'],
 }
 
+/** Subclass feature spells that become always-prepared — keep out of free research fill. */
+const FEATURE_SPELL_SLUGS_BY_SUBCLASS: Record<string, readonly string[]> = {
+  wizard__necromancer: ['find-familiar', 'animate-dead'],
+  wizard__transmuter: ['alter-self', 'polymorph'],
+  wizard__illusionist: ['minor-illusion'],
+}
+
 export type WizardSeedSpells = {
   cantripIds: string[]
   spellbookSpellIds: string[]
   preparedSpellIds: string[]
+  /** How many trailing book ids are Savant free school spells (for create tagging). */
+  savantSpellCount: number
 }
 
 export type WizardSeedSpec = {
@@ -67,19 +83,33 @@ function spellLevelOf(entry: CatalogEntry): number {
   return Number((entry.data as { level?: number } | undefined)?.level ?? -1)
 }
 
+function spellSchoolOf(entry: CatalogEntry): string {
+  return String((entry.data as { school?: string } | undefined)?.school || '')
+    .trim()
+    .toLowerCase()
+}
+
 function maxCircle(row: LevelRow | null): number {
   const keys = Object.keys(row?.spellcasting?.slots ?? {}).map(Number)
   return keys.length ? Math.max(...keys) : 1
 }
 
-function poolForCircle(spells: readonly CatalogEntry[], circle: number): string[] {
+function poolForCircle(
+  spells: readonly CatalogEntry[],
+  circle: number,
+  opts?: { school?: WizardSchoolKey2024 | null; exclude?: Set<string> },
+): string[] {
+  const school = opts?.school ?? null
+  const exclude = opts?.exclude ?? new Set<string>()
   const available = spells
-    .filter(
-      (s) =>
-        spellLevelOf(s) === circle &&
-        spellOnClassList(s, 'wizard') &&
-        (s.source === 'srd-5.2' || s.source === 'ph24'),
-    )
+    .filter((s) => {
+      if (spellLevelOf(s) !== circle) return false
+      if (!spellOnClassList(s, 'wizard')) return false
+      if (!(s.source === 'srd-5.2' || s.source === 'ph24' || s.source === 'au')) return false
+      if (exclude.has(s.slug)) return false
+      if (school && spellSchoolOf(s) !== school) return false
+      return true
+    })
     .map((s) => s.slug)
   const preferred = (PREFERRED[circle] ?? []).filter((slug) => available.includes(slug))
   const rest = available.filter((slug) => !preferred.includes(slug)).sort()
@@ -90,17 +120,33 @@ export function buildWizardSeedSpells(
   spells: readonly CatalogEntry[],
   wizardClass: CatalogEntry,
   level: number,
+  subclassSlug?: string | null,
 ): WizardSeedSpells {
   const row = levelRow(wizardClass, level)
   const cantripNeed = Number(row?.spellcasting?.cantrips ?? 3)
   const preparedNeed = Number(row?.spellcasting?.prepared_spells ?? 4)
-  const bookNeed = freeBookCap(level)
+  const freeNeed = freeBookCap(level)
+  const savantNeed = savantFreeBookTotalThroughLevel({
+    wizardLevel: level,
+    subclassSlug: subclassSlug ?? null,
+  })
+  const bookNeed = wizardCreateBookNeed2024({
+    wizardLevel: level,
+    subclassSlug: subclassSlug ?? null,
+  })
+  const school = wizardSavantSchool(subclassSlug)
+  const exclude = new Set(
+    FEATURE_SPELL_SLUGS_BY_SUBCLASS[String(subclassSlug || '').toLowerCase()] ?? [],
+  )
 
-  const cantripIds = poolForCircle(spells, 0).slice(0, cantripNeed)
+  const cantripIds = poolForCircle(spells, 0, { exclude }).slice(0, cantripNeed)
   const taken = new Set<string>()
   const book: string[] = []
-  const take = (circle: number): void => {
-    const slug = poolForCircle(spells, circle).find((s) => !taken.has(s))
+  const take = (circle: number, schoolFilter?: WizardSchoolKey2024 | null): void => {
+    const slug = poolForCircle(spells, circle, {
+      school: schoolFilter ?? null,
+      exclude,
+    }).find((s) => !taken.has(s))
     if (!slug) return
     taken.add(slug)
     book.push(slug)
@@ -111,11 +157,35 @@ export function buildWizardSeedSpells(
     take(top)
     take(Math.max(1, top - 1))
   }
-  // Top up if a circle ran out of preferred picks.
-  for (let circle = 1; book.length < bookNeed && circle <= 9; circle += 1) {
-    while (book.length < bookNeed) {
+  for (let circle = 1; book.length < freeNeed && circle <= 9; circle += 1) {
+    while (book.length < freeNeed) {
       const before = book.length
       take(circle)
+      if (book.length === before) break
+    }
+  }
+  // Savant free school spells (after free research fill).
+  if (school && savantNeed > 0) {
+    // Two ≤2nd at subclass, then one per new tier up to level.
+    let remaining = savantNeed
+    while (remaining > 0 && book.length < bookNeed) {
+      const before = book.length
+      for (let circle = 1; circle <= 2 && remaining > 0; circle += 1) {
+        take(circle, school)
+        if (book.length > before) {
+          remaining -= 1
+          break
+        }
+      }
+      if (book.length === before) {
+        for (let circle = 3; circle <= 9 && remaining > 0; circle += 1) {
+          take(circle, school)
+          if (book.length > before) {
+            remaining -= 1
+            break
+          }
+        }
+      }
       if (book.length === before) break
     }
   }
@@ -125,9 +195,11 @@ export function buildWizardSeedSpells(
     if (prepared.length >= preparedNeed) break
     if (!prepared.includes(slug)) prepared.push(slug)
   }
+  const spellbookSpellIds = book.slice(0, bookNeed)
   return {
     cantripIds,
-    spellbookSpellIds: book.slice(0, bookNeed),
+    spellbookSpellIds,
     preparedSpellIds: prepared.slice(0, preparedNeed),
+    savantSpellCount: Math.min(savantNeed, Math.max(0, spellbookSpellIds.length - freeNeed)),
   }
 }

@@ -1012,15 +1012,99 @@ def build_permanent_bonuses(
             note_ru="Сброс вспышки на коротком; врем. хиты союзнику",
         )
 
-    # Wizard Necromancer — thrall HP/damage scale with wizard level
+    # Wizard book subclasses (P24-M02B-wizard)
+    wizard_int_m = ability_mod(int(abilities.get("int") or 10))
+
+    # Wizard Necromancer — thrall HP/damage: Int + half wizard level / Int (min 1)
     if subclass_slug == "wizard__necromancer" and class_level >= 6:
+        half = class_level // 2
         add(
             "undead-thralls",
             "Неживые слуги",
             "other_calc",
-            {"thrall_bonus_hp_per_wizard_level": True, "thrall_damage_bonus": True},
+            {
+                "thrall_bonus_hp": wizard_int_m + half,
+                "thrall_bonus_hp_int_plus_half_level": True,
+                "thrall_damage_bonus": max(1, wizard_int_m),
+            },
             min_level=6,
-            note_ru="Бонус хитов/урона слуг по уровню волшебника",
+            note_ru=(
+                "Бонус хитов нежити = Инт + ½ ур. волшебника; "
+                "доп. некротический урон атаки = Инт (мин. 1)"
+            ),
+        )
+
+    if subclass_slug == "wizard__bladesinger":
+        add(
+            "bladesong",
+            "Песнь клинка",
+            "other_calc",
+            {
+                "ac_bonus_int_min_1": True,
+                "speed_bonus_ft": 10,
+                "acrobatics_advantage": True,
+                "weapon_attack_damage_int": True,
+                "concentration_save_add_int": True,
+                "regain_one_on_arcane_recovery": True,
+            },
+            note_ru=(
+                f"Пока Песнь активна: +{max(1, wizard_int_m)} КД, скорость +10, "
+                "Преимущество на Акробатику, Инт для атаки/урона оружием, "
+                "+Инт к спас концентрации"
+            ),
+        )
+        if class_level >= 6:
+            add(
+                "extra-attack",
+                "Дополнительная атака",
+                "other_calc",
+                {"attacks": 2, "replace_one_with_wizard_cantrip_action": True},
+                min_level=6,
+            )
+        if class_level >= 10:
+            add(
+                "song-of-defense",
+                "Песнь защиты",
+                "other_calc",
+                {"reduce_damage_slot_level_times": 5, "requires_bladesong": True},
+                min_level=10,
+            )
+
+    if subclass_slug == "wizard__conjurer":
+        if class_level >= 6:
+            add(
+                "durable-summons",
+                "Надёжный вызов",
+                "other_calc",
+                {
+                    "temp_hp_times_wizard_level": 2,
+                    "resist_all_except": ["necrotic", "psychic", "force", "radiant"],
+                },
+                min_level=6,
+            )
+        if class_level >= 10:
+            add(
+                "focused-conjuration",
+                "Сфокусированный призыв",
+                "other_calc",
+                {"concentration_immune_to_damage_for_conjuration": True},
+                min_level=10,
+            )
+
+    if subclass_slug == "wizard__enchanter":
+        add(
+            "enchanting-conversationalist",
+            "Чарующий оратор",
+            "other_calc",
+            {"skill_choice": True, "skill_bonus_int_min_1": True},
+        )
+
+    if subclass_slug == "wizard__transmuter":
+        add(
+            "transmuter-s-stone",
+            "Камень преобразования",
+            "other_calc",
+            {"con_save_proficiency": True, "benefit_choice": True},
         )
 
     return out
@@ -1466,18 +1550,65 @@ def build_subclass_resources(
         add(
             "benign_transposition",
             name_ru="Безопасный перенос",
-            max_uses=1,
+            max_uses=max(1, int_m),
             reset="long",
             feature_id="benign-transposition",
         )
+        if class_level >= 14:
+            add(
+                "splintered_summons",
+                name_ru="Разделённый вызов",
+                max_uses=1,
+                reset="long",
+                feature_id="splintered-summons",
+                min_level=14,
+            )
     elif subclass_slug == "wizard__enchanter":
         add(
             "hypnotic_presence",
-            name_ru="Гипнотическое присутствие",
-            max_uses=1,
+            name_ru="Гипнотизирующее присутствие",
+            max_uses=max(1, int_m),
             reset="long",
             feature_id="hypnotic-presence",
         )
+        if class_level >= 6:
+            add(
+                "split_enchantment",
+                name_ru="Разделённое очарование",
+                max_uses=max(1, int_m),
+                reset="long",
+                feature_id="split-enchantment",
+                min_level=6,
+            )
+        if class_level >= 10:
+            add(
+                "instinctive_charm",
+                name_ru="Инстинктивное очарование",
+                max_uses=1,
+                reset="long",
+                feature_id="instinctive-charm",
+                min_level=10,
+            )
+    elif subclass_slug == "wizard__necromancer":
+        if class_level >= 6:
+            add(
+                "undead_thralls_free",
+                name_ru="Неживые слуги (без ячейки)",
+                max_uses=1,
+                reset="long",
+                feature_id="undead-thralls",
+                min_level=6,
+                on_hot=False,
+            )
+        if class_level >= 14:
+            add(
+                "deaths_master_flare",
+                name_ru="Разгорание нежизни",
+                max_uses=1,
+                reset="long",
+                feature_id="deaths-master",
+                min_level=14,
+            )
     elif subclass_slug == "wizard__bladesinger":
         add(
             "bladesong",
@@ -1489,12 +1620,58 @@ def build_subclass_resources(
     elif subclass_slug == "wizard__transmuter":
         add(
             "transmuters_stone",
-            name_ru="Камень преобразителя",
+            name_ru="Камень преобразования",
             max_uses=1,
             reset="long",
             feature_id="transmuter-s-stone",
             on_hot=False,
         )
+        add(
+            "wondrous_alteration",
+            name_ru="Волшебное превращение",
+            max_uses=1,
+            reset="long",
+            feature_id="wondrous-alteration",
+            on_hot=False,
+        )
+        if class_level >= 6:
+            add(
+                "empowered_transmutation",
+                name_ru="Усиленное преобразование",
+                max_uses=max(1, int_m),
+                reset="long",
+                feature_id="empowered-transmutation",
+                min_level=6,
+            )
+        if class_level >= 10:
+            add(
+                "shape_shifter",
+                name_ru="Мастер превращения",
+                max_uses=1,
+                reset="long",
+                feature_id="shape-shifter",
+                min_level=10,
+                on_hot=False,
+            )
+            add(
+                "shape_shifter_self",
+                name_ru="Мастер превращения (на себя)",
+                max_uses=1,
+                reset="long",
+                feature_id="shape-shifter",
+                min_level=10,
+                on_hot=False,
+            )
+        if class_level >= 14:
+            add(
+                "master_transmuter",
+                name_ru="Мастер преобразования",
+                max_uses=1,
+                reset="long",
+                feature_id="master-transmuter",
+                min_level=14,
+                on_hot=False,
+            )
 
     # --- Sorcerer ---
     elif subclass_slug == "sorcerer__wild-magic-sorcery":

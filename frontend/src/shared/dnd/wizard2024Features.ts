@@ -363,6 +363,32 @@ export type Wizard2024Flags = {
   phantasmalCreatures: boolean
   illusorySelf: boolean
   illusoryReality: boolean
+  // P24-M02B book paths
+  benignTransposition: boolean
+  distantTransposition: boolean
+  durableSummons: boolean
+  focusedConjuration: boolean
+  splinteredSummons: boolean
+  hypnoticPresence: boolean
+  splitEnchantment: boolean
+  instinctiveCharm: boolean
+  alterMemories: boolean
+  necromancySpellbook: boolean
+  undeadThralls: boolean
+  gravePower: boolean
+  harvestUndead: boolean
+  deathsMaster: boolean
+  transmuterStone: boolean
+  wondrousAlteration: boolean
+  empoweredTransmutation: boolean
+  potentStone: boolean
+  shapeShifter: boolean
+  masterTransmuter: boolean
+  bladesong: boolean
+  trainingWarSong: boolean
+  bladesingerExtraAttack: boolean
+  songOfDefense: boolean
+  songOfVictory: boolean
 }
 
 export function wizard2024Context(input: {
@@ -387,6 +413,11 @@ export function wizard2024Flags(ctx: Wizard2024Context | null): Wizard2024Flags 
   const diviner = slug === 'wizard__diviner'
   const evoker = slug === 'wizard__evoker'
   const illusionist = slug === 'wizard__illusionist'
+  const conjurer = slug === 'wizard__conjurer'
+  const enchanter = slug === 'wizard__enchanter'
+  const necromancer = slug === 'wizard__necromancer'
+  const transmuter = slug === 'wizard__transmuter'
+  const bladesinger = slug === 'wizard__bladesinger'
   return {
     ward: abjurer && level >= 3,
     projectedWard: abjurer && level >= 6,
@@ -402,6 +433,31 @@ export function wizard2024Flags(ctx: Wizard2024Context | null): Wizard2024Flags 
     phantasmalCreatures: illusionist && level >= 6,
     illusorySelf: illusionist && level >= 10,
     illusoryReality: illusionist && level >= 14,
+    benignTransposition: conjurer && level >= 3,
+    distantTransposition: conjurer && level >= 6,
+    durableSummons: conjurer && level >= 6,
+    focusedConjuration: conjurer && level >= 10,
+    splinteredSummons: conjurer && level >= 14,
+    hypnoticPresence: enchanter && level >= 3,
+    splitEnchantment: enchanter && level >= 6,
+    instinctiveCharm: enchanter && level >= 10,
+    alterMemories: enchanter && level >= 14,
+    necromancySpellbook: necromancer && level >= 3,
+    undeadThralls: necromancer && level >= 6,
+    gravePower: necromancer && level >= 6,
+    harvestUndead: necromancer && level >= 10,
+    deathsMaster: necromancer && level >= 14,
+    transmuterStone: transmuter && level >= 3,
+    wondrousAlteration: transmuter && level >= 3,
+    empoweredTransmutation: transmuter && level >= 6,
+    potentStone: transmuter && level >= 10,
+    shapeShifter: transmuter && level >= 10,
+    masterTransmuter: transmuter && level >= 14,
+    bladesong: bladesinger && level >= 3,
+    trainingWarSong: bladesinger && level >= 3,
+    bladesingerExtraAttack: bladesinger && level >= 6,
+    songOfDefense: bladesinger && level >= 10,
+    songOfVictory: bladesinger && level >= 14,
   }
 }
 
@@ -596,6 +652,34 @@ export const WIZARD_SUBCLASS_SPELL_RULES_2024: FeatureSpellRule[] = [
     label: 'Призрачные существа',
     freeCast: { max: 1, reset: 'long' },
   },
+  // P24-M02B book paths — always prepared / free cast from feature text
+  {
+    subclass: 'wizard__necromancer',
+    minLevel: 3,
+    slug: 'find-familiar',
+    label: 'Некромантический гримуар',
+  },
+  {
+    subclass: 'wizard__necromancer',
+    minLevel: 6,
+    slug: 'animate-dead',
+    label: 'Неживые слуги',
+    freeCast: { max: 1, reset: 'long' },
+  },
+  {
+    subclass: 'wizard__transmuter',
+    minLevel: 3,
+    slug: 'alter-self',
+    label: 'Волшебное превращение',
+    freeCast: { max: 1, reset: 'long' },
+  },
+  {
+    subclass: 'wizard__transmuter',
+    minLevel: 10,
+    slug: 'polymorph',
+    label: 'Мастер превращения',
+    freeCast: { max: 1, reset: 'long' },
+  },
 ]
 
 /** Phantasmal Creatures: the free cast granted by the subclass (not any other grant). */
@@ -683,6 +767,9 @@ export function syncWizardSubclassSpells2024<T extends W24Spell>(input: {
         prepared: true,
         prepared_locked: true,
         prepare_source_label: rule.label,
+        // Keep the book copy, but do not spend a free research slot.
+        spellbook_acquisition: 'feature' as const,
+        in_spellbook: existing.in_spellbook !== false,
         ...(rule.freeCast && !existing.grant_cast
           ? { grant_cast: { ...rule.freeCast, used: 0, label: rule.label } }
           : {}),
@@ -835,6 +922,22 @@ export const WIZARD_2024_USE_FEATURE_IDS = new Set([
   'spell_breaker',
   'expert_divination',
   'sculpt_spells',
+  // P24-M02B book paths
+  'benign_transposition',
+  'hypnotic_presence',
+  'bladesong',
+  'song_of_defense',
+  'song_of_victory',
+  'instinctive_charm',
+  'alter_memories',
+  'harvest_undead',
+  'deaths_master',
+  'deaths_master_flare',
+  'master_transmuter',
+  'splintered_summons',
+  'split_enchantment',
+  'empowered_transmutation',
+  'distant_transposition',
 ])
 
 /** Calc cards (no pool) that get a «use» button in the 2024 panel. */
@@ -844,6 +947,10 @@ export const WIZARD_2024_CARD_BUTTONS: Record<string, string> = {
   expert_divination: 'Вернуть ячейку…',
   sculpt_spells: 'Защитить существ…',
   illusory_reality: 'Сделать реальным…',
+  song_of_defense: 'Песнь защиты…',
+  song_of_victory: 'Атака оружием…',
+  alter_memories: 'Стереть память…',
+  distant_transposition: 'Восстановить перенос…',
 }
 
 export function wizard2024UseFeatureId(featureId: string): boolean {
@@ -1083,6 +1190,239 @@ export function applyWizard2024FeatureUse(input: Wizard2024UseInput): WizardFeat
       return done(
         input,
         `Построение заклинаний: защищены: ${names.length} (лимит ${limit} = 1 + ${slotLevel} круг)${who}. Автоматически успешный спасбросок, 0 урона.`,
+      )
+    }
+    case 'benign_transposition': {
+      const row = poolRow(input, 'benign_transposition')
+      if (!row) return refuse(input, 'Ресурс умения не найден')
+      if (row.used >= row.max) {
+        return refuse(input, 'Нет использований. Долгий отдых или ячейка 3+ (Дальний перенос)')
+      }
+      const mode = (input.mode ?? 'self').trim()
+      const message =
+        mode === 'swap'
+          ? 'Безопасный перенос (бонусное): обмен местами с согласным существом Среднего или меньше в пределах дистанции. Выбери цель на столе.'
+          : 'Безопасный перенос (бонусное): телепорт в видимое незанятое пространство в пределах дистанции.'
+      return done(input, message, {
+        resources: patchRow(input.resources, row.id, (item) => ({
+          ...item,
+          used: item.used + 1,
+          activeLabel: mode === 'swap' ? 'Перенос: обмен' : 'Перенос: себя',
+        })),
+      })
+    }
+    case 'distant_transposition': {
+      if (slotLevel < 3) return refuse(input, 'Нужна ячейка 3 круга или выше')
+      if (slotRemaining2024(input.slots, slotLevel) <= 0) {
+        return refuse(input, `Нет свободной ячейки ${slotLevel} круга`)
+      }
+      const row = poolRow(input, 'benign_transposition')
+      if (!row) return refuse(input, 'Ресурс Безопасного переноса не найден')
+      if (row.used <= 0) return refuse(input, 'Перенос и так полный')
+      return done(
+        input,
+        `Дальний перенос: одно использование Безопасного переноса восстановлено (ячейка ${slotLevel}, действий не требуется). Дистанция переноса 60 фт.`,
+        {
+          resources: patchRow(input.resources, row.id, (item) => ({
+            ...item,
+            used: Math.max(0, item.used - 1),
+          })),
+          spendSlotLevel: slotLevel,
+        },
+      )
+    }
+    case 'hypnotic_presence': {
+      const row = poolRow(input, 'hypnotic_presence')
+      if (!row) return refuse(input, 'Ресурс умения не найден')
+      if (row.used >= row.max) return refuse(input, 'Нет использований до долгого отдыха')
+      return done(
+        input,
+        'Гипнотизирующее присутствие (действие «Магия»): одно видимое существо в 10 фт. — спас Мудрости против Сл заклинаний, иначе Очарованный и Недееспособный, скорость 0 (1 мин. или пока не отойдёт / не получит урон / не перестанет слышать и видеть вас).',
+        {
+          resources: patchRow(input.resources, row.id, (item) => ({
+            ...item,
+            used: item.used + 1,
+          })),
+        },
+      )
+    }
+    case 'bladesong': {
+      const row = poolRow(input, 'bladesong')
+      if (!row) return refuse(input, 'Ресурс умения не найден')
+      if (row.activeLabel) {
+        return done(input, 'Песнь клинка окончена.', {
+          resources: patchRow(input.resources, row.id, (item) => ({
+            ...item,
+            activeLabel: undefined,
+          })),
+        })
+      }
+      if (row.used >= row.max) {
+        return refuse(input, 'Нет использований. Долгий отдых или Магическое восстановление (+1)')
+      }
+      return done(
+        input,
+        'Песнь клинка (бонусное, без доспеха и щита): 1 мин. — +Инт к КЗ (мин. +1), скорость +10, Преимущество на Акробатику, Инт для атаки/урона оружием, +Инт к спас концентрации.',
+        {
+          resources: patchRow(input.resources, row.id, (item) => ({
+            ...item,
+            used: item.used + 1,
+            activeLabel: 'Песнь клинка',
+          })),
+          activeLabels: ['Песнь клинка'],
+        },
+      )
+    }
+    case 'song_of_defense': {
+      const song = poolRow(input, 'bladesong')
+      if (!song?.activeLabel) return refuse(input, 'Нужна активная Песнь клинка')
+      if (slotLevel < 1) return refuse(input, 'Выбери ячейку')
+      if (slotRemaining2024(input.slots, slotLevel) <= 0) {
+        return refuse(input, `Нет свободной ячейки ${slotLevel} круга`)
+      }
+      const reduce = slotLevel * 5
+      return done(
+        input,
+        `Песнь защиты (реакция): урон уменьшен на ${reduce} (ячейка ${slotLevel} × 5).`,
+        { spendSlotLevel: slotLevel },
+      )
+    }
+    case 'song_of_victory':
+      return done(
+        input,
+        'Песнь победы (бонусное): после заклинания со временем «действие» — одна атака оружием.',
+      )
+    case 'instinctive_charm': {
+      const row = poolRow(input, 'instinctive_charm')
+      if (!row) return refuse(input, 'Ресурс умения не найден')
+      if (row.used >= row.max) {
+        return refuse(input, 'Использовано. Верни заклинанием очарования ячейкой или после долгого отдыха')
+      }
+      return done(
+        input,
+        'Инстинктивное очарование (реакция): атакующий в 30 фт. — спас Мудрости; при провале атака промахивается и может быть перенацелена на другое существо в пределах дистанции атаки (цель выбираете вы).',
+        {
+          resources: patchRow(input.resources, row.id, (item) => ({
+            ...item,
+            used: item.used + 1,
+          })),
+        },
+      )
+    }
+    case 'alter_memories':
+      return done(
+        input,
+        'Изменённые воспоминания (действие «Магия»): цель очарования — спас Интеллекта; при провале теряет воспоминания о последних 1+Инт часах (мин. 1), не больше длительности заклинания. Нарративная отметка.',
+      )
+    case 'harvest_undead':
+      return done(
+        input,
+        'Жатва немёртвых (реакция): после того как стали Окровавленным (не до 0 хитов) — опустите хиты одной видимой подконтрольной нежити до 0 и восстановите хиты, равные уровню волшебника.',
+      )
+    case 'deaths_master':
+    case 'deaths_master_flare': {
+      const row = poolRow(input, 'deaths_master_flare')
+      if (!row) return refuse(input, 'Ресурс умения не найден')
+      if (row.used >= row.max) return refuse(input, 'Разгорание нежизни уже использовано до долгого отдыха')
+      return done(
+        input,
+        'Разгорание нежизни (бонусное): любая ваша нежить в 60 фт. получает временные хиты = уровень волшебника.',
+        {
+          resources: patchRow(input.resources, row.id, (item) => ({
+            ...item,
+            used: item.used + 1,
+          })),
+        },
+      )
+    }
+    case 'splintered_summons': {
+      const row = poolRow(input, 'splintered_summons')
+      if (!row) return refuse(input, 'Ресурс умения не найден')
+      if (input.mode === 'recover') {
+        if (row.used <= 0) return refuse(input, 'Умение и так доступно')
+        if (slotLevel < 5) return refuse(input, 'Нужна ячейка 5 круга или выше')
+        if (slotRemaining2024(input.slots, slotLevel) <= 0) {
+          return refuse(input, `Нет свободной ячейки ${slotLevel} круга`)
+        }
+        return done(
+          input,
+          `Разделённый вызов восстановлен (ячейка ${slotLevel}, действий не требуется).`,
+          {
+            resources: patchRow(input.resources, row.id, (item) => ({ ...item, used: 0 })),
+            spendSlotLevel: slotLevel,
+          },
+        )
+      }
+      if (row.used >= row.max) {
+        return refuse(input, 'Использовано. Верни ячейкой 5+ или после долгого отдыха')
+      }
+      return done(
+        input,
+        'Разделённый вызов: призыв духа школой вызова — два существа вместо одного, хиты каждого вдвое.',
+        {
+          resources: patchRow(input.resources, row.id, (item) => ({
+            ...item,
+            used: item.used + 1,
+          })),
+        },
+      )
+    }
+    case 'split_enchantment': {
+      const row = poolRow(input, 'split_enchantment')
+      if (!row) return refuse(input, 'Ресурс умения не найден')
+      if (row.used >= row.max) return refuse(input, 'Нет использований до долгого отдыха')
+      return done(
+        input,
+        'Разделённое очарование: фактический уровень заклинания очарования повышен на 1 (для доп. целей).',
+        {
+          resources: patchRow(input.resources, row.id, (item) => ({
+            ...item,
+            used: item.used + 1,
+          })),
+        },
+      )
+    }
+    case 'empowered_transmutation': {
+      const row = poolRow(input, 'empowered_transmutation')
+      if (!row) return refuse(input, 'Ресурс умения не найден')
+      if (row.used >= row.max) return refuse(input, 'Нет использований до долгого отдыха')
+      return done(
+        input,
+        'Усиленное преобразование: фактический уровень заклинания преобразования без атаки/спаса повышен на 1.',
+        {
+          resources: patchRow(input.resources, row.id, (item) => ({
+            ...item,
+            used: item.used + 1,
+          })),
+        },
+      )
+    }
+    case 'master_transmuter': {
+      const row = poolRow(input, 'master_transmuter')
+      if (!row) return refuse(input, 'Ресурс умения не найден')
+      if (row.used >= row.max && input.mode !== 'keep_stone') {
+        return refuse(input, 'Камень уже поглощён — создайте новый после долгого отдыха')
+      }
+      const effect = (input.mode ?? 'panacea').trim()
+      const keep = effect === 'keep_stone' || slotLevel >= 7
+      const labels: Record<string, string> = {
+        major: 'Высшее преобразование',
+        panacea: 'Панацея',
+        restore_life: 'Восстановление жизни («Возвращение к жизни» — slug уточнить у Игоря)',
+        restore_youth: 'Восстановление юности',
+      }
+      const label = labels[effect] ?? 'эффект камня'
+      return done(
+        input,
+        `Мастер преобразования (действие «Магия»): ${label}.${keep ? ' Камень сохранён (ячейка 7+).' : ' Камень рассыпался в пыль.'}`,
+        {
+          resources: patchRow(input.resources, row.id, (item) => ({
+            ...item,
+            used: keep ? item.used : item.max,
+            activeLabel: keep ? item.activeLabel : undefined,
+          })),
+          ...(keep && slotLevel >= 7 ? { spendSlotLevel: slotLevel } : {}),
+        },
       )
     }
     default:
