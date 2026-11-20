@@ -1,0 +1,5 @@
+593794cbc8945111beb093cf3ee71614  before-create-2014-race-marker-390.png
+2e0d4386c9401ce27072c4e11156dcc6  before-create-2014-paladin-class-390.png
+09b80c0735ff6cd57e0ae4039c1c6193  before-sheet-2014-paladin-header-390.png
+1481d7ab677dd4cb7658cfdddadfb254  before-sheet-2014-paladin-abilities-390.png
+d35ad009df5795f8e10404537234267c  before-sheet-2014-paladin-features-390.png

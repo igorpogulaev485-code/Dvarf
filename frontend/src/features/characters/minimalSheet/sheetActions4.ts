@@ -2058,8 +2058,9 @@ export function installSheetActions4(model: SheetModel) {
 
   model.isLayOnHandsResource = function isLayOnHandsResource(row: { id: string; name: string }): boolean {
     return (
-      /:lay_on_hands:/.test(row.id) ||
+      /:lay_on_hands(_hp)?:/.test(row.id) ||
       /возложение рук/i.test(row.name) ||
+      /наложение рук/i.test(row.name) ||
       /lay on hands/i.test(row.name)
     )
   }

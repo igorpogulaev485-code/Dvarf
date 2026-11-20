@@ -121,7 +121,13 @@ export function Create2024SheetPreview({ model }: Create2024SheetPreviewProps) {
         ) : null}
 
         {model.weaponMastery.length ? (
-          <Section title="Мастерство оружия">
+          <Section
+            title={
+              /паладин|paladin/i.test(model.className)
+                ? 'Оружейное мастерство'
+                : 'Мастерство оружия'
+            }
+          >
             <ul className="create-2024__list">
               {model.weaponMastery.map((row) => (
                 <li key={row.name}>

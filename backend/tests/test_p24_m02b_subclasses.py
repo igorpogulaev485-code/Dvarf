@@ -303,8 +303,9 @@ def test_paladin_devotion_channel_and_aura():
     )
     channel = next(r for r in snap.resources if r.pool_id == "channel_divinity")
     opts = channel.meta.get("channel_options") or []
-    assert "divine_sense" in opts
-    assert "sacred_weapon" in opts
+    # Divine Sense is a Channel Divinity option (dash or legacy underscore).
+    assert "divine-sense" in opts or "divine_sense" in opts
+    assert "sacred-weapon" in opts or "sacred_weapon" in opts
     assert snap.scales["paladin:aura_radius_ft"] == 10
 
     snap18 = e24.compute_progression(

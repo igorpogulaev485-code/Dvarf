@@ -282,17 +282,18 @@ SHARED_OPTIONS: dict[str, list[SharedPoolOption]] = {
     ],
     # Paladin oaths — Channel Divinity (+ class divine_sense already on pool)
     "paladin__oath-of-devotion": [
-        SharedPoolOption("sacred-weapon", "Священное оружие", "channel_divinity", kind="bonus"),
+        SharedPoolOption("sacred-weapon", "Священное оружие", "channel_divinity", kind="attack"),
     ],
     "paladin__oath-of-the-ancients": [
         SharedPoolOption("natures-wrath", "Гнев природы", "channel_divinity", kind="action"),
     ],
     "paladin__oath-of-vengeance": [
-        SharedPoolOption("vow-of-enmity", "Обет вражды", "channel_divinity", kind="bonus"),
+        # PHB 2024: when you take the Attack action (not a bonus action).
+        SharedPoolOption("vow-of-enmity", "Обет вражды", "channel_divinity", kind="attack"),
     ],
     "paladin__oath-of-glory": [
-        SharedPoolOption("inspiring-smite", "Вдохновляющая кара", "channel_divinity", kind="bonus"),
-        SharedPoolOption("peerless-athlete", "Несравненный атлет", "channel_divinity", kind="bonus"),
+        SharedPoolOption("inspiring-smite", "Воодушевляющая кара", "channel_divinity", kind="bonus"),
+        SharedPoolOption("peerless-athlete", "Непревзойдённый атлет", "channel_divinity", kind="bonus"),
     ],
     "paladin__oath-of-the-noble-genies": [
         SharedPoolOption("elemental-smite", "Стихийная кара", "channel_divinity", kind="bonus"),
@@ -859,7 +860,7 @@ def build_permanent_bonuses(
                 min_level=7,
             )
 
-    # Paladin aura radius expansion is a class feature at 18 — surface for oath auras
+    # Paladin Aura of Protection (class L6) — oath auras share this radius; L18 expands to 30 ft.
     if subclass_slug.startswith("paladin__") and class_level >= 18:
         add(
             "aura-expansion",
@@ -867,15 +868,15 @@ def build_permanent_bonuses(
             "aura_radius",
             {"ft": 30},
             min_level=18,
-            note_ru="Ауры клятвы: 10 → 30 фт",
+            note_ru="Аура защиты и ауры клятвы: 30 фт",
         )
-    elif subclass_slug.startswith("paladin__") and class_level >= 7:
+    elif subclass_slug.startswith("paladin__") and class_level >= 6:
         add(
-            "aura",
-            "Аура клятвы",
+            "aura-of-protection",
+            "Аура защиты",
             "aura_radius",
             {"ft": 10},
-            min_level=7,
+            min_level=6,
             note_ru="Радиус ауры 10 фт (30 с 18 ур.)",
         )
 
@@ -1576,9 +1577,31 @@ def build_subclass_resources(
             min_level=14,
         )
 
-    # --- Paladin L20 capstones often 1/long ---
+    # --- Paladin oath spend pools ---
+    if subclass_slug == "paladin__oath-of-glory" and class_level >= 15:
+        cha_m = ability_mod(int(abilities.get("cha") or 10))
+        add(
+            "glorious_defense",
+            name_ru="Славная оборона",
+            max_uses=max(1, cha_m),
+            reset="long",
+            feature_id="glorious-defense",
+            min_level=15,
+            on_hot=True,
+        )
+    if subclass_slug == "paladin__oath-of-the-ancients" and class_level >= 15:
+        add(
+            "undying_sentinel",
+            name_ru="Бессмертный страж",
+            max_uses=1,
+            reset="long",
+            feature_id="undying-sentinel",
+            min_level=15,
+            on_hot=False,
+        )
+
+    # --- Paladin L20 capstones often 1/long (regain via 5th-circle slot) ---
     if subclass_slug.startswith("paladin__") and class_level >= 20:
-        # Capstone feature ids vary; add generic 1/long if feature list has L20
         for block in sub["data"].get("features") or []:
             if int(block.get("level") or 0) != 20:
                 continue
@@ -1594,6 +1617,7 @@ def build_subclass_resources(
                     feature_id=fid,
                     min_level=20,
                     on_hot=False,
+                    extra_meta={"regain_by": "slot_5"},
                 )
 
     _ = (str_m, dex_m, con_m, pb)  # available for future PB/ability pools

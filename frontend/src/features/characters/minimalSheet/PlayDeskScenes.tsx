@@ -1651,6 +1651,16 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
         onMonkFeatureUse={(request) => model.setMonkFeatureUse(request)}
         onWarlockFeatureUse={(request) => model.setWarlockFeatureUse(request)}
         onClericFeatureUse={(request) => model.setClericFeatureUse(request)}
+        onPaladinFeatureUse={(request) => {
+          const fid = String(request.featureId || '')
+            .trim()
+            .replace(/_/g, '-')
+          if (fid === 'lay-on-hands' || fid === 'lay_on_hands') {
+            if (request.resourceId) model.setLayOnHandsSpendId(request.resourceId)
+            return
+          }
+          model.setPaladinFeatureUse(request)
+        }}
         onBardFeatureUse={(request) => model.setBardFeatureUse(request)}
         onDruidFeatureUse={(request) => model.setDruidFeatureUse(request)}
         onSorceryPointsSpend={(resourceId) => model.setSorcerySpendId(resourceId)}

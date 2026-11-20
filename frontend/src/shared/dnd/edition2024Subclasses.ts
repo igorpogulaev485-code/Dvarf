@@ -213,17 +213,17 @@ const SHARED_OPTIONS_2024: Record<string, SharedPoolOption2024[]> = {
     { feature_id: 'path-to-the-grave', name_ru: 'Путь в могилу', spend_pool: 'channel_divinity', cost: 1, kind: 'action', min_level: 3 },
   ],
   'paladin__oath-of-devotion': [
-    { feature_id: 'sacred-weapon', name_ru: 'Священное оружие', spend_pool: 'channel_divinity', cost: 1, kind: 'bonus', min_level: 3 },
+    { feature_id: 'sacred-weapon', name_ru: 'Священное оружие', spend_pool: 'channel_divinity', cost: 1, kind: 'attack', min_level: 3 },
   ],
   'paladin__oath-of-the-ancients': [
     { feature_id: 'natures-wrath', name_ru: 'Гнев природы', spend_pool: 'channel_divinity', cost: 1, kind: 'action', min_level: 3 },
   ],
   'paladin__oath-of-vengeance': [
-    { feature_id: 'vow-of-enmity', name_ru: 'Обет вражды', spend_pool: 'channel_divinity', cost: 1, kind: 'bonus', min_level: 3 },
+    { feature_id: 'vow-of-enmity', name_ru: 'Обет вражды', spend_pool: 'channel_divinity', cost: 1, kind: 'attack', min_level: 3 },
   ],
   'paladin__oath-of-glory': [
-    { feature_id: 'inspiring-smite', name_ru: 'Вдохновляющая кара', spend_pool: 'channel_divinity', cost: 1, kind: 'bonus', min_level: 3 },
-    { feature_id: 'peerless-athlete', name_ru: 'Несравненный атлет', spend_pool: 'channel_divinity', cost: 1, kind: 'bonus', min_level: 3 },
+    { feature_id: 'inspiring-smite', name_ru: 'Воодушевляющая кара', spend_pool: 'channel_divinity', cost: 1, kind: 'bonus', min_level: 3 },
+    { feature_id: 'peerless-athlete', name_ru: 'Непревзойдённый атлет', spend_pool: 'channel_divinity', cost: 1, kind: 'bonus', min_level: 3 },
   ],
   'paladin__oath-of-the-noble-genies': [
     { feature_id: 'elemental-smite', name_ru: 'Стихийная кара', spend_pool: 'channel_divinity', cost: 1, kind: 'bonus', min_level: 3 },
@@ -561,7 +561,7 @@ export function buildPermanentBonuses2024(input: {
   }
   if (subclassSlug.startsWith('paladin__')) {
     if (classLevel >= 18) add('aura-expansion', 'Расширение ауры', 'aura_radius', { ft: 30 }, 18)
-    else if (classLevel >= 7) add('aura', 'Аура клятвы', 'aura_radius', { ft: 10 }, 7)
+    else if (classLevel >= 6) add('aura-of-protection', 'Аура защиты', 'aura_radius', { ft: 10 }, 6)
   }
   if (subclassSlug === 'warlock__fiend-patron') {
     const chaM = abilityMod(ab.cha ?? 10)

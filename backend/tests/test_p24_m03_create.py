@@ -320,7 +320,9 @@ def build_valid_payload(class_slug: str, **overrides) -> dict:
         "language_ids": ["elvish", "dwarvish"],
         "class_skill_ids": skills,
         "weapon_mastery_ids": mastery,
-        "fighting_style_slug": "defense" if class_slug == "fighter" else None,
+        "fighting_style_slug": (
+            "defense" if class_slug in {"fighter", "paladin", "ranger"} else None
+        ),
         "background_tool_id": _background_tool(bg_slug),
         "background_equipment": "pack",
         "class_equipment": pack_id,

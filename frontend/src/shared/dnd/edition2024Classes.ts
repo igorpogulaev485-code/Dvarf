@@ -22,6 +22,7 @@ import {
   DIVINE_SPARK_FEATURE_ID,
   divineSparkFormulaRu2024,
 } from './cleric2024Features'
+import { paladinBaseChannelOptionsAtLevel2024 } from './paladin2024Features'
 import {
   elementalFuryChoice2024,
   landTerrainChoice2024,
@@ -150,8 +151,9 @@ const CASTER_PROGRESSION: Record<string, string> = {
   druid: 'full',
   sorcerer: 'full',
   wizard: 'full',
-  paladin: 'half',
-  ranger: 'half',
+  // SRD 5.2.1 multiclass: half levels, round up (Paladin / Ranger).
+  paladin: 'half_up',
+  ranger: 'half_up',
   artificer: 'half_up',
   warlock: 'pact',
   barbarian: 'none',
@@ -276,10 +278,28 @@ const RESOURCE_META: Record<string, ResourceMeta> = {
     kind: 'resource',
   },
   lay_on_hands_hp: {
-    name_ru: 'Наложение рук',
+    name_ru: 'Возложение рук',
     reset: 'long',
     feature_id: 'lay-on-hands',
-    kind: 'action',
+    kind: 'bonus',
+  },
+  paladin_free_smite: {
+    name_ru: 'Бесплатная Божественная кара',
+    reset: 'long',
+    feature_id: 'paladins-smite',
+    fixed_uses: 1,
+    kind: 'resource',
+    on_hot: false,
+    unlock_level: 2,
+  },
+  paladin_free_steed: {
+    name_ru: 'Бесплатный Верный скакун',
+    reset: 'long',
+    feature_id: 'faithful-steed',
+    fixed_uses: 1,
+    kind: 'resource',
+    on_hot: false,
+    unlock_level: 5,
   },
   sorcery_points: {
     name_ru: 'Очки чародейства',
@@ -773,6 +793,8 @@ export function computeProgression2024(input: {
         const fid = fidRaw.replace(/-/g, '_')
         // Cleric Divine Spark / Turn Undead are materialised as channel_divinity options below.
         if (cls.slug === 'cleric' && (fid === 'divine_spark' || fid === 'turn_undead')) continue
+        // Paladin Abjure Foes is a channel_divinity option (not a separate spend card).
+        if (cls.slug === 'paladin' && (fid === 'abjure_foes' || fid === 'divine_sense')) continue
         // Generic class row `mystic-arcanum` at 11/13/15/17 → one resource card per circle.
         if (fidRaw === 'mystic-arcanum' || fid === 'mystic_arcanum') {
           const circle =
@@ -983,6 +1005,20 @@ export function computeProgression2024(input: {
       if (cls.level >= 15) rawRes.mystic_arcanum_8 = 1
       if (cls.level >= 17) rawRes.mystic_arcanum_9 = 1
     }
+    // Paladin free Divine Smite (L2+) / Find Steed (L5+) — 1/long, not in resources table.
+    if (cls.slug === 'paladin') {
+      let hasPaladinsSmite = false
+      let hasFaithfulSteed = false
+      for (const lr of levels) {
+        if (Number(lr.level || 0) > cls.level) continue
+        for (const f of (lr.features as Array<Record<string, unknown>>) || []) {
+          if (f.id === 'paladins-smite') hasPaladinsSmite = true
+          if (f.id === 'faithful-steed') hasFaithfulSteed = true
+        }
+      }
+      if (hasPaladinsSmite) rawRes.paladin_free_smite = 1
+      if (hasFaithfulSteed) rawRes.paladin_free_steed = 1
+    }
 
     for (const [key, value] of Object.entries(rawRes)) {
       if (SCALE_KEYS.has(key) || key === 'bardic_inspiration_die') {
@@ -1106,6 +1142,37 @@ export function computeProgression2024(input: {
           })
         }
       }
+
+      // Paladin Channel Divinity base options — Divine Sense / Abjure Foes (no separate L1 Sense card).
+      if (key === 'channel_divinity' && cls.slug === 'paladin') {
+        const channelResource: FeatureResource = {
+          uses: max,
+          recharge: 'long_rest',
+          pool_id: 'channel_divinity',
+          pool_name_ru: RESOURCE_META.channel_divinity!.name_ru,
+          track: 'spend',
+          spend_cost: 1,
+        }
+        for (const option of paladinBaseChannelOptionsAtLevel2024(cls.level)) {
+          features.push({
+            id: option.feature_id.replace(/-/g, '_'),
+            level: option.min_level,
+            name_ru: option.name_ru,
+            name_en: option.feature_id,
+            summary_ru: catalogSummaryFor(levels, option.feature_id) || option.name_ru,
+            kind: option.kind === 'bonus' ? 'bonus' : 'action',
+            resource: channelResource,
+            classEntryId: cls.entryId,
+            className: cls.name,
+            classLevel: cls.level,
+            source: 'class',
+            subclassSlug: null,
+            subclassName: null,
+            scaleValue: null,
+            resourceUses: null,
+          })
+        }
+      }
     }
 
     // Patch Martial Arts die / Unarmored Movement scale labels from resources table.
@@ -1158,6 +1225,7 @@ export function computeProgression2024(input: {
       }
       if (unlockedIds.has('favored-enemy') && !free.includes('hunters-mark')) free.push('hunters-mark')
       if (unlockedIds.has('paladins-smite') && !free.includes('divine-smite')) free.push('divine-smite')
+      if (unlockedIds.has('faithful-steed') && !free.includes('find-steed')) free.push('find-steed')
       if (unlockedIds.has('magic-of-making') && !free.includes('mending')) free.push('mending')
       if (unlockedIds.has('druidic') && !free.includes('speak-with-animals')) {
         free.push('speak-with-animals')

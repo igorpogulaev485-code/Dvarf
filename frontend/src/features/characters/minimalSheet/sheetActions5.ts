@@ -5,6 +5,7 @@ import { sorcerer2024UseFeatureId } from '../../../shared/dnd/sorcerer2024Featur
 import { monk2024UseFeatureId } from '../../../shared/dnd/monk2024Features'
 import { warlock2024UseFeatureId } from '../../../shared/dnd/warlock2024Features'
 import { cleric2024UseFeatureId } from '../../../shared/dnd/cleric2024Features'
+import { paladin2024UseFeatureId } from '../../../shared/dnd/paladin2024Features'
 import {
   applySuperiorInspirationOnInitiative2024,
   bard2024UseFeatureId,
@@ -241,6 +242,20 @@ export function installSheetActions5(model: SheetModel) {
       cleric2024UseFeatureId(parsed.poolId)
     ) {
       model.setClericFeatureUse({
+        featureId: parsed.poolId,
+        resourceId: row.id,
+        classSlug: parsed.classSlug,
+        classEntryId: parsed.classEntryId,
+        name: row.name,
+      })
+      return true
+    }
+    if (
+      model.rulesEdition === '2024' &&
+      parsed &&
+      paladin2024UseFeatureId(parsed.poolId)
+    ) {
+      model.setPaladinFeatureUse({
         featureId: parsed.poolId,
         resourceId: row.id,
         classSlug: parsed.classSlug,

@@ -426,10 +426,24 @@ function classIssues(state: Create2024State, ctx: StepIssueCtx): string[] {
   }
   const wm = weaponMasteryLimit(state.classSlug)
   if (wm > 0 && !uniqueCount(state.weaponMasteryIds, wm)) {
-    issues.push(`Мастерство оружия: выбрано ${state.weaponMasteryIds.length} из ${wm}`)
+    const masteryLabel =
+      state.classSlug === 'paladin' ? 'Оружейное мастерство' : 'Мастерство оружия'
+    issues.push(`${masteryLabel}: выбрано ${state.weaponMasteryIds.length} из ${wm}`)
   }
   if (state.classSlug === 'fighter' && !state.fightingStyleSlug) {
     issues.push('Выберите боевой стиль')
+  }
+  if (state.classSlug === 'paladin') {
+    const paladinLevel = Math.max(
+      state.characterLevel || 1,
+      ...state.classes
+        .filter((row) => /paladin|паладин/i.test(row.catalog_id || row.name || ''))
+        .map((row) => row.level || 0),
+      0,
+    )
+    if (paladinLevel >= 2 && !state.fightingStyleSlug) {
+      issues.push('Выберите боевой стиль')
+    }
   }
   if (state.classSlug === 'cleric') {
     const order = String(state.classOptionPicks.divine_order || '')
