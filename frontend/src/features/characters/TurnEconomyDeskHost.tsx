@@ -44,7 +44,7 @@ import {
 import { InitiativeRollDialog } from '../lobby/InitiativeRollDialog'
 import { EnterOwnNumberDialog } from './EnterOwnNumberDialog'
 import { SKILL_DEFS } from './sheetTypes'
-import { rollBonusDiceParts, type BonusDiePart } from './deskRolls'
+import type { BonusDiePart, DeskRollMode } from './deskRolls'
 import { Button, Dialog, Stack, Text } from '../../ui'
 type Props = {
   model: SheetModel
@@ -63,8 +63,10 @@ export function TurnEconomyDeskHost({ model, children }: Props) {
   const [enterOpen, setEnterOpen] = useState(false)
   const [enterCtx, setEnterCtx] = useState<{
     title: string
-    mode: 'total' | 'd20'
+    mode: 'total' | 'd20' | 'formula'
     modifier: number
+    advantageMode: DeskRollMode
+    formula?: string | null
     bonusDice?: BonusDiePart[] | null
     onDone?: (total: number) => void
   } | null>(null)
@@ -323,6 +325,8 @@ export function TurnEconomyDeskHost({ model, children }: Props) {
           title: opts.title,
           mode: opts.mode ?? 'total',
           modifier: opts.modifier ?? 0,
+          advantageMode: opts.advantageMode ?? 'normal',
+          formula: opts.formula ?? null,
           bonusDice: opts.bonusDice ?? null,
           onDone: opts.onDone,
         })
@@ -430,37 +434,39 @@ export function TurnEconomyDeskHost({ model, children }: Props) {
         title={enterCtx?.title ?? 'Ввести своё число'}
         mode={enterCtx?.mode ?? 'total'}
         modifier={enterCtx?.modifier ?? 0}
+        advantageMode={enterCtx?.advantageMode ?? 'normal'}
+        formula={enterCtx?.formula ?? null}
         bonusDice={enterCtx?.bonusDice ?? null}
         onClose={() => setEnterOpen(false)}
-        onConfirm={({ total }) => {
-          const bonus = rollBonusDiceParts(enterCtx?.bonusDice)
-          const finalTotal = total + bonus.total
-          enterCtx?.onDone?.(finalTotal)
-          const bonusNote = bonus.text
+        onConfirm={({ total, breakdown }) => {
+          // Доп. кости уже входят в total (ввод лицом в диалоге) — без цифрового RNG.
+          const ctx = enterCtx
+          const done = ctx?.onDone
+          setEnterOpen(false)
+          setEnterCtx(null)
           if (characterId) {
             void postSheetRollToSession({
               openSessionId,
               characterId,
-              title: enterCtx?.title ?? 'Бросок',
-              total: finalTotal,
-              formula: bonus.rolls.length
-                ? bonus.rolls
-                    .map((row) => {
-                      const m = String(row.dice).trim().match(/^(\d*)[dк](\d+)$/i)
-                      if (!m) return null
-                      return `+${m[1] || 1}к${m[2]} (${row.label})`
-                    })
-                    .filter(Boolean)
-                    .join(' ')
-                : null,
-              breakdown: bonusNote || null,
+              title: ctx?.title ?? 'Бросок',
+              total,
+              formula:
+                ctx?.mode === 'formula'
+                  ? ctx.formula ?? null
+                  : ctx?.mode === 'd20'
+                    ? `1d20${(ctx.modifier ?? 0) >= 0 ? '+' : ''}${ctx.modifier ?? 0}`
+                    : null,
+              breakdown: breakdown || null,
               physicalDice: true,
             })
           }
           model.onToast?.(
-            `${enterCtx?.title ?? 'Бросок'}: ${finalTotal}${bonusNote} 🎲 (кубик на столе)`,
+            `${ctx?.title ?? 'Бросок'}: ${total}${
+              breakdown ? ` (${breakdown})` : ''
+            } 🎲 (кубик на столе)`,
           )
-          setEnterOpen(false)
+          // После закрытия — чтобы цепочка (атака заклинанием → урон) могла открыть следующее окно.
+          if (done) queueMicrotask(() => done(total))
         }}
       />
       <Dialog
@@ -553,6 +559,7 @@ export function TurnEconomyDeskHost({ model, children }: Props) {
                   title: tableSaveTitle,
                   mode: 'd20',
                   modifier: 0,
+                  advantageMode: 'normal',
                 })
                 setEnterOpen(true)
               }}

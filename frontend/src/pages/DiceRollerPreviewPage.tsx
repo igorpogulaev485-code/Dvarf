@@ -1,6 +1,6 @@
 /**
  * DEV harness for DICE-01 — real Play Desk fixture + dice FAB.
- * ?edition=2014|2024 · ?open=1 · ?clean=1
+ * ?edition=2014|2024 · ?open=1 · ?clean=1 · ?heal=1 · ?bless=1
  */
 import { useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
@@ -9,11 +9,58 @@ import { DiceRollerHost } from '../features/diceRoller'
 import { sampleClassic2014Character } from '../features/classicSheet/sampleClassicCharacter'
 import type { CharacterDetail } from '../shared/api/characters'
 import type { DiceLogEntry } from '../features/diceRoller/types'
+import { buildBuffEffect } from '../shared/dnd/activeEffects'
 import { Text } from '../ui'
+
+const CURE_WOUNDS_PREVIEW = {
+  id: 'preview-cure-wounds',
+  name: 'Лечение ран',
+  level: 1,
+  prepared: true,
+  school: 'evocation',
+  casting_time: '1 действие',
+  range: 'Касание',
+  duration: 'Мгновенная',
+  attack_or_save: '',
+  damage: '1к8+3',
+  concentration: false,
+  components: { v: true, s: true },
+  description:
+    'Существо, которого вы касаетесь, восстанавливает количество хитов, равное 1к8 + ваш модификатор заклинательной характеристики.',
+}
+
+function withHealAndBless(
+  character: CharacterDetail,
+  opts?: { heal?: boolean; bless?: boolean },
+): CharacterDetail {
+  if (!opts?.heal && !opts?.bless) return character
+  const sheet = { ...(character.sheet ?? {}) } as Record<string, unknown>
+  if (opts?.heal) {
+    const spells = { ...((sheet.spells as Record<string, unknown> | undefined) ?? {}) }
+    const known = Array.isArray(spells.known) ? [...spells.known] : []
+    if (!known.some((row) => (row as { id?: string })?.id === CURE_WOUNDS_PREVIEW.id)) {
+      known.push(CURE_WOUNDS_PREVIEW)
+    }
+    spells.known = known
+    sheet.spells = spells
+  }
+  if (opts?.bless) {
+    const combat = { ...((sheet.combat as Record<string, unknown> | undefined) ?? {}) }
+    const bless = buildBuffEffect({
+      name: 'Благословение',
+      slug: 'bless',
+      sourceCharacterId: character.id,
+      sourceName: 'Превью',
+    })
+    combat.effects = bless ? [bless] : []
+    sheet.combat = combat
+  }
+  return { ...character, sheet }
+}
 
 function editionCharacter(
   edition: '2014' | '2024',
-  opts?: { rogue20?: boolean },
+  opts?: { rogue20?: boolean; heal?: boolean; bless?: boolean },
 ): CharacterDetail {
   const base = sampleClassic2014Character
   if (opts?.rogue20) {
@@ -28,38 +75,47 @@ function editionCharacter(
       ui.classic_sheet_layout = '2024'
       sheet.ui = ui
     }
-    return {
-      ...base,
-      id: edition === '2024' ? 'preview-dice-rogue20-2024' : 'preview-dice-rogue20-2014',
-      rules_edition: edition,
-      name: 'Тень Удачливая',
-      class_name: 'Плут',
-      level: 20,
-      race_name: 'Халифлинг (легконогий)',
-      sheet,
-    } as CharacterDetail
+    return withHealAndBless(
+      {
+        ...base,
+        id: edition === '2024' ? 'preview-dice-rogue20-2024' : 'preview-dice-rogue20-2014',
+        rules_edition: edition,
+        name: 'Тень Удачливая',
+        class_name: 'Плут',
+        level: 20,
+        race_name: 'Халифлинг (легконогий)',
+        sheet,
+      } as CharacterDetail,
+      opts,
+    )
   }
   if (edition === '2014') {
-    return {
-      ...base,
-      id: 'preview-dice-2014',
-      rules_edition: '2014',
-      name: 'Торин Камнебород',
-    }
+    return withHealAndBless(
+      {
+        ...base,
+        id: 'preview-dice-2014',
+        rules_edition: '2014',
+        name: 'Торин Камнебород',
+      },
+      opts,
+    )
   }
   const sheet = { ...(base.sheet ?? {}) } as Record<string, unknown>
   const ui = { ...((sheet.ui as Record<string, unknown> | undefined) ?? {}) }
   ui.classic_sheet_layout = '2024'
   sheet.ui = ui
-  return {
-    ...base,
-    id: 'preview-dice-2024',
-    rules_edition: '2024',
-    name: 'Элара Ветрокрылая',
-    class_name: 'Плут',
-    race_name: 'Эльф (высший)',
-    sheet,
-  } as CharacterDetail
+  return withHealAndBless(
+    {
+      ...base,
+      id: 'preview-dice-2024',
+      rules_edition: '2024',
+      name: 'Элара Ветрокрылая',
+      class_name: 'Плут',
+      race_name: 'Эльф (высший)',
+      sheet,
+    } as CharacterDetail,
+    opts,
+  )
 }
 
 const DEMO_LOG: DiceLogEntry[] = [
@@ -114,9 +170,11 @@ export function DiceRollerPreviewPage() {
   const clean = params.get('clean') === '1'
   const withLog = params.get('log') === '1'
   const rogue20 = params.get('rogue20') === '1'
+  const heal = params.get('heal') === '1'
+  const bless = params.get('bless') === '1'
   const withMiss = params.get('miss') === '1' || rogue20
   const [character, setCharacter] = useState(() =>
-    editionCharacter(edition, { rogue20 }),
+    editionCharacter(edition, { rogue20, heal, bless }),
   )
 
   const missSeed: DiceLogEntry[] = useMemo(

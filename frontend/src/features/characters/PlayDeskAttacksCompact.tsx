@@ -906,6 +906,8 @@ export function PlayDeskAttacksCompact({
     title: string
     attackBonus: number
     attackName: string
+    advantageMode?: DeskRollMode
+    bonusDice?: BonusDiePart[] | null
   } | null>(null)
   const isMobile =
     typeof window !== 'undefined' && window.matchMedia('(max-width: 959px)').matches
@@ -3789,6 +3791,8 @@ export function PlayDeskAttacksCompact({
                         title: `Атака: ${attack.name}`,
                         attackBonus: effectiveAttackBonus,
                         attackName: attack.name,
+                        advantageMode: attackMode,
+                        bonusDice,
                       })
                       setEnterNumberOpen(true)
                       return
@@ -4083,6 +4087,15 @@ export function PlayDeskAttacksCompact({
                         Boolean(characterId) &&
                         shouldPostRollToSession(characterId) &&
                         Boolean(sessionId?.trim())
+                      // Physical: ввод граней формулы — без цифрового rollDamage.
+                      if (physical && turnEco?.openEnterOwnNumber && expr) {
+                        turnEco.openEnterOwnNumber({
+                          title: `Урон: ${attack.name}${typeBit}`,
+                          mode: 'formula',
+                          formula: expr,
+                        })
+                        return
+                      }
                       if (characterId && post && !physical && expr) {
                         onToast?.('Бросаем…')
                         void postSheetRollToSession({
@@ -4159,18 +4172,6 @@ export function PlayDeskAttacksCompact({
                           skipSession: true,
                           source: 'sheet',
                         })
-                        if (post && physical) {
-                          void postSheetRollToSession({
-                            openSessionId: sessionId,
-                            characterId,
-                            title: `Урон: ${attack.name}`,
-                            total: rolled.total,
-                            formula: expr || null,
-                            breakdown: rolled.detail,
-                            physicalDice: true,
-                            targetName: null,
-                          })
-                        }
                       }
                     })}
                   >
@@ -4437,6 +4438,7 @@ export function PlayDeskAttacksCompact({
                     title: `${atk.companionName}: ${atk.name}`,
                     attackBonus: atk.attackBonus,
                     attackName: atk.name,
+                    advantageMode: rollMode,
                   })
                   setEnterNumberOpen(true)
                   return
@@ -4996,21 +4998,32 @@ export function PlayDeskAttacksCompact({
     <EnterOwnNumberDialog
       open={enterNumberOpen}
       title={enterNumberCtx?.title ?? 'Ввести своё число'}
-      mode="total"
+      mode="d20"
+      modifier={enterNumberCtx?.attackBonus ?? 0}
+      advantageMode={enterNumberCtx?.advantageMode ?? 'normal'}
+      bonusDice={enterNumberCtx?.bonusDice ?? null}
       modifiersSlot={enterNumberCtx ? targetModifiersSlot : undefined}
       onClose={() => setEnterNumberOpen(false)}
-      onConfirm={({ total }) => {
+      onConfirm={({ total, breakdown }) => {
         if (characterId && enterNumberCtx) {
           if (shouldPostRollToSession(characterId)) {
             void postSheetRollToSession({
-            openSessionId: openSessionId ?? turnEco?.openSessionId,
-            characterId,
-            title: enterNumberCtx.title,
-            total,
-            physicalDice: true,
-          })
+              openSessionId: openSessionId ?? turnEco?.openSessionId,
+              characterId,
+              title: enterNumberCtx.title,
+              total,
+              formula: `1d20${
+                enterNumberCtx.attackBonus >= 0 ? '+' : ''
+              }${enterNumberCtx.attackBonus}`,
+              breakdown: breakdown || null,
+              physicalDice: true,
+            })
           }
-          onToast?.(`${enterNumberCtx.attackName}: ${total} 🎲 (кубик на столе)`)
+          onToast?.(
+            `${enterNumberCtx.attackName}: ${total}${
+              breakdown ? ` (${breakdown})` : ''
+            } 🎲 (кубик на столе)`,
+          )
           turnEco?.spendAttack()
         }
         setEnterNumberOpen(false)
