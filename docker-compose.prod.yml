@@ -47,8 +47,8 @@ services:
       VK_SERVICE_TOKEN: ${VK_SERVICE_TOKEN:-}
       # ADM-01/06: флаг панели и почта первого полного админа из живого .env на VPS.
       ADMIN_PANEL_ENABLED: ${ADMIN_PANEL_ENABLED:-false}
-      # P24 open: FE tip = true; BE на VPS — строка RULES_EDITION_2024_OPEN=true в .env.
-      RULES_EDITION_2024_OPEN: ${RULES_EDITION_2024_OPEN:-false}
+      # P24 open: 2024 открыт по умолчанию; выключить — RULES_EDITION_2024_OPEN=false в .env.
+      RULES_EDITION_2024_OPEN: ${RULES_EDITION_2024_OPEN:-true}
       ADMIN_BOOTSTRAP_EMAIL: ${ADMIN_BOOTSTRAP_EMAIL:-}
       UPLOADS_DIR: /app/uploads
     volumes:

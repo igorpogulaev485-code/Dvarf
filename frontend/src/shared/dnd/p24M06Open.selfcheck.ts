@@ -37,8 +37,8 @@ assert.match(
 const composeSrc = readFileSync(join(repoRoot, 'docker-compose.prod.yml'), 'utf8')
 assert.match(
   composeSrc,
-  /RULES_EDITION_2024_OPEN:\s*\$\{RULES_EDITION_2024_OPEN:-false\}/,
-  'prod compose passes BE flag (default false)',
+  /RULES_EDITION_2024_OPEN:\s*\$\{RULES_EDITION_2024_OPEN:-true\}/,
+  'prod compose opens BE flag by default (override false via .env)',
 )
 
 const btnSrc = readFileSync(
@@ -111,4 +111,6 @@ assert.match(previewSrc, /p24-m06-flag-on/)
 const appSrc = readFileSync(join(here, '../../App.tsx'), 'utf8')
 assert.match(appSrc, /\/dev\/p24-m06-preview/, 'DEV preview route registered')
 
-console.log('p24M06Open.selfcheck ok — FE flag true; BE default false; CTA+lobby path live')
+console.log(
+  'p24M06Open.selfcheck ok — FE flag true; compose BE default true; config.py False; CTA+lobby path live',
+)

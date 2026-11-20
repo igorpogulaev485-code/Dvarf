@@ -21,8 +21,8 @@ export function P24M06OpenPreviewPage() {
       <Stack gap={20}>
         <h1 className="ui-text">P24-M06 preview · онбординг и путь открытия</h1>
         <Text tone="muted">
-          Флаг RULES_EDITION_2024_OPEN = {String(RULES_EDITION_2024_OPEN)}. BE на VPS
-          включается отдельно через .env.
+          Флаг RULES_EDITION_2024_OPEN = {String(RULES_EDITION_2024_OPEN)}. BE на проде —
+          compose default true (выключить: RULES_EDITION_2024_OPEN=false в .env).
         </Text>
 
         <Panel title={RULES_EDITION_2024_OPEN ? 'Публичный CTA (флаг вкл)' : 'Публичный CTA (флаг выкл)'}>
