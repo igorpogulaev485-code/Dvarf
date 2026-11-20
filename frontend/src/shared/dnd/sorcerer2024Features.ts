@@ -18,7 +18,29 @@ import { addFlexibleSpellSlot, clampSlot, type SpellSlotState } from './spells'
 import { FLEXIBLE_CASTING_SLOT_COST } from './sorcererMetamagic'
 import { clampResource, type SheetResource } from './rest'
 import { STACKABLE_METAMAGIC_IDS } from './metamagicCast'
-import { setFeaturePick, type FeaturePicksState } from './featurePicks'
+import { getFeaturePick, setFeaturePick, type FeaturePicksState } from './featurePicks'
+import {
+  BEASTS_OF_ILL_OMEN_NAME_RU,
+  BURNING_LIFE_NAME_RU,
+  CROWN_OF_SPELLFIRE_NAME_RU,
+  RADIANT_FLAME_NAME_RU,
+  RESTORE_SP_COST_BOOK,
+  SHADOW_WALK_NAME_RU,
+  SHADOW_WALK_POOL_ID,
+  SPELLFIRE_BURST_NAME_RU,
+  SPELLFIRE_BURST_POOL_ID,
+  SPELLFIRE_BURST_TURN_PICK_KEY,
+  STRENGTH_OF_THE_GRAVE_NAME_RU,
+  SUMMON_BEAST_SPIRIT_NAME_RU,
+  SUSTAINING_FLAMES_NAME_RU,
+  UMBRAL_FORM_NAME_RU,
+  burningLifeMaxDice2024,
+  rollDie,
+  spellfireBurstDie2024,
+  spellfireBurstTempHpBonus2024,
+  strengthOfTheGraveDc2024,
+  strengthOfTheGraveHp2024,
+} from './sorcererBook2024Features'
 
 export const INNATE_SORCERY_NAME_RU = 'Врождённое чародейство'
 export const FONT_OF_MAGIC_NAME_RU = 'Источник магии'
@@ -49,6 +71,8 @@ export const RESTORE_SP_COST = {
   tranceOfOrder: 5,
   warpingExplosion: 5,
   clockworkCavalcade: 7,
+  crownOfSpellfire: 5,
+  umbralForm: 6,
 } as const
 
 export const REVELATION_OPTIONS_2024 = [
@@ -504,6 +528,20 @@ export const SORCERER_2024_CARD_BUTTONS: Record<string, string> = {
   elemental_affinity: 'Родство со стихией…',
   'psionic-sorcery': 'Псионическое чародейство',
   psionic_sorcery: 'Псионическое чародейство',
+  'spellfire-burst': 'Прорыв…',
+  spellfire_burst: 'Прорыв…',
+  'absorb-spells': 'Поглощение…',
+  absorb_spells: 'Поглощение…',
+  'crown-of-spellfire': 'Корона…',
+  crown_of_spellfire: 'Корона…',
+  'power-of-shadow': 'Сила могилы…',
+  power_of_shadow: 'Сила могилы…',
+  'beasts-of-ill-omen': 'Звери…',
+  beasts_of_ill_omen: 'Звери…',
+  'shadow-walk': 'Хождение…',
+  shadow_walk: 'Хождение…',
+  'umbral-form': 'Форма тени…',
+  umbral_form: 'Форма тени…',
 }
 
 export function sorcerer2024UseFeatureId(featureId: string | null | undefined): string | null {
@@ -529,6 +567,13 @@ export function sorcerer2024UseFeatureId(featureId: string | null | undefined): 
     'dragon-wings': 'dragon-wings',
     'dragon-companion': 'dragon-companion',
     'elemental-affinity': 'elemental-affinity',
+    'spellfire-burst': 'spellfire-burst',
+    'absorb-spells': 'absorb-spells',
+    'crown-of-spellfire': 'crown-of-spellfire',
+    'power-of-shadow': 'power-of-shadow',
+    'beasts-of-ill-omen': 'beasts-of-ill-omen',
+    'shadow-walk': 'shadow-walk',
+    'umbral-form': 'umbral-form',
   }
   return aliases[key] ?? null
 }
@@ -545,6 +590,8 @@ export function restoreFeatureUseWithSorcery2024(input: {
     'trance-of-order': RESTORE_SP_COST.tranceOfOrder,
     'warping-explosion': RESTORE_SP_COST.warpingExplosion,
     'clockwork-cavalcade': RESTORE_SP_COST.clockworkCavalcade,
+    'crown-of-spellfire': RESTORE_SP_COST.crownOfSpellfire,
+    'umbral-form': RESTORE_SP_COST.umbralForm,
   }
   const cost = costs[key]
   if (cost == null) return { ok: false, reasonRu: 'Это умение нельзя восстановить очками' }
@@ -630,6 +677,24 @@ export type Sorcerer2024UseInput = {
   /** Innate sorcery currently active on sheet. */
   innateActive?: boolean
   controlledChaos?: boolean
+  /** CHA modifier (for Spellfire / Strength of the Grave). */
+  chaMod?: number
+  /** Book innate overlays: crown / umbral. */
+  innateOverlay?: 'none' | 'crown' | 'umbral' | null
+  /** Spellfire burst mode. */
+  burstMode?: 'sustaining' | 'radiant-fire' | 'radiant-radiant' | null
+  /** Beasts of Ill Omen: skip concentration. */
+  noConcentration?: boolean
+  /** Absorb Spells: target failed Counterspell save. */
+  counterspellFailed?: boolean
+  /** Strength of the Grave: damage that dropped HP to 0. */
+  damageTaken?: number
+  /** Crown burning life: number of hit dice to spend. */
+  hitDiceCount?: number
+  /** Shadow Walk: lighting + destination (desk, not toast-only). */
+  selfLighting?: 'dim' | 'dark' | null
+  targetLighting?: 'dim' | 'dark' | null
+  destinationRu?: string | null
 }
 
 export type SorcererFeatureUseResult = {
@@ -643,6 +708,16 @@ export type SorcererFeatureUseResult = {
   spendSlotLevel?: number
   restoreSlotLevel?: number
   innateActive?: boolean
+  tempHpGain?: number
+  hpSet?: number
+  companionSpawn?: {
+    template: 'summon_beast'
+    nameRu: string
+    noConcentration: boolean
+    noteRu: string
+  } | null
+  damageRollRu?: string
+  damageReduce?: number
 }
 
 function normFeatureId(featureId: string): string {
@@ -731,6 +806,16 @@ export function applySorcerer2024FeatureUse(
             activeLabel: undefined,
           }))
         }
+        // Clear crown / umbral active labels if present.
+        for (const poolId of ['crown_of_spellfire', 'umbral_form']) {
+          const overlay = poolRow({ ...input, resources }, poolId)
+          if (overlay?.activeLabel) {
+            resources = patchRow(resources, overlay.id, (item) => ({
+              ...item,
+              activeLabel: undefined,
+            }))
+          }
+        }
         return done(input, endInnateSorcery2024().feedLineRu, {
           resources,
           innateActive: false,
@@ -762,10 +847,40 @@ export function applySorcerer2024FeatureUse(
         }))
       }
       resources = patchSorceryUsed(resources, input.classEntryId, activated.sorceryUsed)
-      return done(input, activated.feedLineRu, {
+      const labels = ['Врождённое чародейство']
+      let feed = activated.feedLineRu
+      const overlay = input.innateOverlay ?? 'none'
+      if (overlay === 'crown') {
+        const crown = poolRow({ ...input, resources }, 'crown_of_spellfire')
+        if (!crown) return refuse(input, `${CROWN_OF_SPELLFIRE_NAME_RU}: нет ресурса (нужен 18 ур.)`)
+        if (crown.used >= crown.max) {
+          return refuse(input, `${CROWN_OF_SPELLFIRE_NAME_RU}: использовано до долгого отдыха`)
+        }
+        resources = patchRow(resources, crown.id, (item) => ({
+          ...item,
+          used: item.used + 1,
+          activeLabel: `${CROWN_OF_SPELLFIRE_NAME_RU} (с Врождённым)`,
+        }))
+        labels.push(CROWN_OF_SPELLFIRE_NAME_RU, BURNING_LIFE_NAME_RU, 'Полёт 60', 'Избежание заклятий')
+        feed = `${feed}. ${CROWN_OF_SPELLFIRE_NAME_RU}: полёт 60 (парение), Горящая жизнь, Избежание заклятий`
+      } else if (overlay === 'umbral') {
+        const umbral = poolRow({ ...input, resources }, 'umbral_form')
+        if (!umbral) return refuse(input, `${UMBRAL_FORM_NAME_RU}: нет ресурса (нужен 18 ур.)`)
+        if (umbral.used >= umbral.max) {
+          return refuse(input, `${UMBRAL_FORM_NAME_RU}: использовано до долгого отдыха`)
+        }
+        resources = patchRow(resources, umbral.id, (item) => ({
+          ...item,
+          used: item.used + 1,
+          activeLabel: `${UMBRAL_FORM_NAME_RU} (с Врождённым)`,
+        }))
+        labels.push(UMBRAL_FORM_NAME_RU, 'Теневая устойчивость', 'Бестелесное перемещение')
+        feed = `${feed}. ${UMBRAL_FORM_NAME_RU}: сопротивление (кроме силового/излучения), бестелесное перемещение`
+      }
+      return done(input, feed, {
         resources,
         innateActive: true,
-        activeLabels: ['Врождённое чародейство'],
+        activeLabels: labels,
       })
     }
 
@@ -988,7 +1103,264 @@ export function applySorcerer2024FeatureUse(
     case 'psionic-sorcery':
       return done(input, 'Отметь эффект вручную на столе — диалог только подсказка.')
 
-  default:
+    case 'spellfire-burst': {
+      const picks = input.featurePicks ?? { values: {} }
+      const turnUsed =
+        getFeaturePick(picks, input.classEntryId, SPELLFIRE_BURST_TURN_PICK_KEY) === 'on'
+      const burstRow = poolRow(input, SPELLFIRE_BURST_POOL_ID)
+      if (turnUsed || (burstRow && burstRow.used >= burstRow.max)) {
+        return refuse(
+          input,
+          `${SPELLFIRE_BURST_NAME_RU}: уже использован в этот ход (1/ход после траты очка).`,
+        )
+      }
+      const chaMod = Math.floor(input.chaMod ?? 0)
+      const mode = input.burstMode ?? input.mode ?? 'sustaining'
+      const die = spellfireBurstDie2024(input.sorcererLevel)
+      const sides = die === '1d8' ? 8 : 4
+      const roll = rollDie(sides)
+      let resources = input.resources
+      if (burstRow) {
+        resources = patchRow(resources, burstRow.id, (item) => ({
+          ...item,
+          used: Math.min(item.max, item.used + 1),
+          activeLabel: 'использован в этот ход',
+        }))
+      }
+      const nextPicks = setFeaturePick(
+        picks,
+        input.classEntryId,
+        SPELLFIRE_BURST_TURN_PICK_KEY,
+        'on',
+      )
+      if (mode === 'sustaining') {
+        const temp = spellfireBurstTempHpBonus2024({
+          sorcererLevel: input.sorcererLevel,
+          chaMod,
+          dieRoll: roll,
+        })
+        const honed =
+          input.sorcererLevel >= 14 ? ` (+ур. ${input.sorcererLevel})` : ''
+        return done(
+          input,
+          `${SPELLFIRE_BURST_NAME_RU} — ${SUSTAINING_FLAMES_NAME_RU}: ${temp} врем. хитов (${die}+Хар${honed}). 1/ход.`,
+          {
+            resources,
+            featurePicks: nextPicks,
+            tempHpGain: temp,
+            activeLabels: [SPELLFIRE_BURST_NAME_RU, '1/ход · использован'],
+          },
+        )
+      }
+      const dtype = mode === 'radiant-radiant' ? 'излучением' : 'огнём'
+      return done(
+        input,
+        `${SPELLFIRE_BURST_NAME_RU} — ${RADIANT_FLAME_NAME_RU}: ${roll} урона ${dtype} (${die}, без атаки/спаса). 1/ход.`,
+        {
+          resources,
+          featurePicks: nextPicks,
+          damageRollRu: `${roll} ${dtype}`,
+          activeLabels: [SPELLFIRE_BURST_NAME_RU, '1/ход · использован'],
+        },
+      )
+    }
+
+    case 'absorb-spells': {
+      if (input.mode === 'restore' || input.counterspellFailed) {
+        const gained = rollDie(4)
+        const nextUsed = Math.max(0, sorceryUsed - gained)
+        return done(
+          input,
+          `Поглощение заклинаний: цель провалила спас от Контрзаклинания — +${gained} очк. (1к4).`,
+          {
+            resources: patchSorceryUsed(input.resources, input.classEntryId, nextUsed),
+          },
+        )
+      }
+      return done(
+        input,
+        'Поглощение заклинаний: Контрзаклинание всегда подготовлено. При провале спаса цели — восстановить 1к4 очков.',
+      )
+    }
+
+    case 'crown-of-spellfire': {
+      if (input.mode === 'restore') {
+        const row = poolRow(input, 'crown_of_spellfire')
+        if (!row) return refuse(input, 'Ресурс не найден')
+        const restored = restoreFeatureUseWithSorcery2024({
+          featureId: 'crown-of-spellfire',
+          featureUsed: row.used,
+          sorceryMax,
+          sorceryUsed,
+        })
+        if (!restored.ok) return refuse(input, restored.reasonRu)
+        let resources = patchSorceryUsed(
+          input.resources,
+          input.classEntryId,
+          restored.sorceryUsed,
+        )
+        resources = patchRow(resources, row.id, (item) => ({
+          ...item,
+          used: restored.featureUsed,
+        }))
+        return done(input, restored.feedLineRu, { resources })
+      }
+      if (input.mode === 'burning-life') {
+        const maxDice = burningLifeMaxDice2024(input.chaMod ?? 1)
+        const count = Math.max(1, Math.min(maxDice, Math.floor(input.hitDiceCount ?? 1)))
+        let total = 0
+        for (let i = 0; i < count; i += 1) total += rollDie(input.sorcererLevel >= 1 ? 6 : 6)
+        return done(
+          input,
+          `${BURNING_LIFE_NAME_RU}: −${total} урона (${count} кости хитов, макс. ${maxDice}).`,
+          { damageReduce: total },
+        )
+      }
+      return done(
+        input,
+        `${CROWN_OF_SPELLFIRE_NAME_RU}: включите вместе с Врождённым чародейством (или восстановите за ${RESTORE_SP_COST_BOOK.crownOfSpellfire} очк.).`,
+      )
+    }
+
+    case 'power-of-shadow': {
+      if (
+        input.mode === 'grave' ||
+        input.mode === 'grave-success' ||
+        input.mode === 'grave-fail' ||
+        input.mode === 'strength-of-the-grave'
+      ) {
+        const row = poolRow(input, 'power_of_shadow')
+        if (!row) return refuse(input, 'Ресурс не найден')
+        if (row.used >= row.max) {
+          return refuse(input, `${STRENGTH_OF_THE_GRAVE_NAME_RU}: уже использована до долгого отдыха`)
+        }
+        const damage = Math.max(0, Math.floor(input.damageTaken ?? 0))
+        const dc = strengthOfTheGraveDc2024(damage)
+        if (input.mode === 'grave-fail') {
+          return done(input, `${STRENGTH_OF_THE_GRAVE_NAME_RU}: спас провален (Сл ${dc}).`)
+        }
+        const hp = strengthOfTheGraveHp2024({
+          chaMod: input.chaMod ?? 0,
+          sorcererLevel: input.sorcererLevel,
+        })
+        return done(
+          input,
+          `${STRENGTH_OF_THE_GRAVE_NAME_RU}: успех против Сл ${dc} — хиты = ${hp} (Хар+ур.).`,
+          {
+            resources: patchRow(input.resources, row.id, (item) => ({
+              ...item,
+              used: item.used + 1,
+            })),
+            hpSet: hp,
+          },
+        )
+      }
+      return done(
+        input,
+        'Сила тени: Глаза тьмы (ТЗ 120, слепое 10, видеть сквозь свою Тьму). Сила могилы — при падении до 0.',
+      )
+    }
+
+    case 'beasts-of-ill-omen': {
+      const cost = RESTORE_SP_COST_BOOK.beastsOfIllOmen
+      const remaining = Math.max(0, sorceryMax - sorceryUsed)
+      if (remaining < cost) return refuse(input, `Нужно ${cost} очк. (есть ${remaining})`)
+      const noConc = Boolean(input.noConcentration || input.mode === 'no-concentration')
+      const note = noConc
+        ? 'без концентрации, 1 мин; враги с помехой на спас от ваших заклинаний в 5 фт.'
+        : 'концентрация; враги с помехой на спас от ваших заклинаний в 5 фт.'
+      return done(
+        input,
+        `${BEASTS_OF_ILL_OMEN_NAME_RU}: ${SUMMON_BEAST_SPIRIT_NAME_RU} (−${cost} очк., ${note})`,
+        {
+          resources: patchSorceryUsed(input.resources, input.classEntryId, sorceryUsed + cost),
+          companionSpawn: {
+            template: 'summon_beast',
+            nameRu: `${SUMMON_BEAST_SPIRIT_NAME_RU} (тени)`,
+            noConcentration: noConc,
+            noteRu: note,
+          },
+          concentrationName: noConc ? null : SUMMON_BEAST_SPIRIT_NAME_RU,
+          activeLabels: [BEASTS_OF_ILL_OMEN_NAME_RU],
+        },
+      )
+    }
+
+    case 'shadow-walk': {
+      const selfLit = input.selfLighting ?? null
+      const targetLit = input.targetLighting ?? null
+      if (selfLit !== 'dim' && selfLit !== 'dark') {
+        return refuse(
+          input,
+          `${SHADOW_WALK_NAME_RU}: вы должны быть в тусклом свете или темноте.`,
+        )
+      }
+      if (targetLit !== 'dim' && targetLit !== 'dark') {
+        return refuse(
+          input,
+          `${SHADOW_WALK_NAME_RU}: цель — незанятое пространство в тусклом свете или темноте ≤120 фт.`,
+        )
+      }
+      const dest = String(input.destinationRu || input.target || '').trim() || '≤120 фт.'
+      const selfRu = selfLit === 'dark' ? 'темнота' : 'тусклый свет'
+      const targetRu = targetLit === 'dark' ? 'темнота' : 'тусклый свет'
+      const walkRow = poolRow(input, SHADOW_WALK_POOL_ID)
+      let resources = input.resources
+      if (walkRow) {
+        resources = patchRow(resources, walkRow.id, (item) => ({
+          ...item,
+          activeLabel: `→ ${dest}`,
+        }))
+      }
+      return done(
+        input,
+        `${SHADOW_WALK_NAME_RU} (бонусное): телепорт → ${dest} (вы: ${selfRu}; цель: ${targetRu}).`,
+        {
+          resources,
+          activeLabels: [SHADOW_WALK_NAME_RU, `→ ${dest}`],
+        },
+      )
+    }
+
+    case 'umbral-form': {
+      if (input.mode === 'restore') {
+        const row = poolRow(input, 'umbral_form')
+        if (!row) return refuse(input, 'Ресурс не найден')
+        const restored = restoreFeatureUseWithSorcery2024({
+          featureId: 'umbral-form',
+          featureUsed: row.used,
+          sorceryMax,
+          sorceryUsed,
+        })
+        if (!restored.ok) return refuse(input, restored.reasonRu)
+        let resources = patchSorceryUsed(
+          input.resources,
+          input.classEntryId,
+          restored.sorceryUsed,
+        )
+        resources = patchRow(resources, row.id, (item) => ({
+          ...item,
+          used: restored.featureUsed,
+        }))
+        return done(input, restored.feedLineRu, { resources })
+      }
+      if (input.mode === 'end') {
+        const row = poolRow(input, 'umbral_form')
+        if (!row) return refuse(input, 'Ресурс не найден')
+        return done(input, `${UMBRAL_FORM_NAME_RU} завершена`, {
+          resources: patchRow(input.resources, row.id, (item) => ({
+            ...item,
+            activeLabel: undefined,
+          })),
+        })
+      }
+      return done(
+        input,
+        `${UMBRAL_FORM_NAME_RU}: включите вместе с Врождённым чародейством (или восстановите за ${RESTORE_SP_COST_BOOK.umbralForm} очк.).`,
+      )
+    }
+
+    default:
       return refuse(input, `Умение «${input.featureId}» не настроено в диалоге 2024`)
   }
 }

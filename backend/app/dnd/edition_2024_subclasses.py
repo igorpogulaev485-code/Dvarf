@@ -443,14 +443,6 @@ SHARED_OPTIONS: dict[str, list[SharedPoolOption]] = {
             min_level=14,
         ),
     ],
-    "sorcerer__spellfire-sorcery": [
-        SharedPoolOption("spellfire-burst", "Вспышка огня заклинаний", "sorcery_points", kind="bonus"),
-    ],
-    "sorcerer__shadow-sorcery": [
-        SharedPoolOption(
-            "beasts-of-ill-omen", "Звери дурного знамения", "sorcery_points", kind="action", min_level=6
-        ),
-    ],
     # Fighter Banneret — rides Second Wind
     "fighter__banneret": [
         SharedPoolOption("group-recovery", "Групповое оздоровление", "second_wind", kind="passive"),
@@ -1107,6 +1099,119 @@ def build_permanent_bonuses(
             {"con_save_proficiency": True, "benefit_choice": True},
         )
 
+    if subclass_slug == "sorcerer__spellfire-sorcery":
+        cha_m = ability_mod(int(abilities.get("cha") or 10))
+        add(
+            "spellfire-burst",
+            "Прорыв чаропламени",
+            "other_calc",
+            {
+                "once_per_turn_after_sp_spend": True,
+                "sustaining_temp_hp": f"1d4+{cha_m}",
+                "radiant_damage": "1d8" if class_level >= 14 else "1d4",
+                "damage_types": ["fire", "radiant"],
+                "honed": class_level >= 14,
+                "temp_hp_add_sorcerer_level": class_level >= 14,
+            },
+            note_ru=(
+                "После траты ≥1 очка в действие Магия/бонусное в ваш ход: "
+                "Поддерживающие огни или Сияющее пламя (1/ход)"
+            ),
+        )
+        if class_level >= 6:
+            add(
+                "absorb-spells",
+                "Поглощение заклинаний",
+                "other_calc",
+                {
+                    "always_prepared": ["counterspell"],
+                    "restore_sp_on_counterspell_fail": "1d4",
+                },
+                min_level=6,
+                note_ru=(
+                    "Всегда Контрзаклинание; при провале спаса цели — "
+                    "восстановить 1к4 очков чародейства"
+                ),
+            )
+        if class_level >= 14:
+            add(
+                "honed-spellfire",
+                "Освоенное чаропламя",
+                "other_calc",
+                {"radiant_damage": "1d8", "temp_hp_add_sorcerer_level": True},
+                min_level=14,
+            )
+        if class_level >= 18:
+            add(
+                "crown-of-spellfire",
+                "Корона чаропламени",
+                "other_calc",
+                {
+                    "with_innate_sorcery": True,
+                    "burning_life_hit_dice_max_cha": True,
+                    "fly_speed_ft": 60,
+                    "hover": True,
+                    "evasion_vs_half_damage_spells": True,
+                    "restore_sp_cost": 5,
+                },
+                min_level=18,
+            )
+
+    if subclass_slug == "sorcerer__shadow-sorcery":
+        cha_m = ability_mod(int(abilities.get("cha") or 10))
+        add(
+            "power-of-shadow",
+            "Сила тени",
+            "other_calc",
+            {
+                "darkvision_ft": 120,
+                "blindsight_ft": 10,
+                "see_through_own_darkness": True,
+                "strength_of_the_grave": True,
+                "grave_hp": cha_m + class_level,
+                "grave_dc": "5+damage",
+            },
+            note_ru=(
+                "Глаза тьмы: ТЗ 120 / слепое 10. Сила могилы: спас Хар "
+                "(Сл 5+урон) → хиты = Хар+ур. (1 успех/долгий)"
+            ),
+        )
+        if class_level >= 6:
+            add(
+                "beasts-of-ill-omen",
+                "Звери дурных знамений",
+                "other_calc",
+                {
+                    "cost_sp": 3,
+                    "summon": "summon-beast",
+                    "enemy_save_disadvantage_within_ft": 5,
+                    "optional_no_concentration_duration_min": 1,
+                },
+                min_level=6,
+            )
+        if class_level >= 14:
+            add(
+                "shadow-walk",
+                "Хождение по теням",
+                "other_calc",
+                {"bonus_teleport_ft": 120, "requires_dim_or_dark": True},
+                min_level=14,
+            )
+        if class_level >= 18:
+            add(
+                "umbral-form",
+                "Форма абсолютной тени",
+                "other_calc",
+                {
+                    "with_innate_sorcery": True,
+                    "resist_all_except": ["force", "radiant"],
+                    "incorporeal_movement": True,
+                    "end_turn_inside_damage": "1d10",
+                    "restore_sp_cost": 6,
+                },
+                min_level=18,
+            )
+
     return out
 
 
@@ -1474,7 +1579,7 @@ def build_subclass_resources(
     elif subclass_slug == "warlock__vestige-patron":
         add(
             "vestige_companion",
-            name_ru="Спутник-отголосок",
+            name_ru="Спутник-предтеча",
             max_uses=1,
             reset="long",
             feature_id="vestige-companion",
@@ -1721,14 +1826,57 @@ def build_subclass_resources(
                 on_hot=False,
                 extra_meta={"restore_sp_cost": 7},
             )
+    elif subclass_slug == "sorcerer__spellfire-sorcery":
+        # Once-per-turn gate shown on combat hot bar; refreshed on «Начало моего хода».
+        add(
+            "spellfire_burst",
+            name_ru="Прорыв чаропламени",
+            max_uses=1,
+            reset="long",
+            feature_id="spellfire-burst",
+            min_level=3,
+            extra_meta={"once_per_turn_after_sp_spend": True},
+        )
+        if class_level >= 18:
+            add(
+                "crown_of_spellfire",
+                name_ru="Корона чаропламени",
+                max_uses=1,
+                reset="long",
+                feature_id="crown-of-spellfire",
+                min_level=18,
+                extra_meta={"restore_sp_cost": 5},
+            )
     elif subclass_slug == "sorcerer__shadow-sorcery":
+        # Strength of the Grave: 1 successful save / long rest (not Cha-mod uses).
         add(
             "power_of_shadow",
-            name_ru="Сила тени",
-            max_uses=max(1, cha_m),
+            name_ru="Сила могилы",
+            max_uses=1,
             reset="long",
             feature_id="power-of-shadow",
         )
+        if class_level >= 14:
+            # At-will teleport tracker for desk (activeLabel = last hop); not a hard daily cap.
+            add(
+                "shadow_walk",
+                name_ru="Хождение по теням",
+                max_uses=1,
+                reset="long",
+                feature_id="shadow-walk",
+                min_level=14,
+                extra_meta={"at_will_in_dim_or_dark": True},
+            )
+        if class_level >= 18:
+            add(
+                "umbral_form",
+                name_ru="Форма абсолютной тени",
+                max_uses=1,
+                reset="long",
+                feature_id="umbral-form",
+                min_level=18,
+                extra_meta={"restore_sp_cost": 6},
+            )
     elif subclass_slug == "sorcerer__aberrant-sorcery":
         add(
             "telepathic_speech",
@@ -2040,6 +2188,10 @@ def always_prepared_for_subclass(
             s = str(spell).strip()
             if s and s not in out:
                 out.append(s)
+    # Absorb Spells (Spellfire L6+): always Counterspell.
+    if subclass_slug == "sorcerer__spellfire-sorcery" and class_level >= 6:
+        if "counterspell" not in out:
+            out.append("counterspell")
     return out
 
 

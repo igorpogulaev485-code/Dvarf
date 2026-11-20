@@ -158,6 +158,14 @@ export const M02B_WIZARD_BOOK_SUBCLASS_SLUGS = new Set([
   'wizard__bladesinger',
 ])
 
+/**
+ * Book sorcerer paths opened by P24-M02B-sorcerer (FRHoF Spellfire + RTW Shadow).
+ */
+export const M02B_SORCERER_BOOK_SUBCLASS_SLUGS = new Set([
+  'sorcerer__spellfire-sorcery',
+  'sorcerer__shadow-sorcery',
+])
+
 export function isPhb2024CreateSubclass(slug: string, source?: string | null): boolean {
   const key = String(slug || '')
     .trim()
@@ -172,6 +180,8 @@ export function isPhb2024CreateSubclass(slug: string, source?: string | null): b
   if (!src && EFA_ARTIFICER_SUBCLASS_SLUGS.has(key)) return true
   // P24-M02B-wizard: AU schools + FRHoF Bladesinger only.
   if (M02B_WIZARD_BOOK_SUBCLASS_SLUGS.has(key)) return true
+  // P24-M02B-sorcerer: Spellfire + Shadow only.
+  if (M02B_SORCERER_BOOK_SUBCLASS_SLUGS.has(key)) return true
   // Catalog API may omit source; fall back to known PHB table rows.
   return Boolean(row && CREATE_SUBCLASS_SOURCES_2024.has(String(row.source || '').toLowerCase()))
 }
@@ -357,12 +367,6 @@ const SHARED_OPTIONS_2024: Record<string, SharedPoolOption2024[]> = {
   'sorcerer__aberrant-sorcery': [
     { feature_id: 'psionic-sorcery', name_ru: 'Псионическое чародейство', spend_pool: 'sorcery_points', cost: 1, kind: 'passive', min_level: 6 },
     { feature_id: 'revelation-in-flesh', name_ru: 'Откровение во плоти', spend_pool: 'sorcery_points', cost: 1, cost_max: 4, kind: 'bonus', min_level: 14 },
-  ],
-  'sorcerer__spellfire-sorcery': [
-    { feature_id: 'spellfire-burst', name_ru: 'Вспышка огня заклинаний', spend_pool: 'sorcery_points', cost: 1, kind: 'bonus', min_level: 3 },
-  ],
-  'sorcerer__shadow-sorcery': [
-    { feature_id: 'beasts-of-ill-omen', name_ru: 'Звери дурного знамения', spend_pool: 'sorcery_points', cost: 1, kind: 'action', min_level: 6 },
   ],
   'fighter__banneret': [
     { feature_id: 'group-recovery', name_ru: 'Групповое оздоровление', spend_pool: 'second_wind', cost: 1, kind: 'passive', min_level: 3 },
@@ -784,6 +788,115 @@ export function buildPermanentBonuses2024(input: {
       3,
     )
   }
+  if (subclassSlug === 'sorcerer__spellfire-sorcery') {
+    const chaM = abilityMod(ab.cha ?? 10)
+    add(
+      'spellfire-burst',
+      'Прорыв чаропламени',
+      'other_calc',
+      {
+        once_per_turn_after_sp_spend: true,
+        sustaining_temp_hp: `1d4+${chaM}`,
+        radiant_damage: classLevel >= 14 ? '1d8' : '1d4',
+        damage_types: ['fire', 'radiant'],
+        honed: classLevel >= 14,
+        temp_hp_add_sorcerer_level: classLevel >= 14,
+      },
+      3,
+      'После траты ≥1 очка в действие Магия/бонусное в ваш ход: Поддерживающие огни или Сияющее пламя (1/ход)',
+    )
+    if (classLevel >= 6) {
+      add(
+        'absorb-spells',
+        'Поглощение заклинаний',
+        'other_calc',
+        { always_prepared: ['counterspell'], restore_sp_on_counterspell_fail: '1d4' },
+        6,
+        'Всегда Контрзаклинание; при провале спаса цели — восстановить 1к4 очков чародейства',
+      )
+    }
+    if (classLevel >= 14) {
+      add(
+        'honed-spellfire',
+        'Освоенное чаропламя',
+        'other_calc',
+        { radiant_damage: '1d8', temp_hp_add_sorcerer_level: true },
+        14,
+      )
+    }
+    if (classLevel >= 18) {
+      add(
+        'crown-of-spellfire',
+        'Корона чаропламени',
+        'other_calc',
+        {
+          with_innate_sorcery: true,
+          burning_life_hit_dice_max_cha: true,
+          fly_speed_ft: 60,
+          hover: true,
+          evasion_vs_half_damage_spells: true,
+          restore_sp_cost: 5,
+        },
+        18,
+      )
+    }
+  }
+  if (subclassSlug === 'sorcerer__shadow-sorcery') {
+    const chaM = abilityMod(ab.cha ?? 10)
+    add(
+      'power-of-shadow',
+      'Сила тени',
+      'other_calc',
+      {
+        darkvision_ft: 120,
+        blindsight_ft: 10,
+        see_through_own_darkness: true,
+        strength_of_the_grave: true,
+        grave_hp: chaM + classLevel,
+        grave_dc: '5+damage',
+      },
+      3,
+      'Глаза тьмы: ТЗ 120 / слепое 10. Сила могилы: спас Хар (Сл 5+урон) → хиты = Хар+ур. (1 успех/долгий)',
+    )
+    if (classLevel >= 6) {
+      add(
+        'beasts-of-ill-omen',
+        'Звери дурных знамений',
+        'other_calc',
+        {
+          cost_sp: 3,
+          summon: 'summon-beast',
+          enemy_save_disadvantage_within_ft: 5,
+          optional_no_concentration_duration_min: 1,
+        },
+        6,
+      )
+    }
+    if (classLevel >= 14) {
+      add(
+        'shadow-walk',
+        'Хождение по теням',
+        'other_calc',
+        { bonus_teleport_ft: 120, requires_dim_or_dark: true },
+        14,
+      )
+    }
+    if (classLevel >= 18) {
+      add(
+        'umbral-form',
+        'Форма абсолютной тени',
+        'other_calc',
+        {
+          with_innate_sorcery: true,
+          resist_all_except: ['force', 'radiant'],
+          incorporeal_movement: true,
+          end_turn_inside_damage: '1d10',
+          restore_sp_cost: 6,
+        },
+        18,
+      )
+    }
+  }
   return out
 }
 
@@ -874,7 +987,7 @@ export function buildSubclassResources2024(input: {
   } else if (subclassSlug === 'warlock__undead') {
     push('form_of_dread', 'Аватар ужаса', Math.max(1, chaMod), 'long', 'form-of-dread')
   } else if (subclassSlug === 'warlock__vestige-patron') {
-    push('vestige_companion', 'Спутник-отголосок', 1, 'long', 'vestige-companion')
+    push('vestige_companion', 'Спутник-предтеча', 1, 'long', 'vestige-companion')
   } else if (subclassSlug === 'wizard__abjurer') {
     push('arcane_ward', 'Волшебный щит', classLevel * 2 + intMod, 'long', 'arcane-ward', { track: 'stock' })
   } else if (subclassSlug === 'wizard__diviner') {
@@ -952,8 +1065,22 @@ export function buildSubclassResources2024(input: {
     push('restore_balance', 'Восстановление баланса', Math.max(1, chaMod), 'long', 'restore-balance')
     if (classLevel >= 14) push('trance_of_order', 'Транс упорядоченности', 1, 'long', 'trance-of-order')
     if (classLevel >= 18) push('clockwork_cavalcade', 'Заводная кавалькада', 1, 'long', 'clockwork-cavalcade')
+  } else if (subclassSlug === 'sorcerer__spellfire-sorcery') {
+    // Once-per-turn gate on combat hot bar; refreshed on begin-my-turn.
+    push('spellfire_burst', 'Прорыв чаропламени', 1, 'long', 'spellfire-burst')
+    if (classLevel >= 18) {
+      push('crown_of_spellfire', 'Корона чаропламени', 1, 'long', 'crown-of-spellfire')
+    }
   } else if (subclassSlug === 'sorcerer__shadow-sorcery') {
-    push('power_of_shadow', 'Сила тени', Math.max(1, chaMod), 'long', 'power-of-shadow')
+    // Strength of the Grave: 1 successful save / long rest (not Cha-mod uses).
+    push('power_of_shadow', 'Сила могилы', 1, 'long', 'power-of-shadow')
+    if (classLevel >= 14) {
+      // Desk tracker for last teleport (activeLabel); at-will in dim/dark.
+      push('shadow_walk', 'Хождение по теням', 1, 'long', 'shadow-walk')
+    }
+    if (classLevel >= 18) {
+      push('umbral_form', 'Форма абсолютной тени', 1, 'long', 'umbral-form')
+    }
   } else if (subclassSlug === 'sorcerer__aberrant-sorcery') {
     push('telepathic_speech', 'Телепатическая речь', 1, 'long', 'telepathic-speech')
     if (classLevel >= 18) push('warping_explosion', 'Искажающий взрыв', 1, 'long', 'warping-explosion')
@@ -1039,6 +1166,10 @@ export function alwaysPreparedForSubclass2024(
     for (const spell of block.spells || []) {
       if (spell && !out.includes(spell)) out.push(spell)
     }
+  }
+  // Absorb Spells (Spellfire L6+): always Counterspell.
+  if (subclassSlug === 'sorcerer__spellfire-sorcery' && classLevel >= 6 && !out.includes('counterspell')) {
+    out.push('counterspell')
   }
   return out
 }

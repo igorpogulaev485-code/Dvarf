@@ -695,6 +695,66 @@ export function SheetDialogsRolls({ model }: { model: SheetModel }) {
       </Dialog>
 
       <Dialog
+        open={model.strengthOfTheGravePending != null}
+        title="Сила могилы"
+        primaryLabel="Успех спаса"
+        secondaryLabel="Провал / упасть"
+        onPrimary={() => {
+          const pending = model.strengthOfTheGravePending
+          const damage = Math.max(0, pending?.damage ?? 0)
+          const sorcererLevel = (model.draft.classes ?? [])
+            .filter((row: { name?: string; catalog_id?: string | null; level?: number }) => {
+              const name = String(row.name || '')
+              const catalog = String(row.catalog_id || '').toLowerCase()
+              return catalog === 'sorcerer' || /чародей/i.test(name)
+            })
+            .reduce(
+              (sum: number, row: { level?: number }) => sum + Math.max(0, row.level || 0),
+              0,
+            )
+          const chaScore = model.draft.abilities?.cha ?? 10
+          const chaMod = Math.floor((Number(chaScore) - 10) / 2)
+          const hp = Math.max(1, chaMod + Math.max(1, sorcererLevel || 1))
+          const dc = 5 + damage
+          model.setDraft?.((prev) => ({
+            ...prev,
+            hpCurrent: hp,
+            play: {
+              ...prev.play,
+              isDying: false,
+              deathSuccesses: 0,
+              deathFails: 0,
+              resources: (prev.play.resources ?? []).map((row) => {
+                if (
+                  (typeof row.id === 'string' && row.id.includes(':power_of_shadow:')) ||
+                  /сила\s*могил/i.test(String(row.name || ''))
+                ) {
+                  return { ...row, used: Math.min(row.max, (row.used ?? 0) + 1) }
+                }
+                return row
+              }),
+            },
+          }))
+          model.onToast?.(
+            `Сила могилы: успех против Сл ${dc} — хиты = ${hp} (Хар+ур.).`,
+          )
+          model.setStrengthOfTheGravePending?.(null)
+        }}
+        onSecondary={() => model.setStrengthOfTheGravePending?.(null)}
+      >
+        <Stack gap={8}>
+          <Text>
+            Хиты опустились до 0. Совершите спасбросок Харизмы (Сл 5 + полученный урон
+            {model.strengthOfTheGravePending
+              ? ` = ${5 + (model.strengthOfTheGravePending.damage || 0)}`
+              : ''}
+            ). При успехе хиты становятся равны модификатору Харизмы + уровню чародея (1
+            успешный спас до долгого отдыха).
+          </Text>
+        </Stack>
+      </Dialog>
+
+      <Dialog
         open={model.luckyPickPending != null}
         title="Везунчик: выберите к20"
         primaryLabel="Закрыть"

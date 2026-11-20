@@ -593,6 +593,12 @@ export function useSheetEditorPart4(model: SheetModel) {
   )
   model.relentlessEndurancePending = relentlessEndurancePending
   model.setRelentlessEndurancePending = setRelentlessEndurancePending
+  /** P24-M02B-sorcerer: Strength of the Grave (Shadow 2024) when HP hits 0. */
+  const [strengthOfTheGravePending, setStrengthOfTheGravePending] = useState<{
+    damage: number
+  } | null>(null)
+  model.strengthOfTheGravePending = strengthOfTheGravePending
+  model.setStrengthOfTheGravePending = setStrengthOfTheGravePending
   model.spendLuckyPoint = function spendLuckyPoint() {
     const resources = model.draft.play.resources ?? []
     const pool = resources.find(
