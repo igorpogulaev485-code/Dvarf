@@ -74,12 +74,24 @@ export type TurnEconomyContextValue = {
     title: string
     mode?: 'total' | 'd20' | 'formula'
     modifier?: number
+    /** Подпись к modifier в formula (напр. «Тел»). */
+    modifierLabel?: string | null
     advantageMode?: 'normal' | 'advantage' | 'disadvantage'
     /** Для mode=formula: выражение урона/лечения. */
     formula?: string | null
-    /** Extra dice (mark d4 / Bless) — ввод лицом в диалоге. */
+    /** Скрыть «формула / Брось кN» — оставить подпись поля. */
+    hideFormulaChrome?: boolean
+    /** Extra dice (mark d4 / Bless / Песнь отдыха) — ввод лицом в диалоге. */
     bonusDice?: Array<{ dice: string; label: string }> | null
-    onDone?: (total: number) => void
+    onDone?: (
+      total: number,
+      detail?: {
+        faces?: number[]
+        bonusValues?: number[]
+        breakdown?: string
+        d20?: number
+      },
+    ) => void
   }) => void
   /**
    * Кубики на столе (legacy): Спас / Провал без числа.

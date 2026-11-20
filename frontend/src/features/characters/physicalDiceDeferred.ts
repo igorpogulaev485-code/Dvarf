@@ -40,12 +40,33 @@ export function formatDivineSmitePhysicalChip(input: {
   }
 }
 
-/** Hit-die EnterOwn: face only; CON added by caller (same as average path). */
-export function hitDieEnterOwnFormula(die: string): string {
-  const m = String(die).trim().match(/^к?(\d+)$/i) || String(die).trim().match(/^[dк](\d+)$/i)
+/** Hit-die sides from canonical `d6` / `к6` / `6`. */
+export function hitDieSidesFromLabel(die: string): number {
+  const m =
+    String(die).trim().match(/^к?(\d+)$/i) ||
+    String(die).trim().match(/^[dк](\d+)$/i)
   const sides = m ? Number(m[1]) : Number(String(die).replace(/\D/g, ''))
-  const n = Number.isFinite(sides) && sides >= 2 ? sides : 8
-  return `1к${n}`
+  return Number.isFinite(sides) && sides >= 2 ? sides : 8
+}
+
+/** Hit-die EnterOwn: face only; CON shown via modifier + label (not in formula). */
+export function hitDieEnterOwnFormula(die: string): string {
+  return `1к${hitDieSidesFromLabel(die)}`
+}
+
+/** Title bit «к6» — одинаково в 1440 и 390. */
+export function hitDieRuLabel(die: string): string {
+  return `к${hitDieSidesFromLabel(die)}`
+}
+
+/** Black Blood (Verdan): 1–2 on a hit die → one physical reroll, keep new face. */
+export function blackBloodPhysicalNote(input: {
+  dieLabel: string
+  first: number
+  final: number
+}): string | null {
+  if (input.first !== 1 && input.first !== 2) return null
+  return `Чёрная кровь: на ${input.dieLabel} выпало ${input.first} → переброс → ${input.final}`
 }
 
 /** Apply death-save face (1 / 10+ / 20 rules) — shared by header / HP pad / mobile. */

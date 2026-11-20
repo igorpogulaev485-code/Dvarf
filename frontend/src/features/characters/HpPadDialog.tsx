@@ -19,7 +19,11 @@ import {
   stabilizePlayPatch,
 } from '../../shared/dnd/o09DeathInspirationAmmo'
 import { rollCheck } from './deskRolls'
-import { hitDieEnterOwnFormula } from './physicalDiceDeferred'
+import {
+  blackBloodPhysicalNote,
+  hitDieEnterOwnFormula,
+  hitDieRuLabel,
+} from './physicalDiceDeferred'
 import { useTurnEconomy } from './TurnEconomyContext'
 import { Button, SlotPips } from '../../ui'
 import {
@@ -362,16 +366,47 @@ export function HpPadDialog({
     // Physical: ввод грани живого кубика. Закрываем пад — иначе EnterOwn под backdrop.
     if (diceOnTable && openEnterOwnNumber) {
       onClose()
-      openEnterOwnNumber({
-        title: `Кость хитов · ${pool.className}`,
-        mode: 'formula',
-        formula: hitDieEnterOwnFormula(pool.die),
-        onDone: (total) => {
-          applyHitDieFace(
-            pool,
-            total,
-            blackBlood ? `кубик на столе ${total} + ТЕЛ` : `бросок ${total} + ТЕЛ`,
-          )
+      const dieRu = hitDieRuLabel(pool.die)
+      const openFace = (opts: {
+        title: string
+        onFace: (face: number) => void
+      }) => {
+        openEnterOwnNumber({
+          title: opts.title,
+          mode: 'formula',
+          formula: hitDieEnterOwnFormula(pool.die),
+          modifier: Math.floor(constitutionMod),
+          modifierLabel: 'Тел',
+          hideFormulaChrome: true,
+          onDone: (_total, detail) => {
+            const face = detail?.faces?.[0]
+            if (face == null || !Number.isFinite(face)) return
+            opts.onFace(face)
+          },
+        })
+      }
+      openFace({
+        title: `Кость хитов · ${pool.className} · ${dieRu}`,
+        onFace: (first) => {
+          if (blackBlood && (first === 1 || first === 2)) {
+            openFace({
+              title: `Чёрная кровь · переброс ${dieRu}`,
+              onFace: (finalFace) => {
+                const note = blackBloodPhysicalNote({
+                  dieLabel: dieRu,
+                  first,
+                  final: finalFace,
+                })
+                applyHitDieFace(
+                  pool,
+                  finalFace,
+                  note ?? `кубик на столе ${finalFace} + ТЕЛ`,
+                )
+              },
+            })
+            return
+          }
+          applyHitDieFace(pool, first, `кубик на столе ${first} + ТЕЛ`)
         },
       })
       return

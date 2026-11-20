@@ -66,10 +66,20 @@ export function TurnEconomyDeskHost({ model, children }: Props) {
     title: string
     mode: 'total' | 'd20' | 'formula'
     modifier: number
+    modifierLabel?: string | null
+    hideFormulaChrome?: boolean
     advantageMode: DeskRollMode
     formula?: string | null
     bonusDice?: BonusDiePart[] | null
-    onDone?: (total: number) => void
+    onDone?: (
+      total: number,
+      detail?: {
+        faces?: number[]
+        bonusValues?: number[]
+        breakdown?: string
+        d20?: number
+      },
+    ) => void
   } | null>(null)
   const [tableSaveOpen, setTableSaveOpen] = useState(false)
   const [tableSaveTitle, setTableSaveTitle] = useState('Спасбросок')
@@ -326,6 +336,8 @@ export function TurnEconomyDeskHost({ model, children }: Props) {
           title: opts.title,
           mode: opts.mode ?? 'total',
           modifier: opts.modifier ?? 0,
+          modifierLabel: opts.modifierLabel ?? null,
+          hideFormulaChrome: Boolean(opts.hideFormulaChrome),
           advantageMode: opts.advantageMode ?? 'normal',
           formula: opts.formula ?? null,
           bonusDice: opts.bonusDice ?? null,
@@ -465,12 +477,15 @@ export function TurnEconomyDeskHost({ model, children }: Props) {
         title={enterCtx?.title ?? 'Ввести своё число'}
         mode={enterCtx?.mode ?? 'total'}
         modifier={enterCtx?.modifier ?? 0}
+        modifierLabel={enterCtx?.modifierLabel ?? null}
+        hideFormulaChrome={Boolean(enterCtx?.hideFormulaChrome)}
         advantageMode={enterCtx?.advantageMode ?? 'normal'}
         formula={enterCtx?.formula ?? null}
         bonusDice={enterCtx?.bonusDice ?? null}
         onClose={() => setEnterOpen(false)}
-        onConfirm={({ total, breakdown }) => {
+        onConfirm={(payload) => {
           // Доп. кости уже входят в total (ввод лицом в диалоге) — без цифрового RNG.
+          const { total, breakdown, faces, bonusValues, d20 } = payload
           const ctx = enterCtx
           const done = ctx?.onDone
           setEnterOpen(false)
@@ -516,8 +531,17 @@ export function TurnEconomyDeskHost({ model, children }: Props) {
               source: 'sheet',
             })
           }
-          // После закрытия — чтобы цепочка (атака заклинанием → урон) могла открыть следующее окно.
-          if (done) queueMicrotask(() => done(total))
+          // После закрытия — чтобы цепочка (атака заклинанием → урон / Чёрная кровь) могла открыть следующее окно.
+          if (done) {
+            queueMicrotask(() =>
+              done(total, {
+                faces,
+                bonusValues,
+                breakdown: breakdown || undefined,
+                d20,
+              }),
+            )
+          }
         }}
       />
       <Dialog

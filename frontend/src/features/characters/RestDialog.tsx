@@ -20,7 +20,11 @@ import {
   stripSpiritSessionSpells,
 } from '../../shared/dnd/bardCollege'
 import { rollDie } from './deskRolls'
-import { hitDieEnterOwnFormula } from './physicalDiceDeferred'
+import {
+  blackBloodPhysicalNote,
+  hitDieEnterOwnFormula,
+  hitDieRuLabel,
+} from './physicalDiceDeferred'
 import { useTurnEconomy } from './TurnEconomyContext'
 import { finishWizardResourcesOnRest } from '../../shared/dnd/wizardTradition'
 import {
@@ -255,10 +259,22 @@ export function RestDialog({
       onToast('Сначала выбери кость хитов')
       return
     }
-    const songBonus = songOfRest
-      ? Math.max(0, Math.floor(songRoll ?? rollDie(songOfRest.sides)))
-      : 0
-    const buildConfirm = (baseHeal: number, blackNote: string) => {
+    const buildConfirm = (
+      baseHeal: number,
+      blackNote: string,
+      songBonusOverride?: number,
+    ) => {
+      const songBonus = Math.max(
+        0,
+        Math.floor(
+          songBonusOverride ??
+            (songOfRest
+              ? songRoll ??
+                // Digital only: if поле Песни пусто — бросок RNG (как на проде).
+                rollDie(songOfRest.sides)
+              : 0),
+        ),
+      )
       const amount = hitDieHealWithSong(baseHeal, songBonus)
       const beforeHp = hpCurrent ?? 0
       const healed = applyHitDieHeal({
@@ -285,15 +301,80 @@ export function RestDialog({
         poolId: pools.length > 0 && activePool ? activePool.classEntryId : null,
       })
     }
-    // Physical: ввод грани кубика хитов (+ ТЕЛ добавим сами через baseHeal).
+    const dieRu = hitDieRuLabel(die)
+    // Physical: грань кости (+ Песнь отдельным полем); ТЕЛ — модификатор в окне; списание после «Записать».
     if (turnEco?.diceOnTable && turnEco.openEnterOwnNumber) {
-      turnEco.openEnterOwnNumber({
-        title: `Кость хитов · ${die}`,
-        mode: 'formula',
-        formula: hitDieEnterOwnFormula(die),
-        onDone: (face) => {
-          const baseHeal = Math.max(0, Math.floor(face) + Math.floor(constitutionMod))
-          buildConfirm(baseHeal, ` · кубик на столе ${face} + ТЕЛ`)
+      const openHitFace = (opts?: {
+        title?: string
+        bonusDice?: Array<{ dice: string; label: string }> | null
+        onFace: (face: number, songBonus: number) => void
+      }) => {
+        const needSongField =
+          Boolean(songOfRest) && songRoll == null && opts?.bonusDice !== null
+        turnEco.openEnterOwnNumber({
+          title: opts?.title ?? `Кость хитов · ${dieRu}`,
+          mode: 'formula',
+          formula: hitDieEnterOwnFormula(die),
+          modifier: Math.floor(constitutionMod),
+          modifierLabel: 'Тел',
+          hideFormulaChrome: true,
+          bonusDice:
+            opts?.bonusDice !== undefined
+              ? opts.bonusDice
+              : needSongField && songOfRest
+                ? [
+                    {
+                      dice: `1к${songOfRest.sides}`,
+                      label: `Песнь отдыха ${songOfRest.label}`,
+                    },
+                  ]
+                : null,
+          onDone: (_total, detail) => {
+            const face = detail?.faces?.[0]
+            if (face == null || !Number.isFinite(face)) return
+            const songBonus = songOfRest
+              ? Math.max(
+                  0,
+                  Math.floor(
+                    detail?.bonusValues?.[0] ?? songRoll ?? 0,
+                  ),
+                )
+              : 0
+            opts?.onFace(face, songBonus)
+          },
+        })
+      }
+      openHitFace({
+        onFace: (first, songBonus) => {
+          const finish = (finalFace: number, blackNote: string) => {
+            const baseHeal = Math.max(
+              0,
+              Math.floor(finalFace) + Math.floor(constitutionMod),
+            )
+            buildConfirm(baseHeal, blackNote, songBonus)
+          }
+          if (blackBlood && (first === 1 || first === 2)) {
+            // Правило прода: один переброс 1–2, оставляем новую грань.
+            openHitFace({
+              title: `Чёрная кровь · переброс ${dieRu}`,
+              bonusDice: null,
+              onFace: (finalFace) => {
+                const note = blackBloodPhysicalNote({
+                  dieLabel: dieRu,
+                  first,
+                  final: finalFace,
+                })
+                finish(
+                  finalFace,
+                  note
+                    ? ` · ${note}`
+                    : ` · кубик на столе ${finalFace} + ТЕЛ`,
+                )
+              },
+            })
+            return
+          }
+          finish(first, ` · кубик на столе ${first} + ТЕЛ`)
         },
       })
       return

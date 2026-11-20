@@ -590,6 +590,7 @@ export function PlayDeskTop({ model }: { model: SheetModel }) {
                       modifier?: number
                       advantageMode?: 'normal' | 'advantage' | 'disadvantage'
                       bonusDice?: Array<{ dice: string; label: string }> | null
+                      onDone?: (total: number) => void
                     }) => void
                   }
                 | undefined
@@ -611,8 +612,11 @@ export function PlayDeskTop({ model }: { model: SheetModel }) {
                   modifier: model.initiativeValue,
                   advantageMode: mode,
                   bonusDice: bonus.length ? bonus : null,
+                  // Host пишет тост/журнал с пометкой «кубик на столе»; бардовское — только после «Записать».
+                  onDone: () => {
+                    model.applyBardInitiativeInspiration()
+                  },
                 })
-                model.applyBardInitiativeInspiration()
                 return
               }
               model.emitToast(formatInitiativeToast(model))

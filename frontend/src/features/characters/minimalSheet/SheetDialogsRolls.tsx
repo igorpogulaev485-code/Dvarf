@@ -968,6 +968,7 @@ export function SheetDialogsRolls({ model }: { model: SheetModel }) {
                   modifier?: number
                   advantageMode?: 'normal' | 'advantage' | 'disadvantage'
                   bonusDice?: Array<{ dice: string; label: string }> | null
+                  onDone?: (total: number) => void
                 }) => void
               }
             | undefined
@@ -978,8 +979,10 @@ export function SheetDialogsRolls({ model }: { model: SheetModel }) {
               modifier: model.initiativeValue,
               advantageMode: mode,
               bonusDice: bonus.length ? bonus : null,
+              onDone: () => {
+                model.applyBardInitiativeInspiration()
+              },
             })
-            model.applyBardInitiativeInspiration()
             return
           }
           model.emitToast(

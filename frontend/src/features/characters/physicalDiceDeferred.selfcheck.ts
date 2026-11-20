@@ -7,9 +7,11 @@ import { readFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import {
+  blackBloodPhysicalNote,
   divineSmiteEnterOwnFormula,
   formatDivineSmitePhysicalChip,
   hitDieEnterOwnFormula,
+  hitDieRuLabel,
 } from './physicalDiceDeferred.ts'
 
 const here = dirname(fileURLToPath(import.meta.url))
@@ -58,6 +60,12 @@ const chip = formatDivineSmitePhysicalChip({
 assert.match(chip.line, /Божественная кара/)
 assert.equal(hitDieEnterOwnFormula('к10'), '1к10')
 assert.equal(hitDieEnterOwnFormula('d8'), '1к8')
+assert.equal(hitDieRuLabel('d6'), 'к6')
+assert.match(
+  blackBloodPhysicalNote({ dieLabel: 'к6', first: 1, final: 4 }) ?? '',
+  /Чёрная кровь/,
+)
+assert.equal(blackBloodPhysicalNote({ dieLabel: 'к6', first: 5, final: 5 }), null)
 
 assert.match(attacks, /divineSmiteEnterOwnFormula/)
 assert.match(attacks, /title: 'Божественная кара'/)
@@ -75,12 +83,22 @@ assert.doesNotMatch(
 assert.match(header, /title: 'Спас от смерти'/)
 assert.match(hpPad, /title: 'Спас от смерти'/)
 assert.match(hpPad, /hitDieEnterOwnFormula/)
+assert.match(hpPad, /modifierLabel: 'Тел'/)
+assert.match(hpPad, /hideFormulaChrome: true/)
+assert.match(hpPad, /Чёрная кровь/)
 assert.match(mobile, /title: 'Спас от смерти'/)
 assert.match(rest, /hitDieEnterOwnFormula/)
+assert.match(rest, /modifierLabel: 'Тел'/)
+assert.match(rest, /Песнь отдыха/)
+assert.match(rest, /Чёрная кровь/)
 assert.match(top, /title: 'Инициатива'/)
+assert.match(top, /onDone: \(\) => \{\s*model\.applyBardInitiativeInspiration\(\)/)
 assert.match(rolls, /Героическое вдохновение/)
 assert.match(rolls, /physicalDice: physical/)
+assert.match(rolls, /onDone: \(\) => \{\s*model\.applyBardInitiativeInspiration\(\)/)
 assert.match(host, /title: 'Инициатива'/)
+assert.match(host, /modifierLabel/)
+assert.match(host, /hideFormulaChrome/)
 // Header / HP pad / rest must sit under TurnEconomyDeskHost (React context).
 {
   const hostOpen = layout.indexOf('<TurnEconomyDeskHost')

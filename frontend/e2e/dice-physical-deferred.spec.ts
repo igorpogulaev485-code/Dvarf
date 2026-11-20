@@ -109,6 +109,14 @@ test.describe('DICE physical deferred', () => {
     }
     await expect(page.getByTestId('enter-own-number')).toBeVisible({ timeout: 8_000 })
     await expect(page.getByTestId('enter-own-d20-a')).toBeVisible()
+    // Кадр: шапка и чип «Спас от смерти» в кадре (не прокрученный лист).
+    if (!mobile) {
+      await page
+        .getByRole('region', { name: /Шапка стола/i })
+        .evaluate((el) => el.scrollIntoView({ block: 'start' }))
+        .catch(() => undefined)
+      await page.evaluate(() => window.scrollTo(0, 0))
+    }
     await shot(page, 'enter-own-death-save')
     await fillAndConfirmEnterOwn(page, { d20a: 15 })
   })
@@ -121,7 +129,10 @@ test.describe('DICE physical deferred', () => {
     await expect(dieBtn).toBeVisible({ timeout: 8_000 })
     await dieBtn.click()
     await expect(page.getByTestId('enter-own-number')).toBeVisible({ timeout: 8_000 })
-    await expect(page.getByTestId('enter-own-formula-hint')).toContainText(/Брось к6/i)
+    await expect(page.getByRole('dialog').getByText(/Кость хитов · .+ · к6/i)).toBeVisible()
+    await expect(page.getByTestId('enter-own-formula-mod')).toContainText(/Модификатор \+\d+ \(Тел\)/)
+    await expect(page.getByTestId('enter-own-formula-hint')).toHaveCount(0)
+    await expect(page.getByText(/Выпало на к6/i)).toBeVisible()
     await shot(page, 'enter-own-hit-die')
     await fillAndConfirmEnterOwn(page, { faces: [4] })
   })
@@ -146,6 +157,7 @@ test.describe('DICE physical deferred', () => {
     await expect(rollBtn).toBeVisible({ timeout: 8_000 })
     await rollBtn.click()
     await expect(page.getByTestId('enter-own-number')).toBeVisible({ timeout: 8_000 })
+    await page.evaluate(() => window.scrollTo(0, 0))
     await shot(page, 'enter-own-initiative')
     await fillAndConfirmEnterOwn(page, { d20a: 12 })
   })
