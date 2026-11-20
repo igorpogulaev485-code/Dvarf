@@ -729,6 +729,10 @@ async function openWizardEmptyBook(page: Page, store: HarnessStore, level: numbe
   )
   await expect(page.getByTestId('p24-m03c-leveling')).toBeVisible({ timeout: 30_000 })
   await expect(page.getByTestId('p24-m03-step-spells')).toBeVisible({ timeout: 15_000 })
+  const gotIt = page.getByRole('button', { name: 'Понятно' })
+  if (await gotIt.isVisible().catch(() => false)) {
+    await gotIt.click()
+  }
 }
 
 async function pickCatalogCards(page: Page, count: number) {
@@ -826,7 +830,7 @@ test.describe('P24-M02 wizard — honest book picks (no spell seed)', () => {
       cantripsNeed: 5,
       maxCircle: 6,
       highlightSlug: 'chain-lightning',
-      highlightRu: 'Пляшущая молния',
+      highlightRu: 'Цепная молния',
       shot: 'create-at-11-book-circle6',
     },
   ]) {
@@ -872,7 +876,7 @@ test.describe('P24-M02 wizard — honest book picks (no spell seed)', () => {
       from: 10,
       to: 11,
       maxCircle: 6,
-      highlightRu: 'Пляшущая молния',
+      highlightRu: 'Цепная молния',
       shot: 'levelup-10-to-11-book-circle6',
     },
   ]) {

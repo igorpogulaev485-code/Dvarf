@@ -3,6 +3,7 @@ import {
   revealSessionEvent,
   type SessionEvent,
 } from '../../shared/api/lobbies'
+import { displayDiceNotation } from '../../shared/dnd/diceNotation'
 import { DiceFaces, RevealButton, Text } from '../../ui'
 
 export type FeedFilter = 'all' | 'combat' | 'rolls'
@@ -39,11 +40,9 @@ function withDiceMark(title: string, physical: boolean): string {
 }
 
 function localizeFeedCopy(text: string): string {
-  return text
-    .replace(/\b(\d+)\s*XP\b/g, '$1 опыта')
-    .replace(/\bXP\b/g, 'Опыт')
-    .replace(/\b1d20\b/gi, '1к20')
-    .replace(/\bd20\b/gi, '1к20')
+  return displayDiceNotation(
+    text.replace(/\b(\d+)\s*XP\b/g, '$1 опыта').replace(/\bXP\b/g, 'Опыт'),
+  )
 }
 
 function facesFromPayload(payload: Record<string, unknown>) {

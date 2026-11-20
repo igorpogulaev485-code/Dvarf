@@ -1,5 +1,6 @@
 import { lazy, Suspense, useEffect, useState } from 'react'
 import type { CharacterDetail } from '../../shared/api/characters'
+import { displayDiceNotation } from '../../shared/dnd/diceNotation'
 import { listCatalogEntries } from '../../shared/api/catalog'
 import { formatClassLevelLabel, formatClassSummary } from '../../shared/dnd/classLevels'
 import {
@@ -1120,14 +1121,15 @@ export function ClassicPrintSheet({ character: c, onPrintSettings, layout }: Pro
                           ) : null}
                           {face.effectKind && face.effectValue ? (
                             <div>
-                              <em>{effectKindLabel(face.effectKind)}</em> {face.effectValue}
+                              <em>{effectKindLabel(face.effectKind)}</em>{' '}
+                              {displayDiceNotation(face.effectValue)}
                             </div>
                           ) : null}
                         </div>
                       ) : (
                         <div className="classic-spell-card__cont-label">Продолжение</div>
                       )}
-                      <div className="classic-spell-card__body">{face.body}</div>
+                      <div className="classic-spell-card__body">{displayDiceNotation(face.body)}</div>
                     </div>
                   ))}
                 </div>

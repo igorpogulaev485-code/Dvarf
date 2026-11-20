@@ -944,7 +944,7 @@ function FeatureResourceControls({
                 )
               }}
             >
-              {feature.classLevel >= 20 ? 'Вмешательство (авто)' : 'Бросок d100'}
+              {feature.classLevel >= 20 ? 'Вмешательство (авто)' : 'Бросок к100'}
             </Button>
             {lockedBySuccess ? (
               <Button

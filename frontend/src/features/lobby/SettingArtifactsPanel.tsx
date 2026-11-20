@@ -6,6 +6,7 @@ import type {
   SettingArtifact,
   SettingArtifactCreatePayload,
 } from '../../shared/api/lobbies'
+import { displayDiceNotation, storageDiceNotation } from '../../shared/dnd/diceNotation'
 import { Button, Field, Input, NumberInput, Panel, Stack, Text } from '../../ui'
 
 type Props = {
@@ -890,10 +891,12 @@ export function SettingArtifactsPanel({
                           </Field>
                           <Field label="Урон">
                             <Input
-                              value={ab.damage ?? ''}
+                              value={displayDiceNotation(ab.damage ?? '')}
                               disabled={busy}
-                              placeholder="3d6"
-                              onChange={(e) => patchAbility(ab.id!, { damage: e.target.value })}
+                              placeholder="3к6"
+                              onChange={(e) =>
+                                patchAbility(ab.id!, { damage: storageDiceNotation(e.target.value) })
+                              }
                             />
                           </Field>
                         </div>
@@ -987,11 +990,13 @@ export function SettingArtifactsPanel({
                           </Field>
                           <Field label="Урон атаки">
                             <Input
-                              value={ab.attack_damage ?? ''}
+                              value={displayDiceNotation(ab.attack_damage ?? '')}
                               disabled={busy}
-                              placeholder="1d8"
+                              placeholder="1к8"
                               onChange={(e) =>
-                                patchAbility(ab.id!, { attack_damage: e.target.value })
+                                patchAbility(ab.id!, {
+                                  attack_damage: storageDiceNotation(e.target.value),
+                                })
                               }
                             />
                           </Field>
@@ -1105,10 +1110,12 @@ export function SettingArtifactsPanel({
                       <div className="setting-artifact-editor__row">
                         <Field label="Урон">
                           <Input
-                            value={ab.damage ?? ''}
+                            value={displayDiceNotation(ab.damage ?? '')}
                             disabled={busy}
-                            placeholder="1d8"
-                            onChange={(e) => patchAbility(ab.id!, { damage: e.target.value })}
+                            placeholder="1к8"
+                            onChange={(e) =>
+                              patchAbility(ab.id!, { damage: storageDiceNotation(e.target.value) })
+                            }
                           />
                         </Field>
                         <Field label="Тип">
@@ -1295,11 +1302,13 @@ export function SettingArtifactsPanel({
                         <div className="setting-artifact-editor__row">
                           <Field label="Урон в режиме">
                             <Input
-                              value={ab.active_damage ?? ''}
+                              value={displayDiceNotation(ab.active_damage ?? '')}
                               disabled={busy}
-                              placeholder="2d12"
+                              placeholder="2к12"
                               onChange={(e) =>
-                                patchAbility(ab.id!, { active_damage: e.target.value })
+                                patchAbility(ab.id!, {
+                                  active_damage: storageDiceNotation(e.target.value),
+                                })
                               }
                             />
                           </Field>
@@ -1347,11 +1356,14 @@ export function SettingArtifactsPanel({
                 <div className="setting-artifact-editor__row" style={{ marginTop: 8 }}>
                   <Field label="Урон">
                     <Input
-                      value={draft.attack_damage ?? ''}
+                      value={displayDiceNotation(draft.attack_damage ?? '')}
                       disabled={busy}
-                      placeholder="1d8"
+                      placeholder="1к8"
                       onChange={(e) =>
-                        setDraft((p) => ({ ...p, attack_damage: e.target.value }))
+                        setDraft((p) => ({
+                          ...p,
+                          attack_damage: storageDiceNotation(e.target.value),
+                        }))
                       }
                     />
                   </Field>

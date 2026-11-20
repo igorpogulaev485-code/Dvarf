@@ -1,3 +1,4 @@
+import { displayDiceNotation, storageDiceNotation } from '../../shared/dnd/diceNotation'
 import {
   artifactAttackDamage,
   artifactRequirementMet,
@@ -260,7 +261,7 @@ export function AttacksSettingsDialog({
                 </div>
                 <div className="attack-card__stat-divider" aria-hidden />
                 <div className="attack-card__stat">
-                  <span className="attack-card__stat-value">{damageHero}</span>
+                  <span className="attack-card__stat-value">{displayDiceNotation(damageHero)}</span>
                   <span className="attack-card__stat-label">
                     урон
                     {attack.damage_type ? (
@@ -307,24 +308,27 @@ export function AttacksSettingsDialog({
                     raceNatural
                       ? `От расы (+${ABILITY_LABELS[attackAbility]})`
                       : classMa || (monkWeapon && baseDamage !== attack.damage)
-                        ? `Боевые искусства · ${damageDisplay || baseDamage}`
+                        ? `Боевые искусства · ${displayDiceNotation(damageDisplay || baseDamage)}`
                         : magicDmg
-                          ? `с магией ${damageDisplay} (${magicDmg >= 0 ? '+' : ''}${magicDmg})`
+                          ? `с магией ${displayDiceNotation(damageDisplay)} (${magicDmg >= 0 ? '+' : ''}${magicDmg})`
                           : undefined
                   }
                 >
                   <Input
-                    value={
+                    value={displayDiceNotation(
                       raceNatural || classMa || (monkWeapon && baseDamage !== attack.damage)
                         ? damageDisplay || baseDamage
-                        : attack.damage
-                    }
+                        : attack.damage,
+                    )}
                     placeholder="1к8"
                     readOnly={raceNatural || classMa}
                     onChange={
                       raceNatural || classMa
                         ? undefined
-                        : (event) => updateAttack(attack.id, { damage: event.target.value })
+                        : (event) =>
+                            updateAttack(attack.id, {
+                              damage: storageDiceNotation(event.target.value),
+                            })
                     }
                   />
                 </Field>

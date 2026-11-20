@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { CatalogCombobox } from '../catalog'
 import type { CatalogEntry } from '../../shared/api/catalog'
 import type { RulesEdition } from '../../shared/api/characters'
+import { displayDiceNotation, storageDiceNotation } from '../../shared/dnd/diceNotation'
 import type { FormulaVars } from '../../shared/dnd/formulas'
 import { parseWeaponCatalogData } from '../../shared/dnd/gearCatalog'
 import { fightingStyleAttackBonusFromIds } from '../../shared/dnd/fightingStyles'
@@ -464,7 +465,7 @@ export function AttacksPanel({
                 </div>
                 <div className="attack-card__stat-divider" aria-hidden />
                 <div className="attack-card__stat">
-                  <span className="attack-card__stat-value">{damageHero}</span>
+                  <span className="attack-card__stat-value">{displayDiceNotation(damageHero)}</span>
                   <span className="attack-card__stat-label">
                     урон
                     {shownType ? (
@@ -509,28 +510,31 @@ export function AttacksPanel({
                   label="Урон"
                   hint={
                     raceNatural
-                      ? `От расы · итого ${damageDisplay || attack.damage} (+${ABILITY_LABELS[attackAbility]})`
+                      ? `От расы · итого ${displayDiceNotation(damageDisplay || attack.damage)} (+${ABILITY_LABELS[attackAbility]})`
                       : classMa
-                        ? `Боевые искусства · итого ${damageDisplay || baseDamage}`
+                        ? `Боевые искусства · итого ${displayDiceNotation(damageDisplay || baseDamage)}`
                         : monkWeapon && baseDamage !== attack.damage
-                          ? `Боевые искусства · итого ${damageDisplay || baseDamage}`
+                          ? `Боевые искусства · итого ${displayDiceNotation(damageDisplay || baseDamage)}`
                           : damageDisplay && damageDisplay !== attack.damage
-                            ? `итого ${damageDisplay}`
+                            ? `итого ${displayDiceNotation(damageDisplay)}`
                             : undefined
                   }
                 >
                   <Input
-                    value={
+                    value={displayDiceNotation(
                       raceNatural || classMa || (monkWeapon && baseDamage !== attack.damage)
                         ? damageDisplay || baseDamage
-                        : attack.damage
-                    }
+                        : attack.damage,
+                    )}
                     placeholder="1к8"
                     readOnly={raceNatural || classMa}
                     onChange={
                       raceNatural || classMa
                         ? undefined
-                        : (event) => updateAttack(attack.id, { damage: event.target.value })
+                        : (event) =>
+                            updateAttack(attack.id, {
+                              damage: storageDiceNotation(event.target.value),
+                            })
                     }
                   />
                 </Field>

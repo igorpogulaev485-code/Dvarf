@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { displayDiceNotation } from '../../shared/dnd/diceNotation'
 import {
   abilityModifier,
   formatModifier,
@@ -1237,7 +1238,7 @@ function SpellRow({
               className="play-desk-compact__spell-dmg"
               title="Урон / эффект для этого персонажа"
             >
-              {damage || '—'}
+              {damage ? displayDiceNotation(damage) : '—'}
             </span>
             {classChip ? (
               <span className="play-desk-compact__source is-class" title={`Класс · ${classChip}`}>

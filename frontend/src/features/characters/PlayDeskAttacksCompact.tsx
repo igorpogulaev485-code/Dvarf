@@ -1,4 +1,5 @@
 import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
+import { displayDiceNotation } from '../../shared/dnd/diceNotation'
 
 /** Features with bespoke turn chips — skip generic personal wiring. */
 const TURN_SPECIAL_FEATURE_IDS = new Set([
@@ -4244,7 +4245,7 @@ export function PlayDeskAttacksCompact({
                       }
                     })}
                   >
-                    {dmgLine}
+                    {displayDiceNotation(dmgLine)}
                   </button>
                   </div>
                 </div>
@@ -4610,7 +4611,7 @@ export function PlayDeskAttacksCompact({
                   }
                 })}
               >
-                {atk.damageExpr}
+                {displayDiceNotation(atk.damageExpr)}
                 {atkDamageType ? ` ${atkDamageType}` : ''}
               </button>
             ) : null}

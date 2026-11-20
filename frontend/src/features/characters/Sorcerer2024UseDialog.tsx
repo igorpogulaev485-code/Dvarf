@@ -592,7 +592,7 @@ export function Sorcerer2024UseDialog({
                   }
                 }}
               >
-                Бросить d100
+                Бросить к100
               </Button>
             </div>
             {surgeRolls.length === 2 ? (

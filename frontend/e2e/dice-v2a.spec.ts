@@ -57,7 +57,7 @@ test.describe('DICE-02a sheet roller', () => {
     await clickMagicSkill(page)
     await openJournal(page)
     const first = page.getByTestId('dice-log').locator('li').first()
-    await expect(first).toContainText(/Магия|Атлетика|Акробатика|Анализ|Внимание|1d20|2d20/i)
+    await expect(first).toContainText(/Магия|Атлетика|Акробатика|Анализ|Внимание|1к20|2к20|1d20|2d20/i)
     await expect(first.locator('.dice-roller-panel__log-total')).toBeVisible()
   })
 
@@ -190,6 +190,6 @@ test.describe('DICE-02a sheet roller', () => {
     const dialog = page.getByRole('dialog', { name: 'Бросок кубиков' })
     await dialog.getByLabel('Формула броска').fill('1d4')
     await dialog.getByTestId('dice-roll-submit').click()
-    await expect(dialog.getByTestId('dice-log').locator('li').first()).toContainText('1d4')
+    await expect(dialog.getByTestId('dice-log').locator('li').first()).toContainText('1к4')
   })
 })
