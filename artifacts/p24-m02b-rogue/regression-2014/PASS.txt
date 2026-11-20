@@ -1,0 +1,3 @@
+P24-M02B-rogue 2014 md5 before=after
+desktop-1440: 5/5 PASS
+phone-390: 6/6 PASS

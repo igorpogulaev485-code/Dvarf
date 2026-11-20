@@ -52,9 +52,8 @@ PHB_ROGUE_SUBCLASSES = {
     "rogue__soulknife": "Клинок душ",
 }
 
+# Still outside 2024 picker after P24-M02B-rogue (Scion/Phantom opened there).
 OUT_OF_PACK_ROGUE_SUBCLASSES = {
-    "rogue__phantom",
-    "rogue__scion-of-the-three",
     "rogue__swashbuckler",
     "rogue__inquisitive",
     "rogue__mastermind",

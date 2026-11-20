@@ -231,6 +231,14 @@ export const M02B_FIGHTER_BOOK_SUBCLASS_SLUGS = new Set([
   'fighter__banneret',
 ])
 
+/**
+ * Book rogue paths opened by P24-M02B-rogue (FRHoF Scion + RTW Phantom).
+ */
+export const M02B_ROGUE_BOOK_SUBCLASS_SLUGS = new Set([
+  'rogue__scion-of-the-three',
+  'rogue__phantom',
+])
+
 export function isPhb2024CreateSubclass(slug: string, source?: string | null): boolean {
   const key = String(slug || '')
     .trim()
@@ -263,6 +271,8 @@ export function isPhb2024CreateSubclass(slug: string, source?: string | null): b
   if (M02B_ARTIFICER_BOOK_SUBCLASS_SLUGS.has(key)) return true
   // P24-M02B-fighter: Arcane Archer + Banneret (UI «Знаменосец») only.
   if (M02B_FIGHTER_BOOK_SUBCLASS_SLUGS.has(key)) return true
+  // P24-M02B-rogue: Scion of the Three + Phantom only.
+  if (M02B_ROGUE_BOOK_SUBCLASS_SLUGS.has(key)) return true
   // Catalog API may omit source; fall back to known PHB table rows.
   return Boolean(row && CREATE_SUBCLASS_SOURCES_2024.has(String(row.source || '').toLowerCase()))
 }
@@ -283,11 +293,15 @@ export type SubclassResource2024 = {
   subclass_slug: string
   name: string
   max: number
-  reset: 'short' | 'long'
+  reset: 'short' | 'long' | 'manual'
   shortRestRegain?: number
   die?: string
   feature_id: string
   track?: 'spend' | 'stock'
+  /** When unlocking a stock pool, start with this many holdings (e.g. tokens = 2). */
+  initialStock?: number
+  /** On long rest, refill stock up to this floor (tokens → 2). */
+  longRestStockFloor?: number
 }
 
 export type SharedPoolOption2024 = {
@@ -825,6 +839,95 @@ export function buildPermanentBonuses2024(input: {
       )
     }
   }
+  if (subclassSlug === 'rogue__scion-of-the-three') {
+    add(
+      'dread-allegiance',
+      'Ужасная преданность',
+      'other_calc',
+      {
+        deity_choice: true,
+        spellcasting_ability: 'int',
+        deities: {
+          baal: { resistance: 'poison', cantrip: 'blade-ward' },
+          bane: { resistance: 'psychic', cantrip: 'minor-illusion' },
+          myrkul: { resistance: 'necrotic', cantrip: 'chill-touch' },
+        },
+      },
+      3,
+      'Выбор Баал/Бэйн/Миркул: сопротивление + заговор (ИНТ); смена на долгом',
+    )
+    if (classLevel >= 9) {
+      add(
+        'strike-fear',
+        'Удар страха',
+        'other_calc',
+        { cunning_strike_option: 'strike-fear', cost_dice: 1, save: 'wis' },
+        9,
+        'Опция Хитрого удара «Удар страха» (1 кость): спас Мудр. или Испуганный',
+      )
+    }
+    if (classLevel >= 13) {
+      add(
+        'aura-of-malevolence',
+        'Аура злобы',
+        'other_calc',
+        {
+          on_bloodthirst_teleport: true,
+          radius_ft: 10,
+          damage_ability: 'int',
+          ignore_resistance: true,
+        },
+        13,
+        'При телепорте Кровожадности: урон мод. ИНТ типа преданности в 10 фт., игнор сопротивления',
+      )
+    }
+    if (classLevel >= 17) {
+      add(
+        'dread-incarnate',
+        'Воплощение ужаса',
+        'other_calc',
+        { bloodthirst_short_regain: 1, sneak_attack_min_face: 3 },
+        17,
+        'Головорез: +1 Кровожадность на коротком; Убийственный замысел: 1 и 2 на костях Скрытой → 3',
+      )
+    }
+  }
+  if (subclassSlug === 'rogue__phantom') {
+    add(
+      'whispers-of-the-dead',
+      'Шёпот мёртвых',
+      'other_calc',
+      { rest_skill_or_tool_proficiency: true },
+      3,
+      'На коротком/долгом: временное владение навыком или инструментом',
+    )
+    if (classLevel >= 9) {
+      add(
+        'tokens-of-the-departed',
+        'Сувениры усопших',
+        'other_calc',
+        {
+          stock_max: classLevel >= 17 ? 4 : classLevel >= 13 ? 3 : 2,
+          long_rest_floor: 2,
+          death_knell: true,
+          life_essence_advantage: true,
+          question_spirits: true,
+        },
+        9,
+        'Сток сувениров 2/3/4; Перезвон / Сущность жизни / Вопрос к духам; пополнение на долгом до 2',
+      )
+    }
+    if (classLevel >= 17) {
+      add(
+        'death-s-friend',
+        'Друг смерти',
+        'other_calc',
+        { wails_both_targets: true, token_on_initiative_if_empty: true },
+        17,
+        'Скорбный вой: урон стенаний обеим целям; Притяжение смерти: +1 сувенир на инициативе при нуле',
+      )
+    }
+  }
   if (subclassSlug === 'rogue__thief') {
     add('fast-hands', 'Быстрые руки', 'other_calc', {
       bonus_action_use_object: true,
@@ -1264,6 +1367,7 @@ export function buildSubclassResources2024(input: {
   if (classLevel < 3) return []
   const parent = subclassParent2024(subclassSlug) || 'class'
   const intMod = abilityMod(input.abilities?.int ?? 10)
+  const dexMod = abilityMod(input.abilities?.dex ?? 10)
   const wisMod = abilityMod(input.abilities?.wis ?? 10)
   const chaMod = abilityMod(input.abilities?.cha ?? 10)
   const out: SubclassResource2024[] = []
@@ -1272,9 +1376,15 @@ export function buildSubclassResources2024(input: {
     pool_id: string,
     name: string,
     max: number,
-    reset: 'short' | 'long',
+    reset: 'short' | 'long' | 'manual',
     feature_id: string,
-    extra?: { shortRestRegain?: number; die?: string; track?: 'spend' | 'stock' },
+    extra?: {
+      shortRestRegain?: number
+      die?: string
+      track?: 'spend' | 'stock'
+      initialStock?: number
+      longRestStockFloor?: number
+    },
   ) => {
     if (max <= 0) return
     out.push({
@@ -1289,6 +1399,10 @@ export function buildSubclassResources2024(input: {
       die: extra?.die,
       feature_id,
       ...(extra?.track ? { track: extra.track } : {}),
+      ...(extra?.initialStock != null ? { initialStock: extra.initialStock } : {}),
+      ...(extra?.longRestStockFloor != null
+        ? { longRestStockFloor: extra.longRestStockFloor }
+        : {}),
     })
   }
 
@@ -1544,10 +1658,39 @@ export function buildSubclassResources2024(input: {
       push('undying_wrath', 'Неугасающая ярость', 1, 'long', 'ancient-might')
     }
   } else if (subclassSlug === 'rogue__phantom') {
-    const pb = 2 + Math.floor((Math.min(20, Math.max(1, classLevel)) - 1) / 4)
-    push('wails_from_the_grave', 'Вопли из могилы', pb, 'long', 'wails-from-the-grave')
+    // P24-M02B-rogue: DEX-mod wails (not PB); tokens stock 2/3/4 (not PB/long spends).
+    push(
+      'wails_from_the_grave',
+      'Могильные стенания',
+      Math.max(1, dexMod),
+      'long',
+      'wails-from-the-grave',
+    )
+    if (classLevel >= 9) {
+      const tokenMax = classLevel >= 17 ? 4 : classLevel >= 13 ? 3 : 2
+      push(
+        'tokens_of_the_departed',
+        'Сувениры усопших',
+        tokenMax,
+        'manual',
+        'tokens-of-the-departed',
+        { track: 'stock', initialStock: 2, longRestStockFloor: 2 },
+      )
+      push('voice_of_death', 'Голос мёртвых', 1, 'short', 'voice-of-death')
+    }
+    if (classLevel >= 13) {
+      push('ghost_walk', 'Призрачная походка', 1, 'long', 'ghost-walk')
+    }
   } else if (subclassSlug === 'rogue__scion-of-the-three') {
-    push('bloodthirst', 'Кровожадность', Math.max(1, chaMod), 'long', 'bloodthirst')
+    // P24-M02B-rogue: INT-mod bloodthirst (not CHA); +1 on short from L17 Dread Incarnate.
+    push(
+      'bloodthirst',
+      'Кровожадность',
+      Math.max(1, intMod),
+      'long',
+      'bloodthirst',
+      classLevel >= 17 ? { shortRestRegain: 1 } : undefined,
+    )
   } else if (subclassSlug === 'barbarian__zealot') {
     // 2024 Warrior of the Gods: stock of d12 self-heal dice (not 2014 material-free raise).
     const wog =

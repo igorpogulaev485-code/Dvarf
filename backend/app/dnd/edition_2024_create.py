@@ -1081,6 +1081,13 @@ ARCANE_ARCHER_LORE_CANTRIP_KEY = "arcane_archer_lore_cantrip"
 ARCANE_SHOT_OPTIONS_KEY = "arcane_shot_options"
 KNIGHTLY_ENVOY_LANGUAGE_KEY = "knightly_envoy_language"
 KNIGHTLY_ENVOY_SKILL_KEY = "knightly_envoy_skill"
+
+# P24-M02B-rogue book paths
+ROGUE_SCION_SUBCLASS_2024 = "rogue__scion-of-the-three"
+ROGUE_PHANTOM_SUBCLASS_2024 = "rogue__phantom"
+ROGUE_SUBCLASS_LEVEL_2024 = 3
+DREAD_ALLEGIANCE_DEITY_KEY = "dread_allegiance_deity"
+DREAD_ALLEGIANCE_DEITIES_2024 = frozenset({"baal", "bane", "myrkul"})
 ARCANE_ARCHER_LORE_CANTRIPS_2024 = frozenset({"druidcraft", "prestidigitation"})
 ARCANE_SHOT_OPTION_IDS_2024 = (
     "bursting_shot",
@@ -1182,6 +1189,28 @@ def _validate_fighter_book_options_2024(
                 code="create_2024_class_options",
             )
         out[KNIGHTLY_ENVOY_SKILL_KEY] = skill
+    return out
+
+
+def _validate_rogue_book_options_2024(
+    payload: Create2024Payload,
+    picks: Mapping[str, Any],
+) -> dict[str, Any]:
+    """P24-M02B-rogue: Scion dread-allegiance deity required from L3."""
+    out: dict[str, Any] = {}
+    rogue_level = _planned_class_level(payload, "rogue")
+    subclass = _planned_primary_subclass(payload)
+    if subclass == ROGUE_SCION_SUBCLASS_2024 and rogue_level >= ROGUE_SUBCLASS_LEVEL_2024:
+        deity = str(picks.get(DREAD_ALLEGIANCE_DEITY_KEY) or "").lower().replace("-", "_")
+        # Accept both baal and bhaal spelling from chips; store canonical baal.
+        if deity in {"bhaal"}:
+            deity = "baal"
+        if deity not in DREAD_ALLEGIANCE_DEITIES_2024:
+            raise Create2024Error(
+                "Наследник троицы 3+: выберите божество «Ужасной преданности» (Баал / Бэйн / Миркул)",
+                code="create_2024_class_options",
+            )
+        out[DREAD_ALLEGIANCE_DEITY_KEY] = deity
     return out
 
 
@@ -3084,6 +3113,8 @@ def _validate_class_options(
         )
     if payload.class_slug == "fighter":
         out.update(_validate_fighter_book_options_2024(payload, picks))
+    if payload.class_slug == "rogue":
+        out.update(_validate_rogue_book_options_2024(payload, picks))
     if payload.class_slug == "ranger":
         out.update(
             _validate_ranger_options_2024(

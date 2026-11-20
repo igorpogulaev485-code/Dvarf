@@ -1,0 +1,6 @@
+OK  create-2014-race-marker-390.png  before=593794cbc8945111beb093cf3ee71614  after=593794cbc8945111beb093cf3ee71614
+OK  create-2014-rogue-class-390.png  before=3862125c43f81a5feb5c8a8387c6e2c0  after=3862125c43f81a5feb5c8a8387c6e2c0
+OK  sheet-2014-assassin-features-390.png  before=997d00bdad574995904ca55441e5d7b7  after=997d00bdad574995904ca55441e5d7b7
+OK  sheet-2014-rogue-abilities-390.png  before=2c3c2504c68488b1cfe8b7ae5fd2e270  after=2c3c2504c68488b1cfe8b7ae5fd2e270
+OK  sheet-2014-rogue-features-390.png  before=f41756e27d56d9189867ce6267cd11bc  after=f41756e27d56d9189867ce6267cd11bc
+OK  sheet-2014-rogue-header-390.png  before=e4787104e91a85b5eaa4110fd4f9d65b  after=e4787104e91a85b5eaa4110fd4f9d65b

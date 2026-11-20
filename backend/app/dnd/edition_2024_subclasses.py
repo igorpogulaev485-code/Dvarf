@@ -967,6 +967,93 @@ def build_permanent_bonuses(
                 ),
             )
 
+    # Rogue Scion of the Three (P24-M02B)
+    if subclass_slug == "rogue__scion-of-the-three":
+        add(
+            "dread-allegiance",
+            "Ужасная преданность",
+            "other_calc",
+            {
+                "deity_choice": True,
+                "spellcasting_ability": "int",
+                "deities": {
+                    "baal": {"resistance": "poison", "cantrip": "blade-ward"},
+                    "bane": {"resistance": "psychic", "cantrip": "minor-illusion"},
+                    "myrkul": {"resistance": "necrotic", "cantrip": "chill-touch"},
+                },
+            },
+            note_ru="Выбор Баал/Бэйн/Миркул: сопротивление + заговор (ИНТ); смена на долгом",
+        )
+        if class_level >= 9:
+            add(
+                "strike-fear",
+                "Удар страха",
+                "other_calc",
+                {"cunning_strike_option": "strike-fear", "cost_dice": 1, "save": "wis"},
+                min_level=9,
+                note_ru="Опция Хитрого удара «Удар страха» (1 кость): спас Мудр. или Испуганный",
+            )
+        if class_level >= 13:
+            add(
+                "aura-of-malevolence",
+                "Аура злобы",
+                "other_calc",
+                {
+                    "on_bloodthirst_teleport": True,
+                    "radius_ft": 10,
+                    "damage_ability": "int",
+                    "ignore_resistance": True,
+                },
+                min_level=13,
+                note_ru="При телепорте Кровожадности: урон мод. ИНТ типа преданности в 10 фт., игнор сопротивления",
+            )
+        if class_level >= 17:
+            add(
+                "dread-incarnate",
+                "Воплощение ужаса",
+                "other_calc",
+                {
+                    "bloodthirst_short_regain": 1,
+                    "sneak_attack_min_face": 3,
+                },
+                min_level=17,
+                note_ru="Головорез: +1 Кровожадность на коротком; Убийственный замысел: 1 и 2 на костях Скрытой → 3",
+            )
+
+    # Rogue Phantom (P24-M02B)
+    if subclass_slug == "rogue__phantom":
+        add(
+            "whispers-of-the-dead",
+            "Шёпот мёртвых",
+            "other_calc",
+            {"rest_skill_or_tool_proficiency": True},
+            note_ru="На коротком/долгом: временное владение навыком или инструментом",
+        )
+        if class_level >= 9:
+            add(
+                "tokens-of-the-departed",
+                "Сувениры усопших",
+                "other_calc",
+                {
+                    "stock_max": 4 if class_level >= 17 else 3 if class_level >= 13 else 2,
+                    "long_rest_floor": 2,
+                    "death_knell": True,
+                    "life_essence_advantage": True,
+                    "question_spirits": True,
+                },
+                min_level=9,
+                note_ru="Сток сувениров 2/3/4; Перезвон / Сущность жизни / Вопрос к духам; пополнение на долгом до 2",
+            )
+        if class_level >= 17:
+            add(
+                "death-s-friend",
+                "Друг смерти",
+                "other_calc",
+                {"wails_both_targets": True, "token_on_initiative_if_empty": True},
+                min_level=17,
+                note_ru="Скорбный вой: урон стенаний обеим целям; Притяжение смерти: +1 сувенир на инициативе при нуле",
+            )
+
     # Rogue Thief
     if subclass_slug == "rogue__thief":
         add(
@@ -2440,30 +2527,58 @@ def build_subclass_resources(
 
     # --- Rogue ---
     elif subclass_slug == "rogue__phantom":
+        # P24-M02B-rogue: DEX-mod wails (not PB); tokens stock 2/3/4; voice 1/short; ghost walk 1/long.
         add(
             "wails_from_the_grave",
-            name_ru="Вопли из могилы",
-            max_uses=pb,
+            name_ru="Могильные стенания",
+            max_uses=max(1, dex_m),
             reset="long",
             feature_id="wails-from-the-grave",
         )
         if class_level >= 9:
+            token_max = 4 if class_level >= 17 else 3 if class_level >= 13 else 2
             add(
                 "tokens_of_the_departed",
-                name_ru="Знаки ушедших",
-                max_uses=pb,
-                reset="long",
+                name_ru="Сувениры усопших",
+                max_uses=token_max,
+                reset="manual",
                 feature_id="tokens-of-the-departed",
                 track="stock",
                 min_level=9,
+                extra_meta={
+                    "initial_stock": 2,
+                    "long_rest_stock_floor": 2,
+                    "stock_gain_label_ru": "+ сувенир (смерть в 30 фт.)",
+                    "stock_spend_label_ru": "Уничтожить сувенир",
+                },
+            )
+            add(
+                "voice_of_death",
+                name_ru="Голос мёртвых",
+                max_uses=1,
+                reset="short",
+                feature_id="voice-of-death",
+                min_level=9,
+            )
+        if class_level >= 13:
+            add(
+                "ghost_walk",
+                name_ru="Призрачная походка",
+                max_uses=1,
+                reset="long",
+                feature_id="ghost-walk",
+                min_level=13,
+                extra_meta={"restore_with_token": True},
             )
     elif subclass_slug == "rogue__scion-of-the-three":
+        # P24-M02B-rogue: INT-mod bloodthirst (not CHA); short-rest +1 from L17 Dread Incarnate.
         add(
             "bloodthirst",
             name_ru="Кровожадность",
-            max_uses=max(1, cha_m),
+            max_uses=max(1, int_m),
             reset="long",
             feature_id="bloodthirst",
+            short_rest_regain=1 if class_level >= 17 else None,
         )
 
     # --- Barbarian ---

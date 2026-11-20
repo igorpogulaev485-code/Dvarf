@@ -630,6 +630,36 @@ function FeatureResourceControls({
         </div>
       )
     }
+    // P24-M02B-rogue 2024 tokens — open Rogue2024UseDialog (do not use 2014 soul-trinket path).
+    if (
+      edition === '2024' &&
+      resource.pool_id === 'tokens_of_the_departed' &&
+      onRogueFeatureUse
+    ) {
+      return (
+        <div className="feature-resource">
+          <Text>
+            {poolLabel}: <strong>{current}</strong> / {pool.max}
+          </Text>
+          <div className="feature-resource__actions">
+            <Button
+              type="button"
+              onClick={() =>
+                onRogueFeatureUse({
+                  featureId: feature.id,
+                  resourceId: pool.id,
+                  classSlug,
+                  classEntryId: feature.classEntryId,
+                  name: feature.name_ru,
+                })
+              }
+            >
+              {ROGUE_2024_CARD_BUTTONS[feature.id] ?? 'Сувениры…'}
+            </Button>
+          </div>
+        </div>
+      )
+    }
     const openResolved = () =>
       onWizardFeatureUse?.({
         featureId: feature.id,

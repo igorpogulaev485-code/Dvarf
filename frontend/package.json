@@ -140,7 +140,9 @@
     "selfcheck:race-species-label": "tsx src/shared/dnd/raceSpeciesLabel.selfcheck.ts",
     "selfcheck:p24-m02b-paladin": "tsx --tsconfig tsconfig.app.json src/shared/dnd/paladinBook2024Features.selfcheck.ts",
     "selfcheck:p24-m02b-ranger": "tsx --tsconfig tsconfig.app.json src/shared/dnd/rangerBook2024Features.selfcheck.ts",
-    "test:e2e:p24-m02b-ranger": "playwright test --config=playwright.p24-m02b-ranger.config.ts"
+    "selfcheck:p24-m02b-rogue": "tsx --tsconfig tsconfig.app.json src/shared/dnd/rogueBook2024Features.selfcheck.ts",
+    "test:e2e:p24-m02b-ranger": "playwright test --config=playwright.p24-m02b-ranger.config.ts",
+    "test:e2e:p24-m02b-rogue": "playwright test --config=playwright.p24-m02b-rogue.config.ts"
   },
   "dependencies": {
     "qrcode": "^1.5.4",

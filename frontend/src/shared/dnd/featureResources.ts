@@ -33,6 +33,10 @@ export type DesiredFeatureResource = {
   track: 'spend' | 'stock'
   /** When unlocked at this level, grant 1 stock on long rest if empty. */
   grantStockOnLongRestIfEmpty?: boolean
+  /** P24-M02B-rogue tokens: on long rest refill stock up to this floor (usually 2). */
+  longRestStockFloor?: number
+  /** When a stock pool is first created, start with this many holdings. */
+  initialStock?: number
   /** Class slug for display disambiguation (e.g. cleric vs paladin Channel Divinity). */
   classSlug?: string
   /** Russian class label used when the same pool name appears on two classes. */
@@ -434,7 +438,10 @@ export function syncFeatureResources(
         used: want.unlimited
           ? 0
           : want.track === 'stock'
-            ? 0
+            ? Math.min(
+                want.max,
+                Math.max(0, Math.floor(want.initialStock ?? 0)),
+              )
             : Math.min(want.max, carried),
         reset: want.reset,
         track: want.track,
@@ -994,7 +1001,7 @@ export function consumeStock(input: {
   }
 }
 
-/** Death's Friend: if stock empty after long rest, grant 1. */
+/** Death's Friend (2014): if stock empty after long rest, grant 1. */
 export function grantStockOnLongRestIfEmpty(
   resources: SheetResource[],
   desired: DesiredFeatureResource[],
@@ -1002,8 +1009,19 @@ export function grantStockOnLongRestIfEmpty(
   const grants = new Set(
     desired.filter((row) => row.grantStockOnLongRestIfEmpty).map((row) => row.id),
   )
-  if (grants.size === 0) return resources
+  const floors = new Map(
+    desired
+      .filter((row) => typeof row.longRestStockFloor === 'number' && row.longRestStockFloor > 0)
+      .map((row) => [row.id, Math.floor(row.longRestStockFloor!)] as const),
+  )
+  if (grants.size === 0 && floors.size === 0) return resources
   return resources.map((row) => {
+    const floor = floors.get(row.id)
+    if (typeof floor === 'number' && row.track === 'stock') {
+      const target = Math.min(row.max, floor)
+      if (stockCurrent(row) >= target) return row
+      return clampResource({ ...row, used: target })
+    }
     if (!grants.has(row.id)) return row
     if (stockCurrent(row) > 0) return row
     return clampResource({ ...row, used: 1 })
