@@ -20,6 +20,8 @@ import {
   stripSpiritSessionSpells,
 } from '../../shared/dnd/bardCollege'
 import { rollDie } from './deskRolls'
+import { hitDieEnterOwnFormula } from './physicalDiceDeferred'
+import { useTurnEconomy } from './TurnEconomyContext'
 import { finishWizardResourcesOnRest } from '../../shared/dnd/wizardTradition'
 import {
   grantStockOnLongRestIfEmpty,
@@ -164,6 +166,7 @@ export function RestDialog({
   onToast,
   onClose,
 }: RestDialogProps) {
+  const turnEco = useTurnEconomy()
   const blackBlood = hasBlackBloodHealing(raceSlug)
   const pools = play.hitDiceByClass ?? []
   const [spendPoolId, setSpendPoolId] = useState('')
@@ -255,6 +258,46 @@ export function RestDialog({
     const songBonus = songOfRest
       ? Math.max(0, Math.floor(songRoll ?? rollDie(songOfRest.sides)))
       : 0
+    const buildConfirm = (baseHeal: number, blackNote: string) => {
+      const amount = hitDieHealWithSong(baseHeal, songBonus)
+      const beforeHp = hpCurrent ?? 0
+      const healed = applyHitDieHeal({
+        hpCurrent,
+        hpMax,
+        healAmount: amount,
+      })
+      if (healed == null) {
+        onToast('Не удалось посчитать хиты')
+        return
+      }
+      const songNote = songOfRest
+        ? ` · Песнь отдыха ${songOfRest.label}: +${songBonus}`
+        : ''
+      setConfirm({
+        kind: 'hit-die',
+        amount,
+        beforeHp,
+        nextHp: healed,
+        die,
+        songBonus,
+        blackNote,
+        songNote,
+        poolId: pools.length > 0 && activePool ? activePool.classEntryId : null,
+      })
+    }
+    // Physical: ввод грани кубика хитов (+ ТЕЛ добавим сами через baseHeal).
+    if (turnEco?.diceOnTable && turnEco.openEnterOwnNumber) {
+      turnEco.openEnterOwnNumber({
+        title: `Кость хитов · ${die}`,
+        mode: 'formula',
+        formula: hitDieEnterOwnFormula(die),
+        onDone: (face) => {
+          const baseHeal = Math.max(0, Math.floor(face) + Math.floor(constitutionMod))
+          buildConfirm(baseHeal, ` · кубик на столе ${face} + ТЕЛ`)
+        },
+      })
+      return
+    }
     const face = blackBlood
       ? rollHitDieFace({
           die,
@@ -263,32 +306,7 @@ export function RestDialog({
         })
       : null
     const baseHeal = face ? face.heal : (healValue ?? 0)
-    const amount = hitDieHealWithSong(baseHeal, songBonus)
-    const beforeHp = hpCurrent ?? 0
-    const healed = applyHitDieHeal({
-      hpCurrent,
-      hpMax,
-      healAmount: amount,
-    })
-    if (healed == null) {
-      onToast('Не удалось посчитать хиты')
-      return
-    }
-    const blackNote = face?.note ? ` · ${face.note}` : ''
-    const songNote = songOfRest
-      ? ` · Песнь отдыха ${songOfRest.label}: +${songBonus}`
-      : ''
-    setConfirm({
-      kind: 'hit-die',
-      amount,
-      beforeHp,
-      nextHp: healed,
-      die,
-      songBonus,
-      blackNote,
-      songNote,
-      poolId: pools.length > 0 && activePool ? activePool.classEntryId : null,
-    })
+    buildConfirm(baseHeal, face?.note ? ` · ${face.note}` : '')
   }
 
   function applyHitDieConfirm(state: Extract<ConfirmState, { kind: 'hit-die' }>) {

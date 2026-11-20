@@ -398,6 +398,25 @@ export function CompanionsPanel({
       )
       return
     }
+    const typeBit = atk.damageType ? ` ${atk.damageType}` : ''
+    if (turnEco?.diceOnTable && turnEco.openEnterOwnNumber) {
+      turnEco.openEnterOwnNumber({
+        title: `${atk.companionName}: ${atk.name}`,
+        mode: 'd20',
+        modifier: atk.attackBonus,
+        onDone: () => {
+          spendHostAttack?.()
+          if (atk.damageExpr) {
+            turnEco.openEnterOwnNumber({
+              title: `Урон: ${atk.companionName} · ${atk.name}`,
+              mode: 'formula',
+              formula: `${atk.damageExpr}${typeBit}`.trim(),
+            })
+          }
+        },
+      })
+      return
+    }
     const strike = resolveAttackRoll({
       name: `${atk.companionName}: ${atk.name}`,
       attackBonus: atk.attackBonus,

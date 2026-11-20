@@ -1717,6 +1717,7 @@ export function installSheetActions4(model: SheetModel) {
         modifier: rollMod,
         advantageMode: mode,
         bonusDice,
+        onDone: () => offerHeroicRerollAfter(skill.label, 20),
       })
       if (profNote) model.emitToast(`${skill.label}${profNote}`)
     } else {
@@ -1898,6 +1899,7 @@ export function installSheetActions4(model: SheetModel) {
         modifier: rollMod,
         advantageMode: model.effectiveRollMode(),
         bonusDice,
+        onDone: () => offerHeroicRerollAfter(abilityLabel, 20),
       })
     } else {
       const suffix = `${note}${model.inspirationRollArmed ? ' · вдохновение' : ''}`
@@ -2075,6 +2077,7 @@ export function installSheetActions4(model: SheetModel) {
         modifier: saveRollMod,
         advantageMode: model.saveRollMode(key),
         bonusDice,
+        onDone: () => offerHeroicRerollAfter(saveTitle, 20),
       })
       if (saveProfNote) model.emitToast(`${saveTitle}${saveProfNote}`)
     } else {

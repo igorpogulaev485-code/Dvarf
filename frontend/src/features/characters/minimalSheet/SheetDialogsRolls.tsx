@@ -499,20 +499,47 @@ export function SheetDialogsRolls({ model }: { model: SheetModel }) {
         onPrimary={() => {
           const pending = model.heroicRerollPending
           if (!pending) return
-          if (!model.spendHeroicInspirationReroll?.()) return
           const sides = Math.max(2, Math.floor(pending.sides || 20))
+          const te = model.turnEconomyApi as
+            | {
+                diceOnTable?: boolean
+                openEnterOwnNumber?: (o: {
+                  title: string
+                  mode?: 'total' | 'd20' | 'formula'
+                  modifier?: number
+                  formula?: string | null
+                  onDone?: (total: number) => void
+                }) => void
+              }
+            | undefined
+          const finish = (face: number, physical: boolean) => {
+            if (!model.spendHeroicInspirationReroll?.()) return
+            const line = `Героическое вдохновение: ${pending.label} — переброс к${sides} → ${face} (новый результат)`
+            model.emitToast?.(line)
+            void postSheetRollToSession({
+              openSessionId: model.character.open_session_id,
+              characterId: model.character.id,
+              title: `Героическое вдохновение · переброс · ${pending.label}`,
+              total: face,
+              formula: `1к${sides}`,
+              breakdown: line,
+              physicalDice: physical,
+            })
+          }
+          // Physical: перебросить = ввести новое число (не RNG).
+          if (te?.diceOnTable && te.openEnterOwnNumber) {
+            model.setHeroicRerollPending?.(null)
+            te.openEnterOwnNumber({
+              title: `Героическое вдохновение · ${pending.label}`,
+              mode: sides === 20 ? 'd20' : 'formula',
+              modifier: 0,
+              formula: sides === 20 ? null : `1к${sides}`,
+              onDone: (total) => finish(total, true),
+            })
+            return
+          }
           const rr = resolveHeroicReroll({ previous: 0, sides })
-          const face = rr.next
-          const line = `Героическое вдохновение: ${pending.label} — переброс к${sides} → ${face} (новый результат)`
-          model.emitToast?.(line)
-          void postSheetRollToSession({
-            openSessionId: model.character.open_session_id,
-            characterId: model.character.id,
-            title: `Героическое вдохновение · переброс · ${pending.label}`,
-            total: face,
-            formula: `1к${sides}`,
-            breakdown: line,
-          })
+          finish(rr.next, false)
         }}
         onSecondary={() => model.setHeroicRerollPending?.(null)}
       >
@@ -932,6 +959,29 @@ export function SheetDialogsRolls({ model }: { model: SheetModel }) {
           const bonus = listRollDieChips(model.draft.play.effects ?? [], 'initiative').map(
             (chip) => ({ dice: chip.dice, label: chip.name }),
           )
+          const te = model.turnEconomyApi as
+            | {
+                diceOnTable?: boolean
+                openEnterOwnNumber?: (o: {
+                  title: string
+                  mode?: 'total' | 'd20' | 'formula'
+                  modifier?: number
+                  advantageMode?: 'normal' | 'advantage' | 'disadvantage'
+                  bonusDice?: Array<{ dice: string; label: string }> | null
+                }) => void
+              }
+            | undefined
+          if (te?.diceOnTable && te.openEnterOwnNumber) {
+            te.openEnterOwnNumber({
+              title: 'Инициатива',
+              mode: 'd20',
+              modifier: model.initiativeValue,
+              advantageMode: mode,
+              bonusDice: bonus.length ? bonus : null,
+            })
+            model.applyBardInitiativeInspiration()
+            return
+          }
           model.emitToast(
             formatSkillRoll(
               'Инициатива',

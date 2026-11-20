@@ -11,6 +11,7 @@ import {
   type CompanionAttackHostContext,
 } from './companionAttacks'
 import { resolveAttackRoll } from './deskRolls'
+import { useTurnEconomy } from './TurnEconomyContext'
 
 const KIND_LABEL: Record<CompanionKind, string> = {
   beast_companion: 'Зверь',
@@ -66,6 +67,7 @@ export function PlayDeskCompanionsCompact({
   onSpendHostAttack,
   canHostAttack,
 }: PlayDeskCompanionsCompactProps) {
+  const turnEco = useTurnEconomy()
   const named = companions.filter(shouldShowOnCompanionStrip)
 
   return (
@@ -166,6 +168,25 @@ export function PlayDeskCompanionsCompact({
                             ? gate.reason
                             : null) || 'Действие уже потрачено',
                         )
+                        return
+                      }
+                      const typeBit = atk.damageType ? ` ${atk.damageType}` : ''
+                      if (turnEco?.diceOnTable && turnEco.openEnterOwnNumber) {
+                        turnEco.openEnterOwnNumber({
+                          title: `${atk.companionName}: ${atk.name}`,
+                          mode: 'd20',
+                          modifier: atk.attackBonus,
+                          onDone: () => {
+                            onSpendHostAttack?.()
+                            if (atk.damageExpr) {
+                              turnEco.openEnterOwnNumber({
+                                title: `Урон: ${atk.companionName} · ${atk.name}`,
+                                mode: 'formula',
+                                formula: `${atk.damageExpr}${typeBit}`.trim(),
+                              })
+                            }
+                          },
+                        })
                         return
                       }
                       const strike = resolveAttackRoll({

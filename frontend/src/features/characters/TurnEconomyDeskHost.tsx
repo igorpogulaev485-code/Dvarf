@@ -403,6 +403,36 @@ export function TurnEconomyDeskHost({ model, children }: Props) {
         onClose={() => setInitiativeOpen(false)}
         onRoll={({ advantage }) => {
           if (!openSessionId || !characterId) return
+          // Physical: вместо серверного RNG — EnterOwn (к20+мод), затем manual value.
+          if (diceOnTable) {
+            const seat =
+              combat.session?.seats?.find((s) => s.character_id === characterId) ??
+              null
+            const dex = seat?.dex_mod ?? combat.pendingEntry?.dex_mod ?? 0
+            const bonus = seat?.initiative_bonus ?? 0
+            const mod = dex + bonus
+            setInitiativeOpen(false)
+            setEnterCtx({
+              title: 'Инициатива',
+              mode: 'd20',
+              modifier: mod,
+              advantageMode: advantage ? 'advantage' : 'normal',
+              formula: null,
+              bonusDice: null,
+              onDone: (total) => {
+                setInitBusy(true)
+                void rollSessionCombatInitiative(openSessionId, {
+                  character_id: characterId,
+                  mode: 'manual',
+                  value: total,
+                })
+                  .then(() => combat.reload())
+                  .finally(() => setInitBusy(false))
+              },
+            })
+            setEnterOpen(true)
+            return
+          }
           setInitBusy(true)
           void rollSessionCombatInitiative(openSessionId, {
             character_id: characterId,
