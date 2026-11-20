@@ -36,6 +36,13 @@ import {
   SUBCLASS_MIN_LEVEL_2024 as ARTIFICER_SUBCLASS_MIN_LEVEL_2024,
 } from '../../shared/dnd/artificer2024Features'
 import { ELDRITCH_INVOCATIONS_2024 } from '../../shared/dnd/edition2024ClassOptions'
+import {
+  BARBARIAN_SUBCLASS_SLUGS_2024,
+  isWildHeartAspectOption2024,
+  isWildHeartPowerOption2024,
+  isWildHeartRageOption2024,
+  SUBCLASS_MIN_LEVEL_2024 as BARBARIAN_SUBCLASS_MIN_LEVEL_2024,
+} from '../../shared/dnd/barbarian2024Features'
 import { SKILL_DEFS } from '../characters/sheetTypes'
 import {
   DRUID_SUBCLASS_SLUGS_2024,
@@ -166,11 +173,18 @@ export function classToolChoice(
   return { count, pool }
 }
 
-export function weaponMasteryLimit(classSlug: string | null): number {
+export function plannedPrimaryClassLevel(state: Create2024State): number {
+  const primary =
+    state.classes.find((row) => row.id === state.primaryClassEntryId) ?? state.classes[0]
+  return Math.max(1, primary?.level ?? state.characterLevel ?? 1)
+}
+
+export function weaponMasteryLimit(classSlug: string | null, level?: number): number {
   if (!classSlug) return 0
   const rule = WEAPON_MASTERY_CLASS_RULES[classSlug]
   if (!rule?.enabled) return 0
-  return masteryLimitForClass(rule, 1)
+  const lv = level ?? 1
+  return masteryLimitForClass(rule, lv)
 }
 
 export function masteryWeaponOptions(
@@ -449,7 +463,11 @@ function classIssues(state: Create2024State, ctx: StepIssueCtx): string[] {
   ) {
     issues.push(`Навыки класса: выбрано ${state.classSkillIds.length} из ${skills.count}`)
   }
-  const wm = weaponMasteryLimit(state.classSlug)
+  // Barbarian create-at-N may already have planned level >1 when revisiting «Класс».
+  const wm =
+    state.classSlug === 'barbarian'
+      ? weaponMasteryLimit(state.classSlug, plannedPrimaryClassLevel(state))
+      : weaponMasteryLimit(state.classSlug)
   if (wm > 0 && !uniqueCount(state.weaponMasteryIds, wm)) {
     issues.push(
       `${WEAPON_MASTERY_NAME_RU}: выбрано ${state.weaponMasteryIds.length} из ${wm}`,
@@ -574,6 +592,49 @@ export function artificerCreatePicksNeed2024(state: Create2024State): {
       artificerLevel >= ARTIFICER_SUBCLASS_MIN_LEVEL_2024,
     plansKnown,
     spellStoring: artificerLevel >= SPELL_STORING_ITEM_MIN_LEVEL_2024,
+  }
+}
+
+export function barbarianCreatePicksNeed2024(state: Create2024State): {
+  barbarianLevel: number
+  subclassSlug: string
+  wildHeartRage: boolean
+  wildHeartAspect: boolean
+  wildHeartPower: boolean
+  masteryTopUp: boolean
+  masteryLimit: number
+} {
+  if (state.classSlug !== 'barbarian') {
+    return {
+      barbarianLevel: 0,
+      subclassSlug: '',
+      wildHeartRage: false,
+      wildHeartAspect: false,
+      wildHeartPower: false,
+      masteryTopUp: false,
+      masteryLimit: 0,
+    }
+  }
+  const primary =
+    state.classes.find((row) => row.id === state.primaryClassEntryId) ?? state.classes[0]
+  const barbarianLevel = plannedPrimaryClassLevel(state)
+  const subclass =
+    (primary && state.subclassByEntryId[primary.id]) || state.subclassSlug || ''
+  const masteryLimit = weaponMasteryLimit('barbarian', barbarianLevel)
+  const masteryAtL1 = weaponMasteryLimit('barbarian', 1)
+  return {
+    barbarianLevel,
+    subclassSlug: subclass,
+    wildHeartRage:
+      subclass === BARBARIAN_SUBCLASS_SLUGS_2024.wildHeart &&
+      barbarianLevel >= BARBARIAN_SUBCLASS_MIN_LEVEL_2024,
+    wildHeartAspect:
+      subclass === BARBARIAN_SUBCLASS_SLUGS_2024.wildHeart && barbarianLevel >= 6,
+    wildHeartPower:
+      subclass === BARBARIAN_SUBCLASS_SLUGS_2024.wildHeart && barbarianLevel >= 14,
+    // Keep editor mounted for create-at-N (2→3→4) even after filled, so chips stay clickable.
+    masteryTopUp: masteryLimit > masteryAtL1,
+    masteryLimit,
   }
 }
 
@@ -735,6 +796,31 @@ function levelingIssues(state: Create2024State, ctx: StepIssueCtx): string[] {
       if (!spell) {
         issues.push(`Выберите заклинание для «${SPELL_STORING_ITEM_NAME_RU}» (1–3 круг)`)
       }
+    }
+  }
+  // Barbarian create-at-N must fill the table limit (2→3@4→4@10), not leave Готово open at 2/3.
+  // Fighter keep soft L1-only class-step budget in this pack (separate fighter e2e).
+  if (state.classSlug === 'barbarian') {
+    const limit = weaponMasteryLimit(state.classSlug, plannedPrimaryClassLevel(state))
+    if (limit > 0 && state.weaponMasteryIds.length !== limit) {
+      issues.push(
+        `${WEAPON_MASTERY_NAME_RU}: выбрано ${state.weaponMasteryIds.length} из ${limit}`,
+      )
+    }
+  }
+  if (state.classSlug === 'barbarian') {
+    const need = barbarianCreatePicksNeed2024(state)
+    const rageAnimal = String(state.classOptionPicks.wild_heart_rage || '')
+    if (need.wildHeartRage && !isWildHeartRageOption2024(rageAnimal)) {
+      issues.push('Выберите форму ярости дикой природы (Волк / Медведь / Орёл)')
+    }
+    const aspect = String(state.classOptionPicks.wild_heart_aspect || '')
+    if (need.wildHeartAspect && !isWildHeartAspectOption2024(aspect)) {
+      issues.push('Выберите Аспект дикой природы (с 6 ур.)')
+    }
+    const power = String(state.classOptionPicks.wild_heart_power || '')
+    if (need.wildHeartPower && !isWildHeartPowerOption2024(power)) {
+      issues.push('Выберите Силу дикой природы (с 14 ур.)')
     }
   }
   if (state.classSlug === 'ranger') {

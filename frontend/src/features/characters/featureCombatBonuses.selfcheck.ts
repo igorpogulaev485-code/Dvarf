@@ -189,7 +189,7 @@ const frenzyInRoll = resolveAttackRoll({
   rng: seq([0.5, 0, 0.5, 0.75]), // hit 11, d12=1, 2d6=4+5
 })
 assert(
-  frenzyInRoll.text.includes('Бешенство') && frenzyInRoll.text.includes('2d6'),
+  frenzyInRoll.text.includes('Безумие') && frenzyInRoll.text.includes('2d6'),
   `Frenzy dice used in strike: ${frenzyInRoll.text}`,
 )
 

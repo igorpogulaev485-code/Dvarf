@@ -92,6 +92,11 @@ import {
 } from '../../shared/dnd/fighter2024Features'
 import type { FighterFeatureRequest } from './Fighter2024UseDialog'
 import {
+  BARBARIAN_2024_CARD_BUTTONS,
+  barbarian2024UseFeatureId,
+} from '../../shared/dnd/barbarian2024Features'
+import type { BarbarianFeatureRequest } from './Barbarian2024UseDialog'
+import {
   ARTIFICER_2024_CARD_BUTTONS,
   artificer2024UseFeatureId,
 } from '../../shared/dnd/artificer2024Features'
@@ -286,6 +291,7 @@ type ClassFeaturesPanelProps = {
   onDruidFeatureUse?: (request: DruidFeatureRequest) => void
   onRangerFeatureUse?: (request: RangerFeatureRequest) => void
   onFighterFeatureUse?: (request: FighterFeatureRequest) => void
+  onBarbarianFeatureUse?: (request: BarbarianFeatureRequest) => void
   onArtificerFeatureUse?: (request: ArtificerFeatureRequest) => void
   /** Open sorcery-points spend dialog (2024 metamagic / font). */
   onSorceryPointsSpend?: (resourceId: string) => void
@@ -467,6 +473,7 @@ function FeatureResourceControls({
   onDruidFeatureUse,
   onRangerFeatureUse,
   onFighterFeatureUse,
+  onBarbarianFeatureUse,
   onFeatureBuffApply,
   moonCombatWildShape = false,
   scaleText = null,
@@ -496,6 +503,7 @@ function FeatureResourceControls({
   onDruidFeatureUse?: (request: DruidFeatureRequest) => void
   onRangerFeatureUse?: (request: RangerFeatureRequest) => void
   onFighterFeatureUse?: (request: FighterFeatureRequest) => void
+  onBarbarianFeatureUse?: (request: BarbarianFeatureRequest) => void
   onFeatureBuffApply?: ClassFeaturesPanelProps['onFeatureBuffApply']
   /** Circle of the Moon: Wild Shape is a bonus action. */
   moonCombatWildShape?: boolean
@@ -1034,6 +1042,23 @@ function FeatureResourceControls({
             }
           >
             {FIGHTER_2024_CARD_BUTTONS[feature.id] ?? 'Применить…'}
+          </Button>
+        ) : edition === '2024' &&
+          onBarbarianFeatureUse &&
+          barbarian2024UseFeatureId(feature.id) ? (
+          <Button
+            type="button"
+            onClick={() =>
+              onBarbarianFeatureUse({
+                featureId: feature.id,
+                resourceId: pool.id,
+                classSlug,
+                classEntryId: feature.classEntryId,
+                name: feature.name_ru,
+              })
+            }
+          >
+            {BARBARIAN_2024_CARD_BUTTONS[feature.id] ?? 'Применить…'}
           </Button>
         ) : edition === '2024' &&
           onDruidFeatureUse &&
@@ -2314,6 +2339,7 @@ function FeatureRow({
   onDruidFeatureUse,
   onRangerFeatureUse,
   onFighterFeatureUse,
+  onBarbarianFeatureUse,
   onArtificerFeatureUse,
   onSorceryPointsSpend,
   moonCombatWildShape = false,
@@ -2374,6 +2400,7 @@ function FeatureRow({
   onDruidFeatureUse?: (request: DruidFeatureRequest) => void
   onRangerFeatureUse?: (request: RangerFeatureRequest) => void
   onFighterFeatureUse?: (request: FighterFeatureRequest) => void
+  onBarbarianFeatureUse?: (request: BarbarianFeatureRequest) => void
   onArtificerFeatureUse?: (request: ArtificerFeatureRequest) => void
   onSorceryPointsSpend?: (resourceId: string) => void
   moonCombatWildShape?: boolean
@@ -2903,6 +2930,28 @@ function FeatureRow({
       ) : null}
       {replacementStatus === 'active' &&
       edition === '2024' &&
+      onBarbarianFeatureUse &&
+      !feature.resource?.pool_id &&
+      barbarian2024UseFeatureId(feature.id) ? (
+        <div className="feature-resource__actions">
+          <Button
+            type="button"
+            onClick={() =>
+              onBarbarianFeatureUse({
+                featureId: feature.id,
+                resourceId: null,
+                classSlug,
+                classEntryId: feature.classEntryId,
+                name: feature.name_ru,
+              })
+            }
+          >
+            {BARBARIAN_2024_CARD_BUTTONS[feature.id] ?? 'Применить…'}
+          </Button>
+        </div>
+      ) : null}
+      {replacementStatus === 'active' &&
+      edition === '2024' &&
       onArtificerFeatureUse &&
       artificer2024UseFeatureId(feature.id) &&
       (!feature.resource?.pool_id ||
@@ -3095,6 +3144,7 @@ function FeatureRow({
           onDruidFeatureUse={onDruidFeatureUse}
           onRangerFeatureUse={onRangerFeatureUse}
           onFighterFeatureUse={onFighterFeatureUse}
+          onBarbarianFeatureUse={onBarbarianFeatureUse}
           onFeatureBuffApply={onFeatureBuffApply}
           moonCombatWildShape={moonCombatWildShape}
           scaleText={scaleShown}
@@ -3318,6 +3368,7 @@ export function ClassFeaturesPanel({
   onDruidFeatureUse,
   onRangerFeatureUse,
   onFighterFeatureUse,
+  onBarbarianFeatureUse,
   onArtificerFeatureUse,
   onSorceryPointsSpend,
   onMoonFormSlotHeal,
@@ -3906,6 +3957,7 @@ export function ClassFeaturesPanel({
                             onDruidFeatureUse={onDruidFeatureUse}
                             onRangerFeatureUse={onRangerFeatureUse}
                             onFighterFeatureUse={onFighterFeatureUse}
+                            onBarbarianFeatureUse={onBarbarianFeatureUse}
                             onArtificerFeatureUse={onArtificerFeatureUse}
                             onSorceryPointsSpend={onSorceryPointsSpend}
                             moonCombatWildShape={moonCombatWildShape}

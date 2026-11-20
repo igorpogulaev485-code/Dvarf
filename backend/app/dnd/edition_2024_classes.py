@@ -56,9 +56,11 @@ MULTICLASS_MODE: dict[str, str] = {
 
 # Multiclass proficiency grants (SRD 5.2.1 class «As a Multiclass Character»).
 MULTICLASS_PROFICIENCIES: dict[str, dict[str, Any]] = {
+    # next.dnd.su multiclass: martial weapons; shields; no simple grant on dip.
+    # 2014 multiclass stays on the 2014 path — this table is edition-2024 only.
     "barbarian": {
         "armor": ["shields"],
-        "weapons": ["simple", "martial"],
+        "weapons": ["martial"],
         "tools": [],
         "skills": 0,
     },

@@ -8,6 +8,7 @@ import {
   feralSensesBlindsightFt2024,
   hasFeralSensesBlindsight,
 } from '../../shared/dnd/ranger2024Features'
+import { FRENZY_NAME_RU } from '../../shared/dnd/barbarian2024Features'
 import { abilityModifier, type AbilityKey } from './sheetTypes'
 
 type FeatureLike = { id: string }
@@ -329,8 +330,8 @@ export function frenzy2024Rider(input: {
   return {
     dice: `${count}d6`,
     type: null,
-    label: `${count}к6 (Бешенство)`,
-    rollLabel: `Бешенство, ${count}к6`,
+    label: `${count}к6 (${FRENZY_NAME_RU})`,
+    rollLabel: `${FRENZY_NAME_RU}, ${count}к6`,
   }
 }
 

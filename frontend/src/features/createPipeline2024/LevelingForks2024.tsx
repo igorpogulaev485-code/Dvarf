@@ -57,6 +57,7 @@ import type { KnownForm } from '../characters/knownForms'
 import { hitDieForClass, type AbilityScores } from '../../shared/dnd/multiclassRules'
 import { hitDieSides, type HitDie } from '../../shared/dnd/hitDice'
 import { WEAPON_MASTERY_CLASS_RULES } from '../../shared/dnd/weaponMastery'
+import { weaponMasteryGain2024 } from '../../shared/dnd/pendingFeatureChoices2024'
 import type { HpLevelChoice } from '../createPipeline/createPipelineTypes'
 import { ensureHpChoices } from '../createPipeline/LevelingStep'
 
@@ -322,6 +323,14 @@ export function LevelingForks2024({
             detail: names,
           })
         }
+      }
+      const masteryGain = weaponMasteryGain2024(slug, lv)
+      if (masteryGain > 0 && !(lv === 1 && isPrimary)) {
+        out.push({
+          level: lv,
+          kind: 'weapon_mastery',
+          label: `Оружейное мастерство (+${masteryGain})`,
+        })
       }
       if (lv === 2 && (slug === 'paladin' || slug === 'ranger')) {
         out.push({

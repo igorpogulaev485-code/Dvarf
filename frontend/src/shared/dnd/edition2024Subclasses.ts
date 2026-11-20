@@ -541,7 +541,7 @@ export function buildPermanentBonuses2024(input: {
   }
   if (subclassSlug === 'barbarian__berserker') {
     // 2024: dice count = Rage Damage bonus (not PB).
-    add('frenzy', 'Бешенство', 'damage_rider', {
+    add('frenzy', 'Безумие', 'damage_rider', {
       while_raging: true,
       requires_reckless_attack: true,
       dice_count_from: 'rage_damage',
@@ -551,7 +551,18 @@ export function buildPermanentBonuses2024(input: {
     })
   }
   if (subclassSlug === 'barbarian__zealot') {
-    add('divine-fury', 'Божественная ярость', 'damage_rider', { while_raging: true, dice: '1d6', plus_half_level: true })
+    add('divine-fury', 'Божественная ярость', 'damage_rider', {
+      while_raging: true,
+      dice: '1d6',
+      plus_half_level: true,
+      once_per_turn: true,
+    })
+  }
+  if (subclassSlug === 'barbarian__wild-heart') {
+    add('rage-of-the-wilds', 'Ярость дикой природы', 'other_calc', { rage_options: true })
+  }
+  if (subclassSlug === 'barbarian__world-tree') {
+    add('vitality-of-the-tree', 'Жизненная сила Древа', 'other_calc', { temp_hp_on_rage: true })
   }
   if (subclassSlug === 'rogue__assassin') {
     // 2024 Assassinate — NOT 2014 auto-crit on surprised.
@@ -750,8 +761,15 @@ export function buildSubclassResources2024(input: {
   } else if (subclassSlug === 'rogue__scion-of-the-three') {
     push('bloodthirst', 'Кровожадность', Math.max(1, chaMod), 'long', 'bloodthirst')
   } else if (subclassSlug === 'barbarian__zealot') {
-    if (classLevel >= 6) push('fanatical_focus', 'Фанатичная сосредоточенность', 1, 'long', 'fanatical-focus')
-    if (classLevel >= 10) push('zealous_presence', 'Рьяное присутствие', 1, 'long', 'zealous-presence')
+    // 2024 Warrior of the Gods: stock of d12 self-heal dice (not 2014 material-free raise).
+    const wog =
+      classLevel >= 17 ? 7 : classLevel >= 12 ? 6 : classLevel >= 6 ? 5 : classLevel >= 3 ? 4 : 0
+    if (wog > 0) {
+      push('warrior_of_the_gods', 'Воин богов', wog, 'long', 'warrior-of-the-gods')
+    }
+    if (classLevel >= 6) push('fanatical_focus', 'Фанатичный фокус', 1, 'long', 'fanatical-focus')
+    if (classLevel >= 10) push('zealous_presence', 'Ревностное присутствие', 1, 'long', 'zealous-presence')
+    if (classLevel >= 14) push('rage_of_the_gods', 'Ярость богов', 1, 'long', 'rage-of-the-gods')
   } else if (subclassSlug === 'bard__glamour') {
     push('beguiling_magic', 'Чарующая магия', 1, 'long', 'beguiling-magic')
     if (classLevel >= 6) push('mantle_of_majesty', 'Мантия величия', 1, 'long', 'mantle-of-majesty')

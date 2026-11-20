@@ -41,7 +41,7 @@ export type AbilityCapInventoryItem = {
 type ClassMaxFeature = {
   label: string
   abilities: Partial<Record<AbilityScoreKey, number>>
-  match: (cls: ClassLevelEntry) => boolean
+  match: (cls: ClassLevelEntry, rulesEdition?: '2014' | '2024' | string | null) => boolean
 }
 
 function looksLike(name: string, catalogId: string | null, ...needles: string[]): boolean {
@@ -64,11 +64,21 @@ function readNumber(value: unknown, fallback: number): number {
  */
 export const CLASS_ABILITY_MAX_FEATURES: ClassMaxFeature[] = [
   {
-    // Barbarian 20 — Primal Champion: STR & CON max 24
-    label: 'Первобытный чемпион',
+    // Barbarian 20 — Primal Champion 2014: STR & CON max 24
+    label: 'Изначальный чемпион',
     abilities: { str: 24, con: 24 },
-    match: (cls) =>
+    match: (cls, rulesEdition) =>
       cls.level >= 20 &&
+      rulesEdition !== '2024' &&
+      looksLike(cls.name, cls.catalog_id, 'варвар', 'barbarian'),
+  },
+  {
+    // Barbarian 20 — Primal Champion 2024: STR & CON max 25
+    label: 'Изначальный чемпион',
+    abilities: { str: 25, con: 25 },
+    match: (cls, rulesEdition) =>
+      cls.level >= 20 &&
+      rulesEdition === '2024' &&
       looksLike(cls.name, cls.catalog_id, 'варвар', 'barbarian'),
   },
 ]
@@ -81,11 +91,12 @@ function clampCeiling(value: number): number {
 /** Collect max raises from class levels (archetype/capstone features). */
 export function abilityMaxSourcesFromClasses(
   classes: ClassLevelEntry[],
+  rulesEdition?: '2014' | '2024' | string | null,
 ): AbilityMaxSource[] {
   const out: AbilityMaxSource[] = []
   for (const cls of classes) {
     for (const feature of CLASS_ABILITY_MAX_FEATURES) {
-      if (!feature.match(cls)) continue
+      if (!feature.match(cls, rulesEdition)) continue
       for (const key of ABILITY_SCORE_KEYS) {
         const max = feature.abilities[key]
         if (max == null) continue
@@ -182,9 +193,10 @@ export function resolveAbilityMaxes(input: {
   inventoryItems: AbilityCapInventoryItem[]
   attunedItemIds: Set<string>
   sheetStored?: Partial<Record<AbilityScoreKey, number | null | undefined>>
+  rulesEdition?: '2014' | '2024' | string | null
 }): Record<AbilityScoreKey, AbilityMaxResolved> {
   const sources = [
-    ...abilityMaxSourcesFromClasses(input.classes),
+    ...abilityMaxSourcesFromClasses(input.classes, input.rulesEdition),
     ...abilityMaxSourcesFromInventory(input.inventoryItems, input.attunedItemIds),
     ...abilityMaxSourcesFromSheetStored(input.sheetStored ?? {}),
   ]

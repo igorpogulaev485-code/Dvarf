@@ -761,7 +761,7 @@ def build_permanent_bonuses(
     if subclass_slug == "barbarian__berserker":
         add(
             "frenzy",
-            "Бешенство",
+            "Безумие",
             "damage_rider",
             {
                 "while_raging": True,
@@ -788,18 +788,18 @@ def build_permanent_bonuses(
     if subclass_slug == "barbarian__wild-heart":
         add(
             "rage-of-the-wilds",
-            "Ярость диких",
+            "Ярость дикой природы",
             "other_calc",
             {"rage_options": True},
-            note_ru="Опции ярости (выбор облика) — в расчётах стола",
+            note_ru="Опции ярости (Волк / Медведь / Орёл) — в расчётах стола",
         )
     if subclass_slug == "barbarian__world-tree":
         add(
             "vitality-of-the-tree",
-            "Живучесть древа",
+            "Жизненная сила Древа",
             "other_calc",
             {"temp_hp_on_rage": True},
-            note_ru="Временные хиты при входе в ярость",
+            note_ru="Временные хиты при входе в ярость = уровень варвара",
         )
 
     # Rogue Assassin — 2024 Assassinate (NOT 2014 auto-crit on surprised).
@@ -1602,10 +1602,22 @@ def build_subclass_resources(
 
     # --- Barbarian ---
     elif subclass_slug == "barbarian__zealot":
+        # 2024 Warrior of the Gods: stock of d12 self-heal dice (not 2014 material-free raise).
+        if class_level >= 3:
+            wog = 7 if class_level >= 17 else 6 if class_level >= 12 else 5 if class_level >= 6 else 4
+            add(
+                "warrior_of_the_gods",
+                name_ru="Воин богов",
+                max_uses=wog,
+                reset="long",
+                feature_id="warrior-of-the-gods",
+                min_level=3,
+                extra_meta={"die": "d12", "track": "stock", "note": "Бонусным: потратить любые кости, хиты = сумма"},
+            )
         if class_level >= 6:
             add(
                 "fanatical_focus",
-                name_ru="Фанатичная сосредоточенность",
+                name_ru="Фанатичный фокус",
                 max_uses=1,
                 reset="long",
                 feature_id="fanatical-focus",
@@ -1615,11 +1627,20 @@ def build_subclass_resources(
         if class_level >= 10:
             add(
                 "zealous_presence",
-                name_ru="Рьяное присутствие",
+                name_ru="Ревностное присутствие",
                 max_uses=1,
                 reset="long",
                 feature_id="zealous-presence",
                 min_level=10,
+            )
+        if class_level >= 14:
+            add(
+                "rage_of_the_gods",
+                name_ru="Ярость богов",
+                max_uses=1,
+                reset="long",
+                feature_id="rage-of-the-gods",
+                min_level=14,
             )
 
     # --- Bard extras ---

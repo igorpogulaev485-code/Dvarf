@@ -67,6 +67,12 @@ export type Create2024State = {
     primal_companion?: 'land' | 'sea' | 'sky' | null
     /** Ranger 2024 Fey Wanderer L3+: performance | deception | persuasion. */
     otherworldly_glamour?: string | null
+    /** Barbarian Wild Heart L3+: wolf | bear | eagle. */
+    wild_heart_rage?: 'wolf' | 'bear' | 'eagle' | null
+    /** Barbarian Wild Heart L6+: salmon | panther | owl. */
+    wild_heart_aspect?: 'salmon' | 'panther' | 'owl' | null
+    /** Barbarian Wild Heart L14+: falcon | lion | ram. */
+    wild_heart_power?: 'falcon' | 'lion' | 'ram' | null
   }
   /** Class tool proficiencies the player chooses (bard instruments, monk, artificer). */
   classToolIds: string[]

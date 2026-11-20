@@ -35,6 +35,7 @@ import { Cleric2024UseDialog, type ClericFeatureRequest } from '../Cleric2024Use
 import { Paladin2024UseDialog, type PaladinFeatureRequest } from '../Paladin2024UseDialog'
 import { Ranger2024UseDialog, type RangerFeatureRequest } from '../Ranger2024UseDialog'
 import { Fighter2024UseDialog, type FighterFeatureRequest } from '../Fighter2024UseDialog'
+import { Barbarian2024UseDialog, type BarbarianFeatureRequest } from '../Barbarian2024UseDialog'
 import { Artificer2024UseDialog, type ArtificerFeatureRequest } from '../Artificer2024UseDialog'
 import {
   artificer2024UseFeatureId,
@@ -94,6 +95,10 @@ import {
   fighter2024UseFeatureId,
   type Fighter2024UseResult,
 } from '../../../shared/dnd/fighter2024Features'
+import {
+  barbarian2024UseFeatureId,
+  type Barbarian2024UseResult,
+} from '../../../shared/dnd/barbarian2024Features'
 import { Druid2024UseDialog, type DruidFeatureRequest, type Druid2024ConfirmResult } from '../Druid2024UseDialog'
 import { druid2024UseFeatureId } from '../../../shared/dnd/druid2024Features'
 import { addFlexibleSpellSlot } from '../../../shared/dnd/spells'
@@ -409,6 +414,74 @@ export function SheetDialogsResources({ model }: { model: SheetModel }) {
     }))
     model.onToast(result.message)
     model.setFighterFeatureUse(null)
+  }
+
+  const onBarbarianUseConfirm = (result: Barbarian2024UseResult) => {
+    if (!result.ok) {
+      model.onToast(result.message ?? 'Не удалось применить умение')
+      return
+    }
+    const patch = result.patches?.classOptionsPatch
+    model.setDraft((prev) => {
+      let classOptions2024 = prev.classOptions2024
+      if (patch) {
+        const ragePrev = classOptions2024?.rage ?? {
+          active: false,
+          rounds_extended: 0,
+          max_minutes: 10,
+        }
+        classOptions2024 = {
+          ...(classOptions2024 ?? {
+            eldritch_invocations: [],
+            metamagic: [],
+            replicate_plans: [],
+            replicate_active: [],
+            spell_storing_spell: null,
+            rage: ragePrev,
+          }),
+          ...(patch.wild_heart_aspect != null
+            ? { wild_heart_aspect: patch.wild_heart_aspect }
+            : {}),
+          rage: {
+            ...ragePrev,
+            ...(patch.rage ?? {}),
+            max_minutes: 10,
+          },
+        }
+      }
+      return {
+        ...prev,
+        classOptions2024,
+        play: {
+          ...prev.play,
+          resources: result.resources,
+        },
+      }
+    })
+    const incomingTemp =
+      typeof result.tempHp === 'number' ? Math.max(0, Math.floor(result.tempHp)) : 0
+    if (incomingTemp > 0) {
+      const current = Math.max(0, model.draft.play.hpTemp || 0)
+      const applyTemp = (value: number) =>
+        model.setDraft((prev) => ({
+          ...prev,
+          play: { ...prev.play, hpTemp: value },
+        }))
+      const ask = model.askTempHpReplace as
+        | ((input: { current: number; incoming: number }) => Promise<'keep' | 'replace'>)
+        | undefined
+      if (current <= 0) {
+        applyTemp(incomingTemp)
+      } else if (typeof ask === 'function') {
+        void ask({ current, incoming: incomingTemp }).then((choice) =>
+          applyTemp(chooseTempHpPool(current, incomingTemp, choice)),
+        )
+      } else {
+        applyTemp(Math.max(current, incomingTemp))
+      }
+    }
+    model.onToast(result.message)
+    model.setBarbarianFeatureUse(null)
   }
 
   const onArtificerUseConfirm = (result: Artificer2024UseResult) => {
@@ -895,6 +968,41 @@ export function SheetDialogsResources({ model }: { model: SheetModel }) {
       }
     }
     return level
+  })()
+
+  const barbarianRequest = model.barbarianFeatureUse as BarbarianFeatureRequest | null
+  const barbarian2024Use =
+    model.rulesEdition === '2024' &&
+    barbarianRequest != null &&
+    barbarian2024UseFeatureId(barbarianRequest.featureId)
+
+  const barbarianLevel = (() => {
+    const entry = barbarianRequest
+      ? model.draft.classes.find((row) => row.id === barbarianRequest.classEntryId)
+      : null
+    if (entry) return Math.max(0, entry.level || 0)
+    let level = 0
+    for (const row of model.draft.classes) {
+      if (resolveClassCasterSlug(row.name) === 'barbarian' || /варвар/i.test(row.name)) {
+        level += Math.max(0, row.level || 0)
+      }
+    }
+    return level
+  })()
+
+  const wearingHeavyArmor = model.armorPiecesForSpeed?.armor?.kind === 'heavy'
+
+  const barbarianSubclassSlug = (() => {
+    const entry = barbarianRequest
+      ? model.draft.classes.find((row) => row.id === barbarianRequest.classEntryId)
+      : null
+    return (
+      entry?.subclass_catalog_id ??
+      (barbarianRequest?.classEntryId
+        ? model.subclassSlugByEntryId?.[barbarianRequest.classEntryId]
+        : null) ??
+      null
+    )
   })()
 
   const artificerRequest = model.artificerFeatureUse as ArtificerFeatureRequest | null
@@ -1461,6 +1569,21 @@ export function SheetDialogsResources({ model }: { model: SheetModel }) {
           fighterLevel={fighterLevel}
           onClose={() => model.setFighterFeatureUse(null)}
           onConfirm={onFighterUseConfirm}
+        />
+      ) : null}
+
+      {barbarian2024Use ? (
+        <Barbarian2024UseDialog
+          key={`${barbarianRequest?.featureId}:${barbarianRequest?.classEntryId}`}
+          open
+          request={barbarianRequest}
+          resources={model.draft.play.resources}
+          barbarianLevel={barbarianLevel}
+          wearingHeavyArmor={wearingHeavyArmor}
+          subclassSlug={barbarianSubclassSlug}
+          classOptions2024={model.draft.classOptions2024}
+          onClose={() => model.setBarbarianFeatureUse(null)}
+          onConfirm={onBarbarianUseConfirm}
         />
       ) : null}
 

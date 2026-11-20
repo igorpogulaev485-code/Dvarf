@@ -20,7 +20,16 @@ export type ClassOptions2024State = {
   replicate_active: ReplicateActive2024[]
   /** Spell stored in Spell-Storing Item (artificer spell slug, circles 1–3). */
   spell_storing_spell: string | null
-  rage: { active: boolean; rounds_extended: number; max_minutes: number }
+  rage: {
+    active: boolean
+    rounds_extended: number
+    max_minutes: number
+    wild_heart?: 'wolf' | 'bear' | 'eagle' | null
+    wild_heart_power?: 'falcon' | 'lion' | 'ram' | null
+    world_tree_travel_used?: boolean
+  }
+  /** Wild Heart (2024, L6+): salmon | panther | owl */
+  wild_heart_aspect?: 'salmon' | 'panther' | 'owl' | null
   /** Cleric Divine Order (2024). */
   divine_order?: 'protector' | 'thaumaturge' | null
   /** Cleric Blessed Strikes (2024, L7+). */
@@ -102,6 +111,21 @@ function readPrimalCompanion(raw: unknown): 'land' | 'sea' | 'sky' | null {
   return key === 'land' || key === 'sea' || key === 'sky' ? key : null
 }
 
+function readWildHeartRage(raw: unknown): 'wolf' | 'bear' | 'eagle' | null {
+  const key = String(raw ?? '').trim().toLowerCase()
+  return key === 'wolf' || key === 'bear' || key === 'eagle' ? key : null
+}
+
+function readWildHeartPower(raw: unknown): 'falcon' | 'lion' | 'ram' | null {
+  const key = String(raw ?? '').trim().toLowerCase()
+  return key === 'falcon' || key === 'lion' || key === 'ram' ? key : null
+}
+
+function readWildHeartAspect(raw: unknown): 'salmon' | 'panther' | 'owl' | null {
+  const key = String(raw ?? '').trim().toLowerCase()
+  return key === 'salmon' || key === 'panther' || key === 'owl' ? key : null
+}
+
 export function readClassOptions2024(raw: unknown): ClassOptions2024State {
   const empty = emptyClassOptions2024()
   if (!raw || typeof raw !== 'object') return empty
@@ -125,7 +149,17 @@ export function readClassOptions2024(raw: unknown): ClassOptions2024State {
       active: Boolean(rageRaw.active),
       rounds_extended: Number(rageRaw.rounds_extended || 0),
       max_minutes: 10,
+      ...(rageRaw.wild_heart != null && rageRaw.wild_heart !== ''
+        ? { wild_heart: readWildHeartRage(rageRaw.wild_heart) }
+        : {}),
+      ...(rageRaw.wild_heart_power != null && rageRaw.wild_heart_power !== ''
+        ? { wild_heart_power: readWildHeartPower(rageRaw.wild_heart_power) }
+        : {}),
+      ...(rageRaw.world_tree_travel_used != null
+        ? { world_tree_travel_used: Boolean(rageRaw.world_tree_travel_used) }
+        : {}),
     },
+    wild_heart_aspect: readWildHeartAspect(row.wild_heart_aspect),
     divine_order: readDivineOrder(row.divine_order),
     blessed_strikes: readBlessedStrikes(row.blessed_strikes),
     primal_order: readPrimalOrder(row.primal_order),
@@ -152,7 +186,13 @@ export function classOptions2024ToSheet(state: ClassOptions2024State): Record<st
       active: state.rage.active,
       rounds_extended: state.rage.rounds_extended,
       max_minutes: 10,
+      ...(state.rage.wild_heart ? { wild_heart: state.rage.wild_heart } : {}),
+      ...(state.rage.wild_heart_power ? { wild_heart_power: state.rage.wild_heart_power } : {}),
+      ...(state.rage.world_tree_travel_used != null
+        ? { world_tree_travel_used: state.rage.world_tree_travel_used }
+        : {}),
     },
+    ...(state.wild_heart_aspect ? { wild_heart_aspect: state.wild_heart_aspect } : {}),
     ...(state.divine_order ? { divine_order: state.divine_order } : {}),
     ...(state.blessed_strikes ? { blessed_strikes: state.blessed_strikes } : {}),
     ...(state.primal_order ? { primal_order: state.primal_order } : {}),
@@ -297,9 +337,9 @@ export const CUNNING_STRIKE_2024: StrikeOption2024[] = [
 
 export const BRUTAL_STRIKE_2024: StrikeOption2024[] = [
   { id: 'forceful-blow', nameRu: 'Мощный удар', costDice: 0, save: null, minLevel: 9, summaryRu: 'Толчок 15 фт + движение без OA. +1d10.' },
-  { id: 'hamstring-blow', nameRu: 'Подрезание', costDice: 0, save: null, minLevel: 9, summaryRu: 'Скорость −15 фт. +1d10.' },
-  { id: 'staggering-blow', nameRu: 'Шокирующий удар', costDice: 0, save: null, minLevel: 13, summaryRu: 'Помеха на след. спас; без OA.' },
-  { id: 'sundering-blow', nameRu: 'Крушащий удар', costDice: 0, save: null, minLevel: 13, summaryRu: 'След. атака союзника +5.' },
+  { id: 'hamstring-blow', nameRu: 'Калечащий удар', costDice: 0, save: null, minLevel: 9, summaryRu: 'Скорость цели −15 фт до начала вашего следующего хода. +1d10.' },
+  { id: 'staggering-blow', nameRu: 'Потрясающий удар', costDice: 0, save: null, minLevel: 13, summaryRu: 'Помеха на след. спас; без OA до начала вашего следующего хода.' },
+  { id: 'sundering-blow', nameRu: 'Расшатывающий удар', costDice: 0, save: null, minLevel: 13, summaryRu: '+5 к следующему броску атаки по цели другим существом.' },
 ]
 
 export function resolveCunningStrike2024(input: {
