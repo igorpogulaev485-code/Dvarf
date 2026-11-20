@@ -1592,7 +1592,6 @@ export function installSheetActions4(model: SheetModel) {
       { is_proficient?: boolean; is_expertise?: boolean }
     >)[skill.key]
     const skillProficient = Boolean(skillState?.is_proficient || skillState?.is_expertise)
-    const edition = model.baseCharacter?.rules_edition ?? model.rulesEdition
     const hasReliableTalent = (model.unlockedFeatures ?? []).some(
       (feature: { id?: string }) =>
         feature.id === 'reliable_talent' || feature.id === 'reliable-talent',

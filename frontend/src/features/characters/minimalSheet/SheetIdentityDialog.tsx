@@ -409,7 +409,7 @@ export function SheetIdentityDialog({ model }: { model: SheetModel }) {
                                   : Math.min(prev.hpCurrent, nextHpMax)
                               const nextPassiveHpBonuses = expectedPassiveHpBonuses({
                                 classes: nextClasses,
-                                draconicResilience,
+                                draconicResilience: draconicResilience2014,
                                 raceSlug: prev.raceGrant?.slug ?? null,
                               })
 

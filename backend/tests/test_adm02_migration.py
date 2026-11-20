@@ -94,17 +94,21 @@ def test_alembic_single_head_includes_adm02():
     assert "adm02userhelp01" in revisions
     assert "adm01framework01" in revisions
     # Голову не хардкодим как константу пачки — проверяем, что ADM-02 в предках/голове.
-    ancestors: set[str] = {heads[0]}
-    cur = script.get_revision(heads[0])
-    while cur is not None:
+    ancestors: set[str] = set()
+    stack = [heads[0]]
+    while stack:
+        rev_id = stack.pop()
+        if rev_id in ancestors:
+            continue
+        ancestors.add(rev_id)
+        cur = script.get_revision(rev_id)
+        if cur is None or cur.down_revision is None:
+            continue
         down = cur.down_revision
-        if down is None:
-            break
         if isinstance(down, (list, tuple, set)):
-            ancestors.update(down)
-            break
-        ancestors.add(down)
-        cur = script.get_revision(down)
+            stack.extend(down)
+        else:
+            stack.append(down)
     assert "adm02userhelp01" in ancestors
 
 

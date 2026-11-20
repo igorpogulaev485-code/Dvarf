@@ -402,6 +402,8 @@ export function buildDraft(character: CharacterDetail): Draft {
         damageResistances: [],
         combatBonuses: { initiative: null },
         racialSpells: [],
+        rollBonuses: [],
+        racialResources: [],
       }
     }
   }

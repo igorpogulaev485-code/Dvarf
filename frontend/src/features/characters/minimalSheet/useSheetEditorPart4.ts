@@ -42,7 +42,6 @@ import {
   overlayLearnBudget2024,
   overlayLearnBudgets2024,
 } from '../../../shared/dnd/spellBudgets2024'
-import { getFeaturePickList } from '../../../shared/dnd/featurePicks'
 import {
   magicianExtraCantrips2024,
   PRIMAL_ORDER_MAGICIAN,
@@ -799,6 +798,10 @@ export function useSheetEditorPart4(model: SheetModel) {
           ? 'Удача: промах становится попаданием'
           : 'Удача: d20 проверки считается как 20',
       )
+      // Journal bridge accepts check|attack only (main DICE-02); tip kind may include save.
+      if (kind !== 'check' && kind !== 'attack') {
+        return { ok: false, message: 'Удача для этого броска недоступна в журнале' }
+      }
       return { ok: true, nextText, kind }
     })
     return () => {

@@ -88,17 +88,21 @@ def test_alembic_single_head_includes_adm03():
     revisions = {rev.revision for rev in script.walk_revisions()}
     assert "adm03metrics01" in revisions
     assert "adm02userhelp01" in revisions
-    ancestors: set[str] = {heads[0]}
-    cur = script.get_revision(heads[0])
-    while cur is not None:
+    ancestors: set[str] = set()
+    stack = [heads[0]]
+    while stack:
+        rev_id = stack.pop()
+        if rev_id in ancestors:
+            continue
+        ancestors.add(rev_id)
+        cur = script.get_revision(rev_id)
+        if cur is None or cur.down_revision is None:
+            continue
         down = cur.down_revision
-        if down is None:
-            break
         if isinstance(down, (list, tuple, set)):
-            ancestors.update(down)
-            break
-        ancestors.add(down)
-        cur = script.get_revision(down)
+            stack.extend(down)
+        else:
+            stack.append(down)
     assert "adm03metrics01" in ancestors
     assert "adm02userhelp01" in ancestors
 

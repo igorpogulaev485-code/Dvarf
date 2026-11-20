@@ -326,5 +326,5 @@ def test_alembic_single_head_includes_p24_c10():
         "p24c11dmg01",
         "p24c21au01",
         "p24c21rau01",
-        "p24n01names01", "p24n01r01", "p24m03pr01",
+        "p24n01names01", "p24n01r01", "p24m03pr01", "p24int01merge",
     } or "p24c10phb01" in ancestor_ids
