@@ -274,6 +274,18 @@ def load_2014_name_index() -> tuple[
     return by_slug, by_en_kind
 
 
+def _prefer_phb2014_pair(hits: list[Name2014]) -> Name2014:
+    """Stable pick when several 2014 sources disagree (rglob order varies by OS).
+
+    Prefer ``phb2014_subclass_catalog_spec.json`` — the PHB 2014 research
+    spec is the naming source of truth for subclass cards (Igor / P24-N01).
+    """
+    for hit in hits:
+        if hit.src == "phb2014_subclass_catalog_spec.json":
+            return hit
+    return hits[0]
+
+
 def find_2014_pair(
     *,
     kind: str | None,
@@ -287,7 +299,7 @@ def find_2014_pair(
     compat = COMPAT_KINDS.get(mapped, frozenset({mapped}))
     kind_hits = [h for h in slug_hits if h.kind in compat]
     if kind_hits:
-        return kind_hits[0], "slug"
+        return _prefer_phb2014_pair(kind_hits), "slug"
 
     en_key = norm_en(name_en)
     if not en_key:
@@ -299,7 +311,7 @@ def find_2014_pair(
             if en_hits:
                 break
     if en_hits:
-        return en_hits[0], "en"
+        return _prefer_phb2014_pair(en_hits), "en"
     return None, None
 
 

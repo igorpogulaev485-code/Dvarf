@@ -44,7 +44,7 @@ export function isGraveDomain2024(slug: string | null | undefined): boolean {
 /* ------------------------------------------------------------------ */
 
 export const ARCANA_DOMAIN_NAME_RU = 'Домен магии'
-export const KNOWLEDGE_DOMAIN_NAME_RU = 'Домен знаний'
+export const KNOWLEDGE_DOMAIN_NAME_RU = 'Домен знания'
 export const GRAVE_DOMAIN_NAME_RU = 'Домен упокоения'
 
 export const ARCANA_DOMAIN_SPELLS_NAME_RU = 'Заклинания домена магии'

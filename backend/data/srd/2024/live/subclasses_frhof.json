@@ -78,7 +78,7 @@
     {
       "kind": "subclass",
       "slug": "cleric__knowledge-domain",
-      "name_ru": "Домен знаний",
+      "name_ru": "Домен знания",
       "name_en": "Knowledge Domain",
       "source": "frhof",
       "sort_order": 20,

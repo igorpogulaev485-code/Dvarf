@@ -1354,7 +1354,7 @@ def _validate_cleric_book_options_2024(
         tool = _normalize_slug(str(picks.get("blessings_of_knowledge_tool") or ""))
         if tool not in BLESSINGS_OF_KNOWLEDGE_TOOLS_2024:
             raise Create2024Error(
-                "Домен знаний 3+: выберите ремесленный инструмент",
+                "Домен знания 3+: выберите ремесленный инструмент",
                 code="create_2024_class_options",
             )
         raw = picks.get("blessings_of_knowledge_skills") or []
@@ -1365,7 +1365,7 @@ def _validate_cleric_book_options_2024(
             or any(s not in BLESSINGS_OF_KNOWLEDGE_SKILLS_2024 for s in skills)
         ):
             raise Create2024Error(
-                "Домен знаний 3+: выберите два навыка с экспертностью",
+                "Домен знания 3+: выберите два навыка с экспертностью",
                 code="create_2024_class_options",
             )
         out["blessings_of_knowledge_tool"] = tool

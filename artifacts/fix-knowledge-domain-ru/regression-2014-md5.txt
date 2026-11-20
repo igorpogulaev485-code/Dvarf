@@ -1,0 +1,26 @@
+# 2014 regression md5 — vs origin/main tip 2f8cad82
+
+## Product 2014 paths (must be SAME)
+- `frontend/src/pages/CreateCharacterPage.tsx`: main=`c5dfbabe5a406375111c9d0bcc43b193` work=`c5dfbabe5a406375111c9d0bcc43b193` **SAME**
+- `backend/data/classes/phb2014_subclass_catalog_spec.json`: main=`d4aec25bca2406bd81cbd4d149ba7c39` work=`d4aec25bca2406bd81cbd4d149ba7c39` **SAME**
+- `backend/data/classes/official5e_subclass_catalog_spec.json`: main=`96d1a937f35d19d2adb49a7eeedfa16d` work=`96d1a937f35d19d2adb49a7eeedfa16d` **SAME**
+- `backend/data/classes/subclass_catalog_seed_2014.json`: main=`c1b655bf2b1b269004b091b4e18dc840` work=`c1b655bf2b1b269004b091b4e18dc840` **SAME**
+- `backend/data/srd/2014/catalog.json`: main=`da2b5ec3232bdb2a530470b495e0ea62` work=`da2b5ec3232bdb2a530470b495e0ea62` **SAME**
+- `frontend/src/index.css`: main=`31936aa1fd5709718ed05a8ebf707f2d` work=`31936aa1fd5709718ed05a8ebf707f2d` **SAME**
+- `frontend/src/styles/26-lobby-hub-lock.css`: main=`0e69be021d061d701ec041f404370f75` work=`0e69be021d061d701ec041f404370f75` **SAME**
+
+## This PR changes (2024 + N01 helper only)
+backend/app/dnd/edition_2024_create.py
+backend/app/dnd/p24_n01_names.py
+backend/data/srd/2024/live/subclasses_frhof.json
+backend/tests/test_p24_m02b_cleric.py
+backend/tests/test_p24_n01_ru_names.py
+docs/edition-2024/sources/glossary_ru.csv
+docs/edition-2024/sources/subclasses.csv
+frontend/e2e/fixtures/p24-m03c-catalog.json
+frontend/e2e/p24-m02b-cleric-book.spec.ts
+frontend/src/features/createPipeline2024/createPipeline2024State.ts
+frontend/src/shared/dnd/clericBook2024Features.selfcheck.ts
+frontend/src/shared/dnd/clericBook2024Features.ts
+frontend/src/shared/dnd/data/edition2024/subclasses_frhof.json
+frontend/src/shared/dnd/pack01SpellSlots.selfcheck.ts

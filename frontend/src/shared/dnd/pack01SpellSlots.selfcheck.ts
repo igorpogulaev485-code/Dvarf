@@ -454,7 +454,7 @@ function slotMax(slots: Record<string, { max: number }>, level: number) {
 {
   const knowledge = parseSubclassGrantDef({
     slug: 'knowledge_domain',
-    nameRu: 'Домен знаний',
+    nameRu: 'Домен знания',
     parentSlug: 'cleric',
     catalogData: findSub('cleric', 'knowledge_domain'),
   })!

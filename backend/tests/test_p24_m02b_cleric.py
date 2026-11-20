@@ -70,7 +70,7 @@ def test_arcana_catalog_names_and_summaries():
 
 def test_knowledge_catalog_names_and_summaries():
     entry = _entry(KNOWLEDGE, "subclasses_frhof.json")
-    assert entry["name_ru"] == "Домен знаний"
+    assert entry["name_ru"] == "Домен знания"
     by_id = _feat_map(KNOWLEDGE, "subclasses_frhof.json")
     mind = by_id["mind-magic"]["summary_ru"]
     assert "…" not in mind

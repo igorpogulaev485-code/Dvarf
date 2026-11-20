@@ -80,6 +80,25 @@ def test_rarity_ru_only_dictionary_values():
     assert bad == []
 
 
+def test_knowledge_domain_pair_is_phb2014_домен_знания():
+    """Deploy flake: official5e/seed say «знаний», PHB 2014 spec says «знания».
+
+    find_2014_pair must prefer phb2014 so Linux/mac agree (rglob order differs).
+    """
+    by_slug, by_en = load_2014_name_index()
+    pair, how = find_2014_pair(
+        kind="subclass",
+        slug="cleric__knowledge-domain",
+        name_en="Knowledge Domain",
+        by_slug=by_slug,
+        by_en_kind=by_en,
+    )
+    assert how == "en"
+    assert pair is not None
+    assert pair.src == "phb2014_subclass_catalog_spec.json"
+    assert pair.name_ru == "Домен знания"
+
+
 def test_live_names_follow_2014_or_dndsu_decision():
     decisions, _disc, _by_slug, _by_en = _decisions()
     failures: list[str] = []

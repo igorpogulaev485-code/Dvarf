@@ -39,7 +39,7 @@ assert.equal(isPhb2024CreateSubclass('cleric__arcana-domain'), true)
 assert.equal(isPhb2024CreateSubclass('cleric__life-domain'), true)
 
 assert.equal(ARCANA_DOMAIN_NAME_RU, 'Домен магии')
-assert.equal(KNOWLEDGE_DOMAIN_NAME_RU, 'Домен знаний')
+assert.equal(KNOWLEDGE_DOMAIN_NAME_RU, 'Домен знания')
 assert.equal(GRAVE_DOMAIN_NAME_RU, 'Домен упокоения')
 assert.equal(MODIFY_MAGIC_NAME_RU, 'Изменение магии')
 assert.equal(MIND_MAGIC_NAME_RU, 'Магия разума')
