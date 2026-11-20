@@ -204,6 +204,8 @@ type ResourceMeta = {
   feature_id: string
   blocks_magic_action?: boolean
   distinct_from_heroic?: boolean
+  /** 2024 Indomitable: reroll save with bonus = fighter level. */
+  bonus_equals_class_level?: boolean
   uses_from?:
     | 'proficiency_bonus'
     | 'cha_mod_min_1'
@@ -240,6 +242,7 @@ const RESOURCE_META: Record<string, ResourceMeta> = {
     reset: 'long',
     feature_id: 'indomitable',
     kind: 'resource',
+    bonus_equals_class_level: true,
   },
   rages: {
     name_ru: 'Ярость',
@@ -948,6 +951,8 @@ export function computeProgression2024(input: {
     const subclassResourceUnlock = new Map<string, number>()
     /** Catalog summary for synthetic subclass resource cards (avoid name-only stubs). */
     const subclassResourceSummary = new Map<string, string>()
+    /** Catalog feature title — pool label may differ (e.g. «Кости превосходства» vs «Боевое превосходство»). */
+    const subclassResourceNameRu = new Map<string, string>()
     const sharedByFid = new Map(subclassShared.map((o) => [o.feature_id, o]))
     const calcFids = new Set(subclassBonuses.map((b) => b.feature_id))
 
@@ -967,6 +972,10 @@ export function computeProgression2024(input: {
               const summary = String(feat.summary_ru || '').trim()
               if (summary && !subclassResourceSummary.has(fidRaw)) {
                 subclassResourceSummary.set(fidRaw, summary)
+              }
+              const nameRu = String(feat.name_ru || '').trim()
+              if (nameRu && !subclassResourceNameRu.has(fidRaw)) {
+                subclassResourceNameRu.set(fidRaw, nameRu)
               }
               continue
             }
@@ -1377,10 +1386,15 @@ export function computeProgression2024(input: {
         subclassResourceSummary.get(pool.feature_id.replace(/_/g, '-')) ||
         subclassResourceSummary.get(pool.feature_id.replace(/-/g, '_')) ||
         ''
+      const featureNameRu =
+        subclassResourceNameRu.get(pool.feature_id) ||
+        subclassResourceNameRu.get(pool.feature_id.replace(/_/g, '-')) ||
+        subclassResourceNameRu.get(pool.feature_id.replace(/-/g, '_')) ||
+        pool.name
       features.push({
         id: pool.feature_id.replace(/-/g, '_'),
         level: unlock != null && unlock > 0 ? unlock : cls.level,
-        name_ru: pool.name,
+        name_ru: featureNameRu,
         name_en: pool.pool_id,
         summary_ru:
           poolSummary || (pool.die ? `${pool.name} (${pool.die})` : pool.name),
@@ -1465,7 +1479,7 @@ export function computeProgression2024(input: {
           class_slug: third.class_slug,
           progression: 'third',
           cantrips: third.cantrips,
-          prepared_spells: 0,
+          prepared_spells: third.prepared_spells,
           slots: third.slots,
           pact_slots: null,
           always_prepared: [],
@@ -1473,7 +1487,12 @@ export function computeProgression2024(input: {
           spells_known: third.spells_known,
           ability: third.ability,
         })
-        scales[`${cls.slug}:third_caster_known`] = third.spells_known
+        if (third.prepared_spells > 0) {
+          scales[`${cls.slug}:third_caster_prepared`] = third.prepared_spells
+        }
+        if ((third.spells_known ?? 0) > 0) {
+          scales[`${cls.slug}:third_caster_known`] = third.spells_known
+        }
       }
     }
   }

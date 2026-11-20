@@ -87,6 +87,11 @@ import {
   ranger2024UseFeatureId,
 } from '../../shared/dnd/ranger2024Features'
 import {
+  FIGHTER_2024_CARD_BUTTONS,
+  fighter2024UseFeatureId,
+} from '../../shared/dnd/fighter2024Features'
+import type { FighterFeatureRequest } from './Fighter2024UseDialog'
+import {
   ARTIFICER_2024_CARD_BUTTONS,
   artificer2024UseFeatureId,
 } from '../../shared/dnd/artificer2024Features'
@@ -280,6 +285,7 @@ type ClassFeaturesPanelProps = {
   onBardFeatureUse?: (request: BardFeatureRequest) => void
   onDruidFeatureUse?: (request: DruidFeatureRequest) => void
   onRangerFeatureUse?: (request: RangerFeatureRequest) => void
+  onFighterFeatureUse?: (request: FighterFeatureRequest) => void
   onArtificerFeatureUse?: (request: ArtificerFeatureRequest) => void
   /** Open sorcery-points spend dialog (2024 metamagic / font). */
   onSorceryPointsSpend?: (resourceId: string) => void
@@ -460,6 +466,7 @@ function FeatureResourceControls({
   onBardFeatureUse,
   onDruidFeatureUse,
   onRangerFeatureUse,
+  onFighterFeatureUse,
   onFeatureBuffApply,
   moonCombatWildShape = false,
   scaleText = null,
@@ -488,6 +495,7 @@ function FeatureResourceControls({
   onBardFeatureUse?: (request: BardFeatureRequest) => void
   onDruidFeatureUse?: (request: DruidFeatureRequest) => void
   onRangerFeatureUse?: (request: RangerFeatureRequest) => void
+  onFighterFeatureUse?: (request: FighterFeatureRequest) => void
   onFeatureBuffApply?: ClassFeaturesPanelProps['onFeatureBuffApply']
   /** Circle of the Moon: Wild Shape is a bonus action. */
   moonCombatWildShape?: boolean
@@ -1011,6 +1019,23 @@ function FeatureResourceControls({
             {RANGER_2024_CARD_BUTTONS[feature.id] ?? 'Применить…'}
           </Button>
         ) : edition === '2024' &&
+          onFighterFeatureUse &&
+          fighter2024UseFeatureId(feature.id) ? (
+          <Button
+            type="button"
+            onClick={() =>
+              onFighterFeatureUse({
+                featureId: feature.id,
+                resourceId: pool.id,
+                classSlug,
+                classEntryId: feature.classEntryId,
+                name: feature.name_ru,
+              })
+            }
+          >
+            {FIGHTER_2024_CARD_BUTTONS[feature.id] ?? 'Применить…'}
+          </Button>
+        ) : edition === '2024' &&
           onDruidFeatureUse &&
           opensDruid2024Dialog ? (
           <Button
@@ -1320,6 +1345,7 @@ function FeatureChoiceControls({
   expertiseKeys,
   onToast,
   tceAllowed = null,
+  edition = '2014',
 }: {
   feature: UnlockedFeature
   featurePicks: FeaturePicksState
@@ -1330,6 +1356,7 @@ function FeatureChoiceControls({
   onToast?: (message: string) => void
   /** null = вне лобби (показывать TCE с бейджем); true/false = книга Таши в лобби. */
   tceAllowed?: boolean | null
+  edition?: RulesEdition
 }) {
   const choice = feature.choice
   const [pendingReplicate, setPendingReplicate] = useState(false)
@@ -1385,10 +1412,11 @@ function FeatureChoiceControls({
             .map((row) => row.id)
         : choice.options_from === 'artificer_infusions'
           ? infusionOptionIdsAtLevel(feature.classLevel)
-          : choiceOptionsAtLevel(choice, feature.classLevel)
+          : choiceOptionsAtLevel(choice, feature.classLevel, edition)
     ).filter((id) => !takenStyles.has(id)),
     optionsFrom: choice.options_from,
-    tceAllowed: tceAllowed ?? null,
+    // 2024 Battle Master picker already drops Tasha-only maneuvers; keep TCE badge off those.
+    tceAllowed: edition === '2024' && choice.options_from === 'battle_master_maneuvers' ? true : tceAllowed ?? null,
     selectedIds: selectedIdsForTce,
   })
   const pactBoonId = getFeaturePick(featurePicks, feature.classEntryId, 'pact_boon')
@@ -2285,6 +2313,7 @@ function FeatureRow({
   onBardFeatureUse,
   onDruidFeatureUse,
   onRangerFeatureUse,
+  onFighterFeatureUse,
   onArtificerFeatureUse,
   onSorceryPointsSpend,
   moonCombatWildShape = false,
@@ -2344,6 +2373,7 @@ function FeatureRow({
   onBardFeatureUse?: (request: BardFeatureRequest) => void
   onDruidFeatureUse?: (request: DruidFeatureRequest) => void
   onRangerFeatureUse?: (request: RangerFeatureRequest) => void
+  onFighterFeatureUse?: (request: FighterFeatureRequest) => void
   onArtificerFeatureUse?: (request: ArtificerFeatureRequest) => void
   onSorceryPointsSpend?: (resourceId: string) => void
   moonCombatWildShape?: boolean
@@ -2662,6 +2692,7 @@ function FeatureRow({
           expertiseKeys={expertiseKeys}
           onToast={onToast}
           tceAllowed={tceAllowed}
+          edition={edition}
         />
       ) : null}
       {replacementStatus === 'active' &&
@@ -2845,6 +2876,28 @@ function FeatureRow({
             }
           >
             {RANGER_2024_CARD_BUTTONS[feature.id] ?? 'Применить…'}
+          </Button>
+        </div>
+      ) : null}
+      {replacementStatus === 'active' &&
+      edition === '2024' &&
+      onFighterFeatureUse &&
+      !feature.resource?.pool_id &&
+      fighter2024UseFeatureId(feature.id) ? (
+        <div className="feature-resource__actions">
+          <Button
+            type="button"
+            onClick={() =>
+              onFighterFeatureUse({
+                featureId: feature.id,
+                resourceId: null,
+                classSlug,
+                classEntryId: feature.classEntryId,
+                name: feature.name_ru,
+              })
+            }
+          >
+            {FIGHTER_2024_CARD_BUTTONS[feature.id] ?? 'Применить…'}
           </Button>
         </div>
       ) : null}
@@ -3041,6 +3094,7 @@ function FeatureRow({
           onBardFeatureUse={onBardFeatureUse}
           onDruidFeatureUse={onDruidFeatureUse}
           onRangerFeatureUse={onRangerFeatureUse}
+          onFighterFeatureUse={onFighterFeatureUse}
           onFeatureBuffApply={onFeatureBuffApply}
           moonCombatWildShape={moonCombatWildShape}
           scaleText={scaleShown}
@@ -3263,6 +3317,7 @@ export function ClassFeaturesPanel({
   onBardFeatureUse,
   onDruidFeatureUse,
   onRangerFeatureUse,
+  onFighterFeatureUse,
   onArtificerFeatureUse,
   onSorceryPointsSpend,
   onMoonFormSlotHeal,
@@ -3850,6 +3905,7 @@ export function ClassFeaturesPanel({
                             onBardFeatureUse={onBardFeatureUse}
                             onDruidFeatureUse={onDruidFeatureUse}
                             onRangerFeatureUse={onRangerFeatureUse}
+                            onFighterFeatureUse={onFighterFeatureUse}
                             onArtificerFeatureUse={onArtificerFeatureUse}
                             onSorceryPointsSpend={onSorceryPointsSpend}
                             moonCombatWildShape={moonCombatWildShape}

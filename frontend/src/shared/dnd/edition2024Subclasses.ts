@@ -791,6 +791,9 @@ export function thirdCasterBlock2024(subclassSlug: string, classLevel: number) {
   if (!meta || classLevel < 3) return null
   const lv = Math.min(20, Math.max(1, Math.floor(classLevel)))
   const row = THIRD_CASTER_SLOTS[lv - 1]
+  const budget = THIRD_CASTER_SPELLS_KNOWN[lv - 1]
+  // Eldritch Knight 2024 prepares wizard spells; other third-casters stay «known».
+  const ekPrepared = subclassSlug === 'fighter__eldritch-knight'
   return {
     class_slug: subclassParent2024(subclassSlug) || 'class',
     subclass_slug: subclassSlug,
@@ -798,11 +801,14 @@ export function thirdCasterBlock2024(subclassSlug: string, classLevel: number) {
     ability: meta.ability,
     name_ru: meta.name_ru,
     cantrips: THIRD_CASTER_CANTRIPS[lv - 1],
-    prepared_spells: 0,
-    spells_known: THIRD_CASTER_SPELLS_KNOWN[lv - 1],
+    prepared_spells: ekPrepared ? budget : 0,
+    spells_known: ekPrepared ? 0 : budget,
     slots: Object.fromEntries(row.map((n, i) => [String(i + 1), n])),
     pact_slots: null as null,
     always_prepared: [] as string[],
+    spell_list: ekPrepared ? 'wizard' : null,
+    prepare_mode: ekPrepared ? ('prepared' as const) : ('known' as const),
+    replace_one_on_level: ekPrepared,
   }
 }
 

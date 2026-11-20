@@ -26,6 +26,9 @@ assert.ok(alch.includes('melfs-acid-arrow'))
 const third = thirdCasterBlock2024('fighter__eldritch-knight', 3)
 assert.ok(third)
 assert.equal(third?.slots['1'], 2)
+assert.equal(third?.prepared_spells, 3)
+assert.equal(third?.spells_known, 0)
+assert.equal(third?.prepare_mode, 'prepared')
 
 const snap = computeProgression2024({
   classes: [
