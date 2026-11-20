@@ -1,0 +1,5 @@
+9830fb7a6c0acc068819fff2aeb16b0e  after-create-2014-race-marker-1440.png
+5a8482f42a8457875cbf121ec1098c86  after-create-2014-bard-class-1440.png
+d277e6ad2e65c9b47ada1eba90867604  after-sheet-2014-bard-1440.png
+ca8930f4a04425e059b92a57102de4a6  after-sheet-2014-bard-features-1440.png
+04fbe4aebc994ba55c034f3307f1fd0e  after-sheet-2014-lore-features-1440.png

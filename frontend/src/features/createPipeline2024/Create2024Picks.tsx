@@ -50,6 +50,14 @@ import {
   UNFETTERED_SAVE_OPTIONS_2024,
 } from '../../shared/dnd/clericBook2024Features'
 import {
+  COLLEGE_OF_THE_MOON_NAME_RU,
+  PRIMAL_LORE_CANTRIP_LABELS_RU,
+  PRIMAL_LORE_CANTRIPS_2024,
+  PRIMAL_LORE_NAME_RU,
+  PRIMAL_LORE_SKILL_LABELS_RU,
+  PRIMAL_LORE_SKILLS_2024,
+} from '../../shared/dnd/bardBook2024Features'
+import {
   ARMOR_MODELS_2024,
   PLANS_KNOWN_COLUMN_RU,
   SPELL_STORING_ITEM_NAME_RU,
@@ -122,6 +130,7 @@ import {
   warlockCreatePicksNeed2024,
   wizardBookCreatePicksNeed2024,
   clericBookCreatePicksNeed2024,
+  bardBookCreatePicksNeed2024,
   setAsiFlat1,
   setAsiPlus2Plus1,
   speciesLineages,
@@ -1345,6 +1354,65 @@ export function ClericBookLevelingPicks({
           ))
         : null}
     </Stack>
+    </div>
+  )
+}
+
+/** P24-M02B book bard: Primal Lore cantrip + skill (College of the Moon). */
+export function BardBookLevelingPicks({
+  state,
+  patch,
+}: {
+  state: Create2024State
+  patch: (partial: Partial<Create2024State>) => void
+}) {
+  const need = bardBookCreatePicksNeed2024(state)
+  if (!need.primalCantrip && !need.primalSkill) return null
+  const setPicks = (partial: Record<string, unknown>) =>
+    patch({ classOptionPicks: { ...state.classOptionPicks, ...partial } })
+  const cantripRaw = state.classOptionPicks.primal_lore_cantrip
+  const cantrip = Array.isArray(cantripRaw)
+    ? String(cantripRaw[0] || '')
+    : String(cantripRaw || '')
+
+  return (
+    <div data-testid="p24-m02b-bard-book-picks">
+      <Stack gap={14}>
+        {need.primalSkill ? (
+          <PickChipGroup
+            label={`${PRIMAL_LORE_NAME_RU} (${COLLEGE_OF_THE_MOON_NAME_RU}): навык`}
+            hint="Один навык из списка Древних знаний."
+            options={PRIMAL_LORE_SKILLS_2024.map((id) => ({
+              id,
+              label: PRIMAL_LORE_SKILL_LABELS_RU[id] ?? skillLabelRu(id),
+            }))}
+            selected={
+              state.classOptionPicks.primal_lore_skill
+                ? [String(state.classOptionPicks.primal_lore_skill)]
+                : []
+            }
+            max={1}
+            multi={false}
+            testIdPrefix="p24-m02b-pick-primal-skill"
+            onChange={(picked) => setPicks({ primal_lore_skill: picked[0] ?? null })}
+          />
+        ) : null}
+        {need.primalCantrip ? (
+          <PickChipGroup
+            label={`${PRIMAL_LORE_NAME_RU}: заговор друида`}
+            hint="Заговор друида вне лимита заговоров барда."
+            options={PRIMAL_LORE_CANTRIPS_2024.map((id) => ({
+              id,
+              label: PRIMAL_LORE_CANTRIP_LABELS_RU[id] ?? id,
+            }))}
+            selected={cantrip ? [cantrip] : []}
+            max={1}
+            multi={false}
+            testIdPrefix="p24-m02b-pick-primal-cantrip"
+            onChange={(picked) => setPicks({ primal_lore_cantrip: picked[0] ?? null })}
+          />
+        ) : null}
+      </Stack>
     </div>
   )
 }

@@ -1,14 +1,14 @@
 /**
  * 2024 Bard feature «use» dialog — edition branch only (`rules_edition === '2024'`).
  * UI kit only (Dialog / Field / Stack / Text / SegmentedControl / NumberInput / Input).
- * Bardic Inspiration here follows the 2024 rules (1 hour, after a failed d20 Test, never on yourself);
- * the 2014 «BardicInspirationSpendDialog» stays untouched.
+ * Includes P24-M02B-bard Moon / Spirits desk modes.
  */
 
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Dialog, Field, Input, NumberInput, SegmentedControl, Stack, Text } from '../../ui'
 import type { SheetResource } from '../../shared/dnd/rest'
 import type { SpellSlotState } from '../../shared/dnd/spells'
+import type { FeaturePicksState } from '../../shared/dnd/featurePicks'
 import {
   applyBard2024FeatureUse,
   BARDIC_INSPIRATION_NAME_RU,
@@ -21,10 +21,26 @@ import {
   findBiPool2024,
   glamourMantleTargets2024,
   glamourMantleTempHp2024,
+  listSpiritsBankLabel2024,
   MANTLE_OF_MAJESTY_POOL_ID,
+  spiritsPickerOptions2024,
   VALOR_COMBAT_INSPIRATION_MODES_2024,
   type Bard2024UseResult,
 } from '../../shared/dnd/bard2024Features'
+import {
+  BLESSING_OF_MOONLIGHT_NAME_RU,
+  EMPOWERED_CHANNELING_NAME_RU,
+  FORCES_FROM_BEYOND_NAME_RU,
+  FULL_MOON_RESONANCE_NAME_RU,
+  GUIDED_SUMMON_NAME_RU,
+  INSPIRED_ECLIPSE_NAME_RU,
+  LUNAR_VITALITY_NAME_RU,
+  MOONS_INSPIRATION_NAME_RU,
+  RELEASE_SPIRIT_NAME_RU,
+  SPIRIT_MANIFESTATION_NAME_RU,
+  SPIRITS_FROM_BEYOND_NAME_RU,
+  readSpiritsBank2024,
+} from '../../shared/dnd/bardBook2024Features'
 import { findFeatureResource } from '../../shared/dnd/featureResources'
 
 export type BardFeatureRequest = {
@@ -42,6 +58,7 @@ type Props = {
   slots: Record<string, SpellSlotState>
   bardLevel: number
   chaScore?: number
+  featurePicks?: FeaturePicksState | null
   onConfirm: (result: Bard2024UseResult) => void
   onClose: () => void
 }
@@ -58,6 +75,12 @@ const SIMPLE_TEXT: Record<string, string> = {
   'superior-inspiration':
     'При броске Инициативы: если у тебя меньше двух использований Бардовского вдохновения, доберись до двух.',
   'battle-magic': 'После заклинания со временем сотворения «действие» — одна атака оружием бонусным действием.',
+  channeler:
+    'Указание на 60 фт.; фокусировка — набор игральных карт (или кристалл/сфера, свеча, писчее перо).',
+  'eventides-splendor':
+    'Усиливает Вдохновенное затмение (Тень новолуния) и Лунную живучесть (Резонанс полнолуния: 1к6 без списания пула).',
+  'mystical-connection':
+    'При броске по таблице «Замогильные духи» — два броска на выбор; при дубле — любой дух из таблицы.',
 }
 
 export function Bard2024UseDialog({
@@ -67,6 +90,7 @@ export function Bard2024UseDialog({
   slots,
   bardLevel,
   chaScore,
+  featurePicks,
   onConfirm,
   onClose,
 }: Props) {
@@ -74,17 +98,27 @@ export function Bard2024UseDialog({
   const [targetKind, setTargetKind] = useState<'other' | 'has_die' | 'self'>('other')
   const [slotLevel, setSlotLevel] = useState('')
   const [dieRoll, setDieRoll] = useState<number | null>(null)
+  const [dieRoll2, setDieRoll2] = useState<number | null>(null)
   const [outcome, setOutcome] = useState<'success' | 'fail'>('success')
-  const [mode, setMode] = useState<'use' | 'regain'>('use')
+  const [mode, setMode] = useState<'use' | 'regain' | 'full-moon' | 'pick-b'>('use')
   const [choice, setChoice] = useState<string>(VALOR_COMBAT_INSPIRATION_MODES_2024[0].id)
+  const [spiritRoll, setSpiritRoll] = useState('')
+
+  const sides = bardicInspirationDieSides2024(bardLevel)
+  const dieLabel = bardicInspirationDieLabelRu2024(bardLevel)
+  const spiritOptions = useMemo(() => spiritsPickerOptions2024(sides), [sides])
+  const entryId = request?.classEntryId ?? ''
+  const bank = readSpiritsBank2024(featurePicks, entryId)
+  const bankOptions = bank.map((row, index) => ({
+    id: String(row.roll),
+    label: `${row.roll}. ${row.nameRu}${index > 0 ? ` #${index + 1}` : ''}`,
+  }))
 
   if (!request) return null
 
   const featureId = bard2024UseFeatureId(request.featureId) ?? request.featureId.replace(/_/g, '-')
   const biRow = findBiPool2024(resources, request.classEntryId)
   const biLeft = biRow ? Math.max(0, biRow.max - biRow.used) : 0
-  const sides = bardicInspirationDieSides2024(bardLevel)
-  const dieLabel = bardicInspirationDieLabelRu2024(bardLevel)
 
   const usesBi =
     featureId === 'bardic-inspiration' ||
@@ -93,7 +127,9 @@ export function Bard2024UseDialog({
     featureId === 'mantle-of-inspiration' ||
     featureId === 'inspiring-movement' ||
     featureId === 'tandem-footwork' ||
-    (featureId === 'beguiling-magic' && mode === 'regain')
+    (featureId === 'beguiling-magic' && mode === 'regain') ||
+    featureId === 'moons-inspiration' ||
+    (featureId === 'spirits-from-beyond' && (choice === 'random' || choice === 'guided'))
 
   const freeSlotCircles = Object.entries(slots)
     .filter(([, row]) => row.max > 0 && row.used < row.max)
@@ -115,6 +151,21 @@ export function Bard2024UseDialog({
   const effectiveRoll = Math.max(1, Math.min(sides, dieRoll ?? 1))
 
   function confirm() {
+    const bookChoice =
+      featureId === 'combat-inspiration' ||
+      featureId === 'moons-inspiration' ||
+      featureId === 'spirits-from-beyond' ||
+      featureId === 'empowered-channeling'
+        ? choice
+        : null
+    const bookMode =
+      featureId === 'beguiling-magic' || featureId === 'mantle-of-majesty'
+        ? mode
+        : featureId === 'moons-inspiration' && choice === 'vitality' && mode === 'full-moon'
+          ? 'full-moon'
+          : featureId === 'spirits-from-beyond' && mode === 'pick-b'
+            ? 'pick-b'
+            : null
     const result = applyBard2024FeatureUse({
       featureId: request!.featureId,
       resourceId: request!.resourceId,
@@ -123,14 +174,23 @@ export function Bard2024UseDialog({
       bardLevel,
       chaScore,
       slots,
+      featurePicks,
       slotLevel: Number(selectedCircle) || undefined,
       targetIsSelf: targetKind === 'self',
       targetHasBardicDie: targetKind === 'has_die',
       targetName,
-      dieRoll: featureId === 'mantle-of-inspiration' ? effectiveRoll : undefined,
-      mode: featureId === 'beguiling-magic' || featureId === 'mantle-of-majesty' ? mode : null,
+      dieRoll:
+        featureId === 'mantle-of-inspiration' ||
+        featureId === 'moons-inspiration' ||
+        featureId === 'spirits-from-beyond' ||
+        featureId === 'empowered-channeling'
+          ? effectiveRoll
+          : undefined,
+      dieRoll2: featureId === 'spirits-from-beyond' ? Math.max(1, Math.min(sides, dieRoll2 ?? 1)) : undefined,
+      mode: bookMode,
       succeeded: featureId === 'peerless-skill' ? outcome === 'success' : undefined,
-      choice: featureId === 'combat-inspiration' ? choice : null,
+      choice: bookChoice,
+      spiritRoll: spiritRoll ? Number(spiritRoll) : undefined,
     })
     onConfirm(result)
   }
@@ -260,8 +320,8 @@ export function Bard2024UseDialog({
             {canRegain ? (
               <SegmentedControl
                 aria-label="Режим"
-                value={mode}
-                onChange={setMode}
+                value={mode === 'regain' ? 'regain' : 'use'}
+                onChange={(id) => setMode(id as 'use' | 'regain')}
                 options={[
                   { id: 'use', label: 'Применить' },
                   { id: 'regain', label: 'Вернуть за вдохновение' },
@@ -280,8 +340,8 @@ export function Bard2024UseDialog({
             {canRegain ? (
               <SegmentedControl
                 aria-label="Режим"
-                value={mode}
-                onChange={setMode}
+                value={mode === 'regain' ? 'regain' : 'use'}
+                onChange={(id) => setMode(id as 'use' | 'regain')}
                 options={[
                   { id: 'use', label: 'Применить' },
                   { id: 'regain', label: 'Вернуть ячейкой' },
@@ -320,7 +380,189 @@ export function Bard2024UseDialog({
           </>
         ) : null}
 
+        {featureId === 'moons-inspiration' ? (
+          <>
+            <Text data-testid="p24-m02b-moon-inspiration">
+              {MOONS_INSPIRATION_NAME_RU}: {INSPIRED_ECLIPSE_NAME_RU} (вместе с дарованием кости) или{' '}
+              {LUNAR_VITALITY_NAME_RU} (при лечении заклинанием, 1/ход).
+            </Text>
+            <SegmentedControl
+              aria-label="Ветвь Вдохновения луны"
+              value={choice === 'vitality' ? 'vitality' : 'eclipse'}
+              onChange={setChoice}
+              options={[
+                { id: 'eclipse', label: INSPIRED_ECLIPSE_NAME_RU },
+                { id: 'vitality', label: LUNAR_VITALITY_NAME_RU },
+              ]}
+            />
+            {choice === 'eclipse' || choice !== 'vitality' ? (
+              <Field label="Кому">
+                <Input
+                  value={targetName}
+                  placeholder="Имя союзника"
+                  onChange={(event) => setTargetName(event.target.value)}
+                />
+              </Field>
+            ) : (
+              <>
+                <Field label={`Результат кости (${dieLabel} или 1к6)`}>
+                  <NumberInput
+                    min={1}
+                    max={sides}
+                    value={dieRoll ?? 1}
+                    onValueChange={(value) => setDieRoll(value ?? 1)}
+                  />
+                </Field>
+                {bardLevel >= 14 ? (
+                  <SegmentedControl
+                    aria-label="Резонанс полнолуния"
+                    value={mode === 'full-moon' ? 'full-moon' : 'use'}
+                    onChange={(id) => setMode(id as 'use' | 'full-moon')}
+                    options={[
+                      { id: 'use', label: 'Потратить кость BI' },
+                      { id: 'full-moon', label: FULL_MOON_RESONANCE_NAME_RU },
+                    ]}
+                  />
+                ) : null}
+              </>
+            )}
+          </>
+        ) : null}
+
+        {featureId === 'blessing-of-moonlight' ? (
+          <Text data-testid="p24-m02b-moonbeam-mod">
+            {BLESSING_OF_MOONLIGHT_NAME_RU}: изменить Лунный луч — Тусклый свет 5 фт.; при провале спаса — 2к4 Хитов
+            другому существу в 60 фт. (1/долгий).
+          </Text>
+        ) : null}
+
+        {featureId === 'spirits-from-beyond' ? (
+          <>
+            <Text data-testid="p24-m02b-spirits-bank">{listSpiritsBankLabel2024(featurePicks, request.classEntryId)}</Text>
+            <SegmentedControl
+              aria-label="Замогильные духи"
+              value={choice === 'guided' || choice === 'release' ? choice : 'random'}
+              onChange={setChoice}
+              options={[
+                { id: 'random', label: 'Случайный + BI' },
+                { id: 'guided', label: GUIDED_SUMMON_NAME_RU },
+                { id: 'release', label: RELEASE_SPIRIT_NAME_RU },
+              ]}
+            />
+            {(choice === 'random' || choice !== 'guided' && choice !== 'release') && (
+              <>
+                <Field label="Кому даровать BI">
+                  <Input
+                    value={targetName}
+                    placeholder="Имя союзника"
+                    onChange={(event) => setTargetName(event.target.value)}
+                  />
+                </Field>
+                {bardLevel >= 14 ? (
+                  <>
+                    <Field label={`Бросок 1 (${dieLabel})`}>
+                      <NumberInput
+                        min={1}
+                        max={sides}
+                        value={dieRoll ?? 1}
+                        onValueChange={(value) => setDieRoll(value ?? 1)}
+                      />
+                    </Field>
+                    <Field label={`Бросок 2 (${dieLabel})`}>
+                      <NumberInput
+                        min={1}
+                        max={sides}
+                        value={dieRoll2 ?? 1}
+                        onValueChange={(value) => setDieRoll2(value ?? 1)}
+                      />
+                    </Field>
+                    <SegmentedControl
+                      aria-label="Какой бросок взять"
+                      value={mode === 'pick-b' ? 'pick-b' : 'use'}
+                      onChange={(id) => setMode(id as 'use' | 'pick-b')}
+                      options={[
+                        { id: 'use', label: 'Первый бросок' },
+                        { id: 'pick-b', label: 'Второй бросок' },
+                      ]}
+                    />
+                    <Field label="Или любой дух при дубле / выборе">
+                      <SegmentedControl
+                        aria-label="Дух таблицы"
+                        value={spiritRoll || String(spiritOptions[0]?.id ?? '')}
+                        onChange={setSpiritRoll}
+                        options={spiritOptions}
+                      />
+                    </Field>
+                  </>
+                ) : null}
+              </>
+            )}
+            {choice === 'guided' ? (
+              <Field label={`${GUIDED_SUMMON_NAME_RU} (−1 BI)`}>
+                <SegmentedControl
+                  aria-label="Управляемый дух"
+                  value={spiritRoll || String(spiritOptions[0]?.id ?? '')}
+                  onChange={setSpiritRoll}
+                  options={spiritOptions}
+                />
+              </Field>
+            ) : null}
+            {choice === 'release' ? (
+              <>
+                <Field label="Дух из банка">
+                  {bankOptions.length ? (
+                    <SegmentedControl
+                      aria-label="Выпустить духа"
+                      value={spiritRoll || String(bankOptions[0]?.id ?? '')}
+                      onChange={setSpiritRoll}
+                      options={bankOptions}
+                    />
+                  ) : (
+                    <Text tone="muted">Банк пуст — сначала призовите духа.</Text>
+                  )}
+                </Field>
+                <Field label="Цель (30 фт.)">
+                  <Input
+                    value={targetName}
+                    placeholder="Имя цели"
+                    onChange={(event) => setTargetName(event.target.value)}
+                  />
+                </Field>
+              </>
+            ) : null}
+          </>
+        ) : null}
+
+        {featureId === 'empowered-channeling' ? (
+          <>
+            <Text data-testid="p24-m02b-empowered-channeling">{EMPOWERED_CHANNELING_NAME_RU}</Text>
+            <SegmentedControl
+              aria-label="Улучшенный призыв"
+              value={choice === 'free' || choice === 'cover' ? choice : 'force'}
+              onChange={setChoice}
+              options={[
+                { id: 'force', label: FORCES_FROM_BEYOND_NAME_RU },
+                { id: 'free', label: 'Стражи без ячейки' },
+                { id: 'cover', label: SPIRIT_MANIFESTATION_NAME_RU },
+              ]}
+            />
+            {(choice === 'force' || (choice !== 'free' && choice !== 'cover')) && (
+              <Field label="Результат 1к6">
+                <NumberInput
+                  min={1}
+                  max={6}
+                  value={dieRoll ?? 1}
+                  onValueChange={(value) => setDieRoll(value ?? 1)}
+                />
+              </Field>
+            )}
+          </>
+        ) : null}
+
         {SIMPLE_TEXT[featureId] ? <Text>{SIMPLE_TEXT[featureId]}</Text> : null}
+        {featureId === 'spirits-from-beyond' ? (
+          <Text tone="muted">{SPIRITS_FROM_BEYOND_NAME_RU}: банк очищается на коротком или долгом отдыхе.</Text>
+        ) : null}
       </Stack>
     </Dialog>
   )

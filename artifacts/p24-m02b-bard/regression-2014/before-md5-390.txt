@@ -1,0 +1,6 @@
+593794cbc8945111beb093cf3ee71614  before-create-2014-race-marker-390.png
+31a74ebfd347c02519df6da28de5fb7a  before-create-2014-bard-class-390.png
+cdd45474e69d90443b274ab4fbe305dd  before-sheet-2014-bard-header-390.png
+7be4fb0a169d2681d0adf5ea28608879  before-sheet-2014-bard-abilities-390.png
+c3d3016ae85d9cdd8c70331b30791ffc  before-sheet-2014-bard-features-390.png
+cd93a6c405ad414fb294918e12d274f8  before-sheet-2014-lore-features-390.png

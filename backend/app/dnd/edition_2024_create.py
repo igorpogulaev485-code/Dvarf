@@ -1537,8 +1537,39 @@ def _planned_class_level(payload: Create2024Payload, class_slug: str) -> int:
 
 BARD_LORE_SUBCLASS_2024 = "bard__lore"
 BARD_VALOR_SUBCLASS_2024 = "bard__valor"
+BARD_MOON_SUBCLASS_2024 = "bard__college-of-the-moon"
+BARD_SPIRITS_SUBCLASS_2024 = "bard__college-of-the-spirits"
 BARD_SUBCLASS_LEVEL_2024 = 3
 BARD_LORE_SKILL_PICKS_2024 = 3
+PRIMAL_LORE_SKILLS_2024 = frozenset(
+    {
+        "perception",
+        "survival",
+        "medicine",
+        "animal_handling",
+        "nature",
+        "insight",
+    }
+)
+PRIMAL_LORE_CANTRIPS_2024 = frozenset(
+    {
+        "druidcraft",
+        "guidance",
+        "mending",
+        "message",
+        "poison-spray",
+        "produce-flame",
+        "resistance",
+        "shillelagh",
+        "spare-the-dying",
+        "starry-wisp",
+        "elementalism",
+    }
+)
+CHANNELER_GUIDANCE_SLUG = "guidance"
+CHANNELER_PLAYING_CARDS_TOOL = "playing-card-set"
+PRIMAL_LORE_CANTRIP_KEY = "primal_lore_cantrip"
+PRIMAL_LORE_SKILL_KEY = "primal_lore_skill"
 BARD_LORE_DISCOVERIES_LEVEL_2024 = 6
 BARD_LORE_DISCOVERIES_PICKS_2024 = 2
 BARD_LORE_DISCOVERY_LISTS_2024 = ("wizard", "druid", "cleric")
@@ -1816,6 +1847,40 @@ def _validate_bard_options_2024(payload: Create2024Payload, picks: Mapping[str, 
             "Доп. магические тайны: Коллегия знаний, с 6 уровня барда",
             code="create_2024_class_options",
         )
+    out.update(_validate_bard_book_options_2024(payload, picks))
+    return out
+
+
+def _validate_bard_book_options_2024(
+    payload: Create2024Payload,
+    picks: Mapping[str, Any],
+) -> dict[str, Any]:
+    """P24-M02B-bard book-path picks: Primal Lore cantrip + skill (Moon only)."""
+    out: dict[str, Any] = {}
+    bard_level = _planned_class_level(payload, "bard")
+    subclass = _planned_primary_subclass(payload)
+    if subclass == BARD_MOON_SUBCLASS_2024 and bard_level >= BARD_SUBCLASS_LEVEL_2024:
+        skill = str(picks.get(PRIMAL_LORE_SKILL_KEY) or "").lower().replace("-", "_")
+        if skill not in PRIMAL_LORE_SKILLS_2024:
+            raise Create2024Error(
+                "Коллегия луны 3+: выберите навык «Древних знаний»",
+                code="create_2024_class_options",
+            )
+        cantrip_raw = picks.get(PRIMAL_LORE_CANTRIP_KEY)
+        if isinstance(cantrip_raw, (list, tuple)):
+            cantrip = _normalize_slug(str(cantrip_raw[0] if cantrip_raw else ""))
+        else:
+            cantrip = _normalize_slug(str(cantrip_raw or ""))
+        if cantrip not in PRIMAL_LORE_CANTRIPS_2024:
+            # Also accept any live Druid cantrip (catalog may grow).
+            allowed = set(PRIMAL_LORE_CANTRIPS_2024) | set(druid_cantrip_slugs_2024())
+            if cantrip not in allowed:
+                raise Create2024Error(
+                    "Коллегия луны 3+: выберите заговор друида «Древних знаний»",
+                    code="create_2024_class_options",
+                )
+        out[PRIMAL_LORE_SKILL_KEY] = skill
+        out[PRIMAL_LORE_CANTRIP_KEY] = cantrip
     return out
 
 
@@ -1901,6 +1966,155 @@ def _sync_bard_picks(sheet: dict[str, Any], class_options: Mapping[str, Any]) ->
                 }
             )
             sheet["subclass_grants"] = ledger
+        return
+
+
+def _append_bard_book_cantrip_to_known(
+    sheet: dict[str, Any],
+    *,
+    slug: str,
+    class_entry_id: str,
+    label: str,
+    pick_key: str,
+) -> None:
+    """Always-known cantrip outside bard cantrip budget (Primal Lore / Channeler)."""
+    spells = sheet.get("spells")
+    if not isinstance(spells, dict):
+        spells = {"known": [], "slots": {}, "casting_ability": "cha"}
+        sheet["spells"] = spells
+    known = list(spells.get("known") or [])
+    prefix = f"feature-spell:{pick_key}:"
+    known = [row for row in known if not str((row or {}).get("id") or "").startswith(prefix)]
+    row = _spell_sheet_row(
+        slug,
+        prepared=True,
+        class_slug="bard",
+        locked_label=label,
+        source_kind="feature",
+        id_prefix=f"feature-spell:{pick_key}:{class_entry_id}",
+    )
+    row["class_entry_id"] = class_entry_id
+    row["always_prepared"] = True
+    if slug == CHANNELER_GUIDANCE_SLUG:
+        row["range_override_ft"] = 60
+        row["notes_ru"] = "Дистанция 60 фт. (Проводник)"
+    known.append(row)
+    spells["known"] = known
+
+
+def _sync_bard_book_picks(sheet: dict[str, Any], class_options: Mapping[str, Any]) -> None:
+    """Mirror P24-M02B-bard Moon/Spirits picks and auto-grants into the sheet."""
+    for row in sheet.get("classes") or []:
+        if not isinstance(row, dict):
+            continue
+        if e24.normalize_class_slug(str(row.get("slug") or "")) != "bard":
+            continue
+        entry_id = str(row.get("id") or "class-bard")
+        level = int(row.get("level") or 0)
+        subclass = _normalize_slug(
+            str(row.get("subclass_slug") or row.get("subclass_catalog_id") or "")
+        )
+        picks = sheet.get("feature_picks")
+        values = dict(picks.get("values") or {}) if isinstance(picks, dict) else {}
+        skills = sheet.get("skills") if isinstance(sheet.get("skills"), dict) else {}
+        prof = sheet.get("proficiency") if isinstance(sheet.get("proficiency"), dict) else {}
+
+        if subclass == BARD_MOON_SUBCLASS_2024 and level >= BARD_SUBCLASS_LEVEL_2024:
+            skill = str(class_options.get(PRIMAL_LORE_SKILL_KEY) or "").lower().replace("-", "_")
+            cantrip_raw = class_options.get(PRIMAL_LORE_CANTRIP_KEY)
+            if isinstance(cantrip_raw, (list, tuple)):
+                cantrip = _normalize_slug(str(cantrip_raw[0] if cantrip_raw else ""))
+            else:
+                cantrip = _normalize_slug(str(cantrip_raw or ""))
+            if skill in PRIMAL_LORE_SKILLS_2024:
+                values[f"{entry_id}:{PRIMAL_LORE_SKILL_KEY}"] = skill
+                if isinstance(skills.get(skill), dict):
+                    skills[skill]["is_proficient"] = True
+                if isinstance(prof.get("skills"), list) and skill not in prof["skills"]:
+                    prof["skills"] = sorted([*prof["skills"], skill])
+            if cantrip:
+                values[f"{entry_id}:{PRIMAL_LORE_CANTRIP_KEY}"] = cantrip
+                _append_bard_book_cantrip_to_known(
+                    sheet,
+                    slug=cantrip,
+                    class_entry_id=entry_id,
+                    label="Древние знания",
+                    pick_key=PRIMAL_LORE_CANTRIP_KEY,
+                )
+            langs = list(prof.get("languages") or []) if isinstance(prof, dict) else []
+            dru = language_name_ru("druidic")
+            if dru and dru not in langs:
+                langs.append(dru)
+                prof["languages"] = langs
+            ledger = [
+                dict(item)
+                for item in (sheet.get("subclass_grants") or [])
+                if isinstance(item, dict) and item.get("classEntryId") != entry_id
+            ]
+            ledger.append(
+                {
+                    "classEntryId": entry_id,
+                    "catalogId": subclass,
+                    "slug": subclass,
+                    "parentSlug": "bard",
+                    "skills": [skill] if skill in PRIMAL_LORE_SKILLS_2024 else [],
+                    "armorKeys": [],
+                    "weaponKeys": [],
+                    "weaponExtras": [],
+                    "tools": [],
+                    "languages": ["druidic"],
+                    "caster": None,
+                    "grantedSpellIds": [cantrip] if cantrip else [],
+                    "picks": {
+                        PRIMAL_LORE_SKILL_KEY: skill,
+                        PRIMAL_LORE_CANTRIP_KEY: cantrip,
+                    },
+                }
+            )
+            sheet["subclass_grants"] = ledger
+
+        if subclass == BARD_SPIRITS_SUBCLASS_2024 and level >= BARD_SUBCLASS_LEVEL_2024:
+            _append_bard_book_cantrip_to_known(
+                sheet,
+                slug=CHANNELER_GUIDANCE_SLUG,
+                class_entry_id=entry_id,
+                label="Проводник",
+                pick_key="channeler_guidance",
+            )
+            values[f"{entry_id}:channeler_guidance"] = CHANNELER_GUIDANCE_SLUG
+            values[f"{entry_id}:channeler_focus"] = CHANNELER_PLAYING_CARDS_TOOL
+            tools = list(prof.get("tools") or []) if isinstance(prof, dict) else []
+            card_name = tool_name_ru(CHANNELER_PLAYING_CARDS_TOOL)
+            if card_name and card_name not in tools:
+                tools.append(card_name)
+                prof["tools"] = tools
+            ledger = [
+                dict(item)
+                for item in (sheet.get("subclass_grants") or [])
+                if isinstance(item, dict) and item.get("classEntryId") != entry_id
+            ]
+            ledger.append(
+                {
+                    "classEntryId": entry_id,
+                    "catalogId": subclass,
+                    "slug": subclass,
+                    "parentSlug": "bard",
+                    "skills": [],
+                    "armorKeys": [],
+                    "weaponKeys": [],
+                    "weaponExtras": [],
+                    "tools": [CHANNELER_PLAYING_CARDS_TOOL],
+                    "languages": [],
+                    "caster": None,
+                    "grantedSpellIds": [CHANNELER_GUIDANCE_SLUG],
+                    "picks": {"channeler_guidance": CHANNELER_GUIDANCE_SLUG},
+                }
+            )
+            sheet["subclass_grants"] = ledger
+
+        sheet["feature_picks"] = {"values": values}
+        if isinstance(prof, dict):
+            sheet["proficiency"] = prof
         return
 
 
@@ -2799,6 +3013,7 @@ def validate_create_2024(payload: Create2024Payload) -> Create2024Result:
     _sync_land_choice_pick(sheet)
     _sync_known_forms(sheet, class_options)
     _sync_bard_picks(sheet, class_options)
+    _sync_bard_book_picks(sheet, class_options)
     _sync_rogue_picks(sheet, class_options)
     _sync_blessed_warrior_picks(sheet, class_options, fighting_style=fighting_style)
     _sync_druidic_warrior_picks(sheet, class_options, fighting_style=fighting_style)
@@ -3161,6 +3376,9 @@ def _build_sheet(
                 code="create_2024_class_options",
             )
         proficient |= lore_skills
+        moon_skill = str(class_options.get(PRIMAL_LORE_SKILL_KEY) or "").lower().replace("-", "_")
+        if moon_skill in PRIMAL_LORE_SKILLS_2024:
+            proficient.add(moon_skill)
     expertise = {str(x) for x in (class_options.get("expertise") or []) if x in SKILL_IDS}
     if payload.class_slug == "bard":
         untrained = sorted(expertise - proficient)

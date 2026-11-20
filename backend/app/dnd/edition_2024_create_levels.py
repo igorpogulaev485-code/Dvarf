@@ -1179,8 +1179,53 @@ def _rollback_bard_state(sheet: dict[str, Any], classes: Sequence[Mapping[str, A
         sheet["feature_picks"] = {**picks, "values": values}
 
     if level >= 3:
+        # Keep spirit bank only while Spirits college is active at L3+.
         return
+    # Drop Moon/Spirits book picks below subclass gate.
+    for key in (
+        f"{entry}:primal_lore_skill",
+        f"{entry}:primal_lore_cantrip",
+        f"{entry}:channeler_guidance",
+        f"{entry}:channeler_focus",
+        f"{entry}:spirits_from_beyond_bank",
+        f"{entry}:lunar_vitality_used_this_turn",
+        f"{entry}:forces_from_beyond_used_this_turn",
+    ):
+        values.pop(key, None)
+    if isinstance(picks, dict):
+        sheet["feature_picks"] = {**picks, "values": values}
+    # Strip feature-granted cantrips (Primal Lore / Channeler).
+    spells = sheet.get("spells") if isinstance(sheet.get("spells"), dict) else {}
+    known = spells.get("known")
+    if isinstance(known, list):
+        sheet["spells"] = {
+            **spells,
+            "known": [
+                sp
+                for sp in known
+                if not (
+                    isinstance(sp, dict)
+                    and str(sp.get("id") or "").startswith(
+                        (
+                            "feature-spell:primal_lore_cantrip:",
+                            "feature-spell:channeler_guidance:",
+                        )
+                    )
+                )
+            ],
+        }
     prof = sheet.get("proficiency") if isinstance(sheet.get("proficiency"), dict) else {}
+    if isinstance(prof, dict):
+        langs = prof.get("languages")
+        if isinstance(langs, list):
+            dru = create24.language_name_ru("druidic")
+            if dru:
+                prof["languages"] = [x for x in langs if x != dru]
+        tools = prof.get("tools")
+        if isinstance(tools, list):
+            card = create24.tool_name_ru("playing-card-set")
+            if card:
+                prof["tools"] = [x for x in tools if x != card]
     kept_grants: list[dict[str, Any]] = []
     for grant in sheet.get("subclass_grants") or []:
         if not isinstance(grant, dict) or grant.get("classEntryId") != entry:

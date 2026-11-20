@@ -67,6 +67,10 @@ import {
   STUDENT_OF_ARCANA_CANTRIPS_2024,
   STUDENT_OF_ARCANA_SKILLS_2024,
 } from '../../shared/dnd/clericBook2024Features'
+import {
+  PRIMAL_LORE_CANTRIPS_2024,
+  PRIMAL_LORE_SKILLS_2024,
+} from '../../shared/dnd/bardBook2024Features'
 import { wizardCreateBookNeed2024 } from '../../shared/dnd/wizardSpellbook2024'
 import {
   isVestigeCompanionType2024,
@@ -740,6 +744,40 @@ export function clericBookCreatePicksNeed2024(state: Create2024State): {
   }
 }
 
+export function bardBookCreatePicksNeed2024(state: Create2024State): {
+  bardLevel: number
+  subclassSlug: string
+  primalCantrip: boolean
+  primalSkill: boolean
+  any: boolean
+} {
+  if (state.classSlug !== 'bard') {
+    return {
+      bardLevel: 0,
+      subclassSlug: '',
+      primalCantrip: false,
+      primalSkill: false,
+      any: false,
+    }
+  }
+  const primary =
+    state.classes.find((row) => row.id === state.primaryClassEntryId) ?? state.classes[0]
+  const bardLevel = Math.max(1, primary?.level ?? state.characterLevel ?? 1)
+  const subclass = String(
+    (primary && state.subclassByEntryId[primary.id]) || state.subclassSlug || '',
+  ).toLowerCase()
+  // Show moon picks whenever the subclass gate is open (like cleric book picks),
+  // even if seed already filled values — create shots need the widget visible.
+  const moonOpen = subclass === 'bard__college-of-the-moon' && bardLevel >= 3
+  return {
+    bardLevel,
+    subclassSlug: subclass,
+    primalCantrip: moonOpen,
+    primalSkill: moonOpen,
+    any: moonOpen,
+  }
+}
+
 export function rangerCreatePicksNeed2024(state: Create2024State): {
   rangerLevel: number
   subclassSlug: string
@@ -1116,6 +1154,32 @@ function levelingIssues(state: Create2024State, ctx: StepIssueCtx): string[] {
         if (!(MAGICAL_MASTERY_SPELLS_BY_CIRCLE_2024[circle] as readonly string[]).includes(pick)) {
           issues.push(`Домен магии 17+: выберите заклинание волшебника ${circle}-го круга`)
         }
+      }
+    }
+  }
+  if (state.classSlug === 'bard') {
+    const need = bardBookCreatePicksNeed2024(state)
+    if (need.primalSkill) {
+      const pick = String(state.classOptionPicks.primal_lore_skill || '')
+        .trim()
+        .toLowerCase()
+        .replace(/-/g, '_')
+      if (!(PRIMAL_LORE_SKILLS_2024 as readonly string[]).includes(pick)) {
+        issues.push('Коллегия луны 3+: выберите навык «Древних знаний»')
+      }
+    }
+    if (need.primalCantrip) {
+      const raw = state.classOptionPicks.primal_lore_cantrip
+      const pick = Array.isArray(raw)
+        ? String(raw[0] || '')
+            .trim()
+            .toLowerCase()
+        : String(raw || '')
+            .trim()
+            .toLowerCase()
+      const key = pick.replace(/_/g, '-')
+      if (!(PRIMAL_LORE_CANTRIPS_2024 as readonly string[]).includes(key as (typeof PRIMAL_LORE_CANTRIPS_2024)[number])) {
+        issues.push('Коллегия луны 3+: выберите заговор друида «Древних знаний»')
       }
     }
   }

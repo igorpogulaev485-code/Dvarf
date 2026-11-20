@@ -111,7 +111,10 @@ import { Druid2024UseDialog, type DruidFeatureRequest, type Druid2024ConfirmResu
 import { druid2024UseFeatureId } from '../../../shared/dnd/druid2024Features'
 import { addFlexibleSpellSlot } from '../../../shared/dnd/spells'
 import { applyStarryForm } from '../wildShape'
-import { applyLongRestFeaturePicks2024 } from '../../../shared/dnd/rest2024'
+import {
+  applyLongRestFeaturePicks2024,
+  applyShortRestFeaturePicks2024,
+} from '../../../shared/dnd/rest2024'
 import { chooseTempHpPool } from '../../../shared/dnd/activeEffects'
 import { resolveClassCasterSlug, warlockLevels } from '../../../shared/dnd/casterProgression'
 import type { Wizard2024RestProps } from '../Wizard2024RestSwaps'
@@ -632,6 +635,7 @@ export function SheetDialogsResources({ model }: { model: SheetModel }) {
     model.setDraft((prev) => ({
       ...prev,
       ...(result.slots ? { spells: { ...prev.spells, slots: result.slots } } : {}),
+      ...(patches?.featurePicks ? { featurePicks: patches.featurePicks } : {}),
       play: {
         ...prev.play,
         resources: result.resources,
@@ -645,7 +649,12 @@ export function SheetDialogsResources({ model }: { model: SheetModel }) {
     }))
     model.onToast(result.feedLineRu)
     // 2024 BI grant: same ally path as 2014 (UseAllyAbilityDialog → applyFeatureBuff).
-    if (patches?.grantedDieLabel && featureId === 'bardic-inspiration') {
+    if (
+      patches?.grantedDieLabel &&
+      (featureId === 'bardic-inspiration' ||
+        featureId === 'moons-inspiration' ||
+        featureId === 'spirits-from-beyond')
+    ) {
       const entryId = request?.classEntryId ?? ''
       const subclass =
         (entryId && model.subclassSlugByEntryId?.[entryId]) ||
@@ -1324,14 +1333,24 @@ export function SheetDialogsResources({ model }: { model: SheetModel }) {
         }
         onCompanionRest={(kind) => {
           let dismissed: string[] = []
+          const edition =
+            model.baseCharacter?.rules_edition ?? model.rulesEdition ?? '2014'
           model.setDraft((prev) => {
             const result = dismissSelfFormsOnRest(prev.companions, kind, {
-              edition: model.baseCharacter?.rules_edition ?? model.rulesEdition ?? '2014',
+              edition,
             })
             dismissed = result.dismissedNames
             // C-02 Н9: heal companions after resource reset / form dismiss (Р26 effects untouched).
             const companions = healCompanionsOnRest(result.companions, kind)
-            return { ...prev, companions }
+            const featurePicks =
+              edition === '2024' && kind === 'short'
+                ? applyShortRestFeaturePicks2024(prev.featurePicks)
+                : prev.featurePicks
+            return {
+              ...prev,
+              companions,
+              ...(featurePicks !== prev.featurePicks ? { featurePicks } : {}),
+            }
           })
           if (dismissed.length) {
             model.onToast(`Отдых: облик сброшен (${dismissed.join(', ')})`)
@@ -1800,6 +1819,7 @@ export function SheetDialogsResources({ model }: { model: SheetModel }) {
           slots={model.draft.spells.slots}
           bardLevel={bardLevel}
           chaScore={model.draft.abilities.cha}
+          featurePicks={model.draft.featurePicks}
           onClose={() => model.setBardFeatureUse(null)}
           onConfirm={onBardUseConfirm}
         />
