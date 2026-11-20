@@ -171,6 +171,14 @@ export const M02B_SORCERER_BOOK_SUBCLASS_SLUGS = new Set([
  */
 export const M02B_MONK_BOOK_SUBCLASS_SLUGS = new Set(['monk__warrior-of-the-mystic-arts'])
 
+/**
+ * Book warlock paths opened by P24-M02B-warlock (AU Vestige + RTW Undead).
+ */
+export const M02B_WARLOCK_BOOK_SUBCLASS_SLUGS = new Set([
+  'warlock__vestige-patron',
+  'warlock__undead',
+])
+
 export function isPhb2024CreateSubclass(slug: string, source?: string | null): boolean {
   const key = String(slug || '')
     .trim()
@@ -189,6 +197,8 @@ export function isPhb2024CreateSubclass(slug: string, source?: string | null): b
   if (M02B_SORCERER_BOOK_SUBCLASS_SLUGS.has(key)) return true
   // P24-M02B-monk: Mystic Arts only.
   if (M02B_MONK_BOOK_SUBCLASS_SLUGS.has(key)) return true
+  // P24-M02B-warlock: Vestige + Undead only.
+  if (M02B_WARLOCK_BOOK_SUBCLASS_SLUGS.has(key)) return true
   // Catalog API may omit source; fall back to known PHB table rows.
   return Boolean(row && CREATE_SUBCLASS_SOURCES_2024.has(String(row.source || '').toLowerCase()))
 }
@@ -713,6 +723,51 @@ export function buildPermanentBonuses2024(input: {
       ally_kill_within_ft: 10,
     }, 3, 'Врем. хиты = Хар + ур. колдуна (мин. 1), когда ты или союзник в пределах 10 фт. опускаете врага до 0 хитов')
   }
+  if (subclassSlug === 'warlock__undead') {
+    add(
+      'form-of-dread',
+      'Аватар ужаса',
+      'other_calc',
+      {
+        necrotic_resistance_when_not_in_dread: true,
+        while_active: {
+          immune: ['frightened'],
+          temp_hp: '1d10+warlock_level',
+          frighten_once_per_turn: true,
+        },
+      },
+      3,
+      'Вне аватара — сопротивление некротическому; в аватаре — иммунитет к «Испуганный»',
+    )
+    if (classLevel >= 14) {
+      add(
+        'superior-dread',
+        'Совершенный ужас',
+        'other_calc',
+        {
+          while_form_of_dread: {
+            fly_speed_ft: 30,
+            necrotic_resistance: true,
+          },
+        },
+        14,
+        'Пока «Аватар ужаса» активен: полёт и сопротивление некротическому',
+      )
+    }
+  }
+  if (subclassSlug === 'warlock__vestige-patron') {
+    add(
+      'vestige-companion',
+      'Спутник-предтеча',
+      'other_calc',
+      {
+        host_resistance_within_ft_of_companion: 30,
+        note: 'resistance_shared_with_companion_type',
+      },
+      3,
+      'В пределах 30 фт. от спутника-предтечи — сопротивление его типу урона (метаданные)',
+    )
+  }
   if (subclassSlug === 'cleric__light-domain' && classLevel >= 6) {
     add('improved-warding-flare', 'Улучшенная ограждающая вспышка', 'other_calc', { reset_short: true }, 6)
   }
@@ -1007,8 +1062,17 @@ export function buildSubclassResources2024(input: {
     push('clairvoyant_combatant', 'Провидящий боец', 1, 'short', 'clairvoyant-combatant')
   } else if (subclassSlug === 'warlock__undead') {
     push('form_of_dread', 'Аватар ужаса', Math.max(1, chaMod), 'long', 'form-of-dread')
+    if (classLevel >= 10) {
+      push('necrotic_husk', 'Некротическая оболочка', 1, 'short', 'necrotic-husk')
+    }
   } else if (subclassSlug === 'warlock__vestige-patron') {
     push('vestige_companion', 'Спутник-предтеча', 1, 'long', 'vestige-companion')
+    if (classLevel >= 10) {
+      push('vestige_recovery', 'Восстановление предтечи', 1, 'long', 'vestige-recovery')
+    }
+    if (classLevel >= 14) {
+      push('semblance_of_life', 'Подобие жизни', 1, 'long', 'semblance-of-life')
+    }
   } else if (subclassSlug === 'wizard__abjurer') {
     push('arcane_ward', 'Волшебный щит', classLevel * 2 + intMod, 'long', 'arcane-ward', { track: 'stock' })
   } else if (subclassSlug === 'wizard__diviner') {
@@ -1165,12 +1229,25 @@ export function buildSubclassResources2024(input: {
   return out
 }
 
+const VESTIGE_DOMAIN_TO_CLERIC_SLUG: Record<string, string> = {
+  war: 'cleric__war-domain',
+  life: 'cleric__life-domain',
+  trickery: 'cleric__trickery-domain',
+  light: 'cleric__light-domain',
+}
+
 export function alwaysPreparedForSubclass2024(
   subclassSlug: string | null | undefined,
   classLevel: number,
   landChoice?: string | null,
 ): string[] {
   if (!subclassSlug) return []
+  // Vestige Patron: always-prepared from chosen Cleric domain table (landChoice = domain id).
+  if (subclassSlug === 'warlock__vestige-patron') {
+    const domainSlug = VESTIGE_DOMAIN_TO_CLERIC_SLUG[String(landChoice || '').trim().toLowerCase()]
+    if (!domainSlug) return []
+    return alwaysPreparedForSubclass2024(domainSlug, classLevel)
+  }
   const sub = SUBCLASS_CATALOG_2024[subclassSlug]
   if (!sub) return []
   const out: string[] = []

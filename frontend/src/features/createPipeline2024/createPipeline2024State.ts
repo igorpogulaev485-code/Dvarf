@@ -61,6 +61,13 @@ import {
   TRANSMUTER_STONE_POTENT_EXTRA_2024,
 } from '../../shared/dnd/wizardBook2024Features'
 import { wizardCreateBookNeed2024 } from '../../shared/dnd/wizardSpellbook2024'
+import {
+  isVestigeCompanionType2024,
+  isVestigeDomain2024,
+  isVestigePatron2024,
+  VESTIGE_COMPANION_NAME_RU,
+  VESTIGE_SPELLS_NAME_RU,
+} from '../../shared/dnd/warlockBook2024Features'
 import { readKnownForms } from '../characters/knownForms'
 import type { CatalogEntry } from '../../shared/api/catalog'
 import {
@@ -725,6 +732,50 @@ export function rangerCreatePicksNeed2024(state: Create2024State): {
   }
 }
 
+/** Warlock Vestige Patron (2024): domain + companion type required from L3. */
+export function warlockCreatePicksNeed2024(state: Create2024State): {
+  warlockLevel: number
+  subclassSlug: string
+  vestigeDomain: boolean
+  vestigeCompanionType: boolean
+} {
+  if (state.classSlug !== 'warlock') {
+    return {
+      warlockLevel: 0,
+      subclassSlug: '',
+      vestigeDomain: false,
+      vestigeCompanionType: false,
+    }
+  }
+  const primary =
+    state.classes.find((row) => row.id === state.primaryClassEntryId) ?? state.classes[0]
+  const warlockLevel = Math.max(1, primary?.level ?? state.characterLevel ?? 1)
+  const subclass =
+    (primary && state.subclassByEntryId[primary.id]) || state.subclassSlug || ''
+  const vestige = isVestigePatron2024(subclass) && warlockLevel >= 3
+  return {
+    warlockLevel,
+    subclassSlug: subclass,
+    vestigeDomain: vestige,
+    vestigeCompanionType: vestige,
+  }
+}
+
+/** Drop vestige domain/companion picks when subclass leaves Vestige or level < 3. */
+export function clearVestigePicksIfNeeded2024(
+  picks: Create2024State['classOptionPicks'],
+  subclassSlug: string | null | undefined,
+  warlockLevel: number,
+): Create2024State['classOptionPicks'] {
+  const keep = isVestigePatron2024(subclassSlug) && warlockLevel >= 3
+  if (keep) return picks
+  if (picks.vestige_domain == null && picks.vestige_companion_type == null) return picks
+  const next = { ...picks }
+  delete next.vestige_domain
+  delete next.vestige_companion_type
+  return next
+}
+
 export function bardCreatePicksNeed2024(state: Create2024State): {
   bardLevel: number
   expertise: number
@@ -914,6 +965,17 @@ function levelingIssues(state: Create2024State, ctx: StepIssueCtx): string[] {
       !(OTHERWORLDLY_GLAMOUR_SKILLS_2024 as readonly string[]).includes(glamour)
     ) {
       issues.push(`Выберите ${OTHERWORLDLY_GLAMOUR_NAME_RU} (с 3 ур. следопыта)`)
+    }
+  }
+  if (state.classSlug === 'warlock') {
+    const need = warlockCreatePicksNeed2024(state)
+    const domain = String(state.classOptionPicks.vestige_domain || '')
+    if (need.vestigeDomain && !isVestigeDomain2024(domain)) {
+      issues.push(`Выберите домен для «${VESTIGE_SPELLS_NAME_RU}» (с 3 ур. колдуна)`)
+    }
+    const companion = String(state.classOptionPicks.vestige_companion_type || '')
+    if (need.vestigeCompanionType && !isVestigeCompanionType2024(companion)) {
+      issues.push(`Выберите тип «${VESTIGE_COMPANION_NAME_RU}» (с 3 ур. колдуна)`)
     }
   }
   const divineOrder =

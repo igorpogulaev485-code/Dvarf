@@ -108,6 +108,13 @@ RANGER_SUBCLASS_FEY_2024 = "ranger__fey-wanderer"
 RANGER_CONCLAVE_PICK_MIN_LEVEL_2024 = 3
 RANGER_DEFENSIVE_TACTICS_MIN_LEVEL_2024 = 7
 
+# P24-M02B-warlock: Vestige Patron domain + companion type.
+VESTIGE_DOMAIN_OPTIONS_2024 = frozenset({"war", "life", "trickery", "light"})
+VESTIGE_COMPANION_TYPES_2024 = frozenset({"fiend", "celestial", "undead"})
+WARLOCK_SUBCLASS_VESTIGE_2024 = "warlock__vestige-patron"
+WARLOCK_SUBCLASS_UNDEAD_2024 = "warlock__undead"
+WARLOCK_BOOK_SUBCLASS_LEVEL_2024 = 3
+
 INVOCATIONS_BY_ID = {row.id: row for row in ELDRITCH_INVOCATIONS_2024}
 
 # Warlock invocation known count by level (from class table eldritch_invocations).
@@ -711,6 +718,17 @@ def validate_class_options_update(
     )
     primal_companion = str(primal_comp_src or "").strip().lower()
 
+    vestige_domain_src = (
+        src.get("vestige_domain") if "vestige_domain" in src else prev.get("vestige_domain")
+    )
+    vestige_domain = str(vestige_domain_src or "").strip().lower()
+    vestige_type_src = (
+        src.get("vestige_companion_type")
+        if "vestige_companion_type" in src
+        else prev.get("vestige_companion_type")
+    )
+    vestige_companion_type = str(vestige_type_src or "").strip().lower()
+
     order_src = src.get("divine_order") if "divine_order" in src else prev.get("divine_order")
     order = str(order_src or "").strip().lower()
     strikes_src = (
@@ -840,6 +858,10 @@ def validate_class_options_update(
         result["wild_heart_aspect"] = wild_heart_aspect
     if primal_companion in PRIMAL_COMPANION_TYPES_2024:
         result["primal_companion"] = primal_companion
+    if vestige_domain in VESTIGE_DOMAIN_OPTIONS_2024:
+        result["vestige_domain"] = vestige_domain
+    if vestige_companion_type in VESTIGE_COMPANION_TYPES_2024:
+        result["vestige_companion_type"] = vestige_companion_type
     return result
 
 

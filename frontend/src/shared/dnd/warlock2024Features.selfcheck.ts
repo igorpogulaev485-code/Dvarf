@@ -430,4 +430,80 @@ assert.equal(
   false,
 )
 
+// Undead / Vestige book desk uses (2024 only).
+for (const id of [
+  'form-of-dread',
+  'grave-touched',
+  'necrotic-husk',
+  'superior-dread',
+  'vestige-power',
+  'vestige-recovery',
+  'semblance-of-life',
+]) {
+  assert.ok(WARLOCK_2024_CARD_BUTTONS[id], `button for ${id}`)
+  assert.ok(warlock2024UseFeatureId(id), `route for ${id}`)
+}
+{
+  const dread = applyWarlock2024FeatureUse({
+    ...base,
+    featureId: 'form-of-dread',
+    resources: [pool('form_of_dread', 2)],
+    warlockLevel: 5,
+    chaMod: 3,
+    pactSlots: null,
+    featurePicks: { values: {} },
+  })
+  assert.equal(dread.ok, true)
+  assert.ok((dread.tempHp ?? 0) >= 6)
+  assert.equal(dread.featurePicks?.values['entry1:form_of_dread_active'], 'on')
+  assert.deepEqual(dread.conditionsEnded, ['frightened'])
+  const end = applyWarlock2024FeatureUse({
+    ...base,
+    featureId: 'form-of-dread',
+    mode: 'end',
+    resources: dread.resources,
+    warlockLevel: 5,
+    pactSlots: null,
+    featurePicks: dread.featurePicks,
+  })
+  assert.equal(end.ok, true)
+  assert.equal(end.featurePicks?.values['entry1:form_of_dread_active'], undefined)
+}
+{
+  const husk = applyWarlock2024FeatureUse({
+    ...base,
+    featureId: 'necrotic-husk',
+    resources: [pool('necrotic_husk')],
+    warlockLevel: 10,
+    pactSlots: null,
+  })
+  assert.equal(husk.ok, true)
+  assert.equal(husk.hpSet, 20)
+  assert.equal(husk.exhaustionDelta, 1)
+}
+{
+  const recover = applyWarlock2024FeatureUse({
+    ...base,
+    featureId: 'vestige-recovery',
+    resources: [pool('vestige_recovery')],
+    warlockLevel: 10,
+    pactSlots: { max: 2, used: 0, level: 5 },
+  })
+  assert.equal(recover.ok, true)
+  assert.equal(recover.pact_slots?.used, 1)
+  assert.equal(recover.healVestigeCompanion, true)
+}
+{
+  const cunning6 = applyWarlock2024FeatureUse({
+    ...base,
+    featureId: 'magical-cunning',
+    resources: [pool('magical_cunning')],
+    warlockLevel: 6,
+    pactSlots: { max: 2, used: 2, level: 3 },
+  })
+  assert.equal(cunning6.ok, true)
+  assert.equal(cunning6.restoreVestigeDivinePower, true)
+  assert.match(cunning6.message, /Божественная сила/)
+}
+
 console.log('warlock2024Features.selfcheck: ok')

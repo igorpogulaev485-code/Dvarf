@@ -20,7 +20,7 @@ import { clampSlot } from './spells'
 assert.equal(isM02bMonkBookSubclass('monk__warrior-of-the-mystic-arts'), true)
 assert.equal(isMysticArtsMonk2024('monk__warrior-of-the-mystic-arts'), true)
 assert.equal(isPhb2024CreateSubclass('monk__warrior-of-the-mystic-arts'), true)
-assert.equal(isPhb2024CreateSubclass('warlock__undead'), false)
+assert.equal(isPhb2024CreateSubclass('warlock__undead'), true)
 assert.equal(MYSTIC_ARTS_NAME_RU, 'Мистический воин')
 assert.equal(MYSTIC_FOCUS_NAME_RU, 'Мистическая сосредоточенность')
 assert.equal(FOCUSED_STRIKE_NAME_RU, 'Сфокусированный удар')

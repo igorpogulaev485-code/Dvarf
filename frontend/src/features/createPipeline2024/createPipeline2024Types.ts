@@ -69,6 +69,10 @@ export type Create2024State = {
     defensive_tactics?: string | null
     /** Ranger 2024 Beast Master L3+: land | sea | sky. */
     primal_companion?: 'land' | 'sea' | 'sky' | null
+    /** Warlock Vestige Patron L3+: war | life | trickery | light. */
+    vestige_domain?: 'war' | 'life' | 'trickery' | 'light' | null
+    /** Warlock Vestige Patron L3+: fiend | celestial | undead. */
+    vestige_companion_type?: 'fiend' | 'celestial' | 'undead' | null
     /** Ranger 2024 Fey Wanderer L3+: performance | deception | persuasion. */
     otherworldly_glamour?: string | null
     /** Barbarian Wild Heart L3+: wolf | bear | eagle. */

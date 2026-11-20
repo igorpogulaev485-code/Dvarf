@@ -1,0 +1,5 @@
+9830fb7a6c0acc068819fff2aeb16b0e  after-create-2014-race-marker-1440.png
+ad4a913c518c49322a1a7d20db3576a6  after-create-2014-warlock-class-1440.png
+263ae11eb5de8b954fc4d32a86beb48e  after-sheet-2014-warlock-1440.png
+25700cbe6c33bcbba46487ef63d4516c  after-sheet-2014-warlock-features-1440.png
+ff206c6706cc21069712369c238594ce  after-sheet-2014-fiend-features-1440.png

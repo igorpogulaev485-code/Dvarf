@@ -42,6 +42,10 @@ export type ClassOptions2024State = {
   land_choice?: 'arid' | 'polar' | 'temperate' | 'tropical' | null
   /** Ranger Beast Master (2024, L3+): land | sea | sky. */
   primal_companion?: 'land' | 'sea' | 'sky' | null
+  /** Warlock Vestige Patron (2024, L3+): Cleric domain for always-prepared. */
+  vestige_domain?: 'war' | 'life' | 'trickery' | 'light' | null
+  /** Warlock Vestige Patron (2024, L3+): companion creature type. */
+  vestige_companion_type?: 'fiend' | 'celestial' | 'undead' | null
 }
 
 function readBlessedStrikes(raw: unknown): 'divine_strike' | 'potent_spellcasting' | null {
@@ -83,6 +87,8 @@ export function emptyClassOptions2024(): ClassOptions2024State {
     elemental_fury: null,
     land_choice: null,
     primal_companion: null,
+    vestige_domain: null,
+    vestige_companion_type: null,
   }
 }
 
@@ -109,6 +115,16 @@ function readReplicateActive(raw: unknown): ReplicateActive2024[] {
 function readPrimalCompanion(raw: unknown): 'land' | 'sea' | 'sky' | null {
   const key = String(raw ?? '').trim().toLowerCase()
   return key === 'land' || key === 'sea' || key === 'sky' ? key : null
+}
+
+function readVestigeDomain(raw: unknown): 'war' | 'life' | 'trickery' | 'light' | null {
+  const key = String(raw ?? '').trim().toLowerCase()
+  return key === 'war' || key === 'life' || key === 'trickery' || key === 'light' ? key : null
+}
+
+function readVestigeCompanionType(raw: unknown): 'fiend' | 'celestial' | 'undead' | null {
+  const key = String(raw ?? '').trim().toLowerCase()
+  return key === 'fiend' || key === 'celestial' || key === 'undead' ? key : null
 }
 
 function readWildHeartRage(raw: unknown): 'wolf' | 'bear' | 'eagle' | null {
@@ -166,6 +182,8 @@ export function readClassOptions2024(raw: unknown): ClassOptions2024State {
     elemental_fury: readElementalFury(row.elemental_fury),
     land_choice: readLandChoice(row.land_choice),
     primal_companion: readPrimalCompanion(row.primal_companion),
+    vestige_domain: readVestigeDomain(row.vestige_domain),
+    vestige_companion_type: readVestigeCompanionType(row.vestige_companion_type),
   }
 }
 
@@ -199,6 +217,8 @@ export function classOptions2024ToSheet(state: ClassOptions2024State): Record<st
     ...(state.elemental_fury ? { elemental_fury: state.elemental_fury } : {}),
     ...(state.land_choice ? { land_choice: state.land_choice } : {}),
     ...(state.primal_companion ? { primal_companion: state.primal_companion } : {}),
+    ...(state.vestige_domain ? { vestige_domain: state.vestige_domain } : {}),
+    ...(state.vestige_companion_type ? { vestige_companion_type: state.vestige_companion_type } : {}),
   }
 }
 

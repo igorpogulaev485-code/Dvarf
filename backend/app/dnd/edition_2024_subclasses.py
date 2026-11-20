@@ -1005,6 +1005,57 @@ def build_permanent_bonuses(
             ),
         )
 
+    # Warlock Undead / Vestige (P24-M02B-warlock) — desk calc metadata
+    if subclass_slug == "warlock__undead":
+        add(
+            "form-of-dread",
+            "Аватар ужаса",
+            "other_calc",
+            {
+                "necrotic_resistance_when_not_in_dread": True,
+                "while_active": {
+                    "immune": ["frightened"],
+                    "temp_hp": "1d10+warlock_level",
+                    "frighten_once_per_turn": True,
+                },
+            },
+            note_ru=(
+                "Вне аватара — сопротивление некротическому; "
+                "в аватаре — иммунитет к «Испуганный»"
+            ),
+        )
+        if class_level >= 14:
+            add(
+                "superior-dread",
+                "Совершенный ужас",
+                "other_calc",
+                {
+                    "while_form_of_dread": {
+                        "fly_speed_ft": 30,
+                        "necrotic_resistance": True,
+                    },
+                },
+                min_level=14,
+                note_ru=(
+                    "Пока «Аватар ужаса» активен: полёт и сопротивление некротическому"
+                ),
+            )
+
+    if subclass_slug == "warlock__vestige-patron":
+        add(
+            "vestige-companion",
+            "Спутник-предтеча",
+            "other_calc",
+            {
+                "host_resistance_within_ft_of_companion": 30,
+                "note": "resistance_shared_with_companion_type",
+            },
+            note_ru=(
+                "В пределах 30 фт. от спутника-предтечи — "
+                "сопротивление его типу урона (метаданные)"
+            ),
+        )
+
     # Light domain improved flare is a calc rider on the warding_flare pool
     if subclass_slug == "cleric__light-domain" and class_level >= 6:
         add(
@@ -1588,6 +1639,15 @@ def build_subclass_resources(
             reset="long",
             feature_id="form-of-dread",
         )
+        if class_level >= 10:
+            add(
+                "necrotic_husk",
+                name_ru="Некротическая оболочка",
+                max_uses=1,
+                reset="short",
+                feature_id="necrotic-husk",
+                min_level=10,
+            )
     elif subclass_slug == "warlock__vestige-patron":
         add(
             "vestige_companion",
@@ -1597,6 +1657,24 @@ def build_subclass_resources(
             feature_id="vestige-companion",
             on_hot=False,
         )
+        if class_level >= 10:
+            add(
+                "vestige_recovery",
+                name_ru="Восстановление предтечи",
+                max_uses=1,
+                reset="long",
+                feature_id="vestige-recovery",
+                min_level=10,
+            )
+        if class_level >= 14:
+            add(
+                "semblance_of_life",
+                name_ru="Подобие жизни",
+                max_uses=1,
+                reset="long",
+                feature_id="semblance-of-life",
+                min_level=14,
+            )
 
     # --- Wizard ---
     elif subclass_slug == "wizard__abjurer":
@@ -2176,6 +2254,14 @@ def build_subclass_resources(
     return out
 
 
+VESTIGE_DOMAIN_TO_CLERIC_SLUG = {
+    "war": "cleric__war-domain",
+    "life": "cleric__life-domain",
+    "trickery": "cleric__trickery-domain",
+    "light": "cleric__light-domain",
+}
+
+
 def always_prepared_for_subclass(
     subclass_slug: str | None,
     class_level: int,
@@ -2184,6 +2270,13 @@ def always_prepared_for_subclass(
 ) -> list[str]:
     if not subclass_slug:
         return []
+    # Vestige Patron: always-prepared come from the chosen Cleric domain table.
+    if subclass_slug == "warlock__vestige-patron":
+        domain = str(land_choice or "").strip().lower()
+        domain_slug = VESTIGE_DOMAIN_TO_CLERIC_SLUG.get(domain)
+        if not domain_slug:
+            return []
+        return always_prepared_for_subclass(domain_slug, class_level)
     sub = load_subclass_catalog().get(subclass_slug)
     if not sub:
         return []

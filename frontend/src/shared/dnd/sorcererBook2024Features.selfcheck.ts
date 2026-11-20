@@ -32,7 +32,7 @@ assert.equal(isSpellfireSorcery2024('sorcerer__spellfire-sorcery'), true)
 assert.equal(isShadowSorcery2024('sorcerer__shadow-sorcery'), true)
 assert.equal(isPhb2024CreateSubclass('sorcerer__spellfire-sorcery'), true)
 assert.equal(isPhb2024CreateSubclass('sorcerer__shadow-sorcery'), true)
-assert.equal(isPhb2024CreateSubclass('warlock__undead'), false)
+assert.equal(isPhb2024CreateSubclass('warlock__undead'), true)
 
 assert.equal(spellfireBurstDie2024(3), '1d4')
 assert.equal(spellfireBurstDie2024(14), '1d8')

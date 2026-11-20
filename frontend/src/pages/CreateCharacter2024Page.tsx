@@ -9,6 +9,12 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { LAND_TERRAINS_2024, type LandTerrain2024 } from '../shared/dnd/druid2024Features'
+import {
+  isVestigeCompanionType2024,
+  isVestigeDomain2024,
+  type VestigeCompanionType2024,
+  type VestigeDomain2024,
+} from '../shared/dnd/warlockBook2024Features'
 import { readKnownForms } from '../features/characters/knownForms'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { AbilitiesStep } from '../features/createPipeline/AbilitiesStep'
@@ -23,6 +29,7 @@ import {
   BarbarianLevelingPicks,
   RangerLevelingPicks,
   RogueLevelingPicks,
+  WarlockLevelingPicks,
   WizardBookLevelingPicks,
   ClassPicks,
   SpeciesFeatPicks,
@@ -46,6 +53,12 @@ import {
   monkAsiChoicesForLevel,
   parseMonkSeed,
 } from '../features/createPipeline2024/e2eMonkSeed2024'
+import {
+  buildWarlockClassOptionPicks,
+  buildWarlockSeedSpells,
+  parseWarlockSeed,
+  warlockAsiChoicesForLevel,
+} from '../features/createPipeline2024/e2eWarlockSeed2024'
 import { createClassLevel, totalCharacterLevel } from '../shared/dnd/classLevels'
 import { thirdCasterBlock2024 } from '../shared/dnd/edition2024Subclasses'
 import { ensureHpChoices } from '../features/createPipeline/LevelingStep'
@@ -71,6 +84,7 @@ import {
   backgroundAsiOverlay,
   backgroundAsiTrio,
   classStartingPacks,
+  clearVestigePicksIfNeeded2024,
   create2024StepIssues,
   creatableSpecies,
   findFeat,
@@ -484,6 +498,30 @@ export function CreateCharacter2024Page({
         backgroundAsi: { con: 2, dex: 1 },
         asi: monkAsiChoicesForLevel(monkSpec.level),
         ...(mysticSpells ? { spells: mysticSpells } : {}),
+      }
+    }
+    const warlockSpec = parseWarlockSeed(e2eSeed)
+    const warlockClass = bySlug(catalog.classes, 'warlock')
+    if (warlockSpec && warlockClass) {
+      seeds[e2eSeed] = {
+        name: `Колдун ${warlockSpec.level}`,
+        classSlug: 'warlock',
+        abilities: { str: 8, dex: 14, con: 13, int: 10, wis: 12, cha: 15 },
+        rows: [
+          {
+            slug: 'warlock',
+            level: warlockSpec.level,
+            ...(warlockSpec.subclassSlug ? { subclass: warlockSpec.subclassSlug } : {}),
+          },
+        ],
+        skills: ['arcana', 'deception'],
+        backgroundAsi: { con: 2, dex: 1 },
+        asi: warlockAsiChoicesForLevel(warlockSpec.level),
+        spells: buildWarlockSeedSpells(catalog.spells, warlockClass, warlockSpec.level),
+        classOptionPicks: buildWarlockClassOptionPicks(
+          warlockSpec.level,
+          warlockSpec.subclassSlug,
+        ),
       }
     }
     const seed = seeds[e2eSeed] || seeds.fighter5
@@ -1313,6 +1351,18 @@ export function CreateCharacter2024Page({
                   }
                 }
               }
+              if (state.classSlug === 'warlock') {
+                const sub =
+                  (primary && state.subclassByEntryId[primary.id]) || state.subclassSlug || null
+                const cleared = clearVestigePicksIfNeeded2024(
+                  state.classOptionPicks,
+                  newLevel < 3 ? null : sub,
+                  newLevel,
+                )
+                if (cleared !== state.classOptionPicks) {
+                  patchBody.classOptionPicks = cleared
+                }
+              }
               patch(patchBody)
             }}
             onHpChoicesChange={(hpChoices) => patch({ hpChoices })}
@@ -1347,6 +1397,21 @@ export function CreateCharacter2024Page({
                 patchBody.cantripIds = []
                 patchBody.preparedSpellIds = []
               }
+              // Leaving Vestige Patron (or picking a different patron) clears domain/companion.
+              if (classEntryId === state.primaryClassEntryId && state.classSlug === 'warlock') {
+                const primary =
+                  state.classes.find((row) => row.id === state.primaryClassEntryId) ??
+                  state.classes[0]
+                const warlockLevel = Math.max(1, primary?.level ?? state.characterLevel ?? 1)
+                const cleared = clearVestigePicksIfNeeded2024(
+                  state.classOptionPicks,
+                  subclassSlug,
+                  warlockLevel,
+                )
+                if (cleared !== state.classOptionPicks) {
+                  patchBody.classOptionPicks = cleared
+                }
+              }
               patch(patchBody)
             }}
             onAsiChoicesChange={(asiChoices) => patch({ asiChoices })}
@@ -1376,6 +1441,24 @@ export function CreateCharacter2024Page({
             onLandChoiceChange={(pick) =>
               patch({ classOptionPicks: { ...state.classOptionPicks, land_choice: pick } })
             }
+            vestigeDomainPick={
+              isVestigeDomain2024(String(state.classOptionPicks.vestige_domain || ''))
+                ? (state.classOptionPicks.vestige_domain as VestigeDomain2024)
+                : null
+            }
+            onVestigeDomainChange={(pick) =>
+              patch({ classOptionPicks: { ...state.classOptionPicks, vestige_domain: pick } })
+            }
+            vestigeCompanionTypePick={
+              isVestigeCompanionType2024(String(state.classOptionPicks.vestige_companion_type || ''))
+                ? (state.classOptionPicks.vestige_companion_type as VestigeCompanionType2024)
+                : null
+            }
+            onVestigeCompanionTypeChange={(pick) =>
+              patch({
+                classOptionPicks: { ...state.classOptionPicks, vestige_companion_type: pick },
+              })
+            }
             knownFormsPick={readKnownForms(state.classOptionPicks.known_forms)}
             onKnownFormsChange={(forms) =>
               patch({ classOptionPicks: { ...state.classOptionPicks, known_forms: forms } })
@@ -1403,6 +1486,7 @@ export function CreateCharacter2024Page({
           ) : null}
           {classSlug === 'rogue' ? <RogueLevelingPicks state={state} patch={patch} /> : null}
           {classSlug === 'ranger' ? <RangerLevelingPicks state={state} patch={patch} /> : null}
+          {classSlug === 'warlock' ? <WarlockLevelingPicks state={state} patch={patch} /> : null}
           {classSlug === 'wizard' ? <WizardBookLevelingPicks state={state} patch={patch} /> : null}
           {classSlug === 'barbarian' ? (
             <BarbarianLevelingPicks state={state} patch={patch} catalog={catalog} />

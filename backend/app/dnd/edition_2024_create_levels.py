@@ -722,6 +722,8 @@ def _append_spells(
 
 
 def _refresh_progress(sheet: dict[str, Any]) -> None:
+    options = sheet.get("class_options_2024") if isinstance(sheet.get("class_options_2024"), dict) else {}
+    vestige_domain = str((options or {}).get("vestige_domain") or "").strip().lower() or None
     classes_raw = []
     for row in sheet.get("classes") or []:
         if not isinstance(row, Mapping):
@@ -729,13 +731,24 @@ def _refresh_progress(sheet: dict[str, Any]) -> None:
         slug = e24.normalize_class_slug(str(row.get("slug") or row.get("name") or ""))
         if not slug:
             continue
-        classes_raw.append(
-            {
-                "slug": slug,
-                "level": int(row.get("level") or 1),
-                "subclass_slug": row.get("subclass_slug") or row.get("subclass_catalog_id"),
-            }
-        )
+        sub = row.get("subclass_slug") or row.get("subclass_catalog_id")
+        entry: dict[str, Any] = {
+            "slug": slug,
+            "level": int(row.get("level") or 1),
+            "subclass_slug": sub,
+        }
+        # Vestige always-prepared: domain id rides as land_choice into progression.
+        if (
+            slug == "warlock"
+            and str(sub or "") == "warlock__vestige-patron"
+            and vestige_domain
+        ):
+            entry["vestige_domain"] = vestige_domain
+            entry["land_choice"] = vestige_domain
+        land = row.get("land_choice") or row.get("circle_land")
+        if land and "land_choice" not in entry:
+            entry["land_choice"] = land
+        classes_raw.append(entry)
     abilities = _sheet_abilities(sheet)
     snap = e24.compute_progression(classes_raw, abilities=abilities)
     sheet["class_progress_2024"] = e24.snapshot_to_sheet_fragment(snap)
@@ -1192,6 +1205,50 @@ def _rollback_bard_state(sheet: dict[str, Any], classes: Sequence[Mapping[str, A
     sheet["subclass_grants"] = kept_grants
 
 
+def _rollback_warlock_vestige_state(
+    sheet: dict[str, Any], classes: Sequence[Mapping[str, Any]]
+) -> None:
+    """Drop Vestige domain/type when leaving the subclass or dropping below L3."""
+    from app.dnd import edition_2024_class_options as e24opt
+
+    row = next(
+        (r for r in classes if e24.normalize_class_slug(str(r.get("slug") or "")) == "warlock"),
+        None,
+    )
+    options = sheet.get("class_options_2024") if isinstance(sheet.get("class_options_2024"), dict) else {}
+    if row is None:
+        if options:
+            options.pop("vestige_domain", None)
+            options.pop("vestige_companion_type", None)
+            sheet["class_options_2024"] = options
+        return
+    level = int(row.get("level") or 1)
+    sub = str(row.get("subclass_slug") or row.get("subclass_catalog_id") or "")
+    if level < e24opt.WARLOCK_BOOK_SUBCLASS_LEVEL_2024 or sub != e24opt.WARLOCK_SUBCLASS_VESTIGE_2024:
+        if options:
+            options.pop("vestige_domain", None)
+            options.pop("vestige_companion_type", None)
+            sheet["class_options_2024"] = options
+        # Clear active Form of Dread / vestige picks keyed to this class entry.
+        entry_id = str(row.get("id") or "class-warlock")
+        picks = sheet.get("feature_picks")
+        if isinstance(picks, dict):
+            values = dict(picks.get("values") or {})
+            for key in list(values.keys()):
+                if not key.startswith(f"{entry_id}:"):
+                    continue
+                suffix = key.split(":", 1)[-1]
+                if suffix in {
+                    "vestige_domain",
+                    "vestige_companion_type",
+                    "vestige-companion",
+                    "form_of_dread_active",
+                    "vestige_divine_power_used",
+                }:
+                    values.pop(key, None)
+            sheet["feature_picks"] = {"values": values}
+
+
 def _rollback_monk_mystic_state(sheet: dict[str, Any], classes: Sequence[Mapping[str, Any]]) -> None:
     """Trim Мистический воин third-caster picks when level/budget drops."""
     from app.dnd import edition_2024_subclasses as e24sub
@@ -1340,6 +1397,8 @@ def rollback_last_level_gain(sheet: dict[str, Any]) -> dict[str, Any]:
         _rollback_rogue_state(sheet, kept)
     if class_slug == "monk":
         _rollback_monk_mystic_state(sheet, kept)
+    if class_slug == "warlock":
+        _rollback_warlock_vestige_state(sheet, kept)
 
     combat = sheet.setdefault("combat", {})
     combat["hp_max"] = max(1, int(combat.get("hp_max") or 0) - hp_gain)

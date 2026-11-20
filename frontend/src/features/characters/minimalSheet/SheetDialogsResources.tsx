@@ -85,6 +85,7 @@ import {
   warlock2024UseFeatureId,
   type WarlockFeatureUseResult,
 } from '../../../shared/dnd/warlock2024Features'
+import { restoreVestigeDivinePowerOnCompanions } from '../vestigeCompanion2024'
 import {
   cleric2024UseFeatureId,
   type Cleric2024UseResult,
@@ -345,23 +346,66 @@ export function SheetDialogsResources({ model }: { model: SheetModel }) {
       return
     }
     const featureId = model.warlockFeatureUse?.featureId ?? 'warlock'
-    model.setDraft((prev) => ({
-      ...prev,
-      ...(result.featurePicks ? { featurePicks: result.featurePicks } : {}),
-      ...(result.pact_slots !== undefined
-        ? { spells: { ...prev.spells, pact_slots: result.pact_slots } }
-        : {}),
-      play: {
-        ...prev.play,
-        resources: result.resources,
-        concentration: result.concentrationName
-          ? setConcentration({
-              spellId: `feature:${featureId}`,
-              name: result.concentrationName,
-            })
-          : prev.play.concentration,
-      },
-    }))
+    model.setDraft((prev) => {
+      let companions = prev.companions
+      if (result.restoreVestigeDivinePower) {
+        companions = restoreVestigeDivinePowerOnCompanions(companions).companions
+      }
+      if (result.healVestigeCompanion) {
+        companions = companions.map((row) => {
+          const feature = String(row.source?.feature ?? '')
+          if (feature !== 'vestige-companion' && feature !== 'vestige_companion') return row
+          const max = row.stats.hp_max
+          if (max == null) return row
+          return {
+            ...row,
+            active: true,
+            stats: { ...row.stats, hp: max },
+            death: null,
+          }
+        })
+      }
+      const ended = new Set(
+        (result.conditionsEnded ?? []).map((slug) => String(slug).trim().toLowerCase()),
+      )
+      const conditions =
+        ended.size > 0
+          ? (prev.play.conditions ?? []).filter(
+              (row) => !ended.has(String(row.slug || '').trim().toLowerCase()),
+            )
+          : prev.play.conditions
+      const exhaustionDelta = Math.floor(result.exhaustionDelta ?? 0)
+      const exhaustion =
+        exhaustionDelta !== 0
+          ? Math.min(6, Math.max(0, (prev.play.exhaustion ?? 0) + exhaustionDelta))
+          : prev.play.exhaustion
+      const hpCurrent =
+        result.hpSet != null ? Math.max(1, Math.floor(result.hpSet)) : prev.hpCurrent
+      return {
+        ...prev,
+        ...(result.featurePicks ? { featurePicks: result.featurePicks } : {}),
+        ...(result.pact_slots !== undefined
+          ? { spells: { ...prev.spells, pact_slots: result.pact_slots } }
+          : {}),
+        ...(result.hpSet != null ? { hpCurrent } : {}),
+        companions,
+        play: {
+          ...prev.play,
+          resources: result.resources,
+          ...(ended.size > 0 ? { conditions } : {}),
+          ...(exhaustionDelta !== 0 ? { exhaustion } : {}),
+          ...(result.hpSet != null
+            ? { isDying: false, deathSuccesses: 0, deathFails: 0 }
+            : {}),
+          concentration: result.concentrationName
+            ? setConcentration({
+                spellId: `feature:${featureId}`,
+                name: result.concentrationName,
+              })
+            : prev.play.concentration,
+        },
+      }
+    })
     const incomingTemp =
       typeof result.tempHp === 'number' ? Math.max(0, Math.floor(result.tempHp)) : 0
     if (incomingTemp > 0) {

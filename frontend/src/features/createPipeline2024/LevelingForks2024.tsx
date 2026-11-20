@@ -52,6 +52,15 @@ import {
   PRIMAL_STRIKE_NAME_RU,
   type ElementalFuryPick2024,
 } from '../../shared/dnd/druid2024Features'
+import {
+  isVestigePatron2024,
+  VESTIGE_COMPANION_NAME_RU,
+  VESTIGE_COMPANION_TYPE_OPTIONS_2024,
+  VESTIGE_DOMAIN_OPTIONS_2024,
+  VESTIGE_SPELLS_NAME_RU,
+  type VestigeCompanionType2024,
+  type VestigeDomain2024,
+} from '../../shared/dnd/warlockBook2024Features'
 import { KnownFormsPicker } from '../characters/KnownFormsPicker'
 import type { KnownForm } from '../characters/knownForms'
 import { hitDieForClass, type AbilityScores } from '../../shared/dnd/multiclassRules'
@@ -112,6 +121,12 @@ export type LevelingForks2024Props = {
   /** Druid 2024 Circle of the Land terrain (required from druid level 3 with the Land subclass). */
   landChoicePick?: LandTerrain2024 | null
   onLandChoiceChange?: (pick: LandTerrain2024) => void
+  /** Warlock Vestige Patron domain (required from warlock level 3). */
+  vestigeDomainPick?: VestigeDomain2024 | null
+  onVestigeDomainChange?: (pick: VestigeDomain2024) => void
+  /** Warlock Vestige Patron companion type (required from warlock level 3). */
+  vestigeCompanionTypePick?: VestigeCompanionType2024 | null
+  onVestigeCompanionTypeChange?: (pick: VestigeCompanionType2024) => void
   /** Druid 2024 Wild Shape known forms (required from druid level 2). */
   knownFormsPick?: KnownForm[]
   onKnownFormsChange?: (forms: KnownForm[]) => void
@@ -152,6 +167,10 @@ export function LevelingForks2024({
   onElementalFuryChange,
   landChoicePick = null,
   onLandChoiceChange,
+  vestigeDomainPick = null,
+  onVestigeDomainChange,
+  vestigeCompanionTypePick = null,
+  onVestigeCompanionTypeChange,
   knownFormsPick = [],
   onKnownFormsChange,
 }: LevelingForks2024Props) {
@@ -779,6 +798,51 @@ export function LevelingForks2024({
                   {!landChoicePick ? (
                     <Text tone="muted">Не выбрано — выберите, чтобы продолжить.</Text>
                   ) : null}
+                </Stack>
+              </div>
+            ) : null}
+            {slug === 'warlock' &&
+            isPrimary &&
+            row.level >= 3 &&
+            isVestigePatron2024(subclassByEntryId[row.id]) ? (
+              <div data-testid="p24-m02b-vestige-picks">
+                <Stack gap={12}>
+                  <Stack gap={8}>
+                    <Text as="h3" className="create-pipeline__section-title">
+                      {VESTIGE_SPELLS_NAME_RU} — домен (обязательный выбор)
+                    </Text>
+                    <SegmentedControl<VestigeDomain2024>
+                      aria-label={VESTIGE_SPELLS_NAME_RU}
+                      options={VESTIGE_DOMAIN_OPTIONS_2024.map((rowDomain) => ({
+                        id: rowDomain.id,
+                        label: rowDomain.nameRu,
+                        testId: `p24-m02b-vestige-domain-${rowDomain.id}`,
+                      }))}
+                      value={(vestigeDomainPick ?? '') as VestigeDomain2024}
+                      onChange={(pick) => onVestigeDomainChange?.(pick)}
+                    />
+                    {!vestigeDomainPick ? (
+                      <Text tone="muted">Не выбрано — выберите, чтобы продолжить.</Text>
+                    ) : null}
+                  </Stack>
+                  <Stack gap={8}>
+                    <Text as="h3" className="create-pipeline__section-title">
+                      {VESTIGE_COMPANION_NAME_RU} — тип (обязательный выбор)
+                    </Text>
+                    <SegmentedControl<VestigeCompanionType2024>
+                      aria-label={VESTIGE_COMPANION_NAME_RU}
+                      options={VESTIGE_COMPANION_TYPE_OPTIONS_2024.map((rowType) => ({
+                        id: rowType.id,
+                        label: rowType.nameRu,
+                        testId: `p24-m02b-vestige-companion-type-${rowType.id}`,
+                      }))}
+                      value={(vestigeCompanionTypePick ?? '') as VestigeCompanionType2024}
+                      onChange={(pick) => onVestigeCompanionTypeChange?.(pick)}
+                    />
+                    {!vestigeCompanionTypePick ? (
+                      <Text tone="muted">Не выбрано — выберите, чтобы продолжить.</Text>
+                    ) : null}
+                  </Stack>
                 </Stack>
               </div>
             ) : null}
