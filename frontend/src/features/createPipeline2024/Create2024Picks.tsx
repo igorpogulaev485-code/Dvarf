@@ -30,6 +30,26 @@ import {
   transmuterStoneBenefitChoice2024,
 } from '../../shared/dnd/wizardBook2024Features'
 import {
+  ARCANA_DOMAIN_NAME_RU,
+  BLESSINGS_OF_KNOWLEDGE_NAME_RU,
+  BLESSINGS_OF_KNOWLEDGE_SKILL_LABELS_RU,
+  BLESSINGS_OF_KNOWLEDGE_SKILLS_2024,
+  BLESSINGS_OF_KNOWLEDGE_TOOL_LABELS_RU,
+  BLESSINGS_OF_KNOWLEDGE_TOOLS_2024,
+  KNOWLEDGE_DOMAIN_NAME_RU,
+  MAGICAL_MASTERY_NAME_RU,
+  MAGICAL_MASTERY_SPELL_LABELS_RU,
+  MAGICAL_MASTERY_SPELLS_BY_CIRCLE_2024,
+  STUDENT_OF_ARCANA_CANTRIP_LABELS_RU,
+  STUDENT_OF_ARCANA_CANTRIPS_2024,
+  STUDENT_OF_ARCANA_NAME_RU,
+  STUDENT_OF_ARCANA_SKILL_LABELS_RU,
+  STUDENT_OF_ARCANA_SKILLS_2024,
+  UNFETTERED_MIND_NAME_RU,
+  UNFETTERED_SAVE_LABELS_RU,
+  UNFETTERED_SAVE_OPTIONS_2024,
+} from '../../shared/dnd/clericBook2024Features'
+import {
   ARMOR_MODELS_2024,
   PLANS_KNOWN_COLUMN_RU,
   SPELL_STORING_ITEM_NAME_RU,
@@ -101,6 +121,7 @@ import {
   rogueCreatePicksNeed2024,
   warlockCreatePicksNeed2024,
   wizardBookCreatePicksNeed2024,
+  clericBookCreatePicksNeed2024,
   setAsiFlat1,
   setAsiPlus2Plus1,
   speciesLineages,
@@ -1178,5 +1199,152 @@ export function WizardBookLevelingPicks({
         />
       ) : null}
     </Stack>
+  )
+}
+
+/** P24-M02B book cleric: Student of Arcana / Blessings / Unfettered / Magical Mastery. */
+export function ClericBookLevelingPicks({
+  state,
+  patch,
+}: {
+  state: Create2024State
+  patch: (partial: Partial<Create2024State>) => void
+}) {
+  const need = clericBookCreatePicksNeed2024(state)
+  if (
+    !need.studentSkill &&
+    !need.studentCantrips &&
+    !need.blessingsTool &&
+    !need.blessingsSkills &&
+    !need.unfetteredSave &&
+    !need.magicalMastery
+  ) {
+    return null
+  }
+  const setPicks = (partial: Record<string, unknown>) =>
+    patch({ classOptionPicks: { ...state.classOptionPicks, ...partial } })
+  const cantripsRaw = state.classOptionPicks.student_of_arcana_cantrips
+  const cantrips = Array.isArray(cantripsRaw)
+    ? cantripsRaw.map((x) => String(x).toLowerCase())
+    : []
+  const blessingsRaw = state.classOptionPicks.blessings_of_knowledge_skills
+  const blessings = Array.isArray(blessingsRaw)
+    ? blessingsRaw.map((x) => String(x).toLowerCase())
+    : []
+
+  return (
+    <div data-testid="p24-m02b-cleric-book-picks">
+    <Stack gap={14}>
+      {need.studentSkill ? (
+        <PickChipGroup
+          label={`${STUDENT_OF_ARCANA_NAME_RU} (${ARCANA_DOMAIN_NAME_RU})`}
+          hint="Владение Тайной магией или одним навыком жреца 1 ур."
+          options={STUDENT_OF_ARCANA_SKILLS_2024.map((id) => ({
+            id,
+            label: STUDENT_OF_ARCANA_SKILL_LABELS_RU[id] ?? skillLabelRu(id),
+          }))}
+          selected={
+            state.classOptionPicks.student_of_arcana_skill
+              ? [String(state.classOptionPicks.student_of_arcana_skill)]
+              : []
+          }
+          max={1}
+          multi={false}
+          testIdPrefix="p24-m02b-pick-student-skill"
+          onChange={(picked) => setPicks({ student_of_arcana_skill: picked[0] ?? null })}
+        />
+      ) : null}
+      {need.studentCantrips ? (
+        <PickChipGroup
+          label={`${STUDENT_OF_ARCANA_NAME_RU}: заговоры волшебника`}
+          hint="Два заговора волшебника (всегда известны)."
+          options={STUDENT_OF_ARCANA_CANTRIPS_2024.map((id) => ({
+            id,
+            label: STUDENT_OF_ARCANA_CANTRIP_LABELS_RU[id] ?? id,
+          }))}
+          selected={cantrips}
+          max={2}
+          multi
+          testIdPrefix="p24-m02b-pick-student-cantrip"
+          onChange={(picked) => setPicks({ student_of_arcana_cantrips: picked })}
+        />
+      ) : null}
+      {need.blessingsTool ? (
+        <PickChipGroup
+          label={`${BLESSINGS_OF_KNOWLEDGE_NAME_RU} (${KNOWLEDGE_DOMAIN_NAME_RU}): инструмент`}
+          hint="Один тип ремесленных инструментов."
+          options={BLESSINGS_OF_KNOWLEDGE_TOOLS_2024.map((id) => ({
+            id,
+            label: BLESSINGS_OF_KNOWLEDGE_TOOL_LABELS_RU[id] ?? id,
+          }))}
+          selected={
+            state.classOptionPicks.blessings_of_knowledge_tool
+              ? [String(state.classOptionPicks.blessings_of_knowledge_tool)]
+              : []
+          }
+          max={1}
+          multi={false}
+          testIdPrefix="p24-m02b-pick-blessings-tool"
+          onChange={(picked) => setPicks({ blessings_of_knowledge_tool: picked[0] ?? null })}
+        />
+      ) : null}
+      {need.blessingsSkills ? (
+        <PickChipGroup
+          label={`${BLESSINGS_OF_KNOWLEDGE_NAME_RU}: навыки`}
+          hint="Два навыка с экспертностью."
+          options={BLESSINGS_OF_KNOWLEDGE_SKILLS_2024.map((id) => ({
+            id,
+            label: BLESSINGS_OF_KNOWLEDGE_SKILL_LABELS_RU[id] ?? skillLabelRu(id),
+          }))}
+          selected={blessings}
+          max={2}
+          multi
+          testIdPrefix="p24-m02b-pick-blessings-skill"
+          onChange={(picked) => setPicks({ blessings_of_knowledge_skills: picked })}
+        />
+      ) : null}
+      {need.unfetteredSave ? (
+        <PickChipGroup
+          label={`${UNFETTERED_MIND_NAME_RU}: спасбросок`}
+          hint="Если Инт уже во владении — выберите другой спасбросок."
+          options={UNFETTERED_SAVE_OPTIONS_2024.map((id) => ({
+            id,
+            label: UNFETTERED_SAVE_LABELS_RU[id] ?? id,
+          }))}
+          selected={
+            state.classOptionPicks.unfettered_mind_save
+              ? [String(state.classOptionPicks.unfettered_mind_save)]
+              : []
+          }
+          max={1}
+          multi={false}
+          testIdPrefix="p24-m02b-pick-unfettered-save"
+          onChange={(picked) => setPicks({ unfettered_mind_save: picked[0] ?? null })}
+        />
+      ) : null}
+      {need.magicalMastery
+        ? ([6, 7, 8, 9] as const).map((circle) => (
+            <PickChipGroup
+              key={circle}
+              label={`${MAGICAL_MASTERY_NAME_RU}: ${circle}-й круг`}
+              hint="Заклинание волшебника этого круга — всегда подготовлено."
+              options={MAGICAL_MASTERY_SPELLS_BY_CIRCLE_2024[circle].map((id) => ({
+                id,
+                label: MAGICAL_MASTERY_SPELL_LABELS_RU[id] ?? id,
+              }))}
+              selected={
+                state.classOptionPicks[`magical_mastery_${circle}`]
+                  ? [String(state.classOptionPicks[`magical_mastery_${circle}`])]
+                  : []
+              }
+              max={1}
+              multi={false}
+              testIdPrefix={`p24-m02b-pick-mastery-${circle}`}
+              onChange={(picked) => setPicks({ [`magical_mastery_${circle}`]: picked[0] ?? null })}
+            />
+          ))
+        : null}
+    </Stack>
+    </div>
   )
 }

@@ -31,6 +31,7 @@ import {
   RogueLevelingPicks,
   WarlockLevelingPicks,
   WizardBookLevelingPicks,
+  ClericBookLevelingPicks,
   ClassPicks,
   SpeciesFeatPicks,
   SpeciesPicks,
@@ -59,6 +60,12 @@ import {
   parseWarlockSeed,
   warlockAsiChoicesForLevel,
 } from '../features/createPipeline2024/e2eWarlockSeed2024'
+import {
+  parseClericSeed,
+  buildClericSeedSpells,
+  buildClericClassOptionPicks,
+  clericAsiChoicesForLevel,
+} from '../features/createPipeline2024/e2eClericSeed2024'
 import { createClassLevel, totalCharacterLevel } from '../shared/dnd/classLevels'
 import { thirdCasterBlock2024 } from '../shared/dnd/edition2024Subclasses'
 import { ensureHpChoices } from '../features/createPipeline/LevelingStep'
@@ -521,6 +528,30 @@ export function CreateCharacter2024Page({
         classOptionPicks: buildWarlockClassOptionPicks(
           warlockSpec.level,
           warlockSpec.subclassSlug,
+        ),
+      }
+    }
+    const clericSpec = parseClericSeed(e2eSeed)
+    const clericClass = bySlug(catalog.classes, 'cleric')
+    if (clericSpec && clericClass) {
+      seeds[e2eSeed] = {
+        name: `Жрец ${clericSpec.level}`,
+        classSlug: 'cleric',
+        abilities: { str: 8, dex: 12, con: 14, int: 10, wis: 15, cha: 13 },
+        rows: [
+          {
+            slug: 'cleric',
+            level: clericSpec.level,
+            ...(clericSpec.subclassSlug ? { subclass: clericSpec.subclassSlug } : {}),
+          },
+        ],
+        skills: ['insight', 'religion'],
+        backgroundAsi: { con: 2, dex: 1 },
+        asi: clericAsiChoicesForLevel(clericSpec.level),
+        spells: buildClericSeedSpells(catalog.spells, clericClass, clericSpec.level),
+        classOptionPicks: buildClericClassOptionPicks(
+          clericSpec.level,
+          clericSpec.subclassSlug,
         ),
       }
     }
@@ -1488,6 +1519,7 @@ export function CreateCharacter2024Page({
           {classSlug === 'ranger' ? <RangerLevelingPicks state={state} patch={patch} /> : null}
           {classSlug === 'warlock' ? <WarlockLevelingPicks state={state} patch={patch} /> : null}
           {classSlug === 'wizard' ? <WizardBookLevelingPicks state={state} patch={patch} /> : null}
+          {classSlug === 'cleric' ? <ClericBookLevelingPicks state={state} patch={patch} /> : null}
           {classSlug === 'barbarian' ? (
             <BarbarianLevelingPicks state={state} patch={patch} catalog={catalog} />
           ) : null}

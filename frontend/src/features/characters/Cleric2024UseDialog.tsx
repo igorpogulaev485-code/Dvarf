@@ -31,6 +31,19 @@ import {
   type Cleric2024UseResult,
   type DivineInterventionSpellRow,
 } from '../../shared/dnd/cleric2024Features'
+import {
+  CIRCLE_OF_MORTALITY_NAME_RU,
+  FORTIFYING_SPELL_NAME_RU,
+  KEEPER_OF_SOULS_NAME_RU,
+  KNOWLEDGE_DOMAIN_DIVINATION_SPELLS_2024,
+  PATH_TO_THE_GRAVE_ACTIVE_PICK,
+  PATH_TO_THE_GRAVE_NAME_RU,
+  TENACIOUS_SPELL_NAME_RU,
+  circleMortalityExtraDie2024,
+  keeperOfSoulsHeal2024,
+  modifyMagicTempHpFormulaRu2024,
+  pathToTheGraveExtraDamage2024,
+} from '../../shared/dnd/clericBook2024Features'
 import { getFeaturePick } from '../../shared/dnd/featurePicks'
 
 export type ClericFeatureRequest = {
@@ -60,6 +73,8 @@ const SIMPLE_SPEND_TEXT: Record<string, string> = {
   'corona-of-light':
     'Яркий свет 60 фт. на 1 мин.; помеха врагам на спасброски от «Сияния рассвета» и заклинаний огня или излучения.',
   'guided-strike': '+10 к броску атаки (твоей или существа в 30 фт.) после броска.',
+  'sentinel-at-death-s-door':
+    'Реакция: урон атаки по тебе или Окровавленному в 60 фт. вдвое вниз; эффекты крита отменяются.',
 }
 
 export function Cleric2024UseDialog({
@@ -78,6 +93,8 @@ export function Cleric2024UseDialog({
   const [wgbChoice, setWgbChoice] = useState<string>(WAR_GODS_BLESSING_SPELLS_2024[0].id)
   const [preserveAmount, setPreserveAmount] = useState<number | null>(null)
   const [spellId, setSpellId] = useState('')
+  const [slotLevel, setSlotLevel] = useState(6)
+  const [graveDamage, setGraveDamage] = useState('necrotic')
 
   const featureId =
     cleric2024UseFeatureId(request?.featureId) ?? request?.featureId.replace(/_/g, '-') ?? ''
@@ -90,6 +107,8 @@ export function Cleric2024UseDialog({
   if (!request) return null
 
   const channelLeft = channelRow ? Math.max(0, channelRow.max - channelRow.used) : 0
+  const pathActive =
+    getFeaturePick(featurePicks, request.classEntryId, PATH_TO_THE_GRAVE_ACTIVE_PICK) === '1'
   const usesChannel =
     featureId === 'divine-spark' ||
     featureId === 'turn-undead' ||
@@ -97,6 +116,11 @@ export function Cleric2024UseDialog({
     featureId === 'radiance-of-the-dawn' ||
     featureId === 'guided-strike' ||
     featureId === 'war-gods-blessing' ||
+    featureId === 'modify-magic' ||
+    featureId === 'mind-magic' ||
+    (featureId === 'path-to-the-grave' && (mode || 'curse') !== 'end-hit') ||
+    (featureId === 'dispelling-recovery' && mode === 'restore') ||
+    (featureId === 'divine-reaper' && (mode || 'second-target') === 'second-target') ||
     (featureId === 'invoke-duplicity' && mode !== 'move' && mode !== 'dismiss' && mode !== 'transposition')
 
   const pool = preserveLifePool2024(clericLevel)
@@ -126,6 +150,11 @@ export function Cleric2024UseDialog({
     if (featureId === 'divine-spark') useMode = sparkMode
     if (featureId === 'invoke-duplicity') useMode = duplicityMode
     if (featureId === 'divine-intervention') useMode = interventionMode
+    if (featureId === 'modify-magic') useMode = mode || 'fortifying'
+    if (featureId === 'path-to-the-grave') useMode = mode || (pathActive ? 'end-hit' : 'curse')
+    if (featureId === 'dispelling-recovery') useMode = mode || 'cast'
+    if (featureId === 'divine-foreknowledge') useMode = mode || 'activate'
+    if (featureId === 'divine-reaper') useMode = mode || 'second-target'
     const result = applyCleric2024FeatureUse({
       featureId: request!.featureId,
       resourceId: request!.resourceId,
@@ -134,9 +163,22 @@ export function Cleric2024UseDialog({
       clericLevel,
       wisMod,
       mode: useMode,
-      choice: featureId === 'war-gods-blessing' ? wgbChoice : undefined,
-      spellId: featureId === 'divine-intervention' ? spellId.trim() : undefined,
-      amount: featureId === 'preserve-life' ? (preserveAmount ?? pool) : undefined,
+      choice:
+        featureId === 'war-gods-blessing'
+          ? wgbChoice
+          : featureId === 'path-to-the-grave'
+            ? graveDamage
+            : undefined,
+      spellId:
+        featureId === 'divine-intervention' || featureId === 'mind-magic'
+          ? spellId.trim()
+          : undefined,
+      amount:
+        featureId === 'preserve-life'
+          ? (preserveAmount ?? pool)
+          : featureId === 'divine-foreknowledge' || featureId === 'divine-reaper'
+            ? slotLevel
+            : undefined,
       featurePicks,
     })
     onConfirm(result)
@@ -144,7 +186,9 @@ export function Cleric2024UseDialog({
 
   const primaryDisabled =
     (featureId === 'divine-intervention' &&
-      (availability?.available !== true || (interventionMode === 'spell' && !spellId.trim())))
+      (availability?.available !== true || (interventionMode === 'spell' && !spellId.trim()))) ||
+    (featureId === 'mind-magic' && !spellId.trim()) ||
+    (featureId === 'modify-magic' && !mode && false)
 
   return (
     <Dialog
@@ -326,6 +370,167 @@ export function Cleric2024UseDialog({
               <Text tone="muted">Блокировка после «Желания»: ещё {wishLock} долг. отд.</Text>
             ) : null}
           </>
+        ) : null}
+
+        {featureId === 'modify-magic' ? (
+          <>
+            <Text>
+              При сотворении заклинания потрать одно Проведение божественности (отдельного действия
+              нет).
+            </Text>
+            <SegmentedControl
+              aria-label="Режим изменения магии"
+              value={mode || 'fortifying'}
+              onChange={setMode}
+              options={[
+                { id: 'fortifying', label: FORTIFYING_SPELL_NAME_RU },
+                { id: 'tenacious', label: TENACIOUS_SPELL_NAME_RU },
+              ]}
+            />
+            <Text tone="muted">
+              {(mode || 'fortifying') === 'fortifying'
+                ? `Временные хиты ${modifyMagicTempHpFormulaRu2024(clericLevel)} одной цели.`
+                : '−1к6 к первому успешному спасброску видимой цели против этого заклинания.'}
+            </Text>
+          </>
+        ) : null}
+
+        {featureId === 'mind-magic' ? (
+          <>
+            <Text>
+              Действие «Магия»: сотворить подготовленное Прорицание из таблицы домена знаний без
+              ячейки и материальных компонентов.
+            </Text>
+            <Field label="Заклинание Прорицания">
+              <Stack gap={6}>
+                {KNOWLEDGE_DOMAIN_DIVINATION_SPELLS_2024.map((slug) => (
+                  <Button
+                    key={slug}
+                    size="sm"
+                    variant={spellId === slug ? 'primary' : 'secondary'}
+                    onClick={() => setSpellId(slug)}
+                  >
+                    {slug}
+                  </Button>
+                ))}
+              </Stack>
+            </Field>
+          </>
+        ) : null}
+
+        {featureId === 'path-to-the-grave' ? (
+          <>
+            <Text>
+              {PATH_TO_THE_GRAVE_NAME_RU}: бонусным действием проклясть видимое существо в 30 фт. до
+              начала твоего следующего хода (помеха на атаки и спасброски).
+            </Text>
+            <SegmentedControl
+              aria-label="Путь к могиле"
+              value={mode || (pathActive ? 'end-hit' : 'curse')}
+              onChange={setMode}
+              options={[
+                { id: 'curse', label: 'Проклясть' },
+                { id: 'end-hit', label: 'Снять при попадании' },
+              ]}
+            />
+            {(mode || (pathActive ? 'end-hit' : 'curse')) === 'end-hit' ? (
+              <Field label="Доп. урон">
+                <SegmentedControl
+                  aria-label="Тип урона"
+                  value={graveDamage}
+                  onChange={setGraveDamage}
+                  options={[
+                    { id: 'necrotic', label: `Некротический +${pathToTheGraveExtraDamage2024(clericLevel)}` },
+                    { id: 'radiant', label: `Излучение +${pathToTheGraveExtraDamage2024(clericLevel)}` },
+                  ]}
+                />
+              </Field>
+            ) : null}
+          </>
+        ) : null}
+
+        {featureId === 'dispelling-recovery' ? (
+          <>
+            <Text>
+              После заклинания, лечащего или снимающего состояние: «Рассеивание магии» без ячейки
+              частью того же действия. 1 / короткий или долгий; можно восстановить каналом.
+            </Text>
+            <SegmentedControl
+              aria-label="Рассеивающее восстановление"
+              value={mode || 'cast'}
+              onChange={setMode}
+              options={[
+                { id: 'cast', label: 'Сотворить' },
+                { id: 'restore', label: 'Восстановить каналом' },
+              ]}
+            />
+          </>
+        ) : null}
+
+        {featureId === 'divine-foreknowledge' ? (
+          <>
+            <Text>
+              Бонусным на 1 час — Преимущество на все Тесты к20. 1 / долгий; можно восстановить
+              ячейкой 6+.
+            </Text>
+            <SegmentedControl
+              aria-label="Божественное предзнание"
+              value={mode || 'activate'}
+              onChange={setMode}
+              options={[
+                { id: 'activate', label: 'Включить' },
+                { id: 'restore', label: 'Восстановить ячейкой' },
+              ]}
+            />
+            {(mode || 'activate') === 'restore' ? (
+              <Field label="Круг ячейки">
+                <NumberInput
+                  min={6}
+                  max={9}
+                  value={slotLevel}
+                  onValueChange={(value) => setSlotLevel(Math.max(6, Math.min(9, value ?? 6)))}
+                />
+              </Field>
+            ) : null}
+          </>
+        ) : null}
+
+        {featureId === 'divine-reaper' ? (
+          <>
+            <Text>
+              Усовершенствованная некромантия: вторая цель через канал. {KEEPER_OF_SOULS_NAME_RU}: при
+              смерти врага в 60 фт. — {keeperOfSoulsHeal2024(clericLevel)} хитов (1 / короткий или
+              долгий; восстановить ячейкой 6+).
+            </Text>
+            <SegmentedControl
+              aria-label="Божественный жнец"
+              value={mode || 'second-target'}
+              onChange={setMode}
+              options={[
+                { id: 'second-target', label: 'Вторая цель' },
+                { id: 'keeper', label: 'Хранитель душ' },
+                { id: 'keeper-restore', label: 'Восстановить ячейкой' },
+              ]}
+            />
+            {(mode || 'second-target') === 'keeper-restore' ? (
+              <Field label="Круг ячейки">
+                <NumberInput
+                  min={6}
+                  max={9}
+                  value={slotLevel}
+                  onValueChange={(value) => setSlotLevel(Math.max(6, Math.min(9, value ?? 6)))}
+                />
+              </Field>
+            ) : null}
+          </>
+        ) : null}
+
+        {featureId === 'circle-of-mortality' ? (
+          <Text>
+            {CIRCLE_OF_MORTALITY_NAME_RU}: {circleMortalityExtraDie2024(clericLevel)} доп.
+            некротического 1/ход по цели ниже макс. хитов; Уход за умирающим бонусным; макс. кости
+            лечения на 0 HP.
+          </Text>
         ) : null}
 
         {SIMPLE_SPEND_TEXT[featureId] ? <Text>{SIMPLE_SPEND_TEXT[featureId]}</Text> : null}

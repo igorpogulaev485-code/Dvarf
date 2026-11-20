@@ -1079,6 +1079,125 @@ def _validate_paladin_options_2024(
     return out
 
 
+STUDENT_OF_ARCANA_SKILLS_2024 = {
+    "history",
+    "insight",
+    "medicine",
+    "persuasion",
+    "religion",
+    "arcana",
+}
+STUDENT_OF_ARCANA_CANTRIPS_2024 = {
+    "mage-hand",
+    "prestidigitation",
+    "light",
+    "minor-illusion",
+    "ray-of-frost",
+    "fire-bolt",
+    "shocking-grasp",
+    "blade-ward",
+    "friends",
+    "message",
+    "mending",
+    "dancing-lights",
+    "acid-splash",
+    "poison-spray",
+    "true-strike",
+}
+BLESSINGS_OF_KNOWLEDGE_SKILLS_2024 = {"history", "nature", "religion", "arcana"}
+BLESSINGS_OF_KNOWLEDGE_TOOLS_2024 = {
+    "alchemists-supplies",
+    "brewers-supplies",
+    "calligraphers-supplies",
+    "carpenters-tools",
+    "cartographers-tools",
+    "cobblers-tools",
+    "cooks-utensils",
+    "glassblowers-tools",
+    "jewelers-tools",
+    "leatherworkers-tools",
+    "masons-tools",
+    "painters-supplies",
+    "potters-tools",
+    "smiths-tools",
+    "tinkers-tools",
+    "weavers-tools",
+    "woodcarvers-tools",
+}
+MAGICAL_MASTERY_SPELLS_BY_CIRCLE_2024 = {
+    6: {"disintegrate", "globe-of-invulnerability", "mass-suggestion", "true-seeing", "chain-lightning"},
+    7: {"teleport", "finger-of-death", "forcecage", "plane-shift", "etherealness"},
+    8: {"dominate-monster", "maze", "mind-blank", "power-word-stun", "sunburst"},
+    9: {"wish", "foresight", "time-stop", "true-polymorph", "power-word-kill"},
+}
+UNFETTERED_SAVE_OPTIONS_2024 = {"str", "dex", "con", "cha", "int"}
+
+
+def _validate_cleric_book_options_2024(
+    payload: Create2024Payload,
+    picks: Mapping[str, Any],
+) -> dict[str, Any]:
+    """P24-M02B-cleric book-path picks: Student / Blessings / Mastery / Unfettered."""
+    out: dict[str, Any] = {}
+    cleric_level = _planned_class_level(payload, "cleric")
+    subclass = _planned_primary_subclass(payload)
+    if subclass == "cleric__arcana-domain" and cleric_level >= 3:
+        skill = str(picks.get("student_of_arcana_skill") or "").lower()
+        if skill not in STUDENT_OF_ARCANA_SKILLS_2024:
+            raise Create2024Error(
+                "Домен магии 3+: выберите навык «Изучающего магию»",
+                code="create_2024_class_options",
+            )
+        raw = picks.get("student_of_arcana_cantrips") or []
+        cantrips = [_normalize_slug(str(x)) for x in raw]
+        if (
+            len(cantrips) != 2
+            or len(set(cantrips)) != 2
+            or any(c not in STUDENT_OF_ARCANA_CANTRIPS_2024 for c in cantrips)
+        ):
+            raise Create2024Error(
+                "Домен магии 3+: выберите два заговора волшебника",
+                code="create_2024_class_options",
+            )
+        out["student_of_arcana_skill"] = skill
+        out["student_of_arcana_cantrips"] = cantrips
+    if subclass == "cleric__arcana-domain" and cleric_level >= 17:
+        for circle, allowed in MAGICAL_MASTERY_SPELLS_BY_CIRCLE_2024.items():
+            key = f"magical_mastery_{circle}"
+            spell = _normalize_slug(str(picks.get(key) or ""))
+            if spell not in allowed:
+                raise Create2024Error(
+                    f"Домен магии 17+: выберите заклинание волшебника {circle}-го круга",
+                    code="create_2024_class_options",
+                )
+            out[key] = spell
+    if subclass == "cleric__knowledge-domain" and cleric_level >= 3:
+        tool = _normalize_slug(str(picks.get("blessings_of_knowledge_tool") or ""))
+        if tool not in BLESSINGS_OF_KNOWLEDGE_TOOLS_2024:
+            raise Create2024Error(
+                "Домен знаний 3+: выберите ремесленный инструмент",
+                code="create_2024_class_options",
+            )
+        raw = picks.get("blessings_of_knowledge_skills") or []
+        skills = [str(x).lower() for x in raw]
+        if (
+            len(skills) != 2
+            or len(set(skills)) != 2
+            or any(s not in BLESSINGS_OF_KNOWLEDGE_SKILLS_2024 for s in skills)
+        ):
+            raise Create2024Error(
+                "Домен знаний 3+: выберите два навыка с экспертностью",
+                code="create_2024_class_options",
+            )
+        out["blessings_of_knowledge_tool"] = tool
+        out["blessings_of_knowledge_skills"] = skills
+    if subclass == "cleric__knowledge-domain" and cleric_level >= 6:
+        save = str(picks.get("unfettered_mind_save") or "").lower()
+        if save and save in UNFETTERED_SAVE_OPTIONS_2024:
+            out["unfettered_mind_save"] = save
+    return out
+
+
 def _validate_wizard_book_options_2024(
     payload: Create2024Payload,
     picks: Mapping[str, Any],
@@ -1863,6 +1982,50 @@ def _sync_wizard_book_picks(sheet: dict[str, Any], class_options: Mapping[str, A
         return
 
 
+def _sync_cleric_book_picks(sheet: dict[str, Any], class_options: Mapping[str, Any]) -> None:
+    """Mirror P24-M02B-cleric book picks into feature_picks for the cleric class row."""
+    for row in sheet.get("classes") or []:
+        if not isinstance(row, dict):
+            continue
+        if e24.normalize_class_slug(str(row.get("slug") or "")) != "cleric":
+            continue
+        entry_id = str(row.get("id") or "class-cleric")
+        picks = sheet.get("feature_picks")
+        values = dict(picks.get("values") or {}) if isinstance(picks, dict) else {}
+
+        skill = str(class_options.get("student_of_arcana_skill") or "").lower()
+        if skill in STUDENT_OF_ARCANA_SKILLS_2024:
+            values[f"{entry_id}:student_of_arcana_skill"] = skill
+
+        cantrips = [
+            _normalize_slug(str(x))
+            for x in (class_options.get("student_of_arcana_cantrips") or [])
+        ]
+        if cantrips:
+            values[f"{entry_id}:student_of_arcana_cantrips"] = ",".join(cantrips)
+
+        tool = _normalize_slug(str(class_options.get("blessings_of_knowledge_tool") or ""))
+        if tool in BLESSINGS_OF_KNOWLEDGE_TOOLS_2024:
+            values[f"{entry_id}:blessings_of_knowledge_tool"] = tool
+
+        skills = [str(x).lower() for x in (class_options.get("blessings_of_knowledge_skills") or [])]
+        if skills:
+            values[f"{entry_id}:blessings_of_knowledge_skills"] = ",".join(skills)
+
+        save = str(class_options.get("unfettered_mind_save") or "").lower()
+        if save in UNFETTERED_SAVE_OPTIONS_2024:
+            values[f"{entry_id}:unfettered_mind_save"] = save
+
+        for circle in (6, 7, 8, 9):
+            key = f"magical_mastery_{circle}"
+            spell = _normalize_slug(str(class_options.get(key) or ""))
+            if spell in MAGICAL_MASTERY_SPELLS_BY_CIRCLE_2024[circle]:
+                values[f"{entry_id}:{key}"] = spell
+
+        sheet["feature_picks"] = {"values": values}
+        return
+
+
 def _sync_ranger_subclass_picks(sheet: dict[str, Any], class_options: Mapping[str, Any]) -> None:
     """Mirror ranger conclave picks into feature_picks for the ranger class row."""
     for row in sheet.get("classes") or []:
@@ -2309,6 +2472,7 @@ def _validate_class_options(
                     code="create_2024_class_options",
                 )
             out["blessed_strikes"] = strikes
+        out.update(_validate_cleric_book_options_2024(payload, picks))
     if payload.class_slug == "druid":
         order = str(picks.get("primal_order") or "").lower()
         if order not in PRIMAL_ORDER_OPTIONS:
@@ -2641,6 +2805,7 @@ def validate_create_2024(payload: Create2024Payload) -> Create2024Result:
     _sync_ranger_subclass_picks(sheet, class_options)
     _sync_artificer_subclass_picks(sheet, class_options)
     _sync_wizard_book_picks(sheet, class_options)
+    _sync_cleric_book_picks(sheet, class_options)
     # Magical Secrets: create-at-N prepared may use Wizard/Druid/Cleric lists from bard 10+.
     _validate_bard_magical_secrets_prepared_2024(payload)
 

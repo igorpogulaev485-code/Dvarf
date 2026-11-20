@@ -1,0 +1,5 @@
+9830fb7a6c0acc068819fff2aeb16b0e  before-create-2014-race-marker-1440.png
+57662c32f02169d5db3e7b3d10e9236c  before-create-2014-cleric-class-1440.png
+e38284837eb7a03771ef733c13c0bb85  before-sheet-2014-cleric-1440.png
+c4bf041a409204530940554236c83061  before-sheet-2014-cleric-features-1440.png
+1ac769e3635d0829d6f6ee60b2d55edf  before-sheet-2014-life-features-1440.png

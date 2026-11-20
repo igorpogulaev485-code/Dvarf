@@ -60,6 +60,13 @@ import {
   TRANSMUTER_STONE_BENEFITS_2024,
   TRANSMUTER_STONE_POTENT_EXTRA_2024,
 } from '../../shared/dnd/wizardBook2024Features'
+import {
+  BLESSINGS_OF_KNOWLEDGE_SKILLS_2024,
+  BLESSINGS_OF_KNOWLEDGE_TOOLS_2024,
+  MAGICAL_MASTERY_SPELLS_BY_CIRCLE_2024,
+  STUDENT_OF_ARCANA_CANTRIPS_2024,
+  STUDENT_OF_ARCANA_SKILLS_2024,
+} from '../../shared/dnd/clericBook2024Features'
 import { wizardCreateBookNeed2024 } from '../../shared/dnd/wizardSpellbook2024'
 import {
   isVestigeCompanionType2024,
@@ -692,6 +699,47 @@ export function wizardBookCreatePicksNeed2024(state: Create2024State): {
   }
 }
 
+export function clericBookCreatePicksNeed2024(state: Create2024State): {
+  clericLevel: number
+  subclassSlug: string
+  studentSkill: boolean
+  studentCantrips: boolean
+  blessingsTool: boolean
+  blessingsSkills: boolean
+  unfetteredSave: boolean
+  magicalMastery: boolean
+} {
+  if (state.classSlug !== 'cleric') {
+    return {
+      clericLevel: 0,
+      subclassSlug: '',
+      studentSkill: false,
+      studentCantrips: false,
+      blessingsTool: false,
+      blessingsSkills: false,
+      unfetteredSave: false,
+      magicalMastery: false,
+    }
+  }
+  const primary =
+    state.classes.find((row) => row.id === state.primaryClassEntryId) ?? state.classes[0]
+  const clericLevel = Math.max(1, primary?.level ?? state.characterLevel ?? 1)
+  const subclass = String(
+    (primary && state.subclassByEntryId[primary.id]) || state.subclassSlug || '',
+  ).toLowerCase()
+  return {
+    clericLevel,
+    subclassSlug: subclass,
+    studentSkill: subclass === 'cleric__arcana-domain' && clericLevel >= 3,
+    studentCantrips: subclass === 'cleric__arcana-domain' && clericLevel >= 3,
+    blessingsTool: subclass === 'cleric__knowledge-domain' && clericLevel >= 3,
+    blessingsSkills: subclass === 'cleric__knowledge-domain' && clericLevel >= 3,
+    // Always offer alt-save pick at 6+; create seed can skip if INT not yet proficient.
+    unfetteredSave: subclass === 'cleric__knowledge-domain' && clericLevel >= 6,
+    magicalMastery: subclass === 'cleric__arcana-domain' && clericLevel >= 17,
+  }
+}
+
 export function rangerCreatePicksNeed2024(state: Create2024State): {
   rangerLevel: number
   subclassSlug: string
@@ -1027,6 +1075,47 @@ function levelingIssues(state: Create2024State, ctx: StepIssueCtx): string[] {
       const pick = String(state.classOptionPicks.transmuter_stone_benefit_2 || '')
       if (!(TRANSMUTER_STONE_BENEFITS_2_2024 as readonly string[]).includes(pick)) {
         issues.push('Выберите второе свойство «Могущественного камня» (с 10 ур.)')
+      }
+    }
+  }
+  if (state.classSlug === 'cleric') {
+    const need = clericBookCreatePicksNeed2024(state)
+    if (need.studentSkill) {
+      const pick = String(state.classOptionPicks.student_of_arcana_skill || '')
+      if (!(STUDENT_OF_ARCANA_SKILLS_2024 as readonly string[]).includes(pick)) {
+        issues.push('Домен магии 3+: выберите навык «Изучающего магию»')
+      }
+    }
+    if (need.studentCantrips) {
+      const raw = state.classOptionPicks.student_of_arcana_cantrips
+      const list = Array.isArray(raw) ? raw.map((x) => String(x).toLowerCase()) : []
+      const ok =
+        list.length === 2 &&
+        list.every((id) => (STUDENT_OF_ARCANA_CANTRIPS_2024 as readonly string[]).includes(id)) &&
+        new Set(list).size === 2
+      if (!ok) issues.push('Домен магии 3+: выберите два заговора волшебника')
+    }
+    if (need.blessingsTool) {
+      const pick = String(state.classOptionPicks.blessings_of_knowledge_tool || '')
+      if (!(BLESSINGS_OF_KNOWLEDGE_TOOLS_2024 as readonly string[]).includes(pick)) {
+        issues.push('Домен знаний 3+: выберите ремесленный инструмент')
+      }
+    }
+    if (need.blessingsSkills) {
+      const raw = state.classOptionPicks.blessings_of_knowledge_skills
+      const list = Array.isArray(raw) ? raw.map((x) => String(x).toLowerCase()) : []
+      const ok =
+        list.length === 2 &&
+        list.every((id) => (BLESSINGS_OF_KNOWLEDGE_SKILLS_2024 as readonly string[]).includes(id)) &&
+        new Set(list).size === 2
+      if (!ok) issues.push('Домен знаний 3+: выберите два навыка с экспертностью')
+    }
+    if (need.magicalMastery) {
+      for (const circle of [6, 7, 8, 9] as const) {
+        const pick = String(state.classOptionPicks[`magical_mastery_${circle}`] || '')
+        if (!(MAGICAL_MASTERY_SPELLS_BY_CIRCLE_2024[circle] as readonly string[]).includes(pick)) {
+          issues.push(`Домен магии 17+: выберите заклинание волшебника ${circle}-го круга`)
+        }
       }
     }
   }
