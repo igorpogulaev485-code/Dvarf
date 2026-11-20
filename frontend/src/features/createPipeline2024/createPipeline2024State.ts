@@ -1279,7 +1279,7 @@ function levelingIssues(state: Create2024State, ctx: StepIssueCtx): string[] {
     if (need.blessingsTool) {
       const pick = String(state.classOptionPicks.blessings_of_knowledge_tool || '')
       if (!(BLESSINGS_OF_KNOWLEDGE_TOOLS_2024 as readonly string[]).includes(pick)) {
-        issues.push('Домен знаний 3+: выберите ремесленный инструмент')
+        issues.push('Домен знания 3+: выберите ремесленный инструмент')
       }
     }
     if (need.blessingsSkills) {
@@ -1289,7 +1289,7 @@ function levelingIssues(state: Create2024State, ctx: StepIssueCtx): string[] {
         list.length === 2 &&
         list.every((id) => (BLESSINGS_OF_KNOWLEDGE_SKILLS_2024 as readonly string[]).includes(id)) &&
         new Set(list).size === 2
-      if (!ok) issues.push('Домен знаний 3+: выберите два навыка с экспертностью')
+      if (!ok) issues.push('Домен знания 3+: выберите два навыка с экспертностью')
     }
     if (need.magicalMastery) {
       for (const circle of [6, 7, 8, 9] as const) {
