@@ -165,14 +165,74 @@ def to_detail(
     return data.model_copy(update=updates)
 
 
-def _link_class_catalog_ids_2024(sheet: dict) -> None:
-    """Sheet class rows need the catalog id so level-up can filter subclasses by parent."""
+def _resolve_2024_catalog_id(
+    *,
+    kind: str,
+    slug: str,
+    db: Session | None,
+) -> str:
+    """Prefer live DB id for 2024 (kind, slug); else deterministic UUID5 fallback."""
+    from app.models.catalog import CatalogKind
+    from app.repositories.catalog import CatalogRepository
     from app.services.edition_2024_catalog_seed import entry_id
 
+    slug_norm = str(slug or "").strip().lower()
+    if not slug_norm:
+        return entry_id(kind=kind, slug=slug or "")
+    if db is not None:
+        try:
+            found = CatalogRepository(db).get_by_kind_slug(
+                kind=CatalogKind(kind),
+                slug=slug_norm,
+                edition="2024",
+            )
+            if found is not None:
+                return str(found.id)
+        except Exception:
+            pass
+    return entry_id(kind=kind, slug=slug_norm)
+
+
+def _link_class_catalog_ids_2024(sheet: dict, db: Session | None = None) -> None:
+    """Sheet class/spell rows need catalog ids that match ``catalog_entries``.
+
+    Prefer the actual DB id (prod may still hold legacy UUID from archived SRD
+    dump). Fall back to deterministic UUID5 only when the row is missing.
+    """
     for row in sheet.get("classes") or []:
+        if not isinstance(row, dict):
+            continue
         slug = str(row.get("slug") or "").strip()
-        if slug and not row.get("catalog_id"):
-            row["catalog_id"] = entry_id(kind="class", slug=slug)
+        if not slug:
+            continue
+        # Always re-resolve when DB is available so a prior UUID5 fallback
+        # cannot stick against a legacy prod primary key.
+        if row.get("catalog_id") and db is None:
+            continue
+        row["catalog_id"] = _resolve_2024_catalog_id(kind="class", slug=slug, db=db)
+
+    spells_block = sheet.get("spells")
+    if not isinstance(spells_block, dict):
+        return
+    for bucket in ("known", "prepared", "book", "wizard_spellbook"):
+        rows = spells_block.get(bucket)
+        if not isinstance(rows, list):
+            continue
+        for spell in rows:
+            if not isinstance(spell, dict):
+                continue
+            sid = str(spell.get("id") or "")
+            slug = str(spell.get("slug") or "").strip()
+            if not slug and ":" in sid:
+                # ids look like ``spell:fireball`` / ``feature-spell:…:slug``
+                slug = sid.rsplit(":", 1)[-1].strip()
+            if not slug:
+                continue
+            if spell.get("catalog_id") and db is None:
+                continue
+            spell["catalog_id"] = _resolve_2024_catalog_id(
+                kind="spell", slug=slug, db=db
+            )
 
 
 class CharacterService:
@@ -269,7 +329,7 @@ class CharacterService:
         except Create2024Error as exc:
             raise AppError(exc.message, code=exc.code, status_code=400) from exc
 
-        _link_class_catalog_ids_2024(result.sheet)
+        _link_class_catalog_ids_2024(result.sheet, db=self.db)
         character = self.characters.create(
             user_id=user.id,
             rules_edition=RulesEdition.edition_2024,
