@@ -1,0 +1,52 @@
+[
+  {
+    "name": "blank-2024-p1-desktop-1440",
+    "path": "/agent/repos/Dvarf/artifacts/p24-m05/blank-2024-p1-desktop-1440.png",
+    "md5": "1af9923b12930b55ee27bad3f7f0c292"
+  },
+  {
+    "name": "blank-2024-header-desktop-1440",
+    "path": "/agent/repos/Dvarf/artifacts/p24-m05/blank-2024-header-desktop-1440.png",
+    "md5": "e782e7810a63fd7e310c2c2269566700"
+  },
+  {
+    "name": "live-classic-2024-p1-desktop-1440",
+    "path": "/agent/repos/Dvarf/artifacts/p24-m05/live-classic-2024-p1-desktop-1440.png",
+    "md5": "9cd42d479ac013f0588b701497645630"
+  },
+  {
+    "name": "live-classic-2024-header-desktop-1440",
+    "path": "/agent/repos/Dvarf/artifacts/p24-m05/live-classic-2024-header-desktop-1440.png",
+    "md5": "4996531dadacfb31abab330bb1a53acd"
+  },
+  {
+    "name": "live-classic-2024-rules-desktop-1440",
+    "path": "/agent/repos/Dvarf/artifacts/p24-m05/live-classic-2024-rules-desktop-1440.png",
+    "md5": "f6c1ecde29a893de16d7040fa224f53c"
+  },
+  {
+    "name": "blank-2024-p1-phone-390",
+    "path": "/agent/repos/Dvarf/artifacts/p24-m05/blank-2024-p1-phone-390.png",
+    "md5": "7fdcb107a8ea75745522c80d4c2064ff"
+  },
+  {
+    "name": "blank-2024-header-phone-390",
+    "path": "/agent/repos/Dvarf/artifacts/p24-m05/blank-2024-header-phone-390.png",
+    "md5": "2ef8dc9c407e386b0763c4217773a353"
+  },
+  {
+    "name": "live-classic-2024-p1-phone-390",
+    "path": "/agent/repos/Dvarf/artifacts/p24-m05/live-classic-2024-p1-phone-390.png",
+    "md5": "3c4ac1288ad8c70238e8a74e95784ad8"
+  },
+  {
+    "name": "live-classic-2024-header-phone-390",
+    "path": "/agent/repos/Dvarf/artifacts/p24-m05/live-classic-2024-header-phone-390.png",
+    "md5": "d9f7ce965eb1037c8abf2ae0527c3d97"
+  },
+  {
+    "name": "live-classic-2024-rules-phone-390",
+    "path": "/agent/repos/Dvarf/artifacts/p24-m05/live-classic-2024-rules-phone-390.png",
+    "md5": "4186151c58a9482224755a687a42312e"
+  }
+]

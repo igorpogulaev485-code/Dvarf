@@ -1,0 +1,13 @@
+{
+  "vid": true,
+  "speciesElf": true,
+  "exhaustion": true,
+  "heroic": true,
+  "rest": true,
+  "mastery": true,
+  "origin": true,
+  "asi": true,
+  "notesSap": true,
+  "notesNick": true,
+  "vid_note": "label rendered uppercase via CSS; aria-label=Вид in ClassicPrint2024"
+}
