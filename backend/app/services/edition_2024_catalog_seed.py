@@ -636,6 +636,92 @@ def assert_raw_dump_not_activated(planned: Sequence[Mapping[str, Any]] | None = 
 class SeedStats:
     upserted: int = 0
     deactivated_stubs: int = 0
+    skipped_unsupported_kind: int = 0
+
+
+# Columns written by ``_upsert_row``. Used to fail fast if a future migration
+# calls this seed before ``catalog_entries`` has the expected shape.
+_UPSERT_COLUMNS: frozenset[str] = frozenset(
+    {
+        "id",
+        "kind",
+        "slug",
+        "name_ru",
+        "name_en",
+        "rules_edition",
+        "parent_id",
+        "source",
+        "external_ref",
+        "data",
+        "sort_order",
+        "is_active",
+    }
+)
+
+
+def _is_postgresql(conn: sa.Connection) -> bool:
+    dialect = getattr(conn, "dialect", None)
+    return getattr(dialect, "name", None) == "postgresql"
+
+
+def available_catalog_kinds(conn: sa.Connection) -> frozenset[str] | None:
+    """Return live ``catalog_kind`` labels from ``pg_enum``, or None to skip filtering.
+
+    Migrations call this seed before later ``ALTER TYPE ... ADD VALUE`` steps
+    (e.g. ``bastion`` lands in ``p24c12bast01``). On real Postgres we must only
+    insert kinds the current enum already accepts. FakeConn unit tests have no
+    dialect → None → insert everything (current-schema assumption).
+    """
+    if not _is_postgresql(conn):
+        return None
+    try:
+        result = conn.execute(
+            sa.text(
+                """
+                SELECT e.enumlabel
+                FROM pg_type t
+                JOIN pg_enum e ON t.oid = e.enumtypid
+                LEFT JOIN pg_namespace n ON n.oid = t.typnamespace
+                WHERE t.typname = 'catalog_kind'
+                  AND (n.nspname IS NULL OR n.nspname = current_schema()
+                       OR n.nspname = 'public')
+                """
+            )
+        )
+        labels = {str(row[0]) for row in result}
+        return frozenset(labels) if labels else None
+    except Exception:
+        logger.warning(
+            "edition 2024 seed: could not read catalog_kind from pg_enum; "
+            "inserting all planned kinds",
+            exc_info=True,
+        )
+        return None
+
+
+def available_catalog_entry_columns(conn: sa.Connection) -> frozenset[str] | None:
+    """Return ``catalog_entries`` column names, or None when not on Postgres."""
+    if not _is_postgresql(conn):
+        return None
+    try:
+        result = conn.execute(
+            sa.text(
+                """
+                SELECT column_name
+                FROM information_schema.columns
+                WHERE table_name = 'catalog_entries'
+                  AND table_schema IN (current_schema(), 'public')
+                """
+            )
+        )
+        cols = {str(row[0]) for row in result}
+        return frozenset(cols) if cols else None
+    except Exception:
+        logger.warning(
+            "edition 2024 seed: could not read catalog_entries columns",
+            exc_info=True,
+        )
+        return None
 
 
 def deactivate_legacy_2024_stubs(conn: sa.Connection) -> int:
@@ -764,26 +850,51 @@ def _resolve_parent_id(
 
 
 def apply_edition_2024_catalog_seed(conn: sa.Connection) -> SeedStats:
-    """Idempotent apply: upsert live waves and deactivate stubs."""
+    """Idempotent apply: upsert live waves and deactivate stubs.
+
+    Schema-aware: on Postgres, rows whose ``kind`` is not yet in
+    ``catalog_kind`` (``pg_enum``) are skipped. Later migrations that
+    ``ALTER TYPE ... ADD VALUE`` and re-call this seed (or the final
+    ``p24fixenum01`` head) insert the deferred rows. Do not call this seed
+    in the same transaction as ``ADD VALUE`` before that value is committed.
+    """
     stats = SeedStats()
     stats.deactivated_stubs = deactivate_legacy_2024_stubs(conn)
+
+    available_cols = available_catalog_entry_columns(conn)
+    if available_cols is not None:
+        missing = sorted(_UPSERT_COLUMNS - available_cols)
+        if missing:
+            raise RuntimeError(
+                "edition 2024 seed: catalog_entries is missing columns "
+                f"required for upsert: {missing}"
+            )
+
+    available_kinds = available_catalog_kinds(conn)
     rows = load_wave_rows()
     # Actual DB ids for rows upserted in this run (legacy ids preserved).
     id_by_key: dict[tuple[str, str], str] = {}
     for row in rows:
+        kind = str(row.get("kind") or "")
+        if available_kinds is not None and kind not in available_kinds:
+            stats.skipped_unsupported_kind += 1
+            continue
         # 2024 species must never carry ASI, even if a wave file regresses.
-        if row.get("kind") == "race":
+        if kind == "race":
             data = dict(row.get("data") or {})
             data["ability_bonuses"] = {}
             row = {**row, "data": data}
         actual_id = _upsert_row(conn, row, id_by_key=id_by_key)
-        id_by_key[(str(row["kind"]), str(row["slug"]))] = actual_id
+        id_by_key[(kind, str(row["slug"]))] = actual_id
         stats.upserted += 1
     _migration_logger.info(
-        "P24 edition 2024 seed: upserted=%s deactivated_stubs=%s waves=%s",
+        "P24 edition 2024 seed: upserted=%s skipped_unsupported_kind=%s "
+        "deactivated_stubs=%s waves=%s available_kinds=%s",
         stats.upserted,
+        stats.skipped_unsupported_kind,
         stats.deactivated_stubs,
         len(EDITION_2024_CATALOG_WAVES),
+        sorted(available_kinds) if available_kinds is not None else "unfiltered",
     )
     return stats
 

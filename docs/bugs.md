@@ -1099,7 +1099,14 @@
 - Где: прод Deploy #90 (`70b36daf` на `main`), `deploy/ci-release.sh` → `alembic upgrade head`, переход `wapi08partych01 -> p2401lobbyed01`.
 - Симптом: `ForeignKeyViolation` на INSERT `barbarian__berserker` — `parent_id=29e4797c-…` (UUID5) отсутствует в `catalog_entries`. В БД остался legacy id класса `cf870cb5-…` из архивной `c2b8b2062024` / `catalog.json` (после `n3c4d5e6f7a8` строки `is_active=false`, не удалены). Транзакция откатилась; ревизия прода = `wapi08partych01`.
 - Ожидание: сид резолвит `parent_id` в фактический id родителя по `(kind, slug, rules_edition='2024')`, сохраняет старые id, идемпотентен; 2014 не трогает; `RULES_EDITION_2024_OPEN=false`.
-- Статус: фикс в PR (ветка `cursor/fix-p24-legacy-parent-id-eb35`).
+- Статус: смержено в `main` (#534); на Deploy #91 всплыл следующий баг цепочки (см. ниже).
+
+### 2026-11-20 — Deploy #91: alembic enum catalog_kind «bastion» на раннем сиде
+
+- Где: прод Deploy #91 (run `44681075064`, `main` `f12c7876`), `alembic upgrade head`, переход `wapi08partych01 -> p2401lobbyed01`.
+- Симптом: `psycopg.errors.InvalidTextRepresentation: invalid input value for enum catalog_kind: "bastion"`. Сид `apply_edition_2024_catalog_seed` вставляет live-волну `bastions_dmg24` (`kind=bastion`), а `ALTER TYPE catalog_kind ADD VALUE 'bastion'` только в `p24c12bast01` (после C17). Транзакция откатилась; старые контейнеры живы, `/health` ok, ревизия прода = `wapi08partych01`.
+- Ожидание: сид на каждом шаге миграций вставляет только kinds/колонки, которые уже есть в схеме (`pg_enum` / `information_schema`); полный идемпотентный сид гарантирован на голове после всех `ADD VALUE`; 2014 не трогать; `RULES_EDITION_2024_OPEN=false`; одна голова Alembic.
+- Статус: фикс в PR (ветка `cursor/fix-p24-bastion-enum-0c77`).
 
 ### 2026-11-17 — d4 меток дракона (2014) не на броске
 
