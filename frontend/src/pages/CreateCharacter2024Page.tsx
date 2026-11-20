@@ -86,6 +86,12 @@ import {
   buildRangerClassOptionPicks,
   rangerAsiChoicesForLevel,
 } from '../features/createPipeline2024/e2eRangerSeed2024'
+import {
+  parseArtificerSeed,
+  buildArtificerSeedSpells,
+  buildArtificerClassOptionPicks,
+  artificerAsiChoicesForLevel,
+} from '../features/createPipeline2024/e2eArtificerSeed2024'
 import { createClassLevel, totalCharacterLevel } from '../shared/dnd/classLevels'
 import { thirdCasterBlock2024 } from '../shared/dnd/edition2024Subclasses'
 import { ensureHpChoices } from '../features/createPipeline/LevelingStep'
@@ -657,6 +663,32 @@ export function CreateCharacter2024Page({
         classOptionPicks: buildRangerClassOptionPicks(
           rangerSpec.level,
           rangerSpec.subclassSlug,
+        ),
+      }
+    }
+    const artificerSpec = parseArtificerSeed(e2eSeed)
+    const artificerClass = bySlug(catalog.classes, 'artificer')
+    if (artificerSpec && artificerClass) {
+      seeds[e2eSeed] = {
+        name: `Артефактор ${artificerSpec.level}`,
+        classSlug: 'artificer',
+        // Soldier background ASI is str/dex/con only; keep INT high on the base array.
+        abilities: { str: 10, dex: 13, con: 14, int: 15, wis: 12, cha: 8 },
+        rows: [
+          {
+            slug: 'artificer',
+            level: artificerSpec.level,
+            ...(artificerSpec.subclassSlug ? { subclass: artificerSpec.subclassSlug } : {}),
+          },
+        ],
+        skills: ['investigation', 'arcana'],
+        classToolIds: ['smiths-tools'],
+        backgroundAsi: { dex: 2, con: 1 },
+        asi: artificerAsiChoicesForLevel(artificerSpec.level),
+        spells: buildArtificerSeedSpells(catalog.spells, artificerClass, artificerSpec.level),
+        classOptionPicks: buildArtificerClassOptionPicks(
+          artificerSpec.level,
+          artificerSpec.subclassSlug,
         ),
       }
     }

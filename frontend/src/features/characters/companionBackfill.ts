@@ -58,7 +58,8 @@ export function isArchetypeCompanionSlot(row: CompanionEntry): boolean {
     row.kind === 'primal_companion' ||
     row.kind === 'drake' ||
     row.kind === 'steel_defender' ||
-    row.kind === 'eldritch_cannon'
+    row.kind === 'eldritch_cannon' ||
+    row.kind === 'reanimated_companion'
   ) {
     return true
   }
@@ -176,6 +177,13 @@ function templateForCompanion(
     return resolveCompanionTemplate({
       choiceId: 'eldritch_cannon',
       pickValue: guessCannonVariant(row),
+      ctx,
+    })
+  }
+  if (row.kind === 'reanimated_companion') {
+    return resolveCompanionTemplate({
+      choiceId: 'reanimated-companion',
+      pickValue: 'reanimated_companion',
       ctx,
     })
   }

@@ -1801,6 +1801,7 @@ export function SheetDialogsResources({ model }: { model: SheetModel }) {
           request={artificerRequest}
           resources={model.draft.play.resources}
           artificerLevel={artificerLevel}
+          intScore={model.draft.abilities.int ?? 10}
           classOptions2024={model.draft.classOptions2024}
           onClassOptions2024Change={(classOptions2024) =>
             model.setDraft((prev) => ({ ...prev, classOptions2024 }))

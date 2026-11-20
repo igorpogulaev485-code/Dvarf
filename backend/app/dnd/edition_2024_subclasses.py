@@ -1680,11 +1680,20 @@ def build_subclass_resources(
                 feature_id="restorative-reagents",
                 min_level=9,
             )
+        if class_level >= 15:
+            add(
+                "chemical_mastery_cauldron",
+                name_ru="Бурлящий котёл Таши",
+                max_uses=1,
+                reset="long",
+                feature_id="chemical-mastery",
+                min_level=15,
+            )
     elif subclass_slug == "artificer__artillerist":
         add(
             "eldritch_cannon",
             name_ru="Мистическая пушка",
-            max_uses=1,
+            max_uses=2 if class_level >= 15 else 1,
             reset="long",
             feature_id="eldritch-cannon",
         )
@@ -1712,19 +1721,42 @@ def build_subclass_resources(
         add(
             "adventure_atlas",
             name_ru="Атлас приключений",
-            max_uses=max(1, int_m),
+            max_uses=max(2, 1 + int_m),
             reset="long",
             feature_id="adventure-atlas",
+        )
+        add(
+            "mapping_faerie_fire",
+            name_ru="Магия карты (Огонь фей)",
+            max_uses=max(1, int_m),
+            reset="long",
+            feature_id="mapping-magic",
         )
     elif subclass_slug == "artificer__reanimator":
         add(
             "reanimated_companion",
-            name_ru="Оживлённый спутник",
+            name_ru="Реанимированный спутник",
             max_uses=1,
             reset="long",
             feature_id="reanimated-companion",
             on_hot=False,
         )
+        add(
+            "reviving_bolt",
+            name_ru="Оживляющий разряд",
+            max_uses=max(1, int_m),
+            reset="long",
+            feature_id="reanimator-s-skill-set",
+        )
+        if class_level >= 15:
+            add(
+                "eased_raise_dead",
+                name_ru="Облегчённое воскрешение",
+                max_uses=1,
+                reset="long",
+                feature_id="refined-reanimation",
+                min_level=15,
+            )
 
     # --- Cleric own pools ---
     elif subclass_slug == "cleric__light-domain":

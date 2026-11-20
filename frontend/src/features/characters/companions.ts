@@ -7,6 +7,7 @@ export type CompanionKind =
   | 'beast_companion'
   | 'steel_defender'
   | 'eldritch_cannon'
+  | 'reanimated_companion'
   | 'drake'
   | 'primal_companion'
   | 'familiar'
@@ -217,6 +218,7 @@ export const COMPANION_KIND_LABELS: Record<CompanionKind, string> = {
   beast_companion: 'Зверь-спутник',
   steel_defender: 'Стальной защитник',
   eldritch_cannon: 'Мистическая пушка',
+  reanimated_companion: 'Реанимированный спутник',
   drake: 'Дрейк',
   primal_companion: 'Первобытный спутник',
   familiar: 'Фамильяр',
@@ -286,6 +288,7 @@ const KIND_SET = new Set<string>([
   'beast_companion',
   'steel_defender',
   'eldritch_cannon',
+  'reanimated_companion',
   'drake',
   'primal_companion',
   'familiar',
@@ -318,6 +321,7 @@ const CONTROL_SET = new Set<string>([
 
 export function defaultNatureForKind(kind: CompanionKind): CompanionNature {
   if (kind === 'eldritch_cannon' || kind === 'steel_defender') return 'construct'
+  if (kind === 'reanimated_companion') return 'summoned'
   if (
     kind === 'familiar' ||
     kind === 'transformed_self' ||
@@ -429,6 +433,7 @@ export function defaultCombatModesForKind(kind: CompanionKind): {
     case 'primal_companion':
     case 'steel_defender':
     case 'eldritch_cannon':
+    case 'reanimated_companion':
     case 'drake':
     case 'ally':
       return { initiativeMode: 'with_master', commandCost: 'bonus' }
@@ -513,6 +518,7 @@ export function resolveCombatModesOnRead(input: {
     input.kind === 'primal_companion' ||
     input.kind === 'steel_defender' ||
     input.kind === 'eldritch_cannon' ||
+    input.kind === 'reanimated_companion' ||
     input.kind === 'drake' ||
     input.kind === 'familiar' ||
     input.kind === 'ally' ||
@@ -1160,6 +1166,8 @@ const REAL_SUBCLASS_COMPANION_FEATURES = new Set([
   'steel_defender',
   'steel-defender',
   'steel_defender_name',
+  'reanimated_companion',
+  'reanimated-companion',
   'wildfire_spirit',
   // Wild Shape summon path writes this feature id — keep the card.
   'summon_wildfire_spirit',

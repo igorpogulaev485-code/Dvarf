@@ -1479,6 +1479,7 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
                   classLevel: input.classLevel,
                   featurePicks: model.draft.featurePicks,
                   abilities: model.draft.abilities,
+                  rulesEdition: model.rulesEdition,
                   attunedMagicItemCount: (model.draft.attunements ?? []).filter(
                     (slot: { item_id?: string | null }) => Boolean(slot.item_id),
                   ).length,

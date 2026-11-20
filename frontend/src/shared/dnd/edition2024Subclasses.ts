@@ -211,6 +211,18 @@ export const M02B_RANGER_BOOK_SUBCLASS_SLUGS = new Set([
   'ranger__hollow-warden',
 ])
 
+/**
+ * Artificer book paths opened by P24-M02B-artificer (5 EFA + RTW Reanimator).
+ */
+export const M02B_ARTIFICER_BOOK_SUBCLASS_SLUGS = new Set([
+  'artificer__alchemist',
+  'artificer__armorer',
+  'artificer__artillerist',
+  'artificer__battle-smith',
+  'artificer__cartographer',
+  'artificer__reanimator',
+])
+
 export function isPhb2024CreateSubclass(slug: string, source?: string | null): boolean {
   const key = String(slug || '')
     .trim()
@@ -220,7 +232,7 @@ export function isPhb2024CreateSubclass(slug: string, source?: string | null): b
     .trim()
     .toLowerCase()
   if (CREATE_SUBCLASS_SOURCES_2024.has(src)) return true
-  // Artificer EFA specialties (P24-M02-artificer); exclude Reanimator (rtw / out of pack).
+  // Artificer EFA specialties (P24-M02-artificer); also covered by M02B set below.
   if (src === 'efa' && EFA_ARTIFICER_SUBCLASS_SLUGS.has(key)) return true
   if (!src && EFA_ARTIFICER_SUBCLASS_SLUGS.has(key)) return true
   // P24-M02B-wizard: AU schools + FRHoF Bladesinger only.
@@ -239,6 +251,8 @@ export function isPhb2024CreateSubclass(slug: string, source?: string | null): b
   if (M02B_PALADIN_BOOK_SUBCLASS_SLUGS.has(key)) return true
   // P24-M02B-ranger: Winter Walker + Hollow Warden only.
   if (M02B_RANGER_BOOK_SUBCLASS_SLUGS.has(key)) return true
+  // P24-M02B-artificer: five EFA + Reanimator only.
+  if (M02B_ARTIFICER_BOOK_SUBCLASS_SLUGS.has(key)) return true
   // Catalog API may omit source; fall back to known PHB table rows.
   return Boolean(row && CREATE_SUBCLASS_SOURCES_2024.has(String(row.source || '').toLowerCase()))
 }
@@ -1264,15 +1278,24 @@ export function buildSubclassResources2024(input: {
   } else if (subclassSlug === 'artificer__alchemist') {
     push('experimental_elixir', 'Экспериментальный эликсир', scaleUses(classLevel, { 3: 2, 5: 3, 9: 4, 15: 5 }), 'long', 'experimental-elixir')
     if (classLevel >= 9) push('restorative_reagents', 'Восстанавливающие реагенты', Math.max(1, intMod), 'long', 'restorative-reagents')
+    if (classLevel >= 15) {
+      push('chemical_mastery_cauldron', 'Бурлящий котёл Таши', 1, 'long', 'chemical-mastery')
+    }
   } else if (subclassSlug === 'artificer__artillerist') {
-    push('eldritch_cannon', 'Мистическая пушка', 1, 'long', 'eldritch-cannon')
+    push('eldritch_cannon', 'Мистическая пушка', classLevel >= 15 ? 2 : 1, 'long', 'eldritch-cannon')
   } else if (subclassSlug === 'artificer__battle-smith') {
     push('steel_defender', 'Стальной защитник', 1, 'long', 'steel-defender')
     if (classLevel >= 9) push('arcane_jolt', 'Магический импульс', Math.max(1, intMod), 'long', 'arcane-jolt')
   } else if (subclassSlug === 'artificer__cartographer') {
-    push('adventure_atlas', 'Атлас приключений', Math.max(1, intMod), 'long', 'adventure-atlas')
+    // Atlas cards after long rest: 2 … (1+INT); pool tracks free Faerie Fire uses from Mapping Magic.
+    push('adventure_atlas', 'Атлас приключений', Math.max(2, 1 + intMod), 'long', 'adventure-atlas')
+    push('mapping_faerie_fire', 'Магия карты (Огонь фей)', Math.max(1, intMod), 'long', 'mapping-magic')
   } else if (subclassSlug === 'artificer__reanimator') {
-    push('reanimated_companion', 'Оживлённый спутник', 1, 'long', 'reanimated-companion')
+    push('reanimated_companion', 'Реанимированный спутник', 1, 'long', 'reanimated-companion')
+    push('reviving_bolt', 'Оживляющий разряд', Math.max(1, intMod), 'long', 'reanimator-s-skill-set')
+    if (classLevel >= 15) {
+      push('eased_raise_dead', 'Облегчённое воскрешение', 1, 'long', 'refined-reanimation')
+    }
   } else if (subclassSlug === 'cleric__light-domain') {
     push('warding_flare', 'Ограждающая вспышка', Math.max(1, wisMod), classLevel >= 6 ? 'short' : 'long', 'warding-flare')
     if (classLevel >= 17) push('corona_of_light', 'Корона света', Math.max(1, wisMod), 'long', 'corona-of-light')

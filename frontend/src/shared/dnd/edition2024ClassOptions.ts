@@ -46,6 +46,12 @@ export type ClassOptions2024State = {
   vestige_domain?: 'war' | 'life' | 'trickery' | 'light' | null
   /** Warlock Vestige Patron (2024, L3+): companion creature type. */
   vestige_companion_type?: 'fiend' | 'celestial' | 'undead' | null
+  /** Alchemist Experimental Elixir bottles currently held (2024). */
+  experimental_elixirs?: Array<{ id: string; effect: string }>
+  /** Cartographer Adventure Atlas card holders (display labels). */
+  atlas_holders?: string[]
+  /** Artillerist cannon mode chosen on last activation (2024). */
+  cannon_mode?: 'flamethrower' | 'force_ballista' | 'protector' | null
 }
 
 function readBlessedStrikes(raw: unknown): 'divine_strike' | 'potent_spellcasting' | null {
@@ -89,6 +95,9 @@ export function emptyClassOptions2024(): ClassOptions2024State {
     primal_companion: null,
     vestige_domain: null,
     vestige_companion_type: null,
+    experimental_elixirs: [],
+    atlas_holders: [],
+    cannon_mode: null,
   }
 }
 
@@ -184,6 +193,24 @@ export function readClassOptions2024(raw: unknown): ClassOptions2024State {
     primal_companion: readPrimalCompanion(row.primal_companion),
     vestige_domain: readVestigeDomain(row.vestige_domain),
     vestige_companion_type: readVestigeCompanionType(row.vestige_companion_type),
+    experimental_elixirs: Array.isArray(row.experimental_elixirs)
+      ? (row.experimental_elixirs as unknown[])
+          .map((item) => {
+            if (!item || typeof item !== 'object') return null
+            const rec = item as Record<string, unknown>
+            const id = String(rec.id ?? '').trim()
+            const effect = String(rec.effect ?? '').trim()
+            return id && effect ? { id, effect } : null
+          })
+          .filter((item): item is { id: string; effect: string } => Boolean(item))
+      : [],
+    atlas_holders: list('atlas_holders'),
+    cannon_mode: (() => {
+      const key = String(row.cannon_mode ?? '').trim().toLowerCase()
+      return key === 'flamethrower' || key === 'force_ballista' || key === 'protector'
+        ? key
+        : null
+    })(),
   }
 }
 
@@ -219,6 +246,12 @@ export function classOptions2024ToSheet(state: ClassOptions2024State): Record<st
     ...(state.primal_companion ? { primal_companion: state.primal_companion } : {}),
     ...(state.vestige_domain ? { vestige_domain: state.vestige_domain } : {}),
     ...(state.vestige_companion_type ? { vestige_companion_type: state.vestige_companion_type } : {}),
+    experimental_elixirs: (state.experimental_elixirs ?? []).map((row) => ({
+      id: row.id,
+      effect: row.effect,
+    })),
+    atlas_holders: [...(state.atlas_holders ?? [])],
+    ...(state.cannon_mode ? { cannon_mode: state.cannon_mode } : { cannon_mode: null }),
   }
 }
 

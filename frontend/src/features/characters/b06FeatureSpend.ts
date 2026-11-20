@@ -34,6 +34,7 @@ export type B06SpendAction =
     }
   | {
       kind: 'none'
+      label?: string
     }
 
 function intMod(abilities?: { int?: number } | null): number {
@@ -72,6 +73,7 @@ export function resolveB06FeatureSpend(input: {
   featurePicks?: FeaturePicksState | null
   abilities?: { int?: number; cha?: number } | null
   attunedMagicItemCount?: number
+  rulesEdition?: '2014' | '2024' | string | null
   rng?: () => number
 }): B06SpendAction {
   const id = input.featureId
@@ -128,8 +130,14 @@ export function resolveB06FeatureSpend(input: {
   }
 
   if (id === 'restorative_reagents') {
-    // Lesser restoration uses the pool; temp HP rides on elixir drink.
-    // «Применить эффект» still grants the temp pool when pressed.
+    // EFA 2024: free Lesser Restoration only — no 2014 temp HP from elixirs.
+    if (input.rulesEdition === '2024') {
+      return {
+        kind: 'none',
+        label: 'Восстанавливающие реагенты: бесплатное «Малое восстановление» (инструменты алхимика)',
+      }
+    }
+    // 2014 path keeps temp HP on drink.
     const amount = restorativeReagentsTempHp(int, rng)
     return {
       kind: 'temp_hp',

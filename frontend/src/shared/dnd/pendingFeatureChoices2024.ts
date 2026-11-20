@@ -58,10 +58,17 @@ import {
 import {
   armorModelChoice2024,
   ARTIFICER_SUBCLASS_SLUGS_2024,
+  REANIMATOR_SUBCLASS_SLUG_2024,
   replicateLimits2024,
   SPELL_STORING_ITEM_MIN_LEVEL_2024,
   SUBCLASS_MIN_LEVEL_2024 as ARTIFICER_SUBCLASS_MIN_LEVEL_2024,
 } from './artificer2024Features'
+import {
+  strangeModificationOptions2024,
+  strangeModificationPickCount2024,
+  STRANGE_MODIFICATIONS_NAME_RU,
+} from './artificerBook2024Features'
+import type { FeatureChoiceDef } from './classFeatures'
 import { metamagicPickGainAtLevel2024 } from './sorcerer2024Features'
 import { invocationPickGainAtLevel2024 } from './warlock2024Features'
 import {
@@ -586,6 +593,37 @@ export function buildPendingWizardSteps2024(input: PendingWizardInput2024): Guid
             featureLevel: ARTIFICER_SUBCLASS_MIN_LEVEL_2024,
             choice: armorModelChoice2024,
           })
+        }
+      }
+      if (sub === REANIMATOR_SUBCLASS_SLUG_2024) {
+        const need = strangeModificationPickCount2024(level)
+        if (need > 0 && input.featurePicks) {
+          const picked = getFeaturePickList(
+            input.featurePicks,
+            input.classEntryId,
+            'strange_modifications',
+          ).length
+          if (picked < need) {
+            const options = strangeModificationOptions2024(level)
+            const choice: FeatureChoiceDef = {
+              id: 'strange_modifications',
+              label_ru: STRANGE_MODIFICATIONS_NAME_RU,
+              max_picks: need,
+              options: options.map((row) => row.id),
+              option_labels_ru: Object.fromEntries(options.map((row) => [row.id, row.nameRu])),
+            }
+            steps.push({
+              id: `feature_choice:${input.classEntryId}:strange_modifications`,
+              kind: 'feature_choice',
+              classEntryId: input.classEntryId,
+              className: input.className,
+              classLevel: level,
+              featureId: 'strange_modifications',
+              featureNameRu: STRANGE_MODIFICATIONS_NAME_RU,
+              featureLevel: 5,
+              choice,
+            })
+          }
         }
       }
     }
