@@ -229,10 +229,50 @@ def test_alembic_single_head_is_p24_n01():
     script = ScriptDirectory.from_config(cfg)
     heads = script.get_heads()
     assert len(heads) == 1, f"expected one alembic head, got {heads}"
-    assert heads[0] in {"p24n01r01", "p24m03pr01", "p24int01merge", "p24fixenum01"}
+    assert heads[0] in {
+        "p24n01r01",
+        "p24m03pr01",
+        "p24int01merge",
+        "p24fixenum01",
+        "p24n01r02",
+    }
     ancestor_ids = {
         rev.revision for rev in script.walk_revisions(base="base", head=heads[0])
     }
     assert "p24n01names01" in ancestor_ids
+    assert "p24n01r02" in ancestor_ids
     assert "p24c21rau01" in ancestor_ids
     assert "p24c21au01" in ancestor_ids
+
+
+def test_live_knowledge_domain_and_dungeoneers_pack_names():
+    """Wizard step 6 reads DB; pack summaries must match equipment card (N01)."""
+    import json
+
+    from app.dnd.p24_n01_names import LIVE_DIR
+
+    frhof = json.loads((LIVE_DIR / "subclasses_frhof.json").read_text(encoding="utf-8"))
+    knowledge = next(
+        e for e in frhof["entries"] if e.get("slug") == "cleric__knowledge-domain"
+    )
+    assert knowledge["name_ru"] == "Домен знания"
+
+    classes = json.loads((LIVE_DIR / "classes_srd.json").read_text(encoding="utf-8"))
+    equipment = json.loads((LIVE_DIR / "equipment_srd.json").read_text(encoding="utf-8"))
+    pack = next(e for e in equipment["entries"] if e.get("slug") == "dungeoneers-pack")
+    assert pack["name_ru"] == "Набор исследователя подземелий"
+    for entry in classes["entries"]:
+        for pack_row in (entry.get("data") or {}).get("starting_equipment") or []:
+            summary = str(pack_row.get("summary_ru") or "")
+            assert "данжеонер" not in summary.lower(), (
+                f"{entry.get('slug')}: summary still uses «данжеонер»: {summary!r}"
+            )
+            item_ids = {
+                str(it.get("id") or "")
+                for it in (pack_row.get("items") or [])
+                if isinstance(it, dict)
+            }
+            if "dungeoneers-pack" in item_ids:
+                assert "исследователя подземелий" in summary.lower(), (
+                    f"{entry.get('slug')}: pack summary should name the equipment card"
+                )

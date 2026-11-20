@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8"/>
+<title>Артист 2024 — инвентарь (локальный лист)</title>
+<style>
+  :root { --bg:#1a1814; --panel:#2a241c; --ink:#f3e6c8; --muted:#b8a88a; --accent:#c4a35a; }
+  body { margin:0; font-family:"Segoe UI",system-ui,sans-serif; background:radial-gradient(1200px 600px at 20% 0%,#3a3024,var(--bg)); color:var(--ink); }
+  main { max-width:720px; margin:40px auto; padding:24px; background:var(--panel); border:1px solid #4a3f30; border-radius:12px; }
+  h1 { margin:0 0 4px; font-size:1.4rem; }
+  .sub { color:var(--muted); margin-bottom:20px; }
+  .coins { display:inline-block; padding:8px 14px; background:#1f1a14; border:1px solid var(--accent); border-radius:8px; margin-bottom:16px; font-size:1.1rem; }
+  table { width:100%; border-collapse:collapse; }
+  th,td { text-align:left; padding:8px 10px; border-bottom:1px solid #3d3428; }
+  th { color:var(--muted); font-weight:600; font-size:.85rem; }
+  .ok { color:#8fd18f; }
+  .tools { margin-top:18px; }
+  code { color:var(--accent); }
+</style>
+</head>
+<body>
+<main>
+  <h1 id="name">…</h1>
+  <div class="sub">Локальная материализация листа 2024 · пакет предыстории «Артист» · Волынка</div>
+  <div class="coins">Монеты: <strong id="gp">?</strong> зм <span class="ok">(класс 4 + предыстория 11)</span></div>
+  <table>
+    <thead><tr><th>Кол-во</th><th>Предмет</th><th>slug</th></tr></thead>
+    <tbody id="items"></tbody>
+  </table>
+  <div class="tools">Владения инструментами: <code id="tools"></code></div>
+</main>
+<script>
+fetch('entertainer-pack-sheet.json').then(r=>r.json()).then(d=>{
+  document.getElementById('name').textContent = d.name;
+  document.getElementById('gp').textContent = d.coins_gp;
+  document.getElementById('tools').textContent = (d.tools||[]).join(', ');
+  const tb=document.getElementById('items');
+  for (const it of d.items) {
+    const tr=document.createElement('tr');
+    const bad = /^(ду)$/i.test(it.name_ru||'') || /выбранн/i.test(it.name_ru||'') || /^\d+\s*зм/i.test(it.name_ru||'');
+    tr.innerHTML = `<td>${it.qty}</td><td>${it.name_ru}${bad?' ⚠️':''}</td><td><code>${it.slug||''}</code></td>`;
+    tb.appendChild(tr);
+  }
+});
+</script>
+</body>
+</html>

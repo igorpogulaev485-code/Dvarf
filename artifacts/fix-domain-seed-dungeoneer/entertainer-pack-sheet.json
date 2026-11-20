@@ -1,0 +1,59 @@
+{
+  "name": "Артист-регресс",
+  "coins_gp": 15,
+  "tools": [
+    "Волынка"
+  ],
+  "items": [
+    {
+      "qty": 1,
+      "name_ru": "Кольчуга",
+      "slug": "chain-mail"
+    },
+    {
+      "qty": 1,
+      "name_ru": "Двуручный меч",
+      "slug": "greatsword"
+    },
+    {
+      "qty": 1,
+      "name_ru": "Цеп",
+      "slug": "flail"
+    },
+    {
+      "qty": 8,
+      "name_ru": "Метательное копьё",
+      "slug": "javelin"
+    },
+    {
+      "qty": 1,
+      "name_ru": "Набор исследователя подземелий",
+      "slug": "dungeoneers-pack"
+    },
+    {
+      "qty": 1,
+      "name_ru": "Волынка",
+      "slug": "bagpipes"
+    },
+    {
+      "qty": 2,
+      "name_ru": "Костюм",
+      "slug": "costume"
+    },
+    {
+      "qty": 1,
+      "name_ru": "Зеркало",
+      "slug": "mirror"
+    },
+    {
+      "qty": 1,
+      "name_ru": "Духи",
+      "slug": "perfume"
+    },
+    {
+      "qty": 1,
+      "name_ru": "Дорожная одежда",
+      "slug": "travelers-clothes"
+    }
+  ]
+}
