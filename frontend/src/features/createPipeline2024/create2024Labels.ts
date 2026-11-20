@@ -1,6 +1,7 @@
 /** P24-M03: Russian labels for the 2024 create wizard (no service ids in UI). */
 
 import type { CatalogEntry } from '../../shared/api/catalog'
+import { displayDiceNotation } from '../../shared/dnd/diceNotation'
 import { TOOL_NAME_RU_BY_SLUG } from '../../shared/dnd/toolNames'
 
 export const SIZE_LABEL_RU: Record<string, string> = {
@@ -159,9 +160,10 @@ export function ruPlural(n: number, one: string, few: string, many: string): str
 
 /** `1d8` → `1к8` (Russian dice notation in UI copy). */
 export function ruDice(text: string): string {
-  return text
-    .replace(/\b(\d*)[dD](\d+)\b/g, (_m, count: string, sides: string) => `${count}к${sides}`)
-    .replace(/(^|[\s(,;:])К(\d+)(?=[\s,.;:)]|$)/g, '$1к$2')
+  return displayDiceNotation(text).replace(
+    /(^|[\s(,;:])К(\d+)(?=[\s,.;:)]|$)/g,
+    '$1к$2',
+  )
 }
 
 export function hitDieLabel(hitDie: unknown): string {

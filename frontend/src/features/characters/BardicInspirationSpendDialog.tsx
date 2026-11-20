@@ -1,4 +1,5 @@
 import { useMemo } from 'react'
+import { displayDiceNotation } from '../../shared/dnd/diceNotation'
 import type { UnlockedFeature } from '../../shared/dnd/classFeatures'
 import {
   bardicInspirationDieLabel,
@@ -92,7 +93,7 @@ export function BardicInspirationSpendDialog({
                 <div className="sorcery-spend-row__text">
                   <b>{option.nameRu}</b>
                   <span>
-                    −{option.cost} · {option.summaryRu}
+                    −{option.cost} · {displayDiceNotation(option.summaryRu)}
                   </span>
                 </div>
                 <Button

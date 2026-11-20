@@ -1,4 +1,5 @@
 import { useMemo } from 'react'
+import { displayDiceNotation } from '../../shared/dnd/diceNotation'
 import {
   invocationById,
   type WarlockInvocationDef,
@@ -72,7 +73,7 @@ export function WarlockInvocationsDialog({
               <div key={def.id} className="sorcery-spend-row">
                 <div className="sorcery-spend-row__text">
                   <b>{def.nameRu}</b>
-                  <span>{def.summaryRu}</span>
+                  <span>{displayDiceNotation(def.summaryRu)}</span>
                 </div>
                 <Button
                   type="button"

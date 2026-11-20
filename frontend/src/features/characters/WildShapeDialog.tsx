@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { displayDiceNotation } from '../../shared/dnd/diceNotation'
 import { listCatalogEntries } from '../../shared/api/catalog'
 import { getFeaturePick, setFeaturePick, type FeaturePicksState } from '../../shared/dnd/featurePicks'
 import {
@@ -539,7 +540,7 @@ export function WildShapeDialog({
                     : ''}
                   {opt.cost > 1 ? ` (−${opt.cost})` : ''}
                   {' — '}
-                  {opt.disabled ? opt.disabledReason : opt.summaryRu}
+                  {displayDiceNotation((opt.disabled ? opt.disabledReason : opt.summaryRu) ?? '')}
                 </Button>
               ))}
             </Stack>

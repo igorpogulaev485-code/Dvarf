@@ -1,4 +1,5 @@
 import { useMemo } from 'react'
+import { displayDiceNotation } from '../../shared/dnd/diceNotation'
 import type { UnlockedFeature } from '../../shared/dnd/classFeatures'
 import type { FeaturePicksState } from '../../shared/dnd/featurePicks'
 import type { AppliedFeatGrant } from '../../shared/dnd/featGrants'
@@ -123,7 +124,7 @@ export function SuperiorityDiceSpendDialog({
               <div key={option.key} className="sorcery-spend-row">
                 <div>
                   <div className="sorcery-spend-row__title">{option.nameRu}</div>
-                  <div className="sorcery-spend-row__hint">{option.summaryRu}</div>
+                  <div className="sorcery-spend-row__hint">{displayDiceNotation(option.summaryRu)}</div>
                 </div>
                 <Button
                   type="button"

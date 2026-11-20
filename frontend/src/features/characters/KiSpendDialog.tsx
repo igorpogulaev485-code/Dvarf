@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { displayDiceNotation } from '../../shared/dnd/diceNotation'
 import type { UnlockedFeature } from '../../shared/dnd/classFeatures'
 import { FEATURE_RESOURCE_PREFIX } from '../../shared/dnd/featureResources'
 import {
@@ -118,7 +119,7 @@ export function KiSpendDialog({
                         ? `${option.cost}–${option.costMax} ци`
                         : `${option.cost} ци`}
                       {' · '}
-                      {option.summaryRu}
+                      {displayDiceNotation(option.summaryRu)}
                     </span>
                     {option.costMax != null ? (
                       <Field label="Сколько ци">

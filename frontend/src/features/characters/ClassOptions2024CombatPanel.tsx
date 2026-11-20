@@ -2,6 +2,7 @@
  * P24-M02a+: опции при атаке / канале / ярости / метамагии на столе 2024.
  */
 import { useMemo, useState } from 'react'
+import { displayDiceNotation } from '../../shared/dnd/diceNotation'
 import { Text } from '../../ui'
 import {
   BRUTAL_STRIKE_2024,
@@ -175,7 +176,7 @@ export function ClassOptions2024CombatPanel({
                 key={row.id}
                 type="button"
                 className={`sheet-chip${cunningPick.includes(row.id) ? ' is-on' : ''}`}
-                title={row.summaryRu}
+                title={displayDiceNotation(row.summaryRu)}
                 onClick={() =>
                   setCunningPick(
                     togglePick(cunningPick, row.id, rogueLv >= 11 ? 2 : 1),
@@ -444,7 +445,7 @@ export function ClassOptions2024CombatPanel({
                     key={row.id}
                     type="button"
                     className={`sheet-chip${brutalPick.includes(row.id) ? ' is-on' : ''}`}
-                    title={row.summaryRu}
+                    title={displayDiceNotation(row.summaryRu)}
                     onClick={() =>
                       setBrutalPick(
                         togglePick(brutalPick, row.id, barbLv >= 17 ? 2 : 1),
@@ -514,7 +515,7 @@ export function ClassOptions2024CombatPanel({
                 key={row.id}
                 type="button"
                 className="sheet-chip"
-                title={row.summaryRu}
+                title={displayDiceNotation(row.summaryRu)}
                 onClick={() => {
                   const result = applyMetamagicSpend2024({
                     known: options.metamagic,

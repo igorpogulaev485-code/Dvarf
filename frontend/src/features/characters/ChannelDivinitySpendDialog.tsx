@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { displayDiceNotation } from '../../shared/dnd/diceNotation'
 import type { UnlockedFeature } from '../../shared/dnd/classFeatures'
 import {
   proficiencyBonusForTotalLevel,
@@ -189,7 +190,7 @@ export function ChannelDivinitySpendDialog({
                       <b>{feature.name_ru}</b>
                       <span>
                         Бонусное · дневных {dailyLeft}/{daily?.max ?? 0} · потолок круга{' '}
-                        {slotCap}. {feature.summary_ru || feature.kind}
+                        {slotCap}. {displayDiceNotation(feature.summary_ru || feature.kind)}
                       </span>
                       {slotOptions.length === 0 ? (
                         <span>Нет потраченных ячеек круга 1–{slotCap}.</span>
@@ -247,7 +248,7 @@ export function ChannelDivinitySpendDialog({
                 <div key={featureKey(feature)} className="sorcery-spend-row">
                   <div className="sorcery-spend-row__text">
                     <b>{feature.name_ru}</b>
-                    <span>{feature.summary_ru || feature.kind}</span>
+                    <span>{displayDiceNotation(feature.summary_ru || feature.kind)}</span>
                   </div>
                   <Button
                     type="button"

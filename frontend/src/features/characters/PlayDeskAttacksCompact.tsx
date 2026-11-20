@@ -2607,7 +2607,7 @@ export function PlayDeskAttacksCompact({
                 key={`${feature.classEntryId}:${feature.id}`}
                 type="button"
                 className={`sheet-chip${on ? ' is-on' : ''}`}
-                title={feature.summary_ru}
+                title={displayDiceNotation(feature.summary_ru)}
                 onClick={() => {
                   const nextOn = !on
                   setActiveCombatFeatureIds((prev) => {
@@ -2619,7 +2619,7 @@ export function PlayDeskAttacksCompact({
                   onCombatFeatureToggle?.(feature.id, nextOn)
                   onToast?.(
                     nextOn
-                      ? `${feature.name_ru}: вкл. · ${feature.summary_ru}`
+                      ? `${feature.name_ru}: вкл. · ${displayDiceNotation(feature.summary_ru)}`
                       : `${feature.name_ru}: выкл.`,
                   )
                 }}

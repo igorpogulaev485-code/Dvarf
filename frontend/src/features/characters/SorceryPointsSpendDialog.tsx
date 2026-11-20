@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { displayDiceNotation } from '../../shared/dnd/diceNotation'
 import {
   FLEXIBLE_CASTING_SLOT_COST,
   metamagicById,
@@ -199,7 +200,7 @@ export function SorceryPointsSpendDialog({
                     <div className="sorcery-spend-row__text">
                       <b>{def.nameRu}</b>
                       <span>
-                        {cost} очк. · {def.summaryRu}
+                        {cost} очк. · {displayDiceNotation(def.summaryRu)}
                       </span>
                       {def.variableTwin ? (
                         <Field label="Ур. ячейки для Разделённого">

@@ -636,7 +636,7 @@ export function ClassicPrintSheet({ character: c, onPrintSettings, layout }: Pro
                   </div>
                   <div className="classic-weapon__cell classic-weapon__cell--dmg">
                     <ClassicStaticField
-                      value={row.damageLine}
+                      value={displayDiceNotation(row.damageLine)}
                       wrap
                       tone="compact"
                       pencilLine={false}

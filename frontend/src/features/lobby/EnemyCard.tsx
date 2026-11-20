@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react'
+import { displayDiceNotation } from '../../shared/dnd/diceNotation'
 import type { CombatantAction, CombatantMember, SessionCombatant } from '../../shared/api/lobbies'
 import { Button, DetailsMenu, Dialog, Field, NumberInput, Stack, Text } from '../../ui'
 import { PackRosterList, memberHpColorLabel, memberHpTone } from './enemyPackRoster'
@@ -73,7 +74,7 @@ function ActionList({
         {items.map((a) => (
           <li key={`${title}-${a.name_ru}`}>
             <strong>{a.name_ru}</strong>
-            {a.text_ru ? <span> — {a.text_ru}</span> : null}
+            {a.text_ru ? <span> — {displayDiceNotation(a.text_ru)}</span> : null}
           </li>
         ))}
       </ul>
