@@ -49,6 +49,16 @@ async function shot(page: Page, name: string, project: string) {
 }
 
 async function dismissWelcome(page: Page) {
+  // M06 onboarding auto-opens on 2024 create and blocks finish / sheet clicks.
+  const diff = page.getByTestId('edition-2024-diff-dialog')
+  try {
+    if (await diff.isVisible({ timeout: 2_500 }).catch(() => false)) {
+      await page.getByRole('button', { name: 'Понятно' }).click()
+      await diff.waitFor({ state: 'hidden', timeout: 5_000 }).catch(() => {})
+    }
+  } catch {
+    /* ok */
+  }
   const skip = page.getByRole('button', { name: /Пропустит.*подсказ/i })
   try {
     await skip.waitFor({ state: 'visible', timeout: 2_500 })
@@ -82,6 +92,7 @@ async function createViaSeed(page: Page, store: HarnessStore, seed: string) {
   await installRangerHarness(page, store)
   await page.goto(`/characters/create?edition=2024&preview=1&e2eLeveling=1&e2eSeed=${seed}`)
   await expect(page.getByTestId('p24-m03c-leveling')).toBeVisible({ timeout: 40_000 })
+  await dismissWelcome(page)
   await completeVisibleChoices(page)
   const finish = page.getByTestId('p24-m03-finish')
   await expect(finish).toBeEnabled({ timeout: 60_000 })
@@ -224,6 +235,7 @@ test.describe('P24-M02B ranger book — picker + finish gate', () => {
         `/characters/create?edition=2024&preview=1&e2eLeveling=1&e2eSeed=ranger3${pathSlug}`,
       )
       await expect(page.getByTestId('p24-m03c-leveling')).toBeVisible({ timeout: 40_000 })
+  await dismissWelcome(page)
       await expect(page.getByText(PICKER_RE[pathSlug]).first()).toBeVisible({ timeout: 15_000 })
       await expect(page.getByText(/Странник пустошей/i)).toHaveCount(0)
       await shot(page, `2024-picker-${pathSlug}`, project)
@@ -238,6 +250,7 @@ test.describe('P24-M02B ranger book — picker + finish gate', () => {
       '/characters/create?edition=2024&preview=1&e2eLeveling=1&e2eSeed=ranger3winter&e2eEmptySpells=1',
     )
     await expect(page.getByTestId('p24-m03c-leveling')).toBeVisible({ timeout: 40_000 })
+  await dismissWelcome(page)
     const finish = page.getByTestId('p24-m03-finish')
     await expect(finish).toBeDisabled({ timeout: 15_000 })
     await shot(page, '2024-finish-disabled-l3-winter', project)
@@ -253,6 +266,7 @@ test.describe('P24-M02B ranger book — live create rollbacks', () => {
     await installRangerHarness(page, store)
     await page.goto('/characters/create?edition=2024&preview=1&e2eLeveling=1&e2eSeed=ranger3winter')
     await expect(page.getByTestId('p24-m03c-leveling')).toBeVisible({ timeout: 40_000 })
+  await dismissWelcome(page)
     await expect(page.getByText(/Зимний ходок/i).first()).toBeVisible({ timeout: 15_000 })
     await setCreateLevel(page, 2)
     await expect(page.getByText(/Зимний ходок/i)).toHaveCount(0)
@@ -267,6 +281,7 @@ test.describe('P24-M02B ranger book — live create rollbacks', () => {
       '/characters/create?edition=2024&preview=1&e2eLeveling=1&e2eSeed=ranger7hollow',
     )
     await expect(page.getByTestId('p24-m03c-leveling')).toBeVisible({ timeout: 40_000 })
+  await dismissWelcome(page)
     await expect(page.getByText(/Алчущая мощь/i).first()).toBeVisible({ timeout: 15_000 })
     await setCreateLevel(page, 6)
     await expect(page.getByText(/Алчущая мощь/i)).toHaveCount(0)
@@ -282,6 +297,7 @@ test.describe('P24-M02B ranger book — live create rollbacks', () => {
       '/characters/create?edition=2024&preview=1&e2eLeveling=1&e2eSeed=ranger11winter',
     )
     await expect(page.getByTestId('p24-m03c-leveling')).toBeVisible({ timeout: 40_000 })
+  await dismissWelcome(page)
     await expect(page.getByText(/Выстужающее возмездие/i).first()).toBeVisible({ timeout: 15_000 })
     await setCreateLevel(page, 10)
     await expect(page.getByText(/Выстужающее возмездие/i)).toHaveCount(0)
@@ -297,6 +313,7 @@ test.describe('P24-M02B ranger book — live create rollbacks', () => {
       '/characters/create?edition=2024&preview=1&e2eLeveling=1&e2eSeed=ranger15hollow',
     )
     await expect(page.getByTestId('p24-m03c-leveling')).toBeVisible({ timeout: 40_000 })
+  await dismissWelcome(page)
     await expect(page.getByText(/Древняя мощь/i).first()).toBeVisible({ timeout: 15_000 })
     await setCreateLevel(page, 14)
     await expect(page.getByText(/Древняя мощь/i)).toHaveCount(0)
@@ -312,6 +329,7 @@ test.describe('P24-M02B ranger book — live create rollbacks', () => {
       '/characters/create?edition=2024&preview=1&e2eLeveling=1&e2eSeed=ranger20winter',
     )
     await expect(page.getByTestId('p24-m03c-leveling')).toBeVisible({ timeout: 40_000 })
+  await dismissWelcome(page)
     await setCreateLevel(page, 19)
     await completeVisibleChoices(page)
     await shot(page, '2024-rollback-20-to-19-winter', project)

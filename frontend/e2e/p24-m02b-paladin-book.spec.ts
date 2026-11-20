@@ -39,6 +39,16 @@ async function shot(page: Page, name: string, project: string) {
 }
 
 async function dismissWelcome(page: Page) {
+  // M06 onboarding auto-opens on 2024 create and blocks finish / sheet clicks.
+  const diff = page.getByTestId('edition-2024-diff-dialog')
+  try {
+    if (await diff.isVisible({ timeout: 2_500 }).catch(() => false)) {
+      await page.getByRole('button', { name: 'Понятно' }).click()
+      await diff.waitFor({ state: 'hidden', timeout: 5_000 }).catch(() => {})
+    }
+  } catch {
+    /* ok */
+  }
   const skip = page.getByRole('button', { name: /Пропустит.*подсказ/i })
   try {
     await skip.waitFor({ state: 'visible', timeout: 2_500 })
@@ -72,6 +82,7 @@ async function createViaSeed(page: Page, store: HarnessStore, seed: string) {
   await installPaladinHarness(page, store)
   await page.goto(`/characters/create?edition=2024&preview=1&e2eLeveling=1&e2eSeed=${seed}`)
   await expect(page.getByTestId('p24-m03c-leveling')).toBeVisible({ timeout: 40_000 })
+  await dismissWelcome(page)
   await completeVisibleChoices(page)
   const finish = page.getByTestId('p24-m03-finish')
   await expect(finish).toBeEnabled({ timeout: 60_000 })
@@ -207,6 +218,7 @@ test.describe('P24-M02B paladin book — picker + create picks', () => {
       '/characters/create?edition=2024&preview=1&e2eLeveling=1&e2eSeed=paladin3genies',
     )
     await expect(page.getByTestId('p24-m03c-leveling')).toBeVisible({ timeout: 40_000 })
+  await dismissWelcome(page)
     await expect(page.getByText(/Клятва благородных гениев/i).first()).toBeVisible({
       timeout: 15_000,
     })
@@ -221,6 +233,7 @@ test.describe('P24-M02B paladin book — picker + create picks', () => {
       '/characters/create?edition=2024&preview=1&e2eLeveling=1&e2eSeed=paladin3genies',
     )
     await expect(page.getByTestId('p24-m03c-leveling')).toBeVisible({ timeout: 40_000 })
+  await dismissWelcome(page)
     await expect(page.getByTestId('p24-m02b-paladin-book-picks')).toBeVisible({ timeout: 15_000 })
     await shot(page, '2024-genies-splendor-picks', project)
   })
@@ -233,6 +246,7 @@ test.describe('P24-M02B paladin book — picker + create picks', () => {
       '/characters/create?edition=2024&preview=1&e2eLeveling=1&e2eSeed=paladin3devotion&e2eEmptySpells=1',
     )
     await expect(page.getByTestId('p24-m03c-leveling')).toBeVisible({ timeout: 40_000 })
+  await dismissWelcome(page)
     // Switch to genies without skill pick: clear via level then reselect is heavy —
     // seed devotion with empty spells keeps finish disabled (quota).
     const finish = page.getByTestId('p24-m03-finish')
@@ -252,6 +266,7 @@ test.describe('P24-M02B paladin book — live create rollbacks', () => {
       '/characters/create?edition=2024&preview=1&e2eLeveling=1&e2eSeed=paladin3genies',
     )
     await expect(page.getByTestId('p24-m03c-leveling')).toBeVisible({ timeout: 40_000 })
+  await dismissWelcome(page)
     await expect(page.getByText(/Клятва благородных гениев/i).first()).toBeVisible({
       timeout: 15_000,
     })
@@ -269,6 +284,7 @@ test.describe('P24-M02B paladin book — live create rollbacks', () => {
       '/characters/create?edition=2024&preview=1&e2eLeveling=1&e2eSeed=paladin7genies',
     )
     await expect(page.getByTestId('p24-m03c-leveling')).toBeVisible({ timeout: 40_000 })
+  await dismissWelcome(page)
     await expect(page.getByText(/Аура стихийной защиты/i).first()).toBeVisible({ timeout: 15_000 })
     await setCreateLevel(page, 6)
     await expect(page.getByText(/Аура стихийной защиты/i)).toHaveCount(0)
@@ -284,6 +300,7 @@ test.describe('P24-M02B paladin book — live create rollbacks', () => {
       '/characters/create?edition=2024&preview=1&e2eLeveling=1&e2eSeed=paladin11genies',
     )
     await expect(page.getByTestId('p24-m03c-leveling')).toBeVisible({ timeout: 40_000 })
+  await dismissWelcome(page)
     await setCreateLevel(page, 10)
     await completeVisibleChoices(page)
     await shot(page, '2024-rollback-11-to-10-genies', project)
@@ -297,6 +314,7 @@ test.describe('P24-M02B paladin book — live create rollbacks', () => {
       '/characters/create?edition=2024&preview=1&e2eLeveling=1&e2eSeed=paladin15genies',
     )
     await expect(page.getByTestId('p24-m03c-leveling')).toBeVisible({ timeout: 40_000 })
+  await dismissWelcome(page)
     await expect(page.getByText(/Стихийное возмездие/i).first()).toBeVisible({ timeout: 15_000 })
     await setCreateLevel(page, 14)
     await expect(page.getByText(/Стихийное возмездие/i)).toHaveCount(0)
@@ -312,6 +330,7 @@ test.describe('P24-M02B paladin book — live create rollbacks', () => {
       '/characters/create?edition=2024&preview=1&e2eLeveling=1&e2eSeed=paladin20genies',
     )
     await expect(page.getByTestId('p24-m03c-leveling')).toBeVisible({ timeout: 40_000 })
+  await dismissWelcome(page)
     await expect(page.getByText(/Благородный гений/i).first()).toBeVisible({ timeout: 15_000 })
     await setCreateLevel(page, 19)
     await expect(page.getByText(/Благородный гений/i)).toHaveCount(0)

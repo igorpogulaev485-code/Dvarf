@@ -14,7 +14,7 @@ artificer__battle-smith,artificer,battle-smith,Battle Smith,Боевой куз�
 artificer__cartographer,artificer,cartographer,Cartographer,Картограф,EFA,subclasses,https://next.dnd.su/class/artificer,,false
 bard__college-of-the-moon,bard,college-of-the-moon,College of the Moon,Коллегия луны,FRHoF,subclasses,https://next.dnd.su/class/bard,,false
 cleric__knowledge-domain,cleric,knowledge-domain,Knowledge Domain,Домен знаний,FRHoF,subclasses,https://next.dnd.su/class/cleric,,false
-fighter__banneret,fighter,banneret,Banneret,Баннерет,FRHoF,subclasses,https://next.dnd.su/class/fighter,,false
+fighter__banneret,fighter,banneret,Banneret,Знаменосец,FRHoF,subclasses,https://next.dnd.su/class/fighter,,false
 paladin__oath-of-the-noble-genies,paladin,oath-of-the-noble-genies,Oath of the Noble Genies,Клятва благородных гениев,FRHoF,subclasses,https://next.dnd.su/class/paladin,,false
 ranger__winter-walker,ranger,winter-walker,Winter Walker,Зимний ходок,FRHoF,subclasses,https://next.dnd.su/class/ranger,,false
 rogue__scion-of-the-three,rogue,scion-of-the-three,Scion of the Three,Наследник троицы,FRHoF,subclasses,https://next.dnd.su/class/rogue,,false
@@ -54,7 +54,7 @@ ranger__gloom-stalker,ranger,gloom-stalker,Gloom Stalker,Сумрачный ох
 ranger__hunter-ranger,ranger,hunter-ranger,Hunter,Охотник,PH24,subclasses,https://next.dnd.su/class/ranger,,true
 rogue__arcane-trickster,rogue,arcane-trickster,Arcane Trickster,Мистический ловкач,PH24,subclasses,https://next.dnd.su/class/rogue,,false
 rogue__assassin,rogue,assassin,Assassin,Убийца,PH24,subclasses,https://next.dnd.su/class/rogue,,false
-rogue__soulknife,rogue,soulknife,Soulknife,Клинок души,PH24,subclasses,https://next.dnd.su/class/rogue,,false
+rogue__soulknife,rogue,soulknife,Soulknife,Клинок душ,PH24,subclasses,https://next.dnd.su/class/rogue,,false
 rogue__thief,rogue,thief,Thief,Вор,PH24,subclasses,https://next.dnd.su/class/rogue,,true
 sorcerer__aberrant-sorcery,sorcerer,aberrant-sorcery,Aberrant Sorcery,Аберрантное чародейство,PH24,subclasses,https://next.dnd.su/class/sorcerer,,false
 sorcerer__clockwork-sorcery,sorcerer,clockwork-sorcery,Clockwork Sorcery,Заводное чародейство,PH24,subclasses,https://next.dnd.su/class/sorcerer,,false

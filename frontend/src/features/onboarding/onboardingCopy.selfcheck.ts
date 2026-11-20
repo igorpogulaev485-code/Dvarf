@@ -49,6 +49,13 @@ for (const id of ['species', 'heroic', 'exhaustion', 'rest', 'mastery', 'surpris
     `2024 diff item ${id}`,
   )
 }
+const diffBlob = EDITION_2024_DIFF.items.map((item) => `${item.title} ${item.body}`).join('\n')
+assert(!/\bL-21\b/i.test(diffBlob), '2024 diff copy has no internal L-21 codes')
+assert(!/В UI 2024/i.test(diffBlob), '2024 diff copy avoids «В UI 2024» jargon')
+const species = EDITION_2024_DIFF.items.find((item) => item.id === 'species')
+assert(species && /вид/.test(species.body) && /раса/.test(species.body), 'species item explains вид vs раса')
+const surprise = EDITION_2024_DIFF.items.find((item) => item.id === 'surprise')
+assert(surprise && /как в правилах 2014/.test(surprise.body), 'surprise item names правила 2014')
 
 assert(
   EMPTY_CHARACTERS.description.includes('предыстория') &&

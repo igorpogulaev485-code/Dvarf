@@ -51,6 +51,16 @@ async function shot(page: Page, name: string, project: string) {
 }
 
 async function dismissWelcome(page: Page) {
+  // M06 onboarding auto-opens on 2024 create and blocks finish / sheet clicks.
+  const diff = page.getByTestId('edition-2024-diff-dialog')
+  try {
+    if (await diff.isVisible({ timeout: 2_500 }).catch(() => false)) {
+      await page.getByRole('button', { name: 'Понятно' }).click()
+      await diff.waitFor({ state: 'hidden', timeout: 5_000 }).catch(() => {})
+    }
+  } catch {
+    /* ok */
+  }
   const skip = page.getByRole('button', { name: /Пропустит.*подсказ/i })
   try {
     await skip.waitFor({ state: 'visible', timeout: 2_500 })
@@ -84,6 +94,7 @@ async function createViaSeed(page: Page, store: HarnessStore, seed: string) {
   await installClericHarness(page, store)
   await page.goto(`/characters/create?edition=2024&preview=1&e2eLeveling=1&e2eSeed=${seed}`)
   await expect(page.getByTestId('p24-m03c-leveling')).toBeVisible({ timeout: 40_000 })
+  await dismissWelcome(page)
   await completeVisibleChoices(page)
   const finish = page.getByTestId('p24-m03-finish')
   await expect(finish).toBeEnabled({ timeout: 60_000 })
@@ -224,6 +235,7 @@ test.describe('P24-M02B cleric book — picker + create picks', () => {
         `/characters/create?edition=2024&preview=1&e2eLeveling=1&e2eSeed=cleric3${pathSlug}`,
       )
       await expect(page.getByTestId('p24-m03c-leveling')).toBeVisible({ timeout: 40_000 })
+  await dismissWelcome(page)
       await expect(page.getByText(PICKER_RE[pathSlug]).first()).toBeVisible({ timeout: 15_000 })
       await shot(page, `2024-picker-${pathSlug}`, project)
     }
@@ -237,6 +249,7 @@ test.describe('P24-M02B cleric book — picker + create picks', () => {
       '/characters/create?edition=2024&preview=1&e2eLeveling=1&e2eSeed=cleric3arcana',
     )
     await expect(page.getByTestId('p24-m03c-leveling')).toBeVisible({ timeout: 40_000 })
+  await dismissWelcome(page)
     await expect(page.getByTestId('p24-m02b-cleric-book-picks')).toBeVisible({ timeout: 15_000 })
     await shot(page, '2024-arcana-student-picks', project)
 
@@ -244,6 +257,7 @@ test.describe('P24-M02B cleric book — picker + create picks', () => {
       '/characters/create?edition=2024&preview=1&e2eLeveling=1&e2eSeed=cleric3knowledge',
     )
     await expect(page.getByTestId('p24-m03c-leveling')).toBeVisible({ timeout: 40_000 })
+  await dismissWelcome(page)
     await expect(page.getByTestId('p24-m02b-cleric-book-picks')).toBeVisible({ timeout: 15_000 })
     await shot(page, '2024-knowledge-blessings-picks', project)
   })
@@ -256,6 +270,7 @@ test.describe('P24-M02B cleric book — picker + create picks', () => {
       '/characters/create?edition=2024&preview=1&e2eLeveling=1&e2eSeed=cleric3grave&e2eEmptySpells=1',
     )
     await expect(page.getByTestId('p24-m03c-leveling')).toBeVisible({ timeout: 40_000 })
+  await dismissWelcome(page)
     const finish = page.getByTestId('p24-m03-finish')
     await expect(finish).toBeDisabled({ timeout: 15_000 })
     await shot(page, '2024-finish-disabled-l3-grave', project)
@@ -271,6 +286,7 @@ test.describe('P24-M02B cleric book — live create rollbacks', () => {
     await installClericHarness(page, store)
     await page.goto('/characters/create?edition=2024&preview=1&e2eLeveling=1&e2eSeed=cleric3arcana')
     await expect(page.getByTestId('p24-m03c-leveling')).toBeVisible({ timeout: 40_000 })
+  await dismissWelcome(page)
     await expect(page.getByText(/Домен магии/i).first()).toBeVisible({ timeout: 15_000 })
     await setCreateLevel(page, 2)
     await expect(page.getByText(/Домен магии/i)).toHaveCount(0)
@@ -286,6 +302,7 @@ test.describe('P24-M02B cleric book — live create rollbacks', () => {
       '/characters/create?edition=2024&preview=1&e2eLeveling=1&e2eSeed=cleric11grave',
     )
     await expect(page.getByTestId('p24-m03c-leveling')).toBeVisible({ timeout: 40_000 })
+  await dismissWelcome(page)
     await setCreateLevel(page, 10)
     await completeVisibleChoices(page)
     await shot(page, '2024-rollback-11-to-10-grave', project)
@@ -299,6 +316,7 @@ test.describe('P24-M02B cleric book — live create rollbacks', () => {
       '/characters/create?edition=2024&preview=1&e2eLeveling=1&e2eSeed=cleric17arcana',
     )
     await expect(page.getByTestId('p24-m03c-leveling')).toBeVisible({ timeout: 40_000 })
+  await dismissWelcome(page)
     await expect(page.getByText(/Магическая искусность/i).first()).toBeVisible({ timeout: 15_000 })
     await setCreateLevel(page, 16)
     await expect(page.getByText(/Магическая искусность/i)).toHaveCount(0)
@@ -314,6 +332,7 @@ test.describe('P24-M02B cleric book — live create rollbacks', () => {
       '/characters/create?edition=2024&preview=1&e2eLeveling=1&e2eSeed=cleric20knowledge',
     )
     await expect(page.getByTestId('p24-m03c-leveling')).toBeVisible({ timeout: 40_000 })
+  await dismissWelcome(page)
     await setCreateLevel(page, 19)
     await completeVisibleChoices(page)
     await shot(page, '2024-rollback-20-to-19-knowledge', project)

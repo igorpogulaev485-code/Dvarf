@@ -51,6 +51,16 @@ async function shot(page: Page, name: string, project: string) {
 }
 
 async function dismissWelcome(page: Page) {
+  // M06 onboarding auto-opens on 2024 create and blocks finish / sheet clicks.
+  const diff = page.getByTestId('edition-2024-diff-dialog')
+  try {
+    if (await diff.isVisible({ timeout: 2_500 }).catch(() => false)) {
+      await page.getByRole('button', { name: 'Понятно' }).click()
+      await diff.waitFor({ state: 'hidden', timeout: 5_000 }).catch(() => {})
+    }
+  } catch {
+    /* ok */
+  }
   const skip = page.getByRole('button', { name: /Пропустит.*подсказ/i })
   try {
     await skip.waitFor({ state: 'visible', timeout: 2_500 })
@@ -84,6 +94,7 @@ async function createViaSeed(page: Page, store: HarnessStore, seed: string) {
   await installDruidHarness(page, store)
   await page.goto(`/characters/create?edition=2024&preview=1&e2eLeveling=1&e2eSeed=${seed}`)
   await expect(page.getByTestId('p24-m03c-leveling')).toBeVisible({ timeout: 40_000 })
+  await dismissWelcome(page)
   await completeVisibleChoices(page)
   const finish = page.getByTestId('p24-m03-finish')
   await expect(finish).toBeEnabled({ timeout: 60_000 })
@@ -236,6 +247,7 @@ test.describe('P24-M02B rogue book — picker + finish gate', () => {
         `/characters/create?edition=2024&preview=1&e2eLeveling=1&e2eSeed=rogue3${pathSlug}`,
       )
       await expect(page.getByTestId('p24-m03c-leveling')).toBeVisible({ timeout: 40_000 })
+  await dismissWelcome(page)
       const scionChip = page.getByTestId('p24-m03c-subclass-rogue__scion-of-the-three')
       const phantomChip = page.getByTestId('p24-m03c-subclass-rogue__phantom')
       await expect(scionChip).toBeVisible({ timeout: 15_000 })
@@ -255,6 +267,7 @@ test.describe('P24-M02B rogue book — picker + finish gate', () => {
     await installDruidHarness(page, store)
     await page.goto('/characters/create?edition=2024&preview=1&e2eLeveling=1&e2eSeed=rogue3scion')
     await expect(page.getByTestId('p24-m03c-leveling')).toBeVisible({ timeout: 40_000 })
+  await dismissWelcome(page)
     const selected = page.locator(
       '[data-testid^="p24-m02b-pick-dread-deity-"].is-on, [data-testid^="p24-m02b-pick-dread-deity-"][aria-pressed="true"], [data-testid^="p24-m02b-pick-dread-deity-"][aria-checked="true"]',
     )
@@ -278,6 +291,7 @@ test.describe('P24-M02B rogue book — live create rollbacks', () => {
     await installDruidHarness(page, store)
     await page.goto('/characters/create?edition=2024&preview=1&e2eLeveling=1&e2eSeed=rogue3scion')
     await expect(page.getByTestId('p24-m03c-leveling')).toBeVisible({ timeout: 40_000 })
+  await dismissWelcome(page)
     await expect(page.getByTestId('p24-m03c-subclass-rogue__scion-of-the-three')).toBeVisible({
       timeout: 15_000,
     })
@@ -294,6 +308,7 @@ test.describe('P24-M02B rogue book — live create rollbacks', () => {
       '/characters/create?edition=2024&preview=1&e2eLeveling=1&e2eSeed=rogue9phantom',
     )
     await expect(page.getByTestId('p24-m03c-leveling')).toBeVisible({ timeout: 40_000 })
+  await dismissWelcome(page)
     await expect(page.getByText(/Сувениры усопших/i).first()).toBeVisible({ timeout: 15_000 })
     await setCreateLevel(page, 8)
     await expect(page.getByText(/Сувениры усопших/i)).toHaveCount(0)
@@ -307,6 +322,7 @@ test.describe('P24-M02B rogue book — live create rollbacks', () => {
     await installDruidHarness(page, store)
     await page.goto('/characters/create?edition=2024&preview=1&e2eLeveling=1&e2eSeed=rogue13scion')
     await expect(page.getByTestId('p24-m03c-leveling')).toBeVisible({ timeout: 40_000 })
+  await dismissWelcome(page)
     await expect(page.getByText(/Аура злобы/i).first()).toBeVisible({ timeout: 15_000 })
     await setCreateLevel(page, 12)
     await expect(page.getByText(/Аура злобы/i)).toHaveCount(0)
@@ -322,6 +338,7 @@ test.describe('P24-M02B rogue book — live create rollbacks', () => {
       '/characters/create?edition=2024&preview=1&e2eLeveling=1&e2eSeed=rogue17phantom',
     )
     await expect(page.getByTestId('p24-m03c-leveling')).toBeVisible({ timeout: 40_000 })
+  await dismissWelcome(page)
     await expect(page.getByText(/Друг смерти/i).first()).toBeVisible({ timeout: 15_000 })
     await setCreateLevel(page, 16)
     await expect(page.getByText(/Друг смерти/i)).toHaveCount(0)
@@ -335,6 +352,7 @@ test.describe('P24-M02B rogue book — live create rollbacks', () => {
     await installDruidHarness(page, store)
     await page.goto('/characters/create?edition=2024&preview=1&e2eLeveling=1&e2eSeed=rogue20scion')
     await expect(page.getByTestId('p24-m03c-leveling')).toBeVisible({ timeout: 40_000 })
+  await dismissWelcome(page)
     await setCreateLevel(page, 19)
     await completeVisibleChoices(page)
     await shot(page, '2024-rollback-20-to-19-scion', project)

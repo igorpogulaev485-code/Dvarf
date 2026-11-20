@@ -63,6 +63,16 @@ async function shot(page: Page, name: string, project: string) {
 }
 
 async function dismissWelcome(page: Page) {
+  // M06 onboarding auto-opens on 2024 create and blocks finish / sheet clicks.
+  const diff = page.getByTestId('edition-2024-diff-dialog')
+  try {
+    if (await diff.isVisible({ timeout: 2_500 }).catch(() => false)) {
+      await page.getByRole('button', { name: 'Понятно' }).click()
+      await diff.waitFor({ state: 'hidden', timeout: 5_000 }).catch(() => {})
+    }
+  } catch {
+    /* ok */
+  }
   const skip = page.getByRole('button', { name: /Пропустит.*подсказ/i })
   try {
     await skip.waitFor({ state: 'visible', timeout: 2_500 })
@@ -96,6 +106,7 @@ async function createViaSeed(page: Page, store: HarnessStore, seed: string) {
   await installArtificerHarness(page, store)
   await page.goto(`/characters/create?edition=2024&preview=1&e2eLeveling=1&e2eSeed=${seed}`)
   await expect(page.getByTestId('p24-m03c-leveling')).toBeVisible({ timeout: 40_000 })
+  await dismissWelcome(page)
   await completeVisibleChoices(page)
   const finish = page.getByTestId('p24-m03-finish')
   await expect(finish).toBeEnabled({ timeout: 60_000 })
@@ -225,6 +236,7 @@ test.describe('P24-M02B artificer — picker + finish gate', () => {
       '/characters/create?edition=2024&preview=1&e2eLeveling=1&e2eSeed=artificer3alchemist',
     )
     await expect(page.getByTestId('p24-m03c-leveling')).toBeVisible({ timeout: 40_000 })
+  await dismissWelcome(page)
     for (const pathSlug of PATHS) {
       await expect(page.getByText(PICKER_RE[pathSlug]).first()).toBeVisible({ timeout: 15_000 })
     }
@@ -240,6 +252,7 @@ test.describe('P24-M02B artificer — picker + finish gate', () => {
       '/characters/create?edition=2024&preview=1&e2eLeveling=1&e2eSeed=artificer3alchemist&e2eEmptySpells=1',
     )
     await expect(page.getByTestId('p24-m03c-leveling')).toBeVisible({ timeout: 40_000 })
+  await dismissWelcome(page)
     const finish = page.getByTestId('p24-m03-finish')
     await expect(finish).toBeDisabled({ timeout: 15_000 })
     await shot(page, '2024-finish-disabled-l3-alchemist', project)
@@ -257,6 +270,7 @@ test.describe('P24-M02B artificer — live create rollbacks', () => {
       '/characters/create?edition=2024&preview=1&e2eLeveling=1&e2eSeed=artificer3reanimator',
     )
     await expect(page.getByTestId('p24-m03c-leveling')).toBeVisible({ timeout: 40_000 })
+  await dismissWelcome(page)
     await expect(page.getByText(/Реаниматор/i).first()).toBeVisible({ timeout: 15_000 })
     await setCreateLevel(page, 2)
     await expect(page.getByText(/Реаниматор/i)).toHaveCount(0)
@@ -272,6 +286,7 @@ test.describe('P24-M02B artificer — live create rollbacks', () => {
       '/characters/create?edition=2024&preview=1&e2eLeveling=1&e2eSeed=artificer5reanimator',
     )
     await expect(page.getByTestId('p24-m03c-leveling')).toBeVisible({ timeout: 40_000 })
+  await dismissWelcome(page)
     await expect(page.getByText(/Чуждые модификации/i).first()).toBeVisible({ timeout: 15_000 })
     await setCreateLevel(page, 4)
     await expect(page.getByText(/Чуждые модификации/i)).toHaveCount(0)
@@ -287,6 +302,7 @@ test.describe('P24-M02B artificer — live create rollbacks', () => {
       '/characters/create?edition=2024&preview=1&e2eLeveling=1&e2eSeed=artificer9alchemist',
     )
     await expect(page.getByTestId('p24-m03c-leveling')).toBeVisible({ timeout: 40_000 })
+  await dismissWelcome(page)
     await expect(page.getByText(/Восстанавливающие реагенты/i).first()).toBeVisible({
       timeout: 15_000,
     })
@@ -304,6 +320,7 @@ test.describe('P24-M02B artificer — live create rollbacks', () => {
       '/characters/create?edition=2024&preview=1&e2eLeveling=1&e2eSeed=artificer15artillerist',
     )
     await expect(page.getByTestId('p24-m03c-leveling')).toBeVisible({ timeout: 40_000 })
+  await dismissWelcome(page)
     await expect(page.getByText(/Укреплённая позиция/i).first()).toBeVisible({ timeout: 15_000 })
     await setCreateLevel(page, 14)
     await expect(page.getByText(/Укреплённая позиция/i)).toHaveCount(0)
