@@ -186,3 +186,46 @@ def test_entertainer_bagpipes_regression_exact():
     # Two costumes from «2 костюма».
     costume = next(it for it in items if it.get("slug") == "costume")
     assert int(costume.get("qty") or 0) == 2
+
+
+def test_bard_class_pack_replaces_musical_instrument_placeholder():
+    from tests.test_p24_m03_create import build_valid_payload
+
+    payload = build_valid_payload(
+        "bard",
+        class_equipment="a",
+        background_equipment="gold",  # isolate class pack
+    )
+    picks = dict(payload.get("class_option_picks") or {})
+    client = dict(picks.get("client_picks") or {})
+    client["class_tools"] = ["lute", "flute", "drum"]
+    picks["client_picks"] = client
+    payload["class_option_picks"] = picks
+    sheet = create24.validate_create_2024(create24.payload_from_dict(payload)).sheet
+    slugs = [str(it.get("slug") or "") for it in sheet["inventory"]["items"]]
+    names = [str(it.get("name_ru") or "") for it in sheet["inventory"]["items"]]
+    assert "musical-instrument" not in slugs
+    assert "lute" in slugs
+    assert not any("музыкальный инструмент" == n.lower() for n in names)
+    assert "Лютня" in names
+
+
+def test_monk_class_pack_replaces_choice_tool():
+    from tests.test_p24_m03_create import build_valid_payload
+
+    payload = build_valid_payload(
+        "monk",
+        class_equipment="a",
+        background_equipment="gold",
+    )
+    picks = dict(payload.get("class_option_picks") or {})
+    client = dict(picks.get("client_picks") or {})
+    client["class_tools"] = ["bagpipes"]
+    picks["client_picks"] = client
+    payload["class_option_picks"] = picks
+    sheet = create24.validate_create_2024(create24.payload_from_dict(payload)).sheet
+    names = [str(it.get("name_ru") or "") for it in sheet["inventory"]["items"]]
+    slugs = [str(it.get("slug") or "") for it in sheet["inventory"]["items"]]
+    assert not any("на выбор" in n.lower() for n in names)
+    assert "bagpipes" in slugs
+    assert "Волынка" in names

@@ -585,4 +585,34 @@ for (const [classEntry, bg, species] of combos) {
   assert.deepEqual(clericState.spellbookSpellIds, [], 'non-wizard has no book')
 }
 
+{
+  // Entertainer + bagpipes: sheet preview must expand pack (not raw «выбранный»).
+  const fighter = catalog.classes.find((c) => c.slug === 'fighter')!
+  const entertainer = catalog.backgrounds.find((b) => b.slug === 'entertainer')!
+  assert.ok(entertainer, 'entertainer background in fixtures')
+  const species = creatable[0]!
+  const st = {
+    ...autoState(fighter, entertainer, species),
+    backgroundToolId: 'bagpipes',
+    backgroundEquipment: 'pack' as const,
+    classEquipment: 'a',
+  }
+  const model = buildCreate2024SheetPreview({
+    state: st,
+    catalog,
+    languages: FIXTURE_LANGUAGES,
+    classEntry: fighter,
+    backgroundEntry: entertainer,
+    speciesEntry: species,
+    items,
+  })
+  const names = model.inventory.map((row) => row.name)
+  assert.ok(names.includes('Волынка'), `preview tools: ${names.join(', ')}`)
+  assert.ok(names.includes('Духи'), names.join(', '))
+  assert.ok(!names.some((n) => /выбранн/i.test(n)), names.join(', '))
+  assert.ok(!names.some((n) => n === 'Пакет предыстории'), names.join(', '))
+  assert.ok(model.coinsGp >= 15, `coins ${model.coinsGp}`)
+  assert.ok(model.tools.includes('Волынка'), `tools ${model.tools.join(', ')}`)
+}
+
 console.log('create2024.selfcheck: ok')

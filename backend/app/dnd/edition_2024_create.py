@@ -4272,16 +4272,51 @@ def _build_sheet(
         items.append(row)
 
     class_pack = gear["class_pack"]
+    class_tools = [
+        str(x)
+        for x in (_client_picks(payload).get("class_tools") or [])
+        if x
+    ]
+    class_tool_i = 0
+
+    def _next_class_tool_slug() -> str | None:
+        nonlocal class_tool_i
+        if class_tool_i >= len(class_tools):
+            return None
+        raw = class_tools[class_tool_i]
+        class_tool_i += 1
+        return _resolve_tool_inventory_slug(raw, item_catalog)
+
     for entry in class_pack.get("items") or []:
         if not isinstance(entry, dict):
             continue
         item_id = str(entry.get("id") or entry.get("slug") or "")
         qty = int(entry.get("qty") or 1)
+        choice = str(entry.get("choice") or "").strip()
+        label = str(entry.get("label_ru") or entry.get("name_ru") or "")
+        needs_tool_pick = bool(choice) or item_id in {
+            "musical-instrument",
+            "gaming-set",
+        } or (
+            not item_id
+            and ("выбор" in label.lower() or "выбранн" in label.lower())
+        )
+        if needs_tool_pick:
+            picked = _next_class_tool_slug()
+            if picked:
+                _push_item(picked, qty)
+                continue
+            if not item_id:
+                fallback = label or "Предмет на выбор"
+                _push_item("", qty, notes=fallback)
+                items[-1]["name"] = fallback
+                items[-1]["name_ru"] = fallback
+                continue
         if not item_id:
-            label = str(entry.get("label_ru") or entry.get("name_ru") or "Предмет на выбор")
-            _push_item("", qty, notes=label)
-            items[-1]["name"] = label
-            items[-1]["name_ru"] = label
+            fallback = label or "Предмет на выбор"
+            _push_item("", qty, notes=fallback)
+            items[-1]["name"] = fallback
+            items[-1]["name_ru"] = fallback
             continue
         _push_item(item_id, qty)
     coins_gp += int(class_pack.get("coins_gp") or 0)

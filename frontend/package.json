@@ -129,7 +129,7 @@
     "selfcheck:p24-m02b-warlock": "tsx --tsconfig tsconfig.app.json src/shared/dnd/warlockBook2024Features.selfcheck.ts",
     "selfcheck:p24-m02b-cleric": "tsx --tsconfig tsconfig.app.json src/shared/dnd/clericBook2024Features.selfcheck.ts",
     "selfcheck:p24-m02b-bard": "tsx --tsconfig tsconfig.app.json src/shared/dnd/bardBook2024Features.selfcheck.ts",
-    "selfcheck:p24-m03-create": "tsx --tsconfig tsconfig.app.json src/shared/dnd/create2024.selfcheck.ts && tsx --tsconfig tsconfig.app.json src/shared/dnd/catalogSourceLabelRu.selfcheck.ts && tsx --tsconfig tsconfig.app.json src/features/createPipeline2024/create2024Labels.selfcheck.ts",
+    "selfcheck:p24-m03-create": "tsx --tsconfig tsconfig.app.json src/shared/dnd/create2024.selfcheck.ts && tsx --tsconfig tsconfig.app.json src/shared/dnd/catalogSourceLabelRu.selfcheck.ts && tsx --tsconfig tsconfig.app.json src/features/createPipeline2024/create2024Labels.selfcheck.ts && tsx --tsconfig tsconfig.app.json src/features/createPipeline2024/create2024PackExpand.selfcheck.ts",
     "selfcheck:p24-m03-levelup": "tsx --tsconfig tsconfig.app.json src/shared/dnd/pendingFeatureChoices2024.selfcheck.ts",
     "selfcheck:ranger2024-features": "tsx --tsconfig tsconfig.app.json src/shared/dnd/ranger2024Features.selfcheck.ts",
     "selfcheck:primal-companion-2024": "tsx --tsconfig tsconfig.app.json src/features/characters/primalCompanion2024.selfcheck.ts",
