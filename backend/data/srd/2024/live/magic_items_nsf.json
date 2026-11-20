@@ -1,0 +1,285 @@
+{
+  "meta": {
+    "pack": "P24-C18",
+    "source": "NsF magic items (community_ref)",
+    "count": 8,
+    "notes": [
+      "8 магических предметов NsF.",
+      "source=nsf → community_ref."
+    ]
+  },
+  "entries": [
+    {
+      "kind": "item",
+      "slug": "arcane-battery",
+      "name_ru": "Магический накопитель",
+      "name_en": "Arcane Battery",
+      "source": "nsf",
+      "sort_order": 10,
+      "external_ref": {
+        "book": "NsF",
+        "url_dndsu": "https://next.dnd.su/items/17494-arcane-battery",
+        "url_ttg": "https://new.ttg.club/magic-items/arcane-battery-nf"
+      },
+      "data": {
+        "schema_version": 1,
+        "equipment_group": "magic_item",
+        "magic_item_type": "wondrous",
+        "magic_item_type_ru": "чудесный предмет",
+        "rarity": "uncommon",
+        "rarity_ru": "необычный",
+        "requires_attunement": false,
+        "attunement_restriction_ru": null,
+        "charges": null,
+        "recharge_ru": null,
+        "bonus_attack": null,
+        "bonus_damage": null,
+        "bonus_ac": null,
+        "bonus_spell_attack": null,
+        "spell_refs": [],
+        "base_item_categories": [],
+        "summary_ru": "Эта гладкий овальный камень покрыт тускло светящимися магическими символами. Держа накопитель в руке, вы можете действием Магия прикоснутьс",
+        "sentient": false,
+        "artifact": false
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "brooch-of-the-elements",
+      "name_ru": "Брошь стихий",
+      "name_en": "Brooch of the Elements",
+      "source": "nsf",
+      "sort_order": 20,
+      "external_ref": {
+        "book": "NsF",
+        "url_dndsu": "https://next.dnd.su/items/17495-brooch-of-the-elements",
+        "url_ttg": "https://new.ttg.club/magic-items/brooch-of-the-elements-nf"
+      },
+      "data": {
+        "schema_version": 1,
+        "equipment_group": "magic_item",
+        "magic_item_type": "wondrous",
+        "magic_item_type_ru": "чудесный предмет",
+        "rarity": "rare",
+        "rarity_ru": "редкий",
+        "requires_attunement": true,
+        "attunement_restriction_ru": "требуется настройка",
+        "charges": 3,
+        "recharge_ru": "заряды восстанавливаются на рассвете",
+        "bonus_attack": null,
+        "bonus_damage": null,
+        "bonus_ac": null,
+        "bonus_spell_attack": null,
+        "spell_refs": [],
+        "base_item_categories": [],
+        "summary_ru": "Центральный камень этой выполненной в форме бабочки броши переливается многоцветным мерцающим светом. У броши есть 3 заряда, и она восстана",
+        "sentient": false,
+        "artifact": false
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "fork-of-eddy-summoning",
+      "name_ru": "Камертон призыва вихря",
+      "name_en": "Fork of Eddy Summoning",
+      "source": "nsf",
+      "sort_order": 30,
+      "external_ref": {
+        "book": "NsF",
+        "url_dndsu": "https://next.dnd.su/items/17496-fork-of-eddy-summoning",
+        "url_ttg": "https://new.ttg.club/magic-items/fork-of-eddy-summoning-nf"
+      },
+      "data": {
+        "schema_version": 1,
+        "equipment_group": "magic_item",
+        "magic_item_type": "wondrous",
+        "magic_item_type_ru": "чудесный предмет",
+        "rarity": "rare",
+        "rarity_ru": "редкий",
+        "requires_attunement": false,
+        "attunement_restriction_ru": null,
+        "charges": null,
+        "recharge_ru": null,
+        "bonus_attack": null,
+        "bonus_damage": null,
+        "bonus_ac": null,
+        "bonus_spell_attack": null,
+        "spell_refs": [],
+        "base_item_categories": [],
+        "summary_ru": "Этот Крошечный камертон потрескивает безвредной многоцветной магической энергией. Действием Магия вы можете ударить камертоном по любому об",
+        "sentient": false,
+        "artifact": false
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "hat-of-vortexes",
+      "name_ru": "Шляпа вихрей",
+      "name_en": "Hat of Vortexes",
+      "source": "nsf",
+      "sort_order": 40,
+      "external_ref": {
+        "book": "NsF",
+        "url_dndsu": "https://next.dnd.su/items/17497-hat-of-vortexes",
+        "url_ttg": "https://new.ttg.club/magic-items/hat-of-vortexes-nf"
+      },
+      "data": {
+        "schema_version": 1,
+        "equipment_group": "magic_item",
+        "magic_item_type": "wondrous",
+        "magic_item_type_ru": "чудесный предмет",
+        "rarity": "uncommon",
+        "rarity_ru": "необычный",
+        "requires_attunement": true,
+        "attunement_restriction_ru": "требуется настройка",
+        "charges": 3,
+        "recharge_ru": "заряды восстанавливаются на рассвете",
+        "bonus_attack": null,
+        "bonus_damage": null,
+        "bonus_ac": null,
+        "bonus_spell_attack": null,
+        "spell_refs": [],
+        "base_item_categories": [],
+        "summary_ru": "У этой шляпы есть 3 заряда, и она восстанавливаает все потраченные заряды на каждом рассвете. Пока вы держите шляпу, вы можете действием",
+        "sentient": false,
+        "artifact": false
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "magen-handbell",
+      "name_ru": "Колокольчик магена",
+      "name_en": "Magen Handbell",
+      "source": "nsf",
+      "sort_order": 50,
+      "external_ref": {
+        "book": "NsF",
+        "url_dndsu": "https://next.dnd.su/items/17498-magen-handbell",
+        "url_ttg": "https://new.ttg.club/magic-items/magen-handbell-nf"
+      },
+      "data": {
+        "schema_version": 1,
+        "equipment_group": "magic_item",
+        "magic_item_type": "wondrous",
+        "magic_item_type_ru": "чудесный предмет",
+        "rarity": "rare",
+        "rarity_ru": "редкий",
+        "requires_attunement": false,
+        "attunement_restriction_ru": null,
+        "charges": null,
+        "recharge_ru": null,
+        "bonus_attack": null,
+        "bonus_damage": null,
+        "bonus_ac": null,
+        "bonus_spell_attack": null,
+        "spell_refs": [],
+        "base_item_categories": [],
+        "summary_ru": "Пока вы держите этот медный колокольчик, вы можете действием Магия позвонить в него и призвать Магена-земельника. Маген появляется в незаня",
+        "sentient": false,
+        "artifact": false
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "mask-of-changed-appearance",
+      "name_ru": "Маска изменённого облика",
+      "name_en": "Mask of Changed Appearance",
+      "source": "nsf",
+      "sort_order": 60,
+      "external_ref": {
+        "book": "NsF",
+        "url_dndsu": "https://next.dnd.su/items/17499-mask-of-changed-appearance",
+        "url_ttg": "https://new.ttg.club/magic-items/mask-of-changed-appearance-nf"
+      },
+      "data": {
+        "schema_version": 1,
+        "equipment_group": "magic_item",
+        "magic_item_type": "wondrous",
+        "magic_item_type_ru": "чудесный предмет",
+        "rarity": "common",
+        "rarity_ru": "обычный",
+        "requires_attunement": false,
+        "attunement_restriction_ru": null,
+        "charges": 3,
+        "recharge_ru": "заряды восстанавливаются на рассвете",
+        "bonus_attack": null,
+        "bonus_damage": null,
+        "bonus_ac": null,
+        "bonus_spell_attack": null,
+        "spell_refs": [],
+        "base_item_categories": [],
+        "summary_ru": "Эта украшенная драгоценностями маска имеет 3 заряда. Действием Магия вы можете потратить 1 заряд, чтобы изменить внешность своего лица.",
+        "sentient": false,
+        "artifact": false
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "mythallar-bracelet",
+      "name_ru": "Браслет из мифаллара",
+      "name_en": "Mythallar Bracelet",
+      "source": "nsf",
+      "sort_order": 70,
+      "external_ref": {
+        "book": "NsF",
+        "url_dndsu": "https://next.dnd.su/items/17500-mythallar-bracelet",
+        "url_ttg": "https://new.ttg.club/magic-items/mythallar-bracelet-nf"
+      },
+      "data": {
+        "schema_version": 1,
+        "equipment_group": "magic_item",
+        "magic_item_type": "wondrous",
+        "magic_item_type_ru": "чудесный предмет",
+        "rarity": "common",
+        "rarity_ru": "обычный",
+        "requires_attunement": false,
+        "attunement_restriction_ru": null,
+        "charges": null,
+        "recharge_ru": null,
+        "bonus_attack": null,
+        "bonus_damage": null,
+        "bonus_ac": null,
+        "bonus_spell_attack": null,
+        "spell_refs": [],
+        "base_item_categories": [],
+        "summary_ru": "На этом кожаном браслете нанизано три маленьких кристаллических бусины, изготовленных из демонтированного мифаллара. Действием Магия вы",
+        "sentient": false,
+        "artifact": false
+      }
+    },
+    {
+      "kind": "item",
+      "slug": "mythallar-cloak",
+      "name_ru": "Плащ мифаллара",
+      "name_en": "Mythallar Cloak",
+      "source": "nsf",
+      "sort_order": 80,
+      "external_ref": {
+        "book": "NsF",
+        "url_dndsu": "https://next.dnd.su/items/17501-mythallar-cloak",
+        "url_ttg": "https://new.ttg.club/magic-items/mythallar-cloak-nf"
+      },
+      "data": {
+        "schema_version": 1,
+        "equipment_group": "magic_item",
+        "magic_item_type": "wondrous",
+        "magic_item_type_ru": "чудесный предмет",
+        "rarity": "rare",
+        "rarity_ru": "редкий",
+        "requires_attunement": true,
+        "attunement_restriction_ru": "требуется настройка",
+        "charges": 10,
+        "recharge_ru": "заряды восстанавливаются на рассвете",
+        "bonus_attack": null,
+        "bonus_damage": null,
+        "bonus_ac": null,
+        "bonus_spell_attack": null,
+        "spell_refs": [],
+        "base_item_categories": [],
+        "summary_ru": "Этот электрически-синий плащ усыпан пришитыми к нему кристаллами — осколками демонтированного мифаллара. У плаща 10 зарядов, и он восстанав",
+        "sentient": false,
+        "artifact": false
+      }
+    }
+  ]
+}

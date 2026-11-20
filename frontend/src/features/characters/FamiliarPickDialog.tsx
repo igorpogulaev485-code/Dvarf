@@ -76,7 +76,7 @@ export function FamiliarPickDialog({
   const [loading, setLoading] = useState(false)
 
   const title = familiarModeLabelRu(mode)
-  const hint = familiarModeHintRu(mode)
+  const hint = familiarModeHintRu(mode, edition)
 
   useEffect(() => {
     if (!open) setQuery('')
@@ -147,6 +147,7 @@ export function FamiliarPickDialog({
       slotLevel,
       characterLevel,
       druidLevel,
+      edition,
     })
     onConfirm({
       companions: applied.companions,

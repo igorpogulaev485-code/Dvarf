@@ -10,6 +10,11 @@ type Props = {
   abilityName: string
   /** Сколько слотов целей (обычно 1 для вдохновения барда); заполнение необязательно */
   targetCount?: number
+  /**
+   * 2024 Bardic Inspiration: must pick another creature (not self).
+   * Empty / self-only selection keeps the dialog open.
+   */
+  requireNonSelfTarget?: boolean
   allyDemo?: AllyPickDemo | null
   onClose: () => void
   /** После выбора целей (может быть пусто) — списать ресурс */
@@ -19,7 +24,7 @@ type Props = {
 
 /**
  * Трата способности на союзника/себя: тот же паттерн, что у каста —
- * Field + play-select. Цели необязательны.
+ * Field + play-select. Цели необязательны (кроме requireNonSelfTarget).
  */
 export function UseAllyAbilityDialog({
   open,
@@ -27,6 +32,7 @@ export function UseAllyAbilityDialog({
   characterName,
   abilityName,
   targetCount = 1,
+  requireNonSelfTarget = false,
   allyDemo = null,
   onClose,
   onConfirm,
@@ -48,6 +54,14 @@ export function UseAllyAbilityDialog({
     [targetSlots],
   )
 
+  const allyIds = useMemo(
+    () =>
+      requireNonSelfTarget
+        ? selectedIds.filter((id) => id !== characterId)
+        : selectedIds,
+    [selectedIds, requireNonSelfTarget, characterId],
+  )
+
   const duplicateTarget = useMemo(() => {
     const seen = new Set<string>()
     for (const id of selectedIds) {
@@ -57,7 +71,8 @@ export function UseAllyAbilityDialog({
     return false
   }, [selectedIds])
 
-  const targetsOk = !duplicateTarget
+  const needsAlly = requireNonSelfTarget && allyIds.length === 0
+  const targetsOk = !duplicateTarget && !needsAlly
 
   if (!open) return null
 
@@ -72,21 +87,22 @@ export function UseAllyAbilityDialog({
       onSecondary={onClose}
       onPrimary={() => {
         if (!targetsOk) return
+        const ids = requireNonSelfTarget ? allyIds : selectedIds
         if (allyDemo) {
-          onConfirm(selectedIds, 'demo-lobby')
+          onConfirm(ids, 'demo-lobby')
           onClose()
           onToast?.(
-            selectedIds.length > 0
-              ? `${abilityName} · ${characterName} → ${selectedIds.length}`
+            ids.length > 0
+              ? `${abilityName} · ${characterName} → ${ids.length}`
               : `${abilityName} · ${characterName}`,
           )
           return
         }
-        if (selectedIds.length > 0 && !party.lobbyId) {
+        if (ids.length > 0 && !party.lobbyId) {
           onToast?.('Нет лобби для целей')
           return
         }
-        onConfirm(selectedIds, party.lobbyId)
+        onConfirm(ids, party.lobbyId)
         onClose()
       }}
     >
@@ -110,6 +126,9 @@ export function UseAllyAbilityDialog({
         />
         {duplicateTarget ? (
           <Text tone="danger">Одна и та же цель в двух слотах — выберите разных.</Text>
+        ) : null}
+        {needsAlly ? (
+          <Text tone="muted">Выбери союзника — себе это умение даровать нельзя.</Text>
         ) : null}
       </Stack>
     </Dialog>

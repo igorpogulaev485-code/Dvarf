@@ -95,6 +95,9 @@ NAME_TO_SLUG['жрица'] = 'cleric'
 NAME_TO_SLUG['друидка'] = 'druid'
 NAME_TO_SLUG['артифицер'] = 'artificer'
 NAME_TO_SLUG['инженер'] = 'artificer'
+NAME_TO_SLUG['изобретатель'] = 'artificer'
+NAME_TO_SLUG['артефактор'] = 'artificer'
+NAME_TO_SLUG['боец'] = 'fighter'
 
 function clampLevel(level: number): number {
   return Math.min(20, Math.max(1, Math.floor(level) || 1))
@@ -184,6 +187,20 @@ export const THIRD_CASTER_SPELLS_KNOWN: number[] = [
 
 export function thirdCasterCantripsKnown(level: number): number {
   return tableAtLevel(THIRD_CASTER_CANTRIPS_KNOWN, level)
+}
+
+/** Table cantrips + Arcane Trickster locked Mage Hand (when subclass is AT). */
+export function thirdCasterCantripsBudget(
+  level: number,
+  subclassSlug?: string | null,
+): number {
+  const chosen = thirdCasterCantripsKnown(level)
+  const key = String(subclassSlug || '')
+    .trim()
+    .toLowerCase()
+    .replace(/_/g, '-')
+  if (key.includes('arcane-trickster')) return chosen + 1
+  return chosen
 }
 
 export function thirdCasterSpellsKnown(level: number): number {
@@ -556,12 +573,19 @@ export function resolveSubclassCasterOverlays(
     if (!def || def.progression !== 'none') continue
     const lv = Math.max(0, Math.floor(row.level))
     if (lv < 3) continue
+    const catalogSub =
+      (row as { subclass_catalog_id?: string; subclass_slug?: string }).subclass_catalog_id ||
+      (row as { subclass_slug?: string }).subclass_slug ||
+      null
     if (
       !subclassGrantsSpellcasting({
         classSlug,
         subclassName: row.subclass_name,
         classLevel: lv,
-        subclassSlug: resolveSubclassFeatureSlug(row.subclass_name),
+        subclassSlug:
+          catalogSub ||
+          resolveSubclassFeatureSlug(row.subclass_name) ||
+          resolveSubclassFeatureSlug(String(catalogSub || '')),
       })
     ) {
       continue
@@ -792,7 +816,11 @@ export function characterSpellListSlugs(
 export function thirdCasterSchoolGate(
   classes: ClassLevelEntry[],
   subclassCasters?: SubclassCasterOverlay[],
+  rulesEdition?: string | null,
 ): string[] | null {
+  // 2024 EK / Arcane Trickster prepare any wizard school — no enchantment/illusion lock.
+  if (String(rulesEdition || '').trim() === '2024') return null
+
   const hasWizardLevels = classes.some(
     (row) => resolveClassCasterSlug(row.name) === 'wizard' && row.level > 0,
   )
@@ -963,11 +991,17 @@ export function resolveSpellLearnBudget(input: {
         overlays.some((item) => item.classEntryId === row.id),
       )
       const level = clampLevel(host?.level ?? 1)
+      const subSlug =
+        (host as { subclass_catalog_id?: string; subclass_slug?: string } | undefined)
+          ?.subclass_catalog_id ||
+        (host as { subclass_slug?: string } | undefined)?.subclass_slug ||
+        resolveSubclassFeatureSlug(host?.subclass_name || '') ||
+        null
       return {
         mode: 'known',
         slug: suggestion.slug,
         labelRu: suggestion.labelRu,
-        cantrips: thirdCasterCantripsKnown(level),
+        cantrips: thirdCasterCantripsBudget(level, subSlug),
         leveledKnown: thirdCasterSpellsKnown(level),
         maxPrepared: null,
       }

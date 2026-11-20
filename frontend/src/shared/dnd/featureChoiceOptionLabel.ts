@@ -19,6 +19,8 @@ import {
 import { fightingStyleById } from './fightingStyles'
 import { elementalDisciplineById } from './monkElementalDisciplines'
 import { rangerChoiceLabel } from './rangerChoices'
+import { armorModelLabelRu2024 } from './artificer2024Features'
+import { primalCompanionTypeLabelRu2024 } from './ranger2024Features'
 import { metamagicById } from './sorcererMetamagic'
 import {
   invocationById,
@@ -27,6 +29,8 @@ import {
 
 /** One-off inline option ids (ancestries, ASI scaffold, affinity, …). */
 export const FEATURE_OPTION_LABELS_RU: Record<string, string> = {
+  divine_strike: 'Божественный удар',
+  potent_spellcasting: 'Могущественные заклинания',
   bear: 'Медведь',
   eagle: 'Орёл',
   wolf: 'Волк',
@@ -99,6 +103,8 @@ export const FEATURE_OPTION_LABELS_RU: Record<string, string> = {
   beast_of_the_land: 'Зверь суши (TCE)',
   beast_of_the_sea: 'Зверь моря (TCE)',
   beast_of_the_sky: 'Зверь неба (TCE)',
+  land: 'Земной',
+  sky: 'Небесный',
   archer: 'Лучник',
   chalice: 'Чаша',
   dragon: 'Дракон',
@@ -168,6 +174,10 @@ export function featureChoiceOptionLabel(
   }
   const fromChoice = choice?.option_labels_ru?.[optionId]?.trim()
   if (fromChoice) return fromChoice
+  const primalType = primalCompanionTypeLabelRu2024(optionId)
+  if (primalType) return primalType
+  const armorModel2024 = armorModelLabelRu2024(optionId)
+  if (armorModel2024) return armorModel2024
   if (FEATURE_OPTION_LABELS_RU[optionId]) return FEATURE_OPTION_LABELS_RU[optionId]
 
   // Use *ById / null-returning helpers — *Label helpers fall back to the raw

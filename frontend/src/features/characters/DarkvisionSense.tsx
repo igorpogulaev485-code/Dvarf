@@ -5,6 +5,8 @@ type DarkvisionSenseProps = {
   baseFt: number
   /** Effective after features/gear (display). */
   effectiveFt: number
+  /** Feature blindsight (e.g. Feral Senses 2024) — display only. */
+  blindsightFt?: number
   onBaseChange: (next: number) => void
 }
 
@@ -15,6 +17,7 @@ type DarkvisionSenseProps = {
 export function DarkvisionSense({
   baseFt,
   effectiveFt,
+  blindsightFt = 0,
   onBaseChange,
 }: DarkvisionSenseProps) {
   const shown = Math.max(0, effectiveFt, baseFt)
@@ -27,6 +30,8 @@ export function DarkvisionSense({
       : shown > 0
         ? `Тёмное зрение: ${shown} фт`
         : 'Тёмное зрение не задано'
+  const tipFull =
+    blindsightFt > 0 ? `${tip}; слепое зрение ${blindsightFt} фт` : tip
 
   return (
     <DetailsMenu
@@ -39,8 +44,8 @@ export function DarkvisionSense({
           <strong>{face}</strong>
         </>
       }
-      title={tip}
-      aria-label={tip}
+      title={tipFull}
+      aria-label={tipFull}
     >
       <Field
         label="База, фт"

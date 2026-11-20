@@ -62,6 +62,31 @@ assert(
 )
 assert(css.includes('classic-lss-death .classic-death-bubbles'), '2024 death bubbles group')
 
+// P24-M05: 2024 rules fields on print blank
+assert(print2024.includes('aria-label="Вид"'), 'M05-1: Вид label (not Раса)')
+assert(print2024.includes('<span>Вид</span>'), 'M05-1: Вид span')
+assert(!/aria-label="Раса"/.test(print2024), 'M05-1: no Раса on 2024 blank')
+assert(print2024.includes('classicPrintSpeciesLabel2024'), 'M05-1: species helper')
+assert(print2024.includes('classicPrintWeaponMasterySlotsLine2024'), 'M05-2: mastery slots')
+assert(print2024.includes('classicPrintWeaponMasteryNote2024'), 'M05-2: weapon mastery note')
+assert(print2024.includes('Оружие ${idx + 1}: заметки') || print2024.includes('заметки'), 'M05-2: notes cell')
+assert(print2024.includes('PRINT_EXHAUSTION_2024_NOTE'), 'M05-3: exhaustion caption')
+assert(print2024.includes('PRINT_HEROIC_INSPIRATION_2024_NOTE'), 'M05-4: heroic caption')
+assert(print2024.includes('PRINT_REST_2024_NOTE'), 'M05-5: rest caption')
+assert(print2024.includes('classicPrintBackgroundOriginLine2024'), 'M05-6: origin/ASI line')
+assert(css.includes('classic-lss-rules-note'), 'M05 print note style')
+
+const rules2024 = readFileSync(join(here, 'classicPrint2024Rules.ts'), 'utf8')
+assert(rules2024.includes('PRINT_EXHAUSTION_2024_NOTE'), 'rules helper: exhaustion')
+assert(rules2024.includes('−2×ур. к броскам D20'), 'rules helper: exhaustion text')
+assert(rules2024.includes('PRINT_HEROIC_INSPIRATION_2024_NOTE'), 'rules helper: heroic')
+assert(rules2024.includes('не преимущество'), 'rules helper: heroic not advantage')
+assert(rules2024.includes('PRINT_REST_2024_NOTE'), 'rules helper: rest')
+assert(rules2024.includes('пауза 16 ч'), 'rules helper: rest cooldown')
+assert(rules2024.includes('speciesNameRu2024'), 'rules helper: species catalog')
+assert(rules2024.includes('classicPrintBackgroundOriginLine2024'), 'rules helper: origin')
+assert(!sheet.includes('classicPrint2024Rules'), '2014 sheet must not import 2024 rules helper')
+
 const fromApi = readFileSync(join(here, 'fromApi.ts'), 'utf8')
 assert(fromApi.includes('stripTrailingItemQty'), 'dedupe ×N in equipment line')
 assert(

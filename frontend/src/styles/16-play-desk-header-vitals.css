@@ -631,3 +631,14 @@ button.play-desk-vital:hover,
   line-height: 1.15;
 }
 
+
+/* 2024 Wild Shape: «форма» caption chip on AC tile (kit Chip, compact inside a vital face) */
+.ui-vital > .ui-chip {
+  min-height: 0;
+  padding: 0 6px;
+  border-radius: 8px;
+  font-size: 0.6rem;
+  line-height: 1.3;
+  margin-top: 2px;
+  max-width: 100%;
+}

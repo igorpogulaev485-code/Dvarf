@@ -2,6 +2,8 @@
 
 import { resolveClassFeatureSlug } from './classFeatures'
 import type { ClassLevelEntry } from './classLevels'
+import { armorerInfiltratorSpeedBonusFt2024, type ArmorModel2024 } from './artificer2024Features'
+import { rovingSpeedBonusFt } from './ranger2024Features'
 
 /** Monk Unarmored Movement bonus by class level (PHB 2014). */
 const MONK_UNARMORED_MOVEMENT_FT: Array<{ minLevel: number; bonus: number }> = [
@@ -19,16 +21,25 @@ function monkUnarmoredBonusFt(classLevel: number): number {
   return 0
 }
 
+function isEdition2024(rulesEdition?: string | null): boolean {
+  return String(rulesEdition ?? '').trim() === '2024'
+}
+
 /**
  * Extra walk speed from class features (not baked into race speed).
  * Barbarian Fast Movement (5+): +10 unless heavy armor.
  * Monk Unarmored Movement (2+): scale unless armor or shield.
+ * Ranger Roving (2024 only, 6+): +10 unless heavy armor — never on 2014 sheets.
  */
 export function classWalkSpeedBonusFt(input: {
   classes: Array<Pick<ClassLevelEntry, 'name' | 'level'>>
   wearingHeavyArmor?: boolean
   /** Any body armor or shield — blocks monk Unarmored Movement. */
   wearingArmorOrShield?: boolean
+  /** Rules edition — Roving / Armorer Infiltrator apply only for `2024`. */
+  rulesEdition?: string | null
+  /** Armorer 2024 armor model pick (Диверсант → +5). */
+  armorerArmorModel?: ArmorModel2024 | null
 }): number {
   let bonus = 0
   for (const row of input.classes) {
@@ -40,8 +51,48 @@ export function classWalkSpeedBonusFt(input: {
     if (slug === 'monk' && !input.wearingArmorOrShield) {
       bonus += monkUnarmoredBonusFt(level)
     }
+    if (slug === 'ranger' && isEdition2024(input.rulesEdition)) {
+      bonus += rovingSpeedBonusFt({
+        rangerLevel: level,
+        wearingHeavyArmor: input.wearingHeavyArmor,
+      })
+    }
+    if (
+      (slug === 'artificer' || /артефактор|изобретат/i.test(row.name || '')) &&
+      isEdition2024(input.rulesEdition)
+    ) {
+      bonus += armorerInfiltratorSpeedBonusFt2024({
+        artificerLevel: level,
+        armorModel: input.armorerArmorModel ?? null,
+      })
+    }
   }
   return bonus
+}
+
+/** 2024 Roving: climb/swim at least equal walk when the feature is active. */
+export function applyRovingClimbSwim(input: {
+  walkFt: number | null
+  climb: number | null
+  swim: number | null
+  rangerLevel: number
+  wearingHeavyArmor?: boolean
+  rulesEdition?: string | null
+}): { climb: number | null; swim: number | null } {
+  const walk = input.walkFt
+  if (walk == null || walk <= 0 || !isEdition2024(input.rulesEdition)) {
+    return { climb: input.climb, swim: input.swim }
+  }
+  if (
+    rovingSpeedBonusFt({
+      rangerLevel: input.rangerLevel,
+      wearingHeavyArmor: input.wearingHeavyArmor,
+    }) <= 0
+  ) {
+    return { climb: input.climb, swim: input.swim }
+  }
+  const bump = (value: number | null) => (value == null || value < walk ? walk : value)
+  return { climb: bump(input.climb), swim: bump(input.swim) }
 }
 
 /**

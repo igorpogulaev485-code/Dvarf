@@ -40,7 +40,9 @@ export function resolveHitVsAc(input: {
   attackTotal?: number | null
   natural?: number | null
   ac?: number | null
+  critThreshold?: number
 }): { hit: boolean; crit: boolean } | null {
+  const critThreshold = Math.min(20, Math.max(1, Math.floor(input.critThreshold ?? 20)))
   const natural =
     input.natural != null && Number.isFinite(input.natural)
       ? Math.floor(Number(input.natural))
@@ -49,7 +51,8 @@ export function resolveHitVsAc(input: {
   if (natural === 20) return { hit: true, crit: true }
   const vs = hitAgainstAc(input.attackTotal, input.ac)
   if (vs == null) return null
-  return { hit: vs, crit: false }
+  const crit = Boolean(vs && natural != null && natural >= critThreshold)
+  return { hit: vs, crit }
 }
 
 /** Feed line for HP change after a confirmed hit. */

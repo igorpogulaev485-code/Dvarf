@@ -12,6 +12,7 @@ import {
   companionFromTemplate,
   resolveSpellCompanionTemplate,
   type CompanionTemplateContext,
+  type CompanionTemplatePatch,
 } from './companionTemplates'
 import { spellKeyFromName, type SheetSpell } from './spells'
 
@@ -245,12 +246,40 @@ function spellSourceFeature(slug: string): string {
   return `spell:${slug}`
 }
 
+const PHANTASMAL_HP_NOTE =
+  'Призрачные существа: хиты вдвое меньше — в карточке уже ½ (хиты в тексте выше полные)'
+
+function halfHpValue(hp: number | null): number | null {
+  if (hp == null) return null
+  return Math.max(1, Math.floor(hp / 2))
+}
+
+function withHalfHp(template: CompanionTemplatePatch): CompanionTemplatePatch {
+  return {
+    ...template,
+    stats: {
+      ...template.stats,
+      hp: halfHpValue(template.stats.hp),
+      hp_max: halfHpValue(template.stats.hp_max),
+    },
+    notes: template.notes ? `${template.notes} · ${PHANTASMAL_HP_NOTE}` : PHANTASMAL_HP_NOTE,
+  }
+}
+
+/** Phantasmal Creatures applies to the two summon spells the subclass grants. */
+export function isPhantasmalSummonSpell(spell: SheetSpell): boolean {
+  const slug = resolveSpellNaparnikSlug(spell)
+  return slug === 'summon_beast' || slug === 'summon_fey'
+}
+
 export function applySpellCastToCompanions(input: {
   companions: CompanionEntry[]
   spell: SheetSpell
   slotLevel: number
   characterLevel?: number
   spellMod?: number
+  /** 2024 Illusionist Phantasmal Creatures: free-cast summon has half Hit Points. */
+  halfHp?: boolean
 }): { companions: CompanionEntry[]; name: string; refreshed: boolean } | null {
   const slug = resolveSpellNaparnikSlug(input.spell)
   if (!slug) return null
@@ -274,7 +303,8 @@ export function applySpellCastToCompanions(input: {
     spellMod: input.spellMod ?? 0,
     slotLevel: input.slotLevel,
   }
-  const template = resolveSpellCompanionTemplate({ slug, ctx: templateCtx })
+  const resolved = resolveSpellCompanionTemplate({ slug, ctx: templateCtx })
+  const template = resolved && input.halfHp ? withHalfHp(resolved) : resolved
   const baseNotes = template?.notes ?? 'Статы — из бестиария или вручную'
   const notes = `${labelRu}${slotNote}${concNote}. ${baseNotes}`
 

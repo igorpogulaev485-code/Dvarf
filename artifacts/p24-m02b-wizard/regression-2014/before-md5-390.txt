@@ -1,0 +1,6 @@
+593794cbc8945111beb093cf3ee71614  before-create-2014-race-marker-390.png
+e24638350aed100f1e5c27a703e5f9b9  before-create-2014-wizard-class-390.png
+5f215ef69e14089ad50af9c50816d50d  before-sheet-2014-wizard-header-390.png
+91b5726bb707be09c0c69ee5d09d5143  before-sheet-2014-wizard-abilities-390.png
+e21e940af25ef757b54b9b503eca3e24  before-sheet-2014-wizard-features-390.png
+7d495943814b6fd2dd7c463fbbaf4170  before-sheet-2014-evocation-features-390.png

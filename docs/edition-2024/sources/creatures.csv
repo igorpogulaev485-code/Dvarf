@@ -1,0 +1,658 @@
+id,name_en,name_ru,book,category,url_dndsu,url_ttg,srd,creature_type,srd_section
+fiendish-icon,Fiendish Icon,Идол исчадия,ABH,creatures,https://next.dnd.su/bestiary/27072-fiendish-icon,https://new.ttg.club/bestiary/fiendish-icon-abh,false,Конструкт,
+harvester-devil,Harvester Devil,Дьявол-собиратель (фальксугон),ABH,creatures,https://next.dnd.su/bestiary/27073-harvester-devil,https://new.ttg.club/bestiary/harvester-devil-abh,false,Исчадие,
+speaker-devil,Speaker Devil,Дьявол-златоуст (логокрон),ABH,creatures,https://next.dnd.su/bestiary/27074-speaker-devil,https://new.ttg.club/bestiary/speaker-devil-abh,false,Исчадие,
+vampire-infernalist,Vampire Infernalist,Вампир-инферналист,ABH,creatures,https://next.dnd.su/bestiary/27075-vampire-infernalist,https://new.ttg.club/bestiary/vampire-infernalist-abh,false,Нежить,
+vampire-warden,Vampire Warden,Вампир-страж,ABH,creatures,https://next.dnd.su/bestiary/27076-vampire-warden,https://new.ttg.club/bestiary/vampire-warden-abh,false,Нежить,
+abjurer-archmage,Abjurer Archmage,Архимаг-оградитель,AU,creatures,https://next.dnd.su/bestiary/35738-abjurer-archmage,https://new.ttg.club/bestiary/abjurer-archmage-au,false,Гуманоид,
+baelnorn,Baelnorn,Баэлнорн,AU,creatures,https://next.dnd.su/bestiary/35746-baelnorn,https://new.ttg.club/bestiary/baelnorn-au,false,Нежить,
+conjurer-archmage,Conjurer Archmage,Архимаг-призыватель,AU,creatures,https://next.dnd.su/bestiary/35739-conjurer-archmage,https://new.ttg.club/bestiary/conjurer-archmage-au,false,Гуманоид,
+darkenbeast,Darkenbeast,Темнозверь,AU,creatures,https://next.dnd.su/bestiary/35747-darkenbeast,https://new.ttg.club/bestiary/darkenbeast-au,false,Чудовище,
+diviner-archmage,Diviner Archmage,Архимаг-прорицатель,AU,creatures,https://next.dnd.su/bestiary/35740-diviner-archmage,https://new.ttg.club/bestiary/diviner-archmage-au,false,Гуманоид,
+enchanter-archmage,Enchanter Archmage,Архимаг-очарователь,AU,creatures,https://next.dnd.su/bestiary/35741-enchanter-archmage,https://new.ttg.club/bestiary/enchanter-archmage-au,false,Гуманоид,
+evoker-archmage,Evoker Archmage,Архимаг-воплотитель,AU,creatures,https://next.dnd.su/bestiary/35742-evoker-archmage,https://new.ttg.club/bestiary/evoker-archmage-au,false,Гуманоид,
+groundling-grunt,Groundling Grunt,Земельникус-боец,AU,creatures,https://next.dnd.su/bestiary/35752-groundling-grunt,https://new.ttg.club/bestiary/groundling-grunt-au,false,Чудовище,
+groundling-slayer,Groundling Slayer,Земельникус-ликвидатор,AU,creatures,https://next.dnd.su/bestiary/36034-groundling-slayer,https://new.ttg.club/bestiary/groundling-slayer-au,false,Чудовище,
+groundling-stalker,Groundling Stalker,Земельникус-охотник,AU,creatures,https://next.dnd.su/bestiary/35753-groundling-stalker,https://new.ttg.club/bestiary/groundling-stalker-au,false,Чудовище,
+illusionist-archmage,Illusionist Archmage,Архимаг-иллюзионист,AU,creatures,https://next.dnd.su/bestiary/35743-illusionist-archmage,https://new.ttg.club/bestiary/illusionist-archmage-au,false,Гуманоид,
+living-cone-of-cold,Living Cone of Cold,Живой конус холода,AU,creatures,https://next.dnd.su/bestiary/35754-living-cone-of-cold,https://new.ttg.club/bestiary/living-cone-of-cold-au,false,Конструкт,
+living-thunderwave,Living Thunderwave,Живая волна грома,AU,creatures,https://next.dnd.su/bestiary/35755-living-thunderwave,https://new.ttg.club/bestiary/living-thunderwave-au,false,Конструкт,
+living-vitriolic-sphere,Living Vitriolic Sphere,Живой едкий шар,AU,creatures,https://next.dnd.su/bestiary/35756-living-vitriolic-sphere,https://new.ttg.club/bestiary/living-vitriolic-sphere-au,false,Конструкт,
+necromancer-archmage,Necromancer Archmage,Архимаг-некромант,AU,creatures,https://next.dnd.su/bestiary/35744-necromancer-archmage,https://new.ttg.club/bestiary/necromancer-archmage-au,false,Гуманоид,
+spellguard,Spellguard,Страж заклятий,AU,creatures,https://next.dnd.su/bestiary/35759-spellguard,https://new.ttg.club/bestiary/spellguard-au,false,Гуманоид,
+taisus,Taisus,Тайсу,AU,creatures,https://next.dnd.su/bestiary/35760-taisus,https://new.ttg.club/bestiary/taisus-au,false,Аберрация,
+transmuter-archmage,Transmuter Archmage,Архимаг-преобразователь,AU,creatures,https://next.dnd.su/bestiary/35745-transmuter-archmage,https://new.ttg.club/bestiary/transmuter-archmage-au,false,Гуманоид,
+venger,Venger,Венгер,AU,creatures,https://next.dnd.su/bestiary/35761-venger,https://new.ttg.club/bestiary/venger-au,false,Исчадие,
+abveku,Abveku,Абвеку,AUD,creatures,https://next.dnd.su/bestiary/35780-abveku,https://new.ttg.club/bestiary/abveku-aud,false,Исчадие,
+arisen-sarrukh,Arisen Sarrukh,Саррух восставший,AUD,creatures,https://next.dnd.su/bestiary/35783-arisen-sarrukh,https://new.ttg.club/bestiary/arisen-sarrukh-aud,false,Нежить,
+rendelith,Rendelith,Ренделит,AUD,creatures,https://next.dnd.su/bestiary/35781-rendelith,https://new.ttg.club/bestiary/rendelith-aud,false,Исчадие,
+sarrukh-tyrant,Sarrukh Tyrant,Саррух деспот,AUD,creatures,https://next.dnd.su/bestiary/35782-sarrukh-tyrant,https://new.ttg.club/bestiary/sarrukh-tyrant-aud,false,Чудовище,
+szass-tam,Szass Tam,Сзасс Тэм,AUD,creatures,https://next.dnd.su/bestiary/35805-szass-tam,https://new.ttg.club/bestiary/szass-tam-aud,false,Нежить,
+xelnene-thrul,Xelnene Thrul,Зелнена Трул,AUD,creatures,https://next.dnd.su/bestiary/35906-xelnene-thrul,https://new.ttg.club/bestiary/xelnene-thrul-aud,false,Гуманоид,
+adult-deep-dragon,Adult Deep Dragon,Взрослый глубинный дракон,FRAiF,creatures,https://next.dnd.su/bestiary/29345-adult-deep-dragon,https://new.ttg.club/bestiary/adult-deep-dragon-fraif,false,Дракон,
+adult-spirit-dragon,Adult Spirit Dragon,Взрослый духовный дракон,FRAiF,creatures,https://next.dnd.su/bestiary/29375-adult-spirit-dragon,https://new.ttg.club/bestiary/adult-spirit-dragon-fraif,false,Дракон,
+ancient-deep-dragon,Ancient Deep Dragon,Древний глубинный дракон,FRAiF,creatures,https://next.dnd.su/bestiary/29346-ancient-deep-dragon,https://new.ttg.club/bestiary/ancient-deep-dragon-fraif,false,Дракон,
+ancient-spirit-dragon,Ancient Spirit Dragon,Древний духовный дракон,FRAiF,creatures,https://next.dnd.su/bestiary/29376-ancient-spirit-dragon,https://new.ttg.club/bestiary/ancient-spirit-dragon-fraif,false,Дракон,
+aranea,Aranea,Аранея,FRAiF,creatures,https://next.dnd.su/bestiary/29335-aranea,https://new.ttg.club/bestiary/aranea-fraif,false,Чудовище,
+beast-of-malar,Beast of Malar,Зверь Малара,FRAiF,creatures,https://next.dnd.su/bestiary/29337-beast-of-malar,https://new.ttg.club/bestiary/beast-of-malar-fraif,false,Чудовище,
+biha-babir,Biha Babir,Биха Бабир,FRAiF,creatures,https://next.dnd.su/bestiary/29338-biha-babir,,false,Элементаль,
+cultist-of-bane,Cultist of Bane,Культист Бейна,FRAiF,creatures,https://next.dnd.su/bestiary/29339-cultist-of-bane,https://new.ttg.club/bestiary/cultist-of-bane-fraif,false,Гуманоид,
+cultist-of-bhaal,Cultist of Bhaal,Культист Баала,FRAiF,creatures,https://next.dnd.su/bestiary/29340-cultist-of-bhaal,https://new.ttg.club/bestiary/cultist-of-bhaal-fraif,false,Гуманоид,
+cultist-of-myrkul,Cultist of Myrkul,Культист Миркула,FRAiF,creatures,https://next.dnd.su/bestiary/29341-cultist-of-myrkul,https://new.ttg.club/bestiary/cultist-of-myrkul-fraif,false,Гуманоид,
+dead-three-scion,Dead Three Scion,Наследник Мёртвой троицы,FRAiF,creatures,https://next.dnd.su/bestiary/29342-dead-three-scion,https://new.ttg.club/bestiary/dead-three-scion-fraif,false,Гуманоид,
+deep-dragon-wyrmling,Deep Dragon Wyrmling,Вирмлинг глубинного дракона,FRAiF,creatures,https://next.dnd.su/bestiary/29343-deep-dragon-wyrmling,https://new.ttg.club/bestiary/deep-dragon-wyrmling-fraif,false,Дракон,
+domestic-wonder,Domestic Wonder,Диво домашнее,FRAiF,creatures,https://next.dnd.su/bestiary/29384-domestic-wonder,https://new.ttg.club/bestiary/domestic-wonder-fraif,false,Конструкт,
+drow-elite-warrior-of-lolth,Drow Elite Warrior of Lolth,"Элитный воин-дроу, посвящённый Лолс",FRAiF,creatures,https://next.dnd.su/bestiary/29348-drow-elite-warrior-of-lolth,https://new.ttg.club/bestiary/drow-elite-warrior-of-lolth-fraif,false,Гуманоид,
+drow-mage-of-lolth,Drow Mage of Lolth,"Дроу-маг, посвящённый Лолс",FRAiF,creatures,https://next.dnd.su/bestiary/29349-drow-mage-of-lolth,https://new.ttg.club/bestiary/drow-mage-of-lolth-fraif,false,Гуманоид,
+drow-of-lolth,Drow of Lolth,"Дроу, посвящённый Лолс",FRAiF,creatures,https://next.dnd.su/bestiary/29347-drow-of-lolth,https://new.ttg.club/bestiary/drow-of-lolth-fraif,false,Гуманоид,
+drow-priestess-of-lolth,Drow Priestess of Lolth,Дроу жрица Лолс,FRAiF,creatures,https://next.dnd.su/bestiary/29350-drow-priestess-of-lolth,https://new.ttg.club/bestiary/drow-priestess-of-lolth-fraif,false,Гуманоид,
+flying-wonder,Flying Wonder,Диво летающее,FRAiF,creatures,https://next.dnd.su/bestiary/29385-flying-wonder,https://new.ttg.club/bestiary/flying-wonder-fraif,false,Конструкт,
+karas-chembryl,Karas Chembryl,Карас Кхембрил,FRAiF,creatures,https://next.dnd.su/bestiary/29351-karas-chembryl,https://new.ttg.club/bestiary/karas-chembryl-fraif,false,Гуманоид,
+manshoon,Manshoon,Маншун,FRAiF,creatures,https://next.dnd.su/bestiary/29353-manshoon,https://new.ttg.club/bestiary/manshoon-fraif,false,Гуманоид,
+nimblewright-guard,Nimblewright Guard,Шустрабо-страж,FRAiF,creatures,https://next.dnd.su/bestiary/29354-nimblewright-guard,https://new.ttg.club/bestiary/nimblewright-guard-fraif,false,Конструкт,
+nimblewright-hulk,Nimblewright Hulk,Шустрабо-бастион,FRAiF,creatures,https://next.dnd.su/bestiary/29357-nimblewright-hulk,https://new.ttg.club/bestiary/nimblewright-hulk-fraif,false,Конструкт,
+nimblewright-steed,Nimblewright Steed,Шустрабо-скакун,FRAiF,creatures,https://next.dnd.su/bestiary/29358-nimblewright-steed,https://new.ttg.club/bestiary/nimblewright-steed-fraif,false,Конструкт,
+polar-serpent,Polar Serpent,Полярный змей,FRAiF,creatures,https://next.dnd.su/bestiary/29366-polar-serpent,https://new.ttg.club/bestiary/polar-serpent-fraif,false,Элементаль,
+queen-forfallen,Queen Forfallen,Королева Фарфалле,FRAiF,creatures,https://next.dnd.su/bestiary/29367-queen-forfallen,https://new.ttg.club/bestiary/queen-forfallen-fraif,false,Конструкт,
+rusted-behemoth,Rusted Behemoth,Оржавевшее чудище,FRAiF,creatures,https://next.dnd.su/bestiary/29368-rusted-behemoth,https://new.ttg.club/bestiary/rusted-behemoth-fraif,false,Конструкт,
+rusted-berserker,Rusted Berserker,Оржавевший берсерк,FRAiF,creatures,https://next.dnd.su/bestiary/29369-rusted-berserker,https://new.ttg.club/bestiary/rusted-berserker-fraif,false,Конструкт,
+rusted-wyrm,Rusted Wyrm,Оржавевший вирм,FRAiF,creatures,https://next.dnd.su/bestiary/29370-rusted-wyrm,https://new.ttg.club/bestiary/rusted-wyrm-fraif,false,Конструкт,
+sammaster-dracolich-form,Sammaster (Dracolich Form),Саммастер (форма драколича),FRAiF,creatures,https://next.dnd.su/bestiary/29371-sammaster-dracolich-form,https://new.ttg.club/bestiary/sammaster-dracolich-form-fraif,false,Нежить,
+sammaster-lich-form,Sammaster (Lich Form),Саммастер (форма лича),FRAiF,creatures,https://next.dnd.su/bestiary/29372-sammaster-lich-form,https://new.ttg.club/bestiary/sammaster-lich-form-fraif,false,Нежить,
+spirit-dragon-wyrmling,Spirit Dragon Wyrmling,Вирмлинг духовного дракона,FRAiF,creatures,https://next.dnd.su/bestiary/29373-spirit-dragon-wyrmling,https://new.ttg.club/bestiary/spirit-dragon-wyrmling-fraif,false,Дракон,
+spore-of-moander,Spore of Moander,Спора Моандера,FRAiF,creatures,https://next.dnd.su/bestiary/29377-spore-of-moander,https://new.ttg.club/bestiary/spore-of-moander-fraif,false,Растение,
+swanmay,Swanmay,Лебединая дева,FRAiF,creatures,https://next.dnd.su/bestiary/29378-swanmay,https://new.ttg.club/bestiary/swanmay-fraif,false,Фея,
+valindra-shadowmantle,Valindra Shadowmantle,Валиндра Теневая Мантия,FRAiF,creatures,https://next.dnd.su/bestiary/29379-valindra-shadowmantle,https://new.ttg.club/bestiary/valindra-shadowmantle-fraif,false,Нежить,
+werewyvern,Werewyvern,Вервиверна,FRAiF,creatures,https://next.dnd.su/bestiary/29380-werewyvern,https://new.ttg.club/bestiary/werewyvern-fraif,false,Дракон,
+young-deep-dragon,Young Deep Dragon,Молодой глубинный дракон,FRAiF,creatures,https://next.dnd.su/bestiary/29344-young-deep-dragon,https://new.ttg.club/bestiary/young-deep-dragon-fraif,false,Дракон,
+young-spirit-dragon,Young Spirit Dragon,Молодой духовный дракон,FRAiF,creatures,https://next.dnd.su/bestiary/29374-young-spirit-dragon,https://new.ttg.club/bestiary/young-spirit-dragon-fraif,false,Дракон,
+zhentilar-paladin-of-bane,Zhentilar Paladin of Bane,Жентиларский паладин Бейна,FRAiF,creatures,https://next.dnd.su/bestiary/29382-zhentilar-paladin-of-bane,https://new.ttg.club/bestiary/zhentilar-paladin-of-bane-fraif,false,Гуманоид,
+zhentilar-soldier,Zhentilar Soldier,Жентиларский солдат,FRAiF,creatures,https://next.dnd.su/bestiary/29381-zhentilar-soldier,https://new.ttg.club/bestiary/zhentilar-soldier-fraif,false,Гуманоид,
+zlan,Zlan,Злан,FRAiF,creatures,https://next.dnd.su/bestiary/29383-zlan,https://new.ttg.club/bestiary/zlan-fraif,false,Нежить,
+incarnation-of-transience,Incarnation of Transience,Воплощение мимолётности,LFL,creatures,https://next.dnd.su/bestiary/29217-incarnation-of-transience,https://new.ttg.club/bestiary/incarnation-of-transience-lfl,false,Фея,
+incarnation-of-vibrance,Incarnation of Vibrance,Воплощение яркости,LFL,creatures,https://next.dnd.su/bestiary/29246-incarnation-of-vibrance,https://new.ttg.club/bestiary/incarnation-of-vibrance-lfl,false,Фея,
+lorwyn-giant,Lorwyn Giant,Великан Лорвина,LFL,creatures,https://next.dnd.su/bestiary/29215-lorwyn-giant,https://new.ttg.club/bestiary/lorwyn-giant-lfl,false,Великан,
+merrow-doublespeaker,Merrow Doublespeaker,Мерроу-двуязыкий,LFL,creatures,https://next.dnd.su/bestiary/29245-merrow-doublespeaker,https://new.ttg.club/bestiary/merrow-doublespeaker-lfl,false,Чудовище,
+merrow-haranguer,Merrow Haranguer,Мерроу-крикун,LFL,creatures,https://next.dnd.su/bestiary/29218-merrow-haranguer,https://new.ttg.club/bestiary/merrow-haranguer-lfl,false,Чудовище,
+noggle-ransacker,Noggle Ransacker,Ноггл-грабитель,LFL,creatures,https://next.dnd.su/bestiary/29219-noggle-ransacker,https://new.ttg.club/bestiary/noggle-ransacker-lfl,false,Фея,
+noggle-wild-mage,Noggle Wild Mage,Ноггл-дикий маг,LFL,creatures,https://next.dnd.su/bestiary/29220-noggle-wild-mage,https://new.ttg.club/bestiary/noggle-wild-mage-lfl,false,Фея,
+shadowmoor-giant,Shadowmoor Giant,Великан Шэдоумура,LFL,creatures,https://next.dnd.su/bestiary/29216-shadowmoor-giant,https://new.ttg.club/bestiary/shadowmoor-giant-lfl,false,Великан,
+aarakocra-aeromancer,Aarakocra Aeromancer,Ааракокра аэромант,MM24,creatures,https://next.dnd.su/bestiary/21152-aarakocra-aeromancer,https://new.ttg.club/bestiary/aarakocra-aeromancer-mm,false,Элементаль,
+aarakocra-skirmisher,Aarakocra Skirmisher,Ааракокра застрельщик,MM24,creatures,https://next.dnd.su/bestiary/21153-aarakocra-skirmisher,https://new.ttg.club/bestiary/aarakocra-skirmisher-mm,false,Элементаль,
+aberrant-cultist,Aberrant Cultist,Последователь культа аберрации,MM24,creatures,https://next.dnd.su/bestiary/21154-aberrant-cultist,https://new.ttg.club/bestiary/aberrant-cultist-mm,false,Гуманоид,
+aboleth,Aboleth,Аболет,MM24,creatures,https://next.dnd.su/bestiary/21155-aboleth,https://new.ttg.club/bestiary/aboleth-mm,true,Аберрация,monsters
+abominable-yeti,Abominable Yeti,Отвратительный йети,MM24,creatures,https://next.dnd.su/bestiary/21156-abominable-yeti,https://new.ttg.club/bestiary/abominable-yeti-mm,false,Чудовище,
+adult-black-dragon,Adult Black Dragon,Взрослый чёрный дракон,MM24,creatures,https://next.dnd.su/bestiary/21157-adult-black-dragon,https://new.ttg.club/bestiary/adult-black-dragon-mm,true,Дракон,monsters
+adult-blue-dragon,Adult Blue Dragon,Взрослый синий дракон,MM24,creatures,https://next.dnd.su/bestiary/21158-adult-blue-dragon,https://new.ttg.club/bestiary/adult-blue-dragon-mm,true,Дракон,monsters
+adult-brass-dragon,Adult Brass Dragon,Взрослый латунный дракон,MM24,creatures,https://next.dnd.su/bestiary/21159-adult-brass-dragon,https://new.ttg.club/bestiary/adult-brass-dragon-mm,true,Дракон,monsters
+adult-bronze-dragon,Adult Bronze Dragon,Взрослый бронзовый дракон,MM24,creatures,https://next.dnd.su/bestiary/21160-adult-bronze-dragon,https://new.ttg.club/bestiary/adult-bronze-dragon-mm,true,Дракон,monsters
+adult-copper-dragon,Adult Copper Dragon,Взрослый медный дракон,MM24,creatures,https://next.dnd.su/bestiary/21161-adult-copper-dragon,https://new.ttg.club/bestiary/adult-copper-dragon-mm,true,Дракон,monsters
+adult-gold-dragon,Adult Gold Dragon,Взрослый золотой дракон,MM24,creatures,https://next.dnd.su/bestiary/21162-adult-gold-dragon,https://new.ttg.club/bestiary/adult-gold-dragon-mm,true,Дракон,monsters
+adult-green-dragon,Adult Green Dragon,Взрослый зелёный дракон,MM24,creatures,https://next.dnd.su/bestiary/21163-adult-green-dragon,https://new.ttg.club/bestiary/adult-green-dragon-mm,true,Дракон,monsters
+adult-red-dragon,Adult Red Dragon,Взрослый красный дракон,MM24,creatures,https://next.dnd.su/bestiary/21164-adult-red-dragon,https://new.ttg.club/bestiary/adult-red-dragon-mm,true,Дракон,monsters
+adult-silver-dragon,Adult Silver Dragon,Взрослый серебряный дракон,MM24,creatures,https://next.dnd.su/bestiary/21165-adult-silver-dragon,https://new.ttg.club/bestiary/adult-silver-dragon-mm,true,Дракон,monsters
+adult-white-dragon,Adult White Dragon,Взрослый белый дракон,MM24,creatures,https://next.dnd.su/bestiary/21166-adult-white-dragon,https://new.ttg.club/bestiary/adult-white-dragon-mm,true,Дракон,monsters
+air-elemental,Air Elemental,Воздушный элементаль,MM24,creatures,https://next.dnd.su/bestiary/21167-air-elemental,https://new.ttg.club/bestiary/air-elemental-mm,true,Элементаль,monsters
+allosaurus,Allosaurus,Аллозавр,MM24,creatures,https://next.dnd.su/bestiary/21168-allosaurus,https://new.ttg.club/bestiary/allosaurus-mm,true,Зверь,animals
+ancient-black-dragon,Ancient Black Dragon,Древний чёрный дракон,MM24,creatures,https://next.dnd.su/bestiary/21169-ancient-black-dragon,https://new.ttg.club/bestiary/ancient-black-dragon-mm,true,Дракон,monsters
+ancient-blue-dragon,Ancient Blue Dragon,Древний синий дракон,MM24,creatures,https://next.dnd.su/bestiary/21170-ancient-blue-dragon,https://new.ttg.club/bestiary/ancient-blue-dragon-mm,true,Дракон,monsters
+ancient-brass-dragon,Ancient Brass Dragon,Древний латунный дракон,MM24,creatures,https://next.dnd.su/bestiary/21171-ancient-brass-dragon,https://new.ttg.club/bestiary/ancient-brass-dragon-mm,true,Дракон,monsters
+ancient-bronze-dragon,Ancient Bronze Dragon,Древний бронзовый дракон,MM24,creatures,https://next.dnd.su/bestiary/21172-ancient-bronze-dragon,https://new.ttg.club/bestiary/ancient-bronze-dragon-mm,true,Дракон,monsters
+ancient-copper-dragon,Ancient Copper Dragon,Древний медный дракон,MM24,creatures,https://next.dnd.su/bestiary/21173-ancient-copper-dragon,https://new.ttg.club/bestiary/ancient-copper-dragon-mm,true,Дракон,monsters
+ancient-gold-dragon,Ancient Gold Dragon,Древний золотой дракон,MM24,creatures,https://next.dnd.su/bestiary/21174-ancient-gold-dragon,https://new.ttg.club/bestiary/ancient-gold-dragon-mm,true,Дракон,monsters
+ancient-green-dragon,Ancient Green Dragon,Древний зелёный дракон,MM24,creatures,https://next.dnd.su/bestiary/21175-ancient-green-dragon,https://new.ttg.club/bestiary/ancient-green-dragon-mm,true,Дракон,monsters
+ancient-red-dragon,Ancient Red Dragon,Древний красный дракон,MM24,creatures,https://next.dnd.su/bestiary/21176-ancient-red-dragon,https://new.ttg.club/bestiary/ancient-red-dragon-mm,true,Дракон,monsters
+ancient-silver-dragon,Ancient Silver Dragon,Древний серебряный дракон,MM24,creatures,https://next.dnd.su/bestiary/21177-ancient-silver-dragon,https://new.ttg.club/bestiary/ancient-silver-dragon-mm,true,Дракон,monsters
+ancient-white-dragon,Ancient White Dragon,Древний белый дракон,MM24,creatures,https://next.dnd.su/bestiary/21178-ancient-white-dragon,https://new.ttg.club/bestiary/ancient-white-dragon-mm,true,Дракон,monsters
+animal-lord,Animal Lord,Владыка зверей,MM24,creatures,https://next.dnd.su/bestiary/21179-animal-lord,https://new.ttg.club/bestiary/animal-lord-mm,false,Небожитель,
+animated-armor,Animated Armor,Оживлённый доспех,MM24,creatures,https://next.dnd.su/bestiary/21180-animated-armor,https://new.ttg.club/bestiary/animated-armor-mm,true,Конструкт,monsters
+animated-broom,Animated Broom,Оживлённая метла,MM24,creatures,https://next.dnd.su/bestiary/21181-animated-broom,https://new.ttg.club/bestiary/animated-broom-mm,false,Конструкт,
+animated-flying-sword,Animated Flying Sword,Живой летающий меч,MM24,creatures,https://next.dnd.su/bestiary/21182-animated-flying-sword,https://new.ttg.club/bestiary/animated-flying-sword-mm,true,Конструкт,monsters
+animated-rug-of-smothering,Animated Rug of Smothering,Живой ковёр удушения,MM24,creatures,https://next.dnd.su/bestiary/21183-animated-rug-of-smothering,https://new.ttg.club/bestiary/animated-rug-of-smothering-mm,true,Конструкт,monsters
+ankheg,Ankheg,Анхег,MM24,creatures,https://next.dnd.su/bestiary/21184-ankheg,https://new.ttg.club/bestiary/ankheg-mm,true,Чудовище,monsters
+ankylosaurus,Ankylosaurus,Анкилозавр,MM24,creatures,https://next.dnd.su/bestiary/21185-ankylosaurus,https://new.ttg.club/bestiary/ankylosaurus-mm,true,Зверь,animals
+ape,Ape,Человекообразная обезьяна,MM24,creatures,https://next.dnd.su/bestiary/19838-ape,https://new.ttg.club/bestiary/ape-mm,true,Зверь,animals
+arcanaloth,Arcanaloth,Арканалот,MM24,creatures,https://next.dnd.su/bestiary/21187-arcanaloth,https://new.ttg.club/bestiary/arcanaloth-mm,false,Исчадие,
+arch-hag,Arch-hag,Архикарга,MM24,creatures,https://next.dnd.su/bestiary/21188-arch-hag,https://new.ttg.club/bestiary/arch-hag-mm,false,Фея,
+archelon,Archelon,Архелон,MM24,creatures,https://next.dnd.su/bestiary/21189-archelon,https://new.ttg.club/bestiary/archelon-mm,true,Зверь,animals
+archmage,Archmage,Архимаг,MM24,creatures,https://next.dnd.su/bestiary/21190-archmage,https://new.ttg.club/bestiary/archmage-mm,true,Гуманоид,monsters
+archpriest,Archpriest,Архиепископ,MM24,creatures,https://next.dnd.su/bestiary/21191-archpriest,https://new.ttg.club/bestiary/archpriest-mm,false,Гуманоид,
+assassin,Assassin,Наёмный убийца,MM24,creatures,https://next.dnd.su/bestiary/21192-assassin,https://new.ttg.club/bestiary/assassin-mm,true,Гуманоид,monsters
+awakened-shrub,Awakened Shrub,Пробуждённый куст,MM24,creatures,https://next.dnd.su/bestiary/21193-awakened-shrub,https://new.ttg.club/bestiary/awakened-shrub-mm,true,Растение,monsters
+awakened-tree,Awakened Tree,Пробуждённое дерево,MM24,creatures,https://next.dnd.su/bestiary/21194-awakened-tree,https://new.ttg.club/bestiary/awakened-tree-mm,true,Растение,monsters
+axe-beak,Axe Beak,Топороклюв,MM24,creatures,https://next.dnd.su/bestiary/21195-axe-beak,https://new.ttg.club/bestiary/axe-beak-mm,true,Чудовище,monsters
+azer-pyromancer,Azer Pyromancer,Эйзер пиромант,MM24,creatures,https://next.dnd.su/bestiary/21196-azer-pyromancer,https://new.ttg.club/bestiary/azer-pyromancer-mm,false,Элементаль,
+azer-sentinel,Azer Sentinel,Эйзер страж,MM24,creatures,https://next.dnd.su/bestiary/21197-azer-sentinel,https://new.ttg.club/bestiary/azer-sentinel-mm,true,Элементаль,monsters
+baboon,Baboon,Бабуин,MM24,creatures,https://next.dnd.su/bestiary/21198-baboon,https://new.ttg.club/bestiary/baboon-mm,true,Зверь,animals
+badger,Badger,Барсук,MM24,creatures,https://next.dnd.su/bestiary/19821-badger,https://new.ttg.club/bestiary/badger-mm,true,Зверь,animals
+balor,Balor,Балор,MM24,creatures,https://next.dnd.su/bestiary/21200-balor,https://new.ttg.club/bestiary/balor-mm,true,Исчадие,monsters
+bandit,Bandit,Разбойник,MM24,creatures,https://next.dnd.su/bestiary/21204-bandit,https://new.ttg.club/bestiary/bandit-mm,true,Гуманоид,monsters
+bandit-captain,Bandit Captain,Капитан разбойников,MM24,creatures,https://next.dnd.su/bestiary/21201-bandit-captain,https://new.ttg.club/bestiary/bandit-captain-mm,true,Гуманоид,monsters
+bandit-crime-lord,Bandit Crime Lord,Преступный лорд бандитов,MM24,creatures,https://next.dnd.su/bestiary/21202-bandit-crime-lord,https://new.ttg.club/bestiary/bandit-crime-lord-mm,false,Гуманоид,
+bandit-deceiver,Bandit Deceiver,Бандит-обманщик,MM24,creatures,https://next.dnd.su/bestiary/21203-bandit-deceiver,https://new.ttg.club/bestiary/bandit-deceiver-mm,false,Гуманоид,
+banshee,Banshee,Баньши,MM24,creatures,https://next.dnd.su/bestiary/21205-banshee,https://new.ttg.club/bestiary/banshee-mm,false,Нежить,
+barbed-devil,Barbed Devil,Шипастый дьявол,MM24,creatures,https://next.dnd.su/bestiary/21206-barbed-devil,https://new.ttg.club/bestiary/barbed-devil-mm,true,Исчадие,monsters
+barlgura,Barlgura,Барлгура,MM24,creatures,https://next.dnd.su/bestiary/21207-barlgura,https://new.ttg.club/bestiary/barlgura-mm,false,Исчадие,
+basilisk,Basilisk,Василиск,MM24,creatures,https://next.dnd.su/bestiary/21208-basilisk,https://new.ttg.club/bestiary/basilisk-mm,true,Чудовище,monsters
+bat,Bat,Летучая мышь,MM24,creatures,https://next.dnd.su/bestiary/19839-bat,https://new.ttg.club/bestiary/bat-mm,true,Зверь,animals
+bearded-devil,Bearded Devil,Бородатый дьявол,MM24,creatures,https://next.dnd.su/bestiary/21210-bearded-devil,https://new.ttg.club/bestiary/bearded-devil-mm,true,Исчадие,monsters
+behir,Behir,Бехир,MM24,creatures,https://next.dnd.su/bestiary/21211-behir,https://new.ttg.club/bestiary/behir-mm,true,Чудовище,monsters
+beholder,Beholder,Бехолдер,MM24,creatures,https://next.dnd.su/bestiary/21213-beholder,https://new.ttg.club/bestiary/beholder-mm,false,Аберрация,
+beholder-zombie,Beholder Zombie,Бехолдер-зомби,MM24,creatures,https://next.dnd.su/bestiary/21212-beholder-zombie,https://new.ttg.club/bestiary/beholder-zombie-mm,false,Нежить,
+berserker,Berserker,Берсерк,MM24,creatures,https://next.dnd.su/bestiary/21215-berserker,https://new.ttg.club/bestiary/berserker-mm,true,Гуманоид,monsters
+berserker-commander,Berserker Commander,Предводитель берсерков,MM24,creatures,https://next.dnd.su/bestiary/21214-berserker-commander,https://new.ttg.club/bestiary/berserker-commander-mm,false,Гуманоид,
+black-bear,Black bear,Чёрный медведь,MM24,creatures,https://next.dnd.su/bestiary/19840-black-bear,https://new.ttg.club/bestiary/black-bear-mm,true,Зверь,animals
+black-dragon-wyrmling,Black Dragon Wyrmling,Вирмлинг чёрного дракона,MM24,creatures,https://next.dnd.su/bestiary/21217-black-dragon-wyrmling,https://new.ttg.club/bestiary/black-dragon-wyrmling-mm,true,Дракон,monsters
+black-pudding,Black Pudding,Чёрная слизь,MM24,creatures,https://next.dnd.su/bestiary/21218-black-pudding,https://new.ttg.club/bestiary/black-pudding-mm,true,Слизь,monsters
+blink-dog,Blink Dog,Мерцающий пёс,MM24,creatures,https://next.dnd.su/bestiary/21219-blink-dog,https://new.ttg.club/bestiary/blink-dog-mm,true,Фея,monsters
+blob-of-annihilation,Blob of Annihilation,Сгусток уничтожения,MM24,creatures,https://next.dnd.su/bestiary/21220-blob-of-annihilation,https://new.ttg.club/bestiary/blob-of-annihilation-mm,false,Слизь,
+blood-hawk,Blood Hawk,Кровавый ястреб,MM24,creatures,https://next.dnd.su/bestiary/21221-blood-hawk,https://new.ttg.club/bestiary/blood-hawk-mm,true,Зверь,animals
+blue-dragon-wyrmling,Blue Dragon Wyrmling,Вирмлинг синего дракона,MM24,creatures,https://next.dnd.su/bestiary/21222-blue-dragon-wyrmling,https://new.ttg.club/bestiary/blue-dragon-wyrmling-mm,true,Дракон,monsters
+blue-slaad,Blue Slaad,Синий слаад,MM24,creatures,https://next.dnd.su/bestiary/21223-blue-slaad,https://new.ttg.club/bestiary/blue-slaad-mm,false,Аберрация,
+boar,Boar,Кабан,MM24,creatures,https://next.dnd.su/bestiary/19841-boar,https://new.ttg.club/bestiary/boar-mm,true,Зверь,animals
+bone-devil,Bone Devil,Костяной дьявол,MM24,creatures,https://next.dnd.su/bestiary/21225-bone-devil,https://new.ttg.club/bestiary/bone-devil-mm,true,Исчадие,monsters
+bone-naga,Bone Naga,Костяная нага,MM24,creatures,https://next.dnd.su/bestiary/21226-bone-naga,https://new.ttg.club/bestiary/bone-naga-mm,false,Нежить,
+brass-dragon-wyrmling,Brass Dragon Wyrmling,Вирмлинг латунного дракона,MM24,creatures,https://next.dnd.su/bestiary/21227-brass-dragon-wyrmling,https://new.ttg.club/bestiary/brass-dragon-wyrmling-mm,true,Дракон,monsters
+brazen-gorgon,Brazen Gorgon,Бронзовая горгона,MM24,creatures,https://next.dnd.su/bestiary/21228-brazen-gorgon,https://new.ttg.club/bestiary/brazen-gorgon-mm,false,Конструкт,
+bronze-dragon-wyrmling,Bronze Dragon Wyrmling,Вирмлинг бронзового дракона,MM24,creatures,https://next.dnd.su/bestiary/21229-bronze-dragon-wyrmling,https://new.ttg.club/bestiary/bronze-dragon-wyrmling-mm,true,Дракон,monsters
+brown-bear,Brown bear,Бурый медведь,MM24,creatures,https://next.dnd.su/bestiary/19977-brown-bear,https://new.ttg.club/bestiary/brown-bear-mm,true,Зверь,animals
+bugbear-stalker,Bugbear Stalker,Медвежатник-охотник,MM24,creatures,https://next.dnd.su/bestiary/21231-bugbear-stalker,https://new.ttg.club/bestiary/bugbear-stalker-mm,true,Фея,monsters
+bugbear-warrior,Bugbear Warrior,Медвежатник-воин,MM24,creatures,https://next.dnd.su/bestiary/21232-bugbear-warrior,https://new.ttg.club/bestiary/bugbear-warrior-mm,true,Фея,monsters
+bulette,Bulette,Панцирница,MM24,creatures,https://next.dnd.su/bestiary/21234-bulette,https://new.ttg.club/bestiary/bulette-mm,true,Чудовище,monsters
+bulette-pup,Bulette Pup,Щенок панцирницы,MM24,creatures,https://next.dnd.su/bestiary/21233-bulette-pup,https://new.ttg.club/bestiary/bulette-pup-mm,false,Чудовище,
+bullywug-bog-sage,Bullywug Bog Sage,Болотный мудрец-жаболюд,MM24,creatures,https://next.dnd.su/bestiary/21235-bullywug-bog-sage,https://new.ttg.club/bestiary/bullywug-bog-sage-mm,false,Фея,
+bullywug-warrior,Bullywug Warrior,Жаболюд-воитель,MM24,creatures,https://next.dnd.su/bestiary/21236-bullywug-warrior,https://new.ttg.club/bestiary/bullywug-warrior-mm,false,Фея,
+cambion,Cambion,Камбион,MM24,creatures,https://next.dnd.su/bestiary/21237-cambion,https://new.ttg.club/bestiary/cambion-mm,false,Исчадие,
+camel,Camel,Верблюд,MM24,creatures,https://next.dnd.su/bestiary/19978-camel,https://new.ttg.club/bestiary/camel-mm,true,Зверь,animals
+carrion-crawler,Carrion Crawler,Ползающий падальщик,MM24,creatures,https://next.dnd.su/bestiary/21239-carrion-crawler,https://new.ttg.club/bestiary/carrion-crawler-mm,false,Чудовище,
+cat,Cat,Кошка,MM24,creatures,https://next.dnd.su/bestiary/19979-cat,https://new.ttg.club/bestiary/cat-mm,true,Зверь,animals
+centaur-trooper,Centaur Trooper,Кентавр-кавалерист,MM24,creatures,https://next.dnd.su/bestiary/21241-centaur-trooper,https://new.ttg.club/bestiary/centaur-trooper-mm,true,Фея,monsters
+centaur-warden,Centaur Warden,Кентавр смотритель,MM24,creatures,https://next.dnd.su/bestiary/21242-centaur-warden,https://new.ttg.club/bestiary/centaur-warden-mm,false,Фея,
+chain-devil,Chain Devil,Дьявол цепей,MM24,creatures,https://next.dnd.su/bestiary/21243-chain-devil,https://new.ttg.club/bestiary/chain-devil-mm,true,Исчадие,monsters
+chasme,Chasme,Чазм,MM24,creatures,https://next.dnd.su/bestiary/21244-chasme,https://new.ttg.club/bestiary/chasme-mm,false,Исчадие,
+chimera,Chimera,Химера,MM24,creatures,https://next.dnd.su/bestiary/21245-chimera,https://new.ttg.club/bestiary/chimera-mm,true,Чудовище,monsters
+chuul,Chuul,Чууль,MM24,creatures,https://next.dnd.su/bestiary/21246-chuul,https://new.ttg.club/bestiary/chuul-mm,true,Аберрация,monsters
+clay-golem,Clay Golem,Глиняный голем,MM24,creatures,https://next.dnd.su/bestiary/21247-clay-golem,https://new.ttg.club/bestiary/clay-golem-mm,true,Конструкт,monsters
+cloaker,Cloaker,Плащевик,MM24,creatures,https://next.dnd.su/bestiary/21248-cloaker,https://new.ttg.club/bestiary/cloaker-mm,true,Аберрация,monsters
+cloud-giant,Cloud Giant,Облачный великан,MM24,creatures,https://next.dnd.su/bestiary/21249-cloud-giant,https://new.ttg.club/bestiary/cloud-giant-mm,true,Великан,monsters
+cockatrice,Cockatrice,Куролиск,MM24,creatures,https://next.dnd.su/bestiary/21251-cockatrice,https://new.ttg.club/bestiary/cockatrice-mm,true,Чудовище,monsters
+cockatrice-regent,Cockatrice Regent,Королевский куролиск,MM24,creatures,https://next.dnd.su/bestiary/21250-cockatrice-regent,https://new.ttg.club/bestiary/cockatrice-regent-mm,false,Чудовище,
+colossus,Colossus,Колосс,MM24,creatures,https://next.dnd.su/bestiary/21252-colossus,https://new.ttg.club/bestiary/colossus-mm,false,Конструкт,
+commoner,Commoner,Обыватель,MM24,creatures,https://next.dnd.su/bestiary/21253-commoner,https://new.ttg.club/bestiary/commoner-mm,true,Гуманоид,monsters
+constrictor-snake,Constrictor Snake,Удав,MM24,creatures,https://next.dnd.su/bestiary/19980-constrictor-snake,https://new.ttg.club/bestiary/constrictor-snake-mm,true,Зверь,animals
+copper-dragon-wyrmling,Copper Dragon Wyrmling,Вирмлинг медного дракона,MM24,creatures,https://next.dnd.su/bestiary/21255-copper-dragon-wyrmling,https://new.ttg.club/bestiary/copper-dragon-wyrmling-mm,true,Дракон,monsters
+couatl,Couatl,Коатль,MM24,creatures,https://next.dnd.su/bestiary/21256-couatl,https://new.ttg.club/bestiary/couatl-mm,true,Небожитель,monsters
+crab,Crab,Краб,MM24,creatures,https://next.dnd.su/bestiary/21257-crab,https://new.ttg.club/bestiary/crab-mm,true,Зверь,animals
+crawling-claw,Crawling Claw,Ползающая рука,MM24,creatures,https://next.dnd.su/bestiary/21258-crawling-claw,https://new.ttg.club/bestiary/crawling-claw-mm,false,Нежить,
+crocodile,Crocodile,Крокодил,MM24,creatures,https://next.dnd.su/bestiary/19982-crocodile,https://new.ttg.club/bestiary/crocodile-mm,true,Зверь,animals
+cultist,Cultist,Культист,MM24,creatures,https://next.dnd.su/bestiary/21262-cultist,https://new.ttg.club/bestiary/cultist-mm,true,Гуманоид,monsters
+cultist-fanatic,Cultist Fanatic,Культист фанатик,MM24,creatures,https://next.dnd.su/bestiary/21260-cultist-fanatic,https://new.ttg.club/bestiary/cultist-fanatic-mm,true,Гуманоид,monsters
+cultist-hierophant,Cultist Hierophant,Культист иерофант,MM24,creatures,https://next.dnd.su/bestiary/21261-cultist-hierophant,https://new.ttg.club/bestiary/cultist-hierophant-mm,false,Гуманоид,
+cyclops-oracle,Cyclops Oracle,Циклоп оракул,MM24,creatures,https://next.dnd.su/bestiary/21263-cyclops-oracle,https://new.ttg.club/bestiary/cyclops-oracle-mm,false,Великан,
+cyclops-sentry,Cyclops Sentry,Циклоп дозорный,MM24,creatures,https://next.dnd.su/bestiary/21264-cyclops-sentry,https://new.ttg.club/bestiary/cyclops-sentry-mm,false,Великан,
+dao,Dao,Дао,MM24,creatures,https://next.dnd.su/bestiary/21265-dao,https://new.ttg.club/bestiary/dao-mm,false,Элементаль,
+darkmantle,Darkmantle,Тёмная мантия,MM24,creatures,https://next.dnd.su/bestiary/21266-darkmantle,https://new.ttg.club/bestiary/darkmantle-mm,true,Аберрация,monsters
+death-cultist,Death Cultist,Последователь культа смерти,MM24,creatures,https://next.dnd.su/bestiary/21267-death-cultist,https://new.ttg.club/bestiary/death-cultist-mm,false,Гуманоид,
+death-dog,Death Dog,Пёс смерти,MM24,creatures,https://next.dnd.su/bestiary/21268-death-dog,https://new.ttg.club/bestiary/death-dog-mm,true,Чудовище,monsters
+death-knight,Death Knight,Рыцарь смерти,MM24,creatures,https://next.dnd.su/bestiary/21270-death-knight,https://new.ttg.club/bestiary/death-knight-mm,false,Нежить,
+death-knight-aspirant,Death Knight Aspirant,Апостол рыцаря смерти,MM24,creatures,https://next.dnd.su/bestiary/21269-death-knight-aspirant,https://new.ttg.club/bestiary/death-knight-aspirant-mm,false,Нежить,
+death-slaad,Death Slaad,Смертельный слаад,MM24,creatures,https://next.dnd.su/bestiary/21271-death-slaad,https://new.ttg.club/bestiary/death-slaad-mm,false,Аберрация,
+death-tyrant,Death Tyrant,Тиран смерти,MM24,creatures,https://next.dnd.su/bestiary/21272-death-tyrant,https://new.ttg.club/bestiary/death-tyrant-mm,false,Нежить,
+deer,Deer,Олень,MM24,creatures,https://next.dnd.su/bestiary/21273-deer,https://new.ttg.club/bestiary/deer-mm,true,Зверь,animals
+demilich,Demilich,Демилич,MM24,creatures,https://next.dnd.su/bestiary/21274-demilich,https://new.ttg.club/bestiary/demilich-mm,false,Нежить,
+deva,Deva,Дэв,MM24,creatures,https://next.dnd.su/bestiary/21275-deva,https://new.ttg.club/bestiary/deva-mm,true,Небожитель,monsters
+dire-wolf,Dire Wolf,Лютый волк,MM24,creatures,https://next.dnd.su/bestiary/19983-dire-wolf,https://new.ttg.club/bestiary/dire-wolf-mm,true,Зверь,animals
+dire-worg,Dire Worg,Лютый ворг,MM24,creatures,https://next.dnd.su/bestiary/21277-dire-worg,https://new.ttg.club/bestiary/dire-worg-mm,false,Фея,
+displacer-beast,Displacer Beast,Ускользающий зверь,MM24,creatures,https://next.dnd.su/bestiary/21278-displacer-beast,https://new.ttg.club/bestiary/displacer-beast-mm,false,Чудовище,
+djinni,Djinni,Джинн,MM24,creatures,https://next.dnd.su/bestiary/21279-djinni,https://new.ttg.club/bestiary/djinni-mm,true,Элементаль,monsters
+doppelganger,Doppelganger,Доппельгангер,MM24,creatures,https://next.dnd.su/bestiary/21280-doppelganger,https://new.ttg.club/bestiary/doppelganger-mm,true,Чудовище,monsters
+dracolich,Dracolich,Драколич,MM24,creatures,https://next.dnd.su/bestiary/21281-dracolich,https://new.ttg.club/bestiary/dracolich-mm,false,Нежить,
+draft-horse,Draft Horse,Упряжная лошадь,MM24,creatures,https://next.dnd.su/bestiary/19984-draft-horse,https://new.ttg.club/bestiary/draft-horse-mm,true,Зверь,animals
+dragon-turtle,Dragon Turtle,Дракочерепаха,MM24,creatures,https://next.dnd.su/bestiary/21283-dragon-turtle,https://new.ttg.club/bestiary/dragon-turtle-mm,true,Дракон,monsters
+dretch,Dretch,Дретч,MM24,creatures,https://next.dnd.su/bestiary/21284-dretch,https://new.ttg.club/bestiary/dretch-mm,true,Исчадие,monsters
+drider,Drider,Драук,MM24,creatures,https://next.dnd.su/bestiary/21285-drider,https://new.ttg.club/bestiary/drider-mm,true,Чудовище,monsters
+druid,Druid,Друид,MM24,creatures,https://next.dnd.su/bestiary/21286-druid,https://new.ttg.club/bestiary/druid-mm,true,Гуманоид,monsters
+dryad,Dryad,Дриада,MM24,creatures,https://next.dnd.su/bestiary/21287-dryad,https://new.ttg.club/bestiary/dryad-mm,true,Фея,monsters
+dust-mephit,Dust Mephit,Пылевой мефит,MM24,creatures,https://next.dnd.su/bestiary/21288-dust-mephit,https://new.ttg.club/bestiary/dust-mephit-mm,true,Элементаль,monsters
+eagle,Eagle,Орёл,MM24,creatures,https://next.dnd.su/bestiary/21289-eagle,https://new.ttg.club/bestiary/eagle-mm,true,Зверь,animals
+earth-elemental,Earth Elemental,Земляной элементаль,MM24,creatures,https://next.dnd.su/bestiary/21290-earth-elemental,https://new.ttg.club/bestiary/earth-elemental-mm,true,Элементаль,monsters
+efreeti,Efreeti,Ифрит,MM24,creatures,https://next.dnd.su/bestiary/21291-efreeti,https://new.ttg.club/bestiary/efreeti-mm,true,Элементаль,monsters
+elemental-cataclysm,Elemental Cataclysm,Стихийный катаклизм,MM24,creatures,https://next.dnd.su/bestiary/21292-elemental-cataclysm,https://new.ttg.club/bestiary/elemental-cataclysm-mm,false,Элементаль,
+elemental-cultist,Elemental Cultist,Последователь культа стихии,MM24,creatures,https://next.dnd.su/bestiary/21293-elemental-cultist,https://new.ttg.club/bestiary/elemental-cultist-mm,false,Гуманоид,
+elephant,Elephant,Слон,MM24,creatures,https://next.dnd.su/bestiary/19985-elephant,https://new.ttg.club/bestiary/elephant-mm,true,Зверь,animals
+elk,Elk,Лось,MM24,creatures,https://next.dnd.su/bestiary/19986-elk,https://new.ttg.club/bestiary/elk-mm,true,Зверь,animals
+empyrean,Empyrean,Эмпирей,MM24,creatures,https://next.dnd.su/bestiary/21297-empyrean,https://new.ttg.club/bestiary/empyrean-mm,false,Небожитель,
+empyrean-iota,Empyrean Iota,Йота эмпирея,MM24,creatures,https://next.dnd.su/bestiary/21296-empyrean-iota,https://new.ttg.club/bestiary/empyrean-iota-mm,false,Исчадие,
+erinyes,Erinyes,Эриния,MM24,creatures,https://next.dnd.su/bestiary/21298-erinyes,https://new.ttg.club/bestiary/erinyes-mm,true,Исчадие,monsters
+ettercap,Ettercap,Эттеркап,MM24,creatures,https://next.dnd.su/bestiary/21299-ettercap,https://new.ttg.club/bestiary/ettercap-mm,true,Чудовище,monsters
+ettin,Ettin,Эттин,MM24,creatures,https://next.dnd.su/bestiary/21300-ettin,https://new.ttg.club/bestiary/ettin-mm,true,Великан,monsters
+faerie-dragon-adult,Faerie Dragon Adult,Взрослый волшебный дракончик,MM24,creatures,https://next.dnd.su/bestiary/21301-faerie-dragon-adult,https://new.ttg.club/bestiary/faerie-dragon-adult-mm,false,Дракон,
+faerie-dragon-youth,Faerie Dragon Youth,Молодой волшебный дракончик,MM24,creatures,https://next.dnd.su/bestiary/21302-faerie-dragon-youth,https://new.ttg.club/bestiary/faerie-dragon-youth-mm,false,Дракон,
+fiend-cultist,Fiend Cultist,Последователь культа исчадий,MM24,creatures,https://next.dnd.su/bestiary/21303-fiend-cultist,https://new.ttg.club/bestiary/fiend-cultist-mm,false,Гуманоид,
+fire-elemental,Fire Elemental,Огненный элементаль,MM24,creatures,https://next.dnd.su/bestiary/21304-fire-elemental,https://new.ttg.club/bestiary/fire-elemental-mm,true,Элементаль,monsters
+fire-giant,Fire Giant,Огненный великан,MM24,creatures,https://next.dnd.su/bestiary/21305-fire-giant,https://new.ttg.club/bestiary/fire-giant-mm,true,Великан,monsters
+flameskull,Flameskull,Пылающий череп,MM24,creatures,https://next.dnd.su/bestiary/21306-flameskull,https://new.ttg.club/bestiary/flameskull-mm,false,Нежить,
+flaming-skeleton,Flaming Skeleton,Пылающий скелет,MM24,creatures,https://next.dnd.su/bestiary/21307-flaming-skeleton,https://new.ttg.club/bestiary/flaming-skeleton-mm,false,Нежить,
+flesh-golem,Flesh Golem,Мясной голем,MM24,creatures,https://next.dnd.su/bestiary/21308-flesh-golem,https://new.ttg.club/bestiary/flesh-golem-mm,true,Конструкт,monsters
+flumph,Flumph,Фламф,MM24,creatures,https://next.dnd.su/bestiary/21309-flumph,https://new.ttg.club/bestiary/flumph-mm,false,Аберрация,
+flying-snake,Flying Snake,Летающая змея,MM24,creatures,https://next.dnd.su/bestiary/21310-flying-snake,https://new.ttg.club/bestiary/flying-snake-mm,true,Чудовище,animals
+fomorian,Fomorian,Фомор,MM24,creatures,https://next.dnd.su/bestiary/21311-fomorian,https://new.ttg.club/bestiary/fomorian-mm,false,Великан,
+frog,Frog,Лягушка,MM24,creatures,https://next.dnd.su/bestiary/19987-frog,https://new.ttg.club/bestiary/frog-mm,true,Зверь,animals
+frost-giant,Frost Giant,Ледяной великан,MM24,creatures,https://next.dnd.su/bestiary/21313-frost-giant,https://new.ttg.club/bestiary/frost-giant-mm,true,Великан,monsters
+galeb-duhr,Galeb Duhr,Галеб дур,MM24,creatures,https://next.dnd.su/bestiary/21314-galeb-duhr,https://new.ttg.club/bestiary/galeb-duhr-mm,false,Элементаль,
+gargoyle,Gargoyle,Горгулья,MM24,creatures,https://next.dnd.su/bestiary/21315-gargoyle,https://new.ttg.club/bestiary/gargoyle-mm,true,Элементаль,monsters
+gas-spore-fungus,Gas Spore Fungus,Газовая спора-гриб,MM24,creatures,https://next.dnd.su/bestiary/21316-gas-spore-fungus,https://new.ttg.club/bestiary/gas-spore-fungus-mm,false,Растение,
+gelatinous-cube,Gelatinous Cube,Студенистый куб,MM24,creatures,https://next.dnd.su/bestiary/21317-gelatinous-cube,https://new.ttg.club/bestiary/gelatinous-cube-mm,true,Слизь,monsters
+ghast,Ghast,Вурдалак,MM24,creatures,https://next.dnd.su/bestiary/21319-ghast,https://new.ttg.club/bestiary/ghast-mm,true,Нежить,monsters
+ghast-gravecaller,Ghast Gravecaller,"Вурдалак, могильный призыватель",MM24,creatures,https://next.dnd.su/bestiary/21318-ghast-gravecaller,https://new.ttg.club/bestiary/ghast-gravecaller-mm,false,Нежить,
+ghost,Ghost,Привидение,MM24,creatures,https://next.dnd.su/bestiary/21320-ghost,https://new.ttg.club/bestiary/ghost-mm,true,Нежить,monsters
+ghoul,Ghoul,Упырь,MM24,creatures,https://next.dnd.su/bestiary/21321-ghoul,https://new.ttg.club/bestiary/ghoul-mm,true,Нежить,monsters
+giant-ape,Giant Ape,Гигантская человекообразная обезьяна,MM24,creatures,https://next.dnd.su/bestiary/21322-giant-ape,https://new.ttg.club/bestiary/giant-ape-mm,true,Зверь,animals
+giant-axe-beak,Giant Axe Beak,Гигантский топороклюв,MM24,creatures,https://next.dnd.su/bestiary/21323-giant-axe-beak,https://new.ttg.club/bestiary/giant-axe-beak-mm,false,Чудовище,
+giant-badger,Giant Badger,Гигантский барсук,MM24,creatures,https://next.dnd.su/bestiary/19988-giant-badger,https://new.ttg.club/bestiary/giant-badger-mm,true,Зверь,animals
+giant-bat,Giant Bat,Гигантская летучая мышь,MM24,creatures,https://next.dnd.su/bestiary/21325-giant-bat,https://new.ttg.club/bestiary/giant-bat-mm,true,Зверь,animals
+giant-boar,Giant Boar,Гигантский кабан,MM24,creatures,https://next.dnd.su/bestiary/21326-giant-boar,https://new.ttg.club/bestiary/giant-boar-mm,true,Зверь,animals
+giant-centipede,Giant Centipede,Гигантская многоножка,MM24,creatures,https://next.dnd.su/bestiary/21327-giant-centipede,https://new.ttg.club/bestiary/giant-centipede-mm,true,Зверь,animals
+giant-constrictor-snake,Giant Constrictor Snake,Гигантский удав,MM24,creatures,https://next.dnd.su/bestiary/21328-giant-constrictor-snake,https://new.ttg.club/bestiary/giant-constrictor-snake-mm,true,Зверь,animals
+giant-crab,Giant Crab,Гигантский краб,MM24,creatures,https://next.dnd.su/bestiary/21329-giant-crab,https://new.ttg.club/bestiary/giant-crab-mm,true,Зверь,animals
+giant-crocodile,Giant Crocodile,Гигантский крокодил,MM24,creatures,https://next.dnd.su/bestiary/21330-giant-crocodile,https://new.ttg.club/bestiary/giant-crocodile-mm,true,Зверь,animals
+giant-eagle,Giant Eagle,Гигантский орёл,MM24,creatures,https://next.dnd.su/bestiary/21331-giant-eagle,https://new.ttg.club/bestiary/giant-eagle-mm,true,Небожитель,animals
+giant-elk,Giant Elk,Гигантский лось,MM24,creatures,https://next.dnd.su/bestiary/21332-giant-elk,https://new.ttg.club/bestiary/giant-elk-mm,true,Небожитель,animals
+giant-fire-beetle,Giant Fire Beetle,Гигантский огненный жук,MM24,creatures,https://next.dnd.su/bestiary/21333-giant-fire-beetle,https://new.ttg.club/bestiary/giant-fire-beetle-mm,true,Зверь,animals
+giant-frog,Giant Frog,Гигантская лягушка,MM24,creatures,https://next.dnd.su/bestiary/21334-giant-frog,https://new.ttg.club/bestiary/giant-frog-mm,true,Зверь,animals
+giant-goat,Giant Goat,Гигантский козёл,MM24,creatures,https://next.dnd.su/bestiary/21335-giant-goat,https://new.ttg.club/bestiary/giant-goat-mm,true,Зверь,animals
+giant-hyena,Giant Hyena,Гигантская гиена,MM24,creatures,https://next.dnd.su/bestiary/21336-giant-hyena,https://new.ttg.club/bestiary/giant-hyena-mm,true,Зверь,animals
+giant-lizard,Giant Lizard,Гигантская ящерица,MM24,creatures,https://next.dnd.su/bestiary/21337-giant-lizard,https://new.ttg.club/bestiary/giant-lizard-mm,true,Зверь,animals
+giant-octopus,Giant Octopus,Гигантский осьминог,MM24,creatures,https://next.dnd.su/bestiary/21338-giant-octopus,https://new.ttg.club/bestiary/giant-octopus-mm,true,Зверь,animals
+giant-owl,Giant Owl,Гигантская сова,MM24,creatures,https://next.dnd.su/bestiary/21339-giant-owl,https://new.ttg.club/bestiary/giant-owl-mm,true,Небожитель,animals
+giant-rat,Giant Rat,Гигантская крыса,MM24,creatures,https://next.dnd.su/bestiary/21340-giant-rat,https://new.ttg.club/bestiary/giant-rat-mm,true,Зверь,animals
+giant-scorpion,Giant Scorpion,Гигантский скорпион,MM24,creatures,https://next.dnd.su/bestiary/21341-giant-scorpion,https://new.ttg.club/bestiary/giant-scorpion-mm,true,Зверь,animals
+giant-seahorse,Giant Seahorse,Гигантский морской конёк,MM24,creatures,https://next.dnd.su/bestiary/21342-giant-seahorse,https://new.ttg.club/bestiary/giant-seahorse-mm,true,Зверь,animals
+giant-shark,Giant Shark,Гигантская акула,MM24,creatures,https://next.dnd.su/bestiary/21343-giant-shark,https://new.ttg.club/bestiary/giant-shark-mm,true,Зверь,animals
+giant-spider,Giant Spider,Гигантский паук,MM24,creatures,https://next.dnd.su/bestiary/21344-giant-spider,https://new.ttg.club/bestiary/giant-spider-mm,true,Зверь,animals
+giant-squid,Giant Squid,Гигантский кальмар,MM24,creatures,https://next.dnd.su/bestiary/21345-giant-squid,https://new.ttg.club/bestiary/giant-squid-mm,false,Зверь,
+giant-toad,Giant Toad,Гигантская жаба,MM24,creatures,https://next.dnd.su/bestiary/21346-giant-toad,https://new.ttg.club/bestiary/giant-toad-mm,true,Зверь,animals
+giant-venomous-snake,Giant Venomous Snake,Гигантская ядовитая змея,MM24,creatures,https://next.dnd.su/bestiary/21347-giant-venomous-snake,https://new.ttg.club/bestiary/giant-venomous-snake-mm,true,Зверь,animals
+giant-vulture,Giant Vulture,Гигантский гриф,MM24,creatures,https://next.dnd.su/bestiary/21348-giant-vulture,https://new.ttg.club/bestiary/giant-vulture-mm,true,Чудовище,animals
+giant-wasp,Giant Wasp,Гигантская оса,MM24,creatures,https://next.dnd.su/bestiary/21349-giant-wasp,https://new.ttg.club/bestiary/giant-wasp-mm,true,Зверь,animals
+giant-weasel,Giant Weasel,Гигантская куница,MM24,creatures,https://next.dnd.su/bestiary/21350-giant-weasel,https://new.ttg.club/bestiary/giant-weasel-mm,true,Зверь,animals
+giant-wolf-spider,Giant Wolf Spider,Гигантский паук-волк,MM24,creatures,https://next.dnd.su/bestiary/21351-giant-wolf-spider,https://new.ttg.club/bestiary/giant-wolf-spider-mm,true,Зверь,animals
+gibbering-mouther,Gibbering Mouther,Бормочущий ротовик,MM24,creatures,https://next.dnd.su/bestiary/21352-gibbering-mouther,https://new.ttg.club/bestiary/gibbering-mouther-mm,true,Аберрация,monsters
+githyanki-dracomancer,Githyanki Dracomancer,Гитьянки-дракономант,MM24,creatures,https://next.dnd.su/bestiary/21353-githyanki-dracomancer,https://new.ttg.club/bestiary/githyanki-dracomancer-mm,false,Аберрация,
+githyanki-knight,Githyanki Knight,Гитъянки рыцарь,MM24,creatures,https://next.dnd.su/bestiary/21354-githyanki-knight,https://new.ttg.club/bestiary/githyanki-knight-mm,false,Аберрация,
+githyanki-warrior,Githyanki Warrior,Гитъянки воитель,MM24,creatures,https://next.dnd.su/bestiary/21355-githyanki-warrior,https://new.ttg.club/bestiary/githyanki-warrior-mm,false,Аберрация,
+githzerai-monk,Githzerai Monk,Гитцерай монах,MM24,creatures,https://next.dnd.su/bestiary/21356-githzerai-monk,https://new.ttg.club/bestiary/githzerai-monk-mm,false,Аберрация,
+githzerai-psion,Githzerai Psion,Гитцерай псион,MM24,creatures,https://next.dnd.su/bestiary/21357-githzerai-psion,https://new.ttg.club/bestiary/githzerai-psion-mm,false,Аберрация,
+githzerai-zerth,Githzerai Zerth,Гитцерай зерт,MM24,creatures,https://next.dnd.su/bestiary/21358-githzerai-zerth,https://new.ttg.club/bestiary/githzerai-zerth-mm,false,Аберрация,
+glabrezu,Glabrezu,Глабрезу,MM24,creatures,https://next.dnd.su/bestiary/21359-glabrezu,https://new.ttg.club/bestiary/glabrezu-mm,true,Исчадие,monsters
+gladiator,Gladiator,Гладиатор,MM24,creatures,https://next.dnd.su/bestiary/21360-gladiator,https://new.ttg.club/bestiary/gladiator-mm,true,Гуманоид,monsters
+gnoll-demoniac,Gnoll Demoniac,Одержимый гнолл,MM24,creatures,https://next.dnd.su/bestiary/21361-gnoll-demoniac,https://new.ttg.club/bestiary/gnoll-demoniac-mm,false,Исчадие,
+gnoll-fang-of-yeenoghu,Gnoll Fang of Yeenoghu,Гнолл клык Йеногу,MM24,creatures,https://next.dnd.su/bestiary/21362-gnoll-fang-of-yeenoghu,https://new.ttg.club/bestiary/gnoll-fang-of-yeenoghu-mm,false,Исчадие,
+gnoll-pack-lord,Gnoll Pack Lord,Вожак стаи гноллов,MM24,creatures,https://next.dnd.su/bestiary/21363-gnoll-pack-lord,https://new.ttg.club/bestiary/gnoll-pack-lord-mm,false,Исчадие,
+gnoll-warrior,Gnoll Warrior,Гнолл-воитель,MM24,creatures,https://next.dnd.su/bestiary/21364-gnoll-warrior,https://new.ttg.club/bestiary/gnoll-warrior-mm,true,Исчадие,monsters
+goat,Goat,Козёл,MM24,creatures,https://next.dnd.su/bestiary/21365-goat,https://new.ttg.club/bestiary/goat-mm,true,Зверь,animals
+goblin-boss,Goblin Boss,Босс гоблинов,MM24,creatures,https://next.dnd.su/bestiary/21366-goblin-boss,https://new.ttg.club/bestiary/goblin-boss-mm,true,Фея,monsters
+goblin-hexer,Goblin Hexer,Гоблин-проклинатель,MM24,creatures,https://next.dnd.su/bestiary/21367-goblin-hexer,https://new.ttg.club/bestiary/goblin-hexer-mm,false,Фея,
+goblin-minion,Goblin Minion,Гоблин-приспешник,MM24,creatures,https://next.dnd.su/bestiary/21368-goblin-minion,https://new.ttg.club/bestiary/goblin-minion-mm,true,Фея,monsters
+goblin-warrior,Goblin Warrior,Гоблин-воитель,MM24,creatures,https://next.dnd.su/bestiary/21369-goblin-warrior,https://new.ttg.club/bestiary/goblin-warrior-mm,true,Фея,monsters
+gold-dragon-wyrmling,Gold Dragon Wyrmling,Вирмлинг золотого дракона,MM24,creatures,https://next.dnd.su/bestiary/21370-gold-dragon-wyrmling,https://new.ttg.club/bestiary/gold-dragon-wyrmling-mm,true,Дракон,monsters
+gorgon,Gorgon,Горгона,MM24,creatures,https://next.dnd.su/bestiary/21371-gorgon,https://new.ttg.club/bestiary/gorgon-mm,true,Конструкт,monsters
+goristro,Goristro,Гористро,MM24,creatures,https://next.dnd.su/bestiary/21372-goristro,https://new.ttg.club/bestiary/goristro-mm,false,Исчадие,
+graveyard-revenant,Graveyard Revenant,Кладбищенский ревенант,MM24,creatures,https://next.dnd.su/bestiary/21373-graveyard-revenant,https://new.ttg.club/bestiary/graveyard-revenant-mm,false,Нежить,
+gray-ooze,Gray Ooze,Серая слизь,MM24,creatures,https://next.dnd.su/bestiary/21374-gray-ooze,https://new.ttg.club/bestiary/gray-ooze-mm,true,Слизь,monsters
+gray-slaad,Gray Slaad,Серый слаад,MM24,creatures,https://next.dnd.su/bestiary/21375-gray-slaad,https://new.ttg.club/bestiary/gray-slaad-mm,false,Аберрация,
+green-dragon-wyrmling,Green Dragon Wyrmling,Вирмлинг зелёного дракона,MM24,creatures,https://next.dnd.su/bestiary/21376-green-dragon-wyrmling,https://new.ttg.club/bestiary/green-dragon-wyrmling-mm,true,Дракон,monsters
+green-hag,Green Hag,Зелёная карга,MM24,creatures,https://next.dnd.su/bestiary/21377-green-hag,https://new.ttg.club/bestiary/green-hag-mm,true,Фея,monsters
+green-slaad,Green Slaad,Зелёный слаад,MM24,creatures,https://next.dnd.su/bestiary/21378-green-slaad,https://new.ttg.club/bestiary/green-slaad-mm,false,Аберрация,
+grell,Grell,Грелл,MM24,creatures,https://next.dnd.su/bestiary/21379-grell,https://new.ttg.club/bestiary/grell-mm,false,Аберрация,
+grick,Grick,Грик,MM24,creatures,https://next.dnd.su/bestiary/21381-grick,https://new.ttg.club/bestiary/grick-mm,true,Аберрация,monsters
+grick-ancient,Grick Ancient,Древний грик,MM24,creatures,https://next.dnd.su/bestiary/21380-grick-ancient,https://new.ttg.club/bestiary/grick-ancient-mm,false,Аберрация,
+griffon,Griffon,Грифон,MM24,creatures,https://next.dnd.su/bestiary/21382-griffon,https://new.ttg.club/bestiary/griffon-mm,true,Чудовище,monsters
+grimlock,Grimlock,Гримлок,MM24,creatures,https://next.dnd.su/bestiary/21383-grimlock,https://new.ttg.club/bestiary/grimlock-mm,true,Аберрация,monsters
+guard,Guard,Стражник,MM24,creatures,https://next.dnd.su/bestiary/21385-guard,https://new.ttg.club/bestiary/guard-mm,true,Гуманоид,monsters
+guard-captain,Guard Captain,Капитан стражи,MM24,creatures,https://next.dnd.su/bestiary/21384-guard-captain,https://new.ttg.club/bestiary/guard-captain-mm,true,Гуманоид,monsters
+guardian-naga,Guardian Naga,Охранная нага,MM24,creatures,https://next.dnd.su/bestiary/21386-guardian-naga,https://new.ttg.club/bestiary/guardian-naga-mm,true,Небожитель,monsters
+gulthias-blight,Gulthias Blight,Галтиасская зараза,MM24,creatures,https://next.dnd.su/bestiary/21387-gulthias-blight,https://new.ttg.club/bestiary/gulthias-blight-mm,false,Растение,
+half-dragon,Half-Dragon,Полудракон,MM24,creatures,https://next.dnd.su/bestiary/21388-half-dragon,https://new.ttg.club/bestiary/half-dragon-mm,true,Дракон,monsters
+harpy,Harpy,Гарпия,MM24,creatures,https://next.dnd.su/bestiary/21389-harpy,https://new.ttg.club/bestiary/harpy-mm,true,Чудовище,monsters
+haunting-revenant,Haunting Revenant,Одержимый ревенант,MM24,creatures,https://next.dnd.su/bestiary/21390-haunting-revenant,https://new.ttg.club/bestiary/haunting-revenant-mm,false,Нежить,
+hawk,Hawk,Ястреб,MM24,creatures,https://next.dnd.su/bestiary/21391-hawk,https://new.ttg.club/bestiary/hawk-mm,true,Зверь,animals
+hell-hound,Hell Hound,Адская гончая,MM24,creatures,https://next.dnd.su/bestiary/21392-hell-hound,https://new.ttg.club/bestiary/hell-hound-mm,true,Исчадие,monsters
+helmed-horror,Helmed Horror,Шлемоносный ужас,MM24,creatures,https://next.dnd.su/bestiary/21393-helmed-horror,https://new.ttg.club/bestiary/helmed-horror-mm,false,Конструкт,
+hezrou,Hezrou,Хезроу,MM24,creatures,https://next.dnd.su/bestiary/21394-hezrou,https://new.ttg.club/bestiary/hezrou-mm,true,Исчадие,monsters
+hill-giant,Hill Giant,Холмовой великан,MM24,creatures,https://next.dnd.su/bestiary/21395-hill-giant,https://new.ttg.club/bestiary/hill-giant-mm,true,Великан,monsters
+hippogriff,Hippogriff,Гиппогриф,MM24,creatures,https://next.dnd.su/bestiary/21396-hippogriff,https://new.ttg.club/bestiary/hippogriff-mm,true,Чудовище,monsters
+hippopotamus,Hippopotamus,Гиппопотам,MM24,creatures,https://next.dnd.su/bestiary/21397-hippopotamus,https://new.ttg.club/bestiary/hippopotamus-mm,true,Зверь,animals
+hobgoblin-captain,Hobgoblin Captain,Капитан хобгоблинов,MM24,creatures,https://next.dnd.su/bestiary/21398-hobgoblin-captain,https://new.ttg.club/bestiary/hobgoblin-captain-mm,true,Фея,monsters
+hobgoblin-warlord,Hobgoblin Warlord,Хобгоблин военачальник,MM24,creatures,https://next.dnd.su/bestiary/21399-hobgoblin-warlord,https://new.ttg.club/bestiary/hobgoblin-warlord-mm,false,Фея,
+hobgoblin-warrior,Hobgoblin Warrior,Хобгоблин воин,MM24,creatures,https://next.dnd.su/bestiary/21400-hobgoblin-warrior,https://new.ttg.club/bestiary/hobgoblin-warrior-mm,true,Фея,monsters
+homunculus,Homunculus,Гомункул,MM24,creatures,https://next.dnd.su/bestiary/21401-homunculus,https://new.ttg.club/bestiary/homunculus-mm,true,Конструкт,monsters
+hook-horror,Hook Horror,Крюкастый ужас,MM24,creatures,https://next.dnd.su/bestiary/21402-hook-horror,https://new.ttg.club/bestiary/hook-horror-mm,false,Чудовище,
+horned-devil,Horned Devil,Рогатый дьявол,MM24,creatures,https://next.dnd.su/bestiary/21403-horned-devil,https://new.ttg.club/bestiary/horned-devil-mm,true,Исчадие,monsters
+hunter-shark,Hunter Shark,Охотничья акула,MM24,creatures,https://next.dnd.su/bestiary/21404-hunter-shark,https://new.ttg.club/bestiary/hunter-shark-mm,true,Зверь,animals
+hydra,Hydra,Гидра,MM24,creatures,https://next.dnd.su/bestiary/21405-hydra,https://new.ttg.club/bestiary/hydra-mm,true,Чудовище,monsters
+hyena,Hyena,Гиена,MM24,creatures,https://next.dnd.su/bestiary/21406-hyena,https://new.ttg.club/bestiary/hyena-mm,true,Зверь,animals
+ice-devil,Ice Devil,Ледяной дьявол,MM24,creatures,https://next.dnd.su/bestiary/21407-ice-devil,https://new.ttg.club/bestiary/ice-devil-mm,true,Исчадие,monsters
+ice-mephit,Ice Mephit,Ледяной мефит,MM24,creatures,https://next.dnd.su/bestiary/21408-ice-mephit,https://new.ttg.club/bestiary/ice-mephit-mm,true,Элементаль,monsters
+imp,Imp,Бес,MM24,creatures,https://next.dnd.su/bestiary/21409-imp,https://new.ttg.club/bestiary/imp-mm,true,Исчадие,monsters
+incubus,Incubus,Суккуб/Инкуб,MM24,creatures,https://next.dnd.su/bestiary/21410-incubus,https://new.ttg.club/bestiary/incubus-mm,true,Исчадие,monsters
+intellect-devourer,Intellect Devourer,Пожиратель интеллекта,MM24,creatures,https://next.dnd.su/bestiary/21411-intellect-devourer,https://new.ttg.club/bestiary/intellect-devourer-mm,false,Аберрация,
+invisible-stalker,Invisible Stalker,Невидимый охотник,MM24,creatures,https://next.dnd.su/bestiary/21412-invisible-stalker,https://new.ttg.club/bestiary/invisible-stalker-mm,true,Элементаль,monsters
+iron-golem,Iron Golem,Железный голем,MM24,creatures,https://next.dnd.su/bestiary/21413-iron-golem,https://new.ttg.club/bestiary/iron-golem-mm,true,Конструкт,monsters
+jackal,Jackal,Шакал,MM24,creatures,https://next.dnd.su/bestiary/21414-jackal,https://new.ttg.club/bestiary/jackal-mm,true,Зверь,animals
+jackalwere,Jackalwere,Шакальник,MM24,creatures,https://next.dnd.su/bestiary/21415-jackalwere,https://new.ttg.club/bestiary/jackalwere-mm,false,Исчадие,
+juvenile-shadow-dragon,Juvenile Shadow Dragon,Юный теневой дракон,MM24,creatures,https://next.dnd.su/bestiary/21416-juvenile-shadow-dragon,https://new.ttg.club/bestiary/juvenile-shadow-dragon-mm,false,Дракон,
+kenku,Kenku,Кенку,MM24,creatures,https://next.dnd.su/bestiary/21417-kenku,https://new.ttg.club/bestiary/kenku-mm,false,Чудовище,
+killer-whale,Killer Whale,Косатка,MM24,creatures,https://next.dnd.su/bestiary/21418-killer-whale,https://new.ttg.club/bestiary/killer-whale-mm,true,Зверь,animals
+knight,Knight,Рыцарь,MM24,creatures,https://next.dnd.su/bestiary/21419-knight,https://new.ttg.club/bestiary/knight-mm,true,Гуманоид,monsters
+kobold-warrior,Kobold Warrior,Кобольд-воитель,MM24,creatures,https://next.dnd.su/bestiary/21420-kobold-warrior,https://new.ttg.club/bestiary/kobold-warrior-mm,true,Дракон,monsters
+kraken,Kraken,Кракен,MM24,creatures,https://next.dnd.su/bestiary/21421-kraken,https://new.ttg.club/bestiary/kraken-mm,true,Чудовище,monsters
+kuo-toa,Kuo-toa,Куо-тоа,MM24,creatures,https://next.dnd.su/bestiary/21425-kuo-toa,https://new.ttg.club/bestiary/kuo-toa-mm,false,Аберрация,
+kuo-toa-archpriest,Kuo-toa Archpriest,Верховный жрец куо-тоа,MM24,creatures,https://next.dnd.su/bestiary/21422-kuo-toa-archpriest,https://new.ttg.club/bestiary/kuo-toa-archpriest-mm,false,Аберрация,
+kuo-toa-monitor,Kuo-toa Monitor,Куо-тоа надзиратель,MM24,creatures,https://next.dnd.su/bestiary/21423-kuo-toa-monitor,https://new.ttg.club/bestiary/kuo-toa-monitor-mm,false,Аберрация,
+kuo-toa-whip,Kuo-toa Whip,Куо-тоа кнут,MM24,creatures,https://next.dnd.su/bestiary/21424-kuo-toa-whip,https://new.ttg.club/bestiary/kuo-toa-whip-mm,false,Аберрация,
+lacedon-ghoul,Lacedon Ghoul,Водяной упырь (ласедон),MM24,creatures,https://next.dnd.su/bestiary/21426-lacedon-ghoul,https://new.ttg.club/bestiary/lacedon-ghoul-mm,false,Нежить,
+lamia,Lamia,Ламия,MM24,creatures,https://next.dnd.su/bestiary/21427-lamia,https://new.ttg.club/bestiary/lamia-mm,true,Исчадие,monsters
+larva,Larva,Ларва,MM24,creatures,https://next.dnd.su/bestiary/21428-larva,https://new.ttg.club/bestiary/larva-mm,false,Исчадие,
+lemure,Lemure,Лемур,MM24,creatures,https://next.dnd.su/bestiary/21429-lemure,https://new.ttg.club/bestiary/lemure-mm,true,Исчадие,monsters
+lich,Lich,Лич,MM24,creatures,https://next.dnd.su/bestiary/21430-lich,https://new.ttg.club/bestiary/lich-mm,true,Нежить,monsters
+lion,Lion,Лев,MM24,creatures,https://next.dnd.su/bestiary/21431-lion,https://new.ttg.club/bestiary/lion-mm,true,Зверь,animals
+lizard,Lizard,Ящерица,MM24,creatures,https://next.dnd.su/bestiary/21432-lizard,https://new.ttg.club/bestiary/lizard-mm,true,Зверь,animals
+lizardfolk-geomancer,Lizardfolk Geomancer,Людоящер-геомант,MM24,creatures,https://next.dnd.su/bestiary/21433-lizardfolk-geomancer,https://new.ttg.club/bestiary/lizardfolk-geomancer-mm,false,Элементаль,
+lizardfolk-sovereign,Lizardfolk Sovereign,Верховный людоящер,MM24,creatures,https://next.dnd.su/bestiary/21434-lizardfolk-sovereign,https://new.ttg.club/bestiary/lizardfolk-sovereign-mm,false,Элементаль,
+mage,Mage,Маг,MM24,creatures,https://next.dnd.su/bestiary/21436-mage,https://new.ttg.club/bestiary/mage-mm,true,Гуманоид,monsters
+mage-apprentice,Mage Apprentice,Ученик мага,MM24,creatures,https://next.dnd.su/bestiary/21435-mage-apprentice,https://new.ttg.club/bestiary/mage-apprentice-mm,false,Гуманоид,
+magma-mephit,Magma Mephit,Магмовый мефит,MM24,creatures,https://next.dnd.su/bestiary/21437-magma-mephit,https://new.ttg.club/bestiary/magma-mephit-mm,true,Элементаль,monsters
+magmin,Magmin,Магмин,MM24,creatures,https://next.dnd.su/bestiary/21438-magmin,https://new.ttg.club/bestiary/magmin-mm,true,Элементаль,monsters
+mammoth,Mammoth,Мамонт,MM24,creatures,https://next.dnd.su/bestiary/21439-mammoth,https://new.ttg.club/bestiary/mammoth-mm,true,Зверь,animals
+manes,Manes,Мэйн,MM24,creatures,https://next.dnd.su/bestiary/21441-manes,https://new.ttg.club/bestiary/manes-mm,false,Исчадие,
+manes-vaporspawn,Manes Vaporspawn,Ман дитя отчаяния,MM24,creatures,https://next.dnd.su/bestiary/21440-manes-vaporspawn,https://new.ttg.club/bestiary/manes-vaporspawn-mm,false,Исчадие,
+manticore,Manticore,Мантикора,MM24,creatures,https://next.dnd.su/bestiary/21442-manticore,https://new.ttg.club/bestiary/manticore-mm,true,Чудовище,monsters
+marid,Marid,Марид,MM24,creatures,https://next.dnd.su/bestiary/21443-marid,https://new.ttg.club/bestiary/marid-mm,false,Элементаль,
+marilith,Marilith,Марилит,MM24,creatures,https://next.dnd.su/bestiary/21444-marilith,https://new.ttg.club/bestiary/marilith-mm,true,Исчадие,monsters
+mastiff,Mastiff,Мастифф,MM24,creatures,https://next.dnd.su/bestiary/21445-mastiff,https://new.ttg.club/bestiary/mastiff-mm,true,Зверь,animals
+medusa,Medusa,Медуза,MM24,creatures,https://next.dnd.su/bestiary/21446-medusa,https://new.ttg.club/bestiary/medusa-mm,true,Чудовище,monsters
+merfolk-skirmisher,Merfolk Skirmisher,Мерфолк застрельщик,MM24,creatures,https://next.dnd.su/bestiary/21447-merfolk-skirmisher,https://new.ttg.club/bestiary/merfolk-skirmisher-mm,true,Элементаль,monsters
+merfolk-wavebender,Merfolk Wavebender,Мерфолк ваятель волн,MM24,creatures,https://next.dnd.su/bestiary/21448-merfolk-wavebender,https://new.ttg.club/bestiary/merfolk-wavebender-mm,false,Элементаль,
+merrow,Merrow,Водянник,MM24,creatures,https://next.dnd.su/bestiary/21449-merrow,https://new.ttg.club/bestiary/merrow-mm,true,Чудовище,monsters
+mezzoloth,Mezzoloth,Меззолот,MM24,creatures,https://next.dnd.su/bestiary/21450-mezzoloth,https://new.ttg.club/bestiary/mezzoloth-mm,false,Исчадие,
+mimic,Mimic,Мимик,MM24,creatures,https://next.dnd.su/bestiary/21451-mimic,https://new.ttg.club/bestiary/mimic-mm,true,Чудовище,monsters
+mind-flayer,Mind Flayer,Свежеватель разума,MM24,creatures,https://next.dnd.su/bestiary/21453-mind-flayer,https://new.ttg.club/bestiary/mind-flayer-mm,false,Аберрация,
+mind-flayer-arcanist,Mind Flayer Arcanist,Свежеватель разума (заклинатель),MM24,creatures,https://next.dnd.su/bestiary/21452-mind-flayer-arcanist,https://new.ttg.club/bestiary/mind-flayer-arcanist-mm,false,Аберрация,
+minotaur-of-baphomet,Minotaur of Baphomet,Минотавр Бафомета,MM24,creatures,https://next.dnd.su/bestiary/21455-minotaur-of-baphomet,https://new.ttg.club/bestiary/minotaur-of-baphomet-mm,true,Чудовище,monsters
+minotaur-skeleton,Minotaur Skeleton,Скелет минотавра,MM24,creatures,https://next.dnd.su/bestiary/21454-minotaur-skeleton,https://new.ttg.club/bestiary/minotaur-skeleton-mm,true,Нежить,monsters
+modron-duodrone,Modron Duodrone,Модрон дуодрон,MM24,creatures,https://next.dnd.su/bestiary/21456-modron-duodrone,https://new.ttg.club/bestiary/modron-duodrone-mm,false,Конструкт,
+modron-monodrone,Modron Monodrone,Модрон монодрон,MM24,creatures,https://next.dnd.su/bestiary/21457-modron-monodrone,https://new.ttg.club/bestiary/modron-monodrone-mm,false,Конструкт,
+modron-pentadrone,Modron Pentadrone,Модрон пентадрон,MM24,creatures,https://next.dnd.su/bestiary/21458-modron-pentadrone,https://new.ttg.club/bestiary/modron-pentadrone-mm,false,Конструкт,
+modron-quadrone,Modron Quadrone,Модрон квадрон,MM24,creatures,https://next.dnd.su/bestiary/21459-modron-quadrone,https://new.ttg.club/bestiary/modron-quadrone-mm,false,Конструкт,
+modron-tridrone,Modron Tridrone,Модрон тридрон,MM24,creatures,https://next.dnd.su/bestiary/21460-modron-tridrone,https://new.ttg.club/bestiary/modron-tridrone-mm,false,Конструкт,
+mud-mephit,Mud Mephit,Грязевой мефит,MM24,creatures,https://next.dnd.su/bestiary/21461-mud-mephit,https://new.ttg.club/bestiary/mud-mephit-mm,false,Элементаль,
+mule,Mule,Мул,MM24,creatures,https://next.dnd.su/bestiary/21462-mule,https://new.ttg.club/bestiary/mule-mm,true,Зверь,animals
+mummy,Mummy,Мумия,MM24,creatures,https://next.dnd.su/bestiary/21464-mummy,https://new.ttg.club/bestiary/mummy-mm,true,Нежить,monsters
+mummy-lord,Mummy Lord,Лорд мумия,MM24,creatures,https://next.dnd.su/bestiary/21463-mummy-lord,https://new.ttg.club/bestiary/mummy-lord-mm,true,Нежить,monsters
+myconid-adult,Myconid Adult,Взрослый миконид,MM24,creatures,https://next.dnd.su/bestiary/21465-myconid-adult,https://new.ttg.club/bestiary/myconid-adult-mm,false,Растение,
+myconid-sovereign,Myconid Sovereign,Верховный миконид,MM24,creatures,https://next.dnd.su/bestiary/21466-myconid-sovereign,https://new.ttg.club/bestiary/myconid-sovereign-mm,false,Растение,
+myconid-spore-servant,Myconid Spore Servant,Споровый слуга миконидов,MM24,creatures,https://next.dnd.su/bestiary/21467-myconid-spore-servant,https://new.ttg.club/bestiary/myconid-spore-servant-mm,false,Растение,
+myconid-sprout,Myconid Sprout,Росток миконида,MM24,creatures,https://next.dnd.su/bestiary/21468-myconid-sprout,https://new.ttg.club/bestiary/myconid-sprout-mm,false,Растение,
+nalfeshnee,Nalfeshnee,Нальфешни,MM24,creatures,https://next.dnd.su/bestiary/21469-nalfeshnee,https://new.ttg.club/bestiary/nalfeshnee-mm,true,Исчадие,monsters
+needle-blight,Needle Blight,Игольчатая зараза,MM24,creatures,https://next.dnd.su/bestiary/21470-needle-blight,https://new.ttg.club/bestiary/needle-blight-mm,false,Растение,
+night-hag,Night Hag,Ночная карга,MM24,creatures,https://next.dnd.su/bestiary/21471-night-hag,https://new.ttg.club/bestiary/night-hag-mm,true,Исчадие,monsters
+nightmare,Nightmare,Кошмар,MM24,creatures,https://next.dnd.su/bestiary/21472-nightmare,https://new.ttg.club/bestiary/nightmare-mm,true,Исчадие,monsters
+noble,Noble,Дворянин,MM24,creatures,https://next.dnd.su/bestiary/21474-noble,https://new.ttg.club/bestiary/noble-mm,true,Гуманоид,monsters
+noble-prodigy,Noble Prodigy,Одарённый дворянин,MM24,creatures,https://next.dnd.su/bestiary/21473-noble-prodigy,https://new.ttg.club/bestiary/noble-prodigy-mm,false,Гуманоид,
+nothic,Nothic,Нотик,MM24,creatures,https://next.dnd.su/bestiary/21475-nothic,https://new.ttg.club/bestiary/nothic-mm,false,Аберрация,
+nycaloth,Nycaloth,Никалот,MM24,creatures,https://next.dnd.su/bestiary/21476-nycaloth,https://new.ttg.club/bestiary/nycaloth-mm,false,Исчадие,
+ochre-jelly,Ochre Jelly,Золотистый студень,MM24,creatures,https://next.dnd.su/bestiary/21477-ochre-jelly,https://new.ttg.club/bestiary/ochre-jelly-mm,true,Слизь,monsters
+octopus,Octopus,Осьминог,MM24,creatures,https://next.dnd.su/bestiary/21478-octopus,https://new.ttg.club/bestiary/octopus-mm,true,Зверь,animals
+ogre,Ogre,Огр,MM24,creatures,https://next.dnd.su/bestiary/21480-ogre,https://new.ttg.club/bestiary/ogre-mm,true,Великан,monsters
+ogre-zombie,Ogre Zombie,Огр зомби,MM24,creatures,https://next.dnd.su/bestiary/21479-ogre-zombie,https://new.ttg.club/bestiary/ogre-zombie-mm,true,Нежить,monsters
+ogrillon-ogre,Ogrillon Ogre,Огриллон,MM24,creatures,https://next.dnd.su/bestiary/21481-ogrillon-ogre,https://new.ttg.club/bestiary/ogrillon-ogre-mm,false,Великан,
+oni,Oni,Они,MM24,creatures,https://next.dnd.su/bestiary/21482-oni,https://new.ttg.club/bestiary/oni-mm,true,Исчадие,monsters
+otyugh,Otyugh,Отидж,MM24,creatures,https://next.dnd.su/bestiary/21483-otyugh,https://new.ttg.club/bestiary/otyugh-mm,true,Аберрация,monsters
+owl,Owl,Сова,MM24,creatures,https://next.dnd.su/bestiary/21484-owl,https://new.ttg.club/bestiary/owl-mm,true,Зверь,animals
+owlbear,Owlbear,Совомед,MM24,creatures,https://next.dnd.su/bestiary/21485-owlbear,https://new.ttg.club/bestiary/owlbear-mm,true,Чудовище,monsters
+panther,Panther,Пантера,MM24,creatures,https://next.dnd.su/bestiary/21486-panther,https://new.ttg.club/bestiary/panther-mm,true,Зверь,animals
+pegasus,Pegasus,Пегас,MM24,creatures,https://next.dnd.su/bestiary/21487-pegasus,https://new.ttg.club/bestiary/pegasus-mm,true,Небожитель,monsters
+performer,Performer,Артист,MM24,creatures,https://next.dnd.su/bestiary/21490-performer,https://new.ttg.club/bestiary/performer-mm,false,Гуманоид,
+performer-legend,Performer Legend,Легендарный артист,MM24,creatures,https://next.dnd.su/bestiary/21488-performer-legend,https://new.ttg.club/bestiary/performer-legend-mm,false,Гуманоид,
+performer-maestro,Performer Maestro,Виртуозный артист,MM24,creatures,https://next.dnd.su/bestiary/21489-performer-maestro,https://new.ttg.club/bestiary/performer-maestro-mm,false,Гуманоид,
+peryton,Peryton,Перитон,MM24,creatures,https://next.dnd.su/bestiary/21491-peryton,https://new.ttg.club/bestiary/peryton-mm,false,Чудовище,
+phase-spider,Phase Spider,Исчезающий паук,MM24,creatures,https://next.dnd.su/bestiary/21492-phase-spider,https://new.ttg.club/bestiary/phase-spider-mm,true,Чудовище,monsters
+piercer,Piercer,Пронзатель,MM24,creatures,https://next.dnd.su/bestiary/21493-piercer,https://new.ttg.club/bestiary/piercer-mm,false,Аберрация,
+piranha,Piranha,Пиранья,MM24,creatures,https://next.dnd.su/bestiary/21494-piranha,https://new.ttg.club/bestiary/piranha-mm,true,Зверь,animals
+pirate,Pirate,Пират,MM24,creatures,https://next.dnd.su/bestiary/21497-pirate,https://new.ttg.club/bestiary/pirate-mm,true,Гуманоид,monsters
+pirate-admiral,Pirate Admiral,Адмирал пиратов,MM24,creatures,https://next.dnd.su/bestiary/21495-pirate-admiral,https://new.ttg.club/bestiary/pirate-admiral-mm,false,Гуманоид,
+pirate-captain,Pirate Captain,Капитан пиратов,MM24,creatures,https://next.dnd.su/bestiary/21496-pirate-captain,https://new.ttg.club/bestiary/pirate-captain-mm,true,Гуманоид,monsters
+pit-fiend,Pit Fiend,Исчадие преисподней,MM24,creatures,https://next.dnd.su/bestiary/21498-pit-fiend,https://new.ttg.club/bestiary/pit-fiend-mm,true,Исчадие,monsters
+pixie,Pixie,Пикси,MM24,creatures,https://next.dnd.su/bestiary/21500-pixie,https://new.ttg.club/bestiary/pixie-mm,false,Фея,
+pixie-wonderbringer,Pixie Wonderbringer,Чудоносная пикси,MM24,creatures,https://next.dnd.su/bestiary/21499-pixie-wonderbringer,https://new.ttg.club/bestiary/pixie-wonderbringer-mm,false,Фея,
+planetar,Planetar,Планетар,MM24,creatures,https://next.dnd.su/bestiary/21501-planetar,https://new.ttg.club/bestiary/planetar-mm,true,Небожитель,monsters
+plesiosaurus,Plesiosaurus,Плезиозавр,MM24,creatures,https://next.dnd.su/bestiary/21502-plesiosaurus,https://new.ttg.club/bestiary/plesiosaurus-mm,true,Зверь,animals
+polar-bear,Polar Bear,Белый медведь,MM24,creatures,https://next.dnd.su/bestiary/21503-polar-bear,https://new.ttg.club/bestiary/polar-bear-mm,true,Зверь,animals
+poltergeist,Poltergeist,Полтергейст,MM24,creatures,https://next.dnd.su/bestiary/21504-poltergeist,https://new.ttg.club/bestiary/poltergeist-mm,false,Нежить,
+pony,Pony,Пони,MM24,creatures,https://next.dnd.su/bestiary/21505-pony,https://new.ttg.club/bestiary/pony-mm,true,Зверь,animals
+priest,Priest,Священник,MM24,creatures,https://next.dnd.su/bestiary/21507-priest,https://new.ttg.club/bestiary/priest-mm,true,Гуманоид,monsters
+priest-acolyte,Priest Acolyte,Послушник священника,MM24,creatures,https://next.dnd.su/bestiary/21506-priest-acolyte,https://new.ttg.club/bestiary/priest-acolyte-mm,true,Гуманоид,monsters
+primeval-owlbear,Primeval Owlbear,Первобытный совомедведь,MM24,creatures,https://next.dnd.su/bestiary/21508-primeval-owlbear,https://new.ttg.club/bestiary/primeval-owlbear-mm,false,Чудовище,
+pseudodragon,Pseudodragon,Псевдодракон,MM24,creatures,https://next.dnd.su/bestiary/21509-pseudodragon,https://new.ttg.club/bestiary/pseudodragon-mm,true,Дракон,monsters
+psychic-gray-ooze,Psychic Gray Ooze,Психическая серая слизь,MM24,creatures,https://next.dnd.su/bestiary/21510-psychic-gray-ooze,https://new.ttg.club/bestiary/psychic-gray-ooze-mm,false,Слизь,
+pteranodon,Pteranodon,Птеранодон,MM24,creatures,https://next.dnd.su/bestiary/21511-pteranodon,https://new.ttg.club/bestiary/pteranodon-mm,true,Зверь,animals
+purple-worm,Purple Worm,Лиловый червь,MM24,creatures,https://next.dnd.su/bestiary/21512-purple-worm,https://new.ttg.club/bestiary/purple-worm-mm,true,Чудовище,monsters
+quaggoth,Quaggoth,Кваггот,MM24,creatures,https://next.dnd.su/bestiary/21514-quaggoth,https://new.ttg.club/bestiary/quaggoth-mm,false,Чудовище,
+quaggoth-thonot,Quaggoth Thonot,Кваггот тонот,MM24,creatures,https://next.dnd.su/bestiary/21513-quaggoth-thonot,https://new.ttg.club/bestiary/quaggoth-thonot-mm,false,Чудовище,
+quasit,Quasit,Квазит,MM24,creatures,https://next.dnd.su/bestiary/21515-quasit,https://new.ttg.club/bestiary/quasit-mm,true,Исчадие,monsters
+questing-knight,Questing Knight,Странствующий рыцарь,MM24,creatures,https://next.dnd.su/bestiary/21516-questing-knight,https://new.ttg.club/bestiary/questing-knight-mm,false,Гуманоид,
+rakshasa,Rakshasa,Ракшас,MM24,creatures,https://next.dnd.su/bestiary/21517-rakshasa,https://new.ttg.club/bestiary/rakshasa-mm,true,Исчадие,monsters
+rat,Rat,Крыса,MM24,creatures,https://next.dnd.su/bestiary/21518-rat,https://new.ttg.club/bestiary/rat-mm,true,Зверь,animals
+raven,Raven,Ворон,MM24,creatures,https://next.dnd.su/bestiary/21519-raven,https://new.ttg.club/bestiary/raven-mm,true,Зверь,animals
+red-dragon-wyrmling,Red Dragon Wyrmling,Вирмлинг красного дракона,MM24,creatures,https://next.dnd.su/bestiary/21520-red-dragon-wyrmling,https://new.ttg.club/bestiary/red-dragon-wyrmling-mm,true,Дракон,monsters
+red-slaad,Red Slaad,Красный слаад,MM24,creatures,https://next.dnd.su/bestiary/21521-red-slaad,https://new.ttg.club/bestiary/red-slaad-mm,false,Аберрация,
+reef-shark,Reef Shark,Рифовая акула,MM24,creatures,https://next.dnd.su/bestiary/21522-reef-shark,https://new.ttg.club/bestiary/reef-shark-mm,true,Зверь,animals
+remorhaz,Remorhaz,Ремораз,MM24,creatures,https://next.dnd.su/bestiary/21523-remorhaz,https://new.ttg.club/bestiary/remorhaz-mm,true,Чудовище,monsters
+revenant,Revenant,Ревенант,MM24,creatures,https://next.dnd.su/bestiary/21524-revenant,https://new.ttg.club/bestiary/revenant-mm,false,Нежить,
+rhinoceros,Rhinoceros,Носорог,MM24,creatures,https://next.dnd.su/bestiary/21525-rhinoceros,https://new.ttg.club/bestiary/rhinoceros-mm,true,Зверь,animals
+riding-horse,Riding Horse,Ездовая лошадь,MM24,creatures,https://next.dnd.su/bestiary/21526-riding-horse,https://new.ttg.club/bestiary/riding-horse-mm,true,Зверь,animals
+roc,Roc,Рух,MM24,creatures,https://next.dnd.su/bestiary/21527-roc,https://new.ttg.club/bestiary/roc-mm,true,Чудовище,monsters
+roper,Roper,Верёвочник,MM24,creatures,https://next.dnd.su/bestiary/21528-roper,https://new.ttg.club/bestiary/roper-mm,true,Аберрация,monsters
+rust-monster,Rust Monster,Ржавник,MM24,creatures,https://next.dnd.su/bestiary/21529-rust-monster,https://new.ttg.club/bestiary/rust-monster-mm,true,Чудовище,monsters
+saber-toothed-tiger,Saber-Toothed Tiger,Саблезубый тигр,MM24,creatures,https://next.dnd.su/bestiary/21530-saber-toothed-tiger,https://new.ttg.club/bestiary/saber-toothed-tiger-mm,true,Зверь,animals
+sahuagin-baron,Sahuagin Baron,Барон сахуагинов,MM24,creatures,https://next.dnd.su/bestiary/21531-sahuagin-baron,https://new.ttg.club/bestiary/sahuagin-baron-mm,false,Исчадие,
+sahuagin-priest,Sahuagin Priest,Сахуагин жрец,MM24,creatures,https://next.dnd.su/bestiary/21532-sahuagin-priest,https://new.ttg.club/bestiary/sahuagin-priest-mm,false,Исчадие,
+sahuagin-warrior,Sahuagin Warrior,Сахуагин воин,MM24,creatures,https://next.dnd.su/bestiary/21533-sahuagin-warrior,https://new.ttg.club/bestiary/sahuagin-warrior-mm,true,Исчадие,monsters
+salamander,Salamander,Саламандра,MM24,creatures,https://next.dnd.su/bestiary/21536-salamander,https://new.ttg.club/bestiary/salamander-mm,true,Элементаль,monsters
+salamander-fire-snake,Salamander Fire Snake,Саламандра огненная змея,MM24,creatures,https://next.dnd.su/bestiary/21534-salamander-fire-snake,https://new.ttg.club/bestiary/salamander-fire-snake-mm,false,Элементаль,
+salamander-inferno-master,Salamander Inferno Master,Инфернальная саламандра,MM24,creatures,https://next.dnd.su/bestiary/21535-salamander-inferno-master,https://new.ttg.club/bestiary/salamander-inferno-master-mm,false,Элементаль,
+satyr,Satyr,Сатир,MM24,creatures,https://next.dnd.su/bestiary/21538-satyr,https://new.ttg.club/bestiary/satyr-mm,true,Фея,monsters
+satyr-revelmaster,Satyr Revelmaster,Сатир заводила,MM24,creatures,https://next.dnd.su/bestiary/21537-satyr-revelmaster,https://new.ttg.club/bestiary/satyr-revelmaster-mm,false,Фея,
+scarecrow,Scarecrow,Пугало,MM24,creatures,https://next.dnd.su/bestiary/21539-scarecrow,https://new.ttg.club/bestiary/scarecrow-mm,false,Конструкт,
+scorpion,Scorpion,Скорпион,MM24,creatures,https://next.dnd.su/bestiary/21540-scorpion,https://new.ttg.club/bestiary/scorpion-mm,true,Зверь,animals
+scout,Scout,Разведчик,MM24,creatures,https://next.dnd.su/bestiary/21542-scout,https://new.ttg.club/bestiary/scout-mm,true,Гуманоид,monsters
+scout-captain,Scout Captain,Капитан разведчиков,MM24,creatures,https://next.dnd.su/bestiary/21541-scout-captain,https://new.ttg.club/bestiary/scout-captain-mm,false,Гуманоид,
+sea-hag,Sea Hag,Морская карга,MM24,creatures,https://next.dnd.su/bestiary/21543-sea-hag,https://new.ttg.club/bestiary/sea-hag-mm,true,Фея,monsters
+seahorse,Seahorse,Морской конёк,MM24,creatures,https://next.dnd.su/bestiary/21544-seahorse,https://new.ttg.club/bestiary/seahorse-mm,true,Зверь,animals
+shadow,Shadow,Тень,MM24,creatures,https://next.dnd.su/bestiary/21547-shadow,https://new.ttg.club/bestiary/shadow-mm,true,Нежить,monsters
+shadow-demon,Shadow Demon,Теневой демон,MM24,creatures,https://next.dnd.su/bestiary/21545-shadow-demon,https://new.ttg.club/bestiary/shadow-demon-mm,false,Исчадие,
+shadow-dragon,Shadow Dragon,Теневой дракон,MM24,creatures,https://next.dnd.su/bestiary/21546-shadow-dragon,https://new.ttg.club/bestiary/shadow-dragon-mm,false,Дракон,
+shambling-mound,Shambling Mound,Ползающая насыпь,MM24,creatures,https://next.dnd.su/bestiary/21548-shambling-mound,https://new.ttg.club/bestiary/shambling-mound-mm,true,Растение,monsters
+shield-guardian,Shield Guardian,Щитостраж,MM24,creatures,https://next.dnd.su/bestiary/21549-shield-guardian,https://new.ttg.club/bestiary/shield-guardian-mm,true,Конструкт,monsters
+shrieker-fungus,Shrieker Fungus,Гриб-визгун,MM24,creatures,https://next.dnd.su/bestiary/21550-shrieker-fungus,https://new.ttg.club/bestiary/shrieker-fungus-mm,true,Растение,monsters
+silver-dragon-wyrmling,Silver Dragon Wyrmling,Вирмлинг серебряного дракона,MM24,creatures,https://next.dnd.su/bestiary/21551-silver-dragon-wyrmling,https://new.ttg.club/bestiary/silver-dragon-wyrmling-mm,true,Дракон,monsters
+skeleton,Skeleton,Скелет,MM24,creatures,https://next.dnd.su/bestiary/21552-skeleton,https://new.ttg.club/bestiary/skeleton-mm,true,Нежить,monsters
+slaad-tadpole,Slaad Tadpole,Слаад головастик,MM24,creatures,https://next.dnd.su/bestiary/21553-slaad-tadpole,https://new.ttg.club/bestiary/slaad-tadpole-mm,false,Аберрация,
+smoke-mephit,Smoke Mephit,Дымовой мефит,MM24,creatures,https://next.dnd.su/bestiary/21554-smoke-mephit,https://new.ttg.club/bestiary/smoke-mephit-mm,false,Элементаль,
+solar,Solar,Солар,MM24,creatures,https://next.dnd.su/bestiary/21555-solar,https://new.ttg.club/bestiary/solar-mm,true,Небожитель,monsters
+spectator,Spectator,Наблюдатель,MM24,creatures,https://next.dnd.su/bestiary/21556-spectator,https://new.ttg.club/bestiary/spectator-mm,false,Аберрация,
+specter,Specter,Спектр,MM24,creatures,https://next.dnd.su/bestiary/21557-specter,https://new.ttg.club/bestiary/specter-mm,true,Нежить,monsters
+sphinx-of-lore,Sphinx of Lore,Сфинкс знаний,MM24,creatures,https://next.dnd.su/bestiary/21558-sphinx-of-lore,https://new.ttg.club/bestiary/sphinx-of-lore-mm,true,Небожитель,monsters
+sphinx-of-secrets,Sphinx of Secrets,Сфинкс загадок,MM24,creatures,https://next.dnd.su/bestiary/21559-sphinx-of-secrets,https://new.ttg.club/bestiary/sphinx-of-secrets-mm,false,Небожитель,
+sphinx-of-valor,Sphinx of Valor,Сфинкс доблести,MM24,creatures,https://next.dnd.su/bestiary/21560-sphinx-of-valor,https://new.ttg.club/bestiary/sphinx-of-valor-mm,true,Небожитель,monsters
+sphinx-of-wonder,Sphinx of Wonder,Сфинкс любознательности,MM24,creatures,https://next.dnd.su/bestiary/21561-sphinx-of-wonder,https://new.ttg.club/bestiary/sphinx-of-wonder-mm,true,Небожитель,monsters
+spider,Spider,Паук,MM24,creatures,https://next.dnd.su/bestiary/21562-spider,https://new.ttg.club/bestiary/spider-mm,true,Зверь,animals
+spined-devil,Spined Devil,Игольчатый дьявол,MM24,creatures,https://next.dnd.su/bestiary/21563-spined-devil,https://new.ttg.club/bestiary/spined-devil-mm,false,Исчадие,
+spirit-naga,Spirit Naga,Духовная нага,MM24,creatures,https://next.dnd.su/bestiary/21564-spirit-naga,https://new.ttg.club/bestiary/spirit-naga-mm,true,Исчадие,monsters
+sprite,Sprite,Спрайт,MM24,creatures,https://next.dnd.su/bestiary/21565-sprite,https://new.ttg.club/bestiary/sprite-mm,true,Фея,monsters
+spy,Spy,Шпион,MM24,creatures,https://next.dnd.su/bestiary/21567-spy,https://new.ttg.club/bestiary/spy-mm,true,Гуманоид,monsters
+spy-master,Spy Master,Шпион мастер,MM24,creatures,https://next.dnd.su/bestiary/21566-spy-master,https://new.ttg.club/bestiary/spy-master-mm,false,Гуманоид,
+steam-mephit,Steam Mephit,Паровой мефит,MM24,creatures,https://next.dnd.su/bestiary/21568-steam-mephit,https://new.ttg.club/bestiary/steam-mephit-mm,true,Элементаль,monsters
+stirge,Stirge,Кровопийца,MM24,creatures,https://next.dnd.su/bestiary/21569-stirge,https://new.ttg.club/bestiary/stirge-mm,true,Чудовище,monsters
+stone-giant,Stone Giant,Каменный великан,MM24,creatures,https://next.dnd.su/bestiary/21570-stone-giant,https://new.ttg.club/bestiary/stone-giant-mm,true,Великан,monsters
+stone-golem,Stone Golem,Каменный голем,MM24,creatures,https://next.dnd.su/bestiary/21571-stone-golem,https://new.ttg.club/bestiary/stone-golem-mm,true,Конструкт,monsters
+storm-giant,Storm Giant,Штормовой великан,MM24,creatures,https://next.dnd.su/bestiary/21572-storm-giant,https://new.ttg.club/bestiary/storm-giant-mm,true,Великан,monsters
+succubus,Succubus,Суккуб,MM24,creatures,https://next.dnd.su/bestiary/21573-succubus,https://new.ttg.club/bestiary/succubus-mm,true,Исчадие,monsters
+swarm-of-bats,Swarm of Bats,Рой летучих мышей,MM24,creatures,https://next.dnd.su/bestiary/21574-swarm-of-bats,https://new.ttg.club/bestiary/swarm-of-bats-mm,true,Зверь,animals
+swarm-of-crawling-claws,Swarm of Crawling Claws,Рой ползающих рук,MM24,creatures,https://next.dnd.su/bestiary/21575-swarm-of-crawling-claws,https://new.ttg.club/bestiary/swarm-of-crawling-claws-mm,true,Нежить,monsters
+swarm-of-dretches,Swarm of Dretches,Рой дретчей,MM24,creatures,https://next.dnd.su/bestiary/21576-swarm-of-dretches,https://new.ttg.club/bestiary/swarm-of-dretches-mm,false,Исчадие,
+swarm-of-insects,Swarm of Insects,Рой насекомых,MM24,creatures,https://next.dnd.su/bestiary/21577-swarm-of-insects,https://new.ttg.club/bestiary/swarm-of-insects-mm,true,Зверь,animals
+swarm-of-larvae,Swarm of Larvae,Рой ларв,MM24,creatures,https://next.dnd.su/bestiary/21578-swarm-of-larvae,https://new.ttg.club/bestiary/swarm-of-larvae-mm,false,Исчадие,
+swarm-of-lemures,Swarm of Lemures,Рой лемуров,MM24,creatures,https://next.dnd.su/bestiary/21579-swarm-of-lemures,https://new.ttg.club/bestiary/swarm-of-lemures-mm,false,Исчадие,
+swarm-of-piranhas,Swarm of Piranhas,Рой пираний,MM24,creatures,https://next.dnd.su/bestiary/21580-swarm-of-piranhas,https://new.ttg.club/bestiary/swarm-of-piranhas-mm,true,Зверь,animals
+swarm-of-rats,Swarm of Rats,Рой крыс,MM24,creatures,https://next.dnd.su/bestiary/21581-swarm-of-rats,https://new.ttg.club/bestiary/swarm-of-rats-mm,true,Зверь,animals
+swarm-of-ravens,Swarm of Ravens,Рой воронов,MM24,creatures,https://next.dnd.su/bestiary/21582-swarm-of-ravens,https://new.ttg.club/bestiary/swarm-of-ravens-mm,true,Зверь,animals
+swarm-of-stirges,Swarm of Stirges,Рой кровопийц,MM24,creatures,https://next.dnd.su/bestiary/21583-swarm-of-stirges,https://new.ttg.club/bestiary/swarm-of-stirges-mm,false,Чудовище,
+swarm-of-venomous-snakes,Swarm of Venomous Snakes,Рой ядовитых змей,MM24,creatures,https://next.dnd.su/bestiary/21584-swarm-of-venomous-snakes,https://new.ttg.club/bestiary/swarm-of-venomous-snakes-mm,true,Зверь,animals
+tarrasque,Tarrasque,Тараск,MM24,creatures,https://next.dnd.su/bestiary/21585-tarrasque,https://new.ttg.club/bestiary/tarrasque-mm,true,Чудовище,monsters
+thri-kreen-marauder,Thri-kreen Marauder,Три-крин мародёр,MM24,creatures,https://next.dnd.su/bestiary/21586-thri-kreen-marauder,https://new.ttg.club/bestiary/thri-kreen-marauder-mm,false,Чудовище,
+thri-kreen-psion,Thri-kreen Psion,Три-крин псион,MM24,creatures,https://next.dnd.su/bestiary/21587-thri-kreen-psion,https://new.ttg.club/bestiary/thri-kreen-psion-mm,false,Чудовище,
+tiger,Tiger,Тигр,MM24,creatures,https://next.dnd.su/bestiary/21588-tiger,https://new.ttg.club/bestiary/tiger-mm,true,Зверь,animals
+tough,Tough,Громила,MM24,creatures,https://next.dnd.su/bestiary/21590-tough,https://new.ttg.club/bestiary/tough-mm,true,Гуманоид,monsters
+tough-boss,Tough Boss,Босс громил,MM24,creatures,https://next.dnd.su/bestiary/21589-tough-boss,https://new.ttg.club/bestiary/tough-boss-mm,true,Гуманоид,monsters
+treant,Treant,Трент,MM24,creatures,https://next.dnd.su/bestiary/21591-treant,https://new.ttg.club/bestiary/treant-mm,true,Растение,monsters
+tree-blight,Tree Blight,Древесная зараза,MM24,creatures,https://next.dnd.su/bestiary/21592-tree-blight,https://new.ttg.club/bestiary/tree-blight-mm,false,Растение,
+triceratops,Triceratops,Трицератопс,MM24,creatures,https://next.dnd.su/bestiary/21593-triceratops,https://new.ttg.club/bestiary/triceratops-mm,true,Зверь,animals
+troglodyte,Troglodyte,Троглодит,MM24,creatures,https://next.dnd.su/bestiary/21594-troglodyte,https://new.ttg.club/bestiary/troglodyte-mm,false,Чудовище,
+troll,Troll,Тролль,MM24,creatures,https://next.dnd.su/bestiary/21596-troll,https://new.ttg.club/bestiary/troll-mm,true,Великан,monsters
+troll-limb,Troll Limb,Конечность тролля,MM24,creatures,https://next.dnd.su/bestiary/21595-troll-limb,https://new.ttg.club/bestiary/troll-limb-mm,true,Великан,monsters
+twig-blight,Twig Blight,Ветвистая зараза,MM24,creatures,https://next.dnd.su/bestiary/21597-twig-blight,https://new.ttg.club/bestiary/twig-blight-mm,false,Растение,
+tyrannosaurus-rex,Tyrannosaurus Rex,Тираннозавр рекс,MM24,creatures,https://next.dnd.su/bestiary/21598-tyrannosaurus-rex,https://new.ttg.club/bestiary/tyrannosaurus-rex-mm,true,Зверь,animals
+ultroloth,Ultroloth,Ультролот,MM24,creatures,https://next.dnd.su/bestiary/21599-ultroloth,https://new.ttg.club/bestiary/ultroloth-mm,false,Исчадие,
+umber-hulk,Umber Hulk,Бурый увалень,MM24,creatures,https://next.dnd.su/bestiary/21600-umber-hulk,https://new.ttg.club/bestiary/umber-hulk-mm,false,Чудовище,
+unicorn,Unicorn,Единорог,MM24,creatures,https://next.dnd.su/bestiary/21601-unicorn,https://new.ttg.club/bestiary/unicorn-mm,true,Небожитель,monsters
+vampire,Vampire,Вампир,MM24,creatures,https://next.dnd.su/bestiary/21606-vampire,https://new.ttg.club/bestiary/vampire-mm,true,Нежить,monsters
+vampire-familiar,Vampire Familiar,Фамильяр вампира,MM24,creatures,https://next.dnd.su/bestiary/21602-vampire-familiar,https://new.ttg.club/bestiary/vampire-familiar-mm,true,Гуманоид,monsters
+vampire-nightbringer,Vampire Nightbringer,"Вампир, предвестник ночи",MM24,creatures,https://next.dnd.su/bestiary/21603-vampire-nightbringer,https://new.ttg.club/bestiary/vampire-nightbringer-mm,false,Нежить,
+vampire-spawn,Vampire Spawn,Порождение вампира,MM24,creatures,https://next.dnd.su/bestiary/21604-vampire-spawn,https://new.ttg.club/bestiary/vampire-spawn-mm,true,Нежить,monsters
+vampire-umbral-lord,Vampire Umbral Lord,"Вампир, повелитель теней",MM24,creatures,https://next.dnd.su/bestiary/21605-vampire-umbral-lord,https://new.ttg.club/bestiary/vampire-umbral-lord-mm,false,Нежить,
+venomous-snake,Venomous Snake,Ядовитая змея,MM24,creatures,https://next.dnd.su/bestiary/21607-venomous-snake,https://new.ttg.club/bestiary/venomous-snake-mm,true,Зверь,animals
+vine-blight,Vine Blight,Вьющаяся зараза,MM24,creatures,https://next.dnd.su/bestiary/21608-vine-blight,https://new.ttg.club/bestiary/vine-blight-mm,false,Растение,
+violet-fungus,Violet Fungus,Лиловый гриб,MM24,creatures,https://next.dnd.su/bestiary/21610-violet-fungus,https://new.ttg.club/bestiary/violet-fungus-mm,true,Растение,monsters
+violet-fungus-necrohulk,Violet Fungus Necrohulk,Некроколония фиолетовых сморчков,MM24,creatures,https://next.dnd.su/bestiary/21609-violet-fungus-necrohulk,https://new.ttg.club/bestiary/violet-fungus-necrohulk-mm,false,Растение,
+vrock,Vrock,Врок,MM24,creatures,https://next.dnd.su/bestiary/21611-vrock,https://new.ttg.club/bestiary/vrock-mm,true,Исчадие,monsters
+vulture,Vulture,Гриф,MM24,creatures,https://next.dnd.su/bestiary/21612-vulture,https://new.ttg.club/bestiary/vulture-mm,true,Зверь,animals
+warhorse,Warhorse,Боевой конь,MM24,creatures,https://next.dnd.su/bestiary/21614-warhorse,https://new.ttg.club/bestiary/warhorse-mm,true,Зверь,animals
+warhorse-skeleton,Warhorse Skeleton,Скелет боевого коня,MM24,creatures,https://next.dnd.su/bestiary/21613-warhorse-skeleton,https://new.ttg.club/bestiary/warhorse-skeleton-mm,true,Нежить,monsters
+warrior-commander,Warrior Commander,Командир воителей,MM24,creatures,https://next.dnd.su/bestiary/21615-warrior-commander,https://new.ttg.club/bestiary/warrior-commander-mm,false,Гуманоид,
+warrior-infantry,Warrior Infantry,Пеший воитель,MM24,creatures,https://next.dnd.su/bestiary/21616-warrior-infantry,https://new.ttg.club/bestiary/warrior-infantry-mm,true,Гуманоид,monsters
+warrior-veteran,Warrior Veteran,Воитель-ветеран,MM24,creatures,https://next.dnd.su/bestiary/21617-warrior-veteran,https://new.ttg.club/bestiary/warrior-veteran-mm,true,Гуманоид,monsters
+water-elemental,Water Elemental,Водяной элементаль,MM24,creatures,https://next.dnd.su/bestiary/21618-water-elemental,https://new.ttg.club/bestiary/water-elemental-mm,true,Элементаль,monsters
+water-weird,Water Weird,Водная аномалия,MM24,creatures,https://next.dnd.su/bestiary/21619-water-weird,https://new.ttg.club/bestiary/water-weird-mm,false,Элементаль,
+weasel,Weasel,Куница,MM24,creatures,https://next.dnd.su/bestiary/21620-weasel,https://new.ttg.club/bestiary/weasel-mm,true,Зверь,animals
+werebear,Werebear,Вермедведь,MM24,creatures,https://next.dnd.su/bestiary/21621-werebear,https://new.ttg.club/bestiary/werebear-mm,true,Чудовище,monsters
+wereboar,Wereboar,Вервепрь,MM24,creatures,https://next.dnd.su/bestiary/21622-wereboar,https://new.ttg.club/bestiary/wereboar-mm,true,Чудовище,monsters
+wererat,Wererat,Веркрыса,MM24,creatures,https://next.dnd.su/bestiary/21623-wererat,https://new.ttg.club/bestiary/wererat-mm,true,Чудовище,monsters
+weretiger,Weretiger,Вертигр,MM24,creatures,https://next.dnd.su/bestiary/21624-weretiger,https://new.ttg.club/bestiary/weretiger-mm,true,Чудовище,monsters
+werewolf,Werewolf,Вервольф,MM24,creatures,https://next.dnd.su/bestiary/21625-werewolf,https://new.ttg.club/bestiary/werewolf-mm,true,Чудовище,monsters
+white-dragon-wyrmling,White Dragon Wyrmling,Вирмлинг белого дракона,MM24,creatures,https://next.dnd.su/bestiary/21626-white-dragon-wyrmling,https://new.ttg.club/bestiary/white-dragon-wyrmling-mm,true,Дракон,monsters
+wight,Wight,Умертвие,MM24,creatures,https://next.dnd.su/bestiary/21627-wight,https://new.ttg.club/bestiary/wight-mm,true,Нежить,monsters
+will-o-wisp,Will-o’-Wisp,Блуждающий огонёк,MM24,creatures,https://next.dnd.su/bestiary/21628-will-o-wisp,,true,Нежить,monsters
+winged-kobold,Winged Kobold,Крылатый кобольд,MM24,creatures,https://next.dnd.su/bestiary/21629-winged-kobold,https://new.ttg.club/bestiary/winged-kobold-mm,false,Дракон,
+winter-wolf,Winter Wolf,Полярный волк,MM24,creatures,https://next.dnd.su/bestiary/21630-winter-wolf,https://new.ttg.club/bestiary/winter-wolf-mm,true,Чудовище,monsters
+wolf,Wolf,Волк,MM24,creatures,https://next.dnd.su/bestiary/21631-wolf,https://new.ttg.club/bestiary/wolf-mm,true,Зверь,animals
+worg,Worg,Ворг,MM24,creatures,https://next.dnd.su/bestiary/21632-worg,https://new.ttg.club/bestiary/worg-mm,true,Фея,monsters
+wraith,Wraith,Призрак,MM24,creatures,https://next.dnd.su/bestiary/21633-wraith,https://new.ttg.club/bestiary/wraith-mm,true,Нежить,monsters
+wyvern,Wyvern,Виверна,MM24,creatures,https://next.dnd.su/bestiary/21634-wyvern,https://new.ttg.club/bestiary/wyvern-mm,true,Дракон,monsters
+xorn,Xorn,Зорн,MM24,creatures,https://next.dnd.su/bestiary/21635-xorn,https://new.ttg.club/bestiary/xorn-mm,true,Элементаль,monsters
+yeti,Yeti,Йети,MM24,creatures,https://next.dnd.su/bestiary/21636-yeti,https://new.ttg.club/bestiary/yeti-mm,false,Чудовище,
+yochlol,Yochlol,Йоклол,MM24,creatures,https://next.dnd.su/bestiary/21637-yochlol,https://new.ttg.club/bestiary/yochlol-mm,false,Исчадие,
+young-black-dragon,Young Black Dragon,Молодой чёрный дракон,MM24,creatures,https://next.dnd.su/bestiary/21638-young-black-dragon,https://new.ttg.club/bestiary/young-black-dragon-mm,true,Дракон,monsters
+young-blue-dragon,Young Blue Dragon,Молодой синий дракон,MM24,creatures,https://next.dnd.su/bestiary/21639-young-blue-dragon,https://new.ttg.club/bestiary/young-blue-dragon-mm,true,Дракон,monsters
+young-brass-dragon,Young Brass Dragon,Молодой латунный дракон,MM24,creatures,https://next.dnd.su/bestiary/21640-young-brass-dragon,https://new.ttg.club/bestiary/young-brass-dragon-mm,true,Дракон,monsters
+young-bronze-dragon,Young Bronze Dragon,Молодой бронзовый дракон,MM24,creatures,https://next.dnd.su/bestiary/21641-young-bronze-dragon,https://new.ttg.club/bestiary/young-bronze-dragon-mm,true,Дракон,monsters
+young-copper-dragon,Young Copper Dragon,Молодой медный дракон,MM24,creatures,https://next.dnd.su/bestiary/21642-young-copper-dragon,https://new.ttg.club/bestiary/young-copper-dragon-mm,true,Дракон,monsters
+young-gold-dragon,Young Gold Dragon,Молодой золотой дракон,MM24,creatures,https://next.dnd.su/bestiary/21643-young-gold-dragon,https://new.ttg.club/bestiary/young-gold-dragon-mm,true,Дракон,monsters
+young-green-dragon,Young Green Dragon,Молодой зелёный дракон,MM24,creatures,https://next.dnd.su/bestiary/21644-young-green-dragon,https://new.ttg.club/bestiary/young-green-dragon-mm,true,Дракон,monsters
+young-red-dragon,Young Red Dragon,Молодой красный дракон,MM24,creatures,https://next.dnd.su/bestiary/21645-young-red-dragon,https://new.ttg.club/bestiary/young-red-dragon-mm,true,Дракон,monsters
+young-remorhaz,Young Remorhaz,Молодой ремораз,MM24,creatures,https://next.dnd.su/bestiary/21646-young-remorhaz,https://new.ttg.club/bestiary/young-remorhaz-mm,false,Чудовище,
+young-silver-dragon,Young Silver Dragon,Молодой серебряный дракон,MM24,creatures,https://next.dnd.su/bestiary/21647-young-silver-dragon,https://new.ttg.club/bestiary/young-silver-dragon-mm,true,Дракон,monsters
+young-white-dragon,Young White Dragon,Молодой белый дракон,MM24,creatures,https://next.dnd.su/bestiary/21648-young-white-dragon,https://new.ttg.club/bestiary/young-white-dragon-mm,true,Дракон,monsters
+yuan-ti-abomination,Yuan-ti Abomination,Отродье юань-ти,MM24,creatures,https://next.dnd.su/bestiary/21649-yuan-ti-abomination,https://new.ttg.club/bestiary/yuan-ti-abomination-mm,false,Чудовище,
+yuan-ti-infiltrator,Yuan-ti Infiltrator,Юань-ти подражатель,MM24,creatures,https://next.dnd.su/bestiary/21650-yuan-ti-infiltrator,https://new.ttg.club/bestiary/yuan-ti-infiltrator-mm,false,Чудовище,
+yuan-ti-malison-type-1,Yuan-ti Malison (Type 1),Юань-ти проклинатель (Вид 1),MM24,creatures,https://next.dnd.su/bestiary/21651-yuan-ti-malison-type-1,https://new.ttg.club/bestiary/yuan-ti-malison-type-1-mm,false,Чудовище,
+yuan-ti-malison-type-2,Yuan-ti Malison (Type 2),Юань-ти проклинатель (Вид 2),MM24,creatures,https://next.dnd.su/bestiary/21652-yuan-ti-malison-type-2,https://new.ttg.club/bestiary/yuan-ti-malison-type-2-mm,false,Чудовище,
+yuan-ti-malison-type-3,Yuan-ti Malison (Type 3),Юань-ти проклинатель (Вид 3),MM24,creatures,https://next.dnd.su/bestiary/21653-yuan-ti-malison-type-3,https://new.ttg.club/bestiary/yuan-ti-malison-type-3-mm,false,Чудовище,
+zombie,Zombie,Зомби,MM24,creatures,https://next.dnd.su/bestiary/21654-zombie,https://new.ttg.club/bestiary/zombie-mm,true,Нежить,monsters
+caldron-magen,Caldron Magen,Маген-котельник,NsF,creatures,https://next.dnd.su/bestiary/27186-caldron-magen,https://new.ttg.club/bestiary/caldron-magen-nf,false,Конструкт,
+eldritch-eddy,Eldritch Eddy,Магический вихрь,NsF,creatures,https://next.dnd.su/bestiary/27185-eldritch-eddy,https://new.ttg.club/bestiary/eldritch-eddy-nf,false,Конструкт,
+phaerimm-agent,Phaerimm Agent,Фаэримм-агент,NsF,creatures,https://next.dnd.su/bestiary/27191-phaerimm-agent,,false,Аберрация,
+phaerimm-elder,Phaerimm Elder,Фаэримм-старейшина,NsF,creatures,https://next.dnd.su/bestiary/27192-phaerimm-elder,https://new.ttg.club/bestiary/phaerimm-elder-nf,false,Аберрация,
+phaerimm-hatchling,Phaerimm Hatchling,Фаэримм-детёныш,NsF,creatures,https://next.dnd.su/bestiary/27189-phaerimm-hatchling,,false,Аберрация,
+phaerimm-scout,Phaerimm Scout,Фаэримм-разведчик,NsF,creatures,https://next.dnd.su/bestiary/27190-phaerimm-scout,https://new.ttg.club/bestiary/phaerimm-scout-nf,false,Аберрация,
+terran-magen,Terran Magen,Маген-земельник,NsF,creatures,https://next.dnd.su/bestiary/27187-terran-magen,https://new.ttg.club/bestiary/terran-magen-nf,false,Конструкт,
+virvos-magen,Virvos Magen,Маген-морочник,NsF,creatures,https://next.dnd.su/bestiary/27188-virvos-magen,,false,Конструкт,
+aberrant-deaths-head,Aberrant Death’s Head,Аберрантная мёртвая голова,RTW,creatures,https://next.dnd.su/bestiary/31344-aberrant-deaths-head,https://new.ttg.club/bestiary/aberrant-death-s-head-rhw,false,Нежить,
+ankhtepot,Ankhtepot,Анхтепот,RTW,creatures,https://next.dnd.su/bestiary/31535-ankhtepot,https://new.ttg.club/bestiary/ankhtepot-rhw,false,Нежить,
+azalin-rex,Azalin Rex,Азалин Рекс,RTW,creatures,https://next.dnd.su/bestiary/31494-azalin-rex,https://new.ttg.club/bestiary/azalin-rex-rhw,false,Нежить,
+bodytaker-plant,Bodytaker Plant,Телоглот,RTW,creatures,https://next.dnd.su/bestiary/31376-bodytaker-plant,https://new.ttg.club/bestiary/bodytaker-plant-rhw,false,Растение,
+bodytaker-podling,Bodytaker Podling,Телоглот выплодок,RTW,creatures,https://next.dnd.su/bestiary/31375-bodytaker-podling,https://new.ttg.club/bestiary/bodytaker-podling-rhw,false,Растение,
+boneless,Boneless,Бескостный,RTW,creatures,https://next.dnd.su/bestiary/31340-boneless,https://new.ttg.club/bestiary/boneless-rhw,false,Нежить,
+brain-in-a-jar,Brain in a Jar,Мозг в банке,RTW,creatures,https://next.dnd.su/bestiary/31665-brain-in-a-jar,https://new.ttg.club/bestiary/brain-in-a-jar-rhw,false,Нежить,
+carrion-stalker,Carrion Stalker,Сталкер падальщик,RTW,creatures,https://next.dnd.su/bestiary/31341-carrion-stalker,https://new.ttg.club/bestiary/carrion-stalker-rhw,false,Аберрация,
+carrionette,Carrionette,Мертвионетка,RTW,creatures,https://next.dnd.su/bestiary/31342-carrionette,https://new.ttg.club/bestiary/carrionette-rhw,false,Конструкт,
+chakuna,Chakuna,Чакуна,RTW,creatures,https://next.dnd.su/bestiary/31644-chakuna,https://new.ttg.club/bestiary/chakuna-rhw,false,Чудовище,
+cthulhu,Cthulhu,Ктулху,RTW,creatures,https://next.dnd.su/bestiary/31557-cthulhu,https://new.ttg.club/bestiary/cthulhu-rhw,false,Аберрация,
+deaths-head,Death’s Head,Мёртвая голова,RTW,creatures,https://next.dnd.su/bestiary/31343-deaths-head,https://new.ttg.club/bestiary/death-s-head-rhw,false,Нежить,
+deaths-head-tree,Death’s Head Tree,Древо мёртвых голов,RTW,creatures,https://next.dnd.su/bestiary/31672-deaths-head-tree,https://new.ttg.club/bestiary/death-s-head-tree-rhw,false,Растение,
+dullahan,Dullahan,Дуллахан,RTW,creatures,https://next.dnd.su/bestiary/31346-dullahan,https://new.ttg.club/bestiary/dullahan-rhw,false,Нежить,
+ebonbane,Ebonbane,Чёрная Погибель,RTW,creatures,https://next.dnd.su/bestiary/31607-ebonbane,https://new.ttg.club/bestiary/ebonbane-rhw,false,Конструкт,
+elder-thing,Elder Thing,Старец,RTW,creatures,https://next.dnd.su/bestiary/31673-elder-thing,https://new.ttg.club/bestiary/elder-thing-rhw,false,Аберрация,
+ez-davenir,Ez d’Avenir,Эсмеральда (Эс) д’Авенир,RTW,creatures,https://next.dnd.su/bestiary/31347-ez-davenir,https://new.ttg.club/bestiary/ez-d-avenir-rhw,false,Гуманоид,
+gallows-speaker,Gallows Speaker,Говорящий висельник,RTW,creatures,https://next.dnd.su/bestiary/31348-gallows-speaker,https://new.ttg.club/bestiary/gallows-speaker-rhw,false,Нежить,
+gennifer-weathermay-foxgrove,Gennifer Weathermay-Foxgrove,Дженнифер Везермэй-Фоксгроув,RTW,creatures,https://next.dnd.su/bestiary/31670-gennifer-weathermay-foxgrove,https://new.ttg.club/bestiary/gennifer-weathermay-foxgrove-rhw,false,Гуманоид,
+greater-star-spawn-emissary,Greater Star Spawn Emissary,Большой Эмиссар звёздных порождений,RTW,creatures,https://next.dnd.su/bestiary/31362-greater-star-spawn-emissary,https://new.ttg.club/bestiary/greater-star-spawn-emissary-rhw,false,Аберрация,
+gremishka,Gremishka,Гремишка,RTW,creatures,https://next.dnd.su/bestiary/31664-gremishka,https://new.ttg.club/bestiary/gremishka-rhw,false,Чудовище,
+gug,Gug,Гуг,RTW,creatures,https://next.dnd.su/bestiary/31349-gug,https://new.ttg.club/bestiary/gug-rhw,false,Аберрация,
+harkon-lukas,Harkon Lukas,Харкон Лукас,RTW,creatures,https://next.dnd.su/bestiary/31573-harkon-lukas,https://new.ttg.club/bestiary/harkon-lukas-rhw,false,Чудовище,
+hazlik,Hazlik,Хазлик,RTW,creatures,https://next.dnd.su/bestiary/31536-hazlik,https://new.ttg.club/bestiary/hazlik-rhw,false,Гуманоид,
+inquisitor-of-the-mind-fire,Inquisitor of the Mind Fire,Инквизитор Огня Разума,RTW,creatures,https://next.dnd.su/bestiary/31367-inquisitor-of-the-mind-fire,https://new.ttg.club/bestiary/inquisitor-of-the-mind-fire-rhw,false,Гуманоид,
+inquisitor-of-the-sword,Inquisitor of the Sword,Инквизитор Меча,RTW,creatures,https://next.dnd.su/bestiary/31368-inquisitor-of-the-sword,https://new.ttg.club/bestiary/inquisitor-of-the-sword-rhw,false,Гуманоид,
+inquisitor-of-the-tome,Inquisitor of the Tome,Инквизитор фолианта,RTW,creatures,https://next.dnd.su/bestiary/31369-inquisitor-of-the-tome,https://new.ttg.club/bestiary/inquisitor-of-the-tome-rhw,false,Гуманоид,
+ivan-dilisnya,Ivan Dilisnya,Иван Дилисния,RTW,creatures,https://next.dnd.su/bestiary/31485-ivan-dilisnya,https://new.ttg.club/bestiary/ivan-dilisnya-rhw,false,Гуманоид,
+ivana-boritsi,Ivana Boritsi,Иванна Борицы,RTW,creatures,https://next.dnd.su/bestiary/31477-ivana-boritsi,https://new.ttg.club/bestiary/ivana-boritsi-rhw,false,Гуманоид,
+jiangshi,Jiangshi,Цзянши,RTW,creatures,https://next.dnd.su/bestiary/31338-jiangshi,https://new.ttg.club/bestiary/jiangshi-rhw,false,Нежить,
+laurie-weathermay-foxgrove,Laurie Weathermay-Foxgrove,Лори Везермэй-Фоксгроув,RTW,creatures,https://next.dnd.su/bestiary/31372-laurie-weathermay-foxgrove,https://new.ttg.club/bestiary/laurie-weathermay-foxgrove-rhw,false,Гуманоид,
+lesser-star-spawn-emissary,Lesser Star Spawn Emissary,Малый Эмиссара звёздных порождений,RTW,creatures,https://next.dnd.su/bestiary/31361-lesser-star-spawn-emissary,https://new.ttg.club/bestiary/lesser-star-spawn-emissary-rhw,false,Аберрация,
+lord-soth-of-sithicus,Lord Soth of Sithicus,Лорд Сот Ситикусский,RTW,creatures,https://next.dnd.su/bestiary/31640-lord-soth-of-sithicus,https://new.ttg.club/bestiary/lord-soth-of-sithicus-rhw,false,Нежить,
+loup-garou,Loup Garou,Лугару,RTW,creatures,https://next.dnd.su/bestiary/31350-loup-garou,https://new.ttg.club/bestiary/loup-garou-rhw,false,Чудовище,
+madam-eva,Madam Eva,Мадам Ева,RTW,creatures,https://next.dnd.su/bestiary/31351-madam-eva,https://new.ttg.club/bestiary/madam-eva-rhw,false,Гуманоид,
+mi-go,Mi-Go,Ми-го,RTW,creatures,https://next.dnd.su/bestiary/31352-mi-go,https://new.ttg.club/bestiary/mi-go-rhw,false,Аберрация,
+mist-horror,Mist Horror,Туманный ужас,RTW,creatures,https://next.dnd.su/bestiary/31666-mist-horror,https://new.ttg.club/bestiary/mist-horror-rhw,false,Нежить,
+mist-wanderer,Mist Wanderer,Скиталец Туманов,RTW,creatures,https://next.dnd.su/bestiary/31692-mist-wanderer,https://new.ttg.club/bestiary/mist-wanderer-rhw,false,Гуманоид,
+mordenheims-monster,Mordenheim’s Monster,Чудовище Морденхайм,RTW,creatures,https://next.dnd.su/bestiary/31353-mordenheims-monster,https://new.ttg.club/bestiary/mordenheim-s-monster-rhw,false,Конструкт,
+mother-lorinda,Mother Lorinda,Матерь Лоринда,RTW,creatures,https://next.dnd.su/bestiary/31643-mother-lorinda,https://new.ttg.club/bestiary/mother-lorinda-rhw,false,Фея,
+necrichor,Necrichor,Некрихор,RTW,creatures,https://next.dnd.su/bestiary/31354-necrichor,https://new.ttg.club/bestiary/necrichor-rhw,false,Нежить,
+nightgaunt,Nightgaunt,Ночная бестия,RTW,creatures,https://next.dnd.su/bestiary/31355-nightgaunt,https://new.ttg.club/bestiary/nightgaunt-rhw,false,Аберрация,
+petrifying-deaths-head,Petrifying Death’s Head,Окаменяющая мёртвая голова,RTW,creatures,https://next.dnd.su/bestiary/31345-petrifying-deaths-head,https://new.ttg.club/bestiary/petrifying-death-s-head-rhw,false,Нежить,
+priest-of-osybus,Priest of Osybus,Жрец Осибуса,RTW,creatures,https://next.dnd.su/bestiary/31667-priest-of-osybus,https://new.ttg.club/bestiary/priest-of-osybus-rhw,false,Гуманоид,
+ramya-vasavadan,Ramya Vasavadan,Рамья Васавадан,RTW,creatures,https://next.dnd.su/bestiary/31560-ramya-vasavadan,https://new.ttg.club/bestiary/ramya-vasavadan-rhw,false,Нежить,
+relentless-juggernaut,Relentless Juggernaut,Неумолимый Джаггернаут,RTW,creatures,https://next.dnd.su/bestiary/31358-relentless-juggernaut,https://new.ttg.club/bestiary/relentless-juggernaut-rhw,false,Исчадие,
+relentless-nightmare,Relentless Nightmare,Изувер кошмар,RTW,creatures,https://next.dnd.su/bestiary/31357-relentless-nightmare,https://new.ttg.club/bestiary/relentless-nightmare-rhw,false,Исчадие,
+relentless-slasher,Relentless Slasher,Безжалостный потрошитель,RTW,creatures,https://next.dnd.su/bestiary/31356-relentless-slasher,https://new.ttg.club/bestiary/relentless-slasher-rhw,false,Исчадие,
+rudolph-van-richten,Rudolph van Richten,Рудольф ван Рихтен,RTW,creatures,https://next.dnd.su/bestiary/31359-rudolph-van-richten,https://new.ttg.club/bestiary/rudolph-van-richten-rhw,false,Гуманоид,
+saidra-dhonaire,Saidra d’Honaire,Саидра д’Онэр,RTW,creatures,https://next.dnd.su/bestiary/31517-saidra-dhonaire,https://new.ttg.club/bestiary/saidra-d-honaire-rhw,false,Нежить,
+shoggoth,Shoggoth,Шоггот,RTW,creatures,https://next.dnd.su/bestiary/31360-shoggoth,https://new.ttg.club/bestiary/shoggoth-rhw,false,Аберрация,
+strahd-skeleton,Strahd Skeleton,Скелет Страда,RTW,creatures,https://next.dnd.su/bestiary/31364-strahd-skeleton,https://new.ttg.club/bestiary/strahd-skeleton-rhw,false,Нежить,
+strahd-von-zarovich,Strahd von Zarovich,Страд фон Зарович,RTW,creatures,https://next.dnd.su/bestiary/31474-strahd-von-zarovich,https://new.ttg.club/bestiary/strahd-von-zarovich-rhw,false,Нежить,
+strigoi,Strigoi,Стрыга,RTW,creatures,https://next.dnd.su/bestiary/31675-strigoi,https://new.ttg.club/bestiary/strigoi-rhw,false,Чудовище,
+swarm-of-infesting-insects,Swarm of Infesting Insects,Рой паразитических насекомых,RTW,creatures,https://next.dnd.su/bestiary/31365-swarm-of-infesting-insects,https://new.ttg.club/bestiary/swarm-of-infesting-insects-rhw,false,Зверь,
+swarm-of-ravenous-insects,Swarm of Ravenous Insects,Рой прожорливых насекомых,RTW,creatures,https://next.dnd.su/bestiary/31366-swarm-of-ravenous-insects,https://new.ttg.club/bestiary/swarm-of-ravenous-insects-rhw,false,Зверь,
+swarm-of-zombie-limbs,Swarm of Zombie Limbs,Рой зомби-конечностей,RTW,creatures,https://next.dnd.su/bestiary/30292-swarm-of-zombie-limbs,https://new.ttg.club/bestiary/swarm-of-zombie-limbs-rhw,false,Нежить,
+unspeakable-horror,Unspeakable Horror,Невыразимый ужас,RTW,creatures,https://next.dnd.su/bestiary/31370-unspeakable-horror,https://new.ttg.club/bestiary/unspeakable-horror-rhw,false,Чудовище,
+vampire-mind-flayer,Vampire Mind Flayer,Вампир свежеватель разума,RTW,creatures,https://next.dnd.su/bestiary/31669-vampire-mind-flayer,https://new.ttg.club/bestiary/vampire-mind-flayer-rhw,false,Нежить,
+vampire-nosferatu,Vampire Nosferatu,Вампир носферату,RTW,creatures,https://next.dnd.su/bestiary/31668-vampire-nosferatu,https://new.ttg.club/bestiary/vampire-nosferatu-rhw,false,Нежить,
+viktra-mordenheim,Viktra Mordenheim,Виктра Морденхайм,RTW,creatures,https://next.dnd.su/bestiary/31576-viktra-mordenheim,https://new.ttg.club/bestiary/viktra-mordenheim-rhw,false,Гуманоид,
+vladeska-drakov,Vladeska Drakov,Владеска Дракова,RTW,creatures,https://next.dnd.su/bestiary/31522-vladeska-drakov,https://new.ttg.club/bestiary/vladeska-drakov-rhw,false,Гуманоид,
+waxwork,Waxwork,Восковик,RTW,creatures,https://next.dnd.su/bestiary/31371-waxwork,https://new.ttg.club/bestiary/waxwork-rhw,false,Конструкт,
+wereraven,Wereraven,Верворон,RTW,creatures,https://next.dnd.su/bestiary/31671-wereraven,https://new.ttg.club/bestiary/wereraven-rhw,false,Чудовище,
+wilfred-godefroy,Wilfred Godefroy,Вилфред Годфрой,RTW,creatures,https://next.dnd.su/bestiary/31585-wilfred-godefroy,https://new.ttg.club/bestiary/wilfred-godefroy-rhw,false,Нежить,
+yithian,Yithian,Йитианин,RTW,creatures,https://next.dnd.su/bestiary/31373-yithian,https://new.ttg.club/bestiary/yithian-rhw,false,Аберрация,
+zombie-clot,Zombie Clot,Сгусток зомби,RTW,creatures,https://next.dnd.su/bestiary/30447-zombie-clot,https://new.ttg.club/bestiary/zombie-clot-rhw,false,Нежить,
+zombie-plague-spreader,Zombie Plague Spreader,Зомби-разносчик чумы,RTW,creatures,https://next.dnd.su/bestiary/31374-zombie-plague-spreader,https://new.ttg.club/bestiary/zombie-plague-spreader-rhw,false,Нежить,

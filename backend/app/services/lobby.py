@@ -1136,6 +1136,8 @@ class LobbyService:
     def _to_summary(self, lobby: Lobby, user: User) -> LobbySummary:
         flags = roles.permission_flags(self.db, lobby, user)
         open_session = self._open_session(lobby)
+        from app.services.lobby_edition import lobby_rules_edition_value
+
         return LobbySummary(
             id=lobby.id,
             name=lobby.name,
@@ -1145,6 +1147,7 @@ class LobbyService:
             is_observer=flags["is_observer"],
             role=flags["role"],
             member_count=len(lobby.members),
+            rules_edition=lobby_rules_edition_value(lobby),
             has_open_session=open_session is not None,
             open_session_id=open_session.id if open_session else None,
             created_at=lobby.created_at,
@@ -1195,6 +1198,8 @@ class LobbyService:
                 free_mb=usage.free_mb,
                 limit_mb=usage.limit_mb,
             )
+        from app.services.lobby_edition import lobby_rules_edition_value
+
         # L-03: код/ссылка видны всем, кто проходит can_view_lobby (деталь уже за _require_view).
         return LobbyDetail(
             id=lobby.id,
@@ -1218,6 +1223,7 @@ class LobbyService:
             role=flags["role"],
             owner_id=lobby.owner_id,
             owner_display_name=self._user_display(lobby.owner_id),
+            rules_edition=lobby_rules_edition_value(lobby),
             members=members,
             roles=[self._role_out(r) for r in role_rows],
             settings=settings,
@@ -1244,10 +1250,31 @@ class LobbyService:
         return [self._to_summary(item, user) for item in self.lobbies.list_for_user(user.id)]
 
     def create(self, user: User, payload: LobbyCreateRequest) -> LobbyDetail:
+        from app.core.config import settings
+        from app.models.character import RulesEdition
         from app.services.campaign_rules import default_campaign_rules
+        from app.services.lobby_edition import normalize_lobby_rules_edition
 
         name = (payload.name or "Новое лобби").strip() or "Новое лобби"
-        lobby = self.lobbies.create(owner_id=user.id, name=name)
+        edition = normalize_lobby_rules_edition(getattr(payload, "rules_edition", None))
+        # P24-01: лобби 2024 закрыто тем же флагом, что и создание персонажа.
+        # P24-M04: is_preview — внутренний обход для e2e (кнопку игрокам не открывает).
+        is_preview = bool(getattr(payload, "is_preview", False))
+        if (
+            edition == RulesEdition.edition_2024
+            and not settings.rules_edition_2024_open
+            and not is_preview
+        ):
+            raise AppError(
+                "Редакция 2024 ещё не открыта",
+                code="rules_edition_closed",
+                status_code=400,
+            )
+        lobby = self.lobbies.create(
+            owner_id=user.id,
+            name=name,
+            rules_edition=edition,
+        )
         lobby.campaign_rules = default_campaign_rules()
         self.db.commit()
         lobby = self._require_lobby(lobby.id)
@@ -1400,6 +1427,8 @@ class LobbyService:
         lobby = self.lobbies.get_invite_row(cleaned)
         if lobby is None:
             raise NotFoundError("Код лобби не найден", code="invite_code_not_found")
+        from app.services.lobby_edition import lobby_rules_edition_value
+
         rules = normalize_campaign_rules(getattr(lobby, "campaign_rules", None))
         start = rules.get("start") if isinstance(rules.get("start"), dict) else {}
         return InviteMetaOut(
@@ -1407,6 +1436,7 @@ class LobbyService:
             name=lobby.name,
             valid=True,
             lobby_id=lobby.id,
+            rules_edition=lobby_rules_edition_value(lobby),
             start=start,
             campaign_rules_start=start,
         )
@@ -1554,6 +1584,11 @@ class LobbyService:
         character = self.characters.get_for_user(payload.character_id, user.id)
         if character is None:
             raise NotFoundError("Персонаж не найден", code="character_not_found")
+
+        from app.services.lobby_edition import ensure_character_matches_lobby
+
+        # P24-01: лобби одной редакции — чужую не сажаем (и copy той же редакции).
+        ensure_character_matches_lobby(lobby=lobby, character=character)
 
         # L-16: copy = клон без посадки; правка в пайплайне, затем join копией.
         if action == "copy":
@@ -1955,6 +1990,9 @@ class LobbyService:
             )
             if character is None:
                 raise NotFoundError("Персонаж не найден", code="character_not_found")
+            from app.services.lobby_edition import ensure_character_matches_lobby
+
+            ensure_character_matches_lobby(lobby=lobby, character=character)
             if self.lobbies.get_member(lobby.id, character.id) is None:
                 self.lobbies.add_member(
                     lobby_id=lobby.id,
@@ -3743,6 +3781,8 @@ class LobbyService:
                 continue
             involved_pages.append(out)
             visible_involved_ids.append(pid)
+        from app.services.lobby_edition import lobby_rules_edition_value
+
         return SessionDetail(
             id=session.id,
             lobby_id=lobby.id,
@@ -3750,6 +3790,7 @@ class LobbyService:
             setting_id=session.setting_id,
             setting_name=session.setting.name if session.setting else None,
             name=session.name,
+            rules_edition=lobby_rules_edition_value(lobby),
             is_owner=flags["is_owner"],
             is_comaster=flags["is_comaster"],
             is_observer=flags["is_observer"],
@@ -5813,12 +5854,23 @@ class LobbyService:
             entry = None
             if payload.catalog_id is not None:
                 entry = self.catalog.get_by_id(payload.catalog_id)
+            from app.services.lobby_edition import lobby_rules_edition_value
+            from app.models.catalog import CatalogRulesEdition
+
+            lobby_edition = lobby_rules_edition_value(lobby)
             if entry is None and payload.slug:
                 entry = self.catalog.get_by_kind_slug(
                     kind=CatalogKind.bestiary,
                     slug=payload.slug.strip(),
-                    edition="2014",
+                    edition=lobby_edition,
                 )
+            if entry is not None and entry.kind == CatalogKind.bestiary:
+                entry_ed = getattr(entry.rules_edition, "value", entry.rules_edition)
+                if str(entry_ed) not in {lobby_edition, CatalogRulesEdition.both.value, "both"}:
+                    raise NotFoundError(
+                        "Карточка бестиария не найдена в каталоге этой редакции",
+                        code="bestiary_not_found",
+                    )
             if entry is None or entry.kind != CatalogKind.bestiary:
                 raise NotFoundError("Карточка бестиария не найдена", code="bestiary_not_found")
             data = entry.data if isinstance(entry.data, dict) else {}
@@ -6565,6 +6617,11 @@ class LobbyService:
         flag_modified(session, "combatants")
 
         # L-21: на листах застигнутых героев — блок первого хода.
+        # P24-M04: в лобби 2024 раунда L-21 нет — только метка «врасплох» (помеха к иниц.).
+        from app.services.lobby_edition import lobby_rules_edition_value
+
+        lobby_edition = lobby_rules_edition_value(lobby)
+        apply_l21_lock = lobby_edition != "2024"
         surprised_pc_ids: list[UUID] = []
         for e in entries:
             if e.get("kind") != "pc" or not e.get("surprised"):
@@ -6576,16 +6633,17 @@ class LobbyService:
             ch = pc_map.get(cid)
             if ch is None:
                 continue
-            sheet = dict(ch.sheet or {})
-            combat_sheet = dict(sheet.get("combat") or {})
-            combat_sheet["turn_economy"] = stec.apply_surprise_lock(
-                combat_sheet.get("turn_economy")
-            )
-            sheet["combat"] = combat_sheet
-            ch.sheet = sheet
-            ch.sheet_version = int(ch.sheet_version or 1) + 1
-            flag_modified(ch, "sheet")
-            surprised_pc_ids.append(cid)
+            if apply_l21_lock:
+                sheet = dict(ch.sheet or {})
+                combat_sheet = dict(sheet.get("combat") or {})
+                combat_sheet["turn_economy"] = stec.apply_surprise_lock(
+                    combat_sheet.get("turn_economy")
+                )
+                sheet["combat"] = combat_sheet
+                ch.sheet = sheet
+                ch.sheet_version = int(ch.sheet_version or 1) + 1
+                flag_modified(ch, "sheet")
+                surprised_pc_ids.append(cid)
 
         start_index = 0
         while start_index < len(entries):
@@ -6635,6 +6693,9 @@ class LobbyService:
                     "combat_journal": True,
                     "surprised": True,
                     "names": surprise_names,
+                    "rules_edition": lobby_edition,
+                    "l21_lock": apply_l21_lock,
+                    "initiative_disadvantage": lobby_edition == "2024",
                 },
             )
             self.lobbies.add_session_event(surprise_event)
@@ -6665,6 +6726,7 @@ class LobbyService:
         mode: str,
         value: int | None,
         advantage: bool,
+        rules_edition: str = "2014",
     ) -> tuple[int, str, str]:
         """Вернуть (total, formula, breakdown) для одной записи очереди."""
         if mode == "manual":
@@ -6679,6 +6741,7 @@ class LobbyService:
 
         bonus = 0
         adv = bool(advantage)
+        disadv = False
         dex = entry.get("dex_mod") if isinstance(entry.get("dex_mod"), int) else 0
         if entry.get("kind") == "pc":
             character = self.characters.get_active(UUID(str(entry["ref_id"])))
@@ -6688,12 +6751,20 @@ class LobbyService:
                 b, sheet_adv = scmb.initiative_bonus_from_sheet(sheet)
                 bonus = b
                 adv = adv or sheet_adv
-        die, die_note = scmb.roll_d20(advantage=adv)
+        # P24-M04 / SRD 5.2.1: surprised → Initiative with Disadvantage (not L-21).
+        if str(rules_edition).strip() == "2024" and bool(entry.get("surprised")):
+            if adv:
+                adv = False
+                disadv = False
+            else:
+                disadv = True
+        die, die_note = scmb.roll_d20(advantage=adv, disadvantage=disadv)
         total = die + dex + bonus
+        mode_note = " с преим." if adv else (" с помехой" if disadv else "")
         formula = (
-            f"1к20{(' с преим.' if adv else '')}{dex:+d}{bonus:+d}"
+            f"1к20{mode_note}{dex:+d}{bonus:+d}"
             if bonus
-            else f"1к20{(' с преим.' if adv else '')}{dex:+d}"
+            else f"1к20{mode_note}{dex:+d}"
         )
         breakdown = (
             f"{die_note}; ловк. {dex:+d}"
@@ -6750,9 +6821,16 @@ class LobbyService:
                 )
             rolled_names: list[str] = []
             last_event: SessionEvent | None = None
+            from app.services.lobby_edition import lobby_rules_edition_value
+
+            lobby_edition = lobby_rules_edition_value(lobby)
             for entry in pending:
                 total, formula, breakdown = self._roll_one_initiative_total(
-                    entry, mode="roll", value=None, advantage=False
+                    entry,
+                    mode="roll",
+                    value=None,
+                    advantage=False,
+                    rules_edition=lobby_edition,
                 )
                 state = scmb.set_entry_initiative(
                     state,
@@ -6855,11 +6933,14 @@ class LobbyService:
                 status_code=403,
             )
 
+        from app.services.lobby_edition import lobby_rules_edition_value
+
         total, formula, breakdown = self._roll_one_initiative_total(
             entry,
             mode=payload.mode,
             value=payload.value,
             advantage=bool(payload.advantage),
+            rules_edition=lobby_rules_edition_value(lobby),
         )
 
         state = scmb.set_entry_initiative(
@@ -10329,7 +10410,11 @@ class LobbyService:
                     status_code=400,
                 )
 
-        catalog_rows = self.catalog.list_bestiary_for_generator(edition="2014")
+        from app.services.lobby_edition import lobby_rules_edition_value
+
+        catalog_rows = self.catalog.list_bestiary_for_generator(
+            edition=lobby_rules_edition_value(lobby)
+        )
         entry_ids = [
             row.id for row in catalog_rows if getattr(row, "id", None) is not None
         ]

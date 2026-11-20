@@ -34,6 +34,35 @@ import {
 } from '../../shared/dnd/classFeatures'
 import { filterTceCatalogOptions } from '../../shared/dnd/filterTceCatalogOptions'
 import {
+  ARTIFICER_REPLICATE_PLANS_2024,
+  ELDRITCH_INVOCATIONS_2024,
+  METAMAGIC_2024,
+  metamagicKnownLimit2024,
+  warlockInvocationLimit2024,
+  type ClassOptions2024State,
+} from '../../shared/dnd/edition2024ClassOptions'
+import { PLANS_KNOWN_COLUMN_RU, replicateLimits2024, SPELL_STORING_ITEM_NAME_RU } from '../../shared/dnd/artificer2024Features'
+
+/** Curated artificer 1–3 circle spells for Spell-Storing Item wizard step. */
+const SPELL_STORING_OPTIONS_2024: Array<{ id: string; label: string }> = [
+  { id: 'cure-wounds', label: 'Лечение ран' },
+  { id: 'detect-magic', label: 'Обнаружение магии' },
+  { id: 'faerie-fire', label: 'Огонь фей' },
+  { id: 'grease', label: 'Смазка' },
+  { id: 'jump', label: 'Прыжок' },
+  { id: 'longstrider', label: 'Скороход' },
+  { id: 'heat-metal', label: 'Раскалённый металл' },
+  { id: 'invisibility', label: 'Невидимость' },
+  { id: 'enlarge-reduce', label: 'Увеличение/уменьшение' },
+  { id: 'fly', label: 'Полёт' },
+  { id: 'haste', label: 'Ускорение' },
+  { id: 'revivify', label: 'Оживление' },
+]
+import {
+  invocationUnavailableReason2024,
+  invocationsDependingOn2024,
+} from '../../shared/dnd/warlock2024Features'
+import {
   collectExpertiseOptionIdsFromPicks,
   isExpertiseChoice,
   listExpertiseOptions,
@@ -63,6 +92,14 @@ import {
   unlearnInfusionPick,
 } from '../../shared/dnd/infusionsActive'
 import type { GuidedWizardStep } from '../../shared/dnd/pendingFeatureChoices'
+import { isCountedKnownForm2024 } from '../../shared/dnd/druid2024Features'
+import { KnownFormsPicker } from './KnownFormsPicker'
+import { LoreDiscoveriesPicker } from './LoreDiscoveriesPicker'
+import {
+  LORE_DISCOVERIES_FEATURE_ID_2024,
+  LORE_MAGICAL_DISCOVERIES_PICKS_2024,
+} from '../../shared/dnd/bard2024Features'
+import type { KnownForm } from './knownForms'
 import type { RulesEdition } from '../../shared/api/characters'
 import { listCatalogEntries, type CatalogEntry } from '../../shared/api/catalog'
 import {
@@ -70,6 +107,7 @@ import {
   spellAvailableOnClassList,
 } from '../../shared/dnd/spellCatalog'
 import { levelLabel } from '../../shared/dnd/spells'
+import { schoolMatchesSavant } from '../../shared/dnd/wizardSpellbook'
 import { CatalogCombobox } from '../catalog'
 import { AsiChoiceBody } from './AsiChoiceBody'
 import { SKILL_DEFS } from './sheetTypes'
@@ -158,9 +196,16 @@ type GuidedWizardDialogProps = {
     classListSlugs?: string[]
     /** Wizard tradition (etc.) for subclass-gated lists (EGW dunamancy). */
     subclassSlug?: string | null
+    /** 2024 Savant school key (`evocation`, …) for savant book picks; null if none. */
+    savantSchool?: string | null
   } | null
   /** Persist free research picks into the spellbook, then parent advances. */
   onConfirmSpellbookPicks?: (entries: CatalogEntry[]) => void
+  classOptions2024?: ClassOptions2024State
+  onClassOptions2024Change?: (next: ClassOptions2024State) => void
+  /** 2024 druid: Wild Shape known forms (`known_forms`) for the `known_forms` step. */
+  knownForms?: KnownForm[]
+  onKnownFormsChange?: (forms: KnownForm[]) => void
 }
 
 function skillLabel(key: string): string {
@@ -367,6 +412,7 @@ function FeatureChoiceStepBody({
   featurePicks,
   expertiseKeys,
   onFeaturePicksChange,
+  edition = '2014',
 }: {
   step: Extract<GuidedWizardStep, { kind: 'feature_choice' }>
   skills: SkillExpertiseState
@@ -374,6 +420,7 @@ function FeatureChoiceStepBody({
   featurePicks: FeaturePicksState
   expertiseKeys: Array<{ classEntryId: string; featureId: string }>
   onFeaturePicksChange: (picks: FeaturePicksState) => void
+  edition?: RulesEdition
 }) {
   const choice = step.choice
   const [pendingReplicate, setPendingReplicate] = useState(false)
@@ -401,10 +448,13 @@ function FeatureChoiceStepBody({
         expertiseKeys,
         except: { classEntryId: step.classEntryId, featureId: step.featureId },
       })
-      return listExpertiseOptions({ skills, tools, excludeOptionIds: excluded }).map((row) => ({
-        id: row.id,
-        label: row.kind === 'tool' ? row.labelRu : skillLabel(row.id),
-      }))
+      const allowed = choice.options?.length ? new Set(choice.options) : null
+      return listExpertiseOptions({ skills, tools, excludeOptionIds: excluded })
+        .filter((row) => !allowed || allowed.has(row.id))
+        .map((row) => ({
+          id: row.id,
+          label: row.kind === 'tool' ? row.labelRu : skillLabel(row.id),
+        }))
     }
     const takenStyles = fightingStylesTakenElsewhere(featurePicks, {
       classEntryId: step.classEntryId,
@@ -419,11 +469,11 @@ function FeatureChoiceStepBody({
       options: (
         choice.options_from === 'artificer_infusions'
           ? infusionOptionIdsAtLevel(step.classLevel)
-          : choiceOptionsAtLevel(choice, step.classLevel)
+          : choiceOptionsAtLevel(choice, step.classLevel, edition)
       ).filter((id) => !takenStyles.has(id)),
       optionsFrom: choice.options_from,
-      // Guided create is usually outside a live lobby book gate.
-      tceAllowed: null,
+      // Guided create: 2024 Battle Master already excludes Tasha-only three.
+      tceAllowed: edition === '2024' && choice.options_from === 'battle_master_maneuvers' ? true : null,
       selectedIds,
     })
     return ids.map((id) => ({
@@ -441,6 +491,7 @@ function FeatureChoiceStepBody({
     step.classLevel,
     multi,
     selected,
+    edition,
   ])
 
   const selectedDef = fightingStyleById(selected)
@@ -612,6 +663,7 @@ function SpellbookPicksStepBody({
   hasBook,
   classListSlugs,
   subclassSlug,
+  savantSchool,
 }: {
   picksNeeded: number
   classLevel: number
@@ -623,6 +675,8 @@ function SpellbookPicksStepBody({
   hasBook: boolean
   classListSlugs: string[]
   subclassSlug?: string | null
+  /** Set for 2024 Savant picks: string = school filter, null = no school grant. */
+  savantSchool?: string | null
 }) {
   const [query, setQuery] = useState('')
   const [entries, setEntries] = useState<CatalogEntry[]>([])
@@ -656,6 +710,7 @@ function SpellbookPicksStepBody({
         if (blocked.has(entry.id) || selectedIds.has(entry.id)) return false
         const parsed = parseSpellCatalogData(entry.data ?? {})
         if (parsed.level < 1 || parsed.level > maxSpellLevel) return false
+        if (savantSchool && !schoolMatchesSavant(parsed.school, savantSchool)) return false
         if (
           slugs.length > 0 &&
           !slugs.some((slug) =>
@@ -676,7 +731,13 @@ function SpellbookPicksStepBody({
           entry.slug.toLowerCase().includes(q)
         )
       })
-      .slice(0, 30)
+      .sort((a, b) => {
+        const la = parseSpellCatalogData(a.data ?? {}).level
+        const lb = parseSpellCatalogData(b.data ?? {}).level
+        if (la !== lb) return lb - la // highest available circle first (show 3/6 on create-at-N shots)
+        return a.name_ru.localeCompare(b.name_ru, 'ru')
+      })
+      .slice(0, 60)
   }, [
     entries,
     query,
@@ -685,6 +746,7 @@ function SpellbookPicksStepBody({
     selectedIds,
     classListSlugs,
     subclassSlug,
+    savantSchool,
   ])
 
   function toggle(entry: CatalogEntry) {
@@ -699,9 +761,13 @@ function SpellbookPicksStepBody({
   return (
     <Stack gap={12}>
       <Text>
-        {classLevel <= 1
-          ? `Стартовая книга: выбери ${picksNeeded} заклинания 1 ур. бесплатно.`
-          : `Повышение уровня: +${picksNeeded} бесплатно в книгу (ур. ≤ ${maxSpellLevel}).`}
+        {savantSchool === null
+          ? 'У подкласса нет школьного знатока — выбирать нечего.'
+          : savantSchool
+            ? `Знаток школы: ${picksNeeded} закл. школы бесплатно в книгу (ур. ≤ ${maxSpellLevel}).`
+            : classLevel <= 1
+              ? `Стартовая книга: выбери ${picksNeeded} заклинания 1 ур. бесплатно.`
+              : `Повышение уровня: +${picksNeeded} бесплатно в книгу (ур. ≤ ${maxSpellLevel}).`}
       </Text>
       {!hasBook ? (
         <Text tone="danger">
@@ -800,6 +866,10 @@ export function GuidedWizardDialog({
   selectedSubclassNameByEntryId,
   spellbookPicksContext = null,
   onConfirmSpellbookPicks,
+  classOptions2024,
+  onClassOptions2024Change,
+  knownForms,
+  onKnownFormsChange,
 }: GuidedWizardDialogProps) {
   const step = session?.steps[session.index] ?? null
   const total = session?.steps.length ?? 0
@@ -908,14 +978,65 @@ export function GuidedWizardDialog({
       ? subclassParentCatalogIdByEntryId?.[step.classEntryId] ?? null
       : null
 
+  const spellbookPicksNeeded =
+    step?.kind === 'spellbook_picks'
+      ? step.savant && !spellbookPicksContext?.savantSchool
+        ? 0
+        : step.picksNeeded
+      : 0
   const spellbookReady =
     step?.kind === 'spellbook_picks' &&
-    Boolean(spellbookPicksContext?.hasBook) &&
-    spellbookDraft.length === step.picksNeeded
+    (spellbookPicksNeeded === 0 ||
+      (Boolean(spellbookPicksContext?.hasBook) &&
+        spellbookDraft.length === spellbookPicksNeeded))
 
   const pactTomeReady =
     step?.kind === 'pact_tome_cantrips' &&
     isPactTomeCantripsComplete(featurePicks, step.classEntryId)
+
+  const metamagicLimit =
+    step?.kind === 'metamagic_picks'
+      ? metamagicKnownLimit2024(step.classLevel)
+      : 0
+  const metamagicCount =
+    step?.kind === 'metamagic_picks' ? (classOptions2024?.metamagic.length ?? 0) : 0
+  const metamagicReady =
+    step?.kind === 'metamagic_picks' &&
+    metamagicCount >= Math.min(step.picksNeeded, metamagicLimit)
+
+  const invocationLimit =
+    step?.kind === 'invocation_picks' ? warlockInvocationLimit2024(step.classLevel) : 0
+  const invocationCount =
+    step?.kind === 'invocation_picks' ? (classOptions2024?.eldritch_invocations.length ?? 0) : 0
+  const invocationReady =
+    step?.kind === 'invocation_picks' &&
+    invocationCount >= Math.min(step.picksNeeded, invocationLimit)
+
+  const replicatePlansLimit =
+    step?.kind === 'replicate_plans' ? replicateLimits2024(step.classLevel).plansKnown : 0
+  const replicatePlansCount =
+    step?.kind === 'replicate_plans' ? (classOptions2024?.replicate_plans.length ?? 0) : 0
+  const replicatePlansReady =
+    step?.kind === 'replicate_plans' && replicatePlansCount >= replicatePlansLimit
+
+  const spellStoringReady =
+    step?.kind === 'spell_storing_spell' &&
+    Boolean(String(classOptions2024?.spell_storing_spell || '').trim())
+
+  const knownFormsCount =
+    step?.kind === 'known_forms' ? (knownForms ?? []).filter(isCountedKnownForm2024).length : 0
+  const knownFormsReady = step?.kind === 'known_forms' && knownFormsCount >= step.budget
+
+  const loreDiscoveriesCount =
+    step?.kind === 'lore_discoveries'
+      ? getFeaturePickList(
+          featurePicks,
+          step.classEntryId,
+          LORE_DISCOVERIES_FEATURE_ID_2024,
+        ).length
+      : 0
+  const loreDiscoveriesReady =
+    step?.kind === 'lore_discoveries' && loreDiscoveriesCount >= LORE_MAGICAL_DISCOVERIES_PICKS_2024
 
   const primaryDisabled =
     step?.kind === 'class_grant'
@@ -932,7 +1053,19 @@ export function GuidedWizardDialog({
                 ? !spellbookReady
                 : step?.kind === 'pact_tome_cantrips'
                   ? !pactTomeReady
-                  : false
+                  : step?.kind === 'metamagic_picks'
+                    ? !metamagicReady
+                    : step?.kind === 'invocation_picks'
+                      ? !invocationReady
+                      : step?.kind === 'replicate_plans'
+                        ? !replicatePlansReady
+                        : step?.kind === 'spell_storing_spell'
+                          ? !spellStoringReady
+                          : step?.kind === 'known_forms'
+                            ? !knownFormsReady
+                            : step?.kind === 'lore_discoveries'
+                              ? !loreDiscoveriesReady
+                              : false
 
   const title = !step
     ? 'Настройка персонажа'
@@ -950,9 +1083,21 @@ export function GuidedWizardDialog({
                 ? `Книга заклинаний · ${step.className} ${step.classLevel}`
                 : step.kind === 'pact_tome_cantrips'
                   ? `Заговоры договора · ${step.className}`
-                  : step.kind === 'feature_choice'
-                    ? `${step.choice.label_ru} · ${step.className}`
-                    : 'Настройка персонажа'
+                  : step.kind === 'metamagic_picks'
+                    ? `Метамагия · ${step.className} ${step.classLevel}`
+                    : step.kind === 'invocation_picks'
+                      ? `Воззвания · ${step.className} ${step.classLevel}`
+                      : step.kind === 'replicate_plans'
+                        ? `${PLANS_KNOWN_COLUMN_RU} · ${step.className} ${step.classLevel}`
+                        : step.kind === 'spell_storing_spell'
+                          ? `${SPELL_STORING_ITEM_NAME_RU} · ${step.className}`
+                          : step.kind === 'lore_discoveries'
+                            ? `Доп. магические тайны · ${step.className} ${step.classLevel}`
+                            : step.kind === 'known_forms'
+                              ? `Известные облики · ${step.className} ${step.classLevel}`
+                              : step.kind === 'feature_choice'
+                                ? `${step.choice.label_ru} · ${step.className}`
+                                : 'Настройка персонажа'
 
   const choosingFeat =
     (step?.kind === 'asi' && asiUiMode === 'feat') || step?.kind === 'feat'
@@ -1039,12 +1184,16 @@ export function GuidedWizardDialog({
     }
 
     if (step.kind === 'spellbook_picks') {
+      if (spellbookPicksNeeded === 0) {
+        onAdvance(index + 1)
+        return
+      }
       if (!spellbookPicksContext?.hasBook) {
         onToast?.('Нужна книга заклинаний в инвентаре — иначе нельзя внести бесплатные')
         return
       }
-      if (spellbookDraft.length !== step.picksNeeded) {
-        onToast?.(`Выбери ${step.picksNeeded} заклинания в книгу`)
+      if (spellbookDraft.length !== spellbookPicksNeeded) {
+        onToast?.(`Выбери ${spellbookPicksNeeded} заклинания в книгу`)
         return
       }
       onConfirmSpellbookPicks?.(spellbookDraft)
@@ -1061,6 +1210,70 @@ export function GuidedWizardDialog({
         return
       }
       onToast?.('Заговоры договора: готово')
+      onAdvance(index + 1)
+      return
+    }
+
+    if (step.kind === 'metamagic_picks') {
+      if (!metamagicReady) {
+        onToast?.(`Выбери ещё ${Math.max(0, step.picksNeeded - metamagicCount)} вариант(а) метамагии`)
+        return
+      }
+      onToast?.('Метамагия: готово')
+      onAdvance(index + 1)
+      return
+    }
+
+    if (step.kind === 'invocation_picks') {
+      if (!invocationReady) {
+        onToast?.(`Выбери ещё ${Math.max(0, step.picksNeeded - invocationCount)} воззвание(й)`)
+        return
+      }
+      onToast?.('Воззвания: готово')
+      onAdvance(index + 1)
+      return
+    }
+
+    if (step.kind === 'replicate_plans') {
+      if (!replicatePlansReady) {
+        onToast?.(
+          `Выбери схемы: ${replicatePlansCount}/${replicatePlansLimit}`,
+        )
+        return
+      }
+      onToast?.(`${PLANS_KNOWN_COLUMN_RU}: готово`)
+      onAdvance(index + 1)
+      return
+    }
+
+    if (step.kind === 'spell_storing_spell') {
+      if (!spellStoringReady) {
+        onToast?.(`Выбери заклинание для «${SPELL_STORING_ITEM_NAME_RU}»`)
+        return
+      }
+      onToast?.(`${SPELL_STORING_ITEM_NAME_RU}: готово`)
+      onAdvance(index + 1)
+      return
+    }
+
+    if (step.kind === 'lore_discoveries') {
+      if (!loreDiscoveriesReady) {
+        onToast?.(
+          `Выбери ещё ${Math.max(0, LORE_MAGICAL_DISCOVERIES_PICKS_2024 - loreDiscoveriesCount)} тайн(ы)`,
+        )
+        return
+      }
+      onToast?.('Доп. магические тайны: готово')
+      onAdvance(index + 1)
+      return
+    }
+
+    if (step.kind === 'known_forms') {
+      if (!knownFormsReady) {
+        onToast?.(`Выбери ещё ${Math.max(0, step.budget - knownFormsCount)} известных обликов`)
+        return
+      }
+      onToast?.('Известные облики: готово')
       onAdvance(index + 1)
     }
   }
@@ -1150,6 +1363,7 @@ export function GuidedWizardDialog({
             featurePicks={featurePicks}
             expertiseKeys={expertiseKeys}
             onFeaturePicksChange={onFeaturePicksChange}
+            edition={edition}
           />
         ) : null}
         {step.kind === 'asi' ? (
@@ -1252,17 +1466,213 @@ export function GuidedWizardDialog({
         ) : null}
         {step.kind === 'spellbook_picks' ? (
           <SpellbookPicksStepBody
-            picksNeeded={step.picksNeeded}
+            picksNeeded={spellbookPicksNeeded}
             classLevel={step.classLevel}
             edition={edition}
             selected={spellbookDraft}
             onChange={setSpellbookDraft}
-            maxSpellLevel={spellbookPicksContext?.maxSpellLevel ?? 1}
+            maxSpellLevel={step.savant?.maxSpellLevel ?? spellbookPicksContext?.maxSpellLevel ?? 1}
+            savantSchool={step.savant ? spellbookPicksContext?.savantSchool ?? null : undefined}
             blockedCatalogIds={spellbookPicksContext?.blockedCatalogIds ?? []}
             hasBook={Boolean(spellbookPicksContext?.hasBook)}
             classListSlugs={spellbookPicksContext?.classListSlugs ?? ['wizard']}
             subclassSlug={spellbookPicksContext?.subclassSlug ?? null}
           />
+        ) : null}
+        {step.kind === 'metamagic_picks' ? (
+          <Stack gap={12}>
+            <Text tone="muted">
+              Выбери {step.picksNeeded} вариант(а) метамагии ({metamagicCount}/{metamagicLimit}).
+            </Text>
+            <div className="sheet-chip-row">
+              {METAMAGIC_2024.map((row) => {
+                const selected = classOptions2024?.metamagic.includes(row.id) ?? false
+                return (
+                  <button
+                    key={row.id}
+                    type="button"
+                    className={`sheet-chip${selected ? ' is-on' : ''}`}
+                    title={`${row.summaryRu} (−${row.cost})`}
+                    onClick={() => {
+                      if (!classOptions2024 || !onClassOptions2024Change) return
+                      const cur = new Set(classOptions2024.metamagic)
+                      if (cur.has(row.id)) cur.delete(row.id)
+                      else {
+                        if (cur.size >= metamagicLimit) {
+                          onToast?.(`Лимит метамагии: ${metamagicLimit}`)
+                          return
+                        }
+                        cur.add(row.id)
+                      }
+                      onClassOptions2024Change({
+                        ...classOptions2024,
+                        metamagic: [...cur],
+                      })
+                    }}
+                  >
+                    {row.nameRu}
+                  </button>
+                )
+              })}
+            </div>
+          </Stack>
+        ) : null}
+        {step.kind === 'replicate_plans' ? (
+          <Stack gap={12}>
+            <Text tone="muted">
+              {PLANS_KNOWN_COLUMN_RU}: {replicatePlansCount}/{replicatePlansLimit} (нужно ещё{' '}
+              {Math.max(0, replicatePlansLimit - replicatePlansCount)}).
+            </Text>
+            <div className="sheet-chip-row" data-testid="wizard-replicate-plans">
+              {ARTIFICER_REPLICATE_PLANS_2024.filter((row) => row.minLevel <= step.classLevel).map(
+                (row) => {
+                  const selected = classOptions2024?.replicate_plans.includes(row.id) ?? false
+                  return (
+                    <button
+                      key={row.id}
+                      type="button"
+                      className={`sheet-chip${selected ? ' is-on' : ''}`}
+                      title={`${row.rarity} · с ${row.minLevel} ур.`}
+                      onClick={() => {
+                        if (!classOptions2024 || !onClassOptions2024Change) return
+                        const cur = new Set(classOptions2024.replicate_plans)
+                        if (cur.has(row.id)) cur.delete(row.id)
+                        else {
+                          if (cur.size >= replicatePlansLimit) {
+                            onToast?.(`Лимит схем: ${replicatePlansLimit}`)
+                            return
+                          }
+                          cur.add(row.id)
+                        }
+                        onClassOptions2024Change({
+                          ...classOptions2024,
+                          replicate_plans: [...cur],
+                        })
+                      }}
+                    >
+                      {row.nameRu}
+                    </button>
+                  )
+                },
+              )}
+            </div>
+          </Stack>
+        ) : null}
+        {step.kind === 'spell_storing_spell' ? (
+          <Stack gap={12}>
+            <Text tone="muted">
+              Выбери заклинание артефактора 1–3 круга для «{SPELL_STORING_ITEM_NAME_RU}».
+            </Text>
+            <div className="sheet-chip-row" data-testid="wizard-spell-storing">
+              {SPELL_STORING_OPTIONS_2024.map((row) => {
+                const selected = classOptions2024?.spell_storing_spell === row.id
+                return (
+                  <button
+                    key={row.id}
+                    type="button"
+                    className={`sheet-chip${selected ? ' is-on' : ''}`}
+                    onClick={() => {
+                      if (!classOptions2024 || !onClassOptions2024Change) return
+                      onClassOptions2024Change({
+                        ...classOptions2024,
+                        spell_storing_spell: row.id,
+                      })
+                    }}
+                  >
+                    {row.label}
+                  </button>
+                )
+              })}
+            </div>
+          </Stack>
+        ) : null}
+        {step.kind === 'invocation_picks' ? (
+          <Stack gap={12}>
+            <Text tone="muted">
+              Выбери {step.picksNeeded} воззвание(й) ({invocationCount}/{invocationLimit}).
+            </Text>
+            <div className="sheet-chip-row" data-testid="wizard-invocation-picks">
+              {ELDRITCH_INVOCATIONS_2024.map((row) => {
+                const known = classOptions2024?.eldritch_invocations ?? []
+                const selected = known.includes(row.id)
+                const reason = selected
+                  ? null
+                  : invocationUnavailableReason2024({
+                      known,
+                      addId: row.id,
+                      warlockLevel: step.classLevel,
+                    })
+                const locked = !selected && reason != null
+                return (
+                  <button
+                    key={row.id}
+                    type="button"
+                    className={`sheet-chip${selected ? ' is-on' : ''}`}
+                    disabled={locked}
+                    aria-disabled={locked}
+                    style={locked ? { opacity: 0.45 } : undefined}
+                    title={locked ? `${row.summaryRu} — ${reason}` : row.summaryRu}
+                    onClick={() => {
+                      if (!classOptions2024 || !onClassOptions2024Change) return
+                      const cur = new Set(classOptions2024.eldritch_invocations)
+                      if (cur.has(row.id)) {
+                        const dependents = invocationsDependingOn2024([...cur], row.id)
+                        if (dependents.length > 0) {
+                          onToast?.(`Сначала убери зависимые воззвания (${dependents.length})`)
+                          return
+                        }
+                        cur.delete(row.id)
+                      } else {
+                        if (cur.size >= invocationLimit) {
+                          onToast?.(`Лимит воззваний: ${invocationLimit}`)
+                          return
+                        }
+                        cur.add(row.id)
+                      }
+                      onClassOptions2024Change({
+                        ...classOptions2024,
+                        eldritch_invocations: [...cur],
+                      })
+                    }}
+                  >
+                    {row.nameRu}
+                    {row.minLevel > 1 ? ` ·${row.minLevel}+` : ''}
+                  </button>
+                )
+              })}
+            </div>
+          </Stack>
+        ) : null}
+        {step.kind === 'lore_discoveries' ? (
+          <Stack gap={12}>
+            <Text tone="muted">
+              Коллегия Знаний · {step.className} {step.classLevel}: выбери два заклинания Волшебника,
+              Друида или Жреца ({loreDiscoveriesCount}/{LORE_MAGICAL_DISCOVERIES_PICKS_2024}).
+            </Text>
+            <LoreDiscoveriesPicker
+              classEntryId={step.classEntryId}
+              bardLevel={step.classLevel}
+              featurePicks={featurePicks}
+              onFeaturePicksChange={onFeaturePicksChange}
+              onToast={onToast}
+            />
+          </Stack>
+        ) : null}
+        {step.kind === 'known_forms' ? (
+          <Stack gap={12}>
+            <Text tone="muted">
+              Дикий облик · {step.className} {step.classLevel}: выбери известные облики
+              ({knownFormsCount}/{step.budget}).
+            </Text>
+            <KnownFormsPicker
+              druidLevel={step.classLevel}
+              subclassSlug={step.subclassSlug}
+              budget={step.budget}
+              forms={knownForms ?? []}
+              onChange={(forms) => onKnownFormsChange?.(forms)}
+              onToast={onToast}
+            />
+          </Stack>
         ) : null}
         {step.kind === 'pact_tome_cantrips' ? (
           <Stack gap={12}>

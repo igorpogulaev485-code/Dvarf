@@ -1,12 +1,14 @@
 /** Действия листа, группа 4. Тела функций перенесены без изменения порядка вызовов. */
 import type { SheetModel } from './sheetModel'
 import type { Draft } from './draft'
+import type { ToastInput } from '../../../ui'
 import { type CompanionEntry } from '../companions'
 import {
   applyConcentrationChangeToCompanions,
   applySpellCastToCompanions,
   resolveSpellNaparnikSlug,
 } from '../spellCompanions'
+import { isPhantasmalSummonSpell } from '../spellCompanions'
 import { isSpellSelfFormCast, resolveSpellSelfFormSlug } from '../spellForms'
 import { type SpellFormDialogResult } from '../SpellFormDialog'
 import { type FamiliarPickDialogResult } from '../FamiliarPickDialog'
@@ -18,6 +20,7 @@ import { isConjurePickSpell } from '../conjureCompanions'
 import { isFindSteedSpellSlug } from '../steedCompanions'
 import { isFindFamiliarSpell, resolveFamiliarCastMode } from '../familiarForms'
 import { wildShapeCastBlock } from '../wildShape'
+import { moonCircleSpellCastableInForm2024 } from '../../../shared/dnd/druid2024Features'
 import { type AttunementSlot } from '../attunement'
 import { isPactChainActive, isPactChainSpellId, pactChainFamiliarSpellId, syncPactChainFamiliar } from '../pactChainEffects'
 import { isWarlockClassName } from '../pactTomeEffects'
@@ -48,7 +51,24 @@ import {
 } from '../../../shared/dnd/activeEffects'
 import { formatSaveAdvantageNote } from '../gearEffects'
 import { isMantleCommandSpell, MANTLE_CONCENTRATION_ID, silverTongueApplies } from '../../../shared/dnd/bardCollege'
-import { exhaustionRollFlags } from '../../../shared/dnd/exhaustion2014'
+import {
+  applyExpertDivination2024,
+  castTimingOverride2024,
+  isPhantasmalFreeCast2024,
+  restoreSlot2024,
+  spellBreakerRefundOffer2024,
+  wizard2024CastFollowUp,
+  wizard2024Context,
+  wizard2024Flags,
+} from '../../../shared/dnd/wizard2024Features'
+import { exhaustionRollFlagsForEdition } from '../../../shared/dnd/exhaustionRules'
+import { usesHeroicInspiration } from '../../../shared/dnd/heroicInspiration'
+import {
+  bardicDieLabelRu,
+  bardicInspirationAllowsAfterFail,
+  bardicInspirationDieFromEffect,
+  findSpendableBardicInspirationEffect,
+} from '../../../shared/dnd/bardicInspirationTarget2024'
 import {
   conditionModeForSelf,
   coverBonusBeyondEffects,
@@ -92,6 +112,7 @@ import {
   isAbjurationSchool,
   wizardLeveledCastGate,
 } from '../../../shared/dnd/wizardTradition'
+import { bladesongBonuses2024 } from '../../../shared/dnd/wizardBook2024Features'
 import { type CastChoice } from '../CastSpellDialog'
 import {
   applyMetamagicToCastParams,
@@ -114,7 +135,10 @@ import {
 import {
   REPELLING_BLAST_HINT,
   agonizingBlastDamageBonus,
+  collectWarlockInvocationIds,
+  eldritchSpearRangeFt,
   formatEldritchBlastDamagePreview,
+  formatEldritchSpearRangeRu,
   hasRepellingBlast,
   isEldritchBlastSpell,
 } from '../../../shared/dnd/o06StylesBreathInvocations'
@@ -233,7 +257,11 @@ export function installSheetActions4(model: SheetModel) {
     )
   }
 
-  model.applyDeskNaparnikFromCast = function applyDeskNaparnikFromCast(spell: SheetSpell, slotLevel: number): string {
+  model.applyDeskNaparnikFromCast = function applyDeskNaparnikFromCast(
+    spell: SheetSpell,
+    slotLevel: number,
+    opts?: { halfHp?: boolean },
+  ): string {
     const abilityKey = model.draft.spells.casting_ability
     const spellMod = abilityKey ? abilityModifier(model.effectiveAbilities[abilityKey]) : 0
     const castCtx = {
@@ -241,6 +269,7 @@ export function installSheetActions4(model: SheetModel) {
       slotLevel,
       characterLevel: model.characterLevel,
       spellMod,
+      ...(opts?.halfHp ? { halfHp: true } : {}),
     }
     const preview = applySpellCastToCompanions({
       companions: model.draft.companions,
@@ -254,9 +283,10 @@ export function installSheetActions4(model: SheetModel) {
       })
       return result ? { ...prev, companions: result.companions } : prev
     })
+    const halfNote = opts?.halfHp ? ' (хиты вдвое меньше — Призрачные существа)' : ''
     return preview.refreshed
-      ? ` · напарник «${preview.name}» снова в строю`
-      : ` · напарник «${preview.name}»`
+      ? ` · напарник «${preview.name}» снова в строю${halfNote}`
+      : ` · напарник «${preview.name}»${halfNote}`
   }
 
 /** Pact of the Chain: ensure Find Familiar row, then open cast dialog. */
@@ -373,11 +403,59 @@ export function installSheetActions4(model: SheetModel) {
     model.setPendingCreaturePick(null)
   }
 
+  function wizard2024FlagsNow() {
+    return wizard2024Flags(
+      wizard2024Context({
+        rulesEdition: model.rulesEdition,
+        classes: model.draft.classes,
+        subclassSlugByEntryId: model.subclassSlugByEntryId,
+      }),
+    )
+  }
+
+  function wizard2024CastNotes(spell: SheetSpell, slotLevel: number, viaSlot: boolean): string {
+    const flags = wizard2024FlagsNow()
+    let resources = model.draft.play.resources
+    const notes: string[] = []
+    if (spell.level > 0 && viaSlot && flags.ward && isAbjurationSchool(spell.school)) {
+      const repaired = applyAbjurationToWard(resources, slotLevel)
+      resources = repaired.resources
+      if (repaired.note) notes.push(repaired.note)
+    }
+    const follow = wizard2024CastFollowUp({
+      flags,
+      slots: model.draft.spells.slots,
+      spell,
+      slotLevel,
+      viaSlot,
+    })
+    notes.push(...follow.notes)
+    const restoreSlots = follow.slots !== model.draft.spells.slots
+    if (resources !== model.draft.play.resources || restoreSlots) {
+      const nextResources = resources
+      model.setDraft((prev) => ({
+        ...prev,
+        ...(restoreSlots
+          ? {
+              spells: {
+                ...prev.spells,
+                slots: applyExpertDivination2024(prev.spells.slots, slotLevel).slots,
+              },
+            }
+          : {}),
+        play: { ...prev.play, resources: nextResources },
+      }))
+    }
+    return notes.length ? ` · ${notes.join(' · ')}` : ''
+  }
+
   function wizardCastFollowUp(
     spell: SheetSpell,
     slotLevel: number,
     choice: CastChoice,
+    viaSlot = true,
   ): string {
+    if (model.rulesEdition === '2024') return wizard2024CastNotes(spell, slotLevel, viaSlot)
     if (spell.level <= 0) return ''
     let resources = model.draft.play.resources
     const notes: string[] = []
@@ -432,6 +510,9 @@ export function installSheetActions4(model: SheetModel) {
       Boolean(choice.quickened) &&
       (castTiming === 'action' || castTiming == null)
     if (quickened) castTiming = 'bonus'
+    if (model.rulesEdition === '2024' && castTiming === 'action') {
+      castTiming = castTimingOverride2024(spell, wizard2024FlagsNow()) ?? castTiming
+    }
     if (ritualCastEarly) castTiming = null
     if (teApi) {
       const gate = teApi.canCast(castTiming, spell.level)
@@ -528,6 +609,46 @@ export function installSheetActions4(model: SheetModel) {
         }))
       }
     }
+    let spellBreakerRefund: { slotLevel: number; pact: boolean } | null = null
+    const offerSpellBreakerRefund = (slotLevel: number, pact: boolean) => {
+      if (model.rulesEdition !== '2024') return
+      const offer = spellBreakerRefundOffer2024({
+        flags: wizard2024FlagsNow(),
+        spell,
+        slotLevel,
+        viaSlot: true,
+      })
+      spellBreakerRefund = offer ? { slotLevel: offer.slotLevel, pact } : null
+    }
+    const spellBreakerToast = (message: string): ToastInput => {
+      const offer = spellBreakerRefund
+      if (!offer) return message
+      let refunded = false
+      return {
+        message,
+        durationMs: 12000,
+        actionLabel: 'Вернуть ячейку',
+        onAction: () => {
+          if (refunded) return
+          refunded = true
+          model.setDraft((prev) => {
+            if (offer.pact) {
+              const pact = prev.spells.pact_slots
+              if (!pact || pact.used <= 0) return prev
+              return {
+                ...prev,
+                spells: { ...prev.spells, pact_slots: { ...pact, used: pact.used - 1 } },
+              }
+            }
+            const slots = restoreSlot2024(prev.spells.slots, offer.slotLevel)
+            return slots ? { ...prev, spells: { ...prev.spells, slots } } : prev
+          })
+          model.onToast(
+            `Разрушитель заклинаний: ${offer.pact ? 'ячейка договора' : `ячейка ${offer.slotLevel} круга`} возвращена`,
+          )
+        },
+      }
+    }
     const successToast = (message: string) => {
       let spareNote = ''
       if (isSpareTheDyingSpell(spell)) {
@@ -596,7 +717,7 @@ export function installSheetActions4(model: SheetModel) {
         metaNotes.length > 0
           ? `${message}${spareNote} · ${metaNotes.join(' · ')}`
           : `${message}${spareNote}`
-      model.onToast(full)
+      model.onToast(spellBreakerToast(full))
       const sourceId = String(model.baseCharacter.id)
       void (async () => {
         if (spell.concentration) {
@@ -676,6 +797,13 @@ export function installSheetActions4(model: SheetModel) {
       classes: model.draft.classes,
       classSlug: spell.class_slug,
       material: spell.components?.m,
+      rulesEdition: model.rulesEdition,
+      moonCircleSpell: moonCircleSpellCastableInForm2024({
+        rulesEdition: model.rulesEdition,
+        druidLevel: model.druidLevel,
+        subclassSlug: model.druidSubclassSlug,
+        spell,
+      }),
     })
     if (wildBlock) {
       model.onToast(wildBlock)
@@ -767,16 +895,16 @@ export function installSheetActions4(model: SheetModel) {
           chaMod: abilityModifier(model.effectiveAbilities.cha),
         })
       : null
-    const warlockInvocationIds: string[] = []
-    for (const row of model.draft.classes) {
-      if (!/колдун|warlock/i.test(row.name)) continue
-      const raw =
-        model.draft.featurePicks.values[`${row.id}:eldritch_invocations`] ?? ''
-      for (const id of raw.split(',')) {
-        const t = id.trim()
-        if (t) warlockInvocationIds.push(t)
-      }
-    }
+    const warlockInvocationIds = collectWarlockInvocationIds({
+      classes: model.draft.classes,
+      featurePickValues: model.draft.featurePicks.values,
+      classOptionsInvocations:
+        model.baseCharacter.rules_edition === '2024'
+          ? model.draft.classOptions2024?.eldritch_invocations
+          : null,
+    })
+    const warlockRow = model.draft.classes.find((row) => /колдун|warlock/i.test(row.name))
+    const warlockLevel = warlockRow?.level ?? model.characterLevel
     const chaMod = abilityModifier(model.effectiveAbilities.cha)
     const agonizing = agonizingBlastDamageBonus({
       knownInvocationIds: warlockInvocationIds,
@@ -803,12 +931,22 @@ export function installSheetActions4(model: SheetModel) {
     if (
       isEldritchBlastSpell({ name: spell.name, catalogId: spell.catalog_id })
     ) {
+      const beamLevel =
+        model.baseCharacter.rules_edition === '2024' ? warlockLevel : model.characterLevel
       effect = formatEldritchBlastDamagePreview({
-        characterLevel: model.characterLevel,
+        characterLevel: beamLevel,
         chaMod,
         hasAgonizing: agonizing !== 0,
       })
       scaled = true
+      const spearFt = eldritchSpearRangeFt({
+        knownInvocationIds: warlockInvocationIds,
+        warlockLevel,
+        rulesEdition: model.baseCharacter.rules_edition,
+      })
+      if (spearFt != null) {
+        effect = `${effect} · ${formatEldritchSpearRangeRu(spearFt)}`
+      }
       if (hasRepellingBlast(warlockInvocationIds)) {
         effect = `${effect} · ${REPELLING_BLAST_HINT}`
       }
@@ -946,10 +1084,12 @@ export function installSheetActions4(model: SheetModel) {
         wantsForm || wantsFamiliar || wantsCreaturePick
           ? ''
           : model.applyDeskNaparnikFromCast(spell, naparnikSlot)
+      const cantripNote =
+        model.rulesEdition === '2024' ? wizard2024CastNotes(spell, 0, false) : ''
       model.onToast(
         spell.concentration
-          ? `Каст: ${name}${effectNote}${consumeNote}${allyNote} (концентрация)${naparnikNote}${formNote}`
-          : `Каст: ${name}${effectNote}${consumeNote}${allyNote}${naparnikNote}${formNote}`,
+          ? `Каст: ${name}${effectNote}${consumeNote}${allyNote} (концентрация)${naparnikNote}${formNote}${cantripNote}`
+          : `Каст: ${name}${effectNote}${consumeNote}${allyNote}${naparnikNote}${formNote}${cantripNote}`,
       )
       return true
     }
@@ -980,11 +1120,18 @@ export function installSheetActions4(model: SheetModel) {
           spell,
         ),
       )
+      const phantasmal =
+        model.rulesEdition === '2024' &&
+        isPhantasmalFreeCast2024({
+          flags: wizard2024FlagsNow(),
+          grantLabel: label,
+        }) &&
+        isPhantasmalSummonSpell(spell)
       const naparnikNote =
         wantsForm || wantsFamiliar || wantsCreaturePick
           ? ''
-          : model.applyDeskNaparnikFromCast(spell, naparnikSlot)
-      const wardNote = wizardCastFollowUp(spell, spell.level, choice)
+          : model.applyDeskNaparnikFromCast(spell, naparnikSlot, { halfHp: phantasmal })
+      const wardNote = wizardCastFollowUp(spell, spell.level, choice, false)
       successToast(
         `Каст: ${name} (−1 ${label})${effectNote}${consumeNote}${allyNote}${
           spell.concentration ? ' · концентрация' : ''
@@ -999,7 +1146,7 @@ export function installSheetActions4(model: SheetModel) {
         return false
       }
       if (spell.concentration) model.applyDeskConcentration(spell)
-      const wardNote = wizardCastFollowUp(spell, spell.level, choice)
+      const wardNote = wizardCastFollowUp(spell, spell.level, choice, false)
       successToast(
         `Каст: ${name} (мастерство, без ячейки)${effectNote}${consumeNote}${allyNote}${
           spell.concentration ? ' · концентрация' : ''
@@ -1024,7 +1171,7 @@ export function installSheetActions4(model: SheetModel) {
         wantsForm || wantsFamiliar || wantsCreaturePick
           ? ''
           : model.applyDeskNaparnikFromCast(spell, naparnikSlot)
-      const wardNote = wizardCastFollowUp(spell, spell.level, choice)
+      const wardNote = wizardCastFollowUp(spell, spell.level, choice, false)
       successToast(
         `Ритуал: ${name} (без ячейки)${effectNote}${consumeNote}${allyNote}${
           spell.concentration ? ' · концентрация' : ''
@@ -1069,6 +1216,7 @@ export function installSheetActions4(model: SheetModel) {
           ? ''
           : model.applyDeskNaparnikFromCast(spell, pactResult.pact.level)
       const wardNote = wizardCastFollowUp(spell, pactResult.pact.level, choice)
+      offerSpellBreakerRefund(pactResult.pact.level, true)
       successToast(
         `Каст: ${name} (−1 договор ${pactResult.pact.level} ур.)${effectNote}${consumeNote}${allyNote}${
           spell.concentration ? ' · концентрация' : ''
@@ -1097,6 +1245,7 @@ export function installSheetActions4(model: SheetModel) {
     const upcast =
       choice.slotLevel > spell.level ? ` · upcast ${choice.slotLevel}` : ''
     const wardNote = wizardCastFollowUp(spell, choice.slotLevel, choice)
+    offerSpellBreakerRefund(choice.slotLevel, false)
     successToast(
       `Каст: ${name} (−1 ячейка ${choice.slotLevel} ур.)${upcast}${effectNote}${consumeNote}${allyNote}${
         spell.concentration ? ' · концентрация' : ''
@@ -1175,6 +1324,14 @@ export function installSheetActions4(model: SheetModel) {
   }
 
   model.showCompact = function showCompact(id: PlayDeskCompactPanelId): boolean {
+    // 2024 Druid: classic SpellsPanel (known forms, moon circle, cast-in-form).
+    if (
+      id === 'spells' &&
+      model.rulesEdition === '2024' &&
+      (model.druidLevel ?? 0) > 0
+    ) {
+      return false
+    }
     // Spells / attacks: compact is the only play surface (desk + phone); setup in dialogs.
     if (id === 'spells' || id === 'attacks') return true
     // Explore / Social / Features / Companions: glance→expand — no compact/full flip.
@@ -1240,7 +1397,10 @@ export function installSheetActions4(model: SheetModel) {
   }
 
   model.exhaustionFlags = function exhaustionFlags() {
-    return exhaustionRollFlags(model.draft.play.exhaustion ?? 0)
+    return exhaustionRollFlagsForEdition(
+      model.draft.play.exhaustion ?? 0,
+      model.baseCharacter?.rules_edition ?? model.rulesEdition,
+    )
   }
 
   model.strengthCheckFloor = function strengthCheckFloor(applies: boolean) {
@@ -1255,19 +1415,63 @@ export function installSheetActions4(model: SheetModel) {
   }
 
   function withInspirationMode(mode: DeskRollMode): DeskRollMode {
+    // P24-02: 2024 heroic inspiration is a post-roll reroll, not advantage.
+    if (
+      usesHeroicInspiration(
+        model.baseCharacter?.rules_edition ?? model.rulesEdition,
+      )
+    ) {
+      return mode
+    }
     if (!model.inspirationRollArmed) return mode
     return mergeInspirationAdvantage(mode) as DeskRollMode
+  }
+
+  function exhaustionD20Penalty(): number {
+    return model.exhaustionFlags().d20Penalty ?? 0
+  }
+
+  function offerHeroicRerollAfter(label: string, sides = 20) {
+    if (
+      !usesHeroicInspiration(
+        model.baseCharacter?.rules_edition ?? model.rulesEdition,
+      )
+    ) {
+      return
+    }
+    if (!model.draft.inspiration) return
+    if (typeof model.setHeroicRerollPending === 'function') {
+      model.setHeroicRerollPending({ label, sides })
+    }
   }
 
   model.effectiveRollMode = function effectiveRollMode(skillKey?: string): DeskRollMode {
     const armor = skillKey === 'stealth' && model.stealthArmorDisadvantage
     const exhaustion = model.exhaustionFlags().disadvantageOnChecks
-    const song =
-      skillKey === 'acrobatics' &&
-      bladesongBonuses({
+    const edition2024 =
+      (model.baseCharacter?.rules_edition ?? model.rulesEdition) === '2024'
+    const songActive = (() => {
+      if (skillKey !== 'acrobatics') return false
+      if (edition2024) {
+        return bladesongBonuses2024({
+          rulesEdition: '2024',
+          subclassSlug:
+            Object.values(model.subclassSlugByEntryId ?? {}).find(
+              (slug): slug is string =>
+                typeof slug === 'string' && slug.toLowerCase().includes('bladesinger'),
+            ) ?? null,
+          resources: model.draft.play.resources,
+          intelligenceScore: model.draft.abilities.int ?? 10,
+          wizardLevel:
+            model.draft.classes.find((row) => /волшебник|wizard/i.test(row.name))?.level ?? 0,
+        }).acrobaticsAdvantage
+      }
+      return bladesongBonuses({
         resources: model.draft.play.resources,
         intelligenceScore: model.draft.abilities.int ?? 10,
       }).active
+    })()
+    const song = songActive
     const fromFx = resolveAdvantageFromEffects(model.draft.play.effects, {
       rollKind: 'check',
       abilityKey: skillKey ?? null,
@@ -1383,14 +1587,28 @@ export function installSheetActions4(model: SheetModel) {
         (feature: { id?: string }) => feature.id === 'silver_tongue',
       ),
     )
+    const skillState = (model.draft.skills as Record<
+      string,
+      { is_proficient?: boolean; is_expertise?: boolean }
+    >)[skill.key]
+    const skillProficient = Boolean(skillState?.is_proficient || skillState?.is_expertise)
+    const hasReliableTalent = (model.unlockedFeatures ?? []).some(
+      (feature: { id?: string }) =>
+        feature.id === 'reliable_talent' || feature.id === 'reliable-talent',
+    )
+    // Reliable Talent: ability checks that add PB — d20 below 10 counts as 10.
+    const reliableFloor =
+      hasReliableTalent && skillProficient
+        ? { value: 10, label: 'надёжный талант' }
+        : null
+    const dieFloor = silver
+      ? { value: 10, label: 'серебряный язык' }
+      : reliableFloor
     const bonusDice = buffDiceFor('check', { skillKey: skill.key })
     const homebrew = normalizeCampaignRules(model.campaignRulesRaw).homebrew
-    const skillProficient = Boolean(
-      (model.draft.skills as Record<string, { is_proficient?: boolean }>)[skill.key]
-        ?.is_proficient,
-    )
-    let rollMod = skill.mod
-    let profNote = ''
+    const exhPen = exhaustionD20Penalty()
+    let rollMod = skill.mod - exhPen
+    let profNote = exhPen > 0 ? ` · истощение −${exhPen}` : ''
     if (homebrew.dmg_proficiency_dice && skillProficient) {
       const pb = Math.max(0, Math.floor(model.proficiencyBonus ?? 0))
       const teDice = (model.turnEconomyApi as { diceOnTable?: boolean } | undefined)?.diceOnTable
@@ -1430,7 +1648,7 @@ export function installSheetActions4(model: SheetModel) {
       te.openEnterOwnNumber({
         title: `Проверка: ${skill.label}`,
         mode: 'd20',
-        modifier: skill.mod,
+        modifier: rollMod,
         bonusDice,
       })
       if (profNote) model.emitToast(`${skill.label}${profNote}`)
@@ -1500,7 +1718,7 @@ export function installSheetActions4(model: SheetModel) {
           mode,
           undefined,
           model.strengthCheckFloor(base === 'str'),
-          silver ? { value: 10, label: 'серебряный язык' } : null,
+          dieFloor,
           bonusDice,
         )
         const text = `${payload.text}${suffix}`
@@ -1535,10 +1753,12 @@ export function installSheetActions4(model: SheetModel) {
     if (tceForGuidance && hasGuidance && typeof model.setMagicalGuidanceOffer === 'function') {
       model.setMagicalGuidanceOffer({
         label: skill.label,
-        mod: skill.mod,
+        mod: skill.mod - exhPen,
       })
       model.emitToast(`${MAGICAL_GUIDANCE_SHEET_NAME}: при провале можно перебросить за 1 очко`)
     }
+    offerHeroicRerollAfter(skill.label, 20)
+    model.offerBardicInspirationAfterFail?.(skill.label)
     consumeOnceBuffDice('check')
   }
 
@@ -1576,14 +1796,19 @@ export function installSheetActions4(model: SheetModel) {
 
   model.rollAbilityCheck = function rollAbilityCheck(key: AbilityKey, mod: number) {
     const exhaustion = model.exhaustionFlags().disadvantageOnChecks
+    const exhPen = exhaustionD20Penalty()
     const note =
       exhaustion && model.deskRollMode === 'advantage'
         ? ' · истощение отменило преим.'
         : exhaustion && model.deskRollMode !== 'disadvantage'
           ? ' · помеха от истощения'
-          : ''
+          : exhPen > 0
+            ? ` · истощение −${exhPen}`
+            : ''
     const bonusDice = buffDiceFor('check')
+    const rollMod = mod - exhPen
     const checkTitle = `Проверка · ${ABILITY_NAMES[key] ?? ABILITY_LABELS[key]}`
+    const abilityLabel = ABILITY_NAMES[key] ?? ABILITY_LABELS[key]
     const te = model.turnEconomyApi as
       | {
           diceOnTable?: boolean
@@ -1599,7 +1824,7 @@ export function installSheetActions4(model: SheetModel) {
       te.openEnterOwnNumber({
         title: checkTitle,
         mode: 'd20',
-        modifier: mod,
+        modifier: rollMod,
       })
     } else {
       const suffix = `${note}${model.inspirationRollArmed ? ' · вдохновение' : ''}`
@@ -1666,16 +1891,34 @@ export function installSheetActions4(model: SheetModel) {
         })
       }
     }
+    offerHeroicRerollAfter(abilityLabel, 20)
+    model.offerBardicInspirationAfterFail?.(abilityLabel)
     consumeOnceBuffDice('check')
   }
 
   model.rollAbilitySave = function rollAbilitySave(key: AbilityKey, mod: number) {
+    const edition2024 =
+      (model.baseCharacter?.rules_edition ?? model.rulesEdition) === '2024'
     const song =
       key === 'con' && model.draft.play.concentration
-        ? bladesongBonuses({
-            resources: model.draft.play.resources,
-            intelligenceScore: model.draft.abilities.int ?? 10,
-          })
+        ? edition2024
+          ? bladesongBonuses2024({
+              rulesEdition: '2024',
+              subclassSlug:
+                Object.values(model.subclassSlugByEntryId ?? {}).find(
+                  (slug): slug is string =>
+                    typeof slug === 'string' && slug.toLowerCase().includes('bladesinger'),
+                ) ?? null,
+              resources: model.draft.play.resources,
+              intelligenceScore: model.draft.abilities.int ?? 10,
+              wizardLevel:
+                model.draft.classes.find((row) => /волшебник|wizard/i.test(row.name))?.level ??
+                0,
+            })
+          : bladesongBonuses({
+              resources: model.draft.play.resources,
+              intelligenceScore: model.draft.abilities.int ?? 10,
+            })
         : null
     const effectSave =
       saveBonusFromActiveEffects(model.draft.play.effects, key) +
@@ -1709,8 +1952,12 @@ export function installSheetActions4(model: SheetModel) {
     const saveProficient = Boolean(
       (model.draft.saves as Record<string, boolean> | undefined)?.[key],
     )
-    let saveRollMod = rolledMod
-    let saveProfNote = ''
+    const exhPenSave = exhaustionD20Penalty()
+    let saveRollMod = rolledMod - exhPenSave
+    let saveProfNote = exhPenSave > 0 ? ` · истощение −${exhPenSave}` : ''
+    const isHeroicSave = usesHeroicInspiration(
+      model.baseCharacter?.rules_edition ?? model.rulesEdition,
+    )
     if (homebrewSave.dmg_proficiency_dice && saveProficient) {
       const pb = Math.max(0, Math.floor(model.proficiencyBonus ?? 0))
       const teDice = (model.turnEconomyApi as { diceOnTable?: boolean } | undefined)?.diceOnTable
@@ -1745,7 +1992,7 @@ export function installSheetActions4(model: SheetModel) {
     if (teSave?.diceOnTable && teSave.openTableSave) {
       teSave.openTableSave(saveTitle)
       if (saveProfNote) model.emitToast(`${saveTitle}${saveProfNote}`)
-      if (model.inspirationRollArmed) model.spendInspirationForRoll?.()
+      if (model.inspirationRollArmed && !isHeroicSave) model.spendInspirationForRoll?.()
     } else {
       const suffix = `${note}${songNote}${coverNote}${spellNote}${saveProfNote}${
         model.inspirationRollArmed ? ' · вдохновение' : ''
@@ -1813,6 +2060,8 @@ export function installSheetActions4(model: SheetModel) {
         })
       }
     }
+    offerHeroicRerollAfter(saveTitle, 20)
+    model.offerBardicInspirationAfterFail?.(saveTitle)
     consumeOnceBuffDice('save')
   }
 
@@ -1857,8 +2106,9 @@ export function installSheetActions4(model: SheetModel) {
 
   model.isLayOnHandsResource = function isLayOnHandsResource(row: { id: string; name: string }): boolean {
     return (
-      /:lay_on_hands:/.test(row.id) ||
+      /:lay_on_hands(_hp)?:/.test(row.id) ||
       /возложение рук/i.test(row.name) ||
+      /наложение рук/i.test(row.name) ||
       /lay on hands/i.test(row.name)
     )
   }
@@ -1937,6 +2187,8 @@ export function installSheetActions4(model: SheetModel) {
     option?: string | null
     slotLevel?: number | null
     auraAllyDefaultOff?: boolean
+    edition?: string | null
+    combatInspiration?: boolean | null
   }) {
     const { applyFeatureBuffToTargets } = await import('../applyFeatureBuff')
     return applyFeatureBuffToTargets({
@@ -1948,10 +2200,30 @@ export function installSheetActions4(model: SheetModel) {
       option: input.option,
       slotLevel: input.slotLevel,
       auraAllyDefaultOff: input.auraAllyDefaultOff,
+      edition: input.edition,
+      combatInspiration: input.combatInspiration,
       sourceCharacterId: String(model.baseCharacter.id),
       sourceName:
         model.draft.name?.trim() || model.baseCharacter.name || 'Персонаж',
       ...model.featureBuffHooks(),
+    })
+  }
+
+  model.offerBardicInspirationAfterFail = function offerBardicInspirationAfterFail(
+    label: string,
+  ) {
+    if (String(model.baseCharacter?.rules_edition ?? model.rulesEdition ?? '') !== '2024') {
+      return
+    }
+    const effect = findSpendableBardicInspirationEffect(model.draft.play.effects ?? [])
+    if (!effect || !bardicInspirationAllowsAfterFail(effect)) return
+    if (typeof model.setBardicInspirationSpendOffer !== 'function') return
+    const die = bardicInspirationDieFromEffect(effect)
+    model.setBardicInspirationSpendOffer({
+      label,
+      effectId: effect.id,
+      dieLabelRu: bardicDieLabelRu(die),
+      mode: 'after_fail',
     })
   }
 }

@@ -1,0 +1,6 @@
+593794cbc8945111beb093cf3ee71614  after-create-2014-race-marker-390.png
+a3918bede3404a4650927b251754127b  after-create-2014-cleric-class-390.png
+ab5a4201933607341e5a4bd489c0c9aa  after-sheet-2014-cleric-header-390.png
+ec92360eaa23b1be696e2481b68de85e  after-sheet-2014-cleric-abilities-390.png
+b931575ff67bc7152d8ba3589321ae9d  after-sheet-2014-cleric-features-390.png
+6e06bebf252322fe97a57b7c334a922d  after-sheet-2014-life-features-390.png

@@ -1,9 +1,58 @@
 /** Действия листа, группа 5. Тела функций перенесены без изменения порядка вызовов. */
 import type { SheetModel } from './sheetModel'
 import { parseFeatureResourceId } from '../../../shared/dnd/featureResources'
+import { sorcerer2024UseFeatureId } from '../../../shared/dnd/sorcerer2024Features'
+import { monk2024UseFeatureId } from '../../../shared/dnd/monk2024Features'
+import { warlock2024UseFeatureId } from '../../../shared/dnd/warlock2024Features'
+import { cleric2024UseFeatureId } from '../../../shared/dnd/cleric2024Features'
+import { paladin2024UseFeatureId } from '../../../shared/dnd/paladin2024Features'
+import {
+  applySuperiorInspirationOnInitiative2024,
+  bard2024UseFeatureId,
+} from '../../../shared/dnd/bard2024Features'
+import { resolveClassFeatureSlug } from '../../../shared/dnd/classFeatures'
 import { wizardResolvedFeatureId } from '../../../shared/dnd/wizardTradition'
+import { guardBardSpellsChange2024 } from '../bardPreparedGuard'
+import type { SpellsState } from '../spells'
 
 export function installSheetActions5(model: SheetModel) {
+  /** Every sheet edit of the spell list: 2024 bard replaces one prepared spell per level. */
+  model.applySpellsChange = function applySpellsChange(next: SpellsState) {
+    const guarded = guardBardSpellsChange2024({
+      edition: model.rulesEdition,
+      classes: model.draft.classes,
+      prevSpells: model.draft.spells,
+      nextSpells: next,
+      featurePicks: model.draft.featurePicks,
+    })
+    if (guarded.blockedRu) {
+      model.onToast?.(guarded.blockedRu)
+      return
+    }
+    model.setDraft((prev) => ({
+      ...prev,
+      spells: guarded.spells,
+      featurePicks: guarded.featurePicks,
+    }))
+  }
+
+  /** 2024 Superior Inspiration: rolling initiative tops Bardic Inspiration up to 2 uses. */
+  model.applyBardInitiativeInspiration = function applyBardInitiativeInspiration() {
+    if (model.rulesEdition !== '2024') return
+    const bard = model.draft.classes.find(
+      (row) => resolveClassFeatureSlug(row.name) === 'bard' && row.level >= 18,
+    )
+    if (!bard) return
+    const top = applySuperiorInspirationOnInitiative2024({
+      bardLevel: bard.level,
+      resources: model.draft.play.resources,
+      classEntryId: bard.id,
+    })
+    if (!top.ok) return
+    model.setDraft((prev) => ({ ...prev, play: { ...prev.play, resources: top.resources } }))
+    model.onToast?.(top.message)
+  }
+
   model.isArcaneRecoveryResource = function isArcaneRecoveryResource(row: { id: string; name: string }): boolean {
     return (
       /:arcane_recovery:/.test(row.id) ||
@@ -64,6 +113,17 @@ export function installSheetActions5(model: SheetModel) {
       return true
     }
     if (model.isBardicInspirationResource(row)) {
+      const parsedBi = parseFeatureResourceId(row.id)
+      if (model.rulesEdition === '2024' && parsedBi) {
+        model.setBardFeatureUse({
+          featureId: parsedBi.poolId,
+          resourceId: row.id,
+          classSlug: parsedBi.classSlug,
+          classEntryId: parsedBi.classEntryId,
+          name: row.name,
+        })
+        return true
+      }
       model.setBardicInspirationSpendId(id)
       return true
     }
@@ -112,6 +172,90 @@ export function installSheetActions5(model: SheetModel) {
     }
     if (parsed && wizardResolvedFeatureId(parsed.poolId)) {
       model.setWizardFeatureUse({
+        featureId: parsed.poolId,
+        resourceId: row.id,
+        classSlug: parsed.classSlug,
+        classEntryId: parsed.classEntryId,
+        name: row.name,
+      })
+      return true
+    }
+    if (
+      model.rulesEdition === '2024' &&
+      parsed &&
+      sorcerer2024UseFeatureId(parsed.poolId)
+    ) {
+      model.setSorcererFeatureUse({
+        featureId: parsed.poolId,
+        resourceId: row.id,
+        classSlug: parsed.classSlug,
+        classEntryId: parsed.classEntryId,
+        name: row.name,
+      })
+      return true
+    }
+    if (
+      model.rulesEdition === '2024' &&
+      parsed &&
+      monk2024UseFeatureId(parsed.poolId)
+    ) {
+      model.setMonkFeatureUse({
+        featureId: parsed.poolId,
+        resourceId: row.id,
+        classSlug: parsed.classSlug,
+        classEntryId: parsed.classEntryId,
+        name: row.name,
+      })
+      return true
+    }
+    if (
+      model.rulesEdition === '2024' &&
+      parsed &&
+      warlock2024UseFeatureId(parsed.poolId)
+    ) {
+      model.setWarlockFeatureUse({
+        featureId: parsed.poolId,
+        resourceId: row.id,
+        classSlug: parsed.classSlug,
+        classEntryId: parsed.classEntryId,
+        name: row.name,
+      })
+      return true
+    }
+    if (
+      model.rulesEdition === '2024' &&
+      parsed &&
+      bard2024UseFeatureId(parsed.poolId)
+    ) {
+      model.setBardFeatureUse({
+        featureId: parsed.poolId,
+        resourceId: row.id,
+        classSlug: parsed.classSlug,
+        classEntryId: parsed.classEntryId,
+        name: row.name,
+      })
+      return true
+    }
+    if (
+      model.rulesEdition === '2024' &&
+      parsed &&
+      cleric2024UseFeatureId(parsed.poolId)
+    ) {
+      model.setClericFeatureUse({
+        featureId: parsed.poolId,
+        resourceId: row.id,
+        classSlug: parsed.classSlug,
+        classEntryId: parsed.classEntryId,
+        name: row.name,
+      })
+      return true
+    }
+    if (
+      model.rulesEdition === '2024' &&
+      parsed &&
+      paladin2024UseFeatureId(parsed.poolId)
+    ) {
+      model.setPaladinFeatureUse({
         featureId: parsed.poolId,
         resourceId: row.id,
         classSlug: parsed.classSlug,

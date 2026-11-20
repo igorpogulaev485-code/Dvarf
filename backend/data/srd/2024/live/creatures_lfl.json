@@ -1,0 +1,853 @@
+{
+  "meta": {
+    "pack": "P24-C18",
+    "source": "LFL creatures (community_ref)",
+    "count": 8,
+    "notes": [
+      "8 существ LFL; source=lfl.",
+      "Короткие RU-карточки; spell_refs только из блока заклинаний."
+    ]
+  },
+  "entries": [
+    {
+      "kind": "bestiary",
+      "slug": "incarnation-of-transience",
+      "name_ru": "Воплощение мимолётности",
+      "name_en": "Incarnation of Transience",
+      "source": "lfl",
+      "sort_order": 10,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/bestiary/29217-incarnation-of-transience",
+        "url_ttg": "https://new.ttg.club/bestiary/incarnation-of-transience-lfl",
+        "book": "LFL"
+      },
+      "data": {
+        "schema_version": 1,
+        "size": "huge",
+        "size_ru": "огромный",
+        "type": "fey",
+        "type_ru": "Фея",
+        "subtype": null,
+        "alignment": "нейтральный",
+        "ac": 16,
+        "hp_average": 142,
+        "hp_formula": "15к12+45",
+        "speed": {
+          "walk": 40,
+          "swim": 40
+        },
+        "cr": "7",
+        "xp": 2900,
+        "proficiency_bonus": 3,
+        "initiative": {
+          "mod": 8,
+          "score": 18
+        },
+        "abilities": {
+          "str": 21,
+          "dex": 20,
+          "con": 17,
+          "int": 10,
+          "wis": 14,
+          "cha": 16
+        },
+        "ability_mods": {
+          "str": 5,
+          "dex": 5,
+          "con": 3,
+          "int": 0,
+          "wis": 2,
+          "cha": 3
+        },
+        "ability_saves": {
+          "str": 5,
+          "dex": 8,
+          "con": 6,
+          "int": 0,
+          "wis": 2,
+          "cha": 3
+        },
+        "skills": {},
+        "senses": {
+          "passive_perception": 12
+        },
+        "languages": [
+          "Сильван",
+          "Телепатия 120 фт."
+        ],
+        "source_book": "LFL",
+        "srd_section": "monsters",
+        "summary_ru": "огромная фея, ПО 7; КД 16, хиты 142 (15к12+45); инициатива +8 (ср. 18), БМ +3.",
+        "name_ru_pending": false,
+        "gear_refs": [],
+        "spell_refs": [],
+        "traits": [
+          {
+            "name_ru": "Эфемерное движение",
+            "text_ru": "Воплощение может перемещаться через других существ и объекты, как если бы они были Труднопроходимой местностью; его движение не Провоцирует атак. Оно получает 5 (1к10) Силового урона, если завершает свой ход внутри объекта.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Сопротивлении магии",
+            "text_ru": "Воплощение совершает с Преимуществом спасброски от заклинаний и прочих магических эффектов.",
+            "name_ru_pending": false
+          }
+        ],
+        "actions": [
+          {
+            "name_ru": "Мультиатака",
+            "text_ru": "Воплощение совершает три атаки Укусом или Миазматическим сгустком в любой комбинации.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Укус",
+            "text_ru": "Бросок рукопашной атаки: +8, досягаемость 5 фт. Попадание: 14 (2к8 + 5) Колющего урона.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Миазматический сгусток",
+            "text_ru": "Бросок дальнобойной атаки: +8, дистанция 60/120 фт. Попадание: 15 (6к4) Кислотного урона, и Скорость цели снижается на 10 футов до конца следующего хода воплощения.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Призрачная давка",
+            "text_ru": "Воплощение перемещается на расстояние вплоть до 80 футов по прямой. Каждое существо, в чьё пространство входит воплощение, единожды подвергается следующему эффекту. Спасбросок Ловкости: Сл 16. Провал: 18 (4к8) Силового урона. Если цель — существо Большого размера или меньше, она Опрокидывается. Успех: Только половина урона.",
+            "name_ru_pending": false
+          }
+        ],
+        "bonus_actions": [
+          {
+            "name_ru": "Перевоплощение",
+            "text_ru": "Воплощение меняет свой размер на Средний, Большой или Огромный.",
+            "name_ru_pending": false
+          }
+        ]
+      }
+    },
+    {
+      "kind": "bestiary",
+      "slug": "incarnation-of-vibrance",
+      "name_ru": "Воплощение яркости",
+      "name_en": "Incarnation of Vibrance",
+      "source": "lfl",
+      "sort_order": 20,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/bestiary/29246-incarnation-of-vibrance",
+        "url_ttg": "https://new.ttg.club/bestiary/incarnation-of-vibrance-lfl",
+        "book": "LFL"
+      },
+      "data": {
+        "schema_version": 1,
+        "size": "huge",
+        "size_ru": "огромный",
+        "type": "fey",
+        "type_ru": "Фея",
+        "subtype": null,
+        "alignment": "нейтральный",
+        "ac": 14,
+        "hp_average": 230,
+        "hp_formula": "20к12+100",
+        "speed": {
+          "walk": 40
+        },
+        "cr": "10",
+        "xp": 5900,
+        "proficiency_bonus": 4,
+        "initiative": {
+          "mod": 7,
+          "score": 17
+        },
+        "abilities": {
+          "str": 20,
+          "dex": 17,
+          "con": 20,
+          "int": 10,
+          "wis": 16,
+          "cha": 21
+        },
+        "ability_mods": {
+          "str": 5,
+          "dex": 3,
+          "con": 5,
+          "int": 0,
+          "wis": 3,
+          "cha": 5
+        },
+        "ability_saves": {
+          "str": 5,
+          "dex": 3,
+          "con": 9,
+          "int": 0,
+          "wis": 3,
+          "cha": 9
+        },
+        "skills": {},
+        "senses": {
+          "passive_perception": 13
+        },
+        "languages": [
+          "Сильван",
+          "Телепатия 120 фт."
+        ],
+        "source_book": "LFL",
+        "srd_section": "monsters",
+        "summary_ru": "огромная фея, ПО 10; КД 14, хиты 230 (20к12+100); инициатива +7 (ср. 17), БМ +4; есть заклинания.",
+        "name_ru_pending": false,
+        "gear_refs": [],
+        "spell_refs": [
+          "daylight",
+          "druidcraft",
+          "plant-growth",
+          "blindness-deafness"
+        ],
+        "traits": [
+          {
+            "name_ru": "Сопротивление магии",
+            "text_ru": "Воплощение совершает с Преимуществом спасброски от заклинаний и прочих магических эффектов.",
+            "name_ru_pending": false
+          }
+        ],
+        "actions": [
+          {
+            "name_ru": "Мультиатака",
+            "text_ru": "Воплощение совершает две атаки Лозой и использует Сияющий выброс. Оно может заменить одну из атак использованием Сотворения заклинаний (Глухота; если доступно).",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Лоза",
+            "text_ru": "Бросок рукопашной атаки: +9, досягаемость 20 фт. Попадание: 18 (3к8 + 5) Дробящего урона. Если цель одного размера с воплощением или меньше, она Схвачена (Сл освобождение от захвата 15) одной из двух лоз.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Сияющий выброс",
+            "text_ru": "Спасбросок Телосложения: Сл 17, каждое существо по выбору воплощения в 20-футовой Эманации, исходящей от воплощения. Провал: 14 (2к8 + 5) урона Излучением. Успех: Только половина урона.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Сотворение заклинаний",
+            "text_ru": "Воплощение яркости сотворяет одно из следующих заклинаний, не нуждаясь в компонентах заклинания (заклинательная характеристика — Харизма): Неограниченно: Дневной свет, Искусство друидов, Рост растений 1/день: Глухота",
+            "name_ru_pending": false
+          }
+        ],
+        "bonus_actions": [
+          {
+            "name_ru": "Перевоплощение",
+            "text_ru": "Воплощение меняет свой размер на Средний, Большой или Огромный.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Телепортация",
+            "text_ru": "Воплощение телепортируется в видимое им в пределах 60 футов незанятое пространство. Воплощение не может телепортироваться, если держит существо Схваченным.",
+            "name_ru_pending": false
+          }
+        ],
+        "damage_resistances": [
+          "излучение"
+        ]
+      }
+    },
+    {
+      "kind": "bestiary",
+      "slug": "lorwyn-giant",
+      "name_ru": "Великан Лорвина",
+      "name_en": "Lorwyn Giant",
+      "source": "lfl",
+      "sort_order": 30,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/bestiary/29215-lorwyn-giant",
+        "url_ttg": "https://new.ttg.club/bestiary/lorwyn-giant-lfl",
+        "book": "LFL"
+      },
+      "data": {
+        "schema_version": 1,
+        "size": "huge",
+        "size_ru": "огромный",
+        "type": "giant",
+        "type_ru": "Великан",
+        "subtype": null,
+        "alignment": "нейтральный",
+        "ac": 13,
+        "hp_average": 115,
+        "hp_formula": "11к12+44",
+        "speed": {
+          "walk": 40
+        },
+        "cr": "6",
+        "xp": 2300,
+        "proficiency_bonus": 3,
+        "initiative": {
+          "mod": 1,
+          "score": 11
+        },
+        "abilities": {
+          "str": 21,
+          "dex": 13,
+          "con": 18,
+          "int": 9,
+          "wis": 16,
+          "cha": 8
+        },
+        "ability_mods": {
+          "str": 5,
+          "dex": 1,
+          "con": 4,
+          "int": -1,
+          "wis": 3,
+          "cha": -1
+        },
+        "ability_saves": {
+          "str": 5,
+          "dex": 1,
+          "con": 7,
+          "int": -1,
+          "wis": 6,
+          "cha": -1
+        },
+        "skills": {},
+        "senses": {
+          "passive_perception": 13
+        },
+        "languages": [
+          "Общий",
+          "Великаний"
+        ],
+        "source_book": "LFL",
+        "srd_section": "monsters",
+        "summary_ru": "огромный великан, ПО 6; КД 13, хиты 115 (11к12+44); инициатива +1 (ср. 11), БМ +3.",
+        "name_ru_pending": false,
+        "gear_refs": [],
+        "spell_refs": [],
+        "actions": [
+          {
+            "name_ru": "Мультиатака",
+            "text_ru": "Великан делает две атаки Каменным мечом или Булыжником в любой комбинации.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Каменный меч",
+            "text_ru": "Бросок рукопашной атаки: +8, досягаемость 15 фт. Попадание: 21 (3к10 + 5) Рубящего урона.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Валун",
+            "text_ru": "Бросок дальнобойной атаки: +8, дистанция 60/240 фт. Попадание: 14 (2к8 + 5) Дробящего урона. Если цель — существо Большого размера или меньше, она Опрокидывается.",
+            "name_ru_pending": false
+          }
+        ],
+        "bonus_actions": [
+          {
+            "name_ru": "Краткий сон (Перезарядка 5–6)",
+            "text_ru": "Великан впадает в глубокую исцеляющую спячку. Великан получает 20 Временных Хитов и имеет состояние Бессознательный до конца своего следующего хода или пока не получит урон. Великан получает Преимущество на проверки характеристик и спасброски на 1 минуту.",
+            "name_ru_pending": false
+          }
+        ]
+      }
+    },
+    {
+      "kind": "bestiary",
+      "slug": "merrow-doublespeaker",
+      "name_ru": "Мерроу-двуязыкий",
+      "name_en": "Merrow Doublespeaker",
+      "source": "lfl",
+      "sort_order": 40,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/bestiary/29245-merrow-doublespeaker",
+        "url_ttg": "https://new.ttg.club/bestiary/merrow-doublespeaker-lfl",
+        "book": "LFL"
+      },
+      "data": {
+        "schema_version": 1,
+        "size": "medium",
+        "size_ru": "средний",
+        "type": "monstrosity",
+        "type_ru": "Чудовище",
+        "subtype": null,
+        "alignment": "законно-злой",
+        "ac": 14,
+        "hp_average": 67,
+        "hp_formula": "9к8+27",
+        "speed": {
+          "walk": 20,
+          "swim": 40
+        },
+        "cr": "4",
+        "xp": 1100,
+        "proficiency_bonus": 2,
+        "initiative": {
+          "mod": 3,
+          "score": 13
+        },
+        "abilities": {
+          "str": 18,
+          "dex": 17,
+          "con": 16,
+          "int": 12,
+          "wis": 13,
+          "cha": 16
+        },
+        "ability_mods": {
+          "str": 4,
+          "dex": 3,
+          "con": 3,
+          "int": 1,
+          "wis": 1,
+          "cha": 3
+        },
+        "ability_saves": {
+          "str": 4,
+          "dex": 5,
+          "con": 3,
+          "int": 1,
+          "wis": 1,
+          "cha": 5
+        },
+        "skills": {
+          "Обман": 5,
+          "Скрытность": 5
+        },
+        "senses": {
+          "passive_perception": 11
+        },
+        "languages": [
+          "Общий",
+          "Первичный (Акван)"
+        ],
+        "source_book": "LFL",
+        "srd_section": "monsters",
+        "summary_ru": "среднее чудовище, ПО 4; КД 14, хиты 67 (9к8+27); инициатива +3 (ср. 13), БМ +2; есть заклинания.",
+        "name_ru_pending": false,
+        "gear_refs": [],
+        "spell_refs": [
+          "mage-hand",
+          "minor-illusion",
+          "command"
+        ],
+        "traits": [
+          {
+            "name_ru": "Амфибия",
+            "text_ru": "Водянник может дышать как воздухом, так и под водой.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Подражание звукам",
+            "text_ru": "Водянник может подражать голосам и звукам животных. Слушатель может распознать имитацию, успешно пройдя проверку Мудрости (Проницательность) Сл 15.",
+            "name_ru_pending": false
+          }
+        ],
+        "actions": [
+          {
+            "name_ru": "Мультиатака",
+            "text_ru": "Водянник совершает три атаки Шипастым хвостом. Он может заменить одну из атак использованием Сотворения заклинаний (Приказ).",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Шипастый хвост",
+            "text_ru": "Бросок рукопашной или дальнобойной атаки: +6, досягаемость 5 фт. или дистанция 20/60 фт. Попадание: 14 (3к6 + 4) Колющего урона.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Сотворение заклинаний",
+            "text_ru": "Водянник-двуязыкий сотворяет одно из следующих заклинаний, не нуждаясь в Материальных компонентах (заклинательная характеристика — Харизма, Сл спасброска заклинаний 13): Неограниченно: Волшебная рука, Малая иллюзия, Приказ",
+            "name_ru_pending": false
+          }
+        ]
+      }
+    },
+    {
+      "kind": "bestiary",
+      "slug": "merrow-haranguer",
+      "name_ru": "Мерроу-крикун",
+      "name_en": "Merrow Haranguer",
+      "source": "lfl",
+      "sort_order": 50,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/bestiary/29218-merrow-haranguer",
+        "url_ttg": "https://new.ttg.club/bestiary/merrow-haranguer-lfl",
+        "book": "LFL"
+      },
+      "data": {
+        "schema_version": 1,
+        "size": "medium",
+        "size_ru": "средний",
+        "type": "monstrosity",
+        "type_ru": "Чудовище",
+        "subtype": null,
+        "alignment": "законно-нейтральный",
+        "ac": 14,
+        "hp_average": 90,
+        "hp_formula": "12к8+36",
+        "speed": {
+          "walk": 5,
+          "swim": 40
+        },
+        "cr": "5",
+        "xp": 1800,
+        "proficiency_bonus": 3,
+        "initiative": {
+          "mod": 4,
+          "score": 14
+        },
+        "abilities": {
+          "str": 18,
+          "dex": 18,
+          "con": 16,
+          "int": 14,
+          "wis": 15,
+          "cha": 19
+        },
+        "ability_mods": {
+          "str": 4,
+          "dex": 4,
+          "con": 3,
+          "int": 2,
+          "wis": 2,
+          "cha": 4
+        },
+        "ability_saves": {
+          "str": 4,
+          "dex": 7,
+          "con": 3,
+          "int": 2,
+          "wis": 2,
+          "cha": 7
+        },
+        "skills": {
+          "Выступление": 7,
+          "Убеждение": 7
+        },
+        "senses": {
+          "passive_perception": 12
+        },
+        "languages": [
+          "Общий",
+          "Первичный (Акван)"
+        ],
+        "source_book": "LFL",
+        "srd_section": "monsters",
+        "summary_ru": "среднее чудовище, ПО 5; КД 14, хиты 90 (12к8+36); инициатива +4 (ср. 14), БМ +3.",
+        "name_ru_pending": false,
+        "gear_refs": [
+          "longbow"
+        ],
+        "spell_refs": [],
+        "traits": [
+          {
+            "name_ru": "Амфибия",
+            "text_ru": "Водянник может дышать как воздухом, так и под водой.",
+            "name_ru_pending": false
+          }
+        ],
+        "actions": [
+          {
+            "name_ru": "Мультиатака",
+            "text_ru": "Водянник совершает три атаки Коралловым скипетром или Ядовитым длинным луком в любой комбинации.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Коралловый скипетр",
+            "text_ru": "Бросок рукопашной атаки: +7, досягаемость 5 фт. Попадание: 14 (2к10 + 4) Дробящего урона.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Ядовитый длинный лук",
+            "text_ru": "Бросок дальнобойной атаки: +7, дистанция 150/600 фт. Попадание: 8 (1к8 + 4) Колющего урона плюс 7 (2к6) урона Ядом.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Крикливый упрёк",
+            "text_ru": "Спасбросок Мудрости: Сл 15, вплоть до трёх видимых мерроу существ в 60 футах. Провал: 14 (4к6) Психического урона, и цель получает Помеху на следующий бросок атаки до конца следующего хода мерроу. Успех: Только половина урона.",
+            "name_ru_pending": false
+          }
+        ]
+      }
+    },
+    {
+      "kind": "bestiary",
+      "slug": "noggle-ransacker",
+      "name_ru": "Ноггл-грабитель",
+      "name_en": "Noggle Ransacker",
+      "source": "lfl",
+      "sort_order": 60,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/bestiary/29219-noggle-ransacker",
+        "url_ttg": "https://new.ttg.club/bestiary/noggle-ransacker-lfl",
+        "book": "LFL"
+      },
+      "data": {
+        "schema_version": 1,
+        "size": "small",
+        "size_ru": "маленький",
+        "type": "fey",
+        "type_ru": "Фея",
+        "subtype": null,
+        "alignment": "нейтральный",
+        "ac": 12,
+        "hp_average": 13,
+        "hp_formula": "3к6+3",
+        "speed": {
+          "walk": 30
+        },
+        "cr": "1/4",
+        "xp": 50,
+        "proficiency_bonus": 2,
+        "initiative": {
+          "mod": 2,
+          "score": 12
+        },
+        "abilities": {
+          "str": 14,
+          "dex": 15,
+          "con": 13,
+          "int": 8,
+          "wis": 10,
+          "cha": 12
+        },
+        "ability_mods": {
+          "str": 2,
+          "dex": 2,
+          "con": 1,
+          "int": -1,
+          "wis": 0,
+          "cha": 1
+        },
+        "ability_saves": {
+          "str": 2,
+          "dex": 2,
+          "con": 1,
+          "int": -1,
+          "wis": 0,
+          "cha": 1
+        },
+        "skills": {
+          "Скрытность": 4
+        },
+        "senses": {
+          "passive_perception": 10
+        },
+        "languages": [
+          "Общий",
+          "Сильван"
+        ],
+        "source_book": "LFL",
+        "srd_section": "monsters",
+        "summary_ru": "маленькая фея, ПО 1/4; КД 12, хиты 13 (3к6+3); инициатива +2 (ср. 12), БМ +2.",
+        "name_ru_pending": false,
+        "gear_refs": [],
+        "spell_refs": [],
+        "traits": [
+          {
+            "name_ru": "Осадное чудовище",
+            "text_ru": "Ноггл наносит двойной урон объектам и постройкам.",
+            "name_ru_pending": false
+          }
+        ],
+        "actions": [
+          {
+            "name_ru": "Замах саботажника",
+            "text_ru": "Бросок рукопашной атаки: +4, досягаемость 5 фт. Попадание: 6 (1к8 + 2) Рубящего урона. Если цель носит доспех, она подвергается следующему эффекту. Спасбросок Ловкости: Сл 12. Провал: Доспех получает штраф –1 к своему КЗ. Цель может действием убрать штраф со своих доспехов.",
+            "name_ru_pending": false
+          }
+        ],
+        "bonus_actions": [
+          {
+            "name_ru": "Ловкий побег",
+            "text_ru": "Ноггл совершает действие Затаивание или Отход.",
+            "name_ru_pending": false
+          }
+        ]
+      }
+    },
+    {
+      "kind": "bestiary",
+      "slug": "noggle-wild-mage",
+      "name_ru": "Ноггл-дикий маг",
+      "name_en": "Noggle Wild Mage",
+      "source": "lfl",
+      "sort_order": 70,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/bestiary/29220-noggle-wild-mage",
+        "url_ttg": "https://new.ttg.club/bestiary/noggle-wild-mage-lfl",
+        "book": "LFL"
+      },
+      "data": {
+        "schema_version": 1,
+        "size": "small",
+        "size_ru": "маленький",
+        "type": "fey",
+        "type_ru": "Фея",
+        "subtype": null,
+        "alignment": "нейтральный",
+        "ac": 13,
+        "hp_average": 22,
+        "hp_formula": "4к6+8",
+        "speed": {
+          "walk": 30
+        },
+        "cr": "1",
+        "xp": 200,
+        "proficiency_bonus": 2,
+        "initiative": {
+          "mod": 3,
+          "score": 13
+        },
+        "abilities": {
+          "str": 11,
+          "dex": 16,
+          "con": 14,
+          "int": 10,
+          "wis": 12,
+          "cha": 17
+        },
+        "ability_mods": {
+          "str": 0,
+          "dex": 3,
+          "con": 2,
+          "int": 0,
+          "wis": 1,
+          "cha": 3
+        },
+        "ability_saves": {
+          "str": 0,
+          "dex": 3,
+          "con": 4,
+          "int": 0,
+          "wis": 1,
+          "cha": 5
+        },
+        "skills": {},
+        "senses": {
+          "passive_perception": 11
+        },
+        "languages": [
+          "Общий",
+          "Сильван"
+        ],
+        "source_book": "LFL",
+        "srd_section": "monsters",
+        "summary_ru": "маленькая фея, ПО 1; КД 13, хиты 22 (4к6+8); инициатива +3 (ср. 13), БМ +2.",
+        "name_ru_pending": false,
+        "gear_refs": [],
+        "spell_refs": [],
+        "traits": [
+          {
+            "name_ru": "Окровавленная дикая магия",
+            "text_ru": "Пока ноггл Окровавлен, он обладает Скоростью полёта 30 футов, а тип любого наносимого им урона может быть Силовым.",
+            "name_ru_pending": false
+          }
+        ],
+        "actions": [
+          {
+            "name_ru": "Мультиатака",
+            "text_ru": "Ноггл совершает две атаки Палкой-ноггалкой или Одуряющим лучом в любой комбинации.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Палка-ноггалка",
+            "text_ru": "Бросок рукопашной атаки: +5, досягаемость 5 фт. Попадание: 5 (1к4 + 3) Дробящего урона плюс 2 (1к4) Психического урона.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Одуряющий луч",
+            "text_ru": "Бросок дальнобойной атаки: +5, дистанция 60 фт. Попадание: 6 (1к6 + 3) Психического урона, и цель вычитает 1к4 из следующего спасброска, который совершает до конца следующего хода ноггла.",
+            "name_ru_pending": false
+          }
+        ]
+      }
+    },
+    {
+      "kind": "bestiary",
+      "slug": "shadowmoor-giant",
+      "name_ru": "Великан Шэдоумура",
+      "name_en": "Shadowmoor Giant",
+      "source": "lfl",
+      "sort_order": 80,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/bestiary/29216-shadowmoor-giant",
+        "url_ttg": "https://new.ttg.club/bestiary/shadowmoor-giant-lfl",
+        "book": "LFL"
+      },
+      "data": {
+        "schema_version": 1,
+        "size": "huge",
+        "size_ru": "огромный",
+        "type": "giant",
+        "type_ru": "Великан",
+        "subtype": null,
+        "alignment": "хаотично-злой",
+        "ac": 14,
+        "hp_average": 172,
+        "hp_formula": "15к12+75",
+        "speed": {
+          "walk": 40
+        },
+        "cr": "8",
+        "xp": 3900,
+        "proficiency_bonus": 3,
+        "initiative": {
+          "mod": 2,
+          "score": 12
+        },
+        "abilities": {
+          "str": 22,
+          "dex": 14,
+          "con": 20,
+          "int": 7,
+          "wis": 19,
+          "cha": 8
+        },
+        "ability_mods": {
+          "str": 6,
+          "dex": 2,
+          "con": 5,
+          "int": -2,
+          "wis": 4,
+          "cha": -1
+        },
+        "ability_saves": {
+          "str": 6,
+          "dex": 2,
+          "con": 8,
+          "int": -2,
+          "wis": 7,
+          "cha": -1
+        },
+        "skills": {},
+        "senses": {
+          "passive_perception": 14
+        },
+        "languages": [
+          "Великаний"
+        ],
+        "source_book": "LFL",
+        "srd_section": "monsters",
+        "summary_ru": "огромный великан, ПО 8; КД 14, хиты 172 (15к12+75); инициатива +2 (ср. 12), БМ +3.",
+        "name_ru_pending": false,
+        "gear_refs": [],
+        "spell_refs": [],
+        "actions": [
+          {
+            "name_ru": "Мультиатака",
+            "text_ru": "Великан делает три атаки Вырванным деревом или Валуном в любой комбинации.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Вырванное дерево",
+            "text_ru": "Бросок рукопашной атаки: +9, досягаемость 15 фт. Попадание: 17 (2к10 + 6) Дробящего урона.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Валун",
+            "text_ru": "Бросок дальнобойной атаки: +9, дистанция 60/240 фт. Попадание: 13 (2к6 + 6) Дробящего Урона. Если цель — существо Большого размера или меньше, она Опрокидывается.",
+            "name_ru_pending": false
+          },
+          {
+            "name_ru": "Катаклизм дикой магии (Перезарядка 5–6)",
+            "text_ru": "Спасбросок Ловкости: Сл 15, каждое существо в 20-футовой Сфере с центром в точке в пределах 120 футов. Провал: 28 (8к6) урона (бросьте 1к4, чтобы определить тип урона: 1—Кислотой; 2—Огнём; 3—Электричеством; 4—Звуком). Успех: Только половина урона.",
+            "name_ru_pending": false
+          }
+        ]
+      }
+    }
+  ],
+  "skipped": []
+}

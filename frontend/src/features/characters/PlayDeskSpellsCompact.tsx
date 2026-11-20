@@ -13,6 +13,7 @@ import {
   classSlugChipLabel,
   formatNamedCantripBudgets,
   formatNamedClassQuotas,
+  formatSpellbookQuotaRu,
   formatNamedPrepareBudgets,
   mergeCastProfilesForDisplay,
   resolveSpellCastStats,
@@ -22,6 +23,14 @@ import {
   resolveCastEffectSummary,
   spellSchoolLabelRu,
 } from '../../shared/dnd/spellCatalog'
+import {
+  agonizingBlastDamageBonus,
+  eldritchSpearRangeFt,
+  formatEldritchBlastDamagePreview,
+  formatEldritchSpearRangeRu,
+  hasRepellingBlast,
+  isEldritchBlastSpell,
+} from '../../shared/dnd/o06StylesBreathInvocations'
 import { withBundledRules } from './alwaysPreparedSpellEnrichment'
 import type { ClassLevelEntry } from '../../shared/dnd/classLevels'
 import {
@@ -53,6 +62,14 @@ import {
 } from '../../shared/dnd/spells'
 import type { RulesEdition } from '../../shared/api/characters'
 import { type BonusLine, withSpellCastBonuses } from './modifiers'
+import {
+  potentSpellcastingRangeText2024,
+  produceFlameHurlFt2024,
+} from '../../shared/dnd/druid2024Features'
+import {
+  applyPotentSpellcastingToDamage2024,
+  isPotentSpellcastingCantrip2024,
+} from '../../shared/dnd/cleric2024Features'
 
 type SpellFilter =
   | 'all'
@@ -84,6 +101,18 @@ type PlayDeskSpellsCompactProps = {
   characterLevel?: number
   /** Draconic Elemental Affinity preview (+CHA to one ancestry damage roll). */
   elementalAffinity?: { damageType: string; amount: number } | null
+  /** Warlock invocation ids (2014 picks and/or 2024 class options). */
+  knownInvocationIds?: string[]
+  /** Warlock class level for EB beams / Eldritch Spear 2024. */
+  warlockLevel?: number
+  /** 2024 Cleric Potent Spellcasting: +Wis to cleric cantrip damage (0 = off). */
+  potentSpellcastingBonus?: number
+  /** Class holding Potent Spellcasting (cleric by default, druid for Elemental Fury). */
+  potentSpellcastingClass?: 'cleric' | 'druid'
+  /** 2024 Druid L15 Potent Spellcasting: +ft to druid cantrip range (0 = off). */
+  potentSpellcastingRangeBonusFt?: number
+  /** 2024 Illusionist: show Improved Illusions range on the spell card. */
+  improvedIllusions?: boolean
   pinned?: boolean
   concentration?: ConcentrationState | null
   /** Rules edition for catalog description lookup in detail dialog. */
@@ -134,6 +163,12 @@ export function PlayDeskSpellsCompact({
   castProfiles = null,
   characterLevel: characterLevelProp = 1,
   elementalAffinity = null,
+  knownInvocationIds = [],
+  warlockLevel,
+  potentSpellcastingBonus = 0,
+  potentSpellcastingClass = 'cleric',
+  potentSpellcastingRangeBonusFt = 0,
+  improvedIllusions = false,
   pinned = false,
   concentration = null,
   edition = '2014',
@@ -287,6 +322,35 @@ export function PlayDeskSpellsCompact({
 
   const quotaLabel = (() => {
     // MAG-01: never show a false global «изв. 17/5» on multiclass.
+    // 2024 single-wizard: plain «подготовлено X из Y · в книге Z».
+    // 2014 keeps the named «Волшебник подг. X/Y, в книге Z» form.
+    if (
+      edition === '2024' &&
+      learnBudgets &&
+      learnBudgets.length === 1 &&
+      learnBudgets[0]!.mode === 'spellbook'
+    ) {
+      const only = learnBudgets[0]!
+      return formatSpellbookQuotaRu({
+        prepared: preparedBySlug[only.slug] ?? preparedCount,
+        maxPrepared: only.maxPrepared,
+        inBook: bookCountBySlug[only.slug] ?? learnedLeveled,
+        alwaysPrepared: alwaysPreparedCount,
+      })
+    }
+    // 2024 prepared casters (sorcerer…): plain «подготовлено X из Y», never «изв.».
+    if (
+      edition === '2024' &&
+      learnBudgets &&
+      learnBudgets.length === 1 &&
+      learnBudgets[0]!.mode === 'prepared_list' &&
+      learnBudgets[0]!.maxPrepared != null
+    ) {
+      const only = learnBudgets[0]!
+      const used = preparedBySlug[only.slug] ?? preparedCount
+      const base = `подготовлено ${used} из ${only.maxPrepared}`
+      return alwaysPreparedCount > 0 ? `${base} · всегда ${alwaysPreparedCount}` : base
+    }
     if (learnBudgets && learnBudgets.length > 0) {
       const mixed = formatNamedClassQuotas(learnBudgets, knownBySlug, preparedBySlug, {
         bookCountBySlug,
@@ -298,9 +362,17 @@ export function PlayDeskSpellsCompact({
       })
       if (namedPrep) return namedPrep
     }
-    if (learnBudget?.mode === 'known') {
+    // 2014 known casters keep «изв.»; 2024 never falls through here for sorcerer
+    // after overlayLearnBudgets2024 flips them to prepared_list.
+    if (learnBudget?.mode === 'known' && edition !== '2024') {
       const cap = learnBudget.leveledKnown
       return cap != null ? `изв. ${learnedLeveled}/${cap}` : `изв. ${learnedLeveled}`
+    }
+    if (learnBudget?.mode === 'known' && edition === '2024') {
+      // Safety net if overlay missed a prepared table row.
+      const cap = learnBudget.maxPrepared ?? learnBudget.leveledKnown
+      if (cap != null) return `подготовлено ${preparedCount} из ${cap}`
+      return `подготовлено ${preparedCount}`
     }
     if (!learnBudget) {
       if (spells.max_prepared != null) {
@@ -309,6 +381,14 @@ export function PlayDeskSpellsCompact({
       return null
     }
     const prepCap = learnBudget.maxPrepared ?? spells.max_prepared
+    if (edition === '2024' && learnBudget.mode === 'spellbook') {
+      return formatSpellbookQuotaRu({
+        prepared: preparedCount,
+        maxPrepared: prepCap,
+        inBook: learnedLeveled,
+        alwaysPrepared: alwaysPreparedCount,
+      })
+    }
     const base =
       prepCap != null
         ? `подг. ${preparedCount}/${prepCap}`
@@ -318,11 +398,14 @@ export function PlayDeskSpellsCompact({
   const cantripLabel = (() => {
     const tomeExtra = countLockedFeatureCantrips(spells.known)
     if (learnBudgets && learnBudgets.length > 0) {
-      return formatNamedCantripBudgets(
+      const named = formatNamedCantripBudgets(
         learnBudgets,
         countLearnedCantripsBySlug(spells.known),
         { tomeExtra },
       )
+      if (!named) return null
+      // 2024 prefix clarifies the chip; 2014 keeps bare «Волшебник 4/4».
+      return edition === '2024' ? `заговоры: ${named}` : named
     }
     if (learnBudget?.cantrips != null && learnBudget.cantrips > 0) {
       return `заг. ${learnedCantrips}/${learnBudget.cantrips}`
@@ -693,6 +776,12 @@ export function PlayDeskSpellsCompact({
                           spell={spell}
                           characterLevel={characterLevel}
                           affinity={elementalAffinity}
+                          knownInvocationIds={knownInvocationIds}
+                          warlockLevel={warlockLevel ?? characterLevel}
+                          edition={edition}
+                          potentSpellcastingBonus={potentSpellcastingBonus}
+                          potentSpellcastingClass={potentSpellcastingClass}
+                          potentSpellcastingRangeBonusFt={potentSpellcastingRangeBonusFt}
                           learnMode={learnMode}
                           hasSpellbook={hasSpellbook}
                           activeConcentration={isActiveConc}
@@ -750,6 +839,7 @@ export function PlayDeskSpellsCompact({
         edition={edition}
         characterLevel={characterLevel}
         elementalAffinity={elementalAffinity}
+        improvedIllusions={improvedIllusions}
         spellMod={
           detailSpell
             ? (() => {
@@ -857,8 +947,43 @@ function compactDamage(
   spellMod: number | null,
   spellModLabel: string | null,
   affinity?: { damageType: string; amount: number } | null,
+  opts?: {
+    knownInvocationIds?: string[]
+    warlockLevel?: number
+    edition?: string | null
+    chaMod?: number
+    potentBonus?: number
+    potentClass?: 'cleric' | 'druid'
+  },
 ): string {
   const rules = withBundledRules(spell)
+  const isEb =
+    opts?.edition === '2024' &&
+    isEldritchBlastSpell({
+      name: spell.name,
+      catalogId: spell.catalog_id,
+      slug: (rules as { slug?: string }).slug,
+    })
+  if (isEb) {
+    const beamLevel = opts.warlockLevel && opts.warlockLevel > 0 ? opts.warlockLevel : characterLevel
+    const chaMod = opts?.chaMod ?? 0
+    const agonizing = agonizingBlastDamageBonus({
+      knownInvocationIds: opts?.knownInvocationIds,
+      chaMod,
+      spellName: spell.name,
+      catalogId: spell.catalog_id,
+      slug: (rules as { slug?: string }).slug,
+    })
+    let line = formatEldritchBlastDamagePreview({
+      characterLevel: beamLevel,
+      chaMod,
+      hasAgonizing: agonizing !== 0,
+    })
+    if (hasRepellingBlast(opts?.knownInvocationIds)) {
+      line = `${line} · отталкивание 10 фт`
+    }
+    return shortDamage(line)
+  }
   const level = Math.max(1, Math.floor(characterLevel) || 1)
   const slotLevel = Math.max(rules.level, 1)
   const summary = resolveCastEffectSummary(rules, {
@@ -868,17 +993,66 @@ function compactDamage(
     spellModLabel,
     affinity,
   })
+  const potent =
+    opts?.potentBonus && isPotentSpellcastingCantrip2024(spell, opts.potentClass)
+      ? opts.potentBonus
+      : 0
   const scaled = shortDamage(summary.effect)
-  if (scaled) return scaled
-  return shortDamage(rules.damage ?? '')
+  if (scaled) return shortDamage(applyPotentSpellcastingToDamage2024(scaled, potent))
+  return shortDamage(applyPotentSpellcastingToDamage2024(rules.damage ?? '', potent))
 }
 
-function compactSpellMeta(spell: SheetSpell): string {
+function compactSpellMeta(
+  spell: SheetSpell,
+  opts?: {
+    knownInvocationIds?: string[]
+    warlockLevel?: number
+    edition?: string | null
+    potentRangeBonusFt?: number
+  },
+): string {
   const parts: string[] = []
   const rules = withBundledRules(spell)
   const time = shortCastingTime(rules.casting_time || spell.casting_time)
   parts.push(time || '—')
-  const range = shortRange(rules.range || spell.range)
+  const isEb2024 =
+    opts?.edition === '2024' &&
+    isEldritchBlastSpell({
+      name: spell.name,
+      catalogId: spell.catalog_id,
+      slug: (rules as { slug?: string }).slug,
+    })
+  const spearFt = isEb2024
+    ? eldritchSpearRangeFt({
+        knownInvocationIds: opts?.knownInvocationIds,
+        warlockLevel: opts?.warlockLevel ?? 1,
+        rulesEdition: '2024',
+      })
+    : null
+  const baseRange = rules.range || spell.range
+  const potentRangeFt =
+    opts?.potentRangeBonusFt &&
+    spearFt == null &&
+    isPotentSpellcastingCantrip2024({ level: rules.level, class_slug: spell.class_slug }, 'druid')
+      ? opts.potentRangeBonusFt
+      : 0
+  const range =
+    spearFt != null
+      ? formatEldritchSpearRangeRu(spearFt)
+      : shortRange(
+          potentRangeFt > 0
+            ? potentSpellcastingRangeText2024(
+                baseRange,
+                potentRangeFt,
+                true,
+                produceFlameHurlFt2024({
+                  name: spell.name,
+                  slug: (rules as { slug?: string }).slug,
+                  catalog_id: spell.catalog_id,
+                }),
+              )
+            : baseRange,
+        )
   parts.push(range || '—')
   const atk = (rules.attack_or_save || spell.attack_or_save)?.trim()
   parts.push(atk && atk !== '—' ? atk : '—')
@@ -886,6 +1060,9 @@ function compactSpellMeta(spell: SheetSpell): string {
   if (comps) parts.push(comps)
   if (spell.school) parts.push(spellSchoolLabelRu(spell.school))
   if (spell.duration?.trim()) parts.push(spell.duration.trim())
+  if (isEb2024 && hasRepellingBlast(opts?.knownInvocationIds)) {
+    parts.push('отталкивание 10 фт')
+  }
   return parts.join(' · ')
 }
 
@@ -893,6 +1070,9 @@ function SpellRow({
   spell,
   characterLevel,
   affinity = null,
+  knownInvocationIds = [],
+  warlockLevel = 1,
+  edition = '2014',
   learnMode,
   hasSpellbook,
   activeConcentration,
@@ -906,10 +1086,19 @@ function SpellRow({
   showClassChip,
   metaOpen,
   onToggleMeta,
+  potentSpellcastingBonus = 0,
+  potentSpellcastingClass = 'cleric',
+  potentSpellcastingRangeBonusFt = 0,
 }: {
+  potentSpellcastingBonus?: number
+  potentSpellcastingClass?: 'cleric' | 'druid'
+  potentSpellcastingRangeBonusFt?: number
   spell: SheetSpell
   characterLevel: number
   affinity?: { damageType: string; amount: number } | null
+  knownInvocationIds?: string[]
+  warlockLevel?: number
+  edition?: string | null
   learnMode: 'known' | 'prepared_list' | 'spellbook' | null
   hasSpellbook: boolean
   activeConcentration: boolean
@@ -940,7 +1129,12 @@ function SpellRow({
         ? `от ${spell.item_cast.charges} зар.`
         : `${spell.item_cast.charges} зар.`
     : ''
-  const meta = compactSpellMeta(spell)
+  const meta = compactSpellMeta(spell, {
+    knownInvocationIds,
+    warlockLevel,
+    edition,
+    potentRangeBonusFt: potentSpellcastingRangeBonusFt,
+  })
   const modStats = resolveSpellCastStats({
     spell,
     profiles: castProfiles ?? [],
@@ -954,6 +1148,14 @@ function SpellRow({
     modStats.ability ? abilityModifier(abilities[modStats.ability]) : null,
     modStats.ability ? SPELLCASTING_ABILITY_LABELS[modStats.ability] : null,
     affinity,
+    {
+      knownInvocationIds,
+      warlockLevel,
+      edition,
+      chaMod: abilityModifier(abilities.cha),
+      potentBonus: potentSpellcastingBonus,
+      potentClass: potentSpellcastingClass,
+    },
   )
   const source = spellSourceBadge(spell)
   const granted = isGrantedSpellHighlight(spell)

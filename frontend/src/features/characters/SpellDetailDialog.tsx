@@ -10,6 +10,7 @@ import { listCatalogEntries, type CatalogEntry } from '../../shared/api/catalog'
 import type { RulesEdition } from '../../shared/api/characters'
 import { Dialog, Stack, Text } from '../../ui'
 import { withBundledRules } from './alwaysPreparedSpellEnrichment'
+import { improvedIllusionsRange2024 } from '../../shared/dnd/wizard2024Features'
 import { grantCastRemaining, spellSourceBadge, type SheetSpell } from './spells'
 
 type SpellDetailDialogProps = {
@@ -27,6 +28,8 @@ type SpellDetailDialogProps = {
   spellMod?: number | null
   spellModLabel?: string | null
   elementalAffinity?: { damageType: string; amount: number } | null
+  /** 2024 Illusionist (level 3+): Illusion spell range +60 ft. */
+  improvedIllusions?: boolean
 }
 
 type CatalogText = {
@@ -72,6 +75,7 @@ export function SpellDetailDialog({
   spellMod = null,
   spellModLabel = null,
   elementalAffinity = null,
+  improvedIllusions = false,
 }: SpellDetailDialogProps) {
   const [catalogText, setCatalogText] = useState<CatalogText | null>(null)
   const [catalogStatus, setCatalogStatus] = useState<'idle' | 'loading' | 'missing' | 'error'>(
@@ -192,10 +196,15 @@ export function SpellDetailDialog({
   const damageLine =
     shortDamage(castSummary.effect) || shortDamage(rules.damage ?? '') || ''
 
+  const improvedRange = improvedIllusions
+    ? improvedIllusionsRange2024(rules, { improvedIllusions: true })
+    : null
+  const rangeValue = improvedRange ?? (rules.range || '').trim()
+
   const rows: Array<{ label: string; value: string }> = [
     { label: 'Уровень', value: detailLevelLabel(rules.level) },
     { label: 'Время', value: (rules.casting_time || '').trim() },
-    { label: 'Дистанция', value: (rules.range || '').trim() },
+    { label: 'Дистанция', value: rangeValue },
     { label: 'Длительность', value: (rules.duration ?? '').trim() },
     { label: 'Компоненты', value: comps },
     { label: 'Школа', value: school },

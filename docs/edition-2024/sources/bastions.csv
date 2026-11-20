@@ -1,0 +1,36 @@
+id,name_en,name_ru,book,category,facility_kind,level,url_dndsu,url_ttg,srd
+bedroom,Bedroom,Спальня,DMG24,bastions,basic,,,,false
+dining-room,Dining Room,Столовая,DMG24,bastions,basic,,,,false
+parlor,Parlor,Гостиная,DMG24,bastions,basic,,,,false
+courtyard,Courtyard,Двор,DMG24,bastions,basic,,,,false
+kitchen,Kitchen,Кухня,DMG24,bastions,basic,,,,false
+storage,Storage,Кладовая,DMG24,bastions,basic,,,,false
+arcane-study,Arcane Study,Чародейский кабинет,DMG24,bastions,special,5,,,false
+armory,Armory,Оружейная,DMG24,bastions,special,5,,,false
+barrack,Barrack,Казарма,DMG24,bastions,special,5,,,false
+garden,Garden,Сад,DMG24,bastions,special,5,,,false
+library,Library,Библиотека,DMG24,bastions,special,5,,,false
+sanctuary,Sanctuary,Святилище,DMG24,bastions,special,5,,,false
+smithy,Smithy,Кузница,DMG24,bastions,special,5,,,false
+storehouse,Storehouse,Склад,DMG24,bastions,special,5,,,false
+workshop,Workshop,Мастерская,DMG24,bastions,special,5,,,false
+gaming-hall,Gaming Hall,Игорный зал,DMG24,bastions,special,9,,,false
+greenhouse,Greenhouse,Оранжерея,DMG24,bastions,special,9,,,false
+laboratory,Laboratory,Лаборатория,DMG24,bastions,special,9,,,false
+sacristy,Sacristy,Ризница,DMG24,bastions,special,9,,,false
+scriptorium,Scriptorium,Скрипторий,DMG24,bastions,special,9,,,false
+stable,Stable,Конюшня,DMG24,bastions,special,9,,,false
+teleportation-circle,Teleportation Circle,Круг телепортации,DMG24,bastions,special,9,,,false
+theater,Theater,Театр,DMG24,bastions,special,9,,,false
+training-area,Training Area,Тренировочная площадка,DMG24,bastions,special,9,,,false
+trophy-room,Trophy Room,Комната трофеев,DMG24,bastions,special,9,,,false
+archive,Archive,Архив,DMG24,bastions,special,13,,,false
+meditation-chamber,Meditation Chamber,Зал медитации,DMG24,bastions,special,13,,,false
+menagerie,Menagerie,Зверинец,DMG24,bastions,special,13,,,false
+observatory,Observatory,Обсерватория,DMG24,bastions,special,13,,,false
+pub,Pub,Трактир,DMG24,bastions,special,13,,,false
+reliquary,Reliquary,Реликварий,DMG24,bastions,special,13,,,false
+demiplane,Demiplane,Демиплан,DMG24,bastions,special,17,,,false
+guildhall,Guildhall,Гильдейский зал,DMG24,bastions,special,17,,,false
+sanctum,Sanctum,Святая обитель,DMG24,bastions,special,17,,,false
+war-room,War Room,Штаб,DMG24,bastions,special,17,,,false

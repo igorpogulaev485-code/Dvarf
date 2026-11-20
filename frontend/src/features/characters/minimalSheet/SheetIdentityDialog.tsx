@@ -2,7 +2,13 @@
 import type { SheetModel } from './sheetModel'
 import { CatalogCombobox } from '../../catalog'
 import { type RulesEdition } from '../../../shared/api/characters'
-import { reduceClassLevel, totalCharacterLevel } from '../../../shared/dnd/classLevels'
+import { reduceClassLevel, totalCharacterLevel, type ClassLevelEntry } from '../../../shared/dnd/classLevels'
+import { computeProgression2024 } from '../../../shared/dnd/edition2024Classes'
+import {
+  resolveClassSlug2024,
+  subclassDropsOnLevelDown2024,
+  trimClassOptionsForLevel2024,
+} from '../../../shared/dnd/pendingFeatureChoices2024'
 import { XpProgressField } from '../XpProgressField'
 import { revokeClassGrant } from '../classEffects'
 import { revokeBackgroundGrant } from '../backgroundEffects'
@@ -17,6 +23,11 @@ import {
 } from '../../../ui'
 import { isRaceComboboxRoot, raceSizeLabel } from '../../../shared/dnd/raceGrants'
 import {
+  raceSpeciesLabelTitle,
+  raceSpeciesSectionTitle,
+} from '../../../shared/dnd/raceSpeciesLabel'
+import { RULES_EDITION_2024_OPEN } from '../../../shared/dnd/rulesEdition2024'
+import {
   ALIGNMENTS,
   alignmentNeedsClarification,
   alignmentSheetLabel,
@@ -30,11 +41,22 @@ import { featureLockedExpertiseSkillIds } from '../../../shared/dnd/fighterArche
 import { clearFeaturePicksAboveClassLevel, listUnlockedExpertiseKeys } from '../../../shared/dnd/pendingFeatureChoices'
 import { revokeFeatGrantFromDraft, revokeFeatGrantsForAsi, revokeFeatGrantsForBackground, syncFeatProficiencyResources } from '../featEffects'
 import { syncHitDicePools } from '../../../shared/dnd/classHitDice'
+import { trimLevelUpSpellbookRows } from '../../../shared/dnd/wizardSpellbook'
+import { trimWizardBookPicksOnLevelDown2024 } from '../../../shared/dnd/wizardBook2024Features'
+import { trimSavantSpellsOnLevelDown2024 } from '../../../shared/dnd/wizard2024Features'
 import { averageHpGain, hitDieForClass } from '../../../shared/dnd/multiclassRules'
 import {
   expectedPassiveHpBonuses,
   hasDwarvenToughness,
 } from '../../../shared/dnd/hpPassiveBonuses'
+import {
+  trimDruid2024PicksOnLevelDown,
+  trimKnownFormsOnLevelDown2024,
+} from '../../../shared/dnd/druid2024Features'
+import { trimBard2024PicksOnLevelDown } from '../../../shared/dnd/bard2024Features'
+import { isOffBardList2024 } from '../bardSpellCatalog2024'
+import { draconicResilienceHpDelta2024 } from '../../../shared/dnd/sorcerer2024Features'
+import { dwarvenToughnessHpDelta2024 } from '../../../shared/dnd/speciesHpBonus2024'
 import { withSyncedHitDiceSummary } from '../play'
 import { unlockFeaturesForClasses } from '../../../shared/dnd/classFeatures'
 import { clearFeaturePicksForClass } from '../../../shared/dnd/featurePicks'
@@ -64,7 +86,105 @@ function withLevelSpellcasting(model: SheetModel, draft: Draft): {
   }
 }
 
+/** 2024 −1: drop the subclass below its level and trim invocations / metamagic / masteries. */
+function levelDownClassState2024(
+  model: SheetModel,
+  draft: Draft,
+  row: ClassLevelEntry,
+  beforeLevel: number,
+  newLevel: number,
+): Draft {
+  const slug = resolveClassSlug2024(row)
+  const trimmed = trimClassOptionsForLevel2024({
+    slug,
+    newLevel,
+    classOptions: draft.classOptions2024,
+    weaponMastery: draft.weaponMastery,
+  })
+  let next: Draft = {
+    ...draft,
+    classOptions2024: trimmed.classOptions,
+    weaponMastery: trimmed.weaponMastery,
+  }
+  if (slug === 'wizard') {
+    const known = trimSavantSpellsOnLevelDown2024(
+      trimLevelUpSpellbookRows(next.spells.known, newLevel),
+      newLevel,
+    )
+    if (known !== next.spells.known) next = { ...next, spells: { ...next.spells, known } }
+    const featurePicks = trimWizardBookPicksOnLevelDown2024(
+      next.featurePicks,
+      row.id,
+      newLevel,
+    )
+    if (featurePicks !== next.featurePicks) next = { ...next, featurePicks }
+  }
+  if (slug === 'druid') {
+    const featurePicks = trimDruid2024PicksOnLevelDown(next.featurePicks, row.id, newLevel)
+    const knownForms = trimKnownFormsOnLevelDown2024(next.knownForms, newLevel)
+    if (featurePicks !== next.featurePicks || knownForms !== next.knownForms) {
+      next = { ...next, featurePicks, knownForms }
+    }
+  }
+  if (slug === 'bard') {
+    const featurePicks = trimBard2024PicksOnLevelDown(next.featurePicks, row.id, newLevel)
+    if (featurePicks !== next.featurePicks) next = { ...next, featurePicks }
+    // Magical Secrets (L10+): drop off-list prepared spells when falling below 10.
+    // Always-prepared Lore discoveries (`feature-spell:…`, prepared_locked) stay until sync drops them.
+    if (newLevel < 10) {
+      const known = next.spells.known.filter((spell) => {
+        if (spell.level <= 0) return true
+        if (spell.prepared_locked) return true
+        if (String(spell.id || '').startsWith('feature-spell:')) return true
+        return !isOffBardList2024(spell)
+      })
+      if (known.length !== next.spells.known.length) {
+        next = { ...next, spells: { ...next.spells, known } }
+      }
+    }
+  }
+  const hasSubclass = Boolean(row.subclass_catalog_id || row.subclass_name.trim())
+  if (hasSubclass && subclassDropsOnLevelDown2024(slug, beforeLevel)) {
+    next = model.mergeSubclassSlice(
+      next,
+      revokeSubclassGrant(model.subclassSliceFrom(next), row.id, { copyTextToNotes: true }),
+    )
+    next = {
+      ...next,
+      classes: next.classes.map((item) =>
+        item.id === row.id ? { ...item, subclass_catalog_id: null, subclass_name: '' } : item,
+      ),
+      identity:
+        next.classes[0]?.id === row.id ? { ...next.identity, subclassName: '' } : next.identity,
+    }
+  }
+  return next
+}
+
+function unlockedForLevelDown(
+  model: SheetModel,
+  edition2024: boolean,
+  classes: ClassLevelEntry[],
+  abilities: Draft['abilities'],
+) {
+  if (edition2024) {
+    return computeProgression2024({
+      classes,
+      subclassSlugByEntryId: model.subclassSlugByEntryId,
+      abilities,
+    }).features
+  }
+  return unlockFeaturesForClasses({
+    classes,
+    characterLevel: totalCharacterLevel(classes),
+    abilities,
+    subclassSlugByEntryId: model.subclassSlugByEntryId,
+    subclassTransitionByEntryId: model.subclassTransitionByEntryId,
+  })
+}
+
 export function SheetIdentityDialog({ model }: { model: SheetModel }) {
+  const edition2024 = model.baseCharacter.rules_edition === '2024'
   return (
     <>
       <IdentityDialog
@@ -232,18 +352,47 @@ export function SheetIdentityDialog({ model }: { model: SheetModel }) {
                                 hitDieForClass({ className: row.name, catalogData: null }) ??
                                 'd8'
                               const conMod = abilityModifier(prev.abilities.con)
-                              const draconicResilience = (model.unlockedFeatures ?? []).some(
+                              const newLevelAfter = Math.max(0, beforeLevel - 1)
+                              const dragonLoss =
+                                edition2024 && /чародей|sorcerer/i.test(row.name)
+                                  ? Math.max(
+                                      0,
+                                      -draconicResilienceHpDelta2024({
+                                        oldLevel: beforeLevel,
+                                        newLevel: newLevelAfter,
+                                        subclassSlug:
+                                          row.subclass_catalog_id || row.subclass_name || null,
+                                      }),
+                                    )
+                                  : 0
+                              const oldCharacterLevel = totalCharacterLevel(prev.classes)
+                              const toughnessLoss = edition2024
+                                ? Math.max(
+                                    0,
+                                    -dwarvenToughnessHpDelta2024({
+                                      oldCharacterLevel,
+                                      newCharacterLevel: Math.max(0, oldCharacterLevel - 1),
+                                      speciesSlug:
+                                        prev.identity.speciesSlug ??
+                                        prev.raceGrant?.slug ??
+                                        null,
+                                    }),
+                                  )
+                                : 0
+                              const draconicResilience2014 = (model.unlockedFeatures ?? []).some(
                                 (f: { id?: string }) => f.id === 'draconic_resilience',
                               )
-                              const dwarvenToughness = hasDwarvenToughness(
+                              const dwarvenToughness2014 = hasDwarvenToughness(
                                 prev.raceGrant?.slug,
                               )
-                              const hpLoss = averageHpGain(die, conMod, {
-                                draconicResilience:
-                                  draconicResilience &&
-                                  /чародей|sorcerer/i.test(row.name),
-                                dwarvenToughness,
-                              })
+                              const hpLoss = edition2024
+                                ? averageHpGain(die, conMod) + dragonLoss + toughnessLoss
+                                : averageHpGain(die, conMod, {
+                                    draconicResilience:
+                                      draconicResilience2014 &&
+                                      /чародей|sorcerer/i.test(row.name),
+                                    dwarvenToughness: dwarvenToughness2014,
+                                  })
                               const nextClasses = reduceClassLevel(prev.classes, row.id)
                               const removed = !nextClasses.some((item) => item.id === row.id)
                               const hitDiceByClass = syncHitDicePools({
@@ -260,7 +409,7 @@ export function SheetIdentityDialog({ model }: { model: SheetModel }) {
                                   : Math.min(prev.hpCurrent, nextHpMax)
                               const nextPassiveHpBonuses = expectedPassiveHpBonuses({
                                 classes: nextClasses,
-                                draconicResilience,
+                                draconicResilience: draconicResilience2014,
                                 raceSlug: prev.raceGrant?.slug ?? null,
                               })
 
@@ -299,28 +448,31 @@ export function SheetIdentityDialog({ model }: { model: SheetModel }) {
 
                               if (!removed) {
                                 const newLevel = beforeLevel - 1
-                                const packFeatures = unlockFeaturesForClasses({
-                                  classes: prev.classes,
-                                  characterLevel: totalCharacterLevel(prev.classes),
-                                  abilities: prev.abilities,
-                                  subclassSlugByEntryId: model.subclassSlugByEntryId,
-                                  subclassTransitionByEntryId: model.subclassTransitionByEntryId,
-                                })
+                                const packFeatures = unlockedForLevelDown(
+                                  model,
+                                  edition2024,
+                                  prev.classes,
+                                  prev.abilities,
+                                )
                                   .filter((feature) => feature.classEntryId === row.id)
                                   .map((feature) => ({ id: feature.id, level: feature.level }))
-                                const nextPicks = clearFeaturePicksAboveClassLevel({
+                                const clearedPicks = clearFeaturePicksAboveClassLevel({
                                   featurePicks: featBase.featurePicks,
                                   classEntryId: row.id,
                                   features: packFeatures,
                                   newClassLevel: newLevel,
                                 })
-                                const nextUnlocked = unlockFeaturesForClasses({
-                                  classes: nextClasses,
-                                  characterLevel: totalCharacterLevel(nextClasses),
+                                // Expertise 9→8: drop expertise_9 and auto-trim a broken 4-pick L2 row to 2.
+                                const nextPicks =
+                                  edition2024 && resolveClassSlug2024(row) === 'bard'
+                                    ? trimBard2024PicksOnLevelDown(clearedPicks, row.id, newLevel)
+                                    : clearedPicks
+                                const nextUnlocked = unlockedForLevelDown(
+                                  model,
+                                  edition2024,
+                                  nextClasses,
                                   abilities,
-                                  subclassSlugByEntryId: model.subclassSlugByEntryId,
-                                  subclassTransitionByEntryId: model.subclassTransitionByEntryId,
-                                })
+                                )
                                 const nextSkills = syncSkillsExpertiseFromPicks({
                                   skills: featBase.skills,
                                   featurePicks: nextPicks,
@@ -349,7 +501,10 @@ export function SheetIdentityDialog({ model }: { model: SheetModel }) {
                                     }),
                                   ),
                                 )
-                                const raced = model.withRaceSpellsSynced(synced, nextClasses)
+                                const leveled = edition2024
+                                  ? levelDownClassState2024(model, synced, row, beforeLevel, newLevel)
+                                  : synced
+                                const raced = model.withRaceSpellsSynced(leveled, leveled.classes)
                                 const finished = withLevelSpellcasting(model, raced)
                                 tableChanged = finished.tableChanged
                                 return finished.draft
@@ -399,7 +554,11 @@ export function SheetIdentityDialog({ model }: { model: SheetModel }) {
                               return finished.draft
                             })
                             if (tableChanged) {
-                              model.onToast('Ячейки обновлены по таблице 2014')
+                              model.onToast(
+                                edition2024
+                                  ? 'Ячейки обновлены (редакция 2024)'
+                                  : 'Ячейки обновлены по таблице 2014',
+                              )
                             }
                           }}
                         >
@@ -467,11 +626,16 @@ export function SheetIdentityDialog({ model }: { model: SheetModel }) {
                 <Text tone="muted">Пока нет черт на листе.</Text>
               ) : (
                 model.draft.featGrants.map((row) => {
+                  const useSpecies =
+                    RULES_EDITION_2024_OPEN &&
+                    model.baseCharacter.rules_edition === '2024'
                   const sourceLabel =
                     row.source.kind === 'asi'
                       ? `Увел. характеристик · ур. ${row.source.atClassLevel}`
                       : row.source.kind === 'race'
-                        ? 'Раса'
+                        ? useSpecies
+                          ? raceSpeciesLabelTitle('2024')
+                          : 'Раса'
                         : row.source.kind === 'background'
                           ? 'Предыстория'
                           : 'Мастер'
@@ -511,15 +675,31 @@ export function SheetIdentityDialog({ model }: { model: SheetModel }) {
             </div>
           </section>
           <section className="identity-dialog__section">
-            <p className="identity-dialog__section-label">Раса и прошлое</p>
+            <p className="identity-dialog__section-label">
+              {RULES_EDITION_2024_OPEN &&
+              model.baseCharacter.rules_edition === '2024'
+                ? raceSpeciesSectionTitle('2024')
+                : 'Раса и прошлое'}
+            </p>
           <div className="sheet-grid sheet-grid--2">
             <Field
-              label="Раса"
+              label={
+                RULES_EDITION_2024_OPEN &&
+                model.baseCharacter.rules_edition === '2024'
+                  ? raceSpeciesLabelTitle('2024')
+                  : 'Раса'
+              }
               htmlFor="sheet-race"
               hint={
                 model.primaryClass?.name.trim()
-                  ? 'Шаг 3 · подраса и развилки — в попапе; если раса даёт черту — мастер подскажет'
-                  : 'Шаг 3 · сначала предыстория и класс, потом раса'
+                  ? RULES_EDITION_2024_OPEN &&
+                    model.baseCharacter.rules_edition === '2024'
+                    ? 'Шаг 3 · развилки вида — в попапе; если вид даёт черту — мастер подскажет'
+                    : 'Шаг 3 · подраса и развилки — в попапе; если раса даёт черту — мастер подскажет'
+                  : RULES_EDITION_2024_OPEN &&
+                      model.baseCharacter.rules_edition === '2024'
+                    ? 'Шаг 3 · сначала предыстория и класс, потом вид'
+                    : 'Шаг 3 · сначала предыстория и класс, потом раса'
               }
             >
               <CatalogCombobox
@@ -529,7 +709,10 @@ export function SheetIdentityDialog({ model }: { model: SheetModel }) {
                 value={model.draft.raceName}
                 placeholder={
                   model.primaryClass?.name.trim()
-                    ? 'Начните вводить расу'
+                    ? RULES_EDITION_2024_OPEN &&
+                      model.baseCharacter.rules_edition === '2024'
+                      ? 'Начните вводить вид'
+                      : 'Начните вводить расу'
                     : 'Сначала выбери класс'
                 }
                 disabled={!model.primaryClass?.name.trim()}

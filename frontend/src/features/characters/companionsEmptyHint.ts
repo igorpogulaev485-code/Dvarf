@@ -14,6 +14,8 @@ type ClassLike = {
 export function resolveCompanionsEmptyHint(input: {
   classes: ClassLike[]
   subclassSlugByEntryId?: Record<string, string | null | undefined>
+  /** 2024 uses the «Дикий спутник…» card button; 2014 keeps the Wild Shape fork. */
+  rulesEdition?: '2014' | '2024' | string | null
 }): CompanionsEmptyHint {
   const classes = input.classes
   const slugOf = (row: ClassLike) =>
@@ -21,12 +23,37 @@ export function resolveCompanionsEmptyHint(input: {
 
   const druid = classes.find((row) => /друид|druid/i.test(row.name))
   if (druid) {
+    if (input.rulesEdition === '2024') {
+      return {
+        kind: 'druid',
+        title: 'Нет спутника',
+        description:
+          'Дикий спутник — через кнопку «Дикий спутник…» на умении друида. Можно добавить вручную.',
+        actionLabel: 'Дикий спутник…',
+      }
+    }
     return {
       kind: 'druid',
       title: 'Нет спутника',
       description:
         'Дикий спутник — через кнопку «Через Дикий облик…» на умении друида. Можно добавить вручную.',
       actionLabel: 'Через Дикий облик…',
+    }
+  }
+
+  const warlock = classes.find((row) => /колдун|warlock/i.test(row.name))
+  if (warlock) {
+    const slug = slugOf(warlock)
+    const vestige =
+      /vestige/i.test(slug) || /предтеч/i.test(warlock.subclass_name || '')
+    if (vestige && (warlock.level ?? 1) >= 3) {
+      return {
+        kind: 'generic',
+        title: 'Нет спутника-предтечи',
+        description:
+          'У Предтечи спутник появляется после выбора типа (Исчадие / Небожитель / Нежить). Можно добавить вручную.',
+        actionLabel: '+ Добавить',
+      }
     }
   }
 

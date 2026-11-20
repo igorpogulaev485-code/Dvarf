@@ -40,13 +40,20 @@ export function clampSlot(slot: SpellSlotState): SpellSlotState {
   return { max, used }
 }
 
-/** PHB Flexible Casting: one new slot of level 1–5. It vanishes on a long rest. */
+/**
+ * Temporary extra slot (Flexible Casting / Nature Magician).
+ * Counted in `max` via `flexible`; removed on a long rest.
+ * Default max circle 5 (sorcerer Flexible Casting); pass `maxCircle: 9` for
+ * Archdruid Nature Magician (2 levels per Wild Shape use, up to 8).
+ */
 export function addFlexibleSpellSlot(
   slots: Record<string, SpellSlotState>,
   level: number,
+  options?: { maxCircle?: number },
 ): Record<string, SpellSlotState> | null {
   const circle = Math.floor(level)
-  if (circle < 1 || circle > 5) return null
+  const maxCircle = Math.max(1, Math.min(9, Math.floor(options?.maxCircle ?? 5)))
+  if (circle < 1 || circle > maxCircle) return null
   const key = String(circle)
   const current = clampSlot(slots[key] ?? { max: 0, used: 0 })
   return {

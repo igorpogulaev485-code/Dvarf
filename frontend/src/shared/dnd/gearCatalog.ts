@@ -291,6 +291,8 @@ export type ParsedWeaponCatalog = {
   ranged: boolean
   weight_lb: number | null
   properties: string[]
+  /** P24-M01 / C03: 2024 mastery property id (cleave, nick, …); null for 2014. */
+  mastery: string | null
   cost: GearCost | null
   range: WeaponRange | null
   versatile_damage: string
@@ -655,6 +657,8 @@ export function parseWeaponCatalogData(
       : 'str'
   const wearExplicit = isWearSlot(row.wear_slot) ? row.wear_slot : null
 
+  const masteryRaw = readString(row.mastery)?.toLowerCase() ?? null
+
   return {
     schema_version: readSchemaVersion(row),
     ability,
@@ -665,6 +669,7 @@ export function parseWeaponCatalogData(
     ranged,
     weight_lb: readWeightLb(row),
     properties,
+    mastery: masteryRaw,
     cost: parseGearCost(row.cost ?? row.price),
     range: parseWeaponRange(row.range ?? row.range_ft),
     versatile_damage:

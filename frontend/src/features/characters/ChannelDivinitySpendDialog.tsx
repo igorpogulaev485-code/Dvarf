@@ -13,9 +13,20 @@ import {
   isHarnessDivinePowerFeature,
   spentSlotLevels,
 } from '../../shared/dnd/harnessDivinePower'
+import {
+  CLERIC_2024_CARD_BUTTONS,
+  cleric2024UseFeatureId,
+} from '../../shared/dnd/cleric2024Features'
+import {
+  PALADIN_2024_CARD_BUTTONS,
+  paladin2024UseFeatureId,
+} from '../../shared/dnd/paladin2024Features'
 import type { SheetResource } from '../../shared/dnd/rest'
+import type { RulesEdition } from '../../shared/api/characters'
 import type { SpellSlotState } from '../../shared/dnd/spells'
 import { Button, Dialog, Stack, Text } from '../../ui'
+import type { ClericFeatureRequest } from './Cleric2024UseDialog'
+import type { PaladinFeatureRequest } from './Paladin2024UseDialog'
 
 type ChannelDivinitySpendDialogProps = {
   open: boolean
@@ -34,6 +45,10 @@ type ChannelDivinitySpendDialogProps = {
   }) => void
   onToast: (message: string) => void
   onClose: () => void
+  /** 2024 Cleric / Paladin: channel options open the class use dialog. */
+  edition?: RulesEdition
+  onClericFeatureUse?: (request: ClericFeatureRequest) => void
+  onPaladinFeatureUse?: (request: PaladinFeatureRequest) => void
 }
 
 function parseChannelResourceId(
@@ -65,6 +80,9 @@ export function ChannelDivinitySpendDialog({
   onHarnessDivinePower,
   onToast,
   onClose,
+  edition = '2014',
+  onClericFeatureUse,
+  onPaladinFeatureUse,
 }: ChannelDivinitySpendDialogProps) {
   const remaining = resource ? Math.max(0, resource.max - resource.used) : 0
   const parsed = resource ? parseChannelResourceId(resource.id) : null
@@ -209,6 +227,22 @@ export function ChannelDivinitySpendDialog({
                 )
               }
 
+              const clericUse =
+                edition === '2024' &&
+                onClericFeatureUse &&
+                resource &&
+                cleric2024UseFeatureId(feature.id)
+                  ? onClericFeatureUse
+                  : null
+              const paladinUse =
+                edition === '2024' &&
+                onPaladinFeatureUse &&
+                resource &&
+                paladin2024UseFeatureId(feature.id)
+                  ? onPaladinFeatureUse
+                  : null
+              const classUse = clericUse ?? paladinUse
+
               return (
                 <div key={featureKey(feature)} className="sorcery-spend-row">
                   <div className="sorcery-spend-row__text">
@@ -219,9 +253,29 @@ export function ChannelDivinitySpendDialog({
                     type="button"
                     variant="secondary"
                     disabled={remaining <= 0}
-                    onClick={() => spend(feature.name_ru)}
+                    onClick={() => {
+                      if (!classUse || !resource) {
+                        spend(feature.name_ru)
+                        return
+                      }
+                      if (remaining <= 0) {
+                        onToast('Нет использований Проведения божественности')
+                        return
+                      }
+                      classUse({
+                        featureId: feature.id,
+                        resourceId: resource.id,
+                        classSlug: classSlugForFeature(feature),
+                        classEntryId: feature.classEntryId,
+                        name: feature.name_ru,
+                      })
+                    }}
                   >
-                    −1
+                    {clericUse
+                      ? (CLERIC_2024_CARD_BUTTONS[feature.id] ?? 'Применить…')
+                      : paladinUse
+                        ? (PALADIN_2024_CARD_BUTTONS[feature.id] ?? 'Применить…')
+                        : '−1'}
                   </Button>
                 </div>
               )

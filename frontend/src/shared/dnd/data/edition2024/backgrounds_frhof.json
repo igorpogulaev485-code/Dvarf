@@ -1,0 +1,840 @@
+{
+  "meta": {
+    "pack": "P24-C17",
+    "rules_edition": "2024",
+    "source": "frhof",
+    "notes_ru": "18 предысторий FRHoF. ASI + origin_feat. RU: backgrounds.csv / next.dnd.su."
+  },
+  "entries": [
+    {
+      "kind": "background",
+      "slug": "arfist",
+      "name_ru": "Арфист",
+      "name_en": "Harper",
+      "source": "frhof",
+      "sort_order": 10,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/backgrounds/913-arfist",
+        "url_ttg": null,
+        "book": "FRHoF"
+      },
+      "data": {
+        "asi": {
+          "abilities": [
+            "dex",
+            "int",
+            "cha"
+          ],
+          "options": [
+            "+2/+1",
+            "+1/+1/+1"
+          ],
+          "cap": 20
+        },
+        "origin_feat": {
+          "id": "harper-agent",
+          "slug": "harper-agent",
+          "name_ru": "Агент Арфистов",
+          "name_en": "Harper Agent"
+        },
+        "skill_proficiencies": [
+          "performance",
+          "sleight_of_hand"
+        ],
+        "tool_proficiencies": [
+          "Набор для грима"
+        ],
+        "tool_choices": null,
+        "equipment_or_gold": {
+          "gold_alternative_gp": 50,
+          "pack_summary_ru": "Выберите А или Б: (А) Набор для грима, Спальник, Костюм, Крюк-кошка, Верёвка, Дорожная одежда и 14 ЗМ; или (Б) 50 ЗМ"
+        },
+        "traits_text": "Арфист (Герои Фаэруна): ЛОВ/ИНТ/ХАР (+2/+1 или +1/+1/+1). Черта: Агент Арфистов. Навыки: выступление, ловкость рук. Инструмент: Набор для грима. Пакет или 50 зм."
+      }
+    },
+    {
+      "kind": "background",
+      "slug": "chondathan-freebooter",
+      "name_ru": "Чондатский флибустьер",
+      "name_en": "Chondathan Freebooter",
+      "source": "frhof",
+      "sort_order": 20,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/backgrounds/907-chondathan-freebooter",
+        "url_ttg": "https://new.ttg.club/backgrounds/chondathan-freebooter-frhof",
+        "book": "FRHoF"
+      },
+      "data": {
+        "asi": {
+          "abilities": [
+            "str",
+            "dex",
+            "wis"
+          ],
+          "options": [
+            "+2/+1",
+            "+1/+1/+1"
+          ],
+          "cap": 20
+        },
+        "origin_feat": {
+          "id": "skilled",
+          "slug": "skilled",
+          "name_ru": "Умелый",
+          "name_en": "Skilled"
+        },
+        "skill_proficiencies": [
+          "athletics",
+          "sleight_of_hand"
+        ],
+        "tool_proficiencies": [
+          "Инструменты ткача"
+        ],
+        "tool_choices": null,
+        "equipment_or_gold": {
+          "gold_alternative_gp": 50,
+          "pack_summary_ru": "Выберите А или Б: (А) Кинжал, Инструменты ткача, Рюкзак, Металлические шарики, Корзина, Спальник, Ведро, Рационы на 3 дня, Верёвка, Сигнальный свисток, Дорожная одежда и 38 ЗМ; или (Б) 50 ЗМ"
+        },
+        "traits_text": "Чондатский флибустьер (Герои Фаэруна): СИЛ/ЛОВ/МУД (+2/+1 или +1/+1/+1). Черта: Умелый. Навыки: атлетика, ловкость рук. Инструмент: Инструменты ткача. Пакет или 50 зм."
+      }
+    },
+    {
+      "kind": "background",
+      "slug": "dead-magic-dweller",
+      "name_ru": "Обитатель зон мёртвой магии",
+      "name_en": "Dead Magic Dweller",
+      "source": "frhof",
+      "sort_order": 30,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/backgrounds/908-dead-magic-dweller",
+        "url_ttg": "https://new.ttg.club/backgrounds/dead-magic-dweller-frhof",
+        "book": "FRHoF"
+      },
+      "data": {
+        "asi": {
+          "abilities": [
+            "str",
+            "con",
+            "wis"
+          ],
+          "options": [
+            "+2/+1",
+            "+1/+1/+1"
+          ],
+          "cap": 20
+        },
+        "origin_feat": {
+          "id": "healer",
+          "slug": "healer",
+          "name_ru": "Целитель",
+          "name_en": "Healer"
+        },
+        "skill_proficiencies": [
+          "survival",
+          "medicine"
+        ],
+        "tool_proficiencies": [
+          "Инструменты кожевника"
+        ],
+        "tool_choices": null,
+        "equipment_or_gold": {
+          "gold_alternative_gp": 50,
+          "pack_summary_ru": "Выберите А или Б: (А) Двуручная дубина, Инструменты кожевника, Спальник, Одеяло, Комплект целителя, Шест, Рационы на 3 дня, Палатка, Огниво, 5 Факелов, Дорожная одежда, Бурдюк и 32 ЗМ; или (Б) 50 ЗМ"
+        },
+        "traits_text": "Обитатель зон мёртвой магии (Герои Фаэруна): СИЛ/ТЕЛ/МУД (+2/+1 или +1/+1/+1). Черта: Целитель. Навыки: выживание, медицина. Инструмент: Инструменты кожевника. Пакет или 50 зм."
+      }
+    },
+    {
+      "kind": "background",
+      "slug": "dragon-cultist",
+      "name_ru": "Культист Дракона",
+      "name_en": "Dragon Cultist",
+      "source": "frhof",
+      "sort_order": 40,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/backgrounds/909-dragon-cultist",
+        "url_ttg": "https://new.ttg.club/backgrounds/dragon-cultist-frhof",
+        "book": "FRHoF"
+      },
+      "data": {
+        "asi": {
+          "abilities": [
+            "dex",
+            "con",
+            "int"
+          ],
+          "options": [
+            "+2/+1",
+            "+1/+1/+1"
+          ],
+          "cap": 20
+        },
+        "origin_feat": {
+          "id": "cult-of-the-dragon-initiate",
+          "slug": "cult-of-the-dragon-initiate",
+          "name_ru": "Посвящённый Культа дракона",
+          "name_en": "Cult of the Dragon Initiate"
+        },
+        "skill_proficiencies": [
+          "deception",
+          "stealth"
+        ],
+        "tool_proficiencies": [
+          "Инструменты каллиграфа"
+        ],
+        "tool_choices": null,
+        "equipment_or_gold": {
+          "gold_alternative_gp": 50,
+          "pack_summary_ru": "Выберите А или Б: (А) Инструменты каллиграфа, Кинжал, Стеклянная бутылка, Лампа, Кандалы, 5 фляг Масла, 2 Кошеля, Мантия, Верёвка и 30 ЗМ; или (Б) 50 ЗМ"
+        },
+        "traits_text": "Культист Дракона (Герои Фаэруна): ЛОВ/ТЕЛ/ИНТ (+2/+1 или +1/+1/+1). Черта: Посвящённый Культа дракона. Навыки: обман, скрытность. Инструмент: Инструменты каллиграфа. Пакет или 50 зм."
+      }
+    },
+    {
+      "kind": "background",
+      "slug": "emerald-enclave-caretaker",
+      "name_ru": "Смотритель Изумрудного анклава",
+      "name_en": "Emerald Enclave Caretaker",
+      "source": "frhof",
+      "sort_order": 50,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/backgrounds/910-emerald-enclave-caretaker",
+        "url_ttg": "https://new.ttg.club/backgrounds/emerald-enclave-caretaker-frhof",
+        "book": "FRHoF"
+      },
+      "data": {
+        "asi": {
+          "abilities": [
+            "con",
+            "int",
+            "wis"
+          ],
+          "options": [
+            "+2/+1",
+            "+1/+1/+1"
+          ],
+          "cap": 20
+        },
+        "origin_feat": {
+          "id": "emerald-enclave-fledgling",
+          "slug": "emerald-enclave-fledgling",
+          "name_ru": "Птенец Изумрудного анклава",
+          "name_en": "Emerald Enclave Fledgling"
+        },
+        "skill_proficiencies": [
+          "survival",
+          "nature"
+        ],
+        "tool_proficiencies": [
+          "Набор травника"
+        ],
+        "tool_choices": null,
+        "equipment_or_gold": {
+          "gold_alternative_gp": 50,
+          "pack_summary_ru": "Выберите А или Б: (А) Короткий лук, 20 Стрел, Набор травника, Спальник, Одеяло, Кошель, Палатка, Дорожная одежда и 13 ЗМ; или (Б) 50 ЗМ"
+        },
+        "traits_text": "Смотритель Изумрудного анклава (Герои Фаэруна): ТЕЛ/ИНТ/МУД (+2/+1 или +1/+1/+1). Черта: Птенец Изумрудного анклава. Навыки: выживание, природа. Инструмент: Набор травника. Пакет или 50 зм."
+      }
+    },
+    {
+      "kind": "background",
+      "slug": "flaming-fist-mercenary",
+      "name_ru": "Наёмник Пламенного кулака",
+      "name_en": "Flaming Fist Mercenary",
+      "source": "frhof",
+      "sort_order": 60,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/backgrounds/911-flaming-fist-mercenary",
+        "url_ttg": "https://new.ttg.club/backgrounds/flaming-fist-mercenary-frhof",
+        "book": "FRHoF"
+      },
+      "data": {
+        "asi": {
+          "abilities": [
+            "str",
+            "con",
+            "cha"
+          ],
+          "options": [
+            "+2/+1",
+            "+1/+1/+1"
+          ],
+          "cap": 20
+        },
+        "origin_feat": {
+          "id": "tough",
+          "slug": "tough",
+          "name_ru": "Крепкий",
+          "name_en": "Tough"
+        },
+        "skill_proficiencies": [
+          "perception",
+          "intimidation"
+        ],
+        "tool_proficiencies": [
+          "Инструменты кузнеца"
+        ],
+        "tool_choices": null,
+        "equipment_or_gold": {
+          "gold_alternative_gp": 50,
+          "pack_summary_ru": "Выберите А или Б: (А) Булава, Инструменты кузнеца, Отличная одежда, Кандалы, Портативный таран и 4 ЗМ; или (Б) 50 ЗМ"
+        },
+        "traits_text": "Наёмник Пламенного кулака (Герои Фаэруна): СИЛ/ТЕЛ/ХАР (+2/+1 или +1/+1/+1). Черта: Крепкий. Навыки: внимательность, запугивание. Инструмент: Инструменты кузнеца. Пакет или 50 зм."
+      }
+    },
+    {
+      "kind": "background",
+      "slug": "genie-touched",
+      "name_ru": "Затронутый гением",
+      "name_en": "Genie Touched",
+      "source": "frhof",
+      "sort_order": 70,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/backgrounds/912-genie-touched",
+        "url_ttg": "https://new.ttg.club/backgrounds/genie-touched-frhof",
+        "book": "FRHoF"
+      },
+      "data": {
+        "asi": {
+          "abilities": [
+            "dex",
+            "wis",
+            "cha"
+          ],
+          "options": [
+            "+2/+1",
+            "+1/+1/+1"
+          ],
+          "cap": 20
+        },
+        "origin_feat": {
+          "id": "magic-initiate",
+          "slug": "magic-initiate",
+          "name_ru": "Посвящённый в магию",
+          "name_en": "Magic Initiate",
+          "variant": "wizard"
+        },
+        "skill_proficiencies": [
+          "perception",
+          "persuasion"
+        ],
+        "tool_proficiencies": [
+          "Инструменты стеклодува"
+        ],
+        "tool_choices": null,
+        "equipment_or_gold": {
+          "gold_alternative_gp": 50,
+          "pack_summary_ru": "Выберите А или Б: (А) Лёгкий молот, Инструменты стеклодува, Отличная одежда, Лампа, 3 фляги Масла, Бурдюк и 2 ЗМ; или (Б) 50 ЗМ"
+        },
+        "traits_text": "Затронутый гением (Герои Фаэруна): ЛОВ/МУД/ХАР (+2/+1 или +1/+1/+1). Черта: Посвящённый в магию. Навыки: внимательность, убеждение. Инструмент: Инструменты стеклодува. Пакет или 50 зм."
+      }
+    },
+    {
+      "kind": "background",
+      "slug": "ice-fisher",
+      "name_ru": "Подлёдный рыболов",
+      "name_en": "Ice Fisher",
+      "source": "frhof",
+      "sort_order": 80,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/backgrounds/914-ice-fisher",
+        "url_ttg": "https://new.ttg.club/backgrounds/ice-fisher-frhof",
+        "book": "FRHoF"
+      },
+      "data": {
+        "asi": {
+          "abilities": [
+            "str",
+            "dex",
+            "con"
+          ],
+          "options": [
+            "+2/+1",
+            "+1/+1/+1"
+          ],
+          "cap": 20
+        },
+        "origin_feat": {
+          "id": "alert",
+          "slug": "alert",
+          "name_ru": "Бдительный",
+          "name_en": "Alert"
+        },
+        "skill_proficiencies": [
+          "athletics",
+          "animal_handling"
+        ],
+        "tool_proficiencies": [
+          "Инструменты резчика по дереву"
+        ],
+        "tool_choices": null,
+        "equipment_or_gold": {
+          "gold_alternative_gp": 50,
+          "pack_summary_ru": "Выберите А или Б: (А) Инструменты резчика по дереву, Корзина, Блок и лебёдка, Ведро, Цепь, Охотничий капкан, Сеть, Шест, Рационы на 3 дня, Верёвка, Дорожная одежда и 32 ЗМ; или (Б) 50 ЗМ"
+        },
+        "traits_text": "Подлёдный рыболов (Герои Фаэруна): СИЛ/ЛОВ/ТЕЛ (+2/+1 или +1/+1/+1). Черта: Бдительный. Навыки: атлетика, обращение с животными. Инструмент: Инструменты резчика по дереву. Пакет или 50 зм."
+      }
+    },
+    {
+      "kind": "background",
+      "slug": "knight-of-the-gauntlet",
+      "name_ru": "Рыцарь Латной перчатки",
+      "name_en": "Knight of the Gauntlet",
+      "source": "frhof",
+      "sort_order": 90,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/backgrounds/915-knight-of-the-gauntlet",
+        "url_ttg": "https://new.ttg.club/backgrounds/knight-of-the-gauntlet-frhof",
+        "book": "FRHoF"
+      },
+      "data": {
+        "asi": {
+          "abilities": [
+            "str",
+            "int",
+            "wis"
+          ],
+          "options": [
+            "+2/+1",
+            "+1/+1/+1"
+          ],
+          "cap": 20
+        },
+        "origin_feat": {
+          "id": "tyro-of-the-gauntlet",
+          "slug": "tyro-of-the-gauntlet",
+          "name_ru": "Новичок Латной перчатки",
+          "name_en": "Tyro of the Gauntlet"
+        },
+        "skill_proficiencies": [
+          "athletics",
+          "medicine"
+        ],
+        "tool_proficiencies": [
+          "Инструменты кузнеца"
+        ],
+        "tool_choices": null,
+        "equipment_or_gold": {
+          "gold_alternative_gp": 50,
+          "pack_summary_ru": "Выберите А или Б: (А) Копьё, Инструменты кузнеца, Направленный фонарь, Священный символ, Кандалы, 5 фляг Масла, Трутница, Дорожная одежда и 9 ЗМ; или (Б) 50 ЗМ"
+        },
+        "traits_text": "Рыцарь Латной перчатки (Герои Фаэруна): СИЛ/ИНТ/МУД (+2/+1 или +1/+1/+1). Черта: Новичок Латной перчатки. Навыки: атлетика, медицина. Инструмент: Инструменты кузнеца. Пакет или 50 зм."
+      }
+    },
+    {
+      "kind": "background",
+      "slug": "lords-alliance-vassal",
+      "name_ru": "Вассал Альянса лордов",
+      "name_en": "Lords’ Alliance Vassal",
+      "source": "frhof",
+      "sort_order": 100,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/backgrounds/916-lords-alliance-vassal",
+        "url_ttg": "https://new.ttg.club/backgrounds/lords-alliance-vassal-frhof",
+        "book": "FRHoF"
+      },
+      "data": {
+        "asi": {
+          "abilities": [
+            "str",
+            "int",
+            "cha"
+          ],
+          "options": [
+            "+2/+1",
+            "+1/+1/+1"
+          ],
+          "cap": 20
+        },
+        "origin_feat": {
+          "id": "lords-alliance-agent",
+          "slug": "lords-alliance-agent",
+          "name_ru": "Агент Альянса лордов",
+          "name_en": "Lords' Alliance Agent"
+        },
+        "skill_proficiencies": [
+          "insight",
+          "persuasion"
+        ],
+        "tool_proficiencies": [
+          "Инструменты каллиграфа"
+        ],
+        "tool_choices": null,
+        "equipment_or_gold": {
+          "gold_alternative_gp": 50,
+          "pack_summary_ru": "Выберите А или Б: (А) 2 Метательных копья, Инструменты каллиграфа, Отличная одежда, Чернила, 5 Писчих перьев, 9 листов Пергамента и 13 ЗМ; или (Б) 50 ЗМ"
+        },
+        "traits_text": "Вассал Альянса лордов (Герои Фаэруна): СИЛ/ИНТ/ХАР (+2/+1 или +1/+1/+1). Черта: Агент Альянса лордов. Навыки: проницательность, убеждение. Инструмент: Инструменты каллиграфа. Пакет или 50 зм."
+      }
+    },
+    {
+      "kind": "background",
+      "slug": "moonwell-pilgrim",
+      "name_ru": "Пилигрим лунного колодца",
+      "name_en": "Moonwell Pilgrim",
+      "source": "frhof",
+      "sort_order": 110,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/backgrounds/917-moonwell-pilgrim",
+        "url_ttg": "https://new.ttg.club/backgrounds/moonwell-pilgrim-frhof",
+        "book": "FRHoF"
+      },
+      "data": {
+        "asi": {
+          "abilities": [
+            "con",
+            "wis",
+            "cha"
+          ],
+          "options": [
+            "+2/+1",
+            "+1/+1/+1"
+          ],
+          "cap": 20
+        },
+        "origin_feat": {
+          "id": "magic-initiate",
+          "slug": "magic-initiate",
+          "name_ru": "Посвящённый в магию",
+          "name_en": "Magic Initiate",
+          "variant": "druid"
+        },
+        "skill_proficiencies": [
+          "performance",
+          "nature"
+        ],
+        "tool_proficiencies": [
+          "Инструменты художника"
+        ],
+        "tool_choices": null,
+        "equipment_or_gold": {
+          "gold_alternative_gp": 50,
+          "pack_summary_ru": "Выберите А или Б: (А) Боевой посох, Инструменты художника, Спальник, Колокольчик, Кошель, Мантия, Леска, Дорожная одежда, Бурдюк и 34 ЗМ; или (Б) 50 ЗМ"
+        },
+        "traits_text": "Пилигрим лунного колодца (Герои Фаэруна): ТЕЛ/МУД/ХАР (+2/+1 или +1/+1/+1). Черта: Посвящённый в магию. Навыки: выступление, природа. Инструмент: Инструменты художника. Пакет или 50 зм."
+      }
+    },
+    {
+      "kind": "background",
+      "slug": "mulhorandi-tomb-raider",
+      "name_ru": "Расхититель гробниц Мулхоранда",
+      "name_en": "Mulhorandi Tomb Raider",
+      "source": "frhof",
+      "sort_order": 120,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/backgrounds/918-mulhorandi-tomb-raider",
+        "url_ttg": "https://new.ttg.club/backgrounds/mulhorandi-tomb-raider-frhof",
+        "book": "FRHoF"
+      },
+      "data": {
+        "asi": {
+          "abilities": [
+            "dex",
+            "con",
+            "int"
+          ],
+          "options": [
+            "+2/+1",
+            "+1/+1/+1"
+          ],
+          "cap": 20
+        },
+        "origin_feat": {
+          "id": "lucky",
+          "slug": "lucky",
+          "name_ru": "Везучий",
+          "name_en": "Lucky"
+        },
+        "skill_proficiencies": [
+          "investigation",
+          "religion"
+        ],
+        "tool_proficiencies": [
+          "Инструменты каменщика"
+        ],
+        "tool_choices": null,
+        "equipment_or_gold": {
+          "gold_alternative_gp": 50,
+          "pack_summary_ru": "Выберите А или Б: (А) Кинжал, Лёгкий молот, Инструменты каменщика, Рюкзак, Спальник, Ломик, Лестница, Шест, 2 Кошеля, Верёвка, Леска, Трутница, 5 Факелов, Дорожная одежда, Бурдюк и 26 ЗМ; или (Б) 50 ЗМ"
+        },
+        "traits_text": "Расхититель гробниц Мулхоранда (Герои Фаэруна): ЛОВ/ТЕЛ/ИНТ (+2/+1 или +1/+1/+1). Черта: Везучий. Навыки: расследование, религия. Инструмент: Инструменты каменщика. Пакет или 50 зм."
+      }
+    },
+    {
+      "kind": "background",
+      "slug": "mythalkeeper",
+      "name_ru": "Хранитель мифала",
+      "name_en": "Mythalkeeper",
+      "source": "frhof",
+      "sort_order": 130,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/backgrounds/919-mythalkeeper",
+        "url_ttg": "https://new.ttg.club/backgrounds/mythalkeeper-frhof",
+        "book": "FRHoF"
+      },
+      "data": {
+        "asi": {
+          "abilities": [
+            "int",
+            "wis",
+            "cha"
+          ],
+          "options": [
+            "+2/+1",
+            "+1/+1/+1"
+          ],
+          "cap": 20
+        },
+        "origin_feat": {
+          "id": "crafter",
+          "slug": "crafter",
+          "name_ru": "Мастеровой",
+          "name_en": "Crafter"
+        },
+        "skill_proficiencies": [
+          "history",
+          "arcana"
+        ],
+        "tool_proficiencies": [
+          "Инструменты ювелира"
+        ],
+        "tool_choices": null,
+        "equipment_or_gold": {
+          "gold_alternative_gp": 50,
+          "pack_summary_ru": "Выберите А или Б: (А) Боевой посох, Инструменты ювелира, Духи, Кошель, Мантия, Лопата, Леска, Бурдюк и 16 ЗМ; или (Б) 50 ЗМ"
+        },
+        "traits_text": "Хранитель мифала (Герои Фаэруна): ИНТ/МУД/ХАР (+2/+1 или +1/+1/+1). Черта: Мастеровой. Навыки: история, тайная магия. Инструмент: Инструменты ювелира. Пакет или 50 зм."
+      }
+    },
+    {
+      "kind": "background",
+      "slug": "purple-dragon-squire",
+      "name_ru": "Оруженосец Пурпурного дракона",
+      "name_en": "Purple Dragon Squire",
+      "source": "frhof",
+      "sort_order": 140,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/backgrounds/920-purple-dragon-squire",
+        "url_ttg": "https://new.ttg.club/backgrounds/purple-dragon-squire-frhof",
+        "book": "FRHoF"
+      },
+      "data": {
+        "asi": {
+          "abilities": [
+            "str",
+            "wis",
+            "cha"
+          ],
+          "options": [
+            "+2/+1",
+            "+1/+1/+1"
+          ],
+          "cap": 20
+        },
+        "origin_feat": {
+          "id": "purple-dragon-rook",
+          "slug": "purple-dragon-rook",
+          "name_ru": "Новобранец Пурпурного дракона",
+          "name_en": "Purple Dragon Rook"
+        },
+        "skill_proficiencies": [
+          "animal_handling",
+          "insight"
+        ],
+        "tool_proficiencies": [
+          "Инструменты навигатора"
+        ],
+        "tool_choices": null,
+        "equipment_or_gold": {
+          "gold_alternative_gp": 50,
+          "pack_summary_ru": "Выберите А или Б: (А) Копьё, Инструменты навигатора, Отличная одежда и 9 ЗМ; или (Б) 50 ЗМ"
+        },
+        "traits_text": "Оруженосец Пурпурного дракона (Герои Фаэруна): СИЛ/МУД/ХАР (+2/+1 или +1/+1/+1). Черта: Новобранец Пурпурного дракона. Навыки: обращение с животными, проницательность. Инструмент: Инструменты навигатора. Пакет или 50 зм."
+      }
+    },
+    {
+      "kind": "background",
+      "slug": "rashemi-wanderer",
+      "name_ru": "Рашеменский странник",
+      "name_en": "Rashemi Wanderer",
+      "source": "frhof",
+      "sort_order": 150,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/backgrounds/921-rashemi-wanderer",
+        "url_ttg": "https://new.ttg.club/backgrounds/rashemi-wanderer-frhof",
+        "book": "FRHoF"
+      },
+      "data": {
+        "asi": {
+          "abilities": [
+            "str",
+            "con",
+            "cha"
+          ],
+          "options": [
+            "+2/+1",
+            "+1/+1/+1"
+          ],
+          "cap": 20
+        },
+        "origin_feat": {
+          "id": "tough",
+          "slug": "tough",
+          "name_ru": "Крепкий",
+          "name_en": "Tough"
+        },
+        "skill_proficiencies": [
+          "perception",
+          "intimidation"
+        ],
+        "tool_proficiencies": [
+          "Инструменты картографа"
+        ],
+        "tool_choices": null,
+        "equipment_or_gold": {
+          "gold_alternative_gp": 50,
+          "pack_summary_ru": "Выберите А или Б: (А) Инструменты картографа, Рюкзак, Спальник, Направленный фонарь, 3 фляги Масла, Верёвка, Трутница, Дорожная одежда, Бурдюк и 23 ЗМ; или (Б) 50 ЗМ"
+        },
+        "traits_text": "Рашеменский странник (Герои Фаэруна): СИЛ/ТЕЛ/ХАР (+2/+1 или +1/+1/+1). Черта: Крепкий. Навыки: внимательность, запугивание. Инструмент: Инструменты картографа. Пакет или 50 зм."
+      }
+    },
+    {
+      "kind": "background",
+      "slug": "shadowmasters-exile",
+      "name_ru": "Изгнанник Владык теней",
+      "name_en": "Shadowmasters Exile",
+      "source": "frhof",
+      "sort_order": 160,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/backgrounds/922-shadowmasters-exile",
+        "url_ttg": "https://new.ttg.club/backgrounds/shadowmasters-exile-frhof",
+        "book": "FRHoF"
+      },
+      "data": {
+        "asi": {
+          "abilities": [
+            "dex",
+            "int",
+            "cha"
+          ],
+          "options": [
+            "+2/+1",
+            "+1/+1/+1"
+          ],
+          "cap": 20
+        },
+        "origin_feat": {
+          "id": "savage-attacker",
+          "slug": "savage-attacker",
+          "name_ru": "Свирепый атакующий",
+          "name_en": "Savage Attacker"
+        },
+        "skill_proficiencies": [
+          "acrobatics",
+          "stealth"
+        ],
+        "tool_proficiencies": [
+          "Воровские инструменты"
+        ],
+        "tool_choices": null,
+        "equipment_or_gold": {
+          "gold_alternative_gp": 50,
+          "pack_summary_ru": "Выберите А или Б: (А) 2 Кинжала, Воровские инструменты, Калтропы (сумка), Крюк-кошка, Железные шипы, Зеркало, 2 Кошеля, Верёвка, Дорожная одежда и 3 ЗМ; или (Б) 50 ЗМ"
+        },
+        "traits_text": "Изгнанник Владык теней (Герои Фаэруна): ЛОВ/ИНТ/ХАР (+2/+1 или +1/+1/+1). Черта: Неистово атакующий. Навыки: акробатика, скрытность. Инструмент: Воровские инструменты. Пакет или 50 зм."
+      }
+    },
+    {
+      "kind": "background",
+      "slug": "spellfire-initiate",
+      "name_ru": "Посвящённый чаропламени",
+      "name_en": "Spellfire Initiate",
+      "source": "frhof",
+      "sort_order": 170,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/backgrounds/923-spellfire-initiate",
+        "url_ttg": "https://new.ttg.club/backgrounds/spellfire-initiate-frhof",
+        "book": "FRHoF"
+      },
+      "data": {
+        "asi": {
+          "abilities": [
+            "con",
+            "int",
+            "cha"
+          ],
+          "options": [
+            "+2/+1",
+            "+1/+1/+1"
+          ],
+          "cap": 20
+        },
+        "origin_feat": {
+          "id": "spellfire-spark",
+          "slug": "spellfire-spark",
+          "name_ru": "Искра чаропламени",
+          "name_en": "Spellfire Spark"
+        },
+        "skill_proficiencies": [
+          "perception",
+          "arcana"
+        ],
+        "tool_proficiencies": [
+          "Игровой набор"
+        ],
+        "tool_choices": null,
+        "equipment_or_gold": {
+          "gold_alternative_gp": 50,
+          "pack_summary_ru": "Выберите А или Б: (А) Игровой набор (выбранный выше), Магическая фокусировка ( Кристалл или Волшебная палочка ), 2 Кошеля, Дорожная одежда и 36 ЗМ; или (Б) 50 ЗМ"
+        },
+        "traits_text": "Посвящённый чаропламени (Герои Фаэруна): ТЕЛ/ИНТ/ХАР (+2/+1 или +1/+1/+1). Черта: Искра чаропламени. Навыки: внимательность, тайная магия. Инструмент: Игровой набор. Пакет или 50 зм."
+      }
+    },
+    {
+      "kind": "background",
+      "slug": "zhentarim-mercenary",
+      "name_ru": "Наёмник Жентарима",
+      "name_en": "Zhentarim Mercenary",
+      "source": "frhof",
+      "sort_order": 180,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/backgrounds/924-zhentarim-mercenary",
+        "url_ttg": "https://new.ttg.club/backgrounds/zhentarim-mercenary-frhof",
+        "book": "FRHoF"
+      },
+      "data": {
+        "asi": {
+          "abilities": [
+            "str",
+            "dex",
+            "cha"
+          ],
+          "options": [
+            "+2/+1",
+            "+1/+1/+1"
+          ],
+          "cap": 20
+        },
+        "origin_feat": {
+          "id": "zhentarim-ruffian",
+          "slug": "zhentarim-ruffian",
+          "name_ru": "Бандит Жентарима",
+          "name_en": "Zhentarim Ruffian"
+        },
+        "skill_proficiencies": [
+          "perception",
+          "intimidation"
+        ],
+        "tool_proficiencies": [
+          "Набор фальшивомонетчика"
+        ],
+        "tool_choices": null,
+        "equipment_or_gold": {
+          "gold_alternative_gp": 50,
+          "pack_summary_ru": "Выберите А или Б: (А) Дубинка, Кинжал, Набор фальшивомонетчика, Отличная одежда, Направленный фонарь, 3 фляги Масла, 2 Кошеля, Леска, Трутница и 11 ЗМ; или (Б) 50 ЗМ"
+        },
+        "traits_text": "Наёмник Жентарима (Герои Фаэруна): СИЛ/ЛОВ/ХАР (+2/+1 или +1/+1/+1). Черта: Разбойник Жентарима. Навыки: внимательность, запугивание. Инструмент: Набор фальшивомонетчика. Пакет или 50 зм."
+      }
+    }
+  ]
+}

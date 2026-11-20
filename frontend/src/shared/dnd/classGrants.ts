@@ -1,6 +1,7 @@
 /** PHB 2014 class starting package + multiclass proficiency grants (no class features). */
 
 import type { HitDie } from './hitDice'
+import { MULTICLASS_PROFICIENCIES_2024 } from './edition2024Classes'
 import { CLASS_HIT_DIE, resolveClassSlug } from './multiclassRules'
 import { withStartingGearWeight } from './startingGearWeights'
 
@@ -1462,6 +1463,9 @@ function parseWeaponKeys(raw: unknown): WeaponProfKey[] {
   return keys
 }
 
+/** Monk 2024 weapon extra (not full martial). */
+const LIGHT_MARTIAL_MELEE_RU = 'Воинское рукопашное оружие со свойством «лёгкое»'
+
 function parseWeaponExtras(raw: unknown): string[] {
   if (!raw || typeof raw !== 'object') return []
   const row = raw as Record<string, unknown>
@@ -1494,6 +1498,8 @@ function parseWeaponExtras(raw: unknown): string[] {
     net: 'Сеть',
     battleaxe: 'Боевой топор',
     light_hammer: 'Лёгкий молот',
+    light_martial_melee: LIGHT_MARTIAL_MELEE_RU,
+    light_martial: LIGHT_MARTIAL_MELEE_RU,
   }
   const out: string[] = []
   const seen = new Set<string>()
@@ -1678,6 +1684,44 @@ export function catalogHasClassGrantData(
   )
 }
 
+/** 2024 multiclass «Владения» table (PHB 2024) → the same package shape the sheet applies. */
+export function multiclassPackage2024(
+  slug: string,
+  data: Record<string, unknown> | null | undefined,
+): ClassProficiencyPackage | null {
+  const row = MULTICLASS_PROFICIENCIES_2024[slug]
+  if (!row) return null
+  const armor = row.armor.filter(isArmorProfKey)
+  const weapons: WeaponProfKey[] = []
+  const weaponExtras: string[] = []
+  for (const token of row.weapons) {
+    if (token === 'simple' || token === 'martial') weapons.push(token)
+    else if (token === 'light_martial_melee') weaponExtras.push(LIGHT_MARTIAL_MELEE_RU)
+  }
+  const toolsFixed: string[] = []
+  let toolChoices: ToolChoice | null = null
+  for (const token of row.tools) {
+    if (token === 'thieves_tools') toolsFixed.push('Воровские инструменты')
+    else if (token === 'tinkers_tools') toolsFixed.push('Инструменты ремонтника')
+    else if (token === 'one_musical_instrument') {
+      toolChoices = { count: 1, from: [...MUSICAL_INSTRUMENT_CHOICES] }
+    } else if (token === 'one_artisan_or_instrument') {
+      toolChoices = { count: 1, from: [...ARTISAN_TOOL_CHOICES, ...MUSICAL_INSTRUMENT_CHOICES] }
+    } else if (token === 'one_artisan') {
+      toolChoices = { count: 1, from: [...ARTISAN_TOOL_CHOICES] }
+    }
+  }
+  let skillChoices: SkillChoice | null = null
+  if (row.skills > 0) {
+    const classList = parseSkillChoice(data?.skill_choices)
+    skillChoices = {
+      count: row.skills,
+      from: slug === 'bard' || !classList ? 'any' : classList.from,
+    }
+  }
+  return pkg({ saves: [], armor, weapons, weaponExtras, skillChoices, toolsFixed, toolChoices })
+}
+
 /**
  * Build ClassGrantDef from catalog_entries.data (PHB/Tasha class rewrite).
  * Returns null if data lacks grant fields — caller should fall back to local defs.
@@ -1686,6 +1730,7 @@ export function classGrantDefFromCatalog(input: {
   slug: string
   nameRu: string
   data: Record<string, unknown>
+  rulesEdition?: string | null
 }): ClassGrantDef | null {
   if (!catalogHasClassGrantData(input.data)) return null
   const hitDie =
@@ -1700,7 +1745,10 @@ export function classGrantDefFromCatalog(input: {
     labelRu: input.nameRu,
     hitDie,
     start: parseProficiencyPackage(input.data, 'start'),
-    multiclass: parseProficiencyPackage(input.data, 'multiclass'),
+    multiclass:
+      (input.rulesEdition === '2024'
+        ? multiclassPackage2024(input.slug, input.data)
+        : null) ?? parseProficiencyPackage(input.data, 'multiclass'),
     equipment: equipment.length > 0 ? equipment : undefined,
   }
 }
@@ -1711,6 +1759,7 @@ export function resolveClassGrantDef(input: {
   catalogSlug?: string | null
   catalogData?: Record<string, unknown> | null
   nameRu?: string | null
+  rulesEdition?: string | null
 }): ClassGrantDef | null {
   const slug =
     (input.catalogSlug && input.catalogSlug.trim()) ||
@@ -1726,11 +1775,17 @@ export function resolveClassGrantDef(input: {
       slug,
       nameRu: label || slug,
       data: input.catalogData,
+      rulesEdition: input.rulesEdition,
     })
     if (fromCatalog) return fromCatalog
   }
 
-  return classGrantDef(slug) ?? classGrantDefFromName(input.className)
+  const local = classGrantDef(slug) ?? classGrantDefFromName(input.className)
+  if (local && input.rulesEdition === '2024') {
+    const multiclass = multiclassPackage2024(local.slug, input.catalogData)
+    if (multiclass) return { ...local, multiclass }
+  }
+  return local
 }
 
 export function packageForMode(

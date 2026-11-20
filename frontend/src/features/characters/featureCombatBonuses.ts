@@ -4,11 +4,71 @@ import {
   initiativeBonusFromRaceGrant,
   type AppliedRaceGrant,
 } from '../../shared/dnd/raceGrants'
+import {
+  feralSensesBlindsightFt2024,
+  hasFeralSensesBlindsight,
+} from '../../shared/dnd/ranger2024Features'
+import { FRENZY_NAME_RU } from '../../shared/dnd/barbarian2024Features'
 import { abilityModifier, type AbilityKey } from './sheetTypes'
 
 type FeatureLike = { id: string }
 
 type AbilitiesLike = Partial<Record<AbilityKey, number>>
+
+function normalizeFeatureId(id: string): string {
+  return id.trim().replace(/-/g, '_')
+}
+
+function isRulesEdition2024(rulesEdition: string | null | undefined): boolean {
+  return String(rulesEdition ?? '2014').trim() === '2024'
+}
+
+/**
+ * Expanded crit range for Champion 2024 only (improved 19–20, superior 18–20).
+ * 2014 sheets keep nat-20 crits — do not apply even if feature ids match.
+ */
+export function critThresholdFromFeatures(
+  features: FeatureLike[],
+  rulesEdition?: string | null,
+): number {
+  if (!isRulesEdition2024(rulesEdition)) return 20
+  let threshold = 20
+  for (const feature of features) {
+    const id = normalizeFeatureId(feature.id)
+    if (id === 'superior_critical') threshold = Math.min(threshold, 18)
+    else if (id === 'improved_critical') threshold = Math.min(threshold, 19)
+  }
+  return threshold
+}
+
+/**
+ * 2024-only initiative advantage from subclass calcs:
+ * - Remarkable Athlete (Champion) — NOT the 2014 half-PB check bonus
+ * - Assassinate (Assassin) — 2024 PHB; no 2014 surprised auto-crit here
+ */
+export function initiativeAdvantageFromFeatures(
+  features: FeatureLike[],
+  rulesEdition?: string | null,
+): boolean {
+  if (!isRulesEdition2024(rulesEdition)) return false
+  return features.some((feature) => {
+    const id = normalizeFeatureId(feature.id)
+    return id === 'remarkable_athlete' || id === 'assassinate'
+  })
+}
+
+/** Draconic Resilience feature id — hyphen form is 2024-catalog only. */
+export function hasDraconicResilienceFeature(
+  features: Array<{ id?: string }>,
+  rulesEdition?: string | null,
+): boolean {
+  const allowHyphen = isRulesEdition2024(rulesEdition)
+  return features.some((feature) => {
+    const id = String(feature.id || '')
+    if (id === 'draconic_resilience') return true
+    return allowHyphen && id === 'draconic-resilience'
+  })
+}
 
 /**
  * Class/subclass initiative add-ons (stack with race/feat bonuses elsewhere).
@@ -128,18 +188,25 @@ export function divineStrikeRider(
 }
 
 /**
- * PHB Improved Divine Smite (11th, p. 85): +1d8 radiant on every melee weapon hit.
- * Stacks with Divine Smite and is not part of the 5d8 slot cap. No slot is spent.
+ * PHB 2014 Improved Divine Smite (11th) / PHB 2024 Radiant Strikes (11th):
+ * +1к8 излучением on melee weapon hit (2024 also covers unarmed — caller gates attack type).
+ * Stacks with Divine Smite. No slot is spent.
+ * 2014 sheets only ever carry `improved_divine_smite`; 2024 sheets carry `radiant_strikes`.
  */
 export function improvedDivineSmiteRider(
   features: Array<{ id: string }>,
 ): DivineStrikeRider | null {
-  if (!features.some((row) => row.id === 'improved_divine_smite')) return null
+  const hasRadiantStrikes2024 = features.some((row) => {
+    const id = row.id.trim().replace(/-/g, '_')
+    return id === 'radiant_strikes'
+  })
+  const hasImproved2014 = features.some((row) => row.id === 'improved_divine_smite')
+  if (!hasRadiantStrikes2024 && !hasImproved2014) return null
   return {
     dice: '1d8',
     type: 'излучением',
     label: '1к8 излучением',
-    rollLabel: 'Улучшенная божественная кара, 1к8',
+    rollLabel: hasRadiantStrikes2024 ? 'Сияющие удары, 1к8' : 'Улучшенная божественная кара, 1к8',
   }
 }
 
@@ -192,16 +259,134 @@ export function initiativeBonusFromRace(input: {
 }
 
 /**
- * Umbral Sight (Gloom Stalker): darkvision 60 ft, or +30 ft if you already have it.
+ * Umbral Sight (Gloom Stalker): darkvision 60 ft if none;
+ * if you already have it — +30 ft (2014) or +60 ft (2024).
  * `baseDarkvision` is the sheet value before this feature (race / manual / gear separate).
  */
 export function darkvisionFtFromFeatures(input: {
   features: FeatureLike[]
   baseDarkvision: number
+  rulesEdition?: string | null
 }): number {
-  const hasUmbral = input.features.some((feature) => feature.id === 'umbral_sight')
+  const hasUmbral = input.features.some(
+    (feature) =>
+      feature.id === 'umbral_sight' ||
+      feature.id === 'umbral-sight' ||
+      String(feature.id || '').replace(/-/g, '_') === 'umbral_sight',
+  )
+  const hasEyesOfDarkness = input.features.some((feature) => {
+    const id = normalizeFeatureId(feature.id)
+    return id === 'power_of_shadow' || id === 'eyes_of_darkness'
+  })
   const base = Math.max(0, Math.floor(input.baseDarkvision))
-  if (!hasUmbral) return base
-  if (base <= 0) return 60
-  return base + 30
+  let value = base
+  if (hasUmbral) {
+    if (value <= 0) value = 60
+    else {
+      const bump = String(input.rulesEdition ?? '').trim() === '2024' ? 60 : 30
+      value = value + bump
+    }
+  }
+  // Shadow Sorcery 2024 — Eyes of Darkness: darkvision 120 ft (floor).
+  if (isRulesEdition2024(input.rulesEdition) && hasEyesOfDarkness) {
+    value = Math.max(value, 120)
+  }
+  return value
+}
+
+/** Feral Senses (Ranger 2024, L18+): blindsight 30 ft. Shadow Sorcery: 10 ft. */
+export function blindsightFtFromFeatures(input: {
+  features: Array<{ id: string; classLevel?: number }>
+  rulesEdition?: string | null
+}): number {
+  if (!isRulesEdition2024(input.rulesEdition)) return 0
+  let rangerLevel = 0
+  let shadowEyes = false
+  for (const feature of input.features) {
+    const id = normalizeFeatureId(feature.id)
+    if (id === 'feral_senses') {
+      rangerLevel = Math.max(rangerLevel, Math.floor(feature.classLevel ?? 0))
+    }
+    if (id === 'power_of_shadow' || id === 'eyes_of_darkness') {
+      shadowEyes = true
+    }
+  }
+  let value = 0
+  if (hasFeralSensesBlindsight(rangerLevel)) {
+    value = Math.max(value, feralSensesBlindsightFt2024(rangerLevel))
+  }
+  if (shadowEyes) value = Math.max(value, 10)
+  return value
+}
+
+/** PHB 2024 Rage Damage bonus by barbarian level (same ladder as B-04). */
+export function rageDamageBonusFromLevel(barbarianLevel: number): number {
+  const level = Math.max(1, Math.floor(barbarianLevel))
+  if (level >= 16) return 4
+  if (level >= 9) return 3
+  return 2
+}
+
+/**
+ * Berserker Frenzy (2024): while raging, if you use Reckless Attack,
+ * first Strength hit this turn deals extra Nd6 where N = Rage Damage bonus
+ * (NOT proficiency bonus).
+ */
+export function frenzy2024Rider(input: {
+  features: Array<{ id: string; classLevel?: number }>
+  rulesEdition?: string | null
+  raging: boolean
+  recklessAttack: boolean
+  strengthBased: boolean
+  alreadyUsedThisTurn?: boolean
+}): DivineStrikeRider | null {
+  if (!isRulesEdition2024(input.rulesEdition)) return null
+  if (!input.raging || !input.recklessAttack || !input.strengthBased) return null
+  if (input.alreadyUsedThisTurn) return null
+  const feature = input.features.find(
+    (row) => normalizeFeatureId(row.id) === 'frenzy',
+  )
+  if (!feature) return null
+  const count = rageDamageBonusFromLevel(feature.classLevel ?? 1)
+  return {
+    dice: `${count}d6`,
+    type: null,
+    label: `${count}к6 (${FRENZY_NAME_RU})`,
+    rollLabel: `${FRENZY_NAME_RU}, ${count}к6`,
+  }
+}
+
+/**
+ * Assassin Assassinate (2024): in round 1 vs a creature that hasn't acted,
+ * Sneak Attack damage increases by Rogue level (flat; not 2014 surprised crit).
+ */
+export function assassinate2024ExtraDamage(input: {
+  features: Array<{ id: string; classLevel?: number }>
+  rulesEdition?: string | null
+  /** Player marks: first round, target has not acted yet. */
+  applyRound1Bonus: boolean
+}): { amount: number; label: string } | null {
+  if (!isRulesEdition2024(input.rulesEdition)) return null
+  if (!input.applyRound1Bonus) return null
+  const feature = input.features.find(
+    (row) => normalizeFeatureId(row.id) === 'assassinate',
+  )
+  if (!feature) return null
+  const amount = Math.max(1, Math.floor(feature.classLevel ?? 1))
+  return {
+    amount,
+    label: `Убийство +${amount}`,
+  }
+}
+
+/** 2024 Assassinate does not grant auto-crit vs surprised (that is 2014). */
+export function assassinateGrantsCritVsSurprised(
+  features: FeatureLike[],
+  rulesEdition?: string | null,
+): boolean {
+  if (!features.some((f) => normalizeFeatureId(f.id) === 'assassinate')) return false
+  // Explicitly false for 2024; keep false for 2014 sheet automation too
+  // (2014 crit-vs-surprised is handled elsewhere / not auto-wired).
+  void rulesEdition
+  return false
 }

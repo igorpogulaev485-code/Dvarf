@@ -23,6 +23,13 @@ export type BuffBuildContext = {
    * totem/starry constellation / inspiration die / etc. (B-04).
    */
   option?: string | null
+  /** Rules edition — used by B-04 Bardic Inspiration (2024 → 1 hour). */
+  edition?: string | null
+  /**
+   * Valor Combat Inspiration 2024: granted BI die may also boost AC (reaction)
+   * or attack damage on the target.
+   */
+  combatInspiration?: boolean | null
 }
 
 function hours(value: number): EffectDuration {

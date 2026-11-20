@@ -120,9 +120,16 @@ export function buildLongRestSummary(input: {
   hit_dice_by_class?: ClassHitDicePool[]
   effects?: ActiveEffect[]
   rng?: () => number
+  /** P24-02: `2024` restores all Hit Point Dice. */
+  rules_edition?: string | null
 }): {
   lines: RestSummaryLine[]
-  result: RestResult & { effects?: ActiveEffect[]; removed_effects?: ActiveEffect[] }
+  result: RestResult & {
+    effects?: ActiveEffect[]
+    removed_effects?: ActiveEffect[]
+    blocked?: boolean
+    block_reason?: string
+  }
 } {
   const result = applyLongRest({
     resources: input.resources,
@@ -130,12 +137,17 @@ export function buildLongRestSummary(input: {
     pact_slots: input.pact_slots,
     exhaustion: input.exhaustion,
     hp_max: input.hp_max,
+    hp_current: input.hp_current,
     hit_dice_current: input.hit_dice_current,
     hit_dice_max: input.hit_dice_max,
     hit_dice_by_class: input.hit_dice_by_class,
     effects: input.effects,
     rng: input.rng,
+    rules_edition: input.rules_edition,
   })
+  if (result.blocked) {
+    return { lines: [result.block_reason || 'длинный отдых недоступен'], result }
+  }
   const lines: RestSummaryLine[] = []
   if (input.hp_max != null) {
     const before = Math.max(0, Math.floor(input.hp_current ?? 0))

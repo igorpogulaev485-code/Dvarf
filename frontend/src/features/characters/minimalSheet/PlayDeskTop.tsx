@@ -17,6 +17,7 @@ import {
   featResistanceTypes,
   hasFeatFlag,
 } from '../../../shared/dnd/b07FeatCombat'
+import { elementalShieldingResistanceLines2024 } from '../../../shared/dnd/paladinBook2024Features'
 import {
   listKnownManeuvers,
   martialAdeptManeuverIds,
@@ -37,6 +38,7 @@ import {
   alignmentNeedsClarification,
   alignmentSheetLabel,
 } from '../../../shared/dnd/alignments'
+import { usesHeroicInspiration } from '../../../shared/dnd/heroicInspiration'
 import { ActiveEffectsPanel } from '../ActiveEffectsPanel'
 import { IconCompanions } from '../deskIcons'
 import {
@@ -46,12 +48,27 @@ import {
   type NeedsSetupItem,
 } from '../needsSetup'
 import { normalizeCampaignRules } from '../../lobby/campaignRules'
+import {
+  hasDraconicResilienceFeature,
+  initiativeAdvantageFromFeatures,
+} from '../featureCombatBonuses'
+import { isBladesongActive2024 } from '../../../shared/dnd/wizardBook2024Features'
+import {
+  DWARVEN_TOUGHNESS_NAME_RU,
+  dwarvenToughnessHpTotal2024,
+  resolveSpeciesSlug2024,
+} from '../../../shared/dnd/speciesHpBonus2024'
 
 function initiativeAdvantageFromSheet(model: SheetModel): 'advantage' | 'disadvantage' | 'normal' {
   const fromFx = resolveAdvantageFromEffects(model.draft.play.effects, {
     rollKind: 'initiative',
   })
-  if (model.infusionBonuses?.initiativeAdvantage) {
+  const edition = model.baseCharacter.rules_edition ?? model.rulesEdition
+  const fromFeatures = initiativeAdvantageFromFeatures(
+    model.unlockedFeatures ?? model.playActiveFeatures ?? [],
+    edition,
+  )
+  if (model.infusionBonuses?.initiativeAdvantage || fromFeatures) {
     if (fromFx === 'disadvantage') return 'normal'
     return 'advantage'
   }
@@ -88,6 +105,12 @@ export function PlayDeskTop({ model }: { model: SheetModel }) {
     effects: model.draft.play.effects,
     infusionResistances: model.infusionBonuses?.resistances,
     featResistances: featResistanceTypes(model.draft.featGrants),
+    featureResistances: elementalShieldingResistanceLines2024({
+      rulesEdition: model.baseCharacter.rules_edition ?? model.rulesEdition,
+      classes: model.draft.classes,
+      featurePicks: model.draft.featurePicks,
+      subclassSlugByEntryId: model.subclassSlugByEntryId,
+    }),
   })
   const heavyArmorMaster =
     wornArmorKind === 'heavy' &&
@@ -96,6 +119,27 @@ export function PlayDeskTop({ model }: { model: SheetModel }) {
     hasFeatFlag(model.draft.featGrants, 'shield_master') &&
     Boolean(equippedArmorPieces(model.draft.inventory.items).shield)
   const raceSlug = model.draft.raceGrant?.slug ?? ''
+  const edition = model.baseCharacter.rules_edition ?? model.rulesEdition
+  const maxHpExtraBonuses = useMemo(() => {
+    if (edition !== '2024') return []
+    const speciesSlug = resolveSpeciesSlug2024({
+      speciesSlug: model.draft.identity.speciesSlug,
+      raceGrantSlug: model.draft.raceGrant?.slug,
+      raceName: model.draft.raceName,
+    })
+    const amount = dwarvenToughnessHpTotal2024({
+      characterLevel: model.characterLevel ?? 1,
+      speciesSlug,
+    })
+    if (amount <= 0) return []
+    return [{ label: DWARVEN_TOUGHNESS_NAME_RU, amount }]
+  }, [
+    edition,
+    model.characterLevel,
+    model.draft.identity.speciesSlug,
+    model.draft.raceGrant?.slug,
+    model.draft.raceName,
+  ])
   // Stable preview amounts for the pad chips (exact roll is table-facing; here mean+mod).
   const stonesCut =
     raceSlug === 'goliath'
@@ -433,16 +477,19 @@ export function PlayDeskTop({ model }: { model: SheetModel }) {
             hasShieldMasterEvasion={hasShieldMasterEvasion}
             {...o07HpPad}
             {...o10HpPad}
-            draconicResilience={(model.unlockedFeatures ?? []).some(
-              (f: { id?: string }) => f.id === 'draconic_resilience',
+            draconicResilience={hasDraconicResilienceFeature(
+              model.unlockedFeatures ?? [],
+              model.baseCharacter.rules_edition ?? model.rulesEdition,
             )}
             dwarvenToughness={
               model.draft.raceGrant?.slug === 'hill_dwarf' ||
               model.draft.raceGrant?.slug === 'gold_dwarf'
             }
+            maxHpExtraBonuses={maxHpExtraBonuses}
             play={model.draft.play}
             autoAc={model.armorClass.ac}
             acHint={model.armorClass.summary}
+            formVitalLabel={model.wildShapeFormLabel2024 ?? null}
             onOpenAc={() => model.setAcBreakdownOpen(true)}
             shieldInHand={Boolean(equippedArmorPieces(model.draft.inventory.items).shield)}
             shieldAvailable={listShieldItems(model.draft.inventory.items).length > 0}
@@ -507,9 +554,18 @@ export function PlayDeskTop({ model }: { model: SheetModel }) {
               })
             }}
             onRequestLevelUp={() => model.setLevelUpOpen(true)}
-            onToggleInspiration={() =>
+            onToggleInspiration={() => {
+              if (
+                usesHeroicInspiration(
+                  model.baseCharacter?.rules_edition ?? model.rulesEdition,
+                ) &&
+                typeof model.tryGrantHeroicInspiration === 'function'
+              ) {
+                model.tryGrantHeroicInspiration()
+                return
+              }
               model.setDraft((prev) => ({ ...prev, inspiration: !prev.inspiration }))
-            }
+            }}
             onExhaustionChange={(exhaustion) =>
               model.setDraft((prev) => ({
                 ...prev,
@@ -524,7 +580,10 @@ export function PlayDeskTop({ model }: { model: SheetModel }) {
                 ...patch,
               }))
             }
-            onInitiativeRoll={() => model.emitToast(formatInitiativeToast(model))}
+            onInitiativeRoll={() => {
+              model.emitToast(formatInitiativeToast(model))
+              model.applyBardInitiativeInspiration()
+            }}
             onPlayChange={(play) => model.setDraft((prev) => ({ ...prev, play }))}
             onCoinsChange={(coins) =>
               model.setDraft((prev) => ({
@@ -566,6 +625,34 @@ export function PlayDeskTop({ model }: { model: SheetModel }) {
                       slug.startsWith('half_orc'))
                   ) {
                     queueMicrotask(() => model.setRelentlessEndurancePending?.(true))
+                  }
+                  if (String(edition) === '2024') {
+                    const shadow = (prev.classes ?? []).some((row) => {
+                      const fromMap = model.subclassSlugByEntryId?.[row.id]
+                      const slug = String(
+                        fromMap || row.subclass_catalog_id || '',
+                      ).toLowerCase()
+                      return slug === 'sorcerer__shadow-sorcery'
+                    })
+                    const grave = (prev.play.resources ?? []).find(
+                      (row) =>
+                        (typeof row.id === 'string' &&
+                          row.id.includes(':power_of_shadow:')) ||
+                        /сила\s*могил/i.test(String(row.name || '')),
+                    )
+                    const graveLeft =
+                      grave != null
+                        ? Math.max(0, (grave.max ?? 0) - (grave.used ?? 0))
+                        : 0
+                    if (shadow && graveLeft > 0) {
+                      const dmg = Math.max(
+                        1,
+                        (prev.hpCurrent ?? 0) - (patch.hpCurrent ?? 0),
+                      )
+                      queueMicrotask(() =>
+                        model.setStrengthOfTheGravePending?.({ damage: dmg }),
+                      )
+                    }
                   }
                 }
                 return {
@@ -646,17 +733,25 @@ export function PlayDeskTop({ model }: { model: SheetModel }) {
           raceSlug={model.draft.raceGrant?.slug ?? null}
           {...o07HpPad}
           {...o10HpPad}
-          draconicResilience={(model.unlockedFeatures ?? []).some(
-            (f: { id?: string }) => f.id === 'draconic_resilience',
+          draconicResilience={hasDraconicResilienceFeature(
+            model.unlockedFeatures ?? [],
+            model.baseCharacter.rules_edition ?? model.rulesEdition,
           )}
           dwarvenToughness={
             model.draft.raceGrant?.slug === 'hill_dwarf' ||
             model.draft.raceGrant?.slug === 'gold_dwarf'
           }
+          maxHpExtraBonuses={maxHpExtraBonuses}
           play={model.draft.play}
           autoAc={model.armorClass.ac}
-          acOverride={model.draft.ac}
+          acOverride={
+            model.wildShapeFormLabel2024 ||
+            isBladesongActive2024(model.draft.play.resources)
+              ? null
+              : model.draft.ac
+          }
           acHint={model.armorClass.summary}
+          formVitalLabel={model.wildShapeFormLabel2024 ?? null}
           onOpenAc={() => model.setAcBreakdownOpen(true)}
           shieldInHand={Boolean(equippedArmorPieces(model.draft.inventory.items).shield)}
           shieldAvailable={listShieldItems(model.draft.inventory.items).length > 0}
@@ -711,6 +806,7 @@ export function PlayDeskTop({ model }: { model: SheetModel }) {
           onOpenSpeed={() => model.setSpeedBreakdownOpen(true)}
           proficiencyBonus={model.proficiencyBonus}
           inspiration={model.draft.inspiration}
+          rulesEdition={model.baseCharacter.rules_edition}
           coins={model.draft.inventory.coins}
           constitutionMod={abilityModifier(model.draft.abilities.con)}
           classes={model.draft.classes}
@@ -719,9 +815,18 @@ export function PlayDeskTop({ model }: { model: SheetModel }) {
           onOpenAbilities={() => model.setMobileAbilitiesOpen(true)}
           onOpenRest={() => model.setRestOpen(true)}
           onOpenConditions={() => model.setHotConditionsOpen(true)}
-          onToggleInspiration={() =>
+          onToggleInspiration={() => {
+            if (
+              usesHeroicInspiration(
+                model.baseCharacter?.rules_edition ?? model.rulesEdition,
+              ) &&
+              typeof model.tryGrantHeroicInspiration === 'function'
+            ) {
+              model.tryGrantHeroicInspiration()
+              return
+            }
             model.setDraft((prev) => ({ ...prev, inspiration: !prev.inspiration }))
-          }
+          }}
           onAvatarChanged={(updated) => {
             model.setBaseCharacter(updated)
             model.onSaved(updated)
@@ -758,6 +863,34 @@ export function PlayDeskTop({ model }: { model: SheetModel }) {
                     slug.startsWith('half_orc'))
                 ) {
                   queueMicrotask(() => model.setRelentlessEndurancePending?.(true))
+                }
+                if (String(edition) === '2024') {
+                  const shadow = (prev.classes ?? []).some((row) => {
+                    const fromMap = model.subclassSlugByEntryId?.[row.id]
+                    const slug = String(
+                      fromMap || row.subclass_catalog_id || '',
+                    ).toLowerCase()
+                    return slug === 'sorcerer__shadow-sorcery'
+                  })
+                  const grave = (prev.play.resources ?? []).find(
+                    (row) =>
+                      (typeof row.id === 'string' &&
+                        row.id.includes(':power_of_shadow:')) ||
+                      /сила\s*могил/i.test(String(row.name || '')),
+                  )
+                  const graveLeft =
+                    grave != null
+                      ? Math.max(0, (grave.max ?? 0) - (grave.used ?? 0))
+                      : 0
+                  if (shadow && graveLeft > 0) {
+                    const dmg = Math.max(
+                      1,
+                      (prev.hpCurrent ?? 0) - (patch.hpCurrent ?? 0),
+                    )
+                    queueMicrotask(() =>
+                      model.setStrengthOfTheGravePending?.({ damage: dmg }),
+                    )
+                  }
                 }
               }
               return {

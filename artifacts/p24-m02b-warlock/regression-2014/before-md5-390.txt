@@ -1,0 +1,6 @@
+593794cbc8945111beb093cf3ee71614  before-create-2014-race-marker-390.png
+77dc782a98126d09bc157573562327e3  before-create-2014-warlock-class-390.png
+b10cbeaf039a32addca0478d21342568  before-sheet-2014-warlock-header-390.png
+7fca9caff2cf2da8f722f55ca1301ad5  before-sheet-2014-warlock-abilities-390.png
+0922424e0296064ad6ba2e088b15ad70  before-sheet-2014-warlock-features-390.png
+ab378ba9a100df60c6c5948ac0f29f81  before-sheet-2014-fiend-features-390.png

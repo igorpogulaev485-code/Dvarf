@@ -1,0 +1,6 @@
+593794cbc8945111beb093cf3ee71614  after-create-2014-race-marker-390.png
+1173fd047c41be637b1517b39e682785  after-create-2014-barbarian-class-390.png
+a50be12143322c4a6b8064512d58ab88  after-sheet-2014-barbarian-header-390.png
+ff5893645a2699b7f3f273608b9c9c9e  after-sheet-2014-barbarian-abilities-390.png
+0f009f1ffff8b04f92a1594907cd0d7f  after-sheet-2014-barbarian-features-390.png
+d9625facd57b03508949f9500d646321  after-sheet-2014-berserker-features-390.png

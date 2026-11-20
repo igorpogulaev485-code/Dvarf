@@ -273,7 +273,7 @@ export function AttacksPanel({
           const classMa = isClassMartialArtsAttack(attack)
           const monkWeapon =
             Boolean(martialArtsDie) &&
-            (classMa || isMonkWeaponName(attack.name))
+            (classMa || isMonkWeaponName(attack.name, edition))
           const shillelaghOn =
             shillelagh != null &&
             shillelagh.attackId === attack.id &&

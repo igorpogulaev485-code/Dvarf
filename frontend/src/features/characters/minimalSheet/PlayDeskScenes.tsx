@@ -30,6 +30,16 @@ import { AttacksSettingsDialog } from '../AttacksSettingsDialog'
 import { SpellsPanel } from '../SpellsPanel'
 import { SpellsSettingsDialog } from '../SpellsSettingsDialog'
 import { ClassFeaturesPanel } from '../ClassFeaturesPanel'
+import { WeaponMasteryPanel } from '../WeaponMasteryPanel'
+import { WeaponMasteryAttackPanel } from '../WeaponMasteryAttackPanel'
+import { ClassOptions2024Panel } from '../ClassOptions2024Panel'
+import { Bard2024CombatBlock } from '../Bard2024CombatBlock'
+import { Wizard2024CombatBlock } from '../Wizard2024CombatBlock'
+import { ClassOptions2024CombatPanel } from '../ClassOptions2024CombatPanel'
+import {
+  SRD_WEAPONS_2024_MASTERY,
+  srdWeaponMasteryBySlug,
+} from '../../../shared/dnd/weaponMastery'
 import { PietyPanel } from '../PietyPanel'
 import { syncPietyChampion, type PietyState } from '../../../shared/dnd/therosPiety'
 import { CompanionsPanel } from '../CompanionsPanel'
@@ -43,7 +53,7 @@ import { isFindFamiliarSpell } from '../familiarForms'
 import { isFindSteedSpellSlug } from '../steedCompanions'
 import { resolveSpellNaparnikSlug } from '../spellCompanions'
 import type { WildShapeForkRequest } from '../ClassFeaturesPanel'
-import { healSelfForm, rollDice, starryFormDice } from '../wildShape'
+import { activeBeastWildShape, healSelfForm, rollDice, starryFormDice } from '../wildShape'
 import { TextBlocksPanel } from '../TextBlocksPanel'
 import { PlayDeskAttacksCompact } from '../PlayDeskAttacksCompact'
 import { formatCheckRoll, rollCheck } from '../deskRolls'
@@ -56,6 +66,7 @@ import { spendSpellSlot } from '../../../shared/dnd/spells'
 import { PlayDeskSpellsCompact } from '../PlayDeskSpellsCompact'
 import { equipInventoryItem, equippedArmorPieces } from '../inventory'
 import { withSpellFocusFlags } from '../spellFocus'
+import { markBladesingerMeleeFocusItems2024 } from '../../../shared/dnd/wizardBook2024Features'
 import { syncWizardSpellbookWithInventory } from '../wizardSpellbookInventory'
 import { abilityModifier } from '../sheetTypes'
 import { sheetDamageProfile } from '../gearEffects'
@@ -75,6 +86,7 @@ import {
   featResistanceTypes,
   hasFeatFlag,
 } from '../../../shared/dnd/b07FeatCombat'
+import { elementalShieldingResistanceLines2024 } from '../../../shared/dnd/paladinBook2024Features'
 import { UseAllyAbilityDialog } from '../UseAllyAbilityDialog'
 
 function mergeToolNames(base: string[], extra: string[]): string[] {
@@ -89,6 +101,11 @@ function mergeToolNames(base: string[], extra: string[]): string[] {
   return out
 }
 
+function withSpellResistance(defense: string, note: string): string {
+  if (!note) return defense
+  return defense ? `${defense} · ${note}` : note
+}
+
 function withConditionImmunities(
   defense: string,
   rows: Array<{ name: string }>,
@@ -99,8 +116,21 @@ function withConditionImmunities(
   return defense ? `${defense} · ${extra}` : extra
 }
 import { formatDefenseSummary } from '../../../shared/dnd/damageTypes'
+import {
+  spellResistanceDefenseNote2024,
+  wizard2024Context,
+  wizard2024Flags,
+} from '../../../shared/dnd/wizard2024Features'
 import { getFeaturePick } from '../../../shared/dnd/featurePicks'
+import {
+  DRUID_SUBCLASS_SLUGS_2024,
+  formAttackRiders2024,
+  moonImprovedFormsActive2024,
+  potentSpellcastingForSheet2024,
+  readElementalFury2024,
+} from '../../../shared/dnd/druid2024Features'
 import { elementalAffinityPreview } from '../../../shared/dnd/pack04SorcererWarlock'
+import { collectWarlockInvocationIds } from '../../../shared/dnd/o06StylesBreathInvocations'
 import { totalCharacterLevel } from '../../../shared/dnd/classLevels'
 import { RitualBookCopyDialog, ritualBookButtonLabel } from '../RitualBookCopyDialog'
 
@@ -112,6 +142,15 @@ type DeskTransferMode =
     }
 
 export function PlayDeskScenes({ model }: { model: SheetModel }) {
+  const potentSheet = potentSpellcastingForSheet2024({
+    rulesEdition: model.rulesEdition,
+    classes: model.draft.classes,
+    featurePicks: model.draft.featurePicks,
+    classOptions: model.draft.classOptions2024,
+    wisScore: model.effectiveAbilities?.wis ?? model.draft.abilities.wis,
+  })
+  const [masteryNickUsed, setMasteryNickUsed] = useState(false)
+  const [masteryCleaveUsed, setMasteryCleaveUsed] = useState(false)
   const [divineSmiteIntent, setDivineSmiteIntent] = useState<DivineSmiteIntent>({
     slotLevel: null,
     vsUndeadOrFiend: false,
@@ -291,10 +330,30 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
             infusionByItem={model.infusionBonuses.weaponByItem}
             shillelagh={model.draft.play.shillelagh ?? null}
             martialArtsDie={model.martialArtsDie}
+            danceBardicDie={model.danceBardicDie ?? null}
             resources={model.draft.play.resources}
             inventoryItems={model.draft.inventory.items}
             favoriteConsumableIds={model.draft.sheetUi.combatConsumableFavoriteIds}
             combatFeatures={model.playActiveFeatures}
+            wildShapeFormAttacks={
+              model.rulesEdition === '2024' &&
+              model.druidClassRow &&
+              activeBeastWildShape(model.draft.companions)
+                ? formAttackRiders2024({
+                    druidLevel: model.druidLevel,
+                    elementalFury: readElementalFury2024(
+                      model.draft.featurePicks,
+                      model.druidClassRow.id,
+                      model.draft.classOptions2024,
+                    ),
+                    moonImproved: moonImprovedFormsActive2024({
+                      rulesEdition: model.rulesEdition,
+                      druidLevel: model.druidLevel,
+                      subclassSlug: model.druidSubclassSlug,
+                    }),
+                  })
+                : null
+            }
             onFeatureBuffApply={(input) => {
               const b04 = resolveB04FeatureSpend({
                 featureId: input.featureId,
@@ -451,22 +510,17 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
                 }
               })
             }}
-            knownInvocationIds={(() => {
-              const ids: string[] = []
-              for (const row of model.draft.classes) {
-                if (!/колдун|warlock/i.test(row.name)) continue
-                const raw =
-                  model.draft.featurePicks.values[`${row.id}:eldritch_invocations`] ?? ''
-                for (const id of raw.split(',')) {
-                  const t = id.trim()
-                  if (t) ids.push(t)
-                }
-              }
-              return ids
-            })()}
+            knownInvocationIds={collectWarlockInvocationIds({
+              classes: model.draft.classes,
+              featurePickValues: model.draft.featurePicks.values,
+              classOptionsInvocations:
+                model.baseCharacter.rules_edition === '2024'
+                  ? model.draft.classOptions2024?.eldritch_invocations
+                  : null,
+            })}
             featurePicks={model.draft.featurePicks}
             spells={model.draft.spells}
-            onSpellsChange={(spells) => model.setDraft((prev) => ({ ...prev, spells }))}
+            onSpellsChange={(spells) => model.applySpellsChange(spells)}
             divineSmiteIntent={divineSmiteIntent}
             onDivineSmiteIntent={setDivineSmiteIntent}
             rollMode={model.attackRollMode()}
@@ -476,10 +530,17 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
               model.spendLuckyPoint?.()
               model.setLuckyRollArmed?.(false)
             }}
-            inspirationArmed={Boolean(model.inspirationRollArmed)}
+            inspirationArmed={
+              Boolean(model.inspirationRollArmed) &&
+              model.baseCharacter.rules_edition !== '2024'
+            }
             onInspirationSpent={() => {
               model.spendInspirationForRoll?.()
             }}
+            onAfterDieRoll={(label, sides) => {
+              model.offerHeroicRerollAfter?.(label, sides ?? 20)
+            }}
+            rulesEdition={model.baseCharacter.rules_edition}
             repeatingShotItemIds={(() => {
               const ids: string[] = []
               for (const entry of model.draft.classes) {
@@ -721,14 +782,17 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
                   }))
                 }
               }
-              if (!chips.length) return
-              model.setDraft((prev) => ({
-                ...prev,
-                play: {
-                  ...prev.play,
-                  effects: consumeRollDieChips(prev.play.effects ?? [], chips),
-                },
-              }))
+              if (chips.length) {
+                model.setDraft((prev) => ({
+                  ...prev,
+                  play: {
+                    ...prev.play,
+                    effects: consumeRollDieChips(prev.play.effects ?? [], chips),
+                  },
+                }))
+              }
+              // 2024 BI on target: offer spend after attack Test (player decides if failed).
+              model.offerBardicInspirationAfterFail?.('Атака')
             }}
             onConsumeDamageRiders={(used) => {
               if (!used.length) return
@@ -842,6 +906,7 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
             weaponProficiency={model.draft.identity.weapons}
             gearBonusesByItem={model.gearEffects.byItem}
             martialArtsDie={model.martialArtsDie}
+            rulesEdition={model.rulesEdition}
             formulaVars={model.formulaVarsBase}
             onChange={(weapons) => model.setDraft((prev) => ({ ...prev, weapons }))}
             onClose={() => model.setAttacksSettingsOpen(false)}
@@ -866,6 +931,97 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
               })
             }}
           />
+          {model.rulesEdition === '2024' &&
+          model.draft.weaponMastery.known.length > 0
+            ? (() => {
+                const held = model.draft.weapons.find((w) => {
+                  const slug =
+                    (typeof w.catalog_id === 'string' && w.catalog_id.includes(':')
+                      ? w.catalog_id.split(':').pop()
+                      : w.catalog_id) ||
+                    srdWeaponMasteryBySlug(
+                      String(w.name || '')
+                        .trim()
+                        .toLowerCase(),
+                    )?.slug
+                  const key = String(slug || '').toLowerCase()
+                  return (
+                    Boolean(w.held) &&
+                    key &&
+                    model.draft.weaponMastery.known.includes(key)
+                  )
+                })
+                if (!held) return null
+                const slugGuess =
+                  (typeof held.catalog_id === 'string' && held.catalog_id.includes(':')
+                    ? held.catalog_id.split(':').pop()
+                    : held.catalog_id) ||
+                  model.draft.weaponMastery.known.find((k) =>
+                    String(held.name || '')
+                      .toLowerCase()
+                      .includes(k),
+                  ) ||
+                  model.draft.weaponMastery.known[0]
+                const abilityKey =
+                  held.ability === 'dex' ||
+                  held.ability === 'str' ||
+                  held.ability === 'con' ||
+                  held.ability === 'int' ||
+                  held.ability === 'wis' ||
+                  held.ability === 'cha'
+                    ? held.ability
+                    : 'str'
+                const mod = abilityModifier(model.effectiveAbilities[abilityKey])
+                return (
+                  <WeaponMasteryAttackPanel
+                    key={held.id}
+                    rulesEdition={model.rulesEdition}
+                    classes={model.draft.classes}
+                    masteryState={model.draft.weaponMastery}
+                    weaponSlug={String(slugGuess || '')}
+                    weaponName={held.name}
+                    hit
+                    damageDealt
+                    attackAbilityMod={mod}
+                    proficiencyBonus={model.proficiencyBonus}
+                    damageType={held.damage_type}
+                    openSessionId={model.character.open_session_id}
+                    characterId={model.character.id}
+                    nickUsedThisTurn={masteryNickUsed}
+                    cleaveUsedThisTurn={masteryCleaveUsed}
+                    onNickUsed={() => setMasteryNickUsed(true)}
+                    onCleaveUsed={() => setMasteryCleaveUsed(true)}
+                    onApplyCondition={(condition) => {
+                      if (condition !== 'prone') return
+                      model.setDraft((prev) => {
+                        const list = prev.play.conditions ?? []
+                        if (list.some((c) => c.slug === 'prone')) return prev
+                        return {
+                          ...prev,
+                          play: {
+                            ...prev.play,
+                            conditions: [
+                              ...list,
+                              {
+                                slug: 'prone',
+                                name: 'Опрокинутый',
+                                catalog_id: null,
+                                level: 1,
+                              },
+                            ],
+                          },
+                        }
+                      })
+                    }}
+                    onToast={(message) => model.onToast?.(message)}
+                    onFeedLine={(line) => {
+                      model.onToast?.(line)
+                      model.offerHeroicRerollAfter?.(`Мастерство · ${line}`, 20)
+                    }}
+                  />
+                )
+              })()
+            : null}
         </>
       ) : (
         <AttacksPanel
@@ -904,6 +1060,13 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
           }}
         />
       )}
+      {/* Bladesinger combat hints on Бой/attacks stage (visible with Песнь активна). */}
+      <Wizard2024CombatBlock
+        rulesEdition={model.rulesEdition}
+        classes={model.draft.classes}
+        subclassSlugByEntryId={model.subclassSlugByEntryId}
+        resources={model.draft.play.resources}
+      />
 
       </div>
 
@@ -962,20 +1125,31 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
         }
         onChange={(inventory) =>
           model.setDraft((prev) => {
-            const focusSpells = withSpellFocusFlags(prev.spells, inventory.items)
+            const bladesinger2024 =
+              String(model.rulesEdition || model.baseCharacter?.rules_edition || '') ===
+                '2024' &&
+              Object.values(model.subclassSlugByEntryId ?? {}).some(
+                (slug) => String(slug || '').toLowerCase() === 'wizard__bladesinger',
+              )
+            const items = markBladesingerMeleeFocusItems2024(
+              inventory.items,
+              bladesinger2024,
+            )
+            const nextInventory = items === inventory.items ? inventory : { ...inventory, items }
+            const focusSpells = withSpellFocusFlags(prev.spells, items)
             const isWizard =
               model.spellLearnBudget?.mode === 'spellbook' ||
               prev.classes.some((row) => /волшебник|wizard|маг/i.test(row.name))
             const synced = syncWizardSpellbookWithInventory({
               isWizard,
               spells: focusSpells,
-              items: inventory.items,
+              items,
             })
             if (synced.message) queueMicrotask(() => model.onToast(synced.message!))
             return {
               ...prev,
-              inventory,
-              weapons: syncAttacksHeldFromInventory(prev.weapons, inventory.items),
+              inventory: nextInventory,
+              weapons: syncAttacksHeldFromInventory(prev.weapons, items),
               spells: synced.spells,
             }
           })
@@ -1097,12 +1271,110 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
           }
         />
       ) : null}
+      <WeaponMasteryPanel
+        rulesEdition={model.rulesEdition}
+        classes={model.draft.classes}
+        state={model.draft.weaponMastery}
+        onChange={(weaponMastery) =>
+          model.setDraft((prev) => ({ ...prev, weaponMastery }))
+        }
+        weaponOptions={[...SRD_WEAPONS_2024_MASTERY]}
+        hasSimpleProf
+        hasMartialProf
+        onToast={(message) => model.onToast?.(message)}
+      />
+      <ClassOptions2024Panel
+        rulesEdition={model.rulesEdition}
+        classes={model.draft.classes}
+        state={model.draft.classOptions2024}
+        onChange={(classOptions2024) =>
+          model.setDraft((prev) => ({ ...prev, classOptions2024 }))
+        }
+        onToast={(message) => model.onToast?.(message)}
+      />
+      <ClassOptions2024CombatPanel
+        rulesEdition={model.rulesEdition}
+        classes={model.draft.classes}
+        options={model.draft.classOptions2024}
+        onOptionsChange={(classOptions2024) =>
+          model.setDraft((prev) => ({ ...prev, classOptions2024 }))
+        }
+        sneakAttackScale={
+          typeof model.progression2024?.scales?.['rogue:sneak_attack'] === 'string'
+            ? String(model.progression2024.scales['rogue:sneak_attack'])
+            : null
+        }
+        dexMod={abilityModifier(model.effectiveAbilities?.dex ?? model.draft.abilities.dex)}
+        proficiencyBonus={model.proficiencyBonus}
+        channelRemaining={
+          model.draft.play.resources.find((r) =>
+            String(r.id).includes('channel_divinity'),
+          )
+            ? Math.max(
+                0,
+                (model.draft.play.resources.find((r) =>
+                  String(r.id).includes('channel_divinity'),
+                )?.max || 0) -
+                  (model.draft.play.resources.find((r) =>
+                    String(r.id).includes('channel_divinity'),
+                  )?.used || 0),
+              )
+            : 0
+        }
+        onSpendChannel={(n) =>
+          model.setDraft((prev) => ({
+            ...prev,
+            play: {
+              ...prev.play,
+              resources: prev.play.resources.map((r) =>
+                String(r.id).includes('channel_divinity')
+                  ? { ...r, used: Math.min(r.max, (r.used || 0) + n) }
+                  : r,
+              ),
+            },
+          }))
+        }
+        sorceryPointsMax={
+          model.draft.play.resources.find((r) => String(r.id).includes('sorcery_points'))
+            ?.max || 0
+        }
+        sorceryPointsUsed={
+          model.draft.play.resources.find((r) => String(r.id).includes('sorcery_points'))
+            ?.used || 0
+        }
+        onSpendSorcery={(newUsed) =>
+          model.setDraft((prev) => ({
+            ...prev,
+            play: {
+              ...prev.play,
+              resources: prev.play.resources.map((r) =>
+                String(r.id).includes('sorcery_points') ? { ...r, used: newUsed } : r,
+              ),
+            },
+          }))
+        }
+        openSessionId={model.character?.open_session_id}
+        characterId={model.baseCharacter?.id ?? model.character?.id}
+        onToast={(message) => model.onToast?.(message)}
+      />
+      <Bard2024CombatBlock
+        rulesEdition={model.rulesEdition}
+        classes={model.draft.classes}
+        subclassSlugByEntryId={model.subclassSlugByEntryId}
+        resources={model.draft.play.resources}
+        dexMod={abilityModifier(model.effectiveAbilities?.dex ?? model.draft.abilities.dex)}
+        danceActive={Boolean(model.danceBardicDie)}
+        onBardFeatureUse={(request) => model.setBardFeatureUse(request)}
+      />
       <ClassFeaturesPanel
         classes={model.draft.classes}
         characterLevel={model.characterLevel}
         abilities={model.draft.abilities}
         subclassSlugByEntryId={model.subclassSlugByEntryId}
         subclassTransitionByEntryId={model.subclassTransitionByEntryId}
+        unlockedFeatures={
+          model.baseCharacter.rules_edition === '2024' ? model.unlockedFeatures : undefined
+        }
         requestedFilter={model.featuresFilterRequest}
         onRequestedFilterConsumed={() => model.setFeaturesFilterRequest(null)}
         tceAllowed={
@@ -1139,15 +1411,34 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
         featGrants={model.draft.featGrants}
         darkvision={model.effectiveDarkvisionFt}
         defenseSummary={withConditionImmunities(
-          formatDefenseSummary(
-            sheetDamageProfile({
-              raceSlug: model.draft.raceGrant?.slug,
-              raceResistances: model.draft.raceGrant?.damageResistances,
-              gear: model.gearEffects,
-              effects: model.draft.play.effects,
-              infusionResistances: model.infusionBonuses?.resistances,
-              featResistances: featResistanceTypes(model.draft.featGrants),
-            }),
+          withSpellResistance(
+            formatDefenseSummary(
+              sheetDamageProfile({
+                raceSlug: model.draft.raceGrant?.slug,
+                raceResistances: model.draft.raceGrant?.damageResistances,
+                gear: model.gearEffects,
+                effects: model.draft.play.effects,
+                infusionResistances: model.infusionBonuses?.resistances,
+                featResistances: featResistanceTypes(model.draft.featGrants),
+                featureResistances: elementalShieldingResistanceLines2024({
+                  rulesEdition: model.rulesEdition,
+                  classes: model.draft.classes,
+                  featurePicks: model.draft.featurePicks,
+                  subclassSlugByEntryId: model.subclassSlugByEntryId,
+                }),
+              }),
+            ),
+            model.rulesEdition === '2024'
+              ? spellResistanceDefenseNote2024(
+                  wizard2024Flags(
+                    wizard2024Context({
+                      rulesEdition: model.rulesEdition,
+                      classes: model.draft.classes,
+                      subclassSlugByEntryId: model.subclassSlugByEntryId,
+                    }),
+                  ),
+                )
+              : '',
           ),
           model.gearEffects.conditionImmunities,
         )}
@@ -1195,6 +1486,7 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
                   classLevel: input.classLevel,
                   featurePicks: model.draft.featurePicks,
                   abilities: model.draft.abilities,
+                  rulesEdition: model.rulesEdition,
                   attunedMagicItemCount: (model.draft.attunements ?? []).filter(
                     (slot: { item_id?: string | null }) => Boolean(slot.item_id),
                   ).length,
@@ -1390,6 +1682,28 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
           if (notice) model.onToast(notice)
         }}
         onWizardFeatureUse={(request) => model.setWizardFeatureUse(request)}
+        onSorcererFeatureUse={(request) => model.setSorcererFeatureUse(request)}
+        onMonkFeatureUse={(request) => model.setMonkFeatureUse(request)}
+        onWarlockFeatureUse={(request) => model.setWarlockFeatureUse(request)}
+        onClericFeatureUse={(request) => model.setClericFeatureUse(request)}
+        onPaladinFeatureUse={(request) => {
+          const fid = String(request.featureId || '')
+            .trim()
+            .replace(/_/g, '-')
+          if (fid === 'lay-on-hands' || fid === 'lay_on_hands') {
+            if (request.resourceId) model.setLayOnHandsSpendId(request.resourceId)
+            return
+          }
+          model.setPaladinFeatureUse(request)
+        }}
+        onBardFeatureUse={(request) => model.setBardFeatureUse(request)}
+        onDruidFeatureUse={(request) => model.setDruidFeatureUse(request)}
+        onRangerFeatureUse={(request) => model.setRangerFeatureUse(request)}
+        onFighterFeatureUse={(request) => model.setFighterFeatureUse(request)}
+        onBarbarianFeatureUse={(request) => model.setBarbarianFeatureUse(request)}
+        onRogueFeatureUse={(request) => model.setRogueFeatureUse(request)}
+        onArtificerFeatureUse={(request) => model.setArtificerFeatureUse(request)}
+        onSorceryPointsSpend={(resourceId) => model.setSorcerySpendId(resourceId)}
         onMoonFormSlotHeal={({ slotLevel, diceCount, diceSize }) => {
           const form = model.draft.companions.find(
             (c) => c.role === 'self_form' && c.active,
@@ -1428,6 +1742,31 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
             learnBudgets={model.spellLearnBudgets}
             classes={model.draft.classes}
             elementalAffinity={elementalAffinity}
+            knownInvocationIds={collectWarlockInvocationIds({
+              classes: model.draft.classes,
+              featurePickValues: model.draft.featurePicks.values,
+              classOptionsInvocations:
+                model.rulesEdition === '2024'
+                  ? model.draft.classOptions2024?.eldritch_invocations
+                  : null,
+            })}
+            warlockLevel={
+              model.draft.classes.find((row) => /колдун|warlock/i.test(row.name))?.level ??
+              model.characterLevel
+            }
+            potentSpellcastingBonus={potentSheet.bonus}
+            potentSpellcastingClass={potentSheet.classSlug}
+            potentSpellcastingRangeBonusFt={potentSheet.rangeBonusFt}
+            improvedIllusions={
+              model.rulesEdition === '2024' &&
+              wizard2024Flags(
+                wizard2024Context({
+                  rulesEdition: model.rulesEdition,
+                  classes: model.draft.classes,
+                  subclassSlugByEntryId: model.subclassSlugByEntryId,
+                }),
+              ).improvedIllusions
+            }
             castProfiles={model.spellcastingSync.castProfiles}
             characterLevel={model.characterLevel}
             pinned={model.deskSplit && model.splitSecondary === 'spells'}
@@ -1438,7 +1777,7 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
               if (!model.isPlayDesk) model.setMobileSpellSurface('book')
               model.setSpellsSettingsOpen(true)
             }}
-            onSpellsChange={(spells) => model.setDraft((prev) => ({ ...prev, spells }))}
+            onSpellsChange={(spells) => model.applySpellsChange(spells)}
             onCastSpell={(spell) => {
               model.setDeskCastMetamagic?.(null)
               void spellReadyToCast(spell, model.rulesEdition).then((ready) =>
@@ -1490,6 +1829,7 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
           <SpellsSettingsDialog
             open={model.spellsSettingsOpen}
             edition={model.rulesEdition}
+            extraCantripsBySlug={model.primalOrderExtraCantrips}
             className={model.classSummary || model.primaryClass?.name || ''}
             level={model.characterLevel}
             classes={model.draft.classes}
@@ -1526,7 +1866,7 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
               }))
             }
             title={model.isPlayDesk ? 'Магия' : 'Книга заклинаний'}
-            onChange={(spells) => model.setDraft((prev) => ({ ...prev, spells }))}
+            onChange={(spells) => model.applySpellsChange(spells)}
             onClose={() => {
               model.setSpellsSettingsOpen(false)
               if (!model.isPlayDesk) model.setMobileSpellSurface('combat')
@@ -1555,6 +1895,18 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
           onKnownFormsChange={(knownForms) =>
             model.setDraft((prev) => ({ ...prev, knownForms }))
           }
+          extraCantripsBySlug={model.primalOrderExtraCantrips}
+          moonFormSpells={
+            model.rulesEdition === '2024' &&
+            model.druidSubclassSlug === DRUID_SUBCLASS_SLUGS_2024.moon &&
+            model.druidLevel >= 3
+          }
+          onCastSpell={(spell) => {
+            model.setDeskCastMetamagic?.(null)
+            void spellReadyToCast(spell, model.rulesEdition).then((ready) =>
+              model.setDeskCastSpell(ready),
+            )
+          }}
           hostHp={model.draft.hpCurrent}
           hostHpMax={model.draft.hpMax}
           abilities={model.effectiveAbilities}
@@ -1564,7 +1916,8 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
           inventoryItems={model.draft.inventory.items}
           inventory={model.draft.inventory}
           concentration={model.draft.play.concentration}
-          onChange={(spells) => model.setDraft((prev) => ({ ...prev, spells }))}
+          onChange={(spells) => model.applySpellsChange(spells)}
+          featurePicks={model.draft.featurePicks}
           resources={model.draft.play.resources}
           metamagicIds={model.sorcererMetamagicIds ?? []}
           voiceOfAuthority={model.unlockedFeatures.some(
@@ -1591,17 +1944,29 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
           )}
           onInventoryChange={(inventory) =>
             model.setDraft((prev) => {
-              const focusSpells = withSpellFocusFlags(prev.spells, inventory.items)
+              const bladesinger2024 =
+                String(model.rulesEdition || model.baseCharacter?.rules_edition || '') ===
+                  '2024' &&
+                Object.values(model.subclassSlugByEntryId ?? {}).some(
+                  (slug) => String(slug || '').toLowerCase() === 'wizard__bladesinger',
+                )
+              const items = markBladesingerMeleeFocusItems2024(
+                inventory.items,
+                bladesinger2024,
+              )
+              const nextInventory =
+                items === inventory.items ? inventory : { ...inventory, items }
+              const focusSpells = withSpellFocusFlags(prev.spells, items)
               const isWizard =
                 model.spellLearnBudget?.mode === 'spellbook' ||
                 prev.classes.some((row) => /волшебник|wizard|маг/i.test(row.name))
               const synced = syncWizardSpellbookWithInventory({
                 isWizard,
                 spells: focusSpells,
-                items: inventory.items,
+                items,
               })
               if (synced.message) queueMicrotask(() => model.onToast(synced.message!))
-              return { ...prev, inventory, spells: synced.spells }
+              return { ...prev, inventory: nextInventory, spells: synced.spells }
             })
           }
           onConcentrationChange={(concentration) => {
@@ -1630,6 +1995,7 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
       <div className="play-desk__stage-panel" hidden={model.stageHidden('companions')}>
       {/* Companions: CompanionsPanel glance→expand — no compact/full flip. */}
       <CompanionsPanel
+        rulesEdition={model.rulesEdition}
         companions={model.draft.companions}
         onChange={(companions) => model.setDraft((prev) => ({ ...prev, companions }))}
         focusCompanionId={model.focusCompanionId}
@@ -1646,11 +2012,13 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
         emptyHint={resolveCompanionsEmptyHint({
           classes: model.draft.classes,
           subclassSlugByEntryId: model.subclassSlugByEntryId,
+          rulesEdition: model.rulesEdition,
         })}
         onEmptyAction={() => {
           const hint = resolveCompanionsEmptyHint({
             classes: model.draft.classes,
             subclassSlugByEntryId: model.subclassSlugByEntryId,
+            rulesEdition: model.rulesEdition,
           })
           if (hint.kind === 'wizard') {
             const spell =
@@ -1684,6 +2052,27 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
             const druid = model.draft.classes.find((row) =>
               /друид|druid/i.test(row.name),
             )
+            if (model.rulesEdition === '2024' && druid) {
+              const feature = model.unlockedFeatures.find(
+                (f: { id: string; classEntryId?: string }) =>
+                  (f.id === 'wild_companion' || f.id === 'wild-companion') &&
+                  (!druid || f.classEntryId === druid.id),
+              )
+              if (feature) {
+                model.setDruidFeatureUse({
+                  featureId: feature.id,
+                  resourceId: null,
+                  classSlug: 'druid',
+                  classEntryId: druid.id,
+                  name: feature.name_ru || 'Дикий спутник',
+                })
+                return
+              }
+              model.onToast?.(
+                'Открой «Способности» и нажми «Дикий спутник…»',
+              )
+              return
+            }
             const feature = model.unlockedFeatures.find(
               (f: { id: string; classEntryId?: string }) =>
                 (f.id === 'wild_shape' || f.id === 'wild_companion') &&
@@ -1706,10 +2095,31 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
         }}
         onResummonSpellCompanion={(row: CompanionEntry) => {
           const feature = (row.source?.feature ?? '').trim().toLowerCase()
-          if (feature === 'wild_companion') {
+          if (feature === 'wild_companion' || feature === 'wild-companion') {
             const druid = model.draft.classes.find((r) =>
               /друид|druid/i.test(r.name),
             )
+            if (model.rulesEdition === '2024' && druid) {
+              const featureRow = model.unlockedFeatures.find(
+                (f: { id: string; classEntryId?: string }) =>
+                  (f.id === 'wild_companion' || f.id === 'wild-companion') &&
+                  (!druid || f.classEntryId === druid.id),
+              )
+              if (featureRow) {
+                model.setDruidFeatureUse({
+                  featureId: featureRow.id,
+                  resourceId: null,
+                  classSlug: 'druid',
+                  classEntryId: druid.id,
+                  name: featureRow.name_ru || 'Дикий спутник',
+                })
+                return
+              }
+              model.onToast?.(
+                'Открой «Способности» → «Дикий спутник…»',
+              )
+              return
+            }
             const featureRow = model.unlockedFeatures.find(
               (f: { id: string; classEntryId?: string }) =>
                 (f.id === 'wild_shape' || f.id === 'wild_companion') &&

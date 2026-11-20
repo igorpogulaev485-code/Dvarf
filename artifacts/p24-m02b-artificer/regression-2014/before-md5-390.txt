@@ -1,0 +1,6 @@
+593794cbc8945111beb093cf3ee71614  before-create-2014-race-marker-390.png
+cbd82df229095f29a538ecda7124ecc7  before-create-2014-artificer-class-390.png
+034c14fb4fcb14e42e9d3d16c73e9bec  before-sheet-2014-artificer-header-390.png
+b874074db92e3753b096d4ba37ee72bd  before-sheet-2014-artificer-abilities-390.png
+82cf241d8f15a8121f15cc6c39e42325  before-sheet-2014-artificer-features-390.png
+82cf241d8f15a8121f15cc6c39e42325  before-sheet-2014-artificer-alchemist-390.png

@@ -31,7 +31,7 @@ import sorcererPack from './data/sorcerer_2014.json'
 import warlockPack from './data/warlock_2014.json'
 import { SORCERER_METAMAGIC } from './sorcererMetamagic'
 import { ARCANE_SHOTS } from './arcaneShots'
-import { BATTLE_MASTER_MANEUVERS } from './battleMasterManeuvers'
+import { maneuversForPicker } from './battleMasterManeuvers'
 import {
   cavalierBonusOptionIds,
   samuraiBonusOptionIds,
@@ -277,6 +277,8 @@ export type UnlockedFeature = ClassFeatureDef & {
   scaleValue: string | null
   /** Resolved resource uses for current class level. */
   resourceUses: number | null
+  /** 2024 subclass automation kind (resource / calc / …); never shown as a scale. */
+  automationMode?: string | null
 }
 
 type FeaturePack = {
@@ -599,7 +601,10 @@ const LOCAL_PACKS: Record<string, FeaturePack> = {
   warlock: normalizeFeaturePack(warlockPack),
 }
 
-export function resolveFeatureChoiceOptions(choice: FeatureChoiceDef): string[] {
+export function resolveFeatureChoiceOptions(
+  choice: FeatureChoiceDef,
+  rulesEdition?: string | null,
+): string[] {
   if (choice.options_from === 'expertise_skills_tools') {
     // Resolved at runtime from sheet proficiencies (see expertise.ts / wizard).
     return choice.options ? [...choice.options] : []
@@ -644,7 +649,8 @@ export function resolveFeatureChoiceOptions(choice: FeatureChoiceDef): string[] 
     return MONK_ELEMENTAL_DISCIPLINES.map((row) => row.id)
   }
   if (choice.options_from === 'battle_master_maneuvers') {
-    return BATTLE_MASTER_MANEUVERS.map((row) => row.id)
+    // 2024 PHB: exclude Tasha-only Grappling Strike / Quick Toss / Brace.
+    return maneuversForPicker(rulesEdition).map((row) => row.id)
   }
   if (choice.options_from === 'arcane_shots') {
     return ARCANE_SHOTS.map((row) => row.id)
@@ -665,9 +671,10 @@ export function resolveFeatureChoiceOptions(choice: FeatureChoiceDef): string[] 
 export function choiceOptionsAtLevel(
   choice: FeatureChoiceDef,
   classLevel: number,
+  rulesEdition?: string | null,
 ): string[] {
   const level = Math.floor(classLevel)
-  return resolveFeatureChoiceOptions(choice).filter((id) => {
+  return resolveFeatureChoiceOptions(choice, rulesEdition).filter((id) => {
     const min = choice.option_min_level?.[id]
     return min == null || min <= level
   })
@@ -963,6 +970,7 @@ const CLASS_NAME_TO_SLUG: Record<string, string> = {
   плут: 'rogue',
   fighter: 'fighter',
   воин: 'fighter',
+  боец: 'fighter',
   monk: 'monk',
   монах: 'monk',
   cleric: 'cleric',
@@ -983,6 +991,7 @@ const CLASS_NAME_TO_SLUG: Record<string, string> = {
   волшебник: 'wizard',
   artificer: 'artificer',
   изобретатель: 'artificer',
+  артефактор: 'artificer',
 }
 
 export function resolveClassFeatureSlug(className: string): string | null {

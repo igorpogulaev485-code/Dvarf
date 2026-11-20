@@ -1,0 +1,402 @@
+{
+  "meta": {
+    "pack": "P24-C01",
+    "rules_edition": "2024",
+    "source": "srd-5.2",
+    "notes_ru": "Девять видов SRD 5.2.1. Короткие карточки: RU-имена из docs/edition-2024/sources/species.csv (next.dnd.su). ASI у вида нет. kind=race."
+  },
+  "entries": [
+    {
+      "kind": "race",
+      "slug": "dragonborn",
+      "name_ru": "Драконорожденный",
+      "name_en": "Dragonborn",
+      "source": "srd-5.2",
+      "sort_order": 10,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/species/dragonborn",
+        "url_ttg": "https://new.ttg.club/species/dragonborn-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "creature_type": "humanoid",
+        "size": "medium",
+        "size_options": [
+          "medium"
+        ],
+        "speed": 30,
+        "darkvision": 60,
+        "ability_bonuses": {},
+        "languages": [],
+        "languages_choose": 0,
+        "draconic_ancestry": true,
+        "traits": [
+          "draconic_ancestry",
+          "breath_weapon",
+          "damage_resistance",
+          "darkvision",
+          "draconic_flight"
+        ],
+        "traits_text": "Драконорожденный (2024): гуманоид, Средний, 30 фт. Наследие дракона (тип урона дыхания/сопротивления). Оружие дыхания вместо одной атаки (конус 15 / линия 30, 1к10→4к10). Сопротивление выбранному типу. Тёмное зрение 60. С 5 ур. — драконий полёт (бонус, 10 мин, 1/длинный)."
+      }
+    },
+    {
+      "kind": "race",
+      "slug": "dwarf",
+      "name_ru": "Дварф",
+      "name_en": "Dwarf",
+      "source": "srd-5.2",
+      "sort_order": 20,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/species/dwarf",
+        "url_ttg": "https://new.ttg.club/species/dwarf-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "creature_type": "humanoid",
+        "size": "medium",
+        "size_options": [
+          "medium"
+        ],
+        "speed": 30,
+        "darkvision": 120,
+        "ability_bonuses": {},
+        "languages": [],
+        "languages_choose": 0,
+        "damage_resistances": [
+          "poison"
+        ],
+        "traits": [
+          "darkvision",
+          "dwarven_resilience",
+          "dwarven_toughness",
+          "stonecunning"
+        ],
+        "traits_text": "Дварф (2024): гуманоид, Средний, 30 фт. Тёмное зрение 120. Устойчивость к яду + преимущество против «отравлен». +1 макс. хитов за уровень. Знание камня: бонусом чувство вибрации 60 фт на 10 мин (ПБ/длинный)."
+      }
+    },
+    {
+      "kind": "race",
+      "slug": "elf",
+      "name_ru": "Эльф",
+      "name_en": "Elf",
+      "source": "srd-5.2",
+      "sort_order": 30,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/species/elf",
+        "url_ttg": "https://new.ttg.club/species/elf-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "creature_type": "humanoid",
+        "size": "medium",
+        "size_options": [
+          "medium"
+        ],
+        "speed": 30,
+        "darkvision": 60,
+        "ability_bonuses": {},
+        "languages": [],
+        "languages_choose": 0,
+        "lineage_required": true,
+        "lineages": [
+          {
+            "id": "drow",
+            "name_ru": "Дроу",
+            "name_en": "Drow",
+            "darkvision": 120,
+            "summary_ru": "Пляшущие огоньки; 3 ур. Огонь фей; 5 ур. Тьма (1/длинный без ячейки)."
+          },
+          {
+            "id": "high-elf",
+            "name_ru": "Высший эльф",
+            "name_en": "High Elf",
+            "darkvision": 60,
+            "summary_ru": "Заговор Фокусы (сменный после длинного); 3 ур. Обнаружение магии; 5 ур. Туманный шаг."
+          },
+          {
+            "id": "wood-elf",
+            "name_ru": "Лесной эльф",
+            "name_en": "Wood Elf",
+            "darkvision": 60,
+            "speed": 35,
+            "summary_ru": "Заговор Искусство друидов; скорость 35; 3 ур. Скороход; 5 ур. Бесследное передвижение."
+          }
+        ],
+        "traits": [
+          "darkvision",
+          "elf_lineage",
+          "fey_ancestry",
+          "keen_senses",
+          "trance"
+        ],
+        "traits_text": "Эльф (2024): гуманоид, Средний, 30 фт. Выберите род (дроу / высший / лесной) — заговоры и заклинания по роду. Наследие фей (преимущество против очарования). Обострённые чувства (один навык: Внимательность / Выживание / Проницательность). Транс (длинный отдых 4 ч)."
+      }
+    },
+    {
+      "kind": "race",
+      "slug": "gnome",
+      "name_ru": "Гном",
+      "name_en": "Gnome",
+      "source": "srd-5.2",
+      "sort_order": 40,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/species/gnome",
+        "url_ttg": "https://new.ttg.club/species/gnome-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "creature_type": "humanoid",
+        "size": "small",
+        "size_options": [
+          "small"
+        ],
+        "speed": 30,
+        "darkvision": 60,
+        "ability_bonuses": {},
+        "languages": [],
+        "languages_choose": 0,
+        "lineage_required": true,
+        "lineages": [
+          {
+            "id": "forest-gnome",
+            "name_ru": "Лесной гном",
+            "name_en": "Forest Gnome",
+            "summary_ru": "Малая иллюзия; Разговор с животными (ПБ раз / длинный без ячейки)."
+          },
+          {
+            "id": "rock-gnome",
+            "name_ru": "Скальный гном",
+            "name_en": "Rock Gnome",
+            "summary_ru": "Починка и Фокусы; до 3 крошечных заводных устройств (эффект Фокусов)."
+          }
+        ],
+        "traits": [
+          "darkvision",
+          "gnomish_cunning",
+          "gnomish_lineage"
+        ],
+        "traits_text": "Гном (2024): гуманоид, Маленький, 30 фт. Тёмное зрение 60. Гномья хитрость: преимущество на спасброски ИНТ/МУД/ХАР. Выберите род (лесной / скальный) — магия рода."
+      }
+    },
+    {
+      "kind": "race",
+      "slug": "goliath",
+      "name_ru": "Голиаф",
+      "name_en": "Goliath",
+      "source": "srd-5.2",
+      "sort_order": 50,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/species/goliath",
+        "url_ttg": "https://new.ttg.club/species/goliath-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "creature_type": "humanoid",
+        "size": "medium",
+        "size_options": [
+          "medium"
+        ],
+        "speed": 35,
+        "darkvision": 0,
+        "ability_bonuses": {},
+        "languages": [],
+        "languages_choose": 0,
+        "lineage_required": true,
+        "lineages": [
+          {
+            "id": "cloud-giant",
+            "name_ru": "Облачный великан",
+            "name_en": "Cloud Giant",
+            "summary_ru": "Облачная прогулка: бонусом телепорт до 30 фт (ПБ/длинный)."
+          },
+          {
+            "id": "fire-giant",
+            "name_ru": "Огненный великан",
+            "name_en": "Fire Giant",
+            "summary_ru": "Огненный ожог: +1к10 огня при попадании (ПБ/длинный)."
+          },
+          {
+            "id": "frost-giant",
+            "name_ru": "Ледяной великан",
+            "name_en": "Frost Giant",
+            "summary_ru": "Морозный иней: +1к6 холода и −10 фт скорости (ПБ/длинный)."
+          },
+          {
+            "id": "hill-giant",
+            "name_ru": "Холмовой великан",
+            "name_en": "Hill Giant",
+            "summary_ru": "Обрушение холма: опрокинуть Большого или меньше (ПБ/длинный)."
+          },
+          {
+            "id": "stone-giant",
+            "name_ru": "Каменный великан",
+            "name_en": "Stone Giant",
+            "summary_ru": "Выносливость камня: реакция 1к12+ТЕЛ снизить урон (ПБ/длинный)."
+          },
+          {
+            "id": "storm-giant",
+            "name_ru": "Штормовой великан",
+            "name_en": "Storm Giant",
+            "summary_ru": "Грохот бури: реакция 1к8 звука обидчику в 60 фт (ПБ/длинный)."
+          }
+        ],
+        "traits": [
+          "giant_ancestry",
+          "large_form",
+          "powerful_build"
+        ],
+        "traits_text": "Голиаф (2024): гуманоид, Средний, 35 фт. Наследие великанов (один дар, ПБ/длинный). С 5 ур. Большая форма (бонус, 10 мин, 1/длинный). Мощное телосложение (преимущество против захвата; грузоподъёмность как на размер больше)."
+      }
+    },
+    {
+      "kind": "race",
+      "slug": "halfling",
+      "name_ru": "Полурослик",
+      "name_en": "Halfling",
+      "source": "srd-5.2",
+      "sort_order": 60,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/species/halfling",
+        "url_ttg": "https://new.ttg.club/species/halfling-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "creature_type": "humanoid",
+        "size": "small",
+        "size_options": [
+          "small"
+        ],
+        "speed": 30,
+        "darkvision": 0,
+        "ability_bonuses": {},
+        "languages": [],
+        "languages_choose": 0,
+        "traits": [
+          "brave",
+          "halfling_nimbleness",
+          "lucky",
+          "naturally_stealthy"
+        ],
+        "traits_text": "Полурослик (2024): гуманоид, Маленький, 30 фт. Храбрый (преимущество против испуга). Проворство (проход через пространство существа крупнее). Удача (переброс 1 на к20 в тесте к20). Естественная скрытность (затаиться за существом крупнее)."
+      }
+    },
+    {
+      "kind": "race",
+      "slug": "human",
+      "name_ru": "Человек",
+      "name_en": "Human",
+      "source": "srd-5.2",
+      "sort_order": 70,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/species/human",
+        "url_ttg": "https://new.ttg.club/species/human-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "creature_type": "humanoid",
+        "size": "medium",
+        "size_options": [
+          "medium",
+          "small"
+        ],
+        "speed": 30,
+        "darkvision": 0,
+        "ability_bonuses": {},
+        "languages": [],
+        "languages_choose": 0,
+        "traits": [
+          "resourceful",
+          "skillful",
+          "versatile"
+        ],
+        "origin_feat_choice": true,
+        "traits_text": "Человек (2024): гуманоид, Средний или Маленький (выбор), 30 фт. Находчивый: героическое вдохновение после длинного отдыха. Умелый: владение одним навыком. Гибкий: черта происхождения на выбор (часто Умелый)."
+      }
+    },
+    {
+      "kind": "race",
+      "slug": "orc",
+      "name_ru": "Орк",
+      "name_en": "Orc",
+      "source": "srd-5.2",
+      "sort_order": 80,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/species/orc",
+        "url_ttg": "https://new.ttg.club/species/orc-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "creature_type": "humanoid",
+        "size": "medium",
+        "size_options": [
+          "medium"
+        ],
+        "speed": 30,
+        "darkvision": 120,
+        "ability_bonuses": {},
+        "languages": [],
+        "languages_choose": 0,
+        "traits": [
+          "adrenaline_rush",
+          "darkvision",
+          "relentless_endurance"
+        ],
+        "traits_text": "Орк (2024): гуманоид, Средний, 30 фт. Выброс адреналина: бонусом Рывок + временные хиты = ПБ (ПБ/короткий или длинный). Тёмное зрение 120. Непоколебимая стойкость: вместо 0 хитов — 1 (1/длинный)."
+      }
+    },
+    {
+      "kind": "race",
+      "slug": "tiefling",
+      "name_ru": "Тифлинг",
+      "name_en": "Tiefling",
+      "source": "srd-5.2",
+      "sort_order": 90,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/species/tiefling",
+        "url_ttg": "https://new.ttg.club/species/tiefling-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "creature_type": "humanoid",
+        "size": "medium",
+        "size_options": [
+          "medium",
+          "small"
+        ],
+        "speed": 30,
+        "darkvision": 60,
+        "ability_bonuses": {},
+        "languages": [],
+        "languages_choose": 0,
+        "lineage_required": true,
+        "lineages": [
+          {
+            "id": "abyssal",
+            "name_ru": "Бездна",
+            "name_en": "Abyssal",
+            "summary_ru": "Сопр. яду; Ядовитые брызги; 3 ур. Луч болезни; 5 ур. Удержание личности."
+          },
+          {
+            "id": "chthonic",
+            "name_ru": "Хтоническое",
+            "name_en": "Chthonic",
+            "summary_ru": "Сопр. некротическому; Леденящее прикосновение; 3 ур. Псевдожизнь; 5 ур. Луч слабости."
+          },
+          {
+            "id": "infernal",
+            "name_ru": "Инфернальное",
+            "name_en": "Infernal",
+            "summary_ru": "Сопр. огню; Огненный снаряд; 3 ур. Адское возмездие; 5 ур. Тьма."
+          }
+        ],
+        "traits": [
+          "darkvision",
+          "fiendish_legacy",
+          "otherworldly_presence"
+        ],
+        "traits_text": "Тифлинг (2024): гуманоид, Средний или Маленький (выбор), 30 фт. Тёмное зрение 60. Наследие исчадий (Бездна / хтоническое / инфернальное). Потустороннее присутствие: Чудотворство."
+      }
+    }
+  ]
+}

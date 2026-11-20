@@ -32,6 +32,44 @@ import { abilityModifier } from '../sheetTypes'
 import type { BestiaryFormPick } from '../wildShape'
 import type { Draft } from './draft'
 import { resolveClassEntryIdForSubclassCommit } from '../../createPipeline/resolveClassEntryIdForSubclass'
+import { draconicResilienceHpTotal2024 } from '../../../shared/dnd/sorcerer2024Features'
+
+function isSorcererClassName(name: string): boolean {
+  return /чародей|sorcerer/i.test(name)
+}
+
+/** 2024 Draconic Resilience HP delta when subclass slug changes at a fixed sorcerer level. */
+function draconicHpDeltaOnSubclassChange2024(input: {
+  className: string
+  sorcererLevel: number
+  oldSubclassSlug: string | null | undefined
+  newSubclassSlug: string | null | undefined
+}): number {
+  if (!isSorcererClassName(input.className)) return 0
+  return (
+    draconicResilienceHpTotal2024({
+      sorcererLevel: input.sorcererLevel,
+      subclassSlug: input.newSubclassSlug,
+    }) -
+    draconicResilienceHpTotal2024({
+      sorcererLevel: input.sorcererLevel,
+      subclassSlug: input.oldSubclassSlug,
+    })
+  )
+}
+
+function applyHpDeltaToDraft(
+  prev: Draft,
+  delta: number,
+): Pick<Draft, 'hpMax' | 'hpCurrent'> {
+  if (!delta || prev.hpMax == null) {
+    return { hpMax: prev.hpMax, hpCurrent: prev.hpCurrent }
+  }
+  const hpMax = Math.max(1, prev.hpMax + delta)
+  const hpCurrent =
+    prev.hpCurrent == null ? hpMax : Math.max(0, prev.hpCurrent + delta)
+  return { hpMax, hpCurrent }
+}
 
 export function installSheetActions1(model: SheetModel) {
   model.applyWildShapeResult = function applyWildShapeResult(result: WildShapeDialogResult) {
@@ -160,9 +198,34 @@ export function installSheetActions1(model: SheetModel) {
       const nextClasses = prev.classes.map((row) =>
         row.id === classId ? { ...row, ...patch } : row,
       )
-      const next = model.withRaceSpellsSynced(prev, nextClasses)
+      const edition = model.baseCharacter?.rules_edition ?? model.rulesEdition ?? '2014'
+      let hpPatch: Pick<Draft, 'hpMax' | 'hpCurrent'> = {
+        hpMax: prev.hpMax,
+        hpCurrent: prev.hpCurrent,
+      }
+      if (
+        edition === '2024' &&
+        (patch.subclass_catalog_id !== undefined || patch.subclass_name !== undefined)
+      ) {
+        const before = prev.classes.find((row) => row.id === classId)
+        const after = nextClasses.find((row) => row.id === classId)
+        if (before && after) {
+          const delta = draconicHpDeltaOnSubclassChange2024({
+            className: after.name,
+            sorcererLevel: after.level,
+            oldSubclassSlug: before.subclass_catalog_id || before.subclass_name || null,
+            newSubclassSlug: after.subclass_catalog_id || after.subclass_name || null,
+          })
+          hpPatch = applyHpDeltaToDraft(prev, delta)
+        }
+      }
+      const next = model.withRaceSpellsSynced(
+        { ...prev, ...hpPatch },
+        nextClasses,
+      )
       return {
         ...next,
+        ...hpPatch,
         identity:
           prev.classes[0]?.id === classId && patch.subclass_name !== undefined
             ? { ...next.identity, subclassName: patch.subclass_name }
@@ -498,15 +561,36 @@ export function installSheetActions1(model: SheetModel) {
         classEntryId: resolvedId,
         styleId: swordsFightingStyleFromSubclassPicks(input.picks),
       })
+      const nextSubclassId =
+        input.selected.rules_edition === '2024' && input.selected.slug.includes('__')
+          ? input.selected.slug
+          : input.selected.id
+      const edition = model.baseCharacter?.rules_edition ?? model.rulesEdition ?? '2014'
+      const dragonDelta =
+        edition === '2024'
+          ? draconicHpDeltaOnSubclassChange2024({
+              className: row?.name ?? '',
+              sorcererLevel: row?.level ?? classLevel,
+              oldSubclassSlug:
+                row?.subclass_catalog_id ||
+                row?.subclass_name ||
+                input.previousSlug ||
+                input.previousCatalogId ||
+                null,
+              newSubclassSlug: nextSubclassId || input.def.slug || null,
+            })
+          : 0
+      const hpPatch = applyHpDeltaToDraft(withGrant, dragonDelta)
       return {
         ...withGrant,
+        ...hpPatch,
         featurePicks: nextPicks,
         classes: withGrant.classes.map((item) =>
           item.id === resolvedId
             ? {
                 ...item,
                 subclass_name: input.selected.name_ru,
-                subclass_catalog_id: input.selected.id,
+                subclass_catalog_id: nextSubclassId,
               }
             : item,
         ),
@@ -529,23 +613,20 @@ export function installSheetActions1(model: SheetModel) {
   }
 
   model.advanceGuidedWizardAfterSubclass = function advanceGuidedWizardAfterSubclass() {
-    model.setPausedWizardForSubclass((paused) => {
-      if (paused) {
-        const nextIndex = paused.index + 1
-        if (nextIndex >= paused.steps.length) {
-          model.setGuidedWizard(null)
-        } else {
-          model.setGuidedWizard({ ...paused, index: nextIndex })
-        }
-        return null
-      }
-      model.setGuidedWizard((prev) => {
-        if (!prev) return null
-        const nextIndex = prev.index + 1
-        if (nextIndex >= prev.steps.length) return null
-        return { ...prev, index: nextIndex }
-      })
-      return null
+    // Read the paused session directly: calling setGuidedWizard from inside a state
+    // updater runs twice under StrictMode and skipped the next guided step.
+    const paused = model.pausedWizardForSubclass
+    model.setPausedWizardForSubclass(null)
+    if (paused) {
+      const nextIndex = paused.index + 1
+      model.setGuidedWizard(nextIndex >= paused.steps.length ? null : { ...paused, index: nextIndex })
+      return
+    }
+    model.setGuidedWizard((prev) => {
+      if (!prev) return null
+      const nextIndex = prev.index + 1
+      if (nextIndex >= prev.steps.length) return null
+      return { ...prev, index: nextIndex }
     })
   }
 
@@ -567,9 +648,15 @@ export function installSheetActions1(model: SheetModel) {
       catalogData: input.selected.data,
     })
     if (!def) {
+      // 2024 catalog rows carry no grant package; sheet progression keys on the slug
+      // (`wizard__abjurer`), the same value create-at-N writes into subclass_catalog_id.
+      const slugKey =
+        input.selected.rules_edition === '2024' && input.selected.slug.includes('__')
+          ? input.selected.slug
+          : input.selected.id
       model.patchClass(input.classEntryId, {
         subclass_name: input.selected.name_ru,
-        subclass_catalog_id: input.selected.id,
+        subclass_catalog_id: slugKey,
       })
       model.onToast(`Архетип «${input.selected.name_ru}» без пакета грантов — только имя`)
       if (input.advanceWizardAfter) model.advanceGuidedWizardAfterSubclass()
@@ -624,7 +711,7 @@ export function installSheetActions1(model: SheetModel) {
       transition?.activeCatalogId ||
       existing?.catalogId ||
       null
-    if (currentCatalogId && currentCatalogId !== selected.id) {
+    if (currentCatalogId && currentCatalogId !== selected.id && currentCatalogId !== selected.slug) {
       const previousSlug =
         transition?.mode === 'future_only'
           ? transition.previousSlug || existing?.slug || ''

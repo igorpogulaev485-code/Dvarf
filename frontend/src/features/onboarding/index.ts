@@ -1,4 +1,5 @@
 export { CharacterReadyDialog } from './CharacterReadyDialog'
+export { Edition2024DiffDialog } from './Edition2024DiffDialog'
 export { HelpDrawer } from './HelpDrawer'
 export { JoinIntroCard } from './JoinIntroCard'
 export { LobbyTour } from './LobbyTour'
@@ -9,6 +10,7 @@ export { StepHint } from './StepHint'
 export { HoverTipCard, ValueTip } from './ValueTip'
 export { WelcomeDialog } from './WelcomeDialog'
 export { useOnboardingState } from './useOnboardingState'
+export { EDITION_2024_DIFF } from './edition2024Diff.ru'
 export {
   CREATE_HINT_VERSION,
   defaultOnboardingState,
@@ -51,7 +53,13 @@ export {
   unionVisibleRects,
 } from './anchors'
 export { JOIN_INTRO, LOBBY_TOUR, SCENE_INTRO, TOUR_STEPS } from './copy.ru'
-export { EDITION_HINT, EMPTY_CHARACTERS, PANEL_HELP } from './copy.ru'
+export {
+  EDITION_HINT,
+  EDITION_HINT_2014,
+  EDITION_HINT_2024,
+  EMPTY_CHARACTERS,
+  PANEL_HELP,
+} from './copy.ru'
 export {
   ABILITY_TIPS,
   MODIFIER_TIP,

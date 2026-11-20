@@ -73,9 +73,9 @@ function raceAsiLine(def: RaceGrantDef): string | null {
   const fixed = Object.entries(def.abilityBonuses)
     .filter(([, value]) => value)
     .map(([key, value]) => `${ABILITY_LABELS[key as AbilityKey] ?? key}+${value}`)
-  if (fixed.length) return `ASI: ${fixed.join(', ')}`
+  if (fixed.length) return `Увеличение характеристик: ${fixed.join(', ')}`
   if (def.abilityBonusChoices) {
-    return 'ASI: гибкий выбор (в диалоге настройки)'
+    return 'Увеличение характеристик: гибкий выбор (в диалоге настройки)'
   }
   return null
 }

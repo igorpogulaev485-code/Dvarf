@@ -20,10 +20,18 @@ import { resolveSubclassFeatureSlug, unlockFeaturesForClasses } from '../../../s
 import { withPactTomeCantripsStep } from '../pactTomeEffects'
 import { characterHasCasterClass, maxSpellLevelForClassAlone } from '../../../shared/dnd/casterProgression'
 import { freeBookSlotsAtLevel, remainingFreeSpellbookSlots } from '../../../shared/dnd/wizardSpellbook'
+import { wizardSavantSchool } from '../../../shared/dnd/wizardSpellbook2024'
 import { wizardHasUsableSpellbook } from '../wizardSpellbookInventory'
 import { addCatalogSpellToKnown } from '../spells'
 import { abilityModifier } from '../sheetTypes'
 import { subclassSlugMapFromLedger, subclassTransitionMapFromLedger } from './draft'
+import { hasDraconicResilienceFeature } from '../featureCombatBonuses'
+import {
+  EPIC_BOON_FEATURE_ID_2024,
+  epicBoonLevelForClassSlug,
+  parseEpicBoonStepId2024,
+  resolveClassSlug2024,
+} from '../../../shared/dnd/pendingFeatureChoices2024'
 
 export function SheetDialogsSetup({ model }: { model: SheetModel }) {
   const campaignRules = normalizeCampaignRules(model.campaignRulesRaw)
@@ -35,12 +43,16 @@ export function SheetDialogsSetup({ model }: { model: SheetModel }) {
         classes={model.draft.classes}
         abilities={model.draft.abilities}
         constitutionMod={abilityModifier(model.draft.abilities.con)}
-        draconicResilience={(model.unlockedFeatures ?? []).some(
-          (f: { id?: string }) => f.id === 'draconic_resilience',
+        draconicResilience={hasDraconicResilienceFeature(
+          model.unlockedFeatures ?? [],
+          model.baseCharacter.rules_edition,
         )}
         dwarvenToughness={
           model.draft.raceGrant?.slug === 'hill_dwarf' ||
           model.draft.raceGrant?.slug === 'gold_dwarf'
+        }
+        speciesSlug={
+          model.draft.identity.speciesSlug ?? model.draft.raceGrant?.slug ?? null
         }
         allowMulticlass={campaignRules.edition_2014.multiclass}
         defaultHpMode={campaignRules.edition_2014.hp_on_level_up}
@@ -186,6 +198,43 @@ export function SheetDialogsSetup({ model }: { model: SheetModel }) {
           void model.requestOrApplyBackgroundGrant(entry)
         }}
         onConfirmAsi={model.confirmClassAsi}
+        onConfirmFeat={(result) => {
+          const current = model.guidedWizard?.steps[model.guidedWizard.index]
+          const epic = parseEpicBoonStepId2024(current?.id)
+          if (!epic) return
+          const row = model.draft.classes.find((item) => item.id === epic.classEntryId)
+          if (!row) return
+          const grantId = newFeatGrantId()
+          const atClassLevel = epicBoonLevelForClassSlug(resolveClassSlug2024(row))
+          model.confirmClassAsi(
+            {
+              classEntryId: row.id,
+              featureId: EPIC_BOON_FEATURE_ID_2024,
+              atClassLevel,
+              resolution: {
+                kind: 'feat',
+                featCatalogId: result.entry.id,
+                featSlug: result.entry.slug,
+                featGrantId: grantId,
+              },
+              bonuses: {},
+            },
+            {
+              id: grantId,
+              featCatalogId: result.entry.id,
+              slug: result.entry.slug,
+              nameRu: result.entry.name_ru,
+              source: {
+                kind: 'asi',
+                classEntryId: row.id,
+                featureId: EPIC_BOON_FEATURE_ID_2024,
+                atClassLevel,
+              },
+              applied: result.applied,
+              picks: result.picks,
+            },
+          )
+        }}
         onAdvance={model.advanceGuidedWizard}
         onSkipStep={model.skipGuidedWizardStep}
         onClose={() => model.setGuidedWizard(null)}
@@ -229,14 +278,24 @@ export function SheetDialogsSetup({ model }: { model: SheetModel }) {
                 raw.toLowerCase().replace(/\s+/g, '_')
               )
             })(),
+            savantSchool:
+              model.baseCharacter.rules_edition === '2024' && wizard
+                ? (wizardSavantSchool(model.subclassSlugByEntryId[wizard.id]) ??
+                  wizardSavantSchool(wizard.subclass_catalog_id) ??
+                  wizardSavantSchool(wizard.subclass_name))
+                : null,
           }
         })()}
         onConfirmSpellbookPicks={(entries) => {
           const step = model.guidedWizard?.steps[model.guidedWizard.index]
           const acquisition =
-            step?.kind === 'spellbook_picks' && step.classLevel <= 1
-              ? 'starting'
-              : 'level_up'
+            step?.kind === 'spellbook_picks' && step.savant
+              ? 'feature'
+              : step?.kind === 'spellbook_picks' && step.classLevel <= 1
+                ? 'starting'
+                : 'level_up'
+          const savantLevel =
+            step?.kind === 'spellbook_picks' && step.savant ? step.classLevel : null
           const wizardRow = model.draft.classes.find((row) => {
             const n = row.name.trim().toLowerCase()
             return n === 'волшебник' || n === 'wizard' || n === 'маг'
@@ -252,12 +311,28 @@ export function SheetDialogsSetup({ model }: { model: SheetModel }) {
                 class_entry_id: wizardRow?.id ?? null,
               })
             }
+            if (savantLevel != null) {
+              const added = new Set(entries.map((entry) => entry.id))
+              known = known.map((row) =>
+                row.catalog_id && added.has(row.catalog_id) && row.savant_level == null
+                  ? { ...row, savant_level: savantLevel }
+                  : row,
+              )
+            }
             return {
               ...prev,
               spells: { ...prev.spells, known },
             }
           })
         }}
+        classOptions2024={model.draft.classOptions2024}
+        knownForms={model.draft.knownForms}
+        onKnownFormsChange={(knownForms) =>
+          model.setDraft((prev) => ({ ...prev, knownForms }))
+        }
+        onClassOptions2024Change={(classOptions2024) =>
+          model.setDraft((prev) => ({ ...prev, classOptions2024 }))
+        }
       />
 
       <ClassAsiDialog

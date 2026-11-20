@@ -303,6 +303,7 @@ export function applyClassGrantToDraft(input: {
   def?: ClassGrantDef | null
   catalogSlug?: string | null
   catalogData?: Record<string, unknown> | null
+  rulesEdition?: string | null
 }): { draft: ClassGrantDraftSlice; summary: string } | null {
   const def =
     input.def ??
@@ -310,6 +311,7 @@ export function applyClassGrantToDraft(input: {
       className: input.className,
       catalogSlug: input.catalogSlug,
       catalogData: input.catalogData,
+      rulesEdition: input.rulesEdition,
     })
   if (!def) return null
 
@@ -673,8 +675,9 @@ export function reconcileDruidStartWeapons(input: {
       weaponExtras: uniqueStrings([...DRUID_PHB_WEAPONS, ...kept]),
     }
   })
-  // Only rewrite sheet weapons when a druid start grant was rewritten.
-  // Otherwise empty classGrants would clear «simple» for wizard/etc. (crossbow +1 → PB lost).
+  // Only rewrite sheet weapons when a druid start grant was actually migrated.
+  // Otherwise empty class_grants (2024 create materializes proficiency only) would
+  // incorrectly clear «Простое» for monk / fighter / etc.
   if (!changed) {
     return { classGrants: input.classGrants, weapons: input.weapons, changed: false }
   }

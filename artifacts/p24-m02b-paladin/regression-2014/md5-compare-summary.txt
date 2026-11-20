@@ -1,0 +1,14 @@
+2014 regression md5 before=after: MATCH
+## 1440 (5 pairs)
+MATCH  create-2014-paladin-class-1440.png  before=3a87e130c9c37eb4a79fb8946aa12664 after=3a87e130c9c37eb4a79fb8946aa12664
+MATCH  create-2014-race-marker-1440.png  before=9830fb7a6c0acc068819fff2aeb16b0e after=9830fb7a6c0acc068819fff2aeb16b0e
+MATCH  sheet-2014-paladin-1440.png  before=78c5b7d2df02ee0c9097f05d5b4d44cc after=78c5b7d2df02ee0c9097f05d5b4d44cc
+MATCH  sheet-2014-paladin-devotion-1440.png  before=7bc49d152b85cb77f550658445dc73c8 after=7bc49d152b85cb77f550658445dc73c8
+MATCH  sheet-2014-paladin-features-1440.png  before=7bc49d152b85cb77f550658445dc73c8 after=7bc49d152b85cb77f550658445dc73c8
+## 390 (6 pairs)
+MATCH  create-2014-paladin-class-390.png  before=5bc26bc36de663f3883c3e691ab95278 after=5bc26bc36de663f3883c3e691ab95278
+MATCH  create-2014-race-marker-390.png  before=593794cbc8945111beb093cf3ee71614 after=593794cbc8945111beb093cf3ee71614
+MATCH  sheet-2014-paladin-abilities-390.png  before=0a80cfbc44d59d0978ea0d1c270ef645 after=0a80cfbc44d59d0978ea0d1c270ef645
+MATCH  sheet-2014-paladin-devotion-390.png  before=76390254c2d632eb18c95510f748ebea after=76390254c2d632eb18c95510f748ebea
+MATCH  sheet-2014-paladin-features-390.png  before=51f319f4d4992e9e4258f16d38fd4d8c after=51f319f4d4992e9e4258f16d38fd4d8c
+MATCH  sheet-2014-paladin-header-390.png  before=1ceebe2636966a0e3c536f591c5e7b76 after=1ceebe2636966a0e3c536f591c5e7b76

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { EmptyState, Field, Input } from '../../ui'
 
 export type CatalogCardItem = {
@@ -14,6 +14,12 @@ export type CatalogCardItem = {
 type CatalogCardListProps = {
   items: CatalogCardItem[]
   selectedId: string | null
+  /** Multi-pick lists (spells, languages): extra highlighted ids besides `selectedId`. */
+  selectedIds?: readonly string[]
+  /** Rendered above search / source filters (counters, tabs). */
+  headerSlot?: ReactNode
+  /** When set, each card gets `data-testid={prefix}-{id}` (e2e hooks). */
+  cardTestIdPrefix?: string
   onSelect: (id: string) => void
   emptyText?: string
   /** Show name search + source chips. Default true. */
@@ -33,6 +39,9 @@ function normalize(value: string): string {
 export function CatalogCardList({
   items,
   selectedId,
+  selectedIds,
+  headerSlot,
+  cardTestIdPrefix,
   onSelect,
   emptyText = 'Ничего не найдено',
   enableFilters = true,
@@ -81,6 +90,7 @@ export function CatalogCardList({
 
   return (
     <div className="create-pipeline__catalog-list">
+      {headerSlot}
       {enableFilters ? (
         <div className="create-pipeline__filters">
           <Field label="Поиск">
@@ -142,7 +152,7 @@ export function CatalogCardList({
       ) : (
         <ul className="create-pipeline__card-list">
           {filtered.map((item) => {
-            const selected = item.id === selectedId
+            const selected = item.id === selectedId || Boolean(selectedIds?.includes(item.id))
             return (
               <li key={item.id}>
                 <button
@@ -153,6 +163,8 @@ export function CatalogCardList({
                       : 'create-pipeline__card'
                   }
                   disabled={item.disabled}
+                  aria-pressed={selected}
+                  data-testid={cardTestIdPrefix ? `${cardTestIdPrefix}-${item.id}` : undefined}
                   onClick={() => onSelect(item.id)}
                 >
                   <span className="create-pipeline__card-title">{item.title}</span>

@@ -13,9 +13,14 @@ import {
 } from './createPipelineTypes'
 
 type CreatePipelineShellProps = {
-  step: CreatePipelineStepId
+  step: string
   /** Visible steps (feat may be omitted). Defaults to full canonical list. */
-  steps?: readonly CreatePipelineStepId[]
+  steps?: readonly string[]
+  /**
+   * Optional labels for non-2014 pipelines (e.g. 2024 «вид»).
+   * Falls back to CREATE_PIPELINE_STEP_LABELS, then the raw step id.
+   */
+  stepLabels?: Record<string, string>
   title: string
   subtitle?: string
   /** Optional onboarding what/why under the subtitle. */
@@ -23,7 +28,7 @@ type CreatePipelineShellProps = {
   cards: ReactNode
   detail: ReactNode
   footer?: ReactNode
-  onStepClick?: (step: CreatePipelineStepId) => void
+  onStepClick?: (step: string) => void
   onBack?: () => void
   backDisabled?: boolean
   /**
@@ -59,6 +64,7 @@ function scrollStepsByApproxOneChip(el: HTMLElement, direction: 1 | -1) {
 export function CreatePipelineShell({
   step,
   steps = CREATE_PIPELINE_STEPS,
+  stepLabels,
   title,
   subtitle,
   stepHint,
@@ -231,7 +237,9 @@ export function CreatePipelineShell({
                 >
                   <span className="create-pipeline__step-index">{index + 1}</span>
                   <span className="create-pipeline__step-label">
-                    {CREATE_PIPELINE_STEP_LABELS[id]}
+                    {stepLabels?.[id] ??
+                      CREATE_PIPELINE_STEP_LABELS[id as CreatePipelineStepId] ??
+                      id}
                   </span>
                 </button>
               )

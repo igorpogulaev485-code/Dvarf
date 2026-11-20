@@ -35,7 +35,13 @@ import { chatsBadge, type ChatsBadge } from '../shared/api/chat'
 import { getMe } from '../shared/api/auth'
 import { listCharacters, type CharacterSummary } from '../shared/api/characters'
 import { ApiRequestError } from '../shared/api/client'
-import { HelpDrawer, LobbyTour, useOnboardingState } from '../features/onboarding'
+import { RULES_EDITION_2024_OPEN } from '../shared/dnd/rulesEdition2024'
+import {
+  Edition2024DiffDialog,
+  HelpDrawer,
+  LobbyTour,
+  useOnboardingState,
+} from '../features/onboarding'
 import { exportNotes, type Note } from '../shared/api/notes'
 import {
   createJournalEntry,
@@ -385,6 +391,11 @@ export function LobbyDetailPage() {
               </button>
               {inviteOpen ? (
                 <div className="lobby-hub-invite">
+                  {RULES_EDITION_2024_OPEN || lobby.rules_edition === '2024' ? (
+                    <p className="ui-text ui-text--muted" data-testid="lobby-rules-edition">
+                      Редакция {lobby.rules_edition || '2014'} · после создания не меняется
+                    </p>
+                  ) : null}
                   <div className="lobby-hub-code">
                     <Text tone="muted">Код комнаты</Text>
                     <button
@@ -880,6 +891,7 @@ export function LobbyDetailPage() {
             <CampaignRulesPanel
               rules={rulesDraft}
               eventHistory={visibilityDraft.event_history}
+              rulesEdition={lobby.rules_edition || '2014'}
               readOnly={rulesReadOnly}
               onChange={onRulesChange}
               onEventHistoryChange={(mode) => {
@@ -1186,6 +1198,15 @@ export function LobbyDetailPage() {
         onStepSeen={(id) => onboarding.markLobbyTourStep(id)}
         onComplete={() => onboarding.completeLobbyTour()}
         onSkip={() => onboarding.skipLobbyTour()}
+      />
+      <Edition2024DiffDialog
+        open={
+          Boolean(lobby) &&
+          lobby?.rules_edition === '2024' &&
+          onboarding.showEdition2024Diff &&
+          !(lobby && canRun && onboarding.showLobbyTour && onboarding.hydrated)
+        }
+        onDone={() => onboarding.markEdition2024DiffDone()}
       />
       <HelpDrawer
         open={helpOpen}

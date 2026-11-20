@@ -1,6 +1,7 @@
 /**
  * Monk Martial Arts (PHB 2014): Dex for unarmed/monk weapons, MA die replaces
  * weapon damage when better, bonus unarmed after Attack action.
+ * 2024: simple melee OR martial melee with Light (see isMonkWeaponName edition).
  */
 
 import type { AbilityScoreKey, UnlockedFeature } from './classFeatures'
@@ -43,17 +44,53 @@ export function isMonkUnarmedAttack(attack: { id: string }): boolean {
   return attack.id === MONK_UNARMED_ATTACK_ID || attack.id.startsWith('class-ma:unarmed:')
 }
 
+/** Normalize die labels to Cyrillic «к». */
+export function normalizeMartialArtsDieLabel(value: string | null | undefined): string | null {
+  const raw = String(value ?? '').trim()
+  if (!raw) return null
+  return raw.replace(/d/gi, 'к')
+}
+
 /** Martial Arts damage die for current unlocked features, e.g. "1к10". */
 export function martialArtsDieFromFeatures(features: UnlockedFeature[]): string | null {
   for (const feature of features) {
     if (feature.id !== 'martial_arts') continue
-    const value = feature.scaleValue?.trim()
+    const value = normalizeMartialArtsDieLabel(feature.scaleValue)
     if (value) return value
   }
   return null
 }
 
-export function isMonkWeaponName(name: string): boolean {
+/** Fallback from progression scales (`monk:martial_arts_die`). */
+export function martialArtsDieFromScales(
+  scales: Record<string, unknown> | null | undefined,
+  classSlug = 'monk',
+): string | null {
+  if (!scales) return null
+  const key = `${classSlug}:martial_arts_die`
+  return normalizeMartialArtsDieLabel(
+    scales[key] != null ? String(scales[key]) : null,
+  )
+}
+
+/**
+ * Resolve MA die: feature scaleValue first, then 2024 progression scales.
+ */
+export function resolveMartialArtsDie(input: {
+  features: UnlockedFeature[]
+  rulesEdition?: string | null
+  scales?: Record<string, unknown> | null
+  classSlug?: string
+}): string | null {
+  const fromFeatures = martialArtsDieFromFeatures(input.features)
+  if (fromFeatures) return fromFeatures
+  if (String(input.rulesEdition || '').trim() === '2024') {
+    return martialArtsDieFromScales(input.scales, input.classSlug ?? 'monk')
+  }
+  return null
+}
+
+export function isMonkWeaponName2014(name: string): boolean {
   const key = name.trim().toLowerCase().replace(/\s+/g, ' ')
   if (!key) return false
   if (MONK_WEAPON_NAMES.has(key)) return true
@@ -63,6 +100,33 @@ export function isMonkWeaponName(name: string): boolean {
   const preset = findWeaponPreset(name)
   if (!preset) return false
   return MONK_WEAPON_NAMES.has(preset.labelRu.toLowerCase())
+}
+
+/**
+ * PHB 2024 monk weapons: any simple melee, or martial melee with Light.
+ * Ranged weapons are never monk weapons here.
+ */
+export function isMonkWeapon2024(name: string): boolean {
+  const preset = findWeaponPreset(name)
+  if (!preset) {
+    // Fall back to 2014 name list when preset unknown.
+    return isMonkWeaponName2014(name)
+  }
+  if (preset.ranged) return false
+  if (preset.group === 'simple') return true
+  if (preset.group === 'martial' && preset.light) return true
+  return false
+}
+
+/** Gate by edition so the 2014 list stays unchanged when edition is omitted/2014. */
+export function isMonkWeaponName(
+  name: string,
+  rulesEdition?: string | null,
+): boolean {
+  if (String(rulesEdition || '2014').trim() === '2024') {
+    return isMonkWeapon2024(name)
+  }
+  return isMonkWeaponName2014(name)
 }
 
 /** Highest single-die faces in expressions like "1к6", "1d10", "2к6". */

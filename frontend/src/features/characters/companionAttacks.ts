@@ -18,6 +18,8 @@ export type CompanionAttackRow = {
   damageType: string
   /** Source label for the host attacks strip. */
   sourceLabel: string
+  /** Wild Shape form attack (this is the host, 2024). */
+  selfForm?: boolean
 }
 
 export type CompanionAttackHostContext = {
@@ -25,6 +27,8 @@ export type CompanionAttackHostContext = {
   /** Spellcasting ability modifier of the host (Wisdom for druids, …). */
   spellMod?: number | null
   proficiencyBonus?: number
+  /** 2024: list Wild Shape beast attacks on the host «Атаки» strip. */
+  selfFormAttacks?: boolean
 }
 
 function pbOf(ctx: CompanionAttackHostContext): number {
@@ -61,7 +65,8 @@ export function parseCompanionActionAttacks(
   ctx: CompanionAttackHostContext,
 ): CompanionAttackRow[] {
   if (!row.active) return []
-  if (isSelfForm(row)) return []
+  const selfForm = isSelfForm(row)
+  if (selfForm && !(ctx.selfFormAttacks && row.form?.form_source === 'wild_shape')) return []
   // PHB Find Familiar / Wild Companion: the spirit itself does not attack.
   if (row.kind === 'familiar') return []
   const feature = (row.source?.feature ?? '').trim().toLowerCase()
@@ -71,7 +76,7 @@ export function parseCompanionActionAttacks(
 
   const lines = text
     .split(/\n|;/)
-    .map((line) => line.trim())
+    .map((line) => (selfForm ? line.replace(/\s*·\s*Природный удар:.*$/, '') : line).trim())
     .filter(Boolean)
 
   const out: CompanionAttackRow[] = []
@@ -131,7 +136,8 @@ export function parseCompanionActionAttacks(
       attackBonus,
       damageExpr,
       damageType,
-      sourceLabel: companionName,
+      sourceLabel: selfForm ? 'Дикий облик' : companionName,
+      selfForm,
     })
   }
   return out

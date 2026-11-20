@@ -6,7 +6,10 @@ import { AcBreakdownDialog } from '../AcBreakdownDialog'
 import { TempHpReplaceDialog } from '../TempHpReplaceDialog'
 import { InitiativeBreakdownDialog } from '../InitiativeBreakdownDialog'
 import { SpeedBreakdownDialog } from '../SpeedBreakdownDialog'
-import { Dialog, Stack, Text } from '../../../ui'
+import { Dialog, Field, Select, Stack, Text } from '../../../ui'
+import { resolveHeroicReroll } from '../../../shared/dnd/heroicInspiration'
+import { postSheetRollToSession } from '../postSheetRollToSession'
+import { patchSeatCombat } from '../../../shared/api/lobbies'
 import { ConsumableSpendPadDialog } from '../ConsumableSpendPadDialog'
 import { syncAttacksHeldFromInventory } from '../AttacksPanel'
 import { canWearArmor, armorProficiencyHint } from '../equipmentProficiency'
@@ -24,10 +27,12 @@ import {
   mergeDeskRollMode,
   resolveAdvantageFromEffects,
 } from '../../../shared/dnd/activeEffects'
+import { spendBardicInspirationOnTarget } from '../../../shared/dnd/bardicInspirationTarget2024'
 import { formatSaveAdvantageNote } from '../gearEffects'
 import { setConcentration } from '../../../shared/dnd/concentration'
 import { equippedArmorPieces } from '../inventory'
 import { CastSpellDialog } from '../CastSpellDialog'
+import { collectWarlockInvocationIds } from '../../../shared/dnd/o06StylesBreathInvocations'
 import { normalizeCampaignRules } from '../../lobby/campaignRules'
 import { listActiveInfusionBindings } from '../../../shared/dnd/infusionsActive'
 import { ScrollCastGate, useScrollSpellClasses } from '../ScrollCastGate'
@@ -41,7 +46,12 @@ import {
 import { ignoresClassRaceLevel } from '../attunementRules'
 import { abilityModifier } from '../sheetTypes'
 import { getFeaturePick } from '../../../shared/dnd/featurePicks'
+import {
+  moonCircleSpellCastableInForm2024,
+  potentSpellcastingForSheet2024,
+} from '../../../shared/dnd/druid2024Features'
 import { elementalAffinityPreview } from '../../../shared/dnd/pack04SorcererWarlock'
+import { activeBeastWildShape } from '../wildShape'
 
 function infusedItemIdsFor(model: SheetModel): string[] {
   const ids: string[] = []
@@ -58,6 +68,13 @@ function infusedItemIdsFor(model: SheetModel): string[] {
 }
 
 export function SheetDialogsRolls({ model }: { model: SheetModel }) {
+  const potentSheet = potentSpellcastingForSheet2024({
+    rulesEdition: model.baseCharacter.rules_edition,
+    classes: model.draft.classes,
+    featurePicks: model.draft.featurePicks,
+    classOptions: model.draft.classOptions2024,
+    wisScore: model.effectiveAbilities?.wis ?? model.draft.abilities.wis,
+  })
   const sorcerer = model.draft.classes.find((row) => /чародей|sorcerer/i.test(row.name))
   const elementalAffinity = sorcerer
     ? elementalAffinityPreview({
@@ -156,6 +173,26 @@ export function SheetDialogsRolls({ model }: { model: SheetModel }) {
         )}
         resources={model.draft.play.resources}
         metamagicIds={model.sorcererMetamagicIds ?? []}
+        rulesEdition={model.rulesEdition ?? model.baseCharacter?.rules_edition ?? '2014'}
+        waiveFreeMaterialComponents={Boolean(
+          (model.rulesEdition ?? model.baseCharacter?.rules_edition) === '2024' &&
+            activeBeastWildShape(model.draft.companions) &&
+            model.deskCastSpell &&
+            (model.druidLevel >= 18 ||
+              moonCircleSpellCastableInForm2024({
+                rulesEdition: model.rulesEdition,
+                druidLevel: model.druidLevel,
+                subclassSlug: model.druidSubclassSlug,
+                spell: model.deskCastSpell,
+              })),
+        )}
+        sorcererLevel={model.draft.classes.reduce((sum, row) => {
+          if (!/чародей|sorcerer/i.test(row.name)) return sum
+          return sum + Math.max(0, row.level || 0)
+        }, 0)}
+        innateSorceryActive={model.draft.play.resources.some(
+          (row) => /врождённ.*чародей/i.test(row.name) && row.activeLabel,
+        )}
         initialMetamagicId={model.deskCastMetamagic ?? null}
         magicalInspirationAvailable={
           model.campaignRulesRaw != null &&
@@ -167,19 +204,24 @@ export function SheetDialogsRolls({ model }: { model: SheetModel }) {
           )
         }
         elementalAffinity={elementalAffinity}
-        knownInvocationIds={(() => {
-          const ids: string[] = []
-          for (const row of model.draft.classes) {
-            if (!/колдун|warlock/i.test(row.name)) continue
-            const raw =
-              model.draft.featurePicks.values[`${row.id}:eldritch_invocations`] ?? ''
-            for (const id of raw.split(',')) {
-              const t = id.trim()
-              if (t) ids.push(t)
-            }
-          }
-          return ids
-        })()}
+        knownInvocationIds={collectWarlockInvocationIds({
+          classes: model.draft.classes,
+          featurePickValues: model.draft.featurePicks.values,
+          classOptionsInvocations:
+            model.baseCharacter.rules_edition === '2024'
+              ? model.draft.classOptions2024?.eldritch_invocations
+              : null,
+        })}
+        warlockLevel={
+          model.draft.classes.find((row) => /колдун|warlock/i.test(row.name))?.level ??
+          model.characterLevel
+        }
+        bardLevel={
+          model.draft.classes.find((row) => /бард|bard/i.test(row.name))?.level ?? 0
+        }
+        potentSpellcastingBonus={potentSheet.bonus}
+        potentSpellcastingClass={potentSheet.classSlug}
+        potentSpellcastingRangeBonusFt={potentSheet.rangeBonusFt}
         abilities={model.effectiveAbilities}
         proficiencyBonus={model.proficiencyBonus}
         castProfiles={model.spellcastingSync.castProfiles}
@@ -450,6 +492,102 @@ export function SheetDialogsRolls({ model }: { model: SheetModel }) {
       <TempHpReplaceDialog request={model.tempHpReplaceAsk ?? null} />
 
       <Dialog
+        open={model.heroicRerollPending != null}
+        title="Героическое вдохновение"
+        primaryLabel="Перебросить"
+        secondaryLabel="Не сейчас"
+        onPrimary={() => {
+          const pending = model.heroicRerollPending
+          if (!pending) return
+          if (!model.spendHeroicInspirationReroll?.()) return
+          const sides = Math.max(2, Math.floor(pending.sides || 20))
+          const rr = resolveHeroicReroll({ previous: 0, sides })
+          const face = rr.next
+          const line = `Героическое вдохновение: ${pending.label} — переброс к${sides} → ${face} (новый результат)`
+          model.emitToast?.(line)
+          void postSheetRollToSession({
+            openSessionId: model.character.open_session_id,
+            characterId: model.character.id,
+            title: `Героическое вдохновение · переброс · ${pending.label}`,
+            total: face,
+            formula: `1к${sides}`,
+            breakdown: line,
+          })
+        }}
+        onSecondary={() => model.setHeroicRerollPending?.(null)}
+      >
+        <Stack gap={8}>
+          <Text data-testid="heroic-inspiration-reroll-chip">
+            Потратить героическое вдохновение и перебросить любой кубик
+            {model.heroicRerollPending
+              ? ` (к${model.heroicRerollPending.sides} · ${model.heroicRerollPending.label})`
+              : ''}
+            ? Новый результат обязателен.
+          </Text>
+        </Stack>
+      </Dialog>
+
+      <Dialog
+        open={Boolean(model.heroicTransferOpen)}
+        title="Передать героическое вдохновение"
+        primaryLabel="Передать"
+        secondaryLabel="Отмена"
+        primaryDisabled={!model.heroicTransferAllyId}
+        onPrimary={() => {
+          const allyId = model.heroicTransferAllyId
+          if (!allyId) return
+          if (!model.transferHeroicInspirationToAlly?.(allyId)) return
+          const sessionId = model.character.open_session_id
+          if (sessionId) {
+            void patchSeatCombat(sessionId, allyId, { inspiration: true }).catch(() => {
+              model.onToast?.('Не удалось выдать союзнику на столе — отметьте вручную')
+            })
+            const allies = (model.heroicTransferAllies || []) as Array<{
+              id: string
+              name: string
+            }>
+            const allyName = allies.find((a) => a.id === allyId)?.name || allyId
+            void postSheetRollToSession({
+              openSessionId: sessionId,
+              characterId: model.character.id,
+              title: `Героическое вдохновение · передача → ${allyName}`,
+              total: 0,
+              breakdown: `Перевёл героическое вдохновение союзнику ${allyName}`,
+            })
+          }
+          model.setHeroicTransferOpen?.(false)
+          model.setHeroicTransferAllyId?.('')
+        }}
+        onSecondary={() => {
+          model.setHeroicTransferOpen?.(false)
+          model.setHeroicTransferAllyId?.('')
+        }}
+      >
+        <Stack gap={8}>
+          <Text data-testid="heroic-inspiration-transfer">
+            У вас уже есть героическое вдохновение. Можно отдать союзнику в том же лобби, у кого
+            его нет.
+          </Text>
+          <Field label="Союзник">
+            <Select
+              value={model.heroicTransferAllyId || ''}
+              onChange={(e) => model.setHeroicTransferAllyId?.(e.target.value)}
+              data-testid="heroic-transfer-ally"
+            >
+              <option value="">Выберите…</option>
+              {((model.heroicTransferAllies || []) as Array<{ id: string; name: string }>).map(
+                (ally) => (
+                  <option key={ally.id} value={ally.id}>
+                    {ally.name}
+                  </option>
+                ),
+              )}
+            </Select>
+          </Field>
+        </Stack>
+      </Dialog>
+
+      <Dialog
         open={model.halflingLuckyPending != null}
         title="Удача: перебросить?"
         primaryLabel="Перебросить"
@@ -548,6 +686,53 @@ export function SheetDialogsRolls({ model }: { model: SheetModel }) {
       </Dialog>
 
       <Dialog
+        open={model.bardicInspirationSpendOffer != null}
+        title="Бардовское вдохновение"
+        primaryLabel={
+          model.bardicInspirationSpendOffer?.mode === 'combat_ac'
+            ? `КД +${model.bardicInspirationSpendOffer.dieLabelRu}`
+            : model.bardicInspirationSpendOffer?.mode === 'combat_damage'
+              ? `Урон +${model.bardicInspirationSpendOffer.dieLabelRu}`
+              : `Прибавить ${model.bardicInspirationSpendOffer?.dieLabelRu ?? ''}`
+        }
+        secondaryLabel="Не сейчас"
+        onPrimary={() => {
+          const offer = model.bardicInspirationSpendOffer
+          if (!offer) return
+          const spent = spendBardicInspirationOnTarget({
+            effects: model.draft.play.effects ?? [],
+            mode: offer.mode,
+            effectId: offer.effectId,
+          })
+          if (!spent.ok) {
+            model.onToast(spent.message ?? 'Не удалось потратить вдохновение')
+            model.setBardicInspirationSpendOffer?.(null)
+            return
+          }
+          model.setDraft((prev: typeof model.draft) => ({
+            ...prev,
+            play: { ...prev.play, effects: spent.effects },
+          }))
+          model.emitToast?.(
+            spent.feedLineRu ??
+              `Бардовское вдохновение: ${spent.dieLabelRu} → ${spent.face} · к «${offer.label}»`,
+          )
+          model.setBardicInspirationSpendOffer?.(null)
+        }}
+        onSecondary={() => model.setBardicInspirationSpendOffer?.(null)}
+      >
+        <Stack gap={8}>
+          <Text>
+            {model.bardicInspirationSpendOffer?.mode === 'combat_ac'
+              ? `Реакция: прибавить ${model.bardicInspirationSpendOffer.dieLabelRu} к КД против попавшей атаки — кость потратится.`
+              : model.bardicInspirationSpendOffer?.mode === 'combat_damage'
+                ? `Прибавить ${model.bardicInspirationSpendOffer.dieLabelRu} к урону попавшей атаки — кость потратится.`
+                : `При провале «${model.bardicInspirationSpendOffer?.label}» можно один раз бросить ${model.bardicInspirationSpendOffer?.dieLabelRu} и прибавить к Тесту к20 — это может сменить провал на успех. Кость потратится.`}
+          </Text>
+        </Stack>
+      </Dialog>
+
+      <Dialog
         open={model.relentlessEndurancePending != null}
         title="Непоколебимая стойкость"
         primaryLabel="Остаться с 1 хитом"
@@ -576,6 +761,66 @@ export function SheetDialogsRolls({ model }: { model: SheetModel }) {
           <Text>
             Хиты должны опуститься до 0. Использовать Непоколебимую стойкость и остаться с
             1 хитом? (1 раз до продолжительного отдыха)
+          </Text>
+        </Stack>
+      </Dialog>
+
+      <Dialog
+        open={model.strengthOfTheGravePending != null}
+        title="Сила могилы"
+        primaryLabel="Успех спаса"
+        secondaryLabel="Провал / упасть"
+        onPrimary={() => {
+          const pending = model.strengthOfTheGravePending
+          const damage = Math.max(0, pending?.damage ?? 0)
+          const sorcererLevel = (model.draft.classes ?? [])
+            .filter((row: { name?: string; catalog_id?: string | null; level?: number }) => {
+              const name = String(row.name || '')
+              const catalog = String(row.catalog_id || '').toLowerCase()
+              return catalog === 'sorcerer' || /чародей/i.test(name)
+            })
+            .reduce(
+              (sum: number, row: { level?: number }) => sum + Math.max(0, row.level || 0),
+              0,
+            )
+          const chaScore = model.draft.abilities?.cha ?? 10
+          const chaMod = Math.floor((Number(chaScore) - 10) / 2)
+          const hp = Math.max(1, chaMod + Math.max(1, sorcererLevel || 1))
+          const dc = 5 + damage
+          model.setDraft?.((prev) => ({
+            ...prev,
+            hpCurrent: hp,
+            play: {
+              ...prev.play,
+              isDying: false,
+              deathSuccesses: 0,
+              deathFails: 0,
+              resources: (prev.play.resources ?? []).map((row) => {
+                if (
+                  (typeof row.id === 'string' && row.id.includes(':power_of_shadow:')) ||
+                  /сила\s*могил/i.test(String(row.name || ''))
+                ) {
+                  return { ...row, used: Math.min(row.max, (row.used ?? 0) + 1) }
+                }
+                return row
+              }),
+            },
+          }))
+          model.onToast?.(
+            `Сила могилы: успех против Сл ${dc} — хиты = ${hp} (Хар+ур.).`,
+          )
+          model.setStrengthOfTheGravePending?.(null)
+        }}
+        onSecondary={() => model.setStrengthOfTheGravePending?.(null)}
+      >
+        <Stack gap={8}>
+          <Text>
+            Хиты опустились до 0. Совершите спасбросок Харизмы (Сл 5 + полученный урон
+            {model.strengthOfTheGravePending
+              ? ` = ${5 + (model.strengthOfTheGravePending.damage || 0)}`
+              : ''}
+            ). При успехе хиты становятся равны модификатору Харизмы + уровню чародея (1
+            успешный спас до долгого отдыха).
           </Text>
         </Stack>
       </Dialog>
@@ -698,6 +943,7 @@ export function SheetDialogsRolls({ model }: { model: SheetModel }) {
               bonus,
             ),
           )
+          model.applyBardInitiativeInspiration()
         }}
         onClose={() => model.setInitiativeBreakdownOpen(false)}
       />

@@ -40,6 +40,16 @@ import {
   type FeaturePicksState,
 } from '../../../shared/dnd/featurePicks'
 import { listSorcererClassEntryIds } from '../../../shared/dnd/sorcererMetamagicIds'
+import { mirrorPrimalOrderPick2024 } from '../../../shared/dnd/druid2024Features'
+import {
+  emptyWeaponMasteryState,
+  readWeaponMasteryState,
+  type WeaponMasteryState,
+} from '../../../shared/dnd/weaponMastery'
+import {
+  readClassOptions2024,
+  type ClassOptions2024State,
+} from '../../../shared/dnd/edition2024ClassOptions'
 import { bridgeOriginPicks } from '../../../shared/dnd/pack04SorcererWarlock'
 import {
   emptySubclassPicks,
@@ -52,6 +62,7 @@ import { readAppliedRaceGrant } from '../raceEffects'
 import { hydrateArtifactSheet } from '../artifactGear'
 import { readInventory, type InventoryState } from '../inventory'
 import { classifySpellTooling, inferFocusKind, withSpellFocusFlags } from '../spellFocus'
+import { markBladesingerMeleeFocusItems2024 } from '../../../shared/dnd/wizardBook2024Features'
 import { readPlay, type PlayState } from '../play'
 import { readSpells, type SpellsState } from '../spells'
 import { readTextBlocks, type TextBlock } from '../textBlocks'
@@ -68,6 +79,7 @@ export const COMPANION_KIND_SHORT: Record<CompanionKind, string> = {
   beast_companion: 'Зверь',
   steel_defender: 'Защитник',
   eldritch_cannon: 'Пушка',
+  reanimated_companion: 'Реаним.',
   drake: 'Дрейк',
   primal_companion: 'Спутник',
   familiar: 'Фамилиар',
@@ -140,6 +152,10 @@ export type Draft = {
   /** Wild Shape / form library — seen or learned forms. */
   knownForms: KnownForm[]
   featurePicks: FeaturePicksState
+  /** P24-M01: known weapon mastery slugs (2024 only). */
+  weaponMastery: WeaponMasteryState
+  /** P24-M02a+: invocations / metamagic / plans / rage (2024 only). */
+  classOptions2024: ClassOptions2024State
   classAsi: AppliedClassAsi[]
   /** Barbarian 20 Primal Champion bonuses already written onto abilities. */
   primalChampion: PrimalChampionGrant | null
@@ -348,8 +364,49 @@ export function buildDraft(character: CharacterDetail): Draft {
           legacyCurrent: play.hitDiceCurrent,
         })
 
-  const raceGrant = readAppliedRaceGrant(sheet.race_grant)
+  let raceGrant = readAppliedRaceGrant(sheet.race_grant)
   const raceGrantPicks = readRaceGrantPicks(asRecord(sheet.race_grant).picks)
+  // 2024 create must persist race_grant.speed (species baseline). Older 2024
+  // sheets without it still need a baseline so Unarmored Movement is not dropped.
+  if (
+    !raceGrant &&
+    String(character.rules_edition || sheet.rules_edition || '') === '2024'
+  ) {
+    const speciesSlug =
+      (typeof identity.species_slug === 'string' && identity.species_slug.trim()) ||
+      (typeof identityExtras.speciesSlug === 'string' && identityExtras.speciesSlug.trim()) ||
+      ''
+    const baseline = readNullableNumber(combat.speed)
+    if (speciesSlug && baseline != null) {
+      raceGrant = {
+        raceCatalogId: speciesSlug,
+        slug: speciesSlug,
+        parentSlug: null,
+        speed: baseline,
+        size: identityExtras.size || 'medium',
+        darkvision: identityExtras.darkvision || 0,
+        abilityBonuses: {},
+        languages: [],
+        skills: [],
+        tools: [],
+        armorKeys: [],
+        weaponNames: [],
+        traitsText: '',
+        traitCards: [],
+        ancestryId: null,
+        featNoteRu: null,
+        naturalArmor: null,
+        naturalWeapons: [],
+        movement: { climb: null, swim: null, fly: null },
+        activatedMovement: [],
+        damageResistances: [],
+        combatBonuses: { initiative: null },
+        racialSpells: [],
+        rollBonuses: [],
+        racialResources: [],
+      }
+    }
+  }
   // Un-bake Fast Movement / Unarmored Movement (+ optional Mobile) that create
   // wrote into combat.speed so armor-aware display can add the bonus live.
   let speed = readNullableNumber(combat.speed)
@@ -359,6 +416,7 @@ export function buildDraft(character: CharacterDetail): Draft {
     classes,
     wearingHeavyArmor: false,
     wearingArmorOrShield: false,
+    rulesEdition: String(character.rules_edition ?? sheet.rules_edition ?? '2014'),
   })
   if (speed != null && raceSpeed != null) {
     if (
@@ -435,11 +493,24 @@ export function buildDraft(character: CharacterDetail): Draft {
               : null,
         }
       })
-      const nextInventory = { ...inventory, items }
-      const spells = withSpellFocusFlags(readSpells(sheet), items)
+      const edition2024 =
+        String(character.rules_edition ?? sheet.rules_edition ?? '') === '2024'
+      const bladesinger2024 =
+        edition2024 &&
+        classes.some((row) => {
+          const slug = String(row.subclass_catalog_id || '').toLowerCase()
+          const name = String(row.subclass_name || identityExtras.subclassName || '')
+          return (
+            slug === 'wizard__bladesinger' ||
+            /певец клинка|bladesinger/i.test(name)
+          )
+        })
+      const focusItems = markBladesingerMeleeFocusItems2024(items, bladesinger2024)
+      const nextInventory = { ...inventory, items: focusItems }
+      const spells = withSpellFocusFlags(readSpells(sheet), focusItems)
       return {
         inventory: nextInventory,
-        weapons: syncAttacksHeldFromInventory(readWeapons(sheet), items),
+        weapons: syncAttacksHeldFromInventory(readWeapons(sheet), focusItems),
         spells,
       }
     })(),
@@ -465,13 +536,15 @@ export function buildDraft(character: CharacterDetail): Draft {
     companions: readCompanions(sheet.companions),
     knownForms: readKnownForms(sheet.known_forms),
     featurePicks: rebindStaleMetamagicPicks({
-      featurePicks: bridgeFeaturePicksFromSubclassSetups(
-        readFeaturePicks(sheet.feature_picks),
+      featurePicks: mirrorPrimalOrderPick2024(
+        bridgeFeaturePicksFromSubclassSetups(readFeaturePicks(sheet.feature_picks), classes, sheet),
         classes,
-        sheet,
+        sheet.class_options_2024,
       ),
       liveClassEntryIds: listSorcererClassEntryIds(classes),
     }),
+    weaponMastery: readWeaponMasteryState(sheet.weapon_mastery) ?? emptyWeaponMasteryState(),
+    classOptions2024: readClassOptions2024(sheet.class_options_2024),
     classAsi: readClassAsiLedger(sheet.class_asi),
     primalChampion: readPrimalChampion(sheet.primal_champion),
     piety: readPiety(sheet.piety),

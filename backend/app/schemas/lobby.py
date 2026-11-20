@@ -817,6 +817,8 @@ class LobbySummary(BaseModel):
     is_observer: bool = False
     role: str = "none"
     member_count: int
+    # P24-01: редакция стола (2014 / 2024), задаётся при создании.
+    rules_edition: str = "2014"
     # L-03: незакрытая PlaySession (closed_at is None); если несколько — самая свежая по updated_at.
     has_open_session: bool = False
     open_session_id: UUID | None = None
@@ -882,6 +884,8 @@ class LobbyDetail(BaseModel):
     owner_id: UUID
     # Display name / login / email of the lobby owner (never raw UUID in UI).
     owner_display_name: str | None = None
+    # P24-01: редакция стола, фиксируется при создании.
+    rules_edition: str = "2014"
     members: list[LobbyMemberOut]
     roles: list[LobbyRoleOut] = Field(default_factory=list)
     settings: list[SettingSummary]
@@ -905,6 +909,10 @@ class LobbyShareEffectResponse(BaseModel):
 
 class LobbyCreateRequest(BaseModel):
     name: str | None = Field(default=None, min_length=1, max_length=120)
+    # P24-01: редакция лобби; после создания не меняется.
+    rules_edition: str | None = Field(default="2014", pattern=r"^(2014|2024)$")
+    # P24-M04: внутренний обход флага для e2e/preview (кнопку игрокам не открывает).
+    is_preview: bool = False
 
 
 class LobbyUpdateRequest(BaseModel):
@@ -930,6 +938,8 @@ class InviteMetaOut(BaseModel):
     name: str
     valid: bool = True
     lobby_id: UUID | None = None
+    # P24-01: редакция стола — клиент фильтрует список персонажей.
+    rules_edition: str = "2014"
     # L-16: нормализованные правила старта (или весь start-блок).
     start: dict = Field(default_factory=dict)
     campaign_rules_start: dict | None = None
@@ -1723,6 +1733,8 @@ class SessionDetail(BaseModel):
     setting_id: UUID | None
     setting_name: str | None
     name: str
+    # P24-M04: редакция лобби (стол/генератор/неожиданность).
+    rules_edition: str = "2014"
     is_owner: bool
     is_comaster: bool = False
     is_observer: bool = False

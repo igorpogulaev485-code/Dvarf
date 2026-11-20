@@ -27,12 +27,12 @@ import {
 } from '../../shared/dnd/jumpDistance'
 import { HoverTipCard, VITAL_TIPS } from '../onboarding'
 import {
-  exhaustionHpCurrent,
-  exhaustionHpMax,
-  exhaustionHpNote,
-  exhaustionSpeedFt,
-  exhaustionSpeedNote,
-} from '../../shared/dnd/exhaustion2014'
+  exhaustionHpCurrentForEdition,
+  exhaustionHpMaxForEdition,
+  exhaustionHpNoteForEdition,
+  exhaustionSpeedFtForEdition,
+  exhaustionSpeedNoteForEdition,
+} from '../../shared/dnd/exhaustionRules'
 import {
   IconBoot,
   IconCoin,
@@ -44,7 +44,7 @@ import {
 import type { IncomingDamageProfile } from '../../shared/dnd/damageTypes'
 import { absorbDamageWithArcaneWard } from '../../shared/dnd/wizardTradition'
 import type { NeedsSetupItem } from './needsSetup'
-import { VitalTile, VitalTileMenu } from '../../ui'
+import { Chip, VitalTile, VitalTileMenu } from '../../ui'
 import { SpeedModesMenuBody } from './SpeedModesMenuBody'
 
 /** v2: M-02 / Q1 defaults to collapsed; old key often stored «0» from M-01 mounts. */
@@ -86,7 +86,10 @@ type MobileVitalsBarProps = {
   mountName?: string | null
   onRedirectDamageToMount?: (amount: number, note: string) => void
   draconicResilience?: boolean
+  /** Hill/Gold Dwarf toughness for max-HP-by-levels dialog (main #498). */
   dwarvenToughness?: boolean
+  /** 2024 flat species/edition bonuses for Max HP dialog (e.g. Dwarven Toughness). */
+  maxHpExtraBonuses?: Array<{ label: string; amount: number }>
   play: PlayState
   autoAc: number
   acOverride: number | null
@@ -96,6 +99,8 @@ type MobileVitalsBarProps = {
   shieldInHand?: boolean
   shieldAvailable?: boolean
   onToggleShield?: () => void
+  /** 2024 Wild Shape: AC/speed tiles show form values; omit outside form. */
+  formVitalLabel?: string | null
   speed: number | null
   movementHint?: string | null
   /** Alt speeds — phone: +N badge + DetailsMenu (kit VitalTileMenu). */
@@ -115,6 +120,8 @@ type MobileVitalsBarProps = {
   onOpenSpeed?: () => void
   proficiencyBonus: number
   inspiration: boolean
+  /** P24-02: exhaustion / inspiration labels by character edition. */
+  rulesEdition?: string | null
   coins: CoinPurse
   constitutionMod: number
   classes: ClassLevelEntry[]
@@ -183,6 +190,7 @@ export function MobileVitalsBar({
   hasShieldMasterEvasion = false,
   draconicResilience = false,
   dwarvenToughness = false,
+  maxHpExtraBonuses = [],
   play,
   autoAc,
   acOverride,
@@ -191,6 +199,7 @@ export function MobileVitalsBar({
   shieldInHand = false,
   shieldAvailable = false,
   onToggleShield,
+  formVitalLabel = null,
   speed,
   movementHint: _movementHint = null,
   climbSpeed = null,
@@ -204,6 +213,7 @@ export function MobileVitalsBar({
   onOpenSpeed,
   proficiencyBonus,
   inspiration,
+  rulesEdition = '2014',
   coins,
   constitutionMod,
   classes,
@@ -252,30 +262,39 @@ export function MobileVitalsBar({
     [raceName || null, classSummary ? `${classSummary}` : null, alignment.trim() || null]
       .filter(Boolean)
       .join(' · ') || 'Черновик'
-  const shownHpMax = exhaustionHpMax(hpMax, play.exhaustion)
-  const shownHpCurrent = exhaustionHpCurrent(hpCurrent, hpMax, play.exhaustion)
-  const hpExhaustNote = exhaustionHpNote(play.exhaustion)
-  const speedExhaustNote = exhaustionSpeedNote(play.exhaustion)
-  const shownSpeed = exhaustionSpeedFt(speed, play.exhaustion)
-  const shownClimb = exhaustionSpeedFt(climbSpeed, play.exhaustion)
-  const shownSwim = exhaustionSpeedFt(swimSpeed, play.exhaustion)
-  const shownFly = exhaustionSpeedFt(flySpeed, play.exhaustion)
+  const edition = String(rulesEdition ?? '2014').trim() || '2014'
+  const shownHpMax = exhaustionHpMaxForEdition(hpMax, play.exhaustion, edition)
+  const shownHpCurrent = exhaustionHpCurrentForEdition(
+    hpCurrent,
+    hpMax,
+    play.exhaustion,
+    edition,
+  )
+  const hpExhaustNote = exhaustionHpNoteForEdition(play.exhaustion, edition)
+  const speedExhaustNote = exhaustionSpeedNoteForEdition(play.exhaustion, edition)
+  const shownSpeed = exhaustionSpeedFtForEdition(speed, play.exhaustion, edition)
+  const shownClimb = exhaustionSpeedFtForEdition(climbSpeed, play.exhaustion, edition)
+  const shownSwim = exhaustionSpeedFtForEdition(swimSpeed, play.exhaustion, edition)
+  const shownFly = exhaustionSpeedFtForEdition(flySpeed, play.exhaustion, edition)
   const altModes: { key: string; label: string; value: number }[] = []
   if (shownClimb != null) altModes.push({ key: 'climb', label: 'лаз.', value: shownClimb })
   if (shownSwim != null) altModes.push({ key: 'swim', label: 'плав.', value: shownSwim })
   if (shownFly != null) altModes.push({ key: 'fly', label: 'полёт', value: shownFly })
-  // Base speeds before exhaustion ÷2 — clear label, not a second unlabeled row.
-  const withoutExhaustionNote =
-    play.exhaustion >= 2
-      ? [
-          speed != null ? `ход. ${speed}` : null,
-          climbSpeed != null ? `лаз. ${climbSpeed}` : null,
-          swimSpeed != null ? `плав. ${swimSpeed}` : null,
-          flySpeed != null ? `полёт ${flySpeed}` : null,
-        ]
-          .filter(Boolean)
-          .join(' · ')
-      : ''
+  // Base speeds before exhaustion (2014 ÷2 from L2; 2024 −5×level from L1).
+  const speedAlteredByExhaustion =
+    edition === '2024'
+      ? play.exhaustion >= 1
+      : play.exhaustion >= 2
+  const withoutExhaustionNote = speedAlteredByExhaustion
+    ? [
+        speed != null ? `ход. ${speed}` : null,
+        climbSpeed != null ? `лаз. ${climbSpeed}` : null,
+        swimSpeed != null ? `плав. ${swimSpeed}` : null,
+        flySpeed != null ? `полёт ${flySpeed}` : null,
+      ]
+        .filter(Boolean)
+        .join(' · ')
+    : ''
   const withoutExhaustionLine = withoutExhaustionNote
     ? `без истощения: ${withoutExhaustionNote}`
     : null
@@ -540,10 +559,10 @@ export function MobileVitalsBar({
           type="button"
           className={`mobile-vitals__insp${inspiration ? ' is-on' : ''}`}
           aria-pressed={inspiration}
-          title="Вдохновение"
+          title={edition === '2024' ? 'Героическое вдохновение' : 'Вдохновение'}
           onClick={onToggleInspiration}
         >
-          Вдохн.
+          {edition === '2024' ? 'Г.вдохн.' : 'Вдохн.'}
         </button>
       </div>
 
@@ -590,18 +609,19 @@ export function MobileVitalsBar({
             showValueTips
               ? undefined
               : onOpenAc
-                ? `Класс доспеха ${ac}. Открыть разборку`
+                ? `Класс доспеха ${ac}${formVitalLabel ? ` (${formVitalLabel})` : ''}. Открыть разборку`
                 : acOverride == null
-                  ? `Класс доспеха ${ac}. ${acHint}`
+                  ? `Класс доспеха ${ac}${formVitalLabel ? ` (${formVitalLabel})` : ''}. ${acHint}`
                   : `Класс доспеха ${ac} (вручную)`
           }
           aria-label={
             onOpenAc
-              ? `Класс доспеха ${ac}. Открыть разборку`
-              : `Класс доспеха ${ac}`
+              ? `Класс доспеха ${ac}${formVitalLabel ? `, ${formVitalLabel}` : ''}. Открыть разборку`
+              : `Класс доспеха ${ac}${formVitalLabel ? `, ${formVitalLabel}` : ''}`
           }
           onClick={() => onOpenAc?.()}
         >
+          {formVitalLabel ? <Chip>{formVitalLabel}</Chip> : null}
           {showValueTips ? <HoverTipCard tip={VITAL_TIPS.ac} /> : null}
         </VitalTile>
         <VitalTileMenu
@@ -810,6 +830,7 @@ export function MobileVitalsBar({
           hpCurrent={hpCurrent}
           draconicResilience={draconicResilience}
           dwarvenToughness={dwarvenToughness}
+          extraFlatBonuses={maxHpExtraBonuses}
           onClose={() => setMaxDialogOpen(false)}
           onApply={({ hpMax: nextMax, hpCurrent: nextCurrent }) => {
             onCombatChange({ hpMax: nextMax, hpCurrent: nextCurrent })

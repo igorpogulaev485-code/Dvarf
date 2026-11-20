@@ -19,6 +19,15 @@ import {
   tceSpiritStats,
 } from '../../shared/dnd/summonSpellPreview'
 import { proficiencyBonusForLevel } from './spells'
+import {
+  primalCompanionStats2024,
+  type PrimalCompanionType2024,
+} from '../../shared/dnd/ranger2024Features'
+import {
+  eldritchCannonStats2024,
+  steelDefenderStats2024,
+} from '../../shared/dnd/artificer2024Features'
+import { reanimatedCompanionStats2024 } from '../../shared/dnd/artificerBook2024Features'
 
 export type CompanionTemplateContext = {
   hostClassLevel: number
@@ -27,8 +36,11 @@ export type CompanionTemplateContext = {
   hostIntMod?: number
   /** Spellcasting ability mod — Tasha Summon* attack. */
   spellMod?: number
+  /** Host Wisdom mod — PHB 2024 primal beast AC / strike rider. */
+  hostWisMod?: number
   /** Slot level used to cast (Summon* scaling). */
   slotLevel?: number
+  rulesEdition?: '2014' | '2024' | string | null
 }
 
 export type CompanionTemplatePatch = {
@@ -54,6 +66,33 @@ function pb(ctx: CompanionTemplateContext): number {
 
 function spellAttack(ctx: CompanionTemplateContext): number {
   return pb(ctx) + Math.floor(ctx.spellMod ?? 0)
+}
+
+/** PHB 2024 Primal Companion — Земной / Морской / Небесный (SRD 5.2; not TCE scaling). */
+function primalTemplatePhb2024(type: PrimalCompanionType2024, ctx: CompanionTemplateContext): CompanionTemplatePatch {
+  const wis = Math.floor(ctx.hostWisMod ?? ctx.spellMod ?? 0)
+  const block = primalCompanionStats2024({
+    type,
+    rangerLevel: clampLevel(ctx.hostClassLevel),
+    wisMod: wis,
+  })
+  return {
+    kind: 'primal_companion',
+    defaultName: block.nameRu,
+    stats: {
+      hp: block.hp,
+      hp_max: block.hp,
+      ac: block.ac,
+      speed: block.speed,
+      ...(block.speedClimb != null ? { speed_climb: block.speedClimb } : {}),
+      ...(block.speedSwim != null ? { speed_swim: block.speedSwim } : {}),
+      ...(block.speedFly != null ? { speed_fly: block.speedFly } : {}),
+    },
+    actions: block.actionsRu,
+    notes: block.notesRu,
+    nature: 'living',
+    control: 'bonus_action_command',
+  }
 }
 
 /** Tasha Primal Companion — Beast of the Land / Sea / Sky. */
@@ -98,7 +137,7 @@ function primalTemplate(
   }
 }
 
-function steelDefenderTemplate(ctx: CompanionTemplateContext): CompanionTemplatePatch {
+function steelDefenderTemplate2014(ctx: CompanionTemplateContext): CompanionTemplatePatch {
   const level = clampLevel(ctx.hostClassLevel)
   const intMod = Math.floor(ctx.hostIntMod ?? 0)
   const hp = Math.max(1, 2 + intMod + 5 * level)
@@ -117,7 +156,32 @@ function steelDefenderTemplate(ctx: CompanionTemplateContext): CompanionTemplate
   }
 }
 
-function eldritchCannonTemplate(
+/** EFA 2024 Steel Defender — AC 12+INT, HP 5+5×level (not Tasha). */
+function steelDefenderTemplate2024(ctx: CompanionTemplateContext): CompanionTemplatePatch {
+  const block = steelDefenderStats2024({
+    artificerLevel: clampLevel(ctx.hostClassLevel),
+    intMod: Math.floor(ctx.hostIntMod ?? ctx.spellMod ?? 0),
+  })
+  return {
+    kind: 'steel_defender',
+    defaultName: 'Стальной защитник',
+    stats: { hp: block.hp, hp_max: block.hp, ac: block.ac, speed: block.speed },
+    actions: block.actionsRu,
+    notes: block.notesRu,
+    nature: 'construct',
+    control: 'bonus_action_command',
+    resources: [
+      { id: 'repair', name: 'Ремонт', max: block.repairMax, used: 0, reset: 'long' },
+    ],
+  }
+}
+
+function steelDefenderTemplate(ctx: CompanionTemplateContext): CompanionTemplatePatch {
+  if (ctx.rulesEdition === '2024') return steelDefenderTemplate2024(ctx)
+  return steelDefenderTemplate2014(ctx)
+}
+
+function eldritchCannonTemplate2014(
   variant: 'flamethrower' | 'force_ballista' | 'protector' | string,
   ctx: CompanionTemplateContext,
 ): CompanionTemplatePatch {
@@ -151,6 +215,62 @@ function eldritchCannonTemplate(
         reset: 'long',
       },
     ],
+  }
+}
+
+/** EFA 2024: one cannon, mode chosen on each activation (not at creation). */
+function eldritchCannonTemplate2024(ctx: CompanionTemplateContext): CompanionTemplatePatch {
+  const block = eldritchCannonStats2024({
+    artificerLevel: clampLevel(ctx.hostClassLevel),
+    intMod: Math.floor(ctx.hostIntMod ?? ctx.spellMod ?? 0),
+  })
+  const notes = [block.notesRu, block.detonationRu].filter(Boolean).join(' ')
+  return {
+    kind: 'eldritch_cannon',
+    defaultName: 'Мистическая пушка',
+    stats: { hp: block.hp, hp_max: block.hp, ac: block.ac, speed: 0 },
+    actions: block.modesRu,
+    notes,
+    nature: 'construct',
+    control: 'bonus_action_command',
+    resources: [
+      {
+        id: 'cannon_summon',
+        name: 'Создать пушку',
+        max: block.maxCannons,
+        used: 0,
+        reset: 'long',
+      },
+    ],
+  }
+}
+
+function eldritchCannonTemplate(
+  variant: 'flamethrower' | 'force_ballista' | 'protector' | string,
+  ctx: CompanionTemplateContext,
+): CompanionTemplatePatch {
+  if (ctx.rulesEdition === '2024') return eldritchCannonTemplate2024(ctx)
+  return eldritchCannonTemplate2014(variant, ctx)
+}
+
+/** RTW Reanimator companion — https://next.dnd.su/bestiary/31225-reanimated-companion */
+function reanimatedCompanionTemplate2024(
+  ctx: CompanionTemplateContext,
+  modifications: string[] = [],
+): CompanionTemplatePatch {
+  const block = reanimatedCompanionStats2024({
+    artificerLevel: clampLevel(ctx.hostClassLevel),
+    intMod: Math.floor(ctx.hostIntMod ?? ctx.spellMod ?? 0),
+    modifications,
+  })
+  return {
+    kind: 'reanimated_companion',
+    defaultName: 'Реанимированный спутник',
+    stats: { hp: block.hp, hp_max: block.hp, ac: block.ac, speed: block.speed },
+    actions: [block.actionsRu, block.deathBurstRu].join(' '),
+    notes: block.notesRu,
+    nature: 'summoned',
+    control: 'bonus_action_command',
   }
 }
 
@@ -475,6 +595,11 @@ export function resolveCompanionTemplate(input: {
 }): CompanionTemplatePatch | null {
   const id = input.choiceId.toLowerCase()
   const value = input.pickValue.trim().toLowerCase()
+  const edition2024 = input.ctx.rulesEdition === '2024'
+
+  if (edition2024 && (value === 'land' || value === 'sea' || value === 'sky')) {
+    return primalTemplatePhb2024(value, input.ctx)
+  }
 
   if (
     value === 'beast_of_the_land' ||
@@ -492,10 +617,24 @@ export function resolveCompanionTemplate(input: {
   if (id.includes('defender')) {
     return steelDefenderTemplate(input.ctx)
   }
+  if (id.includes('reanimated') || value === 'reanimated_companion' || value === 'reanimated-companion') {
+    const mods = value
+      .split(/[+,|]/)
+      .map((part) => part.trim())
+      .filter((part) => part && part !== 'reanimated_companion' && part !== 'reanimated-companion')
+    return reanimatedCompanionTemplate2024(input.ctx, mods)
+  }
   if (id.includes('drake')) {
     return drakeTemplate(input.ctx)
   }
   if (id.includes('primal') || id.includes('companion_type')) {
+    if (edition2024) {
+      if (value === 'sea' || value.includes('мор')) return primalTemplatePhb2024('sea', input.ctx)
+      if (value === 'sky' || value.includes('неб')) return primalTemplatePhb2024('sky', input.ctx)
+      if (value === 'land' || value.includes('зем') || value.includes('суш')) {
+        return primalTemplatePhb2024('land', input.ctx)
+      }
+    }
     if (value.includes('sea')) return primalTemplate('beast_of_the_sea', input.ctx)
     if (value.includes('sky')) return primalTemplate('beast_of_the_sky', input.ctx)
     if (value.includes('land')) return primalTemplate('beast_of_the_land', input.ctx)
@@ -505,7 +644,10 @@ export function resolveCompanionTemplate(input: {
   }
   // Name-only open_text (rangers_companion): PHB stub; type/primal handled via
   // companion_type pick in applySubclassGrantToDraft / resolveCompanionTemplate value.
-  if (id.includes('rangers_companion') || (id.includes('companion') && !id.includes('type'))) {
+  if (
+    id.includes('rangers_companion')
+    || (id.includes('companion') && !id.includes('type') && !id.includes('reanimated'))
+  ) {
     return phbBeastStub()
   }
   return null

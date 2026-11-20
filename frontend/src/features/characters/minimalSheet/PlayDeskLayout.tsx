@@ -23,6 +23,7 @@ import { TurnEconomyStrip } from '../TurnEconomyStrip'
 import { SceneTurnControls } from '../SceneTurnControls'
 import { usePlayDeskRailCap } from './usePlayDeskRailCap'
 import { openDiceJournal } from '../../diceRoller'
+import { usesHeroicInspiration } from '../../../shared/dnd/heroicInspiration'
 
 export function PlayDeskLayout({ model }: { model: SheetModel }) {
   const { leftRef, stageRef } = usePlayDeskRailCap(Boolean(model.isPlayDesk))
@@ -135,7 +136,26 @@ export function PlayDeskLayout({ model }: { model: SheetModel }) {
                       удача {model.luckyPointsRemaining()}
                     </button>
                   ) : null}
-                  {model.draft.inspiration || model.inspirationRollArmed ? (
+                  {usesHeroicInspiration(
+                    model.baseCharacter?.rules_edition ?? model.rulesEdition,
+                  ) ? (
+                    model.draft.inspiration ? (
+                      <button
+                        type="button"
+                        className="play-desk__roll-mode-btn is-on"
+                        data-testid="heroic-inspiration-status"
+                        aria-pressed
+                        title="Героическое вдохновение: после броска можно перебросить любой кубик. Не бардовское."
+                        onClick={() => {
+                          model.onToast?.(
+                            'Героическое вдохновение: после броска появится кнопка переброса. Передача — если уже есть и выдали второе.',
+                          )
+                        }}
+                      >
+                        героич.
+                      </button>
+                    ) : null
+                  ) : model.draft.inspiration || model.inspirationRollArmed ? (
                     <button
                       type="button"
                       className={`play-desk__roll-mode-btn${
@@ -301,20 +321,26 @@ export function PlayDeskLayout({ model }: { model: SheetModel }) {
                   >
                     Бой
                   </button>
-                  <button
-                    type="button"
-                    role="tab"
-                    aria-selected={model.mobileSpellSurface === 'book'}
-                    className={`mobile-combat-seg__btn${
-                      model.mobileSpellSurface === 'book' ? ' is-on' : ''
-                    }`}
-                    onClick={() => {
-                      model.setMobileSpellSurface('book')
-                      model.setSpellsSettingsOpen(true)
-                    }}
-                  >
-                    Книга
-                  </button>
+                  {/* Third-caster AT/EK: no spellbook — hide «Книга» surface. */}
+                  {(model.spellcastingSync?.castProfiles ?? []).length > 0 &&
+                  (model.spellcastingSync?.castProfiles ?? []).every(
+                    (row: { kind?: string }) => row.kind === 'third',
+                  ) ? null : (
+                    <button
+                      type="button"
+                      role="tab"
+                      aria-selected={model.mobileSpellSurface === 'book'}
+                      className={`mobile-combat-seg__btn${
+                        model.mobileSpellSurface === 'book' ? ' is-on' : ''
+                      }`}
+                      onClick={() => {
+                        model.setMobileSpellSurface('book')
+                        model.setSpellsSettingsOpen(true)
+                      }}
+                    >
+                      Книга
+                    </button>
+                  )}
                 </div>
               ) : null}
               <div
@@ -357,7 +383,26 @@ export function PlayDeskLayout({ model }: { model: SheetModel }) {
                     удача {model.luckyPointsRemaining()}
                   </button>
                 ) : null}
-                {model.draft.inspiration || model.inspirationRollArmed ? (
+                {usesHeroicInspiration(
+                  model.baseCharacter?.rules_edition ?? model.rulesEdition,
+                ) ? (
+                  model.draft.inspiration ? (
+                    <button
+                      type="button"
+                      className="mobile-combat-roll__btn is-on"
+                      data-testid="heroic-inspiration-status"
+                      aria-pressed
+                      title="Героическое вдохновение: после броска можно перебросить любой кубик. Не бардовское."
+                      onClick={() => {
+                        model.onToast?.(
+                          'Героическое вдохновение: после броска появится кнопка переброса.',
+                        )
+                      }}
+                    >
+                      героич.
+                    </button>
+                  ) : null
+                ) : model.draft.inspiration || model.inspirationRollArmed ? (
                   <button
                     type="button"
                     className={`mobile-combat-roll__btn${
@@ -455,7 +500,26 @@ export function PlayDeskLayout({ model }: { model: SheetModel }) {
                     удача {model.luckyPointsRemaining()}
                   </button>
                 ) : null}
-                {model.draft.inspiration || model.inspirationRollArmed ? (
+                {usesHeroicInspiration(
+                  model.baseCharacter?.rules_edition ?? model.rulesEdition,
+                ) ? (
+                  model.draft.inspiration ? (
+                    <button
+                      type="button"
+                      className="mobile-combat-roll__btn is-on"
+                      data-testid="heroic-inspiration-status"
+                      aria-pressed
+                      title="Героическое вдохновение: после броска можно перебросить любой кубик. Не бардовское."
+                      onClick={() => {
+                        model.onToast?.(
+                          'Героическое вдохновение: после броска появится кнопка переброса.',
+                        )
+                      }}
+                    >
+                      героич.
+                    </button>
+                  ) : null
+                ) : model.draft.inspiration || model.inspirationRollArmed ? (
                   <button
                     type="button"
                     className={`mobile-combat-roll__btn${
@@ -551,7 +615,26 @@ export function PlayDeskLayout({ model }: { model: SheetModel }) {
                     удача {model.luckyPointsRemaining()}
                   </button>
                 ) : null}
-                {model.draft.inspiration || model.inspirationRollArmed ? (
+                {usesHeroicInspiration(
+                  model.baseCharacter?.rules_edition ?? model.rulesEdition,
+                ) ? (
+                  model.draft.inspiration ? (
+                    <button
+                      type="button"
+                      className="mobile-combat-roll__btn is-on"
+                      data-testid="heroic-inspiration-status"
+                      aria-pressed
+                      title="Героическое вдохновение: после броска можно перебросить любой кубик. Не бардовское."
+                      onClick={() => {
+                        model.onToast?.(
+                          'Героическое вдохновение: после броска появится кнопка переброса.',
+                        )
+                      }}
+                    >
+                      героич.
+                    </button>
+                  ) : null
+                ) : model.draft.inspiration || model.inspirationRollArmed ? (
                   <button
                     type="button"
                     className={`mobile-combat-roll__btn${

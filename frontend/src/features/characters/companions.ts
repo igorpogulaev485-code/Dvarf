@@ -7,6 +7,7 @@ export type CompanionKind =
   | 'beast_companion'
   | 'steel_defender'
   | 'eldritch_cannon'
+  | 'reanimated_companion'
   | 'drake'
   | 'primal_companion'
   | 'familiar'
@@ -217,12 +218,24 @@ export const COMPANION_KIND_LABELS: Record<CompanionKind, string> = {
   beast_companion: 'Зверь-спутник',
   steel_defender: 'Стальной защитник',
   eldritch_cannon: 'Мистическая пушка',
+  reanimated_companion: 'Реанимированный спутник',
   drake: 'Дрейк',
   primal_companion: 'Первобытный спутник',
   familiar: 'Фамильяр',
   ally: 'Напарник',
   transformed_self: 'Облик',
   other: 'Напарник',
+}
+
+/** PHB 2024 uses «Первичный спутник»; TCE/2014 sheets keep «Первобытный». */
+export function companionKindLabel(
+  kind: CompanionKind,
+  rulesEdition?: '2014' | '2024' | string | null,
+): string {
+  if (kind === 'primal_companion' && rulesEdition === '2024') {
+    return 'Первичный спутник'
+  }
+  return COMPANION_KIND_LABELS[kind]
 }
 
 export const COMPANION_ROLE_LABELS: Record<CompanionRole, string> = {
@@ -275,6 +288,7 @@ const KIND_SET = new Set<string>([
   'beast_companion',
   'steel_defender',
   'eldritch_cannon',
+  'reanimated_companion',
   'drake',
   'primal_companion',
   'familiar',
@@ -307,6 +321,7 @@ const CONTROL_SET = new Set<string>([
 
 export function defaultNatureForKind(kind: CompanionKind): CompanionNature {
   if (kind === 'eldritch_cannon' || kind === 'steel_defender') return 'construct'
+  if (kind === 'reanimated_companion') return 'summoned'
   if (
     kind === 'familiar' ||
     kind === 'transformed_self' ||
@@ -418,6 +433,7 @@ export function defaultCombatModesForKind(kind: CompanionKind): {
     case 'primal_companion':
     case 'steel_defender':
     case 'eldritch_cannon':
+    case 'reanimated_companion':
     case 'drake':
     case 'ally':
       return { initiativeMode: 'with_master', commandCost: 'bonus' }
@@ -502,6 +518,7 @@ export function resolveCombatModesOnRead(input: {
     input.kind === 'primal_companion' ||
     input.kind === 'steel_defender' ||
     input.kind === 'eldritch_cannon' ||
+    input.kind === 'reanimated_companion' ||
     input.kind === 'drake' ||
     input.kind === 'familiar' ||
     input.kind === 'ally' ||
@@ -1145,12 +1162,23 @@ export function readCompanions(raw: unknown): CompanionEntry[] {
  */
 const REAL_SUBCLASS_COMPANION_FEATURES = new Set([
   'eldritch_cannon',
+  'eldritch-cannon',
+  'steel_defender',
+  'steel-defender',
   'steel_defender_name',
+  'reanimated_companion',
+  'reanimated-companion',
   'wildfire_spirit',
   // Wild Shape summon path writes this feature id — keep the card.
   'summon_wildfire_spirit',
   'rangers_companion',
   'drake_companion',
+  // PHB 2024 Beast Master «Первичный спутник» (land/sea/sky).
+  'primal-companion',
+  'primal_companion',
+  // P24-M02B-warlock AU Vestige Patron «Спутник-предтеча».
+  'vestige-companion',
+  'vestige_companion',
 ])
 
 function heuristicCompanionFeature(feature: string): boolean {
@@ -1303,15 +1331,41 @@ export function dismissSelfForm(input: {
 export function dismissSelfFormsOnRest(
   companions: CompanionEntry[],
   kind: 'short' | 'long',
+  options?: { edition?: string | null },
 ): { companions: CompanionEntry[]; dismissedNames: string[] } {
   const before = dismissSelfForm({ companions })
   const names = before.dismissedName
     ? before.dismissedName.split(', ').filter(Boolean)
     : []
+  let rows = before.companions
+  if (kind === 'long' && options?.edition === '2024') {
+    const wild = dismissWildCompanionOnLongRest2024(rows)
+    rows = wild.companions
+    names.push(...wild.dismissedNames)
+  }
   return {
-    companions: resetCompanionResourcesOnRest(before.companions, kind),
+    companions: resetCompanionResourcesOnRest(rows, kind),
     dismissedNames: names,
   }
+}
+
+/** 2024 Wild Companion: the fey familiar disappears when the druid finishes a Long Rest. */
+export function dismissWildCompanionOnLongRest2024(companions: CompanionEntry[]): {
+  companions: CompanionEntry[]
+  dismissedNames: string[]
+} {
+  const gone = companions.filter((row) => row.source?.feature === 'wild_companion')
+  if (gone.length === 0) return { companions, dismissedNames: [] }
+  const kept = companions.filter((row) => row.source?.feature !== 'wild_companion')
+  const primaryLost = gone.some((row) => row.is_primary)
+  const next =
+    primaryLost && !kept.some((row) => row.is_primary)
+      ? (() => {
+          const ally = kept.find((row) => row.role === 'ally' && row.active)
+          return ally ? setPrimaryCompanion(kept, ally.id) : kept
+        })()
+      : kept
+  return { companions: next, dismissedNames: gone.map((row) => row.name) }
 }
 
 export type SelfFormDamageResult = {

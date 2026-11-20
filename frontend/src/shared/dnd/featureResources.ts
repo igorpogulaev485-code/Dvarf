@@ -33,12 +33,18 @@ export type DesiredFeatureResource = {
   track: 'spend' | 'stock'
   /** When unlocked at this level, grant 1 stock on long rest if empty. */
   grantStockOnLongRestIfEmpty?: boolean
+  /** P24-M02B-rogue tokens: on long rest refill stock up to this floor (usually 2). */
+  longRestStockFloor?: number
+  /** When a stock pool is first created, start with this many holdings. */
+  initialStock?: number
   /** Class slug for display disambiguation (e.g. cleric vs paladin Channel Divinity). */
   classSlug?: string
   /** Russian class label used when the same pool name appears on two classes. */
   classLabelRu?: string
   /** PHB rage at 20: the pool does not run out. */
   unlimited?: boolean
+  /** P24-M02a: regain N uses on short rest while reset stays long (Second Wind). */
+  shortRestRegain?: number
 }
 
 export function isFeatureManagedResourceId(id: string): boolean {
@@ -415,6 +421,7 @@ export function syncFeatureResources(
         reset: preserveManualLock ? 'manual' : want.reset,
         track: want.track,
         unlimited: want.unlimited || undefined,
+        shortRestRegain: want.shortRestRegain,
       }),
     )
   }
@@ -431,11 +438,15 @@ export function syncFeatureResources(
         used: want.unlimited
           ? 0
           : want.track === 'stock'
-            ? 0
+            ? Math.min(
+                want.max,
+                Math.max(0, Math.floor(want.initialStock ?? 0)),
+              )
             : Math.min(want.max, carried),
         reset: want.reset,
         track: want.track,
         unlimited: want.unlimited || undefined,
+        shortRestRegain: want.shortRestRegain,
       }),
     )
   }
@@ -450,7 +461,16 @@ export function findFeatureResource(
   classEntryId: string,
 ): SheetResource | null {
   const id = featureResourceId(classSlug, poolId, classEntryId)
-  return resources.find((row) => row.id === id) ?? null
+  const exact = resources.find((row) => row.id === id)
+  if (exact) return exact
+  // Create-at-N / remount can leave the pool keyed under a previous entry id while
+  // the unlocked feature already points at the live class row — fall back by slug+pool.
+  return (
+    resources.find((row) => {
+      const parsed = parseFeatureResourceId(row.id)
+      return parsed?.classSlug === classSlug && parsed.poolId === poolId
+    }) ?? null
+  )
 }
 
 /** Remaining uses for a spend pool (max - used). */
@@ -981,7 +1001,7 @@ export function consumeStock(input: {
   }
 }
 
-/** Death's Friend: if stock empty after long rest, grant 1. */
+/** Death's Friend (2014): if stock empty after long rest, grant 1. */
 export function grantStockOnLongRestIfEmpty(
   resources: SheetResource[],
   desired: DesiredFeatureResource[],
@@ -989,8 +1009,19 @@ export function grantStockOnLongRestIfEmpty(
   const grants = new Set(
     desired.filter((row) => row.grantStockOnLongRestIfEmpty).map((row) => row.id),
   )
-  if (grants.size === 0) return resources
+  const floors = new Map(
+    desired
+      .filter((row) => typeof row.longRestStockFloor === 'number' && row.longRestStockFloor > 0)
+      .map((row) => [row.id, Math.floor(row.longRestStockFloor!)] as const),
+  )
+  if (grants.size === 0 && floors.size === 0) return resources
   return resources.map((row) => {
+    const floor = floors.get(row.id)
+    if (typeof floor === 'number' && row.track === 'stock') {
+      const target = Math.min(row.max, floor)
+      if (stockCurrent(row) >= target) return row
+      return clampResource({ ...row, used: target })
+    }
     if (!grants.has(row.id)) return row
     if (stockCurrent(row) > 0) return row
     return clampResource({ ...row, used: 1 })

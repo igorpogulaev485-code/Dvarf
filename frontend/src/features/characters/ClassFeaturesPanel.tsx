@@ -23,6 +23,7 @@ import {
   slotSpendHasDice,
   unlockFeaturesForClasses,
   type AbilityScoreKey,
+  type FeatureChoiceDef,
   type UnlockedFeature,
 } from '../../shared/dnd/classFeatures'
 import {
@@ -57,7 +58,73 @@ import { kenseiPairError } from '../../shared/dnd/kenseiWeapons'
 import { featureChoiceOptionLabel } from '../../shared/dnd/featureChoiceOptionLabel'
 import { createArcaneWard, wizardResolvedFeatureId } from '../../shared/dnd/wizardTradition'
 import { WizardCapstonePicks } from './WizardCapstonePicks'
+import {
+  WIZARD_2024_CARD_BUTTONS,
+  wizard2024UseFeatureId,
+} from '../../shared/dnd/wizard2024Features'
+import {
+  SORCERER_2024_CARD_BUTTONS,
+  sorcerer2024UseFeatureId,
+} from '../../shared/dnd/sorcerer2024Features'
+import {
+  MONK_2024_CARD_BUTTONS,
+  monk2024UseFeatureId,
+} from '../../shared/dnd/monk2024Features'
+import {
+  WARLOCK_2024_CARD_BUTTONS,
+  warlock2024UseFeatureId,
+} from '../../shared/dnd/warlock2024Features'
+import {
+  CLERIC_2024_CARD_BUTTONS,
+  cleric2024UseFeatureId,
+} from '../../shared/dnd/cleric2024Features'
+import {
+  PALADIN_2024_CARD_BUTTONS,
+  paladin2024UseFeatureId,
+} from '../../shared/dnd/paladin2024Features'
+import {
+  RANGER_2024_CARD_BUTTONS,
+  ranger2024UseFeatureId,
+} from '../../shared/dnd/ranger2024Features'
+import {
+  FIGHTER_2024_CARD_BUTTONS,
+  fighter2024UseFeatureId,
+} from '../../shared/dnd/fighter2024Features'
+import type { FighterFeatureRequest } from './Fighter2024UseDialog'
+import {
+  BARBARIAN_2024_CARD_BUTTONS,
+  barbarian2024UseFeatureId,
+} from '../../shared/dnd/barbarian2024Features'
+import type { BarbarianFeatureRequest } from './Barbarian2024UseDialog'
+import {
+  ROGUE_2024_CARD_BUTTONS,
+  isRogueClassSlug,
+  rogue2024UseFeatureId,
+  rogueFeatureNameRu2024,
+} from '../../shared/dnd/rogue2024Features'
+import type { RogueFeatureRequestUi } from './Rogue2024UseDialog'
+import {
+  ARTIFICER_2024_CARD_BUTTONS,
+  artificer2024UseFeatureId,
+} from '../../shared/dnd/artificer2024Features'
+import type { ArtificerFeatureRequest } from './Artificer2024UseDialog'
 import type { WizardFeatureRequest } from './WizardFeatureUseDialog'
+import type { SorcererFeatureRequest } from './SorcererFeatureUseDialog'
+import type { MonkFeatureRequest } from './Monk2024UseDialog'
+import type { WarlockFeatureRequest } from './Warlock2024UseDialog'
+import type { ClericFeatureRequest } from './Cleric2024UseDialog'
+import type { PaladinFeatureRequest } from './Paladin2024UseDialog'
+import type { BardFeatureRequest } from './Bard2024UseDialog'
+import { MAGICAL_DISCOVERIES_ID_2024 } from './bardSecretsSync'
+import { BARD_2024_CARD_BUTTONS, bard2024UseFeatureId } from '../../shared/dnd/bard2024Features'
+import type { DruidFeatureRequest } from './Druid2024UseDialog'
+import type { RangerFeatureRequest } from './Ranger2024UseDialog'
+import {
+  DRUID_2024_CARD_BUTTONS,
+  druid2024CardFormulaRu,
+  druid2024UseFeatureId,
+  readElementalFury2024,
+} from '../../shared/dnd/druid2024Features'
 import {
   FLEXIBLE_CASTING_SLOT_COST,
   isTceMetamagic,
@@ -136,7 +203,7 @@ import type { ConcentrationState } from '../../shared/dnd/concentration'
 import type { SheetResource } from '../../shared/dnd/rest'
 import { displayResourceLabel } from '../../shared/dnd/rest'
 import type { InventoryItem } from './inventory'
-import { Button, Chip, Field, Input, Panel, Stack, Text } from '../../ui'
+import { Button, Field, Input, Panel, Stack, Text } from '../../ui'
 import { SlotPips } from '../../ui/SlotPips'
 import {
   newCustomFeatureId,
@@ -145,7 +212,12 @@ import {
 import { isFeatureSelfFormId } from './featureForms'
 import type { SpellsState } from './spells'
 import { abilityModifier, SKILL_DEFS } from './sheetTypes'
-import { isWildShapeForkFeature, moonHealDiceCount, moonShapeScale } from './wildShape'
+import {
+  isWildShapeForkFeature,
+  moonHealDiceCount,
+  moonShapeScale,
+  wildShapeScale2024,
+} from './wildShape'
 import { PactTomeCantripsPicker } from './PactTomeCantripsPicker'
 import {
   isPactTomeActive,
@@ -173,6 +245,8 @@ type ClassFeaturesPanelProps = {
   characterLevel: number
   abilities?: Partial<Record<AbilityScoreKey, number>>
   subclassSlugByEntryId?: Record<string, string | null | undefined>
+  /** Precomputed unlocked list (2024 progression); skips the 2014 unlock pass. */
+  unlockedFeatures?: UnlockedFeature[]
   subclassTransitionByEntryId?: Record<
     string,
     | {
@@ -213,6 +287,22 @@ type ClassFeaturesPanelProps = {
   onFeatureSelfForm?: (request: FeatureSelfFormRequest) => void
   /** Tradition features that ask for a target, mode, or active state. */
   onWizardFeatureUse?: (request: WizardFeatureRequest) => void
+  /** Sorcerer 2024 feature dialogs (edition 2024 only). */
+  onSorcererFeatureUse?: (request: SorcererFeatureRequest) => void
+  /** Monk 2024 feature dialogs (edition 2024 only). */
+  onMonkFeatureUse?: (request: MonkFeatureRequest) => void
+  onWarlockFeatureUse?: (request: WarlockFeatureRequest) => void
+  onClericFeatureUse?: (request: ClericFeatureRequest) => void
+  onPaladinFeatureUse?: (request: PaladinFeatureRequest) => void
+  onBardFeatureUse?: (request: BardFeatureRequest) => void
+  onDruidFeatureUse?: (request: DruidFeatureRequest) => void
+  onRangerFeatureUse?: (request: RangerFeatureRequest) => void
+  onFighterFeatureUse?: (request: FighterFeatureRequest) => void
+  onBarbarianFeatureUse?: (request: BarbarianFeatureRequest) => void
+  onRogueFeatureUse?: (request: RogueFeatureRequestUi) => void
+  onArtificerFeatureUse?: (request: ArtificerFeatureRequest) => void
+  /** Open sorcery-points spend dialog (2024 metamagic / font). */
+  onSorceryPointsSpend?: (resourceId: string) => void
   /**
    * Moon Combat Wild Shape: spend slot + heal active self_form (caller updates spells).
    * Return toast message on success, null if no form.
@@ -347,7 +437,13 @@ function featureCanExpand(feature: UnlockedFeature): boolean {
   if (feature.resource?.pool_id) return true
   if (feature.choice) return true
   if (feature.slot_spend) return true
-  if (feature.id === 'metamagic' || feature.id === 'flexible_casting') return true
+  if (
+    feature.id === 'metamagic' ||
+    feature.id === 'flexible_casting' ||
+    feature.id === 'font-of-magic'
+  ) {
+    return true
+  }
   if (feature.summon) return true
   if (feature.replaces) return true
   return false
@@ -376,9 +472,21 @@ function FeatureResourceControls({
   onOpenRecovery,
   onFeatureSelfForm,
   onWizardFeatureUse,
+  onSorcererFeatureUse,
+  onMonkFeatureUse,
+  onWarlockFeatureUse,
+  onClericFeatureUse,
+  onPaladinFeatureUse,
+  onBardFeatureUse,
+  onDruidFeatureUse,
+  onRangerFeatureUse,
+  onFighterFeatureUse,
+  onBarbarianFeatureUse,
+  onRogueFeatureUse,
   onFeatureBuffApply,
   moonCombatWildShape = false,
   scaleText = null,
+  edition = '2014',
 }: {
   feature: UnlockedFeature
   classSlug: string
@@ -395,10 +503,22 @@ function FeatureResourceControls({
   onOpenRecovery?: (resourceId: string) => void
   onFeatureSelfForm?: (request: FeatureSelfFormRequest) => void
   onWizardFeatureUse?: (request: WizardFeatureRequest) => void
+  onSorcererFeatureUse?: (request: SorcererFeatureRequest) => void
+  onMonkFeatureUse?: (request: MonkFeatureRequest) => void
+  onWarlockFeatureUse?: (request: WarlockFeatureRequest) => void
+  onClericFeatureUse?: (request: ClericFeatureRequest) => void
+  onPaladinFeatureUse?: (request: PaladinFeatureRequest) => void
+  onBardFeatureUse?: (request: BardFeatureRequest) => void
+  onDruidFeatureUse?: (request: DruidFeatureRequest) => void
+  onRangerFeatureUse?: (request: RangerFeatureRequest) => void
+  onFighterFeatureUse?: (request: FighterFeatureRequest) => void
+  onBarbarianFeatureUse?: (request: BarbarianFeatureRequest) => void
+  onRogueFeatureUse?: (request: RogueFeatureRequestUi) => void
   onFeatureBuffApply?: ClassFeaturesPanelProps['onFeatureBuffApply']
   /** Circle of the Moon: Wild Shape is a bonus action. */
   moonCombatWildShape?: boolean
   scaleText?: string | null
+  edition?: RulesEdition
 }) {
   const perUseCap =
     feature.resource?.per_use_cap === 'half_class_level'
@@ -428,7 +548,9 @@ function FeatureResourceControls({
   }
   const markFeatureSpend = () => {
     if (isActionSurge) {
-      turnEco?.grantActionSurge()
+      turnEco?.grantActionSurge({
+        blocksMagic: String(edition ?? '2014').trim() === '2024',
+      })
       return
     }
     turnEco?.spendFeature(featureTiming)
@@ -508,6 +630,36 @@ function FeatureResourceControls({
         </div>
       )
     }
+    // P24-M02B-rogue 2024 tokens — open Rogue2024UseDialog (do not use 2014 soul-trinket path).
+    if (
+      edition === '2024' &&
+      resource.pool_id === 'tokens_of_the_departed' &&
+      onRogueFeatureUse
+    ) {
+      return (
+        <div className="feature-resource">
+          <Text>
+            {poolLabel}: <strong>{current}</strong> / {pool.max}
+          </Text>
+          <div className="feature-resource__actions">
+            <Button
+              type="button"
+              onClick={() =>
+                onRogueFeatureUse({
+                  featureId: feature.id,
+                  resourceId: pool.id,
+                  classSlug,
+                  classEntryId: feature.classEntryId,
+                  name: feature.name_ru,
+                })
+              }
+            >
+              {ROGUE_2024_CARD_BUTTONS[feature.id] ?? 'Сувениры…'}
+            </Button>
+          </div>
+        </div>
+      )
+    }
     const openResolved = () =>
       onWizardFeatureUse?.({
         featureId: feature.id,
@@ -540,6 +692,15 @@ function FeatureResourceControls({
               }}
             >
               Создать щит
+            </Button>
+          ) : null}
+          {resource.pool_id === 'arcane_ward' && edition === '2024' ? (
+            <Button
+              type="button"
+              disabled={!pool.wardCreated || current >= pool.max}
+              onClick={openResolved}
+            >
+              Починить ячейкой…
             </Button>
           ) : null}
           <Button
@@ -644,8 +805,14 @@ function FeatureResourceControls({
   const lockedBySuccess = Boolean(successLock) && pool.reset === 'manual' && pool.used > 0
   const blockedByHeavyArmor =
     Boolean(resource.blocked_while_heavy_armor) && wearingHeavyArmor
+  const opensDruid2024Dialog =
+    edition === '2024' &&
+    feature.id !== 'wild_shape' &&
+    druid2024UseFeatureId(feature.id) != null
   const opensWildShapeFork =
-    Boolean(onWildShapeFork) && isWildShapeForkFeature(feature.id)
+    Boolean(onWildShapeFork) &&
+    isWildShapeForkFeature(feature.id) &&
+    !(opensDruid2024Dialog && onDruidFeatureUse)
   // Fork spends wild_shape (own pool or linked); enable when that currency remains.
   const wildShapePoolForFork =
     poolId === 'wild_shape'
@@ -814,16 +981,208 @@ function FeatureResourceControls({
                 : 'Потратить…'
               : 'Через Дикий облик…'}
           </Button>
+        ) : edition === '2024' &&
+          onWarlockFeatureUse &&
+          warlock2024UseFeatureId(feature.id) ? (
+          <Button
+            type="button"
+            onClick={() =>
+              onWarlockFeatureUse({
+                featureId: feature.id,
+                resourceId: pool.id,
+                classSlug,
+                classEntryId: feature.classEntryId,
+                name: feature.name_ru,
+              })
+            }
+          >
+            {WARLOCK_2024_CARD_BUTTONS[feature.id] ?? 'Применить…'}
+          </Button>
+        ) : edition === '2024' &&
+          onBardFeatureUse &&
+          bard2024UseFeatureId(feature.id) ? (
+          <Button
+            type="button"
+            onClick={() =>
+              onBardFeatureUse({
+                featureId: feature.id,
+                resourceId: pool.id,
+                classSlug,
+                classEntryId: feature.classEntryId,
+                name: feature.name_ru,
+              })
+            }
+          >
+            {BARD_2024_CARD_BUTTONS[feature.id] ?? 'Применить…'}
+          </Button>
+        ) : edition === '2024' &&
+          onClericFeatureUse &&
+          cleric2024UseFeatureId(feature.id) ? (
+          <Button
+            type="button"
+            onClick={() =>
+              onClericFeatureUse({
+                featureId: feature.id,
+                resourceId: pool.id,
+                classSlug,
+                classEntryId: feature.classEntryId,
+                name: feature.name_ru,
+              })
+            }
+          >
+            {CLERIC_2024_CARD_BUTTONS[feature.id] ?? 'Применить…'}
+          </Button>
+        ) : edition === '2024' &&
+          onPaladinFeatureUse &&
+          paladin2024UseFeatureId(feature.id) ? (
+          <Button
+            type="button"
+            onClick={() =>
+              onPaladinFeatureUse({
+                featureId: feature.id,
+                resourceId: pool.id,
+                classSlug,
+                classEntryId: feature.classEntryId,
+                name: feature.name_ru,
+              })
+            }
+          >
+            {PALADIN_2024_CARD_BUTTONS[feature.id] ?? 'Применить…'}
+          </Button>
+        ) : edition === '2024' &&
+          onRangerFeatureUse &&
+          ranger2024UseFeatureId(feature.id) ? (
+          <Button
+            type="button"
+            onClick={() =>
+              onRangerFeatureUse({
+                featureId: feature.id,
+                resourceId: pool.id,
+                classSlug,
+                classEntryId: feature.classEntryId,
+                name: feature.name_ru,
+              })
+            }
+          >
+            {RANGER_2024_CARD_BUTTONS[feature.id] ?? 'Применить…'}
+          </Button>
+        ) : edition === '2024' &&
+          onFighterFeatureUse &&
+          fighter2024UseFeatureId(feature.id) ? (
+          <Button
+            type="button"
+            onClick={() =>
+              onFighterFeatureUse({
+                featureId: feature.id,
+                resourceId: pool.id,
+                classSlug,
+                classEntryId: feature.classEntryId,
+                name: feature.name_ru,
+              })
+            }
+          >
+            {FIGHTER_2024_CARD_BUTTONS[feature.id] ?? 'Применить…'}
+          </Button>
+        ) : edition === '2024' &&
+          onBarbarianFeatureUse &&
+          barbarian2024UseFeatureId(feature.id) ? (
+          <Button
+            type="button"
+            onClick={() =>
+              onBarbarianFeatureUse({
+                featureId: feature.id,
+                resourceId: pool.id,
+                classSlug,
+                classEntryId: feature.classEntryId,
+                name: feature.name_ru,
+              })
+            }
+          >
+            {BARBARIAN_2024_CARD_BUTTONS[feature.id] ?? 'Применить…'}
+          </Button>
+        ) : edition === '2024' &&
+          onRogueFeatureUse &&
+          rogue2024UseFeatureId(feature.id) ? (
+          <Button
+            type="button"
+            onClick={() =>
+              onRogueFeatureUse({
+                featureId: feature.id,
+                resourceId: pool.id,
+                classSlug,
+                classEntryId: feature.classEntryId,
+                name: feature.name_ru,
+              })
+            }
+          >
+            {ROGUE_2024_CARD_BUTTONS[feature.id] ?? 'Применить…'}
+          </Button>
+        ) : edition === '2024' &&
+          onDruidFeatureUse &&
+          opensDruid2024Dialog ? (
+          <Button
+            type="button"
+            onClick={() =>
+              onDruidFeatureUse({
+                featureId: feature.id,
+                resourceId: pool.id,
+                classSlug,
+                classEntryId: feature.classEntryId,
+                name: feature.name_ru,
+              })
+            }
+          >
+            {DRUID_2024_CARD_BUTTONS[feature.id] ?? 'Применить…'}
+          </Button>
         ) : isPack03CustomSpend(feature.id) ||
           pack04CustomSpendFeature(feature.id) ||
           pack05CustomSpendFeature(feature.id) ||
-          pack07CustomSpendFeature(feature.id) ? null : onWizardFeatureUse && wizardResolvedFeatureId(feature.id) ? (
+          pack07CustomSpendFeature(feature.id) ? null : edition === '2024' &&
+          onSorcererFeatureUse &&
+          sorcerer2024UseFeatureId(feature.id) ? (
+          <Button
+            type="button"
+            onClick={() =>
+              onSorcererFeatureUse({
+                featureId: feature.id,
+                resourceId: pool.id,
+                classSlug,
+                classEntryId: feature.classEntryId,
+                name: feature.name_ru,
+              })
+            }
+          >
+            {SORCERER_2024_CARD_BUTTONS[feature.id] ?? 'Использовать…'}
+          </Button>
+        ) : edition === '2024' &&
+          onMonkFeatureUse &&
+          monk2024UseFeatureId(feature.id) ? (
+          <Button
+            type="button"
+            onClick={() =>
+              onMonkFeatureUse({
+                featureId: feature.id,
+                resourceId: pool.id,
+                classSlug,
+                classEntryId: feature.classEntryId,
+                name: feature.name_ru,
+              })
+            }
+          >
+            {MONK_2024_CARD_BUTTONS[feature.id] ?? 'Использовать…'}
+          </Button>
+        ) : onWizardFeatureUse &&
+          (wizardResolvedFeatureId(feature.id) ||
+            (edition === '2024' && wizard2024UseFeatureId(feature.id))) ? (
           <Button
             type="button"
             disabled={
               feature.id === 'bladesong'
                 ? !pool.activeLabel && remaining <= 0
-                : remaining <= 0
+                : edition === '2024' &&
+                    (feature.id === 'overchannel' || feature.id === 'illusory_self')
+                  ? false
+                  : remaining <= 0
             }
             onClick={() =>
               onWizardFeatureUse({
@@ -837,7 +1196,9 @@ function FeatureResourceControls({
           >
             {feature.id === 'bladesong' && pool.activeLabel
               ? 'Завершить песнь'
-              : 'Использовать…'}
+              : edition === '2024' && feature.id === 'overchannel'
+                ? 'Перегрузка…'
+                : 'Использовать…'}
           </Button>
         ) : opensFeatureSelfForm ? (
           <Button
@@ -1048,8 +1409,11 @@ function FeatureResourceControls({
   )
 }
 
-function choiceOptionLabel(optionId: string): string {
-  return featureChoiceOptionLabel(optionId, null, (id) =>
+function choiceOptionLabel(
+  optionId: string,
+  choice?: FeatureChoiceDef | null,
+): string {
+  return featureChoiceOptionLabel(optionId, choice ?? null, (id) =>
     SKILL_DEFS.find((row) => row.key === id)?.label,
   )
 }
@@ -1063,6 +1427,7 @@ function FeatureChoiceControls({
   expertiseKeys,
   onToast,
   tceAllowed = null,
+  edition = '2014',
 }: {
   feature: UnlockedFeature
   featurePicks: FeaturePicksState
@@ -1073,6 +1438,7 @@ function FeatureChoiceControls({
   onToast?: (message: string) => void
   /** null = вне лобби (показывать TCE с бейджем); true/false = книга Таши в лобби. */
   tceAllowed?: boolean | null
+  edition?: RulesEdition
 }) {
   const choice = feature.choice
   const [pendingReplicate, setPendingReplicate] = useState(false)
@@ -1123,13 +1489,16 @@ function FeatureChoiceControls({
               expertiseKeys,
               except: { classEntryId: feature.classEntryId, featureId: feature.id },
             }),
-          }).map((row) => row.id)
+          })
+            .filter((row) => !choice.options?.length || choice.options.includes(row.id))
+            .map((row) => row.id)
         : choice.options_from === 'artificer_infusions'
           ? infusionOptionIdsAtLevel(feature.classLevel)
-          : choiceOptionsAtLevel(choice, feature.classLevel)
+          : choiceOptionsAtLevel(choice, feature.classLevel, edition)
     ).filter((id) => !takenStyles.has(id)),
     optionsFrom: choice.options_from,
-    tceAllowed: tceAllowed ?? null,
+    // 2024 Battle Master picker already drops Tasha-only maneuvers; keep TCE badge off those.
+    tceAllowed: edition === '2024' && choice.options_from === 'battle_master_maneuvers' ? true : tceAllowed ?? null,
     selectedIds: selectedIdsForTce,
   })
   const pactBoonId = getFeaturePick(featurePicks, feature.classEntryId, 'pact_boon')
@@ -1145,7 +1514,7 @@ function FeatureChoiceControls({
         : options
   const showTceBadge = tceAllowed === null
   function optionLabelWithTce(optionId: string): string {
-    const base = choiceOptionLabel(optionId)
+    const base = choiceOptionLabel(optionId, choice)
     if (!showTceBadge) return base
     const tce =
       isTceFightingStyle(optionId) ||
@@ -1158,9 +1527,9 @@ function FeatureChoiceControls({
   const selectedDef = fightingStyleById(selected)
   const selectedMeta = selectedList.map((id) => metamagicById(id)).filter(Boolean)
   const selectedLabel = multi
-    ? selectedList.map(choiceOptionLabel).join(', ')
+    ? selectedList.map((id) => choiceOptionLabel(id, choice)).join(', ')
     : selected
-      ? choiceOptionLabel(selected)
+      ? choiceOptionLabel(selected, choice)
       : null
   const useSelect = !multi && visibleOptions.length > 6
   const replicateChoices = replicateItemsAtLevel(feature.classLevel)
@@ -1180,7 +1549,7 @@ function FeatureChoiceControls({
     )
     onFeaturePicksChange(next)
     onToast?.(
-      `${choiceLabel}: ${getFeaturePickList(next, feature.classEntryId, feature.id).map(choiceOptionLabel).join(', ') || 'очищено'}`,
+      `${choiceLabel}: ${getFeaturePickList(next, feature.classEntryId, feature.id).map((id) => choiceOptionLabel(id, choice)).join(', ') || 'очищено'}`,
     )
     setPendingReplicate(false)
     setPendingReplicateSlug('')
@@ -1346,7 +1715,7 @@ function FeatureChoiceControls({
               onFeaturePicksChange(
                 setFeaturePick(featurePicks, feature.classEntryId, feature.id, optionId),
               )
-              if (optionId) onToast?.(`${choice.label_ru}: ${choiceOptionLabel(optionId)}`)
+              if (optionId) onToast?.(`${choice.label_ru}: ${choiceOptionLabel(optionId, choice)}`)
             }}
           >
             <option value="">— выбрать —</option>
@@ -1433,7 +1802,7 @@ function FeatureChoiceControls({
                     )
                     onFeaturePicksChange(next)
                     onToast?.(
-                      `${choice.label_ru}: ${getFeaturePickList(next, feature.classEntryId, feature.id).map(choiceOptionLabel).join(', ') || 'очищено'}`,
+                      `${choice.label_ru}: ${getFeaturePickList(next, feature.classEntryId, feature.id).map((id) => choiceOptionLabel(id, choice)).join(', ') || 'очищено'}`,
                     )
                     return
                   }
@@ -1470,11 +1839,11 @@ function FeatureChoiceControls({
                       )
                       onFeaturePicksChange(next)
                       onToast?.(
-                        `${choice.label_ru}: ${getFeaturePickList(next, feature.classEntryId, feature.id).map(choiceOptionLabel).join(', ') || 'очищено'}`,
+                        `${choice.label_ru}: ${getFeaturePickList(next, feature.classEntryId, feature.id).map((id) => choiceOptionLabel(id, choice)).join(', ') || 'очищено'}`,
                       )
                     }}
                   >
-                    ✕ {choiceOptionLabel(id)}
+                    ✕ {choiceOptionLabel(id, choice)}
                   </Button>
                 ))
             : null}
@@ -1491,6 +1860,8 @@ function MetamagicSpendControls({
   resources,
   onResourcesChange,
   onToast,
+  edition = '2014',
+  onSorceryPointsSpend,
 }: {
   feature: UnlockedFeature
   featurePicks: FeaturePicksState
@@ -1498,8 +1869,29 @@ function MetamagicSpendControls({
   resources: SheetResource[]
   onResourcesChange: (resources: SheetResource[]) => void
   onToast?: (message: string) => void
+  edition?: string
+  onSorceryPointsSpend?: (resourceId: string) => void
 }) {
   if (feature.id !== 'metamagic') return null
+  if (edition === '2024') {
+    const pool = findFeatureResource(
+      resources,
+      classSlug,
+      'sorcery_points',
+      feature.classEntryId,
+    )
+    if (!pool) return null
+    return (
+      <div className="feature-resource">
+        <Text tone="muted">Метамагия и очки — через «Источник магии».</Text>
+        <div className="feature-resource__actions">
+          <Button type="button" onClick={() => onSorceryPointsSpend?.(pool.id)}>
+            Потратить очки…
+          </Button>
+        </div>
+      </div>
+    )
+  }
   const selected = getFeaturePickList(featurePicks, feature.classEntryId, feature.id)
   if (!selected.length) return null
 
@@ -1577,6 +1969,7 @@ function FlexibleCastingControls({
   spells,
   onSpellsChange,
   onToast,
+  edition = '2014',
 }: {
   feature: UnlockedFeature
   classSlug: string
@@ -1585,8 +1978,10 @@ function FlexibleCastingControls({
   spells: SpellsState
   onSpellsChange: (spells: SpellsState) => void
   onToast?: (message: string) => void
+  edition?: string
 }) {
   if (feature.id !== 'flexible_casting') return null
+  if (edition === '2024') return null
   const pool = findFeatureResource(
     resources,
     classSlug,
@@ -1992,6 +2387,19 @@ function FeatureRow({
   onHpChange,
   onFeatureSelfForm,
   onWizardFeatureUse,
+  onSorcererFeatureUse,
+  onMonkFeatureUse,
+  onWarlockFeatureUse,
+  onClericFeatureUse,
+  onPaladinFeatureUse,
+  onBardFeatureUse,
+  onDruidFeatureUse,
+  onRangerFeatureUse,
+  onFighterFeatureUse,
+  onBarbarianFeatureUse,
+  onRogueFeatureUse,
+  onArtificerFeatureUse,
+  onSorceryPointsSpend,
   moonCombatWildShape = false,
   onMoonFormSlotHeal,
   divineSmiteIntent,
@@ -2041,6 +2449,19 @@ function FeatureRow({
   onHpChange?: (hp: number) => void
   onFeatureSelfForm?: (request: FeatureSelfFormRequest) => void
   onWizardFeatureUse?: (request: WizardFeatureRequest) => void
+  onSorcererFeatureUse?: (request: SorcererFeatureRequest) => void
+  onMonkFeatureUse?: (request: MonkFeatureRequest) => void
+  onWarlockFeatureUse?: (request: WarlockFeatureRequest) => void
+  onClericFeatureUse?: (request: ClericFeatureRequest) => void
+  onPaladinFeatureUse?: (request: PaladinFeatureRequest) => void
+  onBardFeatureUse?: (request: BardFeatureRequest) => void
+  onDruidFeatureUse?: (request: DruidFeatureRequest) => void
+  onRangerFeatureUse?: (request: RangerFeatureRequest) => void
+  onFighterFeatureUse?: (request: FighterFeatureRequest) => void
+  onBarbarianFeatureUse?: (request: BarbarianFeatureRequest) => void
+  onRogueFeatureUse?: (request: RogueFeatureRequestUi) => void
+  onArtificerFeatureUse?: (request: ArtificerFeatureRequest) => void
+  onSorceryPointsSpend?: (resourceId: string) => void
   moonCombatWildShape?: boolean
   onMoonFormSlotHeal?: (input: {
     slotLevel: number
@@ -2099,7 +2520,7 @@ function FeatureRow({
             feature.id,
             feature.choice.id,
           )
-            .map(choiceOptionLabel)
+            .map((id) => choiceOptionLabel(id, feature.choice))
             .join(', ')
         : getFeatureChoicePick(
             featurePicks,
@@ -2112,7 +2533,7 @@ function FeatureRow({
     typeof choicePick === 'string' && choicePick
       ? choiceMulti
         ? choicePick
-        : choiceOptionLabel(choicePick)
+        : choiceOptionLabel(choicePick, feature.choice)
       : null
   const tomeCantripsPending =
     feature.id === PACT_BOON_FEATURE_ID &&
@@ -2126,7 +2547,37 @@ function FeatureRow({
     : (Boolean(feature.choice) && !isFeatureChoiceComplete(feature, featurePicks)) ||
       tomeCantripsPending
 
-  const scaleShown = moonShapeScale(feature, unlockedFeatures) ?? feature.scaleValue
+  const featureDisplayName =
+    edition === '2024' && isRogueClassSlug(classSlug)
+      ? rogueFeatureNameRu2024(feature.id) || feature.name_ru
+      : feature.name_ru
+
+  const druidFormula2024 =
+    edition === '2024'
+      ? druid2024CardFormulaRu({
+          featureId: feature.id,
+          druidLevel: feature.classLevel,
+          wisMod: Math.floor(((wisdomScore ?? 10) - 10) / 2),
+          elementalFury: readElementalFury2024(featurePicks, feature.classEntryId),
+        })
+      : ''
+  const wildShapeScale2024Text =
+    edition === '2024'
+      ? wildShapeScale2024(
+          feature,
+          unlockedFeatures.find(
+            (row) =>
+              row.classEntryId === feature.classEntryId &&
+              row.source === 'subclass' &&
+              Boolean(row.subclassSlug),
+          )?.subclassSlug,
+        )
+      : null
+  const scaleShown =
+    druidFormula2024 ||
+    wildShapeScale2024Text ||
+    (moonShapeScale(feature, unlockedFeatures, edition === '2024' ? '2024' : '2014') ??
+      feature.scaleValue)
 
   const classRow = classes.find((row) => row.id === feature.classEntryId)
   const subclassFromPeers =
@@ -2180,9 +2631,12 @@ function FeatureRow({
       {replacementStatusLabelRu(replacementStatus)}
     </span>
   ) : null
+  // Badge (not Chip): Chip always wraps a <button>, and glance is already a <button>.
   const needChoiceChip =
     choicePending && replacementStatus === 'active' ? (
-      <Chip className="feature-card__need-choice-chip">нужен выбор</Chip>
+      <span className="ui-chip feature-card__need-choice-chip" aria-label="нужен выбор">
+        <span className="ui-chip__label">нужен выбор</span>
+      </span>
     ) : null
   const cardToneClass =
     replacementStatus === 'replaced'
@@ -2200,7 +2654,7 @@ function FeatureRow({
           <span className="feature-card__level" aria-hidden>
             {feature.level}
           </span>
-          <b className="feature-card__name">{feature.name_ru}</b>
+          <b className="feature-card__name">{featureDisplayName}</b>
           <span className={`inventory-role inventory-role--${roleClass}`}>{role}</span>
           {replacementBadge}
           {optionalBadge && !showReplacementBadge ? (
@@ -2224,7 +2678,7 @@ function FeatureRow({
           <span className="feature-card__level" aria-hidden>
             {feature.level}
           </span>
-          <b className="feature-card__name">{feature.name_ru}</b>
+          <b className="feature-card__name">{featureDisplayName}</b>
           <span className={`inventory-role inventory-role--${roleClass}`}>{role}</span>
           {replacementBadge}
           {optionalBadge && !showReplacementBadge ? (
@@ -2275,7 +2729,7 @@ function FeatureRow({
         </button>
       </div>
       <h3 className="feature-card__title">
-        {feature.name_ru}
+        {featureDisplayName}
         {scaleShown ? (
           <strong className="feature-row__scale"> · {scaleShown}</strong>
         ) : null}
@@ -2329,6 +2783,7 @@ function FeatureRow({
           expertiseKeys={expertiseKeys}
           onToast={onToast}
           tceAllowed={tceAllowed}
+          edition={edition}
         />
       ) : null}
       {replacementStatus === 'active' &&
@@ -2340,7 +2795,298 @@ function FeatureRow({
           featurePicks={featurePicks}
           onFeaturePicksChange={onFeaturePicksChange}
           onToast={onToast}
+          edition={edition}
         />
+      ) : null}
+      {replacementStatus === 'active' &&
+      edition === '2024' &&
+      onWizardFeatureUse &&
+      WIZARD_2024_CARD_BUTTONS[feature.id] ? (
+        <div className="feature-resource__actions">
+          <Button
+            type="button"
+            onClick={() =>
+              onWizardFeatureUse({
+                featureId: feature.id,
+                resourceId: null,
+                classSlug,
+                classEntryId: feature.classEntryId,
+                name: feature.name_ru,
+              })
+            }
+          >
+            {WIZARD_2024_CARD_BUTTONS[feature.id]}
+          </Button>
+        </div>
+      ) : null}
+      {replacementStatus === 'active' &&
+      edition === '2024' &&
+      onSorcererFeatureUse &&
+      SORCERER_2024_CARD_BUTTONS[feature.id] ? (
+        <div className="feature-resource__actions">
+          <Button
+            type="button"
+            onClick={() =>
+              onSorcererFeatureUse({
+                featureId: feature.id,
+                resourceId: null,
+                classSlug,
+                classEntryId: feature.classEntryId,
+                name: feature.name_ru,
+              })
+            }
+          >
+            {SORCERER_2024_CARD_BUTTONS[feature.id]}
+          </Button>
+        </div>
+      ) : null}
+      {replacementStatus === 'active' &&
+      edition === '2024' &&
+      onMonkFeatureUse &&
+      MONK_2024_CARD_BUTTONS[feature.id] ? (
+        <div className="feature-resource__actions">
+          <Button
+            type="button"
+            onClick={() =>
+              onMonkFeatureUse({
+                featureId: feature.id,
+                resourceId: null,
+                classSlug,
+                classEntryId: feature.classEntryId,
+                name: feature.name_ru,
+              })
+            }
+          >
+            {MONK_2024_CARD_BUTTONS[feature.id]}
+          </Button>
+        </div>
+      ) : null}
+      {replacementStatus === 'active' &&
+      edition === '2024' &&
+      onWarlockFeatureUse &&
+      warlock2024UseFeatureId(feature.id) ? (
+        <div className="feature-resource__actions">
+          <Button
+            type="button"
+            onClick={() =>
+              onWarlockFeatureUse({
+                featureId: feature.id,
+                resourceId: null,
+                classSlug,
+                classEntryId: feature.classEntryId,
+                name: feature.name_ru,
+              })
+            }
+          >
+            {WARLOCK_2024_CARD_BUTTONS[feature.id] ?? 'Применить…'}
+          </Button>
+        </div>
+      ) : null}
+      {replacementStatus === 'active' &&
+      edition === '2024' &&
+      onBardFeatureUse &&
+      !feature.resource?.pool_id &&
+      bard2024UseFeatureId(feature.id) ? (
+        <div className="feature-resource__actions">
+          <Button
+            type="button"
+            onClick={() =>
+              onBardFeatureUse({
+                featureId: feature.id,
+                resourceId: null,
+                classSlug,
+                classEntryId: feature.classEntryId,
+                name: feature.name_ru,
+              })
+            }
+          >
+            {BARD_2024_CARD_BUTTONS[feature.id] ?? 'Применить…'}
+          </Button>
+        </div>
+      ) : null}
+      {replacementStatus === 'active' &&
+      edition === '2024' &&
+      onClericFeatureUse &&
+      !feature.resource?.pool_id &&
+      cleric2024UseFeatureId(feature.id) ? (
+        <div className="feature-resource__actions">
+          <Button
+            type="button"
+            onClick={() =>
+              onClericFeatureUse({
+                featureId: feature.id,
+                resourceId: null,
+                classSlug,
+                classEntryId: feature.classEntryId,
+                name: feature.name_ru,
+              })
+            }
+          >
+            {CLERIC_2024_CARD_BUTTONS[feature.id] ?? 'Применить…'}
+          </Button>
+        </div>
+      ) : null}
+      {replacementStatus === 'active' &&
+      edition === '2024' &&
+      onPaladinFeatureUse &&
+      !feature.resource?.pool_id &&
+      paladin2024UseFeatureId(feature.id) ? (
+        <div className="feature-resource__actions">
+          <Button
+            type="button"
+            onClick={() =>
+              onPaladinFeatureUse({
+                featureId: feature.id,
+                resourceId: null,
+                classSlug,
+                classEntryId: feature.classEntryId,
+                name: feature.name_ru,
+              })
+            }
+          >
+            {PALADIN_2024_CARD_BUTTONS[feature.id] ?? 'Применить…'}
+          </Button>
+        </div>
+      ) : null}
+      {replacementStatus === 'active' &&
+      edition === '2024' &&
+      onRangerFeatureUse &&
+      !feature.resource?.pool_id &&
+      ranger2024UseFeatureId(feature.id) ? (
+        <div className="feature-resource__actions">
+          <Button
+            type="button"
+            onClick={() =>
+              onRangerFeatureUse({
+                featureId: feature.id,
+                resourceId: null,
+                classSlug,
+                classEntryId: feature.classEntryId,
+                name: feature.name_ru,
+              })
+            }
+          >
+            {RANGER_2024_CARD_BUTTONS[feature.id] ?? 'Применить…'}
+          </Button>
+        </div>
+      ) : null}
+      {replacementStatus === 'active' &&
+      edition === '2024' &&
+      onFighterFeatureUse &&
+      !feature.resource?.pool_id &&
+      fighter2024UseFeatureId(feature.id) ? (
+        <div className="feature-resource__actions">
+          <Button
+            type="button"
+            onClick={() =>
+              onFighterFeatureUse({
+                featureId: feature.id,
+                resourceId: null,
+                classSlug,
+                classEntryId: feature.classEntryId,
+                name: feature.name_ru,
+              })
+            }
+          >
+            {FIGHTER_2024_CARD_BUTTONS[feature.id] ?? 'Применить…'}
+          </Button>
+        </div>
+      ) : null}
+      {replacementStatus === 'active' &&
+      edition === '2024' &&
+      onBarbarianFeatureUse &&
+      !feature.resource?.pool_id &&
+      barbarian2024UseFeatureId(feature.id) ? (
+        <div className="feature-resource__actions">
+          <Button
+            type="button"
+            onClick={() =>
+              onBarbarianFeatureUse({
+                featureId: feature.id,
+                resourceId: null,
+                classSlug,
+                classEntryId: feature.classEntryId,
+                name: feature.name_ru,
+              })
+            }
+          >
+            {BARBARIAN_2024_CARD_BUTTONS[feature.id] ?? 'Применить…'}
+          </Button>
+        </div>
+      ) : null}
+      {replacementStatus === 'active' &&
+      edition === '2024' &&
+      onRogueFeatureUse &&
+      !feature.resource?.pool_id &&
+      rogue2024UseFeatureId(feature.id) ? (
+        <div className="feature-resource__actions">
+          <Button
+            type="button"
+            onClick={() =>
+              onRogueFeatureUse({
+                featureId: feature.id,
+                resourceId: null,
+                classSlug,
+                classEntryId: feature.classEntryId,
+                name: feature.name_ru,
+              })
+            }
+          >
+            {ROGUE_2024_CARD_BUTTONS[feature.id] ?? 'Применить…'}
+          </Button>
+        </div>
+      ) : null}
+      {replacementStatus === 'active' &&
+      edition === '2024' &&
+      onArtificerFeatureUse &&
+      artificer2024UseFeatureId(feature.id) &&
+      (!feature.resource?.pool_id ||
+        /spell-storing|spell_storing|replicate-magic|replicate_magic|experimental-elixir|experimental_elixir|eldritch-cannon|eldritch_cannon|steel-defender|steel_defender|adventure-atlas|adventure_atlas|mapping-magic|mapping_magic|reanimated-companion|reanimated_companion|reanimator-s-skill-set|reanimator_s_skill_set|refined-reanimation|refined_reanimation|chemical-mastery|chemical_mastery|arcane-jolt|arcane_jolt/i.test(
+          feature.id,
+        )) ? (
+        <div className="feature-resource__actions">
+          <Button
+            type="button"
+            onClick={() =>
+              onArtificerFeatureUse({
+                featureId: feature.id,
+                resourceId: feature.resource
+                  ? `feat:${classSlug}:${feature.resource.pool_id}:${feature.classEntryId}`
+                  : null,
+                classSlug,
+                classEntryId: feature.classEntryId,
+                name: feature.name_ru,
+              })
+            }
+          >
+            {ARTIFICER_2024_CARD_BUTTONS[feature.id] ??
+              ARTIFICER_2024_CARD_BUTTONS[feature.id.replace(/_/g, '-')] ??
+              'Применить…'}
+          </Button>
+        </div>
+      ) : null}
+      {replacementStatus === 'active' &&
+      edition === '2024' &&
+      onDruidFeatureUse &&
+      !feature.resource?.pool_id &&
+      feature.id !== 'wild_shape' &&
+      druid2024UseFeatureId(feature.id) ? (
+        <div className="feature-resource__actions">
+          <Button
+            type="button"
+            onClick={() =>
+              onDruidFeatureUse({
+                featureId: feature.id,
+                resourceId: null,
+                classSlug,
+                classEntryId: feature.classEntryId,
+                name: feature.name_ru,
+              })
+            }
+          >
+            {DRUID_2024_CARD_BUTTONS[feature.id] ?? 'Применить…'}
+          </Button>
+        </div>
       ) : null}
       {replacementStatus === 'active' &&
       onWizardFeatureUse &&
@@ -2409,6 +3155,8 @@ function FeatureRow({
           resources={resources}
           onResourcesChange={onResourcesChange}
           onToast={onToast}
+          edition={edition}
+          onSorceryPointsSpend={onSorceryPointsSpend}
         />
       ) : null}
       {replacementStatus === 'active' ? (
@@ -2420,6 +3168,7 @@ function FeatureRow({
           spells={spells}
           onSpellsChange={onSpellsChange}
           onToast={onToast}
+          edition={edition}
         />
       ) : null}
       {replacementStatus === 'active' ? (
@@ -2474,9 +3223,21 @@ function FeatureRow({
           onOpenRecovery={onOpenRecovery}
           onFeatureSelfForm={onFeatureSelfForm}
           onWizardFeatureUse={onWizardFeatureUse}
+          onSorcererFeatureUse={onSorcererFeatureUse}
+          onMonkFeatureUse={onMonkFeatureUse}
+          onWarlockFeatureUse={onWarlockFeatureUse}
+          onClericFeatureUse={onClericFeatureUse}
+          onPaladinFeatureUse={onPaladinFeatureUse}
+          onBardFeatureUse={onBardFeatureUse}
+          onDruidFeatureUse={onDruidFeatureUse}
+          onRangerFeatureUse={onRangerFeatureUse}
+          onFighterFeatureUse={onFighterFeatureUse}
+          onBarbarianFeatureUse={onBarbarianFeatureUse}
+          onRogueFeatureUse={onRogueFeatureUse}
           onFeatureBuffApply={onFeatureBuffApply}
           moonCombatWildShape={moonCombatWildShape}
           scaleText={scaleShown}
+          edition={edition}
         />
       ) : null}
       {replacementStatus === 'active' &&
@@ -2559,7 +3320,8 @@ function FeatureRow({
           edition={edition}
         />
       ) : null}
-      {replacementStatus === 'active' ? (
+      {replacementStatus === 'active' &&
+      (edition !== '2024' || feature.id === MAGICAL_DISCOVERIES_ID_2024) ? (
         <Pack05FeatureExtras
           feature={feature}
           classSlug={classSlug}
@@ -2627,6 +3389,7 @@ function FeatureRow({
         </div>
       ) : null}
       {replacementStatus === 'active' &&
+      edition !== '2024' &&
       (feature.id === 'favored_enemy' || feature.id === 'natural_explorer') &&
       onOpenRangerFavored ? (
         <div className="feature-resource__actions">
@@ -2665,6 +3428,7 @@ export function ClassFeaturesPanel({
   abilities,
   subclassSlugByEntryId,
   subclassTransitionByEntryId,
+  unlockedFeatures: unlockedFeaturesProp,
   resources,
   onResourcesChange,
   featurePicks,
@@ -2684,6 +3448,19 @@ export function ClassFeaturesPanel({
   onHpChange,
   onFeatureSelfForm,
   onWizardFeatureUse,
+  onSorcererFeatureUse,
+  onMonkFeatureUse,
+  onWarlockFeatureUse,
+  onClericFeatureUse,
+  onPaladinFeatureUse,
+  onBardFeatureUse,
+  onDruidFeatureUse,
+  onRangerFeatureUse,
+  onFighterFeatureUse,
+  onBarbarianFeatureUse,
+  onRogueFeatureUse,
+  onArtificerFeatureUse,
+  onSorceryPointsSpend,
   onMoonFormSlotHeal,
   divineSmiteIntent,
   onDivineSmiteIntent,
@@ -2741,6 +3518,7 @@ export function ClassFeaturesPanel({
 
   const features = useMemo(
     () =>
+      unlockedFeaturesProp ??
       unlockFeaturesForClasses({
         classes,
         characterLevel,
@@ -2749,6 +3527,7 @@ export function ClassFeaturesPanel({
         subclassTransitionByEntryId,
       }),
     [
+      unlockedFeaturesProp,
       classes,
       characterLevel,
       abilities,
@@ -3259,6 +4038,19 @@ export function ClassFeaturesPanel({
                             onHpChange={onHpChange}
                             onFeatureSelfForm={onFeatureSelfForm}
                             onWizardFeatureUse={onWizardFeatureUse}
+                            onSorcererFeatureUse={onSorcererFeatureUse}
+                            onMonkFeatureUse={onMonkFeatureUse}
+                            onWarlockFeatureUse={onWarlockFeatureUse}
+                            onClericFeatureUse={onClericFeatureUse}
+                            onPaladinFeatureUse={onPaladinFeatureUse}
+                            onBardFeatureUse={onBardFeatureUse}
+                            onDruidFeatureUse={onDruidFeatureUse}
+                            onRangerFeatureUse={onRangerFeatureUse}
+                            onFighterFeatureUse={onFighterFeatureUse}
+                            onBarbarianFeatureUse={onBarbarianFeatureUse}
+                            onRogueFeatureUse={onRogueFeatureUse}
+                            onArtificerFeatureUse={onArtificerFeatureUse}
+                            onSorceryPointsSpend={onSorceryPointsSpend}
                             moonCombatWildShape={moonCombatWildShape}
                             onMoonFormSlotHeal={onMoonFormSlotHeal}
                             divineSmiteIntent={divineSmiteIntent}

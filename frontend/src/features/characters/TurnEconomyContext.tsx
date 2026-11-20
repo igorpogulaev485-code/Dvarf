@@ -26,6 +26,8 @@ export type TurnEconomyContextValue = {
   combatTurnsUntil: number | null
   initiativePending: boolean
   openInitiativeRoll: () => void
+  /** P24-M04: this PC marked surprised in combat queue. */
+  combatSurprised?: boolean
   openSessionId: string | null
   characterId: string
   targets: CombatTarget[]
@@ -48,7 +50,7 @@ export type TurnEconomyContextValue = {
   /** O-02: доп. урон «Избранного противника» в этот ход. */
   markFavoredFoeDamageUsed: () => void
   /** Э7: Всплеск действий → +1 доп. действие (отметку не тратит). */
-  grantActionSurge: () => void
+  grantActionSurge: (opts?: { blocksMagic?: boolean }) => void
   canSearch: () => TurnSpendResult
   spendSearch: () => void
   canHide: (hasCunningAction: boolean) => TurnSpendResult & { timing?: HideSpendTiming }

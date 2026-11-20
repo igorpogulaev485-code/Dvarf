@@ -21,17 +21,30 @@ import { knowledgeBlessingSkillIds } from '../../../shared/dnd/expertise'
 import { applyFeatGrantToDraft, ensureFeatSpellsFromLedger, featSpellsMissingFromKnown } from '../featEffects'
 import { syncFeatureResources } from '../../../shared/dnd/featureResources'
 import { desiredRaceResources, syncRaceResources } from '../../../shared/dnd/raceResources'
-import { proficiencyBonusForTotalLevel } from '../../../shared/dnd/classFeatures'
-import { classWalkSpeedBonusFt, resolveWalkSpeedFt } from '../../../shared/dnd/classMovement'
+import {
+  proficiencyBonusForTotalLevel,
+  resolveClassFeatureSlug,
+} from '../../../shared/dnd/classFeatures'
+import {
+  applyRovingClimbSwim,
+  classWalkSpeedBonusFt,
+  resolveWalkSpeedFt,
+} from '../../../shared/dnd/classMovement'
 import {
   applySpeedModsToWalk,
   initiativeBonusFromActiveEffects,
   speedModsFromActiveEffects,
 } from '../../../shared/dnd/activeEffects'
 import { withSpeedBonus } from '../modifiers'
+import { wildShapeHeaderVitals2024 } from '../../../shared/dnd/druid2024Features'
+import { auraOfAlacritySpeedBonusFt2024 } from '../../../shared/dnd/paladin2024Features'
+import { activeBeastWildShape } from '../wildShape'
 import { applyFeatureSaveProficiencies, ironMindSaveKey, wisdomSaveAlreadyGranted } from '../../../shared/dnd/featureSaveProficiency'
 import { revokeFalseSubclassCompanions } from '../companions'
 import { backfillCompanionStatsFromTemplates } from '../companionBackfill'
+import { syncPrimalCompanion2024 } from '../primalCompanion2024'
+import { syncArtificerCompanions2024 } from '../artificerCompanions2024'
+import { syncVestigeCompanion2024 } from '../vestigeCompanion2024'
 import {
   fighterSkillAndLanguageGrants,
   hydrateTotemSpiritFromGrants,
@@ -43,15 +56,32 @@ import {
   listFightingStyleIds,
 } from '../../../shared/dnd/featurePicks'
 import { syncMonkUnarmedAttack } from '../../../shared/dnd/martialArts'
-import { darkvisionFtFromFeatures, initiativeBonusFromFeatures, initiativeBonusFromRace } from '../featureCombatBonuses'
+import {
+  blindsightFtFromFeatures,
+  darkvisionFtFromFeatures,
+  initiativeBonusFromFeatures,
+  initiativeBonusFromRace,
+} from '../featureCombatBonuses'
 import { raceDarkvisionFallbackFt } from '../../../shared/dnd/race'
-import { createSheetSpell } from '../spells'
+import { createSheetSpell, sheetSpellFromCatalog } from '../spells'
+import {
+  spellResistanceSaveNote2024,
+  syncWizardSubclassSpells2024,
+  wizard2024Context,
+  wizard2024Flags,
+  wizardSubclassSpellSlugs2024,
+} from '../../../shared/dnd/wizard2024Features'
 import {
   bladesongBonuses,
   syncWizardCapstoneSpells,
   syncWizardSchoolSpellbook,
   thirdEyeDarkvisionBonus,
+  thirdEyeDarkvisionFloor2024,
 } from '../../../shared/dnd/wizardTradition'
+import {
+  bladesongBonuses2024,
+  wizardBookSkillGrants2024,
+} from '../../../shared/dnd/wizardBook2024Features'
 import { saveBonusFromFeatures } from '../ClassFeaturesPanel'
 import { ensureRaceNaturalWeaponAttacks, raceNaturalWeaponAttacksMatch, syncRaceSpellsForSheetState } from '../raceEffects'
 import { characterHasCasterClass, highestSpellSlotLevelForClasses } from '../../../shared/dnd/casterProgression'
@@ -345,6 +375,7 @@ export function useSheetEditorPart2(model: SheetModel) {
   }, [model.unlockedFeatures, model.draft.featurePicks])
 
   // Cavalier / samurai skill-or-language, Royal Envoy proficiency and expertise.
+  // P24-M02B: enchanter orator / bladesinger war-song skill picks.
   useEffect(() => {
     model.setDraft((prev) => {
       const persuasionFromOtherSources = [
@@ -378,6 +409,24 @@ export function useSheetEditorPart2(model: SheetModel) {
           changed = true
         }
       }
+      if ((model.rulesEdition ?? model.baseCharacter?.rules_edition) === '2024') {
+        for (const cls of prev.classes) {
+          if (!/волшебник|wizard/i.test(cls.name)) continue
+          const bookSkills = wizardBookSkillGrants2024({
+            subclassSlug: model.subclassSlugByEntryId?.[cls.id] ?? null,
+            classEntryId: cls.id,
+            featurePicks: prev.featurePicks,
+            wizardLevel: cls.level,
+          })
+          for (const key of bookSkills) {
+            const current = skills[key] ?? { is_proficient: false, is_expertise: false }
+            if (!current.is_proficient) {
+              skills[key] = { ...current, is_proficient: true }
+              changed = true
+            }
+          }
+        }
+      }
       const languages = [...prev.identity.languages]
       for (const name of plan.languages) {
         if (languages.some((item) => item.trim().toLowerCase() === name.toLowerCase())) continue
@@ -391,7 +440,13 @@ export function useSheetEditorPart2(model: SheetModel) {
         identity: { ...prev.identity, languages },
       }
     })
-  }, [model.unlockedFeatures, model.draft.featurePicks])
+  }, [
+    model.unlockedFeatures,
+    model.draft.featurePicks,
+    model.rulesEdition,
+    model.baseCharacter?.rules_edition,
+    model.subclassSlugByEntryId,
+  ])
 
   const companionBackfillToastSent = useRef(false)
   useEffect(() => {
@@ -408,7 +463,9 @@ export function useSheetEditorPart2(model: SheetModel) {
           hostClassLevel,
           characterLevel: totalCharacterLevel(prev.classes),
           hostIntMod: abilityModifier(prev.abilities.int ?? 10),
+          hostWisMod: abilityModifier(prev.abilities.wis ?? 10),
           spellMod: abilityModifier(prev.abilities.wis ?? 10),
+          rulesEdition: model.rulesEdition,
         },
       })
       const featurePicks = dropDuplicateFightingStyles(
@@ -433,6 +490,81 @@ export function useSheetEditorPart2(model: SheetModel) {
       return { ...prev, companions: backfilled.companions, featurePicks }
     })
   }, [model.draft.companions, model.draft.featurePicks, model.draft.subclassGrants])
+
+  useEffect(() => {
+    model.setDraft((prev) => {
+      const edition =
+        model.rulesEdition ?? model.baseCharacter?.rules_edition ?? '2014'
+      const synced = syncPrimalCompanion2024({
+        companions: prev.companions,
+        classes: prev.classes,
+        featurePicks: prev.featurePicks,
+        classOptions2024: prev.classOptions2024,
+        rulesEdition: edition,
+        characterLevel: totalCharacterLevel(prev.classes),
+        wisMod: abilityModifier(prev.abilities.wis ?? 10),
+      })
+      if (!synced.changed) return prev
+      return { ...prev, companions: synced.companions }
+    })
+  }, [
+    model.draft.featurePicks,
+    model.draft.classes,
+    model.draft.classOptions2024,
+    model.draft.abilities.wis,
+    model.rulesEdition,
+    model.baseCharacter?.rules_edition,
+  ])
+
+  useEffect(() => {
+    model.setDraft((prev) => {
+      const edition =
+        model.rulesEdition ?? model.baseCharacter?.rules_edition ?? '2014'
+      const synced = syncArtificerCompanions2024({
+        companions: prev.companions,
+        classes: prev.classes,
+        rulesEdition: edition,
+        characterLevel: totalCharacterLevel(prev.classes),
+        intMod: abilityModifier(prev.abilities.int ?? 10),
+        featurePicks: prev.featurePicks,
+      })
+      if (!synced.changed) return prev
+      return { ...prev, companions: synced.companions }
+    })
+  }, [
+    model.draft.classes,
+    model.draft.abilities.int,
+    model.draft.featurePicks,
+    model.rulesEdition,
+    model.baseCharacter?.rules_edition,
+  ])
+
+  useEffect(() => {
+    model.setDraft((prev) => {
+      const edition =
+        model.rulesEdition ?? model.baseCharacter?.rules_edition ?? '2014'
+      const synced = syncVestigeCompanion2024({
+        companions: prev.companions,
+        classes: prev.classes,
+        featurePicks: prev.featurePicks,
+        classOptions2024: prev.classOptions2024,
+        rulesEdition: edition,
+        characterLevel: totalCharacterLevel(prev.classes),
+        chaMod: abilityModifier(prev.abilities.cha ?? 10),
+      })
+      if (!synced.changed) return prev
+      return { ...prev, companions: synced.companions }
+    })
+  }, [
+    model.draft.featurePicks,
+    model.draft.classes,
+    model.draft.classOptions2024,
+    model.draft.abilities.cha,
+    // Re-sync if the card was wiped (e.g. stale revoke) while vestige options remain.
+    model.draft.companions.length,
+    model.rulesEdition,
+    model.baseCharacter?.rules_edition,
+  ])
 
   // Martial Arts: keep a live «Безоружный удар» card while the feature is unlocked.
   useEffect(() => {
@@ -708,6 +840,7 @@ export function useSheetEditorPart2(model: SheetModel) {
           known,
           featurePicks: prev.featurePicks,
           classEntryId: row.id,
+          edition: model.rulesEdition,
         })
         if (cap.changed) {
           known = cap.known
@@ -718,6 +851,48 @@ export function useSheetEditorPart2(model: SheetModel) {
       return { ...prev, spells: { ...prev.spells, known } }
     })
   }, [model.draft.subclassGrants, model.draft.classes, model.draft.featurePicks])
+
+  useEffect(() => {
+    if (model.rulesEdition !== '2024') return
+    const contextFor = (classes: typeof model.draft.classes) =>
+      wizard2024Context({
+        rulesEdition: model.rulesEdition,
+        classes,
+        subclassSlugByEntryId: model.subclassSlugByEntryId,
+      })
+    const run = (resolve: (slug: string) => ReturnType<typeof sheetSpellFromCatalog> | null) => {
+      model.setDraft((prev) => {
+        const synced = syncWizardSubclassSpells2024({
+          known: prev.spells.known,
+          ctx: contextFor(prev.classes),
+          resolve,
+        })
+        if (!synced.changed) return prev
+        return { ...prev, spells: { ...prev.spells, known: synced.known } }
+      })
+    }
+    const ctx = contextFor(model.draft.classes)
+    const slugs = wizardSubclassSpellSlugs2024(ctx?.subclassSlug, ctx?.level ?? 0)
+    if (slugs.length === 0) {
+      run(() => null)
+      return
+    }
+    let active = true
+    listCatalogEntries({ kind: 'spell', edition: '2024' })
+      .then((entries) => {
+        if (!active) return
+        const bySlug = new Map((entries ?? []).map((entry) => [entry.slug, entry]))
+        run((slug) => {
+          const entry = bySlug.get(slug)
+          return entry ? sheetSpellFromCatalog(entry) : null
+        })
+      })
+      .catch(() => undefined)
+    return () => {
+      active = false
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- classes + subclass drive the sync
+  }, [model.rulesEdition, model.draft.classes, model.subclassSlugByEntryId])
 
   // QA 22.10: backfill always-prepared mechanics (Bless concentration) + Artillerist lists.
   useEffect(() => {
@@ -837,12 +1012,15 @@ export function useSheetEditorPart2(model: SheetModel) {
       parentSlug: model.draft.raceGrant?.parentSlug,
       raceName: model.draft.raceName,
     })
-    const baseDarkvision =
+    const baseDarkvision = Math.max(
       Math.max(model.draft.identity.darkvision, raceDv) +
-      thirdEyeDarkvisionBonus(model.draft.play.resources)
+        thirdEyeDarkvisionBonus(model.draft.play.resources),
+      thirdEyeDarkvisionFloor2024(model.draft.play.resources),
+    )
     return darkvisionFtFromFeatures({
       features: model.unlockedFeatures,
       baseDarkvision,
+      rulesEdition: model.rulesEdition ?? model.baseCharacter?.rules_edition ?? '2014',
     })
   }, [
     model.unlockedFeatures,
@@ -852,8 +1030,20 @@ export function useSheetEditorPart2(model: SheetModel) {
     model.draft.raceGrant?.slug,
     model.draft.raceGrant?.parentSlug,
     model.draft.raceName,
+    model.rulesEdition,
+    model.baseCharacter?.rules_edition,
   ])
   model.featureDarkvisionFt = featureDarkvisionFt
+
+  const featureBlindsightFt = useMemo(
+    () =>
+      blindsightFtFromFeatures({
+        features: model.unlockedFeatures ?? [],
+        rulesEdition: model.rulesEdition ?? model.baseCharacter?.rules_edition,
+      }),
+    [model.unlockedFeatures, model.rulesEdition, model.baseCharacter?.rules_edition],
+  )
+  model.featureBlindsightFt = featureBlindsightFt
 
   const passives = useMemo(() => {
     const modFor = (skillKey: string) => {
@@ -916,25 +1106,56 @@ export function useSheetEditorPart2(model: SheetModel) {
     [model.draft.inventory.items],
   )
   model.armorPiecesForSpeed = armorPiecesForSpeed
+  const rangerLevelForRoving = useMemo(() => {
+    let level = 0
+    for (const row of model.draft.classes) {
+      if (resolveClassFeatureSlug(row.name) === 'ranger') {
+        level = Math.max(level, Math.floor(row.level || 0))
+      }
+    }
+    return level
+  }, [model.draft.classes])
+  model.rangerLevelForRoving = rangerLevelForRoving
   const displaySpeedAuto = useMemo(() => {
     const wearingHeavy = armorPiecesForSpeed.armor?.kind === 'heavy'
     const wearingArmorOrShield = Boolean(
       armorPiecesForSpeed.armor || armorPiecesForSpeed.shield,
     )
+    const edition2024 =
+      (model.rulesEdition ?? model.baseCharacter?.rules_edition ?? '2014') === '2024'
     const classBonus = classWalkSpeedBonusFt({
       classes: model.draft.classes,
       wearingHeavyArmor: wearingHeavy,
       wearingArmorOrShield,
+      rulesEdition: edition2024 ? '2024' : '2014',
     })
     const classBonusMax = classWalkSpeedBonusFt({
       classes: model.draft.classes,
       wearingHeavyArmor: false,
       wearingArmorOrShield: false,
+      rulesEdition: edition2024 ? '2024' : '2014',
     })
-    const song = bladesongBonuses({
+    const song2024 = bladesongBonuses2024({
+      rulesEdition: edition2024 ? '2024' : '2014',
+      subclassSlug:
+        Object.values(model.subclassSlugByEntryId ?? {}).find(
+          (slug): slug is string =>
+            typeof slug === 'string' && slug.toLowerCase().includes('bladesinger'),
+        ) ?? null,
       resources: model.draft.play.resources,
       intelligenceScore: model.draft.abilities.int ?? 10,
+      wizardLevel:
+        model.draft.classes.find((row) => /волшебник|wizard/i.test(row.name))?.level ?? 0,
     })
+    const song = edition2024
+      ? song2024
+      : bladesongBonuses({
+          resources: model.draft.play.resources,
+          intelligenceScore: model.draft.abilities.int ?? 10,
+        })
+    const alacrityBonus = edition2024
+      ? auraOfAlacritySpeedBonusFt2024(model.unlockedFeatures ?? [])
+      : 0
     const base =
       (resolveWalkSpeedFt({
         storedSpeed: model.draft.speed,
@@ -945,7 +1166,8 @@ export function useSheetEditorPart2(model: SheetModel) {
         gearBonusFt: gearEffects.speedBonusFt,
       }) ?? 0) +
       song.speed +
-      (model.infusionBonuses?.speedWalkBonusFt ?? 0)
+      (model.infusionBonuses?.speedWalkBonusFt ?? 0) +
+      alacrityBonus
     const effectMods = speedModsFromActiveEffects(model.draft.play.effects)
     return applySpeedModsToWalk(base, effectMods)
   }, [
@@ -959,37 +1181,106 @@ export function useSheetEditorPart2(model: SheetModel) {
     gearEffects.speedBonusFt,
     model.draft.play.effects,
     model.infusionBonuses?.speedWalkBonusFt,
+    model.rulesEdition,
+    model.baseCharacter?.rules_edition,
+    model.unlockedFeatures,
   ])
   model.displaySpeedAuto = displaySpeedAuto
 
+  const formHeaderVitals = useMemo(
+    () =>
+      wildShapeHeaderVitals2024({
+        rulesEdition: model.rulesEdition ?? model.baseCharacter?.rules_edition,
+        formStats: activeBeastWildShape(model.draft.companions)?.stats ?? null,
+      }),
+    [
+      model.rulesEdition,
+      model.baseCharacter?.rules_edition,
+      model.draft.companions,
+    ],
+  )
+  model.wildShapeFormLabel2024 = formHeaderVitals?.labelRu ?? null
+
   const displaySpeed = useMemo(() => {
+    if (formHeaderVitals) return formHeaderVitals.speedWalk
     return withSpeedBonus({
       core: displaySpeedAuto,
       target: 'speed',
       modifiers: model.draft.modifiers,
       vars: model.formulaVarsBase ?? {},
     })
-  }, [displaySpeedAuto, model.draft.modifiers, model.formulaVarsBase])
+  }, [
+    formHeaderVitals,
+    displaySpeedAuto,
+    model.draft.modifiers,
+    model.formulaVarsBase,
+  ])
   model.displaySpeed = displaySpeed
 
   const displayClimbSpeed = useMemo(() => {
-    return withSpeedBonus({
+    if (formHeaderVitals) return formHeaderVitals.speedClimb
+    const edition2024 =
+      (model.rulesEdition ?? model.baseCharacter?.rules_edition ?? '2014') === '2024'
+    const core = withSpeedBonus({
       core: model.draft.climbSpeed,
       target: 'speed_climb',
       modifiers: model.draft.modifiers,
       vars: model.formulaVarsBase ?? {},
     })
-  }, [model.draft.climbSpeed, model.draft.modifiers, model.formulaVarsBase])
+    if (!edition2024) return core
+    const wearingHeavy = armorPiecesForSpeed.armor?.kind === 'heavy'
+    return applyRovingClimbSwim({
+      walkFt: displaySpeedAuto,
+      climb: core,
+      swim: null,
+      rangerLevel: rangerLevelForRoving,
+      wearingHeavyArmor: wearingHeavy,
+      rulesEdition: '2024',
+    }).climb
+  }, [
+    formHeaderVitals,
+    model.draft.climbSpeed,
+    model.draft.modifiers,
+    model.formulaVarsBase,
+    model.rulesEdition,
+    model.baseCharacter?.rules_edition,
+    displaySpeedAuto,
+    armorPiecesForSpeed,
+    rangerLevelForRoving,
+  ])
   model.displayClimbSpeed = displayClimbSpeed
 
   const displaySwimSpeed = useMemo(() => {
-    return withSpeedBonus({
+    if (formHeaderVitals) return formHeaderVitals.speedSwim
+    const edition2024 =
+      (model.rulesEdition ?? model.baseCharacter?.rules_edition ?? '2014') === '2024'
+    const core = withSpeedBonus({
       core: model.draft.swimSpeed,
       target: 'speed_swim',
       modifiers: model.draft.modifiers,
       vars: model.formulaVarsBase ?? {},
     })
-  }, [model.draft.swimSpeed, model.draft.modifiers, model.formulaVarsBase])
+    if (!edition2024) return core
+    const wearingHeavy = armorPiecesForSpeed.armor?.kind === 'heavy'
+    return applyRovingClimbSwim({
+      walkFt: displaySpeedAuto,
+      climb: null,
+      swim: core,
+      rangerLevel: rangerLevelForRoving,
+      wearingHeavyArmor: wearingHeavy,
+      rulesEdition: '2024',
+    }).swim
+  }, [
+    formHeaderVitals,
+    model.draft.swimSpeed,
+    model.draft.modifiers,
+    model.formulaVarsBase,
+    model.rulesEdition,
+    model.baseCharacter?.rules_edition,
+    displaySpeedAuto,
+    armorPiecesForSpeed,
+    rangerLevelForRoving,
+  ])
   model.displaySwimSpeed = displaySwimSpeed
 
   const displayFlySpeedAuto = useMemo(() => {
@@ -1018,13 +1309,19 @@ export function useSheetEditorPart2(model: SheetModel) {
   model.displayFlySpeedAuto = displayFlySpeedAuto
 
   const displayFlySpeed = useMemo(() => {
+    if (formHeaderVitals) return formHeaderVitals.speedFly
     return withSpeedBonus({
       core: displayFlySpeedAuto,
       target: 'speed_fly',
       modifiers: model.draft.modifiers,
       vars: model.formulaVarsBase ?? {},
     })
-  }, [displayFlySpeedAuto, model.draft.modifiers, model.formulaVarsBase])
+  }, [
+    formHeaderVitals,
+    displayFlySpeedAuto,
+    model.draft.modifiers,
+    model.formulaVarsBase,
+  ])
   model.displayFlySpeed = displayFlySpeed
 
   model.raceSaveAdvantageNotes = useMemo(() => {
@@ -1033,6 +1330,25 @@ export function useSheetEditorPart2(model: SheetModel) {
       parentSlug: model.draft.raceGrant?.parentSlug ?? null,
     })
     const note = formatRaceSaveAdvantageNote(rows)
-    return note ? note.split(' · ') : []
-  }, [model.draft.raceGrant?.slug, model.draft.raceGrant?.parentSlug])
+    const notes = note ? note.split(' · ') : []
+    if (model.rulesEdition === '2024') {
+      const spellNote = spellResistanceSaveNote2024(
+        wizard2024Flags(
+          wizard2024Context({
+            rulesEdition: model.rulesEdition,
+            classes: model.draft.classes,
+            subclassSlugByEntryId: model.subclassSlugByEntryId,
+          }),
+        ),
+      )
+      if (spellNote) notes.push(spellNote)
+    }
+    return notes
+  }, [
+    model.draft.raceGrant?.slug,
+    model.draft.raceGrant?.parentSlug,
+    model.rulesEdition,
+    model.draft.classes,
+    model.subclassSlugByEntryId,
+  ])
 }

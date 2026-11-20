@@ -1,0 +1,5 @@
+9830fb7a6c0acc068819fff2aeb16b0e  before-create-2014-race-marker-1440.png
+c462a194f3fabd07041f7138c9c9d0d1  before-create-2014-monk-class-1440.png
+502231e36a2f670e1b96542ea0201f99  before-sheet-2014-monk-1440.png
+60678871da695cc607938d3678755534  before-sheet-2014-monk-features-1440.png
+209f5c5e4513706d8fd0a05c7d725a33  before-sheet-2014-openhand-features-1440.png

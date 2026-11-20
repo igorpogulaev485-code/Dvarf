@@ -101,6 +101,17 @@ export function normalizeDamageType(raw: string | null | undefined): DamageType 
   return null
 }
 
+/**
+ * Sheet-facing damage type: English catalog keys → Russian labels.
+ * Unknown / already-Russian text is returned trimmed (or empty).
+ */
+export function damageTypeDisplayRu(raw: string | null | undefined): string {
+  const text = (raw ?? '').trim()
+  if (!text) return ''
+  const normalized = normalizeDamageType(text)
+  return normalized ? damageTypeLabel(normalized) : text
+}
+
 export type DefenseLine = {
   type: DamageType
   /** Resistance applies only when the hit is marked nonmagical. */

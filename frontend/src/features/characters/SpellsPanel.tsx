@@ -3,6 +3,11 @@ import { CatalogCombobox } from '../catalog'
 import type { CatalogEntry } from '../../shared/api/catalog'
 import type { RulesEdition } from '../../shared/api/characters'
 import {
+  is2024Edition,
+  overlayLearnBudget2024,
+  overlayLearnBudgets2024,
+} from '../../shared/dnd/spellBudgets2024'
+import {
   buildCastProfiles,
   formatNamedCantripBudgets,
   resolveSpellLearnBudgets,
@@ -39,6 +44,7 @@ import {
   resolveCastEffect,
   spellSchoolLabelRu,
 } from '../../shared/dnd/spellCatalog'
+import type { FeaturePicksState } from '../../shared/dnd/featurePicks'
 import { GrimoireDialog } from './GrimoireDialog'
 import { PrepareSpellsDialog } from './PrepareSpellsDialog'
 import { SpellbookManageDialog } from './SpellbookManageDialog'
@@ -149,6 +155,17 @@ type SpellsPanelProps = {
   metamagicIds?: string[]
   ritualBookLabel?: string | null
   onOpenRitualBook?: () => void
+  /** 2024 only: extra cantrips per class slug (Druid Magician +1), same value as the Play Desk budget. */
+  extraCantripsBySlug?: Record<string, number>
+  /** Feature picks (bard replacement token, genie kind) forwarded to the grimoire. */
+  featurePicks?: FeaturePicksState | null
+  /** 2024 Circle of the Moon L3+: always-prepared circle spells may be cast in Wild Shape. */
+  moonFormSpells?: boolean
+  /**
+   * Play Desk: route Cast through the desk cast dialog (potent range, metamagic, …).
+   * When set, the panel does not open its own CastSpellDialog.
+   */
+  onCastSpell?: (spell: SheetSpell) => void
 }
 
 export function SpellsPanel({
@@ -186,6 +203,10 @@ export function SpellsPanel({
   metamagicIds = [],
   ritualBookLabel = null,
   onOpenRitualBook,
+  extraCantripsBySlug,
+  featurePicks = null,
+  moonFormSpells,
+  onCastSpell,
 }: SpellsPanelProps) {
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [prepareOpen, setPrepareOpen] = useState(false)
@@ -210,9 +231,23 @@ export function SpellsPanel({
     onInitialCastConsumed?.()
   }, [initialCastSpellId, spells.known, onInitialCastConsumed])
 
-  const abilityKey = spells.casting_ability
+  const castProfilesEarly = useMemo(() => {
+    const rows = classes?.filter((row) => row.name.trim() && row.level > 0) ?? []
+    if (rows.length === 0) return []
+    return buildCastProfiles({
+      classes: rows,
+      subclassCasters,
+      abilityModFor: (ability) => abilityModifier(abilities[ability]),
+      proficiencyBonus,
+    })
+  }, [classes, subclassCasters, abilities, proficiencyBonus])
+  const abilityKey =
+    spells.casting_ability ??
+    (castProfilesEarly.length === 1 ? castProfilesEarly[0]?.ability ?? null : null)
   const abilityMod = abilityKey ? abilityModifier(abilities[abilityKey]) : 0
   const preparedCount = countPreparedLeveled(spells.known)
+  const isThirdCasterOnly =
+    castProfilesEarly.length > 0 && castProfilesEarly.every((row) => row.kind === 'third')
 
   const suggestion = useMemo(
     () =>
@@ -229,34 +264,31 @@ export function SpellsPanel({
   const learnBudget = useMemo(() => {
     const rows = classes?.filter((row) => row.name.trim() && row.level > 0) ?? []
     if (rows.length === 0) return null
-    return resolveSpellLearnBudget({
+    const budget = resolveSpellLearnBudget({
       classes: rows,
       subclassCasters,
       abilityModFor: (ability) => abilityModifier(abilities[ability]),
     })
-  }, [classes, subclassCasters, abilities])
+    return is2024Edition(edition)
+      ? overlayLearnBudget2024(budget, rows, extraCantripsBySlug)
+      : budget
+  }, [classes, subclassCasters, abilities, edition, extraCantripsBySlug])
 
   const learnBudgets = useMemo(() => {
     const rows = classes?.filter((row) => row.name.trim() && row.level > 0) ?? []
     if (rows.length === 0) return []
-    return resolveSpellLearnBudgets({
+    const budgets = resolveSpellLearnBudgets({
       classes: rows,
       subclassCasters,
       abilityModFor: (ability) => abilityModifier(abilities[ability]),
       proficiencyBonus,
     })
-  }, [classes, subclassCasters, abilities, proficiencyBonus])
+    return is2024Edition(edition)
+      ? overlayLearnBudgets2024(budgets, rows, extraCantripsBySlug)
+      : budgets
+  }, [classes, subclassCasters, abilities, proficiencyBonus, edition, extraCantripsBySlug])
 
-  const castProfiles = useMemo(() => {
-    const rows = classes?.filter((row) => row.name.trim() && row.level > 0) ?? []
-    if (rows.length === 0) return []
-    return buildCastProfiles({
-      classes: rows,
-      subclassCasters,
-      abilityModFor: (ability) => abilityModifier(abilities[ability]),
-      proficiencyBonus,
-    })
-  }, [classes, subclassCasters, abilities, proficiencyBonus])
+  const castProfiles = castProfilesEarly
 
   const headerClass = castProfiles.length === 1 ? castProfiles[0]?.slug ?? null : null
   const castStats = withSpellCastBonuses({
@@ -266,8 +298,9 @@ export function SpellsPanel({
     vars: formulaVars,
     classSlug: headerClass,
   })
-  const dc = castStats.dc
-  const attack = castStats.attack
+  const dc = castStats.dc ?? (castProfiles.length === 1 ? castProfiles[0]?.saveDc ?? null : null)
+  const attack =
+    castStats.attack ?? (castProfiles.length === 1 ? castProfiles[0]?.attackBonus ?? null : null)
 
   const combatPool = useMemo(() => {
     if (showAllKnown) return spells.known
@@ -316,10 +349,16 @@ export function SpellsPanel({
       .map(([, group]) => group)
   }, [filter, combatPool, spells.slots])
 
-  const knownCaster = isKnownSpellcastingMode({
-    maxPrepared: spells.max_prepared,
-    hasCasterSuggestion: suggestion != null && suggestion.progression !== 'none',
-  })
+  const effectiveMaxPrepared =
+    spells.max_prepared ?? suggestion?.max_prepared ?? learnBudget?.maxPrepared ?? null
+  // Wizard spellbook is never a «known» caster — even when max_prepared is still null
+  // (2024 create used to omit it and classic panel showed «Известно N/freeBookCap»).
+  const knownCaster =
+    learnBudget?.mode !== 'spellbook' &&
+    isKnownSpellcastingMode({
+      maxPrepared: effectiveMaxPrepared,
+      hasCasterSuggestion: suggestion != null && suggestion.progression !== 'none',
+    })
 
   useEffect(() => {
     if (!knownCaster) return
@@ -532,6 +571,11 @@ export function SpellsPanel({
       classes: classes ?? [],
       classSlug: castSpell.class_slug,
       material: castSpell.components?.m,
+      rulesEdition: edition,
+      moonCircleSpell:
+        Boolean(moonFormSpells) &&
+        Boolean(castSpell.prepared_locked) &&
+        castSpell.source_kind === 'subclass',
     })
     if (wildBlock) {
       onToast?.(wildBlock)
@@ -859,7 +903,9 @@ export function SpellsPanel({
   }
 
   const prepareLimitLabel =
-    spells.max_prepared == null ? String(preparedCount) : `${preparedCount}/${spells.max_prepared}`
+    effectiveMaxPrepared == null
+      ? String(preparedCount)
+      : `${preparedCount}/${effectiveMaxPrepared}`
 
   return (
     <Panel
@@ -868,9 +914,11 @@ export function SpellsPanel({
     >
       <Stack gap={14}>
         <Text tone="muted">
-          {knownCaster
-            ? 'Известные заклинания всегда доступны для каста. Каст тратит ячейку или ячейку договора. Новые — из гримуара.'
-            : 'Боевой список = заговоры + подготовленные. Каст тратит ячейку. Новые — из гримуара, затем подготовь.'}
+          {isThirdCasterOnly
+            ? 'Боевой список = заговоры + подготовленные из списка волшебника. Каст тратит ячейку. Книги заклинаний нет.'
+            : knownCaster
+              ? 'Известные заклинания всегда доступны для каста. Каст тратит ячейку или ячейку договора. Новые — из гримуара.'
+              : 'Боевой список = заговоры + подготовленные. Каст тратит ячейку. Новые — из гримуара, затем подготовь.'}
         </Text>
 
         <div className="spells-summary">
@@ -889,7 +937,9 @@ export function SpellsPanel({
             <strong>
               {knownCaster
                 ? (() => {
-                    const n = spells.known.filter((s) => s.level > 0).length
+                    const n = spells.known.filter(
+                      (s) => s.level > 0 && !s.prepared_locked && s.in_spellbook !== false,
+                    ).length
                     const cap = learnBudget?.leveledKnown
                     return cap != null ? `${n}/${cap}` : String(n)
                   })()
@@ -982,10 +1032,12 @@ export function SpellsPanel({
               Подготовить
             </Button>
           ) : null}
-          <Button variant="secondary" onClick={() => setGrimoireOpen(true)}>
-            <IconSpellBook className="spells-btn-icon" />
-            Гримуар
-          </Button>
+          {!isThirdCasterOnly ? (
+            <Button variant="secondary" onClick={() => setGrimoireOpen(true)}>
+              <IconSpellBook className="spells-btn-icon" />
+              Гримуар
+            </Button>
+          ) : null}
           {ritualBookLabel && onOpenRitualBook ? (
             <Button variant="secondary" onClick={onOpenRitualBook}>
               <IconSpellBook className="spells-btn-icon" />
@@ -1050,7 +1102,9 @@ export function SpellsPanel({
                       ? ` · договор ${suggestion.pact_slots?.level ?? '—'} / ${suggestion.pact_slots?.max ?? 0}`
                       : suggestion.progression === 'none'
                         ? ' · не заклинатель'
-                        : ' · слоты PHB 2014'}
+                        : edition === '2024'
+                          ? ' · слоты по таблице класса'
+                          : ' · слоты PHB 2014'}
                     . При смене класса/уровня подставляется само; spent не сбрасываем.
                   </Text>
                 ) : (
@@ -1414,6 +1468,10 @@ export function SpellsPanel({
                                   ))
                           }
                           onClick={() => {
+                            if (onCastSpell) {
+                              void spellReadyToCast(spell, edition).then(onCastSpell)
+                              return
+                            }
                             void spellReadyToCast(spell, edition).then(setCastSpell)
                           }}
                         >
@@ -1458,6 +1516,8 @@ export function SpellsPanel({
             if (!raw) return null
             return resolveSubclassFeatureSlug(raw) ?? raw.toLowerCase().replace(/\s+/g, '_')
           })()}
+          edition={edition}
+          subclassCatalogId={classes?.find((row) => /волшебник|wizard|маг/i.test(row.name))?.subclass_catalog_id ?? null}
           onChangeSpells={onChange}
           onChangeCoins={(coins) => onInventoryChange({ ...inventory, coins })}
           onChangeInventoryItems={(items) =>
@@ -1491,6 +1551,7 @@ export function SpellsPanel({
               ]
         }
         subclassCasters={subclassCasters}
+        featurePicks={featurePicks}
         coins={inventory?.coins ?? null}
         onCoinsChange={
           inventory && onInventoryChange
@@ -1502,6 +1563,7 @@ export function SpellsPanel({
         onClose={() => setGrimoireOpen(false)}
         onToast={onToast}
       />
+      {onCastSpell ? null : (
       <CastSpellDialog
         open={castSpell != null}
         spell={castSpell}
@@ -1533,6 +1595,7 @@ export function SpellsPanel({
         onConfirm={confirmCast}
         onClose={() => setCastSpell(null)}
       />
+      )}
       {pendingSelfForm ? (
         <SpellFormDialog
           open

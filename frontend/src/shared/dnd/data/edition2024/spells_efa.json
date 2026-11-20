@@ -1,0 +1,51 @@
+{
+  "meta": {
+    "pack": "P24-C15",
+    "rules_edition": "2024",
+    "source": "efa",
+    "notes_ru": "1 заклинание EFA: Гомункул-слуга (список артефактора)."
+  },
+  "entries": [
+    {
+      "kind": "spell",
+      "slug": "homunculus-servant",
+      "name_ru": "Гомункул-слуга",
+      "name_en": "Homunculus Servant",
+      "source": "efa",
+      "sort_order": 10,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/spells/12581-homunculus-servant",
+        "url_ttg": "https://new.ttg.club/spells/homunculus-servant-efa",
+        "book": "EFA"
+      },
+      "data": {
+        "schema_version": 1,
+        "level": 2,
+        "school": "conjuration",
+        "casting_time": {
+          "amount": 1,
+          "unit": "hour",
+          "condition": "or_ritual"
+        },
+        "magic_action": false,
+        "range": "10 футов",
+        "components": {
+          "v": true,
+          "s": true,
+          "m": "самоцвет стоимостью не менее 100 ЗМ",
+          "m_cost_gp": 100
+        },
+        "duration": "Мгновенная",
+        "concentration": false,
+        "ritual": true,
+        "classes": [
+          "artificer"
+        ],
+        "attack_or_save": null,
+        "damage": null,
+        "summary_ru": "Призыв гомункула-слуги в пределах 10 фт. (замена прежнего). Союзник с вашей инициативой (ход сразу после вас); без приказа — Уклонение. При ячейке выше уровнем блок статистики масштабируется по уровню ячейки.",
+        "higher_levels_ru": "Где блок статистики ссылается на уровень заклинания — используйте уровень ячейки."
+      }
+    }
+  ]
+}

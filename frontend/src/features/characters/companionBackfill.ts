@@ -58,7 +58,8 @@ export function isArchetypeCompanionSlot(row: CompanionEntry): boolean {
     row.kind === 'primal_companion' ||
     row.kind === 'drake' ||
     row.kind === 'steel_defender' ||
-    row.kind === 'eldritch_cannon'
+    row.kind === 'eldritch_cannon' ||
+    row.kind === 'reanimated_companion'
   ) {
     return true
   }
@@ -156,7 +157,7 @@ function templateForCompanion(
       row.kind === 'eldritch_cannon'
         ? guessCannonVariant(row)
         : row.kind === 'primal_companion'
-          ? guessPrimalVariant(row)
+          ? guessPrimalVariant(row, ctx.rulesEdition)
           : ''
     const fromFeature = resolveCompanionTemplate({
       choiceId: feature,
@@ -179,6 +180,13 @@ function templateForCompanion(
       ctx,
     })
   }
+  if (row.kind === 'reanimated_companion') {
+    return resolveCompanionTemplate({
+      choiceId: 'reanimated-companion',
+      pickValue: 'reanimated_companion',
+      ctx,
+    })
+  }
   if (row.kind === 'drake') {
     return resolveCompanionTemplate({
       choiceId: 'drake_companion',
@@ -187,9 +195,14 @@ function templateForCompanion(
     })
   }
   if (row.kind === 'primal_companion') {
+    const pick = guessPrimalVariant(row, ctx.rulesEdition)
+    const choiceId =
+      ctx.rulesEdition === '2024' && ['land', 'sea', 'sky'].includes(pick)
+        ? 'primal-companion'
+        : 'companion_type'
     return resolveCompanionTemplate({
-      choiceId: 'companion_type',
-      pickValue: guessPrimalVariant(row),
+      choiceId,
+      pickValue: pick,
       ctx,
     })
   }
@@ -218,8 +231,13 @@ function guessCannonVariant(row: CompanionEntry): string {
   return 'force_ballista'
 }
 
-function guessPrimalVariant(row: CompanionEntry): string {
+function guessPrimalVariant(row: CompanionEntry, rulesEdition?: string | null): string {
   const blob = `${row.name} ${row.notes} ${row.actions}`.toLowerCase()
+  if (rulesEdition === '2024') {
+    if (blob.includes('мор') || blob.includes('sea')) return 'sea'
+    if (blob.includes('неб') || blob.includes('sky')) return 'sky'
+    return 'land'
+  }
   if (blob.includes('мор') || blob.includes('sea')) return 'beast_of_the_sea'
   if (blob.includes('неб') || blob.includes('sky')) return 'beast_of_the_sky'
   return 'beast_of_the_land'

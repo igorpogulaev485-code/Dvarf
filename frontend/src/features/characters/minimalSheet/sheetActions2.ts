@@ -34,6 +34,8 @@ import {
   expectedPassiveHpBonuses,
   hasDwarvenToughness,
 } from '../../../shared/dnd/hpPassiveBonuses'
+import { draconicResilienceHpTotal2024 } from '../../../shared/dnd/sorcerer2024Features'
+import { dwarvenToughnessHpTotal2024 } from '../../../shared/dnd/speciesHpBonus2024'
 import { clampCharacterLevel, xpToReachLevel } from '../../../shared/dnd/experience'
 import { withSyncedHitDiceSummary } from '../play'
 import { proficiencyBonusForTotalLevel, unlockFeaturesForClasses } from '../../../shared/dnd/classFeatures'
@@ -143,6 +145,8 @@ export function installSheetActions2(model: SheetModel) {
       const sanitized = sanitizeFeaturePicksForPactBoons({
         featurePicks,
         classes: prev.classes,
+        edition: model.rulesEdition,
+        invocations2024: prev.classOptions2024?.eldritch_invocations,
       })
       const unlocked = unlockFeaturesForClasses({
         classes: prev.classes,
@@ -182,6 +186,8 @@ export function installSheetActions2(model: SheetModel) {
       const sanitized = sanitizeFeaturePicksForPactBoons({
         featurePicks,
         classes: model.draft.classes,
+        edition: model.rulesEdition,
+        invocations2024: model.draft.classOptions2024?.eldritch_invocations,
       })
       const nextSteps = withPactTomeCantripsStep(prev.steps, {
         classEntryId: step.classEntryId,
@@ -227,16 +233,34 @@ export function installSheetActions2(model: SheetModel) {
       },
     })
     const conMod = abilityModifier(scores.con)
-    const draconicResilience = nextClasses.some((row) =>
-      /дракон|draconic/i.test(row.subclass_name || ''),
-    )
-    const dwarvenToughness = hasDwarvenToughness(prev.raceGrant?.slug)
+    const edition = model.baseCharacter?.rules_edition ?? model.rulesEdition ?? '2014'
+    // 2014: +1 HP per sorcerer level when Draconic Resilience is on (unchanged).
+    // 2024: rebuild without the 2014 flag, then add PHB 2024 total (= sorcerer level at ≥3).
+    const draconicResilience2014 =
+      edition !== '2024' &&
+      nextClasses.some((row) => /дракон|draconic/i.test(row.subclass_name || ''))
+    const dwarvenToughness2014 =
+      edition !== '2024' && hasDwarvenToughness(prev.raceGrant?.slug)
     const hpBuilt = buildMaxHpByLevels({
       classes: nextClasses.map((row) => ({ name: row.name, level: row.level })),
       constitutionMod: conMod,
-      draconicResilience,
-      dwarvenToughness,
+      draconicResilience: draconicResilience2014,
+      dwarvenToughness: dwarvenToughness2014,
     })
+    let hpTotal = hpBuilt?.total ?? null
+    if (edition === '2024' && hpTotal != null) {
+      for (const row of nextClasses) {
+        if (!/чародей|sorcerer/i.test(row.name)) continue
+        hpTotal += draconicResilienceHpTotal2024({
+          sorcererLevel: row.level,
+          subclassSlug: row.subclass_catalog_id || row.subclass_name || null,
+        })
+      }
+      hpTotal += dwarvenToughnessHpTotal2024({
+        characterLevel: totalCharacterLevel(nextClasses),
+        speciesSlug: prev.identity.speciesSlug ?? prev.raceGrant?.slug ?? null,
+      })
+    }
     const hitDiceByClass = syncHitDicePools({
       classes: nextClasses,
       previous: prev.play.hitDiceByClass,
@@ -245,11 +269,11 @@ export function installSheetActions2(model: SheetModel) {
     return {
       ...prev,
       classes: nextClasses,
-      hpMax: hpBuilt?.total ?? prev.hpMax,
-      hpCurrent: hpBuilt?.total ?? prev.hpCurrent,
+      hpMax: hpTotal ?? prev.hpMax,
+      hpCurrent: hpTotal ?? prev.hpCurrent,
       passiveHpBonuses: expectedPassiveHpBonuses({
         classes: nextClasses,
-        draconicResilience,
+        draconicResilience: draconicResilience2014,
         raceSlug: prev.raceGrant?.slug ?? null,
       }),
       identity: {
@@ -347,6 +371,7 @@ export function installSheetActions2(model: SheetModel) {
         def: input.def,
         catalogSlug: input.catalogSlug,
         catalogData: input.catalogData,
+        rulesEdition: model.baseCharacter?.rules_edition ?? model.rulesEdition ?? '2014',
       })
       if (!applied) return prev
       summary = applied.summary
@@ -372,6 +397,7 @@ export function installSheetActions2(model: SheetModel) {
       className: input.className,
       catalogSlug: input.catalogSlug,
       catalogData: input.catalogData,
+      rulesEdition: model.baseCharacter?.rules_edition ?? model.rulesEdition ?? '2014',
     })
     if (!def) {
       model.onToast(`Класс «${input.className}» пока без пакета владений — выставь вручную`)

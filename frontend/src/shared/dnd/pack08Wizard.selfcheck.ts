@@ -27,6 +27,11 @@ function assert(cond: unknown, msg: string): asserts cond {
 
 assert(arcaneWardMax(20, 16) === 43, 'ward 20 + INT 16 = 43')
 assert(arcaneWardMax(2, 10) === 4, 'ward 2 + INT 10 = 4')
+assert(arcaneWardMax(6, 16) === 15, '2024 ward = Int mod + 2×level (3+12)')
+assert(
+  arcaneWardMax(6, 16) === 2 * 6 + Math.floor((16 - 10) / 2),
+  'ward formula Int + 2*level (same as 2*level+Int)',
+)
 
 const ward: SheetResource = {
   id: featureResourceId('wizard', 'arcane_ward', 'w1'),

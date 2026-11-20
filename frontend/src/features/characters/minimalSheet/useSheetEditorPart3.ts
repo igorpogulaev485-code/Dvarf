@@ -1,6 +1,6 @@
 /** Состояние и эффекты листа, часть 3. Порядок хуков совпадает с прежним компонентом. */
 import type { SheetModel } from './sheetModel'
-import { useCallback, useEffect, useMemo, useRef } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { getCharacter, updateCharacter } from '../../../shared/api/characters'
 import { ApiRequestError } from '../../../shared/api/client'
 import { publishSheetSync } from '../../../shared/sync/characterSheetChannel'
@@ -10,10 +10,15 @@ import {
   abilityFloorsFromActiveEffects,
   acFormulasFromActiveEffects,
   acMinFromActiveEffects,
+  darkvisionFromActiveEffects,
   speedModsFromActiveEffects,
   spellAttackBonusFromActiveEffects,
 } from '../../../shared/dnd/activeEffects'
 import { bladesongBonuses } from '../../../shared/dnd/wizardTradition'
+import {
+  bladesongBonuses2024,
+  enchantingOratorSkillBonus2024,
+} from '../../../shared/dnd/wizardBook2024Features'
 import { buildSheetFormulaVars } from '../../../shared/dnd/formulas'
 import {
   abilityCheckBonus,
@@ -57,7 +62,10 @@ import {
   applyMediumArmorMasterCap,
   dualWielderAcBonus,
 } from '../../../shared/dnd/b07FeatCombat'
-import { proficiencyBonusForTotalLevel } from '../../../shared/dnd/classFeatures'
+import {
+  proficiencyBonusForTotalLevel,
+  resolveClassFeatureSlug,
+} from '../../../shared/dnd/classFeatures'
 import { classWalkSpeedBonusFt } from '../../../shared/dnd/classMovement'
 import {
   featurePicksToSheet,
@@ -66,9 +74,28 @@ import {
   rebindStaleMetamagicPicks,
 } from '../../../shared/dnd/featurePicks'
 import { listSorcererClassEntryIds } from '../../../shared/dnd/sorcererMetamagicIds'
+import { weaponMasteryToSheet } from '../../../shared/dnd/weaponMastery'
+import { classOptions2024ToSheet } from '../../../shared/dnd/edition2024ClassOptions'
+import {
+  DIVINE_ORDER_THAUMATURGE,
+  readDivineOrder2024,
+  thaumaturgeSkillBonus2024,
+} from '../../../shared/dnd/cleric2024Features'
+import {
+  landChoiceByEntryId2024,
+  magicianSkillBonus2024,
+  PRIMAL_ORDER_MAGICIAN,
+  readPrimalOrder2024,
+} from '../../../shared/dnd/druid2024Features'
+import { mergeVestigeDomainIntoLandChoiceMap2024 } from '../../../shared/dnd/warlockBook2024Features'
+import {
+  computeProgression2024,
+  snapshotToSheetFragment2024,
+} from '../../../shared/dnd/edition2024Classes'
 import { fightingStyleAcBonusFromIds } from '../../../shared/dnd/fightingStyles'
 import {
   elegantCourtierPersuasionBonus,
+  hasDraconicResilienceFeature,
   remarkableAthleteCheckBonus,
 } from '../featureCombatBonuses'
 import { aggregateInfusionBonuses } from '../../../shared/dnd/infusionEffects'
@@ -77,7 +104,11 @@ import {
   coverBonusBeyondEffects,
   hasFortifiedHalfCover,
 } from '../../../shared/dnd/o08ActionsCoverConditions'
-import { beastPhysicalOverlay } from '../wildShape'
+import { activeBeastWildShape, beastPhysicalOverlay } from '../wildShape'
+import {
+  moonConSaveBonusInForm2024,
+  wildShapeHeaderVitals2024,
+} from '../../../shared/dnd/druid2024Features'
 import { syncPactBladeAttack } from '../pactBladeAttack'
 import { syncRangerConclaveSpells } from '../rangerConclaveSpells'
 import { syncPrimalAwarenessSpells } from '../primalAwarenessSpells'
@@ -93,6 +124,18 @@ import { syncPactChainFamiliar } from '../pactChainEffects'
 import { syncCastWithoutSlotGrants } from '../castWithoutSlots'
 import { syncPactTomeCantrips } from '../pactTomeEffects'
 import { syncMagicalSecrets } from '../bardSecretsSync'
+import { ensureBardSpells2024 } from '../bardSpellCatalog2024'
+import {
+  bardicInspirationDieLabelRu2024,
+  danceAcFormula2024,
+  danceFootworkActive2024,
+  hasDazzlingFootwork2024,
+  jackOfAllTradesBonus2024,
+} from '../../../shared/dnd/bard2024Features'
+import {
+  geniesSplendorAcFormula2024,
+  hasGeniesSplendor2024,
+} from '../../../shared/dnd/paladinBook2024Features'
 import {
   isMantleCommandSpell,
   MANTLE_CONCENTRATION_ID,
@@ -125,6 +168,7 @@ export function useSheetEditorPart3(model: SheetModel) {
       classes: model.draft.classes,
       wearingHeavyArmor: wearingHeavy,
       wearingArmorOrShield,
+      rulesEdition: model.rulesEdition ?? model.baseCharacter?.rules_edition ?? '2014',
     })
     const bits: string[] = []
     if (model.featSpeedBonusFt) bits.push(`черта +${model.featSpeedBonusFt}`)
@@ -143,6 +187,8 @@ export function useSheetEditorPart3(model: SheetModel) {
     model.featSpeedBonusFt,
     model.gearEffects.speedBonusFt,
     model.draft.play.effects,
+    model.rulesEdition,
+    model.baseCharacter?.rules_edition,
   ])
   model.classSpeedHint = classSpeedHint
   model.effectSpeedMods = speedModsFromActiveEffects(model.draft.play.effects)
@@ -163,6 +209,7 @@ export function useSheetEditorPart3(model: SheetModel) {
   const abilityCeilings = useMemo(() => {
     const resolved = resolveAbilityMaxes({
       classes: model.draft.classes,
+      rulesEdition: model.rulesEdition,
       inventoryItems: model.draft.inventory.items.map((item) => {
         const extra = item as InventoryItem & {
           item_kind?: string
@@ -194,8 +241,37 @@ export function useSheetEditorPart3(model: SheetModel) {
         }
       }
     }
+    // Monk 2024 Body and Mind: DEX/WIS cap 25.
+    const bodyMind = model.progression2024?.scales?.['monk:body_and_mind'] as
+      | { dex?: number; wis?: number; cap?: number }
+      | undefined
+    if (
+      (model.rulesEdition ?? model.baseCharacter?.rules_edition) === '2024' &&
+      bodyMind &&
+      typeof bodyMind.cap === 'number' &&
+      bodyMind.cap > 0
+    ) {
+      for (const key of ['dex', 'wis'] as const) {
+        if ((bodyMind[key] ?? 0) <= 0) continue
+        if (bodyMind.cap > resolved[key].max) {
+          resolved[key] = {
+            max: bodyMind.cap,
+            sources: ['Тело и разум'],
+            raised: bodyMind.cap > DEFAULT_ABILITY_SCORE_MAX,
+          }
+        }
+      }
+    }
     return resolved
-  }, [model.draft.classes, model.draft.inventory.items, attunedItemIds, model.draft.piety])
+  }, [
+    model.draft.classes,
+    model.draft.inventory.items,
+    attunedItemIds,
+    model.draft.piety,
+    model.progression2024?.scales,
+    model.rulesEdition,
+    model.baseCharacter?.rules_edition,
+  ])
   model.abilityCeilings = abilityCeilings
 
   // W-04: пересчёт бонусов сета при смене экипировки / аттюна
@@ -231,7 +307,9 @@ export function useSheetEditorPart3(model: SheetModel) {
       const resources = syncGearResources(prev.play.resources, model.gearEffects)
       let companions = syncGearCompanions(prev.companions, model.gearEffects)
       companions = syncMountCompanions(companions, prev.inventory.items)
-      const art = prev.classes.find((row) => /изобретател|artificer/i.test(row.name))
+      const art = prev.classes.find((row) =>
+        /изобретател|артефактор|artificer/i.test(row.name),
+      )
       const intScore = model.effectiveAbilities?.int ?? prev.abilities?.int ?? 10
       const spellMod = abilityModifier(intScore)
       const pb = proficiencyBonusForLevel(model.characterLevel || 1)
@@ -390,12 +468,29 @@ export function useSheetEditorPart3(model: SheetModel) {
     })
   }, [model.draft.classes, model.draft.featurePicks])
 
+  const [bardSpells2024Tick, setBardSpells2024Tick] = useState(0)
+  const hasBardClass = model.draft.classes.some(
+    (row) => resolveClassFeatureSlug(row.name) === 'bard' && row.level > 0,
+  )
+  useEffect(() => {
+    if (model.rulesEdition !== '2024' || !hasBardClass) return undefined
+    let alive = true
+    void ensureBardSpells2024().then(() => {
+      if (alive) setBardSpells2024Tick((tick) => tick + 1)
+    })
+    return () => {
+      alive = false
+    }
+  }, [model.rulesEdition, hasBardClass])
+
   useEffect(() => {
     model.setDraft((prev) => {
       const synced = syncMagicalSecrets({
         spells: prev.spells,
         featurePicks: prev.featurePicks,
         classes: prev.classes,
+        edition: model.rulesEdition,
+        subclassSlugByEntryId: model.subclassSlugByEntryId,
       })
       const hasSpirits = Object.values(model.subclassSlugByEntryId).includes('college_of_spirits')
       const known = hasSpirits
@@ -412,7 +507,13 @@ export function useSheetEditorPart3(model: SheetModel) {
       if (same) return prev
       return { ...prev, spells: { ...prev.spells, known } }
     })
-  }, [model.draft.classes, model.draft.featurePicks, model.subclassSlugByEntryId])
+  }, [
+    model.draft.classes,
+    model.draft.featurePicks,
+    model.subclassSlugByEntryId,
+    model.rulesEdition,
+    bardSpells2024Tick,
+  ])
 
   useEffect(() => {
     model.setDraft((prev) => {
@@ -446,6 +547,7 @@ export function useSheetEditorPart3(model: SheetModel) {
         subclassSlugByEntryId: model.subclassSlugByEntryId,
         featurePicks: prev.featurePicks,
         subclassGrants: prev.subclassGrants,
+        rulesEdition: model.rulesEdition ?? model.baseCharacter?.rules_edition,
       })
       if (!synced.changed) return prev
       return { ...prev, spells: synced.spells }
@@ -455,6 +557,8 @@ export function useSheetEditorPart3(model: SheetModel) {
     model.draft.featurePicks,
     model.draft.subclassGrants,
     model.subclassSlugByEntryId,
+    model.rulesEdition,
+    model.baseCharacter?.rules_edition,
   ])
 
   useEffect(() => {
@@ -498,6 +602,8 @@ export function useSheetEditorPart3(model: SheetModel) {
           spells: prev.spells,
           featurePicks: prev.featurePicks,
           classes: prev.classes,
+          edition: model.rulesEdition,
+          invocations2024: prev.classOptions2024?.eldritch_invocations,
           resolveSpell: (slug) => resolvePactTomeCantripFromOptions(slug, options),
         })
         if (!synced.changed) return prev
@@ -507,7 +613,12 @@ export function useSheetEditorPart3(model: SheetModel) {
     return () => {
       cancelled = true
     }
-  }, [model.draft.featurePicks, model.draft.classes, model.rulesEdition])
+  }, [
+    model.draft.featurePicks,
+    model.draft.classes,
+    model.draft.classOptions2024?.eldritch_invocations,
+    model.rulesEdition,
+  ])
 
   // Pact of the Chain: Find Familiar as warlock ritual (card appears after cast).
   useEffect(() => {
@@ -583,15 +694,21 @@ export function useSheetEditorPart3(model: SheetModel) {
   ])
   model.spellCastModifiers = spellCastModifiers
 
-  const effectiveDarkvisionFt = useMemo(
-    () =>
-      Math.max(
-        model.featureDarkvisionFt,
-        gearDarkvisionFt(model.gearEffects),
-        infusionBonuses.darkvisionFt,
-      ),
-    [model.featureDarkvisionFt, model.gearEffects, infusionBonuses.darkvisionFt],
-  )
+  const effectiveDarkvisionFt = useMemo(() => {
+    const fromBuffs = darkvisionFromActiveEffects(model.draft.play.effects)
+    return Math.max(
+      model.featureDarkvisionFt,
+      gearDarkvisionFt(model.gearEffects),
+      infusionBonuses.darkvisionFt,
+      // Stone / spell buffs: never replace a higher race floor (dwarf 120 > stone 60).
+      fromBuffs ?? 0,
+    )
+  }, [
+    model.featureDarkvisionFt,
+    model.gearEffects,
+    infusionBonuses.darkvisionFt,
+    model.draft.play.effects,
+  ])
   model.effectiveDarkvisionFt = effectiveDarkvisionFt
 
   const ownFormulaVars = useMemo(() => {
@@ -624,7 +741,26 @@ export function useSheetEditorPart3(model: SheetModel) {
       const best = Math.max(a, b)
       if (best > 0) mergedFloors[key] = best
     }
-    return applyGearAbilityScores(boosted, model.gearEffects, mergedFloors)
+    const withGear = applyGearAbilityScores(boosted, model.gearEffects, mergedFloors)
+    // Monk 2024 Body and Mind: +4 DEX/WIS (cap 25) on effective scores.
+    const bodyMind = model.progression2024?.scales?.['monk:body_and_mind'] as
+      | { dex?: number; wis?: number; cap?: number }
+      | undefined
+    if (
+      (model.rulesEdition ?? model.baseCharacter?.rules_edition) !== '2024' ||
+      !bodyMind
+    ) {
+      return withGear
+    }
+    const cap = typeof bodyMind.cap === 'number' && bodyMind.cap > 0 ? bodyMind.cap : 25
+    const next = { ...withGear }
+    if ((bodyMind.dex ?? 0) > 0) {
+      next.dex = Math.min(cap, withGear.dex + Math.floor(bodyMind.dex!))
+    }
+    if ((bodyMind.wis ?? 0) > 0) {
+      next.wis = Math.min(cap, withGear.wis + Math.floor(bodyMind.wis!))
+    }
+    return next
   }, [
     model.draft.abilities,
     model.draft.modifiers,
@@ -632,6 +768,9 @@ export function useSheetEditorPart3(model: SheetModel) {
     model.gearEffects,
     infusionBonuses.abilityFloor,
     model.draft.play.effects,
+    model.progression2024?.scales,
+    model.rulesEdition,
+    model.baseCharacter?.rules_edition,
   ])
   model.gearAbilities = gearAbilities
 
@@ -704,9 +843,44 @@ export function useSheetEditorPart3(model: SheetModel) {
 
   const featureSkillBonuses = useMemo(() => {
     const out: Record<string, number> = {}
+    const thaumaturgeBonus =
+      model.rulesEdition === '2024'
+        ? (() => {
+            const order =
+              readDivineOrder2024(model.draft.classOptions2024) ??
+              readDivineOrder2024(model.draft.featurePicks)
+            if (order !== DIVINE_ORDER_THAUMATURGE) return null
+            const wisMod = Math.floor(((effectiveAbilities.wis ?? 10) - 10) / 2)
+            return thaumaturgeSkillBonus2024(wisMod)
+          })()
+        : null
+    const magicianBonus =
+      model.rulesEdition === '2024'
+        ? (() => {
+            const order =
+              readPrimalOrder2024(model.draft.classOptions2024) ??
+              readPrimalOrder2024(model.draft.featurePicks)
+            if (order !== PRIMAL_ORDER_MAGICIAN) return null
+            const wisMod = Math.floor(((effectiveAbilities.wis ?? 10) - 10) / 2)
+            return magicianSkillBonus2024(wisMod)
+          })()
+        : null
+    const bardLevel2024 =
+      model.rulesEdition === '2024'
+        ? model.draft.classes
+            .filter((row) => resolveClassFeatureSlug(row.name) === 'bard')
+            .reduce((sum, row) => sum + Math.max(0, Math.floor(row.level) || 0), 0)
+        : 0
     for (const skill of SKILL_DEFS) {
       const state = model.draft.skills[skill.key]
       const proficient = Boolean(state?.is_proficient || state?.is_expertise)
+      const jack = jackOfAllTradesBonus2024({
+        bardLevel: bardLevel2024,
+        proficiencyBonus: model.proficiencyBonus,
+        isSkillCheck: true,
+        skillProficient: Boolean(state?.is_proficient),
+        skillExpertise: Boolean(state?.is_expertise),
+      })
       const athlete = remarkableAthleteCheckBonus({
         features: model.unlockedFeatures,
         proficiencyBonus: model.proficiencyBonus,
@@ -718,17 +892,62 @@ export function useSheetEditorPart3(model: SheetModel) {
         wisdomScore: effectiveAbilities.wis,
         skillKey: skill.key,
       })
-      const total = athlete + courtier
+      let thaum = 0
+      if (thaumaturgeBonus) {
+        if (skill.key === 'arcana') thaum = thaumaturgeBonus.arcana
+        if (skill.key === 'religion') thaum = thaumaturgeBonus.religion
+      }
+      if (magicianBonus) {
+        if (skill.key === 'arcana') thaum += magicianBonus.arcana
+        if (skill.key === 'nature') thaum += magicianBonus.nature
+      }
+      let orator = 0
+      if (model.rulesEdition === '2024') {
+        const wizardRow = model.draft.classes.find((row) =>
+          /волшебник|wizard/i.test(row.name),
+        )
+        if (wizardRow) {
+          orator = enchantingOratorSkillBonus2024({
+            subclassSlug: model.subclassSlugByEntryId?.[wizardRow.id] ?? null,
+            classEntryId: wizardRow.id,
+            featurePicks: model.draft.featurePicks,
+            wizardLevel: wizardRow.level,
+            intelligenceScore: effectiveAbilities.int ?? 10,
+            skillKey: skill.key,
+          })
+        }
+      }
+      const total = athlete + courtier + thaum + jack + orator
       if (total) out[skill.key] = total
     }
     return out
   }, [
     model.draft.skills,
     effectiveAbilities.wis,
+    effectiveAbilities.int,
     model.unlockedFeatures,
     model.proficiencyBonus,
+    model.rulesEdition,
+    model.draft.classOptions2024,
+    model.draft.featurePicks,
+    model.draft.classes,
+    model.subclassSlugByEntryId,
   ])
   model.featureSkillBonuses = featureSkillBonuses
+
+  const danceBardicDie = useMemo(() => {
+    if (model.rulesEdition !== '2024') return null
+    if (!hasDazzlingFootwork2024(model.unlockedFeatures)) return null
+    const pieces = equippedArmorPieces(model.draft.inventory.items)
+    if (!danceFootworkActive2024({ wearingArmor: Boolean(pieces.armor), wearingShield: Boolean(pieces.shield) }).active) {
+      return null
+    }
+    const bardLevel = model.draft.classes
+      .filter((row) => resolveClassFeatureSlug(row.name) === 'bard')
+      .reduce((sum, row) => sum + Math.max(0, Math.floor(row.level) || 0), 0)
+    return bardLevel > 0 ? bardicInspirationDieLabelRu2024(bardLevel) : null
+  }, [model.rulesEdition, model.unlockedFeatures, model.draft.inventory.items, model.draft.classes])
+  model.danceBardicDie = danceBardicDie
 
   const abilitySaveExtras = useMemo(() => {
     const out: Partial<Record<AbilityKey, number>> = {}
@@ -736,8 +955,24 @@ export function useSheetEditorPart3(model: SheetModel) {
       const n = abilitySaveBonus(key, model.draft.modifiers, formulaVarsBase)
       if (n) out[key] = n
     }
+    const moonCon = moonConSaveBonusInForm2024({
+      rulesEdition: model.rulesEdition,
+      druidLevel: model.druidLevel,
+      subclassSlug: model.druidSubclassSlug,
+      wisMod: abilityModifier(effectiveAbilities.wis),
+      inBeastForm: activeBeastWildShape(model.draft.companions) != null,
+    })
+    if (moonCon) out.con = (out.con ?? 0) + moonCon
     return out
-  }, [model.draft.modifiers, formulaVarsBase])
+  }, [
+    model.draft.modifiers,
+    formulaVarsBase,
+    model.rulesEdition,
+    model.druidLevel,
+    model.druidSubclassSlug,
+    model.draft.companions,
+    effectiveAbilities.wis,
+  ])
   model.abilitySaveExtras = abilitySaveExtras
 
   const armorClass = useMemo(() => {
@@ -782,9 +1017,13 @@ export function useSheetEditorPart3(model: SheetModel) {
           allowsShield: true,
         }
       }
-      const hasMonk = model.unlockedFeatures.some(
-        (feature: { id: string }) => feature.id === 'unarmored_defense_monk',
-      )
+      const rulesEdition =
+        model.rulesEdition ?? model.baseCharacter?.rules_edition ?? '2014'
+      const hasMonk = model.unlockedFeatures.some((feature: { id: string }) => {
+        if (feature.id === 'unarmored_defense_monk') return true
+        // 2024 catalog id is unarmored_defense (hyphen → underscore).
+        return rulesEdition === '2024' && feature.id === 'unarmored_defense'
+      })
       if (hasMonk) {
         return {
           labelRu: 'Защита без доспехов',
@@ -806,17 +1045,37 @@ export function useSheetEditorPart3(model: SheetModel) {
     const effectFormulas = pieces.armor ? [] : acFormulasFromActiveEffects(effectsRaw)
     const draconic = (() => {
       if (pieces.armor) return null
-      const has = model.unlockedFeatures.some(
-        (feature: { id: string }) => feature.id === 'draconic_resilience',
-      )
-      if (!has) return null
+      const edition = String(
+        model.rulesEdition ?? model.baseCharacter?.rules_edition ?? '2014',
+      ).trim()
+      if (!hasDraconicResilienceFeature(model.unlockedFeatures, edition)) return null
+      const is2024 = edition === '2024'
+      const chaMod = mods.cha
       return {
         key: 'draconic_resilience',
         label: 'Драконья устойчивость',
-        base: 13,
+        base: is2024 ? 10 + chaMod : 13,
         dexCap: null as number | null,
         allowsShield: true,
       }
+    })()
+    const dance = (() => {
+      if (pieces.armor || pieces.shield) return null
+      const edition = String(
+        model.rulesEdition ?? model.baseCharacter?.rules_edition ?? '2014',
+      ).trim()
+      if (edition !== '2024') return null
+      if (!hasDazzlingFootwork2024(model.unlockedFeatures)) return null
+      return danceAcFormula2024(mods.cha)
+    })()
+    const genies = (() => {
+      if (pieces.armor) return null
+      const edition = String(
+        model.rulesEdition ?? model.baseCharacter?.rules_edition ?? '2014',
+      ).trim()
+      if (edition !== '2024') return null
+      if (!hasGeniesSplendor2024(model.unlockedFeatures)) return null
+      return geniesSplendorAcFormula2024(mods.cha)
     })()
     const extraFormulas = pieces.armor
       ? []
@@ -825,6 +1084,8 @@ export function useSheetEditorPart3(model: SheetModel) {
           ...(mageFromConcFormula ? [mageFromConcFormula] : []),
           ...effectFormulas,
           ...(draconic ? [draconic] : []),
+          ...(dance ? [dance] : []),
+          ...(genies ? [genies] : []),
         ]
     const acMinFloor = acMinFromActiveEffects(effectsRaw)
     const preferredKey = model.draft.acFormulaKey
@@ -872,10 +1133,25 @@ export function useSheetEditorPart3(model: SheetModel) {
       coreAc += dualWieldAc
       gearSummary = `${gearSummary} · двуоружие +${dualWieldAc}`
     }
-    const song = bladesongBonuses({
-      resources: model.draft.play.resources,
-      intelligenceScore: model.draft.abilities.int ?? 10,
-    })
+    const edition2024 =
+      (model.rulesEdition ?? model.baseCharacter?.rules_edition ?? '2014') === '2024'
+    const song = edition2024
+      ? bladesongBonuses2024({
+          rulesEdition: '2024',
+          subclassSlug:
+            Object.values(model.subclassSlugByEntryId ?? {}).find(
+              (slug): slug is string =>
+                typeof slug === 'string' && slug.toLowerCase().includes('bladesinger'),
+            ) ?? null,
+          resources: model.draft.play.resources,
+          intelligenceScore: model.draft.abilities.int ?? 10,
+          wizardLevel:
+            model.draft.classes.find((row) => /волшебник|wizard/i.test(row.name))?.level ?? 0,
+        })
+      : bladesongBonuses({
+          resources: model.draft.play.resources,
+          intelligenceScore: model.draft.abilities.int ?? 10,
+        })
     if (song.ac > 0) {
       coreAc += song.ac
       gearSummary = `${gearSummary} · песнь +${song.ac}`
@@ -924,7 +1200,7 @@ export function useSheetEditorPart3(model: SheetModel) {
     const shieldBonus = pieces.shield
       ? Math.max(0, Math.floor(pieces.shield.baseAc || 2))
       : Math.max(0, Math.floor(spareShield?.base_ac ?? 2))
-    return {
+    const characterAc = {
       ac: stacked.total,
       summary,
       gearSummary,
@@ -935,6 +1211,19 @@ export function useSheetEditorPart3(model: SheetModel) {
       formulaLabel: base.formulaLabel,
       candidates: base.candidates,
       floorApplied: base.floorApplied,
+    }
+    // 2024 Wild Shape: header shows form AC (Moon: max(beast, 13+Wis) already on companion).
+    const formVitals = wildShapeHeaderVitals2024({
+      rulesEdition: model.rulesEdition ?? model.baseCharacter?.rules_edition,
+      formStats: activeBeastWildShape(model.draft.companions)?.stats ?? null,
+    })
+    if (!formVitals) return characterAc
+    return {
+      ...characterAc,
+      ac: formVitals.ac,
+      summary: `${characterAc.summary} · ${formVitals.labelRu} ${formVitals.ac}`,
+      gearSummary: `${formVitals.labelRu}: КД ${formVitals.ac}`,
+      baseLabel: `${formVitals.labelRu} · КД ${formVitals.ac}`,
     }
   }, [
     effectiveAbilities,
@@ -958,6 +1247,9 @@ export function useSheetEditorPart3(model: SheetModel) {
     model.baseCharacter.sheet,
     model.proficiencyBonus,
     model.characterLevel,
+    model.rulesEdition,
+    model.baseCharacter?.rules_edition,
+    model.draft.companions,
   ])
   model.armorClass = armorClass
 
@@ -1020,6 +1312,47 @@ export function useSheetEditorPart3(model: SheetModel) {
       sheet.companions = draftSnap.companions
       sheet.known_forms = draftSnap.knownForms
       sheet.feature_picks = featurePicksToSheet(draftSnap.featurePicks)
+      // P24-M01 / M02a: persist 2024-only sheet fragments; strip on 2014.
+      {
+        const edition =
+          model.baseCharacter?.rules_edition ?? model.rulesEdition ?? '2014'
+        if (edition === '2024') {
+          sheet.weapon_mastery = weaponMasteryToSheet(draftSnap.weaponMastery)
+          sheet.class_options_2024 = classOptions2024ToSheet(draftSnap.classOptions2024)
+          const progress = computeProgression2024({
+            classes: draftSnap.classes,
+            abilities: draftSnap.abilities,
+            landChoiceByEntryId: mergeVestigeDomainIntoLandChoiceMap2024({
+              classes: draftSnap.classes,
+              classOptions2024: draftSnap.classOptions2024,
+              landChoiceByEntryId: landChoiceByEntryId2024(
+                draftSnap.classes,
+                draftSnap.featurePicks,
+                draftSnap.classOptions2024,
+              ),
+            }),
+          })
+          const fragment = snapshotToSheetFragment2024(progress) as {
+            resources?: Array<Record<string, unknown>>
+            [key: string]: unknown
+          }
+          const usedById = new Map(
+            draftSnap.play.resources.map((r: { id: string; used: number }) => [
+              r.id,
+              r.used,
+            ] as const),
+          )
+          for (const row of fragment.resources || []) {
+            const id = String(row.id || '')
+            if (id && usedById.has(id)) row.used = usedById.get(id)
+          }
+          sheet.class_progress_2024 = fragment
+        } else {
+          delete sheet.weapon_mastery
+          delete sheet.class_progress_2024
+          delete sheet.class_options_2024
+        }
+      }
       sheet.class_asi = draftSnap.classAsi
       sheet.primal_champion = draftSnap.primalChampion
       sheet.piety = draftSnap.piety
@@ -1087,6 +1420,11 @@ export function useSheetEditorPart3(model: SheetModel) {
       combat.concentration = playSheet.combatPatch.concentration
       combat.shillelagh = playSheet.combatPatch.shillelagh
       combat.effects = playSheet.combatPatch.effects
+      if (playSheet.combatPatch.wizard2024_rest_swaps) {
+        combat.wizard2024_rest_swaps = playSheet.combatPatch.wizard2024_rest_swaps
+      } else {
+        delete combat.wizard2024_rest_swaps
+      }
       sheet.combat = combat
       const proficiency = asRecord(sheet.proficiency)
       proficiency.bonus = proficiencyBonusForTotalLevel(totalLevel)
@@ -1348,7 +1686,11 @@ export function useSheetEditorPart3(model: SheetModel) {
         (next.primalChampion.str > 0 || next.primalChampion.con > 0)
       if (gained) {
         queueMicrotask(() => {
-          model.onToast('Изначальный чемпион: Сила и Телосложение +4, потолок 24')
+          model.onToast(
+            model.rulesEdition === '2024'
+              ? 'Изначальный чемпион: Сила и Телосложение +4, потолок 25'
+              : 'Изначальный чемпион: Сила и Телосложение +4, потолок 24',
+          )
         })
       }
       return next

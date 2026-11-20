@@ -300,7 +300,7 @@ export function HpPadDialog({
 
   const poolHint = useMemo(() => {
     if (pools.length === 0) return 'Кости хитов появятся после выбора класса'
-    return pools.map((p) => `${p.className} ${p.die} ${p.current}/${p.max}`).join(' · ')
+    return `Кости хитов · ${pools.map((p) => `${p.className} ${p.die}: ${p.current}/${p.max}`).join(' · ')}`
   }, [pools])
 
   function press(key: (typeof KEYS)[number]) {
@@ -669,7 +669,7 @@ export function HpPadDialog({
                     title={`Потратить кость ${pool.className} (среднее + ТЕЛ)`}
                     onClick={() => spendPool(pool)}
                   >
-                    {pool.className} · {pool.die} · {pool.current}/{pool.max}
+                    Кости хитов · {pool.className} {pool.die}: {pool.current} из {pool.max}
                   </button>
                   <SlotPips
                     max={Math.max(1, pool.max)}

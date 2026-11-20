@@ -16,6 +16,12 @@ import {
   totalCopyCost,
   type SpellbookModifiers,
 } from '../../shared/dnd/wizardSpellbook'
+import type { RulesEdition } from '../../shared/api/characters'
+import {
+  pickWizardSavantSlug,
+  resolveWizardCopyMods2024,
+  scrollCopyDc,
+} from '../../shared/dnd/wizardSpellbook2024'
 import { formatGpTotal, spendGpFromPurse, type CoinPurse } from '../../shared/dnd/weight'
 import { Dialog, Stack, Text } from '../../ui'
 import type { InventoryItem } from './inventory'
@@ -37,6 +43,10 @@ type SpellbookManageDialogProps = {
   coins: CoinPurse
   wizardLevel: number
   subclassSlug?: string | null
+  /** 2024: catalog id of the subclass (`wizard__evoker`); preferred over `subclassSlug`. */
+  subclassCatalogId?: string | null
+  /** Defaults to 2014 when omitted. */
+  edition?: RulesEdition
   onChangeSpells: (spells: SpellsState) => void
   onChangeCoins: (coins: CoinPurse) => void
   /** Persist inventory after consuming a scroll. */
@@ -57,6 +67,8 @@ export function SpellbookManageDialog({
   coins,
   wizardLevel,
   subclassSlug = null,
+  subclassCatalogId = null,
+  edition = '2014',
   onChangeSpells,
   onChangeCoins,
   onChangeInventoryItems,
@@ -70,10 +82,12 @@ export function SpellbookManageDialog({
 
   const status = wizardSpellbookStatusLabel(spells)
   const book = spells.wizard_spellbook
-  const mods: SpellbookModifiers = resolveWizardCopyMods({
-    subclassSlug,
-    wizardLevel,
-  })
+  const is2024 = edition === '2024'
+  const savantSlug2024 = is2024 ? pickWizardSavantSlug(subclassCatalogId, subclassSlug) : null
+  const copyMods = is2024
+    ? resolveWizardCopyMods2024({ subclassSlug: savantSlug2024, wizardLevel })
+    : resolveWizardCopyMods({ subclassSlug, wizardLevel })
+  const mods: SpellbookModifiers = copyMods
   const preparedLeveled = useMemo(
     () =>
       spells.known.filter(
@@ -387,13 +401,20 @@ export function SpellbookManageDialog({
     onClose()
   }
 
+  const foreignTariff = copySpellCost({ spellLevel: 1, kind: 'foreign' })
+  const ownTariff = copySpellCost({ spellLevel: 1, kind: 'own' })
+
   const copyModsHint = (() => {
     const parts: string[] = []
     if (mods.wizardlyQuill) parts.push('Перо писца: копии без золота, 2 мин/ур.')
-    if (mods.savantSchool) {
-      const label =
-        resolveWizardCopyMods({ subclassSlug, wizardLevel }).savantLabelRu ??
-        mods.savantSchool
+    if (is2024) {
+      if (copyMods.savantLabelRu) {
+        parts.push(
+          `Знаток (${copyMods.savantLabelRu}): бесплатные заклинания школы в книгу; цена копий не снижается`,
+        )
+      }
+    } else if (mods.savantSchool) {
+      const label = copyMods.savantLabelRu ?? mods.savantSchool
       parts.push(`Знаток (${label}): копии школы — ½ золота и времени`)
     }
     return parts.join(' · ')
@@ -414,13 +435,25 @@ export function SpellbookManageDialog({
           Статус: <strong>{status.label}</strong>
         </Text>
         {copyModsHint ? <Text tone="muted">{copyModsHint}</Text> : null}
+        <Text tone="muted">
+          Тариф за каждый круг заклинания: чужая копия (свиток, чужая книга) —{' '}
+          {formatGpTotal(foreignTariff.gp)} зм · {foreignTariff.hours} ч; своя копия
+          (запасная книга, перепись) — {formatGpTotal(ownTariff.gp)} зм · {ownTariff.hours} ч.
+        </Text>
 
         <Stack gap={8}>
           <Text as="h3">Внести из свитка</Text>
           <Text tone="muted">
-            Тариф чужой копии (50 зм + 2 ч / ур., скидки архетипа учтены). Свиток
-            расходуется. Заклинание на свитке задаётся в инвентаре при добавлении.
+            Тариф чужой копии (50 зм + 2 ч / ур.
+            {is2024 ? '' : ', скидки архетипа учтены'}). Свиток расходуется.
+            Заклинание на свитке задаётся в инвентаре при добавлении.
           </Text>
+          {is2024 ? (
+            <Text tone="muted">
+              Проверка Интеллекта (Магия): СЛ = 10 + круг заклинания (круг 1 — СЛ 11, круг 3 —
+              СЛ 13).
+            </Text>
+          ) : null}
           {!wizardHasUsableSpellbook(spells) ? (
             <Text tone="muted">Сначала нужна активная книга.</Text>
           ) : boundScrolls.length === 0 ? (
@@ -444,6 +477,9 @@ export function SpellbookManageDialog({
                     <span>
                       {spell.name} · {spell.level} ур.
                       {item.qty > 1 ? ` ×${item.qty}` : ''}
+                      {is2024 && spell.level > 0
+                        ? ` · Инт (Магия) СЛ ${scrollCopyDc(spell.level)}`
+                        : ''}
                       {cost
                         ? ` · ${
                             cost.gp > 0

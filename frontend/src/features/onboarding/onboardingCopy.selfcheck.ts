@@ -5,6 +5,8 @@
 
 import {
   EDITION_HINT,
+  EDITION_HINT_2014,
+  EDITION_HINT_2024,
   EMPTY_CHARACTERS,
   HELP_DRAWER,
   JOIN_INTRO,
@@ -13,6 +15,7 @@ import {
   SCENE_INTRO,
   TOUR_STEPS,
 } from './copy.ru.ts'
+import { EDITION_2024_DIFF } from './edition2024Diff.ru.ts'
 import { SCENES_STRIP_TIP, TURN_TIPS, VITAL_TIPS } from './valueTips.ru.ts'
 import {
   shouldShowCreateHints,
@@ -25,10 +28,34 @@ function assert(cond: unknown, msg: string): asserts cond {
   if (!cond) throw new Error(msg)
 }
 
-const editionLower = EDITION_HINT.toLowerCase()
-assert(!editionLower.includes('сменить на листе'), 'EDITION_HINT must not promise edition change on sheet')
-assert(!editionLower.includes('можно сменить'), 'EDITION_HINT must not say edition can be changed later')
-assert(editionLower.includes('фиксируется'), 'EDITION_HINT says edition is fixed at creation')
+assert(EDITION_HINT === EDITION_HINT_2014, 'EDITION_HINT defaults to 2014 copy')
+for (const [label, hint] of [
+  ['EDITION_HINT_2014', EDITION_HINT_2014],
+  ['EDITION_HINT_2024', EDITION_HINT_2024],
+] as const) {
+  const lower = hint.toLowerCase()
+  assert(!lower.includes('сменить на листе'), `${label} must not promise edition change on sheet`)
+  assert(!lower.includes('можно сменить'), `${label} must not say edition can be changed later`)
+  assert(lower.includes('фиксируется'), `${label} says edition is fixed at creation`)
+}
+assert(EDITION_HINT_2014.includes('2014'), '2014 hint names 2014')
+assert(EDITION_HINT_2024.includes('2024'), '2024 hint names 2024')
+assert(/вид/i.test(EDITION_HINT_2024), '2024 hint mentions вид')
+
+assert(EDITION_2024_DIFF.items.length === 6, '2024 diff coach has 6 bullets')
+for (const id of ['species', 'heroic', 'exhaustion', 'rest', 'mastery', 'surprise'] as const) {
+  assert(
+    EDITION_2024_DIFF.items.some((item) => item.id === id),
+    `2024 diff item ${id}`,
+  )
+}
+const diffBlob = EDITION_2024_DIFF.items.map((item) => `${item.title} ${item.body}`).join('\n')
+assert(!/\bL-21\b/i.test(diffBlob), '2024 diff copy has no internal L-21 codes')
+assert(!/В UI 2024/i.test(diffBlob), '2024 diff copy avoids «В UI 2024» jargon')
+const species = EDITION_2024_DIFF.items.find((item) => item.id === 'species')
+assert(species && /вид/.test(species.body) && /раса/.test(species.body), 'species item explains вид vs раса')
+const surprise = EDITION_2024_DIFF.items.find((item) => item.id === 'surprise')
+assert(surprise && /как в правилах 2014/.test(surprise.body), 'surprise item names правила 2014')
 
 assert(
   EMPTY_CHARACTERS.description.includes('предыстория') &&

@@ -1,0 +1,3 @@
+before vs after — identical (5 desktop + 6 phone)
+1440: 5 pairs match
+390: 6 pairs match

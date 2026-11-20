@@ -14,7 +14,7 @@ import {
   resolveSpellLearnBudget,
   resolveSubclassCasterOverlays,
   spellLearnModeForSlug,
-  thirdCasterCantripsKnown,
+  thirdCasterCantripsBudget,
   thirdCasterSpellsKnown,
   type SpellLearnBudget,
   type SpellLearnMode,
@@ -164,7 +164,11 @@ export function buildCastProfiles(input: BuildCastProfilesInput): SpellCastProfi
         continue
       }
       const level = Math.max(0, Math.floor(row.level))
-      const cantrips = thirdCasterCantripsKnown(level)
+      const subSlug =
+        (row as { subclass_catalog_id?: string; subclass_slug?: string }).subclass_catalog_id ||
+        (row as { subclass_slug?: string }).subclass_slug ||
+        subclassSlugFromClassRow(row)
+      const cantrips = thirdCasterCantripsBudget(level, subSlug)
       const known = thirdCasterSpellsKnown(level)
       const aloneMaxLevel = maxSpellLevelForClassAlone('third', row.level)
       const hostSlug = resolveClassCasterSlug(row.name) ?? 'third'
@@ -493,6 +497,29 @@ export function formatNamedPrepareBudgets(
 }
 
 /**
+ * Single-wizard spellbook quota: «подготовлено 9 из 9 · в книге 14».
+ * Plain words instead of «подг. 9/9», so «из» is clearly the daily prepare cap.
+ */
+export function formatSpellbookQuotaRu(input: {
+  prepared: number
+  maxPrepared: number | null
+  inBook: number | null
+  alwaysPrepared?: number
+}): string | null {
+  const parts: string[] = []
+  if (input.maxPrepared != null && input.maxPrepared > 0) {
+    parts.push(`подготовлено ${input.prepared} из ${input.maxPrepared}`)
+  } else if (input.prepared > 0) {
+    parts.push(`подготовлено ${input.prepared}`)
+  }
+  if (input.inBook != null) parts.push(`в книге ${input.inBook}`)
+  if (input.alwaysPrepared && input.alwaysPrepared > 0) {
+    parts.push(`всегда ${input.alwaysPrepared}`)
+  }
+  return parts.length > 0 ? parts.join(' · ') : null
+}
+
+/**
  * Per-class known meta: «Бард изв. 2/2 · Колдун изв. 2/2».
  * Avoids the false global «изв. 17/5» on multiclass.
  */
@@ -590,6 +617,11 @@ export type GrimoireShelfSource = {
   genieKind?: string | null
   /** Catalog list to match. Defaults to `slug`. Third-casters use `wizard`. */
   listSlug?: string | null
+  /**
+   * Further class lists open for leveled spells (2024 bard Magical Secrets: wizard, druid,
+   * cleric). They never open cantrips.
+   */
+  extraListSlugs?: string[] | null
 }
 
 export function buildGrimoireShelfSources(
@@ -611,6 +643,19 @@ export function buildGrimoireShelfSources(
     })
   }
   return out
+}
+
+/** Leveled catalog spell that is on one of the shelf's extra lists (and not only on the base list). */
+export function spellOnShelfExtraLists(
+  catalogClassSlugs: string[],
+  spellLevel: number,
+  shelf: Pick<GrimoireShelfSource, 'extraListSlugs'>,
+): boolean {
+  if (spellLevel <= 0) return false
+  const extras = (shelf.extraListSlugs ?? []).map((row) => row.trim().toLowerCase())
+  if (extras.length === 0) return false
+  const classes = catalogClassSlugs.map((row) => row.trim().toLowerCase())
+  return extras.some((slug) => classes.includes(slug))
 }
 
 /**
@@ -639,7 +684,8 @@ export function catalogSpellMatchesShelf(
     subclassSlug: shelf.subclassSlug,
     genieKind: shelf.genieKind,
   })
-  if (!onBaseList && !onExpanded) {
+  const onExtra = spellOnShelfExtraLists(catalogClassSlugs, spellLevel, shelf)
+  if (!onBaseList && !onExpanded && !onExtra) {
     return false
   }
   if (spellLevel <= 0) return true

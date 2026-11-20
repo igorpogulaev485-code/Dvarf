@@ -2,6 +2,12 @@
  * MAG-01: which metamagic options apply to a cast, costs, and cast-parameter effects.
  * Names/costs come from sorcererMetamagic.ts — do not invent labels here.
  */
+import { metamagicById2024 } from './edition2024ClassOptions'
+import {
+  resolveMetamagicOnCast2024,
+  sorcerer2024Context,
+  type MetamagicCastSelection2024,
+} from './sorcerer2024Features'
 import {
   metamagicById,
   metamagicSpendCost,
@@ -36,6 +42,7 @@ export function metamagicAppliesToSpell(
     components?: { v?: boolean; s?: boolean; m?: string | boolean | null } | null
     attack_or_save?: string | null
   },
+  rulesEdition?: string | null,
 ): boolean {
   const time = (spell.casting_time ?? '').toLowerCase()
   const range = (spell.range ?? '').toLowerCase()
@@ -61,6 +68,9 @@ export function metamagicAppliesToSpell(
       return /действ|action/i.test(time) && !/бонус|bonus|реакц|reaction|мин|час|minute|hour/i.test(time)
     case 'subtle': {
       const c = spell.components
+      if (rulesEdition === '2024') {
+        return Boolean(c?.v || c?.s || (c?.m != null && c?.m !== false))
+      }
       return Boolean(c?.v || c?.s)
     }
     case 'twinned':
@@ -94,8 +104,24 @@ export function listApplicableMetamagic(
 /** All known metamagic options (including ones that do not apply to this spell). */
 export function listKnownMetamagic(
   knownIds: string[],
-  options?: { allowTce?: boolean },
+  options?: { allowTce?: boolean; rulesEdition?: string | null },
 ): MetamagicDef[] {
+  if (options?.rulesEdition === '2024') {
+    const out: MetamagicDef[] = []
+    for (const id of knownIds) {
+      const row = metamagicById2024(id)
+      if (!row) continue
+      out.push({
+        id: row.id,
+        nameRu: row.nameRu,
+        nameEn: row.id,
+        summaryRu: row.summaryRu,
+        costRu: String(row.cost),
+        costPoints: row.cost,
+      })
+    }
+    return out
+  }
   const allowTce = options?.allowTce !== false
   const out: MetamagicDef[] = []
   for (const id of knownIds) {
@@ -125,6 +151,7 @@ export function metamagicDisableReason(
   def: MetamagicDef,
   spell: Parameters<typeof metamagicAppliesToSpell>[1],
   ctx: {
+    rulesEdition?: string | null
     sorceryLeft: number
     cost: number
     checked: boolean
@@ -132,7 +159,7 @@ export function metamagicDisableReason(
     useEmbodiment: boolean
   },
 ): string | null {
-  if (!metamagicAppliesToSpell(def, spell)) {
+  if (!metamagicAppliesToSpell(def, spell, ctx.rulesEdition)) {
     switch (def.id) {
       case 'careful':
       case 'heightened':
@@ -165,7 +192,32 @@ export function metamagicDisableReason(
 export function metamagicSelectionCost(
   flags: MetamagicCastFlags,
   spellSlotLevel: number,
+  rulesEdition?: string | null,
 ): number {
+  if (rulesEdition === '2024') {
+    let total = 0
+    const ids: Array<keyof MetamagicCastFlags> = [
+      'careful',
+      'distant',
+      'empowered',
+      'extended',
+      'heightened',
+      'quickened',
+      'subtle',
+      'twinned',
+      'seeking',
+    ]
+    for (const id of ids) {
+      if (!flags[id]) continue
+      const def = metamagicById2024(String(id))
+      if (def) total += def.cost
+    }
+    if (flags.transmutedType) {
+      const def = metamagicById2024('transmuted')
+      if (def) total += def.cost
+    }
+    return total
+  }
   let total = 0
   const ids: Array<keyof MetamagicCastFlags> = [
     'careful',
@@ -200,6 +252,7 @@ export function applyMetamagicToCastParams(
     components?: { v?: boolean; s?: boolean; m?: string | boolean | null } | null
   },
   flags: MetamagicCastFlags,
+  rulesEdition?: string | null,
 ): {
   casting_time: string
   range: string
@@ -241,7 +294,19 @@ export function applyMetamagicToCastParams(
   if (flags.subtle) {
     v = false
     s = false
-    notes.push('Тонкое: без В и С')
+  }
+  if (flags.subtle) {
+    notes.push(
+      rulesEdition === '2024'
+        ? 'Неуловимое: без В, С и М (кроме расходуемых/с ценой)'
+        : 'Тонкое: без В и С',
+    )
+    if (rulesEdition === '2024') {
+      const m = spell.components?.m
+      if (m == null || m === false) {
+        /* no material to strip */
+      }
+    }
   }
   if (flags.extended) {
     duration = `${duration} (×2, макс. 24 ч.)`
@@ -279,14 +344,82 @@ export function applyMetamagicToCastParams(
   const parts: string[] = []
   if (v) parts.push('В')
   if (s) parts.push('С')
-  if (m != null && m !== false) parts.push('М')
+  const showMaterial =
+    m != null && m !== false && !(flags.subtle && rulesEdition === '2024')
+  if (showMaterial) parts.push('М')
   const componentsLabel = parts.length > 0 ? parts.join('/') : '—'
 
   return { casting_time, range, duration, componentsLabel, notes }
 }
 
+export function metamagicSpendCostForCast(
+  def: MetamagicDef,
+  spellSlotLevel: number,
+  rulesEdition?: string | null,
+): number {
+  if (rulesEdition === '2024') {
+    return def.costPoints != null ? def.costPoints : metamagicById2024(def.id)?.cost ?? 1
+  }
+  return metamagicSpendCost(def, spellSlotLevel)
+}
+
+export function validateMetamagicCast2024(input: {
+  flags: MetamagicCastFlags
+  metamagicKnown: string[]
+  sorcererLevel: number
+  innateSorceryActive: boolean
+  spell: { level: number; casting_time?: string | null }
+}): { ok: boolean; reasonRu?: string; cost?: number } {
+  const ids: string[] = []
+  const { flags } = input
+  if (flags.careful) ids.push('careful')
+  if (flags.distant) ids.push('distant')
+  if (flags.empowered) ids.push('empowered')
+  if (flags.extended) ids.push('extended')
+  if (flags.heightened) ids.push('heightened')
+  if (flags.quickened) ids.push('quickened')
+  if (flags.subtle) ids.push('subtle')
+  if (flags.twinned) ids.push('twinned')
+  if (flags.seeking) ids.push('seeking')
+  if (flags.transmutedType) ids.push('transmuted')
+  const selection: MetamagicCastSelection2024 = {
+    primaryId: ids[0] ?? null,
+    secondaryId: ids[1] ?? null,
+    freeApotheosisOn: null,
+    transmutedType: flags.transmutedType,
+  }
+
+  const ctx = sorcerer2024Context({
+    rulesEdition: '2024',
+    sorcererLevel: input.sorcererLevel,
+    innateSorceryActive: input.innateSorceryActive,
+    metamagicKnown: input.metamagicKnown,
+  })
+  if (!ctx) return { ok: true, cost: 0 }
+  const resolved = resolveMetamagicOnCast2024({
+    flags: ctx,
+    selection,
+    spell: input.spell,
+  })
+  if (!resolved.ok) return { ok: false, reasonRu: resolved.reasonRu }
+  return { ok: true, cost: resolved.cost }
+}
+
 /** Validate stacking: at most one non-stackable + any stackables. */
-export function metamagicStackOk(flags: MetamagicCastFlags): boolean {
+export function metamagicStackOk(
+  flags: MetamagicCastFlags,
+  options?: { rulesEdition?: string | null; sorcererLevel?: number; innateSorceryActive?: boolean; metamagicKnown?: string[]; spell?: { level: number; casting_time?: string | null } },
+): boolean {
+  if (options?.rulesEdition === '2024' && options.spell) {
+    const check = validateMetamagicCast2024({
+      flags,
+      metamagicKnown: options.metamagicKnown ?? [],
+      sorcererLevel: options.sorcererLevel ?? 1,
+      innateSorceryActive: Boolean(options.innateSorceryActive),
+      spell: options.spell,
+    })
+    return check.ok
+  }
   const primary: string[] = []
   const stackable: string[] = []
   const check = (id: string, on: boolean | string | null | undefined) => {

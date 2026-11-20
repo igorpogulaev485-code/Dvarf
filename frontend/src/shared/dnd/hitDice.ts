@@ -24,6 +24,23 @@ export function recoverHitDiceOnLongRest(current: number, max: number): number {
   return clampHitDiceCurrent(current + regain, safeMax)
 }
 
+/** SRD 5.2.1: Long Rest restores all spent Hit Point Dice. */
+export function recoverHitDiceOnLongRest2024(_current: number, max: number): number {
+  const safeMax = Math.max(0, Math.floor(max))
+  if (safeMax <= 0) return 0
+  return safeMax
+}
+
+export function recoverHitDiceOnLongRestForEdition(
+  current: number,
+  max: number,
+  edition?: string | null,
+): number {
+  return String(edition ?? '2014').trim() === '2024'
+    ? recoverHitDiceOnLongRest2024(current, max)
+    : recoverHitDiceOnLongRest(current, max)
+}
+
 export function spendHitDie(current: number): number {
   return Math.max(0, Math.floor(current) - 1)
 }

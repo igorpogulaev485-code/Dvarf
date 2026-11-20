@@ -59,10 +59,27 @@ export function JoinLobbyPage() {
   const [startMismatch, setStartMismatch] = useState<string[] | null>(null)
 
   const codeReady = code.trim().length >= 4
+  const lobbyEdition = (inviteMeta?.rules_edition || '2014').trim() || '2014'
+
+  const seatableCharacters = useMemo(() => {
+    // P24-M04: посадка только в свою редакцию — фильтр всегда, флаг открывает лишь создание.
+    return characters.filter((c) => (c.rules_edition || '2014') === lobbyEdition)
+  }, [characters, lobbyEdition])
+
   const selected = useMemo(
-    () => characters.find((c) => c.id === characterId) ?? null,
-    [characters, characterId],
+    () => seatableCharacters.find((c) => c.id === characterId) ?? null,
+    [seatableCharacters, characterId],
   )
+
+  useEffect(() => {
+    if (seatableCharacters.length === 0) {
+      if (characterId) setCharacterId('')
+      return
+    }
+    if (!seatableCharacters.some((c) => c.id === characterId)) {
+      setCharacterId(seatableCharacters[0].id)
+    }
+  }, [seatableCharacters, characterId])
 
   const startLevel = useMemo(() => {
     if (!inviteMeta) return null
@@ -95,7 +112,6 @@ export function JoinLobbyPage() {
       .then((items) => {
         if (!active) return
         setCharacters(items)
-        if (items[0]) setCharacterId(items[0].id)
       })
       .catch((err: unknown) => {
         if (!active) return
@@ -199,6 +215,16 @@ export function JoinLobbyPage() {
       if (mismatch && (action === 'join' || action === 'transfer')) {
         setStartMismatch(mismatch.mismatches)
         setError(null)
+        return
+      }
+      if (
+        err instanceof ApiRequestError &&
+        err.code === 'lobby_rules_edition_mismatch'
+      ) {
+        setError(
+          err.message ||
+            'Персонаж другой редакции — сесть за этот стол нельзя. Смешанный стол запрещён.',
+        )
         return
       }
       setError(err instanceof ApiRequestError ? err.message : 'Не удалось войти в лобби')
@@ -318,19 +344,25 @@ export function JoinLobbyPage() {
                         }}
                         required
                       >
-                        {characters.map((c) => (
+                        {seatableCharacters.map((c) => (
                           <option key={c.id} value={c.id}>
                             {c.name} · {characterMeta(c)}
                           </option>
                         ))}
                       </Select>
                     </Field>
+                    {inviteMeta && seatableCharacters.length === 0 ? (
+                      <Text tone="muted">
+                        Нет персонажей редакции {lobbyEdition} для этого стола.
+                        Смешанный стол 2014+2024 запрещён.
+                      </Text>
+                    ) : null}
                   </div>
 
                   <fieldset className="join-flow__cards" disabled={!codeReady}>
                     <legend className="join-flow__cards-legend">Какого персонажа добавить</legend>
                     <div className="join-flow__card-list" role="listbox" aria-label="Персонажи">
-                      {characters.map((c) => {
+                      {seatableCharacters.map((c) => {
                         const active = c.id === characterId
                         return (
                           <button
@@ -356,6 +388,12 @@ export function JoinLobbyPage() {
                         )
                       })}
                     </div>
+                    {inviteMeta && seatableCharacters.length === 0 ? (
+                      <Text tone="muted" data-testid="join-edition-empty">
+                        Нет персонажей редакции {lobbyEdition} для этого стола.
+                        Смешанный стол 2014+2024 запрещён.
+                      </Text>
+                    ) : null}
                   </fieldset>
 
                   {selected && codeReady ? (

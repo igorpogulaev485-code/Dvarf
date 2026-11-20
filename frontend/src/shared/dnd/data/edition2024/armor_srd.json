@@ -1,0 +1,379 @@
+{
+  "meta": {
+    "pack": "P24-C03",
+    "rules_edition": "2024",
+    "source": "srd-5.2",
+    "notes_ru": "12 доспехов + щит из SRD 5.2.1. RU из armor.csv."
+  },
+  "entries": [
+    {
+      "kind": "armor",
+      "slug": "breastplate",
+      "name_ru": "Кираса",
+      "name_en": "Breastplate",
+      "source": "srd-5.2",
+      "sort_order": 10,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/49-breastplate",
+        "url_ttg": "https://new.ttg.club/items/breastplate-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "armor_kind": "medium",
+        "base_ac": 14,
+        "dex_bonus": "max2",
+        "strength_requirement": null,
+        "stealth_disadvantage": false,
+        "weight_lb": 20,
+        "cost": {
+          "amount": 400,
+          "unit": "gp"
+        },
+        "don_time": "5 мин",
+        "doff_time": "1 мин",
+        "summary_ru": "Доспех (средний): КД 14 + Ловк. (макс. 2)."
+      }
+    },
+    {
+      "kind": "armor",
+      "slug": "chain-mail",
+      "name_ru": "Кольчуга",
+      "name_en": "Chain Mail",
+      "source": "srd-5.2",
+      "sort_order": 20,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/52-chain-mail",
+        "url_ttg": "https://new.ttg.club/items/chain-mail-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "armor_kind": "heavy",
+        "base_ac": 16,
+        "dex_bonus": "none",
+        "strength_requirement": 13,
+        "stealth_disadvantage": true,
+        "weight_lb": 55,
+        "cost": {
+          "amount": 75,
+          "unit": "gp"
+        },
+        "don_time": "10 мин",
+        "doff_time": "5 мин",
+        "summary_ru": "Доспех (тяжёлый): КД 16.",
+        "name_ru_pending": false
+      }
+    },
+    {
+      "kind": "armor",
+      "slug": "chain-shirt",
+      "name_ru": "Кольчужная рубаха",
+      "name_en": "Chain Shirt",
+      "source": "srd-5.2",
+      "sort_order": 30,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/47-chain-shirt",
+        "url_ttg": "https://new.ttg.club/items/chain-shirt-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "armor_kind": "medium",
+        "base_ac": 13,
+        "dex_bonus": "max2",
+        "strength_requirement": null,
+        "stealth_disadvantage": false,
+        "weight_lb": 20,
+        "cost": {
+          "amount": 50,
+          "unit": "gp"
+        },
+        "don_time": "5 мин",
+        "doff_time": "1 мин",
+        "summary_ru": "Доспех (средний): КД 13 + Ловк. (макс. 2)."
+      }
+    },
+    {
+      "kind": "armor",
+      "slug": "half-plate-armor",
+      "name_ru": "Полулаты",
+      "name_en": "Half Plate Armor",
+      "source": "srd-5.2",
+      "sort_order": 40,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/50-half-plate-armor",
+        "url_ttg": "https://new.ttg.club/items/half-plate-armor-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "armor_kind": "medium",
+        "base_ac": 15,
+        "dex_bonus": "max2",
+        "strength_requirement": null,
+        "stealth_disadvantage": true,
+        "weight_lb": 40,
+        "cost": {
+          "amount": 750,
+          "unit": "gp"
+        },
+        "don_time": "5 мин",
+        "doff_time": "1 мин",
+        "summary_ru": "Доспех (средний): КД 15 + Ловк. (макс. 2)."
+      }
+    },
+    {
+      "kind": "armor",
+      "slug": "hide-armor",
+      "name_ru": "Шкурный доспех",
+      "name_en": "Hide Armor",
+      "source": "srd-5.2",
+      "sort_order": 50,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/46-hide-armor",
+        "url_ttg": "https://new.ttg.club/items/hide-armor-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "armor_kind": "medium",
+        "base_ac": 12,
+        "dex_bonus": "max2",
+        "strength_requirement": null,
+        "stealth_disadvantage": false,
+        "weight_lb": 12,
+        "cost": {
+          "amount": 10,
+          "unit": "gp"
+        },
+        "don_time": "5 мин",
+        "doff_time": "1 мин",
+        "summary_ru": "Доспех (средний): КД 12 + Ловк. (макс. 2)."
+      }
+    },
+    {
+      "kind": "armor",
+      "slug": "leather-armor",
+      "name_ru": "Кожаный доспех",
+      "name_en": "Leather Armor",
+      "source": "srd-5.2",
+      "sort_order": 60,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/44-leather-armor",
+        "url_ttg": "https://new.ttg.club/items/leather-armor-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "armor_kind": "light",
+        "base_ac": 11,
+        "dex_bonus": "full",
+        "strength_requirement": null,
+        "stealth_disadvantage": false,
+        "weight_lb": 10,
+        "cost": {
+          "amount": 10,
+          "unit": "gp"
+        },
+        "don_time": "1 мин",
+        "doff_time": "1 мин",
+        "summary_ru": "Доспех (лёгкий): КД 11 + Ловк.."
+      }
+    },
+    {
+      "kind": "armor",
+      "slug": "padded-armor",
+      "name_ru": "Стёганый доспех",
+      "name_en": "Padded Armor",
+      "source": "srd-5.2",
+      "sort_order": 70,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/43-padded-armor",
+        "url_ttg": "https://new.ttg.club/items/padded-armor-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "armor_kind": "light",
+        "base_ac": 11,
+        "dex_bonus": "full",
+        "strength_requirement": null,
+        "stealth_disadvantage": true,
+        "weight_lb": 8,
+        "cost": {
+          "amount": 5,
+          "unit": "gp"
+        },
+        "don_time": "1 мин",
+        "doff_time": "1 мин",
+        "summary_ru": "Доспех (лёгкий): КД 11 + Ловк.."
+      }
+    },
+    {
+      "kind": "armor",
+      "slug": "plate-armor",
+      "name_ru": "Латы",
+      "name_en": "Plate Armor",
+      "source": "srd-5.2",
+      "sort_order": 80,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/54-plate-armor",
+        "url_ttg": "https://new.ttg.club/items/plate-armor-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "armor_kind": "heavy",
+        "base_ac": 18,
+        "dex_bonus": "none",
+        "strength_requirement": 15,
+        "stealth_disadvantage": true,
+        "weight_lb": 65,
+        "cost": {
+          "amount": 1500,
+          "unit": "gp"
+        },
+        "don_time": "10 мин",
+        "doff_time": "5 мин",
+        "summary_ru": "Доспех (тяжёлый): КД 18.",
+        "name_ru_pending": false
+      }
+    },
+    {
+      "kind": "armor",
+      "slug": "ring-mail",
+      "name_ru": "Колечный доспех",
+      "name_en": "Ring Mail",
+      "source": "srd-5.2",
+      "sort_order": 90,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/51-ring-mail",
+        "url_ttg": "https://new.ttg.club/items/ring-mail-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "armor_kind": "heavy",
+        "base_ac": 14,
+        "dex_bonus": "none",
+        "strength_requirement": null,
+        "stealth_disadvantage": true,
+        "weight_lb": 40,
+        "cost": {
+          "amount": 30,
+          "unit": "gp"
+        },
+        "don_time": "10 мин",
+        "doff_time": "5 мин",
+        "summary_ru": "Доспех (тяжёлый): КД 14.",
+        "name_ru_pending": false
+      }
+    },
+    {
+      "kind": "armor",
+      "slug": "scale-mail",
+      "name_ru": "Чешуйчатый доспех",
+      "name_en": "Scale Mail",
+      "source": "srd-5.2",
+      "sort_order": 100,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/48-scale-mail",
+        "url_ttg": "https://new.ttg.club/items/scale-mail-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "armor_kind": "medium",
+        "base_ac": 14,
+        "dex_bonus": "max2",
+        "strength_requirement": null,
+        "stealth_disadvantage": true,
+        "weight_lb": 45,
+        "cost": {
+          "amount": 50,
+          "unit": "gp"
+        },
+        "don_time": "5 мин",
+        "doff_time": "1 мин",
+        "summary_ru": "Доспех (средний): КД 14 + Ловк. (макс. 2)."
+      }
+    },
+    {
+      "kind": "armor",
+      "slug": "shield",
+      "name_ru": "Щит",
+      "name_en": "Shield",
+      "source": "srd-5.2",
+      "sort_order": 110,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/56-shield",
+        "url_ttg": "https://new.ttg.club/items/shield-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "armor_kind": "shield",
+        "base_ac": 2,
+        "dex_bonus": "none",
+        "strength_requirement": null,
+        "stealth_disadvantage": false,
+        "weight_lb": 6,
+        "cost": {
+          "amount": 10,
+          "unit": "gp"
+        },
+        "don_time": null,
+        "doff_time": null,
+        "summary_ru": "Щит: +2 КД."
+      }
+    },
+    {
+      "kind": "armor",
+      "slug": "splint-armor",
+      "name_ru": "Наборный доспех",
+      "name_en": "Splint Armor",
+      "source": "srd-5.2",
+      "sort_order": 120,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/53-splint-armor",
+        "url_ttg": "https://new.ttg.club/items/splint-armor-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "armor_kind": "heavy",
+        "base_ac": 17,
+        "dex_bonus": "none",
+        "strength_requirement": 15,
+        "stealth_disadvantage": true,
+        "weight_lb": 60,
+        "cost": {
+          "amount": 200,
+          "unit": "gp"
+        },
+        "don_time": "10 мин",
+        "doff_time": "5 мин",
+        "summary_ru": "Доспех (тяжёлый): КД 17.",
+        "name_ru_pending": false
+      }
+    },
+    {
+      "kind": "armor",
+      "slug": "studded-leather-armor",
+      "name_ru": "Клёпаный кожаный доспех",
+      "name_en": "Studded Leather Armor",
+      "source": "srd-5.2",
+      "sort_order": 130,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/45-studded-leather-armor",
+        "url_ttg": "https://new.ttg.club/items/studded-leather-armor-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "armor_kind": "light",
+        "base_ac": 12,
+        "dex_bonus": "full",
+        "strength_requirement": null,
+        "stealth_disadvantage": false,
+        "weight_lb": 13,
+        "cost": {
+          "amount": 45,
+          "unit": "gp"
+        },
+        "don_time": "1 мин",
+        "doff_time": "1 мин",
+        "summary_ru": "Доспех (лёгкий): КД 12 + Ловк..",
+        "name_ru_pending": false
+      }
+    }
+  ]
+}

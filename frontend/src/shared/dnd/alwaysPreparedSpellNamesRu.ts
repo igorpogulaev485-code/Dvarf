@@ -40,6 +40,7 @@ const ALWAYS_PREPARED_SPELL_NAME_RU: Record<string, string> = {
   "Compelled Duel": "Вызов на дуэль",
   "Compulsion": "Принуждение",
   "Confusion": "Смятение",
+  "Conjure Animals": "Призыв животных",
   "Conjure Barrage": "Призыв залпа",
   "Contagion": "Заражение",
   "Control Water": "Власть над водами",

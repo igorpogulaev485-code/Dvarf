@@ -23,7 +23,10 @@ import {
   applyMediumArmorMasterCap,
   dualWielderAcBonus,
 } from '../../shared/dnd/b07FeatCombat'
-import { initiativeBonusFromFeatures } from '../characters/featureCombatBonuses'
+import {
+  hasDraconicResilienceFeature,
+  initiativeBonusFromFeatures,
+} from '../characters/featureCombatBonuses'
 import { listFightingStyleIds, readFeaturePicks } from '../../shared/dnd/featurePicks'
 import { fightingStyleAcBonusFromIds } from '../../shared/dnd/fightingStyles'
 import { aggregateInfusionBonuses } from '../../shared/dnd/infusionEffects'
@@ -188,12 +191,13 @@ export function classicAutoArmorClass(character: CharacterDetail): number {
   const mageFormula = mageArmor ? { ...mageArmor, key: 'mage_armor' } : null
   const combatEffects = asRecord(sheet.combat).effects
   const effectFormulas = pieces.armor ? [] : acFormulasFromActiveEffects(combatEffects)
-  const hasDraconic = unlocked.some((feature) => feature.id === 'draconic_resilience')
+  const rulesEdition = String(character.rules_edition ?? '2014').trim()
+  const hasDraconic = hasDraconicResilienceFeature(unlocked, rulesEdition)
   const draconic = !pieces.armor && hasDraconic
     ? {
         key: 'draconic_resilience',
         label: 'Драконья устойчивость',
-        base: 13,
+        base: rulesEdition === '2024' ? 10 + mods.cha : 13,
         dexCap: null as number | null,
         allowsShield: true,
       }
@@ -340,6 +344,7 @@ export function classicDisplayInitiative(character: CharacterDetail): string {
 export function classicDisplaySpeed(character: CharacterDetail): string {
   const stored = readNullableCombatNumber(character, 'speed')
   const sheet = asRecord(character.sheet)
+  const rulesEdition = String(character.rules_edition ?? sheet.rules_edition ?? '2014').trim()
   const inventory = readInventory(sheet)
   const gear = aggregateGearEffects({
     items: inventory.items,
@@ -360,11 +365,13 @@ export function classicDisplaySpeed(character: CharacterDetail): string {
     classes,
     wearingHeavyArmor: wearingHeavy,
     wearingArmorOrShield,
+    rulesEdition,
   })
   const classBonusMax = classWalkSpeedBonusFt({
     classes,
     wearingHeavyArmor: false,
     wearingArmorOrShield: false,
+    rulesEdition,
   })
   const featBonus = sumFeatSpeedBonus(readFeatGrantLedger(sheet.feat_grants))
   const resolved = resolveWalkSpeedFt({

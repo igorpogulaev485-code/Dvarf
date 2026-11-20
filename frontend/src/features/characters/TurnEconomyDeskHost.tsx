@@ -1,6 +1,7 @@
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import type { SheetModel } from './minimalSheet/sheetModel'
 import { applyBeginMyTurnWithCompanions } from './beginMyTurn'
+import { SPELLFIRE_BURST_TURN_PICK_KEY } from '../../shared/dnd/sorcererBook2024Features'
 import {
   TurnEconomyProvider,
   type TurnEconomyContextValue,
@@ -77,10 +78,15 @@ export function TurnEconomyDeskHost({ model, children }: Props) {
         play: prev.play,
         companions: prev.companions,
       })
+      const values = { ...(prev.featurePicks?.values ?? {}) }
+      for (const key of Object.keys(values)) {
+        if (key.endsWith(`:${SPELLFIRE_BURST_TURN_PICK_KEY}`)) delete values[key]
+      }
       return {
         ...prev,
         play: next.play,
         companions: next.companions,
+        featurePicks: { values },
       }
     })
   }, [model])
@@ -91,6 +97,23 @@ export function TurnEconomyDeskHost({ model, children }: Props) {
     },
     onTurnEconomyReset: () => beginMyTurn(),
   })
+
+  /** P24-M04: desk allies for heroic inspiration transfer (limit 1 → pass). */
+  useEffect(() => {
+    const seats = combat.session?.seats ?? []
+    const allies = seats
+      .filter(
+        (seat) =>
+          seat.character_id &&
+          seat.character_id !== characterId &&
+          !seat.inspiration,
+      )
+      .map((seat) => ({
+        id: seat.character_id,
+        name: seat.character_name || 'Союзник',
+      }))
+    model.deskHeroicAllies = allies
+  }, [combat.session, characterId, model])
 
   const economy = model.draft.play.turnEconomy ?? emptyTurnEconomy()
   const personalPref = Boolean(model.draft.sheetUi.diceOnTablePref)
@@ -171,6 +194,7 @@ export function TurnEconomyDeskHost({ model, children }: Props) {
       combatTurnsUntil: combat.turnsUntil,
       initiativePending: combat.initiativePending,
       openInitiativeRoll: () => setInitiativeOpen(true),
+      combatSurprised: Boolean(combat.combatSurprised),
       openSessionId,
       characterId,
       targets: combat.targets,
@@ -194,18 +218,47 @@ export function TurnEconomyDeskHost({ model, children }: Props) {
         patchEconomy((te) => markBlessedStrikesUsedState(te)),
       markFavoredFoeDamageUsed: () =>
         patchEconomy((te) => markFavoredFoeDamageUsedState(te)),
-      grantActionSurge: () => patchEconomy(applyActionSurge),
+      grantActionSurge: (opts) =>
+        patchEconomy((te) => applyActionSurge(te, opts)),
       canSearch: () => canSpendSearch(economy),
       spendSearch: () => patchEconomy(applySearchSpend),
       canHide: (hasCunningAction) => resolveHideTiming(economy, hasCunningAction),
       spendHide: (timing: HideSpendTiming) =>
         patchEconomy((te) => applyHideSpend(te, timing)),
-      canSteadyAim: () => canSpendSteadyAim(economy),
+      canSteadyAim: () => {
+        const edition = model.baseCharacter?.rules_edition ?? model.rulesEdition
+        const infiltration =
+          edition === '2024' &&
+          (model.unlockedFeatures ?? []).some(
+            (f: { id?: string }) =>
+              f.id === 'infiltration_expertise' || f.id === 'infiltration-expertise',
+          )
+        return canSpendSteadyAim(
+          economy,
+          infiltration ? { allowsMoved: true, noSpeedZero: true } : undefined,
+        )
+      },
       spendSteadyAim: () => {
-        if (!canSpendSteadyAim(economy).ok) return
+        const edition = model.baseCharacter?.rules_edition ?? model.rulesEdition
+        const infiltration =
+          edition === '2024' &&
+          (model.unlockedFeatures ?? []).some(
+            (f: { id?: string }) =>
+              f.id === 'infiltration_expertise' || f.id === 'infiltration-expertise',
+          )
+        const opts = infiltration
+          ? { allowsMoved: true, noSpeedZero: true }
+          : undefined
+        if (!canSpendSteadyAim(economy, opts).ok) return
         model.setDraft((prev) => {
           const te = prev.play.turnEconomy ?? emptyTurnEconomy()
-          const nextTe = applySteadyAim(te)
+          const nextTe = applySteadyAim(te, opts)
+          const mods: ActiveEffect['mods'] = [
+            { target: 'advantage', op: 'advantage', condition: 'attack', once: true },
+          ]
+          if (!opts?.noSpeedZero) {
+            mods.push({ target: 'speed', op: 'set', value: 0 })
+          }
           const effect: ActiveEffect = {
             id:
               typeof crypto !== 'undefined' && 'randomUUID' in crypto
@@ -218,10 +271,7 @@ export function TurnEconomyDeskHost({ model, children }: Props) {
             source_character_id: characterId || null,
             source_name: null,
             linked_concentration: false,
-            mods: [
-              { target: 'advantage', op: 'advantage', condition: 'attack', once: true },
-              { target: 'speed', op: 'set', value: 0 },
-            ],
+            mods,
             duration: { unit: 'until_source_next_turn_end' },
           }
           const withoutOld = (prev.play.effects ?? []).filter(
@@ -297,6 +347,7 @@ export function TurnEconomyDeskHost({ model, children }: Props) {
       combat.activeEntry?.name,
       combat.turnsUntil,
       combat.initiativePending,
+      combat.combatSurprised,
       combat.targets,
       openSessionId,
       characterId,
@@ -337,6 +388,12 @@ export function TurnEconomyDeskHost({ model, children }: Props) {
         seat={
           combat.session?.seats?.find((s) => s.character_id === characterId) ??
           null
+        }
+        rulesEdition={
+          combat.session?.rules_edition ??
+          model.baseCharacter?.rules_edition ??
+          model.rulesEdition ??
+          '2014'
         }
         onClose={() => setInitiativeOpen(false)}
         onRoll={({ advantage }) => {

@@ -43,7 +43,8 @@ function assert(cond: unknown, msg: string): void {
 }
 
 // Dark One's Blessing: warlock 5 Cha 18 → 9 temp HP.
-assert(darkOnesBlessingTempHp(5, 4) === 9, 'dark one blessing 9')
+assert(darkOnesBlessingTempHp(5, 4) === 9, 'dark one blessing 9 = Cha+level (Fiend)')
+assert(darkOnesBlessingTempHp(3, 3) === 6, 'Fiend blessing L3 Cha+3 → 6')
 assert(tombOfLevistusTempHp(3) === 30, 'tomb 30')
 
 {

@@ -1,0 +1,1226 @@
+{
+  "meta": {
+    "pack": "P24-C03",
+    "rules_edition": "2024",
+    "source": "srd-5.2",
+    "notes_ru": "38 оружий SRD 5.2.1. mastery отдельно от properties. RU из weapons.csv (next.dnd.su)."
+  },
+  "entries": [
+    {
+      "kind": "weapon",
+      "slug": "battleaxe",
+      "name_ru": "Боевой топор",
+      "name_en": "Battleaxe",
+      "source": "srd-5.2",
+      "sort_order": 10,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/13-battleaxe",
+        "url_ttg": "https://new.ttg.club/items/battleaxe-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "category": "martial",
+        "range_kind": "melee",
+        "damage": "1d8",
+        "damage_type": "slashing",
+        "weight_lb": 4,
+        "cost": {
+          "amount": 10,
+          "unit": "gp"
+        },
+        "properties": [
+          "versatile"
+        ],
+        "mastery": "topple",
+        "summary_ru": "Воинское рукопашное: 1d8 (рубящий).",
+        "versatile_damage": "1d10"
+      }
+    },
+    {
+      "kind": "weapon",
+      "slug": "blowgun",
+      "name_ru": "Духовая трубка",
+      "name_en": "Blowgun",
+      "source": "srd-5.2",
+      "sort_order": 20,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/34-blowgun",
+        "url_ttg": "https://new.ttg.club/items/blowgun-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "category": "martial",
+        "range_kind": "ranged",
+        "damage": "1",
+        "damage_type": "piercing",
+        "weight_lb": 1,
+        "cost": {
+          "amount": 10,
+          "unit": "gp"
+        },
+        "properties": [
+          "ammunition",
+          "loading"
+        ],
+        "mastery": "vex",
+        "summary_ru": "Воинское дальнобойное: 1 (колющий).",
+        "range": {
+          "normal": 25,
+          "long": 100
+        },
+        "ammunition_type": "needle"
+      }
+    },
+    {
+      "kind": "weapon",
+      "slug": "club",
+      "name_ru": "Дубинка",
+      "name_en": "Club",
+      "source": "srd-5.2",
+      "sort_order": 30,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/3-club",
+        "url_ttg": "https://new.ttg.club/items/club-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "category": "simple",
+        "range_kind": "melee",
+        "damage": "1d4",
+        "damage_type": "bludgeoning",
+        "weight_lb": 2,
+        "cost": {
+          "amount": 1,
+          "unit": "sp"
+        },
+        "properties": [
+          "light"
+        ],
+        "mastery": "slow",
+        "summary_ru": "Простое рукопашное: 1d4 (дробящий)."
+      }
+    },
+    {
+      "kind": "weapon",
+      "slug": "dagger",
+      "name_ru": "Кинжал",
+      "name_en": "Dagger",
+      "source": "srd-5.2",
+      "sort_order": 40,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/4-dagger",
+        "url_ttg": "https://new.ttg.club/items/dagger-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "category": "simple",
+        "range_kind": "melee",
+        "damage": "1d4",
+        "damage_type": "piercing",
+        "weight_lb": 1,
+        "cost": {
+          "amount": 2,
+          "unit": "gp"
+        },
+        "properties": [
+          "finesse",
+          "light",
+          "thrown"
+        ],
+        "mastery": "nick",
+        "summary_ru": "Простое рукопашное: 1d4 (колющий).",
+        "thrown_range": {
+          "normal": 20,
+          "long": 60
+        }
+      }
+    },
+    {
+      "kind": "weapon",
+      "slug": "dart",
+      "name_ru": "Дротик",
+      "name_en": "Dart",
+      "source": "srd-5.2",
+      "sort_order": 50,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/29-dart",
+        "url_ttg": "https://new.ttg.club/items/dart-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "category": "simple",
+        "range_kind": "ranged",
+        "damage": "1d4",
+        "damage_type": "piercing",
+        "weight_lb": 0.25,
+        "cost": {
+          "amount": 5,
+          "unit": "cp"
+        },
+        "properties": [
+          "finesse",
+          "thrown"
+        ],
+        "mastery": "vex",
+        "summary_ru": "Простое дальнобойное: 1d4 (колющий).",
+        "thrown_range": {
+          "normal": 20,
+          "long": 60
+        }
+      }
+    },
+    {
+      "kind": "weapon",
+      "slug": "flail",
+      "name_ru": "Цеп",
+      "name_en": "Flail",
+      "source": "srd-5.2",
+      "sort_order": 60,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/28-flail",
+        "url_ttg": "https://new.ttg.club/items/flail-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "category": "martial",
+        "range_kind": "melee",
+        "damage": "1d8",
+        "damage_type": "bludgeoning",
+        "weight_lb": 2,
+        "cost": {
+          "amount": 10,
+          "unit": "gp"
+        },
+        "properties": [],
+        "mastery": "sap",
+        "summary_ru": "Воинское рукопашное: 1d8 (дробящий)."
+      }
+    },
+    {
+      "kind": "weapon",
+      "slug": "glaive",
+      "name_ru": "Глефа",
+      "name_en": "Glaive",
+      "source": "srd-5.2",
+      "sort_order": 70,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/14-glaive",
+        "url_ttg": "https://new.ttg.club/items/glaive-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "category": "martial",
+        "range_kind": "melee",
+        "damage": "1d10",
+        "damage_type": "slashing",
+        "weight_lb": 6,
+        "cost": {
+          "amount": 20,
+          "unit": "gp"
+        },
+        "properties": [
+          "heavy",
+          "reach",
+          "two_handed"
+        ],
+        "mastery": "graze",
+        "summary_ru": "Воинское рукопашное: 1d10 (рубящий)."
+      }
+    },
+    {
+      "kind": "weapon",
+      "slug": "greataxe",
+      "name_ru": "Секира",
+      "name_en": "Greataxe",
+      "source": "srd-5.2",
+      "sort_order": 80,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/25-greataxe",
+        "url_ttg": "https://new.ttg.club/items/greataxe-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "category": "martial",
+        "range_kind": "melee",
+        "damage": "1d12",
+        "damage_type": "slashing",
+        "weight_lb": 7,
+        "cost": {
+          "amount": 30,
+          "unit": "gp"
+        },
+        "properties": [
+          "heavy",
+          "two_handed"
+        ],
+        "mastery": "cleave",
+        "summary_ru": "Воинское рукопашное: 1d12 (рубящий)."
+      }
+    },
+    {
+      "kind": "weapon",
+      "slug": "greatclub",
+      "name_ru": "Двуручная дубина",
+      "name_en": "Greatclub",
+      "source": "srd-5.2",
+      "sort_order": 90,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/8-greatclub",
+        "url_ttg": "https://new.ttg.club/items/greatclub-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "category": "simple",
+        "range_kind": "melee",
+        "damage": "1d8",
+        "damage_type": "bludgeoning",
+        "weight_lb": 10,
+        "cost": {
+          "amount": 2,
+          "unit": "sp"
+        },
+        "properties": [
+          "two_handed"
+        ],
+        "mastery": "push",
+        "summary_ru": "Простое рукопашное: 1d8 (дробящий)."
+      }
+    },
+    {
+      "kind": "weapon",
+      "slug": "greatsword",
+      "name_ru": "Двуручный меч",
+      "name_en": "Greatsword",
+      "source": "srd-5.2",
+      "sort_order": 100,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/15-greatsword",
+        "url_ttg": "https://new.ttg.club/items/greatsword-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "category": "martial",
+        "range_kind": "melee",
+        "damage": "2d6",
+        "damage_type": "slashing",
+        "weight_lb": 6,
+        "cost": {
+          "amount": 50,
+          "unit": "gp"
+        },
+        "properties": [
+          "heavy",
+          "two_handed"
+        ],
+        "mastery": "graze",
+        "summary_ru": "Воинское рукопашное: 2d6 (рубящий)."
+      }
+    },
+    {
+      "kind": "weapon",
+      "slug": "halberd",
+      "name_ru": "Алебарда",
+      "name_en": "Halberd",
+      "source": "srd-5.2",
+      "sort_order": 110,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/11-halberd",
+        "url_ttg": "https://new.ttg.club/items/halberd-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "category": "martial",
+        "range_kind": "melee",
+        "damage": "1d10",
+        "damage_type": "slashing",
+        "weight_lb": 6,
+        "cost": {
+          "amount": 20,
+          "unit": "gp"
+        },
+        "properties": [
+          "heavy",
+          "reach",
+          "two_handed"
+        ],
+        "mastery": "cleave",
+        "summary_ru": "Воинское рукопашное: 1d10 (рубящий)."
+      }
+    },
+    {
+      "kind": "weapon",
+      "slug": "hand-crossbow",
+      "name_ru": "Одноручный арбалет",
+      "name_en": "Hand Crossbow",
+      "source": "srd-5.2",
+      "sort_order": 120,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/37-hand-crossbow",
+        "url_ttg": "https://new.ttg.club/items/hand-crossbow-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "category": "martial",
+        "range_kind": "ranged",
+        "damage": "1d6",
+        "damage_type": "piercing",
+        "weight_lb": 3,
+        "cost": {
+          "amount": 75,
+          "unit": "gp"
+        },
+        "properties": [
+          "ammunition",
+          "light",
+          "loading"
+        ],
+        "mastery": "vex",
+        "summary_ru": "Воинское дальнобойное: 1d6 (колющий).",
+        "range": {
+          "normal": 30,
+          "long": 120
+        },
+        "ammunition_type": "bolt",
+        "name_ru_pending": false
+      }
+    },
+    {
+      "kind": "weapon",
+      "slug": "handaxe",
+      "name_ru": "Ручной топор",
+      "name_en": "Handaxe",
+      "source": "srd-5.2",
+      "sort_order": 130,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/9-handaxe",
+        "url_ttg": "https://new.ttg.club/items/handaxe-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "category": "simple",
+        "range_kind": "melee",
+        "damage": "1d6",
+        "damage_type": "slashing",
+        "weight_lb": 2,
+        "cost": {
+          "amount": 5,
+          "unit": "gp"
+        },
+        "properties": [
+          "light",
+          "thrown"
+        ],
+        "mastery": "vex",
+        "summary_ru": "Простое рукопашное: 1d6 (рубящий).",
+        "thrown_range": {
+          "normal": 20,
+          "long": 60
+        },
+        "name_ru_pending": false
+      }
+    },
+    {
+      "kind": "weapon",
+      "slug": "heavy-crossbow",
+      "name_ru": "Тяжёлый арбалет",
+      "name_en": "Heavy Crossbow",
+      "source": "srd-5.2",
+      "sort_order": 140,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/38-heavy-crossbow",
+        "url_ttg": "https://new.ttg.club/items/heavy-crossbow-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "category": "martial",
+        "range_kind": "ranged",
+        "damage": "1d10",
+        "damage_type": "piercing",
+        "weight_lb": 18,
+        "cost": {
+          "amount": 50,
+          "unit": "gp"
+        },
+        "properties": [
+          "ammunition",
+          "heavy",
+          "loading",
+          "two_handed"
+        ],
+        "mastery": "push",
+        "summary_ru": "Воинское дальнобойное: 1d10 (колющий).",
+        "range": {
+          "normal": 100,
+          "long": 400
+        },
+        "ammunition_type": "bolt"
+      }
+    },
+    {
+      "kind": "weapon",
+      "slug": "javelin",
+      "name_ru": "Метательное копьё",
+      "name_en": "Javelin",
+      "source": "srd-5.2",
+      "sort_order": 150,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/7-javelin",
+        "url_ttg": "https://new.ttg.club/items/javelin-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "category": "simple",
+        "range_kind": "melee",
+        "damage": "1d6",
+        "damage_type": "piercing",
+        "weight_lb": 2,
+        "cost": {
+          "amount": 5,
+          "unit": "sp"
+        },
+        "properties": [
+          "thrown"
+        ],
+        "mastery": "slow",
+        "summary_ru": "Простое рукопашное: 1d6 (колющий).",
+        "thrown_range": {
+          "normal": 30,
+          "long": 120
+        }
+      }
+    },
+    {
+      "kind": "weapon",
+      "slug": "lance",
+      "name_ru": "Длинное копьё",
+      "name_en": "Lance",
+      "source": "srd-5.2",
+      "sort_order": 160,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/17-lance",
+        "url_ttg": "https://new.ttg.club/items/lance-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "category": "martial",
+        "range_kind": "melee",
+        "damage": "1d10",
+        "damage_type": "piercing",
+        "weight_lb": 6,
+        "cost": {
+          "amount": 10,
+          "unit": "gp"
+        },
+        "properties": [
+          "heavy",
+          "reach",
+          "two_handed"
+        ],
+        "mastery": "topple",
+        "summary_ru": "Воинское рукопашное: 1d10 (колющий).",
+        "two_handed_note_ru": "Двуручное, кроме случая когда вы в седле.",
+        "name_ru_pending": false
+      }
+    },
+    {
+      "kind": "weapon",
+      "slug": "light-crossbow",
+      "name_ru": "Лёгкий арбалет",
+      "name_en": "Light Crossbow",
+      "source": "srd-5.2",
+      "sort_order": 170,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/31-light-crossbow",
+        "url_ttg": "https://new.ttg.club/items/light-crossbow-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "category": "simple",
+        "range_kind": "ranged",
+        "damage": "1d8",
+        "damage_type": "piercing",
+        "weight_lb": 5,
+        "cost": {
+          "amount": 25,
+          "unit": "gp"
+        },
+        "properties": [
+          "ammunition",
+          "loading",
+          "two_handed"
+        ],
+        "mastery": "slow",
+        "summary_ru": "Простое дальнобойное: 1d8 (колющий).",
+        "range": {
+          "normal": 80,
+          "long": 320
+        },
+        "ammunition_type": "bolt"
+      }
+    },
+    {
+      "kind": "weapon",
+      "slug": "light-hammer",
+      "name_ru": "Лёгкий молот",
+      "name_en": "Light Hammer",
+      "source": "srd-5.2",
+      "sort_order": 180,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/6-light-hammer",
+        "url_ttg": "https://new.ttg.club/items/light-hammer-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "category": "simple",
+        "range_kind": "melee",
+        "damage": "1d4",
+        "damage_type": "bludgeoning",
+        "weight_lb": 2,
+        "cost": {
+          "amount": 2,
+          "unit": "gp"
+        },
+        "properties": [
+          "light",
+          "thrown"
+        ],
+        "mastery": "nick",
+        "summary_ru": "Простое рукопашное: 1d4 (дробящий).",
+        "thrown_range": {
+          "normal": 20,
+          "long": 60
+        }
+      }
+    },
+    {
+      "kind": "weapon",
+      "slug": "longbow",
+      "name_ru": "Длинный лук",
+      "name_en": "Longbow",
+      "source": "srd-5.2",
+      "sort_order": 190,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/33-longbow",
+        "url_ttg": "https://new.ttg.club/items/longbow-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "category": "martial",
+        "range_kind": "ranged",
+        "damage": "1d8",
+        "damage_type": "piercing",
+        "weight_lb": 2,
+        "cost": {
+          "amount": 50,
+          "unit": "gp"
+        },
+        "properties": [
+          "ammunition",
+          "heavy",
+          "two_handed"
+        ],
+        "mastery": "slow",
+        "summary_ru": "Воинское дальнобойное: 1d8 (колющий).",
+        "range": {
+          "normal": 150,
+          "long": 600
+        },
+        "ammunition_type": "arrow"
+      }
+    },
+    {
+      "kind": "weapon",
+      "slug": "longsword",
+      "name_ru": "Длинный меч",
+      "name_en": "Longsword",
+      "source": "srd-5.2",
+      "sort_order": 200,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/16-longsword",
+        "url_ttg": "https://new.ttg.club/items/longsword-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "category": "martial",
+        "range_kind": "melee",
+        "damage": "1d8",
+        "damage_type": "slashing",
+        "weight_lb": 3,
+        "cost": {
+          "amount": 15,
+          "unit": "gp"
+        },
+        "properties": [
+          "versatile"
+        ],
+        "mastery": "sap",
+        "summary_ru": "Воинское рукопашное: 1d8 (рубящий).",
+        "versatile_damage": "1d10"
+      }
+    },
+    {
+      "kind": "weapon",
+      "slug": "mace",
+      "name_ru": "Булава",
+      "name_en": "Mace",
+      "source": "srd-5.2",
+      "sort_order": 210,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/2-mace",
+        "url_ttg": "https://new.ttg.club/items/mace-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "category": "simple",
+        "range_kind": "melee",
+        "damage": "1d6",
+        "damage_type": "bludgeoning",
+        "weight_lb": 4,
+        "cost": {
+          "amount": 5,
+          "unit": "gp"
+        },
+        "properties": [],
+        "mastery": "sap",
+        "summary_ru": "Простое рукопашное: 1d6 (дробящий)."
+      }
+    },
+    {
+      "kind": "weapon",
+      "slug": "maul",
+      "name_ru": "Молот",
+      "name_en": "Maul",
+      "source": "srd-5.2",
+      "sort_order": 220,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/21-maul",
+        "url_ttg": "https://new.ttg.club/items/maul-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "category": "martial",
+        "range_kind": "melee",
+        "damage": "2d6",
+        "damage_type": "bludgeoning",
+        "weight_lb": 10,
+        "cost": {
+          "amount": 10,
+          "unit": "gp"
+        },
+        "properties": [
+          "heavy",
+          "two_handed"
+        ],
+        "mastery": "topple",
+        "summary_ru": "Воинское рукопашное: 2d6 (дробящий)."
+      }
+    },
+    {
+      "kind": "weapon",
+      "slug": "morningstar",
+      "name_ru": "Моргенштерн",
+      "name_en": "Morningstar",
+      "source": "srd-5.2",
+      "sort_order": 230,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/22-morningstar",
+        "url_ttg": "https://new.ttg.club/items/morningstar-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "category": "martial",
+        "range_kind": "melee",
+        "damage": "1d8",
+        "damage_type": "piercing",
+        "weight_lb": 4,
+        "cost": {
+          "amount": 15,
+          "unit": "gp"
+        },
+        "properties": [],
+        "mastery": "sap",
+        "summary_ru": "Воинское рукопашное: 1d8 (колющий)."
+      }
+    },
+    {
+      "kind": "weapon",
+      "slug": "musket",
+      "name_ru": "Мушкет",
+      "name_en": "Musket",
+      "source": "srd-5.2",
+      "sort_order": 240,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/35-musket",
+        "url_ttg": "https://new.ttg.club/items/musket-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "category": "martial",
+        "range_kind": "ranged",
+        "damage": "1d12",
+        "damage_type": "piercing",
+        "weight_lb": 10,
+        "cost": {
+          "amount": 500,
+          "unit": "gp"
+        },
+        "properties": [
+          "ammunition",
+          "loading",
+          "two_handed"
+        ],
+        "mastery": "slow",
+        "summary_ru": "Воинское дальнобойное: 1d12 (колющий).",
+        "range": {
+          "normal": 40,
+          "long": 120
+        },
+        "ammunition_type": "firearm_bullet"
+      }
+    },
+    {
+      "kind": "weapon",
+      "slug": "pike",
+      "name_ru": "Пика",
+      "name_en": "Pike",
+      "source": "srd-5.2",
+      "sort_order": 250,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/23-pike",
+        "url_ttg": "https://new.ttg.club/items/pike-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "category": "martial",
+        "range_kind": "melee",
+        "damage": "1d10",
+        "damage_type": "piercing",
+        "weight_lb": 18,
+        "cost": {
+          "amount": 5,
+          "unit": "gp"
+        },
+        "properties": [
+          "heavy",
+          "reach",
+          "two_handed"
+        ],
+        "mastery": "push",
+        "summary_ru": "Воинское рукопашное: 1d10 (колющий)."
+      }
+    },
+    {
+      "kind": "weapon",
+      "slug": "pistol",
+      "name_ru": "Пистоль",
+      "name_en": "Pistol",
+      "source": "srd-5.2",
+      "sort_order": 260,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/36-pistol",
+        "url_ttg": "https://new.ttg.club/items/pistol-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "category": "martial",
+        "range_kind": "ranged",
+        "damage": "1d10",
+        "damage_type": "piercing",
+        "weight_lb": 3,
+        "cost": {
+          "amount": 250,
+          "unit": "gp"
+        },
+        "properties": [
+          "ammunition",
+          "loading"
+        ],
+        "mastery": "vex",
+        "summary_ru": "Воинское дальнобойное: 1d10 (колющий).",
+        "range": {
+          "normal": 30,
+          "long": 90
+        },
+        "ammunition_type": "firearm_bullet"
+      }
+    },
+    {
+      "kind": "weapon",
+      "slug": "quarterstaff",
+      "name_ru": "Боевой посох",
+      "name_en": "Quarterstaff",
+      "source": "srd-5.2",
+      "sort_order": 270,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/1-quarterstaff",
+        "url_ttg": "https://new.ttg.club/items/quarterstaff-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "category": "simple",
+        "range_kind": "melee",
+        "damage": "1d6",
+        "damage_type": "bludgeoning",
+        "weight_lb": 4,
+        "cost": {
+          "amount": 2,
+          "unit": "sp"
+        },
+        "properties": [
+          "versatile"
+        ],
+        "mastery": "topple",
+        "summary_ru": "Простое рукопашное: 1d6 (дробящий).",
+        "versatile_damage": "1d8"
+      }
+    },
+    {
+      "kind": "weapon",
+      "slug": "rapier",
+      "name_ru": "Рапира",
+      "name_en": "Rapier",
+      "source": "srd-5.2",
+      "sort_order": 280,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/24-rapier",
+        "url_ttg": "https://new.ttg.club/items/rapier-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "category": "martial",
+        "range_kind": "melee",
+        "damage": "1d8",
+        "damage_type": "piercing",
+        "weight_lb": 2,
+        "cost": {
+          "amount": 25,
+          "unit": "gp"
+        },
+        "properties": [
+          "finesse"
+        ],
+        "mastery": "vex",
+        "summary_ru": "Воинское рукопашное: 1d8 (колющий)."
+      }
+    },
+    {
+      "kind": "weapon",
+      "slug": "scimitar",
+      "name_ru": "Ятаган",
+      "name_en": "Scimitar",
+      "source": "srd-5.2",
+      "sort_order": 290,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/26-scimitar",
+        "url_ttg": "https://new.ttg.club/items/scimitar-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "category": "martial",
+        "range_kind": "melee",
+        "damage": "1d6",
+        "damage_type": "slashing",
+        "weight_lb": 3,
+        "cost": {
+          "amount": 25,
+          "unit": "gp"
+        },
+        "properties": [
+          "finesse",
+          "light"
+        ],
+        "mastery": "nick",
+        "summary_ru": "Воинское рукопашное: 1d6 (рубящий)."
+      }
+    },
+    {
+      "kind": "weapon",
+      "slug": "shortbow",
+      "name_ru": "Короткий лук",
+      "name_en": "Shortbow",
+      "source": "srd-5.2",
+      "sort_order": 300,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/30-shortbow",
+        "url_ttg": "https://new.ttg.club/items/shortbow-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "category": "simple",
+        "range_kind": "ranged",
+        "damage": "1d6",
+        "damage_type": "piercing",
+        "weight_lb": 2,
+        "cost": {
+          "amount": 25,
+          "unit": "gp"
+        },
+        "properties": [
+          "ammunition",
+          "two_handed"
+        ],
+        "mastery": "vex",
+        "summary_ru": "Простое дальнобойное: 1d6 (колющий).",
+        "range": {
+          "normal": 80,
+          "long": 320
+        },
+        "ammunition_type": "arrow"
+      }
+    },
+    {
+      "kind": "weapon",
+      "slug": "shortsword",
+      "name_ru": "Короткий меч",
+      "name_en": "Shortsword",
+      "source": "srd-5.2",
+      "sort_order": 310,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/20-shortsword",
+        "url_ttg": "https://new.ttg.club/items/shortsword-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "category": "martial",
+        "range_kind": "melee",
+        "damage": "1d6",
+        "damage_type": "piercing",
+        "weight_lb": 2,
+        "cost": {
+          "amount": 10,
+          "unit": "gp"
+        },
+        "properties": [
+          "finesse",
+          "light"
+        ],
+        "mastery": "vex",
+        "summary_ru": "Воинское рукопашное: 1d6 (колющий)."
+      }
+    },
+    {
+      "kind": "weapon",
+      "slug": "sickle",
+      "name_ru": "Серп",
+      "name_en": "Sickle",
+      "source": "srd-5.2",
+      "sort_order": 320,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/10-sickle",
+        "url_ttg": "https://new.ttg.club/items/sickle-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "category": "simple",
+        "range_kind": "melee",
+        "damage": "1d4",
+        "damage_type": "slashing",
+        "weight_lb": 2,
+        "cost": {
+          "amount": 1,
+          "unit": "gp"
+        },
+        "properties": [
+          "light"
+        ],
+        "mastery": "nick",
+        "summary_ru": "Простое рукопашное: 1d4 (рубящий)."
+      }
+    },
+    {
+      "kind": "weapon",
+      "slug": "sling",
+      "name_ru": "Праща",
+      "name_en": "Sling",
+      "source": "srd-5.2",
+      "sort_order": 330,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/32-sling",
+        "url_ttg": "https://new.ttg.club/items/sling-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "category": "simple",
+        "range_kind": "ranged",
+        "damage": "1d4",
+        "damage_type": "bludgeoning",
+        "weight_lb": 0,
+        "cost": {
+          "amount": 1,
+          "unit": "sp"
+        },
+        "properties": [
+          "ammunition"
+        ],
+        "mastery": "slow",
+        "summary_ru": "Простое дальнобойное: 1d4 (дробящий).",
+        "range": {
+          "normal": 30,
+          "long": 120
+        },
+        "ammunition_type": "sling_bullet"
+      }
+    },
+    {
+      "kind": "weapon",
+      "slug": "spear",
+      "name_ru": "Копьё",
+      "name_en": "Spear",
+      "source": "srd-5.2",
+      "sort_order": 340,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/5-spear",
+        "url_ttg": "https://new.ttg.club/items/spear-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "category": "simple",
+        "range_kind": "melee",
+        "damage": "1d6",
+        "damage_type": "piercing",
+        "weight_lb": 3,
+        "cost": {
+          "amount": 1,
+          "unit": "gp"
+        },
+        "properties": [
+          "thrown",
+          "versatile"
+        ],
+        "mastery": "sap",
+        "summary_ru": "Простое рукопашное: 1d6 (колющий).",
+        "thrown_range": {
+          "normal": 20,
+          "long": 60
+        },
+        "versatile_damage": "1d8"
+      }
+    },
+    {
+      "kind": "weapon",
+      "slug": "trident",
+      "name_ru": "Трезубец",
+      "name_en": "Trident",
+      "source": "srd-5.2",
+      "sort_order": 350,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/27-trident",
+        "url_ttg": "https://new.ttg.club/items/trident-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "category": "martial",
+        "range_kind": "melee",
+        "damage": "1d8",
+        "damage_type": "piercing",
+        "weight_lb": 4,
+        "cost": {
+          "amount": 5,
+          "unit": "gp"
+        },
+        "properties": [
+          "thrown",
+          "versatile"
+        ],
+        "mastery": "topple",
+        "summary_ru": "Воинское рукопашное: 1d8 (колющий).",
+        "thrown_range": {
+          "normal": 20,
+          "long": 60
+        },
+        "versatile_damage": "1d10"
+      }
+    },
+    {
+      "kind": "weapon",
+      "slug": "war-pick",
+      "name_ru": "Клевец",
+      "name_en": "War Pick",
+      "source": "srd-5.2",
+      "sort_order": 360,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/18-war-pick",
+        "url_ttg": "https://new.ttg.club/items/war-pick-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "category": "martial",
+        "range_kind": "melee",
+        "damage": "1d8",
+        "damage_type": "piercing",
+        "weight_lb": 2,
+        "cost": {
+          "amount": 5,
+          "unit": "gp"
+        },
+        "properties": [
+          "versatile"
+        ],
+        "mastery": "sap",
+        "summary_ru": "Воинское рукопашное: 1d8 (колющий).",
+        "versatile_damage": "1d10",
+        "name_ru_pending": false
+      }
+    },
+    {
+      "kind": "weapon",
+      "slug": "warhammer",
+      "name_ru": "Боевой молот",
+      "name_en": "Warhammer",
+      "source": "srd-5.2",
+      "sort_order": 370,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/12-warhammer",
+        "url_ttg": "https://new.ttg.club/items/warhammer-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "category": "martial",
+        "range_kind": "melee",
+        "damage": "1d8",
+        "damage_type": "bludgeoning",
+        "weight_lb": 5,
+        "cost": {
+          "amount": 15,
+          "unit": "gp"
+        },
+        "properties": [
+          "versatile"
+        ],
+        "mastery": "push",
+        "summary_ru": "Воинское рукопашное: 1d8 (дробящий).",
+        "versatile_damage": "1d10"
+      }
+    },
+    {
+      "kind": "weapon",
+      "slug": "whip",
+      "name_ru": "Кнут",
+      "name_en": "Whip",
+      "source": "srd-5.2",
+      "sort_order": 380,
+      "external_ref": {
+        "url_dndsu": "https://next.dnd.su/equipment/19-whip",
+        "url_ttg": "https://new.ttg.club/items/whip-phb",
+        "book": "PH24"
+      },
+      "data": {
+        "category": "martial",
+        "range_kind": "melee",
+        "damage": "1d4",
+        "damage_type": "slashing",
+        "weight_lb": 3,
+        "cost": {
+          "amount": 2,
+          "unit": "gp"
+        },
+        "properties": [
+          "finesse",
+          "reach"
+        ],
+        "mastery": "slow",
+        "summary_ru": "Воинское рукопашное: 1d4 (рубящий)."
+      }
+    }
+  ]
+}

@@ -125,6 +125,8 @@ export function SettingDetailPage() {
   const [copySources, setCopySources] = useState<SettingSummary[]>([])
   const [copySourcePageId, setCopySourcePageId] = useState('')
   const [copyIncludeSubtree, setCopyIncludeSubtree] = useState(false)
+  /** P24-M04: редакция лобби для бестиария на странице «Бой». */
+  const [lobbyRulesEdition, setLobbyRulesEdition] = useState<string>('2014')
 
   const allTags = useMemo(
     () => setting?.all_tags?.length
@@ -486,6 +488,26 @@ export function SettingDetailPage() {
     void refreshTrash(setting.lobby_id)
     void loadCopySources(setting.lobby_id)
   }, [setting?.lobby_id, setting?.can_edit_wiki, setting?.is_owner])
+
+  useEffect(() => {
+    const lobbyId = setting?.lobby_id
+    if (!lobbyId) return
+    let active = true
+    void getLobby(lobbyId)
+      .then((lobby) => {
+        if (!active) return
+        setLobbyRulesEdition(
+          String(lobby.rules_edition ?? '2014').trim() === '2024' ? '2024' : '2014',
+        )
+      })
+      .catch(() => {
+        if (!active) return
+        setLobbyRulesEdition('2014')
+      })
+    return () => {
+      active = false
+    }
+  }, [setting?.lobby_id])
 
   useLobbyRealtime(setting?.lobby_id, (data) => {
     if (!selectedId) return
@@ -1194,6 +1216,7 @@ export function SettingDetailPage() {
                       value={draftCombatFields}
                       estimate={selected.combat_estimate}
                       busy={busy}
+                      rulesEdition={lobbyRulesEdition}
                       onChange={setDraftCombatFields}
                     />
                   ) : (

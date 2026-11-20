@@ -23,6 +23,7 @@ import {
   resolveCompanionTemplate,
 } from './companionTemplates'
 import { createKnownForm, upsertKnownForm, type KnownForm } from './knownForms'
+import { wildShapeLimits2024 } from '../../shared/dnd/druid2024Features'
 
 export type WildShapeLimits = {
   maxCr: number
@@ -30,6 +31,12 @@ export type WildShapeLimits = {
   allowFly: boolean
   moon: boolean
   combatBonusAction: boolean
+  /** 2024 only: temp HP gained on entering a form (the druid keeps own HP). */
+  tempHp?: number
+  /** 2024 only: how many forms the druid knows at once. */
+  knownForms?: number
+  /** 2024 only: beast hit points are never used. */
+  keepOwnHp?: boolean
 }
 
 export type WildShapeOptionId =
@@ -77,7 +84,22 @@ export function parseCr(raw: string | null | undefined): number | null {
 export function wildShapeLimits(input: {
   druidLevel: number
   subclassSlug: string | null | undefined
+  /** Omitted or '2014' keeps the 2014 table untouched. */
+  rulesEdition?: '2014' | '2024'
 }): WildShapeLimits {
+  if (input.rulesEdition === '2024') {
+    const limits = wildShapeLimits2024(input.druidLevel, input.subclassSlug)
+    return {
+      maxCr: limits.crMax,
+      allowSwim: limits.swimAllowed,
+      allowFly: limits.flyAllowed,
+      moon: limits.moon,
+      combatBonusAction: true,
+      tempHp: limits.tempHp,
+      knownForms: limits.knownForms,
+      keepOwnHp: limits.keepOwnHp,
+    }
+  }
   const level = Math.max(1, Math.min(20, Math.floor(input.druidLevel) || 1))
   const moon =
     (input.subclassSlug || '').toLowerCase().includes('moon') ||
@@ -131,14 +153,33 @@ export function formatWildShapeLimit(limits: WildShapeLimits): string {
 export function moonShapeScale(
   feature: { id: string; classLevel: number; classEntryId: string },
   unlocked: Array<{ id: string; classEntryId: string }>,
+  rulesEdition: '2014' | '2024' = '2014',
 ): string | null {
-  if (feature.id !== 'wild_shape' && feature.id !== 'circle_forms') return null
+  const normalize = (id: string) => (rulesEdition === '2024' ? id.replace(/-/g, '_') : id)
+  const featureId = normalize(feature.id)
+  if (featureId !== 'wild_shape' && featureId !== 'circle_forms') return null
   const moon = unlocked.some(
-    (row) => row.id === 'circle_forms' && row.classEntryId === feature.classEntryId,
+    (row) => normalize(row.id) === 'circle_forms' && row.classEntryId === feature.classEntryId,
   )
   if (!moon) return null
   return formatWildShapeLimit(
-    wildShapeLimits({ druidLevel: feature.classLevel, subclassSlug: 'circle_of_the_moon' }),
+    wildShapeLimits({
+      druidLevel: feature.classLevel,
+      subclassSlug: 'circle_of_the_moon',
+      rulesEdition,
+    }),
+  )
+}
+
+/** 2024 Wild Shape / Circle Forms card line (swim allowed from level 2; Moon uses level / 3). */
+export function wildShapeScale2024(
+  feature: { id: string; classLevel: number },
+  subclassSlug: string | null | undefined,
+): string | null {
+  const id = feature.id.replace(/-/g, '_')
+  if (id !== 'wild_shape' && id !== 'circle_forms') return null
+  return formatWildShapeLimit(
+    wildShapeLimits({ druidLevel: feature.classLevel, subclassSlug, rulesEdition: '2024' }),
   )
 }
 
@@ -422,31 +463,77 @@ function materialHasGpCost(text: string | undefined): boolean {
   return /\d/.test(text) && /(gp|зм|зл|золот)/i.test(text)
 }
 
+function materialIsConsumed(text: string | undefined): boolean {
+  if (!text) return false
+  return /расход|поглощ|consumed|consumes|which the spell consumes/i.test(text)
+}
+
 /**
- * PHB: no spells in Wild Shape until Beast Spells (18). Those still cannot
- * supply material components. Archdruid (20) ignores V, S, and free M.
+ * Spellcasting while in Wild Shape.
+ *
+ * 2014: no spells until Beast Spells (18); those still cannot supply M.
+ * Archdruid (20) ignores V, S, and free M (costly M still blocked).
+ *
+ * 2024 (PHB / next.dnd.su «Заклинания зверя»): from 18 you may cast in form
+ * except spells whose M has a listed gold cost or that consume their M.
+ * Free non-consumed M is allowed. Circle of the Moon circle spells may be
+ * cast in form from 3 with the same M gate. Before 18, other spells stay blocked.
  */
 export function wildShapeCastBlock(input: {
   companions: CompanionEntry[]
   classes: Array<{ name: string; level: number }>
   classSlug?: string | null
   material?: string | null
+  /** 2024 Circle of the Moon: an always-prepared circle spell may be cast in Wild Shape. */
+  moonCircleSpell?: boolean
+  /** Branch: only `2024` changes Beast Spells / Moon M rules. Default keeps 2014. */
+  rulesEdition?: '2014' | '2024' | string | null
 }): string | null {
   if (!activeBeastWildShape(input.companions)) return null
   const level = druidLevelFromClasses(input.classes)
   if (level <= 0) return null
   const slug = (input.classSlug || '').toLowerCase()
   const druidSpell = slug === '' || slug === 'druid'
-  if (level < 18 || !druidSpell) {
-    return 'В Диком облике нельзя накладывать заклинания до «Звериных заклинаний» (18). Форма не сброшена, ячейка не списана.'
+  const moonCircle = Boolean(input.moonCircleSpell)
+  const is2024 = input.rulesEdition === '2024'
+
+  if (!moonCircle && (level < 18 || !druidSpell)) {
+    return is2024
+      ? 'В Диком облике нельзя накладывать заклинания до «Заклинания зверя» (18). Форма не сброшена, ячейка не списана.'
+      : 'В Диком облике нельзя накладывать заклинания до «Звериных заклинаний» (18). Форма не сброшена, ячейка не списана.'
   }
+
   const material = input.material?.trim() || ''
   if (!material) return null
-  if (level >= 20 && !materialHasGpCost(material)) return null
+  const costly = materialHasGpCost(material)
+  const consumed = materialIsConsumed(material)
+
+  if (is2024) {
+    // PH24 Beast Spells / Moon circle: free non-consumed M OK; block cost OR consume.
+    if (!costly && !consumed) return null
+    const who = moonCircle && level < 18 ? 'Круг луны' : 'Заклинания зверя'
+    if (costly && consumed) {
+      return `${who}: в облике нельзя предоставить расходуемый материальный компонент с ценой. Каст не выполнен.`
+    }
+    if (costly) {
+      return `${who}: в облике нельзя предоставить материальный компонент с указанной ценой. Каст не выполнен.`
+    }
+    return `${who}: в облике нельзя предоставить расходуемый материальный компонент. Каст не выполнен.`
+  }
+
+  // 2014 path (unchanged)
+  if (level >= 20 && !costly) return null
   if (level >= 20) {
     return 'Архидруид не отменяет материальный компонент с указанной ценой. Каст не выполнен.'
   }
-  return 'Звериные заклинания: в облике нельзя предоставить материальный компонент. Каст не выполнен.'
+  if (moonCircle && level < 18) {
+    return costly
+      ? 'Круг луны: в облике нельзя предоставить дорогой материальный компонент. Каст не выполнен.'
+      : 'Круг луны: в облике нельзя предоставить материальный компонент. Каст не выполнен.'
+  }
+  return costly
+    ? 'Заклинания зверя: в облике нельзя предоставить дорогой материальный компонент. Каст не выполнен.'
+    : 'Заклинания зверя: в облике нельзя предоставить материальный компонент. Каст не выполнен.'
 }
 
 function dismissActiveSelfForm(companions: CompanionEntry[]): CompanionEntry[] {
@@ -490,6 +577,14 @@ export function applyBeastWildShape(input: {
   formSourceRef?: string
   /** Extra known_form tags (e.g. elemental). */
   extraTags?: KnownForm['tags']
+  /** 2024: the druid keeps own HP, so the form card gets no separate HP pool. */
+  keepOwnHp?: boolean
+  /** 2024 Circle of the Moon: AC = max(beast AC, 13 + Wis). */
+  armorClass?: number
+  /** 2024: what happens to worn / held equipment. */
+  equipmentNoteRu?: string
+  /** 2024 Primal Strike rider shown with the form attacks. */
+  attackRiderRu?: string
 }): { companions: CompanionEntry[]; knownForms: KnownForm[] } {
   const previousPrimaryId = capturePreviousPrimaryId(input.companions)
   const cleared = dismissActiveSelfForm(input.companions)
@@ -506,9 +601,25 @@ export function applyBeastWildShape(input: {
     control: 'with_master',
     active: true,
     is_primary: true,
-    stats: formStatsFromPick(input.pick),
-    actions: input.pick.actions_text,
-    notes: formNotesFromPick(input.pick, isElemental),
+    stats: (() => {
+      const stats = formStatsFromPick(input.pick)
+      if (!input.keepOwnHp && input.armorClass == null) return stats
+      return {
+        ...stats,
+        ...(input.keepOwnHp ? { hp: null, hp_max: null } : {}),
+        ...(input.armorClass != null ? { ac: input.armorClass } : {}),
+      }
+    })(),
+    actions: [input.pick.actions_text, input.attackRiderRu ?? '']
+      .filter(Boolean)
+      .join(' · '),
+    notes: [
+      formNotesFromPick(input.pick, isElemental),
+      input.keepOwnHp ? 'свои хиты сохраняются' : '',
+      input.equipmentNoteRu ?? '',
+    ]
+      .filter(Boolean)
+      .join(' · '),
     source: {
       kind: 'class',
       labelRu: isElemental ? 'Элементальный дикий облик' : 'Дикий облик',

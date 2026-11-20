@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
+import { CreateCharacter2024Page } from './CreateCharacter2024Page'
+import { RULES_EDITION_2024_OPEN } from '../shared/dnd/rulesEdition2024'
 import {
   BackgroundSetupDialog,
   type BackgroundSetupConfirm,
@@ -204,7 +206,7 @@ import { inventoryToSheet, readInventory } from '../features/characters/inventor
 import { Button, Stack, Text, Toast } from '../ui'
 
 const CASTER_NAME_RE =
-  /бард|жрец|друид|паладин|следопыт|чародей|колдун|волшебник|изобретатель/i
+  /бард|жрец|друид|паладин|следопыт|чародей|колдун|волшебник|изобретатель|артефактор/i
 
 function catalogRef(entry: CatalogEntry) {
   return { id: entry.id, slug: entry.slug, nameRu: entry.name_ru }
@@ -410,7 +412,7 @@ function filterCatalogByStartRules(
   })
 }
 
-export function CreateCharacterPage() {
+function CreateCharacterPage2014() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const lobbyIdParam = searchParams.get('lobbyId')
@@ -2263,7 +2265,7 @@ export function CreateCharacterPage() {
         detail={detail}
         footer={footer}
         detailPrimary={step === 'abilities' || step === 'leveling'}
-        onStepClick={goToStep}
+        onStepClick={(id) => goToStep(id as CreatePipelineStepId)}
         onBack={
           backTarget
             ? () => goToStep(backTarget)
@@ -2862,4 +2864,26 @@ export function CreateCharacterPage() {
       <Toast message={toast} onClose={() => setToast(null)} />
     </main>
   )
+}
+
+
+/** Same route `/characters/create`; 2024 via `?edition=2024&preview=1` (internal). */
+export function CreateCharacterPage() {
+  const [searchParams] = useSearchParams()
+  const edition2024 = searchParams.get('edition') === '2024'
+  if (edition2024) {
+    // Flag closed: only preview=1 (tests / internal). Player CTA opens when Игорь flips the flag.
+    if (searchParams.get('preview') !== '1' && !RULES_EDITION_2024_OPEN) {
+      return (
+        <main className="page page--app page--create-pipeline">
+          <p>Создание по правилам 2024 пока закрыто.</p>
+          <Link className="back-link" to="/characters">
+            ← К списку персонажей
+          </Link>
+        </main>
+      )
+    }
+    return <CreateCharacter2024Page embedded rootTestId="create-character-2024" />
+  }
+  return <CreateCharacterPage2014 />
 }

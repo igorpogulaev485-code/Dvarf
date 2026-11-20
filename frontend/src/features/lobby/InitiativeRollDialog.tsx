@@ -1,5 +1,9 @@
 import { useEffect, useState } from 'react'
 import type { CombatEntry, SessionSeat } from '../../shared/api/lobbies'
+import {
+  SURPRISE_2024_HINT,
+  usesSurpriseInitiativeDisadvantage,
+} from '../../shared/dnd/surprise2024'
 import { Button, Dialog, Field, NumberInput, Stack, Text } from '../../ui'
 
 type Props = {
@@ -7,6 +11,8 @@ type Props = {
   busy?: boolean
   entry: CombatEntry | null
   seat?: SessionSeat | null
+  /** P24-M04: lobby edition — surprised → disadv on initiative for 2024. */
+  rulesEdition?: string | null
   onClose: () => void
   onRoll: (payload: { advantage?: boolean }) => void
   onManual: (value: number) => void
@@ -22,6 +28,7 @@ export function InitiativeRollDialog({
   busy = false,
   entry,
   seat,
+  rulesEdition = '2014',
   onClose,
   onRoll,
   onManual,
@@ -29,14 +36,17 @@ export function InitiativeRollDialog({
   const dex = seat?.dex_mod ?? entry?.dex_mod ?? 0
   const bonus = seat?.initiative_bonus ?? 0
   const hasAdv = Boolean(seat?.initiative_advantage)
+  const surprised2024 =
+    usesSurpriseInitiativeDisadvantage(rulesEdition) && Boolean(entry?.surprised)
   const [manual, setManual] = useState<number | null>(null)
   const [adv, setAdv] = useState(false)
 
   useEffect(() => {
     if (!open) return
     setManual(null)
-    setAdv(hasAdv)
-  }, [open, hasAdv, entry?.id])
+    // Surprised 2024 cancels advantage into normal; UI still shows disadv note.
+    setAdv(hasAdv && !surprised2024)
+  }, [open, hasAdv, surprised2024, entry?.id])
 
   if (!entry) return null
 
@@ -55,13 +65,19 @@ export function InitiativeRollDialog({
         <Text tone="muted">
           1к20 {formatMod(dex)}
           {bonus ? ` ${formatMod(bonus)}` : ''}
-          {hasAdv ? ' · на листе преимущество' : ''}
+          {hasAdv && !surprised2024 ? ' · на листе преимущество' : ''}
+          {surprised2024 ? ' · врасплох: помеха к инициативе' : ''}
         </Text>
+        {surprised2024 ? (
+          <Text tone="muted" data-testid="initiative-surprise-2024-hint">
+            {SURPRISE_2024_HINT}
+          </Text>
+        ) : null}
         <label className="session-feed-filter">
           <input
             type="checkbox"
             checked={adv}
-            disabled={busy}
+            disabled={busy || surprised2024}
             onChange={(e) => setAdv(e.target.checked)}
           />
           Преимущество

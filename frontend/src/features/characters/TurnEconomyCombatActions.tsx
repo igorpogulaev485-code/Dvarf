@@ -1,12 +1,21 @@
 import { useState, type ReactNode } from 'react'
 import { useTurnEconomy } from './TurnEconomyContext'
 import {
+  ACTION_SURGE_MAGIC_BLOCK_HINT,
   STEADY_AIM_HINT,
   TURN_MARK_LABELS,
+  applyNamedActionSpend,
+  canSpendMagicAction2024,
+  canSpendSearch,
   markClearBlocked,
   movementClearBlocked,
   type TurnEconomyMarkKey,
 } from '../../shared/dnd/turnEconomy'
+import {
+  HIDE_DC_2024,
+  TURN_ACTIONS_2024,
+} from '../../shared/dnd/turnActions2024'
+import { SURPRISE_2024_HINT, surpriseRoundAllowed } from '../../shared/dnd/surprise2024'
 import { canKiFueledAttack } from '../../shared/dnd/o02TashaFeatures'
 import {
   GWM_BONUS_ATTACK_HINT,
@@ -173,6 +182,11 @@ type Props = {
   onO09Stabilize?: () => void
   /** O-01: открыть диалог Захват/Толчок. */
   onGrappleShove?: () => void
+  /** P24-02: show 2024 action dictionary / Hide DC 15; hide L-21 surprise round. */
+  rulesEdition?: string | null
+  /** P24-02: initiative disadvantage chip (2024 surprise), not L-21 lockdown. */
+  surpriseInitiative?: boolean
+  onToggleSurpriseInitiative?: () => void
   /** O-05: боевые черты. */
   o05?: {
     greatWeaponMaster?: boolean
@@ -304,6 +318,9 @@ export function TurnEconomyCombatActions({
   onO08ReadyTrigger,
   onO09Stabilize,
   onGrappleShove,
+  rulesEdition = '2014',
+  surpriseInitiative = false,
+  onToggleSurpriseInitiative,
   o05,
   onO05GwmBonus,
   onO05GwmFinishing,
@@ -814,7 +831,9 @@ export function TurnEconomyCombatActions({
         title={
           empty
             ? 'Всплеск действий: нет зарядов до короткого или продолжительного отдыха'
-            : `+1 действие (Всплеск) · само умение отметку хода не тратит · осталось ${actionSurge.remaining}/${actionSurge.max}`
+            : String(rulesEdition ?? '2014').trim() === '2024'
+              ? `+1 действие (Всплеск) · нельзя на «Магию» · осталось ${actionSurge.remaining}/${actionSurge.max}`
+              : `+1 действие (Всплеск) · само умение отметку хода не тратит · осталось ${actionSurge.remaining}/${actionSurge.max}`
         }
         onClick={() => {
           if (actionSurge.remaining <= 0) return
@@ -836,6 +855,8 @@ export function TurnEconomyCombatActions({
     )
   }
 
+  const is2024 = String(rulesEdition ?? '2014').trim() === '2024'
+
   // —— Common actions ——
   push(
     'search',
@@ -848,19 +869,75 @@ export function TurnEconomyCombatActions({
       disabled={!searchGate.ok}
       title={
         searchGate.ok
-          ? 'Тратит действие · затем можно бросить Анализ или Внимательность'
+          ? is2024
+            ? 'Поиск (2024): проверка Мудрости (Внимательность) · тратит действие'
+            : 'Тратит действие · затем можно бросить Анализ или Внимательность'
           : searchGate.reason
       }
       onClick={() => {
         const gate = turnEco.canSearch()
         if (!gate.ok) return
         turnEco.spendSearch()
-        onOfferSkill?.('investigation')
+        onOfferSkill?.(is2024 ? 'perception' : 'investigation')
       }}
     >
       Поиск
     </button>,
   )
+
+  if (is2024) {
+    for (const action of TURN_ACTIONS_2024) {
+      if (
+        action.id !== 'study' &&
+        action.id !== 'influence' &&
+        action.id !== 'utilize' &&
+        action.id !== 'magic'
+      ) {
+        continue
+      }
+      const spentAs = action.spentAs ?? action.id
+      const magicGate =
+        action.id === 'magic'
+          ? canSpendMagicAction2024(turnEco.turnEconomy)
+          : searchGate
+      const actionGate = action.id === 'magic' ? magicGate : searchGate
+      push(
+        action.id,
+        ['action'],
+        'common',
+        <button
+          key={action.id}
+          type="button"
+          className="sheet-chip"
+          disabled={!actionGate.ok}
+          title={actionGate.ok ? action.hintRu : actionGate.reason}
+          onClick={() => {
+            if (action.id === 'magic') {
+              const gate = canSpendMagicAction2024(turnEco.turnEconomy)
+              if (!gate.ok) {
+                onToast?.(gate.reason || ACTION_SURGE_MAGIC_BLOCK_HINT)
+                return
+              }
+            } else if (!canSpendSearch(turnEco.turnEconomy).ok) {
+              return
+            }
+            turnEco.patchTurnEconomy((s) =>
+              applyNamedActionSpend(
+                s,
+                spentAs as 'magic' | 'study' | 'influence' | 'utilize',
+              ),
+            )
+            onToast?.(action.labelRu)
+            if (action.id === 'study') onOfferSkill?.('investigation')
+            // Influence uses Charisma skills; offer Perception only as a desk roll hook is limited.
+            if (action.id === 'influence') onToast?.('Влияние: проверка Харизмы (Убеждение / Обман / Запугивание)')
+          }}
+        >
+          {action.labelRu}
+        </button>,
+      )
+    }
+  }
 
   if (!hasCunningAction) {
     push(
@@ -874,7 +951,9 @@ export function TurnEconomyCombatActions({
         disabled={!hideGate.ok}
         title={
           hideGate.ok
-            ? 'Тратит действие · затем можно бросить Скрытность'
+            ? is2024
+              ? `Прятаться: Скрытность против Сл ${HIDE_DC_2024} · укрытие/тьма · вне линии зрения`
+              : 'Тратит действие · затем можно бросить Скрытность'
             : hideGate.reason
         }
         onClick={() => {
@@ -882,9 +961,12 @@ export function TurnEconomyCombatActions({
           if (!gate.ok || !gate.timing) return
           turnEco.spendHide(gate.timing)
           onOfferSkill?.('stealth')
+          if (is2024) {
+            onToast?.(`Прятаться · Сл ${HIDE_DC_2024}`)
+          }
         }}
       >
-        Засада
+        {is2024 ? 'Прятаться' : 'Засада'}
       </button>,
     )
   }
@@ -2250,13 +2332,26 @@ export function TurnEconomyCombatActions({
               ) : null}
               Движение
             </button>
-            {teState.surprised ? (
+            {teState.surprised && surpriseRoundAllowed(rulesEdition) ? (
               <span
                 className="sheet-chip play-desk-turn-actions__mark is-spent"
                 title="Застигнут врасплох до конца первого хода"
               >
                 врасплох
               </span>
+            ) : null}
+            {is2024 ? (
+              <button
+                type="button"
+                className={`sheet-chip play-desk-turn-actions__mark${
+                  surpriseInitiative ? ' is-spent' : ''
+                }`}
+                aria-pressed={surpriseInitiative}
+                title={SURPRISE_2024_HINT}
+                onClick={() => onToggleSurpriseInitiative?.()}
+              >
+                {surpriseInitiative ? 'врасплох (помеха к иниц.)' : 'врасплох?'}
+              </button>
             ) : null}
             {teState.steadyAim ? (
               <span
