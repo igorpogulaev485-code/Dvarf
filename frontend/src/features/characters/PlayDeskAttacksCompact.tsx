@@ -4090,9 +4090,10 @@ export function PlayDeskAttacksCompact({
                       // Physical: ввод граней формулы — без цифрового rollDamage.
                       if (physical && turnEco?.openEnterOwnNumber && expr) {
                         turnEco.openEnterOwnNumber({
-                          title: `Урон: ${attack.name}${typeBit}`,
+                          title: `Урон: ${attack.name}`,
                           mode: 'formula',
-                          formula: expr,
+                          // Тип урона — в формуле, не в заголовке («1к6+2 дробящий»).
+                          formula: `${expr}${typeBit}`.trim(),
                         })
                         return
                       }

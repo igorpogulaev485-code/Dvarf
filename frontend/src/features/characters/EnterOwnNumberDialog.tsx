@@ -21,12 +21,12 @@ export type EnterOwnNumberConfirm = {
 type Props = {
   open: boolean
   title?: string
-  /** Подпись поля: итог, выпавшее на d20, или грани формулы урона/лечения. */
+  /** Подпись поля: итог, выпавшее на к20, или грани формулы урона/лечения. */
   mode?: EnterOwnNumberMode
   modifier?: number
   /** Advantage / disadvantage — два поля к20 (только mode=d20). */
   advantageMode?: DeskRollMode
-  /** Для mode=formula: выражение вроде `2d6+3` / `1к10`. */
+  /** Для mode=formula: выражение вроде `2d6+3` / `1к10 дробящий`. */
   formula?: string | null
   /** Mark d4 / Bless — ввод лицом, не цифровой RNG. */
   bonusDice?: BonusDiePart[] | null
@@ -64,6 +64,31 @@ function expandBonusSlots(parts: BonusDiePart[] | null | undefined): BonusSlot[]
     }
   })
   return out
+}
+
+function inDieRange(n: number | null | undefined, sides: number): n is number {
+  return n != null && Number.isFinite(n) && n >= 1 && n <= sides
+}
+
+/** Человеческая подсказка к формуле урона/лечения (тон «ты»). */
+export function formulaHintText(
+  formula: string | null | undefined,
+  parsed: { count: number; sides: number; modifier: number } | null,
+): string {
+  const raw = String(formula ?? '').trim()
+  if (!parsed) {
+    return raw
+      ? `Не разобрали кости в «${raw}» — введи итог целиком.`
+      : 'Введи итог броска.'
+  }
+  const dieBit =
+    parsed.count === 1
+      ? `Брось к${parsed.sides} и введи, что выпало.`
+      : `Брось ${parsed.count}к${parsed.sides} и введи, что выпало на каждой кости.`
+  if (parsed.modifier === 0) return dieBit
+  const mod =
+    parsed.modifier > 0 ? `+${parsed.modifier}` : String(parsed.modifier)
+  return `${dieBit} Модификатор ${mod} добавим сами.`
 }
 
 /**
@@ -118,34 +143,40 @@ export function EnterOwnNumberDialog({
 
   const facesReady =
     mode !== 'formula' ||
-    (parsed != null &&
-      faces.length === faceCount &&
-      faces.every((n) => n != null && Number.isFinite(n)))
+    (parsed == null
+      ? value != null && Number.isFinite(value)
+      : faces.length === faceCount &&
+        faces.every((n) => inDieRange(n, parsed.sides)))
 
   const bonusReady =
     bonusSlots.length === 0 ||
     (bonusFaces.length === bonusSlots.length &&
-      bonusFaces.every((n) => n != null && Number.isFinite(n)))
+      bonusFaces.every((n, i) => inDieRange(n, bonusSlots[i]!.sides)))
+
+  const d20Ready =
+    mode !== 'd20' ||
+    (inDieRange(value, 20) && (!needsTwoD20 || inDieRange(value2, 20)))
 
   const bonusSum = bonusFaces.reduce<number>((acc, n) => acc + (n ?? 0), 0)
 
-  const formulaSum =
+  const formulaDiceSum =
     mode === 'formula' && parsed
-      ? faces.reduce<number>((acc, n) => acc + (n ?? 0), 0) + parsed.modifier
+      ? faces.reduce<number>((acc, n) => acc + (n ?? 0), 0)
       : null
+
+  const formulaSum =
+    formulaDiceSum != null && parsed ? formulaDiceSum + parsed.modifier : null
 
   const total = useMemo(() => {
     if (mode === 'd20') {
-      if (keptD20 == null) return null
-      if (needsTwoD20 && value2 == null) return null
+      if (!d20Ready || keptD20 == null) return null
       return keptD20 + modifier + bonusSum
     }
     if (mode === 'formula') {
       if (parsed) {
-        if (formulaSum == null || !facesReady) return null
+        if (!facesReady || formulaSum == null) return null
         return formulaSum + bonusSum
       }
-      // Unparsed formula — single total field.
       if (value == null) return null
       return value + bonusSum
     }
@@ -153,25 +184,39 @@ export function EnterOwnNumberDialog({
     return value + bonusSum
   }, [
     mode,
+    d20Ready,
     keptD20,
-    needsTwoD20,
-    value2,
     modifier,
     bonusSum,
-    formulaSum,
-    facesReady,
-    value,
     parsed,
+    facesReady,
+    formulaSum,
+    value,
   ])
 
-  const canConfirm = total != null && facesReady && bonusReady && (mode !== 'd20' || value != null)
+  const canConfirm =
+    !busy && total != null && facesReady && bonusReady && d20Ready
 
   const advLabel =
     advantageMode === 'advantage'
-      ? 'преимущество — берём большее'
+      ? 'У тебя преимущество — введи оба к20, возьмём большее.'
       : advantageMode === 'disadvantage'
-        ? 'помеха — берём меньшее'
+        ? 'У тебя помеха — введи оба к20, возьмём меньшее.'
         : null
+
+  const formulaHint = formulaHintText(formula, parsed)
+  // Живой итог: показываем, как только все грани формулы введены (доп. кости могут ещё ждать).
+  const liveFormulaTotal =
+    mode === 'formula' && parsed && facesReady && formulaSum != null
+      ? formulaSum +
+        (bonusReady ? bonusSum : 0)
+      : null
+  const showLiveFormulaPartial =
+    mode === 'formula' &&
+    parsed &&
+    facesReady &&
+    formulaSum != null &&
+    !bonusReady
 
   return (
     <Dialog
@@ -180,11 +225,12 @@ export function EnterOwnNumberDialog({
       primaryLabel="Записать"
       secondaryLabel="Отмена"
       busy={busy}
+      primaryDisabled={!canConfirm}
       onSecondary={onClose}
       onPrimary={() => {
         if (total == null || !canConfirm) return
         const filledFaces =
-          mode === 'formula'
+          mode === 'formula' && parsed
             ? faces.map((n) => Math.floor(n as number))
             : undefined
         const filledBonus =
@@ -201,7 +247,7 @@ export function EnterOwnNumberDialog({
           if (modifier) bits.push(modifier > 0 ? `+${modifier}` : String(modifier))
         } else if (mode === 'formula' && parsed && filledFaces) {
           bits.push(
-            `${parsed.count}d${parsed.sides}: ${filledFaces.join('+')}${
+            `${parsed.count}к${parsed.sides}: ${filledFaces.join('+')}${
               parsed.modifier
                 ? parsed.modifier > 0
                   ? `+${parsed.modifier}`
@@ -232,153 +278,174 @@ export function EnterOwnNumberDialog({
       size="default"
     >
       <div data-testid="enter-own-number">
-      <Stack gap={12}>
-        <Text tone="muted">
-          Число с живого кубика. В ленту уйдёт с пометкой «кубик на столе».
-        </Text>
-        {modifiersSlot}
-        {mode === 'd20' ? (
-          <>
-            {advLabel ? (
-              <Text tone="muted" data-testid="enter-own-adv-hint">
-                {advLabel}
-              </Text>
-            ) : null}
-            <Field label={needsTwoD20 ? 'Выпало на к20 (1)' : 'Выпало на d20'}>
-              <NumberInput
-                value={value}
-                min={1}
-                max={20}
-                integer
-                emptyValue={null}
-                disabled={busy}
-                onValueChange={setValue}
-                data-testid="enter-own-d20-a"
-              />
-            </Field>
-            {needsTwoD20 ? (
-              <Field label="Выпало на к20 (2)">
+        <Stack gap={12}>
+          <Text tone="muted">
+            Число с живого кубика. В ленту уйдёт с пометкой «кубик на столе».
+          </Text>
+          {modifiersSlot}
+          {mode === 'd20' ? (
+            <>
+              {advLabel ? (
+                <Text tone="muted" data-testid="enter-own-adv-hint">
+                  {advLabel}
+                </Text>
+              ) : null}
+              <Field label={needsTwoD20 ? 'Выпало на к20 (1)' : 'Выпало на к20'}>
                 <NumberInput
-                  value={value2}
+                  value={value}
                   min={1}
                   max={20}
                   integer
                   emptyValue={null}
                   disabled={busy}
-                  onValueChange={setValue2}
-                  data-testid="enter-own-d20-b"
+                  onValueChange={setValue}
+                  data-testid="enter-own-d20-a"
                 />
               </Field>
-            ) : null}
-            <Text tone="muted">
-              Модификатор {modifier >= 0 ? `+${modifier}` : modifier}
-              {keptD20 != null && (!needsTwoD20 || value2 != null)
-                ? ` → кость ${keptD20}, итог ${keptD20 + modifier}${
-                    bonusSum ? ` (+${bonusSum} доп.)` : ''
-                  }`
-                : ''}
-            </Text>
-          </>
-        ) : null}
-        {mode === 'formula' ? (
-          <>
-            <Text tone="muted" data-testid="enter-own-formula-hint">
-              Формула: {formula?.trim() || '—'}
+              {needsTwoD20 ? (
+                <Field label="Выпало на к20 (2)">
+                  <NumberInput
+                    value={value2}
+                    min={1}
+                    max={20}
+                    integer
+                    emptyValue={null}
+                    disabled={busy}
+                    onValueChange={setValue2}
+                    data-testid="enter-own-d20-b"
+                  />
+                </Field>
+              ) : null}
+              <Text tone="muted" data-testid="enter-own-live-total">
+                Модификатор {modifier >= 0 ? `+${modifier}` : modifier}
+                {keptD20 != null && d20Ready
+                  ? ` → кость ${keptD20}, итог ${keptD20 + modifier}${
+                      bonusSum && bonusReady ? ` (+${bonusSum} доп.)` : ''
+                    }${
+                      bonusReady && total != null && bonusSum
+                        ? ` = ${total}`
+                        : ''
+                    }`
+                  : ''}
+              </Text>
+            </>
+          ) : null}
+          {mode === 'formula' ? (
+            <>
+              {formula?.trim() ? (
+                <Text tone="muted" data-testid="enter-own-formula-expr">
+                  {formula.trim()}
+                </Text>
+              ) : null}
+              <Text tone="muted" data-testid="enter-own-formula-hint">
+                {formulaHint}
+              </Text>
               {parsed
-                ? ` · введите ${parsed.count}×к${parsed.sides}${
-                    parsed.modifier
-                      ? parsed.modifier > 0
-                        ? ` +${parsed.modifier}`
-                        : ` ${parsed.modifier}`
-                      : ''
-                  }`
-                : ' · нет распознанных костей — введите итог ниже'}
-            </Text>
-            {parsed
-              ? faces.map((face, i) => (
-                  <Field key={`face-${i}`} label={`Кость ${i + 1} (к${parsed.sides})`}>
+                ? faces.map((face, i) => (
+                    <Field
+                      key={`face-${i}`}
+                      label={
+                        faceCount > 1
+                          ? `Кость ${i + 1} (к${parsed.sides})`
+                          : `Выпало на к${parsed.sides}`
+                      }
+                    >
+                      <NumberInput
+                        value={face}
+                        min={1}
+                        max={parsed.sides}
+                        integer
+                        emptyValue={null}
+                        disabled={busy}
+                        onValueChange={(v) => {
+                          setFaces((prev) => {
+                            const next = [...prev]
+                            next[i] = v
+                            return next
+                          })
+                        }}
+                        data-testid={`enter-own-face-${i}`}
+                      />
+                    </Field>
+                  ))
+                : (
+                    <Field label="Итог">
+                      <NumberInput
+                        value={value}
+                        min={-99}
+                        max={999}
+                        integer
+                        emptyValue={null}
+                        disabled={busy}
+                        onValueChange={setValue}
+                        data-testid="enter-own-total"
+                      />
+                    </Field>
+                  )}
+              {liveFormulaTotal != null && bonusReady ? (
+                <Text tone="muted" data-testid="enter-own-live-total">
+                  Итог: {liveFormulaTotal}
+                </Text>
+              ) : null}
+              {showLiveFormulaPartial ? (
+                <Text tone="muted" data-testid="enter-own-live-total">
+                  Пока {formulaSum}
+                  {parsed?.modifier
+                    ? ` (кости + мод ${
+                        parsed.modifier > 0
+                          ? `+${parsed.modifier}`
+                          : parsed.modifier
+                      })`
+                    : ''}
+                  — ещё введи доп. кости ниже.
+                </Text>
+              ) : null}
+            </>
+          ) : null}
+          {mode === 'total' ? (
+            <Field label="Итог">
+              <NumberInput
+                value={value}
+                min={-99}
+                max={999}
+                integer
+                emptyValue={null}
+                disabled={busy}
+                onValueChange={setValue}
+                data-testid="enter-own-total"
+              />
+            </Field>
+          ) : null}
+          {bonusSlots.length ? (
+            <div data-testid="enter-own-bonus-dice">
+              <Stack gap={8}>
+                <Text tone="muted">
+                  Дополнительные кости — введи, что выпало на каждой.
+                </Text>
+                {bonusSlots.map((slot, i) => (
+                  <Field key={slot.key} label={`${slot.label} (к${slot.sides})`}>
                     <NumberInput
-                      value={face}
+                      value={bonusFaces[i] ?? null}
                       min={1}
-                      max={parsed.sides}
+                      max={slot.sides}
                       integer
                       emptyValue={null}
                       disabled={busy}
                       onValueChange={(v) => {
-                        setFaces((prev) => {
+                        setBonusFaces((prev) => {
                           const next = [...prev]
                           next[i] = v
                           return next
                         })
                       }}
-                      data-testid={`enter-own-face-${i}`}
+                      data-testid={`enter-own-bonus-${i}`}
                     />
                   </Field>
-                ))
-              : (
-                  <Field label="Итог">
-                    <NumberInput
-                      value={value}
-                      min={-99}
-                      max={999}
-                      integer
-                      emptyValue={null}
-                      disabled={busy}
-                      onValueChange={setValue}
-                      data-testid="enter-own-total"
-                    />
-                  </Field>
-                )}
-            {parsed && formulaSum != null && facesReady ? (
-              <Text tone="muted">
-                Сумма костей + мод = {formulaSum}
-                {bonusSum ? ` · с доп. ${formulaSum + bonusSum}` : ''}
-              </Text>
-            ) : null}
-          </>
-        ) : null}
-        {mode === 'total' ? (
-          <Field label="Итог">
-            <NumberInput
-              value={value}
-              min={-99}
-              max={999}
-              integer
-              emptyValue={null}
-              disabled={busy}
-              onValueChange={setValue}
-              data-testid="enter-own-total"
-            />
-          </Field>
-        ) : null}
-        {bonusSlots.length ? (
-          <div data-testid="enter-own-bonus-dice">
-          <Stack gap={8}>
-            <Text tone="muted">Доп. кости — введите выпавшее:</Text>
-            {bonusSlots.map((slot, i) => (
-              <Field key={slot.key} label={`${slot.label} (к${slot.sides})`}>
-                <NumberInput
-                  value={bonusFaces[i] ?? null}
-                  min={1}
-                  max={slot.sides}
-                  integer
-                  emptyValue={null}
-                  disabled={busy}
-                  onValueChange={(v) => {
-                    setBonusFaces((prev) => {
-                      const next = [...prev]
-                      next[i] = v
-                      return next
-                    })
-                  }}
-                  data-testid={`enter-own-bonus-${i}`}
-                />
-              </Field>
-            ))}
-          </Stack>
-          </div>
-        ) : null}
-      </Stack>
+                ))}
+              </Stack>
+            </div>
+          ) : null}
+        </Stack>
       </div>
     </Dialog>
   )

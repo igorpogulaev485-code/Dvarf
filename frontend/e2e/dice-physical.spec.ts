@@ -137,9 +137,42 @@ test.describe('Physical dice mode', () => {
     await goCombatAttacks(page)
     await page.locator('.play-desk-compact__dmg--roll').first().click()
     await expect(page.getByTestId('enter-own-number')).toBeVisible()
-    await expect(page.getByTestId('enter-own-formula-hint')).toBeVisible()
-    await fillAndConfirmEnterOwn(page, { faces: [4] })
+    // Заголовок без типа урона; тип — в строке формулы.
+    await expect(page.getByRole('dialog').getByText(/^Урон:/)).toHaveText(
+      /Урон: .+/,
+    )
+    await expect(page.getByRole('dialog').getByText(/^Урон:/)).not.toHaveText(
+      /дробящ|колющ|рубящ|огонь/i,
+    )
+    await expect(page.getByTestId('enter-own-formula-expr')).toContainText(/к\d/i)
+    await expect(page.getByTestId('enter-own-formula-hint')).toContainText(
+      /Брось к\d+ и введи/i,
+    )
+    await expect(page.getByTestId('enter-own-formula-hint')).not.toContainText(/Формула:/)
+    // «Записать» неактивна, пока грань пуста.
+    await expect(page.getByRole('button', { name: /^Записать$/ })).toBeDisabled()
+    await page.getByTestId('enter-own-face-0').fill('4')
+    await expect(page.getByTestId('enter-own-live-total')).toContainText(/Итог:/)
+    await expect(page.getByRole('button', { name: /^Записать$/ })).toBeEnabled()
+    await page.getByRole('button', { name: /^Записать$/ }).click()
     await expect(page.getByTestId('enter-own-number')).toHaveCount(0)
+  })
+
+  test('formula face clamped to 1..N; write stays disabled until valid', async ({
+    page,
+  }) => {
+    await openPreview(page, { edition: '2014' })
+    await enableDiceOnTable(page)
+    await goCombatAttacks(page)
+    await page.locator('.play-desk-compact__dmg--roll').first().click()
+    await expect(page.getByTestId('enter-own-face-0')).toBeVisible()
+    await expect(page.getByRole('button', { name: /^Записать$/ })).toBeDisabled()
+    // NumberInput clamps on blur: 7 on к6 → 6.
+    await page.getByTestId('enter-own-face-0').fill('7')
+    await page.getByTestId('enter-own-face-0').blur()
+    await expect(page.getByTestId('enter-own-face-0')).toHaveValue('6')
+    await expect(page.getByRole('button', { name: /^Записать$/ })).toBeEnabled()
+    await page.getByRole('button', { name: /^Отмена$/ }).click()
   })
 
   test('advantage skill opens two d20 fields', async ({ page }) => {

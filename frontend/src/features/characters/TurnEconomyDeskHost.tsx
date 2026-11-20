@@ -38,6 +38,7 @@ import {
 } from '../../shared/dnd/o02TashaFeatures'
 import type { ActiveEffect } from '../../shared/dnd/activeEffects'
 import { postSheetRollToSession } from './postSheetRollToSession'
+import { recordDigitalRollLocal } from '../diceRoller/recordDigitalRoll'
 import {
   rollSessionCombatInitiative,
 } from '../../shared/api/lobbies'
@@ -460,11 +461,31 @@ export function TurnEconomyDeskHost({ model, children }: Props) {
               physicalDice: true,
             })
           }
-          model.onToast?.(
-            `${ctx?.title ?? 'Бросок'}: ${total}${
-              breakdown ? ` (${breakdown})` : ''
-            } 🎲 (кубик на столе)`,
-          )
+          const toastText = `${ctx?.title ?? 'Бросок'}: ${total}${
+            breakdown ? ` (${breakdown})` : ''
+          } 🎲 (кубик на столе)`
+          model.onToast?.(toastText)
+          // Личный журнал — та же запись с пометкой кубика (лента партии — через postSheetRollToSession).
+          if (characterId) {
+            recordDigitalRollLocal({
+              characterId,
+              openSessionId,
+              title: ctx?.title ?? 'Бросок',
+              expression:
+                ctx?.mode === 'formula'
+                  ? ctx.formula ?? String(total)
+                  : ctx?.mode === 'd20'
+                    ? `1к20${(ctx.modifier ?? 0) >= 0 ? '+' : ''}${ctx.modifier ?? 0}`
+                    : String(total),
+              total,
+              dice: [],
+              modifierTotal: ctx?.modifier ?? 0,
+              toastText,
+              breakdown: breakdown || null,
+              skipSession: true,
+              source: 'sheet',
+            })
+          }
           // После закрытия — чтобы цепочка (атака заклинанием → урон) могла открыть следующее окно.
           if (done) queueMicrotask(() => done(total))
         }}
