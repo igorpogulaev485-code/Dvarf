@@ -46,7 +46,10 @@ const btnSrc = readFileSync(
   'utf8',
 )
 assert.match(btnSrc, /if\s*\(\s*!RULES_EDITION_2024_OPEN\s*\)/, 'CTA still gated by flag')
-assert.match(btnSrc, /create-character-2024/, '2024 CTA branch present')
+assert.match(btnSrc, /create-character-open/, 'one open CTA before edition picker')
+assert.match(btnSrc, /create-character-2024/, '2024 in edition picker')
+assert.match(btnSrc, /Выберите редакцию правил/, 'edition picker title')
+assert.match(btnSrc, /className="create-character"/, 'pre-hide create-character panel')
 assert.match(btnSrc, /D&D 2024/, '2024 CTA label ready')
 
 const createPageSrc = readFileSync(join(here, '../../pages/CreateCharacterPage.tsx'), 'utf8')

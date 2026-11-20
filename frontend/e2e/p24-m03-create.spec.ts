@@ -399,15 +399,19 @@ const WALKS: Walk[] = [
 ]
 
 test.describe('P24-M03 create 2024 wizard v2', () => {
-  test('без edition: мастер 2014 жив; на списке CTA 2024 виден; дефолт create = 2014', async ({
+  test('без edition: мастер 2014 жив; на списке одна кнопка → выбор редакции', async ({
     page,
   }, testInfo) => {
     const project = testInfo.project.name
     await loginViaApi(page)
 
     await page.goto('/characters')
-    await expect(page.getByTestId('create-character-2024')).toBeVisible()
+    await expect(page.getByTestId('create-character-open')).toBeVisible()
+    await expect(page.getByTestId('create-character-2024')).toHaveCount(0)
+    await page.getByTestId('create-character-open').click()
+    await expect(page.getByTestId('create-character-edition')).toBeVisible()
     await expect(page.getByTestId('create-character-2014')).toBeVisible()
+    await expect(page.getByTestId('create-character-2024')).toBeVisible()
     await expect(page.getByRole('button', { name: /D&D 2024/ })).toBeVisible()
 
     await page.goto('/characters/create')

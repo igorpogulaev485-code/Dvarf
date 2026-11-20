@@ -19,6 +19,8 @@ test.describe('P24-02 core rules: 2014 isolation + 2024 modules', () => {
     await page.goto('/dev/p24-02-preview')
     await expect(page.getByTestId('p24-02-preview')).toBeVisible()
 
+    await expect(page.getByTestId('create-character-open')).toBeVisible()
+    await page.getByTestId('create-character-open').click()
     await expect(page.getByTestId('create-character-2014')).toBeVisible()
     await expect(page.getByTestId('create-character-2024')).toBeVisible()
     await expect(page.getByTestId('p24-02-flag-on')).toContainText('открыт')
@@ -72,6 +74,8 @@ test.describe('P24-02 core rules: 2014 isolation + 2024 modules', () => {
     await expect(page.getByTestId('lobby-create-form')).toBeVisible()
     await expect(page.getByTestId('lobby-create-rules-edition')).toBeVisible()
     await expect(page.getByLabel('Редакция лобби')).toHaveValue('2014')
+    await expect(page.getByTestId('create-character-open')).toBeVisible()
+    await page.getByTestId('create-character-open').click()
     await expect(page.getByTestId('create-character-2024')).toBeVisible()
 
     const lobbyShot = path.join(

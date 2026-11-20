@@ -192,7 +192,7 @@ export type CreateCharacter2024PageProps = {
   /** DEV / e2e only: full catalog injected by the preview page (no API reads). */
   harness?: Create2024Harness | null
   rootTestId?: string
-  /** Rendered inside another page (no own route): skip the preview / flag gate and the back link. */
+  /** Rendered inside `/characters/create` (shared route). Back-link always shown (same as 2014). */
   embedded?: boolean
 }
 
@@ -288,8 +288,9 @@ type CatalogStepKind = 'class' | 'background' | 'species' | 'feat'
 export function CreateCharacter2024Page({
   harness = null,
   rootTestId,
-  embedded = false,
+  embedded: _embedded = false,
 }: CreateCharacter2024PageProps) {
+  void _embedded
   const navigate = useNavigate()
   const [params] = useSearchParams()
   const phone = useIsPhone()
@@ -299,7 +300,7 @@ export function CreateCharacter2024Page({
   const e2eSeed = params.get('e2eSeed') || 'fighter5'
   /** Acceptance: jump to leveling at N but leave spell/book picks for the real UI. */
   const e2eEmptySpells = params.get('e2eEmptySpells') === '1'
-  // Even when embedded in `/characters/create`, keep the M06 gate (preview or flag).
+  // Gate: preview=1 (DEV/legacy) or open flag. Embedded shares the same route.
   const blocked = !harness && !previewQuery && !RULES_EDITION_2024_OPEN
 
   const [userId, setUserId] = useState<string | null>(null)
@@ -967,13 +968,12 @@ export function CreateCharacter2024Page({
     />
   )
 
+  // Same back-link as 2014 create (CreateCharacterPage topbar) — also when embedded.
   const create2024Topbar = (
     <div className="create-pipeline__topbar">
-      {embedded ? null : (
-        <Link className="back-link" to="/characters">
-          ← К списку
-        </Link>
-      )}
+      <Link className="back-link" to="/characters" data-testid="create-2024-back">
+        ← К списку
+      </Link>
       <Text tone="muted">Создание · D&D 2024</Text>
       <p className="onboarding-edition-hint" data-testid="edition-hint-2024">
         {EDITION_HINT_2024}

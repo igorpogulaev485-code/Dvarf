@@ -23,18 +23,24 @@ async function shot(page: Page, stem: string, projectName: string) {
 }
 
 test.describe('P24-M06 onboarding + open gate', () => {
-  test('public create CTA shows 2024 while flag open', async ({ page }, testInfo) => {
+  test('public create CTA: one button → edition picker while flag open', async ({
+    page,
+  }, testInfo) => {
     await page.goto('/dev/p24-m06-preview')
     await expect(page.getByTestId('p24-m06-preview')).toBeVisible()
-    await expect(page.getByTestId('create-character-2024')).toBeVisible()
-    await expect(page.getByTestId('create-character-2014')).toBeVisible()
-    await expect(page.getByTestId('p24-m06-flag-on')).toContainText('открыт')
     // Dismiss auto-open dialog so the CTA panel is visible in the gate frame.
     const dialog = page.getByTestId('edition-2024-diff-dialog')
     if (await dialog.count()) {
       await page.getByRole('button', { name: 'Понятно' }).click()
       await expect(dialog).toHaveCount(0)
     }
+    await expect(page.getByTestId('create-character-open')).toBeVisible()
+    await expect(page.getByTestId('create-character-2024')).toHaveCount(0)
+    await page.getByTestId('create-character-open').click()
+    await expect(page.getByTestId('create-character-edition')).toBeVisible()
+    await expect(page.getByTestId('create-character-2014')).toBeVisible()
+    await expect(page.getByTestId('create-character-2024')).toBeVisible()
+    await expect(page.getByTestId('p24-m06-flag-on')).toContainText('открыт')
     await shot(page, 'gate-with-2024-cta', testInfo.project.name)
   })
 
