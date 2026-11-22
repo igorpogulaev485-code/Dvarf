@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { AppShell } from '../features/shell/AppShell'
 import { GuestInvite } from '../features/shell/GuestInvite'
+import { CARD_SIZE_OPTIONS, type CharacterCardSize } from '../features/characters/characterListPrefs'
+import { loadLobbyCardSize, saveLobbyCardSize } from '../features/lobby/lobbyListPrefs'
 import { ApiRequestError, getAccessToken } from '../shared/api/client'
 import {
   createLobby,
@@ -9,7 +11,7 @@ import {
   type LobbyRulesEdition,
   type LobbySummary,
 } from '../shared/api/lobbies'
-import { Button, EmptyState, Field, Input, Panel, Select, Stack, Text } from '../ui'
+import { Button, EmptyState, Field, Input, Panel, Select, Text } from '../ui'
 import { RULES_EDITION_2024_OPEN } from '../shared/dnd/rulesEdition2024'
 
 function sortLobbiesLiveFirst(items: LobbySummary[]): LobbySummary[] {
@@ -21,6 +23,25 @@ function sortLobbiesLiveFirst(items: LobbySummary[]): LobbySummary[] {
   })
 }
 
+function lobbyRole(lobby: LobbySummary): { label: string; kind: string } {
+  if (lobby.is_owner) return { label: 'Мастер', kind: 'master' }
+  if (lobby.is_comaster) return { label: 'Сомастер', kind: 'comaster' }
+  if (lobby.is_observer) return { label: 'Наблюдатель', kind: 'observer' }
+  return { label: 'Участник', kind: 'player' }
+}
+
+function editionText(lobby: LobbySummary): string {
+  return lobby.rules_edition === '2024' ? 'Редакция 2024' : 'Редакция 2014'
+}
+
+function PlusIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true">
+      <path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+    </svg>
+  )
+}
+
 export function LobbiesPage() {
   const navigate = useNavigate()
   const [items, setItems] = useState<LobbySummary[]>([])
@@ -28,7 +49,9 @@ export function LobbiesPage() {
   const [creating, setCreating] = useState(false)
   const [createOpen, setCreateOpen] = useState(false)
   const [name, setName] = useState('')
+  const [joinCode, setJoinCode] = useState('')
   const [rulesEdition, setRulesEdition] = useState<LobbyRulesEdition>('2014')
+  const [cardSize, setCardSize] = useState<CharacterCardSize>(() => loadLobbyCardSize())
   const [error, setError] = useState<string | null>(null)
   const [authed, setAuthed] = useState(() => Boolean(getAccessToken()))
 
@@ -65,6 +88,11 @@ export function LobbiesPage() {
 
   const sortedItems = useMemo(() => sortLobbiesLiveFirst(items), [items])
 
+  function chooseSize(next: CharacterCardSize) {
+    setCardSize(next)
+    saveLobbyCardSize(next)
+  }
+
   async function onCreate(e: FormEvent) {
     e.preventDefault()
     setCreating(true)
@@ -78,6 +106,16 @@ export function LobbiesPage() {
     } finally {
       setCreating(false)
     }
+  }
+
+  function onJoin(e: FormEvent) {
+    e.preventDefault()
+    const code = joinCode.trim().toUpperCase()
+    if (code.length < 4) {
+      setError('Введите код от мастера (минимум 4 символа).')
+      return
+    }
+    navigate(`/join?code=${encodeURIComponent(code)}`)
   }
 
   if (!authed) {
@@ -104,123 +142,146 @@ export function LobbiesPage() {
       subtitle="Место игры: код и QR для игроков, внутри — сеттинг и сессии"
       onAuthed={() => setAuthed(true)}
     >
-
-        <div className="lobbies-toolbar">
-          <Button
+      <div className="chars-toolbar" role="group" aria-label="Размер карточек">
+        {CARD_SIZE_OPTIONS.map((option) => (
+          <button
+            key={option.id}
             type="button"
-            variant={createOpen ? 'secondary' : 'primary'}
-            aria-expanded={createOpen}
-            onClick={() => setCreateOpen((open) => !open)}
+            className={`sheet-chip${cardSize === option.id ? ' is-on' : ''}`}
+            aria-pressed={cardSize === option.id}
+            onClick={() => chooseSize(option.id)}
           >
-            {createOpen ? 'Скрыть форму' : 'Создать'}
-          </Button>
-        </div>
+            {option.label}
+          </button>
+        ))}
+      </div>
 
-        {createOpen ? (
-          <Panel title="Создать лобби">
-            <form className="inline-form lobbies-create-form" onSubmit={onCreate}>
-              <Field label="Название">
-                <Input
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="Стол пятницы, кампания…"
-                  autoFocus
-                />
-              </Field>
-              {RULES_EDITION_2024_OPEN ? (
-                <Field
-                  label="Редакция"
-                  hint="Задаётся при создании и больше не меняется. За стол садятся только персонажи этой редакции."
-                >
-                  <Select
-                    value={rulesEdition}
-                    onChange={(e) =>
-                      setRulesEdition(
-                        (e.target.value === '2024' ? '2024' : '2014') as LobbyRulesEdition,
-                      )
-                    }
-                    data-testid="lobby-create-rules-edition"
-                    aria-label="Редакция лобби"
-                  >
-                    <option value="2014">D&D 2014</option>
-                    <option value="2024">D&D 2024</option>
-                  </Select>
-                </Field>
-              ) : null}
-              <Button type="submit" size="md" disabled={creating} className="lobbies-create-form__submit">
-                {creating ? 'Создаём…' : 'Создать лобби'}
-              </Button>
-            </form>
-            <Text tone="muted">
-              После создания вы — мастер этого лобби. Код и QR появятся на странице лобби.
-            </Text>
-          </Panel>
-        ) : null}
-
-        {error ? <Text tone="danger">{error}</Text> : null}
-
-        {loading ? (
-          <Text tone="muted">Загружаем лобби…</Text>
-        ) : sortedItems.length === 0 ? (
-          <EmptyState
-            title="Пока нет лобби"
-            description="Нажмите «Создать» или зайдите по коду или QR от мастера."
-          />
-        ) : (
-          <Stack gap={12} className="lobbies-list">
-            {sortedItems.map((lobby) => (
-              <Panel
-                key={lobby.id}
-                className={lobby.has_open_session ? 'lobbies-list__item is-live' : 'lobbies-list__item'}
+      {createOpen ? (
+        <Panel title="Создать лобби">
+          <form className="inline-form lobbies-create-form" onSubmit={onCreate}>
+            <Field label="Название">
+              <Input
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Стол пятницы, кампания…"
+                autoFocus
+              />
+            </Field>
+            {RULES_EDITION_2024_OPEN ? (
+              <Field
+                label="Редакция"
+                hint="Задаётся при создании и больше не меняется. За стол садятся только персонажи этой редакции."
               >
-                <div className="list-row">
-                  <div>
-                    <Text as="h2">{lobby.name}</Text>
-                    <Text tone="muted">
-                      {lobby.is_owner
-                        ? 'Вы мастер'
-                        : lobby.is_comaster
-                          ? 'Вы сомастер'
-                          : lobby.is_observer
-                            ? 'Вы наблюдатель'
-                            : 'Участник'}{' '}
-                      · персонажей: {lobby.member_count}
-                      {lobby.invite_code ? ` · код ${lobby.invite_code}` : ''}
-                    </Text>
+                <Select
+                  value={rulesEdition}
+                  onChange={(e) =>
+                    setRulesEdition(
+                      (e.target.value === '2024' ? '2024' : '2014') as LobbyRulesEdition,
+                    )
+                  }
+                  data-testid="lobby-create-rules-edition"
+                  aria-label="Редакция лобби"
+                >
+                  <option value="2014">D&D 2014</option>
+                  <option value="2024">D&D 2024</option>
+                </Select>
+              </Field>
+            ) : null}
+            <Button type="submit" size="md" disabled={creating} className="lobbies-create-form__submit">
+              {creating ? 'Создаём…' : 'Создать лобби'}
+            </Button>
+          </form>
+          <Text tone="muted">
+            После создания вы — мастер этого лобби. Код и QR появятся на странице лобби.
+          </Text>
+        </Panel>
+      ) : null}
+
+      {error ? <Text tone="danger">{error}</Text> : null}
+
+      {loading ? (
+        <Text tone="muted">Загружаем лобби…</Text>
+      ) : sortedItems.length === 0 ? (
+        <EmptyState
+          title="Пока нет лобби"
+          description="Нажмите «+» или введите код от мастера."
+        />
+      ) : (
+        <div className={`lobby-grid lobby-grid--${cardSize}`}>
+          {sortedItems.map((lobby) => {
+            const role = lobbyRole(lobby)
+            const showMeta = cardSize !== 'compact'
+            return (
+              <article
+                key={lobby.id}
+                className={lobby.has_open_session ? 'lobby-tile is-live' : 'lobby-tile'}
+              >
+                <div className="character-card__avatar lobby-tile__avatar" aria-hidden="true">
+                  {lobby.name.slice(0, 1).toUpperCase() || '?'}
+                </div>
+                <div className="lobby-tile__body">
+                  <h2 className="character-card__name">{lobby.name}</h2>
+                  {showMeta ? (
+                    <p className="lobby-tile__meta">
+                      персонажей: {lobby.member_count}
+                      {lobby.invite_code ? (
+                        <>
+                          {' '}
+                          · код <span className="lobby-tile__code">{lobby.invite_code}</span>
+                        </>
+                      ) : null}
+                    </p>
+                  ) : null}
+                  <div className="lobby-tile__chips">
+                    <span className={`lobby-chip lobby-chip--${role.kind}`}>{role.label}</span>
+                    <span className="lobby-chip lobby-chip--edition">{editionText(lobby)}</span>
                     {lobby.has_open_session ? (
-                      <span className="lobby-list-live">Идёт игра</span>
+                      <span className="lobby-chip lobby-chip--live">Идёт игра</span>
                     ) : null}
-                  </div>
-                  <div className="list-row__actions">
-                    {lobby.has_open_session && lobby.open_session_id ? (
-                      <Link
-                        className="ui-button ui-button--secondary"
-                        to={`/sessions/${lobby.open_session_id}`}
-                      >
-                        За стол
-                      </Link>
-                    ) : null}
-                    <Link className="ui-button" to={`/lobbies/${lobby.id}`}>
-                      Открыть
-                    </Link>
                   </div>
                 </div>
-              </Panel>
-            ))}
-          </Stack>
-        )}
+                <div className="lobby-tile__actions">
+                  {lobby.has_open_session && lobby.open_session_id ? (
+                    <Link className="ui-button ui-button--primary" to={`/sessions/${lobby.open_session_id}`}>
+                      За стол
+                    </Link>
+                  ) : null}
+                  <Link className="ui-button ui-button--secondary" to={`/lobbies/${lobby.id}`}>
+                    Открыть
+                  </Link>
+                </div>
+              </article>
+            )
+          })}
+        </div>
+      )}
 
-        <Panel title="Войти по коду">
-          <Stack gap={10}>
-            <Text tone="muted">
-              Есть код от мастера? Введите его на странице входа или впишите в карточку
-              персонажа.
-            </Text>
-            <Link className="ui-button join-entry-cta" to="/join">
-              Ввести код
-            </Link>
-          </Stack>
-        </Panel>
+      <Panel title="Войти по коду" className="lobby-join">
+        <form onSubmit={onJoin}>
+          <Text tone="muted">Есть код от мастера? Введите его, чтобы присоединиться к столу.</Text>
+          <div className="lobby-join__row">
+            <Input
+              value={joinCode}
+              onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
+              placeholder="Код"
+              aria-label="Код лобби"
+              autoCapitalize="characters"
+              spellCheck={false}
+            />
+            <Button type="submit">Войти</Button>
+          </div>
+        </form>
+      </Panel>
+
+      <button
+        type="button"
+        className="fab-create"
+        aria-expanded={createOpen}
+        aria-label={createOpen ? 'Скрыть форму' : 'Создать'}
+        onClick={() => setCreateOpen((open) => !open)}
+      >
+        <PlusIcon />
+      </button>
     </AppShell>
   )
 }

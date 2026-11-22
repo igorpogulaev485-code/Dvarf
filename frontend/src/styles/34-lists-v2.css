@@ -1,0 +1,376 @@
+/*
+ * Этап 3: плитки «Мои персонажи» и список «мои лобби».
+ * Круг к20 и подложки не рисуются здесь.
+ * Кнопки действий не растягиваются на ширину страницы.
+ */
+
+.app-shell--chars .app-shell__body,
+.app-shell--lobby .app-shell__body {
+  padding-bottom: 72px;
+}
+
+.fab-create {
+  position: fixed;
+  z-index: 46;
+  right: 16px;
+  bottom: calc(80px + env(safe-area-inset-bottom, 0px));
+  width: 56px;
+  height: 56px;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  aspect-ratio: 1 / 1;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  border: 0;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--on-accent, #fffdf8);
+  box-shadow: 0 8px 24px color-mix(in srgb, var(--accent) 40%, transparent);
+  cursor: pointer;
+}
+
+.fab-create svg {
+  width: 26px;
+  height: 26px;
+  display: block;
+}
+
+.fab-create-pop {
+  position: fixed;
+  z-index: 46;
+  right: 16px;
+  bottom: calc(148px + env(safe-area-inset-bottom, 0px));
+  width: min(320px, calc(100vw - 32px));
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--card);
+  box-shadow: 0 12px 32px color-mix(in srgb, var(--ink) 16%, transparent);
+}
+
+.fab-create-pop .ui-button,
+.lobby-tile__actions .ui-button,
+.lobby-join__row .ui-button,
+.lobbies-create-form__submit {
+  width: auto;
+  flex: 0 0 auto;
+  align-self: center;
+}
+
+@media (min-width: 960px) {
+  .fab-create {
+    left: 24px;
+    right: auto;
+    bottom: 24px;
+  }
+
+  .fab-create-pop {
+    left: 24px;
+    right: auto;
+    bottom: 92px;
+  }
+}
+
+@media (max-width: 959px) {
+  .app-shell--chars .app-shell__main,
+  .app-shell--lobby .app-shell__main {
+    padding-bottom: calc(148px + env(safe-area-inset-bottom, 0px));
+  }
+
+  /* «+» стоит справа над панелью. Поле кода и «Войти» остаются левее него. */
+  .lobby-join__row {
+    padding-right: 72px;
+  }
+}
+
+/* На узком экране прежняя сетка строки ждала кнопку «Создать» первым ребёнком.
+   Теперь создание — кружок «+», а размеры остаются чипами по тексту. */
+@media (max-width: 640px) {
+  .app-shell--chars .character-list-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 8px;
+  }
+
+  .app-shell--chars .character-list-toolbar > .character-list-toolbar__sizes {
+    grid-area: auto;
+    width: auto;
+    max-width: 100%;
+    margin-left: 0;
+    flex: 1 1 auto;
+  }
+
+  .app-shell--chars .character-list-toolbar > .character-list-toolbar__sizes > button.sheet-chip {
+    width: auto;
+    flex: 0 0 auto;
+    min-height: 36px;
+  }
+
+  .app-shell--chars .character-list-toolbar > .ui-button {
+    width: auto;
+    flex: 0 0 auto;
+    grid-area: auto;
+    min-height: 36px;
+  }
+}
+
+.character-card__drag {
+  position: absolute;
+  top: 10px;
+  right: 40px;
+  z-index: 5;
+  width: 16px;
+  height: 14px;
+  color: rgba(45, 45, 42, 0.62);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 150ms ease;
+}
+
+.character-card__drag svg {
+  display: block;
+  width: 16px;
+  height: 14px;
+  overflow: visible;
+}
+
+.character-card__drag line {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+}
+
+html[data-theme='leaf-classic'] .character-card__drag {
+  color: rgba(255, 255, 255, 0.38);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .character-card__wrap {
+    cursor: grab;
+  }
+
+  .character-card__menu-btn,
+  .character-card__wrap [data-tile-control] {
+    cursor: pointer;
+  }
+
+  .character-card__wrap:hover .character-card__drag {
+    opacity: 1;
+  }
+}
+
+.character-card__wrap.is-armed .character-card__drag,
+.character-card__wrap.is-dragging .character-card__drag {
+  opacity: 1;
+}
+
+.character-card__wrap.is-armed {
+  transform: translateY(-3px);
+  z-index: 2;
+  box-shadow: 0 6px 16px color-mix(in srgb, var(--ink) 14%, transparent);
+  transition: transform 150ms ease, box-shadow 150ms ease;
+  touch-action: none;
+}
+
+.character-card__wrap.is-dragging {
+  opacity: 1;
+  cursor: grabbing;
+  box-shadow: 0 14px 32px color-mix(in srgb, var(--ink) 22%, transparent);
+  transform: rotate(2deg);
+  pointer-events: none;
+  touch-action: none;
+}
+
+.character-card__wrap.is-dragging .character-card {
+  height: 100%;
+}
+
+.character-grid.is-reordering .character-card__wrap:not(.is-dragging) {
+  transition: transform 180ms ease;
+}
+
+.tile-placeholder {
+  box-sizing: border-box;
+  border-radius: 14px;
+  border: 1.5px dashed color-mix(in srgb, var(--accent) 55%, var(--line));
+  background: color-mix(in srgb, var(--accent-soft) 65%, var(--card));
+  min-height: 96px;
+  pointer-events: none;
+}
+
+.lobby-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+}
+
+.lobby-tile {
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr);
+  gap: 8px 14px;
+  align-items: center;
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--card);
+  color: inherit;
+}
+
+.lobby-tile.is-live {
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 18%, transparent);
+}
+
+.lobby-tile__body {
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+}
+
+.lobby-tile__meta {
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lobby-tile__code {
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.lobby-tile__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.lobby-chip {
+  display: inline-flex;
+  align-items: center;
+  height: 24px;
+  padding: 0 8px;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: var(--card);
+  color: var(--ink);
+  font-size: 12.5px;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.lobby-chip--master,
+.lobby-chip--live {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 14%, var(--card));
+}
+
+.lobby-tile__actions {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.lobby-join__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.lobby-join__row .ui-input {
+  flex: 1 1 10rem;
+  width: auto;
+  max-width: 16rem;
+  min-width: 0;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+}
+
+.lobby-grid--medium {
+  gap: 12px;
+}
+
+.lobby-grid--medium .lobby-tile {
+  grid-template-columns: 48px minmax(0, 1fr);
+  padding: 12px;
+}
+
+.lobby-grid--medium .character-card__avatar {
+  width: 48px;
+  height: 48px;
+  font-size: 1.15rem;
+}
+
+.lobby-grid--medium .character-card__name {
+  font-size: 1.05rem;
+}
+
+.lobby-grid--compact {
+  gap: 8px;
+}
+
+.lobby-grid--compact .lobby-tile {
+  grid-template-columns: 36px minmax(0, 1fr);
+  padding: 8px 10px;
+  border-radius: 12px;
+}
+
+.lobby-grid--compact .character-card__avatar {
+  width: 36px;
+  height: 36px;
+  font-size: 0.95rem;
+}
+
+.lobby-grid--compact .character-card__name {
+  font-size: 0.98rem;
+}
+
+.lobby-grid--compact .lobby-tile__meta {
+  display: none;
+}
+
+.lobby-grid--compact .lobby-tile__actions .ui-button {
+  min-height: 34px;
+  padding-inline: 10px;
+  font-size: 0.85rem;
+}
+
+@media (min-width: 768px) {
+  .lobby-grid--large,
+  .lobby-grid--medium,
+  .lobby-grid--compact {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .lobby-grid--large {
+    gap: 16px;
+  }
+
+  .lobby-grid--large .lobby-tile {
+    padding: 16px;
+  }
+}
+
+@media (min-width: 1100px) {
+  .lobby-grid--large,
+  .lobby-grid--medium,
+  .lobby-grid--compact {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1280px) {
+  .lobby-grid--compact {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}

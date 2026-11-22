@@ -28,6 +28,8 @@ export type RecordDigitalRollInput = {
   isHidden?: boolean
   /** Rider die captions for session digital rolls. */
   dieLabels?: Array<{ sides: number; label: string }> | null
+  /** List and lobby shell: show the result, do not write a journal or a session. */
+  ephemeral?: boolean
 }
 
 export type RecordDigitalRollOk = {
@@ -124,6 +126,12 @@ function entryFromClient(input: RecordDigitalRollInput): DiceLogEntry {
 export async function recordDigitalRoll(
   input: RecordDigitalRollInput,
 ): Promise<RecordDigitalRollOk | RecordDigitalRollErr> {
+  if (input.ephemeral) {
+    if (input.total == null) {
+      return { ok: false, error: 'Нет результата броска' }
+    }
+    return { ok: true, entry: entryFromClient(input) }
+  }
   const advantageMode = input.advantageMode ?? 'none'
   const onlyMe =
     input.onlyMe != null ? input.onlyMe : readOnlyMePref(input.characterId)
