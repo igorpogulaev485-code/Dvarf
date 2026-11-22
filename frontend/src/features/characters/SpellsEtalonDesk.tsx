@@ -148,8 +148,15 @@ export function SpellsEtalonDesk({
   const [query, setQuery] = useState('')
   const [collapsed, setCollapsed] = useState<Set<number>>(() => new Set())
 
-  const catalog = variant === 'wizard' ? WIZARD_SPELLS : SPELLS
-  const circles = variant === 'wizard' ? WIZARD_CIRCLES : CIRCLES
+  const bookRitualsOnSheet = variant === 'multiclass' || variant === 'warlock'
+  const catalog = (variant === 'wizard' ? WIZARD_SPELLS : SPELLS).map((spell) => {
+    if (spell.id !== 'detect' || !bookRitualsOnSheet) return spell
+    return { ...spell, hidden: false, ritual: false, bookRitual: true }
+  })
+  const circles = (variant === 'wizard' ? WIZARD_CIRCLES : CIRCLES).map((circle) => {
+    if (circle.id === 1 && bookRitualsOnSheet) return { ...circle, count: '5' }
+    return circle
+  })
   const showBook = variant !== 'kaedrin'
   const circleFilters: SpellCircle[] = variant === 'wizard' ? [0, 1, 2, 3, 4, 5] : [0, 1, 2, 3]
 
@@ -298,9 +305,9 @@ export function SpellsEtalonDesk({
                       <span className="spell-level">{spell.level}</span>
                       {spell.dmg ? <span className="spell-dmg">{spell.dmg}</span> : null}
                       {spell.tags ? <span className="spell-level">{spell.tags}</span> : null}
-                      {spell.concentration ? <span className="spell-flag is-conc">конц.</span> : null}
-                      {spell.ritual ? <span className="spell-flag is-ritual">ритуал</span> : null}
                       {spell.bookRitual ? <span className="spell-flag">ритуал · из книги</span> : null}
+                      {spell.ritual ? <span className="spell-flag is-ritual">ритуал</span> : null}
+                      {spell.concentration ? <span className="spell-flag is-conc">конц.</span> : null}
                     </div>
                     {spell.meta ? <div className="plaque__meta">{spell.meta}</div> : null}
                   </div>
