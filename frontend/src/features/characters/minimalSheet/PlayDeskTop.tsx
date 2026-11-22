@@ -5,7 +5,6 @@ import { formatRaceMovementHint } from '../../../shared/dnd/raceGrants'
 import { syncAttacksHeldFromInventory } from '../AttacksPanel'
 import { canWearArmor, armorProficiencyHint } from '../equipmentProficiency'
 import { listShieldItems, toggleShieldInHand } from '../heldEquip'
-import { CharacterAvatarControl } from '../CharacterAvatarControl'
 import { PlayDeskHeader } from '../PlayDeskHeader'
 import { MobileVitalsBar } from '../MobileVitalsBar'
 import { formatSkillRoll } from '../deskRolls'
@@ -436,19 +435,10 @@ export function PlayDeskTop({ model }: { model: SheetModel }) {
         </div>
       ) : null}
       {model.isPlayDesk ? (
-        <div className="play-desk__top" data-onboarding="combat-header">
-          <CharacterAvatarControl
-            character={model.baseCharacter}
-            size="sm"
-            showActions={false}
-            faceHint=""
-            onOpen={() => model.setIdentityOpen(true)}
-            onChanged={(updated) => {
-              model.setBaseCharacter(updated)
-              model.onSaved(updated)
-            }}
-          />
+        <section className="desk-head play-desk__top" data-onboarding="combat-header" aria-label="Шапка стола">
           <PlayDeskHeader
+            etalon
+            avatarUrl={model.baseCharacter.avatar_url}
             name={model.draft.name}
             raceName={model.draft.raceName}
             className={model.classSummary || model.primaryClass?.name || ''}
@@ -722,54 +712,46 @@ export function PlayDeskTop({ model }: { model: SheetModel }) {
                 dc: Math.max(10, Math.floor(damageToHp / 2)),
               })
             }}
+            effectsMain={
+              <>
+                {(model.draft.play.effects ?? []).length === 0 ? (
+                  <span className="effects__empty">Нет активных эффектов</span>
+                ) : (
+                  <ActiveEffectsPanel
+                    hideRound
+                    effects={model.draft.play.effects ?? []}
+                    onChange={(effects) => model.applyEffectsChange?.(effects)}
+                    onToast={model.onToast}
+                    onHeroismTurnStart={() => model.applyHeroismTurnStart?.()}
+                  />
+                )}
+                <button
+                  type="button"
+                  className="chip cond"
+                  onClick={() => model.setHotConditionsOpen(true)}
+                >
+                  Состояния
+                </button>
+                <button
+                  type="button"
+                  className="chip cond"
+                  onClick={() => setEffectsOpen(true)}
+                >
+                  Эффекты
+                </button>
+              </>
+            }
+            onNextRound={() => {
+              const rows = model.draft.play.effects ?? []
+              const next = tickAllEffectsOneRound(rows)
+              model.applyEffectsChange?.(next)
+              model.onToast?.(
+                next.length < rows.length
+                  ? 'Раунд: часть эффектов истекла'
+                  : 'Раунд: таймеры эффектов −1',
+              )
+            }}
           />
-          <div className="sheet-effects-row">
-            <div className="sheet-effects-row__main">
-              {(model.draft.play.effects ?? []).length === 0 ? (
-                <span className="sheet-effects-row__empty">Нет активных эффектов</span>
-              ) : (
-                <ActiveEffectsPanel
-                  hideRound
-                  effects={model.draft.play.effects ?? []}
-                  onChange={(effects) => model.applyEffectsChange?.(effects)}
-                  onToast={model.onToast}
-                  onHeroismTurnStart={() => model.applyHeroismTurnStart?.()}
-                />
-              )}
-              <button
-                type="button"
-                className="sheet-effects-row__chip"
-                onClick={() => model.setHotConditionsOpen(true)}
-              >
-                Состояния
-              </button>
-              <button
-                type="button"
-                className="sheet-effects-row__chip"
-                onClick={() => setEffectsOpen(true)}
-              >
-                Эффекты
-              </button>
-            </div>
-            <button
-              type="button"
-              className="sheet-effects-row__round"
-              title="Таймеры эффектов −1 раунд, истёкшие снимаются"
-              aria-label="Следующий раунд — таймеры эффектов −1"
-              onClick={() => {
-                const rows = model.draft.play.effects ?? []
-                const next = tickAllEffectsOneRound(rows)
-                model.applyEffectsChange?.(next)
-                model.onToast?.(
-                  next.length < rows.length
-                    ? 'Раунд: часть эффектов истекла'
-                    : 'Раунд: таймеры эффектов −1',
-                )
-              }}
-            >
-              Следующий раунд
-            </button>
-          </div>
           <Dialog
             open={effectsOpen}
             title="Активные эффекты"
@@ -790,7 +772,7 @@ export function PlayDeskTop({ model }: { model: SheetModel }) {
               </ul>
             )}
           </Dialog>
-        </div>
+        </section>
       ) : (
         <div className="play-desk__mobile-chrome" data-onboarding="combat-header">
         <MobileVitalsBar

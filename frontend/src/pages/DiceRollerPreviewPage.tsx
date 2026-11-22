@@ -339,22 +339,38 @@ export function DiceRollerPreviewPage() {
     if (persona !== 'kaedrin') return base
     const sheet = { ...(base.sheet as Record<string, unknown>) }
     const identity = { ...((sheet.identity as Record<string, unknown>) ?? {}) }
-    identity.alignment = 'законопослушный добрый'
+    identity.alignment = ''
+    identity.alignment_text = 'законопослушный добрый'
     identity.experience = 6500
     const combat = { ...((sheet.combat as Record<string, unknown>) ?? {}) }
     combat.inspiration = false
     combat.speed = 25
     combat.initiative = 1
+    combat.training_armor_light = true
+    combat.training_armor_medium = true
+    combat.training_armor_heavy = true
+    combat.training_armor_shields = true
     sheet.identity = identity
     sheet.combat = combat
     sheet.abilities = {
       str: { score: 16 },
       dex: { score: 12 },
-      con: { score: 14 },
+      con: { score: 15 },
       int: { score: 10 },
       wis: { score: 16 },
-      cha: { score: 12 },
+      cha: { score: 13 },
     }
+    const spells = { ...((sheet.spells as Record<string, unknown> | undefined) ?? {}) }
+    const known = Array.isArray(spells.known) ? [...spells.known] : []
+    known.push({
+      id: 'kaedrin-cure-wounds',
+      name: 'Лечение ран',
+      level: 1,
+      prepared: true,
+      class_slug: 'cleric',
+    })
+    spells.known = known
+    sheet.spells = spells
     sheet.classes = [
       {
         id: 'kaedrin-cleric',
@@ -367,7 +383,29 @@ export function DiceRollerPreviewPage() {
     ]
     sheet.inventory = {
       coins: { cp: 0, sp: 0, ep: 0, gp: 12, pp: 0 },
-      items: (sheet.inventory as { items?: unknown })?.items ?? [],
+      items: [
+        {
+          id: 'kaedrin-splint',
+          name: 'Наборный',
+          qty: 1,
+          weight_lb: 60,
+          equipped: true,
+          armor_kind: 'heavy',
+          base_ac: 17,
+          max_dex_bonus: 0,
+          notes: '',
+        },
+        {
+          id: 'kaedrin-shield',
+          name: 'Щит',
+          qty: 1,
+          weight_lb: 6,
+          equipped: true,
+          armor_kind: 'shield',
+          base_ac: 2,
+          notes: '',
+        },
+      ],
       notes: '',
     }
     return {
