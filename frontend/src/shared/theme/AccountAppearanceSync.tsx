@@ -4,7 +4,7 @@ import { getAccessToken } from '../api/client'
 import {
   applyAccountAppearance,
   clearCachedAppearance,
-  normalizeAppearance,
+  mergeAppearanceFromUser,
   readCachedAppearance,
 } from './accountAppearance'
 
@@ -15,7 +15,7 @@ function userHasAppearanceFields(user: object): boolean {
   )
 }
 
-/** Keeps html[data-theme] / data-ability-colors in sync with the logged-in user. */
+/** Keeps surface, accent, background, font, and ability colors in sync with the account. */
 export function AccountAppearanceSync() {
   useEffect(() => {
     if (!getAccessToken()) {
@@ -32,7 +32,7 @@ export function AccountAppearanceSync() {
           applyAccountAppearance(readCachedAppearance())
           return
         }
-        applyAccountAppearance(normalizeAppearance(user))
+        applyAccountAppearance(mergeAppearanceFromUser(readCachedAppearance(), user))
       })
       .catch(() => {
         /* keep cache; auth routes handle 401 */

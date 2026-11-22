@@ -36,6 +36,10 @@ export function CabinetPage() {
       ...next,
       theme_id: appearance.themeId,
       ability_colors: appearance.abilityColors,
+      surface: appearance.surface,
+      bg_light: appearance.bgLight,
+      bg_dark: appearance.bgDark,
+      font_pair: appearance.fontPair,
     }
     setUser(merged)
     applyAccountAppearance(appearance)

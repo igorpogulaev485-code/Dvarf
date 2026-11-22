@@ -84,7 +84,7 @@ test.describe('P24-M06 onboarding + open gate', () => {
     await shot(page, 'onboarding-2024-diff', testInfo.project.name)
 
     // Darker account theme (чернила) — sheet must stay opaque kit --card.
-    await page.evaluate(() => document.documentElement.setAttribute('data-theme', 'int'))
+    await page.evaluate(() => document.documentElement.setAttribute('data-accent', 'int'))
     await page.waitForTimeout(100)
     const solidDark = await page.locator('.ui-dialog').evaluate((el) => {
       const cs = getComputedStyle(el)
