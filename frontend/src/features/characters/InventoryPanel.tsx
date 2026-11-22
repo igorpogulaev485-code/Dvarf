@@ -1413,25 +1413,38 @@ export function InventoryPanel({
       .slice(0, 3)
       .join(' · ')
     const q = invQuery.trim().toLowerCase()
-    const shown = visibleRoots.filter((item) => {
+    const pool = filter === 'needs_base'
+      ? ordered.filter((item) => !item.parent_id && (itemNeedsBaseChoice(item) || item.name === 'Свиток заклинания'))
+      : visibleRoots
+    const shown = pool.filter((item) => {
       if (!q) return true
       return `${item.name} ${item.notes}`.toLowerCase().includes(q)
     })
-    const weaponMeta: Record<string, string> = {
-      'Боевой молот': '1к8+4 дробящий · универсальное',
-      'Длинный лук': '1к8+3 колющий · боеприпас, двуручное',
-      'Копьё': '1к6+4 колющий · метательное, универсальное',
-      'Лёгкий арбалет': '1к8+1 колющий · боеприпас, перезарядка',
+    const presetMeta: Record<string, string> = {
+      'Боевой молот': 'оружие · 1к8+4 дробящий · универсальное · 2 фнт',
+      'Длинный лук': 'оружие · 1к8+3 колющий · боеприпас, двуручное · 2 фнт',
+      'Копьё': 'оружие · 1к6+4 колющий · метательное, универсальное · 3 фнт',
+      'Лёгкий арбалет': 'оружие · 1к8+1 колющий · боеприпас, перезарядка · 5 фнт',
+      'Стрелы': 'боеприпас · связка 20 · 1 фнт',
+      'Арбалетные болты': 'боеприпас · связка 20 · 1,5 фнт',
+      'Амулет неувядающей молитвы': 'настройка · заряды 2/3 · 1 фнт · 2/3',
+      'Кольцо защиты': 'настройка · КД +1 · спасы +1 · 0 фнт',
+      'Камень Йоун: сила': 'настройка · Сила +2 · 0 фнт',
+      'Зелье лечения': 'расходник · 1 фнт',
+      'Свиток «Благословение»': 'свиток · свиток 1 круга · привязан · 0 фнт',
+      'Свиток заклинания': 'свиток · не привязан · 0 фнт',
+      'Инструменты каменщика': 'инструмент · 8 фнт',
     }
     const metaLine = (item: InventoryItem) => {
-      const named = weaponMeta[item.name]
+      const named = presetMeta[item.name]
       if (named) return named
       const weight = item.weight_lb == null ? 'вес неизвестен' : `${formatLb(itemLineWeightLb(item))} фнт`
+      const bits = [roleLabel(item, catalogItems).toLowerCase()]
       if (item.base_ac != null) {
-        const ac = item.armor_kind === 'shield' ? `+${item.base_ac} КД` : `КД ${item.base_ac}`
-        return `${ac} · ${weight}`
+        bits.push(item.armor_kind === 'shield' ? `+${item.base_ac} КД` : `КД ${item.base_ac}`)
       }
-      return weight
+      bits.push(weight)
+      return bits.join(' · ')
     }
     const renderEtalonCard = (item: InventoryItem, nested: boolean) => {
       const open = openId === item.id
@@ -1440,14 +1453,14 @@ export function InventoryPanel({
       const armor = isArmorRow(item)
       const pack = isPackRow(item, catalogItems)
       const stowed = !item.equipped && (weapon || armor)
-      const weightLabel = item.weight_lb == null ? '—' : `${formatLb(itemLineWeightLb(item))} фнт`
+      const weightLabel = item.weight_lb == null ? '—' : `${formatLb(itemLineWeightLb(item)).replace('.', ',')} фнт`
       const attuned = attunements.some((slot) => slot.item_id === item.id)
       const tags: Array<{ text: string; on?: boolean }> = []
       if (item.parent_id) tags.push({ text: 'в наборе' })
-      if (item.equipped && armor) tags.push({ text: 'надето', on: true })
-      if (item.equipped && weapon) tags.push({ text: 'в руках', on: true })
+      if (item.equipped && !weapon) tags.push({ text: 'надето', on: true })
+      if (item.equipped && (weapon || item.armor_kind === 'shield')) tags.push({ text: 'в руках', on: true })
       if (item.requires_attunement && attuned) tags.push({ text: 'настроено', on: true })
-      if (itemNeedsBaseChoice(item)) tags.push({ text: 'нужно настроить' })
+      if (itemNeedsBaseChoice(item) || item.name === 'Свиток заклинания') tags.push({ text: 'нужно настроить' })
       if (pack) tags.push({ text: 'набор' })
       if ((item.qty || 1) > 1) tags.push({ text: `×${item.qty}` })
       return (
@@ -1486,7 +1499,7 @@ export function InventoryPanel({
             <div className="scene-card__body">
               <div className="inventory-card__meta">
                 <span className="inventory-role">{roleLabel(item, catalogItems).toLowerCase()}</span>
-                {item.equipped && armor ? <span className="plaque-tag is-on">надето</span> : null}
+                {item.equipped && !weapon ? <span className="plaque-tag is-on">надето</span> : null}
                 {item.equipped && weapon ? <span className="plaque-tag is-on">в руках</span> : null}
                 <button type="button" className="inventory-card__collapse" onClick={() => toggleDetails(item.id)}>
                   свернуть
@@ -1562,7 +1575,7 @@ export function InventoryPanel({
                 <i style={{ width: `${loadPct}%` }} />
               </span>
               <b>
-                {formatLb(totalLb)} / {formatLb(capacityLb)} фнт
+                {Math.round(totalLb)} / {Math.round(capacityLb)} фнт
               </b>
             </span>
           </div>

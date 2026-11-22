@@ -7,7 +7,7 @@
   border: 1px solid var(--desk-line, var(--line));
   border-radius: 12px;
   background: var(--card);
-  padding: 8px 10px 48px;
+  padding: 8px 10px 64px;
   box-sizing: border-box;
   width: 457.9px;
   max-width: 457.9px;
@@ -131,8 +131,9 @@
 .app-shell--sheet .play-desk--wide .desk-explore .scene-search {
   width: 100%;
   box-sizing: border-box;
-  margin: 20px 0 8px;
+  margin: 0 0 8px;
   padding: 5px 8px;
+  height: 31px;
   border: 1px solid var(--line);
   border-radius: 8px;
   background: color-mix(in srgb, var(--card) 80%, var(--text) 4%);
@@ -169,21 +170,30 @@
 }
 
 .app-shell--sheet .play-desk--wide .desk-explore .filters .chip.is-on {
-  background: rgb(78, 93, 52);
-  color: rgb(248, 255, 251);
-  border-color: rgb(78, 93, 52);
+  background: color-mix(in srgb, var(--accent-soft) 55%, var(--mix-paper, #fff));
+  color: rgb(36, 36, 31);
+  border-color: var(--line);
 }
 
 html[data-theme='leaf-classic'] .app-shell--sheet .play-desk--wide .desk-explore .filters .chip.is-on {
-  background: rgb(196, 209, 154);
-  color: rgb(10, 10, 10);
-  border-color: rgb(196, 209, 154);
+  background: color-mix(in srgb, var(--accent-soft) 55%, #131313);
+  color: rgb(255, 255, 255);
+  border-color: var(--line);
+}
+
+.app-shell--sheet .play-desk--wide .desk-explore .scene-toolbar .scene-stat {
+  box-sizing: border-box;
+  min-height: 50.3px;
+}
+
+.app-shell--sheet .play-desk--wide .desk-explore .scene-toolbar .scene-stat:first-child {
+  min-height: 62.3px;
 }
 
 .app-shell--sheet .play-desk--wide .desk-explore .flags {
-  margin: 16px 0 0;
-  font-size: 16px;
-  line-height: 23.2px;
+  margin: 11.52px 0 0;
+  font-size: 11.52px;
+  line-height: 16.7px;
 }
 
 .app-shell--sheet .play-desk--wide .desk-explore .scene-list {
@@ -205,6 +215,15 @@ html[data-theme='leaf-classic'] .app-shell--sheet .play-desk--wide .desk-explore
 
 .app-shell--sheet .play-desk--wide .desk-explore .scene-card.is-open {
   border-color: color-mix(in srgb, var(--accent) 40%, var(--line));
+}
+
+.app-shell--sheet .play-desk--wide .desk-explore .scene-card.is-open > .scene-card__hit .scene-card__meta {
+  display: none;
+}
+
+.app-shell--sheet .play-desk--wide .desk-explore .scene-card.is-open .scene-card__body {
+  display: grid;
+  gap: 8px;
 }
 
 .app-shell--sheet .play-desk--wide .desk-explore .scene-card__hit {
@@ -306,6 +325,18 @@ html[data-theme='leaf-classic'] .app-shell--sheet .play-desk--wide .desk-explore
   gap: 6px;
 }
 
+.app-shell--sheet .play-desk--wide .desk-explore .inventory-role {
+  display: inline;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  font-size: 13.12px;
+  font-weight: 400;
+  line-height: 18.4px;
+  color: inherit;
+}
+
 .app-shell--sheet .play-desk--wide .desk-explore .inventory-card__collapse {
   margin-left: auto;
   border: 0;
@@ -314,6 +345,7 @@ html[data-theme='leaf-classic'] .app-shell--sheet .play-desk--wide .desk-explore
   font: inherit;
   font-size: 0.78rem;
   font-weight: 650;
+  line-height: 1;
   min-height: 0;
   padding: 0;
 }
