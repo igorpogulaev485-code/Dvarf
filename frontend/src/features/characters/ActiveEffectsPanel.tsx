@@ -31,6 +31,8 @@ type Props = {
    * Desktop keeps measure + +N clamp (default).
    */
   chipLayout?: 'clamp' | 'scroll'
+  /** Header row owns «Следующий раунд» so the strip does not draw a second one. */
+  hideRound?: boolean
 }
 
 function EffectChip({
@@ -284,6 +286,7 @@ export function ActiveEffectsPanel({
   onToast,
   onHeroismTurnStart,
   chipLayout = 'clamp',
+  hideRound = false,
 }: Props) {
   const [openTipId, setOpenTipId] = useState<string | null>(null)
   const [visibleCount, setVisibleCount] = useState<number | null>(null)
@@ -476,6 +479,7 @@ export function ActiveEffectsPanel({
           ) : null}
         </div>
       )}
+      {hideRound ? null : (
       <div className="active-effects__trail">
         <Button
           type="button"
@@ -498,6 +502,7 @@ export function ActiveEffectsPanel({
           Следующий раунд
         </Button>
       </div>
+      )}
     </div>
   )
 }

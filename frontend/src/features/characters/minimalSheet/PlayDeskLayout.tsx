@@ -24,6 +24,7 @@ import { SceneTurnControls } from '../SceneTurnControls'
 import { usePlayDeskRailCap } from './usePlayDeskRailCap'
 import { openDiceJournal } from '../../diceRoller'
 import { usesHeroicInspiration } from '../../../shared/dnd/heroicInspiration'
+import { ABILITY_KEYS } from '../sheetTypes'
 
 export function PlayDeskLayout({ model }: { model: SheetModel }) {
   const { leftRef, stageRef } = usePlayDeskRailCap(Boolean(model.isPlayDesk))
@@ -46,39 +47,38 @@ export function PlayDeskLayout({ model }: { model: SheetModel }) {
       <TurnEconomyDeskHost model={model}>
       <PlayDeskTop model={model} />
 
-      <div className="play-desk__body">
-        <aside
-          className="play-desk__left"
-          ref={(node) => {
-            leftRef.current = node
-          }}
-        >
-          {model.abilityColumn}
-          <div className="play-desk__rail-foot">
-            {model.passivesCompact}
-            <OwnershipSummary
-              armor={model.draft.identity.armor}
-              weapons={model.draft.identity.weapons}
-              tools={model.draft.identity.tools}
-              languages={model.draft.identity.languages}
-              onOpen={() => model.setOwnershipOpen(true)}
-            />
-            {model.showOnboardingChecklist ? <OnboardingChecklist compact /> : null}
-          </div>
-        </aside>
-
-        <div
-          className="play-desk__stage"
-          ref={(node) => {
-            stageRef.current = node
-          }}
-        >
           {model.isPlayDesk ? (
             <div
-              className="play-desk__modes"
+              className="play-desk__modes sheet-desk-tools"
               aria-label="Сцены листа"
               title={MODE_HINT[model.draft.sheetUi.deskMode]}
             >
+              <div className="sheet-desk-tools__rail">
+                <button
+                  type="button"
+                  className="sheet-desk-tools__text"
+                  aria-label="Свернуть все характеристики"
+                  onClick={() => model.patchSheetUi({ collapsedAbilities: [...ABILITY_KEYS] })}
+                >
+                  Свернуть все
+                </button>
+                <button
+                  type="button"
+                  className="sheet-desk-tools__text"
+                  aria-label="Развернуть все характеристики"
+                  onClick={() => model.patchSheetUi({ collapsedAbilities: [] })}
+                >
+                  Развернуть все
+                </button>
+                <button
+                  type="button"
+                  className="sheet-desk-tools__help"
+                  title="Число → бросок · кружок → владение / компетентность · название → разборка"
+                  aria-label="Число → бросок · кружок → владение / компетентность · название → разборка"
+                >
+                  ?
+                </button>
+              </div>
               <div className="play-desk__mode-tabs" data-onboarding="desk-modes" role="group" aria-label="Вкладки сцен">
                 {MODE_LABELS.map(({ id: mode, label }) => (
                   <button
@@ -183,23 +183,31 @@ export function PlayDeskLayout({ model }: { model: SheetModel }) {
                       вдохн.
                     </button>
                   ) : null}
-                  <button
-                    type="button"
-                    className="play-desk__roll-mode-btn"
-                    title="История бросков на этом листе"
-                    onClick={() => openDiceJournal(model.character.id)}
-                  >
-                    броски
-                    {model.draft.sheetUi.rollHistory.length > 0
-                      ? ` ${Math.min(model.draft.sheetUi.rollHistory.length, 99)}`
-                      : ''}
-                  </button>
                 </div>
+                <button
+                  type="button"
+                  className="sheet-desk-tools__text"
+                  title="История бросков на этом листе"
+                  onClick={() => openDiceJournal(model.character.id)}
+                >
+                  броски
+                  {model.draft.sheetUi.rollHistory.length > 0
+                    ? ` ${Math.min(model.draft.sheetUi.rollHistory.length, 99)}`
+                    : ''}
+                </button>
                 <SceneTurnControls
                   showValueTips={Boolean(model.showValueTips)}
                   className="scene-turn-controls scene-turn-controls--desk"
                   buttonClassName="play-desk__roll-mode-btn"
                 />
+                <button
+                  type="button"
+                  className="sheet-desk-tools__text"
+                  title="Трекер хода «Действие / Бонусное / Реакция» в сцене «Бой»"
+                  onClick={() => model.setDeskMode('combat')}
+                >
+                  действ.
+                </button>
                 {modeUsesSpellSplit(model.draft.sheetUi.deskMode) ? (
                   <button
                     type="button"
@@ -223,6 +231,33 @@ export function PlayDeskLayout({ model }: { model: SheetModel }) {
             </div>
           ) : null}
 
+      <div className="play-desk__body">
+        <aside
+          className="play-desk__left"
+          ref={(node) => {
+            leftRef.current = node
+          }}
+        >
+          {model.abilityColumn}
+          <div className="play-desk__rail-foot">
+            {model.passivesCompact}
+            <OwnershipSummary
+              armor={model.draft.identity.armor}
+              weapons={model.draft.identity.weapons}
+              tools={model.draft.identity.tools}
+              languages={model.draft.identity.languages}
+              onOpen={() => model.setOwnershipOpen(true)}
+            />
+            {model.showOnboardingChecklist ? <OnboardingChecklist compact /> : null}
+          </div>
+        </aside>
+
+        <div
+          className="play-desk__stage"
+          ref={(node) => {
+            stageRef.current = node
+          }}
+        >
           <TurnEconomyStrip />
 
           {!model.isPlayDesk &&

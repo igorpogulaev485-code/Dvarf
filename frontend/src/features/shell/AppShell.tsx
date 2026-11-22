@@ -38,9 +38,9 @@ type AppShellProps = {
 }
 
 const NAV = [
-  { to: '/characters', section: 'chars' as const, label: 'Персонажи', icon: 'person' },
-  { to: '/lobbies', section: 'lobby' as const, label: 'Лобби', icon: 'people' },
-  { to: '/site', section: 'site' as const, label: 'Сайт КриD20', short: 'КриD20', icon: 'globe' },
+  { to: '/characters', section: 'chars' as const, label: 'Персонажи', short: 'Персонажи', icon: 'person' },
+  { to: '/lobbies', section: 'lobby' as const, label: 'Лобби', short: 'Лобби', icon: 'people' },
+  { to: '/site', section: 'site' as const, label: 'Сайт КриD20', short: 'Сайт', icon: 'globe' },
 ] as const
 
 function NavIcon({ name }: { name: 'person' | 'people' | 'globe' | 'user' }) {
@@ -178,9 +178,15 @@ export function AppShell({
         data-sheet-open={chrome === 'sheet' ? '' : undefined}
       >
         <aside className="sidebar app-shell__side">
-          <NavLink className="app-shell__brand" to="/site" aria-label="Сайт КриD20">
-            <Creed20Wordmark />
-          </NavLink>
+          {chrome === 'sheet' ? (
+            <NavLink className="app-shell__brand app-shell__brand--mark" to="/site" aria-label="Сайт КриD20">
+              К20
+            </NavLink>
+          ) : (
+            <NavLink className="app-shell__brand" to="/site" aria-label="Сайт КриD20">
+              <Creed20Wordmark />
+            </NavLink>
+          )}
           <nav className="app-shell__nav" aria-label="Разделы">
             {NAV.map((item) => (
               <NavLink
@@ -194,7 +200,8 @@ export function AppShell({
                 <span className="app-shell__nav-ico">
                   <NavIcon name={item.icon} />
                 </span>
-                <span>{item.label}</span>
+                <span className="app-shell__nav-full">{item.label}</span>
+                <span className="app-shell__nav-short">{item.short}</span>
               </NavLink>
             ))}
           </nav>

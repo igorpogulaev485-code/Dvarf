@@ -68,6 +68,7 @@ import {
 } from '../../shared/dnd/jumpDistance'
 import { formatModifier } from './sheetTypes'
 import type { NeedsSetupItem } from './needsSetup'
+import { NeedsSetupIndicator } from './NeedsSetupIndicator'
 
 type SpeedMode = {
   key: 'walk' | 'climb' | 'swim' | 'fly'
@@ -271,8 +272,8 @@ export function PlayDeskHeader({
   coinPadOpen: coinPadOpenProp,
   onCoinPadOpenChange,
   showValueTips = false,
-  needsSetupItems: _needsSetupItems = [],
-  onNeedsSetupSelect: _onNeedsSetupSelect,
+  needsSetupItems = [],
+  onNeedsSetupSelect,
 }: PlayDeskHeaderProps) {
   const turnEco = useTurnEconomy()
   const alignmentLabel = alignment.trim()
@@ -328,9 +329,9 @@ export function PlayDeskHeader({
       ? 'макс.'
       : xp.nextThreshold == null
         ? 'макс.'
-        : `${formatXp(xp.xp)} / ${formatXp(xp.nextThreshold)} XP · до ур. ${
+        : `${formatXp(xp.xp)} / ${formatXp(xp.nextThreshold)} XP · ещё ${formatXp(xp.remaining)} до ур. ${
             xp.level + 1
-          } — ${formatXp(xp.remaining)}`
+          }`
   const xpLabel = milestones
     ? `ур. ${level} · Вехи`
     : xp.nextThreshold == null
@@ -518,6 +519,10 @@ export function PlayDeskHeader({
               }
               onClick={onOpenIdentity}
             >
+              <span>Основное</span>
+              <span className="play-desk-header__dot" aria-hidden>
+                ·
+              </span>
               <span>{raceLabel}</span>
               {alignmentLabel ? (
                 <>
@@ -527,6 +532,10 @@ export function PlayDeskHeader({
                   <span className="play-desk-header__alignment">{alignmentLabel}</span>
                 </>
               ) : null}
+              <span className="play-desk-header__dot" aria-hidden>
+                ·
+              </span>
+              <span>{editionLabel}</span>
             </button>
           ) : (
             <p className="play-desk-header__identity">
@@ -545,6 +554,9 @@ export function PlayDeskHeader({
                 level: classRows.find((row) => row.id === chip.id)?.level,
               }))}
             />
+          ) : null}
+          {onNeedsSetupSelect ? (
+            <NeedsSetupIndicator items={needsSetupItems} onSelect={onNeedsSetupSelect} />
           ) : null}
           <XpTrack
             level={level}

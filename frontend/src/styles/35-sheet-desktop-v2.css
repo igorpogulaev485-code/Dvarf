@@ -5,6 +5,10 @@
  * Круг к20 и подложка остаются в shared-approved.css.
  */
 
+.app-shell__nav-short {
+  display: none;
+}
+
 .app-shell__leading {
   display: flex;
   flex-wrap: wrap;
@@ -72,8 +76,61 @@
 }
 
 @media (min-width: 960px) {
+  .app-shell--sheet {
+    grid-template-columns: 72px minmax(0, 1fr);
+  }
+
+  .app-shell--sheet .app-shell__side {
+    width: 72px;
+    padding: 14px 8px 18px;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .app-shell--sheet .app-shell__brand--mark {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    padding: 0;
+    background: var(--accent);
+    color: var(--on-accent, #fff);
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 13px;
+    line-height: 1;
+  }
+
+  .app-shell--sheet .app-shell__nav {
+    width: 100%;
+    justify-items: center;
+  }
+
+  .app-shell--sheet .app-shell__nav-item {
+    flex-direction: column;
+    justify-content: center;
+    gap: 4px;
+    width: 100%;
+    min-height: 0;
+    padding: 8px 4px;
+    border-radius: 12px;
+    background: var(--card);
+    font-size: 10px;
+    line-height: 1.15;
+    text-align: center;
+  }
+
+  .app-shell--sheet .app-shell__nav-full {
+    display: none;
+  }
+
+  .app-shell--sheet .app-shell__nav-short {
+    display: block;
+  }
+
   .app-shell--sheet .app-shell__main {
-    padding: 12px 18px 24px;
+    padding: 12px 16px 24px;
   }
 
   .app-shell--sheet .app-shell__head {
@@ -117,15 +174,251 @@
     background: var(--card);
   }
 
-  .app-shell--sheet .play-desk-header__name,
-  .app-shell--sheet .play-desk-header__name-text {
-    color: var(--heading, var(--ink));
+  .app-shell--sheet .play-desk--wide .play-desk__top {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-areas: "avatar head" "effects effects";
+    align-items: center;
+    gap: 6px 8px;
+    background: var(--card);
+  }
+
+  .app-shell--sheet .play-desk--wide .play-desk__top > .char-avatar {
+    grid-area: avatar;
+    align-self: stretch;
+  }
+
+  .app-shell--sheet .play-desk--wide .play-desk__top > .play-desk-header {
+    grid-area: head;
+  }
+
+  .app-shell--sheet .play-desk--wide .sheet-effects-row {
+    grid-area: effects;
   }
 
   .app-shell--sheet .play-desk--wide .char-avatar--sm .char-avatar__face {
     width: 72px;
-    height: 72px;
-    border-radius: 16px;
+    height: auto;
+    min-height: 72px;
+    align-self: stretch;
+    aspect-ratio: 1;
+    border-radius: 14px;
+    font-size: 1.2rem;
+  }
+
+  .app-shell--sheet .play-desk-header__name,
+  .app-shell--sheet .play-desk-header__name-text {
+    font-family: var(--font-display);
+    font-weight: 700;
     font-size: 1.35rem;
+    line-height: 1.15;
+    color: var(--accent);
+  }
+
+  .app-shell--sheet .play-desk-header__identity {
+    font-size: 0.78rem;
+    line-height: 1.35;
+  }
+
+  .app-shell--sheet .play-desk-header__meta-line {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 4px 8px;
+  }
+
+  .app-shell--sheet .play-desk-header__meta-line .play-desk-header__classes,
+  .app-shell--sheet .play-desk-header__meta-line .needs-setup,
+  .app-shell--sheet .play-desk-header__meta-line .class-chip-row {
+    flex: 0 0 auto;
+    margin-left: 0;
+    width: auto;
+    max-width: 100%;
+  }
+
+  .app-shell--sheet .play-desk-header__xp {
+    flex: 1 1 100%;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px 8px;
+    max-width: 22rem;
+    margin-top: 2px;
+  }
+
+  .app-shell--sheet .play-desk-header__xp-level {
+    display: none;
+  }
+
+  .app-shell--sheet .play-desk-header__xp-bar,
+  .app-shell--sheet .ui-xp-track__bar {
+    display: block;
+    flex: 1 1 8rem;
+    min-width: 6.5rem;
+    height: 7px;
+    border-radius: 999px;
+    overflow: hidden;
+    background: var(--desk-chip, #e7e1d4);
+  }
+
+  .app-shell--sheet .play-desk-header__xp-bar > i,
+  .app-shell--sheet .ui-xp-track__bar > i {
+    display: block;
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, var(--accent), color-mix(in srgb, var(--accent) 70%, #2d2d2a));
+  }
+
+  .app-shell--sheet .play-desk-header__xp-remain {
+    flex: 1 1 100%;
+    order: 3;
+    font-size: 0.62rem;
+    font-weight: 600;
+  }
+
+  .app-shell--sheet .play-desk-vital {
+    width: 52px;
+    min-width: 52px;
+    height: 48px;
+    min-height: 48px;
+    border-radius: 10px;
+  }
+
+  .app-shell--sheet .sheet-effects-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    width: 100%;
+    margin-top: 2px;
+    font-size: 0.72rem;
+    color: var(--muted);
+  }
+
+  .app-shell--sheet .sheet-effects-row__main {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+  }
+
+  .app-shell--sheet .sheet-effects-row__chip,
+  .app-shell--sheet .sheet-effects-row__round {
+    appearance: none;
+    border: 1px solid var(--line);
+    background: var(--card);
+    color: inherit;
+    border-radius: 999px;
+    min-height: 26px;
+    padding: 2px 10px;
+    font: inherit;
+    font-size: 0.72rem;
+    cursor: pointer;
+    width: auto;
+  }
+
+  .app-shell--sheet .sheet-effects-row__round {
+    margin-left: auto;
+    flex: 0 0 auto;
+  }
+
+  .app-shell--sheet .sheet-desk-tools {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    margin: 0 0 8px;
+    width: 100%;
+  }
+
+  .app-shell--sheet .sheet-desk-tools__rail {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .app-shell--sheet .sheet-desk-tools__text,
+  .app-shell--sheet .sheet-desk-tools__help {
+    appearance: none;
+    border: 1px solid var(--line);
+    background: var(--card);
+    color: var(--ink);
+    border-radius: 999px;
+    min-height: 28px;
+    padding: 2px 10px;
+    font: inherit;
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+    width: auto;
+  }
+
+  .app-shell--sheet .sheet-desk-tools__help {
+    width: 28px;
+    padding: 0;
+  }
+
+  .app-shell--sheet .play-desk__mode-tabs {
+    display: inline-flex;
+    gap: 4px;
+    flex-wrap: wrap;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 3px;
+  }
+
+  .app-shell--sheet .play-desk__mode {
+    border: 0;
+    background: transparent;
+    border-radius: 999px;
+    min-height: 28px;
+    padding: 4px 12px;
+    font-size: 0.82rem;
+  }
+
+  .app-shell--sheet .play-desk__mode.is-on {
+    background: var(--accent);
+    color: var(--on-accent, #fff);
+  }
+
+  .app-shell--sheet .play-desk__roll-mode,
+  .app-shell--sheet .scene-turn-controls--desk {
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    overflow: hidden;
+    background: var(--card);
+    gap: 0;
+  }
+
+  .app-shell--sheet .play-desk__roll-mode-btn {
+    border: 0;
+    border-right: 1px solid var(--line);
+    border-radius: 0;
+    background: transparent;
+    min-height: 28px;
+    padding: 4px 9px;
+    font-size: 0.75rem;
+    color: var(--muted);
+  }
+
+  .app-shell--sheet .play-desk__roll-mode-btn.is-on,
+  .app-shell--sheet .play-desk__split-btn.is-on {
+    background: var(--accent);
+    color: var(--on-accent, #fff);
+    border-color: var(--accent);
+  }
+
+  .app-shell--sheet .play-desk--wide .abil-column__toolbar,
+  .app-shell--sheet .play-desk--wide .play-desk__hot-item--states,
+  .app-shell--sheet .play-desk--wide .play-desk__dock-chip {
+    display: none;
+  }
+
+  .app-shell--sheet .sheet-effects-dialog__list {
+    margin: 0;
+    padding-left: 1.1rem;
   }
 }
