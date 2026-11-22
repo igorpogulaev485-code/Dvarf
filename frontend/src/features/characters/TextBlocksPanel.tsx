@@ -63,6 +63,8 @@ type TextBlocksPanelProps = {
   onPhysiqueChange?: (physique: PhysiqueFields) => void
   /** U11: jump to class features instead of a second abilities catalog here. */
   onOpenFeatures?: () => void
+  /** Desktop play desk: etalon «Общение» markup. Phone keeps the compact panel. */
+  etalon?: boolean
 }
 
 const RESET_OPTIONS: ResourceReset[] = ['short', 'long', 'manual']
@@ -131,6 +133,7 @@ export function TextBlocksPanel({
   physique,
   onPhysiqueChange,
   onOpenFeatures,
+  etalon = false,
 }: TextBlocksPanelProps) {
   const isPhone = useIsPhone()
   const hasPhysiqueUi = Boolean(physique && onPhysiqueChange)
@@ -980,6 +983,131 @@ export function TextBlocksPanel({
       : null
 
   const showCollapseBar = shouldShowCollapseBar(visibleBlocks.length)
+
+  if (etalon) {
+    const shown = blocks.filter(
+      (block) =>
+        !block.isHidden &&
+        block.key !== APPEARANCE_KEY &&
+        socialBucket(block) !== 'features' &&
+        (block.isCustom || blockHasPlayerContent(block)),
+    )
+    const splitGlance = (value: string) => {
+      const parts = value.split(/\n\n/)
+      const meta = (parts[0] || '').replace(/\s+/g, ' ').trim()
+      const body = (parts.length > 1 ? parts.slice(1).join('\n\n') : value).trim()
+      return { meta, body }
+    }
+    return (
+      <>
+        <h2>
+          Общение
+          <span className="links">
+            <button type="button" className="ghost" onClick={() => setDialogEditKey('physique')}>
+              Внешность
+            </button>
+            <button
+              type="button"
+              className="ghost"
+              onClick={() => {
+                const next = createCustomTextBlock(blocks)
+                onChange([...blocks, next])
+                setDialogEditKey(next.key)
+              }}
+            >
+              + Добавить заметку
+            </button>
+            <button type="button" className="ghost" onClick={onOpenFeatures}>
+              К способностям
+            </button>
+          </span>
+        </h2>
+        <div className="scene-list" data-text-list>
+          {shown.map((block) => {
+            const open = openKeys.has(block.key)
+            const label = displayLabel(block)
+            const glance = splitGlance(block.value)
+            const isNote = block.isCustom && block.key !== 'allies'
+            return (
+              <article
+                key={block.key}
+                className={`scene-card is-text${isNote ? ' is-note' : ''}${open ? ' is-open' : ''}`}
+                data-text={block.key}
+              >
+                <div className="scene-card__hit">
+                  <button type="button" className="drag-handle" tabIndex={-1} aria-hidden title="Зажми и перетащи блок">
+                    <svg className="drag-handle-icon" viewBox="0 0 16 14" width="16" height="14" aria-hidden focusable="false" fill="none">
+                      <line className="drag-line" x1="1" y1="2.5" x2="15" y2="2.5" />
+                      <line className="drag-line" x1="1" y1="6.7" x2="15" y2="6.7" />
+                    </svg>
+                  </button>
+                  <button type="button" data-toggle-card onClick={() => openView(block.key)}>
+                    <span className="scene-card__name">
+                      {label}
+                      {isNote ? <span className="plaque-tag">заметка</span> : null}
+                    </span>
+                    <span className="scene-card__meta">{glance.meta}</span>
+                  </button>
+                  <button type="button" className="btn" onClick={() => setDialogEditKey(block.key)}>
+                    Править
+                  </button>
+                  {isNote ? (
+                    <button
+                      type="button"
+                      className="btn is-danger"
+                      onClick={() => onChange(blocks.filter((item) => item.key !== block.key))}
+                    >
+                      Удалить
+                    </button>
+                  ) : null}
+                </div>
+                {open ? (
+                  <div className="scene-card__body">
+                    <p>{glance.body}</p>
+                    {block.key === 'background' ? (
+                      <div className="scene-card__actions">
+                        <button type="button" className="ghost" onClick={onOpenFeatures}>
+                          К способностям
+                        </button>
+                      </div>
+                    ) : null}
+                  </div>
+                ) : null}
+              </article>
+            )
+          })}
+        </div>
+        <Dialog
+          open={dialogEditKey === 'physique' && Boolean(physique)}
+          title="Внешность"
+          primaryLabel="Готово"
+          secondaryLabel="Закрыть"
+          onPrimary={closeDialogEdit}
+          onSecondary={closeDialogEdit}
+          onDismiss={closeDialogEdit}
+          size="wide"
+        >
+          {renderPhysiqueEditor()}
+        </Dialog>
+        <Dialog
+          open={Boolean(dialogBlock)}
+          title={dialogBlock ? displayLabel(dialogBlock) : 'Блок'}
+          primaryLabel="Готово"
+          secondaryLabel="Закрыть"
+          onPrimary={closeDialogEdit}
+          onSecondary={closeDialogEdit}
+          onDismiss={closeDialogEdit}
+          size="wide"
+        >
+          {dialogBlock ? (
+            <div className="text-block text-block--dialog-edit">
+              {renderBlockEditor(dialogBlock)}
+            </div>
+          ) : null}
+        </Dialog>
+      </>
+    )
+  }
 
   return (
     <Panel

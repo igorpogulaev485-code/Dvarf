@@ -2219,9 +2219,10 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
 
       </div>
 
-      <div className="play-desk__stage-panel" hidden={model.stageHidden('texts')}>
+      <div className={`play-desk__stage-panel${model.isPlayDesk ? ' panel has-content desk-social' : ''}`} data-panel={model.isPlayDesk ? 'texts' : undefined} hidden={model.stageHidden('texts')}>
       {/* Social: TextBlocksPanel glance→expand — no compact/full flip. */}
       <TextBlocksPanel
+        etalon={model.isPlayDesk}
         blocks={model.draft.textBlocks}
         onChange={(textBlocks) => model.setDraft((prev) => ({ ...prev, textBlocks }))}
         resources={model.draft.play.resources}
