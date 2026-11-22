@@ -34,7 +34,7 @@ export function DeskIdentityEtalon({ model }: { model: SheetModel }) {
   const edition2024 = model.baseCharacter.rules_edition === '2024'
   const raceLabel = edition2024 ? 'Вид' : 'Раса'
   const primary = model.primaryClass
-  const subclass = model.draft.identity.subclassName?.trim()
+  const subclass = primary?.subclass_name?.trim() || model.draft.identity.subclassName?.trim()
   return (
     <div className="desk-ident form">
       <p className="section-label">Персонаж</p>

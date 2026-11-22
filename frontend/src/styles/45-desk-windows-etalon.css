@@ -253,7 +253,7 @@
   }
 
   html[data-desk-windows='1'] .hp-pad__status-hp span {
-    color: var(--muted, rgba(45, 45, 42, 0.58));
+    color: rgba(45, 45, 42, 0.58);
     font-size: 1.05rem;
     font-weight: 600;
   }
