@@ -65,6 +65,7 @@ import {
 import { listActiveInfusionBindings } from '../../../shared/dnd/infusionsActive'
 import { spendSpellSlot } from '../../../shared/dnd/spells'
 import { PlayDeskSpellsCompact } from '../PlayDeskSpellsCompact'
+import { SpellsEtalonDesk } from '../SpellsEtalonDesk'
 import { equipInventoryItem, equippedArmorPieces } from '../inventory'
 import { withSpellFocusFlags } from '../spellFocus'
 import { markBladesingerMeleeFocusItems2024 } from '../../../shared/dnd/wizardBook2024Features'
@@ -1733,9 +1734,21 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
       </div>
 
       <div
-        className={`play-desk__stage-panel${model.deskSplit && model.splitSecondary === 'spells' ? ' is-pinned' : ''}`}
+        className={`play-desk__stage-panel${model.deskSplit && model.splitSecondary === 'spells' ? ' is-pinned' : ''}${model.isPlayDesk ? ' panel has-content desk-spells' : ''}`}
+        data-panel={model.isPlayDesk ? 'spells' : undefined}
         hidden={model.stageHidden('spells')}
       >
+      {model.isPlayDesk ? (
+        <SpellsEtalonDesk
+          onClearSplit={
+            model.deskSplit && model.splitSecondary === 'spells'
+              ? () => model.patchSheetUi({ deskSplit: false })
+              : undefined
+          }
+          onOpenSettings={() => model.setSpellsSettingsOpen(true)}
+        />
+      ) : null}
+      <div hidden={model.isPlayDesk ? true : undefined}>
       {model.showCompact('spells') ? (
         <>
           <PlayDeskSpellsCompact
@@ -1996,6 +2009,7 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
         />
       )}
 
+      </div>
       </div>
 
       <div className={`play-desk__stage-panel${model.isPlayDesk ? ' panel has-content desk-companions' : ''}`} data-panel={model.isPlayDesk ? 'companions' : undefined} hidden={model.stageHidden('companions')}>
