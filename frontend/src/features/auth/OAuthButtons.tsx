@@ -5,6 +5,8 @@ import { Text } from '../../ui'
 
 type OAuthButtonsProps = {
   onMessage?: (message: string) => void
+  /** icons — квадратные глифы кабинета. labels — текстовые кнопки панели входа. */
+  layout?: 'icons' | 'labels'
 }
 
 const PROVIDER_LABELS = {
@@ -28,7 +30,7 @@ function VkMark() {
   )
 }
 
-export function OAuthButtons({ onMessage }: OAuthButtonsProps) {
+export function OAuthButtons({ onMessage, layout = 'icons' }: OAuthButtonsProps) {
   const [pendingProvider, setPendingProvider] = useState<'yandex' | 'vk' | null>(null)
 
   async function handleStart(provider: 'yandex' | 'vk') {
@@ -59,16 +61,21 @@ export function OAuthButtons({ onMessage }: OAuthButtonsProps) {
       <Text tone="muted" className="oauth-icons__label">
         или через
       </Text>
-      <div className="oauth-icons__row" role="group" aria-label="Вход через сервисы">
+      <div
+        className={layout === 'labels' ? 'oauth-icons__row oauth-icons__row--labels' : 'oauth-icons__row'}
+        role="group"
+        aria-label="Вход через сервисы"
+      >
         <button
           type="button"
           className="oauth-icons__btn"
-          title="Войти через Яндекс"
-          aria-label="Войти через Яндекс"
+          title="Войти через Яндекс ID"
+          aria-label="Войти через Яндекс ID"
           disabled={pendingProvider !== null}
           onClick={() => handleStart('yandex')}
         >
           <YandexMark />
+          {layout === 'labels' ? <span>Войти через Яндекс ID</span> : null}
         </button>
         <button
           type="button"
@@ -79,6 +86,7 @@ export function OAuthButtons({ onMessage }: OAuthButtonsProps) {
           onClick={() => handleStart('vk')}
         >
           <VkMark />
+          {layout === 'labels' ? <span>Войти через VK ID</span> : null}
         </button>
       </div>
     </div>

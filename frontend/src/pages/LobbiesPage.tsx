@@ -1,16 +1,16 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { AppHeader } from '../features/characters'
+import { AppShell } from '../features/shell/AppShell'
+import { GuestInvite } from '../features/shell/GuestInvite'
+import { ApiRequestError, getAccessToken } from '../shared/api/client'
 import {
   createLobby,
   listLobbies,
   type LobbyRulesEdition,
   type LobbySummary,
 } from '../shared/api/lobbies'
-import { ApiRequestError } from '../shared/api/client'
-import { RULES_EDITION_2024_OPEN } from '../shared/dnd/rulesEdition2024'
-import { AppLegalFooter, openProductSite } from '../shared/brand/creed20'
 import { Button, EmptyState, Field, Input, Panel, Select, Stack, Text } from '../ui'
+import { RULES_EDITION_2024_OPEN } from '../shared/dnd/rulesEdition2024'
 
 function sortLobbiesLiveFirst(items: LobbySummary[]): LobbySummary[] {
   return [...items].sort((a, b) => {
@@ -30,9 +30,17 @@ export function LobbiesPage() {
   const [name, setName] = useState('')
   const [rulesEdition, setRulesEdition] = useState<LobbyRulesEdition>('2014')
   const [error, setError] = useState<string | null>(null)
+  const [authed, setAuthed] = useState(() => Boolean(getAccessToken()))
 
   useEffect(() => {
+    if (!getAccessToken()) {
+      setAuthed(false)
+      setItems([])
+      setLoading(false)
+      return
+    }
     let active = true
+    setAuthed(true)
     setLoading(true)
     listLobbies()
       .then((list) => {
@@ -41,7 +49,8 @@ export function LobbiesPage() {
       .catch((err: unknown) => {
         if (!active) return
         if (err instanceof ApiRequestError && err.status === 401) {
-          navigate('/login', { replace: true })
+          setAuthed(false)
+          setItems([])
           return
         }
         setError(err instanceof ApiRequestError ? err.message : 'Не удалось загрузить лобби')
@@ -52,7 +61,7 @@ export function LobbiesPage() {
     return () => {
       active = false
     }
-  }, [navigate])
+  }, [authed])
 
   const sortedItems = useMemo(() => sortLobbiesLiveFirst(items), [items])
 
@@ -71,15 +80,30 @@ export function LobbiesPage() {
     }
   }
 
-  return (
-    <main className="page page--app">
-      <Stack gap={20}>
-        <AppHeader
-          title="Лобби"
-          subtitle="Место игры: код и QR для игроков, внутри — сеттинг и сессии"
-          onOfficialSite={openProductSite}
-          lobbyMobileShell
+  if (!authed) {
+    return (
+      <AppShell
+        section="lobby"
+        title="Лобби"
+        subtitle="Войдите, чтобы занять место за столом."
+        onAuthed={() => setAuthed(true)}
+      >
+        <GuestInvite
+          title="Стол ещё пуст"
+          lead="За столом ещё пусто. Мастер уже ждёт, но без вашего имени места не занять. Войдите или запишитесь в книгу."
+          extra={{ to: '/join', label: 'Ввести код' }}
         />
+      </AppShell>
+    )
+  }
+
+  return (
+    <AppShell
+      section="lobby"
+      title="Лобби"
+      subtitle="Место игры: код и QR для игроков, внутри — сеттинг и сессии"
+      onAuthed={() => setAuthed(true)}
+    >
 
         <div className="lobbies-toolbar">
           <Button
@@ -197,9 +221,6 @@ export function LobbiesPage() {
             </Link>
           </Stack>
         </Panel>
-
-        <AppLegalFooter />
-      </Stack>
-    </main>
+    </AppShell>
   )
 }

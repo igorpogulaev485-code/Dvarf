@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { confirmEmailChange } from '../shared/api/auth'
 import { ApiRequestError } from '../shared/api/client'
 import { Button, Panel, Stack, Text } from '../ui'
+import { AppShell } from '../features/shell/AppShell'
 
 export function ConfirmEmailPage() {
   const [params] = useSearchParams()
@@ -48,14 +49,8 @@ export function ConfirmEmailPage() {
   }, [token])
 
   return (
-    <main className="page page--auth-debug">
-      <Stack gap={20}>
-        <Stack gap={6}>
-          <Text as="h1">Подтверждение email</Text>
-          <Text tone="muted">Вы перешли по ссылке из письма на текущую почту.</Text>
-        </Stack>
-
-        <Panel title="Смена email">
+    <AppShell section="chars" title="Подтверждение email" subtitle="Вы перешли по ссылке из письма на текущую почту.">
+      <Panel title="Смена email">
           <Stack gap={12}>
             {!token ? (
               <Text tone="danger">В ссылке нет токена. Запросите новую ссылку в личном кабинете.</Text>
@@ -76,7 +71,6 @@ export function ConfirmEmailPage() {
             </Button>
           </Stack>
         </Panel>
-      </Stack>
-    </main>
+    </AppShell>
   )
 }

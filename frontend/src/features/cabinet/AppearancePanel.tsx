@@ -15,7 +15,8 @@ import {
   type SurfaceId,
   type ThemeId,
 } from '../../shared/theme/accountAppearance'
-import { Stack, Text } from '../../ui'
+import { Button, Stack, Text } from '../../ui'
+import { AppearanceSurvey } from './AppearanceSurvey'
 
 type AppearancePanelProps = {
   user: User
@@ -36,6 +37,7 @@ export function AppearancePanel({ user, onSaved }: AppearancePanelProps) {
   const [current, setCurrent] = useState<AccountAppearance>(fromUser)
   const [pending, setPending] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [surveyOpen, setSurveyOpen] = useState(false)
 
   useEffect(() => {
     setCurrent(normalizeAppearance(user))
@@ -291,6 +293,21 @@ export function AppearancePanel({ user, onSaved }: AppearancePanelProps) {
       </div>
 
       {error ? <Text tone="danger">{error}</Text> : null}
+      <div className="shell-survey__actions">
+        <Button type="button" variant="secondary" onClick={() => setSurveyOpen(true)}>
+          Пройти опрос заново
+        </Button>
+      </div>
+      <AppearanceSurvey
+        open={surveyOpen}
+        mode="replay"
+        user={user}
+        onDismiss={() => setSurveyOpen(false)}
+        onSaved={(next) => {
+          setSurveyOpen(false)
+          onSaved(next)
+        }}
+      />
     </Stack>
   )
 }

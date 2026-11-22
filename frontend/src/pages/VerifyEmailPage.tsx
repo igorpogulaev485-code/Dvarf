@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { verifyEmail } from '../shared/api/auth'
 import { ApiRequestError } from '../shared/api/client'
 import { Button, Panel, Stack, Text } from '../ui'
+import { AppShell } from '../features/shell/AppShell'
 
 export function VerifyEmailPage() {
   const [params] = useSearchParams()
@@ -46,14 +47,8 @@ export function VerifyEmailPage() {
   }, [token])
 
   return (
-    <main className="page page--auth-debug">
-      <Stack gap={20}>
-        <Stack gap={6}>
-          <Text as="h1">Подтверждение регистрации</Text>
-          <Text tone="muted">Вы перешли по ссылке из письма.</Text>
-        </Stack>
-
-        <Panel title="Активация аккаунта">
+    <AppShell section="chars" title="Подтверждение регистрации" subtitle="Вы перешли по ссылке из письма.">
+      <Panel title="Активация аккаунта">
           <Stack gap={12}>
             {!token ? (
               <Text tone="danger">
@@ -71,7 +66,6 @@ export function VerifyEmailPage() {
             </Button>
           </Stack>
         </Panel>
-      </Stack>
-    </main>
+    </AppShell>
   )
 }

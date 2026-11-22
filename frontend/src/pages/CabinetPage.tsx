@@ -11,8 +11,9 @@ import {
   SessionsPanel,
 } from '../features/cabinet'
 import { getMe, type User } from '../shared/api/auth'
-import { ApiRequestError } from '../shared/api/client'
-import { AppLegalFooter } from '../shared/brand/creed20'
+import { ApiRequestError, getAccessToken } from '../shared/api/client'
+import { AppShell } from '../features/shell/AppShell'
+import { GuestInvite } from '../features/shell/GuestInvite'
 import {
   applyAccountAppearance,
   mergeAppearanceFromUser,
@@ -46,6 +47,11 @@ export function CabinetPage() {
   }, [])
 
   useEffect(() => {
+    if (!getAccessToken()) {
+      setUser(null)
+      setLoading(false)
+      return
+    }
     let active = true
     setLoading(true)
     getMe()
@@ -59,7 +65,7 @@ export function CabinetPage() {
           return
         }
         if (err instanceof ApiRequestError && err.status === 401) {
-          navigate('/login', { replace: true })
+          setUser(null)
           return
         }
         setError(err instanceof ApiRequestError ? err.message : 'Не удалось загрузить профиль')
@@ -72,7 +78,7 @@ export function CabinetPage() {
     return () => {
       active = false
     }
-  }, [navigate, handleUser])
+  }, [handleUser])
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
@@ -95,39 +101,42 @@ export function CabinetPage() {
       })
   }, [handleUser])
 
+  if (!loading && !user) {
+    return (
+      <AppShell
+        section="cabinet"
+        title="Личный кабинет"
+        subtitle="Войдите, чтобы открыть кабинет."
+        initialAuth="login"
+        onAuthed={(next) => handleUser(next)}
+      >
+        <GuestInvite
+          title="Личный кабинет"
+          lead="Профиль, безопасность и оформление откроются после входа."
+        />
+      </AppShell>
+    )
+  }
+
   return (
-    <main className="page page--app page--cabinet">
-      <Stack gap={20}>
-        <header className="cabinet-header">
-          <Link className="back-link" to="/characters">
-            ← К персонажам
+    <AppShell
+      section="cabinet"
+      title="Личный кабинет"
+      subtitle="Профиль, безопасность и оформление"
+      user={user}
+    >
+      <Stack gap={16}>
+        {user?.is_admin ? (
+          <Link className="ui-button ui-button--secondary" to="/admin">
+            Админка
           </Link>
-          <Stack gap={6}>
-            <Text as="h1">Личный кабинет</Text>
-            <Text tone="muted">Профиль, безопасность и оформление</Text>
-            {user?.is_admin ? (
-              <Link className="back-link" to="/admin">
-                Админка
-              </Link>
-            ) : null}
-          </Stack>
-        </header>
+        ) : null}
 
         {loading ? <Text tone="muted">Загружаем профиль…</Text> : null}
         {error ? <Text tone="danger">{error}</Text> : null}
 
         {user ? (
           <div className="cabinet-layout">
-            <Panel title="Профиль" className="cabinet-layout__profile">
-              <ProfileForm
-                user={user}
-                onSaved={(next) => {
-                  handleUser(next)
-                  setToast('Профиль сохранён')
-                }}
-              />
-            </Panel>
-
             <Panel title="Оформление" className="cabinet-layout__appearance">
               <AppearancePanel
                 user={user}
@@ -138,30 +147,42 @@ export function CabinetPage() {
               />
             </Panel>
 
-            <Panel title="Способы входа" className="cabinet-layout__providers">
-              <AuthProvidersPanel
-                providers={user.providers}
-                onUserChange={handleUser}
-                onMessage={setToast}
+            <Panel title="Профиль" className="cabinet-layout__profile">
+              <ProfileForm
+                user={user}
+                onSaved={(next) => {
+                  handleUser(next)
+                  setToast('Профиль сохранён')
+                }}
               />
             </Panel>
 
-            <Panel title="Смена email" className="cabinet-layout__email">
-              <ChangeEmailForm currentEmail={user.email} />
-            </Panel>
+            <div className="cabinet-layout__security">
+              <Panel title="Способы входа" className="cabinet-layout__providers">
+                <AuthProvidersPanel
+                  providers={user.providers}
+                  onUserChange={handleUser}
+                  onMessage={setToast}
+                />
+              </Panel>
 
-            {user.providers.includes('password') ? (
-              <Panel title="Смена пароля" className="cabinet-layout__password">
-                <ChangePasswordForm onChanged={() => setToast('Пароль изменён')} />
+              <Panel title="Смена email" className="cabinet-layout__email">
+                <ChangeEmailForm currentEmail={user.email} />
               </Panel>
-            ) : (
-              <Panel title="Смена пароля" className="cabinet-layout__password">
-                <Text tone="muted">
-                  У аккаунта нет пароля email — смена пароля недоступна. Позже можно будет задать
-                  пароль после привязки email.
-                </Text>
-              </Panel>
-            )}
+
+              {user.providers.includes('password') ? (
+                <Panel title="Смена пароля" className="cabinet-layout__password">
+                  <ChangePasswordForm onChanged={() => setToast('Пароль изменён')} />
+                </Panel>
+              ) : (
+                <Panel title="Смена пароля" className="cabinet-layout__password">
+                  <Text tone="muted">
+                    У аккаунта нет пароля email — смена пароля недоступна. Позже можно будет задать
+                    пароль после привязки email.
+                  </Text>
+                </Panel>
+              )}
+            </div>
 
             <Panel title="Сессии" className="cabinet-layout__sessions">
               <SessionsPanel
@@ -186,11 +207,9 @@ export function CabinetPage() {
             </Panel>
           </div>
         ) : null}
-
-        <AppLegalFooter />
       </Stack>
 
       {toast ? <Toast message={toast} onClose={closeToast} /> : null}
-    </main>
+    </AppShell>
   )
 }
