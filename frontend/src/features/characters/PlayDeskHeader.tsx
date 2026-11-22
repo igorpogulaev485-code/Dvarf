@@ -525,7 +525,7 @@ export function PlayDeskHeader({
           classChips={classChips}
           needsSetupItems={needsSetupItems}
           onNeedsSetupSelect={onNeedsSetupSelect}
-          xpLabel={xpRemainLabel}
+          xpLabel={xpRemainLabel.replaceAll('\u00A0', '\u202F')}
           xpRatio={xp.nextThreshold ? xp.xp / xp.nextThreshold : 1}
           onOpenXp={() => setXpPadOpen(true)}
           autoAc={autoAc}
