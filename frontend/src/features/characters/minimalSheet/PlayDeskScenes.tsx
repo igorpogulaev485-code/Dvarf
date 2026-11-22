@@ -250,7 +250,7 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
   return (
     <>
       <div className="play-desk__scene-wrap">
-      <div className={`play-desk__stage-panel${model.isPlayDesk ? ' panel has-content desk-combat' : ''}`} hidden={model.stageHidden('attacks')}>
+      <div className={`play-desk__stage-panel${model.isPlayDesk ? ' panel has-content desk-combat' : ''}`} data-panel={model.isPlayDesk ? 'attacks' : undefined} hidden={model.stageHidden('attacks')}>
       {model.showCompact('attacks') ? (
         <>
           <PlayDeskAttacksCompact

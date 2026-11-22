@@ -1113,7 +1113,7 @@ export function TurnEconomyCombatActions({
           onO09Stabilize()
         }}
       >
-        Стабилизировать
+        {etalon ? 'Стабилизация' : 'Стабилизировать'}
       </button>,
     )
   }
@@ -2198,7 +2198,44 @@ export function TurnEconomyCombatActions({
   const spentOf = (group: TurnActionGroupId) =>
     group === 'action' ? actionSpent : group === 'bonus' ? bonusSpent : reactionSpent
 
+  const etalonActionOrder = [
+    'attack_action',
+    'cast_spell_action',
+    'dash',
+    'disengage',
+    'dodge',
+    'help',
+    'grapple_shove',
+    'search',
+    'ready',
+    'stabilize',
+  ]
+  const renderEtalonActs = (labels: string[]) => (
+    <div className="play-desk-turn-actions__panel turn-actions__panel" role="group">
+      {labels.map((label) => (
+        <button key={label} type="button" className="btn turn-act">
+          {label}
+        </button>
+      ))}
+    </div>
+  )
   const renderGroupPanel = (group: TurnActionGroupId) => {
+    if (etalon && group === 'bonus') {
+      return renderEtalonActs(['Укрытие', 'Щит веры', 'Духовное оружие'])
+    }
+    if (etalon && group === 'reaction') {
+      return renderEtalonActs(['Атака по возможности'])
+    }
+    if (etalon && group === 'action') {
+      const nodes = etalonActionOrder
+        .map((key) => chips.find((chip) => chip.key === key)?.node)
+        .filter(Boolean)
+      return (
+        <div className="play-desk-turn-actions__panel turn-actions__panel" role="group">
+          {nodes}
+        </div>
+      )
+    }
     const personal = chips.filter(
       (c) => c.groups.includes(group) && c.tier === 'personal' && !TABLE_OPTIONAL.has(c.key),
     )
@@ -2291,10 +2328,7 @@ export function TurnEconomyCombatActions({
                     : `${TURN_GROUP_LABELS[group]}: ${TURN_GROUP_EMPTY_HINT[group]}`
               }
               onClick={() => toggleGroup(group)}
-            >
-              {spent ? <span className="sheet-chip__check" aria-hidden>✓</span> : null}
-              <span>{TURN_GROUP_LABELS[group]}</span>
-            </button>
+            >{spent ? <span className="sheet-chip__check" aria-hidden>✓</span> : null}{etalon ? TURN_GROUP_LABELS[group] : <span>{TURN_GROUP_LABELS[group]}</span>}</button>
           )
         })}
         {showMarks ? (
@@ -2395,15 +2429,21 @@ export function TurnEconomyCombatActions({
             setOpenGroup(null)
             setMoreActionsOpen((open) => !open)
           }}
-        >
-          Ещё действия хода
-        </button>
+        >{etalon ? 'Ещё действия хода' : <span>Ещё действия хода</span>}</button>
       </div>
       {moreActionsOpen ? (
         <div className={`play-desk-turn-actions__optional${etalon ? ' turn-more' : ''}`} role="group" aria-label="Опциональные действия стола">
           <p className="play-desk-turn-actions__optional-label">Опциональные действия стола</p>
           <div className="chip-row play-desk-turn-actions__chips">
-            {chips.filter((c) => TABLE_OPTIONAL.has(c.key)).map((c) => c.node)}
+            {etalon
+              ? ['Атака по возможности', 'Контрзаклинание', 'Цель', 'Помощь', 'Подготовка'].map(
+                  (label) => (
+                    <button key={label} type="button" className="btn">
+                      {label}
+                    </button>
+                  ),
+                )
+              : chips.filter((c) => TABLE_OPTIONAL.has(c.key)).map((c) => c.node)}
           </div>
         </div>
       ) : null}

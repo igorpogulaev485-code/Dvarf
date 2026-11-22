@@ -442,44 +442,6 @@ export function DiceRollerPreviewPage() {
     // Header stays str 16 / dex 12. The concept plaques show +7/+6/+7/+4,
     // which is ability + proficiency plus the hammer's +1 and fixture flats
     // on the bow and spear. The roll uses the same totals.
-    sheet.modifiers = [
-      {
-        id: 'kaedrin-bow-hit',
-        target: 'weapon_hit:kaedrin-longbow',
-        label: 'эталон',
-        op: '+',
-        expr: '2',
-        enabled: true,
-        source: 'manual',
-      },
-      {
-        id: 'kaedrin-bow-dmg',
-        target: 'weapon_dmg:kaedrin-longbow',
-        label: 'эталон',
-        op: '+',
-        expr: '2',
-        enabled: true,
-        source: 'manual',
-      },
-      {
-        id: 'kaedrin-spear-hit',
-        target: 'weapon_hit:kaedrin-spear',
-        label: 'эталон',
-        op: '+',
-        expr: '1',
-        enabled: true,
-        source: 'manual',
-      },
-      {
-        id: 'kaedrin-spear-dmg',
-        target: 'weapon_dmg:kaedrin-spear',
-        label: 'эталон',
-        op: '+',
-        expr: '1',
-        enabled: true,
-        source: 'manual',
-      },
-    ]
     sheet.ui = {
       ...((sheet.ui as Record<string, unknown> | undefined) ?? {}),
       combat_consumable_favorites: ['kaedrin-potion'],
@@ -531,6 +493,7 @@ export function DiceRollerPreviewPage() {
           armor_kind: 'none',
           weapon_grip: 'two_hand',
           base_weapon_slug: 'longbow',
+          magic_bonus: 2,
           notes: '',
         },
         {
@@ -542,6 +505,7 @@ export function DiceRollerPreviewPage() {
           armor_kind: 'none',
           weapon_grip: 'one_hand',
           base_weapon_slug: 'spear',
+          magic_bonus: 1,
           notes: '',
         },
         {

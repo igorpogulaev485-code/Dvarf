@@ -910,6 +910,10 @@ export function PlayDeskAttacksCompact({
   const skipAttackDeferRef = useRef(false)
   const flushAttackTargetRef = useRef<CombatTarget | null>(null)
   const attackHitButtonRefs = useRef<Record<string, HTMLButtonElement | null>>({})
+  const etalonHeldAtStart = useRef<Set<string> | null>(null)
+  if (etalon && !etalonHeldAtStart.current) {
+    etalonHeldAtStart.current = new Set(weapons.filter((row) => row.held).map((row) => row.id))
+  }
   const [enterNumberOpen, setEnterNumberOpen] = useState(false)
   const [enterNumberCtx, setEnterNumberCtx] = useState<{
     title: string
@@ -1530,7 +1534,7 @@ export function PlayDeskAttacksCompact({
 
   return (
     <>
-    <div className="play-desk-compact" data-onboarding="actions" data-panel={etalon ? 'attacks' : undefined}>
+    <div className="play-desk-compact" data-onboarding="actions">
       <div className="play-desk-compact__head">
         {etalon ? (
           <h2>
@@ -2927,7 +2931,17 @@ export function PlayDeskAttacksCompact({
                 sourceKind: attack.source_kind,
                 attackId: attack.id,
               })
-            const magicAtk = gear?.attackBonus ?? 0
+            const storedMagic =
+              etalon && attack.inventory_item_id
+                ? Math.max(
+                    0,
+                    Math.floor(
+                      inventoryItems.find((row) => row.id === attack.inventory_item_id)
+                        ?.magic_bonus ?? 0,
+                    ),
+                  )
+                : 0
+            const magicAtk = gear?.attackBonus ?? storedMagic
             const effectAtk = flatFxAttack + fxAttackFlat
             const attackParts = buildAttackBonusParts({
               abilityKey: attackAbility,
@@ -3004,7 +3018,7 @@ export function PlayDeskAttacksCompact({
             })
             const baseDamageBonusBeforeManual =
               abilityDmgMod +
-              (gear?.damageBonus ?? 0) +
+              (gear?.damageBonus ?? storedMagic) +
               infusionDmg +
               flatFxDamage +
               chargerFlat +
@@ -3253,8 +3267,8 @@ export function PlayDeskAttacksCompact({
                     )}
                     {kitComputed ? (
                       <span className="play-desk-compact__tag">всегда</span>
-                    ) : attack.inventory_item_id ? (
-                      <span className={`play-desk-compact__tag${etalon ? ' plaque-tag' : ''}`}>из инвентаря</span>
+                    ) : attack.inventory_item_id && !etalon ? (
+                      <span className="play-desk-compact__tag">из инвентаря</span>
                     ) : attack.source_kind === 'custom' ? (
                       <span className="play-desk-compact__tag">вручную</span>
                     ) : attack.source_kind === 'race' ? (
@@ -3265,7 +3279,25 @@ export function PlayDeskAttacksCompact({
                     {attack.qty != null && attack.qty > 1 ? (
                       <span className="play-desk-compact__tag">×{attack.qty}</span>
                     ) : null}
-                    {attack.held && !kitComputed && !unarmed ? (
+                    {etalon &&
+                    attack.held &&
+                    !kitComputed &&
+                    !unarmed &&
+                    etalonHeldAtStart.current &&
+                    !etalonHeldAtStart.current.has(attack.id) ? (
+                      <span className="play-desk-compact__tag is-on plaque-tag">в руках</span>
+                    ) : null}
+                    {etalon && attack.inventory_item_id ? (
+                      <span className="play-desk-compact__tag plaque-tag">из инвентаря</span>
+                    ) : null}
+                    {attack.held &&
+                    !kitComputed &&
+                    !unarmed &&
+                    !(
+                      etalon &&
+                      etalonHeldAtStart.current &&
+                      !etalonHeldAtStart.current.has(attack.id)
+                    ) ? (
                       <span className={`play-desk-compact__tag is-on${etalon ? ' plaque-tag' : ''}`}>в руках</span>
                     ) : null}
                     {attack.mode_active ? (
@@ -4321,7 +4353,15 @@ export function PlayDeskAttacksCompact({
                         aria-label="Модификаторы атаки и урона"
                         aria-pressed={hasManualMods}
                       >
-                        <IconAttackMods className="play-desk-compact__tool-icon" />
+                        {etalon ? (
+                          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true">
+                            <path d="M4 8h10M4 16h10" />
+                            <circle cx="17" cy="8" r="2.2" />
+                            <circle cx="17" cy="16" r="2.2" />
+                          </svg>
+                        ) : (
+                          <IconAttackMods className="play-desk-compact__tool-icon" />
+                        )}
                       </Button>
                     ) : null}
                     {onToggleActivation && attack.activation && requirementOk ? (
@@ -4361,7 +4401,15 @@ export function PlayDeskAttacksCompact({
                         aria-label={attack.held ? 'Убрать из рук' : 'Взять в руки'}
                         aria-pressed={Boolean(attack.held)}
                       >
-                        <IconWeaponHold className="play-desk-compact__tool-icon" />
+                        {etalon ? (
+                          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                            <path d="M8 13v-3.5a1.5 1.5 0 0 1 3 0V13" />
+                            <path d="M11 12.5V9.2a1.5 1.5 0 0 1 3 0V13" />
+                            <path d="M14 12.2V10a1.5 1.5 0 0 1 3 0v5.5a4 4 0 0 1-4 4H11a5 5 0 0 1-4.5-2.8L5 14" />
+                          </svg>
+                        ) : (
+                          <IconWeaponHold className="play-desk-compact__tool-icon" />
+                        )}
                       </Button>
                     ) : null}
                     {onOpenItem && attack.inventory_item_id ? (
@@ -4374,7 +4422,14 @@ export function PlayDeskAttacksCompact({
                         title="Открыть предмет в инвентаре"
                         aria-label="Открыть предмет в инвентаре"
                       >
-                        <IconWeaponItem className="play-desk-compact__tool-icon" />
+                        {etalon ? (
+                          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                            <path d="M5 8h14l-1 12H6L5 8Z" />
+                            <path d="M9 8V6a3 3 0 0 1 6 0v2" />
+                          </svg>
+                        ) : (
+                          <IconWeaponItem className="play-desk-compact__tool-icon" />
+                        )}
                       </Button>
                     ) : null}
                     {(onToggleActivation && attack.activation && requirementOk) ||
