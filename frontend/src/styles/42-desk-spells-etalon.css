@@ -316,9 +316,6 @@ html[data-theme='leaf-classic'] .app-shell--sheet .play-desk--wide .play-desk__s
   overflow: hidden;
 }
 
-.app-shell--sheet .play-desk--wide .desk-spells.is-wizard .plaque.is-spell {
-  min-height: 46px;
-}
 
 .app-shell--sheet .play-desk--wide .desk-spells .plaque.is-granted {
   background: linear-gradient(105deg, var(--granted-a) 0%, var(--card) 48%, var(--granted-b) 100%);
