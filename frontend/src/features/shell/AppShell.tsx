@@ -1,5 +1,5 @@
 import { useEffect, useState, type ReactNode } from 'react'
-import { NavLink } from 'react-router-dom'
+import { NavLink, useLocation } from 'react-router-dom'
 import { getMe, type User } from '../../shared/api/auth'
 import { getAccessToken } from '../../shared/api/client'
 import { AppLegalFooter, Creed20Wordmark } from '../../shared/brand/creed20'
@@ -7,7 +7,12 @@ import { ProfileAvatar } from '../cabinet/ProfileAvatar'
 import { HelpDrawer } from '../onboarding'
 import { AuthOverlay } from './AuthOverlay'
 import { ShellDice } from './ShellDice'
-import { ShellAuthProvider, type ShellAuthMode } from './shellContext'
+import {
+  ShellAuthProvider,
+  shellStayPath,
+  writeShellAuthReturn,
+  type ShellAuthMode,
+} from './shellContext'
 
 export type ShellSection = 'chars' | 'lobby' | 'site' | 'cabinet'
 
@@ -90,7 +95,9 @@ export function AppShell({
   onAuthed,
   showDice = true,
 }: AppShellProps) {
+  const location = useLocation()
   const [authMode, setAuthMode] = useState<ShellAuthMode | null>(initialAuth)
+  const [authReturn, setAuthReturn] = useState<string | null>(null)
   const [helpOpen, setHelpOpen] = useState(false)
   const [diceOpen, setDiceOpen] = useState(false)
   const [sessionUser, setSessionUser] = useState<User | null>(user ?? null)
@@ -129,8 +136,22 @@ export function AppShell({
     }
   }, [])
 
-  function openAuth(mode: ShellAuthMode = 'login') {
+  function openAuth(mode: ShellAuthMode = 'login', returnTo?: string) {
+    if (nextPath) {
+      setAuthReturn(null)
+      writeShellAuthReturn(null)
+    } else {
+      const stay = returnTo || shellStayPath(location.pathname)
+      setAuthReturn(stay)
+      writeShellAuthReturn(stay)
+    }
     setAuthMode(mode)
+  }
+
+  function closeAuth() {
+    setAuthMode(null)
+    setAuthReturn(null)
+    writeShellAuthReturn(null)
   }
 
   function openHelp() {
@@ -222,7 +243,7 @@ export function AppShell({
               <span>Кабинет</span>
             </NavLink>
           ) : (
-            <button type="button" className={`app-shell__tab${section === 'cabinet' ? ' is-active' : ''}`} aria-label="Личный кабинет" onClick={() => openAuth('login')}>
+            <button type="button" className={`app-shell__tab${section === 'cabinet' ? ' is-active' : ''}`} aria-label="Личный кабинет" onClick={() => openAuth('login', '/cabinet')}>
               <span className="app-shell__tab-ico">
                 <NavIcon name="user" />
               </span>
@@ -253,7 +274,8 @@ export function AppShell({
           <AuthOverlay
             mode={authMode}
             nextPath={nextPath}
-            onClose={() => setAuthMode(null)}
+            returnTo={authReturn}
+            onClose={closeAuth}
             onMode={setAuthMode}
             onAuthed={(next) => {
               setSessionUser(next)

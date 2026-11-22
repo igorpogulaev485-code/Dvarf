@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { getMe, type User } from '../../shared/api/auth'
 import { setTokens } from '../../shared/api/client'
 import {
@@ -8,11 +8,18 @@ import {
   OAuthButtons,
 } from '../auth'
 import { Stack, Text } from '../../ui'
-import type { ShellAuthMode } from './shellContext'
+import {
+  readShellAuthReturn,
+  shellStayPath,
+  writeShellAuthReturn,
+  type ShellAuthMode,
+} from './shellContext'
 
 type AuthOverlayProps = {
   mode: ShellAuthMode
   nextPath?: string | null
+  /** Page that opened the panel, when it is not the current URL (phone «Кабинет»). */
+  returnTo?: string | null
   onClose: () => void
   onMode: (mode: ShellAuthMode) => void
   onAuthed: (user: User) => void
@@ -24,12 +31,20 @@ const TITLES: Record<ShellAuthMode, string> = {
   forgot: 'Забыли пароль',
 }
 
-export function AuthOverlay({ mode, nextPath, onClose, onMode, onAuthed }: AuthOverlayProps) {
+export function AuthOverlay({ mode, nextPath, returnTo = null, onClose, onMode, onAuthed }: AuthOverlayProps) {
   const navigate = useNavigate()
+  const location = useLocation()
   const [oauthMessage, setOauthMessage] = useState<string | null>(null)
   const onAuthedRef = useRef(onAuthed)
   onAuthedRef.current = onAuthed
-  const afterAuth = nextPath || '/characters'
+  const afterAuth =
+    nextPath || returnTo || shellStayPath(location.pathname) || readShellAuthReturn() || '/characters'
+
+  useEffect(() => {
+    if (nextPath) return
+    const stay = returnTo || shellStayPath(location.pathname)
+    if (stay) writeShellAuthReturn(stay)
+  }, [nextPath, returnTo, location.pathname])
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
@@ -58,6 +73,7 @@ export function AuthOverlay({ mode, nextPath, onClose, onMode, onAuthed }: AuthO
           setOauthMessage(`Вход через ${oauthProvider} выполнен успешно`)
         }
         onAuthedRef.current(me)
+        writeShellAuthReturn(null)
         navigate(afterAuth, { replace: true })
       })
       .catch(() => {
@@ -111,6 +127,7 @@ export function AuthOverlay({ mode, nextPath, onClose, onMode, onAuthed }: AuthO
                 mode={mode}
                 onSuccess={(user) => {
                   onAuthed(user)
+                  writeShellAuthReturn(null)
                   navigate(afterAuth, { replace: true })
                 }}
                 onForgotPassword={() => onMode('forgot')}
