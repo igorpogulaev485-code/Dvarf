@@ -176,7 +176,7 @@
 }
 
 html[data-theme='leaf-classic'] .app-shell--sheet .play-desk--wide .desk-explore .filters .chip.is-on {
-  background: color-mix(in srgb, var(--accent-soft) 55%, #131313);
+  background: color-mix(in srgb, color-mix(in srgb, #c4d19a 22%, #131313) 55%, #131313);
   color: rgb(255, 255, 255);
   border-color: var(--line);
 }
@@ -191,9 +191,14 @@ html[data-theme='leaf-classic'] .app-shell--sheet .play-desk--wide .desk-explore
 }
 
 .app-shell--sheet .play-desk--wide .desk-explore .flags {
-  margin: 11.52px 0 0;
+  margin: 11.52px 0;
   font-size: 11.52px;
   line-height: 16.7px;
+  color: rgba(45, 45, 42, 0.58);
+}
+
+html[data-theme='leaf-classic'] .app-shell--sheet .play-desk--wide .desk-explore .flags {
+  color: rgba(255, 255, 255, 0.46);
 }
 
 .app-shell--sheet .play-desk--wide .desk-explore .scene-list {
