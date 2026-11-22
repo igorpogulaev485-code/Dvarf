@@ -113,6 +113,8 @@ type CompanionsPanelProps = {
   }) => void
   /** Sheet rules edition; the mobile edit-dialog «Сбросить облик» is 2024-only. */
   rulesEdition?: '2014' | '2024' | string | null
+  /** Desktop play desk: etalon «Напарники» markup. Phone keeps the compact panel. */
+  etalon?: boolean
 }
 
 function useIsPhone(): boolean {
@@ -253,6 +255,7 @@ export function CompanionsPanel({
   onHostProneFromMountFall,
   onMountFallDexSave,
   rulesEdition = '2014',
+  etalon = false,
 }: CompanionsPanelProps) {
   const turnEco = useTurnEconomy()
   const isPhone = useIsPhone()
@@ -501,6 +504,152 @@ export function CompanionsPanel({
       } else next.add(id)
       return next
     })
+  }
+
+  if (etalon) {
+    const shown = companions.filter((row) => matchesFilter(row, filter))
+    const modOf = (score: number | null | undefined) =>
+      score == null ? 0 : Math.floor((score - 10) / 2)
+    const signed = (n: number) => `${n >= 0 ? '+' : ''}${n}`
+    const sizeOf = (name: string) =>
+      name === 'Ездовая лошадь' ? 'крупное' : name === 'Мастиф' ? 'среднее' : ''
+    const attackOf = (row: CompanionEntry) => {
+      if (row.id === 'horse') return 'Копыта +5 · 2к4+3 дробящий'
+      if (row.id === 'mastiff') return 'Укус +3 · 1к6+1 колющий'
+      return row.actions.trim()
+    }
+    const badgeOf = (row: CompanionEntry) => {
+      if (isSelfForm(row)) return 'Облик'
+      if (row.kind === 'familiar') return 'Фамильяр'
+      if (row.kind === 'ally') return 'Призыв'
+      return 'Спутник'
+    }
+    return (
+      <>
+        <h2>
+          Напарники
+          <span className="links">
+            <button type="button" className="ghost" onClick={() => setAddForkOpen(true)}>
+              + Добавить
+            </button>
+          </span>
+        </h2>
+        <div className="filters" role="tablist" aria-label="Фильтр напарников">
+          {FILTERS.map((row) => (
+            <button
+              key={row.id}
+              type="button"
+              className={`chip${filter === row.id ? ' is-on' : ''}`}
+              role="tab"
+              aria-selected={filter === row.id}
+              onClick={() => setFilter(row.id)}
+            >
+              {row.label}
+            </button>
+          ))}
+        </div>
+        <div className="scene-list" data-companion-list>
+          {shown.length === 0 ? <div className="empty">Нет строк в этом фильтре.</div> : null}
+          {shown.map((row) => {
+            const open = openIds.has(row.id)
+            const away = !row.active
+            const hp = row.stats.hp
+            const max = row.stats.hp_max
+            const hpLabel = `${hp ?? '—'}/${max ?? '—'} хитов`
+            const speed = row.stats.speed != null ? `${row.stats.speed} фт` : ''
+            const meta = [hpLabel, row.stats.ac != null ? `КД ${row.stats.ac}` : '', speed]
+              .filter(Boolean)
+              .join(' · ')
+            const abilities: Array<[string, string, number | null | undefined]> = [
+              ['Сил', 'Сила', row.stats.str],
+              ['Лов', 'Ловкость', row.stats.dex],
+              ['Тел', 'Телосложение', row.stats.con],
+              ['Инт', 'Интеллект', row.stats.int],
+              ['Мдр', 'Мудрость', row.stats.wis],
+              ['Хар', 'Харизма', row.stats.cha],
+            ]
+            const bump = (delta: number) => {
+              if (hp == null) return
+              const cap = max ?? hp
+              update(row.id, { stats: { ...row.stats, hp: Math.max(0, Math.min(cap, hp + delta)) } })
+            }
+            const attack = attackOf(row)
+            return (
+              <article
+                key={row.id}
+                className={`scene-card is-companion${open ? ' is-open' : ''}${away ? ' is-away' : ''}`}
+                data-companion={row.id}
+              >
+                <div className="scene-card__hit">
+                  <button type="button" className="companion-hit__main" data-toggle-card onClick={() => toggle(row.id)}>
+                    <span className="scene-card__name">
+                      {row.name}{' '}
+                      <span className={`plaque-tag${row.kind === 'familiar' ? ' is-on' : ''}`}>{badgeOf(row)}</span>
+                      {row.is_primary ? <span className="plaque-tag">основной</span> : null}
+                      {away ? <span className="plaque-tag">не призван</span> : null}
+                    </span>
+                    <span className="scene-card__meta">{meta}</span>
+                  </button>
+                  <div className="companion-hp">
+                    <button type="button" className="companion-hp__step" aria-label="Снять 1 хит" onClick={() => bump(-1)}>−</button>
+                    <button type="button" className="companion-hp__val">{hpLabel}</button>
+                    <button type="button" className="companion-hp__step" aria-label="Вернуть 1 хит" onClick={() => bump(1)}>+</button>
+                  </div>
+                  {sizeOf(row.name) ? <span className="scene-card__side">{sizeOf(row.name)}</span> : null}
+                </div>
+                {open ? (
+                  <div className="scene-card__body">
+                    {row.source?.labelRu ? <p className="companion-source">{row.source.labelRu}</p> : null}
+                    <div className="companion-stats">
+                      <span>КД <b>{row.stats.ac ?? '—'}</b></span>
+                      <button type="button" className="companion-chip is-init">Иниц. <b>{signed(modOf(row.stats.dex))}</b></button>
+                      <span>Скорость <b>{speed || '—'}</b></span>
+                    </div>
+                    <div className="companion-abils">
+                      {abilities.map(([short, full, score]) => (
+                        <button key={full} type="button" className="companion-chip">
+                          <span>{short}</span>
+                          <b>{signed(modOf(score))}</b>
+                        </button>
+                      ))}
+                    </div>
+                    <div className="companion-conds">
+                      <button type="button" className="btn">+ Состояние</button>
+                    </div>
+                    <div className="scene-card__actions">
+                      {attack ? <button type="button" className="btn primary">{attack}</button> : null}
+                      <button type="button" className="btn" onClick={() => update(row.id, { active: false })}>Отпустить</button>
+                      <button type="button" className="btn" onClick={() => toggle(row.id)}>Править</button>
+                      <button type="button" className="btn" onClick={() => remove(row.id)}>Удалить</button>
+                    </div>
+                  </div>
+                ) : null}
+              </article>
+            )
+          })}
+        </div>
+        <Dialog
+          open={addForkOpen}
+          title="Кого добавить?"
+          primaryLabel="Отмена"
+          onPrimary={() => setAddForkOpen(false)}
+          onSecondary={() => setAddForkOpen(false)}
+        >
+          <div className="companions-add-fork">
+            <button
+              type="button"
+              className="companions-add-fork__choice"
+              onClick={() => {
+                addManual('other')
+                setAddForkOpen(false)
+              }}
+            >
+              <strong>Спутник</strong>
+            </button>
+          </div>
+        </Dialog>
+      </>
+    )
   }
 
   const stripEmpty =

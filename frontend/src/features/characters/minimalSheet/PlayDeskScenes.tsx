@@ -1994,9 +1994,10 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
 
       </div>
 
-      <div className="play-desk__stage-panel" hidden={model.stageHidden('companions')}>
+      <div className={`play-desk__stage-panel${model.isPlayDesk ? ' panel has-content desk-companions' : ''}`} data-panel={model.isPlayDesk ? 'companions' : undefined} hidden={model.stageHidden('companions')}>
       {/* Companions: CompanionsPanel glance→expand — no compact/full flip. */}
       <CompanionsPanel
+        etalon={model.isPlayDesk}
         rulesEdition={model.rulesEdition}
         companions={model.draft.companions}
         onChange={(companions) => model.setDraft((prev) => ({ ...prev, companions }))}

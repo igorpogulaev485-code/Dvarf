@@ -700,6 +700,36 @@ export function DiceRollerPreviewPage() {
       'background',
       'notes-1',
     ]
+    sheet.companions = [
+      {
+        id: 'horse',
+        kind: 'other',
+        role: 'ally',
+        name: 'Ездовая лошадь',
+        nature: 'living',
+        active: true,
+        is_primary: true,
+        story: true,
+        source: { kind: 'manual', labelRu: 'Добавлен вручную' },
+        stats: { hp: 13, hp_max: 13, ac: 10, speed: 60, str: 16, dex: 10, con: 12, int: 2, wis: 11, cha: 7 },
+        actions: '',
+        notes: '',
+      },
+      {
+        id: 'mastiff',
+        kind: 'other',
+        role: 'ally',
+        name: 'Мастиф',
+        nature: 'living',
+        active: true,
+        is_primary: false,
+        story: true,
+        source: { kind: 'manual', labelRu: 'Добавлен вручную' },
+        stats: { hp: 5, hp_max: 5, ac: 12, speed: 40, str: 13, dex: 14, con: 12, int: 3, wis: 12, cha: 7 },
+        actions: '',
+        notes: '',
+      },
+    ]
     return {
       ...base,
       name: 'Каэдрин Солнечный Щит',
