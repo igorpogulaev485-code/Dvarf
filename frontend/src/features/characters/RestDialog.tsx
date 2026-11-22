@@ -602,7 +602,7 @@ export function RestDialog({
     <Dialog
       open={open}
       title="Отдых"
-      size="wide"
+      size="default"
       primaryLabel="Закрыть"
       onPrimary={onClose}
       secondaryLabel="Отмена"

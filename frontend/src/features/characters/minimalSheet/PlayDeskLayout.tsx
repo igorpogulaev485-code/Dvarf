@@ -1,4 +1,5 @@
 /** Каркас Play Desk: собирает шапку, сцены и диалоги в прежнем порядке. */
+import { useEffect } from 'react'
 import type { SheetModel } from './sheetModel'
 import { EquipmentProficienciesPanel } from '../EquipmentProficienciesPanel'
 import { Button, Text } from '../../../ui'
@@ -30,6 +31,14 @@ import { ABILITY_KEYS } from '../sheetTypes'
 
 export function PlayDeskLayout({ model }: { model: SheetModel }) {
   const { leftRef, stageRef } = usePlayDeskRailCap(Boolean(model.isPlayDesk))
+
+  useEffect(() => {
+    if (!model.isPlayDesk) return
+    document.documentElement.dataset.deskWindows = '1'
+    return () => {
+      delete document.documentElement.dataset.deskWindows
+    }
+  }, [model.isPlayDesk])
 
   return (
     <div
