@@ -10,7 +10,8 @@ import {
   WelcomeDialog,
   useOnboardingState,
 } from '../features/onboarding'
-import { getMe } from '../shared/api/auth'
+import { AppShell } from '../features/shell/AppShell'
+import { getMe, type User } from '../shared/api/auth'
 import { getCharacter, type CharacterDetail } from '../shared/api/characters'
 import { parseCharacterInOtherLobby } from '../features/lobby/joinConflict'
 import { parseStartRulesMismatch } from '../features/lobby/joinStartMismatch'
@@ -81,7 +82,8 @@ export function CharacterDetailPage() {
       ? initialState.startingLevel
       : 1,
   )
-  const [userId, setUserId] = useState<string | null>(null)
+  const [user, setUser] = useState<User | null>(null)
+  const userId = user?.id ?? null
   const [helpOpen, setHelpOpen] = useState(false)
   const [tourArmed, setTourArmed] = useState(false)
   const [welcomeSessionHide, setWelcomeSessionHide] = useState(false)
@@ -92,10 +94,10 @@ export function CharacterDetailPage() {
     let active = true
     getMe()
       .then((me) => {
-        if (active) setUserId(me.id)
+        if (active) setUser(me)
       })
       .catch(() => {
-        if (active) setUserId(null)
+        if (active) setUser(null)
       })
     return () => {
       active = false
@@ -289,6 +291,39 @@ export function CharacterDetailPage() {
     character?.rules_edition === '2024' ? 'Классический лист 2024' : 'Классический лист 2014'
 
   return (
+    <AppShell
+      section="chars"
+      title="Лист"
+      hideTitles
+      chrome="sheet"
+      user={user}
+      showDice={false}
+      onHelp={() => {
+        onboarding.markHelpOpened()
+        setHelpOpen(true)
+      }}
+      leading={
+        character ? (
+          <div className="sheet-shell-actions">
+            <button
+              type="button"
+              className="sheet-shell-actions__btn"
+              data-onboarding="classic"
+              onClick={() => navigate(`/characters/${character.id}/classic`)}
+            >
+              {classicSheetLabel}
+            </button>
+            <button
+              type="button"
+              className="sheet-shell-actions__btn"
+              onClick={() => setLobbyOpen(true)}
+            >
+              В лобби
+            </button>
+          </div>
+        ) : null
+      }
+    >
     <main className="page page--app">
       <Stack gap={4} className="sheet-play-stack">
         <div className="sheet-topbar sheet-topbar--play">
@@ -604,5 +639,6 @@ export function CharacterDetailPage() {
         onClose={closeToast}
       />
     </main>
+    </AppShell>
   )
 }

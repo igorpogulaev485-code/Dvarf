@@ -29,6 +29,12 @@ type AppShellProps = {
   onAuthed?: (user: User) => void
   /** Hide the shell dice. Auth pages that are not the app shell should leave it on. */
   showDice?: boolean
+  /** Buttons left of the book and name. Lists leave this empty. */
+  leading?: ReactNode
+  /** Sheet page: the character name is the title, so the shell h1 stays off. */
+  hideTitles?: boolean
+  /** `sheet` marks the open character sheet. List screens stay `default`. */
+  chrome?: 'default' | 'sheet'
 }
 
 const NAV = [
@@ -94,6 +100,9 @@ export function AppShell({
   nextPath = null,
   onAuthed,
   showDice = true,
+  leading = null,
+  hideTitles = false,
+  chrome = 'default',
 }: AppShellProps) {
   const location = useLocation()
   const [authMode, setAuthMode] = useState<ShellAuthMode | null>(initialAuth)
@@ -164,7 +173,10 @@ export function AppShell({
 
   return (
     <ShellAuthProvider value={{ openAuth }}>
-      <div className={`app-shell app-shell--${section}`}>
+      <div
+        className={`app-shell app-shell--${section}${chrome === 'sheet' ? ' app-shell--sheet' : ''}`}
+        data-sheet-open={chrome === 'sheet' ? '' : undefined}
+      >
         <aside className="sidebar app-shell__side">
           <NavLink className="app-shell__brand" to="/site" aria-label="Сайт КриD20">
             <Creed20Wordmark />
@@ -190,10 +202,13 @@ export function AppShell({
 
         <div className="app-shell__main">
           <header className="app-shell__head">
-            <div className="app-shell__titles">
-              <h1>{title}</h1>
-              {subtitle ? <p>{subtitle}</p> : null}
-            </div>
+            {leading ? <div className="app-shell__leading">{leading}</div> : null}
+            {hideTitles ? null : (
+              <div className="app-shell__titles">
+                <h1>{title}</h1>
+                {subtitle ? <p>{subtitle}</p> : null}
+              </div>
+            )}
             <div className="app-shell__tools">
               <button type="button" className="app-shell__book" aria-label="Справка" title="Справка" onClick={openHelp}>
                 <BookIcon />

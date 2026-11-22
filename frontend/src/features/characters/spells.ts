@@ -972,8 +972,17 @@ export type SpellSourceBadge = {
  * Covers both always-prepared (innate, domain) and mark/list expansions
  * that the player prepares into normal slots.
  */
+const GENERIC_SOURCE = /^(черта|раса|умение|архетип|грант|предмет|метка|всегда)$/i
+
+/** Named feat or feature already stored on the grant, when the short label is empty. */
+function namedGrantLabel(spell: SheetSpell): string {
+  const label = spell.grant_cast?.label?.trim() || ''
+  if (!label || GENERIC_SOURCE.test(label)) return ''
+  return label
+}
+
 export function spellSourceBadge(spell: SheetSpell): SpellSourceBadge | null {
-  const custom = spell.prepare_source_label?.trim() || ''
+  const custom = spell.prepare_source_label?.trim() || namedGrantLabel(spell)
   const usesNote =
     spell.grant_cast && spell.grant_cast.max > 0
       ? ` · ${spell.grant_cast.label} ${grantCastRemaining(spell)}/${spell.grant_cast.max} без ячейки`

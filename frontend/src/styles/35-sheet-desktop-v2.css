@@ -1,0 +1,131 @@
+/*
+ * Этап 4. Десктопный лист внутри оболочки v2.
+ * Телефон уже 960px не перекладывается — это этап 5.
+ * Списки (34-lists-v2) этот файл не стилизует.
+ * Круг к20 и подложка остаются в shared-approved.css.
+ */
+
+.app-shell__leading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.sheet-shell-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+}
+
+.sheet-shell-actions__btn {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.95rem;
+  line-height: 1.2;
+  min-height: var(--tap-min, 40px);
+  padding: 0 8px;
+  border-radius: 999px;
+  cursor: pointer;
+  width: auto;
+}
+
+.sheet-shell-actions__btn:hover,
+.sheet-shell-actions__btn:focus-visible {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+/* На открытом листе «+» списка нет. */
+[data-sheet-open] .fab-create {
+  display: none;
+}
+
+@media (max-width: 959px) {
+  .app-shell--sheet {
+    display: block;
+  }
+
+  .app-shell--sheet .app-shell__side,
+  .app-shell--sheet .app-shell__tabbar,
+  .app-shell--sheet .app-shell__head,
+  .app-shell--sheet .app-legal-footer {
+    display: none;
+  }
+
+  .app-shell--sheet .app-shell__main {
+    padding: 0;
+    min-height: 0;
+  }
+
+  /* Оболочка прячет плавающий к20 ниже 960: на списках он в нижней панели.
+     Лист пока держит свой к20. Телефонный лист — этап 5. */
+  .app-shell--sheet .ui-dice-fab-slot {
+    display: block;
+  }
+}
+
+@media (min-width: 960px) {
+  .app-shell--sheet .app-shell__main {
+    padding: 12px 18px 24px;
+  }
+
+  .app-shell--sheet .app-shell__head {
+    align-items: center;
+    margin-bottom: 10px;
+  }
+
+  .app-shell--sheet .page.page--app {
+    width: 100%;
+    max-width: none;
+    min-height: 0;
+    margin: 0;
+    padding: 0;
+  }
+
+  /* На ПК путь к персонажам — пункт бокового меню.
+     «Классический лист» и «В лобби» стоят в шапке оболочки.
+     Старая строка листа была бы вторым входом в те же действия. */
+  .app-shell--sheet .sheet-topbar--play {
+    display: none;
+  }
+
+  /* Журнал броска — панель кубика. Второй ленты на листе нет. */
+  .app-shell--sheet .desk-roll-history {
+    display: none;
+  }
+
+  .app-shell--sheet .play-desk--wide {
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+    padding: 0;
+  }
+
+  .app-shell--sheet .play-desk--wide .play-desk__top {
+    margin: 0 0 8px;
+    padding: 10px 12px 8px;
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    background: var(--card);
+  }
+
+  .app-shell--sheet .play-desk-header__name,
+  .app-shell--sheet .play-desk-header__name-text {
+    color: var(--heading, var(--ink));
+  }
+
+  .app-shell--sheet .play-desk--wide .char-avatar--sm .char-avatar__face {
+    width: 72px;
+    height: 72px;
+    border-radius: 16px;
+    font-size: 1.35rem;
+  }
+}

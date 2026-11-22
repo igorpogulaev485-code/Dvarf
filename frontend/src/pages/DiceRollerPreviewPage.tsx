@@ -12,6 +12,8 @@ import type { CharacterDetail } from '../shared/api/characters'
 import type { DiceLogEntry } from '../features/diceRoller/types'
 import { buildBuffEffect } from '../shared/dnd/activeEffects'
 import { Text } from '../ui'
+import { AppShell } from '../features/shell/AppShell'
+import type { User } from '../shared/api/auth'
 import { DIVINE_SMITE_FEATURE_ID } from '../features/characters/divineSmite'
 import { breathWeaponResourceId } from '../shared/dnd/o06StylesBreathInvocations'
 
@@ -363,7 +365,22 @@ export function DiceRollerPreviewPage() {
     return undefined
   }, [withLog, missSeed])
 
-  return (
+  const previewUser: User = {
+    id: 'preview',
+    email: null,
+    login: null,
+    display_name: 'Игрок',
+    full_name: null,
+    phone: null,
+    avatar_url: null,
+    email_verified_at: null,
+    created_at: '2026-01-01T00:00:00Z',
+    updated_at: '2026-01-01T00:00:00Z',
+    providers: [],
+  }
+  const withShell = params.get('shell') === '1'
+
+  const sheet = (
     <main
       className={`page page--app${clean ? ' dice-preview--clean' : ''}`}
       data-testid="dice-roller-preview"
@@ -389,5 +406,30 @@ export function DiceRollerPreviewPage() {
         }
       />
     </main>
+  )
+
+  if (!withShell) return sheet
+
+  return (
+    <AppShell
+      section="chars"
+      title="Лист"
+      hideTitles
+      chrome="sheet"
+      user={previewUser}
+      showDice={false}
+      leading={
+        <div className="sheet-shell-actions">
+          <button type="button" className="sheet-shell-actions__btn">
+            {edition === '2024' ? 'Классический лист 2024' : 'Классический лист 2014'}
+          </button>
+          <button type="button" className="sheet-shell-actions__btn">
+            В лобби
+          </button>
+        </div>
+      }
+    >
+      {sheet}
+    </AppShell>
   )
 }
