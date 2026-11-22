@@ -7,7 +7,7 @@
   border: 1px solid var(--desk-line, var(--line));
   border-radius: 12px;
   background: var(--card);
-  padding: 8px 10px 64px;
+  padding: 8px 10px 63px;
   box-sizing: border-box;
   width: 976px;
   max-width: 976px;
@@ -105,10 +105,16 @@ html[data-theme='leaf-classic'] .app-shell--sheet .play-desk--wide .desk-feature
   color: rgb(255, 255, 255);
 }
 
+.app-shell--sheet .play-desk--wide .desk-features .scene-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
 .app-shell--sheet .play-desk--wide .desk-features .features-panel__collapse-bar {
   display: flex;
   gap: 8px;
-  margin: 0 0 14px;
+  margin: 0 0 8px;
   min-height: 35.2px;
   align-items: center;
 }
@@ -121,7 +127,7 @@ html[data-theme='leaf-classic'] .app-shell--sheet .play-desk--wide .desk-feature
 }
 
 .app-shell--sheet .play-desk--wide .desk-features .feat-group__title {
-  font-weight: 600;
+  font-weight: 400;
   font-size: 16px;
   line-height: 23.2px;
   color: var(--text-sub);
