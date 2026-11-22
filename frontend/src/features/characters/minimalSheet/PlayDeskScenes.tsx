@@ -65,7 +65,21 @@ import {
 import { listActiveInfusionBindings } from '../../../shared/dnd/infusionsActive'
 import { spendSpellSlot } from '../../../shared/dnd/spells'
 import { PlayDeskSpellsCompact } from '../PlayDeskSpellsCompact'
-import { SpellsEtalonDesk } from '../SpellsEtalonDesk'
+import { SpellsEtalonDesk, type SpellMagicVariant } from '../SpellsEtalonDesk'
+
+function spellMagicVariant(): SpellMagicVariant {
+  if (typeof window === 'undefined') return 'kaedrin'
+  const magic = new URLSearchParams(window.location.search).get('magic')
+  if (magic === 'multiclass' || magic === 'warlock' || magic === 'wizard') return magic
+  return 'kaedrin'
+}
+
+function spellMagicClass(): string {
+  const magic = spellMagicVariant()
+  if (magic === 'wizard') return ' is-wizard'
+  if (magic === 'multiclass' || magic === 'warlock') return ' is-multi'
+  return ''
+}
 import { equipInventoryItem, equippedArmorPieces } from '../inventory'
 import { withSpellFocusFlags } from '../spellFocus'
 import { markBladesingerMeleeFocusItems2024 } from '../../../shared/dnd/wizardBook2024Features'
@@ -1734,12 +1748,13 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
       </div>
 
       <div
-        className={`play-desk__stage-panel${model.deskSplit && model.splitSecondary === 'spells' ? ' is-pinned' : ''}${model.isPlayDesk ? ' panel has-content desk-spells' : ''}`}
+        className={`play-desk__stage-panel${model.deskSplit && model.splitSecondary === 'spells' ? ' is-pinned' : ''}${model.isPlayDesk ? ` panel has-content desk-spells${spellMagicClass()}` : ''}`}
         data-panel={model.isPlayDesk ? 'spells' : undefined}
         hidden={model.stageHidden('spells')}
       >
       {model.isPlayDesk ? (
         <SpellsEtalonDesk
+          variant={spellMagicVariant()}
           onClearSplit={
             model.deskSplit && model.splitSecondary === 'spells'
               ? () => model.patchSheetUi({ deskSplit: false })
