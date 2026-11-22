@@ -15,6 +15,7 @@ import { MODE_HINT, MODE_LABELS, modeUsesSpellSplit } from '../playDeskUi'
 import { PlayDeskTop } from './PlayDeskTop'
 import { SheetIdentityDialog } from './SheetIdentityDialog'
 import { PlayDeskScenes } from './PlayDeskScenes'
+import { DeskHotEtalon } from '../DeskHotEtalon'
 import { SheetDialogsRolls } from './SheetDialogsRolls'
 import { SheetDialogsResources } from './SheetDialogsResources'
 import { SheetDialogsSetup } from './SheetDialogsSetup'
@@ -276,6 +277,9 @@ export function PlayDeskLayout({ model }: { model: SheetModel }) {
             </div>
           ) : null}
 
+          {model.isPlayDesk ? (
+            <DeskHotEtalon scene={model.draft.sheetUi.deskMode} />
+          ) : (
           <PlayDeskHotBar
             conditionNames={model.hotConditionNames}
             exhaustion={model.draft.play.exhaustion}
@@ -299,6 +303,7 @@ export function PlayDeskLayout({ model }: { model: SheetModel }) {
               }))
             }}
           />
+          )}
 
           {!model.isPlayDesk && model.draft.sheetUi.deskMode === 'combat' ? (
             <div className="mobile-combat-seg-stack">
@@ -486,7 +491,7 @@ export function PlayDeskLayout({ model }: { model: SheetModel }) {
           ) : null}
 
           {/* UIKIT-02: полоска навыков сцены снова на десктопе/планшете (как до SC-01). */}
-          {model.draft.sheetUi.deskMode === 'combat' ? (
+          {!model.isPlayDesk && model.draft.sheetUi.deskMode === 'combat' ? (
             <PlayDeskSkillStrip
               ariaLabel="Навыки боя"
               skills={model.modeSkillChips('combat')}
@@ -601,7 +606,7 @@ export function PlayDeskLayout({ model }: { model: SheetModel }) {
             </div>
           ) : null}
 
-          {model.draft.sheetUi.deskMode === 'explore' ? (
+          {!model.isPlayDesk && model.draft.sheetUi.deskMode === 'explore' ? (
             <PlayDeskSkillStrip
               ariaLabel="Навыки исследования"
               skills={model.modeSkillChips('explore')}
@@ -716,7 +721,7 @@ export function PlayDeskLayout({ model }: { model: SheetModel }) {
             </div>
           ) : null}
 
-          {model.draft.sheetUi.deskMode === 'social' ? (
+          {!model.isPlayDesk && model.draft.sheetUi.deskMode === 'social' ? (
             <PlayDeskSkillStrip
               ariaLabel="Навыки общения"
               skills={model.modeSkillChips('social')}

@@ -1,0 +1,103 @@
+/*
+ * Hot-панель и навыки сцены на ПК — из sheet-desktop.html.
+ * Только .play-desk--wide. Телефон не затрагивается.
+ */
+
+.app-shell--sheet .play-desk--wide .desk-hot,
+.app-shell--sheet .play-desk--wide .desk-skills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: stretch;
+  margin: 0 0 8px;
+  width: 976px;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.app-shell--sheet .play-desk--wide .desk-skills.is-empty {
+  display: none;
+}
+
+.app-shell--sheet .play-desk--wide .desk-hot .hot-item {
+  border: 1px solid var(--desk-line, var(--line));
+  background: var(--card);
+  border-radius: 10px;
+  padding: 6px 8px;
+  font-size: 0.72rem;
+  line-height: 1.2;
+  min-width: 72px;
+  min-height: 52px;
+  height: 52px;
+  color: var(--desk-ink, var(--heading));
+  text-align: left;
+  display: grid;
+  gap: 4px;
+  align-content: start;
+  box-sizing: border-box;
+  box-shadow: none;
+}
+
+.app-shell--sheet .play-desk--wide .desk-hot .hot-head {
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+.app-shell--sheet .play-desk--wide .desk-hot .hot-pips {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.app-shell--sheet .play-desk--wide .desk-hot .pip {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 1.5px solid var(--accent);
+  background: transparent;
+  display: block;
+  box-sizing: border-box;
+}
+
+.app-shell--sheet .play-desk--wide .desk-hot .pip.is-on {
+  background: var(--accent);
+}
+
+.app-shell--sheet .play-desk--wide .desk-skills .skill-chip {
+  border: 1px solid var(--desk-line, var(--line));
+  background: var(--card);
+  border-radius: 10px;
+  padding: 5px 10px 6px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--muted);
+  text-align: left;
+  min-width: 72px;
+  min-height: 45.3px;
+  height: 45.3px;
+  line-height: 1.15;
+  box-shadow: none;
+}
+
+.app-shell--sheet .play-desk--wide .desk-skills .skill-chip b {
+  display: block;
+  font-size: 1rem;
+  color: var(--heading);
+  margin-top: 1px;
+  font-weight: 700;
+}
+
+.app-shell--sheet .play-desk--wide .desk-skills .skill-chip.is-on {
+  background: color-mix(in srgb, var(--accent-soft) 55%, #fff);
+  color: rgb(36, 36, 31);
+}
+
+html[data-theme='leaf-classic'] .app-shell--sheet .play-desk--wide .desk-hot .hot-item,
+html[data-theme='leaf-classic'] .app-shell--sheet .play-desk--wide .desk-skills .skill-chip {
+  background: rgb(19, 19, 19);
+  color: #fff;
+}
+
+html[data-theme='leaf-classic'] .app-shell--sheet .play-desk--wide .desk-skills .skill-chip b {
+  color: #fff;
+}
