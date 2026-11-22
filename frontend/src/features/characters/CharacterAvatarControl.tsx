@@ -17,6 +17,11 @@ type CharacterAvatarControlProps = {
   /** When set, face button opens this instead of the file picker (upload via actions). */
   onOpen?: () => void
   faceHint?: string
+  uploadLabel?: string
+  clearLabel?: string
+  alwaysShowClear?: boolean
+  /** Etalon row: the face is a preview, upload stays on the action button. */
+  faceInteractive?: boolean
 }
 
 function isUploadedCharacterAvatar(url: string | null): boolean {
@@ -30,6 +35,10 @@ export function CharacterAvatarControl({
   showActions = true,
   onOpen,
   faceHint,
+  uploadLabel = 'Загрузить',
+  clearLabel = 'Удалить',
+  alwaysShowClear = false,
+  faceInteractive = true,
 }: CharacterAvatarControlProps) {
   const inputRef = useRef<HTMLInputElement>(null)
   const [error, setError] = useState<string | null>(null)
@@ -73,6 +82,7 @@ export function CharacterAvatarControl({
 
   return (
     <div className={`char-avatar char-avatar--${size}`}>
+      {faceInteractive ? (
       <button
         type="button"
         className="char-avatar__face"
@@ -95,6 +105,15 @@ export function CharacterAvatarControl({
           <span className="char-avatar__hint">{pending && !onOpen ? '…' : hint}</span>
         ) : null}
       </button>
+      ) : (
+      <div className="char-avatar__face" aria-hidden="true">
+        {character.avatar_url ? (
+          <img src={character.avatar_url} alt="" />
+        ) : (
+          <span>{initial}</span>
+        )}
+      </div>
+      )}
       <input
         ref={inputRef}
         className="visually-hidden"
@@ -111,11 +130,11 @@ export function CharacterAvatarControl({
             disabled={pending}
             onClick={() => inputRef.current?.click()}
           >
-            {pending ? 'Загружаем…' : 'Загрузить'}
+            {pending ? 'Загружаем…' : uploadLabel}
           </Button>
-          {isUploadedCharacterAvatar(character.avatar_url) ? (
+          {alwaysShowClear || isUploadedCharacterAvatar(character.avatar_url) ? (
             <Button type="button" variant="ghost" disabled={pending} onClick={handleDelete}>
-              Удалить
+              {clearLabel}
             </Button>
           ) : null}
         </div>
