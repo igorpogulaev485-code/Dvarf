@@ -193,9 +193,20 @@
   box-shadow: none;
 }
 
+.app-shell--sheet .play-desk--wide .desk-rail .skills:has(.abil-block__empty) {
+  box-sizing: border-box;
+  height: 29.4px;
+  min-height: 29.4px;
+  max-height: 29.4px;
+  padding-top: 5px;
+  padding-bottom: 7px;
+  overflow: hidden;
+}
+
 .app-shell--sheet .play-desk--wide .desk-rail .abil-block__empty {
   margin: 0;
   font-size: 12px;
+  line-height: 17.4px;
   color: var(--text-sub, var(--muted));
 }
 
@@ -212,6 +223,13 @@
   border: 1px solid var(--line);
   border-radius: 10px;
   background: var(--card);
+  box-sizing: border-box;
+}
+
+.app-shell--sheet .play-desk--wide .desk-rail .rail-passives {
+  width: 340px;
+  height: 79px;
+  min-height: 79px;
 }
 
 .app-shell--sheet .play-desk--wide .desk-rail .rail-passives__label,
@@ -234,15 +252,22 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   padding: 4px 2px 5px;
   border: 1px solid var(--line);
   border-radius: 6px;
   background: var(--card);
-  min-height: 0;
+  height: 41.2px;
+  min-height: 41.2px;
+  box-sizing: border-box;
   box-shadow: none;
 }
 
-.app-shell--sheet .play-desk--wide .desk-rail .passive-card__label { font-size: 9px; color: var(--text-sub, var(--muted)); }
+.app-shell--sheet .play-desk--wide .desk-rail .passive-card__label {
+  font-size: 9px;
+  color: var(--text-sub, var(--muted));
+  text-transform: none;
+}
 .app-shell--sheet .play-desk--wide .desk-rail .passive-card strong { font-size: 13px; font-weight: 650; }
 
 .app-shell--sheet .play-desk--wide .desk-rail .ownership-summary__head {
