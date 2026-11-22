@@ -250,10 +250,11 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
   return (
     <>
       <div className="play-desk__scene-wrap">
-      <div className="play-desk__stage-panel" hidden={model.stageHidden('attacks')}>
+      <div className={`play-desk__stage-panel${model.isPlayDesk ? ' panel has-content desk-combat' : ''}`} hidden={model.stageHidden('attacks')}>
       {model.showCompact('attacks') ? (
         <>
           <PlayDeskAttacksCompact
+            etalon={model.isPlayDesk}
             weapons={
               getActiveSelfForm(model.draft.companions)?.form?.form_source_ref?.startsWith(
                 'starry_form:archer',

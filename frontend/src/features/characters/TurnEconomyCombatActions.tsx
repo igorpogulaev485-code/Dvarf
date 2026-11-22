@@ -278,6 +278,8 @@ type Props = {
    * `more` / `all` — full grouped Действие · Бонусное · Реакция.
    */
   mode?: 'all' | 'more' | 'everyTurn'
+  /** Desktop combat face uses the concept chip classes. */
+  etalon?: boolean
 }
 
 /**
@@ -356,6 +358,7 @@ export function TurnEconomyCombatActions({
   personalSpells = [],
   className = '',
   mode = 'all',
+  etalon = false,
 }: Props) {
   const turnEco = useTurnEconomy()
   if (!turnEco) return null
@@ -2256,7 +2259,7 @@ export function TurnEconomyCombatActions({
 
   return (
     <div
-      className={`play-desk-turn-actions ${className}`.trim()}
+      className={`play-desk-turn-actions${etalon ? ' turn-actions' : ''} ${className}`.trim()}
       role="group"
       aria-label="Действия хода"
       data-onboarding="turn-actions"
@@ -2265,7 +2268,7 @@ export function TurnEconomyCombatActions({
         FIX-01: одна строка — группы Действие/Бонусное/Реакция + отметки
         Взаимодействие/Движение (раньше отдельный TurnEconomyChips).
       */}
-      <div className="play-desk-turn-actions__tabs" role="tablist" aria-label="Вид действия">
+      <div className={`play-desk-turn-actions__tabs${etalon ? ' turn-actions__tabs' : ''}`} role="tablist" aria-label="Вид действия">
         {groups.map((group) => {
           const spent = spentOf(group)
           const has = groupActionable(group)
@@ -2276,7 +2279,7 @@ export function TurnEconomyCombatActions({
               type="button"
               role="tab"
               aria-selected={open}
-              className={`sheet-chip play-desk-turn-actions__tab${
+              className={`sheet-chip play-desk-turn-actions__tab${etalon ? ' chip turn-tab' : ''}${
                 open ? ' is-open' : ''
               }${spent ? ' is-spent' : ''}`}
               /* Always clickable: empty catalog still opens for «Снять отметку» / empty hint. */
@@ -2385,7 +2388,7 @@ export function TurnEconomyCombatActions({
         ) : null}
         <button
           type="button"
-          className={`sheet-chip play-desk-turn-actions__tab${moreActionsOpen ? ' is-open' : ''}`}
+          className={`sheet-chip play-desk-turn-actions__tab${etalon ? ' chip turn-more-btn' : ''}${moreActionsOpen ? ' is-open' : ''}`}
           aria-expanded={moreActionsOpen}
           title="Опциональные действия стола"
           onClick={() => {
@@ -2397,7 +2400,7 @@ export function TurnEconomyCombatActions({
         </button>
       </div>
       {moreActionsOpen ? (
-        <div className="play-desk-turn-actions__optional" role="group" aria-label="Опциональные действия стола">
+        <div className={`play-desk-turn-actions__optional${etalon ? ' turn-more' : ''}`} role="group" aria-label="Опциональные действия стола">
           <p className="play-desk-turn-actions__optional-label">Опциональные действия стола</p>
           <div className="chip-row play-desk-turn-actions__chips">
             {chips.filter((c) => TABLE_OPTIONAL.has(c.key)).map((c) => c.node)}
