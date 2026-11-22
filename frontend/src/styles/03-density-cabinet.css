@@ -372,6 +372,13 @@ body:has(.ui-dialog-backdrop) .ui-toast {
   gap: 16px;
 }
 
+/* Grid items default to min-width: auto, so the cabinet panels stayed 423px
+   and the third column was clipped at 390 and 360. */
+.cabinet-layout > .ui-panel {
+  min-width: 0;
+  max-width: 100%;
+}
+
 @media (min-width: 960px) {
   .cabinet-layout {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -524,6 +531,13 @@ body:has(.ui-dialog-backdrop) .ui-toast {
 
 .cabinet-appearance__preview-row .ui-button {
   pointer-events: none;
+}
+
+.cabinet-bg-grid,
+.cabinet-font-grid,
+.cabinet-theme-grid {
+  min-width: 0;
+  max-width: 100%;
 }
 
 .cabinet-bg-grid,
