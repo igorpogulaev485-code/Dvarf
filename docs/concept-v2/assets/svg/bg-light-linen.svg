@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+  <title>Лён — переплетение льна и стебли льна</title>
+  <rect width="256" height="256" fill="#f0e6d0"/>
+  <g fill="none" stroke="#6a5530" stroke-width="1.15" stroke-opacity="0.16"
+     stroke-linecap="round" stroke-linejoin="round">
+<g opacity="0.5">
+<path d="M0 8 Q64 12,128 8 T256 8"/>
+<path d="M0 40 Q64 36,128 40 T256 40"/>
+<path d="M0 72 Q64 76,128 72 T256 72"/>
+<path d="M0 104 Q64 100,128 104 T256 104"/>
+<path d="M0 136 Q64 140,128 136 T256 136"/>
+<path d="M0 168 Q64 164,128 168 T256 168"/>
+<path d="M0 200 Q64 204,128 200 T256 200"/>
+<path d="M0 232 Q64 228,128 232 T256 232"/>
+<path d="M8 0 Q4 64,8 128 T8 256"/>
+<path d="M40 0 Q44 64,40 128 T40 256"/>
+<path d="M72 0 Q68 64,72 128 T72 256"/>
+<path d="M104 0 Q108 64,104 128 T104 256"/>
+<path d="M136 0 Q132 64,136 128 T136 256"/>
+<path d="M168 0 Q172 64,168 128 T168 256"/>
+<path d="M200 0 Q196 64,200 128 T200 256"/>
+<path d="M232 0 Q236 64,232 128 T232 256"/>
+</g>
+<g transform="translate(80.0 80.0)"><g transform="rotate(-8) scale(1.1)">
+      <path d="M0 16 C-1 6, 1 -2, 0 -10"/>
+      <path d="M0 6 C-8 2,-8 -2,0 0"/>
+      <path d="M0 8 C8 3,8 -1,0 2"/>
+      <path d="M0 -10 l0 -2 m0 2 l3 -5 m-3 5 l-3 -5 m0 5 l5 -2 m-5 2 l-5 -2"/>
+      <circle cx="0" cy="-12" r="1.2"/>
+    </g></g>
+<g transform="translate(200.0 150.0)"><g transform="rotate(14) scale(0.9)">
+      <path d="M0 16 C-1 6, 1 -2, 0 -10"/>
+      <path d="M0 6 C-8 2,-8 -2,0 0"/>
+      <path d="M0 8 C8 3,8 -1,0 2"/>
+      <path d="M0 -10 l0 -2 m0 2 l3 -5 m-3 5 l-3 -5 m0 5 l5 -2 m-5 2 l-5 -2"/>
+      <circle cx="0" cy="-12" r="1.2"/>
+    </g></g>
+<g transform="translate(-56.0 150.0)"><g transform="rotate(14) scale(0.9)">
+      <path d="M0 16 C-1 6, 1 -2, 0 -10"/>
+      <path d="M0 6 C-8 2,-8 -2,0 0"/>
+      <path d="M0 8 C8 3,8 -1,0 2"/>
+      <path d="M0 -10 l0 -2 m0 2 l3 -5 m-3 5 l-3 -5 m0 5 l5 -2 m-5 2 l-5 -2"/>
+      <circle cx="0" cy="-12" r="1.2"/>
+    </g></g>
+<g transform="translate(456.0 150.0)"><g transform="rotate(14) scale(0.9)">
+      <path d="M0 16 C-1 6, 1 -2, 0 -10"/>
+      <path d="M0 6 C-8 2,-8 -2,0 0"/>
+      <path d="M0 8 C8 3,8 -1,0 2"/>
+      <path d="M0 -10 l0 -2 m0 2 l3 -5 m-3 5 l-3 -5 m0 5 l5 -2 m-5 2 l-5 -2"/>
+      <circle cx="0" cy="-12" r="1.2"/>
+    </g></g>
+<g transform="translate(40.0 200.0)"><g transform="rotate(-18) scale(1.0)">
+      <path d="M0 16 C-1 6, 1 -2, 0 -10"/>
+      <path d="M0 6 C-8 2,-8 -2,0 0"/>
+      <path d="M0 8 C8 3,8 -1,0 2"/>
+      <path d="M0 -10 l0 -2 m0 2 l3 -5 m-3 5 l-3 -5 m0 5 l5 -2 m-5 2 l-5 -2"/>
+      <circle cx="0" cy="-12" r="1.2"/>
+    </g></g>
+<g transform="translate(-216.0 -56.0)"><g transform="rotate(-18) scale(1.0)">
+      <path d="M0 16 C-1 6, 1 -2, 0 -10"/>
+      <path d="M0 6 C-8 2,-8 -2,0 0"/>
+      <path d="M0 8 C8 3,8 -1,0 2"/>
+      <path d="M0 -10 l0 -2 m0 2 l3 -5 m-3 5 l-3 -5 m0 5 l5 -2 m-5 2 l-5 -2"/>
+      <circle cx="0" cy="-12" r="1.2"/>
+    </g></g>
+<g transform="translate(-216.0 200.0)"><g transform="rotate(-18) scale(1.0)">
+      <path d="M0 16 C-1 6, 1 -2, 0 -10"/>
+      <path d="M0 6 C-8 2,-8 -2,0 0"/>
+      <path d="M0 8 C8 3,8 -1,0 2"/>
+      <path d="M0 -10 l0 -2 m0 2 l3 -5 m-3 5 l-3 -5 m0 5 l5 -2 m-5 2 l-5 -2"/>
+      <circle cx="0" cy="-12" r="1.2"/>
+    </g></g>
+<g transform="translate(-216.0 456.0)"><g transform="rotate(-18) scale(1.0)">
+      <path d="M0 16 C-1 6, 1 -2, 0 -10"/>
+      <path d="M0 6 C-8 2,-8 -2,0 0"/>
+      <path d="M0 8 C8 3,8 -1,0 2"/>
+      <path d="M0 -10 l0 -2 m0 2 l3 -5 m-3 5 l-3 -5 m0 5 l5 -2 m-5 2 l-5 -2"/>
+      <circle cx="0" cy="-12" r="1.2"/>
+    </g></g>
+<g transform="translate(40.0 -56.0)"><g transform="rotate(-18) scale(1.0)">
+      <path d="M0 16 C-1 6, 1 -2, 0 -10"/>
+      <path d="M0 6 C-8 2,-8 -2,0 0"/>
+      <path d="M0 8 C8 3,8 -1,0 2"/>
+      <path d="M0 -10 l0 -2 m0 2 l3 -5 m-3 5 l-3 -5 m0 5 l5 -2 m-5 2 l-5 -2"/>
+      <circle cx="0" cy="-12" r="1.2"/>
+    </g></g>
+<g transform="translate(40.0 456.0)"><g transform="rotate(-18) scale(1.0)">
+      <path d="M0 16 C-1 6, 1 -2, 0 -10"/>
+      <path d="M0 6 C-8 2,-8 -2,0 0"/>
+      <path d="M0 8 C8 3,8 -1,0 2"/>
+      <path d="M0 -10 l0 -2 m0 2 l3 -5 m-3 5 l-3 -5 m0 5 l5 -2 m-5 2 l-5 -2"/>
+      <circle cx="0" cy="-12" r="1.2"/>
+    </g></g>
+<g transform="translate(296.0 -56.0)"><g transform="rotate(-18) scale(1.0)">
+      <path d="M0 16 C-1 6, 1 -2, 0 -10"/>
+      <path d="M0 6 C-8 2,-8 -2,0 0"/>
+      <path d="M0 8 C8 3,8 -1,0 2"/>
+      <path d="M0 -10 l0 -2 m0 2 l3 -5 m-3 5 l-3 -5 m0 5 l5 -2 m-5 2 l-5 -2"/>
+      <circle cx="0" cy="-12" r="1.2"/>
+    </g></g>
+<g transform="translate(296.0 200.0)"><g transform="rotate(-18) scale(1.0)">
+      <path d="M0 16 C-1 6, 1 -2, 0 -10"/>
+      <path d="M0 6 C-8 2,-8 -2,0 0"/>
+      <path d="M0 8 C8 3,8 -1,0 2"/>
+      <path d="M0 -10 l0 -2 m0 2 l3 -5 m-3 5 l-3 -5 m0 5 l5 -2 m-5 2 l-5 -2"/>
+      <circle cx="0" cy="-12" r="1.2"/>
+    </g></g>
+<g transform="translate(296.0 456.0)"><g transform="rotate(-18) scale(1.0)">
+      <path d="M0 16 C-1 6, 1 -2, 0 -10"/>
+      <path d="M0 6 C-8 2,-8 -2,0 0"/>
+      <path d="M0 8 C8 3,8 -1,0 2"/>
+      <path d="M0 -10 l0 -2 m0 2 l3 -5 m-3 5 l-3 -5 m0 5 l5 -2 m-5 2 l-5 -2"/>
+      <circle cx="0" cy="-12" r="1.2"/>
+    </g></g>
+<g transform="translate(170.0 40.0)"><g transform="rotate(6) scale(0.8)">
+      <path d="M0 16 C-1 6, 1 -2, 0 -10"/>
+      <path d="M0 6 C-8 2,-8 -2,0 0"/>
+      <path d="M0 8 C8 3,8 -1,0 2"/>
+      <path d="M0 -10 l0 -2 m0 2 l3 -5 m-3 5 l-3 -5 m0 5 l5 -2 m-5 2 l-5 -2"/>
+      <circle cx="0" cy="-12" r="1.2"/>
+    </g></g>
+<g transform="translate(170.0 -216.0)"><g transform="rotate(6) scale(0.8)">
+      <path d="M0 16 C-1 6, 1 -2, 0 -10"/>
+      <path d="M0 6 C-8 2,-8 -2,0 0"/>
+      <path d="M0 8 C8 3,8 -1,0 2"/>
+      <path d="M0 -10 l0 -2 m0 2 l3 -5 m-3 5 l-3 -5 m0 5 l5 -2 m-5 2 l-5 -2"/>
+      <circle cx="0" cy="-12" r="1.2"/>
+    </g></g>
+<g transform="translate(170.0 296.0)"><g transform="rotate(6) scale(0.8)">
+      <path d="M0 16 C-1 6, 1 -2, 0 -10"/>
+      <path d="M0 6 C-8 2,-8 -2,0 0"/>
+      <path d="M0 8 C8 3,8 -1,0 2"/>
+      <path d="M0 -10 l0 -2 m0 2 l3 -5 m-3 5 l-3 -5 m0 5 l5 -2 m-5 2 l-5 -2"/>
+      <circle cx="0" cy="-12" r="1.2"/>
+    </g></g>
+  </g>
+</svg>

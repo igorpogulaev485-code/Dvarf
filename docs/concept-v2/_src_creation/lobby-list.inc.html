@@ -1,0 +1,91 @@
+<div class="lobby-main" data-panel="lobby">
+        <header class="chars-head">
+          <h1 class="t-heading">Лобби</h1>
+          <p class="lobby-notice" data-lobby-notice hidden role="status"></p>
+          <p class="t-sub">Место игры: код и QR для игроков, внутри — сеттинг и сессии</p>
+          <div class="chars-head-tools">
+            <button class="help-btn" type="button" aria-label="Справка" title="Справка"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 6.2C10 4.8 7.3 4.5 4.8 6v12.4c2.5-1.4 5.2-1.1 7.2.3"/><path d="M12 6.2c2-1.4 4.7-1.7 7.2-.2v12.4c-2.5-1.4-5.2-1.1-7.2.3"/><path d="M12 6.2v12.7"/></svg></button>
+            <button class="user-chip" type="button" aria-label="Личный кабинет" title="Личный кабинет"><span class="user-chip-avatar" aria-hidden="true">И</span><span class="user-chip-name">Игорь Погуляев</span></button>
+          </div>
+        </header>
+        <div class="chars-toolbar" data-lobby-toolbar>
+          <button class="seg is-on" type="button" data-lobby-size="large" aria-pressed="true">Большие</button>
+          <button class="seg" type="button" data-lobby-size="medium" aria-pressed="false">Средние</button>
+          <button class="seg" type="button" data-lobby-size="compact" aria-pressed="false">Компактные</button>
+        </div>
+        <div class="lobby-grid" data-size="large">
+          <article class="card lobby-tile is-live">
+            <div class="avatar-ring lobby-avatar"><div class="avatar-face">М</div></div>
+            <div class="lobby-tile__body">
+              <h3 class="char-card__name">Миллениум</h3>
+              <p class="t-body char-card__meta">персонажей: 4</p>
+              <div class="lobby-tile-chips">
+                <span class="lobby-chip lobby-chip--player">Участник</span> <span class="lobby-chip lobby-chip--live">Идёт игра</span>
+              </div>
+            </div>
+            <div class="lobby-tile__actions">
+              <button class="btn btn-accent" type="button" data-to-table>За стол</button><button class="btn btn-open" type="button" data-open-lobby>Открыть</button>
+            </div>
+          </article>
+          <article class="card lobby-tile is-live">
+            <div class="avatar-ring lobby-avatar"><div class="avatar-face">Э</div></div>
+            <div class="lobby-tile__body">
+              <h3 class="char-card__name">Эхо рассвета</h3>
+              <p class="t-body char-card__meta">персонажей: 1 · код <span class="lobby-code">CJSZMR</span></p>
+              <div class="lobby-tile-chips">
+                <span class="lobby-chip lobby-chip--master">Мастер</span> <span class="lobby-chip lobby-chip--live">Идёт игра</span>
+              </div>
+            </div>
+            <div class="lobby-tile__actions">
+              <button class="btn btn-accent" type="button" data-to-table>За стол</button><button class="btn btn-open" type="button" data-open-lobby>Открыть</button>
+            </div>
+          </article>
+          <article class="card lobby-tile">
+            <div class="avatar-ring lobby-avatar"><div class="avatar-face">А</div></div>
+            <div class="lobby-tile__body">
+              <h3 class="char-card__name">Архив гильдии <span class="lobby-example-mark" title="Пример для макета, не из текущего списка">пример</span></h3>
+              <p class="t-body char-card__meta">персонажей: 6</p>
+              <div class="lobby-tile-chips">
+                <span class="lobby-chip lobby-chip--observer">Наблюдатель</span>
+              </div>
+            </div>
+            <div class="lobby-tile__actions">
+              <button class="btn btn-open" type="button" data-open-lobby>Открыть</button>
+            </div>
+          </article>
+          <article class="card lobby-tile">
+            <div class="avatar-ring lobby-avatar"><div class="avatar-face">Н</div></div>
+            <div class="lobby-tile__body">
+              <h3 class="char-card__name">Ночная стража <span class="lobby-example-mark" title="Пример для макета, не из текущего списка">пример</span></h3>
+              <p class="t-body char-card__meta">персонажей: 3</p>
+              <div class="lobby-tile-chips">
+                <span class="lobby-chip lobby-chip--comaster">Сомастер</span>
+              </div>
+            </div>
+            <div class="lobby-tile__actions">
+              <button class="btn btn-open" type="button" data-open-lobby>Открыть</button>
+            </div>
+          </article>
+          <article class="card lobby-tile">
+            <div class="avatar-ring lobby-avatar"><div class="avatar-face">С</div></div>
+            <div class="lobby-tile__body">
+              <h3 class="char-card__name">Стол у камина <span class="lobby-example-mark" title="Пример для макета, не из текущего списка">пример</span></h3>
+              <p class="t-body char-card__meta">персонажей: 2</p>
+              <div class="lobby-tile-chips">
+                <span class="lobby-chip lobby-chip--player">Участник</span>
+              </div>
+            </div>
+            <div class="lobby-tile__actions">
+              <button class="btn btn-open" type="button" data-open-lobby>Открыть</button>
+            </div>
+          </article>
+        </div>
+        <section class="card lobby-join" aria-label="Войти по коду">
+          <h2>Войти по коду</h2>
+          <p>Есть код от мастера? Введите его, чтобы присоединиться к столу.</p>
+          <form class="lobby-join__row" data-join-form action="#">
+            <input class="field lobby-join__input" type="text" name="code" maxlength="8" autocomplete="off" spellcheck="false" placeholder="Например, CJSZMR" aria-label="Код лобби" />
+            <button class="btn btn-accent" type="submit">Войти</button>
+          </form>
+        </section>
+        

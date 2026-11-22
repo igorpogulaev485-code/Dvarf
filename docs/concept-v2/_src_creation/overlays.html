@@ -1,0 +1,177 @@
+  <div class="create-fork-overlay" data-create-fork-overlay hidden>
+    <div class="create-fork-panel" role="dialog" aria-modal="true" aria-labelledby="create-fork-title">
+      <div class="create-fork__handle" aria-hidden="true"></div>
+      <div class="create-fork__top">
+        <div>
+          <p class="create-fork__kicker" data-fork-kicker></p>
+          <h2 id="create-fork-title" data-fork-title></h2>
+        </div>
+        <button class="create-fork__close" type="button" data-fork-close aria-label="Закрыть">×</button>
+      </div>
+      <p class="create-fork__lead" data-fork-lead></p>
+
+      <div data-fork-view="char-now">
+        <div class="create-fork__cta">
+          <button class="btn btn-accent" type="button" data-fork-start-2014>Начать создание</button>
+        </div>
+      </div>
+
+      <div data-fork-view="fork" hidden>
+        <div class="create-fork__cards">
+          <button class="create-fork-card" type="button" data-fork-pick="2014">
+            <div class="create-fork-card__row">
+              <p class="create-fork-card__title">Правила 2014 года</p>
+              <span class="create-fork-card__meta" data-fork-last="2014" hidden>последний выбор</span>
+            </div>
+            <p data-fork-desc="2014"></p>
+          </button>
+          <button class="create-fork-card" type="button" data-fork-pick="2024">
+            <div class="create-fork-card__row">
+              <p class="create-fork-card__title">Правила 2024</p>
+              <span class="create-fork-card__badge">бета</span>
+            </div>
+            <p data-fork-desc="2024"></p>
+          </button>
+        </div>
+        <button class="create-fork__join" type="button" data-fork-join hidden>Войти по коду — если мастер уже прислал код или&nbsp;QR</button>
+        <label class="create-fork__remember"><input type="checkbox" data-fork-remember /> Запомнить мой выбор на этом устройстве</label>
+      </div>
+
+      <form data-fork-view="lobby-name" hidden action="#">
+        <label class="field-label" for="fork-lobby-name">Название</label>
+        <input class="field" id="fork-lobby-name" name="name" type="text" placeholder="Стол пятницы, кампания…" maxlength="80" />
+        <div class="create-fork__actions">
+          <button class="btn tags-ghost" type="button" data-fork-back>Назад</button>
+          <button class="btn btn-accent" type="submit">+ Создать лобби</button>
+        </div>
+      </form>
+
+      <form data-fork-view="lobby-join" hidden action="#">
+        <label class="field-label" for="fork-lobby-code">Код лобби</label>
+        <input class="field" id="fork-lobby-code" name="code" type="text" placeholder="Например, 7K2Q" maxlength="16" autocomplete="off" />
+        <div class="create-fork__actions">
+          <button class="btn tags-ghost" type="button" data-fork-back>Назад</button>
+          <button class="btn btn-accent" type="submit">Войти</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="app-dialog-overlay" data-dialog="welcome" hidden>
+    <div class="app-dialog" role="dialog" aria-modal="true" aria-labelledby="welcome-title">
+      <div class="app-dialog__handle" aria-hidden="true"></div>
+      <div class="app-dialog__top">
+        <h2 id="welcome-title">Добро пожаловать в КриD20</h2>
+        <button class="app-dialog__close" type="button" data-dialog-close aria-label="Закрыть">×</button>
+      </div>
+      <p>Это лист персонажа и стол для D&amp;D: до приключения — один клик. Сначала создадим героя, потом коротко покажем, как читать лист.</p>
+      <p class="t-muted">Как тебе удобнее начать?</p>
+      <div class="welcome-choices" role="radiogroup" aria-label="Как тебе удобнее начать?">
+        <button class="welcome-choice" type="button" role="radio" aria-checked="false">
+          <span class="welcome-choice__dot" aria-hidden="true"></span>
+          Я впервые в D&amp;D
+        </button>
+        <button class="welcome-choice" type="button" role="radio" aria-checked="false">
+          <span class="welcome-choice__dot" aria-hidden="true"></span>
+          Играл, но тут впервые
+        </button>
+        <button class="welcome-choice welcome-choice--muted" type="button" role="radio" aria-checked="false">
+          <span class="welcome-choice__dot" aria-hidden="true"></span>
+          Пропустить подсказки
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="app-dialog-overlay" data-dialog="join-lobby" hidden>
+    <div class="app-dialog" role="dialog" aria-modal="true" aria-labelledby="join-lobby-title">
+      <div class="app-dialog__handle" aria-hidden="true"></div>
+      <div class="app-dialog__top">
+        <h2 id="join-lobby-title">Вступить в лобби кодом</h2>
+        <button class="app-dialog__close" type="button" data-dialog-close aria-label="Закрыть">×</button>
+      </div>
+      <label class="field-label" for="join-lobby-code">Код от мастера</label>
+      <input class="field" id="join-lobby-code" name="code" type="text" placeholder="ABC123" maxlength="16" autocomplete="off" />
+      <p class="field-hint">Или отсканируйте QR → /join/КОД</p>
+      <p data-join-lobby-name hidden>Вход в лобби «Миллениум»</p>
+      <div data-join-mismatch hidden>
+        <p>Не по правилам старта этого лобби:</p>
+        <ul class="campaign-rules-summary">
+          <li>Стартовый уровень: 3</li>
+          <li>Характеристики: покупка очков</li>
+          <li>Стартовый набор: снаряжение класса</li>
+        </ul>
+        <div class="app-dialog__actions" style="justify-content:flex-start">
+          <button class="btn" type="button">Всё равно войти</button>
+        </div>
+      </div>
+      <div data-join-conflict hidden>
+        <p>Этот персонаж уже в лобби «Эхо рассвета». Перевести сюда?</p>
+        <div class="app-dialog__actions" style="justify-content:flex-start">
+          <button class="btn" type="button">Копировать персонажа</button>
+        </div>
+      </div>
+      <div data-join-hero hidden>
+        <div class="app-dialog__actions" style="justify-content:flex-start">
+          <button class="btn" type="button">Создать героя для этого лобби</button>
+        </div>
+      </div>
+      <div class="app-dialog__actions">
+        <button class="btn tags-ghost" type="button" data-dialog-close>Отмена</button>
+        <button class="btn btn-accent" type="button" data-join-primary>Добавить этого персонажа</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="app-dialog-overlay" data-dialog="pipeline-summary" hidden>
+    <div class="app-dialog" role="dialog" aria-modal="true" aria-labelledby="pipeline-summary-title">
+      <div class="app-dialog__handle" aria-hidden="true"></div>
+      <div class="app-dialog__top">
+        <h2 id="pipeline-summary-title">Сводка выбора</h2>
+        <button class="app-dialog__close" type="button" data-dialog-close aria-label="Закрыть">×</button>
+      </div>
+      <div class="create-pipeline__summary-sheet" data-summary-body></div>
+      <div class="app-dialog__actions">
+        <button class="btn btn-accent" type="button" data-dialog-close>Закрыть</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="app-dialog-overlay" data-dialog="character-ready" hidden>
+    <div class="sheet-bridge-bg" aria-hidden="true">
+      <div class="sheet-bridge-bg__top">КриD20 · Лист персонажа</div>
+      <div class="sheet-bridge-bg__grid">
+        <div class="sheet-bridge-bg__col">Характеристики</div>
+        <div class="sheet-bridge-bg__main">Бой · атаки и заклинания</div>
+      </div>
+    </div>
+    <div class="app-dialog app-dialog--wide" role="dialog" aria-modal="true" aria-labelledby="ready-title">
+      <div class="app-dialog__handle" aria-hidden="true"></div>
+      <div class="app-dialog__top">
+        <h2 id="ready-title">Персонаж готов</h2>
+      </div>
+      <p class="app-dialog__lead" data-ready-body>Ядро собрано. Дальше — цифровой лист: сверху бой, слева характеристики, по центру — атаки и заклинания. За стол сядете в лобби.</p>
+      <div class="app-dialog__actions">
+        <button class="btn" type="button">Сразу к листу</button>
+        <button class="btn btn-accent" type="button">Как читать лист (2 мин)</button>
+      </div>
+    </div>
+  </div>
+
+
+  <div class="app-dialog-overlay" data-dialog="edition-2024-diff" hidden>
+    <div class="app-dialog" role="dialog" aria-modal="true" aria-labelledby="edition-2024-diff-title">
+      <div class="app-dialog__handle" aria-hidden="true"></div>
+      <div class="app-dialog__top">
+        <h2 id="edition-2024-diff-title">Что меняется в D&D 2024</h2>
+        <button class="app-dialog__close" type="button" data-dialog-close aria-label="Закрыть">×</button>
+      </div>
+      <p class="app-dialog__lead" data-edition-diff-lead></p>
+      <ol class="edition-2024-diff__list" data-edition-diff-items></ol>
+      <div class="app-dialog__actions">
+        <button class="btn btn-accent" type="button" data-dialog-close>Понятно</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="create-toast" data-create-toast hidden role="status"></div>

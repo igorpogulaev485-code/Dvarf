@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <title>Сравнение значков · эталон с наклоном и ровные полоски</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,600;8..60,700&display=swap" />
+  <style>
+:root { --font-display: "Source Serif 4", Georgia, "Times New Roman", serif; --font-ui: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif; }
+* { box-sizing: border-box; }
+html, body { margin: 0; background: #1a1a18; color: #eee; font-family: var(--font-ui); }
+.page { padding: 28px 36px 32px; }
+h1 { font-family: var(--font-display); font-size: 28px; font-weight: 700; margin: 0 0 6px; color: #fff; }
+.lead { margin: 0 0 22px; color: rgba(255,255,255,0.7); font-size: 14px; line-height: 1.5; max-width: 1040px; }
+.theme-row { margin: 0 0 22px; padding: 16px 18px 12px; border-radius: 16px; background: #121210; border: 1px solid #2a2a26; }
+.theme-lab { font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; margin: 0 0 10px; color: rgba(255,255,255,0.5); }
+.zoom-grid { display: grid; grid-template-columns: 1fr 1fr 1.15fr 1fr 1fr 1.15fr; gap: 10px; align-items: stretch; }
+.zoom-tile { border-radius: 12px; padding: 16px 10px 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 200px; }
+.zoom-caption { margin-top: 12px; font-size: 11px; font-weight: 600; letter-spacing: 0.01em; text-align: center; line-height: 1.35; }
+.zoom-hit { width: 168px; height: 168px; display: grid; place-items: center; border-radius: 16px; border: 1px dashed currentColor; }
+.zoom-hit .drag-handle-icon { width: 96px; height: 84px; overflow: visible; }
+.drag-line { fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; }
+[data-theme="light-designer3"] .zoom-tile { background: #fffdf8; color: rgba(45,45,42,0.78); }
+[data-theme="light-designer3"] .zoom-caption { color: #24241f; }
+[data-theme="light-designer3"] .zoom-hit { color: rgba(45,45,42,0.78); border-color: rgba(45,45,42,0.28); }
+[data-theme="light-designer3"] .zoom-tile.is-hover,
+[data-theme="light-designer3"] .zoom-tile.is-hover .zoom-hit { color: #4e5d34; }
+[data-theme="light-designer3"] .zoom-tile.is-hover .zoom-hit { background: rgba(78,93,52,0.14); border-style: solid; border-color: rgba(78,93,52,0.35); }
+[data-theme="leaf-classic"] .zoom-tile { background: #131313; color: rgba(255,255,255,0.46); }
+[data-theme="leaf-classic"] .zoom-caption { color: #fff; }
+[data-theme="leaf-classic"] .zoom-hit { color: rgba(255,255,255,0.46); border-color: rgba(255,255,255,0.22); }
+[data-theme="leaf-classic"] .zoom-tile.is-hover,
+[data-theme="leaf-classic"] .zoom-tile.is-hover .zoom-hit { color: #c4d19a; }
+[data-theme="leaf-classic"] .zoom-tile.is-hover .zoom-hit { background: rgba(196,209,154,0.14); border-style: solid; border-color: rgba(196,209,154,0.4); }
+.abil { --abil: #546338; border: 1px solid rgba(78,93,52,0.15); border-left: 3px solid var(--abil); border-radius: 14px; background: #fffdf8; width: 230px; position: relative; overflow: visible; box-shadow: 0 0 20px rgba(78,93,52,0.05); }
+[data-theme="leaf-classic"] .abil { --abil: #c4d19a; background: #131313; border-color: rgba(196,209,154,0.15); }
+.abil-head { position: relative; display: grid; gap: 6px; padding: 10px 40px 10px 12px; background: color-mix(in srgb, var(--abil) 14%, transparent); }
+.abil-name { font-family: var(--font-display); font-size: 16px; font-weight: 700; color: var(--abil); }
+.abil-meta { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.abil-score { width: 2.6rem; height: 32px; display: grid; place-items: center; border-radius: 10px; border: 1px solid rgba(78,93,52,0.15); background: rgba(45,45,42,0.03); font-family: var(--font-display); font-size: 18px; font-weight: 700; color: var(--abil); }
+[data-theme="leaf-classic"] .abil-score { border-color: rgba(196,209,154,0.15); background: rgba(255,255,255,0.03); }
+.abil-mods { display: flex; gap: 6px; }
+.mod { display: inline-flex; align-items: center; height: 28px; padding: 0 10px; border-radius: 999px; border: 1px solid rgba(78,93,52,0.15); background: rgba(45,45,42,0.03); font-size: 12px; font-weight: 500; color: rgba(45,45,42,0.78); }
+.mod b { color: var(--abil); font-weight: 700; margin-left: 3px; }
+[data-theme="leaf-classic"] .mod { border-color: rgba(196,209,154,0.15); background: rgba(255,255,255,0.03); color: rgba(255,255,255,0.6); }
+.drag-handle { position: absolute; top: 2px; right: 2px; width: 32px; height: 32px; margin: 0; padding: 0; display: grid; place-items: center; border: 0; border-radius: 8px; background: transparent; color: inherit; cursor: grab; appearance: none; }
+[data-theme="light-designer3"] .drag-handle { color: rgba(45,45,42,0.78); }
+[data-theme="leaf-classic"] .drag-handle { color: rgba(255,255,255,0.46); }
+.drag-handle-icon { display: block; width: 16px; height: 14px; overflow: visible; pointer-events: none; }
+</style>
+</head>
+<body>
+  <div class="page">
+    <h1>Значок перетаскивания · эталон и ровные полоски</h1>
+    <p class="lead">Слева — выбранный эталон Игоря: две верхние полоски горизонтальные, нижняя наклонена ~10° вниз-вправо. Справа — пример, где все три полоски ровные горизонтальные. Толщина 1,5px, длина и шаг как у эталона. Это только сравнение, выбранный вариант не заменяется.</p>
+    <div class="theme-row" data-theme="light-designer3">
+      <div class="theme-lab">Светлая L3 · эталон (слева) и ровные (справа)</div>
+      <div class="zoom-grid"><div class="zoom-tile ">
+              <div class="zoom-hit"><svg class="drag-handle-icon" viewBox="0 0 16 14" width="96" height="84" aria-hidden="true" focusable="false" fill="none">
+      <line class="drag-line" x1="1" y1="2.5" x2="15" y2="2.5"/>
+      <line class="drag-line" x1="1" y1="6.7" x2="15" y2="6.7"/>
+      <line class="drag-line drag-line-tilt" x1="1" y1="10.2" x2="15" y2="12.67"/>
+    </svg></div>
+              <div class="zoom-caption">Эталон · нижняя наклонена<br>Обычное</div>
+            </div><div class="zoom-tile is-hover">
+              <div class="zoom-hit"><svg class="drag-handle-icon" viewBox="0 0 16 14" width="96" height="84" aria-hidden="true" focusable="false" fill="none">
+      <line class="drag-line" x1="1" y1="2.5" x2="15" y2="2.5"/>
+      <line class="drag-line" x1="1" y1="6.7" x2="15" y2="6.7"/>
+      <line class="drag-line drag-line-tilt" x1="1" y1="10.2" x2="15" y2="12.67"/>
+    </svg></div>
+              <div class="zoom-caption">Эталон · нижняя наклонена<br>Наведение</div>
+            </div><div class="zoom-tile">
+              <article class="abil">
+      <div class="abil-head">
+        <div class="abil-name">Мудрость ▸</div>
+        <button class="drag-handle" type="button" title="Перетащить"><svg class="drag-handle-icon" viewBox="0 0 16 14" width="16" height="14" aria-hidden="true" focusable="false" fill="none">
+      <line class="drag-line" x1="1" y1="2.5" x2="15" y2="2.5"/>
+      <line class="drag-line" x1="1" y1="6.7" x2="15" y2="6.7"/>
+      <line class="drag-line drag-line-tilt" x1="1" y1="10.2" x2="15" y2="12.67"/>
+    </svg></button>
+        <div class="abil-meta">
+          <div class="abil-score">12</div>
+          <div class="abil-mods"><span class="mod">Пр <b>+1</b></span><span class="mod">Сп <b>+5</b></span></div>
+        </div>
+      </div>
+    </article>
+              <div class="zoom-caption">Эталон · нижняя наклонена<br>На плашке, 16px</div>
+            </div><div class="zoom-tile ">
+              <div class="zoom-hit"><svg class="drag-handle-icon" viewBox="0 0 16 14" width="96" height="84" aria-hidden="true" focusable="false" fill="none">
+      <line class="drag-line" x1="1" y1="2.5" x2="15" y2="2.5"/>
+      <line class="drag-line" x1="1" y1="6.7" x2="15" y2="6.7"/>
+      <line class="drag-line" x1="1" y1="10.9" x2="15" y2="10.9"/>
+    </svg></div>
+              <div class="zoom-caption">Пример · все три ровные<br>Обычное</div>
+            </div><div class="zoom-tile is-hover">
+              <div class="zoom-hit"><svg class="drag-handle-icon" viewBox="0 0 16 14" width="96" height="84" aria-hidden="true" focusable="false" fill="none">
+      <line class="drag-line" x1="1" y1="2.5" x2="15" y2="2.5"/>
+      <line class="drag-line" x1="1" y1="6.7" x2="15" y2="6.7"/>
+      <line class="drag-line" x1="1" y1="10.9" x2="15" y2="10.9"/>
+    </svg></div>
+              <div class="zoom-caption">Пример · все три ровные<br>Наведение</div>
+            </div><div class="zoom-tile">
+              <article class="abil">
+      <div class="abil-head">
+        <div class="abil-name">Мудрость ▸</div>
+        <button class="drag-handle" type="button" title="Перетащить"><svg class="drag-handle-icon" viewBox="0 0 16 14" width="16" height="14" aria-hidden="true" focusable="false" fill="none">
+      <line class="drag-line" x1="1" y1="2.5" x2="15" y2="2.5"/>
+      <line class="drag-line" x1="1" y1="6.7" x2="15" y2="6.7"/>
+      <line class="drag-line" x1="1" y1="10.9" x2="15" y2="10.9"/>
+    </svg></button>
+        <div class="abil-meta">
+          <div class="abil-score">12</div>
+          <div class="abil-mods"><span class="mod">Пр <b>+1</b></span><span class="mod">Сп <b>+5</b></span></div>
+        </div>
+      </div>
+    </article>
+              <div class="zoom-caption">Пример · все три ровные<br>На плашке, 16px</div>
+            </div></div>
+    </div>
+    <div class="theme-row" data-theme="leaf-classic">
+      <div class="theme-lab">Тёмная I2 · эталон (слева) и ровные (справа)</div>
+      <div class="zoom-grid"><div class="zoom-tile ">
+              <div class="zoom-hit"><svg class="drag-handle-icon" viewBox="0 0 16 14" width="96" height="84" aria-hidden="true" focusable="false" fill="none">
+      <line class="drag-line" x1="1" y1="2.5" x2="15" y2="2.5"/>
+      <line class="drag-line" x1="1" y1="6.7" x2="15" y2="6.7"/>
+      <line class="drag-line drag-line-tilt" x1="1" y1="10.2" x2="15" y2="12.67"/>
+    </svg></div>
+              <div class="zoom-caption">Эталон · нижняя наклонена<br>Обычное</div>
+            </div><div class="zoom-tile is-hover">
+              <div class="zoom-hit"><svg class="drag-handle-icon" viewBox="0 0 16 14" width="96" height="84" aria-hidden="true" focusable="false" fill="none">
+      <line class="drag-line" x1="1" y1="2.5" x2="15" y2="2.5"/>
+      <line class="drag-line" x1="1" y1="6.7" x2="15" y2="6.7"/>
+      <line class="drag-line drag-line-tilt" x1="1" y1="10.2" x2="15" y2="12.67"/>
+    </svg></div>
+              <div class="zoom-caption">Эталон · нижняя наклонена<br>Наведение</div>
+            </div><div class="zoom-tile">
+              <article class="abil">
+      <div class="abil-head">
+        <div class="abil-name">Мудрость ▸</div>
+        <button class="drag-handle" type="button" title="Перетащить"><svg class="drag-handle-icon" viewBox="0 0 16 14" width="16" height="14" aria-hidden="true" focusable="false" fill="none">
+      <line class="drag-line" x1="1" y1="2.5" x2="15" y2="2.5"/>
+      <line class="drag-line" x1="1" y1="6.7" x2="15" y2="6.7"/>
+      <line class="drag-line drag-line-tilt" x1="1" y1="10.2" x2="15" y2="12.67"/>
+    </svg></button>
+        <div class="abil-meta">
+          <div class="abil-score">12</div>
+          <div class="abil-mods"><span class="mod">Пр <b>+1</b></span><span class="mod">Сп <b>+5</b></span></div>
+        </div>
+      </div>
+    </article>
+              <div class="zoom-caption">Эталон · нижняя наклонена<br>На плашке, 16px</div>
+            </div><div class="zoom-tile ">
+              <div class="zoom-hit"><svg class="drag-handle-icon" viewBox="0 0 16 14" width="96" height="84" aria-hidden="true" focusable="false" fill="none">
+      <line class="drag-line" x1="1" y1="2.5" x2="15" y2="2.5"/>
+      <line class="drag-line" x1="1" y1="6.7" x2="15" y2="6.7"/>
+      <line class="drag-line" x1="1" y1="10.9" x2="15" y2="10.9"/>
+    </svg></div>
+              <div class="zoom-caption">Пример · все три ровные<br>Обычное</div>
+            </div><div class="zoom-tile is-hover">
+              <div class="zoom-hit"><svg class="drag-handle-icon" viewBox="0 0 16 14" width="96" height="84" aria-hidden="true" focusable="false" fill="none">
+      <line class="drag-line" x1="1" y1="2.5" x2="15" y2="2.5"/>
+      <line class="drag-line" x1="1" y1="6.7" x2="15" y2="6.7"/>
+      <line class="drag-line" x1="1" y1="10.9" x2="15" y2="10.9"/>
+    </svg></div>
+              <div class="zoom-caption">Пример · все три ровные<br>Наведение</div>
+            </div><div class="zoom-tile">
+              <article class="abil">
+      <div class="abil-head">
+        <div class="abil-name">Мудрость ▸</div>
+        <button class="drag-handle" type="button" title="Перетащить"><svg class="drag-handle-icon" viewBox="0 0 16 14" width="16" height="14" aria-hidden="true" focusable="false" fill="none">
+      <line class="drag-line" x1="1" y1="2.5" x2="15" y2="2.5"/>
+      <line class="drag-line" x1="1" y1="6.7" x2="15" y2="6.7"/>
+      <line class="drag-line" x1="1" y1="10.9" x2="15" y2="10.9"/>
+    </svg></button>
+        <div class="abil-meta">
+          <div class="abil-score">12</div>
+          <div class="abil-mods"><span class="mod">Пр <b>+1</b></span><span class="mod">Сп <b>+5</b></span></div>
+        </div>
+      </div>
+    </article>
+              <div class="zoom-caption">Пример · все три ровные<br>На плашке, 16px</div>
+            </div></div>
+    </div>
+  </div>
+</body>
+</html>

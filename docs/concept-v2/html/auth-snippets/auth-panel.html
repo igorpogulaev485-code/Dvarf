@@ -1,0 +1,162 @@
+  <div class="auth-overlay" data-auth-overlay>
+    <div class="auth-panel" role="dialog" aria-modal="true" aria-labelledby="auth-title">
+      <span class="auth-panel__handle" aria-hidden="true"></span>
+      <div class="auth-panel__top">
+        <div>
+          <p class="auth-chronicle" data-auth-chronicle>У врат узнают своих.</p>
+          <h2 class="auth-title" id="auth-title" data-auth-title>Вход</h2>
+        </div>
+        <button class="auth-close" type="button" data-auth-close aria-label="Закрыть">×</button>
+      </div>
+      <div class="auth-tabs" data-auth-tabs>
+        <button class="auth-tab is-on" type="button" data-auth-tab="login">Вход</button>
+        <button class="auth-tab" type="button" data-auth-tab="register">Регистрация</button>
+      </div>
+
+      <div class="auth-view auth-view--login">
+            <div class="auth-field">
+              <label class="auth-label" for="auth-login-email">Email</label>
+              <input class="auth-input" id="auth-login-email" type="email" inputmode="email" autocomplete="email" placeholder="user@example.com" value="">
+              <span class="auth-hint">Формат: user@example.com</span>
+            </div>
+            <div class="auth-field">
+              <label class="auth-label" for="auth-login-password">Пароль</label>
+              <div class="auth-pass">
+                <input class="auth-input" id="auth-login-password" type="password" autocomplete="current-password">
+                <button class="auth-showpass" type="button" data-toggle-pass="#auth-login-password">Показать</button>
+              </div>
+            </div>
+            <p class="auth-error auth-error--login">Неверный email или пароль.</p>
+            <div class="auth-actions">
+              <button class="account-btn account-btn--primary" type="button" data-auth-submit="login">Войти</button>
+              <button class="auth-link" type="button" data-open-auth="forgot">Забыли пароль?</button>
+            </div>
+            <p class="auth-or">или</p>
+            <div class="auth-oauth">
+              <button class="auth-oauth-btn" type="button" data-oauth="yandex"><span class="auth-oauth-btn__dot auth-oauth-btn__dot--ya" aria-hidden="true"></span>Войти через Яндекс ID</button>
+              <button class="auth-oauth-btn" type="button" data-oauth="vk"><span class="auth-oauth-btn__dot auth-oauth-btn__dot--vk" aria-hidden="true"></span>Войти через VK ID</button>
+            </div>
+      </div>
+
+      <div class="auth-view auth-view--register">
+            <div class="auth-field">
+              <label class="auth-label" for="auth-reg-name">Никнейм</label>
+              <input class="auth-input" id="auth-reg-name" type="text" autocomplete="nickname" maxlength="128" placeholder="Как вас будут видеть">
+              <span class="auth-hint">Обязательно, не короче 2 символов</span>
+            </div>
+            <div class="auth-field">
+              <label class="auth-label" for="auth-reg-email">Email</label>
+              <input class="auth-input" id="auth-reg-email" type="email" inputmode="email" autocomplete="email" placeholder="user@example.com">
+              <span class="auth-hint">Формат: user@example.com</span>
+            </div>
+            <div class="auth-field">
+              <label class="auth-label" for="auth-reg-password">Пароль</label>
+              <div class="auth-pass">
+                <input class="auth-input" id="auth-reg-password" type="password" autocomplete="new-password">
+                <button class="auth-showpass" type="button" data-toggle-pass="#auth-reg-password">Показать</button>
+              </div>
+              <span class="auth-hint">Минимум 8 символов</span>
+            </div>
+            <p class="auth-consent">Регистрируясь, вы принимаете условия, указанные в <a href="#" data-go-legal>правовой информации</a>.</p>
+            <div class="auth-actions">
+              <button class="account-btn account-btn--primary" type="button" data-auth-submit="register">Зарегистрироваться</button>
+            </div>
+            <p class="auth-or">или</p>
+            <div class="auth-oauth">
+              <button class="auth-oauth-btn" type="button" data-oauth="yandex"><span class="auth-oauth-btn__dot auth-oauth-btn__dot--ya" aria-hidden="true"></span>Войти через Яндекс ID</button>
+              <button class="auth-oauth-btn" type="button" data-oauth="vk"><span class="auth-oauth-btn__dot auth-oauth-btn__dot--vk" aria-hidden="true"></span>Войти через VK ID</button>
+            </div>
+      </div>
+
+      <div class="auth-view auth-view--register-sent">
+            <p class="auth-ok">Мы отправили ссылку подтверждения на <strong>user@example.com</strong>. Аккаунт активируется после перехода по ссылке.</p>
+            <div class="auth-actions">
+              <button class="account-btn account-btn--quiet" type="button" data-open-auth="verify-pending">Открыть письмо (макет)</button>
+              <button class="auth-link" type="button" data-open-auth="login">На вход</button>
+            </div>
+      </div>
+
+      <div class="auth-view auth-view--forgot">
+            <p class="auth-hint" style="margin-bottom:10px">Укажите email аккаунта — пришлём ссылку для смены пароля.</p>
+            <div class="auth-field">
+              <label class="auth-label" for="auth-forgot-email">Email</label>
+              <input class="auth-input" id="auth-forgot-email" type="email" inputmode="email" autocomplete="email" placeholder="user@example.com">
+            </div>
+            <div class="auth-actions">
+              <button class="account-btn account-btn--primary" type="button" data-auth-submit="forgot">Отправить ссылку</button>
+              <button class="auth-link" type="button" data-open-auth="login">Назад ко входу</button>
+            </div>
+      </div>
+
+      <div class="auth-view auth-view--forgot-sent">
+            <p class="auth-ok">Если аккаунт с таким email существует, мы отправили инструкции по восстановлению.</p>
+            <div class="auth-actions">
+              <button class="account-btn account-btn--quiet" type="button" data-open-auth="reset-new">Открыть ссылку из письма (макет)</button>
+              <button class="auth-link" type="button" data-open-auth="login">Назад ко входу</button>
+            </div>
+      </div>
+
+      <div class="auth-view auth-view--reset-new">
+            <p class="auth-hint" style="margin-bottom:10px">Вы перешли по ссылке восстановления. Придумайте новый пароль для входа.</p>
+            <div class="auth-field">
+              <label class="auth-label" for="auth-reset-password">Новый пароль</label>
+              <div class="auth-pass">
+                <input class="auth-input" id="auth-reset-password" type="password" autocomplete="new-password">
+                <button class="auth-showpass" type="button" data-toggle-pass="#auth-reset-password">Показать</button>
+              </div>
+              <span class="auth-hint">Минимум 8 символов</span>
+            </div>
+            <div class="auth-actions">
+              <button class="account-btn account-btn--primary" type="button" data-auth-submit="reset">Сохранить новый пароль</button>
+              <button class="auth-link" type="button" data-open-auth="login">Назад ко входу</button>
+            </div>
+      </div>
+
+      <div class="auth-view auth-view--reset-done">
+            <p class="auth-ok">Пароль успешно обновлён. Теперь можно войти.</p>
+            <div class="auth-actions">
+              <button class="account-btn account-btn--primary" type="button" data-open-auth="login">Перейти ко входу</button>
+            </div>
+      </div>
+
+      <div class="auth-view auth-view--oauth-loading">
+            <div class="auth-spinner" aria-hidden="true"></div>
+            <p class="auth-ok" data-oauth-loading-text style="text-align:center">Переходим к Яндекс ID…</p>
+            <div class="auth-demo-row" style="justify-content:center">
+              <button class="account-btn account-btn--primary" type="button" data-auth-oauth-end="ok">В макете: успех</button>
+              <button class="account-btn account-btn--quiet" type="button" data-auth-oauth-end="err">В макете: ошибка или отмена</button>
+            </div>
+      </div>
+
+      <div class="auth-view auth-view--oauth-error">
+            <p class="auth-error" style="display:block">Вход через сервис не состоялся. Можно войти по почте или попробовать снова.</p>
+            <div class="auth-actions">
+              <button class="account-btn account-btn--primary" type="button" data-open-auth="login">Вернуться ко входу</button>
+              <button class="account-btn account-btn--quiet" type="button" data-oauth="yandex">Попробовать снова</button>
+            </div>
+      </div>
+
+      <div class="auth-view auth-view--verify-pending">
+            <div class="auth-spinner" aria-hidden="true"></div>
+            <p class="auth-ok" style="text-align:center">Подтверждаем email…</p>
+            <div class="auth-demo-row" style="justify-content:center">
+              <button class="account-btn account-btn--primary" type="button" data-open-auth="verify-done">В макете: успешно</button>
+              <button class="account-btn account-btn--quiet" type="button" data-open-auth="verify-error">В макете: ссылка устарела</button>
+            </div>
+      </div>
+
+      <div class="auth-view auth-view--verify-done">
+            <p class="auth-ok">Email подтверждён. Добро пожаловать в Dvarf! Можно перейти к персонажам.</p>
+            <div class="auth-actions">
+              <button class="account-btn account-btn--primary" type="button" data-auth-success="chars">К персонажам</button>
+            </div>
+      </div>
+
+      <div class="auth-view auth-view--verify-error">
+            <p class="auth-error" style="display:block">Ссылка подтверждения недействительна или устарела. Запросите новое письмо на экране входа.</p>
+            <div class="auth-actions">
+              <button class="account-btn account-btn--quiet" type="button" data-open-auth="login">На вход</button>
+            </div>
+      </div>
+    </div>
+  </div>

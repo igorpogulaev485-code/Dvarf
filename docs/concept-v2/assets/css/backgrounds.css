@@ -1,0 +1,54 @@
+/* Подложки концепта v2. Паттерн только на холсте; карточки и поля без рисунка. */
+html[data-bg="parchment"] { --bg: #f7f2e4; --bg-pattern: url("../svg/bg-light-parchment.svg"); }
+html[data-bg="ivory"]     { --bg: #fbf6ee; --bg-pattern: url("../svg/bg-light-ivory.svg"); }
+html[data-bg="linen"]     { --bg: #f0e6d0; --bg-pattern: url("../svg/bg-light-linen.svg"); }
+html[data-bg="stone"]     { --bg: #e6e3dc; --bg-pattern: url("../svg/bg-light-stone.svg"); }
+html[data-bg="moss"]      { --bg: #e6ecda; --bg-pattern: url("../svg/bg-light-moss.svg"); }
+html[data-bg="azure"]     { --bg: #e4eef6; --bg-pattern: url("../svg/bg-light-azure.svg"); }
+html[data-bg="ink"]       { --bg: #0A0A0A; --bg-pattern: url("../svg/bg-dark-ink.svg"); }
+html[data-bg="graphite"]  { --bg: #161618; --bg-pattern: url("../svg/bg-dark-graphite.svg"); }
+html[data-bg="night"]     { --bg: #0d1119; --bg-pattern: url("../svg/bg-dark-night.svg"); }
+html[data-bg="oak"]       { --bg: #17130f; --bg-pattern: url("../svg/bg-dark-oak.svg"); }
+html[data-bg="tar"]       { --bg: #110e0c; --bg-pattern: url("../svg/bg-dark-tar.svg"); }
+html[data-bg="slate"]     { --bg: #14171c; --bg-pattern: url("../svg/bg-dark-slate.svg"); }
+
+html[data-bg],
+html[data-bg] body,
+html[data-bg] .sidebar,
+html[data-bg] .legal,
+html[data-bg] .legal::before {
+  background-color: var(--bg);
+  background-image: var(--bg-pattern);
+  background-repeat: repeat;
+  background-size: 256px 256px;
+  background-attachment: fixed;
+  background-position: 0 0;
+}
+
+html[data-v2] .account-bg-tile {
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  width: 100%;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+}
+html[data-v2] .account-bg-tile.is-selected {
+  border-style: solid;
+  border-color: var(--accent, #4e5d34);
+  box-shadow: 0 0 0 1px var(--accent, #4e5d34);
+}
+html[data-v2] .account-bg-tile:focus-visible {
+  outline: 2px solid var(--accent, #4e5d34);
+  outline-offset: 2px;
+}
+html[data-v2] .account-bg-tile__preview {
+  background-repeat: repeat;
+  background-size: 128px 128px;
+  background-position: 30% 20%;
+}
+
+/* Кадры продукта без служебной полоски */
+html[data-shot] .concept-bar { display: none !important; }
+html[data-shot] .cabinet-shell { min-height: 100vh; height: 100vh; }

@@ -1,0 +1,14 @@
+/* Step 4: 2014 feat — on-page setup, chips not full-width */
+
+.create-pipeline__card.is-locked {
+  opacity: 0.62;
+}
+.create-pipeline__card-reason {
+  color: var(--text-sub, #5c5c52);
+  font-size: 0.78rem;
+  font-weight: 600;
+  line-height: 1.35;
+}
+html[data-theme="leaf-classic"] .create-pipeline__card-reason { color: rgba(243, 239, 227, 0.68); }
+
+.feat-setup .race-setup__block { margin-top: 2px; }

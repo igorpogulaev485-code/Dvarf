@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Подложки КриD20 — доски сравнения</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,600;8..60,700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --font-display: "Source Serif 4", Georgia, serif;
+      --font-ui: "IBM Plex Sans", system-ui, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; }
+    body { font-family: var(--font-ui); }
+    .board {
+      width: 1440px;
+      height: 900px;
+      padding: 36px 48px 40px;
+      display: flex;
+      flex-direction: column;
+      gap: 22px;
+    }
+    .board--light { background: #f4efe0; color: #24241f; }
+    .board--dark { background: #0A0A0A; color: #f3efe3; }
+    .board h1 {
+      margin: 0;
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 36px;
+      letter-spacing: -0.02em;
+      line-height: 1.15;
+    }
+    .board .lead {
+      margin: -8px 0 0;
+      font-size: 15px;
+      font-weight: 500;
+      opacity: 0.72;
+      max-width: 980px;
+    }
+    .grid {
+      flex: 1;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      grid-template-rows: repeat(2, 1fr);
+      gap: 20px;
+      min-height: 0;
+    }
+    .swatch {
+      display: flex;
+      flex-direction: column;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid rgba(36,36,31,0.14);
+      min-height: 0;
+    }
+    .board--dark .swatch { border-color: rgba(243,239,227,0.14); }
+    .swatch__canvas {
+      flex: 1;
+      min-height: 0;
+      background-repeat: repeat;
+      background-size: 256px 256px;
+      position: relative;
+    }
+    .swatch__card {
+      position: absolute;
+      right: 18px;
+      bottom: 18px;
+      width: 42%;
+      height: 38%;
+      border-radius: 10px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+    }
+    .board--light .swatch__card { background: #fffdf8; border: 1px solid rgba(36,36,31,0.10); }
+    .board--dark .swatch__card { background: #131313; border: 1px solid rgba(243,239,227,0.10); }
+    .swatch__meta {
+      padding: 14px 16px 16px;
+    }
+    .board--light .swatch__meta { background: #fffdf8; }
+    .board--dark .swatch__meta { background: #131313; }
+    .swatch__name {
+      margin: 0;
+      font-family: var(--font-display);
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+    .swatch__motif {
+      margin: 2px 0 0;
+      font-size: 13px;
+      font-weight: 500;
+      opacity: 0.7;
+    }
+    .swatch__hex {
+      margin: 4px 0 0;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      opacity: 0.5;
+      font-variant-numeric: tabular-nums;
+    }
+    .zoom {
+      width: 800px;
+      height: 800px;
+      margin: 0;
+      background-repeat: repeat;
+      background-size: 256px 256px;
+    }
+    .zoom--wide { width: 1200px; height: 800px; }
+  </style>
+</head>
+<body>
+  <section class="board board--light" id="light-board">
+    <header>
+      <h1>Светлые подложки · L3</h1>
+      <p class="lead">Тонкий контурный паттерн низкого контраста. Карточка на образце — без рисунка, как в интерфейсе. «Лазурь» предлагается вместо «Извести».</p>
+    </header>
+    <div class="grid">
+      <article class="swatch">
+        <div class="swatch__canvas" style="background-color:#f7f2e4;background-image:url('../svg/bg-light-parchment.svg')"><span class="swatch__card"></span></div>
+        <div class="swatch__meta"><h2 class="swatch__name">Пергамент</h2><p class="swatch__motif">свитки, чернильницы, писчее перо</p><p class="swatch__hex">#f7f2e4 · текущая светлая</p></div>
+      </article>
+      <article class="swatch">
+        <div class="swatch__canvas" style="background-color:#fbf6ee;background-image:url('../svg/bg-light-ivory.svg')"><span class="swatch__card"></span></div>
+        <div class="swatch__meta"><h2 class="swatch__name">Слоновая кость</h2><p class="swatch__motif">карты и роза ветров</p><p class="swatch__hex">#fbf6ee</p></div>
+      </article>
+      <article class="swatch">
+        <div class="swatch__canvas" style="background-color:#f0e6d0;background-image:url('../svg/bg-light-linen.svg')"><span class="swatch__card"></span></div>
+        <div class="swatch__meta"><h2 class="swatch__name">Лён</h2><p class="swatch__motif">переплетение льна и стебли льна</p><p class="swatch__hex">#f0e6d0</p></div>
+      </article>
+      <article class="swatch">
+        <div class="swatch__canvas" style="background-color:#e6e3dc;background-image:url('../svg/bg-light-stone.svg')"><span class="swatch__card"></span></div>
+        <div class="swatch__meta"><h2 class="swatch__name">Камень</h2><p class="swatch__motif">кладка и резные руны</p><p class="swatch__hex">#e6e3dc</p></div>
+      </article>
+      <article class="swatch">
+        <div class="swatch__canvas" style="background-color:#e6ecda;background-image:url('../svg/bg-light-moss.svg')"><span class="swatch__card"></span></div>
+        <div class="swatch__meta"><h2 class="swatch__name">Мох</h2><p class="swatch__motif">листья и веточки</p><p class="swatch__hex">#e6ecda</p></div>
+      </article>
+      <article class="swatch">
+        <div class="swatch__canvas" style="background-color:#e4eef6;background-image:url('../svg/bg-light-azure.svg')"><span class="swatch__card"></span></div>
+        <div class="swatch__meta"><h2 class="swatch__name">Лазурь</h2><p class="swatch__motif">волны · вместо «Известь», к утверждению</p><p class="swatch__hex">#e4eef6</p></div>
+      </article>
+    </div>
+  </section>
+
+  <section class="board board--dark" id="dark-board">
+    <header>
+      <h1>Тёмные подложки · I2 «Листва»</h1>
+      <p class="lead">Тот же приём: тонкая светлая линия, низкая непрозрачность. Карточки остаются сплошными #131313, текст не садится на рисунок.</p>
+    </header>
+    <div class="grid">
+      <article class="swatch">
+        <div class="swatch__canvas" style="background-color:#0A0A0A;background-image:url('../svg/bg-dark-ink.svg')"><span class="swatch__card"></span></div>
+        <div class="swatch__meta"><h2 class="swatch__name">Чернила</h2><p class="swatch__motif">чернильница, перо, росчерки</p><p class="swatch__hex">#0A0A0A · текущая тёмная</p></div>
+      </article>
+      <article class="swatch">
+        <div class="swatch__canvas" style="background-color:#161618;background-image:url('../svg/bg-dark-graphite.svg')"><span class="swatch__card"></span></div>
+        <div class="swatch__meta"><h2 class="swatch__name">Графит</h2><p class="swatch__motif">шестерни дварфов</p><p class="swatch__hex">#161618</p></div>
+      </article>
+      <article class="swatch">
+        <div class="swatch__canvas" style="background-color:#0d1119;background-image:url('../svg/bg-dark-night.svg')"><span class="swatch__card"></span></div>
+        <div class="swatch__meta"><h2 class="swatch__name">Ночь</h2><p class="swatch__motif">звёзды и созвездия</p><p class="swatch__hex">#0d1119</p></div>
+      </article>
+      <article class="swatch">
+        <div class="swatch__canvas" style="background-color:#17130f;background-image:url('../svg/bg-dark-oak.svg')"><span class="swatch__card"></span></div>
+        <div class="swatch__meta"><h2 class="swatch__name">Дуб</h2><p class="swatch__motif">дубовые листья и жёлуди</p><p class="swatch__hex">#17130f</p></div>
+      </article>
+      <article class="swatch">
+        <div class="swatch__canvas" style="background-color:#110e0c;background-image:url('../svg/bg-dark-tar.svg')"><span class="swatch__card"></span></div>
+        <div class="swatch__meta"><h2 class="swatch__name">Смола</h2><p class="swatch__motif">капли и потёки смолы</p><p class="swatch__hex">#110e0c</p></div>
+      </article>
+      <article class="swatch">
+        <div class="swatch__canvas" style="background-color:#14171c;background-image:url('../svg/bg-dark-slate.svg')"><span class="swatch__card"></span></div>
+        <div class="swatch__meta"><h2 class="swatch__name">Сланец</h2><p class="swatch__motif">слои сланца и трещины</p><p class="swatch__hex">#14171c</p></div>
+      </article>
+    </div>
+  </section>
+
+  <div class="zoom" id="zoom-parchment" style="background-color:#f7f2e4;background-image:url('../svg/bg-light-parchment.svg')"></div>
+  <div class="zoom" id="zoom-ivory" style="background-color:#fbf6ee;background-image:url('../svg/bg-light-ivory.svg')"></div>
+  <div class="zoom" id="zoom-linen" style="background-color:#f0e6d0;background-image:url('../svg/bg-light-linen.svg')"></div>
+  <div class="zoom" id="zoom-stone" style="background-color:#e6e3dc;background-image:url('../svg/bg-light-stone.svg')"></div>
+  <div class="zoom" id="zoom-moss" style="background-color:#e6ecda;background-image:url('../svg/bg-light-moss.svg')"></div>
+  <div class="zoom" id="zoom-azure" style="background-color:#e4eef6;background-image:url('../svg/bg-light-azure.svg')"></div>
+  <div class="zoom" id="zoom-ink" style="background-color:#0A0A0A;background-image:url('../svg/bg-dark-ink.svg')"></div>
+  <div class="zoom" id="zoom-graphite" style="background-color:#161618;background-image:url('../svg/bg-dark-graphite.svg')"></div>
+  <div class="zoom" id="zoom-night" style="background-color:#0d1119;background-image:url('../svg/bg-dark-night.svg')"></div>
+  <div class="zoom" id="zoom-oak" style="background-color:#17130f;background-image:url('../svg/bg-dark-oak.svg')"></div>
+  <div class="zoom" id="zoom-tar" style="background-color:#110e0c;background-image:url('../svg/bg-dark-tar.svg')"></div>
+  <div class="zoom" id="zoom-slate" style="background-color:#14171c;background-image:url('../svg/bg-dark-slate.svg')"></div>
+</body>
+</html>

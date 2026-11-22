@@ -1,0 +1,11 @@
+check-approved-elements-stage0
+etalon pass: yes
+  etalon-parchment: ok bgStd=3.050 dice=52.0x52.0
+  etalon-ink: ok bgStd=3.441 dice=52.0x52.0
+  etalon-creation-light: ok bgStd=3.050 dice=52.0x52.0
+  etalon-creation-dark: ok bgStd=3.441 dice=52.0x52.0
+anti 56x56 + flat: FAIL as required
+  issues: [{"type":"bg-asset","expected":"bg-light-parchment.svg","actual":"none | none | none | none"},{"type":"dice-size","width":56,"height":56,"expected":52},{"type":"dice-border","width":1,"expected":2},{"type":"dice-icon-size","width":28,"height":28,"expected":22},{"type":"bg-std","std":0,"min":1.5}]
+bg std floor: 1.5 (package screenshot constant is 2.0; flat fill is 0)
+dice MAD etalon vs self 0.000
+dice MAD anti vs etalon 40.773

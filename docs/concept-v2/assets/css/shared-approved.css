@@ -1,0 +1,113 @@
+/*
+  Единый эталон утверждённых элементов оболочки КриD20.
+  Подключать во всех новых макетах после css темы и css/mobile-chars-nav.css.
+  Принятые страницы и эталоны листа этим файлом не меняются.
+
+  Источники (копия без изменений смысла и рисунка):
+
+  Подложки (§24, 17.11.2026; production-package/BACKGROUNDS.md):
+    css/backgrounds.css
+    svg/bg-light-*.svg, svg/bg-dark-*.svg
+    Дефолты: L3 — Пергамент (html[data-bg="parchment"], svg/bg-light-parchment.svg);
+             I2 — Чернила (html[data-bg="ink"], svg/bg-dark-ink.svg).
+    Паттерн только на холсте, body, .sidebar и .legal. Карточки — сплошные --card.
+    Эталон подключения: creation.html, sheet-desktop.html, sheet-mobile.html
+    (принятые html/desktop-*-v2 и html/mobile-*-v2 подложек §24 ещё не содержат —
+     это исторические кадры; в новые макеты ставить правило §24).
+
+  Кубик C «прод в кружочке» (20.11.2026; DICE-ICON.md, production-package/DICE.md):
+    Эталон кнопки ПК: sheet-desktop.html .fab-dice / .ui-dice-fab__icon
+      (стиль — блок .fab-dice в sheet-desktop.html).
+    Эталон знака на телефоне: sheet-mobile.html #ico-dice-prod и кнопка
+      .fab-dice.tab-fab (центр панели, aria-label="к20").
+    Эталон адаптации круга 52×52 для таббара оболочки:
+      css/creation.css (правка 21.11.2026: замена старого многогранника).
+    Знак: гексагон, viewBox 0 0 32 32, в кнопке 22×22, пять точек.
+    Это не контурный многогранник из html/*-v2 (viewBox 0 0 24 24, без точек)
+    и не подпись «d20».
+*/
+
+@import url("backgrounds.css");
+
+/* --- ПК: плавающая кнопка, дословно из sheet-desktop.html .fab-dice --- */
+.fab-dice {
+  position: fixed; right: 22px; bottom: 22px; z-index: 50;
+  width: 52px; height: 52px; aspect-ratio: 1/1; flex-shrink: 0; box-sizing: border-box;
+  border-radius: 50%;
+  border: 2px solid var(--accent);
+  background: var(--card);
+  color: var(--accent);
+  box-shadow: 0 10px 28px rgba(45,45,42,0.18);
+  display: grid; place-items: center;
+  padding: 0;
+}
+.fab-dice:hover { background: var(--accent-soft); }
+.fab-dice.is-on,
+.fab-dice.is-on:hover {
+  background: var(--accent);
+  color: var(--on-accent);
+  border-color: var(--accent);
+}
+.fab-dice svg, .fab-dice .ui-dice-fab__icon { width: 22px; height: 22px; display: block; }
+html[data-theme="leaf-classic"] .fab-dice { box-shadow: 0 10px 28px rgba(0,0,0,0.45); }
+
+/* --- Оболочка v2: тот же круг на ПК и в центре нижней панели телефона.
+     Дословно из css/creation.css (утверждённая адаптация знака C, без правил страницы создания). --- */
+html[data-v2] .tab-fab,
+html[data-v2] .fab-dice {
+  appearance: none;
+  box-sizing: border-box;
+  width: 52px;
+  height: 52px;
+  aspect-ratio: 1 / 1;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  border: 2px solid var(--accent);
+  background: var(--card);
+  color: var(--accent);
+  box-shadow: 0 10px 28px rgba(45, 45, 42, 0.18);
+}
+html[data-v2] .fab-dice {
+  position: fixed;
+  right: 22px;
+  bottom: 22px;
+  z-index: 50;
+}
+html[data-v2] .tab-fab {
+  position: relative;
+  top: -10px;
+  z-index: 41;
+  flex: 0 0 52px;
+  align-self: center;
+}
+html[data-v2] .tab-fab:hover,
+html[data-v2] .fab-dice:hover {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+html[data-v2] .tab-fab.is-on,
+html[data-v2] .tab-fab.is-on:hover,
+html[data-v2] .fab-dice.is-on,
+html[data-v2] .fab-dice.is-on:hover {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--on-accent);
+}
+html[data-v2] .tab-fab svg,
+html[data-v2] .tab-fab .ui-dice-fab__icon,
+html[data-v2] .fab-dice svg,
+html[data-v2] .fab-dice .ui-dice-fab__icon {
+  width: 22px;
+  height: 22px;
+  display: block;
+}
+html[data-theme="leaf-classic"][data-v2] .tab-fab,
+html[data-theme="leaf-classic"][data-v2] .fab-dice {
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.45);
+}
+html[data-v2][data-width="phone"] .fab-dice { display: none !important; }
+html[data-v2][data-width="desktop"] .fab-dice { display: grid; }

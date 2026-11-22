@@ -1,0 +1,47 @@
+/* Step 5 — background setup (extends race-setup / pipeline) */
+
+.seg.is-blocked,
+.seg:disabled.is-blocked {
+  opacity: 0.55;
+  border-style: dashed;
+  cursor: not-allowed;
+  font-weight: 500;
+}
+
+.seg--wrap {
+  width: auto;
+  max-width: 100%;
+  white-space: normal;
+  text-align: left;
+  line-height: 1.35;
+  height: auto;
+  padding: 6px 10px;
+}
+
+.bg-pack-note {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--text-sub, #5c5c52);
+}
+html[data-theme="leaf-classic"] .bg-pack-note { color: rgba(243, 239, 227, 0.75); }
+
+.bg-fixed {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.bg-rp-label {
+  margin: 0;
+  font-size: 14px;
+}
+.bg-rp-label span { opacity: 0.8; font-weight: 500; }
+
+.seg.is-static,
+.seg:disabled.is-static {
+  opacity: 1;
+  cursor: default;
+  pointer-events: none;
+  font-weight: 500;
+}

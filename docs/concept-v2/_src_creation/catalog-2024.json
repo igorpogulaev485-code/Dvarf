@@ -1,0 +1,2233 @@
+{
+  "species": [
+    {
+      "slug": "dragonborn",
+      "name_ru": "Драконорожденный",
+      "name_en": "Dragonborn",
+      "source": "srd-5.2",
+      "size_options": [
+        "medium"
+      ],
+      "origin_feat_choice": false,
+      "traits": [
+        "draconic_ancestry",
+        "breath_weapon",
+        "damage_resistance",
+        "darkvision",
+        "draconic_flight"
+      ],
+      "traits_text": "Драконорожденный (2024): гуманоид, Средний, 30 фт. Наследие дракона (тип урона дыхания/сопротивления). Оружие дыхания вместо одной атаки (конус 15 / линия 30, 1к10→4к10). Сопротивление выбранному типу. Тёмное зрение 60. С 5 ур. — драконий полёт (бонус, 10 мин, 1/длинный).",
+      "languages_choose": 0
+    },
+    {
+      "slug": "dwarf",
+      "name_ru": "Дварф",
+      "name_en": "Dwarf",
+      "source": "srd-5.2",
+      "size_options": [
+        "medium"
+      ],
+      "origin_feat_choice": false,
+      "traits": [
+        "darkvision",
+        "dwarven_resilience",
+        "dwarven_toughness",
+        "stonecunning"
+      ],
+      "traits_text": "Дварф (2024): гуманоид, Средний, 30 фт. Тёмное зрение 120. Устойчивость к яду + преимущество против «отравлен». +1 макс. хитов за уровень. Знание камня: бонусом чувство вибрации 60 фт на 10 мин (ПБ/длинный).",
+      "languages_choose": 0
+    },
+    {
+      "slug": "elf",
+      "name_ru": "Эльф",
+      "name_en": "Elf",
+      "source": "srd-5.2",
+      "size_options": [
+        "medium"
+      ],
+      "origin_feat_choice": false,
+      "traits": [
+        "darkvision",
+        "elf_lineage",
+        "fey_ancestry",
+        "keen_senses",
+        "trance"
+      ],
+      "traits_text": "Эльф (2024): гуманоид, Средний, 30 фт. Выберите род (дроу / высший / лесной) — заговоры и заклинания по роду. Наследие фей (преимущество против очарования). Обострённые чувства (один навык: Внимательность / Выживание / Проницательность). Транс (длинный отдых 4 ч).",
+      "languages_choose": 0
+    },
+    {
+      "slug": "gnome",
+      "name_ru": "Гном",
+      "name_en": "Gnome",
+      "source": "srd-5.2",
+      "size_options": [
+        "small"
+      ],
+      "origin_feat_choice": false,
+      "traits": [
+        "darkvision",
+        "gnomish_cunning",
+        "gnomish_lineage"
+      ],
+      "traits_text": "Гном (2024): гуманоид, Маленький, 30 фт. Тёмное зрение 60. Гномья хитрость: преимущество на спасброски ИНТ/МУД/ХАР. Выберите род (лесной / скальный) — магия рода.",
+      "languages_choose": 0
+    },
+    {
+      "slug": "goliath",
+      "name_ru": "Голиаф",
+      "name_en": "Goliath",
+      "source": "srd-5.2",
+      "size_options": [
+        "medium"
+      ],
+      "origin_feat_choice": false,
+      "traits": [
+        "giant_ancestry",
+        "large_form",
+        "powerful_build"
+      ],
+      "traits_text": "Голиаф (2024): гуманоид, Средний, 35 фт. Наследие великанов (один дар, ПБ/длинный). С 5 ур. Большая форма (бонус, 10 мин, 1/длинный). Мощное телосложение (преимущество против захвата; грузоподъёмность как на размер больше).",
+      "languages_choose": 0
+    },
+    {
+      "slug": "halfling",
+      "name_ru": "Полурослик",
+      "name_en": "Halfling",
+      "source": "srd-5.2",
+      "size_options": [
+        "small"
+      ],
+      "origin_feat_choice": false,
+      "traits": [
+        "brave",
+        "halfling_nimbleness",
+        "lucky",
+        "naturally_stealthy"
+      ],
+      "traits_text": "Полурослик (2024): гуманоид, Маленький, 30 фт. Храбрый (преимущество против испуга). Проворство (проход через пространство существа крупнее). Удача (переброс 1 на к20 в тесте к20). Естественная скрытность (затаиться за существом крупнее).",
+      "languages_choose": 0
+    },
+    {
+      "slug": "human",
+      "name_ru": "Человек",
+      "name_en": "Human",
+      "source": "srd-5.2",
+      "size_options": [
+        "medium",
+        "small"
+      ],
+      "origin_feat_choice": true,
+      "traits": [
+        "resourceful",
+        "skillful",
+        "versatile"
+      ],
+      "traits_text": "Человек (2024): гуманоид, Средний или Маленький (выбор), 30 фт. Находчивый: героическое вдохновение после длинного отдыха. Умелый: владение одним навыком. Гибкий: черта происхождения на выбор (часто Умелый).",
+      "languages_choose": 0
+    },
+    {
+      "slug": "orc",
+      "name_ru": "Орк",
+      "name_en": "Orc",
+      "source": "srd-5.2",
+      "size_options": [
+        "medium"
+      ],
+      "origin_feat_choice": false,
+      "traits": [
+        "adrenaline_rush",
+        "darkvision",
+        "relentless_endurance"
+      ],
+      "traits_text": "Орк (2024): гуманоид, Средний, 30 фт. Выброс адреналина: бонусом Рывок + временные хиты = ПБ (ПБ/короткий или длинный). Тёмное зрение 120. Непоколебимая стойкость: вместо 0 хитов — 1 (1/длинный).",
+      "languages_choose": 0
+    },
+    {
+      "slug": "tiefling",
+      "name_ru": "Тифлинг",
+      "name_en": "Tiefling",
+      "source": "srd-5.2",
+      "size_options": [
+        "medium",
+        "small"
+      ],
+      "origin_feat_choice": false,
+      "traits": [
+        "darkvision",
+        "fiendish_legacy",
+        "otherworldly_presence"
+      ],
+      "traits_text": "Тифлинг (2024): гуманоид, Средний или Маленький (выбор), 30 фт. Тёмное зрение 60. Наследие исчадий (Бездна / хтоническое / инфернальное). Потустороннее присутствие: Чудотворство.",
+      "languages_choose": 0
+    },
+    {
+      "slug": "aasimar",
+      "name_ru": "Аасимар",
+      "name_en": "Aasimar",
+      "source": "ph24",
+      "size_options": [
+        "medium",
+        "small"
+      ],
+      "origin_feat_choice": false,
+      "traits": [
+        "celestial-resistance",
+        "darkvision",
+        "healing-hands",
+        "light-bearer",
+        "celestial-revelation"
+      ],
+      "traits_text": "Аасимар (2024): гуманоид, Средний или Маленький, 30 фт. Сопротивление некротическому и излучению. Тёмное зрение 60. Исцеляющие руки (Магия, ПБ×к4, 1/длинный). Заговор «Свет» (ХАР). С 3 ур. — Небесное откровение (бонусным, 1 мин, 1/длинный): крылья / сияющая душа / саван смерти.",
+      "languages_choose": 0
+    }
+  ],
+  "backgrounds": [
+    {
+      "slug": "acolyte",
+      "name_ru": "Послушник",
+      "source": "srd-5.2",
+      "asi": {
+        "abilities": [
+          "int",
+          "wis",
+          "cha"
+        ],
+        "options": [
+          "+2/+1",
+          "+1/+1/+1"
+        ],
+        "cap": 20
+      },
+      "origin_feat": {
+        "id": "magic-initiate",
+        "slug": "magic-initiate",
+        "name_ru": "Посвящённый в магию",
+        "name_en": "Magic Initiate",
+        "variant": "cleric"
+      },
+      "tool_proficiencies": [
+        "calligraphers_supplies"
+      ],
+      "tool_choices": null,
+      "equipment": [],
+      "name_en": "Acolyte",
+      "skill_proficiencies": [
+        "insight",
+        "religion"
+      ],
+      "skill_labels": [
+        "Проницательность",
+        "Религия"
+      ],
+      "traits_text": "Послушник (2024): ИНТ/МУД/ХАР (+2/+1 или +1/+1/+1). Черта: Посвящённый в магию (жрец). Навыки: Проницательность, Религия. Инструмент: каллиграф. Пакет снаряжения или 50 зм.",
+      "equipment_or_gold": {
+        "gold_alternative_gp": 50,
+        "pack_summary_ru": "Инструменты каллиграфа, книга (молитвенник), священный символ, пергамент ×10, мантия, 8 зм"
+      }
+    },
+    {
+      "slug": "criminal",
+      "name_ru": "Преступник",
+      "source": "srd-5.2",
+      "asi": {
+        "abilities": [
+          "dex",
+          "con",
+          "int"
+        ],
+        "options": [
+          "+2/+1",
+          "+1/+1/+1"
+        ],
+        "cap": 20
+      },
+      "origin_feat": {
+        "id": "alert",
+        "slug": "alert",
+        "name_ru": "Бдительный",
+        "name_en": "Alert"
+      },
+      "tool_proficiencies": [
+        "thieves_tools"
+      ],
+      "tool_choices": null,
+      "equipment": [],
+      "name_en": "Criminal",
+      "skill_proficiencies": [
+        "sleight_of_hand",
+        "stealth"
+      ],
+      "skill_labels": [
+        "Ловкость рук",
+        "Скрытность"
+      ],
+      "traits_text": "Преступник (2024): ЛОВ/ТЕЛ/ИНТ (+2/+1 или +1/+1/+1). Черта: Бдительный. Навыки: Ловкость рук, Скрытность. Инструмент: воровские. Пакет или 50 зм.",
+      "equipment_or_gold": {
+        "gold_alternative_gp": 50,
+        "pack_summary_ru": "2 кинжала, воровские инструменты, ломик, 2 кошеля, дорожная одежда, 16 зм"
+      }
+    },
+    {
+      "slug": "sage",
+      "name_ru": "Мудрец",
+      "source": "srd-5.2",
+      "asi": {
+        "abilities": [
+          "con",
+          "int",
+          "wis"
+        ],
+        "options": [
+          "+2/+1",
+          "+1/+1/+1"
+        ],
+        "cap": 20
+      },
+      "origin_feat": {
+        "id": "magic-initiate",
+        "slug": "magic-initiate",
+        "name_ru": "Посвящённый в магию",
+        "name_en": "Magic Initiate",
+        "variant": "wizard"
+      },
+      "tool_proficiencies": [
+        "calligraphers_supplies"
+      ],
+      "tool_choices": null,
+      "equipment": [],
+      "name_en": "Sage",
+      "skill_proficiencies": [
+        "arcana",
+        "history"
+      ],
+      "skill_labels": [
+        "Магия",
+        "История"
+      ],
+      "traits_text": "Мудрец (2024): ТЕЛ/ИНТ/МУД (+2/+1 или +1/+1/+1). Черта: Посвящённый в магию (волшебник). Навыки: Магия, История. Инструмент: каллиграф. Пакет или 50 зм.",
+      "equipment_or_gold": {
+        "gold_alternative_gp": 50,
+        "pack_summary_ru": "Боевой посох, инструменты каллиграфа, книга (история), пергамент ×8, мантия, 8 зм"
+      }
+    },
+    {
+      "slug": "soldier",
+      "name_ru": "Солдат",
+      "source": "srd-5.2",
+      "asi": {
+        "abilities": [
+          "str",
+          "dex",
+          "con"
+        ],
+        "options": [
+          "+2/+1",
+          "+1/+1/+1"
+        ],
+        "cap": 20
+      },
+      "origin_feat": {
+        "id": "savage-attacker",
+        "slug": "savage-attacker",
+        "name_ru": "Свирепый атакующий",
+        "name_en": "Savage Attacker"
+      },
+      "tool_proficiencies": [],
+      "tool_choices": {
+        "count": 1,
+        "from_category": "gaming_set",
+        "label_ru": "Игровой набор (один вид)"
+      },
+      "equipment": [],
+      "name_en": "Soldier",
+      "skill_proficiencies": [
+        "athletics",
+        "intimidation"
+      ],
+      "skill_labels": [
+        "Атлетика",
+        "Запугивание"
+      ],
+      "traits_text": "Солдат (2024): СИЛ/ЛОВ/ТЕЛ (+2/+1 или +1/+1/+1). Черта: Неистово атакующий. Навыки: Атлетика, Запугивание. Инструмент: игровой набор. Пакет или 50 зм.",
+      "equipment_or_gold": {
+        "gold_alternative_gp": 50,
+        "pack_summary_ru": "Копьё, короткий лук, 20 стрел, игровой набор, комплект целителя, колчан, дорожная одежда, 14 зм"
+      }
+    },
+    {
+      "slug": "artisan",
+      "name_ru": "Ремесленник",
+      "source": "ph24",
+      "asi": {
+        "abilities": [
+          "str",
+          "dex",
+          "int"
+        ],
+        "options": [
+          "+2/+1",
+          "+1/+1/+1"
+        ],
+        "cap": 20
+      },
+      "origin_feat": {
+        "id": "crafter",
+        "slug": "crafter",
+        "name_ru": "Мастеровой",
+        "name_en": "Crafter"
+      },
+      "tool_proficiencies": [],
+      "tool_choices": {
+        "category": "artisans_tools",
+        "count": 1
+      },
+      "equipment": [],
+      "name_en": "Artisan",
+      "skill_proficiencies": [
+        "investigation",
+        "persuasion"
+      ],
+      "skill_labels": [
+        "Расследование",
+        "Убеждение"
+      ],
+      "traits_text": "Ремесленник (2024): СИЛ/ЛОВ/ИНТ (+2/+1 или +1/+1/+1). Черта: Мастеровой. Навыки: Расследование, Убеждение. Инструмент: ремесленные (выбор). Пакет или 50 зм.",
+      "equipment_or_gold": {
+        "gold_alternative_gp": 50,
+        "pack_summary_ru": "Ремесленные инструменты (выбранные), 2 кошеля, дорожная одежда, 32 зм"
+      }
+    },
+    {
+      "slug": "charlatan",
+      "name_ru": "Шарлатан",
+      "source": "ph24",
+      "asi": {
+        "abilities": [
+          "dex",
+          "con",
+          "cha"
+        ],
+        "options": [
+          "+2/+1",
+          "+1/+1/+1"
+        ],
+        "cap": 20
+      },
+      "origin_feat": {
+        "id": "skilled",
+        "slug": "skilled",
+        "name_ru": "Умелый",
+        "name_en": "Skilled"
+      },
+      "tool_proficiencies": [
+        "forgery_kit"
+      ],
+      "tool_choices": null,
+      "equipment": [],
+      "name_en": "Charlatan",
+      "skill_proficiencies": [
+        "sleight_of_hand",
+        "deception"
+      ],
+      "skill_labels": [
+        "Ловкость рук",
+        "Обман"
+      ],
+      "traits_text": "Шарлатан (2024): ЛОВ/ТЕЛ/ХАР (+2/+1 или +1/+1/+1). Черта: Умелый. Навыки: Ловкость рук, Обман. Инструмент: набор для фальсификации. Пакет или 50 зм.",
+      "equipment_or_gold": {
+        "gold_alternative_gp": 50,
+        "pack_summary_ru": "Набор фальшивомонетчика, костюм, отличная одежда, 15 зм"
+      }
+    },
+    {
+      "slug": "entertainer",
+      "name_ru": "Артист",
+      "source": "ph24",
+      "asi": {
+        "abilities": [
+          "str",
+          "dex",
+          "cha"
+        ],
+        "options": [
+          "+2/+1",
+          "+1/+1/+1"
+        ],
+        "cap": 20
+      },
+      "origin_feat": {
+        "id": "musician",
+        "slug": "musician",
+        "name_ru": "Музыкант",
+        "name_en": "Musician"
+      },
+      "tool_proficiencies": [],
+      "tool_choices": {
+        "category": "musical_instrument",
+        "count": 1
+      },
+      "equipment": [],
+      "name_en": "Entertainer",
+      "skill_proficiencies": [
+        "acrobatics",
+        "performance"
+      ],
+      "skill_labels": [
+        "Акробатика",
+        "Выступление"
+      ],
+      "traits_text": "Артист (2024): СИЛ/ЛОВ/ХАР (+2/+1 или +1/+1/+1). Черта: Музыкант. Навыки: Акробатика, Выступление. Инструмент: музыкальный (выбор). Пакет или 50 зм.",
+      "equipment_or_gold": {
+        "gold_alternative_gp": 50,
+        "pack_summary_ru": "Музыкальный инструмент (выбранный), 2 костюма, зеркало, духи, дорожная одежда, 11 зм"
+      }
+    },
+    {
+      "slug": "farmer",
+      "name_ru": "Фермер",
+      "source": "ph24",
+      "asi": {
+        "abilities": [
+          "str",
+          "con",
+          "wis"
+        ],
+        "options": [
+          "+2/+1",
+          "+1/+1/+1"
+        ],
+        "cap": 20
+      },
+      "origin_feat": {
+        "id": "tough",
+        "slug": "tough",
+        "name_ru": "Крепкий",
+        "name_en": "Tough"
+      },
+      "tool_proficiencies": [
+        "carpenters_tools"
+      ],
+      "tool_choices": null,
+      "equipment": [],
+      "name_en": "Farmer",
+      "skill_proficiencies": [
+        "nature",
+        "animal_handling"
+      ],
+      "skill_labels": [
+        "Природа",
+        "Уход за животными"
+      ],
+      "traits_text": "Фермер (2024): СИЛ/ТЕЛ/МУД (+2/+1 или +1/+1/+1). Черта: Крепкий. Навыки: Природа, Обращение с животными. Инструмент: плотник. Пакет или 50 зм.",
+      "equipment_or_gold": {
+        "gold_alternative_gp": 50,
+        "pack_summary_ru": "Серп, инструменты плотника, комплект целителя, железный горшок, лопата, дорожная одежда, 30 зм"
+      }
+    },
+    {
+      "slug": "guard",
+      "name_ru": "Стражник",
+      "source": "ph24",
+      "asi": {
+        "abilities": [
+          "str",
+          "int",
+          "wis"
+        ],
+        "options": [
+          "+2/+1",
+          "+1/+1/+1"
+        ],
+        "cap": 20
+      },
+      "origin_feat": {
+        "id": "alert",
+        "slug": "alert",
+        "name_ru": "Бдительный",
+        "name_en": "Alert"
+      },
+      "tool_proficiencies": [],
+      "tool_choices": {
+        "category": "gaming_set",
+        "count": 1
+      },
+      "equipment": [],
+      "name_en": "Guard",
+      "skill_proficiencies": [
+        "athletics",
+        "perception"
+      ],
+      "skill_labels": [
+        "Атлетика",
+        "Внимательность"
+      ],
+      "traits_text": "Стражник (2024): СИЛ/ИНТ/МУД (+2/+1 или +1/+1/+1). Черта: Бдительный. Навыки: Атлетика, Внимательность. Инструмент: игровой набор (выбор). Пакет или 50 зм.",
+      "equipment_or_gold": {
+        "gold_alternative_gp": 50,
+        "pack_summary_ru": "Копьё, лёгкий арбалет, 20 болтов, игровой набор, закрытый фонарь, кандалы, колчан, дорожная одежда, 12 зм"
+      }
+    },
+    {
+      "slug": "guide",
+      "name_ru": "Проводник",
+      "source": "ph24",
+      "asi": {
+        "abilities": [
+          "dex",
+          "con",
+          "wis"
+        ],
+        "options": [
+          "+2/+1",
+          "+1/+1/+1"
+        ],
+        "cap": 20
+      },
+      "origin_feat": {
+        "id": "magic-initiate",
+        "slug": "magic-initiate",
+        "name_ru": "Посвящённый в магию",
+        "name_en": "Magic Initiate",
+        "variant": "druid"
+      },
+      "tool_proficiencies": [
+        "cartographers_tools"
+      ],
+      "tool_choices": null,
+      "equipment": [],
+      "name_en": "Guide",
+      "skill_proficiencies": [
+        "survival",
+        "stealth"
+      ],
+      "skill_labels": [
+        "Выживание",
+        "Скрытность"
+      ],
+      "traits_text": "Проводник (2024): ЛОВ/ТЕЛ/МУД (+2/+1 или +1/+1/+1). Черта: Посвящённый в магию (друид). Навыки: Выживание, Скрытность. Инструмент: картограф. Пакет или 50 зм.",
+      "equipment_or_gold": {
+        "gold_alternative_gp": 50,
+        "pack_summary_ru": "Короткий лук, 20 стрел, инструменты картографа, спальник, колчан, палатка, дорожная одежда, 3 зм"
+      }
+    },
+    {
+      "slug": "hermit",
+      "name_ru": "Отшельник",
+      "source": "ph24",
+      "asi": {
+        "abilities": [
+          "con",
+          "wis",
+          "cha"
+        ],
+        "options": [
+          "+2/+1",
+          "+1/+1/+1"
+        ],
+        "cap": 20
+      },
+      "origin_feat": {
+        "id": "healer",
+        "slug": "healer",
+        "name_ru": "Целитель",
+        "name_en": "Healer"
+      },
+      "tool_proficiencies": [
+        "herbalism_kit"
+      ],
+      "tool_choices": null,
+      "equipment": [],
+      "name_en": "Hermit",
+      "skill_proficiencies": [
+        "medicine",
+        "religion"
+      ],
+      "skill_labels": [
+        "Медицина",
+        "Религия"
+      ],
+      "traits_text": "Отшельник (2024): ТЕЛ/МУД/ХАР (+2/+1 или +1/+1/+1). Черта: Целитель. Навыки: Медицина, Религия. Инструмент: набор травника. Пакет или 50 зм.",
+      "equipment_or_gold": {
+        "gold_alternative_gp": 50,
+        "pack_summary_ru": "Боевой посох, набор травника, спальник, книга (философия), лампа, масло ×3, дорожная одежда, 16 зм"
+      }
+    },
+    {
+      "slug": "merchant",
+      "name_ru": "Торговец",
+      "source": "ph24",
+      "asi": {
+        "abilities": [
+          "con",
+          "int",
+          "cha"
+        ],
+        "options": [
+          "+2/+1",
+          "+1/+1/+1"
+        ],
+        "cap": 20
+      },
+      "origin_feat": {
+        "id": "lucky",
+        "slug": "lucky",
+        "name_ru": "Везучий",
+        "name_en": "Lucky"
+      },
+      "tool_proficiencies": [
+        "navigators_tools"
+      ],
+      "tool_choices": null,
+      "equipment": [],
+      "name_en": "Merchant",
+      "skill_proficiencies": [
+        "persuasion",
+        "animal_handling"
+      ],
+      "skill_labels": [
+        "Убеждение",
+        "Уход за животными"
+      ],
+      "traits_text": "Торговец (2024): ТЕЛ/ИНТ/ХАР (+2/+1 или +1/+1/+1). Черта: Везучий. Навыки: Убеждение, Обращение с животными. Инструмент: навигатор. Пакет или 50 зм.",
+      "equipment_or_gold": {
+        "gold_alternative_gp": 50,
+        "pack_summary_ru": "Инструменты навигатора, 2 кошеля, дорожная одежда, 22 зм"
+      }
+    },
+    {
+      "slug": "noble",
+      "name_ru": "Благородный",
+      "source": "ph24",
+      "asi": {
+        "abilities": [
+          "str",
+          "int",
+          "cha"
+        ],
+        "options": [
+          "+2/+1",
+          "+1/+1/+1"
+        ],
+        "cap": 20
+      },
+      "origin_feat": {
+        "id": "skilled",
+        "slug": "skilled",
+        "name_ru": "Умелый",
+        "name_en": "Skilled"
+      },
+      "tool_proficiencies": [],
+      "tool_choices": {
+        "category": "gaming_set",
+        "count": 1
+      },
+      "equipment": [],
+      "name_en": "Noble",
+      "skill_proficiencies": [
+        "history",
+        "persuasion"
+      ],
+      "skill_labels": [
+        "История",
+        "Убеждение"
+      ],
+      "traits_text": "Дворянин (2024): СИЛ/ИНТ/ХАР (+2/+1 или +1/+1/+1). Черта: Умелый. Навыки: История, Убеждение. Инструмент: игровой набор (выбор). Пакет или 50 зм.",
+      "equipment_or_gold": {
+        "gold_alternative_gp": 50,
+        "pack_summary_ru": "Игровой набор (выбранный), отличная одежда, духи, 29 зм"
+      }
+    },
+    {
+      "slug": "sailor",
+      "name_ru": "Моряк",
+      "source": "ph24",
+      "asi": {
+        "abilities": [
+          "str",
+          "dex",
+          "wis"
+        ],
+        "options": [
+          "+2/+1",
+          "+1/+1/+1"
+        ],
+        "cap": 20
+      },
+      "origin_feat": {
+        "id": "tavern-brawler",
+        "slug": "tavern-brawler",
+        "name_ru": "Драчун",
+        "name_en": "Tavern Brawler"
+      },
+      "tool_proficiencies": [
+        "navigators_tools"
+      ],
+      "tool_choices": null,
+      "equipment": [],
+      "name_en": "Sailor",
+      "skill_proficiencies": [
+        "acrobatics",
+        "perception"
+      ],
+      "skill_labels": [
+        "Акробатика",
+        "Внимательность"
+      ],
+      "traits_text": "Моряк (2024): СИЛ/ЛОВ/МУД (+2/+1 или +1/+1/+1). Черта: Дебошир. Навыки: Акробатика, Внимательность. Инструмент: навигатор. Пакет или 50 зм.",
+      "equipment_or_gold": {
+        "gold_alternative_gp": 50,
+        "pack_summary_ru": "Кинжал, инструменты навигатора, верёвка, дорожная одежда, 20 зм"
+      }
+    },
+    {
+      "slug": "scribe",
+      "name_ru": "Писарь",
+      "source": "ph24",
+      "asi": {
+        "abilities": [
+          "dex",
+          "int",
+          "wis"
+        ],
+        "options": [
+          "+2/+1",
+          "+1/+1/+1"
+        ],
+        "cap": 20
+      },
+      "origin_feat": {
+        "id": "skilled",
+        "slug": "skilled",
+        "name_ru": "Умелый",
+        "name_en": "Skilled"
+      },
+      "tool_proficiencies": [
+        "calligraphers_supplies"
+      ],
+      "tool_choices": null,
+      "equipment": [],
+      "name_en": "Scribe",
+      "skill_proficiencies": [
+        "perception",
+        "investigation"
+      ],
+      "skill_labels": [
+        "Внимательность",
+        "Расследование"
+      ],
+      "traits_text": "Писарь (2024): ЛОВ/ИНТ/МУД (+2/+1 или +1/+1/+1). Черта: Умелый. Навыки: Внимательность, Расследование. Инструмент: каллиграф. Пакет или 50 зм.",
+      "equipment_or_gold": {
+        "gold_alternative_gp": 50,
+        "pack_summary_ru": "Инструменты каллиграфа, отличная одежда, лампа, масло ×3, пергамент ×12, 23 зм"
+      }
+    },
+    {
+      "slug": "wayfarer",
+      "name_ru": "Бродяга",
+      "source": "ph24",
+      "asi": {
+        "abilities": [
+          "dex",
+          "wis",
+          "cha"
+        ],
+        "options": [
+          "+2/+1",
+          "+1/+1/+1"
+        ],
+        "cap": 20
+      },
+      "origin_feat": {
+        "id": "lucky",
+        "slug": "lucky",
+        "name_ru": "Везучий",
+        "name_en": "Lucky"
+      },
+      "tool_proficiencies": [
+        "thieves_tools"
+      ],
+      "tool_choices": null,
+      "equipment": [],
+      "name_en": "Wayfarer",
+      "skill_proficiencies": [
+        "insight",
+        "stealth"
+      ],
+      "skill_labels": [
+        "Проницательность",
+        "Скрытность"
+      ],
+      "traits_text": "Бродяга (2024): ЛОВ/МУД/ХАР (+2/+1 или +1/+1/+1). Черта: Везучий. Навыки: Проницательность, Скрытность. Инструмент: воровские. Пакет или 50 зм.",
+      "equipment_or_gold": {
+        "gold_alternative_gp": 50,
+        "pack_summary_ru": "2 кинжала, воровские инструменты, игровой набор, спальник, 2 кошеля, дорожная одежда, 16 зм"
+      }
+    }
+  ],
+  "classes": [
+    {
+      "slug": "barbarian",
+      "name_ru": "Варвар",
+      "hit_die": 12,
+      "skill_choices": {
+        "count": 2,
+        "from": [
+          "animal_handling",
+          "athletics",
+          "intimidation",
+          "nature",
+          "perception",
+          "survival"
+        ]
+      },
+      "weapon_mastery": {
+        "enabled": true,
+        "by_level": {
+          "1": 2,
+          "2": 2,
+          "3": 2,
+          "4": 3,
+          "5": 3,
+          "6": 3,
+          "7": 3,
+          "8": 3,
+          "9": 3,
+          "10": 4,
+          "11": 4,
+          "12": 4,
+          "13": 4,
+          "14": 4,
+          "15": 4,
+          "16": 4,
+          "17": 4,
+          "18": 4,
+          "19": 4,
+          "20": 4
+        }
+      },
+      "starting_equipment": [
+        {
+          "id": "a",
+          "label_ru": "Вариант A",
+          "summary_ru": "Секира, 4 одноручных топора, набор исследователя, 15 зм",
+          "coins_gp": 15
+        },
+        {
+          "id": "gold",
+          "label_ru": "Золото",
+          "summary_ru": "75 зм",
+          "coins_gp": 75
+        }
+      ],
+      "summary_ru": "к12, Сила; ярость и мастерство рукопашного оружия.",
+      "subclass_level": 3
+    },
+    {
+      "slug": "bard",
+      "name_ru": "Бард",
+      "hit_die": 8,
+      "skill_choices": {
+        "count": 3,
+        "from_any": true
+      },
+      "weapon_mastery": {
+        "enabled": false,
+        "by_level": {}
+      },
+      "starting_equipment": [
+        {
+          "id": "a",
+          "label_ru": "Вариант A",
+          "summary_ru": "Кожаный доспех, 2 кинжала, музыкальный инструмент, набор артиста, 19 зм",
+          "coins_gp": 19
+        },
+        {
+          "id": "gold",
+          "label_ru": "Золото",
+          "summary_ru": "90 зм",
+          "coins_gp": 90
+        }
+      ],
+      "summary_ru": "к8, Харизма; Бардовское вдохновение и полное колдовство.",
+      "subclass_level": 3
+    },
+    {
+      "slug": "cleric",
+      "name_ru": "Жрец",
+      "hit_die": 8,
+      "skill_choices": {
+        "count": 2,
+        "from": [
+          "history",
+          "insight",
+          "medicine",
+          "persuasion",
+          "religion"
+        ]
+      },
+      "weapon_mastery": {
+        "enabled": false,
+        "by_level": {}
+      },
+      "starting_equipment": [
+        {
+          "id": "a",
+          "label_ru": "Вариант A",
+          "summary_ru": "Кольчужная рубаха, щит, булава, святой символ, набор жреца, 7 зм",
+          "coins_gp": 7
+        },
+        {
+          "id": "gold",
+          "label_ru": "Золото",
+          "summary_ru": "110 зм",
+          "coins_gp": 110
+        }
+      ],
+      "summary_ru": "к8, Мудрость; полное колдовство и Проведение божественности.",
+      "subclass_level": 3
+    },
+    {
+      "slug": "druid",
+      "name_ru": "Друид",
+      "hit_die": 8,
+      "skill_choices": {
+        "count": 2,
+        "from": [
+          "animal_handling",
+          "arcana",
+          "insight",
+          "medicine",
+          "nature",
+          "perception",
+          "religion",
+          "survival"
+        ]
+      },
+      "weapon_mastery": {
+        "enabled": false,
+        "by_level": {}
+      },
+      "starting_equipment": [
+        {
+          "id": "a",
+          "label_ru": "Вариант A",
+          "summary_ru": "Кожаный доспех, щит, серп, друидический фокус (посох), набор исследователя, набор травника, 9 зм",
+          "coins_gp": 9
+        },
+        {
+          "id": "gold",
+          "label_ru": "Золото",
+          "summary_ru": "50 зм",
+          "coins_gp": 50
+        }
+      ],
+      "summary_ru": "к8, Мудрость; Дикий облик и полное колдовство.",
+      "subclass_level": 3
+    },
+    {
+      "slug": "fighter",
+      "name_ru": "Воин",
+      "hit_die": 10,
+      "skill_choices": {
+        "count": 2,
+        "from": [
+          "acrobatics",
+          "animal_handling",
+          "athletics",
+          "history",
+          "insight",
+          "intimidation",
+          "persuasion",
+          "perception",
+          "survival"
+        ]
+      },
+      "weapon_mastery": {
+        "enabled": true,
+        "by_level": {
+          "1": 3,
+          "2": 3,
+          "3": 3,
+          "4": 4,
+          "5": 4,
+          "6": 4,
+          "7": 4,
+          "8": 4,
+          "9": 4,
+          "10": 5,
+          "11": 5,
+          "12": 5,
+          "13": 5,
+          "14": 5,
+          "15": 5,
+          "16": 6,
+          "17": 6,
+          "18": 6,
+          "19": 6,
+          "20": 6
+        }
+      },
+      "starting_equipment": [
+        {
+          "id": "a",
+          "label_ru": "Вариант A",
+          "summary_ru": "Кольчуга, двуручный меч, цеп, 8 метательных копий, набор исследователя подземелий, 4 зм",
+          "coins_gp": 4
+        },
+        {
+          "id": "b",
+          "label_ru": "Вариант B",
+          "summary_ru": "Клёпаная кожа, скимитар, короткий меч, длинный лук, стрелы, колчан, набор исследователя подземелий, 11 зм",
+          "coins_gp": 11
+        },
+        {
+          "id": "gold",
+          "label_ru": "Золото",
+          "summary_ru": "155 зм",
+          "coins_gp": 155
+        }
+      ],
+      "summary_ru": "к10; боевой стиль, Второе дыхание, Оружейное мастерство до 6 видов.",
+      "subclass_level": 3
+    },
+    {
+      "slug": "monk",
+      "name_ru": "Монах",
+      "hit_die": 8,
+      "skill_choices": {
+        "count": 2,
+        "from": [
+          "acrobatics",
+          "athletics",
+          "history",
+          "insight",
+          "religion",
+          "stealth"
+        ]
+      },
+      "weapon_mastery": {
+        "enabled": false,
+        "by_level": {}
+      },
+      "starting_equipment": [
+        {
+          "id": "a",
+          "label_ru": "Вариант A",
+          "summary_ru": "Копьё, 5 кинжалов, инструмент ремесла или музыкальный, набор исследователя, 11 зм",
+          "coins_gp": 11
+        },
+        {
+          "id": "gold",
+          "label_ru": "Золото",
+          "summary_ru": "50 зм",
+          "coins_gp": 50
+        }
+      ],
+      "summary_ru": "к8; Очки сосредоточенности, боевые искусства, без мастерства оружия.",
+      "subclass_level": 3
+    },
+    {
+      "slug": "paladin",
+      "name_ru": "Паладин",
+      "hit_die": 10,
+      "skill_choices": {
+        "count": 2,
+        "from": [
+          "athletics",
+          "insight",
+          "intimidation",
+          "medicine",
+          "persuasion",
+          "religion"
+        ]
+      },
+      "weapon_mastery": {
+        "enabled": true,
+        "by_level": {
+          "1": 2,
+          "2": 2,
+          "3": 2,
+          "4": 2,
+          "5": 2,
+          "6": 2,
+          "7": 2,
+          "8": 2,
+          "9": 2,
+          "10": 2,
+          "11": 2,
+          "12": 2,
+          "13": 2,
+          "14": 2,
+          "15": 2,
+          "16": 2,
+          "17": 2,
+          "18": 2,
+          "19": 2,
+          "20": 2
+        }
+      },
+      "starting_equipment": [
+        {
+          "id": "a",
+          "label_ru": "Вариант A",
+          "summary_ru": "Кольчуга, щит, длинный меч, 6 копий, святой символ, набор жреца, 9 зм",
+          "coins_gp": 9
+        },
+        {
+          "id": "gold",
+          "label_ru": "Золото",
+          "summary_ru": "150 зм",
+          "coins_gp": 150
+        }
+      ],
+      "summary_ru": "к10; полукастер, Возложение рук, Оружейное мастерство (2).",
+      "subclass_level": 3
+    },
+    {
+      "slug": "ranger",
+      "name_ru": "Следопыт",
+      "hit_die": 10,
+      "skill_choices": {
+        "count": 3,
+        "from": [
+          "animal_handling",
+          "athletics",
+          "insight",
+          "investigation",
+          "nature",
+          "perception",
+          "stealth",
+          "survival"
+        ]
+      },
+      "weapon_mastery": {
+        "enabled": true,
+        "by_level": {
+          "1": 2,
+          "2": 2,
+          "3": 2,
+          "4": 2,
+          "5": 2,
+          "6": 2,
+          "7": 2,
+          "8": 2,
+          "9": 2,
+          "10": 2,
+          "11": 2,
+          "12": 2,
+          "13": 2,
+          "14": 2,
+          "15": 2,
+          "16": 2,
+          "17": 2,
+          "18": 2,
+          "19": 2,
+          "20": 2
+        }
+      },
+      "starting_equipment": [
+        {
+          "id": "a",
+          "label_ru": "Вариант A",
+          "summary_ru": "Клёпаная кожа, скимитар, короткий меч, длинный лук, стрелы, колчан, друидический фокус (омела), набор исследователя, 7 зм",
+          "coins_gp": 7
+        },
+        {
+          "id": "gold",
+          "label_ru": "Золото",
+          "summary_ru": "150 зм",
+          "coins_gp": 150
+        }
+      ],
+      "summary_ru": "к10; полукастер, Избранный враг, Оружейное мастерство (2).",
+      "subclass_level": 3
+    },
+    {
+      "slug": "rogue",
+      "name_ru": "Плут",
+      "hit_die": 8,
+      "skill_choices": {
+        "count": 4,
+        "from": [
+          "acrobatics",
+          "athletics",
+          "deception",
+          "insight",
+          "intimidation",
+          "investigation",
+          "perception",
+          "performance",
+          "persuasion",
+          "sleight_of_hand",
+          "stealth"
+        ]
+      },
+      "weapon_mastery": {
+        "enabled": true,
+        "by_level": {
+          "1": 2,
+          "2": 2,
+          "3": 2,
+          "4": 2,
+          "5": 2,
+          "6": 2,
+          "7": 2,
+          "8": 2,
+          "9": 2,
+          "10": 2,
+          "11": 2,
+          "12": 2,
+          "13": 2,
+          "14": 2,
+          "15": 2,
+          "16": 2,
+          "17": 2,
+          "18": 2,
+          "19": 2,
+          "20": 2
+        }
+      },
+      "starting_equipment": [
+        {
+          "id": "a",
+          "label_ru": "Вариант A",
+          "summary_ru": "Кожаный доспех, 2 кинжала, короткий меч, короткий лук, стрелы, колчан, воровские инструменты, набор взломщика, 8 зм",
+          "coins_gp": 8
+        },
+        {
+          "id": "gold",
+          "label_ru": "Золото",
+          "summary_ru": "100 зм",
+          "coins_gp": 100
+        }
+      ],
+      "summary_ru": "к8, Ловкость; Скрытая атака, Хитрое действие, Оружейное мастерство (2).",
+      "subclass_level": 3
+    },
+    {
+      "slug": "sorcerer",
+      "name_ru": "Чародей",
+      "hit_die": 6,
+      "skill_choices": {
+        "count": 2,
+        "from": [
+          "arcana",
+          "deception",
+          "insight",
+          "intimidation",
+          "persuasion",
+          "religion"
+        ]
+      },
+      "weapon_mastery": {
+        "enabled": false,
+        "by_level": {}
+      },
+      "starting_equipment": [
+        {
+          "id": "a",
+          "label_ru": "Вариант A",
+          "summary_ru": "Копьё, 2 кинжала, магическая фокусировка (кристалл), набор исследователя подземелий, 28 зм",
+          "coins_gp": 28
+        },
+        {
+          "id": "gold",
+          "label_ru": "Золото",
+          "summary_ru": "50 зм",
+          "coins_gp": 50
+        }
+      ],
+      "summary_ru": "к6, Харизма; очки чародейства и метамагия.",
+      "subclass_level": 3
+    },
+    {
+      "slug": "warlock",
+      "name_ru": "Колдун",
+      "hit_die": 8,
+      "skill_choices": {
+        "count": 2,
+        "from": [
+          "arcana",
+          "deception",
+          "history",
+          "intimidation",
+          "investigation",
+          "nature",
+          "religion"
+        ]
+      },
+      "weapon_mastery": {
+        "enabled": false,
+        "by_level": {}
+      },
+      "starting_equipment": [
+        {
+          "id": "a",
+          "label_ru": "Вариант A",
+          "summary_ru": "Кожаный доспех, серп, 2 кинжала, магическая фокусировка (сфера), книга, набор учёного, 15 зм",
+          "coins_gp": 15
+        },
+        {
+          "id": "gold",
+          "label_ru": "Золото",
+          "summary_ru": "100 зм",
+          "coins_gp": 100
+        }
+      ],
+      "summary_ru": "к8, Харизма; Магия договора и мистические воззвания.",
+      "subclass_level": 3
+    },
+    {
+      "slug": "wizard",
+      "name_ru": "Волшебник",
+      "hit_die": 6,
+      "skill_choices": {
+        "count": 2,
+        "from": [
+          "arcana",
+          "history",
+          "insight",
+          "investigation",
+          "medicine",
+          "nature",
+          "religion"
+        ]
+      },
+      "weapon_mastery": {
+        "enabled": false,
+        "by_level": {}
+      },
+      "starting_equipment": [
+        {
+          "id": "a",
+          "label_ru": "Вариант A",
+          "summary_ru": "2 кинжала, магическая фокусировка (посох), мантия, книга заклинаний, набор учёного, 5 зм",
+          "coins_gp": 5
+        },
+        {
+          "id": "gold",
+          "label_ru": "Золото",
+          "summary_ru": "55 зм",
+          "coins_gp": 55
+        }
+      ],
+      "summary_ru": "к6, Интеллект; книга заклинаний и полное колдовство.",
+      "subclass_level": 3
+    }
+  ],
+  "weapons": [
+    {
+      "slug": "battleaxe",
+      "name_ru": "Боевой топор",
+      "mastery": "topple",
+      "category": "martial"
+    },
+    {
+      "slug": "blowgun",
+      "name_ru": "Духовая трубка",
+      "mastery": "vex",
+      "category": "martial"
+    },
+    {
+      "slug": "club",
+      "name_ru": "Дубинка",
+      "mastery": "slow",
+      "category": "simple"
+    },
+    {
+      "slug": "dagger",
+      "name_ru": "Кинжал",
+      "mastery": "nick",
+      "category": "simple"
+    },
+    {
+      "slug": "dart",
+      "name_ru": "Дротик",
+      "mastery": "vex",
+      "category": "simple"
+    },
+    {
+      "slug": "flail",
+      "name_ru": "Цеп",
+      "mastery": "sap",
+      "category": "martial"
+    },
+    {
+      "slug": "glaive",
+      "name_ru": "Глефа",
+      "mastery": "graze",
+      "category": "martial"
+    },
+    {
+      "slug": "greataxe",
+      "name_ru": "Секира",
+      "mastery": "cleave",
+      "category": "martial"
+    },
+    {
+      "slug": "greatclub",
+      "name_ru": "Двуручная дубина",
+      "mastery": "push",
+      "category": "simple"
+    },
+    {
+      "slug": "greatsword",
+      "name_ru": "Двуручный меч",
+      "mastery": "graze",
+      "category": "martial"
+    },
+    {
+      "slug": "halberd",
+      "name_ru": "Алебарда",
+      "mastery": "cleave",
+      "category": "martial"
+    },
+    {
+      "slug": "hand-crossbow",
+      "name_ru": "Одноручный арбалет",
+      "mastery": "vex",
+      "category": "martial"
+    },
+    {
+      "slug": "handaxe",
+      "name_ru": "Ручной топор",
+      "mastery": "vex",
+      "category": "simple"
+    },
+    {
+      "slug": "heavy-crossbow",
+      "name_ru": "Тяжёлый арбалет",
+      "mastery": "push",
+      "category": "martial"
+    },
+    {
+      "slug": "javelin",
+      "name_ru": "Метательное копьё",
+      "mastery": "slow",
+      "category": "simple"
+    },
+    {
+      "slug": "lance",
+      "name_ru": "Длинное копьё",
+      "mastery": "topple",
+      "category": "martial"
+    },
+    {
+      "slug": "light-crossbow",
+      "name_ru": "Лёгкий арбалет",
+      "mastery": "slow",
+      "category": "simple"
+    },
+    {
+      "slug": "light-hammer",
+      "name_ru": "Лёгкий молот",
+      "mastery": "nick",
+      "category": "simple"
+    },
+    {
+      "slug": "longbow",
+      "name_ru": "Длинный лук",
+      "mastery": "slow",
+      "category": "martial"
+    },
+    {
+      "slug": "longsword",
+      "name_ru": "Длинный меч",
+      "mastery": "sap",
+      "category": "martial"
+    },
+    {
+      "slug": "mace",
+      "name_ru": "Булава",
+      "mastery": "sap",
+      "category": "simple"
+    },
+    {
+      "slug": "maul",
+      "name_ru": "Молот",
+      "mastery": "topple",
+      "category": "martial"
+    },
+    {
+      "slug": "morningstar",
+      "name_ru": "Моргенштерн",
+      "mastery": "sap",
+      "category": "martial"
+    },
+    {
+      "slug": "musket",
+      "name_ru": "Мушкет",
+      "mastery": "slow",
+      "category": "martial"
+    },
+    {
+      "slug": "pike",
+      "name_ru": "Пика",
+      "mastery": "push",
+      "category": "martial"
+    },
+    {
+      "slug": "pistol",
+      "name_ru": "Пистоль",
+      "mastery": "vex",
+      "category": "martial"
+    },
+    {
+      "slug": "quarterstaff",
+      "name_ru": "Боевой посох",
+      "mastery": "topple",
+      "category": "simple"
+    },
+    {
+      "slug": "rapier",
+      "name_ru": "Рапира",
+      "mastery": "vex",
+      "category": "martial"
+    },
+    {
+      "slug": "scimitar",
+      "name_ru": "Ятаган",
+      "mastery": "nick",
+      "category": "martial"
+    },
+    {
+      "slug": "shortbow",
+      "name_ru": "Короткий лук",
+      "mastery": "vex",
+      "category": "simple"
+    },
+    {
+      "slug": "shortsword",
+      "name_ru": "Короткий меч",
+      "mastery": "vex",
+      "category": "martial"
+    },
+    {
+      "slug": "sickle",
+      "name_ru": "Серп",
+      "mastery": "nick",
+      "category": "simple"
+    },
+    {
+      "slug": "sling",
+      "name_ru": "Праща",
+      "mastery": "slow",
+      "category": "simple"
+    },
+    {
+      "slug": "spear",
+      "name_ru": "Копьё",
+      "mastery": "sap",
+      "category": "simple"
+    },
+    {
+      "slug": "trident",
+      "name_ru": "Трезубец",
+      "mastery": "topple",
+      "category": "martial"
+    },
+    {
+      "slug": "war-pick",
+      "name_ru": "Клевец",
+      "mastery": "sap",
+      "category": "martial"
+    },
+    {
+      "slug": "warhammer",
+      "name_ru": "Боевой молот",
+      "mastery": "push",
+      "category": "martial"
+    },
+    {
+      "slug": "whip",
+      "name_ru": "Кнут",
+      "mastery": "slow",
+      "category": "martial"
+    }
+  ],
+  "feats": [
+    {
+      "slug": "alert",
+      "name_ru": "Бдительный",
+      "source": "srd-5.2",
+      "category": "origin",
+      "text": "Черта происхождения (2024): к инициативе — бонус мастерства; после броска можно обменять инициативу с согласным союзником (если никто не недееспособен)."
+    },
+    {
+      "slug": "magic-initiate",
+      "name_ru": "Посвящённый в магию",
+      "source": "srd-5.2",
+      "category": "origin",
+      "text": "Черта происхождения (2024): два заговора + заклинание 1 круга из одного списка (жрец/друид/волшебник); характеристика накладывания — на выбор. Один бесплатный каст 1 круга за длинный отдых. Повторяемая с другим списком."
+    },
+    {
+      "slug": "savage-attacker",
+      "name_ru": "Свирепый атакующий",
+      "source": "srd-5.2",
+      "category": "origin",
+      "text": "Черта происхождения (2024): 1/ход при попадании оружием бросаете кости урона оружия дважды и выбираете результат."
+    },
+    {
+      "slug": "skilled",
+      "name_ru": "Умелый",
+      "source": "srd-5.2",
+      "category": "origin",
+      "text": "Черта происхождения (2024): три владения (навыки и/или инструменты) на выбор. Повторяемая."
+    },
+    {
+      "slug": "crafter",
+      "name_ru": "Мастеровой",
+      "source": "ph24",
+      "category": "origin",
+      "text": "Черта происхождения: Вы получаете следующие эффекты: Владение инструментами. Вы получаете навыки владения 3 инструментами ремесленника из таблицы «Быстрое создание». Скидка. Каждый раз, когда вы покупаете немагический предмет, вы получаете на него скидку 20%. Быстрое создание. Когда вы заканчиваете продолжительный отдых, вы можете создать 1 предмет снаряжения из таблицы «Быстрое создание» с помощь"
+    },
+    {
+      "slug": "healer",
+      "name_ru": "Целитель",
+      "source": "ph24",
+      "category": "origin",
+      "text": "Черта происхождения: Вы получаете следующие эффекты: Боевой медик. Вы можете действием использование потратить одно использование комплекта целителя, чтобы позаботиться о существе в пределах 5 фт. от вас. Это существо может потратить одну из своих костей хитов, после чего вы бросаете эту кость. Существо восстанавливает количество хитов, равное броску + ваш бонус мастерства. Перебросы исцеления. Ка"
+    },
+    {
+      "slug": "lucky",
+      "name_ru": "Везучий",
+      "source": "ph24",
+      "category": "origin",
+      "text": "Черта происхождения: Вы получаете следующие эффекты: Очки удачи. У вас есть количество очков удачи, равное вашему бонусу мастерства, и вы можете тратить их на нижеперечисленные эффекты. Вы восполняете потраченные очки удачи, когда заканчиваете продолжительный отдых. Преимущество. Когда вы бросаете к20 для проверки характеристики, спасброска или броска атаки, вы можете потратить 1 очко удачи, чтобы"
+    },
+    {
+      "slug": "musician",
+      "name_ru": "Музыкант",
+      "source": "ph24",
+      "category": "origin",
+      "text": "Черта происхождения: Вы получаете следующие эффекты: Владение инструментами. Вы получаете владение 3 музыкальными инструментами на ваш выбор. Вдохновляющая песня. Когда вы заканчиваете короткий или продолжительный отдых, вы можете сыграть песню на музыкальном инструменте, которым владеете, и дать героическое вдохновение союзникам, которые услышат эту песню. Количество союзников, на которых вы може"
+    },
+    {
+      "slug": "tavern-brawler",
+      "name_ru": "Драчун",
+      "source": "ph24",
+      "category": "origin",
+      "text": "Черта происхождения: Вы получаете следующие эффекты: Усиленный безоружный удар. Когда вы попадаете безоружным ударом и наносите урон, вы можете нанести дробящий урон, равный 1к4 + ваш модификатор Силы, вместо обычного урона от безоружных ударов. Переброс урона. Каждый раз, когда вы бросаете кость урона для своего безоружного удара, вы можете перебросить кость, если выпало 1, и вы должны использова"
+    },
+    {
+      "slug": "tough",
+      "name_ru": "Крепкий",
+      "source": "ph24",
+      "category": "origin",
+      "text": "Черта происхождения (2024): Ваш максимум Хитов увеличивается на величину, равную удвоенному уровню персонажа, на котором вы получаете эту черту.; При каждом последующем получении уровня персонажа ваш максимум Хитов увеличивается ещё на 2 Хита."
+    }
+  ],
+  "spells": [
+    {
+      "slug": "acid-splash",
+      "name_ru": "Брызги кислоты",
+      "name_en": "Acid Splash",
+      "level": 0,
+      "school": "evocation",
+      "school_ru": "воплощение"
+    },
+    {
+      "slug": "mage-hand",
+      "name_ru": "Волшебная рука",
+      "name_en": "Mage Hand",
+      "level": 0,
+      "school": "conjuration",
+      "school_ru": "вызов"
+    },
+    {
+      "slug": "friends",
+      "name_ru": "Дружба",
+      "name_en": "Friends",
+      "level": 0,
+      "school": "enchantment",
+      "school_ru": "очарование"
+    },
+    {
+      "slug": "blade-ward",
+      "name_ru": "Защита от оружия",
+      "name_en": "Blade Ward",
+      "level": 0,
+      "school": "abjuration",
+      "school_ru": "ограждение"
+    },
+    {
+      "slug": "chill-touch",
+      "name_ru": "Леденящее прикосновение",
+      "name_en": "Chill Touch",
+      "level": 0,
+      "school": "necromancy",
+      "school_ru": "некромантия"
+    },
+    {
+      "slug": "ray-of-frost",
+      "name_ru": "Луч холода",
+      "name_en": "Ray of Frost",
+      "level": 0,
+      "school": "evocation",
+      "school_ru": "воплощение"
+    },
+    {
+      "slug": "minor-illusion",
+      "name_ru": "Малая иллюзия",
+      "name_en": "Minor Illusion",
+      "level": 0,
+      "school": "illusion",
+      "school_ru": "иллюзия"
+    },
+    {
+      "slug": "true-strike",
+      "name_ru": "Меткий удар",
+      "name_en": "True Strike",
+      "level": 0,
+      "school": "divination",
+      "school_ru": "прорицание"
+    },
+    {
+      "slug": "fire-bolt",
+      "name_ru": "Огненный снаряд",
+      "name_en": "Fire Bolt",
+      "level": 0,
+      "school": "evocation",
+      "school_ru": "воплощение"
+    },
+    {
+      "slug": "dancing-lights",
+      "name_ru": "Пляшущие огоньки",
+      "name_en": "Dancing Lights",
+      "level": 0,
+      "school": "illusion",
+      "school_ru": "иллюзия"
+    },
+    {
+      "slug": "toll-the-dead",
+      "name_ru": "Погребальный звон",
+      "name_en": "Toll the Dead",
+      "level": 0,
+      "school": "necromancy",
+      "school_ru": "некромантия"
+    },
+    {
+      "slug": "mending",
+      "name_ru": "Починка",
+      "name_en": "Mending",
+      "level": 0,
+      "school": "transmutation",
+      "school_ru": "преобразование"
+    },
+    {
+      "slug": "thunderclap",
+      "name_ru": "Раскат грома",
+      "name_en": "Thunderclap",
+      "level": 0,
+      "school": "evocation",
+      "school_ru": "воплощение"
+    },
+    {
+      "slug": "mind-sliver",
+      "name_ru": "Расщепление разума",
+      "name_en": "Mind Sliver",
+      "level": 0,
+      "school": "enchantment",
+      "school_ru": "очарование"
+    },
+    {
+      "slug": "light",
+      "name_ru": "Свет",
+      "name_en": "Light",
+      "level": 0,
+      "school": "evocation",
+      "school_ru": "воплощение"
+    },
+    {
+      "slug": "message",
+      "name_ru": "Сообщение",
+      "name_en": "Message",
+      "level": 0,
+      "school": "transmutation",
+      "school_ru": "преобразование"
+    },
+    {
+      "slug": "prestidigitation",
+      "name_ru": "Фокусы",
+      "name_en": "Prestidigitation",
+      "level": 0,
+      "school": "transmutation",
+      "school_ru": "преобразование"
+    },
+    {
+      "slug": "shocking-grasp",
+      "name_ru": "Электрошок",
+      "name_en": "Shocking Grasp",
+      "level": 0,
+      "school": "evocation",
+      "school_ru": "воплощение"
+    },
+    {
+      "slug": "elementalism",
+      "name_ru": "Элементализм",
+      "name_en": "Elementalism",
+      "level": 0,
+      "school": "transmutation",
+      "school_ru": "преобразование"
+    },
+    {
+      "slug": "poison-spray",
+      "name_ru": "Ядовитые брызги",
+      "name_en": "Poison Spray",
+      "level": 0,
+      "school": "necromancy",
+      "school_ru": "некромантия"
+    },
+    {
+      "slug": "silent-image",
+      "name_ru": "Безмолвный образ",
+      "name_en": "Silent Image",
+      "level": 1,
+      "school": "illusion",
+      "school_ru": "иллюзия"
+    },
+    {
+      "slug": "witch-bolt",
+      "name_ru": "Ведьмин снаряд",
+      "name_en": "Witch Bolt",
+      "level": 1,
+      "school": "evocation",
+      "school_ru": "воплощение"
+    },
+    {
+      "slug": "thunderwave",
+      "name_ru": "Волна грома",
+      "name_en": "Thunderwave",
+      "level": 1,
+      "school": "evocation",
+      "school_ru": "воплощение"
+    },
+    {
+      "slug": "magic-missile",
+      "name_ru": "Волшебная стрела",
+      "name_en": "Magic Missile",
+      "level": 1,
+      "school": "evocation",
+      "school_ru": "воплощение"
+    },
+    {
+      "slug": "mage-armor",
+      "name_ru": "Доспехи мага",
+      "name_en": "Mage Armor",
+      "level": 1,
+      "school": "abjuration",
+      "school_ru": "ограждение"
+    },
+    {
+      "slug": "hideous-laughter",
+      "name_ru": "Жуткий смех",
+      "name_en": "Hideous Laughter",
+      "level": 1,
+      "school": "enchantment",
+      "school_ru": "очарование"
+    },
+    {
+      "slug": "tashas-hideous-laughter",
+      "name_ru": "Жуткий смех Таши",
+      "name_en": "Tasha’s Hideous Laughter",
+      "level": 1,
+      "school": "enchantment",
+      "school_ru": "очарование"
+    },
+    {
+      "slug": "protection-from-evil-and-good",
+      "name_ru": "Защита от зла и добра",
+      "name_en": "Protection from Evil and Good",
+      "level": 1,
+      "school": "abjuration",
+      "school_ru": "ограждение"
+    },
+    {
+      "slug": "ice-knife",
+      "name_ru": "Ледяной кинжал",
+      "name_en": "Ice Knife",
+      "level": 1,
+      "school": "conjuration",
+      "school_ru": "вызов"
+    },
+    {
+      "slug": "ray-of-sickness",
+      "name_ru": "Луч болезни",
+      "name_en": "Ray of Sickness",
+      "level": 1,
+      "school": "necromancy",
+      "school_ru": "некромантия"
+    },
+    {
+      "slug": "disguise-self",
+      "name_ru": "Маскировка",
+      "name_en": "Disguise Self",
+      "level": 1,
+      "school": "illusion",
+      "school_ru": "иллюзия"
+    },
+    {
+      "slug": "illusory-script",
+      "name_ru": "Невидимое письмо",
+      "name_en": "Illusory Script",
+      "level": 1,
+      "school": "illusion",
+      "school_ru": "иллюзия"
+    },
+    {
+      "slug": "unseen-servant",
+      "name_ru": "Невидимый слуга",
+      "name_en": "Unseen Servant",
+      "level": 1,
+      "school": "conjuration",
+      "school_ru": "вызов"
+    },
+    {
+      "slug": "detect-magic",
+      "name_ru": "Обнаружение магии",
+      "name_en": "Detect Magic",
+      "level": 1,
+      "school": "divination",
+      "school_ru": "прорицание"
+    },
+    {
+      "slug": "burning-hands",
+      "name_ru": "Огненные ладони",
+      "name_en": "Burning Hands",
+      "level": 1,
+      "school": "evocation",
+      "school_ru": "воплощение"
+    },
+    {
+      "slug": "identify",
+      "name_ru": "Опознание",
+      "name_en": "Identify",
+      "level": 1,
+      "school": "divination",
+      "school_ru": "прорицание"
+    },
+    {
+      "slug": "charm-person",
+      "name_ru": "Очарование личности",
+      "name_en": "Charm Person",
+      "level": 1,
+      "school": "enchantment",
+      "school_ru": "очарование"
+    },
+    {
+      "slug": "feather-fall",
+      "name_ru": "Падение пёрышком",
+      "name_en": "Feather Fall",
+      "level": 1,
+      "school": "transmutation",
+      "school_ru": "преобразование"
+    },
+    {
+      "slug": "floating-disk",
+      "name_ru": "Парящий диск",
+      "name_en": "Floating Disk",
+      "level": 1,
+      "school": "conjuration",
+      "school_ru": "вызов"
+    },
+    {
+      "slug": "tensers-floating-disk",
+      "name_ru": "Парящий диск Тензера",
+      "name_en": "Tenser’s Floating Disk",
+      "level": 1,
+      "school": "conjuration",
+      "school_ru": "вызов"
+    },
+    {
+      "slug": "find-familiar",
+      "name_ru": "Поиск фамильяра",
+      "name_en": "Find Familiar",
+      "level": 1,
+      "school": "conjuration",
+      "school_ru": "вызов"
+    },
+    {
+      "slug": "comprehend-languages",
+      "name_ru": "Понимание языков",
+      "name_en": "Comprehend Languages",
+      "level": 1,
+      "school": "divination",
+      "school_ru": "прорицание"
+    },
+    {
+      "slug": "expeditious-retreat",
+      "name_ru": "Поспешное отступление",
+      "name_en": "Expeditious Retreat",
+      "level": 1,
+      "school": "transmutation",
+      "school_ru": "преобразование"
+    },
+    {
+      "slug": "jump",
+      "name_ru": "Прыжок",
+      "name_en": "Jump",
+      "level": 1,
+      "school": "transmutation",
+      "school_ru": "преобразование"
+    },
+    {
+      "slug": "false-life",
+      "name_ru": "Псевдожизнь",
+      "name_en": "False Life",
+      "level": 1,
+      "school": "necromancy",
+      "school_ru": "некромантия"
+    },
+    {
+      "slug": "color-spray",
+      "name_ru": "Сверкающие брызги",
+      "name_en": "Color Spray",
+      "level": 1,
+      "school": "illusion",
+      "school_ru": "иллюзия"
+    },
+    {
+      "slug": "alarm",
+      "name_ru": "Сигнал тревоги",
+      "name_en": "Alarm",
+      "level": 1,
+      "school": "abjuration",
+      "school_ru": "ограждение"
+    },
+    {
+      "slug": "grease",
+      "name_ru": "Скольжение",
+      "name_en": "Grease",
+      "level": 1,
+      "school": "conjuration",
+      "school_ru": "вызов"
+    },
+    {
+      "slug": "longstrider",
+      "name_ru": "Скороход",
+      "name_en": "Longstrider",
+      "level": 1,
+      "school": "transmutation",
+      "school_ru": "преобразование"
+    },
+    {
+      "slug": "fog-cloud",
+      "name_ru": "Туманное облако",
+      "name_en": "Fog Cloud",
+      "level": 1,
+      "school": "conjuration",
+      "school_ru": "вызов"
+    },
+    {
+      "slug": "sleep",
+      "name_ru": "Усыпление",
+      "name_en": "Sleep",
+      "level": 1,
+      "school": "enchantment",
+      "school_ru": "очарование"
+    },
+    {
+      "slug": "chromatic-orb",
+      "name_ru": "Цветной шарик",
+      "name_en": "Chromatic Orb",
+      "level": 1,
+      "school": "evocation",
+      "school_ru": "воплощение"
+    },
+    {
+      "slug": "shield",
+      "name_ru": "Щит",
+      "name_en": "Shield",
+      "level": 1,
+      "school": "abjuration",
+      "school_ru": "ограждение"
+    }
+  ],
+  "ability_labels": {
+    "str": "Сила",
+    "dex": "Ловкость",
+    "con": "Телосложение",
+    "int": "Интеллект",
+    "wis": "Мудрость",
+    "cha": "Харизма"
+  },
+  "size_labels": {
+    "tiny": "Крошечный",
+    "small": "Маленький",
+    "medium": "Средний",
+    "large": "Большой"
+  },
+  "skill_labels": {
+    "acrobatics": "Акробатика",
+    "animal_handling": "Уход за животными",
+    "arcana": "Магия",
+    "athletics": "Атлетика",
+    "deception": "Обман",
+    "history": "История",
+    "insight": "Проницательность",
+    "intimidation": "Запугивание",
+    "investigation": "Расследование",
+    "medicine": "Медицина",
+    "nature": "Природа",
+    "perception": "Внимательность",
+    "performance": "Выступление",
+    "persuasion": "Убеждение",
+    "religion": "Религия",
+    "sleight_of_hand": "Ловкость рук",
+    "stealth": "Скрытность",
+    "survival": "Выживание"
+  },
+  "fighting_styles": [
+    {
+      "slug": "archery",
+      "name_ru": "Стрельба"
+    },
+    {
+      "slug": "defense",
+      "name_ru": "Оборона"
+    },
+    {
+      "slug": "dueling",
+      "name_ru": "Дуэлянт"
+    },
+    {
+      "slug": "great-weapon-fighting",
+      "name_ru": "Сражение большим оружием"
+    },
+    {
+      "slug": "protection",
+      "name_ru": "Защита"
+    },
+    {
+      "slug": "two-weapon-fighting",
+      "name_ru": "Сражение двумя оружиями"
+    },
+    {
+      "slug": "interception",
+      "name_ru": "Перехват"
+    },
+    {
+      "slug": "thrown-weapon-fighting",
+      "name_ru": "Сражение метательным оружием"
+    },
+    {
+      "slug": "unarmed-fighting",
+      "name_ru": "Сражение без оружия"
+    },
+    {
+      "slug": "blind-fighting",
+      "name_ru": "Сражение вслепую"
+    }
+  ],
+  "mastery_labels": {
+    "cleave": "Рассечение",
+    "graze": "Касание",
+    "nick": "Засечка",
+    "push": "Толчок",
+    "sap": "Ослабление",
+    "slow": "Замедление",
+    "topple": "Опрокидывание",
+    "vex": "Смущение"
+  }
+}

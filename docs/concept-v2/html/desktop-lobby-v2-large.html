@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="light-designer3" data-v2 data-page="lobby" data-demo="rest" data-width="desktop">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>L3 · Лобби · большие</title>
+  <link rel="stylesheet" href="../fonts/fonts.css" />
+  <link rel="stylesheet" href="../css/light-designer3.css" />
+  <link rel="stylesheet" href="../css/mobile-chars-nav.css" />
+</head>
+<body>
+  <div class="concept-bar"><strong>L3 · Лобби · большие</strong><span>Макет концепции; плитки с пометкой «пример» — для сетки и ролей</span></div>
+  <div class="cabinet-shell">
+    <aside class="sidebar">
+      <div class="brand">Кри<b>D</b>20</div>
+      <nav class="nav-stack">
+        <div class="nav-item" data-nav="chars"><span class="nav-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.2"/><path d="M5.5 19c1.2-3.2 3.6-4.8 6.5-4.8S17.8 15.8 19 19"/></svg></span><span>Персонажи</span></div>
+        <div class="nav-item is-active" data-nav="lobby" aria-current="page"><span class="nav-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="2.6"/><path d="M4.4 19c.8-2.7 2.6-4.1 4.6-4.1s3.8 1.4 4.6 4.1"/><circle cx="16.4" cy="8.5" r="2.2"/><path d="M13.8 19c.5-2.2 1.8-3.3 3.4-3.3 1.7 0 3 1.1 3.5 3.3"/></svg></span><span>Лобби</span></div>
+        <div class="nav-item" data-nav="site" aria-label="Сайт КриD20"><span class="nav-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><path d="M4 12h16"/><path d="M12 4c2.4 2.2 3.6 5 3.6 8s-1.2 5.8-3.6 8c-2.4-2.2-3.6-5-3.6-8s1.2-5.8 3.6-8Z"/></svg></span><span>Сайт КриD20</span></div>
+      </nav>
+    </aside>
+    <main class="cabinet-main chars-page">
+      <div class="lobby-main" data-panel="lobby">
+        <header class="chars-head">
+          <h1 class="t-heading">Лобби</h1>
+          <p class="t-sub">Место игры: код и QR для игроков, внутри — сеттинг и сессии</p>
+          <div class="chars-head-tools">
+            <button class="help-btn" type="button" aria-label="Справка" title="Справка"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 6.2C10 4.8 7.3 4.5 4.8 6v12.4c2.5-1.4 5.2-1.1 7.2.3"/><path d="M12 6.2c2-1.4 4.7-1.7 7.2-.2v12.4c-2.5-1.4-5.2-1.1-7.2.3"/><path d="M12 6.2v12.7"/></svg></button>
+            <button class="user-chip" type="button" aria-label="Личный кабинет" title="Личный кабинет"><span class="user-chip-avatar" aria-hidden="true">И</span><span class="user-chip-name">Игорь Погуляев</span></button>
+          </div>
+        </header>
+        <div class="chars-toolbar" data-lobby-toolbar>
+          <button class="seg is-on" type="button" data-lobby-size="large" aria-pressed="true">Большие</button>
+          <button class="seg" type="button" data-lobby-size="medium" aria-pressed="false">Средние</button>
+          <button class="seg" type="button" data-lobby-size="compact" aria-pressed="false">Компактные</button>
+        </div>
+        <div class="lobby-grid" data-size="large">
+          <article class="card lobby-tile is-live">
+            <div class="avatar-ring lobby-avatar"><div class="avatar-face">М</div></div>
+            <div class="lobby-tile__body">
+              <h3 class="char-card__name">Миллениум</h3>
+              <p class="t-body char-card__meta">персонажей: 4</p>
+              <div class="lobby-tile-chips">
+                <span class="lobby-chip lobby-chip--player">Участник</span> <span class="lobby-chip lobby-chip--live">Идёт игра</span>
+              </div>
+            </div>
+            <div class="lobby-tile__actions">
+              <button class="btn btn-accent" type="button" data-to-table>За стол</button><button class="btn btn-open" type="button" data-open-lobby>Открыть</button>
+            </div>
+          </article>
+          <article class="card lobby-tile is-live">
+            <div class="avatar-ring lobby-avatar"><div class="avatar-face">Э</div></div>
+            <div class="lobby-tile__body">
+              <h3 class="char-card__name">Эхо рассвета</h3>
+              <p class="t-body char-card__meta">персонажей: 1 · код <span class="lobby-code">CJSZMR</span></p>
+              <div class="lobby-tile-chips">
+                <span class="lobby-chip lobby-chip--master">Мастер</span> <span class="lobby-chip lobby-chip--live">Идёт игра</span>
+              </div>
+            </div>
+            <div class="lobby-tile__actions">
+              <button class="btn btn-accent" type="button" data-to-table>За стол</button><button class="btn btn-open" type="button" data-open-lobby>Открыть</button>
+            </div>
+          </article>
+          <article class="card lobby-tile">
+            <div class="avatar-ring lobby-avatar"><div class="avatar-face">А</div></div>
+            <div class="lobby-tile__body">
+              <h3 class="char-card__name">Архив гильдии <span class="lobby-example-mark" title="Пример для макета, не из текущего списка">пример</span></h3>
+              <p class="t-body char-card__meta">персонажей: 6</p>
+              <div class="lobby-tile-chips">
+                <span class="lobby-chip lobby-chip--observer">Наблюдатель</span>
+              </div>
+            </div>
+            <div class="lobby-tile__actions">
+              <button class="btn btn-open" type="button" data-open-lobby>Открыть</button>
+            </div>
+          </article>
+          <article class="card lobby-tile">
+            <div class="avatar-ring lobby-avatar"><div class="avatar-face">Н</div></div>
+            <div class="lobby-tile__body">
+              <h3 class="char-card__name">Ночная стража <span class="lobby-example-mark" title="Пример для макета, не из текущего списка">пример</span></h3>
+              <p class="t-body char-card__meta">персонажей: 3</p>
+              <div class="lobby-tile-chips">
+                <span class="lobby-chip lobby-chip--comaster">Сомастер</span>
+              </div>
+            </div>
+            <div class="lobby-tile__actions">
+              <button class="btn btn-open" type="button" data-open-lobby>Открыть</button>
+            </div>
+          </article>
+          <article class="card lobby-tile">
+            <div class="avatar-ring lobby-avatar"><div class="avatar-face">С</div></div>
+            <div class="lobby-tile__body">
+              <h3 class="char-card__name">Стол у камина <span class="lobby-example-mark" title="Пример для макета, не из текущего списка">пример</span></h3>
+              <p class="t-body char-card__meta">персонажей: 2</p>
+              <div class="lobby-tile-chips">
+                <span class="lobby-chip lobby-chip--player">Участник</span>
+              </div>
+            </div>
+            <div class="lobby-tile__actions">
+              <button class="btn btn-open" type="button" data-open-lobby>Открыть</button>
+            </div>
+          </article>
+        </div>
+        <section class="card lobby-join" aria-label="Войти по коду">
+          <h2>Войти по коду</h2>
+          <p>Есть код от мастера? Введите его, чтобы присоединиться к столу.</p>
+          <form class="lobby-join__row" data-join-form action="#">
+            <input class="field lobby-join__input" type="text" name="code" maxlength="8" autocomplete="off" spellcheck="false" placeholder="Например, CJSZMR" aria-label="Код лобби" />
+            <button class="btn btn-accent" type="submit">Войти</button>
+          </form>
+        </section>
+        <p class="legal">Правовая информация · <b>info@creed20.tech</b></p>
+      </div>
+    </main>
+  </div>
+    <nav class="tabbar" aria-label="Основная навигация">
+      <div class="tab" data-tab="chars"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.2"/><path d="M5.5 19c1.2-3.2 3.6-4.8 6.5-4.8S17.8 15.8 19 19"/></svg></span><span>Персонажи</span></div>
+      <div class="tab is-active" data-tab="lobby" aria-current="page"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="2.6"/><path d="M4.4 19c.8-2.7 2.6-4.1 4.6-4.1s3.8 1.4 4.6 4.1"/><circle cx="16.4" cy="8.5" r="2.2"/><path d="M13.8 19c.5-2.2 1.8-3.3 3.4-3.3 1.7 0 3 1.1 3.5 3.3"/></svg></span><span>Лобби</span></div>
+      <div class="tab-fab" data-roll title="Бросок кубика" aria-label="Бросок кубика"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2.8 21 8.2v7.6L12 21.2 3 15.8V8.2L12 2.8Z"/><path d="M12 2.8 8 14h8L12 2.8ZM3 8.2h18M8 14l-5 1.8M16 14l5 1.8"/></svg></div>
+      <div class="tab" data-tab="account" aria-label="Личный кабинет"><span class="tab-ico tab-avatar" aria-hidden="true">И.</span><span>Кабинет</span></div>
+      <div class="tab" data-tab="site" aria-label="Сайт КриD20"><span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><path d="M4 12h16"/><path d="M12 4c2.4 2.2 3.6 5 3.6 8s-1.2 5.8-3.6 8c-2.4-2.2-3.6-5-3.6-8s1.2-5.8 3.6-8Z"/></svg></span><span>КриD20</span></div>
+    </nav>
+  <button class="fab-create" type="button" aria-label="Создать лобби" title="Создать лобби"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
+  <button class="fab-dice" type="button" aria-label="Бросок кубика" title="Бросок кубика"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2.8 21 8.2v7.6L12 21.2 3 15.8V8.2L12 2.8Z"/><path d="M12 2.8 8 14h8L12 2.8ZM3 8.2h18M8 14l-5 1.8M16 14l5 1.8"/></svg></button>
+  <div class="toast" role="status" aria-live="polite"></div>
+</body>
+</html>

@@ -1,0 +1,495 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_create" name="2. Создание персонажа 2014 и 2024" targetNamespace="https://creed20.tech/bpmn" exporter="КриD20 BPMN maps" exporterVersion="1.0">
+  <bpmn:collaboration id="Collab_create">
+    <bpmn:participant id="Pool_Player" name="Игрок" processRef="Proc_Player" />
+    <bpmn:participant id="Pool_Master" name="Мастер" processRef="Proc_Master" />
+    <bpmn:participant id="Pool_System" name="Система / бэкенд" processRef="Proc_System" />
+    <bpmn:messageFlow id="msg14" name="create / PATCH черновик" sourceRef="p_14b" targetRef="s_c14" />
+    <bpmn:messageFlow id="msg24" name="create-2024" sourceRef="p_24b" targetRef="s_c24" />
+    <bpmn:messageFlow id="msgcopy" name="action=copy" sourceRef="p_copy" targetRef="s_clone" />
+    <bpmn:messageFlow id="msgjoin" name="action=join" sourceRef="p_join" targetRef="s_join" />
+  </bpmn:collaboration>
+  <bpmn:process id="Proc_Player" name="Игрок" isExecutable="false">
+    <bpmn:laneSet id="LaneSet_Proc_Player">
+      <bpmn:lane id="Lane_P_in" name="Входы">
+        <bpmn:flowNodeRef>p_start</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>p_src</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>p_btn</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>p_draft</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>p_forlob</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>p_copy</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_P_form" name="Форма 2014 / 2024">
+        <bpmn:flowNodeRef>p_ed</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>p_14</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>p_14b</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>p_24</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>p_24b</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>p_lobbyq</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>p_join</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>p_end_l</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>p_end_s</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="p_start" name="Вход в создание">
+      <bpmn:outgoing>c1</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:exclusiveGateway id="p_src" name="Откуда?" gatewayDirection="Unspecified">
+      <bpmn:incoming>c1</bpmn:incoming>
+      <bpmn:outgoing>c2</bpmn:outgoing>
+      <bpmn:outgoing>c3</bpmn:outgoing>
+      <bpmn:outgoing>c4</bpmn:outgoing>
+      <bpmn:outgoing>c5</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:userTask id="p_btn" name="Список: «Создать персонажа».
+Флаг 2024 открыт — выбор редакции">
+      <bpmn:incoming>c2</bpmn:incoming>
+      <bpmn:outgoing>c_p_btn</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="p_draft" name="Карточка черновика:
+/characters/create/:id (2014)">
+      <bpmn:incoming>c3</bpmn:incoming>
+      <bpmn:outgoing>c_p_draft</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="p_forlob" name="«Создать героя для этого лобби»
+(только форма 2014, без edition)">
+      <bpmn:incoming>c4</bpmn:incoming>
+      <bpmn:outgoing>c_p_forlob</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="p_copy" name="Копия при конфликте лобби
+(action=copy → пайплайн копии)">
+      <bpmn:incoming>c5</bpmn:incoming>
+      <bpmn:outgoing>c_p_copy</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="p_ed" name="Редакция?" gatewayDirection="Unspecified">
+      <bpmn:incoming>c_p_btn</bpmn:incoming>
+      <bpmn:incoming>c_p_draft</bpmn:incoming>
+      <bpmn:incoming>c_p_forlob</bpmn:incoming>
+      <bpmn:incoming>c_p_copy</bpmn:incoming>
+      <bpmn:outgoing>c10</bpmn:outgoing>
+      <bpmn:outgoing>c12</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:userTask id="p_14" name="2014: раса → черта* → предыстория
+→ класс → характеристики → прокачка">
+      <bpmn:incoming>c10</bpmn:incoming>
+      <bpmn:outgoing>c11</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="p_14b" name="Черновик / «Готово».
+Мост «Персонаж готов»">
+      <bpmn:incoming>c11</bpmn:incoming>
+      <bpmn:outgoing>c14</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="p_24" name="2024: вид, родословная, предыстория,
+класс, опции, превью, «Готово»">
+      <bpmn:incoming>c12</bpmn:incoming>
+      <bpmn:outgoing>c13</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="p_24b" name="POST /characters/create-2024
+(validate + languages)">
+      <bpmn:incoming>c13</bpmn:incoming>
+      <bpmn:outgoing>c15</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="p_lobbyq" name="Для лобби?" gatewayDirection="Unspecified">
+      <bpmn:incoming>c14</bpmn:incoming>
+      <bpmn:incoming>c15</bpmn:incoming>
+      <bpmn:outgoing>c16</bpmn:outgoing>
+      <bpmn:outgoing>c17</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:userTask id="p_join" name="joinLobby(code, id):
+посадка в состав">
+      <bpmn:incoming>c16</bpmn:incoming>
+      <bpmn:outgoing>c18</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:endEvent id="p_end_l" name="В лобби">
+      <bpmn:incoming>c18</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:endEvent id="p_end_s" name="На лист персонажа">
+      <bpmn:incoming>c17</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:textAnnotation id="n_2024"><bpmn:text>Вход из лобби и копия на проде ведут в форму 2014 (параметра edition в createHeroForLobbyHref нет). Общего API clone/import вне action=copy нет.</bpmn:text></bpmn:textAnnotation>
+    <bpmn:sequenceFlow id="c1" name="" sourceRef="p_start" targetRef="p_src" />
+    <bpmn:sequenceFlow id="c2" name="список" sourceRef="p_src" targetRef="p_btn" />
+    <bpmn:sequenceFlow id="c3" name="черновик" sourceRef="p_src" targetRef="p_draft" />
+    <bpmn:sequenceFlow id="c4" name="из лобби" sourceRef="p_src" targetRef="p_forlob" />
+    <bpmn:sequenceFlow id="c5" name="копия" sourceRef="p_src" targetRef="p_copy" />
+    <bpmn:sequenceFlow id="c_p_btn" name="" sourceRef="p_btn" targetRef="p_ed" />
+    <bpmn:sequenceFlow id="c_p_draft" name="" sourceRef="p_draft" targetRef="p_ed" />
+    <bpmn:sequenceFlow id="c_p_forlob" name="" sourceRef="p_forlob" targetRef="p_ed" />
+    <bpmn:sequenceFlow id="c_p_copy" name="" sourceRef="p_copy" targetRef="p_ed" />
+    <bpmn:sequenceFlow id="c10" name="2014" sourceRef="p_ed" targetRef="p_14" />
+    <bpmn:sequenceFlow id="c11" name="" sourceRef="p_14" targetRef="p_14b" />
+    <bpmn:sequenceFlow id="c12" name="2024" sourceRef="p_ed" targetRef="p_24" />
+    <bpmn:sequenceFlow id="c13" name="" sourceRef="p_24" targetRef="p_24b" />
+    <bpmn:sequenceFlow id="c14" name="" sourceRef="p_14b" targetRef="p_lobbyq" />
+    <bpmn:sequenceFlow id="c15" name="" sourceRef="p_24b" targetRef="p_lobbyq" />
+    <bpmn:sequenceFlow id="c16" name="да, 2014" sourceRef="p_lobbyq" targetRef="p_join" />
+    <bpmn:sequenceFlow id="c17" name="нет" sourceRef="p_lobbyq" targetRef="p_end_s" />
+    <bpmn:sequenceFlow id="c18" name="" sourceRef="p_join" targetRef="p_end_l" />
+  </bpmn:process>
+  <bpmn:process id="Proc_Master" name="Мастер" isExecutable="false">
+    <bpmn:laneSet id="LaneSet_Proc_Master">
+      <bpmn:lane id="Lane_Master" name="Мастер">
+        <bpmn:flowNodeRef>m_start</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>m_rules</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>m_end</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="m_start" name="Правила уже заданы">
+      <bpmn:outgoing>cm1</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:userTask id="m_rules" name="Правила старта лобби: уровень, запреты рас/классов,
+источники. method/kit на готовом листе не проверяются">
+      <bpmn:incoming>cm1</bpmn:incoming>
+      <bpmn:outgoing>cm2</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:endEvent id="m_end" name="Ждёт героя в составе">
+      <bpmn:incoming>cm2</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="cm1" name="" sourceRef="m_start" targetRef="m_rules" />
+    <bpmn:sequenceFlow id="cm2" name="" sourceRef="m_rules" targetRef="m_end" />
+  </bpmn:process>
+  <bpmn:process id="Proc_System" name="Система / бэкенд" isExecutable="false">
+    <bpmn:laneSet id="LaneSet_Proc_System">
+      <bpmn:lane id="Lane_System" name="Система / бэкенд">
+        <bpmn:flowNodeRef>s_start</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>s_c14</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>s_c24</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>s_patch</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>s_clone</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>s_join</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>s_end</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="s_start" name="Запрос">
+      <bpmn:outgoing>s1</bpmn:outgoing>
+      <bpmn:outgoing>s2</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:serviceTask id="s_c14" name="POST /characters
+(create 2014, черновик)">
+      <bpmn:incoming>s1</bpmn:incoming>
+      <bpmn:outgoing>s3</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="s_c24" name="POST /characters/create-2024
+POST …/validate, GET …/languages">
+      <bpmn:incoming>s2</bpmn:incoming>
+      <bpmn:outgoing>s4</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="s_patch" name="PATCH /characters/{id}
+sheet_version">
+      <bpmn:incoming>s3</bpmn:incoming>
+      <bpmn:incoming>s4</bpmn:incoming>
+      <bpmn:outgoing>s5</bpmn:outgoing>
+      <bpmn:outgoing>s6</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="s_clone" name="join action=copy:
+клон-черновик « (копия)», version=1">
+      <bpmn:incoming>s5</bpmn:incoming>
+      <bpmn:outgoing>s7</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="s_join" name="POST /lobbies/join
++ проверка редакции и start rules">
+      <bpmn:incoming>s6</bpmn:incoming>
+      <bpmn:outgoing>s8</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:endEvent id="s_end" name="Персонаж создан">
+      <bpmn:incoming>s7</bpmn:incoming>
+      <bpmn:incoming>s8</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="s1" name="" sourceRef="s_start" targetRef="s_c14" />
+    <bpmn:sequenceFlow id="s2" name="" sourceRef="s_start" targetRef="s_c24" />
+    <bpmn:sequenceFlow id="s3" name="" sourceRef="s_c14" targetRef="s_patch" />
+    <bpmn:sequenceFlow id="s4" name="" sourceRef="s_c24" targetRef="s_patch" />
+    <bpmn:sequenceFlow id="s5" name="" sourceRef="s_patch" targetRef="s_clone" />
+    <bpmn:sequenceFlow id="s6" name="" sourceRef="s_patch" targetRef="s_join" />
+    <bpmn:sequenceFlow id="s7" name="" sourceRef="s_clone" targetRef="s_end" />
+    <bpmn:sequenceFlow id="s8" name="" sourceRef="s_join" targetRef="s_end" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="Diagram_create">
+    <bpmndi:BPMNPlane id="Plane_create" bpmnElement="Collab_create">
+      <bpmndi:BPMNShape id="Pool_Player_di" bpmnElement="Pool_Player" isHorizontal="true">
+        <dc:Bounds x="40" y="70" width="3300" height="420" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_P_in_di" bpmnElement="Lane_P_in" isHorizontal="true">
+        <dc:Bounds x="70" y="70" width="3270" height="160" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_P_form_di" bpmnElement="Lane_P_form" isHorizontal="true">
+        <dc:Bounds x="70" y="230" width="3270" height="260" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Pool_Master_di" bpmnElement="Pool_Master" isHorizontal="true">
+        <dc:Bounds x="40" y="580" width="3300" height="200" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Master_di" bpmnElement="Lane_Master" isHorizontal="true">
+        <dc:Bounds x="70" y="580" width="3270" height="200" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Pool_System_di" bpmnElement="Pool_System" isHorizontal="true">
+        <dc:Bounds x="40" y="870" width="3300" height="320" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_System_di" bpmnElement="Lane_System" isHorizontal="true">
+        <dc:Bounds x="70" y="870" width="3270" height="320" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="p_start_di" bpmnElement="p_start">
+        <dc:Bounds x="110" y="132.0" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="p_src_di" bpmnElement="p_src" isMarkerVisible="true">
+        <dc:Bounds x="438" y="125.0" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="p_btn_di" bpmnElement="p_btn">
+        <dc:Bounds x="606" y="87.0" width="200" height="84" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="p_draft_di" bpmnElement="p_draft">
+        <dc:Bounds x="854" y="87.0" width="200" height="84" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="p_forlob_di" bpmnElement="p_forlob">
+        <dc:Bounds x="1102" y="87.0" width="200" height="84" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="p_copy_di" bpmnElement="p_copy">
+        <dc:Bounds x="1350" y="87.0" width="200" height="84" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="p_ed_di" bpmnElement="p_ed" isMarkerVisible="true">
+        <dc:Bounds x="686" y="325.0" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="p_14_di" bpmnElement="p_14">
+        <dc:Bounds x="854" y="257.0" width="230" height="90" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="p_14b_di" bpmnElement="p_14b">
+        <dc:Bounds x="1350" y="257.0" width="200" height="84" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="p_24_di" bpmnElement="p_24">
+        <dc:Bounds x="854" y="387.0" width="230" height="90" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="p_24b_di" bpmnElement="p_24b">
+        <dc:Bounds x="1350" y="387.0" width="200" height="84" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="p_lobbyq_di" bpmnElement="p_lobbyq" isMarkerVisible="true">
+        <dc:Bounds x="1916" y="335.0" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="p_join_di" bpmnElement="p_join">
+        <dc:Bounds x="2094" y="317.0" width="200" height="84" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="p_end_l_di" bpmnElement="p_end_l">
+        <dc:Bounds x="2590" y="292.0" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="p_end_s_di" bpmnElement="p_end_s">
+        <dc:Bounds x="2590" y="392.0" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="m_start_di" bpmnElement="m_start">
+        <dc:Bounds x="110" y="662.0" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="m_rules_di" bpmnElement="m_rules">
+        <dc:Bounds x="1102" y="637.0" width="280" height="90" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="m_end_di" bpmnElement="m_end">
+        <dc:Bounds x="2094" y="662.0" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="s_start_di" bpmnElement="s_start">
+        <dc:Bounds x="110" y="1012.0" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="s_c14_di" bpmnElement="s_c14">
+        <dc:Bounds x="854" y="937.0" width="200" height="84" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="s_c24_di" bpmnElement="s_c24">
+        <dc:Bounds x="854" y="1042.0" width="200" height="84" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="s_patch_di" bpmnElement="s_patch">
+        <dc:Bounds x="1350" y="987.0" width="200" height="84" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="s_clone_di" bpmnElement="s_clone">
+        <dc:Bounds x="1846" y="937.0" width="200" height="84" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="s_join_di" bpmnElement="s_join">
+        <dc:Bounds x="1846" y="1042.0" width="200" height="84" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="s_end_di" bpmnElement="s_end">
+        <dc:Bounds x="2590" y="1012.0" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="n_2024_di" bpmnElement="n_2024">
+        <dc:Bounds x="1598" y="78" width="360" height="80" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="c1_di" bpmnElement="c1">
+        <di:waypoint x="146" y="150.0" />
+        <di:waypoint x="438" y="150.0" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="c2_di" bpmnElement="c2">
+        <di:waypoint x="488" y="150.0" />
+        <di:waypoint x="547.0" y="150.0" />
+        <di:waypoint x="547.0" y="129.0" />
+        <di:waypoint x="606" y="129.0" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="c3_di" bpmnElement="c3">
+        <di:waypoint x="488" y="150.0" />
+        <di:waypoint x="671.0" y="150.0" />
+        <di:waypoint x="671.0" y="129.0" />
+        <di:waypoint x="854" y="129.0" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="c4_di" bpmnElement="c4">
+        <di:waypoint x="488" y="150.0" />
+        <di:waypoint x="795.0" y="150.0" />
+        <di:waypoint x="795.0" y="129.0" />
+        <di:waypoint x="1102" y="129.0" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="c5_di" bpmnElement="c5">
+        <di:waypoint x="488" y="150.0" />
+        <di:waypoint x="919.0" y="150.0" />
+        <di:waypoint x="919.0" y="129.0" />
+        <di:waypoint x="1350" y="129.0" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="c_p_btn_di" bpmnElement="c_p_btn">
+        <di:waypoint x="706.0" y="171.0" />
+        <di:waypoint x="711.0" y="325.0" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="c_p_draft_di" bpmnElement="c_p_draft">
+        <di:waypoint x="854" y="129.0" />
+        <di:waypoint x="795.0" y="129.0" />
+        <di:waypoint x="795.0" y="350.0" />
+        <di:waypoint x="736" y="350.0" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="c_p_forlob_di" bpmnElement="c_p_forlob">
+        <di:waypoint x="1102" y="129.0" />
+        <di:waypoint x="919.0" y="129.0" />
+        <di:waypoint x="919.0" y="350.0" />
+        <di:waypoint x="736" y="350.0" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="c_p_copy_di" bpmnElement="c_p_copy">
+        <di:waypoint x="1350" y="129.0" />
+        <di:waypoint x="1043.0" y="129.0" />
+        <di:waypoint x="1043.0" y="350.0" />
+        <di:waypoint x="736" y="350.0" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="c10_di" bpmnElement="c10">
+        <di:waypoint x="736" y="350.0" />
+        <di:waypoint x="795.0" y="350.0" />
+        <di:waypoint x="795.0" y="302.0" />
+        <di:waypoint x="854" y="302.0" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="c11_di" bpmnElement="c11">
+        <di:waypoint x="1084" y="302.0" />
+        <di:waypoint x="1350" y="299.0" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="c12_di" bpmnElement="c12">
+        <di:waypoint x="736" y="350.0" />
+        <di:waypoint x="795.0" y="350.0" />
+        <di:waypoint x="795.0" y="432.0" />
+        <di:waypoint x="854" y="432.0" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="c13_di" bpmnElement="c13">
+        <di:waypoint x="1084" y="432.0" />
+        <di:waypoint x="1350" y="429.0" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="c14_di" bpmnElement="c14">
+        <di:waypoint x="1550" y="299.0" />
+        <di:waypoint x="1733.0" y="299.0" />
+        <di:waypoint x="1733.0" y="360.0" />
+        <di:waypoint x="1916" y="360.0" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="c15_di" bpmnElement="c15">
+        <di:waypoint x="1550" y="429.0" />
+        <di:waypoint x="1733.0" y="429.0" />
+        <di:waypoint x="1733.0" y="360.0" />
+        <di:waypoint x="1916" y="360.0" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="c16_di" bpmnElement="c16">
+        <di:waypoint x="1966" y="360.0" />
+        <di:waypoint x="2094" y="359.0" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="c17_di" bpmnElement="c17">
+        <di:waypoint x="1966" y="360.0" />
+        <di:waypoint x="2278.0" y="360.0" />
+        <di:waypoint x="2278.0" y="410.0" />
+        <di:waypoint x="2590" y="410.0" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="c18_di" bpmnElement="c18">
+        <di:waypoint x="2294" y="359.0" />
+        <di:waypoint x="2442.0" y="359.0" />
+        <di:waypoint x="2442.0" y="310.0" />
+        <di:waypoint x="2590" y="310.0" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="cm1_di" bpmnElement="cm1">
+        <di:waypoint x="146" y="680.0" />
+        <di:waypoint x="1102" y="682.0" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="cm2_di" bpmnElement="cm2">
+        <di:waypoint x="1382" y="682.0" />
+        <di:waypoint x="2094" y="680.0" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="s1_di" bpmnElement="s1">
+        <di:waypoint x="146" y="1030.0" />
+        <di:waypoint x="500.0" y="1030.0" />
+        <di:waypoint x="500.0" y="979.0" />
+        <di:waypoint x="854" y="979.0" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="s2_di" bpmnElement="s2">
+        <di:waypoint x="146" y="1030.0" />
+        <di:waypoint x="500.0" y="1030.0" />
+        <di:waypoint x="500.0" y="1084.0" />
+        <di:waypoint x="854" y="1084.0" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="s3_di" bpmnElement="s3">
+        <di:waypoint x="1054" y="979.0" />
+        <di:waypoint x="1202.0" y="979.0" />
+        <di:waypoint x="1202.0" y="1029.0" />
+        <di:waypoint x="1350" y="1029.0" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="s4_di" bpmnElement="s4">
+        <di:waypoint x="1054" y="1084.0" />
+        <di:waypoint x="1202.0" y="1084.0" />
+        <di:waypoint x="1202.0" y="1029.0" />
+        <di:waypoint x="1350" y="1029.0" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="s5_di" bpmnElement="s5">
+        <di:waypoint x="1550" y="1029.0" />
+        <di:waypoint x="1698.0" y="1029.0" />
+        <di:waypoint x="1698.0" y="979.0" />
+        <di:waypoint x="1846" y="979.0" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="s6_di" bpmnElement="s6">
+        <di:waypoint x="1550" y="1029.0" />
+        <di:waypoint x="1698.0" y="1029.0" />
+        <di:waypoint x="1698.0" y="1084.0" />
+        <di:waypoint x="1846" y="1084.0" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="s7_di" bpmnElement="s7">
+        <di:waypoint x="2046" y="979.0" />
+        <di:waypoint x="2318.0" y="979.0" />
+        <di:waypoint x="2318.0" y="1030.0" />
+        <di:waypoint x="2590" y="1030.0" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="s8_di" bpmnElement="s8">
+        <di:waypoint x="2046" y="1084.0" />
+        <di:waypoint x="2318.0" y="1084.0" />
+        <di:waypoint x="2318.0" y="1030.0" />
+        <di:waypoint x="2590" y="1030.0" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="msg14_di" bpmnElement="msg14">
+        <di:waypoint x="1450.0" y="341.0" />
+        <di:waypoint x="1578" y="341.0" />
+        <di:waypoint x="1578" y="535.0" />
+        <di:waypoint x="1578" y="825.0" />
+        <di:waypoint x="954.0" y="825.0" />
+        <di:waypoint x="954.0" y="937.0" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="msg24_di" bpmnElement="msg24">
+        <di:waypoint x="1450.0" y="471.0" />
+        <di:waypoint x="1450.0" y="535.0" />
+        <di:waypoint x="1578" y="535.0" />
+        <di:waypoint x="1578" y="825.0" />
+        <di:waypoint x="954.0" y="825.0" />
+        <di:waypoint x="954.0" y="1042.0" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="msgcopy_di" bpmnElement="msgcopy">
+        <di:waypoint x="1450.0" y="171.0" />
+        <di:waypoint x="1578" y="171.0" />
+        <di:waypoint x="1578" y="535.0" />
+        <di:waypoint x="1578" y="825.0" />
+        <di:waypoint x="1946.0" y="825.0" />
+        <di:waypoint x="1946.0" y="937.0" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="msgjoin_di" bpmnElement="msgjoin">
+        <di:waypoint x="2194.0" y="401.0" />
+        <di:waypoint x="2194.0" y="535.0" />
+        <di:waypoint x="2194.0" y="825.0" />
+        <di:waypoint x="1946.0" y="825.0" />
+        <di:waypoint x="1946.0" y="1042.0" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

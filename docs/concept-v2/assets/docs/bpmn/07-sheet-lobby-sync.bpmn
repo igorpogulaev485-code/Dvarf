@@ -1,0 +1,310 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_sync" name="7. Синхронизация лист ↔ лобби: владельцы данных и каналы" targetNamespace="https://creed20.tech/bpmn" exporter="КриD20 BPMN maps" exporterVersion="1.0">
+  <bpmn:collaboration id="Collab_sync">
+    <bpmn:participant id="Pool_Player" name="Игрок" processRef="Proc_Player" />
+    <bpmn:participant id="Pool_Master" name="Мастер" processRef="Proc_Master" />
+    <bpmn:participant id="Pool_System" name="Система / бэкенд" processRef="Proc_System" />
+    <bpmn:messageFlow id="msg1" name="PATCH владельца" sourceRef="p_own" targetRef="s_sheet" />
+    <bpmn:messageFlow id="msg2" name="API сессии" sourceRef="m_mut" targetRef="s_from_s" />
+    <bpmn:messageFlow id="msg3" name="WS / BC" sourceRef="s_ch" targetRef="p_live" />
+    <bpmn:messageFlow id="msg4" name="lobby_resync" sourceRef="s_ch" targetRef="m_own" />
+  </bpmn:collaboration>
+  <bpmn:process id="Proc_Player" name="Игрок" isExecutable="false">
+    <bpmn:laneSet id="LaneSet_Proc_Player">
+      <bpmn:lane id="Lane_Player" name="Игрок">
+        <bpmn:flowNodeRef>p_start</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>p_own</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>p_tab</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>p_live</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>p_end</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="p_start" name="Открыт лист и/или сессия">
+      <bpmn:outgoing>p1</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:userTask id="p_own" name="Владелец листа: имя, sheet JSON,
+хиты, инвентарь, отдых, прокачка">
+      <bpmn:incoming>p1</bpmn:incoming>
+      <bpmn:outgoing>p2</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="p_tab" name="Другая вкладка: BroadcastChannel
+«dvarf.character-sheet»">
+      <bpmn:incoming>p2</bpmn:incoming>
+      <bpmn:outgoing>p3</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="p_live" name="За столом получает session_changed,
+party_rest, эффекты">
+      <bpmn:incoming>p3</bpmn:incoming>
+      <bpmn:outgoing>p4</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:endEvent id="p_end" name="Видит согласованное состояние">
+      <bpmn:incoming>p4</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="p1" name="" sourceRef="p_start" targetRef="p_own" />
+    <bpmn:sequenceFlow id="p2" name="" sourceRef="p_own" targetRef="p_tab" />
+    <bpmn:sequenceFlow id="p3" name="" sourceRef="p_tab" targetRef="p_live" />
+    <bpmn:sequenceFlow id="p4" name="" sourceRef="p_live" targetRef="p_end" />
+  </bpmn:process>
+  <bpmn:process id="Proc_Master" name="Мастер" isExecutable="false">
+    <bpmn:laneSet id="LaneSet_Proc_Master">
+      <bpmn:lane id="Lane_Master" name="Мастер">
+        <bpmn:flowNodeRef>m_start</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>m_own</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>m_mut</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>m_no</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>m_end</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="m_start" name="Ведёт лобби / сессию">
+      <bpmn:outgoing>m1</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:userTask id="m_own" name="Владелец: правила кампании, видимость,
+вики, журнал, состав, бой сессии">
+      <bpmn:incoming>m1</bpmn:incoming>
+      <bpmn:outgoing>m2</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="m_mut" name="Пишет в чужой sheet только через
+API сессии (урон, XP, лут, условия)">
+      <bpmn:incoming>m2</bpmn:incoming>
+      <bpmn:outgoing>m3</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="m_no" name="Прямой PATCH чужого персонажа — 403">
+      <bpmn:incoming>m3</bpmn:incoming>
+      <bpmn:outgoing>m4</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:endEvent id="m_end" name="Стол обновлён">
+      <bpmn:incoming>m4</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="m1" name="" sourceRef="m_start" targetRef="m_own" />
+    <bpmn:sequenceFlow id="m2" name="" sourceRef="m_own" targetRef="m_mut" />
+    <bpmn:sequenceFlow id="m3" name="" sourceRef="m_mut" targetRef="m_no" />
+    <bpmn:sequenceFlow id="m4" name="" sourceRef="m_no" targetRef="m_end" />
+  </bpmn:process>
+  <bpmn:process id="Proc_System" name="Система / бэкенд" isExecutable="false">
+    <bpmn:laneSet id="LaneSet_Proc_System">
+      <bpmn:lane id="Lane_System" name="Система / бэкенд">
+        <bpmn:flowNodeRef>s_start</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>s_sheet</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>s_sess</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>s_lob</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>s_from_s</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>s_ch</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>s_end</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="s_start" name="Каналы синхронизации">
+      <bpmn:outgoing>s1</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:serviceTask id="s_sheet" name="Источник правды героя:
+таблица characters + sheet
+Оптимистичная блокировка sheet_version">
+      <bpmn:incoming>s1</bpmn:incoming>
+      <bpmn:outgoing>s2</bpmn:outgoing>
+      <bpmn:outgoing>s4</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="s_sess" name="Источник правды боя:
+PlaySession.combat / combatants / seats">
+      <bpmn:incoming>s2</bpmn:incoming>
+      <bpmn:outgoing>s3</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="s_lob" name="Источник правды стола:
+lobby, members, campaign_rules,
+visibility_profile">
+      <bpmn:incoming>s3</bpmn:incoming>
+      <bpmn:outgoing>s6</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="s_from_s" name="Мутации листа из сессии:
+patch_seat_combat, attack, xp/loot,
+companions, transfer, effects, piety">
+      <bpmn:incoming>s4</bpmn:incoming>
+      <bpmn:outgoing>s5</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="s_ch" name="Каналы: PATCH 409; BroadcastChannel;
+WS session_* / lobby_resync /
+sheet_effects_changed / party_rest">
+      <bpmn:incoming>s5</bpmn:incoming>
+      <bpmn:incoming>s6</bpmn:incoming>
+      <bpmn:outgoing>s7</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:endEvent id="s_end" name="Оба клиента перечитали">
+      <bpmn:incoming>s7</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:textAnnotation id="n_rest"><bpmn:text>party_rest само хиты/ячейки не применяет: шлёт WS, игрок подтверждает RestDialog и делает PATCH. Два писателя в sheet (игрок и стол) сходятся через sheet_version.</bpmn:text></bpmn:textAnnotation>
+    <bpmn:sequenceFlow id="s1" name="" sourceRef="s_start" targetRef="s_sheet" />
+    <bpmn:sequenceFlow id="s2" name="" sourceRef="s_sheet" targetRef="s_sess" />
+    <bpmn:sequenceFlow id="s3" name="" sourceRef="s_sess" targetRef="s_lob" />
+    <bpmn:sequenceFlow id="s4" name="" sourceRef="s_sheet" targetRef="s_from_s" />
+    <bpmn:sequenceFlow id="s5" name="" sourceRef="s_from_s" targetRef="s_ch" />
+    <bpmn:sequenceFlow id="s6" name="" sourceRef="s_lob" targetRef="s_ch" />
+    <bpmn:sequenceFlow id="s7" name="" sourceRef="s_ch" targetRef="s_end" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="Diagram_sync">
+    <bpmndi:BPMNPlane id="Plane_sync" bpmnElement="Collab_sync">
+      <bpmndi:BPMNShape id="Pool_Player_di" bpmnElement="Pool_Player" isHorizontal="true">
+        <dc:Bounds x="40" y="70" width="3200" height="340" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Player_di" bpmnElement="Lane_Player" isHorizontal="true">
+        <dc:Bounds x="70" y="70" width="3170" height="340" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Pool_Master_di" bpmnElement="Pool_Master" isHorizontal="true">
+        <dc:Bounds x="40" y="500" width="3200" height="300" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Master_di" bpmnElement="Lane_Master" isHorizontal="true">
+        <dc:Bounds x="70" y="500" width="3170" height="300" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Pool_System_di" bpmnElement="Pool_System" isHorizontal="true">
+        <dc:Bounds x="40" y="890" width="3200" height="420" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_System_di" bpmnElement="Lane_System" isHorizontal="true">
+        <dc:Bounds x="70" y="890" width="3170" height="420" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="p_start_di" bpmnElement="p_start">
+        <dc:Bounds x="110" y="222.0" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="p_own_di" bpmnElement="p_own">
+        <dc:Bounds x="640" y="197.0" width="200" height="84" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="p_tab_di" bpmnElement="p_tab">
+        <dc:Bounds x="1170" y="197.0" width="200" height="84" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="p_live_di" bpmnElement="p_live">
+        <dc:Bounds x="1700" y="197.0" width="200" height="84" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="p_end_di" bpmnElement="p_end">
+        <dc:Bounds x="2230" y="222.0" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="m_start_di" bpmnElement="m_start">
+        <dc:Bounds x="110" y="632.0" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="m_own_di" bpmnElement="m_own">
+        <dc:Bounds x="640" y="607.0" width="230" height="90" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="m_mut_di" bpmnElement="m_mut">
+        <dc:Bounds x="1435" y="607.0" width="250" height="90" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="m_no_di" bpmnElement="m_no">
+        <dc:Bounds x="1965" y="607.0" width="200" height="84" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="m_end_di" bpmnElement="m_end">
+        <dc:Bounds x="2230" y="632.0" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="s_start_di" bpmnElement="s_start">
+        <dc:Bounds x="110" y="1012.0" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="s_sheet_di" bpmnElement="s_sheet">
+        <dc:Bounds x="640" y="987.0" width="240" height="100" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="s_sess_di" bpmnElement="s_sess">
+        <dc:Bounds x="1170" y="987.0" width="240" height="100" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="s_lob_di" bpmnElement="s_lob">
+        <dc:Bounds x="1700" y="987.0" width="240" height="100" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="s_from_s_di" bpmnElement="s_from_s">
+        <dc:Bounds x="905" y="1137.0" width="250" height="100" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="s_ch_di" bpmnElement="s_ch">
+        <dc:Bounds x="1700" y="1137.0" width="260" height="100" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="s_end_di" bpmnElement="s_end">
+        <dc:Bounds x="2230" y="1082.0" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="n_rest_di" bpmnElement="n_rest">
+        <dc:Bounds x="1965" y="898" width="340" height="90" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="p1_di" bpmnElement="p1">
+        <di:waypoint x="146" y="240.0" />
+        <di:waypoint x="640" y="239.0" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="p2_di" bpmnElement="p2">
+        <di:waypoint x="840" y="239.0" />
+        <di:waypoint x="1170" y="239.0" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="p3_di" bpmnElement="p3">
+        <di:waypoint x="1370" y="239.0" />
+        <di:waypoint x="1700" y="239.0" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="p4_di" bpmnElement="p4">
+        <di:waypoint x="1900" y="239.0" />
+        <di:waypoint x="2230" y="240.0" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="m1_di" bpmnElement="m1">
+        <di:waypoint x="146" y="650.0" />
+        <di:waypoint x="640" y="652.0" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="m2_di" bpmnElement="m2">
+        <di:waypoint x="870" y="652.0" />
+        <di:waypoint x="1435" y="652.0" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="m3_di" bpmnElement="m3">
+        <di:waypoint x="1685" y="652.0" />
+        <di:waypoint x="1965" y="649.0" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="m4_di" bpmnElement="m4">
+        <di:waypoint x="2165" y="649.0" />
+        <di:waypoint x="2230" y="650.0" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="s1_di" bpmnElement="s1">
+        <di:waypoint x="146" y="1030.0" />
+        <di:waypoint x="640" y="1037.0" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="s2_di" bpmnElement="s2">
+        <di:waypoint x="880" y="1037.0" />
+        <di:waypoint x="1170" y="1037.0" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="s3_di" bpmnElement="s3">
+        <di:waypoint x="1410" y="1037.0" />
+        <di:waypoint x="1700" y="1037.0" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="s4_di" bpmnElement="s4">
+        <di:waypoint x="880" y="1037.0" />
+        <di:waypoint x="892.5" y="1037.0" />
+        <di:waypoint x="892.5" y="1187.0" />
+        <di:waypoint x="905" y="1187.0" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="s5_di" bpmnElement="s5">
+        <di:waypoint x="1155" y="1187.0" />
+        <di:waypoint x="1700" y="1187.0" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="s6_di" bpmnElement="s6">
+        <di:waypoint x="1820.0" y="1087.0" />
+        <di:waypoint x="1830.0" y="1137.0" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="s7_di" bpmnElement="s7">
+        <di:waypoint x="1960" y="1187.0" />
+        <di:waypoint x="2095.0" y="1187.0" />
+        <di:waypoint x="2095.0" y="1100.0" />
+        <di:waypoint x="2230" y="1100.0" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="msg1_di" bpmnElement="msg1">
+        <di:waypoint x="740.0" y="281.0" />
+        <di:waypoint x="740.0" y="455.0" />
+        <di:waypoint x="612" y="455.0" />
+        <di:waypoint x="612" y="845.0" />
+        <di:waypoint x="760.0" y="845.0" />
+        <di:waypoint x="760.0" y="987.0" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="msg2_di" bpmnElement="msg2">
+        <di:waypoint x="1560.0" y="697.0" />
+        <di:waypoint x="1560.0" y="845.0" />
+        <di:waypoint x="1030.0" y="845.0" />
+        <di:waypoint x="1030.0" y="1137.0" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="msg3_di" bpmnElement="msg3">
+        <di:waypoint x="1830.0" y="1137.0" />
+        <di:waypoint x="393.0" y="1137.0" />
+        <di:waypoint x="393.0" y="845.0" />
+        <di:waypoint x="393.0" y="455.0" />
+        <di:waypoint x="1800.0" y="455.0" />
+        <di:waypoint x="1800.0" y="281.0" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="msg4_di" bpmnElement="msg4">
+        <di:waypoint x="1830.0" y="1137.0" />
+        <di:waypoint x="898" y="1137.0" />
+        <di:waypoint x="898" y="845.0" />
+        <di:waypoint x="755.0" y="845.0" />
+        <di:waypoint x="755.0" y="697.0" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>
