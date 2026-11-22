@@ -478,21 +478,16 @@ export function HpPadDialog({
         <div className="number-pad__display">
           <span className="number-pad__display-value">{digits === '' ? '0' : String(delta)}</span>
           <span className="number-pad__display-hint">
-            {adjusted.note || 'введи число, затем действие'}
+            {adjusted.note ||
+              `${digits === '' ? '0' : String(delta)} — введи число, затем действие`}
           </span>
         </div>
 
-        {resistanceLabel || vulnerabilityLabel || immunityLabel ? (
-          <p className="hp-pad__hint hp-pad__defenses">
-            {resistanceLabel ? `Сопротивления: ${resistanceLabel}` : ''}
-            {vulnerabilityLabel
-              ? `${resistanceLabel ? ' · ' : ''}Уязвимости: ${vulnerabilityLabel}`
-              : ''}
-            {immunityLabel
-              ? `${resistanceLabel || vulnerabilityLabel ? ' · ' : ''}Иммунитеты: ${immunityLabel}`
-              : ''}
-          </p>
-        ) : null}
+        <p className="hp-pad__hint hp-pad__defenses">
+          {resistanceLabel ? `Сопротивления: ${resistanceLabel}` : 'Сопротивления: нет'}
+          {vulnerabilityLabel ? ` · Уязвимости: ${vulnerabilityLabel}` : ''}
+          {immunityLabel ? ` · Иммунитеты: ${immunityLabel}` : ''}
+        </p>
 
         <div className="hp-pad__types chip-row" role="group" aria-label="Тип урона">
           {DAMAGE_TYPES.map((type) => (
@@ -663,7 +658,7 @@ export function HpPadDialog({
               className={`number-pad__key${key === 'C' || key === '⌫' ? ' number-pad__key--meta' : ''}`}
               onClick={() => press(key)}
             >
-              {key}
+              {key === '⌫' ? '←' : key}
             </button>
           ))}
         </div>
@@ -737,7 +732,7 @@ export function HpPadDialog({
         <div className="hp-pad__settings">
           <div className="hp-pad__settings-head">
             <strong>Настройки хитов</strong>
-            <button type="button" className="linkish" onClick={onOpenMaxSettings}>
+            <button type="button" className="btn hp-pad__max" onClick={onOpenMaxSettings}>
               Максимум…
             </button>
           </div>
@@ -749,6 +744,9 @@ export function HpPadDialog({
               </span>
               {pools.map((pool) => (
                 <div key={pool.classEntryId} className="hp-pad__dice-row">
+                  <span className="hp-pad__dice-name">
+                    {pool.className} {pool.die} {pool.current}/{pool.max}
+                  </span>
                   <button
                     type="button"
                     className="hp-pad__dice-spend"
@@ -756,7 +754,10 @@ export function HpPadDialog({
                     title={`Потратить кость ${pool.className} (среднее + ТЕЛ)`}
                     onClick={() => spendPool(pool)}
                   >
-                    Кости хитов · {pool.className} {pool.die}: {pool.current} из {pool.max}
+                    <span className="hp-pad__dice-long">
+                      Кости хитов · {pool.className} {pool.die}: {pool.current} из {pool.max}
+                    </span>
+                    <span className="hp-pad__dice-short">Потратить кость</span>
                   </button>
                   <SlotPips
                     max={Math.max(1, pool.max)}
