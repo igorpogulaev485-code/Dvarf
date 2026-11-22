@@ -5,6 +5,15 @@
  * Круг к20 и подложка остаются в shared-approved.css.
  */
 
+/* Буквально из sheet-desktop.html */
+html[data-theme='light-designer3'] {
+  --head-grad: linear-gradient(90deg, var(--accent-soft) 0%, var(--desk-panel, #fbf7ec) 45%, #f7f1e6 100%);
+}
+
+html[data-theme='leaf-classic'] {
+  --head-grad: linear-gradient(90deg, color-mix(in srgb, var(--accent) 34%, #131313) 0%, #131313 48%, #12110e 100%);
+}
+
 .app-shell__nav-short {
   display: none;
 }
@@ -107,6 +116,12 @@
     justify-items: center;
   }
 
+  .app-shell--sheet .app-shell__nav-item.is-active {
+    background: color-mix(in srgb, var(--accent-soft) 85%, var(--card));
+    color: var(--accent);
+    font-weight: 700;
+  }
+
   .app-shell--sheet .app-shell__nav-item {
     flex-direction: column;
     justify-content: center;
@@ -168,19 +183,17 @@
 
   .app-shell--sheet .play-desk--wide .play-desk__top {
     margin: 0 0 8px;
-    padding: 10px 12px 8px;
-    border: 1px solid var(--line);
+    padding: 8px 10px 6px;
+    border: 1px solid var(--desk-line, var(--line));
     border-radius: 16px;
-    background: var(--card);
-  }
-
-  .app-shell--sheet .play-desk--wide .play-desk__top {
+    background: var(--head-grad);
+    box-shadow: 0 1px 0 rgba(26, 36, 32, 0.06);
     display: grid;
     grid-template-columns: auto minmax(0, 1fr);
     grid-template-areas: "avatar head" "effects effects";
     align-items: center;
-    gap: 6px 8px;
-    background: var(--card);
+    column-gap: 8px;
+    row-gap: 6px;
   }
 
   .app-shell--sheet .play-desk--wide .play-desk__top > .char-avatar {
@@ -197,13 +210,27 @@
   }
 
   .app-shell--sheet .play-desk--wide .char-avatar--sm .char-avatar__face {
-    width: 72px;
+    width: auto;
     height: auto;
-    min-height: 72px;
+    min-height: 0;
+    max-height: 100%;
+    aspect-ratio: 1 / 1;
     align-self: stretch;
-    aspect-ratio: 1;
+    justify-self: start;
     border-radius: 14px;
+    border: 2px solid color-mix(in srgb, var(--card) 80%, #fff);
+    box-shadow: 0 0 0 1px var(--line);
+    background: linear-gradient(160deg, #6d8f7f, #2f4a40);
+    color: #f4fff9;
+    font-family: var(--font-display);
+    font-weight: 700;
     font-size: 1.2rem;
+  }
+
+  html[data-theme='leaf-classic'] .app-shell--sheet .play-desk--wide .char-avatar--sm .char-avatar__face {
+    background: linear-gradient(160deg, color-mix(in srgb, var(--accent) 55%, #1a1a1a), #0e1210);
+    color: var(--accent);
+    border-color: color-mix(in srgb, var(--accent) 25%, #131313);
   }
 
   .app-shell--sheet .play-desk-header__name,
@@ -237,14 +264,82 @@
     max-width: 100%;
   }
 
-  .app-shell--sheet .play-desk-header__xp {
+  .app-shell--sheet .play-desk-header__classes {
+    display: inline-flex;
+    width: max-content;
+    flex: 0 0 auto;
+    gap: 6px;
+    order: 2;
+  }
+
+  .app-shell--sheet .play-desk-header__meta-line .needs-setup {
+    order: 3;
+    flex: 0 0 auto;
+  }
+
+  .app-shell--sheet .play-desk-header__identity {
+    order: 1;
+  }
+
+  .app-shell--sheet button.play-desk-header__xp {
+    order: 4;
+  }
+
+  .app-shell--sheet .play-desk-header__class-chip,
+  .app-shell--sheet .needs-setup__btn {
+    flex-direction: row;
+    align-items: center;
+    gap: 0;
+    background: color-mix(in srgb, var(--accent-soft) 55%, var(--mix-paper, #fff));
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    color: var(--desk-ink, var(--heading));
+    min-height: 28px;
+    padding: 2px 10px;
+    font-size: 0.78rem;
+    font-weight: 650;
+    box-sizing: border-box;
+  }
+
+  .app-shell--sheet .needs-setup__btn {
+    border-color: color-mix(in srgb, var(--danger) 40%, var(--line));
+    color: var(--heading);
+  }
+
+  html[data-theme='leaf-classic'] .app-shell--sheet .play-desk-header__class-chip {
+    background: var(--card);
+    color: var(--heading, var(--ink));
+  }
+
+  .app-shell--sheet .play-desk-header__class-archetype::before {
+    content: ' · ';
+    color: var(--ink);
+  }
+
+  .app-shell--sheet .play-desk-header__class-archetype {
+    color: var(--ink);
+    font-size: inherit;
+  }
+
+  .app-shell--sheet .needs-setup {
+    margin-left: 0;
+  }
+
+  .app-shell--sheet button.play-desk-header__xp {
+    margin-top: 2px;
+    max-width: 18rem;
+    width: 100%;
     flex: 1 1 100%;
     display: flex;
-    flex-wrap: wrap;
+    flex-flow: row wrap;
     align-items: center;
+    align-self: start;
     gap: 4px 8px;
-    max-width: 22rem;
-    margin-top: 2px;
+    height: auto;
+    min-height: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
   }
 
   .app-shell--sheet .play-desk-header__xp-level {
@@ -256,9 +351,14 @@
     display: block;
     flex: 1 1 8rem;
     min-width: 6.5rem;
+    width: auto;
+    max-width: none;
     height: 7px;
+    min-height: 7px;
+    max-height: 7px;
     border-radius: 999px;
     overflow: hidden;
+    order: 1;
     background: var(--desk-chip, #e7e1d4);
   }
 
@@ -270,11 +370,18 @@
     background: linear-gradient(90deg, var(--accent), color-mix(in srgb, var(--accent) 70%, #2d2d2a));
   }
 
+  html[data-theme='leaf-classic'] .app-shell--sheet .play-desk-header__xp-bar > i,
+  html[data-theme='leaf-classic'] .app-shell--sheet .ui-xp-track__bar > i {
+    background: linear-gradient(90deg, var(--accent), color-mix(in srgb, var(--accent) 70%, #0a0a0a));
+  }
+
   .app-shell--sheet .play-desk-header__xp-remain {
-    flex: 1 1 100%;
-    order: 3;
+    flex: 0 1 auto;
+    order: 2;
+    width: auto;
     font-size: 0.62rem;
     font-weight: 600;
+    color: var(--desk-muted, var(--muted));
   }
 
   .app-shell--sheet .play-desk-vital {
@@ -286,14 +393,15 @@
   }
 
   .app-shell--sheet .sheet-effects-row {
+    background: var(--desk-panel, var(--card));
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 8px;
     width: 100%;
     margin-top: 2px;
-    font-size: 0.72rem;
-    color: var(--muted);
+    font-size: 0.78rem;
+    color: var(--ink);
   }
 
   .app-shell--sheet .sheet-effects-row__main {
@@ -312,9 +420,14 @@
     color: inherit;
     border-radius: 999px;
     min-height: 26px;
-    padding: 2px 10px;
+    height: 26px;
+    padding: 2px 8px;
     font: inherit;
-    font-size: 0.72rem;
+    font-size: 0.78rem;
+    font-weight: 650;
+    color: var(--ink);
+    border: 1px solid var(--ink);
+    background: var(--card);
     cursor: pointer;
     width: auto;
   }
@@ -326,11 +439,15 @@
 
   .app-shell--sheet .sheet-desk-tools {
     display: flex;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     align-items: center;
-    gap: 6px;
+    gap: 4px;
     margin: 0 0 8px;
     width: 100%;
+  }
+
+  .app-shell--sheet .sheet-desk-tools .sheet-insp-arm {
+    display: none;
   }
 
   .app-shell--sheet .sheet-desk-tools__rail {
@@ -362,8 +479,8 @@
 
   .app-shell--sheet .play-desk__mode-tabs {
     display: inline-flex;
-    gap: 4px;
-    flex-wrap: wrap;
+    gap: 2px;
+    flex-wrap: nowrap;
     background: var(--card);
     border: 1px solid var(--line);
     border-radius: 999px;
@@ -420,5 +537,89 @@
   .app-shell--sheet .sheet-effects-dialog__list {
     margin: 0;
     padding-left: 1.1rem;
+  }
+
+  .app-shell--sheet .play-desk--wide .abil-block.is-collapsed .abil-block__head {
+    padding: 4px 8px;
+    row-gap: 0;
+  }
+
+  .app-shell--sheet .play-desk-turn-actions__tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+  }
+
+  .app-shell--sheet .play-desk-turn-actions__tab {
+    background: var(--card);
+    border: 1px solid var(--line);
+    color: var(--ink);
+    border-radius: 999px;
+  }
+
+  .app-shell--sheet .play-desk-turn-actions__optional {
+    margin-top: 6px;
+    padding: 8px;
+    border: 1px dashed color-mix(in srgb, var(--accent) 35%, var(--line));
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--accent-soft) 35%, var(--card));
+  }
+
+  .app-shell--sheet .play-desk-turn-actions__optional-label {
+    margin: 0 0 6px;
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .app-shell--sheet .play-desk--wide .play-desk-compact__row.is-attack {
+    position: relative;
+    overflow: hidden;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--card);
+    min-height: 52px;
+  }
+
+  .app-shell--sheet .play-desk--wide .play-desk-compact__row.is-attack .play-desk-compact__row-icon {
+    position: absolute;
+    right: 7.5rem;
+    top: 0;
+    width: 46%;
+    height: 100%;
+    opacity: 0.28;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  html[data-theme='leaf-classic'] .app-shell--sheet .play-desk--wide .play-desk-compact__row.is-attack .play-desk-compact__row-icon {
+    opacity: 0.4;
+  }
+
+  .app-shell--sheet .play-desk--wide .play-desk-compact__row.is-attack .play-desk-compact__mod--roll {
+    background: var(--accent);
+    color: var(--on-accent, #fff);
+    border-color: var(--accent);
+    min-height: 32px;
+    border-radius: 8px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .app-shell--sheet .play-desk--wide .play-desk-compact__row.is-attack .play-desk-compact__dmg--roll {
+    background: color-mix(in srgb, var(--accent-soft) 55%, var(--card));
+    color: var(--accent);
+    border-color: color-mix(in srgb, var(--accent) 35%, var(--line));
+    min-height: 32px;
+    border-radius: 8px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .app-shell--sheet .play-desk--wide .play-desk-compact__tool-more {
+    display: none;
   }
 }

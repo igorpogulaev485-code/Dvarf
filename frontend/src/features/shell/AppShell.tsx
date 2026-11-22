@@ -43,6 +43,34 @@ const NAV = [
   { to: '/site', section: 'site' as const, label: 'Сайт КриD20', short: 'Сайт', icon: 'globe' },
 ] as const
 
+function SheetNavIcon({ section }: { section: ShellSection }) {
+  if (section === 'chars') {
+    return (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+        <circle cx="8" cy="8" r="2.4" />
+        <circle cx="16" cy="8" r="2.4" />
+        <path d="M4.5 18c.6-2.4 2.4-3.6 4.8-3.6h.4c2.4 0 4.2 1.2 4.8 3.6" />
+        <path d="M12.8 14.6c.7-.4 1.6-.6 2.6-.6h.3c2.4 0 4.2 1.2 4.8 3.6" />
+      </svg>
+    )
+  }
+  if (section === 'lobby') {
+    return (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+        <path d="M5 19V9.5L12 5l7 4.5V19" />
+        <path d="M9 19v-6h6v6" />
+      </svg>
+    )
+  }
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <circle cx="12" cy="12" r="8" />
+      <path d="M4.5 12h15" />
+      <path d="M12 4.5c2.2 2.4 3.3 4.9 3.3 7.5S14.2 17.1 12 19.5C9.8 17.1 8.7 14.6 8.7 12S9.8 6.9 12 4.5Z" />
+    </svg>
+  )
+}
+
 function NavIcon({ name }: { name: 'person' | 'people' | 'globe' | 'user' }) {
   if (name === 'person') {
     return (
@@ -198,7 +226,7 @@ export function AppShell({
                 aria-current={section === item.section ? 'page' : undefined}
               >
                 <span className="app-shell__nav-ico">
-                  <NavIcon name={item.icon} />
+                  {chrome === 'sheet' ? <SheetNavIcon section={item.section} /> : <NavIcon name={item.icon} />}
                 </span>
                 <span className="app-shell__nav-full">{item.label}</span>
                 <span className="app-shell__nav-short">{item.short}</span>

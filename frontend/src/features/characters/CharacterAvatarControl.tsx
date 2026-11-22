@@ -34,7 +34,12 @@ export function CharacterAvatarControl({
   const inputRef = useRef<HTMLInputElement>(null)
   const [error, setError] = useState<string | null>(null)
   const [pending, setPending] = useState(false)
-  const initial = (character.name ?? '').trim().slice(0, 1).toUpperCase() || '?'
+  const nameParts = (character.name ?? '').trim().split(/\s+/).filter(Boolean)
+  const initial =
+    (nameParts.length >= 2
+      ? `${nameParts[0]?.[0] ?? ''}${nameParts[1]?.[0] ?? ''}`
+      : nameParts[0]?.[0] ?? '?'
+    ).toUpperCase()
   const hint =
     faceHint ?? (pending ? '…' : onOpen ? 'основное' : 'фото')
 
@@ -86,7 +91,9 @@ export function CharacterAvatarControl({
         ) : (
           <span aria-hidden="true">{initial}</span>
         )}
-        <span className="char-avatar__hint">{pending && !onOpen ? '…' : hint}</span>
+        {hint ? (
+          <span className="char-avatar__hint">{pending && !onOpen ? '…' : hint}</span>
+        ) : null}
       </button>
       <input
         ref={inputRef}

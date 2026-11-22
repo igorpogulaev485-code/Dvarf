@@ -441,6 +441,7 @@ export function PlayDeskTop({ model }: { model: SheetModel }) {
             character={model.baseCharacter}
             size="sm"
             showActions={false}
+            faceHint=""
             onOpen={() => model.setIdentityOpen(true)}
             onChanged={(updated) => {
               model.setBaseCharacter(updated)

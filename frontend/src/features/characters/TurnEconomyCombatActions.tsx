@@ -446,6 +446,7 @@ export function TurnEconomyCombatActions({
 
 
   const [openGroup, setOpenGroup] = useState<TurnActionGroupId | null>(null)
+  const [moreActionsOpen, setMoreActionsOpen] = useState(false)
 
   if (mode === 'everyTurn') {
     // CMB-02: everyTurn row removed — chips live inside groups.
@@ -460,8 +461,25 @@ export function TurnEconomyCombatActions({
     group === 'action' ? actionSpent : group === 'bonus' ? bonusSpent : reactionSpent
 
   const toggleGroup = (group: TurnActionGroupId) => {
+    setMoreActionsOpen(false)
     setOpenGroup((prev) => (prev === group ? null : group))
   }
+
+  const TABLE_OPTIONAL = new Set([
+    'disarm',
+    'mark',
+    'mark_opp',
+    'overrun',
+    'tumble',
+    'climb',
+    'identify_spell',
+    'falling',
+    'no_long_rest',
+    'injury',
+    'morale',
+    'hero',
+    'opportunity',
+  ])
 
   type Chip = {
     key: string
@@ -2179,12 +2197,14 @@ export function TurnEconomyCombatActions({
 
   const renderGroupPanel = (group: TurnActionGroupId) => {
     const personal = chips.filter(
-      (c) => c.groups.includes(group) && c.tier === 'personal',
+      (c) => c.groups.includes(group) && c.tier === 'personal' && !TABLE_OPTIONAL.has(c.key),
     )
     const common = chips.filter(
-      (c) => c.groups.includes(group) && c.tier === 'common',
+      (c) => c.groups.includes(group) && c.tier === 'common' && !TABLE_OPTIONAL.has(c.key),
     )
-    const more = chips.filter((c) => c.groups.includes(group) && c.tier === 'more')
+    const more = chips.filter(
+      (c) => c.groups.includes(group) && c.tier === 'more' && !TABLE_OPTIONAL.has(c.key),
+    )
     const info = chips.filter((c) => c.groups.includes(group) && c.tier === 'info')
     return (
       <div
@@ -2363,7 +2383,27 @@ export function TurnEconomyCombatActions({
             ) : null}
           </>
         ) : null}
+        <button
+          type="button"
+          className={`sheet-chip play-desk-turn-actions__tab${moreActionsOpen ? ' is-open' : ''}`}
+          aria-expanded={moreActionsOpen}
+          title="Опциональные действия стола"
+          onClick={() => {
+            setOpenGroup(null)
+            setMoreActionsOpen((open) => !open)
+          }}
+        >
+          Ещё действия хода
+        </button>
       </div>
+      {moreActionsOpen ? (
+        <div className="play-desk-turn-actions__optional" role="group" aria-label="Опциональные действия стола">
+          <p className="play-desk-turn-actions__optional-label">Опциональные действия стола</p>
+          <div className="chip-row play-desk-turn-actions__chips">
+            {chips.filter((c) => TABLE_OPTIONAL.has(c.key)).map((c) => c.node)}
+          </div>
+        </div>
+      ) : null}
       {openGroup ? (
         <div className="play-desk-turn-actions__panel-wrap">
           {spentOf(openGroup) ? (

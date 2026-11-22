@@ -143,8 +143,8 @@ export function PlayDeskLayout({ model }: { model: SheetModel }) {
                     model.draft.inspiration ? (
                       <button
                         type="button"
-                        className="play-desk__roll-mode-btn is-on"
-                        data-testid="heroic-inspiration-status"
+                      className="play-desk__roll-mode-btn is-on sheet-insp-arm"
+                      data-testid="heroic-inspiration-status"
                         aria-pressed
                         title="Героическое вдохновение: после броска можно перебросить любой кубик. Не бардовское."
                         onClick={() => {
@@ -159,7 +159,7 @@ export function PlayDeskLayout({ model }: { model: SheetModel }) {
                   ) : model.draft.inspiration || model.inspirationRollArmed ? (
                     <button
                       type="button"
-                      className={`play-desk__roll-mode-btn${
+                      className={`play-desk__roll-mode-btn sheet-insp-arm${
                         model.inspirationRollArmed ? ' is-on' : ''
                       }`}
                       aria-pressed={Boolean(model.inspirationRollArmed)}

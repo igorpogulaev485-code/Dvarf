@@ -323,8 +323,9 @@ export function DiceRollerPreviewPage() {
   const hd = params.get('hd') === '1'
   const smite = params.get('smite') === '1'
   const withMiss = params.get('miss') === '1' || rogue20
-  const [character, setCharacter] = useState(() =>
-    editionCharacter(edition, {
+  const persona = params.get('persona')
+  const [character, setCharacter] = useState(() => {
+    const base = editionCharacter(edition, {
       rogue20,
       heal,
       bless,
@@ -334,8 +335,52 @@ export function DiceRollerPreviewPage() {
       heroic,
       hd,
       smite,
-    }),
-  )
+    })
+    if (persona !== 'kaedrin') return base
+    const sheet = { ...(base.sheet as Record<string, unknown>) }
+    const identity = { ...((sheet.identity as Record<string, unknown>) ?? {}) }
+    identity.alignment = 'законопослушный добрый'
+    identity.experience = 6500
+    const combat = { ...((sheet.combat as Record<string, unknown>) ?? {}) }
+    combat.inspiration = false
+    combat.speed = 25
+    combat.initiative = 1
+    sheet.identity = identity
+    sheet.combat = combat
+    sheet.abilities = {
+      str: { score: 16 },
+      dex: { score: 12 },
+      con: { score: 14 },
+      int: { score: 10 },
+      wis: { score: 16 },
+      cha: { score: 12 },
+    }
+    sheet.classes = [
+      {
+        id: 'kaedrin-cleric',
+        name: 'Жрец',
+        catalog_id: 'cleric',
+        level: 5,
+        subclass_name: 'Жизнь',
+        subclass_catalog_id: 'life',
+      },
+    ]
+    sheet.inventory = {
+      coins: { cp: 0, sp: 0, ep: 0, gp: 12, pp: 0 },
+      items: (sheet.inventory as { items?: unknown })?.items ?? [],
+      notes: '',
+    }
+    return {
+      ...base,
+      name: 'Каэдрин Солнечный Щит',
+      class_name: 'Жрец',
+      race_name: 'Горный дварф',
+      level: 5,
+      hp_current: 38,
+      hp_max: 38,
+      sheet,
+    }
+  })
 
   const missSeed: DiceLogEntry[] = useMemo(
     () =>
