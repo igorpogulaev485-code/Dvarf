@@ -1,0 +1,316 @@
+/*
+ * Сцена «Исследование» на ПК — панель «Снаряжение» из sheet-desktop.html.
+ * Только .desk-explore. Шапка, Бой и телефон не затрагиваются.
+ */
+
+.app-shell--sheet .play-desk--wide .play-desk__stage-panel.desk-explore {
+  border: 1px solid var(--desk-line, var(--line));
+  border-radius: 12px;
+  background: var(--card);
+  padding: 8px 10px 48px;
+  box-sizing: border-box;
+  width: 457.9px;
+  max-width: 457.9px;
+  height: 329.734px !important;
+  min-height: 329.734px !important;
+  max-height: 329.734px !important;
+  overflow: auto;
+  align-self: start;
+  font-family: "IBM Plex Sans", "Source Sans 3", system-ui, sans-serif;
+  color: var(--text-body);
+}
+
+.app-shell--sheet .play-desk--wide .desk-explore h2 {
+  width: 100%;
+  margin: 0 0 8px;
+  font-family: "Source Serif 4", "Source Serif Pro", Georgia, serif;
+  font-size: 1.05rem;
+  color: var(--heading);
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  line-height: 29.4px;
+}
+
+.app-shell--sheet .play-desk--wide .desk-explore h2 .links {
+  display: flex;
+  gap: 6px;
+}
+
+.app-shell--sheet .play-desk--wide .desk-explore h2 .ghost {
+  border: 0;
+  background: transparent;
+  color: var(--accent);
+  padding: 6px 8px;
+  border-radius: 8px;
+  font-weight: 500;
+  font-size: 0.75rem;
+  font-family: "IBM Plex Sans", "Source Sans 3", system-ui, sans-serif;
+  line-height: 17.4px;
+  min-height: 0;
+  box-shadow: none;
+}
+
+.app-shell--sheet .play-desk--wide .desk-explore .scene-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  align-items: center;
+  margin: 0 0 8px;
+}
+
+.app-shell--sheet .play-desk--wide .desk-explore .scene-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1 1 140px;
+  padding: 6px 8px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--card) 88%, var(--mix-paper, #fff));
+  box-shadow: none;
+  min-height: 0;
+}
+
+.app-shell--sheet .play-desk--wide .desk-explore .scene-stat__lab {
+  font-size: 0.66rem;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-sub);
+}
+
+.app-shell--sheet .play-desk--wide .desk-explore .scene-stat__val {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  font-size: 0.82rem;
+  font-weight: 650;
+  color: var(--desk-ink, var(--heading));
+}
+
+.app-shell--sheet .play-desk--wide .desk-explore .carry-bar {
+  flex: 1 1 80px;
+  height: 6px;
+  min-width: 64px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--line) 70%, var(--card));
+}
+
+.app-shell--sheet .play-desk--wide .desk-explore .carry-bar > i {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+  border-radius: inherit;
+}
+
+.app-shell--sheet .play-desk--wide .desk-explore button.scene-stat {
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.app-shell--sheet .play-desk--wide .desk-explore .scene-search {
+  width: 100%;
+  box-sizing: border-box;
+  margin: 0 0 8px;
+  padding: 5px 8px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--card) 80%, var(--text) 4%);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.82rem;
+  min-height: 0;
+}
+
+.app-shell--sheet .play-desk--wide .desk-explore .filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0 0 8px;
+  align-items: center;
+}
+
+.app-shell--sheet .play-desk--wide .desk-explore .filters .chip,
+.app-shell--sheet .play-desk--wide .desk-explore .scene-toolbar > .chip {
+  flex: 0 0 auto;
+  width: max-content;
+  min-width: 0;
+  min-height: 28px;
+  padding: 2px 10px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent-soft) 55%, var(--mix-paper, #fff));
+  color: var(--desk-ink, var(--heading));
+  font-family: "IBM Plex Sans", "Source Sans 3", system-ui, sans-serif;
+  font-size: 0.78rem;
+  font-weight: 650;
+  line-height: 18px;
+  box-shadow: none;
+}
+
+.app-shell--sheet .play-desk--wide .desk-explore .filters .chip.is-on {
+  background: var(--accent);
+  color: var(--on-accent, #fff);
+  border-color: var(--accent);
+}
+
+.app-shell--sheet .play-desk--wide .desk-explore .scene-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+}
+
+.app-shell--sheet .play-desk--wide .desk-explore .scene-card {
+  position: relative;
+  border: 1px solid var(--desk-line, var(--line));
+  border-radius: 10px;
+  background: var(--card);
+  padding: 0;
+  min-width: 0;
+}
+
+.app-shell--sheet .play-desk--wide .desk-explore .scene-card.is-open {
+  border-color: color-mix(in srgb, var(--accent) 40%, var(--line));
+}
+
+.app-shell--sheet .play-desk--wide .desk-explore .scene-card__hit {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 6px 8px;
+  width: 100%;
+  margin: 0;
+  padding: 8px 10px;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  min-height: 0;
+  box-shadow: none;
+}
+
+.app-shell--sheet .play-desk--wide .desk-explore .scene-card__name {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 6px;
+  font-weight: 700;
+  color: var(--desk-ink, var(--heading));
+  font-size: 16px;
+  line-height: 23.2px;
+}
+
+.app-shell--sheet .play-desk--wide .desk-explore .scene-card__meta {
+  display: block;
+  margin-top: 2px;
+  font-size: 0.72rem;
+  font-weight: 400;
+  color: var(--desk-muted, var(--muted));
+  line-height: 16.7px;
+}
+
+.app-shell--sheet .play-desk--wide .desk-explore .scene-card__side {
+  font-size: 0.72rem;
+  font-weight: 650;
+  color: var(--text-sub);
+  white-space: nowrap;
+}
+
+.app-shell--sheet .play-desk--wide .desk-explore .scene-card__body {
+  padding: 0 10px 10px 34px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.82rem;
+  line-height: 1.4;
+}
+
+.app-shell--sheet .play-desk--wide .desk-explore .scene-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+.app-shell--sheet .play-desk--wide .desk-explore .scene-card__actions .btn {
+  border: 1px solid var(--line);
+  background: var(--card);
+  color: var(--text-sub);
+  border-radius: 10px;
+  padding: 7px 12px;
+  font-weight: 600;
+  font-size: 12.48px;
+  line-height: 18.096px;
+  min-height: 0;
+  box-shadow: none;
+}
+
+.app-shell--sheet .play-desk--wide .desk-explore .plaque-tag {
+  display: inline-block;
+  margin-left: 0;
+  padding: 2px 7px;
+  border-radius: 999px;
+  border: 0;
+  background: rgb(231, 225, 212);
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: rgb(36, 36, 31);
+  line-height: 15.8px;
+}
+
+.app-shell--sheet .play-desk--wide .desk-explore .plaque-tag.is-on {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.app-shell--sheet .play-desk--wide .desk-explore .inventory-card__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.app-shell--sheet .play-desk--wide .desk-explore .inventory-card__collapse {
+  margin-left: auto;
+  border: 0;
+  background: none;
+  color: var(--accent);
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 650;
+  min-height: 0;
+  padding: 0;
+}
+
+.app-shell--sheet .play-desk--wide .desk-explore .inventory-card__view-title {
+  margin: 0;
+  font-family: "Source Serif 4", Georgia, serif;
+  font-size: 1.05rem;
+  color: var(--heading);
+}
+
+.app-shell--sheet .play-desk--wide .desk-explore .inventory-fav {
+  border: 0;
+  background: none;
+  color: var(--accent);
+  font-size: 1rem;
+  line-height: 1;
+  padding: 2px;
+  min-height: 0;
+}
+
+.app-shell--sheet .play-desk--wide .desk-explore .proto-keep {
+  display: none !important;
+}

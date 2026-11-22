@@ -1071,8 +1071,9 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
 
       </div>
 
-      <div className="play-desk__stage-panel" hidden={model.stageHidden('inventory')}>
+      <div className={`play-desk__stage-panel${model.isPlayDesk ? ' panel has-content desk-explore' : ''}`} data-panel={model.isPlayDesk ? 'inventory' : undefined} hidden={model.stageHidden('inventory')}>
       <InventoryPanel
+        etalon={model.isPlayDesk}
         edition={model.baseCharacter.rules_edition as RulesEdition}
         inventory={model.draft.inventory}
         strengthScore={model.effectiveAbilities?.str ?? model.draft.abilities.str}

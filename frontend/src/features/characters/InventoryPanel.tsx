@@ -382,6 +382,8 @@ type InventoryPanelProps = {
   onAttunementsChange?: (attunements: AttunementSlot[]) => void
   attunementCharacter?: AttunementCharacter | null
   classLevels?: ClassLevelEntry[]
+  /** Desktop play desk: etalon «Снаряжение» markup. Phone keeps the compact panel. */
+  etalon?: boolean
 }
 
 export function InventoryPanel({
@@ -412,6 +414,7 @@ export function InventoryPanel({
   onAttunementsChange,
   attunementCharacter,
   classLevels = [],
+  etalon = false,
 }: InventoryPanelProps) {
   const favoriteSet = useMemo(() => new Set(favoriteConsumableIds), [favoriteConsumableIds])
   const favoriteCount = favoriteConsumableIds.length
@@ -421,6 +424,7 @@ export function InventoryPanel({
   const [coinPadOpen, setCoinPadOpen] = useState(false)
   const [scrollBindItemId, setScrollBindItemId] = useState<string | null>(null)
   const [filter, setFilter] = useState<InventoryFilter>('all')
+  const [invQuery, setInvQuery] = useState('')
   /** Accordion: at most one root detail open. */
   const [openId, setOpenId] = useState<string | null>(null)
   /** B7: expand opens view-first; edit only after «Изменить». */
@@ -1387,6 +1391,299 @@ export function InventoryPanel({
           </button>
         </div>
       </div>
+    )
+  }
+
+  if (etalon) {
+    const loadPct = Math.max(0, Math.min(100, capacityLb > 0 ? (totalLb / capacityLb) * 100 : 0))
+    const gp = coinsToGp(inventory.coins)
+    const gpRounded = Math.round(gp * 100) / 100
+    const gpLabel = `${Number.isInteger(gpRounded) ? String(gpRounded) : String(gpRounded)} зм`
+    const attuneNames = attunements
+      .map((slot) => {
+        const linked = inventory.items.find((row) => row.id === slot.item_id)
+        const name = (linked?.name || '').trim()
+        if (!name) return ''
+        return name
+          .replace(/^Амулет.*/, 'амулет')
+          .replace(/^Кольцо.*/, 'кольцо')
+          .replace(/^Камень.*/, 'камень')
+      })
+      .filter(Boolean)
+      .slice(0, 3)
+      .join(' · ')
+    const q = invQuery.trim().toLowerCase()
+    const shown = visibleRoots.filter((item) => {
+      if (!q) return true
+      return `${item.name} ${item.notes}`.toLowerCase().includes(q)
+    })
+    const metaLine = (item: InventoryItem) => {
+      const bits = [roleLabel(item, catalogItems).toLowerCase()]
+      if (item.base_ac != null) {
+        bits.push(item.armor_kind === 'shield' ? `+${item.base_ac} КД` : `КД ${item.base_ac}`)
+      }
+      if (item.weight_lb == null) bits.push('вес неизвестен')
+      else bits.push(`${formatLb(itemLineWeightLb(item))} фнт`)
+      return bits.join(' · ')
+    }
+    const renderEtalonCard = (item: InventoryItem, nested: boolean) => {
+      const open = openId === item.id
+      const bucket = itemBucket(item, catalogItems)
+      const weapon = isWeaponRow(item)
+      const armor = isArmorRow(item)
+      const pack = isPackRow(item, catalogItems)
+      const stowed = !item.equipped && (weapon || armor)
+      const weightLabel = item.weight_lb == null ? '—' : `${formatLb(itemLineWeightLb(item))} фнт`
+      const attuned = attunements.some((slot) => slot.item_id === item.id)
+      const tags: Array<{ text: string; on?: boolean }> = []
+      if (item.parent_id) tags.push({ text: 'в наборе' })
+      if (item.equipped && armor) tags.push({ text: 'надето', on: true })
+      if (item.equipped && weapon) tags.push({ text: 'в руках', on: true })
+      if (item.requires_attunement && attuned) tags.push({ text: 'настроено', on: true })
+      if (itemNeedsBaseChoice(item)) tags.push({ text: 'нужно настроить' })
+      if (pack) tags.push({ text: 'набор' })
+      if ((item.qty || 1) > 1) tags.push({ text: `×${item.qty}` })
+      return (
+        <article
+          key={item.id}
+          className={`scene-card is-item${open ? ' is-open' : ''}${pack ? ' is-pack' : ''}${
+            stowed ? ' inventory-card--stowed' : ''
+          }${nested ? ' is-nested' : ''}`}
+          data-item
+          data-item-id={item.id}
+          data-bucket={bucket}
+          data-equipped={item.equipped ? '1' : undefined}
+        >
+          <button
+            type="button"
+            className="scene-card__hit"
+            data-toggle-card
+            aria-label="Подробнее"
+            onClick={() => toggleDetails(item.id)}
+          >
+            <span aria-hidden="true" />
+            <span>
+              <span className="scene-card__name">
+                {item.name || 'Без названия'}{' '}
+                {tags.map((tag) => (
+                  <span key={tag.text} className={`plaque-tag${tag.on ? ' is-on' : ''}`}>
+                    {tag.text}
+                  </span>
+                ))}
+              </span>
+              <span className="scene-card__meta">{metaLine(item)}</span>
+            </span>
+            <span className="scene-card__side">{weightLabel}</span>
+          </button>
+          {open ? (
+            <div className="scene-card__body">
+              <div className="inventory-card__meta">
+                <span className="inventory-role">{roleLabel(item, catalogItems).toLowerCase()}</span>
+                {item.equipped && armor ? <span className="plaque-tag is-on">надето</span> : null}
+                {item.equipped && weapon ? <span className="plaque-tag is-on">в руках</span> : null}
+                <button type="button" className="inventory-card__collapse" onClick={() => toggleDetails(item.id)}>
+                  свернуть
+                </button>
+              </div>
+              <h3 className="inventory-card__view-title">{item.name || 'Без названия'}</h3>
+              <p className="scene-card__meta">
+                {(item.qty || 1) !== 1 ? `×${item.qty} · ` : ''}
+                {weightLabel === '—' ? 'вес неизвестен' : weightLabel}
+              </p>
+              {item.notes ? <p>{item.notes}</p> : null}
+              <div className="scene-card__actions">
+                {favoriteSet.has(item.id) || /зель|свиток/i.test(item.name) ? (
+                  <button
+                    type="button"
+                    className={`inventory-fav${favoriteSet.has(item.id) ? ' is-on' : ''}`}
+                    title={favoriteSet.has(item.id) ? 'Убрать из расходников боя' : 'В расходники боя'}
+                    onClick={() => onToggleConsumableFavorite?.(item.id)}
+                  >
+                    {favoriteSet.has(item.id) ? '★' : '☆'}
+                  </button>
+                ) : null}
+                {canShowEquipChip(item) ? (
+                  <button type="button" className={`btn${item.equipped ? ' is-on' : ''}`} onClick={() => toggleEquip(item)}>
+                    {item.equipped ? (weapon ? 'В инвентарь' : 'Снять') : weapon ? 'В руки' : 'Надеть'}
+                  </button>
+                ) : null}
+                {item.requires_attunement ? (
+                  <button type="button" className="btn" onClick={() => onOpenAttunement?.()}>
+                    Настройка
+                  </button>
+                ) : null}
+                {onTransferItem && !item.parent_id ? (
+                  <button type="button" className="btn" onClick={() => onTransferItem(item)}>
+                    Передать
+                  </button>
+                ) : null}
+                <button
+                  type="button"
+                  className="btn"
+                  onClick={() =>
+                    setEditingIds((ids) => {
+                      const copy = new Set(ids)
+                      if (copy.has(item.id)) copy.delete(item.id)
+                      else copy.add(item.id)
+                      return copy
+                    })
+                  }
+                >
+                  {editingIds.has(item.id) ? 'Готово' : 'Изменить'}
+                </button>
+              </div>
+            </div>
+          ) : null}
+        </article>
+      )
+    }
+    return (
+      <>
+        <h2>
+          Снаряжение
+          <span className="links">
+            <button type="button" className="ghost" onClick={() => setPickerOpen(true)}>
+              + Из справочника
+            </button>
+          </span>
+        </h2>
+        <div className="scene-toolbar" data-inv="inventory">
+          <div className="scene-stat" title="Вес вещей и монет относительно переносимого веса">
+            <span className="scene-stat__lab">Нагрузка</span>
+            <span className="scene-stat__val">
+              <span className="carry-bar" aria-hidden="true">
+                <i style={{ width: `${loadPct}%` }} />
+              </span>
+              <b>
+                {formatLb(totalLb)} / {formatLb(capacityLb)} фнт
+              </b>
+            </span>
+          </div>
+          <button type="button" className="scene-stat is-action" title={gpLabel} onClick={openCoinsPad}>
+            <span className="scene-stat__lab">Кошелёк</span>
+            <span className="scene-stat__val">
+              <b>{gpLabel}</b>
+            </span>
+          </button>
+          <button type="button" className="chip" onClick={() => onTransferCoins?.()}>
+            Передать монеты
+          </button>
+          <button
+            type="button"
+            className="scene-stat is-action"
+            title={`Настроенные предметы: ${attunementFilled ?? 0} из ${attunementLimit}`}
+            onClick={() => onOpenAttunement?.()}
+          >
+            <span className="scene-stat__lab">Настройка</span>
+            <span className="scene-stat__val">
+              <b>
+                {attunementFilled ?? 0}/{attunementLimit}
+              </b>
+              {attuneNames ? (
+                <span className="scene-card__meta" style={{ margin: 0 }}>
+                  {attuneNames}
+                </span>
+              ) : null}
+            </span>
+          </button>
+        </div>
+        <label className="sr-only" htmlFor="inv-search">
+          Поиск предмета
+        </label>
+        <input
+          id="inv-search"
+          className="scene-search"
+          type="search"
+          placeholder="Поиск по названию"
+          value={invQuery}
+          onChange={(event) => setInvQuery(event.target.value)}
+        />
+        <div className="filters" role="tablist" aria-label="Фильтр инвентаря">
+          {FILTERS.map((row) => (
+            <button
+              key={row.id}
+              type="button"
+              className={`chip${filter === row.id ? ' is-on' : ''}`}
+              aria-selected={filter === row.id}
+              onClick={() => setFilter(row.id)}
+            >
+              {row.label}
+            </button>
+          ))}
+        </div>
+        <div className="scene-list">
+          {shown.length === 0 ? (
+            <p className="flags">Ничего не найдено по этому фильтру.</p>
+          ) : (
+            shown.flatMap((item) => [
+              renderEtalonCard(item, false),
+              ...(isExpandedPack(inventory.items, item.id) ? childrenOf(inventory.items, item.id) : []).map((child) =>
+                renderEtalonCard(child, true),
+              ),
+            ])
+          )}
+        </div>
+        <GearPickerDialog
+          open={pickerOpen}
+          edition={edition}
+          onClose={() => setPickerOpen(false)}
+          onConfirm={(result: GearAddResult) => {
+            let toAdd = result
+            if (
+              result.equip &&
+              result.item.armor_kind !== 'none' &&
+              !canWearArmor(result.item.armor_kind, armorProficiency)
+            ) {
+              toAdd = {
+                ...result,
+                equip: false,
+                item: { ...result.item, equipped: false },
+              }
+              onToast?.(`${armorProficiencyHint(result.item.armor_kind)} — добавлено снятым`)
+            }
+            const next = applyGearAdd({
+              items: inventory.items,
+              weapons,
+              result: toAdd,
+            })
+            onChange({ ...inventory, items: next.items })
+            if (result.attacks.length > 0 && onWeaponsChange) onWeaponsChange(next.weapons)
+            setPickerOpen(false)
+          }}
+        />
+        <SpellScrollBindDialog
+          open={scrollBindItemId != null}
+          edition={edition}
+          item={
+            scrollBindItemId
+              ? inventory.items.find((row) => row.id === scrollBindItemId) ?? null
+              : null
+          }
+          onConfirm={(bound) => {
+            const spell = bound.scroll_spell
+            if (!spell) {
+              setScrollBindItemId(null)
+              return
+            }
+            onChange({
+              ...inventory,
+              items: applyScrollSpellChoice(inventory.items, bound.id, spell),
+            })
+            setScrollBindItemId(null)
+            onToast?.(`Свиток: ${spell.name}`)
+          }}
+          onClose={() => setScrollBindItemId(null)}
+        />
+        {!onOpenCoins ? (
+          <CoinPadDialog
+            open={coinPadOpen}
+            coins={inventory.coins}
+            onClose={() => setCoinPadOpen(false)}
+            onChange={(coins) => onChange({ ...inventory, coins })}
+            onToast={onToast ?? (() => undefined)}
+          />
+        ) : null}
+      </>
     )
   }
 
