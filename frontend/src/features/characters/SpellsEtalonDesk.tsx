@@ -28,15 +28,15 @@ const CIRCLES: Array<{ id: SpellCircle; title: string; count: string; slots?: st
 ]
 
 const SPELLS: SpellRow[] = [
-  { id: 'sacred-flame', circle: 0, name: 'Священное пламя', level: 'заговор', dmg: '2к8 излучение', school: 'sch-evocation', meta: 'действие · 60 фт · Сл 14 Ловк. · В/С · воплощение' },
-  { id: 'bless', circle: 1, name: 'Благословение', level: '1 ур.', dmg: 'союзники +1к4', tags: 'Архетип', school: 'sch-enchantment', granted: true, meta: 'действие · 30 фт · — · В/С/М · очарование · 1 мин', concentration: true },
-  { id: 'cure', circle: 1, name: 'Лечение ран', level: '1 ур.', dmg: '1к8+3 хитов', tags: 'Архетип', school: 'sch-evocation', granted: true, meta: 'действие · Касание · — · В/С · воплощение' },
-  { id: 'detect', circle: 1, name: 'Обнаружение магии', level: '1 ур.', school: 'sch-divination', meta: 'действие · На себя · — · В/С · прорицание · 10 мин', ritual: true, concentration: true, hidden: true },
-  { id: 'sanctuary', circle: 1, name: 'Укрытие', level: '1 ур.', dmg: 'Умение: Убежище верных 1/1', school: 'sch-abjuration', granted: true, meta: 'бонус · 30 фт · — · В/С/М · ограждение · 1 мин' },
-  { id: 'shield-faith', circle: 1, name: 'Щит веры', level: '1 ур. · 2/3 зар.', dmg: 'КД +2', tags: 'Наложение щита 2/3', school: 'sch-abjuration', granted: true, meta: 'бонус · 60 фт · — · В/С/М · ограждение · 10 мин', concentration: true },
-  { id: 'spiritual', circle: 2, name: 'Духовное оружие', level: '2 ур.', dmg: '1к8+3 силовое', tags: 'Архетип', school: 'sch-evocation', granted: true, meta: 'бонус · 60 фт · атака · В/С · воплощение · 1 мин' },
-  { id: 'lesser', circle: 2, name: 'Малое восстановление', level: '2 ур.', dmg: 'болезнь или состояние', tags: 'Архетип', school: 'sch-abjuration', granted: true, meta: 'действие · Касание · — · В/С · ограждение' },
-  { id: 'prayer', circle: 2, name: 'Молитва лечения', level: '2 ур.', dmg: '2к8+3 хиты, до 6 существ', school: 'sch-evocation', meta: '10 мин · 30 фт · — · В · воплощение' },
+  { id: 'sacred-flame', circle: 0, name: 'Священное пламя', level: 'заговор', dmg: '2к8 излучение', school: 'воплощение', meta: 'действие · 60 фт · Сл 14 Ловк. · В/С · воплощение' },
+  { id: 'bless', circle: 1, name: 'Благословение', level: '1 ур.', dmg: 'союзники +1к4', tags: 'Архетип', school: 'очарование', granted: true, meta: 'действие · 30 фт · — · В/С/М · очарование · 1 мин', concentration: true },
+  { id: 'cure', circle: 1, name: 'Лечение ран', level: '1 ур.', dmg: '1к8+3 хитов', tags: 'Архетип', school: 'воплощение', granted: true, meta: 'действие · Касание · — · В/С · воплощение' },
+  { id: 'detect', circle: 1, name: 'Обнаружение магии', level: '1 ур.', school: 'прорицание', meta: 'действие · На себя · — · В/С · прорицание · 10 мин', ritual: true, concentration: true, hidden: true },
+  { id: 'sanctuary', circle: 1, name: 'Укрытие', level: '1 ур.', dmg: 'Умение: Убежище верных 1/1', school: 'ограждение', granted: true, meta: 'бонус · 30 фт · — · В/С/М · ограждение · 1 мин' },
+  { id: 'shield-faith', circle: 1, name: 'Щит веры', level: '1 ур. · 2/3 зар.', dmg: 'КД +2', tags: 'Наложение щита 2/3', school: 'ограждение', granted: true, meta: 'бонус · 60 фт · — · В/С/М · ограждение · 10 мин', concentration: true },
+  { id: 'spiritual', circle: 2, name: 'Духовное оружие', level: '2 ур.', dmg: '1к8+3 силовое', tags: 'Архетип', school: 'воплощение', granted: true, meta: 'бонус · 60 фт · атака · В/С · воплощение · 1 мин' },
+  { id: 'lesser', circle: 2, name: 'Малое восстановление', level: '2 ур.', dmg: 'болезнь или состояние', tags: 'Архетип', school: 'ограждение', granted: true, meta: 'действие · Касание · — · В/С · ограждение' },
+  { id: 'prayer', circle: 2, name: 'Молитва лечения', level: '2 ур.', dmg: '2к8+3 хиты, до 6 существ', school: 'воплощение', meta: '10 мин · 30 фт · — · В · воплощение' },
 ]
 
 /** Илис Чернильный, Волшебник 10 — лист sheet-desktop.html, data-set-demo-char=ilis. */
@@ -50,32 +50,75 @@ const WIZARD_CIRCLES: Array<{ id: SpellCircle; title: string; count: string; slo
 ]
 
 const WIZARD_SPELLS: SpellRow[] = [
-  { id: 'fire-bolt', circle: 0, name: 'Огненный снаряд', level: 'заговор', dmg: '2к10 огонь', meta: '' },
-  { id: 'mage-hand', circle: 0, name: 'Волшебная рука', level: 'заговор', meta: '' },
-  { id: 'prestidigitation', circle: 0, name: 'Фокусы', level: 'заговор', meta: '' },
-  { id: 'minor-illusion', circle: 0, name: 'Малая иллюзия', level: 'заговор', meta: '' },
-  { id: 'ray-frost', circle: 0, name: 'Луч холода', level: 'заговор', dmg: '2к8 холод', meta: '' },
-  { id: 'light', circle: 0, name: 'Свет', level: 'заговор', tags: 'Раса: Высший эльф', granted: true, meta: '' },
-  { id: 'mage-armor', circle: 1, name: 'Доспехи мага', level: '1 ур.', dmg: 'КД 13 + Ловк.', meta: '' },
-  { id: 'magic-missile', circle: 1, name: 'Волшебная стрела', level: '1 ур.', dmg: '3×1к4+1 силовой', meta: '' },
-  { id: 'shield', circle: 1, name: 'Щит', level: '1 ур.', dmg: 'КД +5', meta: '' },
-  { id: 'w-detect', circle: 1, name: 'Обнаружение магии', level: '1 ур.', meta: '', concentration: true, bookRitual: true },
-  { id: 'identify', circle: 1, name: 'Опознавание', level: '1 ур.', meta: '', bookRitual: true },
-  { id: 'alarm', circle: 1, name: 'Сигнал тревоги', level: '1 ур.', meta: '', bookRitual: true },
-  { id: 'find-familiar', circle: 1, name: 'Поиск фамильяра', level: '1 ур.', meta: '', bookRitual: true },
-  { id: 'misty-step', circle: 2, name: 'Туманный шаг', level: '2 ур.', meta: '' },
-  { id: 'scorching-ray', circle: 2, name: 'Палящий луч', level: '2 ур.', dmg: '3 луча, 2к6 огонь', meta: '' },
-  { id: 'ink-mark', circle: 2, name: 'Метка чернил', level: 'своё 2 ур.', meta: '', concentration: true },
-  { id: 'counterspell', circle: 3, name: 'Контрзаклинание', level: '3 ур.', meta: '' },
-  { id: 'fireball', circle: 3, name: 'Огненный шар', level: '3 ур.', dmg: '8к6 огонь', meta: '' },
-  { id: 'fly', circle: 3, name: 'Полёт', level: '3 ур.', dmg: 'скорость полёта 60 фт', meta: '', concentration: true },
-  { id: 'haste', circle: 3, name: 'Ускорение', level: '3 ур.', meta: '', concentration: true },
-  { id: 'tiny-hut', circle: 3, name: 'Леомундова хижина', level: '3 ур.', meta: '', bookRitual: true },
-  { id: 'polymorph', circle: 4, name: 'Превращение', level: '4 ур.', meta: '', concentration: true },
-  { id: 'greater-invis', circle: 4, name: 'Высшая невидимость', level: '4 ур.', meta: '', concentration: true },
-  { id: 'dimension-door', circle: 4, name: 'Переносящая дверь', level: '4 ур.', meta: '' },
-  { id: 'telekinesis', circle: 5, name: 'Телекинез', level: '5 ур.', meta: '', concentration: true },
+  { id: 'fire-bolt', circle: 0, name: 'Огненный снаряд', level: 'заговор', dmg: '2к10 огонь', school: 'воплощение', meta: '' },
+  { id: 'mage-hand', circle: 0, name: 'Волшебная рука', level: 'заговор', school: 'вызов', meta: '' },
+  { id: 'prestidigitation', circle: 0, name: 'Фокусы', level: 'заговор', school: 'преобразование', meta: '' },
+  { id: 'minor-illusion', circle: 0, name: 'Малая иллюзия', level: 'заговор', school: 'иллюзия', meta: '' },
+  { id: 'ray-frost', circle: 0, name: 'Луч холода', level: 'заговор', dmg: '2к8 холод', school: 'воплощение', meta: '' },
+  { id: 'light', circle: 0, name: 'Свет', level: 'заговор', tags: 'Раса: Высший эльф', school: 'воплощение', granted: true, meta: '' },
+  { id: 'mage-armor', circle: 1, name: 'Доспехи мага', level: '1 ур.', dmg: 'КД 13 + Ловк.', school: 'ограждение', meta: '' },
+  { id: 'magic-missile', circle: 1, name: 'Волшебная стрела', level: '1 ур.', dmg: '3×1к4+1 силовой', school: 'воплощение', meta: '' },
+  { id: 'shield', circle: 1, name: 'Щит', level: '1 ур.', dmg: 'КД +5', school: 'ограждение', meta: '' },
+  { id: 'w-detect', circle: 1, name: 'Обнаружение магии', level: '1 ур.', school: 'прорицание', meta: '', concentration: true, bookRitual: true },
+  { id: 'identify', circle: 1, name: 'Опознавание', level: '1 ур.', school: 'прорицание', meta: '', bookRitual: true },
+  { id: 'alarm', circle: 1, name: 'Сигнал тревоги', level: '1 ур.', school: 'ограждение', meta: '', bookRitual: true },
+  { id: 'find-familiar', circle: 1, name: 'Поиск фамильяра', level: '1 ур.', school: 'вызов', meta: '', bookRitual: true },
+  { id: 'misty-step', circle: 2, name: 'Туманный шаг', level: '2 ур.', school: 'вызов', meta: '' },
+  { id: 'scorching-ray', circle: 2, name: 'Палящий луч', level: '2 ур.', dmg: '3 луча, 2к6 огонь', school: 'воплощение', meta: '' },
+  { id: 'ink-mark', circle: 2, name: 'Метка чернил', level: 'своё 2 ур.', school: 'преобразование', meta: '', concentration: true },
+  { id: 'counterspell', circle: 3, name: 'Контрзаклинание', level: '3 ур.', school: 'ограждение', meta: '' },
+  { id: 'fireball', circle: 3, name: 'Огненный шар', level: '3 ур.', dmg: '8к6 огонь', school: 'воплощение', meta: '' },
+  { id: 'fly', circle: 3, name: 'Полёт', level: '3 ур.', dmg: 'скорость полёта 60 фт', school: 'преобразование', meta: '', concentration: true },
+  { id: 'haste', circle: 3, name: 'Ускорение', level: '3 ур.', school: 'преобразование', meta: '', concentration: true },
+  { id: 'tiny-hut', circle: 3, name: 'Леомундова хижина', level: '3 ур.', school: 'воплощение', meta: '', bookRitual: true },
+  { id: 'polymorph', circle: 4, name: 'Превращение', level: '4 ур.', school: 'преобразование', meta: '', concentration: true },
+  { id: 'greater-invis', circle: 4, name: 'Высшая невидимость', level: '4 ур.', school: 'иллюзия', meta: '', concentration: true },
+  { id: 'dimension-door', circle: 4, name: 'Переносящая дверь', level: '4 ур.', school: 'вызов', meta: '' },
+  { id: 'telekinesis', circle: 5, name: 'Телекинез', level: '5 ур.', school: 'преобразование', meta: '', concentration: true },
 ]
+
+/** Школа из листа → контур. Одни и те же имена, что в spell.school эталона. */
+const SCHOOL_SYMBOL: Record<string, string> = {
+  ограждение: 'sch-abjuration',
+  вызов: 'sch-conjuration',
+  прорицание: 'sch-divination',
+  очарование: 'sch-enchantment',
+  воплощение: 'sch-evocation',
+  иллюзия: 'sch-illusion',
+  некромантия: 'sch-necromancy',
+  преобразование: 'sch-transmutation',
+}
+
+type PactPool = { cur: number; max: number; level: number }
+
+/** Живой sheet.pactSlots после «4 заклинателя»: 1/1 первого круга. */
+const PACT_POOL: Partial<Record<SpellMagicVariant, PactPool>> = {
+  warlock: { cur: 1, max: 1, level: 1 },
+}
+
+function PactSlots({ pool }: { pool: PactPool }) {
+  return (
+    <div className="pact-row">
+      <span>{`Ячейки договора: ${pool.cur}/${pool.max} · ${pool.level}-й круг`}</span>
+      <span className="slots" aria-label={`Ячейки договора ${pool.cur}/${pool.max}`}>
+        {Array.from({ length: pool.max }).map((_, index) => (
+          <button
+            key={index}
+            type="button"
+            className={`pip${index < pool.cur ? ' is-on' : ''}`}
+            aria-label={`Ячейка договора ${index + 1}`}
+          />
+        ))}
+      </span>
+    </div>
+  )
+}
+
+function schoolSymbol(school?: string): string | null {
+  if (!school) return null
+  if (school.startsWith('sch-')) return school
+  return SCHOOL_SYMBOL[school] ?? null
+}
 
 const CASTER_CHIPS: Record<SpellMagicVariant, Array<{ cls: string; name: string; abil: string; stats: string; quota: string }>> = {
   kaedrin: [{ cls: 'is-wis', name: 'Жрец', abil: 'МУД', stats: 'Сл 14 · +6', quota: 'подг. 1/8 · всегда 5' }],
@@ -124,6 +167,47 @@ function SchoolSprite() {
         <path d="M28 76 L32 70 M68 76 L64 70" />
         <path d="M48 74 L48 82 M44 78 L52 78" />
         <path d="M18 66 L22 62 M78 66 L74 62" />
+      </symbol>
+      <symbol id="sch-conjuration" viewBox="0 0 96 96">
+        <ellipse cx="48" cy="50" rx="28" ry="16" />
+        <ellipse cx="48" cy="50" rx="18" ry="10" />
+        <ellipse cx="48" cy="50" rx="8" ry="4" />
+        <path d="M20 50 Q20 30 48 22 Q76 30 76 50" />
+        <path d="M26 38 L26 34 M48 22 L48 16 M70 38 L70 34" />
+        <path d="M30 32 L28 26 M66 32 L68 26" />
+        <path d="M48 54 L48 82" />
+        <path d="M48 70 L42 78 M48 70 L54 78" />
+        <path d="M22 50 L16 48 M74 50 L80 48" />
+      </symbol>
+      <symbol id="sch-illusion" viewBox="0 0 96 96">
+        <path d="M24 28 C24 16 36 10 48 10 C60 10 72 16 72 28 L74 58 C74 74 62 84 48 84 C34 84 22 74 22 58 Z" />
+        <path d="M34 36 C36 30 42 28 46 34" />
+        <path d="M62 36 C60 30 54 28 50 34" />
+        <path d="M34 38 C36 40 40 40 44 38" />
+        <path d="M62 38 C60 40 56 40 52 38" />
+        <path d="M36 60 C42 70 54 70 60 60" />
+        <path d="M70 18 C82 8 90 28 80 36 C90 40 86 54 76 48" />
+        <path d="M20 70 C10 78 18 90 30 84" />
+      </symbol>
+      <symbol id="sch-necromancy" viewBox="0 0 96 96">
+        <path d="M32 28 C32 14 44 8 52 8 C70 8 80 22 80 36 C80 48 74 54 70 56 L70 66 C70 72 64 76 58 76 L40 76 C34 76 30 70 30 64 L30 56 C26 52 24 44 24 36 C24 32 26 28 32 28 Z" />
+        <ellipse cx="44" cy="38" rx="7" ry="8" />
+        <ellipse cx="64" cy="38" rx="6.5" ry="7.5" />
+        <path d="M52 48 L48 58 L56 58 Z" />
+        <path d="M36 66 L36 74 M44 66 L44 76 M52 66 L52 76 M60 66 L60 74" />
+        <path d="M30 64 L70 64" />
+        <path d="M22 80 L32 74 M74 82 L68 74" />
+      </symbol>
+      <symbol id="sch-transmutation" viewBox="0 0 96 96">
+        <path d="M48 28 L48 72" />
+        <path d="M48 28 C48 16 36 8 24 16 C16 22 16 36 28 40 C36 42 44 38 48 32" />
+        <path d="M48 28 C48 16 60 8 72 16 C80 22 80 36 68 40 C60 42 52 38 48 32" />
+        <path d="M48 50 C48 42 38 40 28 48 C18 56 20 70 32 70 C42 70 48 62 48 54" />
+        <path d="M48 50 C48 42 58 40 68 48 C78 56 76 70 64 70 C54 70 48 62 48 54" />
+        <circle cx="48" cy="30" r="2.2" />
+        <path d="M44 22 C40 12 32 10 28 14 M52 22 C56 12 64 10 68 14" />
+        <path d="M20 78 C20 70 28 66 34 70 C38 73 36 80 28 80 C22 80 20 74 26 72" />
+        <path d="M76 78 C84 70 80 62 72 62 C66 62 64 70 70 72" />
       </symbol>
       <symbol id="sch-evocation" viewBox="0 0 96 96">
         <path d="M48 88 C28 88 22 68 30 54 C26 46 28 36 36 32 C34 44 40 46 42 36 C44 24 50 16 48 8 C62 18 70 32 66 48 C78 50 80 68 66 78 C72 70 62 66 58 72 C54 82 52 88 48 88 Z" />
@@ -243,6 +327,7 @@ export function SpellsEtalonDesk({
         value={query}
         onChange={(event) => setQuery(event.target.value)}
       />
+      {PACT_POOL[variant] ? <PactSlots pool={PACT_POOL[variant]} /> : null}
       <div className="spell-collapse-row">
         <button type="button" className="chip" onClick={() => setCollapsed(new Set([0, 1, 2, 3]))}>Свернуть все</button>
         <button type="button" className="chip" onClick={() => setCollapsed(new Set())}>Развернуть все</button>
@@ -292,10 +377,10 @@ export function SpellsEtalonDesk({
                   className={`plaque is-spell${spell.granted ? ' is-granted' : ''}`}
                   hidden={spell.hidden || undefined}
                 >
-                  {spell.school ? (
+                  {schoolSymbol(spell.school) ? (
                     <div className="plaque-art" aria-hidden="true">
                       <svg viewBox="0 0 96 96" className="icon-ink" width="100%" height="100%">
-                        <use href={`#${spell.school}`} />
+                        <use href={`#${schoolSymbol(spell.school)}`} />
                       </svg>
                     </div>
                   ) : null}

@@ -30,6 +30,7 @@
 .app-shell--sheet .play-desk--wide .desk-spells > .filters,
 .app-shell--sheet .play-desk--wide .desk-spells > input,
 .app-shell--sheet .play-desk--wide .desk-spells > .spell-collapse-row,
+.app-shell--sheet .play-desk--wide .desk-spells > .pact-row,
 .app-shell--sheet .play-desk--wide .desk-spells > label {
   flex: 0 0 auto;
 }
@@ -134,6 +135,20 @@ html[data-theme='leaf-classic'] .app-shell--sheet .play-desk--wide .play-desk__s
   gap: 6px;
   align-items: center;
   margin: 0 0 8px;
+}
+
+.app-shell--sheet .play-desk--wide .desk-spells .pact-row {
+  display: flex;
+  align-items: center;
+  margin: 0 0 8px;
+  font-size: 0.8rem;
+  color: var(--text-sub, var(--muted));
+}
+
+.app-shell--sheet .play-desk--wide .desk-spells .pact-row .slots {
+  display: inline-flex;
+  gap: 4px;
+  margin-left: 6px;
 }
 
 .app-shell--sheet .play-desk--wide .desk-spells .spell-collapse-row {
