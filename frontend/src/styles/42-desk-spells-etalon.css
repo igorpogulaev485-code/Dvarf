@@ -11,9 +11,9 @@
   box-sizing: border-box;
   width: 506.1px;
   max-width: 506.1px;
-  height: 359.7px !important;
-  min-height: 359.7px !important;
-  max-height: 359.7px !important;
+  height: 370.7px !important;
+  min-height: 370.7px !important;
+  max-height: 370.7px !important;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -79,6 +79,13 @@
 
 .app-shell--sheet .play-desk--wide .desk-spells.is-multi .cast-chip {
   width: 314.2px;
+}
+
+.app-shell--sheet .play-desk--wide .desk-spells.is-multi,
+html[data-theme='leaf-classic'] .app-shell--sheet .play-desk--wide .play-desk__stage-panel.desk-spells:not(.is-wizard) {
+  height: 359.7px !important;
+  min-height: 359.7px !important;
+  max-height: 359.7px !important;
 }
 
 .app-shell--sheet .play-desk--wide .desk-spells.is-wizard {
