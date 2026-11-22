@@ -327,14 +327,14 @@ html[data-theme='leaf-classic'] {
 
   .app-shell--sheet button.play-desk-header__xp {
     margin-top: 2px;
-    max-width: 18rem;
-    width: 100%;
-    flex: 1 1 100%;
+    max-width: none;
+    width: max-content;
+    flex: 0 0 auto;
     display: flex;
-    flex-flow: row wrap;
+    flex-flow: row nowrap;
     align-items: center;
     align-self: start;
-    gap: 4px 8px;
+    gap: 8px;
     height: auto;
     min-height: 0;
     padding: 0;
@@ -349,10 +349,10 @@ html[data-theme='leaf-classic'] {
   .app-shell--sheet .play-desk-header__xp-bar,
   .app-shell--sheet .ui-xp-track__bar {
     display: block;
-    flex: 1 1 8rem;
-    min-width: 6.5rem;
-    width: auto;
-    max-width: none;
+    flex: 0 0 8rem;
+    width: 8rem;
+    min-width: 8rem;
+    max-width: 8rem;
     height: 7px;
     min-height: 7px;
     max-height: 7px;
@@ -376,9 +376,10 @@ html[data-theme='leaf-classic'] {
   }
 
   .app-shell--sheet .play-desk-header__xp-remain {
-    flex: 0 1 auto;
+    flex: 0 0 auto;
     order: 2;
     width: auto;
+    white-space: nowrap;
     font-size: 0.62rem;
     font-weight: 600;
     color: var(--desk-muted, var(--muted));
