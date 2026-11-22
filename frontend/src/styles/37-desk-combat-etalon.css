@@ -18,7 +18,7 @@
   background: var(--card);
   width: 457.9px;
   max-width: 457.9px;
-  padding: 8px 10px 63px;
+  padding: 8px 10px 64px;
   box-sizing: border-box;
   height: 370.734px !important;
   min-height: 370.734px !important;
@@ -76,10 +76,13 @@ html[data-theme='leaf-classic'] .app-shell--sheet .play-desk--wide .play-desk__s
   padding: 6px 8px;
   border-radius: 8px;
   font-weight: 500;
-  font-size: 0.75rem;
   font-family: "IBM Plex Sans", "Source Sans 3", system-ui, sans-serif;
   box-shadow: none;
   min-height: 0;
+}
+
+.app-shell--sheet .play-desk--wide .desk-combat h2 .links button {
+  font-size: 0.75rem;
 }
 
 .app-shell--sheet .play-desk--wide .desk-combat h2 .links button {
@@ -274,6 +277,10 @@ html[data-theme='leaf-classic'] .app-shell--sheet .play-desk--wide .desk-combat 
   display: grid;
   place-items: center;
   box-shadow: none;
+  font-family: "IBM Plex Sans", "Source Sans 3", system-ui, sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 16px;
 }
 
 .app-shell--sheet .play-desk--wide .desk-combat button.tool-ico.is-on {
@@ -342,9 +349,9 @@ html[data-theme='leaf-classic'] .app-shell--sheet .play-desk--wide .desk-combat 
   position: absolute;
   top: 0;
   bottom: 0;
-  right: 4.6rem;
+  right: 75.6px;
   left: auto;
-  width: 58%;
+  width: 250.5px;
   pointer-events: none;
   z-index: 0;
   -webkit-mask-image: linear-gradient(to right, transparent 0%, #000 16%, #000 70%, transparent 100%);
@@ -401,8 +408,23 @@ html[data-theme='leaf-classic'] .app-shell--sheet .play-desk--wide .desk-combat 
   border-radius: 10px;
   padding: 7px 12px;
   font-weight: 600;
-  font-size: 0.78rem;
+  font-size: 12.48px;
+  line-height: 18.096px;
+  box-sizing: border-box;
   box-shadow: none;
+}
+
+.app-shell--sheet .play-desk--wide .desk-combat .turn-actions__panel .sheet-chip {
+  font-family: "IBM Plex Sans", "Source Sans 3", system-ui, sans-serif;
+  font-size: 12.48px;
+  font-weight: 600;
+  line-height: 18.096px;
+  padding: 7px 12px;
+  min-height: 0;
+  height: auto;
+  gap: 0;
+  box-sizing: border-box;
+  border-radius: 10px;
 }
 
 .app-shell--sheet .play-desk--wide .desk-combat .turn-more {
@@ -505,9 +527,25 @@ html[data-theme='leaf-classic'] .app-shell--sheet .play-desk--wide .desk-combat 
 }
 
 .app-shell--sheet .play-desk--wide .desk-combat .cons-block {
+  display: block;
+  gap: 0;
   margin-top: 16px;
   padding-top: 8px;
   border-top: 1px solid var(--line);
+}
+
+.app-shell--sheet .play-desk--wide .desk-combat .cons-head {
+  line-height: 16.7px;
+}
+
+.app-shell--sheet .play-desk--wide .desk-combat .play-desk-compact__cons-add {
+  margin-top: 0;
+}
+
+.app-shell--sheet .play-desk--wide .desk-combat .cons-block .ghost {
+  font-size: 16px;
+  line-height: 23.2px;
+  padding: 6px 8px;
 }
 
 .app-shell--sheet .play-desk--wide .desk-combat .cons-head {
@@ -541,7 +579,8 @@ html[data-theme='leaf-classic'] .app-shell--sheet .play-desk--wide .desk-combat 
   border-radius: 10px;
   background: var(--card);
   margin-bottom: 6px;
-  font-size: 0.8rem;
+  font-size: 12.8px;
+  line-height: 18.56px;
 }
 
 .app-shell--sheet .play-desk--wide .desk-combat .cons-row.is-fav {
@@ -567,7 +606,11 @@ html[data-theme='leaf-classic'] .app-shell--sheet .play-desk--wide .desk-combat 
   color: var(--text-sub);
   border-radius: 10px;
   padding: 7px 12px;
+  font-size: 12.8px;
+  line-height: 18.56px;
   font-weight: 600;
+  box-sizing: border-box;
+  min-height: 34.5px;
   box-shadow: none;
 }
 
