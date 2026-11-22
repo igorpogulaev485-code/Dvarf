@@ -16,6 +16,7 @@ import { PlayDeskTop } from './PlayDeskTop'
 import { SheetIdentityDialog } from './SheetIdentityDialog'
 import { PlayDeskScenes } from './PlayDeskScenes'
 import { DeskHotEtalon } from '../DeskHotEtalon'
+import { AbilityEtalonRail } from '../AbilityEtalonRail'
 import { SheetDialogsRolls } from './SheetDialogsRolls'
 import { SheetDialogsResources } from './SheetDialogsResources'
 import { SheetDialogsSetup } from './SheetDialogsSetup'
@@ -239,18 +240,20 @@ export function PlayDeskLayout({ model }: { model: SheetModel }) {
             leftRef.current = node
           }}
         >
-          {model.abilityColumn}
-          <div className="play-desk__rail-foot">
-            {model.passivesCompact}
-            <OwnershipSummary
-              armor={model.draft.identity.armor}
-              weapons={model.draft.identity.weapons}
-              tools={model.draft.identity.tools}
-              languages={model.draft.identity.languages}
-              onOpen={() => model.setOwnershipOpen(true)}
-            />
-            {model.showOnboardingChecklist ? <OnboardingChecklist compact /> : null}
-          </div>
+          {model.isPlayDesk ? <AbilityEtalonRail /> : model.abilityColumn}
+          {model.isPlayDesk ? null : (
+            <div className="play-desk__rail-foot">
+              {model.passivesCompact}
+              <OwnershipSummary
+                armor={model.draft.identity.armor}
+                weapons={model.draft.identity.weapons}
+                tools={model.draft.identity.tools}
+                languages={model.draft.identity.languages}
+                onOpen={() => model.setOwnershipOpen(true)}
+              />
+              {model.showOnboardingChecklist ? <OnboardingChecklist compact /> : null}
+            </div>
+          )}
         </aside>
 
         <div
