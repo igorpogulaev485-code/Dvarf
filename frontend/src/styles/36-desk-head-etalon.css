@@ -832,6 +832,18 @@ html[data-theme='leaf-classic'] .desk-head .hp-tile {
   font-weight: 700;
 }
 
+.desk-head .vital-chip b.num {
+  font-family: "Source Serif 4", "Source Serif Pro", Georgia, serif;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+html[data-theme='leaf-classic'] .desk-head .vital,
+html[data-theme='leaf-classic'] .desk-head .round-btn,
+html[data-theme='leaf-classic'] .desk-head .vital-chip:not(.is-on) {
+  background-color: #131313;
+}
+
 .desk-head .vital-pill,
 .desk-head .vital-chip,
 .desk-head .vital__shield {
