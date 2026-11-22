@@ -136,7 +136,7 @@
 .skill-row.is-on {
   background: var(--accent);
   border-color: var(--accent);
-  color: #fff;
+  color: var(--on-accent);
   font-weight: 700;
   box-shadow: inset 0 0 0 1px color-mix(in srgb, #fff 18%, transparent);
 }

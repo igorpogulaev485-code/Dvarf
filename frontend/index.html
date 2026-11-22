@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="ru">
+<html lang="ru" data-theme="light-designer3" data-accent="wis" data-bg="parchment" data-font="antiqua" data-ability-colors="identity">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
@@ -9,14 +9,14 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Marck+Script&family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600;8..60,650;8..60,700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Caveat:wght@600&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&family=Literata:opsz,wght@7..72,600;7..72,700&family=Marck+Script&family=Source+Sans+3:wght@600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600;8..60,650;8..60,700&family=Yeseva+One&display=swap"
       rel="stylesheet"
       media="print"
       onload="this.media='all'"
     />
     <noscript>
       <link
-        href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Marck+Script&family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600;8..60,650;8..60,700&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Caveat:wght@600&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&family=Literata:opsz,wght@7..72,600;7..72,700&family=Marck+Script&family=Source+Sans+3:wght@600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600;8..60,650;8..60,700&family=Yeseva+One&display=swap"
         rel="stylesheet"
       />
     </noscript>
@@ -64,12 +64,26 @@
           var raw = localStorage.getItem('dvarf.accountAppearance.v1')
           if (!raw) return
           var a = JSON.parse(raw)
-          if (a && typeof a.themeId === 'string') {
-            document.documentElement.setAttribute('data-theme', a.themeId)
-          }
-          if (a && typeof a.abilityColors === 'string') {
-            document.documentElement.setAttribute('data-ability-colors', a.abilityColors)
-          }
+          if (!a) return
+          var accents = { str: 1, dex: 1, con: 1, int: 1, wis: 1, cha: 1 }
+          var surfaces = { 'light-designer3': 1, 'leaf-classic': 1 }
+          var fonts = { antiqua: 1, grotesque: 1, ustav: 1, scribe: 1, script: 1, tabular: 1 }
+          var lightBg = { parchment: 1, ivory: 1, linen: 1, stone: 1, moss: 1, azure: 1 }
+          var darkBg = { ink: 1, graphite: 1, night: 1, oak: 1, tar: 1, slate: 1 }
+          var colors = { identity: 1, theme: 1 }
+          var root = document.documentElement
+          var surface = surfaces[a.surface] ? a.surface : 'light-designer3'
+          var accent = accents[a.themeId] ? a.themeId : 'wis'
+          var font = fonts[a.fontPair] ? a.fontPair : 'antiqua'
+          var ability = colors[a.abilityColors] ? a.abilityColors : 'identity'
+          var bg = surface === 'leaf-classic'
+            ? (darkBg[a.bgDark] ? a.bgDark : 'ink')
+            : (lightBg[a.bgLight] ? a.bgLight : 'parchment')
+          root.setAttribute('data-theme', surface)
+          root.setAttribute('data-accent', accent)
+          root.setAttribute('data-bg', bg)
+          root.setAttribute('data-font', font)
+          root.setAttribute('data-ability-colors', ability)
         } catch (e) {}
       })()
     </script>

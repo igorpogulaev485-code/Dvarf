@@ -68,10 +68,22 @@ def serialize_user(
 ) -> UserResponse:
     theme_id = getattr(user, "theme_id", None) or "wis"
     ability_colors = getattr(user, "ability_colors", None) or "identity"
+    surface = getattr(user, "surface", None) or "light-designer3"
+    bg_light = getattr(user, "bg_light", None) or "parchment"
+    bg_dark = getattr(user, "bg_dark", None) or "ink"
+    font_pair = getattr(user, "font_pair", None) or "antiqua"
     if theme_id not in {"str", "dex", "con", "int", "wis", "cha"}:
         theme_id = "wis"
     if ability_colors not in {"identity", "theme"}:
         ability_colors = "identity"
+    if surface not in {"light-designer3", "leaf-classic"}:
+        surface = "light-designer3"
+    if bg_light not in {"parchment", "ivory", "linen", "stone", "moss", "azure"}:
+        bg_light = "parchment"
+    if bg_dark not in {"ink", "graphite", "night", "oak", "tar", "slate"}:
+        bg_dark = "ink"
+    if font_pair not in {"antiqua", "grotesque", "ustav", "scribe", "script", "tabular"}:
+        font_pair = "antiqua"
     onboarding = normalize_onboarding_payload(getattr(user, "onboarding", None))
     admin_flag = bool(is_admin) if is_admin is not None else False
     if is_admin is None and db is not None:
@@ -88,6 +100,10 @@ def serialize_user(
         avatar_url=user.avatar_url,
         theme_id=theme_id,  # type: ignore[arg-type]
         ability_colors=ability_colors,  # type: ignore[arg-type]
+        surface=surface,  # type: ignore[arg-type]
+        bg_light=bg_light,  # type: ignore[arg-type]
+        bg_dark=bg_dark,  # type: ignore[arg-type]
+        font_pair=font_pair,  # type: ignore[arg-type]
         onboarding=onboarding,
         email_verified_at=user.email_verified_at,
         created_at=user.created_at,
@@ -492,6 +508,10 @@ class AuthService:
         if "ability_colors" in data and data["ability_colors"] is not None:
             user.ability_colors = data["ability_colors"]
             self.db.add(user)
+        for key in ("surface", "bg_light", "bg_dark", "font_pair"):
+            if key in data and data[key] is not None:
+                setattr(user, key, data[key])
+                self.db.add(user)
         if "onboarding" in data:
             # Explicit null clears server progress (e.g. «Показать подсказки снова»).
             raw = data["onboarding"]

@@ -1,19 +1,20 @@
 :root {
-  /* UI Kit Wave A — Листва (docs/ui-kit/README.md) */
+  /* UI Kit — Листва. Surface L3 (light-designer3) is the default.
+     I2 overrides sit on html[data-theme='leaf-classic']. Accents: data-accent. */
   color: #2d2d2a;
-  /* Canvas fill lives on html/body/#root below — not only here —
-     so short pages / Safari overscroll never flash a white strip. */
+  /* Illustrated canvas comes from shared-approved.css once data-bg is set.
+     The gradient remains the fallback before that attribute exists. */
   --app-canvas-bg:
     radial-gradient(circle at top left, #f3e8d4 0%, transparent 42%),
     linear-gradient(180deg, #fbf7ec 0%, #f3ebe0 100%);
   background: var(--app-canvas-bg);
-  font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   --ink: #2d2d2a;
   --muted: #6f675c;
+  --heading: #24241f;
   --danger: #b42318;
   --warn: #b54708;
   --down: #b42318;
@@ -22,22 +23,33 @@
   --desk-paper: #fbf7ec;
   --line: #e0d8c7;
   --card: #fffdf8;
-  --accent: #5a6b3d;
+  --card-solid: #fffdf8;
+  --bg: #f7f2e4;
+  /* L3 Листва. The six accents override this from data-accent. */
+  --accent: #4e5d34;
+  --accent-rgb: 78, 93, 52;
+  --accent-light: #6b7a48;
+  --accent-dark: #3d4a28;
   --accent-soft: #e5ecd4;
-  /* Open glyph on accent. Light etalon: sheet-desktop.html html[data-theme="light-designer3"]. */
+  /* Open glyph on accent. Light etalon: #f8fffb. Dark I2 sets #0A0A0A. */
   --on-accent: #f8fffb;
+  --text-sub: rgba(45, 45, 42, 0.92);
+  --text-body: rgba(45, 45, 42, 0.78);
   --font-display: "Source Serif 4", Georgia, "Times New Roman", serif;
   --font-ui: "IBM Plex Sans", "Segoe UI", sans-serif;
-  /* Ability identity (rail A) — reserved for A3; defined early for reuse */
+  --font-num: "IBM Plex Sans", "Segoe UI", sans-serif;
+  --font-display-weight: 700;
+  font-family: var(--font-ui);
+  /* Ability identity. L3 darkens ТЕЛ and МДР; I2 replaces the set below. */
   --abil-str: #9a4a32;
   --abil-str-soft: #f3e0d6;
   --abil-dex: #3d6b5a;
   --abil-dex-soft: #dcece4;
-  --abil-con: #8a6a2f;
+  --abil-con: #795c28;
   --abil-con-soft: #f1e6c8;
   --abil-int: #3f5f8a;
   --abil-int-soft: #dde6f2;
-  --abil-wis: #5a6b3d;
+  --abil-wis: #546338;
   --abil-wis-soft: #e5ecd4;
   --abil-cha: #7a4a6e;
   --abil-cha-soft: #efe0ea;
@@ -59,36 +71,191 @@
   --radius-card: 8px;
 }
 
-/* Wave B — account theme swaps only accent tokens (docs/ui-kit §2n) */
-html[data-theme='str'] {
+/* I2 surface. Cards stay opaque so the background tile does not show through. */
+html[data-theme='leaf-classic'] {
+  color: #e0e0e0;
+  --ink: #e0e0e0;
+  --muted: rgba(255, 255, 255, 0.6);
+  --heading: #ffffff;
+  --panel: #141414;
+  --desk-paper: #131313;
+  --card: #141414;
+  --card-solid: #141414;
+  --line: color-mix(in srgb, #ffffff 16%, #141414);
+  --bg: #0a0a0a;
+  --accent: #c4d19a;
+  --accent-rgb: 196, 209, 154;
+  --accent-light: #e0edb6;
+  --accent-dark: #8fa36a;
+  --accent-soft: color-mix(in srgb, #c4d19a 22%, #141414);
+  --on-accent: #0a0a0a;
+  --text-sub: rgba(255, 255, 255, 0.8);
+  --text-body: rgba(255, 255, 255, 0.6);
+  --abil-str: #e0a08a;
+  --abil-str-soft: color-mix(in srgb, #e0a08a 22%, #141414);
+  --abil-dex: #86c4b0;
+  --abil-dex-soft: color-mix(in srgb, #86c4b0 22%, #141414);
+  --abil-con: #d4b36a;
+  --abil-con-soft: color-mix(in srgb, #d4b36a 22%, #141414);
+  --abil-int: #9ab0d4;
+  --abil-int-soft: color-mix(in srgb, #9ab0d4 22%, #141414);
+  --abil-wis: #c4d19a;
+  --abil-wis-soft: color-mix(in srgb, #c4d19a 22%, #141414);
+  --abil-cha: #c9a0be;
+  --abil-cha-soft: color-mix(in srgb, #c9a0be 22%, #141414);
+}
+
+/* Six accents. Light hexes are the kit; L3 Листва is #4e5d34.
+   Dark pairs are the accepted cabinet. --on-accent on I2 is #0A0A0A. */
+html[data-accent='str'] {
   --accent: #9a4a32;
+  --accent-rgb: 154, 74, 50;
+  --accent-light: #b86a52;
+  --accent-dark: #7a3a28;
   --accent-soft: #f3e0d6;
+  --on-accent: #f8fffb;
 }
-html[data-theme='dex'] {
+html[data-accent='dex'] {
   --accent: #3d6b5a;
+  --accent-rgb: 61, 107, 90;
+  --accent-light: #5a8a76;
+  --accent-dark: #2c5244;
   --accent-soft: #dcece4;
+  --on-accent: #f8fffb;
 }
-html[data-theme='con'] {
+html[data-accent='con'] {
   --accent: #8a6a2f;
+  --accent-rgb: 138, 106, 47;
+  --accent-light: #a8864a;
+  --accent-dark: #6a501f;
   --accent-soft: #f1e6c8;
+  --on-accent: #f8fffb;
 }
-html[data-theme='int'] {
+html[data-accent='int'] {
   --accent: #3f5f8a;
+  --accent-rgb: 63, 95, 138;
+  --accent-light: #5a7aa6;
+  --accent-dark: #2e4768;
   --accent-soft: #dde6f2;
+  --on-accent: #f8fffb;
 }
-html[data-theme='wis'] {
-  --accent: #5a6b3d;
+html[data-accent='wis'] {
+  --accent: #4e5d34;
+  --accent-rgb: 78, 93, 52;
+  --accent-light: #6b7a48;
+  --accent-dark: #3d4a28;
   --accent-soft: #e5ecd4;
+  --on-accent: #f8fffb;
 }
-html[data-theme='cha'] {
+html[data-accent='cha'] {
   --accent: #7a4a6e;
+  --accent-rgb: 122, 74, 110;
+  --accent-light: #98648c;
+  --accent-dark: #5c3754;
   --accent-soft: #efe0ea;
+  --on-accent: #f8fffb;
+}
+html[data-theme='leaf-classic'][data-accent='str'] {
+  --accent: #e8b6a8;
+  --accent-rgb: 232, 182, 168;
+  --accent-light: #f0c4b8;
+  --accent-dark: #d9a090;
+  --accent-soft: color-mix(in srgb, #e8b6a8 22%, #141414);
+  --on-accent: #0a0a0a;
+}
+html[data-theme='leaf-classic'][data-accent='dex'] {
+  --accent: #9ecbb6;
+  --accent-rgb: 158, 203, 182;
+  --accent-light: #b3d8c6;
+  --accent-dark: #8fbfa8;
+  --accent-soft: color-mix(in srgb, #9ecbb6 22%, #141414);
+  --on-accent: #0a0a0a;
+}
+html[data-theme='leaf-classic'][data-accent='con'] {
+  --accent: #e0cc8a;
+  --accent-rgb: 224, 204, 138;
+  --accent-light: #e8d5a0;
+  --accent-dark: #d4c08a;
+  --accent-soft: color-mix(in srgb, #e0cc8a 22%, #141414);
+  --on-accent: #0a0a0a;
+}
+html[data-theme='leaf-classic'][data-accent='int'] {
+  --accent: #adc2e0;
+  --accent-rgb: 173, 194, 224;
+  --accent-light: #b8c8e4;
+  --accent-dark: #9db4d4;
+  --accent-soft: color-mix(in srgb, #adc2e0 22%, #141414);
+  --on-accent: #0a0a0a;
+}
+html[data-theme='leaf-classic'][data-accent='wis'] {
+  --accent: #c4d19a;
+  --accent-rgb: 196, 209, 154;
+  --accent-light: #e0edb6;
+  --accent-dark: #8fa36a;
+  --accent-soft: color-mix(in srgb, #c4d19a 22%, #141414);
+  --on-accent: #0a0a0a;
+}
+html[data-theme='leaf-classic'][data-accent='cha'] {
+  --accent: #e0b8d4;
+  --accent-rgb: 224, 184, 212;
+  --accent-light: #e8c4dc;
+  --accent-dark: #d4a8c8;
+  --accent-soft: color-mix(in srgb, #e0b8d4 22%, #141414);
+  --on-accent: #0a0a0a;
 }
 
 /* Optional: all ability blocks follow account accent (calmer rail) */
 html[data-ability-colors='theme'] .abil-block[data-abil] {
   --abil: var(--accent);
   --abil-soft: var(--accent-soft);
+}
+
+/* Six font pairs. IBM Plex Mono is only the tabular pair's numbers. */
+html[data-font='antiqua'] {
+  --font-display: "Source Serif 4", Georgia, "Times New Roman", serif;
+  --font-ui: "IBM Plex Sans", "Segoe UI", sans-serif;
+  --font-num: "IBM Plex Sans", "Segoe UI", sans-serif;
+  --font-display-weight: 700;
+}
+html[data-font='grotesque'] {
+  --font-display: "Source Sans 3", "IBM Plex Sans", "Segoe UI", sans-serif;
+  --font-ui: "IBM Plex Sans", "Segoe UI", sans-serif;
+  --font-num: "IBM Plex Sans", "Segoe UI", sans-serif;
+  --font-display-weight: 700;
+}
+html[data-font='ustav'] {
+  --font-display: "Yeseva One", "Source Serif 4", Georgia, serif;
+  --font-ui: "IBM Plex Sans", "Segoe UI", sans-serif;
+  --font-num: "IBM Plex Sans", "Segoe UI", sans-serif;
+  --font-display-weight: 400;
+}
+html[data-font='scribe'] {
+  --font-display: Literata, "Source Serif 4", Georgia, serif;
+  --font-ui: Literata, "IBM Plex Sans", Georgia, serif;
+  --font-num: "IBM Plex Sans", "Segoe UI", sans-serif;
+  --font-display-weight: 700;
+}
+html[data-font='script'] {
+  --font-display: Caveat, "Segoe Script", cursive;
+  --font-ui: "IBM Plex Sans", "Segoe UI", sans-serif;
+  --font-num: "IBM Plex Sans", "Segoe UI", sans-serif;
+  --font-display-weight: 600;
+}
+html[data-font='tabular'] {
+  --font-display: "IBM Plex Sans", "Segoe UI", sans-serif;
+  --font-ui: "IBM Plex Sans", "Segoe UI", sans-serif;
+  --font-num: "IBM Plex Mono", "IBM Plex Sans", ui-monospace, monospace;
+  --font-display-weight: 650;
+}
+html[data-font='ustav'] :is(h1, h2, h3, .ui-panel__title, .cabinet-appearance__label, .brand-wordmark) {
+  font-weight: 400;
+  font-synthesis: none;
+}
+html[data-font='script'] :is(h1, h2, h3, .ui-panel__title, .cabinet-appearance__label, .brand-wordmark) {
+  font-weight: 600;
+}
+html[data-font='scribe'] :is(.ui-button, .ui-field__label, .sheet-chip, .back-link, .cabinet-font-card__name) {
+  font-family: var(--font-num);
 }
 
 * {
@@ -126,6 +293,11 @@ input {
   min-height: 100dvh;
   background: var(--app-canvas-bg);
   background-color: var(--panel, #fbf7ec);
+}
+
+/* Pattern from shared-approved.css paints html/body. The app root must not cover it. */
+html[data-bg] #root {
+  background: transparent;
 }
 
 .page {
@@ -186,7 +358,7 @@ input {
   margin: 0 0 14px;
   font-family: var(--font-display);
   font-size: 1.35rem;
-  font-weight: 700;
+  font-weight: var(--font-display-weight, 700);
   letter-spacing: -0.02em;
   color: var(--accent);
 }
@@ -438,7 +610,7 @@ a.ui-button--primary {
 
 .ui-button--primary {
   background: var(--accent);
-  color: #f8fffb;
+  color: var(--on-accent);
 }
 
 .ui-button--secondary {
@@ -2708,4 +2880,84 @@ body:has(.ui-dice-fab-slot) .play-desk__stage .play-desk-compact__list {
   margin-top: 10px;
   padding-top: 10px;
   border-top: 1px solid var(--line);
+}
+
+
+/* Tabular pair: mono only on the product's numeric text. Other pairs keep --font-num as Plex Sans. */
+html[data-font='tabular'] .ui-input--slot,
+html[data-font='tabular'] .ui-input--prep,
+html[data-font='tabular'] .ui-vital-menu__summary .ui-vital__value,
+html[data-font='tabular'] .ui-vital-menu__summary > b,
+html[data-font='tabular'] .ui-vital__badge,
+html[data-font='tabular'] .ui-vital-menu__row-value,
+html[data-font='tabular'] .ui-vital-menu__input.ui-input,
+html[data-font='tabular'] .ui-stat-tile__value,
+html[data-font='tabular'] .ui-bar-chart__axis,
+html[data-font='tabular'] .ui-bar-chart__value,
+html[data-font='tabular'] .ui-pagination__gap,
+html[data-font='tabular'] .ui-pagination__compact-label,
+html[data-font='tabular'] .ui-stepper__value,
+html[data-font='tabular'] .dice-roller-panel__log-total,
+html[data-font='tabular'] .dice-roller-panel__face,
+html[data-font='tabular'] .ui-dice-face,
+html[data-font='tabular'] .character-card__hp-label,
+html[data-font='tabular'] .cabinet-font-card__nums,
+html[data-font='tabular'] .sheet-grid--slots .ui-input,
+html[data-font='tabular'] .ui-dialog__body .sheet-grid--slots .ui-input,
+html[data-font='tabular'] .inventory-panel .inventory-summary__chip--wallet,
+html[data-font='tabular'] .gear-picker__count,
+html[data-font='tabular'] .spells-summary__stat strong,
+html[data-font='tabular'] .spells-settings__derived-stat strong,
+html[data-font='tabular'] .spells-settings__pact-level strong,
+html[data-font='tabular'] .attack-bonus-breakdown__value,
+html[data-font='tabular'] .combat-hp-open__value,
+html[data-font='tabular'] .combat-hp-pad-header,
+html[data-font='tabular'] .hp-levels__gain,
+html[data-font='tabular'] .xp-progress__open-value,
+html[data-font='tabular'] .xp-progress__meta,
+html[data-font='tabular'] .xp-pad-header__end,
+html[data-font='tabular'] .xp-pad-header__current,
+html[data-font='tabular'] .xp-pad-header__history strong,
+html[data-font='tabular'] .xp-pad-header__history time,
+html[data-font='tabular'] .hot-conditions__count,
+html[data-font='tabular'] .number-pad__display-value,
+html[data-font='tabular'] .number-pad__display-hint,
+html[data-font='tabular'] .slot-pips__summary,
+html[data-font='tabular'] .slot-pips__value,
+html[data-font='tabular'] .slot-pips__of,
+html[data-font='tabular'] .play-rest-block__count,
+html[data-font='tabular'] .create-pipeline__progress-meta,
+html[data-font='tabular'] .create-pipeline__footer-progress,
+html[data-font='tabular'] .create-pipeline__ability-dice,
+html[data-font='tabular'] .create-pipeline__ability-final,
+html[data-font='tabular'] .create-pipeline__ability-roll-total,
+html[data-font='tabular'] .play-desk-header__edition,
+html[data-font='tabular'] .ui-class-row__more-level,
+html[data-font='tabular'] .needs-setup__count,
+html[data-font='tabular'] .play-desk-header__xp-level,
+html[data-font='tabular'] .play-desk-vital b,
+html[data-font='tabular'] .play-desk-header__hp strong,
+html[data-font='tabular'] .play-desk-compact__combat-stat b,
+html[data-font='tabular'] .play-desk-compact__cast-profile-nums b,
+html[data-font='tabular'] .play-desk-compact__row.is-attack .play-desk-compact__mod,
+html[data-font='tabular'] .play-desk-compact__row.is-attack .play-desk-compact__dmg,
+html[data-font='tabular'] .play-desk-compact__resource-count,
+html[data-font='tabular'] .passive-grid--desk .passive-card strong,
+html[data-font='tabular'] .play-desk__stepper-value,
+html[data-font='tabular'] .abil-block__score.ui-input,
+html[data-font='tabular'] .abil-block__effective,
+html[data-font='tabular'] .abil-mod__num,
+html[data-font='tabular'] .abil-skill__roll,
+html[data-font='tabular'] .mobile-vitals__chip b,
+html[data-font='tabular'] .mobile-vitals__hp-num,
+html[data-font='tabular'] .mobile-vitals__collapse-hp-num,
+html[data-font='tabular'] .mobile-vitals__coin-amt,
+html[data-font='tabular'] .mobile-vitals__collapse-hp,
+html[data-font='tabular'] .mobile-vitals__collapse-marks,
+html[data-font='tabular'] .variable-picker__value,
+html[data-font='tabular'] .session-event-feed__time,
+html[data-font='tabular'] .session-event-feed__total,
+html[data-font='tabular'] .session-enemy-kit-chip__bonus {
+  font-family: var(--font-num);
+  font-feature-settings: "tnum" 1, "lnum" 1;
 }
