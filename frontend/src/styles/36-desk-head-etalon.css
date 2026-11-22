@@ -3,6 +3,16 @@
  * Только открытый лист на ПК. Телефон остаётся на прежней шапке.
  */
 
+/* ○ / ● of «Вдохн.» The web Source Sans 3 face does not cover U+25CB,
+   so the product was falling through to a thinner system ring. The etalon
+   paints that glyph from the local Source Sans 3. */
+@font-face {
+  font-family: "Desk Head Circle";
+  src: local("Source Sans 3 Regular"), local("SourceSans3-Regular");
+  font-weight: 400;
+  unicode-range: U+25CB, U+25CF;
+}
+
 html[data-theme='light-designer3'] .app-shell[data-sheet-open],
 html[data-theme='light-designer3'] .desk-head {
   --desk-panel: #fbf7ec;
@@ -13,6 +23,10 @@ html[data-theme='light-designer3'] .desk-head {
   --desk-chip: #e7e1d4;
   --mix-paper: #fff;
   --head-grad: linear-gradient(90deg, var(--accent-soft) 0%, var(--desk-panel) 45%, #f7f1e6 100%);
+}
+
+html[data-theme='leaf-classic'] .desk-head {
+  --accent-soft: color-mix(in srgb, var(--accent) 22%, #131313);
 }
 
 html[data-theme='leaf-classic'] .app-shell[data-sheet-open],
@@ -830,6 +844,7 @@ html[data-theme='leaf-classic'] .desk-head .hp-tile {
 
 .desk-head .vital-chip b {
   font-weight: 700;
+  font-family: "Desk Head Circle", "IBM Plex Sans", "Source Sans 3", system-ui, sans-serif;
 }
 
 .desk-head .vital-chip b.num {

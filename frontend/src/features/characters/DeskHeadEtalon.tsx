@@ -65,7 +65,15 @@ function initials(name: string): string {
   return (parts[0]?.[0] ?? '?').toUpperCase()
 }
 
-function Ico({ paths, className }: { paths: string[]; className: string }) {
+function Ico({
+  paths,
+  circles,
+  className,
+}: {
+  paths: string[]
+  circles?: { cx: number; cy: number; r: number }[]
+  className: string
+}) {
   return (
     <svg className={className} viewBox="0 0 24 24" aria-hidden="true">
       {paths.map((d) => (
@@ -77,6 +85,17 @@ function Ico({ paths, className }: { paths: string[]; className: string }) {
           strokeWidth="1.75"
           strokeLinecap="round"
           strokeLinejoin="round"
+        />
+      ))}
+      {circles?.map((c) => (
+        <circle
+          key={`${c.cx}-${c.cy}-${c.r}`}
+          cx={c.cx}
+          cy={c.cy}
+          r={c.r}
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.75"
         />
       ))}
     </svg>
@@ -404,7 +423,11 @@ export function DeskHeadEtalon({
               aria-pressed={inspiration}
               onClick={() => onToggleInspiration?.()}
             >
-              <Ico paths={ICO.spark} className="vital-chip__ico" />
+              <Ico
+                paths={ICO.spark}
+                circles={[{ cx: 12, cy: 12, r: 2.2 }]}
+                className="vital-chip__ico"
+              />
               Вдохн. <b>{inspiration ? '●' : '○'}</b>
             </button>
             <button
