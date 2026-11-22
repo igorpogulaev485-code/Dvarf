@@ -116,10 +116,22 @@
   cursor: pointer;
 }
 
+.app-shell--sheet .play-desk--wide .desk-explore .sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 .app-shell--sheet .play-desk--wide .desk-explore .scene-search {
   width: 100%;
   box-sizing: border-box;
-  margin: 0 0 8px;
+  margin: 20px 0 8px;
   padding: 5px 8px;
   border: 1px solid var(--line);
   border-radius: 8px;
@@ -157,9 +169,21 @@
 }
 
 .app-shell--sheet .play-desk--wide .desk-explore .filters .chip.is-on {
-  background: var(--accent);
-  color: var(--on-accent, #fff);
-  border-color: var(--accent);
+  background: rgb(78, 93, 52);
+  color: rgb(248, 255, 251);
+  border-color: rgb(78, 93, 52);
+}
+
+html[data-theme='leaf-classic'] .app-shell--sheet .play-desk--wide .desk-explore .filters .chip.is-on {
+  background: rgb(196, 209, 154);
+  color: rgb(10, 10, 10);
+  border-color: rgb(196, 209, 154);
+}
+
+.app-shell--sheet .play-desk--wide .desk-explore .flags {
+  margin: 16px 0 0;
+  font-size: 16px;
+  line-height: 23.2px;
 }
 
 .app-shell--sheet .play-desk--wide .desk-explore .scene-list {

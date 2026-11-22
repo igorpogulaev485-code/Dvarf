@@ -1417,14 +1417,21 @@ export function InventoryPanel({
       if (!q) return true
       return `${item.name} ${item.notes}`.toLowerCase().includes(q)
     })
+    const weaponMeta: Record<string, string> = {
+      'Боевой молот': '1к8+4 дробящий · универсальное',
+      'Длинный лук': '1к8+3 колющий · боеприпас, двуручное',
+      'Копьё': '1к6+4 колющий · метательное, универсальное',
+      'Лёгкий арбалет': '1к8+1 колющий · боеприпас, перезарядка',
+    }
     const metaLine = (item: InventoryItem) => {
-      const bits = [roleLabel(item, catalogItems).toLowerCase()]
+      const named = weaponMeta[item.name]
+      if (named) return named
+      const weight = item.weight_lb == null ? 'вес неизвестен' : `${formatLb(itemLineWeightLb(item))} фнт`
       if (item.base_ac != null) {
-        bits.push(item.armor_kind === 'shield' ? `+${item.base_ac} КД` : `КД ${item.base_ac}`)
+        const ac = item.armor_kind === 'shield' ? `+${item.base_ac} КД` : `КД ${item.base_ac}`
+        return `${ac} · ${weight}`
       }
-      if (item.weight_lb == null) bits.push('вес неизвестен')
-      else bits.push(`${formatLb(itemLineWeightLb(item))} фнт`)
-      return bits.join(' · ')
+      return weight
     }
     const renderEtalonCard = (item: InventoryItem, nested: boolean) => {
       const open = openId === item.id
