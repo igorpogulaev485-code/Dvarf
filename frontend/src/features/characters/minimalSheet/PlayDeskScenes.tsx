@@ -30,6 +30,7 @@ import { AttacksSettingsDialog } from '../AttacksSettingsDialog'
 import { SpellsPanel } from '../SpellsPanel'
 import { SpellsSettingsDialog } from '../SpellsSettingsDialog'
 import { ClassFeaturesPanel } from '../ClassFeaturesPanel'
+import { FeaturesEtalonDesk } from '../FeaturesEtalonDesk'
 import { WeaponMasteryPanel } from '../WeaponMasteryPanel'
 import { WeaponMasteryAttackPanel } from '../WeaponMasteryAttackPanel'
 import { ClassOptions2024Panel } from '../ClassOptions2024Panel'
@@ -1249,7 +1250,9 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
 
       </div>
 
-      <div className="play-desk__stage-panel" hidden={model.stageHidden('features')}>
+      <div className={`play-desk__stage-panel${model.isPlayDesk ? ' panel has-content desk-features' : ''}`} data-panel={model.isPlayDesk ? 'features' : undefined} hidden={model.stageHidden('features')}>
+      {model.isPlayDesk ? <FeaturesEtalonDesk /> : null}
+      <div hidden={model.isPlayDesk ? true : undefined}>
       {/* Features: ClassFeaturesPanel glance→expand — no compact/full flip. */}
       {/* ABL-01: Благочестие только при MOT в кампании или если у героя выбран бог. */}
       {Boolean(model.draft.piety.god) ||
@@ -1726,6 +1729,7 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
         }}
       />
 
+      </div>
       </div>
 
       <div
