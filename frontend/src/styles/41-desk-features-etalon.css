@@ -117,6 +117,10 @@ html[data-theme='leaf-classic'] .app-shell--sheet .play-desk--wide .desk-feature
   margin: 0 0 8px;
   min-height: 35.2px;
   align-items: center;
+  position: static;
+  z-index: auto;
+  padding: 0;
+  background: transparent;
 }
 
 .app-shell--sheet .play-desk--wide .desk-features .feat-group {
