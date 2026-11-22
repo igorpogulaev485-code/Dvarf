@@ -29,7 +29,7 @@
   min-width: 72px;
   min-height: 52px;
   height: 52px;
-  color: var(--desk-ink, var(--heading));
+  color: rgb(36, 36, 31);
   text-align: left;
   display: grid;
   gap: 4px;
@@ -70,7 +70,7 @@
   padding: 5px 10px 6px;
   font-size: 0.7rem;
   font-weight: 600;
-  color: var(--muted);
+  color: rgb(95, 88, 78);
   text-align: left;
   min-width: 72px;
   min-height: 45.3px;
@@ -96,6 +96,15 @@ html[data-theme='leaf-classic'] .app-shell--sheet .play-desk--wide .desk-hot .ho
 html[data-theme='leaf-classic'] .app-shell--sheet .play-desk--wide .desk-skills .skill-chip {
   background: rgb(19, 19, 19);
   color: #fff;
+}
+
+html[data-theme='leaf-classic'] .app-shell--sheet .play-desk--wide .desk-skills .skill-chip {
+  color: rgba(255, 255, 255, 0.56);
+}
+
+html[data-theme='leaf-classic'] .app-shell--sheet .play-desk--wide .desk-skills .skill-chip.is-on {
+  background: color(srgb 0.158498 0.164667 0.138569);
+  color: rgb(255, 255, 255);
 }
 
 html[data-theme='leaf-classic'] .app-shell--sheet .play-desk--wide .desk-skills .skill-chip b {
