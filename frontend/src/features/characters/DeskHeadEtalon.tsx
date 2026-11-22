@@ -243,11 +243,15 @@ export function DeskHeadEtalon({
                 <div className="class-row" aria-label="Классы">
                   <span className="class-row__face">
                     {classChips.map((chip) => (
-                      <span key={chip.id} className="chip" data-class-chip>
-                        {chip.subclass
-                          ? `${chip.label} · ${chip.subclass}`
-                          : chip.label}
-                      </span>
+                      <button
+                        key={chip.id}
+                        type="button"
+                        className="chip"
+                        data-class-chip=""
+                        title={chip.subclass ? `${chip.label} · ${chip.subclass}` : chip.label}
+                      >
+                        {chip.subclass ? `${chip.label} · ${chip.subclass}` : chip.label}
+                      </button>
                     ))}
                   </span>
                 </div>
@@ -256,6 +260,7 @@ export function DeskHeadEtalon({
                 <NeedsSetupIndicator
                   items={needsSetupItems}
                   onSelect={onNeedsSetupSelect}
+                  buttonClassName="chip is-warn"
                 />
               ) : null}
             </div>

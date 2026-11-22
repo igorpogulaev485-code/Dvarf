@@ -502,7 +502,7 @@ html[data-theme='leaf-classic'] .desk-head .xp__bar > i {
   background: var(--card);
   font-size: 0.64rem;
   font-weight: 400;
-  color: var(--desk-ink, var(--heading));
+  color: inherit;
   min-height: 28px;
   height: 28px;
   box-sizing: border-box;
@@ -711,4 +711,137 @@ html[data-theme='leaf-classic'] .desk-head .hp-tile {
   background: var(--accent);
   color: var(--on-accent, #fff);
   cursor: pointer;
+}
+
+/* Нейтрализация глобальных стилей продукта внутри корня шапки. */
+.app-shell--sheet .play-desk--wide .play-desk__top.desk-head {
+  font-synthesis: weight style small-caps;
+  line-height: 1.45;
+  text-rendering: auto;
+  -webkit-font-smoothing: auto;
+  -moz-osx-font-smoothing: auto;
+  color: var(--text-body);
+  position: static;
+  align-items: normal;
+  gap: normal;
+  row-gap: normal;
+  column-gap: normal;
+  top: auto;
+  left: auto;
+  right: auto;
+  bottom: auto;
+  margin: 0;
+}
+
+.desk-head button,
+.desk-head .chip,
+.desk-head .vital-chip,
+.desk-head .vital-pill,
+.desk-head .vital__shield,
+.desk-head .hp-tile,
+.desk-head .xp {
+  font-synthesis: inherit;
+  text-rendering: inherit;
+  -webkit-font-smoothing: inherit;
+}
+
+.desk-head .chips > .class-row {
+  flex: 0 1 auto;
+}
+
+.desk-head .class-row .chip {
+  display: block;
+  text-align: center;
+  align-items: normal;
+  min-width: auto;
+  line-height: inherit;
+  color: var(--desk-ink, var(--heading));
+  position: static;
+  top: auto;
+  left: auto;
+  right: auto;
+  bottom: auto;
+  white-space: nowrap;
+  flex: 0 1 auto;
+}
+
+.desk-head .needs-setup__btn.chip {
+  display: block;
+  text-align: center;
+  align-items: normal;
+  min-width: auto;
+  line-height: inherit;
+  color: var(--heading);
+  position: static;
+  top: auto;
+  left: auto;
+  right: auto;
+  bottom: auto;
+  white-space: normal;
+  flex: 0 0 auto;
+}
+
+.desk-head .xp {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+  position: static;
+  top: auto;
+  color: inherit;
+}
+
+.desk-head .xp__bar {
+  flex: 1 1 8rem;
+  min-width: 6.5rem;
+  width: auto;
+}
+
+.desk-head .xp__lab {
+  width: auto;
+  line-height: inherit;
+}
+
+.desk-head .hp-tile {
+  flex: 0 0 auto;
+  position: relative;
+  color: inherit;
+}
+
+.desk-head .hp-tile .k,
+.desk-head .effects,
+.desk-head .effects__empty,
+.desk-head .round-btn {
+  line-height: inherit;
+}
+
+.desk-head .effects button.cond,
+.desk-head .round-btn {
+  display: block;
+  white-space: normal;
+  align-items: normal;
+  line-height: inherit;
+  position: static;
+  top: auto;
+  left: auto;
+  right: auto;
+  bottom: auto;
+}
+
+.desk-head .vital-chip b {
+  font-weight: 700;
+}
+
+.desk-head .vital-pill,
+.desk-head .vital-chip,
+.desk-head .vital__shield {
+  position: relative;
+  top: 0;
+  left: auto;
+  right: auto;
+  bottom: auto;
+}
+
+.desk-head .vital-pill {
+  color: var(--accent);
 }
