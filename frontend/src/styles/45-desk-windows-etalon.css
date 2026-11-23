@@ -1032,6 +1032,10 @@ html[data-desk-windows='1'] .hp-pad .hp-pad__dice-name { display: inline; }
     height: 29px;
   }
 
+  html[data-desk-windows='1'] .ui-dialog.desk-spell-detail .ui-dialog__close {
+    color: rgba(45, 45, 42, 0.58);
+  }
+
   html[data-desk-windows='1'] .desk-spell-detail .spell-detail p {
     margin: 0 0 8px;
     font-size: 16px;
