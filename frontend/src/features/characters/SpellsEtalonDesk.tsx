@@ -316,6 +316,7 @@ export function SpellsEtalonDesk({
   const [collapsed, setCollapsed] = useState<Set<number>>(() => new Set())
   const [detailId, setDetailId] = useState<string | null>(null)
   const [castId, setCastId] = useState<string | null>(null)
+  const [breakOpen, setBreakOpen] = useState(false)
   const detail = detailId ? SPELL_DETAILS[detailId] : null
   const cast = castId ? CAST_VIEWS[castId] : null
 
@@ -362,7 +363,13 @@ export function SpellsEtalonDesk({
       </h2>
       <div className="spell-cast-row">
         {CASTER_CHIPS[variant].map((chip) => (
-          <button key={`${chip.name}-${chip.stats}`} type="button" className={`cast-chip ${chip.cls}`} aria-label="Сл. спас. и атака заклинаний">
+          <button
+            key={`${chip.name}-${chip.stats}`}
+            type="button"
+            className={`cast-chip ${chip.cls}`}
+            aria-label="Сл. спас. и атака заклинаний"
+            onClick={() => setBreakOpen(true)}
+          >
             <span className="cast-chip__profile">
               {chip.name} · <span className="cast-chip__abil">{chip.abil}</span> · {chip.stats}
             </span>
@@ -544,6 +551,55 @@ export function SpellsEtalonDesk({
               }}
             >
               Каст
+            </button>
+          </div>
+        </Dialog>
+      ) : null}
+      {breakOpen ? (
+        <Dialog
+          open
+          title="Заклинания: сл. спас. и атака"
+          size="wide"
+          primaryLabel="Готово"
+          onPrimary={() => setBreakOpen(false)}
+          secondaryLabel="Закрыть"
+          onSecondary={() => setBreakOpen(false)}
+          showActions={false}
+          showClose
+          onDismiss={() => setBreakOpen(false)}
+          className="desk-cast-break"
+        >
+          <p className="flags">8+БМ+мод / БМ+мод</p>
+          <div className="break-hero-badges">
+            <div className="break-badge" aria-label="Сл. спас. 14">
+              <b>14</b>
+              <span>сл. спас.</span>
+            </div>
+            <div className="break-badge" aria-label="Атака +6">
+              <b>+6</b>
+              <span>атака</span>
+            </div>
+          </div>
+          <section className="ac-break">
+            <h3>Сл. спасброска</h3>
+            <div className="ac-break__base">База 14 · 8+БМ+мод · Жрец · МУД</div>
+            <button type="button" className="ac-break__add">
+              + Добавить бонус
+            </button>
+          </section>
+          <section className="ac-break">
+            <h3>Атака заклинанием</h3>
+            <div className="ac-break__base">База +6 · БМ+мод</div>
+            <button type="button" className="ac-break__add">
+              + Добавить бонус
+            </button>
+          </section>
+          <div className="ac-break__foot">
+            <button type="button" className="btn" onClick={() => setBreakOpen(false)}>
+              Закрыть
+            </button>
+            <button type="button" className="btn primary" onClick={() => setBreakOpen(false)}>
+              Готово
             </button>
           </div>
         </Dialog>
