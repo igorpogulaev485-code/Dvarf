@@ -99,6 +99,8 @@ type SpellsSettingsDialogProps = {
   featurePicks?: import('../../shared/dnd/featurePicks').FeaturePicksState | null
   /** 2024 only: extra cantrips per class slug (Druid Magician +1), same value as the Play Desk budget. */
   extraCantripsBySlug?: Record<string, number>
+  /** Desktop etalon: Магия → «Гримуар» opens the frozen grimoire window. */
+  onOpenDeskGrimoire?: () => void
 }
 
 export function SpellsSettingsDialog({
@@ -127,6 +129,7 @@ export function SpellsSettingsDialog({
   title = 'Магия',
   featurePicks = null,
   extraCantripsBySlug,
+  onOpenDeskGrimoire,
 }: SpellsSettingsDialogProps) {
   const [prepareOpen, setPrepareOpen] = useState(false)
   const [grimoireOpen, setGrimoireOpen] = useState(false)
@@ -373,6 +376,17 @@ export function SpellsSettingsDialog({
           </Text>
 
           <div className="spells-settings-dialog__books">
+            {onOpenDeskGrimoire ? (
+              <Button
+                type="button"
+                variant="secondary"
+                data-cbt="open-grimoire"
+                data-desk-grimoire
+                onClick={onOpenDeskGrimoire}
+              >
+                Гримуар
+              </Button>
+            ) : null}
             <Button
               type="button"
               onClick={() => setGrimoireOpen(true)}

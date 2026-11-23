@@ -172,6 +172,7 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
     vsUndeadOrFiend: false,
   })
   const [ritualBookOpen, setRitualBookOpen] = useState(false)
+  const [deskGrimoireOpen, setDeskGrimoireOpen] = useState(false)
   const [transferBusy, setTransferBusy] = useState(false)
   const [transferMode, setTransferMode] = useState<DeskTransferMode | null>(null)
   /** U09: deep-link from attack → inventory card. */
@@ -1755,6 +1756,8 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
       {model.isPlayDesk ? (
         <SpellsEtalonDesk
           variant={spellMagicVariant()}
+          grimoireOpen={deskGrimoireOpen}
+          onGrimoireClose={() => setDeskGrimoireOpen(false)}
           onClearSplit={
             model.deskSplit && model.splitSecondary === 'spells'
               ? () => model.patchSheetUi({ deskSplit: false })
@@ -1900,6 +1903,14 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
               }))
             }
             title={model.isPlayDesk ? 'Магия' : 'Книга заклинаний'}
+            onOpenDeskGrimoire={
+              model.isPlayDesk
+                ? () => {
+                    model.setSpellsSettingsOpen(false)
+                    setDeskGrimoireOpen(true)
+                  }
+                : undefined
+            }
             onChange={(spells) => model.applySpellsChange(spells)}
             onClose={() => {
               model.setSpellsSettingsOpen(false)

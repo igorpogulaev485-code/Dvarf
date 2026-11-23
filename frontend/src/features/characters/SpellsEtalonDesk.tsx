@@ -388,10 +388,14 @@ export function SpellsEtalonDesk({
   variant = 'kaedrin',
   onClearSplit,
   onOpenSettings,
+  grimoireOpen = false,
+  onGrimoireClose,
 }: {
   variant?: SpellMagicVariant
   onClearSplit?: () => void
   onOpenSettings?: () => void
+  grimoireOpen?: boolean
+  onGrimoireClose?: () => void
 }) {
   const [filter, setFilter] = useState<FilterId>('all')
   const [query, setQuery] = useState('')
@@ -400,7 +404,6 @@ export function SpellsEtalonDesk({
   const [castId, setCastId] = useState<string | null>(null)
   const [breakOpen, setBreakOpen] = useState(false)
   const [prepareOpen, setPrepareOpen] = useState(false)
-  const [spellbookOpen, setSpellbookOpen] = useState(false)
   const detail = detailId ? SPELL_DETAILS[detailId] : null
   const cast = castId ? CAST_VIEWS[castId] : null
 
@@ -442,9 +445,6 @@ export function SpellsEtalonDesk({
           </button>
           <button type="button" className="ghost" data-desk-prepare onClick={() => setPrepareOpen(true)}>
             Подготовить
-          </button>
-          <button type="button" className="ghost" data-desk-spellbook onClick={() => setSpellbookOpen(true)}>
-            Книга
           </button>
           <button type="button" className="ghost" title="Магия: подготовка, настройки" onClick={onOpenSettings}>
             Магия
@@ -691,18 +691,18 @@ export function SpellsEtalonDesk({
           </div>
         </Dialog>
       ) : null}
-      {spellbookOpen ? (
+      {grimoireOpen ? (
         <Dialog
           open
-          title="Книга заклинаний"
+          title="Гримуар"
           size="wide"
           primaryLabel="Готово"
-          onPrimary={() => setSpellbookOpen(false)}
+          onPrimary={() => onGrimoireClose?.()}
           secondaryLabel="Своё заклинание"
-          onSecondary={() => setSpellbookOpen(false)}
+          onSecondary={() => onGrimoireClose?.()}
           showActions={false}
           showClose
-          onDismiss={() => setSpellbookOpen(false)}
+          onDismiss={() => onGrimoireClose?.()}
           className="desk-spellbook"
         >
           <div className="prepare-tabs">
@@ -718,10 +718,10 @@ export function SpellsEtalonDesk({
             ))}
           </ul>
           <div className="modal-actions">
-            <button type="button" className="btn" onClick={() => setSpellbookOpen(false)}>
+            <button type="button" className="btn" onClick={() => onGrimoireClose?.()}>
               Своё заклинание
             </button>
-            <button type="button" className="btn primary" onClick={() => setSpellbookOpen(false)}>
+            <button type="button" className="btn primary" onClick={() => onGrimoireClose?.()}>
               Готово
             </button>
           </div>
