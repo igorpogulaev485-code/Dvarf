@@ -341,6 +341,8 @@ export function DiceRollerPreviewPage() {
     const identity = { ...((sheet.identity as Record<string, unknown>) ?? {}) }
     identity.alignment = ''
     identity.alignment_text = 'законопослушный добрый'
+    identity.background = 'Прислужник'
+    identity.gender = 'male'
     identity.experience = 6500
     const combat = { ...((sheet.combat as Record<string, unknown>) ?? {}) }
     combat.inspiration = false
