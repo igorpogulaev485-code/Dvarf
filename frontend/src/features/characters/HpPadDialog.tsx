@@ -57,6 +57,11 @@ type HpPadDialogProps = {
   /** Real HP loss after temp soak; amount is total damage rolled. */
   onDamage: (amount: number, opts?: { critical?: boolean }) => void
   onSetTemp: (temp: number) => void
+  /** Desktop etalon: existing temp HP and a different number open the replace dialog. */
+  onAskTempReplace?: (input: {
+    current: number
+    incoming: number
+  }) => Promise<'keep' | 'replace'>
   onPlayChange: (play: PlayState) => void
   onCombatChange: (patch: { hpCurrent?: number | null }) => void
   onToast: (message: string) => void
@@ -123,6 +128,7 @@ export function HpPadDialog({
   onHeal,
   onDamage,
   onSetTemp,
+  onAskTempReplace,
   onPlayChange,
   onCombatChange,
   onToast,
@@ -669,9 +675,31 @@ export function HpPadDialog({
             variant="secondary"
             disabled={!canApply && delta !== 0}
             onClick={() => {
-              onSetTemp(Math.max(0, delta))
+              const incoming = Math.max(0, delta)
+              const desk =
+                typeof document !== 'undefined' &&
+                document.documentElement.dataset.deskWindows === '1'
+              if (
+                desk &&
+                onAskTempReplace &&
+                incoming > 0 &&
+                hpTemp > 0 &&
+                incoming !== hpTemp
+              ) {
+                void onAskTempReplace({ current: hpTemp, incoming }).then((choice) => {
+                  if (choice === 'replace') {
+                    onSetTemp(incoming)
+                    onToast(`Временные хиты заменены на ${incoming}`)
+                  } else {
+                    onToast(`Оставлены прежние временные хиты (${hpTemp})`)
+                  }
+                })
+                setDigits('')
+                return
+              }
+              onSetTemp(incoming)
               setDigits('')
-              onToast(delta > 0 ? `Временные хиты: ${delta}` : 'Временные хиты сброшены')
+              onToast(incoming > 0 ? `Временные хиты: ${incoming}` : 'Временные хиты сброшены')
             }}
           >
             Временные

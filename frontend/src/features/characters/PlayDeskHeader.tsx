@@ -159,6 +159,11 @@ type PlayDeskHeaderProps = {
     flySpeed?: number | null
   }) => void
   onPlayChange: (play: PlayState) => void
+  /** Desktop: «Временные» with an existing pool asks keep or replace. */
+  onAskTempReplace?: (input: {
+    current: number
+    incoming: number
+  }) => Promise<'keep' | 'replace'>
   onCoinsChange: (coins: CoinPurse) => void
   onCombatChange: (patch: {
     hpCurrent?: number | null
@@ -272,6 +277,7 @@ export function PlayDeskHeader({
   onOpenSpeed,
   onAltSpeedChange,
   onPlayChange,
+  onAskTempReplace,
   onCoinsChange,
   onCombatChange,
   onToast,
@@ -1068,6 +1074,7 @@ export function PlayDeskHeader({
         onHeal={applyHeal}
         onDamage={applyDamage}
         onSetTemp={(temp) => onPlayChange({ ...play, hpTemp: Math.max(0, temp) })}
+        onAskTempReplace={onAskTempReplace}
         onPlayChange={onPlayChange}
         onCombatChange={onCombatChange}
         onToast={onToast}

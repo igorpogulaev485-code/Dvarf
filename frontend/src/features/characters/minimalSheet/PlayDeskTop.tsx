@@ -618,6 +618,11 @@ export function PlayDeskTop({ model }: { model: SheetModel }) {
               model.applyBardInitiativeInspiration()
             }}
             onPlayChange={(play) => model.setDraft((prev) => ({ ...prev, play }))}
+            onAskTempReplace={
+              typeof model.askTempHpReplace === 'function'
+                ? model.askTempHpReplace
+                : undefined
+            }
             onCoinsChange={(coins) =>
               model.setDraft((prev) => ({
                 ...prev,
