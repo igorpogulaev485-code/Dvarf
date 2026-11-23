@@ -28,6 +28,7 @@ type DialogProps = {
   showActions?: boolean
   /** Show × in the header; calls onDismiss (falls back to onSecondary). */
   showClose?: boolean
+  className?: string
 }
 
 export function Dialog({
@@ -46,6 +47,7 @@ export function Dialog({
   onDismiss,
   showActions = true,
   showClose = false,
+  className,
 }: DialogProps) {
   // Cancel / Escape stay available even when primary is busy or disabled.
   const canClose = Boolean(onDismiss || onSecondary)
@@ -102,6 +104,7 @@ export function Dialog({
           'ui-dialog',
           size === 'wide' ? 'ui-dialog--wide' : '',
           size === 'xl' ? 'ui-dialog--xl' : '',
+          className ?? '',
         ]
           .filter(Boolean)
           .join(' ')}

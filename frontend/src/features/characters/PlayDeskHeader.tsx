@@ -1218,6 +1218,10 @@ export function PlayDeskHeader({
         dwarvenToughness={dwarvenToughness}
         extraFlatBonuses={maxHpExtraBonuses}
         onClose={() => setMaxDialogOpen(false)}
+        onBackToPad={() => {
+          setMaxDialogOpen(false)
+          setHpPadOpen(true)
+        }}
         onApply={({ hpMax: nextMax, hpCurrent: nextCurrent }) => {
           onCombatChange({ hpMax: nextMax, hpCurrent: nextCurrent })
           setMaxDialogOpen(false)

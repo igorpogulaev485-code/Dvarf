@@ -3,9 +3,10 @@ import type { ClassLevelEntry } from '../../shared/dnd/classLevels'
 import { totalCharacterLevel } from '../../shared/dnd/classLevels'
 import {
   buildMaxHpByLevels,
+  hitDieForClass,
   type MaxHpLevelRow,
 } from '../../shared/dnd/multiclassRules'
-import type { HitDie } from '../../shared/dnd/hitDice'
+import { hitDieSides, type HitDie } from '../../shared/dnd/hitDice'
 import { Dialog, Field, NumberInput, Stack, Text } from '../../ui'
 
 export type MaxHpExtraBonusRow = {
@@ -33,6 +34,8 @@ type MaxHpByLevelsDialogProps = {
   extraFlatBonuses?: MaxHpExtraBonusRow[]
   onApply: (next: { hpMax: number; hpCurrent: number }) => void
   onClose: () => void
+  /** Desktop etalon: «Назад к паду хитов» reopens the HP pad. */
+  onBackToPad?: () => void
 }
 
 type Mode = 'rules' | 'manual'
@@ -49,6 +52,7 @@ export function MaxHpByLevelsDialog({
   extraFlatBonuses = [],
   onApply,
   onClose,
+  onBackToPad,
 }: MaxHpByLevelsDialogProps) {
   const [mode, setMode] = useState<Mode>('rules')
   const [manualTotal, setManualTotal] = useState<number | null>(hpMax)
@@ -106,6 +110,72 @@ export function MaxHpByLevelsDialog({
 
   const level = totalCharacterLevel(classes)
   const conLabel = `${constitutionMod >= 0 ? '+' : ''}${constitutionMod}`
+
+  if (typeof document !== 'undefined' && document.documentElement.dataset.deskWindows === '1') {
+    const named = classes.filter((row) => row.name.trim() && row.level > 0)
+    const classRows = named.map((row, index) => {
+      const token = hitDieForClass({ className: row.name }) ?? hitDie ?? 'd8'
+      const die = hitDieSides(token)
+      const avg = Math.ceil((die + 1) / 2)
+      const hp = index === 0 ? die + (row.level - 1) * avg : row.level * avg
+      const range = row.level === 1 ? '1 ур.' : `1–${row.level} ур.`
+      const formula = index === 0 ? `${die}+${row.level - 1}×${avg}` : `${row.level}×${avg}`
+      return { label: `${row.name.trim()} ${range} · к${die}`, hp, formula }
+    })
+    const conTotal = constitutionMod * level
+    const dwarf = dwarvenToughness ? level : 0
+    const total = classRows.reduce((sum, row) => sum + row.hp, 0) + conTotal + dwarf + extrasTotal
+    const formula = `${classRows.map((row) => row.formula).join(' + ')} + Тел ${conTotal} = ${total}`
+    return (
+      <Dialog
+        open={open}
+        title="Макс. хиты по уровням"
+        primaryLabel="Закрыть"
+        onPrimary={onClose}
+        showActions={false}
+        showClose
+        onDismiss={onClose}
+        className="desk-max-hp"
+      >
+        <p className="pad-lead">Разборка максимума хитов.</p>
+        <ul className="breakdown live">
+          {classRows.map((row) => (
+            <li key={row.label}>
+              <span>{row.label}</span>
+              <b className="num">{row.hp}</b>
+            </li>
+          ))}
+          <li>
+            <span>
+              Модификатор Телосложения ({conLabel}) × {level} ур.
+            </span>
+            <b className="num">{conTotal}</b>
+          </li>
+          <li>
+            <span>Стойкость дварфа (горный дварф)</span>
+            <b className="num">{dwarf}</b>
+          </li>
+          <li>
+            <span>Черты и прочие бонусы</span>
+            <b className="num">{extrasTotal}</b>
+          </li>
+          <li>
+            <span>Итого</span>
+            <b className="num">{total}</b>
+          </li>
+        </ul>
+        <p className="pad-note">
+          Горный дварф не получает «Стойкость дварфа» (+1 хит/уровень есть у холмового). Итог
+          сходится: {formula}.
+        </p>
+        <div className="pad-row">
+          <button type="button" className="btn" onClick={onBackToPad ?? onClose}>
+            Назад к паду хитов
+          </button>
+        </div>
+      </Dialog>
+    )
+  }
 
   return (
     <Dialog
