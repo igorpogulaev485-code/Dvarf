@@ -164,9 +164,20 @@
   font-size: 0.72rem;
   font-weight: 650;
   line-height: 1;
-  letter-spacing: -0.08em;
+  letter-spacing: normal;
   white-space: nowrap;
   color: var(--abil);
+}
+
+/* U+2192 is wider in the product IBM Plex than in the etalon fallback.
+   Shrink only the arrow so the whole run stays 23.7px at letter-spacing normal. */
+.app-shell--sheet .play-desk--wide .desk-rail .abil__effective-arrow {
+  display: inline-block;
+  font-size: 0.445rem;
+  line-height: 1;
+  letter-spacing: normal;
+  width: 7.1px;
+  text-align: center;
 }
 
 .app-shell--sheet .play-desk--wide .desk-rail .abil__mod {

@@ -135,7 +135,9 @@
   html[data-desk-windows='1'] .desk-ident label {
     display: grid;
     gap: 3px;
+    margin: 0;
     font-size: 12px;
+    line-height: 17.4px;
     color: var(--muted, rgba(45, 45, 42, 0.58));
   }
 
@@ -149,8 +151,15 @@
     box-shadow: none;
     font: inherit;
     font-size: 12px;
-    line-height: 1.45;
+    line-height: 17.4px;
+    height: 31.4px;
+    min-height: 31.4px;
     text-align: left;
+  }
+
+  html[data-desk-windows='1'] .desk-ident textarea {
+    height: 48.8px;
+    min-height: 48.8px;
   }
 
   html[data-desk-windows='1'] .desk-ident .pad-grid--2 {
@@ -162,6 +171,7 @@
   html[data-desk-windows='1'] .desk-ident .pad-note {
     margin: 0;
     font-size: 0.75rem;
+    line-height: 17.4px;
     color: var(--muted, rgba(45, 45, 42, 0.58));
   }
 
@@ -218,8 +228,9 @@
     flex-wrap: wrap;
     gap: 6px 12px;
     align-items: center;
-    min-height: 52px;
-    padding: 6px 0 10px;
+    min-height: 52.2px;
+    margin-bottom: 8px;
+    padding: 6px 0;
     border-bottom: 1px solid rgba(45, 45, 42, 0.14);
     box-sizing: border-box;
   }
@@ -266,7 +277,19 @@
   html[data-desk-windows='1'] .desk-ident .btn.primary {
     padding: 5px 10px;
     font-size: 0.78rem;
+    line-height: 18.1px;
+    height: 30.1px;
+    box-sizing: border-box;
     border-radius: 10px;
+  }
+
+  html[data-desk-windows='1'] .desk-ident .pad-row:has(.btn.primary) {
+    min-height: 30.1px;
+  }
+
+  html[data-desk-windows='1'] .desk-ident .chips {
+    margin-top: 2px;
+    row-gap: 4px;
   }
 
   html[data-desk-windows='1'] .hp-pad {

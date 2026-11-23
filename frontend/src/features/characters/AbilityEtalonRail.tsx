@@ -91,7 +91,14 @@ export function AbilityEtalonRail() {
               <div className="abil__meta">
                 <span className="abil__score-wrap">
                   <span className="abil__score num">{ability.score}</span>
-                  {ability.effective ? <span className="abil__effective is-buffed">{ability.effective}</span> : null}
+                  {ability.effective ? (
+                    <span className="abil__effective is-buffed">
+                      {ability.effective.startsWith('→') ? (
+                        <span className="abil__effective-arrow">→</span>
+                      ) : null}
+                      {ability.effective.startsWith('→') ? ability.effective.slice(1) : ability.effective}
+                    </span>
+                  ) : null}
                 </span>
                 <button type="button" className="abil__mod num"><span className="abil-mod__tag">Пр</span> {ability.check}</button>
                 <span className="abil-mod-pair">
