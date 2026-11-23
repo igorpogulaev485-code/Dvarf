@@ -304,8 +304,9 @@
 
   html[data-desk-windows='1'] .coin-pad--etalon .pad-lead {
     margin: 0;
-    font-size: 1rem;
-    line-height: 19px;
+    font-size: 13.12px;
+    line-height: 19.024px;
+    font-weight: 400;
     color: rgba(45, 45, 42, 0.78);
   }
 
@@ -319,14 +320,22 @@
     display: inline-flex;
     align-items: baseline;
     gap: 6px;
-    padding: 3px 9px;
+    padding: 3px 8px;
     height: 28px;
     min-height: 28px;
     border: 1px solid rgba(45, 45, 42, 0.14);
     border-radius: 999px;
     background: #fffdf8;
     color: rgba(45, 45, 42, 0.92);
-    font-size: 0.86rem;
+    font-size: 12.48px;
+    font-weight: 650;
+    line-height: 18.096px;
+  }
+
+  html[data-desk-windows='1'] .coin-pad--etalon .sheet-chip b {
+    font-family: "Source Serif 4", Georgia, serif;
+    font-weight: 600;
+    font-size: 12.48px;
   }
 
   html[data-desk-windows='1'] .coin-pad--etalon .sheet-chip.is-on {
@@ -385,12 +394,7 @@
     color: #24241f;
   }
 
-  html[data-desk-windows='1'] .coin-pad--etalon .pad-row .btn {
-    height: 30.1px;
-  }
-
-  html[data-desk-windows='1'] .coin-pad--etalon .btn,
-  html[data-desk-windows='1'] .desk-rest .btn {
+  html[data-desk-windows='1'] .coin-pad--etalon .btn {
     min-height: 0;
     height: 34.5px;
     padding: 7px 8px;
@@ -400,6 +404,29 @@
     color: rgba(45, 45, 42, 0.92);
     font-weight: 600;
     font-size: 0.8rem;
+    box-shadow: none;
+  }
+
+  html[data-desk-windows='1'] .coin-pad--etalon .pad-row .btn {
+    height: 30.1px;
+    padding: 5px 10px;
+    font-size: 12.48px;
+    line-height: 18.096px;
+    font-weight: 600;
+  }
+
+  html[data-desk-windows='1'] .desk-rest .btn {
+    min-height: 0;
+    height: 39.2px;
+    padding: 7px 12px;
+    border-radius: 10px;
+    border: 1px solid rgba(45, 45, 42, 0.14);
+    background: #fffdf8;
+    color: rgba(45, 45, 42, 0.92);
+    font-weight: 600;
+    font-size: 16px;
+    line-height: 23.2px;
+    box-sizing: border-box;
     box-shadow: none;
   }
 
@@ -462,7 +489,7 @@
 
   html[data-desk-windows='1'] .desk-rest ul {
     margin: 16px 0 0;
-    padding-left: 1.2rem;
+    padding-left: 40px;
   }
 
   html[data-desk-windows='1'] .desk-rest li {
@@ -487,17 +514,17 @@
     align-items: center;
   }
 
-  html[data-desk-windows='1'] .desk-rest .btn.primary {
-    height: 39.2px;
-  }
-
   html[data-desk-windows='1'] .desk-rest .sheet-chip {
     border: 1px solid rgba(45, 45, 42, 0.14);
     border-radius: 999px;
     background: #fffdf8;
     padding: 3px 10px;
     min-height: 28px;
+    height: 28px;
+    box-sizing: border-box;
+    font-size: 12.48px;
     font-weight: 650;
+    line-height: 18.096px;
   }
 
   html[data-desk-windows='1'] .desk-rest .sheet-chip.is-on {
@@ -509,8 +536,8 @@
   html[data-desk-windows='1'] .desk-rest .ident-class-row {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    gap: 8px;
+    justify-content: flex-start;
+    gap: 12px;
     padding: 6px 0;
     border-bottom: 1px solid rgba(45, 45, 42, 0.14);
   }
