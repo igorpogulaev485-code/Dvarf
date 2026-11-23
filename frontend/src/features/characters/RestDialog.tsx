@@ -598,6 +598,147 @@ export function RestDialog({
         ? confirm.lines
         : []
 
+  const desk = typeof document !== 'undefined' && document.documentElement.dataset.deskWindows === '1'
+  const channel = play.resources.find((row) => /канал/i.test(row.name))
+  const channelMax = channel?.max ?? 1
+  const channelCur = channel ? Math.max(0, channel.max - channel.used) : channelMax
+
+  function spendDeskDie(poolId: string, die: HitDie) {
+    if (hpMax == null) {
+      onToast('Задай максимум хитов')
+      return
+    }
+    const amount = suggestedHitDieHeal(die, constitutionMod) ?? 0
+    const beforeHp = hpCurrent ?? 0
+    const healed = applyHitDieHeal({ hpCurrent, hpMax, healAmount: amount })
+    if (healed == null) return
+    applyHitDieConfirm({
+      kind: 'hit-die',
+      amount,
+      beforeHp,
+      nextHp: healed,
+      die,
+      songBonus: 0,
+      blackNote: '',
+      songNote: '',
+      poolId,
+    })
+  }
+
+  function applyDeskRest() {
+    if (tab === 'short') {
+      const { lines, result } = buildShortRestResourcesSummary({
+        resources: play.resources,
+        pact_slots: spells.pact_slots,
+        effects: play.effects ?? [],
+      })
+      applyShortRestConfirm({ kind: 'short-resources', lines, result })
+      return
+    }
+    const { lines, result } = buildLongRestSummary({
+      resources: play.resources,
+      slots: spells.slots,
+      pact_slots: spells.pact_slots,
+      exhaustion: play.exhaustion,
+      hp_current: hpCurrent,
+      hp_max: hpMax,
+      hp_temp: play.hpTemp,
+      hit_dice_current: hitDiceCurrent,
+      hit_dice_max: hitDiceMax,
+      hit_dice_by_class: pools.length > 0 ? pools : undefined,
+      effects: play.effects ?? [],
+      rules_edition: rulesEdition,
+    })
+    if (result.blocked) {
+      onToast(result.block_reason || 'Длинный отдых недоступен')
+      return
+    }
+    applyLongRestConfirm({ kind: 'long', lines, result })
+  }
+
+  if (desk) {
+    const short = tab !== 'long'
+    return (
+      <Dialog
+        open={open}
+        title="Отдых"
+        size="default"
+        primaryLabel="Закрыть"
+        onPrimary={onClose}
+        onDismiss={onClose}
+        showActions={false}
+        showClose
+      >
+        <div className="desk-rest">
+          <div className="pad-row" role="tablist" aria-label="Вид отдыха">
+            <button
+              type="button"
+              className={`sheet-chip${short ? ' is-on' : ''}`}
+              onClick={() => setTab('short')}
+            >
+              Короткий отдых
+            </button>
+            <button
+              type="button"
+              className={`sheet-chip${short ? '' : ' is-on'}`}
+              onClick={() => setTab('long')}
+            >
+              Продолжительный отдых
+            </button>
+          </div>
+          {short ? (
+            <>
+              <p className="section-label">Кости хитов</p>
+              {pools.map((pool) => (
+                <div key={pool.classEntryId} className="ident-class-row">
+                  <span>
+                    {pool.className} · {pool.current}/{pool.max}к{pool.die.replace(/^d/i, '')}
+                  </span>
+                  <button
+                    type="button"
+                    className="btn"
+                    disabled={pool.current <= 0}
+                    onClick={() => spendDeskDie(pool.classEntryId, pool.die)}
+                  >
+                    Потратить кость
+                  </button>
+                </div>
+              ))}
+            </>
+          ) : null}
+          <p className="section-label">Что восстановится</p>
+          {short ? (
+            <>
+              <ul>
+                <li>Ячейки договора (если есть)</li>
+                <li>
+                  Божественный канал ({channelCur}/{channelMax} → {channelMax}/{channelMax})
+                </li>
+                <li>Умения короткого отдыха</li>
+              </ul>
+              <p className="pad-note">Хиты сами не восстанавливаются — потрать кости выше (1кN+2 Тел).</p>
+            </>
+          ) : (
+            <>
+              <ul>
+                <li>Полные хиты ({hpMax ?? '—'})</li>
+                <li>Все ячейки заклинаний</li>
+                <li>Половина костей хитов (округление вверх)</li>
+                <li>Снятие 1 уровня истощения (сейчас {play.exhaustion})</li>
+              </ul>
+              <p className="pad-note">Учёт правил стола: мастер может запретить полный сброс отдельных ресурсов.</p>
+            </>
+          )}
+          <div className="modal-actions">
+            <button type="button" className="btn primary" onClick={applyDeskRest}>
+              Применить отдых
+            </button>
+          </div>
+        </div>
+      </Dialog>
+    )
+  }
+
   return (
     <Dialog
       open={open}
