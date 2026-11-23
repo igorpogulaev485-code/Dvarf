@@ -694,7 +694,7 @@ export function SpellsEtalonDesk({
       {spellbookOpen ? (
         <Dialog
           open
-          title="Книга заклинаний"
+          title="Гримуар"
           size="wide"
           primaryLabel="Готово"
           onPrimary={() => setSpellbookOpen(false)}
