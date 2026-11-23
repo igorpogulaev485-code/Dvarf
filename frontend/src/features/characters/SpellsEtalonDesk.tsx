@@ -301,6 +301,42 @@ function SchoolSprite() {
   )
 }
 
+function PrepareRow({
+  name,
+  meta,
+  badge,
+  action,
+}: {
+  name: string
+  meta?: string[]
+  badge?: string
+  action?: string
+}) {
+  return (
+    <li className={`prepare-row${badge ? ' is-granted' : ''}`}>
+      <div>
+        <div className="prepare-row__name">{name}</div>
+        {meta && meta.length > 0 ? (
+          <div className="prepare-row__meta">
+            {meta.map((item) => (
+              <span key={item} className="prepare-row__badge">
+                {item}
+              </span>
+            ))}
+          </div>
+        ) : null}
+      </div>
+      {action ? (
+        <button type="button" className="btn">
+          {action}
+        </button>
+      ) : (
+        <span className="prepare-row__badge">{badge}</span>
+      )}
+    </li>
+  )
+}
+
 /** Desktop spell column from sheet-desktop.html. Phone keeps PlayDeskSpellsCompact. */
 export function SpellsEtalonDesk({
   variant = 'kaedrin',
@@ -317,6 +353,7 @@ export function SpellsEtalonDesk({
   const [detailId, setDetailId] = useState<string | null>(null)
   const [castId, setCastId] = useState<string | null>(null)
   const [breakOpen, setBreakOpen] = useState(false)
+  const [prepareOpen, setPrepareOpen] = useState(false)
   const detail = detailId ? SPELL_DETAILS[detailId] : null
   const cast = castId ? CAST_VIEWS[castId] : null
 
@@ -355,6 +392,9 @@ export function SpellsEtalonDesk({
         <span className="links">
           <button type="button" className="ghost" title="Скрыть магию — основная панель на всю ширину" onClick={onClearSplit}>
             Скрыть магию
+          </button>
+          <button type="button" className="ghost" data-desk-prepare onClick={() => setPrepareOpen(true)}>
+            Подготовить
           </button>
           <button type="button" className="ghost" title="Магия: подготовка, настройки" onClick={onOpenSettings}>
             Магия
@@ -551,6 +591,52 @@ export function SpellsEtalonDesk({
               }}
             >
               Каст
+            </button>
+          </div>
+        </Dialog>
+      ) : null}
+      {prepareOpen ? (
+        <Dialog
+          open
+          title="Подготовить заклинания"
+          size="wide"
+          primaryLabel="Готово"
+          onPrimary={() => setPrepareOpen(false)}
+          secondaryLabel="Закрыть"
+          onSecondary={() => setPrepareOpen(false)}
+          showActions={false}
+          showClose
+          onDismiss={() => setPrepareOpen(false)}
+          className="desk-prepare"
+        >
+          <p className="prepare-limit">Лимит 1/8 · всегда 5</p>
+          <div className="prepare-tabs" role="tablist">
+            <button type="button" className="chip is-on">
+              Подготовленные
+            </button>
+            <button type="button" className="chip">
+              Список класса
+            </button>
+          </div>
+          <p className="spell-group-label">1-й круг</p>
+          <ul className="prepare-list">
+            <PrepareRow name="Благословение" meta={['концентрация', 'всегда']} badge="Архетип" />
+            <PrepareRow name="Лечение ран" meta={['всегда']} badge="Архетип" />
+            <PrepareRow name="Укрытие" meta={['всегда']} badge="Умение: Убежище верных" />
+            <PrepareRow name="Щит веры" meta={['концентрация']} badge="Предмет" />
+          </ul>
+          <p className="spell-group-label">2-й круг</p>
+          <ul className="prepare-list">
+            <PrepareRow name="Духовное оружие" meta={['всегда']} badge="Архетип" />
+            <PrepareRow name="Малое восстановление" meta={['всегда']} badge="Архетип" />
+            <PrepareRow name="Молитва лечения" action="Убрать" />
+          </ul>
+          <div className="modal-actions">
+            <button type="button" className="btn" onClick={() => setPrepareOpen(false)}>
+              Закрыть
+            </button>
+            <button type="button" className="btn primary" onClick={() => setPrepareOpen(false)}>
+              Готово
             </button>
           </div>
         </Dialog>

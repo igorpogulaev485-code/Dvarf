@@ -1285,4 +1285,160 @@ html[data-desk-windows='1'] .hp-pad .hp-pad__dice-name { display: inline; }
     color: #f8fffb;
     border-color: #4e5d34;
   }
+
+  html[data-desk-windows='1'] .ui-dialog.desk-prepare {
+    color: rgba(45, 45, 42, 0.78);
+  }
+
+  html[data-desk-windows='1'] .ui-dialog.desk-prepare .ui-dialog__title {
+    line-height: 29px;
+    height: 29px;
+  }
+
+  html[data-desk-windows='1'] .ui-dialog.desk-prepare .ui-dialog__close {
+    color: rgba(45, 45, 42, 0.58);
+  }
+
+  html[data-desk-windows='1'] .desk-prepare .prepare-limit {
+    margin: 0 0 10px;
+    font-size: 13.76px;
+    line-height: 20px;
+    font-weight: 400;
+    color: #24241f;
+  }
+
+  html[data-desk-windows='1'] .desk-prepare .prepare-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 0 0 10px;
+  }
+
+  html[data-desk-windows='1'] .desk-prepare .chip {
+    border: 1px solid rgba(45, 45, 42, 0.14);
+    background: color-mix(in srgb, #e5ecd4 55%, #fff);
+    color: #24241f;
+    border-radius: 999px;
+    padding: 2px 10px;
+    font-size: 12.48px;
+    font-weight: 650;
+    min-height: 28px;
+    height: 28px;
+    box-sizing: border-box;
+  }
+
+  html[data-desk-windows='1'] .desk-prepare .chip.is-on {
+    background: #4e5d34;
+    color: #f8fffb;
+    border-color: #4e5d34;
+  }
+
+  html[data-desk-windows='1'] .desk-prepare .spell-group-label {
+    margin: 0 0 10px;
+    font-size: 12px;
+    line-height: 17.4px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: rgba(45, 45, 42, 0.58);
+  }
+
+  html[data-desk-windows='1'] .desk-prepare .prepare-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  html[data-desk-windows='1'] .desk-prepare .prepare-list + .spell-group-label {
+    margin-top: 0;
+  }
+
+  html[data-desk-windows='1'] .desk-prepare .prepare-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    box-sizing: border-box;
+    min-height: 0;
+    padding: 6px 8px;
+    margin: 0;
+    border: 1px solid rgba(45, 45, 42, 0.14);
+    border-radius: 10px;
+    background: #fffdf8;
+  }
+
+  html[data-desk-windows='1'] .desk-prepare .prepare-row.is-granted {
+    background: color-mix(in srgb, #e5ecd4 40%, #fffdf8);
+  }
+
+  html[data-desk-windows='1'] .desk-prepare {
+    font-family: "Source Sans 3", "IBM Plex Sans", sans-serif;
+  }
+
+  html[data-desk-windows='1'] .desk-prepare .prepare-row > div {
+    width: max-content;
+    max-width: calc(100% - 90px);
+  }
+
+  html[data-desk-windows='1'] .desk-prepare .prepare-row__name {
+    font-family: "Source Sans 3", sans-serif;
+    font-size: 16px;
+    line-height: 23.2px;
+    font-weight: 700;
+    color: #24241f;
+  }
+
+  html[data-desk-windows='1'] .desk-prepare .prepare-row__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 0;
+    font-size: 11.84px;
+    color: rgba(45, 45, 42, 0.92);
+  }
+
+  html[data-desk-windows='1'] .desk-prepare .prepare-row__badge {
+    display: inline-block;
+    padding: 1px 6px;
+    border-radius: 999px;
+    border: 1px solid rgba(45, 45, 42, 0.14);
+    font-size: 10.88px;
+    line-height: 15.8px;
+    font-weight: 700;
+    margin: 0;
+    color: inherit;
+  }
+
+  html[data-desk-windows='1'] .desk-prepare .prepare-row > .prepare-row__badge {
+    color: rgba(45, 45, 42, 0.78);
+  }
+
+  html[data-desk-windows='1'] .desk-prepare .modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 12px;
+  }
+
+  html[data-desk-windows='1'] .desk-prepare .btn {
+    border: 1px solid var(--line);
+    background: var(--card, #fffdf8);
+    border-radius: 10px;
+    padding: 7px 12px;
+    font-size: 16px;
+    line-height: 23.2px;
+    font-weight: 600;
+    height: 39.2px;
+    box-sizing: border-box;
+    color: rgba(45, 45, 42, 0.92);
+  }
+
+  html[data-desk-windows='1'] .desk-prepare .btn.primary {
+    background: #4e5d34;
+    color: #f8fffb;
+    border-color: #4e5d34;
+  }
 }
