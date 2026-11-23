@@ -57,6 +57,16 @@
     color: var(--heading, #24241f);
   }
 
+  html[data-desk-windows='1'] .ui-dialog.coin-pad .ui-dialog__title,
+  html[data-desk-windows='1'] .ui-dialog:has(.desk-rest) .ui-dialog__title {
+    line-height: 29px;
+    height: 29px;
+  }
+
+  html[data-desk-windows='1'] .ui-dialog:has(.desk-rest) .ui-dialog__header {
+    margin-bottom: 6px;
+  }
+
   html[data-desk-windows='1'] .ui-dialog__close,
   html[data-desk-windows='1'] .number-pad__close {
     width: 32px;
@@ -374,6 +384,11 @@
     color: #24241f;
     font-size: 1.02rem;
     font-weight: 700;
+  }
+
+  html[data-desk-windows='1'] .coin-pad--etalon .number-pad__key--meta {
+    font-size: 14.72px;
+    font-weight: 650;
   }
 
   html[data-desk-windows='1'] .coin-pad--etalon .number-pad__display {
