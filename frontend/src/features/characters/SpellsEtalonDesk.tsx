@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { Dialog } from '../../ui'
 
 export type SpellMagicVariant = 'kaedrin' | 'multiclass' | 'warlock' | 'wizard'
 
@@ -38,6 +39,71 @@ const SPELLS: SpellRow[] = [
   { id: 'lesser', circle: 2, name: 'Малое восстановление', level: '2 ур.', dmg: 'болезнь или состояние', tags: 'Архетип', school: 'ограждение', granted: true, meta: 'действие · Касание · — · В/С · ограждение' },
   { id: 'prayer', circle: 2, name: 'Молитва лечения', level: '2 ур.', dmg: '2к8+3 хиты, до 6 существ', school: 'воплощение', meta: '10 мин · 30 фт · — · В · воплощение' },
 ]
+
+/** Текст живого окна «Описание заклинания» для Каэдрина. */
+const SPELL_DETAILS: Record<string, { name: string; flags: string; meta: string; preview?: string; text: string }> = {
+  'sacred-flame': {
+    name: 'Священное пламя',
+    flags: 'заговор · воплощение · 1 действие',
+    meta: 'Дистанция: 60 футов · Длительность: Мгновенная · Компоненты: В, С',
+    preview: '2к8 излучение',
+    text: 'Цель в пределах дистанции должна преуспеть в спасброске Ловкости, иначе получает урон излучением. Укрытие не помогает.',
+  },
+  bless: {
+    name: 'Благословение',
+    flags: '1-й круг · очарование · 1 действие · концентрация · всегда подготовлено · Архетип',
+    meta: 'Дистанция: 30 футов · Длительность: 1 минута · Компоненты: В, С, М',
+    preview: 'к20 +1к4 к атаке и спасам',
+    text: 'До трёх существ получают прибавку 1к4 к броскам атаки и спасброскам, пока держится концентрация.',
+  },
+  cure: {
+    name: 'Лечение ран',
+    flags: '1-й круг · восстановление · 1 действие · всегда подготовлено · Архетип',
+    meta: 'Дистанция: Касание · Длительность: Мгновенная · Компоненты: В, С',
+    preview: '1к8+6 хитов',
+    text: 'Касанием восстанавливаешь хиты. У домена Жизни лечение усилено ученичеством жизни.',
+  },
+  detect: {
+    name: 'Обнаружение магии',
+    flags: '1-й круг · прорицание · 1 действие · ритуал · концентрация',
+    meta: 'Дистанция: На себя · Длительность: 10 минут · Компоненты: В, С',
+    text: 'Чувствуешь присутствие магии в пределах 30 футов. Как ритуал — без ячейки, время каста +10 минут.',
+  },
+  sanctuary: {
+    name: 'Укрытие',
+    flags: '1-й круг · ограждение · 1 бонусное действие · всегда подготовлено · Умение: Убежище верных',
+    meta: 'Дистанция: 30 футов · Длительность: 1 минута · Компоненты: В, С, М',
+    preview: 'атакующий должен пройти спас Мудрости',
+    text: 'Существо защищено: атакующий должен преуспеть в спасброске Мудрости, иначе выбирает другую цель. Не концентрация. Умение «Убежище верных» даёт один каст без ячейки за длинный отдых.',
+  },
+  'shield-faith': {
+    name: 'Щит веры',
+    flags: '1-й круг · ограждение · 1 бонусное действие · концентрация · всегда подготовлено · Предмет',
+    meta: 'Дистанция: 60 футов · Длительность: 10 минут · Компоненты: В, С, М',
+    preview: 'КД +2',
+    text: 'Цель получает +2 к КД, пока держится концентрация. Заряды предмета «Наложение щита» позволяют каст без ячейки; слот тоже можно потратить.',
+  },
+  spiritual: {
+    name: 'Духовное оружие',
+    flags: '2-й круг · воплощение · 1 бонусное действие · всегда подготовлено · Архетип',
+    meta: 'Дистанция: 60 футов · Длительность: 1 минута · Компоненты: В, С',
+    preview: '1к8+3 силовой',
+    text: 'Создаёшь призванное оружие и сразу совершаешь рукопашную атаку заклинанием. Последующие атаки — бонусным действием.',
+  },
+  lesser: {
+    name: 'Малое восстановление',
+    flags: '2-й круг · восстановление · 1 действие · всегда подготовлено · Архетип',
+    meta: 'Дистанция: Касание · Длительность: Мгновенная · Компоненты: В, С',
+    text: 'Касанием снимаешь одну болезнь или состояние: ослепление, глухоту, паралич или отравление.',
+  },
+  prayer: {
+    name: 'Молитва лечения',
+    flags: '2-й круг · восстановление · 10 минут',
+    meta: 'Дистанция: 30 футов · Длительность: Мгновенная · Компоненты: В',
+    preview: '2к8+7 хитов (до 6 существ)',
+    text: 'До шести существ восстанавливают хиты. Время каста 10 минут — не подходит для хода в бою.',
+  },
+}
 
 /** Илис Чернильный, Волшебник 10 — лист sheet-desktop.html, data-set-demo-char=ilis. */
 const WIZARD_CIRCLES: Array<{ id: SpellCircle; title: string; count: string; slots?: string }> = [
@@ -231,6 +297,8 @@ export function SpellsEtalonDesk({
   const [filter, setFilter] = useState<FilterId>('all')
   const [query, setQuery] = useState('')
   const [collapsed, setCollapsed] = useState<Set<number>>(() => new Set())
+  const [detailId, setDetailId] = useState<string | null>(null)
+  const detail = detailId ? SPELL_DETAILS[detailId] : null
 
   const bookRitualsOnSheet = variant === 'multiclass' || variant === 'warlock'
   const catalog = (variant === 'wizard' ? WIZARD_SPELLS : SPELLS).map((spell) => {
@@ -386,7 +454,15 @@ export function SpellsEtalonDesk({
                   ) : null}
                   <div className="plaque__body">
                     <div className="spell-top">
-                      <button type="button" className="plaque__name">{spell.name}</button>
+                      <button
+                        type="button"
+                        className="plaque__name"
+                        onClick={() => {
+                          if (SPELL_DETAILS[spell.id]) setDetailId(spell.id)
+                        }}
+                      >
+                        {spell.name}
+                      </button>
                       <span className="spell-level">{spell.level}</span>
                       {spell.dmg ? <span className="spell-dmg">{spell.dmg}</span> : null}
                       {spell.tags ? <span className="spell-level">{spell.tags}</span> : null}
@@ -405,6 +481,39 @@ export function SpellsEtalonDesk({
           )
         })}
       </div>
+      {detail ? (
+        <Dialog
+          open
+          title={detail.name}
+          primaryLabel="Каст"
+          onPrimary={() => setDetailId(null)}
+          secondaryLabel="Закрыть"
+          onSecondary={() => setDetailId(null)}
+          showActions={false}
+          showClose
+          onDismiss={() => setDetailId(null)}
+          className="desk-spell-detail"
+        >
+          <div className="spell-detail">
+            <p className="flags">{detail.flags}</p>
+            <p>{detail.meta}</p>
+            {detail.preview ? (
+              <p>
+                <b>{detail.preview}</b>
+              </p>
+            ) : null}
+            <p>{detail.text}</p>
+          </div>
+          <div className="modal-actions">
+            <button type="button" className="btn" onClick={() => setDetailId(null)}>
+              Закрыть
+            </button>
+            <button type="button" className="btn primary" onClick={() => setDetailId(null)}>
+              Каст
+            </button>
+          </div>
+        </Dialog>
+      ) : null}
     </>
   )
 }
