@@ -1442,4 +1442,150 @@ html[data-desk-windows='1'] .hp-pad .hp-pad__dice-name { display: inline; }
     color: #f8fffb;
     border-color: #4e5d34;
   }
+
+  html[data-desk-windows='1'] .ui-dialog.desk-spellbook {
+    color: rgba(45, 45, 42, 0.78);
+    font-family: "IBM Plex Sans", "Source Sans 3", system-ui, sans-serif;
+  }
+
+  html[data-desk-windows='1'] .ui-dialog.desk-spellbook .ui-dialog__title {
+    line-height: 29px;
+    height: 29px;
+  }
+
+  html[data-desk-windows='1'] .ui-dialog.desk-spellbook .ui-dialog__close {
+    color: rgba(45, 45, 42, 0.58);
+  }
+
+  html[data-desk-windows='1'] .desk-spellbook .prepare-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 0 0 10px;
+  }
+
+  html[data-desk-windows='1'] .desk-spellbook .chip {
+    border: 1px solid rgba(45, 45, 42, 0.14);
+    background: color-mix(in srgb, #e5ecd4 55%, #fff);
+    color: #24241f;
+    border-radius: 999px;
+    padding: 2px 10px;
+    font-size: 12.48px;
+    font-weight: 650;
+    line-height: 1.45;
+    min-height: 28px;
+    height: 28px;
+    box-sizing: border-box;
+  }
+
+  html[data-desk-windows='1'] .desk-spellbook .chip.is-on {
+    background: #4e5d34;
+    color: #f8fffb;
+    border-color: #4e5d34;
+  }
+
+  html[data-desk-windows='1'] .desk-spellbook .prepare-limit {
+    margin: 0 0 10px;
+    font-size: 13.76px;
+    line-height: 1.45;
+    font-weight: 400;
+    color: #24241f;
+  }
+
+  html[data-desk-windows='1'] .desk-spellbook .flags {
+    margin: 0 0 10px;
+    font-size: 11.52px;
+    line-height: 16.7px;
+    font-weight: 400;
+    color: rgba(45, 45, 42, 0.58);
+  }
+
+  html[data-desk-windows='1'] .desk-spellbook .prepare-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 4px;
+    max-height: min(40vh, 320px);
+    overflow: auto;
+  }
+
+  html[data-desk-windows='1'] .desk-spellbook .prepare-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    box-sizing: border-box;
+    min-height: 0;
+    padding: 6px 8px;
+    margin: 0;
+    border: 1px solid rgba(45, 45, 42, 0.14);
+    border-radius: 8px;
+    background: #fffdf8;
+  }
+
+  html[data-desk-windows='1'] .desk-spellbook .prepare-row.is-granted {
+    background: color-mix(in srgb, #e5ecd4 40%, #fffdf8);
+  }
+
+  html[data-desk-windows='1'] .desk-spellbook .prepare-row > div {
+    width: max-content;
+    max-width: calc(100% - 90px);
+  }
+
+  html[data-desk-windows='1'] .desk-spellbook .prepare-row__name {
+    font-family: "IBM Plex Sans", "Source Sans 3", system-ui, sans-serif;
+    font-size: 16px;
+    line-height: 23.2px;
+    font-weight: 700;
+    color: #24241f;
+  }
+
+  html[data-desk-windows='1'] .desk-spellbook .prepare-row__meta {
+    display: block;
+    margin: 0;
+    font-size: 11.84px;
+    line-height: 17.2px;
+    color: rgba(45, 45, 42, 0.92);
+  }
+
+  html[data-desk-windows='1'] .desk-spellbook .prepare-row__badge {
+    display: inline-block;
+    padding: 1px 6px;
+    border-radius: 999px;
+    border: 1px solid rgba(45, 45, 42, 0.14);
+    background: transparent;
+    font-size: 10.88px;
+    line-height: 15.8px;
+    font-weight: 700;
+    margin: 0;
+    color: rgba(45, 45, 42, 0.78);
+  }
+
+  html[data-desk-windows='1'] .desk-spellbook .modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 12px;
+    background: #fffdf8;
+  }
+
+  html[data-desk-windows='1'] .desk-spellbook .btn {
+    border: 1px solid rgba(45, 45, 42, 0.14);
+    background: #fffdf8;
+    border-radius: 10px;
+    padding: 7px 12px;
+    font-size: 16px;
+    line-height: 23.2px;
+    font-weight: 600;
+    height: 39.2px;
+    box-sizing: border-box;
+    color: rgba(45, 45, 42, 0.92);
+  }
+
+  html[data-desk-windows='1'] .desk-spellbook .btn.primary {
+    background: #4e5d34;
+    color: #f8fffb;
+    border-color: #4e5d34;
+  }
 }

@@ -301,6 +301,52 @@ function SchoolSprite() {
   )
 }
 
+const SPELLBOOK_ROWS: Array<{ name: string; meta: string; badge?: string; action?: string }> = [
+  { name: 'Благословение', meta: '1-й круг · концентрация', badge: 'Архетип' },
+  { name: 'Лечение ран', meta: '1-й круг', badge: 'Архетип' },
+  { name: 'Обнаружение магии', meta: '1-й круг · ритуал · концентрация', action: 'Подготовить' },
+  { name: 'Укрытие', meta: '1-й круг', badge: 'Умение: Убежище верных' },
+  { name: 'Щит веры', meta: '1-й круг · концентрация', badge: 'Предмет' },
+  { name: 'Духовное оружие', meta: '2-й круг', badge: 'Архетип' },
+  { name: 'Малое восстановление', meta: '2-й круг', badge: 'Архетип' },
+  { name: 'Молитва лечения', meta: '2-й круг', action: 'Подготовлено' },
+  { name: 'Направленный снаряд', meta: '1-й круг', action: 'Подготовить' },
+  { name: 'Лечащее слово', meta: '1-й круг', action: 'Подготовить' },
+  { name: 'Наказ', meta: '1-й круг', action: 'Подготовить' },
+  { name: 'Удержание личности', meta: '2-й круг · концентрация', action: 'Подготовить' },
+  { name: 'Подмога', meta: '2-й круг', action: 'Подготовить' },
+  { name: 'Духовные стражи', meta: '3-й круг · концентрация', action: 'Подготовить' },
+  { name: 'Рассеивание магии', meta: '3-й круг', action: 'Подготовить' },
+]
+
+function SpellbookRow({
+  name,
+  meta,
+  badge,
+  action,
+}: {
+  name: string
+  meta: string
+  badge?: string
+  action?: string
+}) {
+  return (
+    <li className={`prepare-row${badge ? ' is-granted' : ''}`}>
+      <div>
+        <div className="prepare-row__name">{name}</div>
+        <div className="prepare-row__meta">{meta}</div>
+      </div>
+      {action ? (
+        <button type="button" className="btn">
+          {action}
+        </button>
+      ) : (
+        <span className="prepare-row__badge">{badge}</span>
+      )}
+    </li>
+  )
+}
+
 function PrepareRow({
   name,
   meta,
@@ -354,6 +400,7 @@ export function SpellsEtalonDesk({
   const [castId, setCastId] = useState<string | null>(null)
   const [breakOpen, setBreakOpen] = useState(false)
   const [prepareOpen, setPrepareOpen] = useState(false)
+  const [spellbookOpen, setSpellbookOpen] = useState(false)
   const detail = detailId ? SPELL_DETAILS[detailId] : null
   const cast = castId ? CAST_VIEWS[castId] : null
 
@@ -395,6 +442,9 @@ export function SpellsEtalonDesk({
           </button>
           <button type="button" className="ghost" data-desk-prepare onClick={() => setPrepareOpen(true)}>
             Подготовить
+          </button>
+          <button type="button" className="ghost" data-desk-spellbook onClick={() => setSpellbookOpen(true)}>
+            Книга
           </button>
           <button type="button" className="ghost" title="Магия: подготовка, настройки" onClick={onOpenSettings}>
             Магия
@@ -636,6 +686,42 @@ export function SpellsEtalonDesk({
               Закрыть
             </button>
             <button type="button" className="btn primary" onClick={() => setPrepareOpen(false)}>
+              Готово
+            </button>
+          </div>
+        </Dialog>
+      ) : null}
+      {spellbookOpen ? (
+        <Dialog
+          open
+          title="Книга заклинаний"
+          size="wide"
+          primaryLabel="Готово"
+          onPrimary={() => setSpellbookOpen(false)}
+          secondaryLabel="Своё заклинание"
+          onSecondary={() => setSpellbookOpen(false)}
+          showActions={false}
+          showClose
+          onDismiss={() => setSpellbookOpen(false)}
+          className="desk-spellbook"
+        >
+          <div className="prepare-tabs">
+            <button type="button" className="chip is-on">
+              Жрец · список класса
+            </button>
+          </div>
+          <p className="prepare-limit">Подготовка 1/8 · всегда 5</p>
+          <p className="flags">Полный список класса жреца: отметь, что подготовлено на сегодня.</p>
+          <ul className="prepare-list">
+            {SPELLBOOK_ROWS.map((row) => (
+              <SpellbookRow key={row.name} {...row} />
+            ))}
+          </ul>
+          <div className="modal-actions">
+            <button type="button" className="btn" onClick={() => setSpellbookOpen(false)}>
+              Своё заклинание
+            </button>
+            <button type="button" className="btn primary" onClick={() => setSpellbookOpen(false)}>
               Готово
             </button>
           </div>
