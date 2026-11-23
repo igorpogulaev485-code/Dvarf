@@ -387,15 +387,16 @@ function PrepareRow({
 export function SpellsEtalonDesk({
   variant = 'kaedrin',
   onClearSplit,
-  onOpenSettings,
   grimoireOpen = false,
   onGrimoireClose,
+  onGrimoireOpen,
 }: {
   variant?: SpellMagicVariant
   onClearSplit?: () => void
   onOpenSettings?: () => void
   grimoireOpen?: boolean
   onGrimoireClose?: () => void
+  onGrimoireOpen?: () => void
 }) {
   const [filter, setFilter] = useState<FilterId>('all')
   const [query, setQuery] = useState('')
@@ -404,6 +405,9 @@ export function SpellsEtalonDesk({
   const [castId, setCastId] = useState<string | null>(null)
   const [breakOpen, setBreakOpen] = useState(false)
   const [prepareOpen, setPrepareOpen] = useState(false)
+  const [settingsOpen, setSettingsOpen] = useState(false)
+  const [focusOn, setFocusOn] = useState(true)
+  const [pouchOn, setPouchOn] = useState(true)
   const detail = detailId ? SPELL_DETAILS[detailId] : null
   const cast = castId ? CAST_VIEWS[castId] : null
 
@@ -443,10 +447,7 @@ export function SpellsEtalonDesk({
           <button type="button" className="ghost" title="Скрыть магию — основная панель на всю ширину" onClick={onClearSplit}>
             Скрыть магию
           </button>
-          <button type="button" className="ghost" data-desk-prepare onClick={() => setPrepareOpen(true)}>
-            Подготовить
-          </button>
-          <button type="button" className="ghost" title="Магия: подготовка, настройки" onClick={onOpenSettings}>
+          <button type="button" className="ghost" data-desk-settings title="Магия: подготовка, настройки" onClick={() => setSettingsOpen(true)}>
             Магия
           </button>
         </span>
@@ -686,6 +687,109 @@ export function SpellsEtalonDesk({
               Закрыть
             </button>
             <button type="button" className="btn primary" onClick={() => setPrepareOpen(false)}>
+              Готово
+            </button>
+          </div>
+        </Dialog>
+      ) : null}
+      {settingsOpen ? (
+        <Dialog
+          open
+          title="Магия"
+          size="wide"
+          primaryLabel="Готово"
+          onPrimary={() => setSettingsOpen(false)}
+          secondaryLabel="Закрыть"
+          onSecondary={() => setSettingsOpen(false)}
+          showActions={false}
+          showClose
+          onDismiss={() => setSettingsOpen(false)}
+          className="desk-settings"
+        >
+          <div className="settings-block">
+            <h3>Каталог и подготовка / изучение</h3>
+            <p className="flags">Жрец · подготовка 1/8 · всегда 5 · табл. 8</p>
+            <div className="modal-actions" style={{ marginTop: 8 }}>
+              <button
+                type="button"
+                className="btn"
+                onClick={() => {
+                  setSettingsOpen(false)
+                  setPrepareOpen(true)
+                }}
+              >
+                Подготовить
+              </button>
+              <button
+                type="button"
+                className="btn"
+                data-cbt="open-grimoire"
+                onClick={() => {
+                  setSettingsOpen(false)
+                  onGrimoireOpen?.()
+                }}
+              >
+                Гримуар
+              </button>
+            </div>
+          </div>
+          <div className="settings-block">
+            <h3>Фокус и мешочек</h3>
+            <div className="chips">
+              <button type="button" className={`chip${focusOn ? ' is-on' : ''}`} onClick={() => setFocusOn((v) => !v)}>
+                Фокус <span className="chip-mark">{focusOn ? '✓' : '✗'}</span>
+              </button>
+              <button type="button" className={`chip${pouchOn ? ' is-on' : ''}`} onClick={() => setPouchOn((v) => !v)}>
+                Мешочек <span className="chip-mark">{pouchOn ? '✓' : '✗'}</span>
+              </button>
+            </div>
+          </div>
+          <div className="settings-block">
+            <h3>Сл. спас. и атака заклинаний</h3>
+            <button
+              type="button"
+              className="btn"
+              onClick={() => {
+                setSettingsOpen(false)
+                setBreakOpen(true)
+              }}
+            >
+              Разборка сл. спас. и атаки
+            </button>
+            <p className="flags">8+БМ+мод / БМ+мод · клик — бонусы</p>
+          </div>
+          <div className="settings-block">
+            <h3>Ячейки</h3>
+            <div className="settings-slots">
+              <div className="settings-slot-row">
+                <span>Ячейки 1-го круга</span>
+                <span>
+                  <b className="num">4/4</b>
+                </span>
+              </div>
+              <div className="settings-slot-row">
+                <span>Ячейки 2-го круга</span>
+                <span>
+                  <b className="num">3/3</b>
+                </span>
+              </div>
+              <div className="settings-slot-row">
+                <span>Ячейки 3-го круга</span>
+                <span>
+                  <b className="num">2/2</b>
+                </span>
+              </div>
+            </div>
+            <p className="flags">Ячейки договора нет. Нужен колдун (или включи вручную в расширенном).</p>
+            <button type="button" className="ghost">
+              Расширенное
+            </button>
+          </div>
+          <div className="modal-actions">
+            <button type="button" className="btn" onClick={() => setSettingsOpen(false)}>
+              Закрыть
+            </button>
+            <button type="button" className="btn primary" onClick={() => setSettingsOpen(false)}>
               Готово
             </button>
           </div>

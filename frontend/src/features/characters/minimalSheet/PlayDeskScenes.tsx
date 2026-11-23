@@ -1758,6 +1758,7 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
           variant={spellMagicVariant()}
           grimoireOpen={deskGrimoireOpen}
           onGrimoireClose={() => setDeskGrimoireOpen(false)}
+          onGrimoireOpen={() => setDeskGrimoireOpen(true)}
           onClearSplit={
             model.deskSplit && model.splitSecondary === 'spells'
               ? () => model.patchSheetUi({ deskSplit: false })
