@@ -1080,4 +1080,88 @@ html[data-desk-windows='1'] .hp-pad .hp-pad__dice-name { display: inline; }
     color: #f8fffb;
     border-color: #4e5d34;
   }
+
+  html[data-desk-windows='1'] .ui-dialog.desk-cast {
+    color: rgba(45, 45, 42, 0.78);
+  }
+
+  html[data-desk-windows='1'] .ui-dialog.desk-cast .ui-dialog__title {
+    line-height: 29px;
+    height: 29px;
+  }
+
+  html[data-desk-windows='1'] .ui-dialog.desk-cast .ui-dialog__close {
+    color: rgba(45, 45, 42, 0.58);
+  }
+
+  html[data-desk-windows='1'] .desk-cast .cast-meta {
+    margin: 0 0 10px;
+    font-size: 14.72px;
+    line-height: 21.344px;
+    font-weight: 400;
+    color: #24241f;
+  }
+
+  html[data-desk-windows='1'] .desk-cast .cast-meta strong {
+    font-weight: 700;
+  }
+
+  html[data-desk-windows='1'] .desk-cast .cast-preview {
+    margin: 8px 0;
+    padding: 8px 10px;
+    border-radius: 10px;
+    border: 1px solid rgba(45, 45, 42, 0.14);
+    background: color-mix(in srgb, #e5ecd4 30%, #fffdf8);
+    font-size: 13.76px;
+    line-height: 19.952px;
+    color: rgba(45, 45, 42, 0.78);
+  }
+
+  html[data-desk-windows='1'] .desk-cast .cast-preview b {
+    font-weight: 700;
+    color: #24241f;
+  }
+
+  html[data-desk-windows='1'] .desk-cast .cast-comp,
+  html[data-desk-windows='1'] .desk-cast .cast-note {
+    margin: 0 0 10px;
+    font-size: 12.8px;
+    line-height: 18.56px;
+    font-weight: 400;
+  }
+
+  html[data-desk-windows='1'] .desk-cast .cast-comp {
+    margin-top: 0;
+    color: rgba(45, 45, 42, 0.78);
+  }
+
+  html[data-desk-windows='1'] .desk-cast .cast-note {
+    color: rgba(45, 45, 42, 0.92);
+  }
+
+  html[data-desk-windows='1'] .desk-cast .modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 12px;
+  }
+
+  html[data-desk-windows='1'] .desk-cast .btn {
+    border: 1px solid var(--line);
+    background: var(--card, #fffdf8);
+    border-radius: 10px;
+    padding: 7px 12px;
+    font-size: 16px;
+    line-height: 23.2px;
+    font-weight: 600;
+    height: 39.2px;
+    box-sizing: border-box;
+    color: rgba(45, 45, 42, 0.92);
+  }
+
+  html[data-desk-windows='1'] .desk-cast .btn.primary {
+    background: #4e5d34;
+    color: #f8fffb;
+    border-color: #4e5d34;
+  }
 }

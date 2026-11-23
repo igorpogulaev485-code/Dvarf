@@ -105,6 +105,23 @@ const SPELL_DETAILS: Record<string, { name: string; flags: string; meta: string;
   },
 }
 
+/** Живое окно каста заговора «Священное пламя». */
+const CAST_VIEWS: Record<
+  string,
+  { title: string; name: string; meta: string; previewLabel: string; preview: string; comp: string; rest: string; time: string }
+> = {
+  'sacred-flame': {
+    title: 'Использовать заговор?',
+    name: 'Священное пламя',
+    meta: 'заговор',
+    previewLabel: 'Итог эффекта (ур. персонажа 5): ',
+    preview: '2к8 излучение',
+    comp: 'Фокус есть · материальный компонент не нужен',
+    rest: 'По желанию · без ячейки',
+    time: 'Время: 1 действие · Длительность: Мгновенная',
+  },
+}
+
 /** Илис Чернильный, Волшебник 10 — лист sheet-desktop.html, data-set-demo-char=ilis. */
 const WIZARD_CIRCLES: Array<{ id: SpellCircle; title: string; count: string; slots?: string }> = [
   { id: 0, title: 'Заговоры', count: '6' },
@@ -298,7 +315,9 @@ export function SpellsEtalonDesk({
   const [query, setQuery] = useState('')
   const [collapsed, setCollapsed] = useState<Set<number>>(() => new Set())
   const [detailId, setDetailId] = useState<string | null>(null)
+  const [castId, setCastId] = useState<string | null>(null)
   const detail = detailId ? SPELL_DETAILS[detailId] : null
+  const cast = castId ? CAST_VIEWS[castId] : null
 
   const bookRitualsOnSheet = variant === 'multiclass' || variant === 'warlock'
   const catalog = (variant === 'wizard' ? WIZARD_SPELLS : SPELLS).map((spell) => {
@@ -473,7 +492,15 @@ export function SpellsEtalonDesk({
                     {spell.meta ? <div className="plaque__meta">{spell.meta}</div> : null}
                   </div>
                   <div className="plaque__actions">
-                    <button type="button" className="primary">Каст</button>
+                    <button
+                      type="button"
+                      className="primary"
+                      onClick={() => {
+                        if (CAST_VIEWS[spell.id]) setCastId(spell.id)
+                      }}
+                    >
+                      Каст
+                    </button>
                   </div>
                 </article>
               ))}
@@ -508,7 +535,50 @@ export function SpellsEtalonDesk({
             <button type="button" className="btn" onClick={() => setDetailId(null)}>
               Закрыть
             </button>
-            <button type="button" className="btn primary" onClick={() => setDetailId(null)}>
+            <button
+              type="button"
+              className="btn primary"
+              onClick={() => {
+                setDetailId(null)
+                if (detailId && CAST_VIEWS[detailId]) setCastId(detailId)
+              }}
+            >
+              Каст
+            </button>
+          </div>
+        </Dialog>
+      ) : null}
+      {cast ? (
+        <Dialog
+          open
+          title={cast.title}
+          primaryLabel="Каст"
+          onPrimary={() => setCastId(null)}
+          secondaryLabel="Отмена"
+          onSecondary={() => setCastId(null)}
+          showActions={false}
+          showClose
+          onDismiss={() => setCastId(null)}
+          className="desk-cast"
+        >
+          <p className="cast-meta">
+            <strong>{cast.name}</strong>
+            {cast.meta ? ` · ${cast.meta}` : ''}
+          </p>
+          {cast.preview ? (
+            <div className="cast-preview">
+              {cast.previewLabel}
+              <b>{cast.preview}</b>
+            </div>
+          ) : null}
+          <p className="cast-comp">{cast.comp}</p>
+          <p className="cast-note">{cast.rest}</p>
+          {cast.time ? <p className="cast-note">{cast.time}</p> : null}
+          <div className="modal-actions">
+            <button type="button" className="btn" onClick={() => setCastId(null)}>
+              Отмена
+            </button>
+            <button type="button" className="btn primary" onClick={() => setCastId(null)}>
               Каст
             </button>
           </div>
