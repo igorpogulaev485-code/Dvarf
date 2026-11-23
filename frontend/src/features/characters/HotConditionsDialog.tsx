@@ -228,6 +228,198 @@ export function HotConditionsDialog({
     )
   }
 
+  const desk =
+    typeof document !== 'undefined' && document.documentElement.dataset.deskWindows === '1'
+  if (desk) {
+    const q = query.trim().toLowerCase()
+    const etalonConds = [
+      ['blinded', 'Ослеплённый'],
+      ['charmed', 'Очарованный'],
+      ['deafened', 'Оглохший'],
+      ['frightened', 'Испуганный'],
+      ['grappled', 'Схваченный'],
+      ['incapacitated', 'Недееспособный'],
+      ['invisible', 'Невидимый'],
+      ['paralyzed', 'Парализованный'],
+      ['petrified', 'Окаменевший'],
+      ['poisoned', 'Отравленный'],
+      ['prone', 'Опрокинутый'],
+      ['restrained', 'Опутанный'],
+      ['stunned', 'Ошеломлённый'],
+      ['unconscious', 'Бессознательный'],
+    ] as const
+    const visible = etalonConds.filter(([, name]) => !q || name.toLowerCase().includes(q))
+    const exact = etalonConds.some(([, name]) => name.toLowerCase() === q)
+    const covers = [
+      ['none', 'Нет'],
+      ['half', '½'],
+      ['three_quarters', '¾'],
+      ['total', 'полное'],
+    ] as const
+    const exhaustNote =
+      play.exhaustion > 0
+        ? `${play.exhaustion} · ${
+            ['помеха к проверкам', 'скорость ÷2', 'помеха к атакам и сейвам', 'макс. хиты ÷2', 'скорость 0', 'смерть'][
+              play.exhaustion - 1
+            ] ?? ''
+          }`
+        : 'Нет истощения'
+    return (
+      <Dialog
+        open={open}
+        title="Состояния"
+        size="wide"
+        primaryLabel="Готово"
+        onPrimary={onClose}
+        secondaryLabel="Закрыть"
+        onSecondary={onClose}
+        showActions={false}
+        showClose
+        onDismiss={onClose}
+        className="desk-conditions"
+      >
+        <p className="cbt-kicker">
+          Добавить и снять состояния. Концентрация на полоске снимается крестиком на чипе, без этого
+          окна.
+        </p>
+        <p className="flags" style={{ margin: '0 0 4px' }}>
+          Активные состояния
+        </p>
+        <div className="cond-active">
+          {activeConditions.length === 0 ? (
+            <span className="flags">нет</span>
+          ) : (
+            activeConditions.map((ref) => (
+              <span key={conditionKey(ref)} className="effect-chip">
+                {resolveConditionName(ref)}{' '}
+                <button
+                  type="button"
+                  className="effect-chip__x"
+                  aria-label={`Снять: ${resolveConditionName(ref)}`}
+                  onClick={() => applyConditionRef(ref, 'remove')}
+                >
+                  ×
+                </button>
+              </span>
+            ))
+          )}
+        </div>
+        <div className="cond-extras">
+          <label>
+            Истощение · уровень {play.exhaustion}
+            <input
+              type="range"
+              min={0}
+              max={6}
+              value={play.exhaustion}
+              onChange={(event) => setExhaustion(Number(event.target.value))}
+            />
+          </label>
+          <p className="flags">{exhaustNote}</p>
+          <p className="flags" style={{ margin: 0 }}>
+            Укрытие
+          </p>
+          <div className="chips">
+            {covers.map(([id, label]) => (
+              <button
+                key={id}
+                type="button"
+                className={`chip${(play.cover ?? 'none') === id ? ' is-on' : ''}`}
+                onClick={() => {
+                  patchPlay({ cover: id })
+                  onToast(`Укрытие: ${label}`)
+                }}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+          <div className="chips">
+            <button
+              type="button"
+              className={`chip${play.underwater ? ' is-on' : ''}`}
+              onClick={() => {
+                const next = !play.underwater
+                patchPlay({ underwater: next })
+                onToast(next ? 'Под водой' : 'Не под водой')
+              }}
+            >
+              {play.underwater ? 'Под водой · вкл.' : 'Под водой'}
+            </button>
+            <button type="button" className={`chip${mountedActive ? ' is-on' : ''}`}>
+              Верхом
+            </button>
+          </div>
+        </div>
+        <label>
+          Найти или своё
+          <input
+            value={query}
+            placeholder="Найти состояние…"
+            onChange={(event) => setQuery(event.target.value)}
+          />
+        </label>
+        <p className="flags" style={{ margin: '8px 0 4px' }}>
+          Быстрый выбор
+        </p>
+        <div className="cond-grid">
+          {visible.map(([slug, name]) => {
+            const on = hasCondition(activeConditions, slug)
+            return (
+              <button
+                key={slug}
+                type="button"
+                className={`cond-chip${on ? ' is-on' : ''}`}
+                aria-pressed={on}
+                onClick={() => {
+                  const option = conditionOptions.find((item) => item.slug === slug)
+                  if (option) {
+                    toggleQuick(option)
+                    return
+                  }
+                  applyConditionRef(
+                    { slug, name, catalog_id: null, level: null },
+                    on ? 'remove' : 'add',
+                  )
+                }}
+              >
+                {name}
+              </button>
+            )
+          })}
+        </div>
+        <div className="modal-actions">
+          {q && !exact ? (
+            <button
+              type="button"
+              className="btn"
+              onClick={() => {
+                applyConditionRef(
+                  {
+                    slug: query.trim().toLowerCase().replace(/\s+/g, '-'),
+                    name: query.trim(),
+                    catalog_id: null,
+                    level: null,
+                  },
+                  'add',
+                )
+                setQuery('')
+              }}
+            >
+              Добавить «{query.trim()}»
+            </button>
+          ) : null}
+          <button type="button" className="btn" onClick={onClose}>
+            Закрыть
+          </button>
+          <button type="button" className="btn primary" onClick={onClose}>
+            Готово
+          </button>
+        </div>
+      </Dialog>
+    )
+  }
+
   return (
     <Dialog
       open={open}
