@@ -136,7 +136,7 @@ def test_only_enum_incompatibility_wapi08_to_head_is_bastion():
     """Every seed-calling rev before p24c12 would fail without schema-aware filter."""
     script = _script_directory()
     heads = script.get_heads()
-    assert heads == ["p24n01r03"]
+    assert heads == ["i10sunf9a2c"]
 
     seed_revs = _seed_calling_revisions()
     assert "p2401lobbyed01" in seed_revs
@@ -200,7 +200,7 @@ def test_final_head_migration_reseeds():
 
 def test_alembic_single_head_is_p24fixenum01():
     script = _script_directory()
-    assert script.get_heads() == ["p24n01r03"]
+    assert script.get_heads() == ["i10sunf9a2c"]
 
 
 @pytest.mark.skipif(not _postgres_available(), reason="Postgres not available")
@@ -542,7 +542,7 @@ def _patch_database_url(monkeypatch: pytest.MonkeyPatch, url: str) -> None:
 def _assert_head_prod_invariants(conn: sa.Connection) -> None:
     assert sorted(
         r[0] for r in conn.execute(sa.text("SELECT version_num FROM alembic_version"))
-    ) == ["p24n01r03"]
+    ) == ["i10sunf9a2c"]
 
     lightning = conn.execute(
         sa.text(
@@ -720,7 +720,7 @@ def test_wapi08_to_head_data_risk_audit_static():
     script = _script_directory()
     rev_ids = {
         r.revision
-        for r in script.walk_revisions(base="wapi08partych01", head="p24n01r03")
+        for r in script.walk_revisions(base="wapi08partych01", head="i10sunf9a2c")
         if r.revision != "wapi08partych01"
     }
     findings: dict[str, list[str]] = {}
@@ -805,6 +805,7 @@ def test_single_upgrade_head_from_wapi08_like_deploy(monkeypatch, capfd):
     assert "p24fixenum01" in log_text
     assert "p24n01r02" in log_text
     assert "p24n01r03" in log_text
+    assert "i10sunf9a2c" in log_text
     # Schema-aware seed skipped bastions before C12; full after.
     assert "skipped_unsupported_kind=43" in log_text
     assert "skipped_unsupported_kind=0" in log_text
@@ -869,6 +870,7 @@ def test_upgrade_head_restarts_after_fail_past_bastion_autocommit(monkeypatch):
         assert "p24fixenum01" not in versions
         assert "p24n01r02" not in versions
         assert "p24n01r03" not in versions
+        assert "i10sunf9a2c" not in versions
         assert "p24c12bast01" not in versions
         # Pre-autocommit work stayed committed (at least one P24 rev before C12).
         assert any(v.startswith("p24") for v in versions) or any(
