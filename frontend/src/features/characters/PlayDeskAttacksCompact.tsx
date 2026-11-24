@@ -1209,8 +1209,80 @@ export function PlayDeskAttacksCompact({
         },
       })
     }
+    // Race trait pools (Harengon Rabbit Hop / Lucky Footwork, …) — not class features.
+    const raceTurnTraits: Array<{
+      poolId: string
+      featureId: string
+      group: TurnActionGroupId
+      summaryRu: string
+    }> = [
+      {
+        poolId: 'rabbit_hop',
+        featureId: 'rabbit_hop',
+        group: 'bonus',
+        summaryRu:
+          'Бонусным: прыжок без провоцированной атаки (ПБ раз / длинный отдых)',
+      },
+      {
+        poolId: 'lucky_footwork',
+        featureId: 'lucky_footwork',
+        group: 'reaction',
+        summaryRu:
+          'Реакция при провале спасброска Ловкости: +1к4 к результату (ПБ раз / длинный отдых)',
+      },
+    ]
+    for (const trait of raceTurnTraits) {
+      const pool = resources.find((row) => row.id === `race-res:${trait.poolId}`)
+      if (!pool || pool.max <= 0) continue
+      const remaining = resourceShownCurrent(pool)
+      out.push({
+        id: trait.featureId,
+        nameRu: pool.name.trim() || trait.featureId,
+        summaryRu: trait.summaryRu,
+        group: trait.group,
+        remaining,
+        max: pool.max,
+        poolId: pool.id,
+        disabled: remaining <= 0,
+        disabledReason: remaining <= 0 ? 'Нет использований' : undefined,
+        onUse: () => {
+          if (!turnEco) return
+          const gate = turnEco.canFeature(trait.group)
+          if (!gate.ok) {
+            onToast?.(gate.reason)
+            return
+          }
+          if (remaining <= 0) {
+            onToast?.(`${pool.name}: нет использований`)
+            return
+          }
+          turnEco.spendFeature(trait.group)
+          onSpendResource?.(pool.id)
+          if (onFeatureBuffApply) {
+            onFeatureBuffApply({
+              featureId: `race:${trait.featureId}`,
+              featureNameRu: pool.name.trim() || trait.featureId,
+              classEntryId: 'race',
+              classLevel: characterLevel,
+            })
+          } else {
+            onToast?.(
+              `${pool.name.trim() || trait.featureId} · ${Math.max(0, remaining - 1)}/${pool.max}`,
+            )
+          }
+        },
+      })
+    }
     return out
-  }, [combatFeatures, resources, turnEco, onSpendResource, onToast])
+  }, [
+    combatFeatures,
+    resources,
+    turnEco,
+    onSpendResource,
+    onToast,
+    onFeatureBuffApply,
+    characterLevel,
+  ])
 
   const personalTurnSpells = useMemo(() => {
     const known = spells?.known ?? []

@@ -226,6 +226,15 @@ export function resolveB08FeatureSpend(input: {
     }
   }
 
+  if (id === 'rabbit_hop' || /кролич.*прыж/i.test(name)) {
+    return {
+      kind: 'buff',
+      slug: 'rabbit_hop',
+      name: 'Кроличий прыжок',
+      targetsSelf: true,
+    }
+  }
+
   if (id === 'mingle_with_the_wind' || /слияние\s*с\s*ветр/i.test(name)) {
     return {
       kind: 'buff',

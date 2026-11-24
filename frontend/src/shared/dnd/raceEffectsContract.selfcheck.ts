@@ -82,6 +82,14 @@ assert(
   harengon.traitCards.some((row) => row.id === 'hare_trigger'),
   'harengon trait card',
 )
+assert(
+  harengon.racialResources.some((row) => row.id === 'rabbit_hop'),
+  'harengon rabbit_hop resource',
+)
+assert(
+  harengon.racialResources.some((row) => row.id === 'lucky_footwork'),
+  'harengon lucky_footwork resource',
+)
 
 // Permanent fly race still works (aarakocra if present).
 const aarakocraRow = spec.races.find((race) => race.slug === 'aarakocra')
