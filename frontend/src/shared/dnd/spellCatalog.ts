@@ -517,15 +517,48 @@ export function resolveCastEffect(
     return finish(base, false)
   }
 
-  const bareDice = /^\d+d\d+$/i.test(scaledRaw.trim())
+  const bare = scaledRaw.trim()
+  const bareDice = /^\d+d\d+$/i.test(bare)
   if (bareDice && base) {
+    // Dual cantrip dice (Toll the Dead): `1d8/1d12 type` + scale `2d8` → `2d8/2d12 type`.
+    // Without this, the slash tail stays at 1d12 while only the first die scales.
+    const dual = base.match(/^(\d+)\s*[dDкК]\s*(\d+)\s*\/\s*(\d+)\s*[dDкК]\s*(\d+)(.*)$/u)
+    const scaledParts = bare.match(/^(\d+)d(\d+)$/i)
+    if (dual && scaledParts) {
+      const baseCountA = Number(dual[1])
+      const sidesA = dual[2]
+      const baseCountB = Number(dual[3])
+      const sidesB = dual[4]
+      const rest = dual[5] ?? ''
+      const newCountA = Number(scaledParts[1])
+      const scaledSides = scaledParts[2]
+      if (
+        Number.isFinite(baseCountA) &&
+        Number.isFinite(baseCountB) &&
+        Number.isFinite(newCountA) &&
+        String(scaledSides) === String(sidesA)
+      ) {
+        const newCountB =
+          baseCountA === baseCountB
+            ? newCountA
+            : Math.max(1, Math.round((baseCountB * newCountA) / Math.max(1, baseCountA)))
+        return finish(`${newCountA}d${sidesA}/${newCountB}d${sidesB}${rest}`, true)
+      }
+    }
     const suffix = base.match(/^\d+d\d+(\b.*)$/i)
-    if (suffix) {
-      return finish(`${scaledRaw.trim()}${suffix[1]}`, true)
+    if (suffix && !base.includes('/')) {
+      return finish(`${bare}${suffix[1]}`, true)
     }
   }
 
-  return finish(scaledRaw.trim(), true)
+  // Scale table already dual (`2d8/2d12`) — keep damage-type suffix from base.
+  const dualScaledFull = bare.match(/^(\d+d\d+\/\d+d\d+)$/i)
+  const dualBaseTypeFull = base.match(/^\d+d\d+\/\d+d\d+(\b.*)$/i)
+  if (dualScaledFull && dualBaseTypeFull) {
+    return finish(`${dualScaledFull[1]}${dualBaseTypeFull[1]}`, true)
+  }
+
+  return finish(bare, true)
 }
 
 export type CastEffectSummary = {

@@ -24,6 +24,40 @@ const at20 = resolveCastEffect(fireBolt, { characterLevel: 20, slotLevel: 0 })
 assert.equal(at20.effect, '4d10 огонь')
 assert.equal(at20.scaled, true)
 
+// Toll the Dead: both dice scale (wounded uses d12).
+const tollLegacyTable = {
+  level: 0,
+  damage: '1d8/1d12 некротическая',
+  damage_at_character_level: {
+    '1': '1d8',
+    '5': '2d8',
+    '11': '3d8',
+    '17': '4d8',
+  },
+}
+assert.equal(
+  resolveCastEffect(tollLegacyTable, { characterLevel: 5, slotLevel: 0 }).effect,
+  '2d8/2d12 некротическая',
+)
+assert.equal(
+  resolveCastEffect(tollLegacyTable, { characterLevel: 17, slotLevel: 0 }).effect,
+  '4d8/4d12 некротическая',
+)
+const tollDualTable = {
+  level: 0,
+  damage: '1d8/1d12 некротическая',
+  damage_at_character_level: {
+    '1': '1d8/1d12',
+    '5': '2d8/2d12',
+    '11': '3d8/3d12',
+    '17': '4d8/4d12',
+  },
+}
+assert.equal(
+  resolveCastEffect(tollDualTable, { characterLevel: 11, slotLevel: 0 }).effect,
+  '3d8/3d12 некротическая',
+)
+
 const agathys = {
   level: 1,
   description:
