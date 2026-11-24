@@ -93,8 +93,9 @@ export function ForgeBlessingSpendDialog({
     >
       <Stack gap={12}>
         <Text tone="muted">
-          Немагическое оружие или доспех. Заряд тратится только после выбора. Бонус
-          спадает на продолжительном отдыхе.
+          Немагическое оружие или доспех. Заряд тратится только после выбора. Без
+          закрепления бонус спадает на продолжительном отдыхе; с «Запомнить» — не
+          слетает, смена только в Способностях.
         </Text>
         {candidates.length === 0 ? (
           <Text tone="muted">
@@ -123,7 +124,7 @@ export function ForgeBlessingSpendDialog({
                 checked={remember}
                 onChange={(event) => setRemember(event.target.checked)}
               />{' '}
-              Запомнить предмет (следующий раз с hot-бара — сразу на него)
+              Запомнить предмет (не слетает после отдыха; hot всегда потрачен)
             </label>
           </>
         )}

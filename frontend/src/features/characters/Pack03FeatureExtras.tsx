@@ -48,6 +48,8 @@ import {
 import {
   applyForgeBlessing,
   listForgeBlessingCandidates,
+  reassignForgeBlessing,
+  resolveForgeBlessingPinState,
 } from './forgeBlessing'
 import type { InventoryItem } from './inventory'
 import type { SpellsState } from './spells'
@@ -153,27 +155,53 @@ function ForgeControls({
   forgeBlessingPinnedItemId = null,
   onForgeBlessingPinnedItemIdChange,
 }: ExtraProps) {
+  const pinState = resolveForgeBlessingPinState(inventoryItems, forgeBlessingPinnedItemId)
   const candidates = listForgeBlessingCandidates(inventoryItems)
+  const selectRows: Array<{ id: string; name: string; suffix: string }> = []
+  if (pinState.status === 'active') {
+    selectRows.push({
+      id: pinState.itemId,
+      name: pinState.name,
+      suffix: ' · сейчас · закреплён',
+    })
+  }
+  for (const row of candidates) {
+    if (selectRows.some((s) => s.id === row.id)) continue
+    selectRows.push({
+      id: row.id,
+      name: row.name,
+      suffix: `${row.kind === 'armor' ? ' · +1 КД' : ' · +1 атака и урон'}${
+        forgeBlessingPinnedItemId === row.id ? ' · закреплён' : ''
+      }`,
+    })
+  }
   const preferred =
     forgeBlessingPinnedItemId &&
-    candidates.some((row) => row.id === forgeBlessingPinnedItemId)
+    selectRows.some((row) => row.id === forgeBlessingPinnedItemId)
       ? forgeBlessingPinnedItemId
-      : (candidates[0]?.id ?? '')
+      : (selectRows[0]?.id ?? '')
   const [itemId, setItemId] = useState(preferred)
   const [remember, setRemember] = useState(Boolean(forgeBlessingPinnedItemId))
   const pool = feature.resource?.pool_id
     ? findFeatureResource(resources, classSlug, feature.resource.pool_id, feature.classEntryId)
     : null
   const left = spendRemaining(pool)
-  const picked = candidates.some((row) => row.id === itemId) ? itemId : preferred
+  const picked = selectRows.some((row) => row.id === itemId) ? itemId : preferred
+  const retarget =
+    pinState.status === 'active' && Boolean(picked) && picked !== pinState.itemId
+  const canFirstBless = Boolean(pool && left > 0 && picked && onInventoryChange)
+  const canRetarget = Boolean(pool && retarget && onInventoryChange && remember)
 
   return (
     <div className="feature-resource">
       <Text tone="muted">
-        Немагические оружие или доспех. Заряд тратится только после выбора. Бонус спадает на
-        продолжительном отдыхе. С hot-бара без закрепления откроется тот же выбор.
+        Немагические оружие или доспех. Без закрепления бонус спадает на продолжительном отдыхе.
+        Закреплённый предмет не слетает: hot-бар всегда «потрачено», смена только здесь.
       </Text>
-      {candidates.length === 0 ? (
+      {pinState.status === 'active' ? (
+        <Text tone="muted">Сейчас закреплено: «{pinState.name}».</Text>
+      ) : null}
+      {selectRows.length === 0 ? (
         <Text tone="muted">В инвентаре нет подходящего немагического оружия или доспеха.</Text>
       ) : (
         <>
@@ -184,10 +212,10 @@ function ForgeControls({
               value={picked}
               onChange={(event) => setItemId(event.target.value)}
             >
-              {candidates.map((row) => (
+              {selectRows.map((row) => (
                 <option key={row.id} value={row.id}>
-                  {row.name} · {row.kind === 'armor' ? '+1 КД' : '+1 атака и урон'}
-                  {forgeBlessingPinnedItemId === row.id ? ' · закреплён' : ''}
+                  {row.name}
+                  {row.suffix}
                 </option>
               ))}
             </select>
@@ -204,22 +232,40 @@ function ForgeControls({
                 }
               }}
             />{' '}
-            Запомнить предмет (hot-бар накладывает сразу)
+            Запомнить предмет (не слетает после отдыха; hot всегда потрачен)
           </label>
         </>
       )}
       <div className="feature-resource__actions">
         <Button
           type="button"
-          disabled={!pool || left <= 0 || !picked || !onInventoryChange}
+          disabled={retarget ? !canRetarget : !canFirstBless}
           onClick={() => {
+            if (!pool || !picked || !onInventoryChange) return
+            if (retarget) {
+              const applied = reassignForgeBlessing(inventoryItems, picked)
+              if (!applied.ok) {
+                onToast?.(applied.reason)
+                return
+              }
+              const label = `Благословение кузницы: «${
+                selectRows.find((row) => row.id === picked)?.name ?? 'предмет'
+              }» закреплено`
+              onForgeBlessingPinnedItemIdChange?.(picked)
+              onInventoryChange(applied.items)
+              onResourcesChange(
+                resources.map((row) =>
+                  row.id === pool.id
+                    ? { ...row, used: row.max, activeLabel: label }
+                    : row,
+                ),
+              )
+              onToast?.(label)
+              return
+            }
             const applied = applyForgeBlessing(inventoryItems, picked)
             if (!applied.ok) {
               onToast?.(applied.reason)
-              return
-            }
-            if (!pool) {
-              onToast?.('Пул Благословения кузницы ещё не синхронизирован')
               return
             }
             const spent = spendFeatureUse({ resources, feature, classSlug })
@@ -228,12 +274,12 @@ function ForgeControls({
               return
             }
             if (remember) onForgeBlessingPinnedItemIdChange?.(picked)
-            onInventoryChange?.(applied.items)
+            onInventoryChange(applied.items)
             onResourcesChange(markActive(spent.resources, pool.id, applied.message))
             onToast?.(applied.message)
           }}
         >
-          Благословить
+          {retarget ? 'Сменить предмет' : 'Благословить'}
         </Button>
       </div>
     </div>
