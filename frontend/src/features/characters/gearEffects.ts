@@ -904,8 +904,13 @@ export function sheetDamageProfile(input: {
   infusionResistances?: string[] | null
   /** B-07: feat flag resistances (infernal constitution, giant gifts…). */
   featResistances?: Array<{ type: string; source: string }> | null
-  /** Class/subclass feature resistances (e.g. Aura of Elemental Shielding). */
-  featureResistances?: Array<{ type: string; source: string }> | null
+  /** Class/subclass feature resistances / immunities (Forge Soul, Elemental Shielding…). */
+  featureResistances?: Array<{
+    type: string
+    source: string
+    kind?: 'resistance' | 'immunity'
+    nonmagical?: boolean
+  }> | null
 }): IncomingDamageProfile {
   const gear = input.gear ?? emptyAggregatedGearEffects()
   const profile = emptyDamageProfile()
@@ -941,7 +946,13 @@ export function sheetDamageProfile(input: {
   }
   for (const row of input.featureResistances ?? []) {
     const type = String(row.type || '').trim()
-    if (type) addDefense(profile.resistances, type, row.source || 'умение')
+    if (!type) continue
+    const source = row.source || 'умение'
+    if (row.kind === 'immunity') {
+      addDefense(profile.immunities, type, source, Boolean(row.nonmagical))
+    } else {
+      addDefense(profile.resistances, type, source, Boolean(row.nonmagical))
+    }
   }
   if (input.effects != null) {
     for (const row of defensesFromActiveEffects(input.effects)) {

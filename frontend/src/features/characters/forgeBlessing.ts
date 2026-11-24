@@ -60,6 +60,17 @@ export function listForgeBlessingCandidates(items: InventoryItem[]): ForgeBlessi
   return out
 }
 
+/** Prefer pinned id when it is still a valid candidate; else null (caller opens picker). */
+export function resolveForgeBlessingPinnedTarget(
+  items: InventoryItem[],
+  pinnedItemId: string | null | undefined,
+): string | null {
+  const pin = typeof pinnedItemId === 'string' ? pinnedItemId.trim() : ''
+  if (!pin) return null
+  const candidates = listForgeBlessingCandidates(items)
+  return candidates.some((row) => row.id === pin) ? pin : null
+}
+
 export function applyForgeBlessing(
   items: InventoryItem[],
   itemId: string,

@@ -70,6 +70,8 @@ type ExtraProps = {
   classes: Array<{ name: string }>
   featGrants: Array<Pick<AppliedFeatGrant, 'applied'>>
   unlocked: Array<Pick<UnlockedFeature, 'id' | 'save_proficiency'>>
+  forgeBlessingPinnedItemId?: string | null
+  onForgeBlessingPinnedItemIdChange?: (itemId: string | null) => void
 }
 
 function markActive(
@@ -148,38 +150,63 @@ function ForgeControls({
   inventoryItems,
   onInventoryChange,
   onToast,
+  forgeBlessingPinnedItemId = null,
+  onForgeBlessingPinnedItemIdChange,
 }: ExtraProps) {
   const candidates = listForgeBlessingCandidates(inventoryItems)
-  const [itemId, setItemId] = useState(candidates[0]?.id ?? '')
+  const preferred =
+    forgeBlessingPinnedItemId &&
+    candidates.some((row) => row.id === forgeBlessingPinnedItemId)
+      ? forgeBlessingPinnedItemId
+      : (candidates[0]?.id ?? '')
+  const [itemId, setItemId] = useState(preferred)
+  const [remember, setRemember] = useState(Boolean(forgeBlessingPinnedItemId))
   const pool = feature.resource?.pool_id
     ? findFeatureResource(resources, classSlug, feature.resource.pool_id, feature.classEntryId)
     : null
   const left = spendRemaining(pool)
-  const picked = candidates.some((row) => row.id === itemId) ? itemId : (candidates[0]?.id ?? '')
+  const picked = candidates.some((row) => row.id === itemId) ? itemId : preferred
 
   return (
     <div className="feature-resource">
       <Text tone="muted">
         Немагические оружие или доспех. Заряд тратится только после выбора. Бонус спадает на
-        продолжительном отдыхе.
+        продолжительном отдыхе. С hot-бара без закрепления откроется тот же выбор.
       </Text>
       {candidates.length === 0 ? (
         <Text tone="muted">В инвентаре нет подходящего немагического оружия или доспеха.</Text>
       ) : (
-        <label className="feature-resource__select">
-          <span className="sr-only">Предмет благословения</span>
-          <select
-            className="play-select"
-            value={picked}
-            onChange={(event) => setItemId(event.target.value)}
-          >
-            {candidates.map((row) => (
-              <option key={row.id} value={row.id}>
-                {row.name} · {row.kind === 'armor' ? '+1 КД' : '+1 атака и урон'}
-              </option>
-            ))}
-          </select>
-        </label>
+        <>
+          <label className="feature-resource__select">
+            <span className="sr-only">Предмет благословения</span>
+            <select
+              className="play-select"
+              value={picked}
+              onChange={(event) => setItemId(event.target.value)}
+            >
+              {candidates.map((row) => (
+                <option key={row.id} value={row.id}>
+                  {row.name} · {row.kind === 'armor' ? '+1 КД' : '+1 атака и урон'}
+                  {forgeBlessingPinnedItemId === row.id ? ' · закреплён' : ''}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="feature-resource__select">
+            <input
+              type="checkbox"
+              checked={remember}
+              onChange={(event) => {
+                const next = event.target.checked
+                setRemember(next)
+                if (!next && forgeBlessingPinnedItemId) {
+                  onForgeBlessingPinnedItemIdChange?.(null)
+                }
+              }}
+            />{' '}
+            Запомнить предмет (hot-бар накладывает сразу)
+          </label>
+        </>
       )}
       <div className="feature-resource__actions">
         <Button
@@ -200,6 +227,7 @@ function ForgeControls({
               onToast?.(spent.message)
               return
             }
+            if (remember) onForgeBlessingPinnedItemIdChange?.(picked)
             onInventoryChange?.(applied.items)
             onResourcesChange(markActive(spent.resources, pool.id, applied.message))
             onToast?.(applied.message)

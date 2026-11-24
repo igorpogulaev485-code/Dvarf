@@ -341,6 +341,8 @@ type ClassFeaturesPanelProps = {
   /** Inventory rows for Blessing of the Forge. */
   inventoryItems?: InventoryItem[]
   onInventoryChange?: (items: InventoryItem[]) => void
+  forgeBlessingPinnedItemId?: string | null
+  onForgeBlessingPinnedItemIdChange?: (itemId: string | null) => void
   concentration?: ConcentrationState | null
   onConcentrationChange?: (next: ConcentrationState | null) => void
   /** Spell catalog edition for Pact of the Tome cantrip picks. */
@@ -2407,6 +2409,8 @@ function FeatureRow({
   onDivineSmiteIntent,
   inventoryItems = [],
   onInventoryChange,
+  forgeBlessingPinnedItemId = null,
+  onForgeBlessingPinnedItemIdChange,
   concentration = null,
   onConcentrationChange,
   classes,
@@ -2473,6 +2477,8 @@ function FeatureRow({
   onDivineSmiteIntent?: (next: DivineSmiteIntent) => void
   inventoryItems?: InventoryItem[]
   onInventoryChange?: (items: InventoryItem[]) => void
+  forgeBlessingPinnedItemId?: string | null
+  onForgeBlessingPinnedItemIdChange?: (itemId: string | null) => void
   concentration?: ConcentrationState | null
   onConcentrationChange?: (next: ConcentrationState | null) => void
   classes: ClassLevelEntry[]
@@ -3355,6 +3361,8 @@ function FeatureRow({
           characterLevel={characterLevel}
           inventoryItems={inventoryItems}
           onInventoryChange={onInventoryChange}
+          forgeBlessingPinnedItemId={forgeBlessingPinnedItemId}
+          onForgeBlessingPinnedItemIdChange={onForgeBlessingPinnedItemIdChange}
           concentration={concentration}
           onConcentrationChange={onConcentrationChange}
           onToast={onToast}
@@ -3483,6 +3491,8 @@ export function ClassFeaturesPanel({
   onCastPactChainFamiliar,
   inventoryItems = [],
   onInventoryChange,
+  forgeBlessingPinnedItemId = null,
+  onForgeBlessingPinnedItemIdChange,
   concentration = null,
   onConcentrationChange,
   edition = '2014',
@@ -4058,6 +4068,10 @@ export function ClassFeaturesPanel({
                             onDivineSmiteIntent={onDivineSmiteIntent}
                             inventoryItems={inventoryItems}
                             onInventoryChange={onInventoryChange}
+                            forgeBlessingPinnedItemId={forgeBlessingPinnedItemId}
+                            onForgeBlessingPinnedItemIdChange={
+                              onForgeBlessingPinnedItemIdChange
+                            }
                             concentration={concentration}
                             onConcentrationChange={onConcentrationChange}
                             classes={classes}

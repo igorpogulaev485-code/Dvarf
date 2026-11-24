@@ -19,6 +19,7 @@ type HeldSyncItem = {
   equipped: boolean
   qty?: number | null
   base_ammo_slug?: string | null
+  base_weapon_slug?: string | null
   armor_kind?: string | null
   weapon_grip?: string | null
   data?: Record<string, unknown> | null
@@ -96,7 +97,10 @@ export function syncAttacksHeldFromInventory<T extends AttackInventoryLink>(
     }
     const name = (item.name || attack.name || '').trim()
     const data = item.data ?? null
-    const profile = name ? resolveWeaponDamageProfile({ name, data }) : null
+    const baseWeaponSlug = item.base_weapon_slug ?? null
+    const profile = name
+      ? resolveWeaponDamageProfile({ name, data, baseWeaponSlug })
+      : null
 
     let damage = attack.damage
     if (profile && (profile.damage || profile.versatileDamage)) {
@@ -104,6 +108,8 @@ export function syncAttacksHeldFromInventory<T extends AttackInventoryLink>(
         const activeDie = resolveActiveWeaponDamage({
           name,
           data,
+          baseWeaponSlug,
+          // Alone in hands → versatile 2H die; with shield/off-hand → 1H die.
           twoHandedWield: !heldOtherThan(item.id),
         })
         if (activeDie) damage = activeDie

@@ -42,6 +42,11 @@ export type SheetUiState = {
   deskSplit: boolean
   /** Inventory item ids pinned into combat «Расходники» (max 3). */
   combatConsumableFavoriteIds: string[]
+  /**
+   * Blessing of the Forge: preferred inventory item id.
+   * Hot-bar spend reapplies to this item when it is still a valid candidate.
+   */
+  forgeBlessingPinnedItemId: string | null
   /** XP awards / spends with optional «за что». Newest first. */
   xpHistory: XpHistoryEntry[]
   /** Desk dice rolls (attacks, checks, …). Newest first; persisted on the sheet. */
@@ -197,6 +202,11 @@ export function readSheetUi(sheet: Record<string, unknown>): SheetUiState {
     combatConsumableFavoriteIds: normalizeCombatConsumableFavoriteIds(
       ui.combat_consumable_favorites,
     ),
+    forgeBlessingPinnedItemId:
+      typeof ui.forge_blessing_pinned_item_id === 'string' &&
+      ui.forge_blessing_pinned_item_id.trim()
+        ? ui.forge_blessing_pinned_item_id.trim()
+        : null,
     xpHistory: normalizeXpHistory(ui.xp_history),
     rollHistory: normalizeRollHistory(ui.roll_history),
     diceOnTablePref: ui.dice_on_table_pref === true,
@@ -210,6 +220,7 @@ export function sheetUiToPatch(ui: SheetUiState): Record<string, unknown> {
     desk_mode: ui.deskMode,
     desk_split: ui.deskSplit,
     combat_consumable_favorites: ui.combatConsumableFavoriteIds,
+    forge_blessing_pinned_item_id: ui.forgeBlessingPinnedItemId,
     xp_history: ui.xpHistory,
     roll_history: ui.rollHistory,
     dice_on_table_pref: Boolean(ui.diceOnTablePref),

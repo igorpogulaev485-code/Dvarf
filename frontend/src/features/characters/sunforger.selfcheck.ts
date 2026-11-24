@@ -74,9 +74,25 @@ assert(
   resolveActiveWeaponDamage({
     name: 'Солнечный молот',
     data: mergeData,
+    baseWeaponSlug: 'warhammer',
     twoHandedWield: true,
   }) === '1к10',
   'versatile 2H die',
+)
+assert(
+  resolveActiveWeaponDamage({
+    name: 'Солнечный молот',
+    baseWeaponSlug: 'warhammer',
+    twoHandedWield: false,
+  }) === '1к8',
+  '1H with shield is 1к8 not maul 2к6',
+)
+assert(
+  resolveWeaponGrip({
+    name: 'Солнечный молот',
+    baseWeaponSlug: 'warhammer',
+  }) === 'one_hand',
+  'warhammer grip via base slug',
 )
 
 let items = equipInventoryItem([added.item], added.item.id, true)

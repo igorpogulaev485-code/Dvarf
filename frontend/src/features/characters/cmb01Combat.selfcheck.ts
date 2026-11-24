@@ -94,4 +94,37 @@ assert.equal(
   'favorite ammo still listed',
 )
 
+const customOil = {
+  id: 'custom1',
+  name: 'Флакон с маслом',
+  qty: 3,
+  notes: '',
+  parent_id: null,
+  combat_consumable: false,
+} as unknown as import('./inventory').InventoryItem
+assert.equal(
+  listCombatConsumables([...items, customOil], []).some((r) => r.item.id === 'custom1'),
+  false,
+  'custom opt-out not auto-listed',
+)
+
+const customOn = { ...customOil, combat_consumable: true }
+assert.equal(
+  listCombatConsumables([...items, customOn], []).some((r) => r.item.id === 'custom1'),
+  true,
+  'explicit combat_consumable listed',
+)
+
+const favOptOut = listCombatConsumables([customOil], ['custom1'])
+assert.equal(
+  favOptOut.some((r) => r.item.id === 'custom1' && r.favorite),
+  true,
+  '★ favorite still shows opt-out item',
+)
+
+const inventorySrc = read('src/features/characters/inventory.ts')
+assert.match(inventorySrc, /combat_consumable: false/)
+const panelSrc = read('src/features/characters/InventoryPanel.tsx')
+assert.match(panelSrc, /Расходник в бою/)
+
 console.log('cmb01Combat.selfcheck ok')

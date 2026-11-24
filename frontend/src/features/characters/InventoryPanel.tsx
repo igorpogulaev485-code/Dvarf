@@ -26,7 +26,10 @@ import { tryAutoAttuneOnEquip } from './autoAttuneOnEquip'
 import type { AttunementCharacter } from './attunementRules'
 import { gearInactiveHint } from './gearInactiveHint'
 import { refreshInventoryItemsFromCatalog } from './gearCatalogRefresh'
-import { MAX_COMBAT_CONSUMABLE_FAVORITES } from './combatConsumables'
+import {
+  isAutoCombatConsumable,
+  MAX_COMBAT_CONSUMABLE_FAVORITES,
+} from './combatConsumables'
 import {
   canShowEquipChip,
   equipLabel,
@@ -969,6 +972,11 @@ export function InventoryPanel({
                 {item.wear_slot && item.wear_slot !== 'none' && bucket === 'other' ? (
                   <span className="attack-held-tag">{WEAR_SLOT_LABEL_RU[item.wear_slot]}</span>
                 ) : null}
+                {item.combat_consumable === true ||
+                (item.combat_consumable == null &&
+                  isAutoCombatConsumable({ ...item, qty: Math.max(1, item.qty) })) ? (
+                  <span className="attack-held-tag">расходник</span>
+                ) : null}
               </span>
             </span>
           </button>
@@ -1332,6 +1340,25 @@ export function InventoryPanel({
             onChange={(event) => updateItem(item.id, { notes: event.target.value })}
           />
         </Field>
+
+        {!nested ? (
+          <label className="field">
+            <input
+              type="checkbox"
+              checked={
+                item.combat_consumable === true ||
+                (item.combat_consumable == null &&
+                  isAutoCombatConsumable({ ...item, qty: Math.max(1, item.qty) }))
+              }
+              onChange={(event) =>
+                updateItem(item.id, {
+                  combat_consumable: event.target.checked ? true : false,
+                })
+              }
+            />{' '}
+            Расходник в бою (сцена Бой → Расходники)
+          </label>
+        ) : null}
 
         {item.weapon_grip || /боеприпас|стрел|болт|ammo|arrow|bolt/i.test(item.name) ? (
           <label className="field">

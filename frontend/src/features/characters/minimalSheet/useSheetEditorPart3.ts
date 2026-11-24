@@ -93,6 +93,7 @@ import {
   snapshotToSheetFragment2024,
 } from '../../../shared/dnd/edition2024Classes'
 import { fightingStyleAcBonusFromIds } from '../../../shared/dnd/fightingStyles'
+import { forgeDomainAcBonus } from '../forgeDomainEffects'
 import {
   elegantCourtierPersuasionBonus,
   hasDraconicResilienceFeature,
@@ -1124,6 +1125,14 @@ export function useSheetEditorPart3(model: SheetModel) {
     if (styleBonus > 0) {
       coreAc += styleBonus
       gearSummary = `${gearSummary} · стиль +${styleBonus}`
+    }
+    const forgeAc = forgeDomainAcBonus({
+      features: model.unlockedFeatures ?? [],
+      wearingHeavyArmor: pieces.armor?.kind === 'heavy',
+    })
+    if (forgeAc > 0) {
+      coreAc += forgeAc
+      gearSummary = `${gearSummary} · душа кузницы +${forgeAc}`
     }
     const dualWieldAc = dualWielderAcBonus(
       model.draft.featGrants,
