@@ -137,9 +137,10 @@ export function SheetDialogsRolls({ model }: { model: SheetModel }) {
         }}
       >
         <Text>
-          Урон {model.concDamageAsk?.damage ?? 0} хитов. Спас концентрации Сл{' '}
-          {model.concDamageAsk?.dc ?? 10}
-          {model.concDamageAsk?.spellName ? ` («${model.concDamageAsk.spellName}»)` : ''}. Удержал?
+          Урон {model.concDamageAsk?.damage ?? 0} хитов
+          {model.concDamageAsk?.spellName ? ` («${model.concDamageAsk.spellName}»)` : ''}.
+          Соверши спасбросок Телосложения, чтобы удержать концентрацию — Сл{' '}
+          {model.concDamageAsk?.dc ?? 10}. Удержал?
         </Text>
       </Dialog>
 
