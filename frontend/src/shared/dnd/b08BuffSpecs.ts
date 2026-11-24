@@ -314,6 +314,15 @@ export const B08_BUFF_SPEC_BUILDERS: Record<string, SpecBuilder> = {
     charges: 1,
   }),
 
+  rabbit_hop: (_ctx) => ({
+    name: 'Кроличий прыжок',
+    slug: 'rabbit_hop',
+    kind: 'race',
+    concentration: false,
+    duration: manual(),
+    mods: [{ target: 'label', op: 'set', condition: 'rabbit_hop' }],
+  }),
+
   fortune_from_the_many: (_ctx) => ({
     name: 'Удача множества',
     slug: 'fortune_from_the_many',
@@ -494,6 +503,7 @@ export const B08_NAME_TO_SLUG: Array<{ re: RegExp; slug: string }> = [
   { re: /^создан\s*для\s*успех/i, slug: 'built_for_success' },
   { re: /^зв[её]здн.*шаг/i, slug: 'starlight_step' },
   { re: /^удачлив.*поступ/i, slug: 'lucky_footwork' },
+  { re: /^кролич.*прыж/i, slug: 'rabbit_hop' },
   { re: /^удача\s*множеств/i, slug: 'fortune_from_the_many' },
   { re: /^слияние\s*с\s*ветр/i, slug: 'mingle_with_the_wind' },
   { re: /^слияние\s*с\s*камн/i, slug: 'merge_with_stone' },

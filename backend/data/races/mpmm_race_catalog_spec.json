@@ -792,6 +792,20 @@
           "name_ru": "Кроличий прыжок",
           "summary_ru": "Бонусным действием прыжок без провоцированной атаки (ПБ раз / длинный отдых)."
         }
+      ],
+      "racial_resources": [
+        {
+          "id": "lucky_footwork",
+          "name_ru": "Удачливая поступь",
+          "max_from": "proficiency_bonus",
+          "reset": "long"
+        },
+        {
+          "id": "rabbit_hop",
+          "name_ru": "Кроличий прыжок",
+          "max_from": "proficiency_bonus",
+          "reset": "long"
+        }
       ]
     },
     {

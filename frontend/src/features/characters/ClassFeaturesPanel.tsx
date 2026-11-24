@@ -3819,6 +3819,7 @@ export function ClassFeaturesPanel({
                   'built_for_success',
                   'starlight_step',
                   'lucky_footwork',
+                  'rabbit_hop',
                   'mingle_with_the_wind',
                   'merge_with_stone',
                   'forceful_presence',
