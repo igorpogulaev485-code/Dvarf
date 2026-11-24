@@ -47,30 +47,46 @@ function propertiesSayLight(properties: string[]): boolean {
   })
 }
 
+/** PHB preset from catalog base slug (warhammer) or display name. */
+function resolveWeaponPreset(input: {
+  name: string
+  baseWeaponSlug?: string | null
+}): ReturnType<typeof findWeaponPreset> {
+  const slug = input.baseWeaponSlug?.trim()
+  if (slug) {
+    const bySlug = findWeaponPreset(slug)
+    if (bySlug) return bySlug
+  }
+  return findWeaponPreset(input.name)
+}
+
 /** True when the weapon has PHB versatile (1H / 2H dice). */
 export function isVersatileWeapon(input: {
   name: string
   data?: Record<string, unknown> | null
+  baseWeaponSlug?: string | null
 }): boolean {
   const data = input.data ?? {}
   const parsed = parseWeaponCatalogData(data)
   if (propertiesSayVersatile(parsed.properties)) return true
   if (parsed.versatile_damage.trim()) return true
-  const preset = findWeaponPreset(input.name)
+  const preset = resolveWeaponPreset(input)
   return Boolean(preset?.versatileDamage)
 }
 
 /**
  * One-hand die + optional versatile (two-hand) die for a weapon.
  * Custom / unknown names return nulls — callers keep existing attack.damage.
+ * Magic names («Солнечный молот») resolve via `baseWeaponSlug` (warhammer → 1к8/1к10).
  */
 export function resolveWeaponDamageProfile(input: {
   name: string
   data?: Record<string, unknown> | null
+  baseWeaponSlug?: string | null
 }): { damage: string; versatileDamage: string; damageType: string } | null {
   const data = input.data ?? {}
   const parsed = parseWeaponCatalogData(data)
-  const preset = findWeaponPreset(input.name)
+  const preset = resolveWeaponPreset(input)
   const damage = (parsed.damage || preset?.damage || '').trim()
   const versatileDamage = (
     parsed.versatile_damage ||
@@ -84,11 +100,12 @@ export function resolveWeaponDamageProfile(input: {
 
 /**
  * Active damage die: versatile 2H die when the weapon is held alone,
- * otherwise the one-hand die.
+ * otherwise the one-hand die (shield + warhammer → 1к8, not maul 2к6).
  */
 export function resolveActiveWeaponDamage(input: {
   name: string
   data?: Record<string, unknown> | null
+  baseWeaponSlug?: string | null
   twoHandedWield: boolean
 }): string | null {
   const profile = resolveWeaponDamageProfile(input)
@@ -97,10 +114,11 @@ export function resolveActiveWeaponDamage(input: {
   return profile.damage || null
 }
 
-/** Resolve grip from catalog data and/or RU name / presets. */
+/** Resolve grip from catalog data, base slug, and/or RU name / presets. */
 export function resolveWeaponGrip(input: {
   name: string
   data?: Record<string, unknown> | null
+  baseWeaponSlug?: string | null
 }): WeaponGrip {
   const data = input.data ?? {}
   const parsed = parseWeaponCatalogData(data)
@@ -110,7 +128,7 @@ export function resolveWeaponGrip(input: {
   }
   if (propertiesSayTwoHanded(parsed.properties)) return 'two_hand'
 
-  const preset = findWeaponPreset(input.name)
+  const preset = resolveWeaponPreset(input)
   if (preset?.versatileDamage) return 'one_hand'
   if (preset?.twoHanded) return 'two_hand'
   if (preset) return 'one_hand'
@@ -121,11 +139,12 @@ export function resolveWeaponGrip(input: {
 export function isLightWeapon(input: {
   name: string
   data?: Record<string, unknown> | null
+  baseWeaponSlug?: string | null
 }): boolean {
   const data = input.data ?? {}
   const parsed = parseWeaponCatalogData(data)
   if (propertiesSayLight(parsed.properties)) return true
-  const preset = findWeaponPreset(input.name)
+  const preset = resolveWeaponPreset(input)
   if (preset?.light) return true
   return false
 }
@@ -134,6 +153,7 @@ export function isWeaponItem(item: InventoryItem): boolean {
   if (item.armor_kind === 'shield') return false
   if (item.armor_kind !== 'none') return false
   if (item.weapon_grip === 'one_hand' || item.weapon_grip === 'two_hand') return true
+  if (item.base_weapon_slug?.trim()) return true
   return findWeaponPreset(item.name) != null
 }
 
@@ -165,12 +185,20 @@ export function handsCost(item: InventoryItem): number {
   if (item.armor_kind === 'shield') return 1
   if (isHeldWearSlot(item) && !isWeaponItem(item)) return 1
   if (!isWeaponItem(item)) return 0
-  // Always re-resolve from name — stored weapon_grip may be stale
-  // (e.g. «Боевой молот» wrongly saved as two_hand via substring «молот»).
-  const grip = resolveWeaponGrip({ name: item.name })
+  // Always re-resolve — stored weapon_grip may be stale (maul soft-match).
+  // Fancy magic names need base_weapon_slug (Sunforger → warhammer, 1 hand).
+  const grip = resolveWeaponGrip({
+    name: item.name,
+    baseWeaponSlug: item.base_weapon_slug,
+  })
   if (grip === 'two_hand') return 2
   const qty = Math.max(1, Math.floor(item.qty || 1))
-  if (qty >= 2 && isLightWeapon({ name: item.name })) return 2
+  if (
+    qty >= 2 &&
+    isLightWeapon({ name: item.name, baseWeaponSlug: item.base_weapon_slug })
+  ) {
+    return 2
+  }
   return 1
 }
 
@@ -194,7 +222,10 @@ export function equipHeldItem(items: InventoryItem[], id: string): InventoryItem
     return {
       ...item,
       equipped: true,
-      weapon_grip: resolveWeaponGrip({ name: item.name }),
+      weapon_grip: resolveWeaponGrip({
+        name: item.name,
+        baseWeaponSlug: item.base_weapon_slug,
+      }),
     }
   })
   const cost = handsCost(next.find((item) => item.id === id)!)

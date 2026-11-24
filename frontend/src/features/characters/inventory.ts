@@ -164,6 +164,13 @@ export type InventoryItem = {
   scroll_spell?: ScrollSpellBinding | null
   /** O-03: адамантиновое оружие / боеприпас (без миграции — в JSON предмета). */
   adamantine?: boolean
+  /**
+   * Combat «Расходники» face:
+   * `true` — always list when qty > 0;
+   * `false` — never auto-list (★ favorites still work);
+   * `null` / omitted — name/notes heuristic (potions, ammo, scrolls…).
+   */
+  combat_consumable?: boolean | null
 }
 
 export type InventoryState = {
@@ -212,6 +219,8 @@ export function createInventoryItem(): InventoryItem {
     requires_attunement: false,
     effects: [],
     adamantine: false,
+    // Custom rows stay out of combat consumables until the player opts in.
+    combat_consumable: false,
   }
 }
 
@@ -315,6 +324,12 @@ function readItem(raw: unknown, index: number): InventoryItem {
     strength_requirement: readNullableNumber(row.strength_requirement),
     notes: typeof row.notes === 'string' ? row.notes : '',
     adamantine: row.adamantine === true,
+    combat_consumable:
+      row.combat_consumable === true
+        ? true
+        : row.combat_consumable === false
+          ? false
+          : null,
     parent_id: typeof row.parent_id === 'string' ? row.parent_id : null,
     container_kind: readContainerKind(row.container_kind),
     container_expanded: Boolean(row.container_expanded),
@@ -449,6 +464,11 @@ export function inventoryToSheet(state: InventoryState): Record<string, unknown>
         strength_requirement: item.strength_requirement ?? null,
         notes: item.notes,
         ...(item.adamantine ? { adamantine: true } : {}),
+        ...(item.combat_consumable === true
+          ? { combat_consumable: true }
+          : item.combat_consumable === false
+            ? { combat_consumable: false }
+            : {}),
         parent_id: item.parent_id ?? null,
         container_kind: item.container_kind ?? 'none',
         container_expanded: Boolean(item.container_expanded),

@@ -131,6 +131,34 @@ assert(
   'warhammer 1H die',
 )
 assert(
+  resolveActiveWeaponDamage({
+    name: 'Солнечный молот',
+    baseWeaponSlug: 'warhammer',
+    twoHandedWield: false,
+  }) === '1к8',
+  'sunforger+shield 1к8',
+)
+assert(
+  resolveActiveWeaponDamage({
+    name: 'Солнечный молот',
+    baseWeaponSlug: 'warhammer',
+    twoHandedWield: true,
+  }) === '1к10',
+  'sunforger alone 1к10',
+)
+assert(
+  handsCost(
+    item({
+      id: 'sf',
+      name: 'Солнечный молот',
+      base_weapon_slug: 'warhammer',
+      weapon_grip: 'two_hand',
+      equipped: true,
+    }),
+  ) === 1,
+  'sunforger costs 1 hand (shield OK)',
+)
+assert(
   resolveActiveWeaponDamage({ name: 'Боевой посох', twoHandedWield: true }) === '1к8',
   'staff 2H die',
 )

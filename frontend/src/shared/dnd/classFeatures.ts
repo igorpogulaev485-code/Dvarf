@@ -1056,7 +1056,11 @@ const SUBCLASS_NAME_TO_SLUG: Record<string, string> = {
   'домен тайной магии': 'arcana_domain',
   'домен магии': 'arcana_domain',
   forge_domain: 'forge_domain',
+  // Catalog seed uses «Домен кузни»; older sheets may say «кузницы».
   'домен кузницы': 'forge_domain',
+  'домен кузни': 'forge_domain',
+  кузни: 'forge_domain',
+  'forge domain': 'forge_domain',
   grave_domain: 'grave_domain',
   'домен могилы': 'grave_domain',
   order_domain: 'order_domain',

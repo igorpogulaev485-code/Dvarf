@@ -13,6 +13,10 @@ import {
 import { resolveClassFeatureSlug } from '../../../shared/dnd/classFeatures'
 import { wizardResolvedFeatureId } from '../../../shared/dnd/wizardTradition'
 import { guardBardSpellsChange2024 } from '../bardPreparedGuard'
+import {
+  applyForgeBlessing,
+  resolveForgeBlessingPinnedTarget,
+} from '../forgeBlessing'
 import type { SpellsState } from '../spells'
 
 export function installSheetActions5(model: SheetModel) {
@@ -153,6 +157,38 @@ export function installSheetActions5(model: SheetModel) {
     }
     if (model.isSoulTrinketsResource(row)) {
       model.setSoulTrinketsSpendId(id)
+      return true
+    }
+    const parsedEarly = parseFeatureResourceId(row.id)
+    if (parsedEarly?.poolId === 'blessing_of_the_forge') {
+      const pinned = resolveForgeBlessingPinnedTarget(
+        model.draft.inventory.items,
+        model.draft.sheetUi.forgeBlessingPinnedItemId,
+      )
+      if (pinned) {
+        const applied = applyForgeBlessing(model.draft.inventory.items, pinned)
+        if (applied.ok) {
+          model.setDraft((prev) => ({
+            ...prev,
+            inventory: { ...prev.inventory, items: applied.items },
+            play: {
+              ...prev.play,
+              resources: prev.play.resources.map((item) => {
+                if (item.id !== id) return item
+                if (item.used >= item.max) return item
+                return {
+                  ...item,
+                  used: item.used + 1,
+                  activeLabel: applied.message,
+                }
+              }),
+            },
+          }))
+          model.onToast?.(applied.message)
+          return true
+        }
+      }
+      model.setForgeBlessingSpendId(id)
       return true
     }
     const parsed = parseFeatureResourceId(row.id)

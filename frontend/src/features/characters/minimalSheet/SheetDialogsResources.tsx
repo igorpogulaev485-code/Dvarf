@@ -23,6 +23,7 @@ import { ChannelDivinitySpendDialog } from '../ChannelDivinitySpendDialog'
 import { KiSpendDialog } from '../KiSpendDialog'
 import { BardicInspirationSpendDialog } from '../BardicInspirationSpendDialog'
 import { LayOnHandsSpendDialog } from '../LayOnHandsSpendDialog'
+import { ForgeBlessingSpendDialog } from '../ForgeBlessingSpendDialog'
 import { SuperiorityDiceSpendDialog } from '../SuperiorityDiceSpendDialog'
 import { ArcaneRecoverySpendDialog } from '../ArcaneRecoverySpendDialog'
 import type { Druid2024RestPanelProps } from '../Druid2024RestPanel'
@@ -2072,6 +2073,40 @@ export function SheetDialogsResources({ model }: { model: SheetModel }) {
         }}
         onToast={model.onToast}
         onClose={() => model.setLayOnHandsSpendId(null)}
+      />
+
+      <ForgeBlessingSpendDialog
+        open={model.forgeBlessingSpendId != null}
+        resource={
+          model.forgeBlessingSpendId
+            ? (model.draft.play.resources.find(
+                (row) => row.id === model.forgeBlessingSpendId,
+              ) ?? null)
+            : null
+        }
+        inventoryItems={model.draft.inventory.items}
+        pinnedItemId={model.draft.sheetUi.forgeBlessingPinnedItemId}
+        onPinItemId={(itemId) =>
+          model.patchSheetUi({ forgeBlessingPinnedItemId: itemId })
+        }
+        onConfirm={({ items, message, resourceId }) => {
+          model.setDraft((prev) => ({
+            ...prev,
+            inventory: { ...prev.inventory, items },
+            play: {
+              ...prev.play,
+              resources: prev.play.resources.map((row) => {
+                if (row.id !== resourceId) return row
+                if (row.used >= row.max) return row
+                return { ...row, used: row.used + 1, activeLabel: message }
+              }),
+            },
+          }))
+          model.onToast(message)
+          model.setForgeBlessingSpendId(null)
+        }}
+        onToast={model.onToast}
+        onClose={() => model.setForgeBlessingSpendId(null)}
       />
 
       <SuperiorityDiceSpendDialog

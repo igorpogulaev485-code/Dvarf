@@ -9,7 +9,8 @@ export const MAX_COMBAT_CONSUMABLE_ROWS = 8
 
 /**
  * Ammo, potions, and common combat one-shots (name / notes).
- * Favorites cover anything this misses.
+ * Used only when `combat_consumable` is unset (null).
+ * Favorites and explicit `combat_consumable: true` cover anything else.
  */
 const AUTO_COMBAT_CONSUMABLE_RE =
   /болт|стрел|дротик|снаряд|патрон|камень|flask|флакон|зелье|эликсир|порошок|кислот|огонь|масло|яд|свят(ая|ой)\s*вод|противояд|алхим|potion|antitoxin|healing|alchem|свиток|scroll/i
@@ -26,10 +27,15 @@ export function isAutoCombatConsumable(item: {
   qty: number
   catalog_slug?: string | null
   scroll_spell?: InventoryItem['scroll_spell']
+  combat_consumable?: boolean | null
 }): boolean {
   if (!item.name.trim() || item.qty <= 0) return false
   // Bound spell scrolls always belong in combat consumables.
   if (isCastableSpellScroll(item)) return true
+  // Explicit opt-out (custom «Своя строка» defaults to false).
+  if (item.combat_consumable === false) return false
+  // Explicit opt-in.
+  if (item.combat_consumable === true) return true
   return (
     AUTO_COMBAT_CONSUMABLE_RE.test(item.name) ||
     AUTO_COMBAT_CONSUMABLE_RE.test(item.notes ?? '')

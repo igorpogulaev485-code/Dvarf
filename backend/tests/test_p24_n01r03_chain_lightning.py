@@ -40,13 +40,16 @@ def test_alembic_head_is_chain_lightning_rename():
     cfg = Config(str(BACKEND / "alembic.ini"))
     cfg.set_main_option("script_location", str(BACKEND / "alembic"))
     script = ScriptDirectory.from_config(cfg)
-    assert script.get_heads() == ["i10sunf9a2c"]
+    assert script.get_heads() == ["j11sunfwep01"]
     rev = script.get_revision("p24n01r03")
     assert rev is not None
     assert rev.down_revision == "p24n01r02"
-    tip = script.get_revision("i10sunf9a2c")
+    mid = script.get_revision("i10sunf9a2c")
+    assert mid is not None
+    assert mid.down_revision == "p24n01r03"
+    tip = script.get_revision("j11sunfwep01")
     assert tip is not None
-    assert tip.down_revision == "p24n01r03"
+    assert tip.down_revision == "i10sunf9a2c"
     text = (VERSIONS / "p24n01r03_chain_lightning_ru.py").read_text(encoding="utf-8")
     assert "Цепная молния" in text
     assert "chain_lightning" in text

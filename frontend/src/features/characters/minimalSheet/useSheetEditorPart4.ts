@@ -236,6 +236,9 @@ export function useSheetEditorPart4(model: SheetModel) {
   const [layOnHandsSpendId, setLayOnHandsSpendId] = useState<string | null>(null)
   model.layOnHandsSpendId = layOnHandsSpendId
   model.setLayOnHandsSpendId = setLayOnHandsSpendId
+  const [forgeBlessingSpendId, setForgeBlessingSpendId] = useState<string | null>(null)
+  model.forgeBlessingSpendId = forgeBlessingSpendId
+  model.setForgeBlessingSpendId = setForgeBlessingSpendId
   const [superioritySpendId, setSuperioritySpendId] = useState<string | null>(null)
   model.superioritySpendId = superioritySpendId
   model.setSuperioritySpendId = setSuperioritySpendId

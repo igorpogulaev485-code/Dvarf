@@ -87,6 +87,7 @@ import {
   hasFeatFlag,
 } from '../../../shared/dnd/b07FeatCombat'
 import { elementalShieldingResistanceLines2024 } from '../../../shared/dnd/paladinBook2024Features'
+import { forgeDomainDefenseLines } from '../forgeDomainEffects'
 import { UseAllyAbilityDialog } from '../UseAllyAbilityDialog'
 
 function mergeToolNames(base: string[], extra: string[]): string[] {
@@ -1420,12 +1421,20 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
                 effects: model.draft.play.effects,
                 infusionResistances: model.infusionBonuses?.resistances,
                 featResistances: featResistanceTypes(model.draft.featGrants),
-                featureResistances: elementalShieldingResistanceLines2024({
-                  rulesEdition: model.rulesEdition,
-                  classes: model.draft.classes,
-                  featurePicks: model.draft.featurePicks,
-                  subclassSlugByEntryId: model.subclassSlugByEntryId,
-                }),
+                featureResistances: [
+                  ...elementalShieldingResistanceLines2024({
+                    rulesEdition: model.rulesEdition,
+                    classes: model.draft.classes,
+                    featurePicks: model.draft.featurePicks,
+                    subclassSlugByEntryId: model.subclassSlugByEntryId,
+                  }),
+                  ...forgeDomainDefenseLines({
+                    features: model.unlockedFeatures ?? [],
+                    wearingHeavyArmor:
+                      equippedArmorPieces(model.draft.inventory.items).armor?.kind ===
+                      'heavy',
+                  }),
+                ],
               }),
             ),
             model.rulesEdition === '2024'
@@ -1662,6 +1671,10 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
             ...prev,
             inventory: { ...prev.inventory, items },
           }))
+        }
+        forgeBlessingPinnedItemId={model.draft.sheetUi.forgeBlessingPinnedItemId}
+        onForgeBlessingPinnedItemIdChange={(itemId) =>
+          model.patchSheetUi({ forgeBlessingPinnedItemId: itemId })
         }
         concentration={model.draft.play.concentration}
         onConcentrationChange={(concentration) => {

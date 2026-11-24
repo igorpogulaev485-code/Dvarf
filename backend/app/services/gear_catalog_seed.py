@@ -121,6 +121,16 @@ ARMOR_RULE_KEYS = (
     "max_dex_bonus",
     "strength_requirement",
 )
+# Weapon combat face from catalog (Sunforger = warhammer 1к8/1к10, not maul 2к6).
+WEAPON_RULE_KEYS = (
+    "damage",
+    "damage_type",
+    "versatile_damage",
+    "properties",
+    "ability",
+    "category",
+    "ranged",
+)
 # Family and color gates are item rules, not a player's rename or notes.
 FAMILY_RULE_KEYS = (
     "family_slug",
@@ -764,6 +774,19 @@ def _copy_rules(item: dict[str, Any], catalog: GearRecord) -> dict[str, Any]:
         for key in ARMOR_RULE_KEYS:
             if key in data:
                 updated[key] = data[key]
+    if catalog.kind == "weapon":
+        for key in WEAPON_RULE_KEYS:
+            if key in data:
+                updated[key] = data[key]
+        # Fixed catalog base (Sunforger → warhammer). Do not overwrite a player
+        # pick on +1 templates that list allowed_base_weapon.
+        catalog_base = data.get("base_weapon_slug")
+        if isinstance(catalog_base, str) and catalog_base.strip():
+            allowed = data.get("allowed_base_weapon")
+            if not (isinstance(allowed, list) and allowed):
+                updated["base_weapon_slug"] = catalog_base.strip()
+            elif not updated.get("base_weapon_slug"):
+                updated["base_weapon_slug"] = catalog_base.strip()
     return updated
 
 

@@ -3,7 +3,11 @@
  * Run: npx tsx src/shared/dnd/pack03DomainOath.selfcheck.ts
  */
 
-import { slotSpendDiceCount } from './classFeatures.ts'
+import {
+  resolveSubclassFeatureSlug,
+  slotSpendDiceCount,
+  unlockFeaturesForClasses,
+} from './classFeatures.ts'
 import { domainChannelEffect } from './domainChannelEffect.ts'
 import { RANGER_FIGHTING_STYLES, fightingStyleById } from './fightingStyles.ts'
 import {
@@ -115,6 +119,31 @@ assert(
   assert(twilight.label.includes('2к8'), 'twilight label shows 2d8')
   const war = divineStrikeRider([{ id: 'divine_strike_war', classLevel: 8 }])
   assert(war?.dice === '1d8' && war.type == null, 'war strike matches the weapon')
+  const forge = divineStrikeRider([{ id: 'divine_strike_forge', classLevel: 8 }])
+  assert(forge?.dice === '1d8' && forge.type === 'огнём', 'forge strike is fire')
+  assert(forge.label.includes('1к8 огнём'), 'forge label')
+  // Catalog name is «Домен кузни» (not «кузницы») — must still unlock.
+  assert(resolveSubclassFeatureSlug('Домен кузни') === 'forge_domain', 'catalog forge name')
+  assert(resolveSubclassFeatureSlug('домен кузницы') === 'forge_domain', 'legacy forge name')
+  const forgeUnlocked = unlockFeaturesForClasses({
+    classes: [
+      {
+        id: 'c1',
+        name: 'Жрец',
+        level: 8,
+        subclass_name: 'Домен кузни',
+        subclass_catalog_id: '',
+      },
+    ],
+  })
+  assert(
+    forgeUnlocked.some((f) => f.id === 'divine_strike_forge'),
+    'forge divine strike unlocks from catalog name alone',
+  )
+  assert(
+    divineStrikeRider(forgeUnlocked)?.dice === '1d8',
+    'unlocked forge rider is 1d8',
+  )
 }
 
 assert(domainChannelEffect('cd_invoke_duplicity')?.concentration, 'duplicity concentrates')
