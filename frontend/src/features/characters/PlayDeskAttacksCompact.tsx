@@ -358,8 +358,8 @@ type PlayDeskAttacksCompactProps = {
   wildShapeFormAttacks?: { primalStrikeDice: number; radiant: boolean } | null
   /** T-02: «Хитрое действие» — Засада бонусным. */
   hasCunningAction?: boolean
-  /** O-01: TCE book on in lobby (table buttons). */
-  tceAllowed?: boolean
+  /** O-01: TCE book on in lobby (table buttons). null = outside lobby. */
+  tceAllowed?: boolean | null
   /** O-03: включённые ключи правил мастера (homebrew). */
   masterRules?: Partial<Record<HomebrewKey, boolean>>
   /** O-03: счётчик суток без длинного отдыха. */
@@ -732,8 +732,8 @@ export function PlayDeskAttacksCompact({
     : fightingStyleId
       ? [fightingStyleId]
       : []
-  const hasInterception = tceAllowed && styleIds.includes('interception')
-  const hasBlindFighting = tceAllowed && styleIds.includes('blind_fighting')
+  const hasInterception = tceAllowed === true && styleIds.includes('interception')
+  const hasBlindFighting = tceAllowed === true && styleIds.includes('blind_fighting')
   const hasProtectionStyle = hasFightingStyle(styleIds, 'protection')
   const hasTwoWeaponStyle = hasFightingStyle(styleIds, 'two_weapon_fighting')
   const hasGwfStyle = hasFightingStyle(styleIds, 'great_weapon_fighting')
@@ -751,9 +751,9 @@ export function PlayDeskAttacksCompact({
     : 0
   const ftdOk = ftdTableVisible(ftdAllowed)
   const hasChainMaster =
-    tceAllowed && knownInvocationIds.includes('investment_of_the_chain_master')
+    tceAllowed === true && knownInvocationIds.includes('investment_of_the_chain_master')
   const hasTalismanRebuke =
-    tceAllowed && knownInvocationIds.includes('rebuke_of_the_talisman')
+    tceAllowed === true && knownInvocationIds.includes('rebuke_of_the_talisman')
   const knowsGrapplingStrike = Boolean(
     featurePicks &&
       Object.values(featurePicks.values).some((raw) =>
@@ -972,19 +972,16 @@ export function PlayDeskAttacksCompact({
         }
       }
     }
-    return blessedStrikesRider({
-      features: combatFeatures,
-      tceAllowed,
-    })
-  }, [combatFeatures, tceAllowed, featurePicks, rulesEdition])
+    return blessedStrikesRider({ features: combatFeatures })
+  }, [combatFeatures, featurePicks, rulesEdition])
   const improvedSmite = useMemo(
     () => improvedDivineSmiteRider(combatFeatures),
     [combatFeatures],
   )
   const hasFocusedAim =
-    tceAllowed && hasO02Feature(combatFeatures, 'focused_aim')
+    tceAllowed === true && hasO02Feature(combatFeatures, 'focused_aim')
   const hasFavoredFoe =
-    tceAllowed && hasO02Feature(combatFeatures, 'favored_foe')
+    tceAllowed === true && hasO02Feature(combatFeatures, 'favored_foe')
   const rangerLevel =
     combatFeatures.find((f) => f.id === 'favored_foe')?.classLevel ??
     characterLevel
@@ -1818,7 +1815,7 @@ export function PlayDeskAttacksCompact({
               shieldInHand,
               telekinetic: hasTelekinetic,
               orcishFury: hasOrcishFury,
-              tceAllowed,
+              tceAllowed: tceAllowed === true,
             }}
             onO05GwmBonus={() => {
               onToast?.('Сделай одну рукопашную атаку оружием (бонусное уже отмечено)')

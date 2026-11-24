@@ -4,6 +4,7 @@
  */
 import { unlockFeaturesForClasses } from './classFeatures.ts'
 import {
+  applyBlessedStrikesToCantripDamage,
   applyKiFueledAttack,
   blessedStrikesRider,
   canKiFueledAttack,
@@ -15,6 +16,7 @@ import {
   harnessBonusGate,
   hasO02Feature,
   INSTINCTIVE_POUNCE_HINT,
+  isBlessedStrikesClericCantrip,
   MAGICAL_GUIDANCE_SHEET_NAME,
   markBlessedStrikesUsed,
   markFavoredFoeDamageUsed,
@@ -82,23 +84,34 @@ assert(HARNESS_DIVINE_POWER_TIMING === 'bonus', 'HDP is bonus')
 {
   const rider = blessedStrikesRider({
     features: [{ id: 'blessed_strikes' }],
-    tceAllowed: true,
   })
   assert(rider?.dice === '1d8', 'blessed 1d8')
   assert(
     blessedStrikesRider({
       features: [{ id: 'blessed_strikes' }, { id: 'divine_strike_life' }],
-      tceAllowed: true,
     }) == null,
     'no stack with divine strike',
   )
+  // Active replacement still rides even when the lobby TCE book is off / outside lobby.
   assert(
     blessedStrikesRider({
       features: [{ id: 'blessed_strikes' }],
       tceAllowed: false,
-    }) == null,
-    'tce off hides rider',
+    })?.dice === '1d8',
+    'active feature rides without tce table gate',
   )
+  assert(
+    applyBlessedStrikesToCantripDamage('1к12 некротической энергии', rider) ===
+      '1к12 некротической энергии + 1к8 излучением',
+    'cantrip damage append',
+  )
+  assert(
+    applyBlessedStrikesToCantripDamage('Наведение', rider) === 'Наведение',
+    'non-damage cantrip unchanged',
+  )
+  assert(isBlessedStrikesClericCantrip({ level: 0, class_slug: 'cleric' }), 'cleric cantrip')
+  assert(!isBlessedStrikesClericCantrip({ level: 1, class_slug: 'cleric' }), 'leveled spell no')
+  assert(!isBlessedStrikesClericCantrip({ level: 0, class_slug: 'wizard' }), 'other class no')
   let te = emptyTurnEconomy()
   assert(canUseBlessedStrikes(te), 'once/turn free')
   te = markBlessedStrikesUsed(te)

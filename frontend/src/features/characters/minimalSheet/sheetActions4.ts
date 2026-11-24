@@ -717,6 +717,12 @@ export function installSheetActions4(model: SheetModel) {
         id: spell.id,
         quickened,
       })
+      if (choice.blessedStrikes) {
+        const teBlessed = model.turnEconomyApi as
+          | { markBlessedStrikesUsed?: () => void }
+          | undefined
+        teBlessed?.markBlessedStrikesUsed?.()
+      }
       const full =
         metaNotes.length > 0
           ? `${message}${spareNote} · ${metaNotes.join(' · ')}`
@@ -1128,6 +1134,12 @@ export function installSheetActions4(model: SheetModel) {
       )
       // Cantrips bypass successToast — still offer physical attack/damage when галка on.
       castSucceeded = true
+      if (choice.blessedStrikes) {
+        const teBlessed = model.turnEconomyApi as
+          | { markBlessedStrikesUsed?: () => void }
+          | undefined
+        teBlessed?.markBlessedStrikesUsed?.()
+      }
       queueMicrotask(() => {
         const te = model.turnEconomyApi as
           | {

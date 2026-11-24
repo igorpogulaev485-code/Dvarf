@@ -51,6 +51,7 @@ import {
   potentSpellcastingForSheet2024,
 } from '../../../shared/dnd/druid2024Features'
 import { elementalAffinityPreview } from '../../../shared/dnd/pack04SorcererWarlock'
+import { blessedStrikesRider } from '../../../shared/dnd/o02TashaFeatures'
 import { activeBeastWildShape } from '../wildShape'
 
 function infusedItemIdsFor(model: SheetModel): string[] {
@@ -75,6 +76,15 @@ export function SheetDialogsRolls({ model }: { model: SheetModel }) {
     classOptions: model.draft.classOptions2024,
     wisScore: model.effectiveAbilities?.wis ?? model.draft.abilities.wis,
   })
+  const rulesEdition =
+    model.rulesEdition ?? model.baseCharacter?.rules_edition ?? '2014'
+  // TCE Blessed Strikes (2014 optional replacement) — not the 2024 Divine Strike / Potent pick.
+  const blessedStrikesCantrip =
+    String(rulesEdition).trim() === '2024'
+      ? null
+      : blessedStrikesRider({
+          features: model.playActiveFeatures ?? model.unlockedFeatures ?? [],
+        })
   const sorcerer = model.draft.classes.find((row) => /чародей|sorcerer/i.test(row.name))
   const elementalAffinity = sorcerer
     ? elementalAffinityPreview({
@@ -222,6 +232,7 @@ export function SheetDialogsRolls({ model }: { model: SheetModel }) {
         potentSpellcastingBonus={potentSheet.bonus}
         potentSpellcastingClass={potentSheet.classSlug}
         potentSpellcastingRangeBonusFt={potentSheet.rangeBonusFt}
+        blessedStrikesCantrip={blessedStrikesCantrip}
         abilities={model.effectiveAbilities}
         proficiencyBonus={model.proficiencyBonus}
         castProfiles={model.spellcastingSync.castProfiles}
