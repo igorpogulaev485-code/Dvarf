@@ -232,28 +232,28 @@ function normalize(value: string): string {
   return value.trim().toLowerCase().replace(/\s+/g, ' ')
 }
 
+/** Strip trailing « +1/+2/+3 » so magic variants resolve to the PHB base. */
+function stripMagicBonusSuffix(name: string): string {
+  return name.replace(/\s*\+\s*[123]\s*$/u, '').trim()
+}
+
 /** Resolve a starting-gear name to a weapon preset, or null for non-weapons. */
 export function findWeaponPreset(name: string): WeaponPreset | null {
   const key = normalize(name)
   if (!key) return null
-  for (const preset of PRESETS) {
-    if (normalize(preset.labelRu) === key) return preset
-  }
-  for (const preset of PRESETS) {
-    if (preset.aliases?.some((alias) => normalize(alias) === key)) return preset
-  }
-  // Soft match: longest label wins so «Боевой молот» ≠ «Молот» (maul).
-  let best: WeaponPreset | null = null
-  let bestLen = 0
-  for (const preset of PRESETS) {
-    const label = normalize(preset.labelRu)
-    if (!label || !key.includes(label)) continue
-    if (label.length > bestLen) {
-      best = preset
-      bestLen = label.length
+  const stripped = stripMagicBonusSuffix(key)
+  for (const candidate of [key, stripped]) {
+    if (!candidate) continue
+    for (const preset of PRESETS) {
+      if (normalize(preset.labelRu) === candidate) return preset
+    }
+    for (const preset of PRESETS) {
+      if (preset.aliases?.some((alias) => normalize(alias) === candidate)) return preset
     }
   }
-  return best
+  // Do not substring-match («Солнечный молот» must not become maul «Молот»).
+  // Magic +N is handled above; fancy magic names use catalog base_weapon_slug.
+  return null
 }
 
 export type WeaponPickGroup =

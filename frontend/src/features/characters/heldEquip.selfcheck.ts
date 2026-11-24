@@ -91,6 +91,12 @@ assert(resolveWeaponGrip({ name: 'Боевой молот' }) === 'one_hand', 'w
 assert(resolveWeaponGrip({ name: 'Лёгкий молот' }) === 'one_hand', 'light hammer grip')
 assert(resolveWeaponGrip({ name: 'Молот' }) === 'two_hand', 'maul grip')
 assert(resolveWeaponGrip({ name: 'Двуручный молот' }) === 'two_hand', 'maul alias grip')
+// Fancy magic names must not soft-match maul «Молот» (Sunforger / dwarven thrower).
+assert(resolveWeaponGrip({ name: 'Солнечный молот' }) === 'one_hand', 'sunforger default grip')
+assert(
+  resolveWeaponGrip({ name: 'Метательный молот дварфов' }) === 'one_hand',
+  'dwarven thrower default grip',
+)
 assert(resolveWeaponGrip({ name: 'Боевой топор' }) === 'one_hand', 'battleaxe grip')
 assert(resolveWeaponGrip({ name: 'Длинный меч' }) === 'one_hand', 'longsword grip')
 assert(resolveWeaponGrip({ name: 'Копьё' }) === 'one_hand', 'spear grip')
