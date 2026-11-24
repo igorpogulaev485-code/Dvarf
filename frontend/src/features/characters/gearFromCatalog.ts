@@ -14,6 +14,7 @@ import {
   type GearRarity,
   type ItemCategory,
 } from '../../shared/dnd/gearCatalog'
+import { findWeaponPreset } from '../../shared/dnd/weaponPresets'
 import type { WeaponAttack } from './AttacksPanel'
 import { resolveWeaponGrip } from './heldEquip'
 import { classifySpellTooling, inferFocusKind } from './spellFocus'
@@ -346,10 +347,12 @@ export function inventoryItemFromCatalog(input: {
 
   if (entry.kind === 'weapon') {
     const parsed = parseWeaponCatalogData(entry.data ?? {})
+    const baseSlug = parsed.base_weapon_slug?.trim() || ''
+    const basePreset = baseSlug ? findWeaponPreset(baseSlug) : null
     created.weight_lb = parsed.weight_lb
     created.cost_gp = gearCostToGp(parsed.cost)
     created.weapon_grip = resolveWeaponGrip({
-      name: entry.name_ru,
+      name: basePreset?.labelRu || entry.name_ru,
       data: entry.data ?? {},
     })
     created.spell_tooling = 'none'
@@ -357,37 +360,42 @@ export function inventoryItemFromCatalog(input: {
     created.requires_attunement = parsed.requires_attunement
     created.effects = parsed.effects
     created.magic_bonus = parsed.magic_bonus || null
+    if (baseSlug) created.base_weapon_slug = baseSlug
     // Carried in pack by default — draw («В руках») is a separate action.
     created.equipped = false
+    // Resolve PHB stats from base_weapon_slug when present so fancy magic
+    // names («Солнечный молот») do not soft-match the wrong preset.
     const built = buildStartingWeaponAttacks({
-      name: entry.name_ru,
+      name: basePreset?.labelRu || entry.name_ru,
       qty,
       makeId: (index, cardCount) => newAttackId(created.id, index, cardCount),
       inventoryItemId: created.id,
       held: false,
     })
-    // Prefer catalog damage/ability when preset missed or is empty.
+    // Keep the catalog display name; prefer catalog damage/ability.
     const attacks: WeaponAttack[] = built.attacks.map((attack) => ({
       ...attack,
+      name: entry.name_ru,
       catalog_id: entry.id,
-      ability: parsed.ability || attack.ability,
-      damage: parsed.damage || attack.damage,
-      damage_type: parsed.damage_type || attack.damage_type,
+      ability: parsed.ability || attack.ability || basePreset?.ability || 'str',
+      damage: parsed.damage || attack.damage || basePreset?.damage || '',
+      damage_type:
+        parsed.damage_type || attack.damage_type || basePreset?.damageType || '',
       source_kind: 'weapon',
       inventory_item_id: created.id,
       held: false,
     }))
     // If preset didn't resolve, still add one attack from catalog stats when present.
-    if (attacks.length === 0 && (parsed.damage || parsed.damage_type)) {
+    if (attacks.length === 0 && (parsed.damage || parsed.damage_type || basePreset)) {
       attacks.push({
         id: newAttackId(created.id, 0, 1),
         name: entry.name_ru,
         catalog_id: entry.id,
         source_kind: 'weapon',
-        ability: parsed.ability,
+        ability: parsed.ability || basePreset?.ability || 'str',
         is_proficient: true,
-        damage: parsed.damage,
-        damage_type: parsed.damage_type,
+        damage: parsed.damage || basePreset?.damage || '',
+        damage_type: parsed.damage_type || basePreset?.damageType || '',
         qty: qty > 1 ? qty : null,
         inventory_item_id: created.id,
         held: false,
