@@ -7,6 +7,7 @@ import {
   resolveRollMode,
   rollCheck,
   rollDamage,
+  rollDamageWithExtras,
   rollDie,
 } from './deskRolls'
 
@@ -123,6 +124,19 @@ const stackedCrit = resolveAttackRoll({
   rng: seq([0.999, 0, 0.5, 0, 0.25, 0, 0.25, 0.5, 0.75]),
 })
 assert(stackedCrit.crit, 'natural 20 is a crit')
+
+const forgeDmg = rollDamageWithExtras({
+  expression: '1d8+2',
+  damageType: 'дробящий',
+  name: 'Боевой молот',
+  extraDamages: [{ expression: '1d8', type: 'огнём', label: '1к8 огнём, раз в ход' }],
+  rng: seq([0.5, 0]), // weapon 5, strike 1
+})
+assert(forgeDmg != null && forgeDmg.total === 5 + 2 + 1, `forge dmg total ${forgeDmg?.total}`)
+assert(
+  forgeDmg!.text.includes('огнём') && forgeDmg!.text.includes('1к8 огнём'),
+  `forge dmg toast ${forgeDmg!.text}`,
+)
 
 const champ19 = resolveAttackRoll({
   name: 'Меч',

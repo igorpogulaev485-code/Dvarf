@@ -353,6 +353,44 @@ function formatExtraDamage(
   }
 }
 
+/**
+ * Weapon damage button: base dice + riders (Divine Strike, Improved Smite, …).
+ * Same crit rule as {@link resolveAttackRoll} extras.
+ */
+export function rollDamageWithExtras(input: {
+  expression: string
+  damageType?: string | null
+  extraDamages?: AttackExtraDamage[] | null
+  /** Prefix for toast, e.g. attack name. */
+  name?: string
+  crit?: boolean
+  rng?: () => number
+}): {
+  total: number
+  text: string
+  detail: string
+  base: DamageRoll | null
+  extraTotal: number
+} | null {
+  const crit = Boolean(input.crit)
+  const base = rollDamage(input.expression, input.rng, { crit })
+  const extras = input.extraDamages ?? []
+  if (!base && extras.length === 0) return null
+  const typeBit = input.damageType?.trim() ? ` ${input.damageType.trim()}` : ''
+  const extraRows = extras.map((row) => formatExtraDamage(row, input.rng, crit))
+  const extraBit = extraRows.map((row) => row.text).join('')
+  const extraTotal = extraRows.reduce((sum, row) => sum + row.total, 0)
+  const total = (base?.total ?? 0) + extraTotal
+  const label = input.name?.trim() ? `Урон: ${input.name.trim()}` : 'Урон'
+  const text = base
+    ? `${label} · ${base.total}${typeBit} (${base.detail})${extraBit}`
+    : `${label} · —${extraBit}`
+  const detail = base
+    ? `${base.detail}${extraBit}`
+    : extraBit.replace(/^\s*\+\s*/, '')
+  return { total, text, detail, base, extraTotal }
+}
+
 /** Attack and damage roll. Crit doubles every extra's dice (PHB p. 196). */
 export function resolveAttackRoll(input: {
   name: string

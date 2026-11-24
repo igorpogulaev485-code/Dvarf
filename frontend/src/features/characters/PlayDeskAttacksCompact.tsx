@@ -271,6 +271,8 @@ import {
   parseDamageExpression,
   resolveAttackRoll,
   rollDamage,
+  rollDamageWithExtras,
+  type AttackExtraDamage,
   type BonusDiePart,
   type DeskRollMode,
 } from './deskRolls'
@@ -4129,24 +4131,32 @@ export function PlayDeskAttacksCompact({
                         Boolean(characterId) &&
                         shouldPostRollToSession(characterId) &&
                         Boolean(sessionId?.trim())
+                      const riderDamages: AttackExtraDamage[] = []
+                      if (divineStrike) {
+                        riderDamages.push({
+                          expression: divineStrike.dice,
+                          type: divineStrike.type ?? attack.damage_type,
+                          label: divineStrike.rollLabel ?? divineStrike.label,
+                        })
+                      }
+                      if (meleeAttack && improvedSmite) {
+                        riderDamages.push({
+                          expression: improvedSmite.dice,
+                          type: improvedSmite.type,
+                          label: improvedSmite.rollLabel ?? improvedSmite.label,
+                        })
+                      }
                       // Physical: ввод граней формулы — без цифрового rollDamage.
                       // После базы — доп. кости (божественный удар / улучш. кара / …) тем же диалогом.
                       if (physical && turnEco?.openEnterOwnNumber && expr) {
-                        const extras: Array<{ title: string; formula: string }> = []
-                        if (divineStrike) {
-                          const d = String(divineStrike.dice).replace(/d/gi, 'к')
-                          extras.push({
-                            title: divineStrike.rollLabel ?? 'Божественный удар',
-                            formula: `${d}${divineStrike.type ? ` ${divineStrike.type}` : ''}`.trim(),
+                        const extras: Array<{ title: string; formula: string }> =
+                          riderDamages.map((row) => {
+                            const d = String(row.expression).replace(/d/gi, 'к')
+                            return {
+                              title: row.label,
+                              formula: `${d}${row.type ? ` ${row.type}` : ''}`.trim(),
+                            }
                           })
-                        }
-                        if (meleeAttack && improvedSmite) {
-                          const d = String(improvedSmite.dice).replace(/d/gi, 'к')
-                          extras.push({
-                            title: improvedSmite.rollLabel ?? 'Улучшенная кара',
-                            formula: `${d}${improvedSmite.type ? ` ${improvedSmite.type}` : ''}`.trim(),
-                          })
-                        }
                         const openExtra = (i: number) => {
                           const row = extras[i]
                           if (!row || !turnEco.openEnterOwnNumber) return
@@ -4168,14 +4178,15 @@ export function PlayDeskAttacksCompact({
                       }
                       if (characterId && post && !physical && expr) {
                         onToast?.('Бросаем…')
-                        void postSheetRollToSession({
-                          openSessionId: sessionId,
-                          characterId,
-                          title: `Урон: ${attack.name}`,
-                          formula: expr,
-                          category: 'sheet',
-                          swallowErrors: false,
-                        }).then((posted) => {
+                        void (async () => {
+                          const posted = await postSheetRollToSession({
+                            openSessionId: sessionId,
+                            characterId,
+                            title: `Урон: ${attack.name}`,
+                            formula: expr,
+                            category: 'sheet',
+                            swallowErrors: false,
+                          })
                           if (!posted || !posted.ok) {
                             onToast?.(
                               posted && !posted.ok
@@ -4184,9 +4195,8 @@ export function PlayDeskAttacksCompact({
                             )
                             return
                           }
-                          const total = posted.event.total ?? 0
-                          const text = `Урон: ${attack.name} · ${total}${typeBit}`
-                          onToast?.(text)
+                          let total = posted.event.total ?? 0
+                          let text = `Урон: ${attack.name} · ${total}${typeBit}`
                           const faces = Array.isArray(posted.event.payload?.dice)
                             ? (posted.event.payload.dice as Array<{
                                 sides: number
@@ -4198,6 +4208,24 @@ export function PlayDeskAttacksCompact({
                                 dropped: Boolean(d.dropped),
                               }))
                             : []
+                          for (const rider of riderDamages) {
+                            const riderPosted = await postSheetRollToSession({
+                              openSessionId: sessionId,
+                              characterId,
+                              title: rider.label,
+                              formula: rider.expression,
+                              category: 'sheet',
+                              swallowErrors: false,
+                            })
+                            if (!riderPosted || !riderPosted.ok) continue
+                            const riderTotal = riderPosted.event.total ?? 0
+                            total += riderTotal
+                            const riderType = rider.type?.trim()
+                              ? ` ${rider.type.trim()}`
+                              : ''
+                            text += ` + ${riderTotal}${riderType} (${rider.label})`
+                          }
+                          onToast?.(text)
                           recordDigitalRollLocal({
                             characterId,
                             title: `Урон: ${attack.name}`,
@@ -4213,7 +4241,39 @@ export function PlayDeskAttacksCompact({
                             skipSession: true,
                             source: 'sheet',
                           })
-                        })
+                        })()
+                        return
+                      }
+                      const withRiders = rollDamageWithExtras({
+                        expression: expr,
+                        damageType: shownType,
+                        extraDamages: riderDamages,
+                        name: attack.name,
+                      })
+                      if (withRiders) {
+                        onToast?.(withRiders.text)
+                        if (characterId && withRiders.base) {
+                          const parsed = parseDamageExpression(expr)
+                          const sides = parsed?.sides ?? 6
+                          recordDigitalRollLocal({
+                            characterId,
+                            openSessionId: sessionId,
+                            title: `Урон: ${attack.name}`,
+                            expression: expr || `${withRiders.base.parts.length}d${sides}`,
+                            total: withRiders.total,
+                            dice: withRiders.base.parts.map((value) => ({
+                              sides,
+                              value,
+                              dropped: false,
+                            })),
+                            modifierTotal: withRiders.base.modifier,
+                            advantageMode: 'none',
+                            toastText: withRiders.text,
+                            breakdown: withRiders.detail,
+                            skipSession: true,
+                            source: 'sheet',
+                          })
+                        }
                         return
                       }
                       const rolled = rollDamage(expr)
