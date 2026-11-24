@@ -131,12 +131,17 @@ function parseMartialArtsSides(die: string | null | undefined): number | null {
   return Number.isFinite(sides) && sides > 0 ? sides : null
 }
 
-/** Blessed Strikes: +1d8 radiant once per turn (replaces Divine Strike / Potent Spellcasting). */
+/**
+ * Blessed Strikes (TCE optional): +1d8 radiant once per turn.
+ * Applies when the feature is already active for play (replacement taken).
+ * Not gated by the lobby TCE table switch — otherwise replacing Divine Strike
+ * outside a TCE lobby (or with the book off) leaves weapon/cantrip riders empty.
+ */
 export function blessedStrikesRider(input: {
   features: Array<{ id: string }>
-  tceAllowed: boolean | null | undefined
+  /** @deprecated Ignored — rider follows active play features, not the table gate. */
+  tceAllowed?: boolean | null | undefined
 }): { dice: string; type: string; label: string } | null {
-  if (!o02TableGate(input.tceAllowed)) return null
   if (!input.features.some((f) => f.id === 'blessed_strikes')) return null
   // Replaces Divine Strike / Potent Spellcasting — do not stack.
   if (input.features.some((f) => f.id.startsWith('divine_strike_'))) return null
@@ -146,6 +151,29 @@ export function blessedStrikesRider(input: {
     type: 'излучением',
     label: '1к8 излучением, раз в ход',
   }
+}
+
+/** TCE Blessed Strikes: damaging cantrips of the cleric list. */
+export function isBlessedStrikesClericCantrip(spell: {
+  level: number
+  class_slug?: string | null
+}): boolean {
+  if (spell.level > 0) return false
+  const slug = (spell.class_slug ?? '').trim().toLowerCase()
+  return !slug || slug === 'cleric'
+}
+
+/** Append `+ 1к8 излучением` to a cantrip damage preview/effect line. */
+export function applyBlessedStrikesToCantripDamage(
+  effect: string,
+  rider: { dice: string; type: string } | null | undefined,
+): string {
+  if (!rider || !effect.trim()) return effect
+  if (!/\d+\s*[dDкК]\s*\d+/.test(effect)) return effect
+  const diceRu = rider.dice.replace(/[dD]/g, 'к')
+  const fragment = `${diceRu} ${rider.type}`
+  if (effect.includes(fragment)) return effect
+  return `${effect} + ${fragment}`
 }
 
 export function canUseBlessedStrikes(state: TurnEconomyState): boolean {

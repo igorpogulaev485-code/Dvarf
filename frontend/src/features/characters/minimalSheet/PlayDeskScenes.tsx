@@ -131,6 +131,7 @@ import {
   readElementalFury2024,
 } from '../../../shared/dnd/druid2024Features'
 import { elementalAffinityPreview } from '../../../shared/dnd/pack04SorcererWarlock'
+import { blessedStrikesRider } from '../../../shared/dnd/o02TashaFeatures'
 import { collectWarlockInvocationIds } from '../../../shared/dnd/o06StylesBreathInvocations'
 import { totalCharacterLevel } from '../../../shared/dnd/classLevels'
 import { RitualBookCopyDialog, ritualBookButtonLabel } from '../RitualBookCopyDialog'
@@ -150,6 +151,12 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
     classOptions: model.draft.classOptions2024,
     wisScore: model.effectiveAbilities?.wis ?? model.draft.abilities.wis,
   })
+  const blessedStrikesCantrip =
+    String(model.rulesEdition ?? '2014').trim() === '2024'
+      ? null
+      : blessedStrikesRider({
+          features: model.playActiveFeatures ?? model.unlockedFeatures ?? [],
+        })
   const [masteryNickUsed, setMasteryNickUsed] = useState(false)
   const [masteryCleaveUsed, setMasteryCleaveUsed] = useState(false)
   const [divineSmiteIntent, setDivineSmiteIntent] = useState<DivineSmiteIntent>({
@@ -380,7 +387,7 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
             )}
             tceAllowed={
               model.campaignRulesRaw == null
-                ? false
+                ? null
                 : normalizeCampaignRules(model.campaignRulesRaw).start.allowed_sources.includes(
                     'tce',
                   )
@@ -1770,6 +1777,7 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
             potentSpellcastingBonus={potentSheet.bonus}
             potentSpellcastingClass={potentSheet.classSlug}
             potentSpellcastingRangeBonusFt={potentSheet.rangeBonusFt}
+            blessedStrikesCantrip={blessedStrikesCantrip}
             improvedIllusions={
               model.rulesEdition === '2024' &&
               wizard2024Flags(
