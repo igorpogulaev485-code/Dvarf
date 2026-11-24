@@ -20,6 +20,11 @@ import {
   isPotentSpellcastingCantrip2024,
 } from '../../shared/dnd/cleric2024Features'
 import {
+  applyBlessedStrikesToCantripDamage,
+  canUseBlessedStrikes,
+  isBlessedStrikesClericCantrip,
+} from '../../shared/dnd/o02TashaFeatures'
+import {
   potentSpellcastingRangeApplies2024,
   potentSpellcastingRangeText2024,
   produceFlameHurlFt2024,
@@ -214,6 +219,8 @@ export type CastChoice = {
   metamagic?: MetamagicCastFlags
   /** O-02: Магическое вдохновение — добавить кость BI к урону/лечению одной цели. */
   magicalInspiration?: boolean
+  /** O-02 TCE Blessed Strikes: +1к8 излучением к урону заговора (раз в ход). */
+  blessedStrikes?: boolean
 }
 
 type CastSpellDialogProps = {
@@ -279,6 +286,11 @@ type CastSpellDialogProps = {
   potentSpellcastingClass?: 'cleric' | 'druid'
   /** 2024 Druid L15 Potent Spellcasting: +ft to druid cantrip range (0 = off). */
   potentSpellcastingRangeBonusFt?: number
+  /**
+   * TCE Blessed Strikes (2014 optional): +1d8 radiant once/turn on cleric cantrip damage.
+   * Pass the rider when the feature is active for play; dialog gates once/turn via turnEconomy.
+   */
+  blessedStrikesCantrip?: { dice: string; type: string; label: string } | null
   /** Feature / ki pools, for cards that do not spend a spell slot. */
   resources?: SheetResource[]
   /** T-02: выбранные варианты метамагии чародея (id из sorcererMetamagic). */
@@ -337,6 +349,7 @@ export function CastSpellDialog({
   potentSpellcastingBonus = 0,
   potentSpellcastingClass = 'cleric',
   potentSpellcastingRangeBonusFt = 0,
+  blessedStrikesCantrip = null,
   resources,
   metamagicIds = [],
   initialMetamagicId = null,
@@ -740,6 +753,27 @@ export function CastSpellDialog({
       damageChoice,
       affinity,
     })
+    const withBlessed = (base: typeof summary) => {
+      if (
+        !blessedStrikesCantrip ||
+        !spell ||
+        !isBlessedStrikesClericCantrip({
+          level: rulesSpell.level,
+          class_slug: spell.class_slug,
+        }) ||
+        (turnEco != null && !canUseBlessedStrikes(turnEco.turnEconomy))
+      ) {
+        return base
+      }
+      const effect = applyBlessedStrikesToCantripDamage(base.effect, blessedStrikesCantrip)
+      if (effect === base.effect) return base
+      return {
+        ...base,
+        effect,
+        scaled: true,
+        lines: base.lines.map((line) => (line === base.effect ? effect : line)),
+      }
+    }
     if (!isEb) {
       if (
         potentSpellcastingBonus > 0 &&
@@ -750,13 +784,13 @@ export function CastSpellDialog({
         )
       ) {
         const effect = applyPotentSpellcastingToDamage2024(summary.effect, potentSpellcastingBonus)
-        return {
+        return withBlessed({
           ...summary,
           effect,
           lines: summary.lines.map((line) => (line === summary.effect ? effect : line)),
-        }
+        })
       }
-      return summary
+      return withBlessed(summary)
     }
     const beamLevel =
       rulesEdition === '2024' && warlockLevel != null && warlockLevel > 0
@@ -788,11 +822,11 @@ export function CastSpellDialog({
     if (hasRepellingBlast(knownInvocationIds)) {
       lines.push(REPELLING_BLAST_HINT)
     }
-    return {
+    return withBlessed({
       effect: beams > 1 || agonizing !== 0 ? preview : summary.effect || preview,
       scaled: summary.scaled || beams > 1 || agonizing !== 0 || spearFt != null,
       lines,
-    }
+    })
   }, [
     rulesSpell,
     spell,
@@ -805,11 +839,20 @@ export function CastSpellDialog({
     knownInvocationIds,
     potentSpellcastingBonus,
     potentSpellcastingClass,
+    blessedStrikesCantrip,
+    turnEco,
     abilities,
     castProfiles,
     proficiencyBonus,
     spells.casting_ability,
   ])
+
+  const blessedStrikesFragment = blessedStrikesCantrip
+    ? `${blessedStrikesCantrip.dice.replace(/[dD]/g, 'к')} ${blessedStrikesCantrip.type}`
+    : ''
+  const blessedStrikesApplies = Boolean(
+    blessedStrikesFragment && castEffect.effect.includes(blessedStrikesFragment),
+  )
 
   const selectedIds = useMemo(
     () => targetSlots.filter((id) => id.trim().length > 0),
@@ -1244,6 +1287,7 @@ export function CastSpellDialog({
             magicalInspirationAvailable &&
             useMagicalInspiration &&
             !useRitual,
+          blessedStrikes: blessedStrikesApplies,
           usePact:
             !isCantrip &&
             !useGrant &&

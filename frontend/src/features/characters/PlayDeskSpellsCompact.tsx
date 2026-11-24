@@ -71,6 +71,10 @@ import {
   applyPotentSpellcastingToDamage2024,
   isPotentSpellcastingCantrip2024,
 } from '../../shared/dnd/cleric2024Features'
+import {
+  applyBlessedStrikesToCantripDamage,
+  isBlessedStrikesClericCantrip,
+} from '../../shared/dnd/o02TashaFeatures'
 
 type SpellFilter =
   | 'all'
@@ -112,6 +116,8 @@ type PlayDeskSpellsCompactProps = {
   potentSpellcastingClass?: 'cleric' | 'druid'
   /** 2024 Druid L15 Potent Spellcasting: +ft to druid cantrip range (0 = off). */
   potentSpellcastingRangeBonusFt?: number
+  /** TCE Blessed Strikes: +1d8 radiant on cleric cantrip damage preview. */
+  blessedStrikesCantrip?: { dice: string; type: string; label: string } | null
   /** 2024 Illusionist: show Improved Illusions range on the spell card. */
   improvedIllusions?: boolean
   pinned?: boolean
@@ -169,6 +175,7 @@ export function PlayDeskSpellsCompact({
   potentSpellcastingBonus = 0,
   potentSpellcastingClass = 'cleric',
   potentSpellcastingRangeBonusFt = 0,
+  blessedStrikesCantrip = null,
   improvedIllusions = false,
   pinned = false,
   concentration = null,
@@ -783,6 +790,7 @@ export function PlayDeskSpellsCompact({
                           potentSpellcastingBonus={potentSpellcastingBonus}
                           potentSpellcastingClass={potentSpellcastingClass}
                           potentSpellcastingRangeBonusFt={potentSpellcastingRangeBonusFt}
+                          blessedStrikesCantrip={blessedStrikesCantrip}
                           learnMode={learnMode}
                           hasSpellbook={hasSpellbook}
                           activeConcentration={isActiveConc}
@@ -955,6 +963,7 @@ function compactDamage(
     chaMod?: number
     potentBonus?: number
     potentClass?: 'cleric' | 'druid'
+    blessedStrikes?: { dice: string; type: string } | null
   },
 ): string {
   const rules = withBundledRules(spell)
@@ -999,8 +1008,16 @@ function compactDamage(
       ? opts.potentBonus
       : 0
   const scaled = shortDamage(summary.effect)
-  if (scaled) return shortDamage(applyPotentSpellcastingToDamage2024(scaled, potent))
-  return shortDamage(applyPotentSpellcastingToDamage2024(rules.damage ?? '', potent))
+  const withPotent = shortDamage(
+    applyPotentSpellcastingToDamage2024(scaled || (rules.damage ?? ''), potent),
+  )
+  if (
+    opts?.blessedStrikes &&
+    isBlessedStrikesClericCantrip({ level: rules.level, class_slug: spell.class_slug })
+  ) {
+    return shortDamage(applyBlessedStrikesToCantripDamage(withPotent, opts.blessedStrikes))
+  }
+  return withPotent
 }
 
 function compactSpellMeta(
@@ -1090,10 +1107,12 @@ function SpellRow({
   potentSpellcastingBonus = 0,
   potentSpellcastingClass = 'cleric',
   potentSpellcastingRangeBonusFt = 0,
+  blessedStrikesCantrip = null,
 }: {
   potentSpellcastingBonus?: number
   potentSpellcastingClass?: 'cleric' | 'druid'
   potentSpellcastingRangeBonusFt?: number
+  blessedStrikesCantrip?: { dice: string; type: string; label: string } | null
   spell: SheetSpell
   characterLevel: number
   affinity?: { damageType: string; amount: number } | null
@@ -1156,6 +1175,7 @@ function SpellRow({
       chaMod: abilityModifier(abilities.cha),
       potentBonus: potentSpellcastingBonus,
       potentClass: potentSpellcastingClass,
+      blessedStrikes: blessedStrikesCantrip,
     },
   )
   const source = spellSourceBadge(spell)
