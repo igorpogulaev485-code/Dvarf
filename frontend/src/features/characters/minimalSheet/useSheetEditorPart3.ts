@@ -119,6 +119,7 @@ import { syncDruidicWarriorCantrips } from '../druidicWarrior'
 import { syncBlessedWarriorCantrips } from '../blessedWarrior'
 import {
   resolveForgeBlessingPinState,
+  healForgeBlessingPoolDesync,
   stripForgeBlessing,
   withForgeBlessingPoolSpentIfPinned,
 } from '../forgeBlessing'
@@ -151,7 +152,12 @@ import { ensurePactTomeSpellCatalog, resolvePactTomeCantripFromOptions } from '.
 import { spellOptionsForPactTomeCantrips } from '../../../shared/dnd/featSpellListOptions'
 import { sheetUiToPatch } from '../playDeskUi'
 import { identityExtrasToSheet } from '../identity'
-import { type InventoryItem, equippedArmorPieces, inventoryToSheet } from '../inventory'
+import {
+  type InventoryItem,
+  equippedArmorPieces,
+  inventoryToSheet,
+  shieldAcContribution,
+} from '../inventory'
 import { playToSheet } from '../play'
 import { spellsToSheet } from '../spells'
 import { textBlocksToSheet } from '../textBlocks'
@@ -548,6 +554,13 @@ export function useSheetEditorPart3(model: SheetModel) {
         return {
           ...prev,
           play: { ...prev.play, resources: spent.resources },
+        }
+      }
+      const healed = healForgeBlessingPoolDesync(prev.play.resources, prev.inventory.items)
+      if (healed.changed) {
+        return {
+          ...prev,
+          play: { ...prev.play, resources: healed.resources },
         }
       }
       const pool = prev.play.resources.find((row) =>
@@ -1229,7 +1242,9 @@ export function useSheetEditorPart3(model: SheetModel) {
     const spareShield = listShieldItems(model.draft.inventory.items)[0]
     const shieldBonus = pieces.shield
       ? Math.max(0, Math.floor(pieces.shield.baseAc || 2))
-      : Math.max(0, Math.floor(spareShield?.base_ac ?? 2))
+      : spareShield
+        ? shieldAcContribution(spareShield)
+        : 2
     const characterAc = {
       ac: stacked.total,
       summary,

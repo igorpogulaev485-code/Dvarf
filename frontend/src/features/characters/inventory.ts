@@ -642,6 +642,31 @@ export function equipInventoryItem(
   return items.map((item) => (item.id === id ? { ...item, equipped: true } : item))
 }
 
+/**
+ * Shield AC contribution for the sheet: PHB base (+2) plus magic (+1/+2/+3).
+ * Magic comes from `ac_bonus` effects, else `magic_bonus` (catalog +N shields).
+ * Folded into `equippedArmorPieces` so the formula says «щит +3», not base +2
+ * with the +1 buried under «магия».
+ */
+export function shieldAcContribution(
+  item: Pick<InventoryItem, 'base_ac' | 'effects' | 'magic_bonus'>,
+): number {
+  const base = Math.max(0, Math.floor(item.base_ac ?? 2))
+  let fromEffects = 0
+  let hasAcEffect = false
+  for (const effect of item.effects ?? []) {
+    if (effect.type !== 'ac_bonus') continue
+    const condition = (effect as { condition?: unknown }).condition
+    if (typeof condition === 'string' && condition.trim()) continue
+    hasAcEffect = true
+    const value = Math.floor(Number((effect as { value?: unknown }).value) || 0)
+    fromEffects += value
+  }
+  if (hasAcEffect) return base + fromEffects
+  const magic = Math.max(0, Math.floor(item.magic_bonus ?? 0))
+  return base + magic
+}
+
 export function equippedArmorPieces(items: InventoryItem[]): {
   armor: ArmorPiece | null
   shield: ShieldPiece | null
@@ -654,7 +679,7 @@ export function equippedArmorPieces(items: InventoryItem[]): {
       if (!shield) {
         shield = {
           kind: 'shield',
-          baseAc: item.base_ac ?? 2,
+          baseAc: shieldAcContribution(item),
           name: item.name || 'Щит',
         }
       }

@@ -373,6 +373,13 @@ export function aggregateGearEffects(input: {
               `${item.name || 'предмет'}: КД ${value >= 0 ? '+' : ''}${value} (${acConditionLabel(condition)})`,
             )
           }
+        } else if (item.armor_kind === 'shield') {
+          // Already inside equippedArmorPieces → computeArmorClass («щит +N»).
+          if (value) {
+            out.notes.push(
+              `${item.name || 'предмет'}: в щите КД ${value >= 0 ? '+' : ''}${value}`,
+            )
+          }
         } else {
           out.acBonus += value
           if (value) {
@@ -790,8 +797,13 @@ export function aggregateGearEffects(input: {
       const hasAttack = effects.some((row) => row.type === 'attack_bonus')
       const hasDamage = effects.some((row) => row.type === 'damage_bonus')
       if (isArmorOrShield(item) && !hasAc) {
-        out.acBonus += magicBonus
-        out.notes.push(`${item.name || 'предмет'}: КД +${magicBonus}`)
+        if (item.armor_kind === 'shield') {
+          // Folded into equippedArmorPieces.shield.baseAc.
+          out.notes.push(`${item.name || 'предмет'}: в щите КД +${magicBonus}`)
+        } else {
+          out.acBonus += magicBonus
+          out.notes.push(`${item.name || 'предмет'}: КД +${magicBonus}`)
+        }
       }
       if (isWeaponRow(item)) {
         if (!hasAttack) itemAttack += magicBonus

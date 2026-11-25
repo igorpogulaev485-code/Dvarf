@@ -97,6 +97,7 @@ import {
   createInventoryItem,
   equipInventoryItem,
   readCatalogWeightLb,
+  shieldAcContribution,
   type InventoryItem,
   type InventoryState,
 } from './inventory'
@@ -1041,7 +1042,7 @@ export function InventoryPanel({
             {!nested && isArmorRow(item) ? (
               <span className="inventory-card__ac-pill" aria-label="КД">
                 {item.armor_kind === 'shield'
-                  ? `щит +${item.base_ac ?? 2}`
+                  ? `щит +${shieldAcContribution(item)}`
                   : `кд ${item.base_ac ?? '—'}`}
               </span>
             ) : null}
@@ -1111,7 +1112,7 @@ export function InventoryPanel({
           {!nested && isArmorRow(item) ? (
             <span className="inventory-card__ac-pill" aria-label="КД">
               {item.armor_kind === 'shield'
-                ? `щит +${item.base_ac ?? 2}`
+                ? `щит +${shieldAcContribution(item)}`
                 : `кд ${item.base_ac ?? '—'}`}
             </span>
           ) : null}
