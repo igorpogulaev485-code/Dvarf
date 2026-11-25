@@ -180,6 +180,12 @@ export const BOOK_SOURCE_CATALOG: BookSourceEntry[] = [
     label_ru: 'Спутник игрока по Злу Стихий',
     aliases: ['eepc', 'EEPC'],
   },
+  {
+    id: 'toh',
+    label: 'Tome of Heroes',
+    label_ru: 'Том героев',
+    aliases: ['toh', 'ToH', 'ToH HB', 'toh-hb', 'tome-of-heroes'],
+  },
 ]
 
 const ALIAS_TO_CANON: Record<string, string> = (() => {
