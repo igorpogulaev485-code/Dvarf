@@ -1,9 +1,11 @@
 /** Quick node selfcheck: npx tsx src/features/characters/heldEquip.selfcheck.ts */
 
 import {
+  artifactItemIsHeldWeapon,
   equipHeldItem,
   handsCost,
   listShieldItems,
+  normalizeArtifactHeldHands,
   resolveActiveWeaponDamage,
   resolveWeaponGrip,
   toggleShieldInHand,
@@ -182,5 +184,47 @@ const kitWithShield = equipHeldItem(versatileKit, 's1')
 const attacksShield = syncAttacksHeldFromInventory(attacksAlone, kitWithShield)
 assert(attacksShield[0]?.damage === '1к8', 'with shield → 1к8')
 assert(attacksShield[0]?.held === true, 'still held with shield')
+
+const lasso = item({
+  id: 'lasso',
+  name: 'Лассо Гонда',
+  equipped: true,
+  setting_artifact_id: 'art-lasso',
+  artifact_snapshot: {
+    abilities: [{ kind: 'weapon', name: 'Удар', damage: '1d8' }],
+  },
+})
+assert(artifactItemIsHeldWeapon(lasso), 'lasso is held weapon')
+const virraKit = [
+  item({
+    id: 'hammer',
+    name: 'Солнечный молот',
+    equipped: true,
+    weapon_grip: 'one_hand',
+    wear_slot: 'held_main',
+    base_weapon_slug: 'warhammer',
+  }),
+  item({
+    id: 'shield',
+    name: 'Щит +3',
+    armor_kind: 'shield',
+    base_ac: 2,
+    equipped: true,
+    wear_slot: 'shield',
+  }),
+  lasso,
+]
+const fixed = normalizeArtifactHeldHands(virraKit)
+assert(fixed.changed, 'virra kit healed')
+assert(totalHeldHands(fixed.items) <= 2, '≤2 hands after heal')
+const lassoRow = fixed.items.find((row) => row.id === 'lasso')!
+assert(lassoRow.weapon_grip === 'one_hand', 'lasso grip set')
+assert(lassoRow.wear_slot === 'held_main', 'lasso slot set')
+assert(
+  !lassoRow.equipped ||
+    !fixed.items.find((row) => row.id === 'hammer')?.equipped ||
+    !fixed.items.find((row) => row.id === 'shield')?.equipped,
+  'not all three equipped',
+)
 
 console.log('heldEquip.selfcheck ok')

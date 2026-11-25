@@ -22,6 +22,7 @@ type HeldSyncItem = {
   base_weapon_slug?: string | null
   armor_kind?: string | null
   weapon_grip?: string | null
+  wear_slot?: string | null
   data?: Record<string, unknown> | null
 }
 
@@ -29,7 +30,9 @@ function occupiesHandSlot(item: HeldSyncItem): boolean {
   if (item.armor_kind === 'shield') return true
   if (item.armor_kind && item.armor_kind !== 'none') return false
   if (item.weapon_grip === 'one_hand' || item.weapon_grip === 'two_hand') return true
-  return Boolean(item.name && findWeaponPreset(item.name))
+  if (item.name && findWeaponPreset(item.name)) return true
+  // Artifact weapon rows tagged held_main without a PHB preset (Лассо Гонда).
+  return item.wear_slot === 'held_main' || item.wear_slot === 'held_off'
 }
 
 /** Qty 0 keeps the inventory row, but it is not a weapon you can swing. */
