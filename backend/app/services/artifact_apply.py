@@ -790,6 +790,61 @@ def _ensure_dict(sheet: dict[str, Any], key: str) -> dict:
     return {}
 
 
+def _is_held_inventory_row(row: dict[str, Any]) -> bool:
+    kind = str(row.get("armor_kind") or "none")
+    if kind == "shield":
+        return True
+    if kind not in ("none", ""):
+        return False
+    grip = str(row.get("weapon_grip") or "")
+    if grip in ("one_hand", "two_hand"):
+        return True
+    slot = str(row.get("wear_slot") or "")
+    return slot in ("held_main", "held_off")
+
+
+def _hands_cost(row: dict[str, Any]) -> int:
+    if str(row.get("armor_kind") or "") == "shield":
+        return 1
+    grip = str(row.get("weapon_grip") or "one_hand")
+    return 2 if grip == "two_hand" else 1
+
+
+def _enforce_held_hand_budget(
+    items: list[Any],
+    *,
+    keep_id: str | None = None,
+    max_hands: int = 2,
+) -> list[Any]:
+    """Unequip surplus held rows so total hands ≤ max_hands. Prefer dropping other artifacts."""
+    rows = [r if isinstance(r, dict) else r for r in items]
+
+    def total() -> int:
+        return sum(
+            _hands_cost(r)
+            for r in rows
+            if isinstance(r, dict) and r.get("equipped") and _is_held_inventory_row(r)
+        )
+
+    while total() > max_hands:
+        held = [
+            r
+            for r in rows
+            if isinstance(r, dict)
+            and r.get("equipped")
+            and _is_held_inventory_row(r)
+            and (keep_id is None or str(r.get("id") or "") != keep_id)
+        ]
+        if not held:
+            break
+        drop = next(
+            (r for r in reversed(held) if r.get("setting_artifact_id")),
+            held[-1],
+        )
+        drop["equipped"] = False
+    return rows
+
+
 def apply_artifact_to_sheet(
     sheet: dict[str, Any],
     *,
@@ -1025,6 +1080,7 @@ def apply_artifact_to_sheet(
                 "source_item_id": item_id,
                 "inventory_item_id": item_id,
                 "attack_role": "artifact",
+                "held": True,
                 **_weapon_req_fields(),
             }
             weapons.append(_attach_modes(row))
@@ -1045,9 +1101,34 @@ def apply_artifact_to_sheet(
                 "source_item_id": item_id,
                 "inventory_item_id": item_id,
                 "attack_role": "artifact",
+                "held": True,
                 **_weapon_req_fields(),
             }
             weapons.append(_attach_modes(row))
+        sheet["weapons"] = weapons
+        # Occupy a hand like a normal one-handed weapon (Virra: lasso + hammer + shield).
+        for row in items:
+            if not isinstance(row, dict) or row.get("id") != item_id:
+                continue
+            row["weapon_grip"] = "one_hand"
+            row["wear_slot"] = "held_main"
+            break
+        items[:] = _enforce_held_hand_budget(items, keep_id=item_id)
+        inventory["items"] = items
+        sheet["inventory"] = inventory
+        # Mirror equipped → held on every linked attack card after budget trim.
+        for wpn in weapons:
+            if not isinstance(wpn, dict):
+                continue
+            inv_id = str(wpn.get("inventory_item_id") or "")
+            if not inv_id:
+                continue
+            linked = next(
+                (r for r in items if isinstance(r, dict) and r.get("id") == inv_id),
+                None,
+            )
+            if linked is not None:
+                wpn["held"] = bool(linked.get("equipped"))
         sheet["weapons"] = weapons
 
     # --- Ability scores (+ optional max_score from passives; PHB base 20) ---

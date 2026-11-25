@@ -149,11 +149,34 @@ export function isLightWeapon(input: {
   return false
 }
 
+/** Setting-artifact with a weapon/mode attack (Лассо Гонда) occupies a hand. */
+export function artifactItemIsHeldWeapon(item: InventoryItem): boolean {
+  if (!item.setting_artifact_id && !item.artifact_snapshot) return false
+  if (item.armor_kind === 'shield') return false
+  if (item.armor_kind !== 'none' && item.armor_kind) return false
+  const snap = item.artifact_snapshot
+  if (!snap || typeof snap !== 'object') {
+    return Boolean(item.weapon_grip === 'one_hand' || item.weapon_grip === 'two_hand')
+  }
+  const abilities = Array.isArray(snap.abilities) ? snap.abilities : []
+  if (
+    abilities.some((row) => {
+      if (!row || typeof row !== 'object') return false
+      const kind = String((row as { kind?: unknown }).kind || '')
+      return kind === 'weapon' || kind === 'mode'
+    })
+  ) {
+    return true
+  }
+  return Boolean(String((snap as { attack_damage?: unknown }).attack_damage || '').trim())
+}
+
 export function isWeaponItem(item: InventoryItem): boolean {
   if (item.armor_kind === 'shield') return false
   if (item.armor_kind !== 'none') return false
   if (item.weapon_grip === 'one_hand' || item.weapon_grip === 'two_hand') return true
   if (item.base_weapon_slug?.trim()) return true
+  if (artifactItemIsHeldWeapon(item)) return true
   return findWeaponPreset(item.name) != null
 }
 
@@ -269,6 +292,43 @@ export function listShieldItems(items: InventoryItem[]): InventoryItem[] {
   return items.filter(
     (item) => !item.parent_id && item.armor_kind === 'shield' && item.name.trim(),
   )
+}
+
+/**
+ * Repair artifact weapons missing grip/slot (legacy grants) and enforce ≤2 hands.
+ * Prefer unequipping other artifact weapons when over budget.
+ */
+export function normalizeArtifactHeldHands(items: InventoryItem[]): {
+  items: InventoryItem[]
+  changed: boolean
+} {
+  let changed = false
+  let next = items.map((item) => {
+    if (!artifactItemIsHeldWeapon(item)) return item
+    let row = item
+    if (row.weapon_grip !== 'one_hand' && row.weapon_grip !== 'two_hand') {
+      row = { ...row, weapon_grip: 'one_hand' }
+      changed = true
+    }
+    if (row.wear_slot !== 'held_main' && row.wear_slot !== 'held_off') {
+      row = { ...row, wear_slot: 'held_main' }
+      changed = true
+    }
+    return row
+  })
+
+  while (totalHeldHands(next) > HANDS_TOTAL) {
+    const held = next.filter((item) => item.equipped && isHeldItem(item))
+    if (held.length === 0) break
+    const drop =
+      [...held].reverse().find((item) => artifactItemIsHeldWeapon(item)) ??
+      held[held.length - 1]!
+    next = next.map((item) =>
+      item.id === drop.id ? { ...item, equipped: false } : item,
+    )
+    changed = true
+  }
+  return { items: changed ? next : items, changed }
 }
 
 export type ShieldToggleResult =

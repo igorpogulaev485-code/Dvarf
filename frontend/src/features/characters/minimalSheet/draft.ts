@@ -24,6 +24,7 @@ import {
   type WeaponActivation,
   type WeaponAttack,
 } from '../AttacksPanel'
+import { normalizeArtifactHeldHands } from '../heldEquip'
 import { readAttunements, type AttunementSlot } from '../attunement'
 import { readClassLevels, type ClassLevelEntry } from '../classLevels'
 import { readClassAsiLedger, type AppliedClassAsi } from '../../../shared/dnd/classAsi'
@@ -506,11 +507,12 @@ export function buildDraft(character: CharacterDetail): Draft {
           )
         })
       const focusItems = markBladesingerMeleeFocusItems2024(items, bladesinger2024)
-      const nextInventory = { ...inventory, items: focusItems }
-      const spells = withSpellFocusFlags(readSpells(sheet), focusItems)
+      const heldNorm = normalizeArtifactHeldHands(focusItems)
+      const nextInventory = { ...inventory, items: heldNorm.items }
+      const spells = withSpellFocusFlags(readSpells(sheet), heldNorm.items)
       return {
         inventory: nextInventory,
-        weapons: syncAttacksHeldFromInventory(readWeapons(sheet), focusItems),
+        weapons: syncAttacksHeldFromInventory(readWeapons(sheet), heldNorm.items),
         spells,
       }
     })(),

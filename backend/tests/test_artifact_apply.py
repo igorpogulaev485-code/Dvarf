@@ -337,6 +337,84 @@ def test_apply_weapon_ability_ignores_duplicate_top_level_attack():
     assert weapon["ability"] == "str"
     assert weapon["range_kind"] == "melee"
     assert weapon["damage"] == "1d8"
+    item = sheet["inventory"]["items"][0]
+    assert item["weapon_grip"] == "one_hand"
+    assert item["wear_slot"] == "held_main"
+    assert item["equipped"] is True
+    assert weapon["held"] is True
+
+
+def test_apply_weapon_artifact_respects_two_hand_budget():
+    """New artifact weapon unequips surplus held gear (Virra: hammer + shield)."""
+    artifact = SimpleNamespace(
+        id=uuid4(),
+        name="Лассо Гонда",
+        rarity="редкий",
+        description="",
+        requires_attunement=False,
+        abilities=[
+            {
+                "kind": "weapon",
+                "name": "Удар",
+                "damage": "1d8",
+                "damage_type": "огнем",
+                "ability": "str",
+                "range_kind": "melee",
+                "magic_bonus": 0,
+            },
+        ],
+        attack_damage="",
+        attack_damage_type="",
+        attack_ability="str",
+        attack_range_kind="melee",
+        weight_lb=3,
+    )
+    sheet: dict = {
+        "inventory": {
+            "items": [
+                {
+                    "id": "hammer",
+                    "name": "Солнечный молот",
+                    "qty": 1,
+                    "equipped": True,
+                    "armor_kind": "none",
+                    "weapon_grip": "one_hand",
+                    "wear_slot": "held_main",
+                },
+                {
+                    "id": "shield",
+                    "name": "Щит +3",
+                    "qty": 1,
+                    "equipped": True,
+                    "armor_kind": "shield",
+                    "base_ac": 2,
+                    "wear_slot": "shield",
+                },
+            ]
+        },
+        "weapons": [],
+        "combat": {},
+        "abilities": {},
+        "saves": {},
+        "spells": {},
+        "companions": [],
+        "resources": [],
+    }
+    apply_artifact_to_sheet(sheet, artifact=artifact)
+    items = {row["id"]: row for row in sheet["inventory"]["items"]}
+    lasso = next(row for row in sheet["inventory"]["items"] if row["name"] == "Лассо Гонда")
+    assert lasso["equipped"] is True
+    assert lasso["weapon_grip"] == "one_hand"
+    held = [row for row in sheet["inventory"]["items"] if row.get("equipped")]
+    hands = sum(
+        2 if row.get("weapon_grip") == "two_hand" else 1
+        for row in held
+        if row.get("armor_kind") == "shield"
+        or row.get("weapon_grip") in ("one_hand", "two_hand")
+        or row.get("wear_slot") in ("held_main", "held_off")
+    )
+    assert hands <= 2
+    assert items["hammer"]["equipped"] is False or items["shield"]["equipped"] is False
 
 
 def test_apply_vezul_feather_skills_and_tool():
