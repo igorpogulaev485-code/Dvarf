@@ -15,6 +15,7 @@ import { wizardResolvedFeatureId } from '../../../shared/dnd/wizardTradition'
 import { guardBardSpellsChange2024 } from '../bardPreparedGuard'
 import {
   applyForgeBlessing,
+  resolveForgeBlessingPinState,
   resolveForgeBlessingPinnedTarget,
 } from '../forgeBlessing'
 import type { SpellsState } from '../spells'
@@ -161,6 +162,25 @@ export function installSheetActions5(model: SheetModel) {
     }
     const parsedEarly = parseFeatureResourceId(row.id)
     if (parsedEarly?.poolId === 'blessing_of_the_forge') {
+      const pinState = resolveForgeBlessingPinState(
+        model.draft.inventory.items,
+        model.draft.sheetUi.forgeBlessingPinnedItemId,
+      )
+      if (pinState.status === 'active') {
+        model.onToast?.(
+          `Благословение кузницы закреплено на «${pinState.name}». Смена — в Способностях.`,
+        )
+        model.setDraft((prev) => {
+          const label = `Благословение кузницы: «${pinState.name}» закреплено`
+          const resources = prev.play.resources.map((item) => {
+            if (item.id !== id) return item
+            if (item.used >= item.max && item.activeLabel === label) return item
+            return { ...item, used: item.max, activeLabel: label }
+          })
+          return { ...prev, play: { ...prev.play, resources } }
+        })
+        return true
+      }
       const pinned = resolveForgeBlessingPinnedTarget(
         model.draft.inventory.items,
         model.draft.sheetUi.forgeBlessingPinnedItemId,

@@ -23,7 +23,9 @@ import { divineStrikeRider } from '../../features/characters/featureCombatBonuse
 import {
   applyForgeBlessing,
   listForgeBlessingCandidates,
+  resolveForgeBlessingPinState,
   stripForgeBlessing,
+  withForgeBlessingPoolSpentIfPinned,
 } from '../../features/characters/forgeBlessing.ts'
 import { createInventoryItem } from '../../features/characters/inventory.ts'
 
@@ -212,8 +214,16 @@ assert(
   if (applied.ok) {
     const attack = applied.items[0]?.effects?.find((row) => row.type === 'attack_bonus')
     assert(attack && 'value' in attack && attack.value === 1, 'weapon +1 attack')
+    const pinActive = resolveForgeBlessingPinState(applied.items, 'mace')
+    assert(pinActive.status === 'active', 'pinned blessed mace is active')
+    const spent = withForgeBlessingPoolSpentIfPinned(
+      [{ id: 'c:e:blessing_of_the_forge:1', used: 0, max: 1 }],
+      pinActive,
+      'закреплено',
+    )
+    assert(spent.changed && spent.resources[0]?.used === 1, 'pin keeps pool spent after rest')
     const stripped = stripForgeBlessing(applied.items)
-    assert(stripped.changed, 'long rest strips the blessing')
+    assert(stripped.changed, 'long rest strips the blessing when not pinned')
     assert(!stripped.items[0]?.effects?.some((row) => row.type === 'attack_bonus'), 'bonus gone')
   }
 }

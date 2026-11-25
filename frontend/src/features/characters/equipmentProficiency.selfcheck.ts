@@ -59,6 +59,23 @@ assert.equal(
   true,
   'fighter proficient with longsword +1',
 )
+assert.equal(
+  isWeaponProficient({
+    name: 'Лассо Гонда',
+    weapons: wizardWeapons,
+    sourceKind: 'artifact',
+  }),
+  true,
+  'setting artifact attack is proficient',
+)
+assert.equal(
+  isWeaponProficient({
+    name: 'Лассо Гонда',
+    weapons: wizardWeapons,
+  }),
+  false,
+  'custom name without artifact kind needs extras',
+)
 
 // Wizard 5, DEX 10 (+0), PB +3, magic +1 → attack +4
 const wizardParts = buildAttackBonusParts({

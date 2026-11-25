@@ -117,7 +117,11 @@ import { isReplacementTaken } from '../../../shared/dnd/featureReplacement'
 import { syncSorcererOriginSpells } from '../sorcererOriginSpells'
 import { syncDruidicWarriorCantrips } from '../druidicWarrior'
 import { syncBlessedWarriorCantrips } from '../blessedWarrior'
-import { stripForgeBlessing } from '../forgeBlessing'
+import {
+  resolveForgeBlessingPinState,
+  stripForgeBlessing,
+  withForgeBlessingPoolSpentIfPinned,
+} from '../forgeBlessing'
 import { syncDruidCircleSpells } from '../druidCircleSpells'
 import { reconcileDruidStartWeapons } from '../classEffects'
 import { withDruidicLanguage } from '../languagesTools'
@@ -529,6 +533,23 @@ export function useSheetEditorPart3(model: SheetModel) {
 
   useEffect(() => {
     model.setDraft((prev) => {
+      const pinState = resolveForgeBlessingPinState(
+        prev.inventory.items,
+        prev.sheetUi.forgeBlessingPinnedItemId,
+      )
+      if (pinState.status === 'active') {
+        const label = `Благословение кузницы: «${pinState.name}» закреплено`
+        const spent = withForgeBlessingPoolSpentIfPinned(
+          prev.play.resources,
+          pinState,
+          label,
+        )
+        if (!spent.changed) return prev
+        return {
+          ...prev,
+          play: { ...prev.play, resources: spent.resources },
+        }
+      }
       const pool = prev.play.resources.find((row) =>
         row.id.includes(':blessing_of_the_forge:'),
       )
@@ -537,7 +558,7 @@ export function useSheetEditorPart3(model: SheetModel) {
       if (!stripped.changed) return prev
       return { ...prev, inventory: { ...prev.inventory, items: stripped.items } }
     })
-  }, [model.draft.play.resources])
+  }, [model.draft.play.resources, model.draft.sheetUi.forgeBlessingPinnedItemId, model.draft.inventory.items])
 
   // Wildfire (etc.) circle spells: always-prepared as druid for MC cast profiles.
   useEffect(() => {
