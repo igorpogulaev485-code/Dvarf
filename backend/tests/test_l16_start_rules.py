@@ -84,9 +84,12 @@ def test_book_source_aliases():
     assert canonicalize_source("tasha") == "tce"
     assert canonicalize_source("xgte") == "xge"
     assert canonicalize_source("ttg:MPMM") == "mpmm"
+    assert canonicalize_source("ToH HB") == "toh"
     assert source_matches_allowed("phb-2014", ["phb"])
     assert source_matches_allowed("tce-2014", ["tce"])
+    assert source_matches_allowed("toh", ["toh"])
     assert not source_matches_allowed("tce-2014", ["phb"])
+    assert not source_matches_allowed("toh", ["phb"])
 
 
 def test_check_level_and_banned_class():

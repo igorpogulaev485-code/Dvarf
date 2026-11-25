@@ -80,7 +80,13 @@ assert(normalized.start.allowed_sources.includes('tce'), 'tasha → tce')
 
 assert(canonicalizeSource('srd-5.1') === 'phb', 'srd → phb')
 assert(sourceMatchesAllowed('xgte', ['xge']), 'xge alias')
+assert(canonicalizeSource('ToH HB') === 'toh', 'ToH HB → toh')
+assert(sourceMatchesAllowed('toh', ['toh']), 'toh allowed')
 assert(BOOK_SOURCE_CATALOG.length >= 4, 'book catalog')
+assert(
+  BOOK_SOURCE_CATALOG.some((b) => b.id === 'toh' && b.label_ru === 'Том героев'),
+  'toh book chip',
+)
 assert(normalizeStartRules(null).banned_races.length === 0, 'start empty bans')
 assert(summarizeStartRules(normalized.start).some((l) => /уровень/i.test(l)), 'start summary')
 assert(

@@ -89,6 +89,11 @@ BOOK_SOURCE_CATALOG: list[dict[str, object]] = [
         "label": "Elemental Evil Player's Companion",
         "aliases": ["eepc", "EEPC"],
     },
+    {
+        "id": "toh",
+        "label": "Tome of Heroes",
+        "aliases": ["toh", "ToH", "ToH HB", "toh-hb", "tome-of-heroes"],
+    },
 ]
 
 # kinds that must pass allowed_sources filter (skills/conditions/inventory — нет)
