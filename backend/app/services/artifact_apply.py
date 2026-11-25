@@ -990,7 +990,9 @@ def apply_artifact_to_sheet(
     weapons = _ensure_list(sheet, "weapons")
     weapon_abs = [a for a in abilities if a.get("kind") == "weapon"]
     modes = [a for a in abilities if a.get("kind") == "mode"]
-    # If only mode/requirement without explicit attack — still create weapon from top-level fields
+    # Prefer ability kind=weapon. Top-level attack_* is only a fallback when there
+    # is no weapon ability (legacy «Базовая атака» / mode-only greataxe). Filling
+    # both used to create two combat attacks (Лассо Гонда).
     need_weapon = bool(
         attack_damage
         or mods.get("attack")
@@ -999,8 +1001,11 @@ def apply_artifact_to_sheet(
         or modes
     )
     if need_weapon:
-        if attack_damage or mods.get("attack") or mods.get("damage") or (
-            modes and not weapon_abs
+        if not weapon_abs and (
+            attack_damage
+            or mods.get("attack")
+            or mods.get("damage")
+            or modes
         ):
             # Dice only. +N to damage lives in item.effects so the sheet does not add it twice.
             damage = attack_damage or "1d12"
