@@ -6,7 +6,11 @@ import assert from 'node:assert/strict'
 import { createInventoryItem } from './inventory'
 import {
   applyForgeBlessing,
+  forgeBlessingKind,
+  healForgeBlessingPoolDesync,
   itemHasForgeBlessing,
+  listForgeBlessingCandidates,
+  looksMagical,
   reassignForgeBlessing,
   resolveForgeBlessingPinState,
   resolveForgeBlessingPinnedTarget,
@@ -83,5 +87,43 @@ assert.equal(itemHasForgeBlessing(reassigned.items[1]!), true, 'mace marked')
 
 const missing = resolveForgeBlessingPinState(reassigned.items, 'gone')
 assert.equal(missing.status, 'missing', 'missing pin id')
+
+const adamantine = {
+  ...createInventoryItem(),
+  id: 'ada',
+  name: 'Адамантиновый доспех (Латы)',
+  armor_kind: 'heavy' as const,
+  catalog_slug: 'adamantine_armor',
+  base_armor_slug: 'plate_armor',
+  effects: [
+    { type: 'sheet_flag' as const, flag: 'critical_hit_immunity', value: true },
+  ],
+}
+assert.equal(looksMagical(adamantine), true, 'adamantine is magical')
+assert.equal(forgeBlessingKind(adamantine), null, 'adamantine not blessable')
+assert.equal(
+  listForgeBlessingCandidates([adamantine, plate]).some((row) => row.id === 'ada'),
+  false,
+  'adamantine not a candidate',
+)
+
+const desyncPool = {
+  id: 'feat:cleric:blessing_of_the_forge:x',
+  used: 1,
+  max: 1,
+  activeLabel: 'Благословение кузницы: «Адамантиновый доспех (Латы)» закреплено' as
+    | string
+    | null,
+}
+const healed = healForgeBlessingPoolDesync([desyncPool], [adamantine, plate])
+assert.equal(healed.changed, true, 'desync healed')
+assert.equal(healed.resources[0]?.used, 0, 'charge freed')
+assert.equal(healed.resources[0]?.activeLabel, undefined, 'label cleared')
+
+const stillMarked = healForgeBlessingPoolDesync(
+  [{ ...desyncPool, used: 1 }],
+  applied.items,
+)
+assert.equal(stillMarked.changed, false, 'mark present → keep spent')
 
 console.log('forgeBlessing.selfcheck: ok')

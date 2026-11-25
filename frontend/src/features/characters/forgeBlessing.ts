@@ -37,15 +37,30 @@ export function itemHasForgeBlessing(item: InventoryItem): boolean {
   )
 }
 
-function looksMagical(item: InventoryItem): boolean {
+const MAGIC_NAME_RE =
+  /\+\s*[1-3]|адамантин|мифрил|мифрилл|mithral|mithril|adamantine/i
+const MAGIC_SLUG_RE =
+  /adamantine|mithral|mithril|_plus_|armor_bonus|weapon_bonus|shield_bonus|sunforger/i
+
+/** Nonmagical only may receive Blessing of the Forge (XGtE). */
+export function looksMagical(item: InventoryItem): boolean {
   if (item.requires_attunement) return true
-  if (/\+\s*[1-3]/.test(item.name)) return true
-  return effectsOf(item).some(
-    (effect) =>
+  if (item.adamantine) return true
+  if (item.setting_artifact_id) return true
+  if (typeof item.magic_bonus === 'number' && item.magic_bonus !== 0) return true
+  if (MAGIC_NAME_RE.test(item.name)) return true
+  if (item.catalog_slug && MAGIC_SLUG_RE.test(item.catalog_slug)) return true
+  if (item.family_slug && MAGIC_SLUG_RE.test(item.family_slug)) return true
+  return effectsOf(item).some((effect) => {
+    if (
       effect.type === 'attack_bonus' ||
       effect.type === 'damage_bonus' ||
-      effect.type === 'ac_bonus',
-  )
+      effect.type === 'ac_bonus'
+    ) {
+      return true
+    }
+    return effect.type === 'sheet_flag' && effect.flag === 'critical_hit_immunity'
+  })
 }
 
 export function forgeBlessingKind(item: InventoryItem): ForgeBlessingKind | null {
@@ -195,6 +210,25 @@ export function withForgeBlessingPoolSpentIfPinned<
       used: row.max,
       ...(activeLabel ? { activeLabel } : {}),
     }
+  })
+  return { resources: changed ? next : resources, changed }
+}
+
+/**
+ * Spent forge charge but no inventory mark (Virra: used=1, «закреплено», no ac_bonus).
+ * Free the charge so the player can bless a real nonmagical item.
+ */
+export function healForgeBlessingPoolDesync<
+  T extends { id: string; used: number; max: number; activeLabel?: string | null },
+>(resources: T[], items: InventoryItem[]): { resources: T[]; changed: boolean } {
+  const anyMarked = items.some(itemHasForgeBlessing)
+  if (anyMarked) return { resources, changed: false }
+  let changed = false
+  const next = resources.map((row) => {
+    if (!row.id.includes(':blessing_of_the_forge:')) return row
+    if (row.used <= 0 && !row.activeLabel) return row
+    changed = true
+    return { ...row, used: 0, activeLabel: undefined }
   })
   return { resources: changed ? next : resources, changed }
 }

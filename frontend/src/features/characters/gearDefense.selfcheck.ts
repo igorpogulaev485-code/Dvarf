@@ -15,7 +15,12 @@ import {
   resolveGearAcBonus,
   sheetDamageProfile,
 } from './gearEffects'
-import { createInventoryItem, equippedArmorPieces, type InventoryItem } from './inventory'
+import {
+  createInventoryItem,
+  equippedArmorPieces,
+  shieldAcContribution,
+  type InventoryItem,
+} from './inventory'
 
 function assert(cond: unknown, msg: string): asserts cond {
   if (!cond) throw new Error(msg)
@@ -137,6 +142,25 @@ const ring = worn({
     { type: 'save_bonus', value: 1 },
   ],
 })
+const shieldPlus1 = worn({
+  id: 'shield-plus-1',
+  name: 'Щит +1',
+  armor_kind: 'shield',
+  base_ac: 2,
+  magic_bonus: 1,
+  wear_slot: 'shield',
+  requires_attunement: false,
+  effects: [{ type: 'ac_bonus', value: 1 }],
+})
+assert(acOf({ items: [plate, shieldPlus1], dex: 0 }) === 21, 'plate + shield +1 = 21')
+assert(
+  acOf({ items: [plate, shieldPlus1, ring], dex: 0 }) === 22,
+  'plate + shield +1 + ring = 22, not double shield',
+)
+const plusPieces = equippedArmorPieces([plate, shieldPlus1])
+assert(plusPieces.shield?.baseAc === 3, 'equipped shield piece folds magic to +3')
+assert(shieldAcContribution(shieldPlus1) === 3, 'shieldAcContribution = 3')
+
 const cloak = worn({
   id: 'cloak',
   name: 'Плащ защиты',
