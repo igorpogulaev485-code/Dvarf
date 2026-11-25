@@ -295,6 +295,50 @@ def test_apply_weapon_artifact_bakes_bonuses():
     assert sheet["weapons"][0]["source_kind"] == "artifact"
 
 
+def test_apply_weapon_ability_ignores_duplicate_top_level_attack():
+    """Лассо Гонда: ability Атака + заполненная «Базовая атака» → одна карточка, не две."""
+    artifact = SimpleNamespace(
+        id=uuid4(),
+        name="Лассо Гонда",
+        rarity="редкий",
+        description="",
+        requires_attunement=False,
+        abilities=[
+            {
+                "kind": "weapon",
+                "name": "Удар",
+                "damage": "1d8",
+                "damage_type": "огнем",
+                "ability": "str",
+                "range_kind": "melee",
+                "magic_bonus": 0,
+            },
+        ],
+        attack_damage="1d8",
+        attack_damage_type="огнем",
+        attack_ability="dex",
+        attack_range_kind="reach",
+        weight_lb=3,
+    )
+    sheet: dict = {
+        "inventory": {"items": []},
+        "weapons": [],
+        "combat": {},
+        "abilities": {},
+        "saves": {},
+        "spells": {},
+        "companions": [],
+        "resources": [],
+    }
+    apply_artifact_to_sheet(sheet, artifact=artifact)
+    assert len(sheet["weapons"]) == 1
+    weapon = sheet["weapons"][0]
+    assert weapon["name"] == "Лассо Гонда: Удар"
+    assert weapon["ability"] == "str"
+    assert weapon["range_kind"] == "melee"
+    assert weapon["damage"] == "1d8"
+
+
 def test_apply_vezul_feather_skills_and_tool():
     """Перо Везула: +2 природа/история + владение инструментами фальсификатора."""
     artifact = SimpleNamespace(
