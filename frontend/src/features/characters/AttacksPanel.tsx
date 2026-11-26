@@ -23,7 +23,10 @@ import {
 } from './sheetTypes'
 import { isWeaponProficient } from './equipmentProficiency'
 import type { WeaponProficiency } from './identity'
-import { syncAttacksHeldFromInventory } from './attacksInventorySync'
+import {
+  ensureInventoryWeaponAttacks,
+  syncAttacksHeldFromInventory,
+} from './attacksInventorySync'
 import { shillelaghDamage } from './shillelagh'
 import {
   buildAttackBonusParts,
@@ -31,7 +34,7 @@ import {
 } from './attackBonusBreakdown'
 import { AttackBonusBreakdownDialog } from './AttackBonusBreakdownDialog'
 
-export { syncAttacksHeldFromInventory }
+export { ensureInventoryWeaponAttacks, syncAttacksHeldFromInventory }
 
 export type AttackSourceKind = 'weapon' | 'artifact' | 'custom' | 'race' | 'class'
 

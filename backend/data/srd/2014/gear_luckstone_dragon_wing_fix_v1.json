@@ -1,0 +1,86 @@
+{
+  "version": 1,
+  "notes": "Luckstone: ability_check_bonus +1. Dragon Wing Bow: promote to weapon (any bow) with attack card stats.",
+  "updates": [
+    {
+      "kind": "item",
+      "slug": "stone_of_good_luck",
+      "rules_edition": "2014",
+      "name_ru": "Камень удачи",
+      "name_en": "Stone of Good Luck (Luckstone)",
+      "data": {
+        "description_ru": "Пока этот полированный агат находится у вас, вы получаете бонус +1 к проверкам характеристик и спасброскам.",
+        "effects": [
+          {
+            "type": "save_bonus",
+            "value": 1
+          },
+          {
+            "type": "ability_check_bonus",
+            "value": 1
+          }
+        ],
+        "requires_attunement": true,
+        "rarity": "uncommon",
+        "wear_slot": "none",
+        "source_book": "DMG"
+      }
+    },
+    {
+      "kind": "weapon",
+      "slug": "dragon_wing_bow",
+      "rules_edition": "2014",
+      "name_ru": "Лук драконьих крыльев",
+      "name_en": "Dragon Wing Bow",
+      "data": {
+        "schema_version": 1,
+        "ability": "dex",
+        "damage": "1к8+1к6",
+        "damage_type": "колющий + стихия дракона",
+        "category": "martial",
+        "finesse": false,
+        "ranged": true,
+        "weight_lb": 2,
+        "properties": [
+          "ammunition",
+          "heavy",
+          "two-handed"
+        ],
+        "cost": {
+          "amount": 5000,
+          "unit": "gp"
+        },
+        "range": {
+          "normal": 150,
+          "long": 600
+        },
+        "source_book": "FTD",
+        "source_url": "https://5e14.dnd.su/items/2966-dragon-wing-bow/",
+        "rarity": "rare",
+        "requires_attunement": true,
+        "wear_slot": "held_main",
+        "magic_bonus": 1,
+        "base_weapon_slug": "longbow",
+        "allowed_base_weapon": [
+          "shortbow",
+          "longbow"
+        ],
+        "description_ru": "Оружие (любой лук), редкое (требуется настройка). Плечи этого магического лука имеют форму крыльев дракона. +1 к броскам атаки и урона. При попадании цель дополнительно получает 1к6 урона типа дыхания дракона, заключённого в луке (звук, излучение, кислота, некротическая энергия, огонь, психическая энергия, силовое поле, холод, электричество или яд). Без боеприпаса создаёт свой магический; исчезает при попадании или промахе.",
+        "effects": [
+          {
+            "type": "attack_bonus",
+            "value": 1
+          },
+          {
+            "type": "damage_bonus",
+            "value": 1
+          },
+          {
+            "type": "custom_note",
+            "text": "Свои магические стрелы. Доп. 1к6 урона стихией дыхания дракона (тип задаётся при находке)."
+          }
+        ]
+      }
+    }
+  ]
+}

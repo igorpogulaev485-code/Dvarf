@@ -807,7 +807,7 @@
     },
     {
       "op": "insert",
-      "kind": "item",
+      "kind": "weapon",
       "id": "188995d3-2940-5dcb-8383-08743651119b",
       "slug": "dragon_wing_bow",
       "name_ru": "Лук драконьих крыльев",
@@ -818,18 +818,38 @@
       "is_active": true,
       "data": {
         "schema_version": 1,
+        "ability": "dex",
+        "damage": "1к8+1к6",
+        "damage_type": "колющий + стихия дракона",
+        "category": "martial",
+        "finesse": false,
+        "ranged": true,
         "weight_lb": 2,
+        "properties": [
+          "ammunition",
+          "heavy",
+          "two-handed"
+        ],
         "cost": {
           "amount": 5000,
           "unit": "gp"
         },
-        "item_category": "wondrous",
-        "stackable": false,
+        "range": {
+          "normal": 150,
+          "long": 600
+        },
         "source_book": "FTD",
+        "source_url": "https://5e14.dnd.su/items/2966-dragon-wing-bow/",
         "rarity": "rare",
         "requires_attunement": true,
         "wear_slot": "held_main",
-        "description_ru": "Магический лук +1 со стихией дракона.",
+        "magic_bonus": 1,
+        "base_weapon_slug": "longbow",
+        "allowed_base_weapon": [
+          "shortbow",
+          "longbow"
+        ],
+        "description_ru": "Оружие (любой лук), редкое (требуется настройка). Плечи этого магического лука имеют форму крыльев дракона. +1 к броскам атаки и урона. При попадании цель дополнительно получает 1к6 урона типа дыхания дракона, заключённого в луке (звук, излучение, кислота, некротическая энергия, огонь, психическая энергия, силовое поле, холод, электричество или яд). Без боеприпаса создаёт свой магический; исчезает при попадании или промахе.",
         "effects": [
           {
             "type": "attack_bonus",
@@ -841,7 +861,7 @@
           },
           {
             "type": "custom_note",
-            "text": "Лук +1; доп. урон стихией дракона."
+            "text": "Свои магические стрелы. Доп. 1к6 урона стихией дыхания дракона (тип задаётся при находке)."
           }
         ]
       }

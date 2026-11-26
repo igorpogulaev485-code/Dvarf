@@ -127,6 +127,11 @@ export type GearEffect =
   | { type: 'ability_score'; ability: AbilityScoreKey; value: number }
   | { type: 'ability_mod'; ability: AbilityScoreKey; value: number; max?: number }
   | { type: 'skill_bonus'; skill: string; value: number }
+  /**
+   * Flat bonus to ability checks (skills, tools, initiative when Dex/all).
+   * Omit `ability` for every check; saving throws use `save_bonus` instead.
+   */
+  | { type: 'ability_check_bonus'; ability?: AbilityScoreKey; value: number }
   | { type: 'save_bonus'; ability?: AbilityScoreKey; value: number }
   /** Advantage the player may apply when the save matches `against`. */
   | { type: 'save_advantage'; against: 'spells' | 'magic'; note?: string }

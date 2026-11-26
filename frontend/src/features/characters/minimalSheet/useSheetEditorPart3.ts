@@ -839,16 +839,23 @@ export function useSheetEditorPart3(model: SheetModel) {
   model.effectiveAbilities = effectiveAbilities
 
   const passivesFromGear = useMemo(() => {
+    const gearChecks = model.gearEffects.abilityCheckBonuses
+    const gearAll = gearChecks.all ?? 0
     const modFor = (skillKey: string) => {
       const def = SKILL_DEFS.find((skill) => skill.key === skillKey)
       if (!def) return 0
       const state = model.draft.skills[skillKey]
-      return skillModifierFromState({
-        abilityMod: abilityModifier(gearAbilities[def.base]),
-        proficiencyBonus: model.proficiencyBonus,
-        isProficient: Boolean(state?.is_proficient),
-        isExpertise: Boolean(state?.is_expertise),
-      })
+      const gearCheck = gearAll + (gearChecks[def.base] ?? 0)
+      return (
+        skillModifierFromState({
+          abilityMod: abilityModifier(gearAbilities[def.base]),
+          proficiencyBonus: model.proficiencyBonus,
+          isProficient: Boolean(state?.is_proficient),
+          isExpertise: Boolean(state?.is_expertise),
+        }) +
+        (model.gearEffects.skillBonuses[skillKey] ?? 0) +
+        gearCheck
+      )
     }
     const featPassive = model.featPassiveBonus ?? 0
     return {
@@ -856,11 +863,20 @@ export function useSheetEditorPart3(model: SheetModel) {
       investigation: passiveScore(modFor('investigation')) + featPassive,
       insight: passiveScore(modFor('insight')),
     }
-  }, [gearAbilities, model.draft.skills, model.proficiencyBonus, model.featPassiveBonus])
+  }, [
+    gearAbilities,
+    model.draft.skills,
+    model.proficiencyBonus,
+    model.featPassiveBonus,
+    model.gearEffects.abilityCheckBonuses,
+    model.gearEffects.skillBonuses,
+  ])
   model.passives = passivesFromGear
 
   const abilityCheckExtras = useMemo(() => {
     const out: Partial<Record<AbilityKey, number>> = {}
+    const gearChecks = model.gearEffects.abilityCheckBonuses
+    const gearAll = gearChecks.all ?? 0
     for (const key of ABILITY_KEYS) {
       const n = abilityCheckBonus(key, model.draft.modifiers, formulaVarsBase)
       const athlete = remarkableAthleteCheckBonus({
@@ -869,11 +885,18 @@ export function useSheetEditorPart3(model: SheetModel) {
         ability: key,
         includesProficiency: false,
       })
-      const total = n + athlete
+      const gear = gearAll + (gearChecks[key] ?? 0)
+      const total = n + athlete + gear
       if (total) out[key] = total
     }
     return out
-  }, [model.draft.modifiers, formulaVarsBase, model.unlockedFeatures, model.proficiencyBonus])
+  }, [
+    model.draft.modifiers,
+    formulaVarsBase,
+    model.unlockedFeatures,
+    model.proficiencyBonus,
+    model.gearEffects.abilityCheckBonuses,
+  ])
   model.abilityCheckExtras = abilityCheckExtras
 
   const featureSkillBonuses = useMemo(() => {

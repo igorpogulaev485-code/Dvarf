@@ -78,6 +78,7 @@ GEAR_CATALOG_WAVES: tuple[WaveSpec, ...] = (
     WaveSpec("gear_other_fill_2_v1.json"),
     WaveSpec("gear_b06_resistance_potions_v1.json"),
     WaveSpec("gear_sunforger_fix_v1.json"),
+    WaveSpec("gear_luckstone_dragon_wing_fix_v1.json"),
 )
 
 # Audited active-magic count after the I22 hide (docs/items-audit/count.md).

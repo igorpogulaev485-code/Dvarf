@@ -991,6 +991,17 @@
           "crossbow_bolt"
         ]
       }
+    },
+    {
+      "kind": "weapon",
+      "slug": "dragon_wing_bow",
+      "rules_edition": "2014",
+      "data": {
+        "allowed_base_weapon": [
+          "shortbow",
+          "longbow"
+        ]
+      }
     }
   ]
 }

@@ -67,6 +67,11 @@ export type AggregatedGearEffects = {
   byItem: Record<string, { attackBonus: number; damageBonus: number }>
   /** Skill key → flat bonus (cloak of elvenkind stealth, …). */
   skillBonuses: Record<string, number>
+  /**
+   * Flat ability-check bonus (Luckstone). `all` applies to every check,
+   * including skills and Dex initiative; saves stay on `saveBonuses`.
+   */
+  abilityCheckBonuses: Partial<Record<AbilityScoreKey | 'all', number>>
   /** Ability save bonuses; `all` applies to every save. */
   saveBonuses: Partial<Record<AbilityScoreKey | 'all', number>>
   /** Walk speed delta (ft), summed. */
@@ -199,6 +204,7 @@ export function emptyAggregatedGearEffects(): AggregatedGearEffects {
     abilityModCaps: [],
     byItem: {},
     skillBonuses: {},
+    abilityCheckBonuses: {},
     saveBonuses: {},
     speedBonusFt: 0,
     spellSlotDeltas: {},
@@ -539,6 +545,23 @@ export function aggregateGearEffects(input: {
           out.immunities,
           String((effect as { damage_type?: unknown }).damage_type ?? ''),
           item.name || 'предмет',
+        )
+        continue
+      }
+
+      if (type === 'ability_check_bonus') {
+        const value = asNumber((effect as { value?: unknown }).value) ?? 0
+        if (!value) continue
+        const abilityRaw = (effect as { ability?: unknown }).ability
+        const key: AbilityScoreKey | 'all' = isAbilityKey(abilityRaw)
+          ? abilityRaw
+          : 'all'
+        out.abilityCheckBonuses[key] =
+          (out.abilityCheckBonuses[key] ?? 0) + Math.floor(value)
+        out.notes.push(
+          `${item.name || 'предмет'}: проверка ${
+            key === 'all' ? 'все' : key.toUpperCase()
+          } ${value >= 0 ? '+' : ''}${Math.floor(value)}`,
         )
         continue
       }

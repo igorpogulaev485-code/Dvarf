@@ -298,7 +298,7 @@ function roleLabel(
 
 function formatEffectsLine(item: InventoryItem): string | null {
   if (!item.effects || item.effects.length === 0) return null
-  return item.effects
+  const parts = item.effects
     .map((effect) => {
       const t = String(effect.type)
       if (t === 'ac_bonus') return `КД+${(effect as { value?: number }).value ?? '?'}`
@@ -319,10 +319,15 @@ function formatEffectsLine(item: InventoryItem): string | null {
       if (t === 'skill_bonus') {
         return `${(effect as { skill?: string }).skill ?? 'навык'}+${(effect as { value?: number }).value ?? '?'}`
       }
+      if (t === 'ability_check_bonus') {
+        const ability = (effect as { ability?: string }).ability
+        return `проверка ${ability ?? 'все'}+${(effect as { value?: number }).value ?? '?'}`
+      }
       if (t === 'save_bonus') {
         const ability = (effect as { ability?: string }).ability
         return `спас ${ability ?? 'все'}+${(effect as { value?: number }).value ?? '?'}`
       }
+      if (t === 'custom_note') return null
       if (t === 'speed') {
         return `скор.+${(effect as { value_ft?: number }).value_ft ?? '?'}фт`
       }
@@ -340,7 +345,8 @@ function formatEffectsLine(item: InventoryItem): string | null {
       }
       return t
     })
-    .join(' · ')
+    .filter((part): part is string => Boolean(part))
+  return parts.length > 0 ? parts.join(' · ') : null
 }
 
 type InventoryPanelProps = {
