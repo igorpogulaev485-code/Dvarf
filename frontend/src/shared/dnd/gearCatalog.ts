@@ -123,7 +123,14 @@ export type GearEffect =
    */
   | { type: 'ac_formula'; base: number; dex_cap?: number | null; label?: string }
   | { type: 'attack_bonus'; value: number }
-  | { type: 'damage_bonus'; value: number }
+  /**
+   * Flat damage while the item is active.
+   * Optional `weapons` limits the bonus to named bases (Bracers of Archery →
+   * longbow/shortbow, including magic bows with that `base_weapon_slug`).
+   */
+  | { type: 'damage_bonus'; value: number; weapons?: string[] }
+  /** Named weapon training while the item is active (longbow, shortbow, …). */
+  | { type: 'weapon_proficiency'; weapons: string[] }
   | { type: 'ability_score'; ability: AbilityScoreKey; value: number }
   | { type: 'ability_mod'; ability: AbilityScoreKey; value: number; max?: number }
   | { type: 'skill_bonus'; skill: string; value: number }

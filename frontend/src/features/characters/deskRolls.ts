@@ -31,6 +31,17 @@ export type DamageRoll = {
   detail: string
   parts: number[]
   modifier: number
+  /** Die size for each entry in `parts` (supports `1к8+1к6`). */
+  partSides?: number[]
+}
+
+export type ParsedDamageExpression = {
+  /** First dice group — kept for callers that assume one die size. */
+  count: number
+  sides: number
+  modifier: number
+  /** All dice groups in order (includes the first). */
+  groups: Array<{ count: number; sides: number }>
 }
 
 /**
@@ -201,29 +212,50 @@ export function applyLuckyPick(roll: CheckRoll, chosenDie: number): CheckRoll {
 }
 
 /**
- * Parse expressions like `1d8+2`, `2к6`, `1d8 + 2 - 1`.
+ * Parse expressions like `1d8+2`, `2к6`, `1к8+1к6`, `1d8 + 2 - 1`.
  * Ignores trailing words (damage type). Returns null if no dice found.
+ *
+ * Multi-dice (`1к8+1к6`) keeps every group — the old parser wrongly treated
+ * the second `+1` as a flat modifier and dropped the d6.
  */
-export function parseDamageExpression(raw: string): {
-  count: number
-  sides: number
-  modifier: number
-} | null {
+export function parseDamageExpression(raw: string): ParsedDamageExpression | null {
   const text = raw.trim().toLowerCase().replace(/,/g, '.')
   if (!text) return null
-  const match = text.match(/(\d+)\s*[dк]\s*(\d+)/i)
-  if (!match) return null
-  const count = Math.max(1, Math.floor(Number(match[1])))
-  const sides = Math.max(2, Math.floor(Number(match[2])))
-  const after = text.slice((match.index ?? 0) + match[0].length)
+  const groups: Array<{ count: number; sides: number }> = []
+  const diceSpans: Array<{ start: number; end: number }> = []
+  const diceRe = /(\d+)\s*[dк]\s*(\d+)/gi
+  let match: RegExpExecArray | null
+  while ((match = diceRe.exec(text))) {
+    groups.push({
+      count: Math.max(1, Math.floor(Number(match[1]))),
+      sides: Math.max(2, Math.floor(Number(match[2]))),
+    })
+    diceSpans.push({ start: match.index, end: match.index + match[0].length })
+  }
+  if (groups.length === 0) return null
+
+  // Flat +/- modifiers only outside dice spans (`+2` in `1d8+2`, not `+1` in `+1d6`).
+  let stripped = text
+  for (let i = diceSpans.length - 1; i >= 0; i -= 1) {
+    const span = diceSpans[i]!
+    stripped =
+      stripped.slice(0, span.start) +
+      ' '.repeat(span.end - span.start) +
+      stripped.slice(span.end)
+  }
   let modifier = 0
   const modRe = /([+-])\s*(\d+)/g
-  let m: RegExpExecArray | null
-  while ((m = modRe.exec(after))) {
-    const sign = m[1] === '-' ? -1 : 1
-    modifier += sign * Math.floor(Number(m[2]))
+  while ((match = modRe.exec(stripped))) {
+    const sign = match[1] === '-' ? -1 : 1
+    modifier += sign * Math.floor(Number(match[2]))
   }
-  return { count, sides, modifier }
+  const first = groups[0]!
+  return {
+    count: first.count,
+    sides: first.sides,
+    modifier,
+    groups,
+  }
 }
 
 export function rollDamage(
@@ -234,10 +266,16 @@ export function rollDamage(
   const parsed = parseDamageExpression(expression)
   if (!parsed) return null
   // PHB p. 196: a critical hit rolls the attack's damage dice twice. Modifiers stay once.
-  const count = parsed.count * (options?.crit ? 2 : 1)
   const parts: number[] = []
-  for (let i = 0; i < count; i += 1) {
-    parts.push(rollDie(parsed.sides, rng))
+  const partSides: number[] = []
+  const labelBits: string[] = []
+  for (const group of parsed.groups) {
+    const count = group.count * (options?.crit ? 2 : 1)
+    labelBits.push(`${count}d${group.sides}`)
+    for (let i = 0; i < count; i += 1) {
+      parts.push(rollDie(group.sides, rng))
+      partSides.push(group.sides)
+    }
   }
   const sum = parts.reduce((a, b) => a + b, 0)
   const total = sum + parsed.modifier
@@ -250,9 +288,10 @@ export function rollDamage(
         : String(parsed.modifier)
   return {
     total,
-    detail: `${count}d${parsed.sides}: ${diceBit}${modBit}`,
+    detail: `${labelBits.join('+')}: ${diceBit}${modBit}`,
     parts,
     modifier: parsed.modifier,
+    partSides,
   }
 }
 
@@ -439,44 +478,80 @@ export function resolveAttackRoll(input: {
   const damageNotes: string[] = []
   if (dmg && input.greatWeaponFighting && dmg.parts.length > 0) {
     const parsed = parseDamageExpression(input.damageExpr)
-    const sides = parsed?.sides ?? 6
-    const gwf = applyGreatWeaponFightingReroll({
-      parts: dmg.parts,
-      sides,
-      rng: rng ?? fairDeskUnitRng(sides),
-    })
-    if (gwf.changed) {
-      const sum = gwf.parts.reduce((a, b) => a + b, 0) + dmg.modifier
-      dmg = {
-        ...dmg,
-        parts: gwf.parts,
-        total: sum,
-        detail: `${gwf.parts.join('+')}${
-          dmg.modifier === 0
-            ? ''
-            : dmg.modifier > 0
-              ? `+${dmg.modifier}`
-              : String(dmg.modifier)
-        } · GWF`,
+    const sidesList =
+      dmg.partSides && dmg.partSides.length === dmg.parts.length
+        ? dmg.partSides
+        : dmg.parts.map(() => parsed?.sides ?? 6)
+    // Prefer per-face sides when expression is multi-dice (`1к8+1к6`).
+    const uniformSides = sidesList.every((s) => s === sidesList[0])
+    if (uniformSides) {
+      const sides = sidesList[0] ?? 6
+      const gwf = applyGreatWeaponFightingReroll({
+        parts: dmg.parts,
+        sides,
+        rng: rng ?? fairDeskUnitRng(sides),
+      })
+      if (gwf.changed) {
+        const sum = gwf.parts.reduce((a, b) => a + b, 0) + dmg.modifier
+        dmg = {
+          ...dmg,
+          parts: gwf.parts,
+          partSides: sidesList,
+          total: sum,
+          detail: `${gwf.parts.join('+')}${
+            dmg.modifier === 0
+              ? ''
+              : dmg.modifier > 0
+                ? `+${dmg.modifier}`
+                : String(dmg.modifier)
+          } · GWF`,
+        }
+        damageNotes.push(...gwf.notes)
       }
-      damageNotes.push(...gwf.notes)
+    } else {
+      const notes: string[] = []
+      const parts = dmg.parts.map((face, i) => {
+        if (face !== 1 && face !== 2) return face
+        const sides = sidesList[i] ?? 6
+        const next = rollDie(sides, rng)
+        notes.push(`переброс стиля ${face}→${next}`)
+        return next
+      })
+      if (notes.length > 0) {
+        const sum = parts.reduce((a, b) => a + b, 0) + dmg.modifier
+        dmg = {
+          ...dmg,
+          parts,
+          partSides: sidesList,
+          total: sum,
+          detail: `${parts.join('+')}${
+            dmg.modifier === 0
+              ? ''
+              : dmg.modifier > 0
+                ? `+${dmg.modifier}`
+                : String(dmg.modifier)
+          } · GWF`,
+        }
+        damageNotes.push(...notes)
+      }
     }
   }
   if (dmg && input.savageAttacker && dmg.parts.length > 0) {
-    const reroll = dmg.parts.map((sidesHint, i) => {
+    const parsed = parseDamageExpression(input.damageExpr)
+    const sidesList =
+      dmg.partSides && dmg.partSides.length === dmg.parts.length
+        ? dmg.partSides
+        : dmg.parts.map(() => parsed?.sides ?? 8)
+    const reroll = dmg.parts.map((face, i) => {
       // Re-roll each weapon damage die; keep the higher face (player may pick either — we keep max for auto).
-      void sidesHint
-      const sides = (() => {
-        const parsed = parseDamageExpression(input.damageExpr)
-        return parsed?.sides ?? 8
-      })()
-      const again = rollDie(sides, rng)
-      return Math.max(dmg!.parts[i]!, again)
+      const again = rollDie(sidesList[i] ?? 8, rng)
+      return Math.max(face, again)
     })
     const sum = reroll.reduce((a, b) => a + b, 0) + dmg.modifier
     dmg = {
       ...dmg,
       parts: reroll,
+      partSides: sidesList,
       total: sum,
       detail: `${reroll.join('+')}${
         dmg.modifier === 0
@@ -493,16 +568,21 @@ export function resolveAttackRoll(input: {
     input.flamesOfPhlegethos &&
     /огн|fire/i.test(String(input.damageType || ''))
   ) {
-    const reroll = dmg.parts.map((face) => {
+    const parsed = parseDamageExpression(input.damageExpr)
+    const sidesList =
+      dmg.partSides && dmg.partSides.length === dmg.parts.length
+        ? dmg.partSides
+        : dmg.parts.map(() => parsed?.sides ?? 6)
+    const reroll = dmg.parts.map((face, i) => {
       if (face !== 1) return face
-      const parsed = parseDamageExpression(input.damageExpr)
-      return rollDie(parsed?.sides ?? 6, rng)
+      return rollDie(sidesList[i] ?? 6, rng)
     })
     if (reroll.some((v, i) => v !== dmg!.parts[i])) {
       const sum = reroll.reduce((a, b) => a + b, 0) + dmg.modifier
       dmg = {
         ...dmg,
         parts: reroll,
+        partSides: sidesList,
         total: sum,
         detail: `${reroll.join('+')}${
           dmg.modifier === 0

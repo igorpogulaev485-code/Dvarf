@@ -61,6 +61,15 @@ assert.equal(
 )
 assert.equal(
   isWeaponProficient({
+    name: 'Лук драконьих крыльев',
+    weapons: { simple: true, martial: false, extras: ['Длинный лук'] },
+    baseWeaponSlug: 'longbow',
+  }),
+  true,
+  'named extras match magic bow via base_weapon_slug',
+)
+assert.equal(
+  isWeaponProficient({
     name: 'Лассо Гонда',
     weapons: wizardWeapons,
     sourceKind: 'artifact',

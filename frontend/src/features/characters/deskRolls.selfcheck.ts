@@ -42,23 +42,62 @@ assert(resolveRollMode('disadvantage', true) === 'disadvantage', 'forced stays')
 
 assert(
   JSON.stringify(parseDamageExpression('1d8+2')) ===
-    JSON.stringify({ count: 1, sides: 8, modifier: 2 }),
+    JSON.stringify({
+      count: 1,
+      sides: 8,
+      modifier: 2,
+      groups: [{ count: 1, sides: 8 }],
+    }),
   'parse 1d8+2',
 )
 assert(
   JSON.stringify(parseDamageExpression('2к6')) ===
-    JSON.stringify({ count: 2, sides: 6, modifier: 0 }),
+    JSON.stringify({
+      count: 2,
+      sides: 6,
+      modifier: 0,
+      groups: [{ count: 2, sides: 6 }],
+    }),
   'parse 2к6',
 )
 assert(
   JSON.stringify(parseDamageExpression('1d8 + 2 дробящий')) ===
-    JSON.stringify({ count: 1, sides: 8, modifier: 2 }),
+    JSON.stringify({
+      count: 1,
+      sides: 8,
+      modifier: 2,
+      groups: [{ count: 1, sides: 8 }],
+    }),
   'parse with type',
+)
+assert(
+  JSON.stringify(parseDamageExpression('1к8+1к6')) ===
+    JSON.stringify({
+      count: 1,
+      sides: 8,
+      modifier: 0,
+      groups: [
+        { count: 1, sides: 8 },
+        { count: 1, sides: 6 },
+      ],
+    }),
+  'parse multi-dice 1к8+1к6',
 )
 assert(parseDamageExpression('—') == null, 'parse empty')
 
 const dmg = rollDamage('2d6+1', seq([0, 0.9])) // 1 and 6
 assert(dmg != null && dmg.total === 8 && dmg.detail === '2d6: 1+6+1', 'rollDamage')
+
+const multi = rollDamage('1к8+1к6', seq([0.5, 0.9])) // 5 and 6
+assert(
+  multi != null &&
+    multi.total === 11 &&
+    multi.parts.length === 2 &&
+    multi.partSides?.[0] === 8 &&
+    multi.partSides?.[1] === 6 &&
+    multi.detail === '1d8+1d6: 5+6',
+  `multi-dice roll got ${JSON.stringify(multi)}`,
+)
 
 const atk = formatAttackRoll({
   name: 'Молот',

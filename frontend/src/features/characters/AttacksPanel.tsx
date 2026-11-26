@@ -22,7 +22,9 @@ import {
   type AbilityKey,
 } from './sheetTypes'
 import { isWeaponProficient } from './equipmentProficiency'
+import { scopedWeaponDamageBonus } from './gearEffects'
 import type { WeaponProficiency } from './identity'
+import type { InventoryItem } from './inventory'
 import {
   ensureInventoryWeaponAttacks,
   syncAttacksHeldFromInventory,
@@ -153,6 +155,10 @@ type AttacksPanelProps = {
   onToggleHeld?: (attack: WeaponAttack) => void
   /** Per inventory item: magic attack/damage from active gear effects. */
   gearBonusesByItem?: Record<string, { attackBonus: number; damageBonus: number }>
+  /** Bracers of Archery etc.: +N damage only for matching long/short bows. */
+  scopedWeaponDamage?: Array<{ value: number; weapons: string[]; itemName: string }>
+  /** Inventory rows — base_weapon_slug for magic bows / proficiency. */
+  inventoryItems?: InventoryItem[]
   /** Active fighting style id (archery → +2 on ranged attacks). */
   fightingStyleId?: string | null
   fightingStyleIds?: string[]
@@ -214,6 +220,8 @@ export function AttacksPanel({
   onChange,
   onToggleHeld,
   gearBonusesByItem,
+  scopedWeaponDamage = [],
+  inventoryItems = [],
   fightingStyleId = null,
   fightingStyleIds,
   martialArtsDie = null,
@@ -308,12 +316,23 @@ export function AttacksPanel({
               ? gearBonusesByItem?.[attack.inventory_item_id]
               : undefined
           const magicAtk = gear?.attackBonus ?? 0
-          const magicDmg = gear?.damageBonus ?? 0
+          const weaponItem = attack.inventory_item_id
+            ? inventoryItems.find((row) => row.id === attack.inventory_item_id)
+            : undefined
+          const bracerDmg =
+            !raceNatural && !classMa
+              ? scopedWeaponDamageBonus(scopedWeaponDamage, {
+                  name: attack.name,
+                  baseWeaponSlug: weaponItem?.base_weapon_slug,
+                })
+              : 0
+          const magicDmg = (gear?.damageBonus ?? 0) + bracerDmg
           const proficient =
             classMa ||
             isWeaponProficient({
               name: attack.name,
               weapons: weaponProficiency,
+              baseWeaponSlug: weaponItem?.base_weapon_slug,
               sourceKind: attack.source_kind,
               attackId: attack.id,
             })

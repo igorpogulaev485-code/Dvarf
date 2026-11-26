@@ -28,6 +28,9 @@ import {
 import type { InventoryItem } from './inventory'
 import type { ResourceReset } from '../../shared/dnd/rest'
 import { depleteHintFromCode } from './gearCharges'
+import type { WeaponProficiency } from './identity'
+import { resolveWeaponExtraName } from './weaponProficiencyExtras'
+import { stripMagicBonusSuffix } from './equipmentProficiency'
 
 export type ActiveGearEffect = {
   effect: GearEffect
@@ -116,6 +119,17 @@ export type AggregatedGearEffects = {
   conditionImmunities: Array<{ slug: string; name: string; itemName: string }>
   /** Tool proficiencies granted while the item is active. */
   toolProficiencies: string[]
+  /** Named weapon extras from gear (Bracers of Archery → long/short bow). */
+  weaponProficiencies: string[]
+  /**
+   * Damage bonuses that apply only to matching weapons (not the item that
+   * grants them). Bracers of Archery: +2 to longbow/shortbow attacks.
+   */
+  scopedWeaponDamage: Array<{
+    value: number
+    weapons: string[]
+    itemName: string
+  }>
   /** Spells granted with optional free charges or a shared item pool. */
   grantSpells: GearGrantSpell[]
   /** Human-readable lines for UI. */
@@ -218,10 +232,95 @@ export function emptyAggregatedGearEffects(): AggregatedGearEffects {
     companions: [],
     conditionImmunities: [],
     toolProficiencies: [],
+    weaponProficiencies: [],
+    scopedWeaponDamage: [],
     grantSpells: [],
     notes: [],
     active: [],
   }
+}
+
+function readWeaponTokenList(value: unknown): string[] {
+  if (!Array.isArray(value)) return []
+  const out: string[] = []
+  const seen = new Set<string>()
+  for (const entry of value) {
+    const raw = String(entry ?? '').trim()
+    if (!raw) continue
+    const key = raw.toLowerCase()
+    if (seen.has(key)) continue
+    seen.add(key)
+    out.push(raw)
+  }
+  return out
+}
+
+function normalizeWeaponScopeKey(value: string): string {
+  return value.trim().toLowerCase().replace(/[\s-]+/g, '_')
+}
+
+function weaponScopeNamesMatch(a: string, b: string): boolean {
+  const left = a.trim().toLowerCase().replace(/\s+/g, ' ')
+  const right = b.trim().toLowerCase().replace(/\s+/g, ' ')
+  if (!left || !right) return false
+  if (left === right) return true
+  return left.includes(right) || right.includes(left)
+}
+
+/** True when attack name / base slug matches any scope token (longbow, «Длинный лук»). */
+export function weaponMatchesScopeTokens(
+  input: { name: string; baseWeaponSlug?: string | null },
+  tokens: string[],
+): boolean {
+  if (!tokens.length) return false
+  const baseName = stripMagicBonusSuffix(input.name)
+  const slug = input.baseWeaponSlug?.trim() || ''
+  const slugLabel = slug ? resolveWeaponExtraName(slug) : null
+  for (const token of tokens) {
+    const resolved = resolveWeaponExtraName(token) ?? token
+    if (
+      weaponScopeNamesMatch(input.name, resolved) ||
+      weaponScopeNamesMatch(baseName, resolved)
+    ) {
+      return true
+    }
+    if (slug) {
+      if (normalizeWeaponScopeKey(slug) === normalizeWeaponScopeKey(token)) return true
+      if (slugLabel && weaponScopeNamesMatch(slugLabel, resolved)) return true
+    }
+  }
+  return false
+}
+
+/** Sum scoped gear damage for this attack (Bracers of Archery → +2 on bows). */
+export function scopedWeaponDamageBonus(
+  scoped: AggregatedGearEffects['scopedWeaponDamage'],
+  input: { name: string; baseWeaponSlug?: string | null },
+): number {
+  let total = 0
+  for (const row of scoped) {
+    if (weaponMatchesScopeTokens(input, row.weapons)) total += row.value
+  }
+  return total
+}
+
+/** Merge sheet weapon training with named extras from active gear. */
+export function mergeGearWeaponProficiency(
+  base: WeaponProficiency,
+  gearExtras: string[],
+): WeaponProficiency {
+  if (!gearExtras.length) return base
+  const extras = [...(base.extras ?? [])]
+  const seen = new Set(extras.map((row) => row.trim().toLowerCase()))
+  for (const raw of gearExtras) {
+    const name = resolveWeaponExtraName(raw) ?? raw.trim()
+    if (!name) continue
+    const key = name.toLowerCase()
+    if (seen.has(key)) continue
+    seen.add(key)
+    extras.push(name)
+  }
+  return { ...base, extras }
 }
 
 function asReset(value: unknown): ResourceReset | null {
@@ -438,7 +537,43 @@ export function aggregateGearEffects(input: {
 
       if (type === 'damage_bonus') {
         const value = asNumber((effect as { value?: unknown }).value) ?? 0
+        const weapons = readWeaponTokenList((effect as { weapons?: unknown }).weapons)
+        if (weapons.length) {
+          const amount = Math.floor(value)
+          if (amount) {
+            out.scopedWeaponDamage.push({
+              value: amount,
+              weapons,
+              itemName: item.name || 'предмет',
+            })
+            const labels = weapons
+              .map((token) => resolveWeaponExtraName(token) ?? token)
+              .join('/')
+            out.notes.push(
+              `${item.name || 'предмет'}: урон ${amount >= 0 ? '+' : ''}${amount} (${labels})`,
+            )
+          }
+          continue
+        }
         itemDamage += Math.floor(value)
+        continue
+      }
+
+      if (type === 'weapon_proficiency') {
+        const weapons = readWeaponTokenList((effect as { weapons?: unknown }).weapons)
+        for (const token of weapons) {
+          const label = resolveWeaponExtraName(token) ?? token.trim()
+          if (!label) continue
+          if (
+            out.weaponProficiencies.some(
+              (row) => row.toLowerCase() === label.toLowerCase(),
+            )
+          ) {
+            continue
+          }
+          out.weaponProficiencies.push(label)
+          out.notes.push(`${item.name || 'предмет'}: владение ${label}`)
+        }
         continue
       }
 
