@@ -52,6 +52,7 @@ import {
 } from '../../../shared/dnd/druid2024Features'
 import { elementalAffinityPreview } from '../../../shared/dnd/pack04SorcererWarlock'
 import { blessedStrikesRider } from '../../../shared/dnd/o02TashaFeatures'
+import { isEnhancedBondActive } from '../enhancedBond'
 import { activeBeastWildShape } from '../wildShape'
 
 function infusedItemIdsFor(model: SheetModel): string[] {
@@ -182,6 +183,10 @@ export function SheetDialogsRolls({ model }: { model: SheetModel }) {
         voiceOfAuthority={model.unlockedFeatures.some(
           (row: { id: string }) => row.id === 'voice_of_authority',
         )}
+        enhancedBondActive={isEnhancedBondActive({
+          features: model.unlockedFeatures,
+          companions: model.draft.companions,
+        })}
         resources={model.draft.play.resources}
         metamagicIds={model.sorcererMetamagicIds ?? []}
         rulesEdition={model.rulesEdition ?? model.baseCharacter?.rules_edition ?? '2014'}

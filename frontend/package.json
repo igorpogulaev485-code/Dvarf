@@ -17,6 +17,7 @@
     "selfcheck:inventory-packs": "tsx src/features/characters/inventoryPacks.selfcheck.ts",
     "selfcheck:inventory-explore": "tsx src/features/characters/inventoryExplore.selfcheck.ts",
     "selfcheck:feature-summon": "tsx src/features/characters/featureSummon.selfcheck.ts",
+    "selfcheck:enhanced-bond": "tsx --tsconfig tsconfig.app.json src/features/characters/enhancedBond.selfcheck.ts",
     "selfcheck:subclass-grants": "tsx src/shared/dnd/subclassGrants.selfcheck.ts",
     "selfcheck:attunement": "tsx src/features/characters/attunement.selfcheck.ts",
     "selfcheck:starting-gear-attacks": "tsx src/features/characters/startingGearAttacks.selfcheck.ts",

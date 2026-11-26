@@ -25,7 +25,8 @@ assert.equal(
 )
 
 assert.equal(extractSpellDiceFormula('1к10 огонь'), '1к10')
-assert.equal(extractSpellDiceFormula('2d6+4'), '2d6+4')
+assert.equal(extractSpellDiceFormula('2d6+4'), '2к6+4')
+assert.equal(extractSpellDiceFormula('1к10+1к8 огонь'), '1к10+1к8')
 assert.equal(extractSpellDiceFormula('нет костей'), null)
 
 const calls: Array<Record<string, unknown>> = []

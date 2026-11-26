@@ -28,6 +28,7 @@ import {
 import { INSTINCTIVE_POUNCE_HINT } from '../../../shared/dnd/o02TashaFeatures'
 import { AttacksSettingsDialog } from '../AttacksSettingsDialog'
 import { SpellsPanel } from '../SpellsPanel'
+import { isEnhancedBondActive } from '../enhancedBond'
 import { SpellsSettingsDialog } from '../SpellsSettingsDialog'
 import { ClassFeaturesPanel } from '../ClassFeaturesPanel'
 import { WeaponMasteryPanel } from '../WeaponMasteryPanel'
@@ -1961,6 +1962,10 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
           voiceOfAuthority={model.unlockedFeatures.some(
             (row: { id: string }) => row.id === 'voice_of_authority',
           )}
+          enhancedBondActive={isEnhancedBondActive({
+            features: model.unlockedFeatures,
+            companions: model.draft.companions,
+          })}
           ritualBookLabel={ritualLabel}
           onOpenRitualBook={() => setRitualBookOpen(true)}
           onResourcesChange={(resources) =>

@@ -41,14 +41,24 @@ export function spellEffectIsHeal(input: {
   return /лечен|исцел|хит(?:ов|а|ы)?\b|heal|cure|восстанов/i.test(blob)
 }
 
-/** Вытащить выражение костей из строки эффекта (`1к10 огонь`, `2d8+4`). */
+/** Вытащить выражение костей из строки эффекта (`1к10 огонь`, `2d8+4`, `1к10+1к8`). */
 export function extractSpellDiceFormula(effect: string | null | undefined): string | null {
   const text = String(effect ?? '').trim()
   if (!text) return null
-  if (!parseDamageExpression(text)) return null
-  // Берём кусок до словесного суффикса типа урона / «×N».
-  const match = text.match(/(\d+\s*[dк]\s*\d+(?:\s*[+-]\s*\d+)*)/i)
-  return match ? match[1].replace(/\s+/g, '') : text
+  const parsed = parseDamageExpression(text)
+  if (!parsed) return null
+  const groups: string[] = []
+  const diceRe = /(\d+)\s*[dк]\s*(\d+)/gi
+  let match: RegExpExecArray | null
+  while ((match = diceRe.exec(text))) {
+    groups.push(`${match[1]}к${match[2]}`)
+  }
+  if (groups.length === 0) return null
+  let formula = groups.join('+')
+  if (parsed.modifier !== 0) {
+    formula += parsed.modifier > 0 ? `+${parsed.modifier}` : `${parsed.modifier}`
+  }
+  return formula
 }
 
 /**
