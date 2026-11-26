@@ -769,6 +769,11 @@ def _copy_rules(item: dict[str, Any], catalog: GearRecord) -> dict[str, Any]:
         updated["magic_bonus"] = int(bonus)
     if not updated.get("catalog_slug"):
         updated["catalog_slug"] = catalog.slug
+    # Explicit combat face (Bracers of Archery — not an ammo stack).
+    if data.get("combat_consumable") is True:
+        updated["combat_consumable"] = True
+    elif data.get("combat_consumable") is False:
+        updated["combat_consumable"] = False
     # A chosen base owns AC, Strength and the armor kind. Do not paste the template.
     chosen_base = bool(data.get("allowed_base_armor")) and bool(updated.get("base_armor_slug"))
     if catalog.kind == "armor" and not chosen_base:

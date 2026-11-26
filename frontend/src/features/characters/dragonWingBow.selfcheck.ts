@@ -6,7 +6,10 @@ import { readFileSync } from 'fs'
 import { join } from 'path'
 import type { CatalogEntry } from '../../shared/api/catalog.ts'
 import { createAttunementSlot } from './attunement.ts'
-import { ensureInventoryWeaponAttacks } from './attacksInventorySync.ts'
+import {
+  ensureInventoryWeaponAttacks,
+  syncAttacksHeldFromInventory,
+} from './attacksInventorySync.ts'
 import { aggregateGearEffects } from './gearEffects.ts'
 import { inventoryItemFromCatalog } from './gearFromCatalog.ts'
 import { createInventoryItem, equipInventoryItem } from './inventory.ts'
@@ -89,5 +92,30 @@ assert(healed.weapons[0]!.inventory_item_id === legacy.id, 'linked')
 assert(healed.weapons[0]!.held === true, 'held while equipped')
 assert(healed.weapons[0]!.damage === '1к8+1к6', `heal damage ${healed.weapons[0]!.damage}`)
 assert(healed.items[0]!.weapon_grip === 'two_hand', 'heal sets grip')
+
+// Sync must keep multi-dice after heal (previously clobbered to longbow 1к8).
+const synced = syncAttacksHeldFromInventory(healed.weapons, healed.items)
+assert(synced[0]!.damage === '1к8+1к6', `sync keeps elemental ${synced[0]!.damage}`)
+
+// Already-linked card with base-only face is restored from catalog hint.
+const clobbered = ensureInventoryWeaponAttacks({
+  items: healed.items,
+  weapons: [{ ...healed.weapons[0]!, damage: '1к8' }],
+  catalogBySlug: new Map([
+    [
+      'dragon_wing_bow',
+      {
+        slug: 'dragon_wing_bow',
+        damage: '1к8+1к6',
+        damage_type: 'колющий + стихия дракона',
+        ability: 'dex',
+      },
+    ],
+  ]),
+})
+assert(
+  clobbered.weapons[0]!.damage === '1к8+1к6',
+  `heal restores clobbered face ${clobbered.weapons[0]!.damage}`,
+)
 
 console.log('dragonWingBow.selfcheck: ok')

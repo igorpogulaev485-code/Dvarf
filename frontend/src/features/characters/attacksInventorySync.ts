@@ -6,15 +6,42 @@ import {
   resolveWeaponGrip,
 } from './heldEquip'
 import { findWeaponPreset } from '../../shared/dnd/weaponPresets'
+import { ammoKindOfStack } from '../../shared/dnd/o09DeathInspirationAmmo'
+import { parseDamageExpression } from './deskRolls'
 import type { InventoryItem } from './inventory'
 import type { WeaponAttack } from './AttacksPanel'
 import { buildStartingWeaponAttacks } from './startingGearAttacks'
+
+/** Normalize dice text for face compare (`1d8` ≡ `1к8`). */
+function normalizeDamageFace(raw: string | null | undefined): string {
+  return String(raw || '')
+    .trim()
+    .toLowerCase()
+    .replace(/,/g, '.')
+    .replace(/d/gi, 'к')
+    .replace(/\s+/g, '')
+}
+
+/** True when `damage` is empty or matches a versatile/base profile face. */
+function isBaseOrVersatileFace(
+  damage: string | null | undefined,
+  profile: { damage: string; versatileDamage: string },
+): boolean {
+  const current = normalizeDamageFace(damage)
+  if (!current) return true
+  return (
+    current === normalizeDamageFace(profile.damage) ||
+    current === normalizeDamageFace(profile.versatileDamage)
+  )
+}
 
 export type AttackInventoryLink = {
   inventory_item_id?: string | null
   held?: boolean
   damage?: string
   name?: string
+  /** O-09: bound ammo stack — cleared when the bind is not real ammo. */
+  ammo_item_id?: string | null
 }
 
 type HeldSyncItem = {
@@ -22,6 +49,7 @@ type HeldSyncItem = {
   name?: string
   equipped: boolean
   qty?: number | null
+  catalog_slug?: string | null
   base_ammo_slug?: string | null
   base_weapon_slug?: string | null
   armor_kind?: string | null
@@ -78,14 +106,31 @@ export function syncAttacksHeldFromInventory<T extends AttackInventoryLink>(
       continue
     }
 
+    // Drop false ammo binds (e.g. Bracers of Archery matched as «стрел»).
+    let ammoItemId = attack.ammo_item_id ?? null
+    if (ammoItemId) {
+      const ammo = itemById.get(ammoItemId)
+      if (
+        !ammo ||
+        ammoKindOfStack({
+          name: ammo.name,
+          catalog_slug: ammo.catalog_slug,
+          base_ammo_slug: ammo.base_ammo_slug,
+          wear_slot: ammo.wear_slot,
+        }) == null
+      ) {
+        ammoItemId = null
+      }
+    }
+
     if (item.base_ammo_slug) {
       const held = (item.qty ?? 0) > 0
-      if (attack.held === held) {
+      if (attack.held === held && attack.ammo_item_id === ammoItemId) {
         next.push(attack)
         continue
       }
       changed = true
-      next.push({ ...attack, held })
+      next.push({ ...attack, held, ammo_item_id: ammoItemId })
       continue
     }
 
@@ -94,12 +139,12 @@ export function syncAttacksHeldFromInventory<T extends AttackInventoryLink>(
       (attack as { source_kind?: string }).source_kind === 'artifact' ||
       (attack as { activation?: unknown }).activation != null
     if (artifactDie) {
-      if (attack.held === held) {
+      if (attack.held === held && attack.ammo_item_id === ammoItemId) {
         next.push(attack)
         continue
       }
       changed = true
-      next.push({ ...attack, held })
+      next.push({ ...attack, held, ammo_item_id: ammoItemId })
       continue
     }
     const name = (item.name || attack.name || '').trim()
@@ -111,27 +156,34 @@ export function syncAttacksHeldFromInventory<T extends AttackInventoryLink>(
 
     let damage = attack.damage
     if (profile && (profile.damage || profile.versatileDamage)) {
-      if (held) {
-        const activeDie = resolveActiveWeaponDamage({
-          name,
-          data,
-          baseWeaponSlug,
-          // Alone in hands → versatile 2H die; with shield/off-hand → 1H die.
-          twoHandedWield: !heldOtherThan(item.id),
-        })
-        if (activeDie) damage = activeDie
-      } else if (profile.damage) {
-        // Stowed — show the one-hand die as the default face of the weapon.
-        damage = profile.damage
+      // Only swap 1H↔2H versatile faces. Keep magic expressions (`1к8+1к6`).
+      if (isBaseOrVersatileFace(attack.damage, profile)) {
+        if (held) {
+          const activeDie = resolveActiveWeaponDamage({
+            name,
+            data,
+            baseWeaponSlug,
+            // Alone in hands → versatile 2H die; with shield/off-hand → 1H die.
+            twoHandedWield: !heldOtherThan(item.id),
+          })
+          if (activeDie) damage = activeDie
+        } else if (profile.damage) {
+          // Stowed — show the one-hand die as the default face of the weapon.
+          damage = profile.damage
+        }
       }
     }
 
-    if (attack.held === held && attack.damage === damage) {
+    if (
+      attack.held === held &&
+      attack.damage === damage &&
+      attack.ammo_item_id === ammoItemId
+    ) {
       next.push(attack)
       continue
     }
     changed = true
-    next.push({ ...attack, held, damage })
+    next.push({ ...attack, held, damage, ammo_item_id: ammoItemId })
   }
   return changed ? next : weapons
 }
@@ -235,11 +287,46 @@ export function ensureInventoryWeaponAttacks(input: {
     })
   }
 
-  if (!itemsChanged && additions.length === 0) {
+  // Restore catalog faces on already-linked cards (sync used to clobber 1к8+1к6 → 1к8).
+  let weaponsChanged = additions.length > 0
+  const healedExisting = input.weapons.map((attack) => {
+    if (!attack.inventory_item_id) return attack
+    const item = items.find((row) => row.id === attack.inventory_item_id)
+    if (!item?.catalog_slug) return attack
+    const hint = input.catalogBySlug?.get(item.catalog_slug.trim())
+    if (!hint?.damage) return attack
+    const want = normalizeDamageFace(hint.damage)
+    const have = normalizeDamageFace(attack.damage)
+    if (have === want) {
+      if (hint.damage_type && attack.damage_type !== hint.damage_type) {
+        weaponsChanged = true
+        return { ...attack, damage_type: hint.damage_type }
+      }
+      return attack
+    }
+    const baseSlug = item.base_weapon_slug?.trim() || ''
+    const baseDie = normalizeDamageFace(
+      baseSlug ? findWeaponPreset(baseSlug)?.damage : '',
+    )
+    const haveGroups = parseDamageExpression(attack.damage)?.groups.length ?? 0
+    const wantGroups = parseDamageExpression(hint.damage)?.groups.length ?? 0
+    const shouldHeal =
+      !have || have === baseDie || wantGroups > haveGroups
+    if (!shouldHeal) return attack
+    weaponsChanged = true
+    return {
+      ...attack,
+      name: hint.name_ru || attack.name,
+      damage: hint.damage,
+      damage_type: hint.damage_type || attack.damage_type,
+    }
+  })
+
+  if (!itemsChanged && !weaponsChanged) {
     return { items: input.items, weapons: input.weapons }
   }
   return {
     items: itemsChanged ? items : input.items,
-    weapons: additions.length ? [...input.weapons, ...additions] : input.weapons,
+    weapons: additions.length ? [...healedExisting, ...additions] : healedExisting,
   }
 }

@@ -138,6 +138,10 @@ export function refreshInventoryItemFromCatalog(
     next.catalog_slug = entry.slug
   }
 
+  // Catalog may pin combat_consumable (Bracers of Archery — not ammo).
+  if (data.combat_consumable === true) next.combat_consumable = true
+  else if (data.combat_consumable === false) next.combat_consumable = false
+
   const changed =
     !effectsEqual(item.effects, next.effects) ||
     item.requires_attunement !== next.requires_attunement ||
@@ -162,7 +166,8 @@ export function refreshInventoryItemFromCatalog(
       JSON.stringify(next.allowed_base_weapon ?? []) ||
     (item.base_weapon_slug ?? null) !== (next.base_weapon_slug ?? null) ||
     item.weapon_grip !== next.weapon_grip ||
-    (item.catalog_slug ?? '') !== (next.catalog_slug ?? '')
+    (item.catalog_slug ?? '') !== (next.catalog_slug ?? '') ||
+    (item.combat_consumable ?? null) !== (next.combat_consumable ?? null)
 
   return changed ? next : null
 }

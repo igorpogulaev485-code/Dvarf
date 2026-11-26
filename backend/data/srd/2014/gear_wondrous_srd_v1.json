@@ -1119,6 +1119,7 @@
         "rarity": "uncommon",
         "requires_attunement": true,
         "wear_slot": "arms",
+        "combat_consumable": false,
         "description_ru": "Владение луками; +2 урона стрелами длинного/короткого лука.",
         "effects": [
           {

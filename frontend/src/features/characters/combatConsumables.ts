@@ -12,8 +12,26 @@ export const MAX_COMBAT_CONSUMABLE_ROWS = 8
  * Used only when `combat_consumable` is unset (null).
  * Favorites and explicit `combat_consumable: true` cover anything else.
  */
+// `стрел(?!ь)` — стрелы, not «Наручи стрельбы».
 const AUTO_COMBAT_CONSUMABLE_RE =
-  /болт|стрел|дротик|снаряд|патрон|камень|flask|флакон|зелье|эликсир|порошок|кислот|огонь|масло|яд|свят(ая|ой)\s*вод|противояд|алхим|potion|antitoxin|healing|alchem|свиток|scroll/i
+  /болт|стрел(?!ь)|дротик|снаряд|патрон|камень|flask|флакон|зелье|эликсир|порошок|кислот|огонь|масло|яд|свят(ая|ой)\s*вод|противояд|алхим|potion|antitoxin|healing|alchem|свиток|scroll/i
+
+/** Worn wondrous — never auto-list as combat consumables / ammo. */
+const WORN_GEAR_SLOTS = new Set([
+  'arms',
+  'body',
+  'chest',
+  'head',
+  'feet',
+  'neck',
+  'shoulders',
+  'waist',
+  'ring',
+  'cloak',
+  'back',
+  'hands',
+  'wrists',
+])
 
 export type CombatConsumableRow = {
   item: InventoryItem
@@ -26,6 +44,7 @@ export function isAutoCombatConsumable(item: {
   notes?: string
   qty: number
   catalog_slug?: string | null
+  wear_slot?: string | null
   scroll_spell?: InventoryItem['scroll_spell']
   combat_consumable?: boolean | null
 }): boolean {
@@ -36,6 +55,8 @@ export function isAutoCombatConsumable(item: {
   if (item.combat_consumable === false) return false
   // Explicit opt-in.
   if (item.combat_consumable === true) return true
+  const slot = String(item.wear_slot || '').trim().toLowerCase()
+  if (slot && WORN_GEAR_SLOTS.has(slot)) return false
   return (
     AUTO_COMBAT_CONSUMABLE_RE.test(item.name) ||
     AUTO_COMBAT_CONSUMABLE_RE.test(item.notes ?? '')

@@ -185,6 +185,31 @@ const attacksShield = syncAttacksHeldFromInventory(attacksAlone, kitWithShield)
 assert(attacksShield[0]?.damage === '1к8', 'with shield → 1к8')
 assert(attacksShield[0]?.held === true, 'still held with shield')
 
+// Dragon Wing Bow: sync must not clobber catalog multi-dice with longbow 1к8.
+const dragonBow = item({
+  id: 'dwb',
+  name: 'Лук драконьих крыльев',
+  catalog_slug: 'dragon_wing_bow',
+  base_weapon_slug: 'longbow',
+  weapon_grip: 'two_hand',
+  equipped: true,
+  wear_slot: 'held_main',
+})
+const dragonAtk = syncAttacksHeldFromInventory(
+  [
+    attack({
+      id: 'dwb-a',
+      name: 'Лук драконьих крыльев',
+      inventory_item_id: 'dwb',
+      damage: '1к8+1к6',
+      held: false,
+    }),
+  ],
+  [dragonBow],
+)
+assert(dragonAtk[0]?.held === true, 'dragon bow held')
+assert(dragonAtk[0]?.damage === '1к8+1к6', `dragon bow keeps elemental die, got ${dragonAtk[0]?.damage}`)
+
 const lasso = item({
   id: 'lasso',
   name: 'Лассо Гонда',

@@ -404,5 +404,5 @@ def test_alembic_single_head_includes_p24_c14():
         "p24c07rbest01",
         "p24c21au01",
         "p24c21rau01",
-        "p24n01names01", "p24n01r01", "p24m03pr01", "p24int01merge", "p24fixenum01", "p24n01r02", "p24n01r03", "i10sunf9a2c", "j11sunfwep01", "k12tolldead01", "k13harenhop01", "k14diplbg01", "k15luckbow01", "k16bracers01",
+        "p24n01names01", "p24n01r01", "p24m03pr01", "p24int01merge", "p24fixenum01", "p24n01r02", "p24n01r03", "i10sunf9a2c", "j11sunfwep01", "k12tolldead01", "k13harenhop01", "k14diplbg01", "k15luckbow01", "k16bracers01", "k17braceammo01",
     } or "p24c14mmw201" in ancestor_ids
