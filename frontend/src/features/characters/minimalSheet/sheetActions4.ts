@@ -1444,6 +1444,9 @@ export function installSheetActions4(model: SheetModel) {
       tceAllowed,
     })
     const abilityKey = useStr ?? def.base
+    const gearCheck =
+      (model.gearEffects.abilityCheckBonuses?.all ?? 0) +
+      (model.gearEffects.abilityCheckBonuses?.[abilityKey] ?? 0)
     return (
       skillModifierFromState({
         abilityMod: abilityModifier(abilities[abilityKey]),
@@ -1452,6 +1455,7 @@ export function installSheetActions4(model: SheetModel) {
         isExpertise: state?.is_expertise ?? false,
       }) +
       (model.gearEffects.skillBonuses[skillKey] ?? 0) +
+      gearCheck +
       (model.featureSkillBonuses?.[skillKey] ?? 0) +
       skillBonusFromActiveEffects(model.draft.play.effects, skillKey)
     )

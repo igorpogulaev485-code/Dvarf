@@ -88,6 +88,10 @@ import { characterHasCasterClass, highestSpellSlotLevelForClasses } from '../../
 import { syncSubclassAlwaysPreparedSpells } from '../subclassEffects'
 import { equippedArmorPieces } from '../inventory'
 import { refreshInventoryItemsFromCatalog } from '../gearCatalogRefresh'
+import {
+  ensureInventoryWeaponAttacks,
+  syncAttacksHeldFromInventory,
+} from '../attacksInventorySync'
 import { SKILL_DEFS, abilityModifier } from '../sheetTypes'
 import { passiveScore, skillModifierFromState } from '../../../shared/dnd/passives'
 
@@ -266,10 +270,40 @@ export function useSheetEditorPart2(model: SheetModel) {
             prev.inventory.items,
             catalog,
           )
-          if (nextItems === prev.inventory.items) return prev
+          const catalogBySlug = new Map(
+            catalog
+              .filter((row) => row.kind === 'weapon')
+              .map((row) => {
+                const data = (row.data ?? {}) as Record<string, unknown>
+                return [
+                  row.slug,
+                  {
+                    slug: row.slug,
+                    name_ru: row.name_ru,
+                    damage: typeof data.damage === 'string' ? data.damage : undefined,
+                    damage_type:
+                      typeof data.damage_type === 'string' ? data.damage_type : undefined,
+                    ability: typeof data.ability === 'string' ? data.ability : undefined,
+                  },
+                ] as const
+              }),
+          )
+          const healed = ensureInventoryWeaponAttacks({
+            items: nextItems,
+            weapons: prev.weapons,
+            catalogBySlug,
+          })
+          if (
+            nextItems === prev.inventory.items &&
+            healed.weapons === prev.weapons &&
+            healed.items === prev.inventory.items
+          ) {
+            return prev
+          }
           return {
             ...prev,
-            inventory: { ...prev.inventory, items: nextItems },
+            inventory: { ...prev.inventory, items: healed.items },
+            weapons: syncAttacksHeldFromInventory(healed.weapons, healed.items),
           }
         })
       })
@@ -984,12 +1018,6 @@ export function useSheetEditorPart2(model: SheetModel) {
     () => initiativeBonusFromActiveEffects(model.draft.play.effects),
     [model.draft.play.effects],
   )
-  const totalInitiativeBonus =
-    featInitiativeBonus +
-    featureInitiativeBonus +
-    raceInitiativeBonus +
-    effectInitiativeBonus
-  model.totalInitiativeBonus = totalInitiativeBonus
   const fightingStyleIds = useMemo(() => {
     const ids = listFightingStyleIds(model.draft.featurePicks)
     const fromFeat = fightingStyleFromFeatGrants(model.draft.featGrants)
@@ -1100,6 +1128,17 @@ export function useSheetEditorPart2(model: SheetModel) {
     ],
   )
   model.gearEffects = gearEffects
+
+  const gearInitiativeCheckBonus =
+    (gearEffects.abilityCheckBonuses.all ?? 0) +
+    (gearEffects.abilityCheckBonuses.dex ?? 0)
+  const totalInitiativeBonus =
+    featInitiativeBonus +
+    featureInitiativeBonus +
+    raceInitiativeBonus +
+    effectInitiativeBonus +
+    gearInitiativeCheckBonus
+  model.totalInitiativeBonus = totalInitiativeBonus
 
   const armorPiecesForSpeed = useMemo(
     () => equippedArmorPieces(model.draft.inventory.items),

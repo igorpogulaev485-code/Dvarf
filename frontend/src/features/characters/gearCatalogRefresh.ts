@@ -13,6 +13,8 @@ import {
 } from '../../shared/dnd/gearCatalog'
 import type { InventoryItem } from './inventory'
 import { armorFieldsFromCatalog, readAttunementAlternatives } from './inventory'
+import { stampBaseChoiceMeta } from './gearBaseChoice'
+import { resolveWeaponGrip } from './heldEquip'
 
 function readSlugList(value: unknown): string[] | undefined {
   if (!Array.isArray(value)) return undefined
@@ -85,6 +87,21 @@ export function refreshInventoryItemFromCatalog(
     requiresAttunement = parsed.requires_attunement
     wearSlot = parsed.wear_slot
     magicBonus = parsed.magic_bonus || null
+    stampBaseChoiceMeta(next, data)
+    const catalogBase = parsed.base_weapon_slug?.trim() || ''
+    const allowed = data.allowed_base_weapon
+    const hasAllowed = Array.isArray(allowed) && allowed.length > 0
+    if (catalogBase && (!hasAllowed || !next.base_weapon_slug)) {
+      next.base_weapon_slug = catalogBase
+    }
+    if (!next.weapon_grip) {
+      const grip = resolveWeaponGrip({
+        name: next.name,
+        baseWeaponSlug: next.base_weapon_slug,
+        data,
+      })
+      if (grip) next.weapon_grip = grip
+    }
   } else if (entry.kind === 'armor') {
     const parsed = parseArmorCatalogData(data)
     effects = parsed.effects
@@ -125,7 +142,7 @@ export function refreshInventoryItemFromCatalog(
     !effectsEqual(item.effects, next.effects) ||
     item.requires_attunement !== next.requires_attunement ||
     item.wear_slot !== next.wear_slot ||
-  (item.magic_bonus ?? null) !== (next.magic_bonus ?? null) ||
+    (item.magic_bonus ?? null) !== (next.magic_bonus ?? null) ||
     item.armor_kind !== next.armor_kind ||
     item.base_ac !== next.base_ac ||
     item.max_dex_bonus !== next.max_dex_bonus ||
@@ -141,6 +158,10 @@ export function refreshInventoryItemFromCatalog(
       JSON.stringify(next.attunement_alignments ?? []) ||
     JSON.stringify(item.attunement_alternatives ?? []) !==
       JSON.stringify(next.attunement_alternatives ?? []) ||
+    JSON.stringify(item.allowed_base_weapon ?? []) !==
+      JSON.stringify(next.allowed_base_weapon ?? []) ||
+    (item.base_weapon_slug ?? null) !== (next.base_weapon_slug ?? null) ||
+    item.weapon_grip !== next.weapon_grip ||
     (item.catalog_slug ?? '') !== (next.catalog_slug ?? '')
 
   return changed ? next : null

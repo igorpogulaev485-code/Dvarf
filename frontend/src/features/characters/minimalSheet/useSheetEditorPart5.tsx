@@ -7,7 +7,7 @@ import { AbilitySkillsColumn } from '../AbilitySkillsColumn'
 import { DarkvisionSense } from '../DarkvisionSense'
 import { PassiveSenseTile } from '../PassiveSenseTile'
 import { formatSaveAdvantageNote, listGearNamedSenses } from '../gearEffects'
-import { ABILITY_KEYS, type AbilityKey } from '../sheetTypes'
+import { ABILITY_KEYS, SKILL_DEFS, type AbilityKey } from '../sheetTypes'
 import { cycleSkill } from './draft'
 
 export function useSheetEditorPart5(model: SheetModel) {
@@ -44,13 +44,22 @@ export function useSheetEditorPart5(model: SheetModel) {
         model.raceSaveAdvantageNotes ?? [],
       )}
       checkBonusExtra={model.abilityCheckExtras}
-      skillBonusExtra={Object.entries(model.featureSkillBonuses ?? {}).reduce(
-        (acc: Record<string, number>, [key, value]) => {
+      skillBonusExtra={(() => {
+        const acc: Record<string, number> = { ...model.gearEffects.skillBonuses }
+        for (const [key, value] of Object.entries(model.featureSkillBonuses ?? {})) {
           acc[key] = (acc[key] ?? 0) + (value as number)
-          return acc
-        },
-        { ...model.gearEffects.skillBonuses },
-      )}
+        }
+        // Luckstone-style ability_check_bonus applies to skills (5e ability checks).
+        // Do not reuse checkBonusExtra here — it also carries Remarkable Athlete.
+        const gearChecks = model.gearEffects.abilityCheckBonuses ?? {}
+        const gearAll = gearChecks.all ?? 0
+        for (const skill of SKILL_DEFS) {
+          const bonus = gearAll + (gearChecks[skill.base] ?? 0)
+          if (!bonus) continue
+          acc[skill.key] = (acc[skill.key] ?? 0) + bonus
+        }
+        return acc
+      })()}
       onOpenAbility={(key) => model.setAbilityBreakdownKey(key)}
       onRollCheck={model.rollAbilityCheck}
       onRollSave={model.rollAbilitySave}

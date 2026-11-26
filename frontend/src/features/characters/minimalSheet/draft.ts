@@ -20,6 +20,7 @@ import {
 } from '../../../shared/dnd/raceGrants'
 import { readCustomFeatures, type CustomFeature } from '../customFeatures'
 import {
+  ensureInventoryWeaponAttacks,
   syncAttacksHeldFromInventory,
   type WeaponActivation,
   type WeaponAttack,
@@ -508,11 +509,15 @@ export function buildDraft(character: CharacterDetail): Draft {
         })
       const focusItems = markBladesingerMeleeFocusItems2024(items, bladesinger2024)
       const heldNorm = normalizeArtifactHeldHands(focusItems)
-      const nextInventory = { ...inventory, items: heldNorm.items }
-      const spells = withSpellFocusFlags(readSpells(sheet), heldNorm.items)
+      const healed = ensureInventoryWeaponAttacks({
+        items: heldNorm.items,
+        weapons: readWeapons(sheet),
+      })
+      const nextInventory = { ...inventory, items: healed.items }
+      const spells = withSpellFocusFlags(readSpells(sheet), healed.items)
       return {
         inventory: nextInventory,
-        weapons: syncAttacksHeldFromInventory(readWeapons(sheet), heldNorm.items),
+        weapons: syncAttacksHeldFromInventory(healed.weapons, healed.items),
         spells,
       }
     })(),

@@ -2652,15 +2652,15 @@
         "rarity": "uncommon",
         "requires_attunement": true,
         "wear_slot": "none",
-        "description_ru": "+1 к проверкам характеристик и спасброскам.",
+        "description_ru": "Пока этот полированный агат находится у вас, вы получаете бонус +1 к проверкам характеристик и спасброскам.",
         "effects": [
           {
             "type": "save_bonus",
             "value": 1
           },
           {
-            "type": "custom_note",
-            "text": "+1 к спасброскам и проверкам характеристик."
+            "type": "ability_check_bonus",
+            "value": 1
           }
         ]
       }

@@ -3,8 +3,12 @@
 import {
   resolveActiveWeaponDamage,
   resolveWeaponDamageProfile,
+  resolveWeaponGrip,
 } from './heldEquip'
 import { findWeaponPreset } from '../../shared/dnd/weaponPresets'
+import type { InventoryItem } from './inventory'
+import type { WeaponAttack } from './AttacksPanel'
+import { buildStartingWeaponAttacks } from './startingGearAttacks'
 
 export type AttackInventoryLink = {
   inventory_item_id?: string | null
@@ -130,4 +134,112 @@ export function syncAttacksHeldFromInventory<T extends AttackInventoryLink>(
     next.push({ ...attack, held, damage })
   }
   return changed ? next : weapons
+}
+
+function itemLooksLikeWeapon(item: InventoryItem): boolean {
+  if (item.parent_id) return false
+  if (item.base_ammo_slug) return false
+  if (item.armor_kind && item.armor_kind !== 'none') return false
+  if (item.weapon_grip === 'one_hand' || item.weapon_grip === 'two_hand') return true
+  if (item.base_weapon_slug) return true
+  if (item.wear_slot !== 'held_main' && item.wear_slot !== 'held_off') return false
+  if (item.magic_bonus) return true
+  return (item.effects ?? []).some((effect) => {
+    const t = String(effect.type)
+    return t === 'attack_bonus' || t === 'damage_bonus'
+  })
+}
+
+export type WeaponAttackCatalogHint = {
+  slug: string
+  damage?: string
+  damage_type?: string
+  ability?: string
+  name_ru?: string
+}
+
+/**
+ * Create missing attack cards for inventory weapons that never got one
+ * (catalog used to ship some magic bows as wondrous `item` rows).
+ */
+export function ensureInventoryWeaponAttacks(input: {
+  items: InventoryItem[]
+  weapons: WeaponAttack[]
+  /** Optional catalog faces so healed cards keep magic dice (1к8+1к6, …). */
+  catalogBySlug?: ReadonlyMap<string, WeaponAttackCatalogHint>
+}): { items: InventoryItem[]; weapons: WeaponAttack[] } {
+  const linked = new Set(
+    input.weapons
+      .map((row) => row.inventory_item_id)
+      .filter((id): id is string => Boolean(id)),
+  )
+  let itemsChanged = false
+  const items = input.items.map((item) => {
+    if (!itemLooksLikeWeapon(item)) return item
+    if (item.weapon_grip === 'one_hand' || item.weapon_grip === 'two_hand') return item
+    const grip = resolveWeaponGrip({
+      name: item.name,
+      baseWeaponSlug: item.base_weapon_slug,
+    })
+    if (!grip) return item
+    itemsChanged = true
+    return { ...item, weapon_grip: grip }
+  })
+
+  const additions: WeaponAttack[] = []
+  for (const item of items) {
+    if (linked.has(item.id)) continue
+    if (!itemLooksLikeWeapon(item)) continue
+    const baseSlug = item.base_weapon_slug?.trim() || ''
+    const basePreset = baseSlug ? findWeaponPreset(baseSlug) : null
+    const hint = item.catalog_slug
+      ? input.catalogBySlug?.get(item.catalog_slug.trim())
+      : undefined
+    const built = buildStartingWeaponAttacks({
+      name: basePreset?.labelRu || item.name,
+      qty: Math.max(1, item.qty ?? 1),
+      makeId: () => `heal-eq:${item.id}`,
+      inventoryItemId: item.id,
+      held: Boolean(item.equipped),
+    })
+    if (built.attacks.length > 0) {
+      for (const attack of built.attacks) {
+        additions.push({
+          ...attack,
+          name: hint?.name_ru || item.name,
+          catalog_id: item.catalog_id,
+          ability:
+            (hint?.ability as WeaponAttack['ability']) ||
+            attack.ability ||
+            basePreset?.ability ||
+            'str',
+          damage: hint?.damage || attack.damage || basePreset?.damage || '',
+          damage_type:
+            hint?.damage_type || attack.damage_type || basePreset?.damageType || '',
+        })
+      }
+      continue
+    }
+    // Catalog face without a PHB preset name match — still one attack row.
+    additions.push({
+      id: `heal-eq:${item.id}`,
+      name: hint?.name_ru || item.name,
+      catalog_id: item.catalog_id,
+      source_kind: 'weapon',
+      ability: (hint?.ability as WeaponAttack['ability']) || basePreset?.ability || 'dex',
+      is_proficient: true,
+      damage: hint?.damage || basePreset?.damage || '',
+      damage_type: hint?.damage_type || basePreset?.damageType || '',
+      inventory_item_id: item.id,
+      held: Boolean(item.equipped),
+    })
+  }
+
+  if (!itemsChanged && additions.length === 0) {
+    return { items: input.items, weapons: input.weapons }
+  }
+  return {
+    items: itemsChanged ? items : input.items,
+    weapons: additions.length ? [...input.weapons, ...additions] : input.weapons,
+  }
 }
