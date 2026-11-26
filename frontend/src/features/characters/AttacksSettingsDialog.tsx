@@ -163,6 +163,7 @@ export function AttacksSettingsDialog({
               ? scopedWeaponDamageBonus(scopedWeaponDamage, {
                   name: attack.name,
                   baseWeaponSlug: weaponItem?.base_weapon_slug,
+                  catalogSlug: weaponItem?.catalog_slug,
                 })
               : 0
           const magicDmg = (gear?.damageBonus ?? 0) + bracerDmg
