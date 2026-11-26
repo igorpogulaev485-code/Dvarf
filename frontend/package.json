@@ -9,6 +9,8 @@
     "lint": "oxlint",
     "preview": "vite preview",
     "selfcheck:bard-2024-features": "tsx --tsconfig tsconfig.app.json src/shared/dnd/bard2024Features.selfcheck.ts",
+    "selfcheck:bard-2014-jack": "tsx --tsconfig tsconfig.app.json src/shared/dnd/bard2014JackOfAllTrades.selfcheck.ts",
+    "selfcheck:tce-additional-bard-spells": "tsx --tsconfig tsconfig.app.json src/shared/dnd/tceAdditionalBardSpells.selfcheck.ts",
     "selfcheck:bardic-inspiration-target-2024": "tsx --tsconfig tsconfig.app.json src/shared/dnd/bardicInspirationTarget2024.selfcheck.ts",
     "selfcheck:pending-choices": "tsx src/shared/dnd/pendingFeatureChoices.selfcheck.ts",
     "selfcheck:spell-catalog": "tsx src/shared/dnd/spellCatalog.selfcheck.ts",

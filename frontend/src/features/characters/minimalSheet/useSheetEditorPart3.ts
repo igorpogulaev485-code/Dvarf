@@ -138,6 +138,7 @@ import {
   hasDazzlingFootwork2024,
   jackOfAllTradesBonus2024,
 } from '../../../shared/dnd/bard2024Features'
+import { jackOfAllTradesBonus2014 } from '../../../shared/dnd/bard2014JackOfAllTrades'
 import {
   geniesSplendorAcFormula2024,
   hasGeniesSplendor2024,
@@ -873,10 +874,26 @@ export function useSheetEditorPart3(model: SheetModel) {
   ])
   model.passives = passivesFromGear
 
+  const bardLevelTotal = useMemo(
+    () =>
+      model.draft.classes
+        .filter((row) => resolveClassFeatureSlug(row.name) === 'bard')
+        .reduce((sum, row) => sum + Math.max(0, Math.floor(row.level) || 0), 0),
+    [model.draft.classes],
+  )
+
   const abilityCheckExtras = useMemo(() => {
     const out: Partial<Record<AbilityKey, number>> = {}
     const gearChecks = model.gearEffects.abilityCheckBonuses
     const gearAll = gearChecks.all ?? 0
+    const jack2014 =
+      model.rulesEdition !== '2024'
+        ? jackOfAllTradesBonus2014({
+            bardLevel: bardLevelTotal,
+            proficiencyBonus: model.proficiencyBonus,
+            includesProficiency: false,
+          })
+        : 0
     for (const key of ABILITY_KEYS) {
       const n = abilityCheckBonus(key, model.draft.modifiers, formulaVarsBase)
       const athlete = remarkableAthleteCheckBonus({
@@ -886,7 +903,7 @@ export function useSheetEditorPart3(model: SheetModel) {
         includesProficiency: false,
       })
       const gear = gearAll + (gearChecks[key] ?? 0)
-      const total = n + athlete + gear
+      const total = n + athlete + gear + jack2014
       if (total) out[key] = total
     }
     return out
@@ -896,6 +913,8 @@ export function useSheetEditorPart3(model: SheetModel) {
     model.unlockedFeatures,
     model.proficiencyBonus,
     model.gearEffects.abilityCheckBonuses,
+    model.rulesEdition,
+    bardLevelTotal,
   ])
   model.abilityCheckExtras = abilityCheckExtras
 
@@ -923,22 +942,24 @@ export function useSheetEditorPart3(model: SheetModel) {
             return magicianSkillBonus2024(wisMod)
           })()
         : null
-    const bardLevel2024 =
-      model.rulesEdition === '2024'
-        ? model.draft.classes
-            .filter((row) => resolveClassFeatureSlug(row.name) === 'bard')
-            .reduce((sum, row) => sum + Math.max(0, Math.floor(row.level) || 0), 0)
-        : 0
+    const bardLevel2024 = model.rulesEdition === '2024' ? bardLevelTotal : 0
     for (const skill of SKILL_DEFS) {
       const state = model.draft.skills[skill.key]
       const proficient = Boolean(state?.is_proficient || state?.is_expertise)
-      const jack = jackOfAllTradesBonus2024({
-        bardLevel: bardLevel2024,
-        proficiencyBonus: model.proficiencyBonus,
-        isSkillCheck: true,
-        skillProficient: Boolean(state?.is_proficient),
-        skillExpertise: Boolean(state?.is_expertise),
-      })
+      const jack =
+        model.rulesEdition === '2024'
+          ? jackOfAllTradesBonus2024({
+              bardLevel: bardLevel2024,
+              proficiencyBonus: model.proficiencyBonus,
+              isSkillCheck: true,
+              skillProficient: Boolean(state?.is_proficient),
+              skillExpertise: Boolean(state?.is_expertise),
+            })
+          : jackOfAllTradesBonus2014({
+              bardLevel: bardLevelTotal,
+              proficiencyBonus: model.proficiencyBonus,
+              includesProficiency: proficient,
+            })
       const athlete = remarkableAthleteCheckBonus({
         features: model.unlockedFeatures,
         proficiencyBonus: model.proficiencyBonus,
@@ -990,6 +1011,7 @@ export function useSheetEditorPart3(model: SheetModel) {
     model.draft.featurePicks,
     model.draft.classes,
     model.subclassSlugByEntryId,
+    bardLevelTotal,
   ])
   model.featureSkillBonuses = featureSkillBonuses
 

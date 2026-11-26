@@ -42,6 +42,16 @@
       "kind": "passive"
     },
     {
+      "id": "additional_bard_spells",
+      "level": 1,
+      "name_ru": "Дополнительные заклинания барда",
+      "name_en": "Additional Bard Spells",
+      "summary_ru": "TCE (опционально): расширяет список заклинаний барда (Color Spray, Command, Aid, Enlarge/Reduce, Mirror Image, Intellect Fortress, Mass Healing Word, Slow, Phantasmal Killer, Telepathic Bond, Heroes' Feast, Dream of the Blue Veil, Prismatic Spray, Antipathy/Sympathy, Prismatic Wall).",
+      "kind": "passive",
+      "optional": true,
+      "source_book": "tcoe"
+    },
+    {
       "id": "jack_of_all_trades",
       "level": 2,
       "name_ru": "Мастер на все руки",
