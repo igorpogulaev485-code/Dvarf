@@ -87,9 +87,27 @@ assert(
   '+2 on dragon wing bow',
 )
 assert(
+  scopedWeaponDamageBonus(gear.scopedWeaponDamage, {
+    name: 'Лук драконьих крыльев',
+  }) === 2,
+  '+2 on dragon wing by name even without base slug',
+)
+assert(
+  scopedWeaponDamageBonus(gear.scopedWeaponDamage, {
+    name: 'Лук драконьих крыльев',
+    catalogSlug: 'dragon_wing_bow',
+  }) === 2,
+  '+2 via catalog slug',
+)
+assert(
   scopedWeaponDamageBonus(gear.scopedWeaponDamage, { name: 'Короткий меч' }) === 0,
   'no bonus on shortsword',
 )
+assert(
+  scopedWeaponDamageBonus(gear.scopedWeaponDamage, { name: 'Лёгкий арбалет' }) === 0,
+  'no bonus on light crossbow',
+)
+assert(gear.scopedWeaponDamage[0]!.value === 2, 'catalog value is +2 not +1')
 
 assert(
   ammoKindOfStack({

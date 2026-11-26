@@ -3063,6 +3063,7 @@ export function PlayDeskAttacksCompact({
               : scopedWeaponDamageBonus(scopedWeaponDamage, {
                   name: attack.name,
                   baseWeaponSlug: weaponItemForProf?.base_weapon_slug,
+                  catalogSlug: weaponItemForProf?.catalog_slug,
                 })
             const baseDamageBonusBeforeManual =
               abilityDmgMod +

@@ -304,8 +304,17 @@ function formatEffectsLine(item: InventoryItem): string | null {
       if (t === 'ac_bonus') return `КД+${(effect as { value?: number }).value ?? '?'}`
       if (t === 'attack_bonus')
         return `атака+${(effect as { value?: number }).value ?? '?'}`
-      if (t === 'damage_bonus')
-        return `урон+${(effect as { value?: number }).value ?? '?'}`
+      if (t === 'damage_bonus') {
+        const value = (effect as { value?: number }).value ?? '?'
+        const weapons = (effect as { weapons?: unknown }).weapons
+        const scoped =
+          Array.isArray(weapons) && weapons.length
+            ? ` (${weapons
+                .map((row) => String(row))
+                .join('/')})`
+            : ''
+        return `урон+${value}${scoped}`
+      }
       if (t === 'sense') {
         const sense = (effect as { sense?: string; range_ft?: number }).sense
         const range = (effect as { range_ft?: number }).range_ft

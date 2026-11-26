@@ -267,14 +267,53 @@ function weaponScopeNamesMatch(a: string, b: string): boolean {
   return left.includes(right) || right.includes(left)
 }
 
+const LONG_SHORT_BOW_TOKENS = new Set(['longbow', 'shortbow'])
+
+/** Magic / named bows that count as longbow or shortbow for Bracers of Archery. */
+const LONG_SHORT_BOW_CATALOG_SLUGS = new Set([
+  'longbow',
+  'shortbow',
+  'dragon_wing_bow',
+  'moonbow',
+  'oathbow',
+])
+
+/**
+ * «Лук драконьих крыльев» does not contain «длинный лук» — still a bow.
+ * Crossbows / slings / blowguns are excluded.
+ */
+export function nameLooksLikeLongOrShortBow(name: string): boolean {
+  const n = name.trim()
+  if (!n) return false
+  // JS `\b` is ASCII-only — do not rely on it for Cyrillic «лук».
+  if (/арбалет|crossbow|пращ|sling|blowgun|дух(ов|овая)|игл/i.test(n)) return false
+  if (/длинн[а-яё]*\s*лук|long\s*bow/i.test(n)) return true
+  if (/коротк[а-яё]*\s*лук|short\s*bow/i.test(n)) return true
+  if (/лук/i.test(n)) return true
+  if (/\bbow\b/i.test(n) && !/crossbow/i.test(n)) return true
+  return false
+}
+
+function tokensAreLongShortBowOnly(tokens: string[]): boolean {
+  if (!tokens.length) return false
+  return tokens.every((token) =>
+    LONG_SHORT_BOW_TOKENS.has(normalizeWeaponScopeKey(token)),
+  )
+}
+
 /** True when attack name / base slug matches any scope token (longbow, «Длинный лук»). */
 export function weaponMatchesScopeTokens(
-  input: { name: string; baseWeaponSlug?: string | null },
+  input: {
+    name: string
+    baseWeaponSlug?: string | null
+    catalogSlug?: string | null
+  },
   tokens: string[],
 ): boolean {
   if (!tokens.length) return false
   const baseName = stripMagicBonusSuffix(input.name)
   const slug = input.baseWeaponSlug?.trim() || ''
+  const catalogSlug = input.catalogSlug?.trim() || ''
   const slugLabel = slug ? resolveWeaponExtraName(slug) : null
   for (const token of tokens) {
     const resolved = resolveWeaponExtraName(token) ?? token
@@ -288,6 +327,20 @@ export function weaponMatchesScopeTokens(
       if (normalizeWeaponScopeKey(slug) === normalizeWeaponScopeKey(token)) return true
       if (slugLabel && weaponScopeNamesMatch(slugLabel, resolved)) return true
     }
+    if (catalogSlug) {
+      if (normalizeWeaponScopeKey(catalogSlug) === normalizeWeaponScopeKey(token)) {
+        return true
+      }
+    }
+  }
+  // Bracers of Archery: magic bows («Лук …») without a PHB base slug still count.
+  if (tokensAreLongShortBowOnly(tokens)) {
+    if (catalogSlug && LONG_SHORT_BOW_CATALOG_SLUGS.has(normalizeWeaponScopeKey(catalogSlug))) {
+      return true
+    }
+    if (nameLooksLikeLongOrShortBow(input.name) || nameLooksLikeLongOrShortBow(baseName)) {
+      return true
+    }
   }
   return false
 }
@@ -295,7 +348,11 @@ export function weaponMatchesScopeTokens(
 /** Sum scoped gear damage for this attack (Bracers of Archery → +2 on bows). */
 export function scopedWeaponDamageBonus(
   scoped: AggregatedGearEffects['scopedWeaponDamage'],
-  input: { name: string; baseWeaponSlug?: string | null },
+  input: {
+    name: string
+    baseWeaponSlug?: string | null
+    catalogSlug?: string | null
+  },
 ): number {
   let total = 0
   for (const row of scoped) {
