@@ -1122,6 +1122,15 @@
         "description_ru": "Владение луками; +2 урона стрелами длинного/короткого лука.",
         "effects": [
           {
+            "type": "weapon_proficiency",
+            "weapons": ["longbow", "shortbow"]
+          },
+          {
+            "type": "damage_bonus",
+            "value": 2,
+            "weapons": ["longbow", "shortbow"]
+          },
+          {
             "type": "custom_note",
             "text": "Владение длинным/коротким луком; +2 урона стрелами из этих луков."
           }

@@ -144,11 +144,24 @@ export function isWeaponProficient(input: {
 
   const baseName = stripMagicBonusSuffix(input.name)
   const extras = input.weapons.extras ?? []
+  const slug = input.baseWeaponSlug?.trim() || ''
+  const slugLabel = slug ? resolveWeaponExtraName(slug) : null
   for (const extra of extras) {
     if (namesMatch(input.name, extra) || namesMatch(baseName, extra)) return true
     const resolved = resolveWeaponExtraName(extra)
     if (resolved && (namesMatch(input.name, resolved) || namesMatch(baseName, resolved))) {
       return true
+    }
+    // Magic bows / +1 weapons: extras match via inventory base_weapon_slug.
+    if (slug) {
+      if (
+        slug.replace(/[\s-]+/g, '_').toLowerCase() ===
+        extra.trim().replace(/[\s-]+/g, '_').toLowerCase()
+      ) {
+        return true
+      }
+      if (slugLabel && resolved && namesMatch(slugLabel, resolved)) return true
+      if (slugLabel && namesMatch(slugLabel, extra)) return true
     }
   }
 

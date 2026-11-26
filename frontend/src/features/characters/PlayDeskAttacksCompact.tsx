@@ -290,6 +290,7 @@ import {
 } from './sheetTypes'
 import { artifactAttackDamage, artifactRequirementMet, type WeaponAttack } from './AttacksPanel'
 import { isWeaponProficient } from './equipmentProficiency'
+import { scopedWeaponDamageBonus } from './gearEffects'
 import type { WeaponProficiency } from './identity'
 import {
   buildAttackBonusParts,
@@ -330,6 +331,8 @@ type PlayDeskAttacksCompactProps = {
   /** Sheet weapon training — recompute PB live (magic +1 names / base_weapon_slug). */
   weaponProficiency?: WeaponProficiency
   gearBonusesByItem?: Record<string, { attackBonus: number; damageBonus: number }>
+  /** Bracers of Archery etc.: +N damage only for matching long/short bows. */
+  scopedWeaponDamage?: Array<{ value: number; weapons: string[]; itemName: string }>
   /** B-02: magic weapon / elemental weapon flat bonuses from active effects. */
   effectWeaponBonus?: { attack: number; damage: number }
   /** B-04: live effects for conditional weapon bonuses (rage melee_str…). */
@@ -535,6 +538,7 @@ export function PlayDeskAttacksCompact({
   proficiencyBonus,
   weaponProficiency = { simple: false, martial: false, extras: [] },
   gearBonusesByItem = {},
+  scopedWeaponDamage = [],
   effectWeaponBonus = { attack: 0, damage: 0 },
   activeEffects = null,
   fightingStyleId = null,
@@ -3054,9 +3058,16 @@ export function PlayDeskAttacksCompact({
               strengthBased: attackAbility === 'str',
               alreadyUsedThisTurn: frenzyUsedThisTurn,
             })
+            const bracerDmg = unarmed
+              ? 0
+              : scopedWeaponDamageBonus(scopedWeaponDamage, {
+                  name: attack.name,
+                  baseWeaponSlug: weaponItemForProf?.base_weapon_slug,
+                })
             const baseDamageBonusBeforeManual =
               abilityDmgMod +
               (gear?.damageBonus ?? 0) +
+              bracerDmg +
               infusionDmg +
               flatFxDamage +
               chargerFlat +

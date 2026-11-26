@@ -69,7 +69,10 @@ import { withSpellFocusFlags } from '../spellFocus'
 import { markBladesingerMeleeFocusItems2024 } from '../../../shared/dnd/wizardBook2024Features'
 import { syncWizardSpellbookWithInventory } from '../wizardSpellbookInventory'
 import { abilityModifier } from '../sheetTypes'
-import { sheetDamageProfile } from '../gearEffects'
+import {
+  mergeGearWeaponProficiency,
+  sheetDamageProfile,
+} from '../gearEffects'
 import {
   consumeRollDieChips,
   effectsEndingOnAttackCast,
@@ -169,6 +172,15 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
   /** U09: deep-link from attack → inventory card. */
   const [focusInventoryItemId, setFocusInventoryItemId] = useState<string | null>(null)
   const prevHeroLevelRef = useRef<number | null>(null)
+
+  const weaponProficiencyWithGear = useMemo(
+    () =>
+      mergeGearWeaponProficiency(
+        model.draft.identity.weapons,
+        model.gearEffects.weaponProficiencies,
+      ),
+    [model.draft.identity.weapons, model.gearEffects.weaponProficiencies],
+  )
 
   // O-04: очки героя — выдать при включении правила; при левелапе сжечь остаток.
   useEffect(() => {
@@ -329,8 +341,9 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
             hpTemp={model.draft.play.hpTemp}
             abilities={model.effectiveAbilities}
             proficiencyBonus={model.proficiencyBonus}
-            weaponProficiency={model.draft.identity.weapons}
+            weaponProficiency={weaponProficiencyWithGear}
             gearBonusesByItem={model.gearEffects.byItem}
+            scopedWeaponDamage={model.gearEffects.scopedWeaponDamage}
             effectWeaponBonus={weaponBonusesFromActiveEffects(model.draft.play.effects)}
             activeEffects={model.draft.play.effects ?? []}
             fightingStyleId={model.activeFightingStyleId}
@@ -911,8 +924,10 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
             weapons={model.draft.weapons}
             abilities={model.effectiveAbilities}
             proficiencyBonus={model.proficiencyBonus}
-            weaponProficiency={model.draft.identity.weapons}
+            weaponProficiency={weaponProficiencyWithGear}
             gearBonusesByItem={model.gearEffects.byItem}
+            scopedWeaponDamage={model.gearEffects.scopedWeaponDamage}
+            inventoryItems={model.draft.inventory.items}
             martialArtsDie={model.martialArtsDie}
             rulesEdition={model.rulesEdition}
             formulaVars={model.formulaVarsBase}
@@ -1037,8 +1052,10 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
           weapons={model.draft.weapons}
           abilities={model.effectiveAbilities}
           proficiencyBonus={model.proficiencyBonus}
-          weaponProficiency={model.draft.identity.weapons}
+          weaponProficiency={weaponProficiencyWithGear}
           gearBonusesByItem={model.gearEffects.byItem}
+          scopedWeaponDamage={model.gearEffects.scopedWeaponDamage}
+          inventoryItems={model.draft.inventory.items}
           fightingStyleId={model.activeFightingStyleId}
           fightingStyleIds={model.fightingStyleIds}
           infusionByItem={model.infusionBonuses.weaponByItem}

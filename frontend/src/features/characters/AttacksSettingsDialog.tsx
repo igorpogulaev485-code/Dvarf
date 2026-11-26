@@ -29,6 +29,8 @@ import {
   type AttackBonusPart,
 } from './attackBonusBreakdown'
 import { AttackBonusBreakdownDialog } from './AttackBonusBreakdownDialog'
+import { scopedWeaponDamageBonus } from './gearEffects'
+import type { InventoryItem } from './inventory'
 
 type AttacksSettingsDialogProps = {
   open: boolean
@@ -37,6 +39,8 @@ type AttacksSettingsDialogProps = {
   proficiencyBonus: number
   weaponProficiency: WeaponProficiency
   gearBonusesByItem?: Record<string, { attackBonus: number; damageBonus: number }>
+  scopedWeaponDamage?: Array<{ value: number; weapons: string[]; itemName: string }>
+  inventoryItems?: InventoryItem[]
   martialArtsDie?: string | null
   rulesEdition?: string | null
   formulaVars?: FormulaVars
@@ -63,6 +67,8 @@ export function AttacksSettingsDialog({
   proficiencyBonus,
   weaponProficiency,
   gearBonusesByItem,
+  scopedWeaponDamage = [],
+  inventoryItems = [],
   martialArtsDie = null,
   rulesEdition = '2014',
   formulaVars = {},
@@ -149,12 +155,23 @@ export function AttacksSettingsDialog({
               ? gearBonusesByItem?.[attack.inventory_item_id]
               : undefined
           const magicAtk = gear?.attackBonus ?? 0
-          const magicDmg = gear?.damageBonus ?? 0
+          const weaponItem = attack.inventory_item_id
+            ? inventoryItems.find((row) => row.id === attack.inventory_item_id)
+            : undefined
+          const bracerDmg =
+            !raceNatural && !classMa
+              ? scopedWeaponDamageBonus(scopedWeaponDamage, {
+                  name: attack.name,
+                  baseWeaponSlug: weaponItem?.base_weapon_slug,
+                })
+              : 0
+          const magicDmg = (gear?.damageBonus ?? 0) + bracerDmg
           const proficient =
             classMa ||
             isWeaponProficient({
               name: attack.name,
               weapons: weaponProficiency,
+              baseWeaponSlug: weaponItem?.base_weapon_slug,
               sourceKind: attack.source_kind,
               attackId: attack.id,
             })
