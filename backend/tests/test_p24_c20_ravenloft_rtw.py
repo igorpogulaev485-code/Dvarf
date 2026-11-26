@@ -329,7 +329,7 @@ def test_alembic_single_head_includes_p24_c20():
     heads = script.get_heads()
     assert len(heads) == 1, f"expected one alembic head, got {heads}"
     assert heads[0] in {"p24c20rfull01", "p24c19ddbd01", "p24c21au01", "p24c21rau01",
-        "p24n01names01", "p24n01r01", "p24m03pr01", "p24int01merge", "p24fixenum01", "p24n01r02", "p24n01r03", "i10sunf9a2c", "j11sunfwep01", "k12tolldead01", "k13harenhop01", "k14diplbg01", "k15luckbow01", "k16bracers01", "k17braceammo01", "k18bardtce01"}
+        "p24n01names01", "p24n01r01", "p24m03pr01", "p24int01merge", "p24fixenum01", "p24n01r02", "p24n01r03", "i10sunf9a2c", "j11sunfwep01", "k12tolldead01", "k13harenhop01", "k14diplbg01", "k15luckbow01", "k16bracers01", "k17braceammo01", "k18bardtce01", "k19lrcxbow01"}
     ancestor_ids = {
         rev.revision for rev in script.walk_revisions(base="base", head=heads[0])
     }

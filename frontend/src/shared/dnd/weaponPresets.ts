@@ -80,6 +80,21 @@ const PRESETS: WeaponPreset[] = [
   { labelRu: 'Лёгкий арбалет', damage: '1к8', damageType: 'колющий', ability: 'dex',
   group: 'simple', aliases: ['легкий арбалет', 'light crossbow'], ranged: true, twoHanded: true, loading: true },
   {
+    labelRu: 'Лёгкий многозарядный арбалет',
+    damage: '1к10',
+    damageType: 'колющий',
+    ability: 'dex',
+    group: 'martial',
+    aliases: [
+      'легкий многозарядный арбалет',
+      'light repeating crossbow',
+      'light_repeating_crossbow',
+    ],
+    ranged: true,
+    twoHanded: true,
+    heavy: true,
+  },
+  {
     labelRu: 'Ручной арбалет',
     damage: '1к6',
     damageType: 'колющий',
