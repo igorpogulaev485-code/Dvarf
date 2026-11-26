@@ -1202,6 +1202,9 @@ export function useSheetEditorPart4(model: SheetModel) {
     model.featureInitiativeBonus
       ? `умение ${formatModifier(model.featureInitiativeBonus)}`
       : null,
+    model.jackInitiativeBonus2014
+      ? `мастер на все руки ${formatModifier(model.jackInitiativeBonus2014)}`
+      : null,
   ]
     .filter(Boolean)
     .join(' · ')

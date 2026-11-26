@@ -14,7 +14,7 @@ assert(OPTIONAL_CLASS_FEATURES_EPOCH >= 1, 'epoch must be set')
 
 const expected: Record<string, string[]> = {
   barbarian: ['primal_knowledge', 'instinctive_pounce'],
-  bard: ['magical_inspiration', 'bardic_versatility'],
+  bard: ['additional_bard_spells', 'magical_inspiration', 'bardic_versatility'],
   cleric: ['cd_harness_divine_power', 'cantrip_versatility_cleric', 'blessed_strikes'],
   druid: ['wild_companion', 'cantrip_versatility_druid'],
   fighter: ['martial_versatility_fighter'],

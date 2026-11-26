@@ -62,6 +62,7 @@ import {
   initiativeBonusFromFeatures,
   initiativeBonusFromRace,
 } from '../featureCombatBonuses'
+import { jackOfAllTradesBonus2014 } from '../../../shared/dnd/bard2014JackOfAllTrades'
 import { raceDarkvisionFallbackFt } from '../../../shared/dnd/race'
 import { createSheetSpell, sheetSpellFromCatalog } from '../spells'
 import {
@@ -1132,12 +1133,25 @@ export function useSheetEditorPart2(model: SheetModel) {
   const gearInitiativeCheckBonus =
     (gearEffects.abilityCheckBonuses.all ?? 0) +
     (gearEffects.abilityCheckBonuses.dex ?? 0)
+  /** 2014 Jack of All Trades: initiative is a Dexterity check without proficiency. */
+  const jackInitiativeBonus2014 =
+    model.rulesEdition !== '2024'
+      ? jackOfAllTradesBonus2014({
+          bardLevel: model.draft.classes
+            .filter((row) => resolveClassFeatureSlug(row.name) === 'bard')
+            .reduce((sum, row) => sum + Math.max(0, Math.floor(row.level) || 0), 0),
+          proficiencyBonus,
+          includesProficiency: false,
+        })
+      : 0
+  model.jackInitiativeBonus2014 = jackInitiativeBonus2014
   const totalInitiativeBonus =
     featInitiativeBonus +
     featureInitiativeBonus +
     raceInitiativeBonus +
     effectInitiativeBonus +
-    gearInitiativeCheckBonus
+    gearInitiativeCheckBonus +
+    jackInitiativeBonus2014
   model.totalInitiativeBonus = totalInitiativeBonus
 
   const armorPiecesForSpeed = useMemo(
