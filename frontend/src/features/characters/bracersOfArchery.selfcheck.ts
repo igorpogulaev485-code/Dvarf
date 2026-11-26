@@ -11,7 +11,9 @@ import {
   scopedWeaponDamageBonus,
 } from './gearEffects.ts'
 import { isWeaponProficient } from './equipmentProficiency.ts'
+import { isAutoCombatConsumable } from './combatConsumables.ts'
 import { createInventoryItem, equipInventoryItem } from './inventory.ts'
+import { ammoKindOfStack } from '../../shared/dnd/o09DeathInspirationAmmo.ts'
 
 function assert(cond: unknown, message: string): asserts cond {
   if (!cond) throw new Error(message)
@@ -87,6 +89,24 @@ assert(
 assert(
   scopedWeaponDamageBonus(gear.scopedWeaponDamage, { name: 'Короткий меч' }) === 0,
   'no bonus on shortsword',
+)
+
+assert(
+  ammoKindOfStack({
+    name: bracers.name,
+    catalog_slug: bracers.catalog_slug,
+    wear_slot: bracers.wear_slot,
+  }) == null,
+  'bracers are not ammo stacks',
+)
+assert(
+  !isAutoCombatConsumable({
+    name: bracers.name,
+    qty: 1,
+    wear_slot: bracers.wear_slot,
+    catalog_slug: bracers.catalog_slug,
+  }),
+  'bracers are not auto combat consumables',
 )
 
 console.log('bracersOfArchery.selfcheck: ok')

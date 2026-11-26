@@ -234,11 +234,29 @@ const LAUNCHER_AMMO: Record<string, AmmoKind> = {
 }
 
 const AMMO_NAME_RE: Array<{ kind: AmmoKind; re: RegExp }> = [
-  { kind: 'arrow', re: /стрел|arrow/i },
-  { kind: 'crossbow_bolt', re: /болт|bolt/i },
+  // `стрел(?!ь)` — стрелы/стрела, but not «Наручи стрельбы» / стрельба.
+  { kind: 'arrow', re: /стрел(?!ь)|arrows?/i },
+  { kind: 'crossbow_bolt', re: /болт|bolts?/i },
   { kind: 'blowgun_needle', re: /игл.*дух|blowgun.*needle|needle/i },
   { kind: 'sling_bullet', re: /снаряд.*пращ|sling.*(bullet|stone)|bullet/i },
 ]
+
+/** Worn wondrous slots — never treat as ammunition stacks. */
+const WORN_GEAR_SLOTS = new Set([
+  'arms',
+  'body',
+  'chest',
+  'head',
+  'feet',
+  'neck',
+  'shoulders',
+  'waist',
+  'ring',
+  'cloak',
+  'back',
+  'hands',
+  'wrists',
+])
 
 const THROWN_STACK_RE =
   /дротик|метательн|метательн(ый|ая|ое)|javelin|dart|handaxe|ручн(ой|ая)\s+топор|лёгкий\s+молот|light\s+hammer|trident|трезубец|копь[ёе]|spear|dagger|кинжал|сеть|\bnet\b/i
@@ -317,7 +335,10 @@ export function ammoKindOfStack(item: {
   name?: string
   catalog_slug?: string | null
   base_ammo_slug?: string | null
+  wear_slot?: string | null
 }): AmmoKind | null {
+  const slot = String(item.wear_slot || '').trim().toLowerCase()
+  if (slot && WORN_GEAR_SLOTS.has(slot)) return null
   const fromBase = ammoKindFromSlug(item.base_ammo_slug)
   if (fromBase) return fromBase
   const slug = String(item.catalog_slug || '').toLowerCase()
@@ -335,6 +356,7 @@ export function listMatchingAmmoStacks<T extends {
   qty: number
   catalog_slug?: string | null
   base_ammo_slug?: string | null
+  wear_slot?: string | null
 }>(items: T[], kind: AmmoKind): T[] {
   return items.filter((row) => ammoKindOfStack(row) === kind)
 }
