@@ -1,0 +1,60 @@
+{
+  "version": 1,
+  "notes": "OotA Light Repeating Crossbow — https://5e14.ttg.club/items/light_repeating_crossbow",
+  "inserts": [
+    {
+      "op": "insert",
+      "kind": "weapon",
+      "id": "c145426a-8ee0-53a4-a7ac-4a27e87a9115",
+      "slug": "light_repeating_crossbow",
+      "name_ru": "Лёгкий многозарядный арбалет",
+      "name_en": "Light Repeating Crossbow",
+      "rules_edition": "2014",
+      "source": "OotA 2014",
+      "sort_order": 10530,
+      "is_active": true,
+      "data": {
+        "schema_version": 1,
+        "ability": "dex",
+        "damage": "1к10",
+        "damage_type": "колющий",
+        "category": "martial",
+        "finesse": false,
+        "ranged": true,
+        "weight_lb": 5,
+        "properties": [
+          "ammunition",
+          "heavy",
+          "two-handed",
+          "reload"
+        ],
+        "cost": {
+          "amount": 100,
+          "unit": "gp"
+        },
+        "source_book": "OotA",
+        "source_url": "https://5e14.ttg.club/items/light_repeating_crossbow",
+        "rarity": "none",
+        "requires_attunement": false,
+        "wear_slot": "held_main",
+        "range": {
+          "normal": 100,
+          "long": 400
+        },
+        "description_ru": "Этот арбалет оснащён картриджем, вмещающим до шести арбалетных болтов. Он автоматически перезаряжается после выстрела, пока в картридже не закончатся боеприпасы (нет свойства «перезарядка» у обычных арбалетов). Перезарядка картриджа — действием.\n\nОчередь. Вместо обычной атаки по одной цели можно атаковать область 10-футового куба в пределах обычной дистанции: каждое существо в области совершает спасбросок Ловкости Сл 15, при провале получает обычный урон этого оружия. Такая атака тратит десять боеприпасов.",
+        "effects": [
+          {
+            "type": "resource",
+            "id": "magazine",
+            "max": 6,
+            "restore": "manual"
+          },
+          {
+            "type": "custom_note",
+            "text": "Картридж 6 болтов (автоперезарядка). Действием — зарядить картридж. Очередь: куб 10 фт., Ловкость Сл 15, урон оружия; 10 боеприпасов."
+          }
+        ]
+      }
+    }
+  ]
+}
