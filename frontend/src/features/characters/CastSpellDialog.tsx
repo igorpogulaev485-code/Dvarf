@@ -25,6 +25,13 @@ import {
   isBlessedStrikesClericCantrip,
 } from '../../shared/dnd/o02TashaFeatures'
 import {
+  applyEnhancedBondToEffect,
+  ENHANCED_BOND_NOTE_RU,
+  spellQualifiesForEnhancedBond,
+  spellRangeIsSelf,
+  type EnhancedBondCastOrigin,
+} from './enhancedBond'
+import {
   potentSpellcastingRangeApplies2024,
   potentSpellcastingRangeText2024,
   produceFlameHurlFt2024,
@@ -221,6 +228,11 @@ export type CastChoice = {
   magicalInspiration?: boolean
   /** O-02 TCE Blessed Strikes: +1к8 излучением к урону заговора (раз в ход). */
   blessedStrikes?: boolean
+  /**
+   * TCE Enhanced Bond: origin of a non-self spell while wildfire spirit is out.
+   * Default `self` when omitted.
+   */
+  castOrigin?: EnhancedBondCastOrigin
 }
 
 type CastSpellDialogProps = {
@@ -299,6 +311,11 @@ type CastSpellDialogProps = {
   initialMetamagicId?: string | null
   /** O-02: у кастера есть «Магическое вдохновение» и книга Таши вкл. */
   magicalInspirationAvailable?: boolean
+  /**
+   * TCE Wildfire Enhanced Bond: feature unlocked and spirit active.
+   * Dialog auto-adds +1к8 to fire/heal casts and offers origin chips.
+   */
+  enhancedBondActive?: boolean
   rulesEdition?: string | null
   sorcererLevel?: number
   innateSorceryActive?: boolean
@@ -354,6 +371,7 @@ export function CastSpellDialog({
   metamagicIds = [],
   initialMetamagicId = null,
   magicalInspirationAvailable = false,
+  enhancedBondActive = false,
   rulesEdition = '2014',
   waiveFreeMaterialComponents = false,
   sorcererLevel = 1,
@@ -465,6 +483,7 @@ export function CastSpellDialog({
   const [useSubtle, setUseSubtle] = useState(false)
   const [useTwinned, setUseTwinned] = useState(false)
   const [useMagicalInspiration, setUseMagicalInspiration] = useState(false)
+  const [castOrigin, setCastOrigin] = useState<EnhancedBondCastOrigin>('self')
   const [metamagicOpen, setMetamagicOpen] = useState(false)
   const [transmutedType, setTransmutedType] = useState<string>('cold')
   const [buffOption, setBuffOption] = useState<string>('str')
@@ -586,6 +605,7 @@ export function CastSpellDialog({
     setUseHeightened(false)
     setUseSubtle(false)
     setUseTwinned(false)
+    setCastOrigin('self')
     setTransmutedType('cold')
     const seed = (initialMetamagicId ?? '').trim()
     if (seed === 'quickened') setUseQuickened(true)
@@ -774,6 +794,28 @@ export function CastSpellDialog({
         lines: base.lines.map((line) => (line === base.effect ? effect : line)),
       }
     }
+    const withBond = (base: typeof summary) => {
+      if (!enhancedBondActive || !spell) return base
+      const qualifies = spellQualifiesForEnhancedBond({
+        name: rulesSpell.name ?? spell.name,
+        effect: base.effect,
+        damage: typeof rulesSpell.damage === 'string' ? rulesSpell.damage : null,
+        description: spell.description,
+        attack_or_save: spell.attack_or_save,
+      })
+      if (!qualifies || !base.effect.trim()) return base
+      const effect = applyEnhancedBondToEffect(base.effect)
+      if (effect === base.effect) return base
+      return {
+        ...base,
+        effect,
+        scaled: true,
+        lines: [
+          ...base.lines.map((line) => (line === base.effect ? effect : line)),
+          ENHANCED_BOND_NOTE_RU,
+        ],
+      }
+    }
     if (!isEb) {
       if (
         potentSpellcastingBonus > 0 &&
@@ -784,13 +826,15 @@ export function CastSpellDialog({
         )
       ) {
         const effect = applyPotentSpellcastingToDamage2024(summary.effect, potentSpellcastingBonus)
-        return withBlessed({
-          ...summary,
-          effect,
-          lines: summary.lines.map((line) => (line === summary.effect ? effect : line)),
-        })
+        return withBond(
+          withBlessed({
+            ...summary,
+            effect,
+            lines: summary.lines.map((line) => (line === summary.effect ? effect : line)),
+          }),
+        )
       }
-      return withBlessed(summary)
+      return withBond(withBlessed(summary))
     }
     const beamLevel =
       rulesEdition === '2024' && warlockLevel != null && warlockLevel > 0
@@ -822,11 +866,13 @@ export function CastSpellDialog({
     if (hasRepellingBlast(knownInvocationIds)) {
       lines.push(REPELLING_BLAST_HINT)
     }
-    return withBlessed({
-      effect: beams > 1 || agonizing !== 0 ? preview : summary.effect || preview,
-      scaled: summary.scaled || beams > 1 || agonizing !== 0 || spearFt != null,
-      lines,
-    })
+    return withBond(
+      withBlessed({
+        effect: beams > 1 || agonizing !== 0 ? preview : summary.effect || preview,
+        scaled: summary.scaled || beams > 1 || agonizing !== 0 || spearFt != null,
+        lines,
+      }),
+    )
   }, [
     rulesSpell,
     spell,
@@ -840,6 +886,7 @@ export function CastSpellDialog({
     potentSpellcastingBonus,
     potentSpellcastingClass,
     blessedStrikesCantrip,
+    enhancedBondActive,
     turnEco,
     abilities,
     castProfiles,
@@ -852,6 +899,18 @@ export function CastSpellDialog({
     : ''
   const blessedStrikesApplies = Boolean(
     blessedStrikesFragment && castEffect.effect.includes(blessedStrikesFragment),
+  )
+  const enhancedBondApplies = Boolean(
+    enhancedBondActive &&
+      spell &&
+      spellQualifiesForEnhancedBond({
+        name: spell.name,
+        effect: castEffect.effect,
+        damage: typeof rulesSpell?.damage === 'string' ? rulesSpell.damage : null,
+        description: spell.description,
+        attack_or_save: spell.attack_or_save,
+      }) &&
+      /\+?\s*1\s*[кk]\s*8\b/i.test(castEffect.effect),
   )
 
   const selectedIds = useMemo(
@@ -1003,6 +1062,9 @@ export function CastSpellDialog({
       })
     : null
   const baseSpellRange = rulesSpell?.range || spell.range
+  const offerSpiritOrigin = Boolean(
+    enhancedBondActive && spell && !spellRangeIsSelf(baseSpellRange),
+  )
   const potentHurlFt = produceFlameHurlFt2024({
     name: spell.name,
     slug: (rulesSpell as { slug?: string } | null | undefined)?.slug,
@@ -1288,6 +1350,8 @@ export function CastSpellDialog({
             useMagicalInspiration &&
             !useRitual,
           blessedStrikes: blessedStrikesApplies,
+          castOrigin:
+            offerSpiritOrigin && castOrigin === 'spirit' ? 'spirit' : 'self',
           usePact:
             !isCantrip &&
             !useGrant &&
@@ -1963,6 +2027,30 @@ export function CastSpellDialog({
                   Магическое вдохновение: добавить кость BI цели к урону или лечению
                   одной цели (кость тратится)
                 </label>
+              ) : null}
+              {offerSpiritOrigin ? (
+                <div className="field" role="group" aria-label="Источник каста">
+                  <Text tone="muted">Усиленная связь: источник заклинания</Text>
+                  <div className="chip-row" style={{ marginTop: 8 }}>
+                    <button
+                      type="button"
+                      className={`sheet-chip${castOrigin === 'self' ? ' is-on' : ''}`}
+                      onClick={() => setCastOrigin('self')}
+                    >
+                      От себя
+                    </button>
+                    <button
+                      type="button"
+                      className={`sheet-chip${castOrigin === 'spirit' ? ' is-on' : ''}`}
+                      onClick={() => setCastOrigin('spirit')}
+                    >
+                      От духа
+                    </button>
+                  </div>
+                </div>
+              ) : null}
+              {enhancedBondApplies ? (
+                <Text tone="muted">{ENHANCED_BOND_NOTE_RU} к одному броску урона или лечения</Text>
               ) : null}
             </div>
             {activeRestLabel ? (

@@ -151,6 +151,13 @@ import {
   type SpellcastingAbility,
 } from '../../../shared/dnd/spells'
 import { offerPhysicalSpellFollowUp } from '../physicalSpellFollowUp'
+import {
+  applyEnhancedBondToEffect,
+  ENHANCED_BOND_NOTE_RU,
+  enhancedBondOriginNoteRu,
+  isEnhancedBondActive,
+  spellQualifiesForEnhancedBond,
+} from '../enhancedBond'
 import { isShillelaghSpell, pickShillelaghAttack } from '../shillelagh'
 import {
   ABILITY_LABELS,
@@ -894,13 +901,18 @@ export function installSheetActions4(model: SheetModel) {
       model.unlockedFeatures.some((row: { id: string }) => row.id === 'voice_of_authority') &&
       spell.level > 0 &&
       !ritualCast
+    const bondLive = isEnhancedBondActive({
+      features: model.unlockedFeatures,
+      companions: model.draft.companions,
+    })
+    const bondOriginNote = bondLive ? enhancedBondOriginNoteRu(choice.castOrigin) : ''
     const allyNote = `${
       choice.allyTargetIds && choice.allyTargetIds.length > 0
         ? ` · целей ${choice.allyTargetIds.length}`
         : ''
     }${voice ? ' · Голос власти: союзник может реакцией атаковать' : ''}${
       choice.embodimentOfLaw ? ' · бонусное действие' : ''
-    }${
+    }${bondOriginNote}${
       /проклятие|bestow curse/i.test(spell.name) && spell.duration ? ` · ${spell.duration}` : ''
     }`
     const grantSpellId = choice.grantSpellId || spell.id
@@ -966,6 +978,24 @@ export function installSheetActions4(model: SheetModel) {
       damageChoice: choice.damageChoice,
       affinity,
     })
+    let bondNote = ''
+    if (
+      bondLive &&
+      spellQualifiesForEnhancedBond({
+        name: spell.name,
+        effect,
+        damage: typeof spell.damage === 'string' ? spell.damage : null,
+        description: spell.description,
+        attack_or_save: spell.attack_or_save,
+      })
+    ) {
+      const withBond = applyEnhancedBondToEffect(effect)
+      if (withBond !== effect) {
+        effect = withBond
+        scaled = true
+        bondNote = ` · ${ENHANCED_BOND_NOTE_RU}`
+      }
+    }
     physicalEffect = effect
     physicalAttackBonus = castStats.attackBonus ?? 0
     if (
@@ -1048,7 +1078,7 @@ export function installSheetActions4(model: SheetModel) {
         shillelaghNote = ' · нет дубинки или посоха'
       }
     }
-    const effectNote = `${scaled && effect ? ` · ${effect}` : ''}${shillelaghNote}`
+    const effectNote = `${scaled && effect ? ` · ${effect}` : ''}${bondNote}${shillelaghNote}`
     let consumeNote = ''
     if (choice.consumeMaterial && choice.consumeItemId) {
       const target = model.draft.inventory.items.find((row) => row.id === choice.consumeItemId)

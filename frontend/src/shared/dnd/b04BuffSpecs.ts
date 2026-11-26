@@ -776,6 +776,7 @@ export const B04_BUFF_SPEC_BUILDERS: Record<string, SpecBuilder> = {
       ],
     }
   },
+  /** Reminder stub — live +1к8 is applied in cast path while spirit is out (enhancedBond.ts). */
   enhanced_bond: () => ({
     name: 'Усиленная связь',
     slug: 'enhanced_bond',

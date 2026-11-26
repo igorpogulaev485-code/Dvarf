@@ -41,6 +41,12 @@ import { Button, Dialog, Field, Input, NumberInput, Panel, SlotPips, Stack, Text
 import { abilityModifier, formatModifier, type AbilityKey } from './sheetTypes'
 import { CastSpellDialog, type CastChoice } from './CastSpellDialog'
 import {
+  applyEnhancedBondToEffect,
+  ENHANCED_BOND_NOTE_RU,
+  enhancedBondOriginNoteRu,
+  spellQualifiesForEnhancedBond,
+} from './enhancedBond'
+import {
   formatSpellComponents,
   resolveCastEffect,
   spellSchoolLabelRu,
@@ -152,6 +158,8 @@ type SpellsPanelProps = {
   masterySpellIds?: string[]
   offerPowerSurge?: boolean
   voiceOfAuthority?: boolean
+  /** TCE Wildfire Enhanced Bond: feature unlocked and spirit active. */
+  enhancedBondActive?: boolean
   /** Known sorcerer metamagic option ids (MAG-01 cast dialog). */
   metamagicIds?: string[]
   ritualBookLabel?: string | null
@@ -201,6 +209,7 @@ export function SpellsPanel({
   masterySpellIds = [],
   offerPowerSurge = false,
   voiceOfAuthority = false,
+  enhancedBondActive = false,
   metamagicIds = [],
   ritualBookLabel = null,
   onOpenRitualBook,
@@ -584,6 +593,9 @@ export function SpellsPanel({
       return
     }
     const name = castSpell.name || 'Заклинание'
+    const bondOriginNote = enhancedBondActive
+      ? enhancedBondOriginNoteRu(choice.castOrigin)
+      : ''
     const allyNote = `${
       choice.allyTargetIds && choice.allyTargetIds.length > 0
         ? ` · целей ${choice.allyTargetIds.length}`
@@ -592,7 +604,7 @@ export function SpellsPanel({
       voiceOfAuthority && castSpell.level > 0
         ? ' · Голос власти: союзник может реакцией атаковать'
         : ''
-    }${choice.embodimentOfLaw ? ' · бонусное действие' : ''}${
+    }${choice.embodimentOfLaw ? ' · бонусное действие' : ''}${bondOriginNote}${
       /проклятие|bestow curse/i.test(castSpell.name) && castSpell.duration
         ? ` · ${castSpell.duration}`
         : ''
@@ -646,14 +658,32 @@ export function SpellsPanel({
         : choice.usePact
           ? (spells.pact_slots?.level ?? castSpell.level)
           : choice.slotLevel
-    const { effect, scaled } = resolveCastEffect(castSpell, {
+    let { effect, scaled } = resolveCastEffect(castSpell, {
       characterLevel: level,
       slotLevel: slotForEffect || castSpell.level,
       spellMod: abilityMod,
       spellModLabel: abilityKey ? SPELLCASTING_ABILITY_LABELS[abilityKey] : null,
       damageChoice: choice.damageChoice,
     })
-    const effectNote = scaled && effect ? ` · ${effect}` : ''
+    let bondNote = ''
+    if (
+      enhancedBondActive &&
+      spellQualifiesForEnhancedBond({
+        name: castSpell.name,
+        effect,
+        damage: typeof castSpell.damage === 'string' ? castSpell.damage : null,
+        description: castSpell.description,
+        attack_or_save: castSpell.attack_or_save,
+      })
+    ) {
+      const withBond = applyEnhancedBondToEffect(effect)
+      if (withBond !== effect) {
+        effect = withBond
+        scaled = true
+        bondNote = ` · ${ENHANCED_BOND_NOTE_RU}`
+      }
+    }
+    const effectNote = scaled && effect ? ` · ${effect}${bondNote}` : ''
     if (choice.noSlot) {
       const spent = spendItemCharges(
         resources ?? [],
@@ -1587,6 +1617,7 @@ export function SpellsPanel({
             : 0
         }
         voiceOfAuthority={voiceOfAuthority}
+        enhancedBondActive={enhancedBondActive}
         resources={resources}
         metamagicIds={metamagicIds}
         abilities={abilities}
