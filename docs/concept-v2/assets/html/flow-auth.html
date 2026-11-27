@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <title>Схема процесса авторизации</title>
+  <link rel="stylesheet" href="../fonts/fonts.css" />
+  <style>
+    * { box-sizing: border-box; }
+    html, body { margin: 0; background: #1c1c18; color: #f3efe3; font-family: "IBM Plex Sans", "Segoe UI", sans-serif; }
+    .page { width: 1600px; padding: 28px 36px 36px; }
+    h1 { margin: 0 0 6px; font-family: "Source Serif 4", Georgia, serif; font-size: 28px; font-weight: 700; }
+    .lead { margin: 0 0 22px; font-size: 15px; color: rgba(243,239,227,0.78); max-width: 1480px; line-height: 1.45; }
+    .row { display: flex; flex-wrap: wrap; gap: 12px 16px; align-items: stretch; margin-bottom: 18px; }
+    .col { display: flex; flex-direction: column; gap: 8px; }
+    .box {
+      background: #2a2a24; border: 1px solid rgba(243,239,227,0.16); border-radius: 12px;
+      padding: 10px 12px; min-width: 180px; max-width: 280px; font-size: 13px; line-height: 1.35;
+    }
+    .box b { display: block; font-size: 13px; margin-bottom: 4px; color: #e4efc0; }
+    .box.now { border-color: rgba(196,209,154,0.45); }
+    .box.soon { border-style: dashed; }
+    .box.danger { border-color: rgba(240,180,174,0.45); }
+    .box.ok { border-color: rgba(160,200,150,0.5); }
+    .arrow { align-self: center; color: rgba(243,239,227,0.45); font-size: 18px; padding: 0 2px; }
+    .label { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(243,239,227,0.55); margin: 0 0 8px; }
+    .note { font-size: 12px; color: rgba(243,239,227,0.6); margin-top: 8px; max-width: 1480px; line-height: 1.4; }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <h1>Авторизация в оболочке v2 — схема процесса</h1>
+    <p class="lead">Гость остаётся в той же оболочке. Сайт, Персонажи и Лобби доступны как экраны без входа (контент списков — после входа). Кубик d20 у гостя есть везде, «+» нет. Бросок на списках и на Сайте — «для себя», никуда не записывается (и у гостя, и у вошедшего). Запись в историю или лог партии — только внутри конкретного персонажа или лобби. «Войти» / «Кабинет» открывают панель. После успеха — возврат на страницу, с которой звали.</p>
+
+    <div class="label">Гостевая оболочка</div>
+    <div class="row">
+      <div class="box now"><b>Сайт КриD20</b>Заглушка-летопись доступна без входа. d20 есть (ПК справа внизу, телефон — центр панели). «+» нет. Бросок для себя — никуда не записывается.</div>
+      <div class="arrow">→</div>
+      <div class="box now"><b>Персонажи</b>Карточка-приглашение: «Твои герои ждут в зале летописей…». Кнопки «Войти» и «Создать аккаунт». d20 есть, «+» нет. Бросок для себя — никуда не записывается (и у гостя, и у вошедшего).</div>
+      <div class="box now"><b>Лобби</b>Карточка-приглашение: «За столом ещё пусто…». Те же две кнопки. d20 есть, «+» нет. Бросок для себя — никуда не записывается, пока пользователь не внутри конкретного лобби.</div>
+      <div class="box"><b>Войти / Кабинет</b>Пилюля «Войти» в шапке ПК и пункт «Кабинет» на телефоне открывают панель входа.</div>
+    </div>
+
+    <div class="label">Панель авторизации (ПК — справа поверх оболочки, телефон — нижний лист)</div>
+    <div class="row">
+      <div class="col">
+        <div class="box now"><b>Вход</b>Email + пароль, «Показать пароль», «Забыли пароль?». Кнопки «Войти через Яндекс ID» и «Войти через VK ID».</div>
+        <div class="box danger"><b>Ошибка входа</b>«Неверный email или пароль.» Если почта не подтверждена — «Подтвердите email по ссылке из письма» и кнопка «Отправить письмо ещё раз».</div>
+        <div class="box ok"><b>Успешный вход</b>Панель закрывается. Возврат на Персонажи, Лобби или Кабинет — туда, откуда звали.</div>
+      </div>
+      <div class="arrow">↕</div>
+      <div class="col">
+        <div class="box now"><b>Регистрация</b>Никнейм (от 2 символов), email, пароль (от 8). Строка согласия с правовой информацией (предложена: в коде формы галочки нет, только ссылка в подвале).</div>
+        <div class="box"><b>Письмо отправлено</b>«Мы отправили ссылку подтверждения на user@example.com. Аккаунт активируется после перехода по ссылке.»</div>
+        <div class="box"><b>/verify-email</b>Подтверждение… Успех: «Email подтверждён. Добро пожаловать в Dvarf!» и вход (в коде сразу выдаются токены) → к персонажам. Ошибка: ссылка устарела.</div>
+      </div>
+      <div class="arrow">→</div>
+      <div class="col">
+        <div class="box"><b>Забыли пароль</b>Ввод email → «Если аккаунт существует, мы отправили инструкции.» (текст не раскрывает, есть ли ящик).</div>
+        <div class="box"><b>/reset-password</b>Новый пароль (от 8 символов) → «Пароль успешно обновлён. Теперь можно войти.» → вход.</div>
+      </div>
+      <div class="col">
+        <div class="box"><b>OAuth</b>Переход к Яндекс ID или VK ID (загрузка). Успех — возврат в оболочку. Ошибка или отмена — «Вход через сервис не состоялся.»</div>
+        <div class="box"><b>Привязка в кабинете</b>Уже у вошедшего: Яндекс/VK привязываются в ЛК, ошибки возвращают в /cabinet?oauth_error=…</div>
+      </div>
+    </div>
+
+    <div class="label">После входа (из кода, не на экране авторизации)</div>
+    <div class="row">
+      <div class="box now"><b>Список персонажей</b>Если онбординг ещё не пройден — диалог «Добро пожаловать в КриD20»: впервые в D&amp;D / играл, но тут впервые / пропустить подсказки.</div>
+      <div class="box"><b>/join</b>Гостя с кодом приглашения продукт отправляет на /login?next=/join/… — после входа возврат к входу в лобби.</div>
+      <div class="box"><b>/confirm-email</b>Смена почты из кабинета, не гостевой путь: подтверждение → в ЛК или на вход.</div>
+    </div>
+    <p class="note">В продукте /characters, /lobbies и /cabinet закрыты RequireAuth (редирект на /login без ?next; next передаётся только с /join). Онбординг-тур начинается уже в списке персонажей, не на форме входа. Бросок d20 у гостя в макете предложен на всех страницах оболочки (локальный, на списках и Сайте никуда не пишется). В текущем коде гостю бросок недоступен: страниц с кубиком без входа нет. Правило записи одно для гостя и для вошедшего: на списках «Персонажи» и «Лобби» бросок никуда не записывается; в историю или лог партии — только внутри конкретного персонажа или лобби.</p>
+  </div>
+</body>
+</html>

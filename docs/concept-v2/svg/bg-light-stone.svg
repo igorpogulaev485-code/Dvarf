@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+  <title>Камень — кладка и резные руны</title>
+  <rect width="256" height="256" fill="#e6e3dc"/>
+  <g fill="none" stroke="#4a463c" stroke-width="1.15" stroke-opacity="0.16"
+     stroke-linecap="round" stroke-linejoin="round">
+<path d="M0 0 Q64 -2,128 0 T256 0"/>
+<path d="M0 36 Q64 34,128 36 T256 36"/>
+<path d="M0 78 Q64 76,128 78 T256 78"/>
+<path d="M0 118 Q64 116,128 118 T256 118"/>
+<path d="M0 156 Q64 154,128 156 T256 156"/>
+<path d="M0 198 Q64 196,128 198 T256 198"/>
+<path d="M0 236 Q64 234,128 236 T256 236"/>
+<path d="M0 256 Q64 254,128 256 T256 256"/>
+<path d="M40 0 L40 36"/>
+<path d="M140 0 L140 36"/>
+<path d="M220 0 L220 36"/>
+<path d="M80 36 L80 78"/>
+<path d="M180 36 L180 78"/>
+<path d="M50 78 L50 118"/>
+<path d="M160 78 L160 118"/>
+<path d="M240 78 L240 118"/>
+<path d="M90 118 L90 156"/>
+<path d="M200 118 L200 156"/>
+<path d="M40 156 L40 198"/>
+<path d="M130 156 L130 198"/>
+<path d="M230 156 L230 198"/>
+<path d="M70 198 L70 236"/>
+<path d="M170 198 L170 236"/>
+<path d="M50 236 L50 256"/>
+<path d="M150 236 L150 256"/>
+<g transform="translate(64.0 58.0)"><g transform="scale(0.95)"><path d="M0 10 L0 -10 M-6 2 L0 -2 L6 2"/></g></g>
+<g transform="translate(-192.0 -198.0)"><g transform="scale(0.95)"><path d="M0 10 L0 -10 M-6 2 L0 -2 L6 2"/></g></g>
+<g transform="translate(-192.0 58.0)"><g transform="scale(0.95)"><path d="M0 10 L0 -10 M-6 2 L0 -2 L6 2"/></g></g>
+<g transform="translate(-192.0 314.0)"><g transform="scale(0.95)"><path d="M0 10 L0 -10 M-6 2 L0 -2 L6 2"/></g></g>
+<g transform="translate(64.0 -198.0)"><g transform="scale(0.95)"><path d="M0 10 L0 -10 M-6 2 L0 -2 L6 2"/></g></g>
+<g transform="translate(64.0 314.0)"><g transform="scale(0.95)"><path d="M0 10 L0 -10 M-6 2 L0 -2 L6 2"/></g></g>
+<g transform="translate(320.0 -198.0)"><g transform="scale(0.95)"><path d="M0 10 L0 -10 M-6 2 L0 -2 L6 2"/></g></g>
+<g transform="translate(320.0 58.0)"><g transform="scale(0.95)"><path d="M0 10 L0 -10 M-6 2 L0 -2 L6 2"/></g></g>
+<g transform="translate(320.0 314.0)"><g transform="scale(0.95)"><path d="M0 10 L0 -10 M-6 2 L0 -2 L6 2"/></g></g>
+<g transform="translate(168.0 96.0)"><g transform="scale(0.9)"><path d="M-5 0 L0 -10 L5 0 L0 10 Z"/></g></g>
+<g transform="translate(100.0 176.0)"><g transform="scale(0.95)"><path d="M-7 8 L0 2 L7 8 M-7 0 L0 -6 L7 0 M-4 -10 h8"/></g></g>
+<g transform="translate(210.0 210.0)"><g transform="scale(0.85)"><path d="M0 10 L-6 2 L0 -10 L6 2 Z M0 4 v-8"/></g></g>
+<g transform="translate(-46.0 -46.0)"><g transform="scale(0.85)"><path d="M0 10 L-6 2 L0 -10 L6 2 Z M0 4 v-8"/></g></g>
+<g transform="translate(-46.0 210.0)"><g transform="scale(0.85)"><path d="M0 10 L-6 2 L0 -10 L6 2 Z M0 4 v-8"/></g></g>
+<g transform="translate(-46.0 466.0)"><g transform="scale(0.85)"><path d="M0 10 L-6 2 L0 -10 L6 2 Z M0 4 v-8"/></g></g>
+<g transform="translate(210.0 -46.0)"><g transform="scale(0.85)"><path d="M0 10 L-6 2 L0 -10 L6 2 Z M0 4 v-8"/></g></g>
+<g transform="translate(210.0 466.0)"><g transform="scale(0.85)"><path d="M0 10 L-6 2 L0 -10 L6 2 Z M0 4 v-8"/></g></g>
+<g transform="translate(466.0 -46.0)"><g transform="scale(0.85)"><path d="M0 10 L-6 2 L0 -10 L6 2 Z M0 4 v-8"/></g></g>
+<g transform="translate(466.0 210.0)"><g transform="scale(0.85)"><path d="M0 10 L-6 2 L0 -10 L6 2 Z M0 4 v-8"/></g></g>
+<g transform="translate(466.0 466.0)"><g transform="scale(0.85)"><path d="M0 10 L-6 2 L0 -10 L6 2 Z M0 4 v-8"/></g></g>
+<g transform="translate(40.0 230.0)"><g transform="scale(0.85)"><path d="M-8 -6 h6 v-4 M-2 -10 v20 M2 10 h6 v-4"/></g></g>
+<g transform="translate(-216.0 -26.0)"><g transform="scale(0.85)"><path d="M-8 -6 h6 v-4 M-2 -10 v20 M2 10 h6 v-4"/></g></g>
+<g transform="translate(-216.0 230.0)"><g transform="scale(0.85)"><path d="M-8 -6 h6 v-4 M-2 -10 v20 M2 10 h6 v-4"/></g></g>
+<g transform="translate(-216.0 486.0)"><g transform="scale(0.85)"><path d="M-8 -6 h6 v-4 M-2 -10 v20 M2 10 h6 v-4"/></g></g>
+<g transform="translate(40.0 -26.0)"><g transform="scale(0.85)"><path d="M-8 -6 h6 v-4 M-2 -10 v20 M2 10 h6 v-4"/></g></g>
+<g transform="translate(40.0 486.0)"><g transform="scale(0.85)"><path d="M-8 -6 h6 v-4 M-2 -10 v20 M2 10 h6 v-4"/></g></g>
+<g transform="translate(296.0 -26.0)"><g transform="scale(0.85)"><path d="M-8 -6 h6 v-4 M-2 -10 v20 M2 10 h6 v-4"/></g></g>
+<g transform="translate(296.0 230.0)"><g transform="scale(0.85)"><path d="M-8 -6 h6 v-4 M-2 -10 v20 M2 10 h6 v-4"/></g></g>
+<g transform="translate(296.0 486.0)"><g transform="scale(0.85)"><path d="M-8 -6 h6 v-4 M-2 -10 v20 M2 10 h6 v-4"/></g></g>
+  </g>
+</svg>

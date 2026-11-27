@@ -1,0 +1,17 @@
+/* Step 6 — class setup */
+
+.class-detail-list {
+  margin: 0;
+  padding-left: 1.15em;
+  font-size: 14px;
+  line-height: 1.45;
+}
+.class-detail-list li + li { margin-top: 4px; }
+
+.class-eq-line { margin-top: 10px; }
+.class-eq-line h3 { margin: 0 0 6px; }
+
+.class-weapon-row {
+  max-height: 220px;
+  overflow: auto;
+}

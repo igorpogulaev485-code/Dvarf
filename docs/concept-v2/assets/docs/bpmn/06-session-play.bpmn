@@ -1,0 +1,471 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_session" name="6. Игровая сессия в лобби" targetNamespace="https://creed20.tech/bpmn" exporter="КриD20 BPMN maps" exporterVersion="1.0">
+  <bpmn:collaboration id="Collab_session">
+    <bpmn:participant id="Pool_Player" name="Игрок" processRef="Proc_Player" />
+    <bpmn:participant id="Pool_Master" name="Мастер" processRef="Proc_Master" />
+    <bpmn:participant id="Pool_System" name="Система / бэкенд" processRef="Proc_System" />
+    <bpmn:messageFlow id="msg_seat" name="сесть" sourceRef="p_seat" targetRef="s_seat" />
+    <bpmn:messageFlow id="msg_atk" name="sheet-attack" sourceRef="p_turn" targetRef="s_cb" />
+    <bpmn:messageFlow id="msg_re" name="declare / skip" sourceRef="p_reac" targetRef="s_cb" />
+    <bpmn:messageFlow id="msg_matk" name="combat/attack" sourceRef="m_atk" targetRef="s_cb" />
+    <bpmn:messageFlow id="msg_aw" name="награды" sourceRef="m_awd" targetRef="s_aw" />
+    <bpmn:messageFlow id="msg_pr" name="party-rest" sourceRef="m_rest" targetRef="s_aw" />
+    <bpmn:messageFlow id="msg_pr2" name="party_rest" sourceRef="s_ws" targetRef="p_rest" />
+    <bpmn:messageFlow id="msg_hp" name="session_changed" sourceRef="s_ws" targetRef="p_hp" />
+  </bpmn:collaboration>
+  <bpmn:process id="Proc_Player" name="Игрок" isExecutable="false">
+    <bpmn:laneSet id="LaneSet_Proc_Player">
+      <bpmn:lane id="Lane_Player" name="Игрок">
+        <bpmn:flowNodeRef>p_start</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>p_seat</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>p_init</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>p_turn</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>p_reac</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>p_dice</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>p_hp</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>p_death</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>p_rest</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>p_end</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="p_start" name="Открыть /sessions/:id">
+      <bpmn:outgoing>p1</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:userTask id="p_seat" name="Если не за столом — «Сесть за стол»
+(свой герой из состава)">
+      <bpmn:incoming>p1</bpmn:incoming>
+      <bpmn:outgoing>p2</bpmn:outgoing>
+      <bpmn:outgoing>p6</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="p_init" name="Бросок инициативы, если слот «ждём бросок»">
+      <bpmn:incoming>p2</bpmn:incoming>
+      <bpmn:outgoing>p3</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="p_turn" name="Свой ход: экономика хода,
+атака с листа (sheet-attack)">
+      <bpmn:incoming>p3</bpmn:incoming>
+      <bpmn:outgoing>p4</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="p_reac" name="Окно «Есть ли реакция?»: объявить /
+«Нет реакции» / автопропуск 10 с">
+      <bpmn:incoming>p4</bpmn:incoming>
+      <bpmn:outgoing>p5</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="p_dice" name="Кубики и журнал сессии
+(ручной / цифровой бросок)">
+      <bpmn:incoming>p5</bpmn:incoming>
+      <bpmn:outgoing>p9</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="p_hp" name="Хиты: свои точно; чужие — по профилю
+видимости (числа / полоса / скрыто)">
+      <bpmn:incoming>p6</bpmn:incoming>
+      <bpmn:outgoing>p7</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="p_death" name="Свои спасброски смерти видны себе
+(и мастеру, если hidden_death_saves)">
+      <bpmn:incoming>p7</bpmn:incoming>
+      <bpmn:outgoing>p8</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="p_rest" name="WS party_rest открывает RestDialog
+на листе — игрок сам завершает отдых">
+      <bpmn:incoming>p8</bpmn:incoming>
+      <bpmn:outgoing>p10</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:endEvent id="p_end" name="Сессия закрыта">
+      <bpmn:incoming>p9</bpmn:incoming>
+      <bpmn:incoming>p10</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:textAnnotation id="n_npc"><bpmn:text>Спасброски напарников: story и живой купленный скакун — да; зверь следопыта / primal / drake / призванные / облик — нет. У карточки врага (EnemyCard) UI спасбросков нет.</bpmn:text></bpmn:textAnnotation>
+    <bpmn:sequenceFlow id="p1" name="" sourceRef="p_start" targetRef="p_seat" />
+    <bpmn:sequenceFlow id="p2" name="" sourceRef="p_seat" targetRef="p_init" />
+    <bpmn:sequenceFlow id="p3" name="" sourceRef="p_init" targetRef="p_turn" />
+    <bpmn:sequenceFlow id="p4" name="" sourceRef="p_turn" targetRef="p_reac" />
+    <bpmn:sequenceFlow id="p5" name="" sourceRef="p_reac" targetRef="p_dice" />
+    <bpmn:sequenceFlow id="p6" name="" sourceRef="p_seat" targetRef="p_hp" />
+    <bpmn:sequenceFlow id="p7" name="" sourceRef="p_hp" targetRef="p_death" />
+    <bpmn:sequenceFlow id="p8" name="" sourceRef="p_death" targetRef="p_rest" />
+    <bpmn:sequenceFlow id="p9" name="" sourceRef="p_dice" targetRef="p_end" />
+    <bpmn:sequenceFlow id="p10" name="" sourceRef="p_rest" targetRef="p_end" />
+  </bpmn:process>
+  <bpmn:process id="Proc_Master" name="Мастер" isExecutable="false">
+    <bpmn:laneSet id="LaneSet_Proc_Master">
+      <bpmn:lane id="Lane_Master" name="Мастер">
+        <bpmn:flowNodeRef>m_start</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>m_att</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>m_comb</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>m_init</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>m_atk</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>m_awd</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>m_rest</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>m_close</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>m_end</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="m_start" name="Вести стол">
+      <bpmn:outgoing>m1</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:userTask id="m_att" name="Посещаемость: посадить / убрать
+с места">
+      <bpmn:incoming>m1</bpmn:incoming>
+      <bpmn:outgoing>m2</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="m_comb" name="Старт боя, противники, волны,
+бой из вики / генератор встреч">
+      <bpmn:incoming>m2</bpmn:incoming>
+      <bpmn:outgoing>m3</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="m_init" name="Инициатива партии (серверный бросок
+или ожидание игроков)">
+      <bpmn:incoming>m3</bpmn:incoming>
+      <bpmn:outgoing>m4</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="m_atk" name="Атака стола POST …/combat/attack;
+ход next/prev, пропуск реакции">
+      <bpmn:incoming>m4</bpmn:incoming>
+      <bpmn:outgoing>m5</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="m_awd" name="XP, добыча, сундук, выдача в инвентарь,
+состояния, эффекты, благочестие">
+      <bpmn:incoming>m5</bpmn:incoming>
+      <bpmn:outgoing>m6</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="m_rest" name="Партийный отдых (не в бою,
+нужны места за столом)">
+      <bpmn:incoming>m6</bpmn:incoming>
+      <bpmn:outgoing>m7</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="m_close" name="Закрыть сессию, опционально запись
+в журнал; снять retained seats">
+      <bpmn:incoming>m7</bpmn:incoming>
+      <bpmn:outgoing>m8</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:endEvent id="m_end" name="Итог записан">
+      <bpmn:incoming>m8</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="m1" name="" sourceRef="m_start" targetRef="m_att" />
+    <bpmn:sequenceFlow id="m2" name="" sourceRef="m_att" targetRef="m_comb" />
+    <bpmn:sequenceFlow id="m3" name="" sourceRef="m_comb" targetRef="m_init" />
+    <bpmn:sequenceFlow id="m4" name="" sourceRef="m_init" targetRef="m_atk" />
+    <bpmn:sequenceFlow id="m5" name="" sourceRef="m_atk" targetRef="m_awd" />
+    <bpmn:sequenceFlow id="m6" name="" sourceRef="m_awd" targetRef="m_rest" />
+    <bpmn:sequenceFlow id="m7" name="" sourceRef="m_rest" targetRef="m_close" />
+    <bpmn:sequenceFlow id="m8" name="" sourceRef="m_close" targetRef="m_end" />
+  </bpmn:process>
+  <bpmn:process id="Proc_System" name="Система / бэкенд" isExecutable="false">
+    <bpmn:laneSet id="LaneSet_Proc_System">
+      <bpmn:lane id="Lane_System" name="Система / бэкенд">
+        <bpmn:flowNodeRef>s_start</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>s_seat</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>s_cb</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>s_mut</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>s_aw</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>s_ws</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>s_end</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="s_start" name="Сессия открыта">
+      <bpmn:outgoing>s1</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:serviceTask id="s_seat" name="POST/DELETE …/seats
+(+ слот «ждём бросок», если бой идёт)">
+      <bpmn:incoming>s1</bpmn:incoming>
+      <bpmn:outgoing>s2</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="s_cb" name="combat/start, initiative, attack,
+sheet-attack, reaction, patch">
+      <bpmn:incoming>s2</bpmn:incoming>
+      <bpmn:outgoing>s3</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="s_mut" name="patch_seat_combat, companions,
+условия, хиты, смерть — пишут sheet">
+      <bpmn:incoming>s3</bpmn:incoming>
+      <bpmn:outgoing>s4</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="s_aw" name="award xp/loot, grants, transfer,
+party-rest (событие, не применение)">
+      <bpmn:incoming>s4</bpmn:incoming>
+      <bpmn:outgoing>s5</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="s_ws" name="WS: session_changed, session_event,
+party_rest, turn_started, turn_economy_reset">
+      <bpmn:incoming>s5</bpmn:incoming>
+      <bpmn:outgoing>s6</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:endEvent id="s_end" name="События в ленте">
+      <bpmn:incoming>s6</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="s1" name="" sourceRef="s_start" targetRef="s_seat" />
+    <bpmn:sequenceFlow id="s2" name="" sourceRef="s_seat" targetRef="s_cb" />
+    <bpmn:sequenceFlow id="s3" name="" sourceRef="s_cb" targetRef="s_mut" />
+    <bpmn:sequenceFlow id="s4" name="" sourceRef="s_mut" targetRef="s_aw" />
+    <bpmn:sequenceFlow id="s5" name="" sourceRef="s_aw" targetRef="s_ws" />
+    <bpmn:sequenceFlow id="s6" name="" sourceRef="s_ws" targetRef="s_end" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="Diagram_session">
+    <bpmndi:BPMNPlane id="Plane_session" bpmnElement="Collab_session">
+      <bpmndi:BPMNShape id="Pool_Player_di" bpmnElement="Pool_Player" isHorizontal="true">
+        <dc:Bounds x="40" y="60" width="3500" height="400" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Player_di" bpmnElement="Lane_Player" isHorizontal="true">
+        <dc:Bounds x="70" y="60" width="3470" height="400" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Pool_Master_di" bpmnElement="Pool_Master" isHorizontal="true">
+        <dc:Bounds x="40" y="550" width="3500" height="400" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Master_di" bpmnElement="Lane_Master" isHorizontal="true">
+        <dc:Bounds x="70" y="550" width="3470" height="400" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Pool_System_di" bpmnElement="Pool_System" isHorizontal="true">
+        <dc:Bounds x="40" y="1040" width="3500" height="360" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_System_di" bpmnElement="Lane_System" isHorizontal="true">
+        <dc:Bounds x="70" y="1040" width="3470" height="360" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="p_start_di" bpmnElement="p_start">
+        <dc:Bounds x="100" y="182.0" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="p_seat_di" bpmnElement="p_seat">
+        <dc:Bounds x="348" y="157.0" width="200" height="84" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="p_init_di" bpmnElement="p_init">
+        <dc:Bounds x="844" y="157.0" width="200" height="84" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="p_turn_di" bpmnElement="p_turn">
+        <dc:Bounds x="1340" y="157.0" width="200" height="84" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="p_reac_di" bpmnElement="p_reac">
+        <dc:Bounds x="1836" y="157.0" width="230" height="90" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="p_dice_di" bpmnElement="p_dice">
+        <dc:Bounds x="2084" y="157.0" width="200" height="84" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="p_hp_di" bpmnElement="p_hp">
+        <dc:Bounds x="844" y="292.0" width="230" height="90" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="p_death_di" bpmnElement="p_death">
+        <dc:Bounds x="1340" y="292.0" width="230" height="90" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="p_rest_di" bpmnElement="p_rest">
+        <dc:Bounds x="1836" y="292.0" width="230" height="90" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="p_end_di" bpmnElement="p_end">
+        <dc:Bounds x="2580" y="242.0" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="m_start_di" bpmnElement="m_start">
+        <dc:Bounds x="100" y="672.0" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="m_att_di" bpmnElement="m_att">
+        <dc:Bounds x="348" y="647.0" width="200" height="84" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="m_comb_di" bpmnElement="m_comb">
+        <dc:Bounds x="844" y="647.0" width="200" height="84" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="m_init_di" bpmnElement="m_init">
+        <dc:Bounds x="1340" y="647.0" width="200" height="84" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="m_atk_di" bpmnElement="m_atk">
+        <dc:Bounds x="1836" y="647.0" width="230" height="90" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="m_awd_di" bpmnElement="m_awd">
+        <dc:Bounds x="1340" y="782.0" width="230" height="90" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="m_rest_di" bpmnElement="m_rest">
+        <dc:Bounds x="1836" y="782.0" width="200" height="84" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="m_close_di" bpmnElement="m_close">
+        <dc:Bounds x="2332" y="782.0" width="230" height="90" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="m_end_di" bpmnElement="m_end">
+        <dc:Bounds x="2600" y="802.0" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="s_start_di" bpmnElement="s_start">
+        <dc:Bounds x="100" y="1202.0" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="s_seat_di" bpmnElement="s_seat">
+        <dc:Bounds x="348" y="1177.0" width="200" height="84" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="s_cb_di" bpmnElement="s_cb">
+        <dc:Bounds x="844" y="1177.0" width="230" height="90" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="s_mut_di" bpmnElement="s_mut">
+        <dc:Bounds x="1340" y="1177.0" width="230" height="90" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="s_aw_di" bpmnElement="s_aw">
+        <dc:Bounds x="1836" y="1177.0" width="230" height="90" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="s_ws_di" bpmnElement="s_ws">
+        <dc:Bounds x="2332" y="1177.0" width="250" height="90" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="s_end_di" bpmnElement="s_end">
+        <dc:Bounds x="2620" y="1202.0" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="n_npc_di" bpmnElement="n_npc">
+        <dc:Bounds x="2084" y="68" width="360" height="90" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="p1_di" bpmnElement="p1">
+        <di:waypoint x="136" y="200.0" />
+        <di:waypoint x="348" y="199.0" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="p2_di" bpmnElement="p2">
+        <di:waypoint x="548" y="199.0" />
+        <di:waypoint x="844" y="199.0" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="p3_di" bpmnElement="p3">
+        <di:waypoint x="1044" y="199.0" />
+        <di:waypoint x="1340" y="199.0" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="p4_di" bpmnElement="p4">
+        <di:waypoint x="1540" y="199.0" />
+        <di:waypoint x="1836" y="202.0" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="p5_di" bpmnElement="p5">
+        <di:waypoint x="2066" y="202.0" />
+        <di:waypoint x="2084" y="199.0" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="p6_di" bpmnElement="p6">
+        <di:waypoint x="548" y="199.0" />
+        <di:waypoint x="696.0" y="199.0" />
+        <di:waypoint x="696.0" y="337.0" />
+        <di:waypoint x="844" y="337.0" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="p7_di" bpmnElement="p7">
+        <di:waypoint x="1074" y="337.0" />
+        <di:waypoint x="1340" y="337.0" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="p8_di" bpmnElement="p8">
+        <di:waypoint x="1570" y="337.0" />
+        <di:waypoint x="1836" y="337.0" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="p9_di" bpmnElement="p9">
+        <di:waypoint x="2284" y="199.0" />
+        <di:waypoint x="2432.0" y="199.0" />
+        <di:waypoint x="2432.0" y="260.0" />
+        <di:waypoint x="2580" y="260.0" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="p10_di" bpmnElement="p10">
+        <di:waypoint x="2066" y="337.0" />
+        <di:waypoint x="2323.0" y="337.0" />
+        <di:waypoint x="2323.0" y="260.0" />
+        <di:waypoint x="2580" y="260.0" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="m1_di" bpmnElement="m1">
+        <di:waypoint x="136" y="690.0" />
+        <di:waypoint x="348" y="689.0" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="m2_di" bpmnElement="m2">
+        <di:waypoint x="548" y="689.0" />
+        <di:waypoint x="844" y="689.0" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="m3_di" bpmnElement="m3">
+        <di:waypoint x="1044" y="689.0" />
+        <di:waypoint x="1340" y="689.0" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="m4_di" bpmnElement="m4">
+        <di:waypoint x="1540" y="689.0" />
+        <di:waypoint x="1836" y="692.0" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="m5_di" bpmnElement="m5">
+        <di:waypoint x="1836" y="692.0" />
+        <di:waypoint x="1703.0" y="692.0" />
+        <di:waypoint x="1703.0" y="827.0" />
+        <di:waypoint x="1570" y="827.0" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="m6_di" bpmnElement="m6">
+        <di:waypoint x="1570" y="827.0" />
+        <di:waypoint x="1836" y="824.0" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="m7_di" bpmnElement="m7">
+        <di:waypoint x="2036" y="824.0" />
+        <di:waypoint x="2332" y="827.0" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="m8_di" bpmnElement="m8">
+        <di:waypoint x="2562" y="827.0" />
+        <di:waypoint x="2600" y="820.0" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="s1_di" bpmnElement="s1">
+        <di:waypoint x="136" y="1220.0" />
+        <di:waypoint x="348" y="1219.0" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="s2_di" bpmnElement="s2">
+        <di:waypoint x="548" y="1219.0" />
+        <di:waypoint x="844" y="1222.0" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="s3_di" bpmnElement="s3">
+        <di:waypoint x="1074" y="1222.0" />
+        <di:waypoint x="1340" y="1222.0" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="s4_di" bpmnElement="s4">
+        <di:waypoint x="1570" y="1222.0" />
+        <di:waypoint x="1836" y="1222.0" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="s5_di" bpmnElement="s5">
+        <di:waypoint x="2066" y="1222.0" />
+        <di:waypoint x="2332" y="1222.0" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="s6_di" bpmnElement="s6">
+        <di:waypoint x="2582" y="1222.0" />
+        <di:waypoint x="2620" y="1220.0" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="msg_seat_di" bpmnElement="msg_seat">
+        <di:waypoint x="448.0" y="241.0" />
+        <di:waypoint x="448.0" y="505.0" />
+        <di:waypoint x="576" y="505.0" />
+        <di:waypoint x="576" y="995.0" />
+        <di:waypoint x="448.0" y="995.0" />
+        <di:waypoint x="448.0" y="1177.0" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="msg_atk_di" bpmnElement="msg_atk">
+        <di:waypoint x="1440.0" y="241.0" />
+        <di:waypoint x="1312" y="241.0" />
+        <di:waypoint x="1312" y="505.0" />
+        <di:waypoint x="1312" y="995.0" />
+        <di:waypoint x="959.0" y="995.0" />
+        <di:waypoint x="959.0" y="1177.0" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="msg_re_di" bpmnElement="msg_re">
+        <di:waypoint x="1951.0" y="247.0" />
+        <di:waypoint x="1808" y="247.0" />
+        <di:waypoint x="1808" y="505.0" />
+        <di:waypoint x="1808" y="995.0" />
+        <di:waypoint x="959.0" y="995.0" />
+        <di:waypoint x="959.0" y="1177.0" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="msg_matk_di" bpmnElement="msg_matk">
+        <di:waypoint x="1951.0" y="737.0" />
+        <di:waypoint x="2094" y="737.0" />
+        <di:waypoint x="2094" y="995.0" />
+        <di:waypoint x="959.0" y="995.0" />
+        <di:waypoint x="959.0" y="1177.0" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="msg_aw_di" bpmnElement="msg_aw">
+        <di:waypoint x="1455.0" y="872.0" />
+        <di:waypoint x="1455.0" y="995.0" />
+        <di:waypoint x="1598" y="995.0" />
+        <di:waypoint x="1951.0" y="995.0" />
+        <di:waypoint x="1951.0" y="1177.0" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="msg_pr_di" bpmnElement="msg_pr">
+        <di:waypoint x="1936.0" y="866.0" />
+        <di:waypoint x="1936.0" y="995.0" />
+        <di:waypoint x="1951.0" y="995.0" />
+        <di:waypoint x="1951.0" y="1177.0" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="msg_pr2_di" bpmnElement="msg_pr2">
+        <di:waypoint x="2457.0" y="1177.0" />
+        <di:waypoint x="2457.0" y="995.0" />
+        <di:waypoint x="2304" y="995.0" />
+        <di:waypoint x="2304" y="505.0" />
+        <di:waypoint x="1951.0" y="505.0" />
+        <di:waypoint x="1951.0" y="382.0" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="msg_hp_di" bpmnElement="msg_hp">
+        <di:waypoint x="2457.0" y="1177.0" />
+        <di:waypoint x="2457.0" y="995.0" />
+        <di:waypoint x="2304" y="995.0" />
+        <di:waypoint x="2304" y="505.0" />
+        <di:waypoint x="959.0" y="505.0" />
+        <di:waypoint x="959.0" y="382.0" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

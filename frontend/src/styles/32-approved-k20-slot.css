@@ -1,0 +1,13 @@
+/*
+ * Placement stays on .ui-dice-fab-slot.
+ * Circle 52×52, border 2px and the 22×22 glyph come from
+ * docs/concept-v2/css/shared-approved.css (.fab-dice). The glyph is not redrawn here.
+ * css/mobile-chars-nav.css (56×56 / 28px) is not imported.
+ */
+.ui-dice-fab-slot > .ui-dice-fab.fab-dice {
+  position: relative;
+  inset: auto;
+  right: auto;
+  bottom: auto;
+  z-index: auto;
+}

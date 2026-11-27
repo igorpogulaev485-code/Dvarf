@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <title>Сравнение · Лобби до и после v2</title>
+  <link rel="stylesheet" href="../fonts/fonts.css" />
+  <style>
+    * { box-sizing: border-box; }
+    html, body { margin: 0; background: #1c1c18; color: #f3efe3; font-family: "IBM Plex Sans", "Segoe UI", sans-serif; }
+    .page { width: 1600px; padding: 28px 36px 32px; }
+    h1 { margin: 0 0 6px; font-family: "Source Serif 4", Georgia, serif; font-size: 28px; font-weight: 700; letter-spacing: -0.02em; }
+    .lead { margin: 0 0 20px; font-size: 15px; font-weight: 500; color: rgba(243,239,227,0.78); max-width: 1480px; line-height: 1.45; }
+    .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
+    .col h2 { margin: 0 0 12px; font-size: 13px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(243,239,227,0.7); }
+    .frame { background: #111; border-radius: 10px; overflow: hidden; box-shadow: 0 12px 40px rgba(0,0,0,0.45); }
+    .frame img { display: block; width: 100%; height: auto; }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <h1>Лобби: как сейчас и макет v2</h1>
+    <p class="lead">Слева — текущая страница «Лобби» (воссоздана по коду продукта: переключатель Персонажи/Лобби, кнопки «Личный кабинет» и «Сайт КриD20», «Создать», широкие строки, «Ввести код» ведёт на отдельную страницу). Справа — макет в стиле принятой v2 «Мои персонажи»: те же пункты в боковом меню и шапке, «+» создаёт лобби, плитки с чипами роли и «Идёт игра», поле кода и кнопка «Войти» прямо в блоке.</p>
+    <div class="cols">
+      <div class="col">
+        <h2>Сейчас · продукт</h2>
+        <div class="frame"><img src="../png/lobby-current-product.png" alt="Текущая страница Лобби" /></div>
+      </div>
+      <div class="col">
+        <h2>Макет v2 · светлая L3</h2>
+        <div class="frame"><img src="../png/desktop-lobby-v2-light-1440.png" alt="Макет Лобби v2" /></div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

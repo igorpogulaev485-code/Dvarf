@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="light-designer3" data-abil-mode="identity" data-drag-variant="b">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Прототип · перетаскивание характеристик</title>
+  <link rel="stylesheet" href="fonts/fonts.css" />
+  <link id="theme-css" rel="stylesheet" href="css/light-designer3.css" />
+  <link rel="stylesheet" href="css/drag-abil.css" />
+</head>
+<body>
+  <div class="concept-bar"><strong>Прототип перетаскивания</strong><span>Концепт, код продукта не менялся · откройте файл локально</span></div>
+  <div class="proto-help">
+    <h2>Как устроено</h2>
+    <div class="proto-toolbar">
+      <button type="button" data-set-theme="light-designer3" class="is-on">Светлая L3</button>
+      <button type="button" data-set-theme="leaf-classic">Тёмная I2</button>
+      <button type="button" data-set-variant="a">А · только ручка</button>
+      <button type="button" data-set-variant="b" class="is-on">Б · вся плашка</button>
+      <button type="button" data-set-variant="c">В · ручка + вся плашка</button>
+    </div>
+    <p>Простой клик по плашке сворачивает или разворачивает навыки. Перетаскивание в Б и В начинается после зажатия левой кнопки и сдвига больше 5 пикселей. Клики по «Пр», «Сп» и строкам навыков перетаскивание не запускают. В варианте А тащить можно только за ручку (6 точек в углу, подсказка «Перетащить»). На телефоне сначала удерживайте около 300 мс, чтобы не мешать прокрутке.</p>
+  </div>
+  <div class="proto-sheet">
+    <h2 class="rail-title">Характеристики</h2>
+            <div class="abil-list">
+        <article class="abil" data-abil="str">
+          <div class="abil-head">
+            <div class="abil-name">Сила ▸</div>
+            <button class="drag-handle" type="button" title="Перетащить" aria-label="Перетащить"><span class="drag-handle-dots" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span></button>
+            <div class="abil-meta">
+              <div class="abil-score">8</div>
+              <div class="abil-mods">
+                <span class="mod">Пр <b>−1</b></span>
+                <span class="pip"></span>
+                <span class="mod">Сп <b>−1</b></span>
+              </div>
+            </div>
+          </div>
+          
+        </article>
+
+        <article class="abil" data-abil="dex">
+          <div class="abil-head">
+            <div class="abil-name">Ловкость ▸</div>
+            <button class="drag-handle" type="button" title="Перетащить" aria-label="Перетащить"><span class="drag-handle-dots" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span></button>
+            <div class="abil-meta">
+              <div class="abil-score">14</div>
+              <div class="abil-mods">
+                <span class="mod">Пр <b>+2</b></span>
+                <span class="pip"></span>
+                <span class="mod">Сп <b>+2</b></span>
+              </div>
+            </div>
+          </div>
+          
+        </article>
+
+        <article class="abil" data-abil="con">
+          <div class="abil-head">
+            <div class="abil-name">Телосложение ▸</div>
+            <button class="drag-handle" type="button" title="Перетащить" aria-label="Перетащить"><span class="drag-handle-dots" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span></button>
+            <div class="abil-meta">
+              <div class="abil-score">15</div>
+              <div class="abil-mods">
+                <span class="mod">Пр <b>+2</b></span>
+                <span class="pip"></span>
+                <span class="mod">Сп <b>+2</b></span>
+              </div>
+            </div>
+          </div>
+          
+        </article>
+
+        <article class="abil" data-abil="int">
+          <div class="abil-head">
+            <div class="abil-name">Интеллект ▾</div>
+            <button class="drag-handle" type="button" title="Перетащить" aria-label="Перетащить"><span class="drag-handle-dots" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span></button>
+            <div class="abil-meta">
+              <div class="abil-score">18</div>
+              <div class="abil-mods">
+                <span class="mod">Пр <b>+4</b></span>
+                <span class="pip is-on"></span>
+                <span class="mod">Сп <b>+8</b></span>
+              </div>
+            </div>
+          </div>
+          <div class="abil-skills"><div class="skill is-on"><span class="pip is-on"></span><span>Магия</span><b>+8</b></div><div class="skill is-on"><span class="pip is-on"></span><span>История</span><b>+8</b></div><div class="skill"><span class="pip"></span><span>Расследование</span><b>+4</b></div></div>
+        </article>
+
+        <article class="abil" data-abil="wis">
+          <div class="abil-head">
+            <div class="abil-name">Мудрость ▸</div>
+            <button class="drag-handle" type="button" title="Перетащить" aria-label="Перетащить"><span class="drag-handle-dots" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span></button>
+            <div class="abil-meta">
+              <div class="abil-score">12</div>
+              <div class="abil-mods">
+                <span class="mod">Пр <b>+1</b></span>
+                <span class="pip is-on"></span>
+                <span class="mod">Сп <b>+5</b></span>
+              </div>
+            </div>
+          </div>
+          
+        </article>
+
+        <article class="abil" data-abil="cha">
+          <div class="abil-head">
+            <div class="abil-name">Харизма ▸</div>
+            <button class="drag-handle" type="button" title="Перетащить" aria-label="Перетащить"><span class="drag-handle-dots" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span></button>
+            <div class="abil-meta">
+              <div class="abil-score">10</div>
+              <div class="abil-mods">
+                <span class="mod">Пр <b>+0</b></span>
+                <span class="pip"></span>
+                <span class="mod">Сп <b>+0</b></span>
+              </div>
+            </div>
+          </div>
+          
+        </article></div>
+  </div>
+  <script src="js/proto-drag.js"></script>
+</body>
+</html>

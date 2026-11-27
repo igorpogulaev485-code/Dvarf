@@ -29,7 +29,7 @@ export const DiceFab = forwardRef(function DiceFab(
     <button
       ref={ref}
       type={type}
-      className={`ui-dice-fab no-print${activeClass}${liftClass} ${className}`.trim()}
+      className={`ui-dice-fab fab-dice no-print${activeClass}${liftClass} ${className}`.trim()}
       aria-label={ariaLabel}
       aria-pressed={active}
       {...props}

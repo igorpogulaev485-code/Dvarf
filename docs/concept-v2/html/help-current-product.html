@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <title>Текущая справка продукта</title>
+  <link rel="stylesheet" href="../fonts/fonts.css" />
+  <style>
+    * { box-sizing: border-box; }
+    html, body { margin: 0; height: 100%; background: #f7f2e4; color: #24241f;
+      font-family: "IBM Plex Sans", "Segoe UI", sans-serif; }
+    .bar { position: sticky; top: 0; z-index: 20; padding: 6px 16px; background: #000; color: rgba(255,255,255,.75);
+      font-size: 11px; font-weight: 600; }
+    .page { padding: 28px 40px 24px; max-width: 1040px; }
+    h1 { margin: 0; font-family: "Source Serif 4", Georgia, serif; font-size: 32px; }
+    .sub { margin: 8px 0 20px; font-weight: 600; color: #5c5c52; }
+    .toolbar { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+    .btn { padding: 8px 14px; border-radius: 10px; border: 1px solid rgba(78,93,52,.35);
+      background: #fffdf8; font: 600 14px/1 "IBM Plex Sans", sans-serif; color: #24241f; }
+    .btn.is-on { background: color-mix(in srgb, #4e5d34 16%, #fffdf8); border-color: #4e5d34; }
+    .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; opacity: .55; }
+    .card { background: #fffdf8; border: 1px solid rgba(78,93,52,.15); border-radius: 16px; padding: 14px; min-height: 120px; }
+    .card b { display: block; font-family: "Source Serif 4", Georgia, serif; font-size: 18px; margin-bottom: 4px; }
+    .root { position: fixed; inset: 0; z-index: 40; }
+    .back { position: absolute; inset: 0; border: 0; background: rgba(28,25,23,.4); }
+    .drawer { position: fixed; top: 0; right: 0; bottom: 0; width: 400px; background: #fffdf9;
+      border-left: 1px solid #e6e0d2; box-shadow: -12px 0 32px rgba(28,25,23,.18);
+      display: flex; flex-direction: column; }
+    .head { display: flex; align-items: center; justify-content: space-between; gap: 8px;
+      padding: 14px 16px; border-bottom: 1px solid #e6e0d2; }
+    .head h2 { margin: 0; font-family: "Source Serif 4", Georgia, serif; font-size: 22px; font-weight: 700; }
+    .ghost { appearance: none; border: 1px solid rgba(78,93,52,.3); background: transparent;
+      padding: 8px 12px; border-radius: 10px; font: 600 14px "IBM Plex Sans", sans-serif; cursor: default; }
+    .body { flex: 1; overflow: auto; padding: 14px 16px 24px; }
+    .restart { display: grid; gap: 8px; padding: 12px; border-radius: 12px; margin-bottom: 16px;
+      border: 1px solid color-mix(in srgb, #4e5d34 30%, #e6e0d2);
+      background: color-mix(in srgb, #e8eedc 55%, #fffdf9); }
+    .restart button { min-height: 44px; border: 0; border-radius: 10px; background: #4e5d34; color: #fffdf8;
+      font: 600 14px "IBM Plex Sans", sans-serif; }
+    .muted { color: #6a6a62; font-size: 13px; line-height: 1.4; margin: 0; }
+    h3 { margin: 16px 0 8px; font-family: "Source Serif 4", Georgia, serif; font-size: 16px; }
+    ul { margin: 0; padding-left: 1.1rem; display: grid; gap: 8px; font-size: 14px; line-height: 1.4; }
+    .knowledge { list-style: none; padding-left: 0; }
+    .knowledge a { color: #4e5d34; }
+    .soon { display: inline-block; margin-left: 4px; font-size: 12px; color: #6a6a62; }
+  </style>
+</head>
+<body>
+  <div class="bar">Текущий продукт · справка HelpDrawer — реконструкция по коду, код не менялся</div>
+  <div class="page">
+    <h1>Мои персонажи (4)</h1>
+    <p class="sub">Игорь Погуляев · 4 в списке</p>
+    <div class="toolbar">
+      <button class="btn" type="button">Создать персонажа</button>
+      <button class="btn is-on" type="button">Справка</button>
+      <button class="btn is-on" type="button">Большие</button>
+      <button class="btn" type="button">Средние</button>
+      <button class="btn" type="button">Компактные</button>
+      <button class="btn" type="button">Теги (3)</button>
+    </div>
+    <div class="cards">
+      <div class="card"><b>Даррак Железный Кулак</b>дварф · варвар 5</div>
+      <div class="card"><b>Ульфар Айронфист</b>дварф · жрец 4</div>
+      <div class="card"><b>Криган</b>человек · следопыт 3</div>
+    </div>
+  </div>
+  <div class="root" role="presentation">
+    <button class="back" type="button" tabindex="-1" aria-label="Закрыть справку"></button>
+    <aside class="drawer" role="dialog" aria-modal="true" aria-labelledby="help-title">
+      <header class="head">
+        <h2 id="help-title">Как это работает</h2>
+        <button class="ghost" type="button">Закрыть</button>
+      </header>
+      <div class="body">
+        <section class="restart">
+          <button type="button">Показать подсказки снова</button>
+          <p class="muted">Снова пройдём короткий тур листа, карточки сцен, подсказку на /join и тур лобби (мастер и игрок). Сегмент сохранится, если вы его уже выбирали.</p>
+        </section>
+        <section>
+          <h3>Карта продукта</h3>
+          <ul>
+            <li><strong>Персонажи.</strong> Список героев. Отсюда создаёшь и открываешь лист.</li>
+            <li><strong>Создание.</strong> Пошагово: раса → черта* → предыстория → класс → характеристики → прокачка.</li>
+            <li><strong>Лист.</strong> Играешь: бой, проверки, каст, инвентарь. В бою — «Новый ход» и отметки действия / бонусного / реакции.</li>
+            <li><strong>Лобби.</strong> Общий стол с мастером и пати по коду или QR. Отсюда садишься за стол со своим героем.</li>
+          </ul>
+        </section>
+        <section>
+          <h3>База знаний (задел)</h3>
+          <ul class="knowledge">
+            <li>Лобби и роли <span class="soon">скоро</span></li>
+            <li><a href="#">Экономика хода</a></li>
+            <li>Опциональные правила мастера <span class="soon">скоро</span></li>
+            <li><a href="#">Отдых</a></li>
+            <li><a href="#">Напарники</a></li>
+            <li><a href="#">Классический лист и печать</a></li>
+            <li>Игрок с бумажным листом за столом <span class="soon">скоро</span></li>
+          </ul>
+        </section>
+        <section>
+          <h3>Блоки листа</h3>
+          <ul>
+            <li><strong>Боевая шапка.</strong> КД, хиты, скорость, инициатива, вдохновение и концентрация. Рядом — «Новый ход» и отметки действий. <span class="muted">В бою всё важное сверху — не надо искать по листу.</span></li>
+            <li><strong>Сцены листа.</strong> Пять вкладок: Бой, Исследование, Общение, Напарники, Способности. <span class="muted">Одна сцена = один контекст за столом. Лишнее спрятано, чтобы не тонуть в простыне.</span></li>
+            <li><strong>Характеристики и навыки.</strong> СИЛ, ЛОВ, ТЕЛ, ИНТ, МДР, ХАР — и навыки под ними (Скрытность, Убеждение…). <span class="muted">Почти все проверки и бой считаются от них. Число → бросок.</span></li>
+            <li><strong>Навыки.</strong> Умения вроде Скрытности, Убеждения, Внимательности. <span class="muted">Мастер просит проверку навыка — кидаешь d20 + модификатор.</span></li>
+          </ul>
+        </section>
+      </div>
+    </aside>
+  </div>
+</body>
+</html>

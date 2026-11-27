@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="light-designer3">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Сейчас · Личный кабинет (продукт)</title>
+  <link rel="stylesheet" href="../fonts/fonts.css" />
+  <link rel="stylesheet" href="../css/light-designer3.css" />
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg, #f7f2e4); color: var(--text-body, #24241f); font-family: "IBM Plex Sans", "Segoe UI", sans-serif; }
+    .concept-bar { height: 32px; display: flex; align-items: center; justify-content: space-between; padding: 0 16px; background: #161614; color: #f3efe3; font-size: 12px; font-weight: 600; }
+    .concept-bar span { font-weight: 500; opacity: 0.75; }
+    .page { max-width: 1180px; margin: 0 auto; padding: 22px 28px 20px; min-height: calc(100vh - 32px); display: flex; flex-direction: column; }
+    .back-link { color: var(--accent, #4e5d34); text-decoration: none; font-weight: 600; font-size: 14px; }
+    h1 { margin: 8px 0 0; font-family: "Source Serif 4", Georgia, serif; font-size: 32px; color: var(--accent, #4e5d34); font-weight: 700; }
+    .sub { margin: 6px 0 0; font-size: 14px; font-weight: 500; color: var(--text-sub, #5c5c52); }
+    .cabinet-layout { display: grid; gap: 16px; margin-top: 18px; }
+    @media (min-width: 960px) {
+      .cabinet-layout { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+      .span-all { grid-column: 1 / -1; }
+    }
+    @media (min-width: 1200px) {
+      .cabinet-layout { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .span-1 { grid-column: span 1; }
+      .span-2 { grid-column: span 2; }
+      .span-all { grid-column: 1 / -1; }
+    }
+    .panel { background: var(--card, #fffdf8); border: 1px solid color-mix(in srgb, var(--accent, #4e5d34) 16%, transparent); border-radius: 16px; padding: 16px 18px; min-width: 0; }
+    .panel h2 { margin: 0 0 12px; font-family: "Source Serif 4", Georgia, serif; font-size: 1.2rem; font-weight: 700; color: var(--accent, #4e5d34); }
+    .muted { margin: 0 0 10px; font-size: 13px; line-height: 1.4; color: var(--text-sub, #5c5c52); }
+    .field { display: grid; gap: 4px; margin-bottom: 10px; }
+    .field label { font-size: 12px; font-weight: 600; color: var(--text-sub, #5c5c52); }
+    .field input {
+      width: 100%; height: 38px; padding: 0 12px; border-radius: 10px;
+      border: 1px solid color-mix(in srgb, var(--accent, #4e5d34) 22%, #c8c4b6);
+      background: #fff; color: var(--text-body, #24241f); font: inherit; font-size: 14px;
+    }
+    .field input[readonly], .field input:disabled { background: #f4f0e4; color: var(--text-sub, #5c5c52); }
+    .hint { margin: 2px 0 0; font-size: 12px; color: var(--text-sub, #5c5c52); }
+    .avatar-block { display: flex; align-items: center; gap: 16px; margin-bottom: 14px; }
+    .avatar {
+      width: 88px; height: 88px; aspect-ratio: 1/1; flex-shrink: 0; box-sizing: border-box; border-radius: 50%;
+      display: grid; place-items: center; font-family: "Source Serif 4", Georgia, serif; font-size: 1.35rem; font-weight: 700;
+      color: var(--accent, #4e5d34); background: #e5ecd4; border: 1.5px solid color-mix(in srgb, var(--accent, #4e5d34) 45%, transparent);
+    }
+    .btn { display: inline-flex; align-items: center; justify-content: center; min-height: 36px; padding: 0 14px; border-radius: 10px; border: 1px solid transparent; font: inherit; font-size: 14px; font-weight: 600; cursor: default; }
+    .btn-primary { background: var(--accent, #4e5d34); color: #fffdf8; }
+    .btn-secondary { background: #e5ecd4; color: var(--accent, #4e5d34); border-color: color-mix(in srgb, var(--accent, #4e5d34) 22%, white); }
+    .btn-ghost { background: transparent; color: var(--text-body, #24241f); border-color: color-mix(in srgb, var(--accent, #4e5d34) 22%, transparent); }
+    .btn-danger { background: #b42318; color: #fff8f7; border-color: #912018; }
+    .btn-danger-quiet { background: transparent; color: #8a1f16; border-color: color-mix(in srgb, #b42318 45%, #c8c4b6); }
+    .btn[disabled] { opacity: 0.55; }
+    .row-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+    .provider { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 0; border-bottom: 1px solid color-mix(in srgb, var(--accent, #4e5d34) 12%, transparent); }
+    .provider:last-of-type { border-bottom: 0; }
+    .provider b { display: block; font-size: 14px; }
+    .theme-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+    .theme-card { display: grid; grid-template-columns: 28px 1fr; gap: 10px; align-items: center; padding: 10px 12px; border: 1px solid color-mix(in srgb, var(--accent, #4e5d34) 16%, transparent); border-radius: 14px; background: #fff; text-align: left; }
+    .theme-card.is-on { border-color: var(--swatch); background: var(--swatch-soft); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--swatch) 35%, transparent); }
+    .swatch { width: 28px; height: 28px; aspect-ratio: 1/1; flex-shrink: 0; box-sizing: border-box; border-radius: 50%; background: var(--swatch); box-shadow: inset 0 0 0 1px rgba(45,45,42,0.12); }
+    .theme-card b { display: block; font-size: 14px; color: var(--text-body, #24241f); }
+    .theme-card span { font-size: 12px; color: var(--text-sub, #5c5c52); }
+    .h3 { margin: 0 0 8px; font-family: "Source Serif 4", Georgia, serif; font-size: 1.05rem; color: var(--accent, #4e5d34); }
+    .chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0; }
+    .chip { display: inline-flex; align-items: center; min-height: 28px; padding: 0 10px; border-radius: 999px; border: 1px solid color-mix(in srgb, var(--accent, #4e5d34) 22%, transparent); background: #fff; font-size: 13px; font-weight: 650; }
+    .chip.is-on { background: #e5ecd4; border-color: var(--accent, #4e5d34); color: var(--accent, #4e5d34); }
+    .abil { display: inline-flex; align-items: center; justify-content: center; min-width: 3rem; padding: 6px 10px; border-radius: 8px; font-family: "Source Serif 4", Georgia, serif; font-weight: 700; font-size: 0.85rem; color: var(--abil); background: color-mix(in srgb, var(--abil-soft) 70%, white); border-left: 3px solid var(--abil); }
+    .preview { display: grid; gap: 8px; padding-top: 8px; margin-top: 8px; border-top: 1px dashed color-mix(in srgb, var(--accent, #4e5d34) 22%, transparent); }
+    .preview-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+    .session { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 0; }
+    .session b { display: block; font-size: 14px; }
+    .panel--danger { border-color: color-mix(in srgb, #b42318 42%, #c8c4b6); background: color-mix(in srgb, #b42318 6%, #fffdf8); }
+    .panel--danger h2, .danger-text { color: #8a1f16; }
+    .danger-text { margin: 0 0 10px; font-size: 13px; line-height: 1.4; }
+    .legal { margin-top: auto; padding-top: 20px; font-size: 13px; color: var(--text-sub, #5c5c52); width: fit-content; }
+    .legal b { color: var(--accent, #4e5d34); font-weight: 600; }
+  </style>
+</head>
+<body>
+  <div class="concept-bar"><strong>Сейчас · Личный кабинет (продукт)</strong><span>Воссоздано по коду CabinetPage, без правок продукта. Почта в кадре — пример user@example.com</span></div>
+  <div class="page">
+    <header>
+      <a class="back-link" href="#">← К персонажам</a>
+      <h1>Личный кабинет</h1>
+      <p class="sub">Профиль, безопасность и оформление</p>
+    </header>
+    <div class="cabinet-layout">
+      <section class="panel span-1">
+        <h2>Профиль</h2>
+        <div class="avatar-block">
+          <div class="avatar" aria-hidden="true">ИП</div>
+          <div>
+            <p class="muted" style="margin-bottom:8px">JPEG, PNG или WebP, до 2 МБ. Картинка обрежется до 256×256.</p>
+            <div class="row-actions" style="margin-top:0">
+              <button class="btn btn-secondary" type="button">Загрузить фото</button>
+            </div>
+          </div>
+        </div>
+        <div class="field">
+          <label for="c-email">Email</label>
+          <input id="c-email" type="email" value="user@example.com" readonly disabled>
+          <p class="hint">Только просмотр. Смена — в блоке «Смена email» ниже</p>
+        </div>
+        <div class="field">
+          <label for="c-nick">Отображаемое имя</label>
+          <input id="c-nick" type="text" value="Игорь" placeholder="Как вас видеть в Dvarf">
+        </div>
+        <div class="field">
+          <label for="c-fio">ФИО</label>
+          <input id="c-fio" type="text" value="Игорь Погуляев" placeholder="Необязательно">
+        </div>
+        <div class="field">
+          <label for="c-phone">Телефон</label>
+          <input id="c-phone" type="tel" value="+7 (900) 000-00-00">
+          <p class="hint">Формат +7 (XXX) XXX-XX-XX. Номер в кадре — пример.</p>
+        </div>
+        <button class="btn btn-primary" type="button">Сохранить</button>
+      </section>
+
+      <section class="panel span-2">
+        <h2>Оформление</h2>
+        <p class="muted">Цвет темы красит кнопки, вкладки, фильтры и заголовки панелей. Пергамент общий.</p>
+        <h3 class="h3">Цвет темы</h3>
+        <div class="theme-grid" role="radiogroup" aria-label="Цвет темы аккаунта">
+          <div class="theme-card" style="--swatch:#9a4a32;--swatch-soft:#f3e0d6"><span class="swatch"></span><span><b>Медь</b><span>СИЛ · #9a4a32</span></span></div>
+          <div class="theme-card" style="--swatch:#3d6b5a;--swatch-soft:#dcece4"><span class="swatch"></span><span><b>Хвоя</b><span>ЛОВ · #3d6b5a</span></span></div>
+          <div class="theme-card" style="--swatch:#8a6a2f;--swatch-soft:#f1e6c8"><span class="swatch"></span><span><b>Охра</b><span>ТЕЛ · #8a6a2f</span></span></div>
+          <div class="theme-card" style="--swatch:#3f5f8a;--swatch-soft:#dde6f2"><span class="swatch"></span><span><b>Чернила</b><span>ИНТ · #3f5f8a</span></span></div>
+          <div class="theme-card is-on" style="--swatch:#5a6b3d;--swatch-soft:#e5ecd4"><span class="swatch"></span><span><b>Листва</b><span>МДР · дефолт · #5a6b3d</span></span></div>
+          <div class="theme-card" style="--swatch:#7a4a6e;--swatch-soft:#efe0ea"><span class="swatch"></span><span><b>Слива</b><span>ХАР · #7a4a6e</span></span></div>
+        </div>
+        <h3 class="h3" style="margin-top:14px">Цвета характеристик</h3>
+        <p class="muted">Уникальные цвета — понятнее на глаз. Один цвет темы — спокойнее, если пёстрое режет.</p>
+        <div class="chips">
+          <span class="chip is-on">Уникальные (СИЛ…ХАР)</span>
+          <span class="chip">Цвет темы</span>
+        </div>
+        <div class="chips" aria-hidden="true">
+          <span class="abil" style="--abil:#9a4a32;--abil-soft:#f3e0d6">СИЛ</span>
+          <span class="abil" style="--abil:#3d6b5a;--abil-soft:#dcece4">ЛОВ</span>
+          <span class="abil" style="--abil:#8a6a2f;--abil-soft:#f1e6c8">ТЕЛ</span>
+          <span class="abil" style="--abil:#3f5f8a;--abil-soft:#dde6f2">ИНТ</span>
+          <span class="abil" style="--abil:#5a6b3d;--abil-soft:#e5ecd4">МДР</span>
+          <span class="abil" style="--abil:#7a4a6e;--abil-soft:#efe0ea">ХАР</span>
+        </div>
+        <div class="preview">
+          <p class="muted" style="margin:0">Превью хрома</p>
+          <div class="preview-row">
+            <button class="btn btn-primary" type="button" tabindex="-1">Сохранить</button>
+            <button class="btn btn-secondary" type="button" tabindex="-1">Из справочника</button>
+            <span class="chip is-on">Бой</span>
+            <span class="chip">Инвентарь</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>Способы входа</h2>
+        <div class="provider"><div><b>Пароль (email)</b><span class="hint">Подключено</span></div><span class="hint">Основной вход</span></div>
+        <div class="provider"><div><b>Яндекс ID</b><span class="hint">Не подключено</span></div><button class="btn btn-secondary" type="button">Привязать</button></div>
+        <div class="provider"><div><b>VK ID</b><span class="hint">Не подключено</span></div><button class="btn btn-secondary" type="button">Привязать</button></div>
+        <p class="muted" style="margin-top:10px;margin-bottom:0">Привязка позволяет входить в тот же аккаунт через Яндекс или VK, не создавая второй профиль.</p>
+      </section>
+
+      <section class="panel">
+        <h2>Смена email</h2>
+        <p class="muted">Ссылка подтверждения уйдёт на <strong>user@example.com</strong>. Email сменится только после перехода по ссылке.</p>
+        <div class="field">
+          <label for="c-new-email">Новый email</label>
+          <input id="c-new-email" type="email" placeholder="new@mail.ru" value="">
+        </div>
+        <button class="btn btn-primary" type="button">Отправить ссылку на текущую почту</button>
+      </section>
+
+      <section class="panel">
+        <h2>Смена пароля</h2>
+        <div class="field">
+          <label>Текущий пароль</label>
+          <input type="password" value="••••••••" autocomplete="current-password">
+        </div>
+        <div class="field">
+          <label>Новый пароль</label>
+          <input type="password" placeholder="Минимум 8 символов" value="">
+          <p class="hint">Минимум 8 символов</p>
+        </div>
+        <div class="field">
+          <label>Повторите новый пароль</label>
+          <input type="password" value="">
+        </div>
+        <button class="btn btn-primary" type="button">Сменить пароль</button>
+      </section>
+
+      <section class="panel span-all">
+        <h2>Сессии</h2>
+        <p class="muted">Здесь видны устройства, где вы вошли. Можно завершить чужую или все сессии.</p>
+        <div class="session">
+          <div><b>Linux · текущая</b><span class="hint">вход 17 ноя, 12:04 · активность 17 ноя, 17:30</span></div>
+          <button class="btn btn-ghost" type="button">Выйти</button>
+        </div>
+        <div class="row-actions">
+          <button class="btn btn-secondary" type="button" disabled>Завершить остальные</button>
+          <button class="btn btn-danger" type="button">Выйти везде</button>
+          <button class="btn btn-ghost" type="button">Выйти только здесь</button>
+        </div>
+      </section>
+
+      <section class="panel panel--danger span-all">
+        <h2>Опасная зона</h2>
+        <p class="danger-text">Удаление аккаунта необратимо: пропадут персонажи, профиль и привязки входа.</p>
+        <div class="field">
+          <label>Введите текущий email для подтверждения</label>
+          <input type="email" autocomplete="off" placeholder="user@example.com" value="">
+        </div>
+        <div class="field">
+          <label>Пароль</label>
+          <input type="password" autocomplete="current-password" value="">
+        </div>
+        <button class="btn btn-danger" type="button">Удалить аккаунт навсегда</button>
+      </section>
+    </div>
+    <p class="legal">Правовая информация · <b>info@creed20.tech</b></p>
+  </div>
+</body>
+</html>

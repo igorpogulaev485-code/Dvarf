@@ -1,0 +1,183 @@
+pages=145 defaultId=sheet templates=['proto-nav']
+
+
+======== GROUP: approved ========
+
+---- Основные ----
+  1. id=sheet | Лист персонажа ПК | frame=desktop | themeSwitch=sheet | html=1278653 | themes=[]
+  2. id=onboarding | Опрос оформления | frame=desktop | themeSwitch=None | html=405310 | themes=[]
+  3. id=account-v2 | Кабинет / аккаунт v2 | frame=desktop | themeSwitch=None | html=0 | themes=['light', 'dark']
+  4. id=lobby-v2 | Лобби v2 | frame=desktop | themeSwitch=None | html=0 | themes=['light', 'dark']
+  5. id=site-soon | Сайт скоро | frame=desktop | themeSwitch=None | html=0 | themes=['light', 'dark']
+
+---- Персонажи v2 ----
+  6. id=chars-v2-medium | Персонажи v2 · средний размер | frame=desktop | themeSwitch=None | html=141476 | themes=[]
+  7. id=chars-v2-compact | Персонажи v2 · компактный размер | frame=desktop | themeSwitch=None | html=141483 | themes=[]
+  8. id=chars-v2-large | Персонажи v2 · крупный размер | frame=desktop | themeSwitch=None | html=0 | themes=['light', 'dark']
+  9. id=chars-v2-tags-panel | Персонажи v2 · панель тегов | frame=desktop | themeSwitch=None | html=146126 | themes=[]
+ 10. id=chars-v2-tags-filter | Персонажи v2 · фильтр тегов | frame=desktop | themeSwitch=None | html=141552 | themes=[]
+ 11. id=chars-v2-tags-assign | Персонажи v2 · назначение тегов | frame=desktop | themeSwitch=None | html=146133 | themes=[]
+
+---- Авторизация ----
+ 12. id=flow-auth | Схема процесса авторизации | frame=desktop | themeSwitch=None | html=6725 | themes=[]
+ 13. id=auth-guest-chars | Гость · персонажи | frame=desktop | themeSwitch=proto | html=0 | themes=[] | template=proto-nav | init={"auth": "guest", "pageId": "chars", "open": "", "width": "desktop", "hideAuthDemo": true}
+ 14. id=auth-guest-lobby | Гость · лобби | frame=desktop | themeSwitch=proto | html=0 | themes=[] | template=proto-nav | init={"auth": "guest", "pageId": "lobby", "open": "", "width": "desktop", "hideAuthDemo": true}
+ 15. id=auth-guest-site | Гость · сайт | frame=desktop | themeSwitch=proto | html=0 | themes=[] | template=proto-nav | init={"auth": "guest", "pageId": "site", "open": "", "width": "desktop", "hideAuthDemo": true}
+ 16. id=auth-login | Вход | frame=desktop | themeSwitch=proto | html=0 | themes=[] | template=proto-nav | init={"auth": "guest", "pageId": "chars", "open": "login", "width": "desktop", "hideAuthDemo": true}
+ 17. id=auth-register | Регистрация | frame=desktop | themeSwitch=proto | html=0 | themes=[] | template=proto-nav | init={"auth": "guest", "pageId": "chars", "open": "register", "width": "desktop", "hideAuthDemo": true, "prefill": {"auth-reg-name": "Игорь", "auth-reg-email": "user@example.com"}}
+ 18. id=auth-login-error | Ошибка входа | frame=desktop | themeSwitch=proto | html=0 | themes=[] | template=proto-nav | init={"auth": "guest", "pageId": "chars", "open": "login-error", "width": "desktop", "hideAuthDemo": true, "prefill": {"auth-login-email": "user@example.com", "auth-login-password": "wrong"}}
+ 19. id=auth-register-sent | Письмо подтверждения | frame=desktop | themeSwitch=proto | html=0 | themes=[] | template=proto-nav | init={"auth": "guest", "pageId": "chars", "open": "register-sent", "width": "desktop", "hideAuthDemo": true}
+ 20. id=auth-forgot | Забыли пароль | frame=desktop | themeSwitch=proto | html=0 | themes=[] | template=proto-nav | init={"auth": "guest", "pageId": "chars", "open": "forgot", "width": "desktop", "hideAuthDemo": true, "prefill": {"auth-forgot-email": "user@example.com"}}
+ 21. id=auth-forgot-sent | Письмо для смены пароля | frame=desktop | themeSwitch=proto | html=0 | themes=[] | template=proto-nav | init={"auth": "guest", "pageId": "chars", "open": "forgot-sent", "width": "desktop", "hideAuthDemo": true}
+ 22. id=auth-reset-new | Новый пароль | frame=desktop | themeSwitch=proto | html=0 | themes=[] | template=proto-nav | init={"auth": "guest", "pageId": "chars", "open": "reset-new", "width": "desktop", "hideAuthDemo": true}
+ 23. id=auth-reset-done | Пароль обновлён | frame=desktop | themeSwitch=proto | html=0 | themes=[] | template=proto-nav | init={"auth": "guest", "pageId": "chars", "open": "reset-done", "width": "desktop", "hideAuthDemo": true}
+ 24. id=auth-oauth-loading | OAuth · загрузка | frame=desktop | themeSwitch=proto | html=0 | themes=[] | template=proto-nav | init={"auth": "guest", "pageId": "chars", "open": "oauth-loading", "width": "desktop", "hideAuthDemo": true, "oauthText": "Переходим к Яндекс ID…"}
+ 25. id=auth-oauth-error | OAuth · ошибка | frame=desktop | themeSwitch=proto | html=0 | themes=[] | template=proto-nav | init={"auth": "guest", "pageId": "chars", "open": "oauth-error", "width": "desktop", "hideAuthDemo": true}
+ 26. id=auth-guest-chars-mobile | Гость · персонажи (телефон) | frame=mobile | themeSwitch=proto | html=0 | themes=[] | template=proto-nav | init={"auth": "guest", "pageId": "chars", "open": "", "width": "phone", "hideAuthDemo": true}
+ 27. id=auth-guest-lobby-mobile | Гость · лобби (телефон) | frame=mobile | themeSwitch=proto | html=0 | themes=[] | template=proto-nav | init={"auth": "guest", "pageId": "lobby", "open": "", "width": "phone", "hideAuthDemo": true}
+ 28. id=auth-guest-site-mobile | Гость · сайт (телефон) | frame=mobile | themeSwitch=proto | html=0 | themes=[] | template=proto-nav | init={"auth": "guest", "pageId": "site", "open": "", "width": "phone", "hideAuthDemo": true}
+ 29. id=auth-login-mobile | Вход (телефон) | frame=mobile | themeSwitch=proto | html=0 | themes=[] | template=proto-nav | init={"auth": "guest", "pageId": "chars", "open": "login", "width": "phone", "hideAuthDemo": true}
+ 30. id=auth-register-mobile | Регистрация (телефон) | frame=mobile | themeSwitch=proto | html=0 | themes=[] | template=proto-nav | init={"auth": "guest", "pageId": "chars", "open": "register", "width": "phone", "hideAuthDemo": true, "prefill": {"auth-reg-name": "Игорь", "auth-reg-email": "user@example.com"}}
+ 31. id=auth-register-sent-mobile | Письмо подтверждения (телефон) | frame=mobile | themeSwitch=proto | html=0 | themes=[] | template=proto-nav | init={"auth": "guest", "pageId": "chars", "open": "register-sent", "width": "phone", "hideAuthDemo": true}
+ 32. id=auth-forgot-mobile | Забыли пароль (телефон) | frame=mobile | themeSwitch=proto | html=0 | themes=[] | template=proto-nav | init={"auth": "guest", "pageId": "chars", "open": "forgot", "width": "phone", "hideAuthDemo": true, "prefill": {"auth-forgot-email": "user@example.com"}}
+ 33. id=auth-login-from-lobby-mobile | Вход из лобби (телефон) | frame=mobile | themeSwitch=proto | html=0 | themes=[] | template=proto-nav | init={"auth": "guest", "pageId": "lobby", "open": "login", "width": "phone", "hideAuthDemo": true}
+
+---- Мобильные ----
+ 34. id=mobile-nav-proto | Мобильная навигация (прототип) | frame=desktop | themeSwitch=None | html=0 | themes=[] | template=proto-nav
+ 35. id=mobile-chars-nav | Мобильная навигация персонажей | frame=mobile | themeSwitch=None | html=0 | themes=['light', 'dark']
+ 36. id=mobile-account-v2 | Мобильный кабинет v2 | frame=mobile | themeSwitch=None | html=0 | themes=['light', 'dark']
+ 37. id=mobile-chars-v2 | Мобильные персонажи v2 | frame=mobile | themeSwitch=None | html=141473 | themes=[]
+ 38. id=mobile-lobby-v2 | Мобильное лобби v2 | frame=mobile | themeSwitch=None | html=0 | themes=['light', 'dark']
+ 39. id=mobile-lobby-v2-compact | Мобильное лобби v2 · компакт | frame=mobile | themeSwitch=None | html=139354 | themes=[]
+ 40. id=mobile-site-soon | Мобильный «сайт скоро» | frame=mobile | themeSwitch=None | html=0 | themes=['light', 'dark']
+ 41. id=mobile-chars-fab | Мобильные персонажи · кнопка + | frame=mobile | themeSwitch=None | html=0 | themes=['light', 'dark']
+
+---- Справка, кубик и «+» ----
+ 42. id=help-desk | Справка на списке персонажей | frame=desktop | themeSwitch=proto | html=0 | themes=[] | template=proto-nav | init={"auth": "user", "pageId": "chars", "open": "", "width": "desktop", "hideAuthDemo": true, "helpOpen": true}
+ 43. id=help-mobile | Справка (телефон) | frame=mobile | themeSwitch=proto | html=0 | themes=[] | template=proto-nav | init={"auth": "user", "pageId": "chars", "open": "", "width": "phone", "hideAuthDemo": true, "helpOpen": true}
+ 44. id=dice-empty | Кубик · пустое окно | frame=desktop | themeSwitch=proto | html=0 | themes=[] | template=proto-nav | init={"auth": "user", "pageId": "chars", "open": "", "width": "desktop", "hideAuthDemo": true, "diceState": "empty"}
+ 45. id=dice-set | Кубик · набор 2к6+3 | frame=desktop | themeSwitch=proto | html=0 | themes=[] | template=proto-nav | init={"auth": "user", "pageId": "chars", "open": "", "width": "desktop", "hideAuthDemo": true, "diceState": "set"}
+ 46. id=dice-result | Кубик · результат | frame=desktop | themeSwitch=proto | html=0 | themes=[] | template=proto-nav | init={"auth": "user", "pageId": "chars", "open": "", "width": "desktop", "hideAuthDemo": true, "diceState": "result"}
+ 47. id=dice-mobile | Кубик (телефон) | frame=mobile | themeSwitch=proto | html=0 | themes=[] | template=proto-nav | init={"auth": "user", "pageId": "chars", "open": "", "width": "phone", "hideAuthDemo": true, "diceState": "result"}
+ 48. id=fork-char-now | Создать персонажа · 2024 скрыта | frame=desktop | themeSwitch=proto | html=0 | themes=[] | template=proto-nav | init={"auth": "user", "pageId": "chars", "open": "", "width": "desktop", "hideAuthDemo": true, "edition2024": "hidden", "createFork": "char"}
+ 49. id=fork-char-open | Создать персонажа · 2024 открыта | frame=desktop | themeSwitch=proto | html=0 | themes=[] | template=proto-nav | init={"auth": "user", "pageId": "chars", "open": "", "width": "desktop", "hideAuthDemo": true, "edition2024": "open", "createFork": "char"}
+ 50. id=fork-lobby-open | Создать лобби · 2024 открыта | frame=desktop | themeSwitch=proto | html=0 | themes=[] | template=proto-nav | init={"auth": "user", "pageId": "lobby", "open": "", "width": "desktop", "hideAuthDemo": true, "edition2024": "open", "createFork": "lobby"}
+ 51. id=fork-char-open-mobile | Создать персонажа · 2024 открыта (телефон) | frame=mobile | themeSwitch=proto | html=0 | themes=[] | template=proto-nav | init={"auth": "user", "pageId": "chars", "open": "", "width": "phone", "hideAuthDemo": true, "edition2024": "open", "createFork": "char"}
+
+---- Перетаскивание ----
+ 52. id=drag-hybrid | Перетаскивание: гибрид (утверждено) | frame=desktop | themeSwitch=None | html=20785 | themes=[]
+ 53. id=drag-lines | Перетаскивание: две полоски (утверждено) | frame=desktop | themeSwitch=None | html=21230 | themes=[]
+
+---- Оформление ----
+ 54. id=icons-approved | Витрина утверждённых иконок | frame=desktop | themeSwitch=None | html=0 | themes=['light', 'dark']
+ 55. id=backgrounds | Подложки (утверждены, §24) | frame=desktop | themeSwitch=None | html=241073 | themes=[]
+ 56. id=fonts-board | Шрифты: витрина пар (утверждены, §25) | frame=desktop | themeSwitch=None | html=11284 | themes=[]
+ 57. id=fonts-sheet | Шрифты на листе | frame=desktop | themeSwitch=None | html=14480 | themes=[]
+
+======== GROUP: variants ========
+
+---- Сравнения ----
+ 58. id=cmp-main | Сравнение тем: общий ряд | frame=desktop | themeSwitch=None | html=709701 | themes=[]
+ 59. id=cmp-six | Сравнение шести тёмных тем | frame=desktop | themeSwitch=None | html=1161778 | themes=[]
+ 60. id=cmp-seven | Сравнение семи тёмных тем | frame=desktop | themeSwitch=None | html=1340055 | themes=[]
+ 61. id=cmp-ghi | Сравнение G / H / I | frame=desktop | themeSwitch=None | html=505758 | themes=[]
+ 62. id=cmp-gold-designer | Сравнение золота и спеки дизайнера | frame=desktop | themeSwitch=None | html=340294 | themes=[]
+ 63. id=cmp-i-i2 | Сравнение I и I2 | frame=desktop | themeSwitch=None | html=335526 | themes=[]
+ 64. id=cmp-light-now-designer | Светлая сейчас и светлая по правилам дизайнера | frame=desktop | themeSwitch=None | html=342469 | themes=[]
+ 65. id=cmp-light-dark-i2 | Светлая L и тёмная I2 | frame=desktop | themeSwitch=None | html=329618 | themes=[]
+ 66. id=cmp-l-l2 | Сравнение L и L2 | frame=desktop | themeSwitch=None | html=571889 | themes=[]
+ 67. id=cmp-l3-i2 | Сравнение L3 и I2 | frame=desktop | themeSwitch=None | html=617234 | themes=[]
+ 68. id=cmp-statcolors | Цвета характеристик: L3 и I2 | frame=desktop | themeSwitch=None | html=338691 | themes=[]
+ 69. id=cmp-account | Кабинет: было / стало | frame=desktop | themeSwitch=None | html=547992 | themes=[]
+ 70. id=cmp-lobby | Лобби: было / стало | frame=desktop | themeSwitch=None | html=238479 | themes=[]
+ 71. id=cmp-mobile-chars | Мобильные персонажи: было / стало | frame=desktop | themeSwitch=None | html=199563 | themes=[]
+ 72. id=cmp-drag-ab | Перетаскивание: сравнение A и B | frame=desktop | themeSwitch=None | html=1065425 | themes=[]
+ 73. id=cmp-handle | Ручка перетаскивания: наклон и прямые | frame=desktop | themeSwitch=None | html=13467 | themes=[]
+
+---- Как сейчас в продукте ----
+ 74. id=prod-account | Кабинет как в продукте сейчас | frame=desktop | themeSwitch=None | html=31094 | themes=[]
+ 75. id=prod-lobby | Лобби как в продукте сейчас | frame=desktop | themeSwitch=None | html=21305 | themes=[]
+ 76. id=prod-help | Справка как в продукте сейчас | frame=desktop | themeSwitch=None | html=7213 | themes=[]
+
+---- Ранняя светлая и L / L2 ----
+ 77. id=light-sheet | Светлая (как было) · лист | frame=desktop | themeSwitch=None | html=42813 | themes=[]
+ 78. id=light-cabinet | Светлая (как было) · кабинет | frame=desktop | themeSwitch=None | html=36752 | themes=[]
+ 79. id=light-dialog | Светлая (как было) · диалог | frame=desktop | themeSwitch=None | html=37806 | themes=[]
+ 80. id=l-sheet | L · светлая по правилам дизайнера · лист | frame=desktop | themeSwitch=None | html=24804 | themes=[]
+ 81. id=l-sheet-stat | L · лист, цвета характеристик | frame=desktop | themeSwitch=None | html=24820 | themes=[]
+ 82. id=l-cabinet | L · кабинет | frame=desktop | themeSwitch=None | html=21836 | themes=[]
+ 83. id=l-dialog | L · диалог | frame=desktop | themeSwitch=None | html=22553 | themes=[]
+ 84. id=l2-sheet | L2 · светлая контрастнее · лист | frame=desktop | themeSwitch=None | html=24815 | themes=[]
+ 85. id=l2-cabinet | L2 · кабинет | frame=desktop | themeSwitch=None | html=21847 | themes=[]
+ 86. id=l2-dialog | L2 · диалог | frame=desktop | themeSwitch=None | html=22564 | themes=[]
+
+---- Тёмные темы A–G ----
+ 87. id=parchment-sheet | A · Пергамент ночью · лист | frame=desktop | themeSwitch=None | html=42823 | themes=[]
+ 88. id=parchment-cabinet | A · Пергамент ночью · кабинет | frame=desktop | themeSwitch=None | html=36762 | themes=[]
+ 89. id=parchment-dialog | A · Пергамент ночью · диалог | frame=desktop | themeSwitch=None | html=37816 | themes=[]
+ 90. id=dungeon-sheet | B · Подземелье · лист | frame=desktop | themeSwitch=None | html=42811 | themes=[]
+ 91. id=dungeon-cabinet | B · Подземелье · кабинет | frame=desktop | themeSwitch=None | html=36750 | themes=[]
+ 92. id=dungeon-dialog | B · Подземелье · диалог | frame=desktop | themeSwitch=None | html=37804 | themes=[]
+ 93. id=graphite-sheet | C · Нейтральный графит · лист | frame=desktop | themeSwitch=None | html=42828 | themes=[]
+ 94. id=graphite-cabinet | C · Нейтральный графит · кабинет | frame=desktop | themeSwitch=None | html=36767 | themes=[]
+ 95. id=graphite-dialog | C · Нейтральный графит · диалог | frame=desktop | themeSwitch=None | html=37821 | themes=[]
+ 96. id=tavern-sheet | D · Таверна при свечах · лист | frame=desktop | themeSwitch=None | html=42826 | themes=[]
+ 97. id=tavern-cabinet | D · Таверна при свечах · кабинет | frame=desktop | themeSwitch=None | html=36765 | themes=[]
+ 98. id=tavern-dialog | D · Таверна при свечах · диалог | frame=desktop | themeSwitch=None | html=37819 | themes=[]
+ 99. id=forest-sheet | E · Лесная ночь · лист | frame=desktop | themeSwitch=None | html=42812 | themes=[]
+100. id=forest-cabinet | E · Лесная ночь · кабинет | frame=desktop | themeSwitch=None | html=36751 | themes=[]
+101. id=forest-dialog | E · Лесная ночь · диалог | frame=desktop | themeSwitch=None | html=37805 | themes=[]
+102. id=grimoire-sheet | F · Гримуар / чернила · лист | frame=desktop | themeSwitch=None | html=42826 | themes=[]
+103. id=grimoire-cabinet | F · Гримуар / чернила · кабинет | frame=desktop | themeSwitch=None | html=36765 | themes=[]
+104. id=grimoire-dialog | F · Гримуар / чернила · диалог | frame=desktop | themeSwitch=None | html=37819 | themes=[]
+105. id=gold-sheet | G · Золото на чёрном · лист | frame=desktop | themeSwitch=None | html=42816 | themes=[]
+106. id=gold-cabinet | G · Золото на чёрном · кабинет | frame=desktop | themeSwitch=None | html=36755 | themes=[]
+107. id=gold-dialog | G · Золото на чёрном · диалог | frame=desktop | themeSwitch=None | html=37809 | themes=[]
+108. id=gold-stat | G · Золото на чёрном · цвета характеристик | frame=desktop | themeSwitch=None | html=42834 | themes=[]
+
+---- Темы дизайнера H, I, I2 и листы L3 ----
+109. id=designer-sheet | H · спека дизайнера · лист | frame=desktop | themeSwitch=None | html=25879 | themes=[]
+110. id=designer-sheet-readable | H · лист, читаемые прозрачности | frame=desktop | themeSwitch=None | html=25899 | themes=[]
+111. id=designer-sheet-stat | H · лист, цвета характеристик | frame=desktop | themeSwitch=None | html=25895 | themes=[]
+112. id=designer-cabinet | H · кабинет | frame=desktop | themeSwitch=None | html=22891 | themes=[]
+113. id=designer-dialog | H · диалог | frame=desktop | themeSwitch=None | html=23608 | themes=[]
+114. id=i-sheet | I · дизайнер + Листва · лист | frame=desktop | themeSwitch=None | html=25868 | themes=[]
+115. id=i-sheet-stat | I · лист, цвета характеристик | frame=desktop | themeSwitch=None | html=25884 | themes=[]
+116. id=i-cabinet | I · кабинет | frame=desktop | themeSwitch=None | html=22880 | themes=[]
+117. id=i-dialog | I · диалог | frame=desktop | themeSwitch=None | html=23597 | themes=[]
+118. id=i2-sheet | I2 · исторический лист | frame=desktop | themeSwitch=None | html=26019 | themes=[]
+119. id=i2-sheet-stat | I2 · исторический лист, цвета характеристик | frame=desktop | themeSwitch=None | html=26035 | themes=[]
+120. id=i2-cabinet | I2 · исторический кабинет | frame=desktop | themeSwitch=None | html=23031 | themes=[]
+121. id=i2-dialog | I2 · исторический диалог | frame=desktop | themeSwitch=None | html=23748 | themes=[]
+122. id=l3-sheet | L3 · исторический лист | frame=desktop | themeSwitch=None | html=24325 | themes=[]
+123. id=l3-sheet-stat | L3 · исторический лист, цвета характеристик | frame=desktop | themeSwitch=None | html=24341 | themes=[]
+124. id=l3-cabinet | L3 · исторический кабинет | frame=desktop | themeSwitch=None | html=21337 | themes=[]
+125. id=l3-dialog | L3 · исторический диалог | frame=desktop | themeSwitch=None | html=22054 | themes=[]
+
+---- Перетаскивание: варианты и состояния ----
+126. id=drag-proto-early | Перетаскивание: ранний прототип | frame=desktop | themeSwitch=None | html=35521 | themes=[]
+127. id=drag-A | Перетаскивание A | frame=desktop | themeSwitch=None | html=0 | themes=['light', 'dark']
+128. id=drag-B | Перетаскивание B · в процессе | frame=desktop | themeSwitch=None | html=0 | themes=['light', 'dark']
+129. id=drag-C | Перетаскивание C · в процессе | frame=desktop | themeSwitch=None | html=0 | themes=['light', 'dark']
+130. id=drag-hybrid-hover | Гибрид · наведение | frame=desktop | themeSwitch=None | html=0 | themes=['light', 'dark']
+131. id=drag-hybrid-hold | Гибрид · удержание | frame=desktop | themeSwitch=None | html=0 | themes=['light', 'dark']
+132. id=drag-hybrid-dragging | Гибрид · перетаскивание | frame=desktop | themeSwitch=None | html=0 | themes=['light', 'dark']
+133. id=drag-hybrid-zoom | Гибрид · увеличение иконки | frame=desktop | themeSwitch=None | html=10753 | themes=[]
+134. id=drag-lines-rest | Две полоски · покой | frame=desktop | themeSwitch=None | html=0 | themes=['light', 'dark']
+135. id=drag-lines-dragging | Две полоски · перетаскивание | frame=desktop | themeSwitch=None | html=0 | themes=['light', 'dark']
+136. id=drag-lines-straight | Две полоски · прямые | frame=desktop | themeSwitch=None | html=0 | themes=['light', 'dark']
+137. id=drag-lines-zoom | Две полоски · увеличение иконки | frame=desktop | themeSwitch=None | html=11579 | themes=[]
+
+---- Плитки персонажей (ранние) ----
+138. id=chars-tiles | Плитки персонажей (ранние) | frame=desktop | themeSwitch=None | html=0 | themes=['light', 'dark']
+139. id=chars-tiles-hover | Плитки персонажей · наведение | frame=desktop | themeSwitch=None | html=142032 | themes=[]
+140. id=chars-tiles-dragging | Плитки персонажей · перетаскивание | frame=desktop | themeSwitch=None | html=0 | themes=['light', 'dark']
+141. id=mobile-chars-tiles-dragging | Мобильные плитки · перетаскивание | frame=mobile | themeSwitch=None | html=142035 | themes=[]
+
+---- Оружие и иконки ----
+142. id=bow-variants | Лук: варианты контура | frame=desktop | themeSwitch=None | html=76586 | themes=[]
+
+---- Лобби v2: размеры ----
+143. id=lobby-v2-compact | Лобби v2 · компактный размер | frame=desktop | themeSwitch=None | html=139336 | themes=[]
+144. id=lobby-v2-medium | Лобби v2 · средний размер | frame=desktop | themeSwitch=None | html=139329 | themes=[]
+145. id=lobby-v2-large | Лобби v2 · крупный размер | frame=desktop | themeSwitch=None | html=0 | themes=['light', 'dark']

@@ -24,6 +24,8 @@
   --card: #fffdf8;
   --accent: #5a6b3d;
   --accent-soft: #e5ecd4;
+  /* Open glyph on accent. Light etalon: sheet-desktop.html html[data-theme="light-designer3"]. */
+  --on-accent: #f8fffb;
   --font-display: "Source Serif 4", Georgia, "Times New Roman", serif;
   --font-ui: "IBM Plex Sans", "Segoe UI", sans-serif;
   /* Ability identity (rail A) — reserved for A3; defined early for reuse */

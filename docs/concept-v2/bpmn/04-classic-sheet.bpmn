@@ -1,0 +1,251 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_classic" name="4. Классический лист (форма печати)" targetNamespace="https://creed20.tech/bpmn" exporter="КриD20 BPMN maps" exporterVersion="1.0">
+  <bpmn:collaboration id="Collab_classic">
+    <bpmn:participant id="Pool_Player" name="Игрок" processRef="Proc_Player" />
+    <bpmn:participant id="Pool_Master" name="Мастер" processRef="Proc_Master" />
+    <bpmn:participant id="Pool_System" name="Система / бэкенд" processRef="Proc_System" />
+    <bpmn:messageFlow id="msg1" name="чтение листа" sourceRef="p_filled" targetRef="s_get" />
+    <bpmn:messageFlow id="msg2" name="настройки печати" sourceRef="p_set" targetRef="s_patch" />
+  </bpmn:collaboration>
+  <bpmn:process id="Proc_Player" name="Игрок" isExecutable="false">
+    <bpmn:laneSet id="LaneSet_Proc_Player">
+      <bpmn:lane id="Lane_Player" name="Игрок">
+        <bpmn:flowNodeRef>p_start</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>p_kind</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>p_filled</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>p_blank</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>p_set</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>p_print</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>p_end</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="p_start" name="Вход в бланк">
+      <bpmn:outgoing>k1</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:exclusiveGateway id="p_kind" name="Какой бланк?" gatewayDirection="Unspecified">
+      <bpmn:incoming>k1</bpmn:incoming>
+      <bpmn:outgoing>k2</bpmn:outgoing>
+      <bpmn:outgoing>k3</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:userTask id="p_filled" name="/characters/:id/classic
+данные того же CharacterDetail">
+      <bpmn:incoming>k2</bpmn:incoming>
+      <bpmn:outgoing>k4</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="p_blank" name="/classic/blank?layout=2014|2024
+пустой, без API">
+      <bpmn:incoming>k3</bpmn:incoming>
+      <bpmn:outgoing>k5</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="p_set" name="«Правка печати»: только sheet.ui.classic_*
+(макет, шрифты, карандаш, доп. страницы)">
+      <bpmn:incoming>k4</bpmn:incoming>
+      <bpmn:outgoing>k6</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="p_print" name="Печать / PDF, холст A4 210×297
+(не Letter)">
+      <bpmn:incoming>k5</bpmn:incoming>
+      <bpmn:incoming>k6</bpmn:incoming>
+      <bpmn:outgoing>k7</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:endEvent id="p_end" name="Бланк готов">
+      <bpmn:incoming>k7</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:textAnnotation id="n_ed"><bpmn:text>Переключатель 2014/2024 на бланке — это макет печати (classic_sheet_layout), не rules_edition персонажа. Classic — не второй редактор.</bpmn:text></bpmn:textAnnotation>
+    <bpmn:sequenceFlow id="k1" name="" sourceRef="p_start" targetRef="p_kind" />
+    <bpmn:sequenceFlow id="k2" name="персонаж" sourceRef="p_kind" targetRef="p_filled" />
+    <bpmn:sequenceFlow id="k3" name="пустой" sourceRef="p_kind" targetRef="p_blank" />
+    <bpmn:sequenceFlow id="k4" name="" sourceRef="p_filled" targetRef="p_set" />
+    <bpmn:sequenceFlow id="k5" name="" sourceRef="p_blank" targetRef="p_print" />
+    <bpmn:sequenceFlow id="k6" name="" sourceRef="p_set" targetRef="p_print" />
+    <bpmn:sequenceFlow id="k7" name="" sourceRef="p_print" targetRef="p_end" />
+  </bpmn:process>
+  <bpmn:process id="Proc_Master" name="Мастер" isExecutable="false">
+    <bpmn:laneSet id="LaneSet_Proc_Master">
+      <bpmn:lane id="Lane_Master" name="Мастер">
+        <bpmn:flowNodeRef>m_start</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>m_view</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>m_end</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="m_start" name="Есть доступ на чтение?">
+      <bpmn:outgoing>km1</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:userTask id="m_view" name="Может открыть бланк чужого героя лобби
+(только просмотр). Настройки печати не пишет">
+      <bpmn:incoming>km1</bpmn:incoming>
+      <bpmn:outgoing>km2</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:endEvent id="m_end" name="Без правки листа">
+      <bpmn:incoming>km2</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="km1" name="" sourceRef="m_start" targetRef="m_view" />
+    <bpmn:sequenceFlow id="km2" name="" sourceRef="m_view" targetRef="m_end" />
+  </bpmn:process>
+  <bpmn:process id="Proc_System" name="Система / бэкенд" isExecutable="false">
+    <bpmn:laneSet id="LaneSet_Proc_System">
+      <bpmn:lane id="Lane_System" name="Система / бэкенд">
+        <bpmn:flowNodeRef>s_start</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>s_get</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>s_patch</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>s_end</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="s_start" name="Запрос">
+      <bpmn:outgoing>s1</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:serviceTask id="s_get" name="GET /characters/{id}">
+      <bpmn:incoming>s1</bpmn:incoming>
+      <bpmn:outgoing>s2</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="s_patch" name="PATCH только classic_* в sheet.ui.
+Игровые поля бланк не пишет">
+      <bpmn:incoming>s2</bpmn:incoming>
+      <bpmn:outgoing>s3</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:endEvent id="s_end" name="Без BroadcastChannel">
+      <bpmn:incoming>s3</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="s1" name="" sourceRef="s_start" targetRef="s_get" />
+    <bpmn:sequenceFlow id="s2" name="" sourceRef="s_get" targetRef="s_patch" />
+    <bpmn:sequenceFlow id="s3" name="" sourceRef="s_patch" targetRef="s_end" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="Diagram_classic">
+    <bpmndi:BPMNPlane id="Plane_classic" bpmnElement="Collab_classic">
+      <bpmndi:BPMNShape id="Pool_Player_di" bpmnElement="Pool_Player" isHorizontal="true">
+        <dc:Bounds x="40" y="80" width="2600" height="300" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Player_di" bpmnElement="Lane_Player" isHorizontal="true">
+        <dc:Bounds x="70" y="80" width="2570" height="300" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Pool_Master_di" bpmnElement="Pool_Master" isHorizontal="true">
+        <dc:Bounds x="40" y="480" width="2600" height="200" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Master_di" bpmnElement="Lane_Master" isHorizontal="true">
+        <dc:Bounds x="70" y="480" width="2570" height="200" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Pool_System_di" bpmnElement="Pool_System" isHorizontal="true">
+        <dc:Bounds x="40" y="780" width="2600" height="280" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_System_di" bpmnElement="Lane_System" isHorizontal="true">
+        <dc:Bounds x="70" y="780" width="2570" height="280" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="p_start_di" bpmnElement="p_start">
+        <dc:Bounds x="120" y="212.0" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="p_kind_di" bpmnElement="p_kind" isMarkerVisible="true">
+        <dc:Bounds x="480" y="205.0" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="p_filled_di" bpmnElement="p_filled">
+        <dc:Bounds x="680" y="127.0" width="200" height="84" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="p_blank_di" bpmnElement="p_blank">
+        <dc:Bounds x="680" y="257.0" width="200" height="84" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="p_set_di" bpmnElement="p_set">
+        <dc:Bounds x="1240" y="187.0" width="200" height="84" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="p_print_di" bpmnElement="p_print">
+        <dc:Bounds x="1520" y="187.0" width="200" height="84" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="p_end_di" bpmnElement="p_end">
+        <dc:Bounds x="2080" y="212.0" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="m_start_di" bpmnElement="m_start">
+        <dc:Bounds x="120" y="562.0" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="m_view_di" bpmnElement="m_view">
+        <dc:Bounds x="960" y="537.0" width="280" height="90" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="m_end_di" bpmnElement="m_end">
+        <dc:Bounds x="1800" y="562.0" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="s_start_di" bpmnElement="s_start">
+        <dc:Bounds x="120" y="902.0" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="s_get_di" bpmnElement="s_get">
+        <dc:Bounds x="680" y="877.0" width="200" height="84" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="s_patch_di" bpmnElement="s_patch">
+        <dc:Bounds x="1240" y="877.0" width="240" height="90" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="s_end_di" bpmnElement="s_end">
+        <dc:Bounds x="1800" y="902.0" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="n_ed_di" bpmnElement="n_ed">
+        <dc:Bounds x="1240" y="88" width="360" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="k1_di" bpmnElement="k1">
+        <di:waypoint x="156" y="230.0" />
+        <di:waypoint x="480" y="230.0" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="k2_di" bpmnElement="k2">
+        <di:waypoint x="530" y="230.0" />
+        <di:waypoint x="605.0" y="230.0" />
+        <di:waypoint x="605.0" y="169.0" />
+        <di:waypoint x="680" y="169.0" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="k3_di" bpmnElement="k3">
+        <di:waypoint x="530" y="230.0" />
+        <di:waypoint x="605.0" y="230.0" />
+        <di:waypoint x="605.0" y="299.0" />
+        <di:waypoint x="680" y="299.0" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="k4_di" bpmnElement="k4">
+        <di:waypoint x="880" y="169.0" />
+        <di:waypoint x="1060.0" y="169.0" />
+        <di:waypoint x="1060.0" y="229.0" />
+        <di:waypoint x="1240" y="229.0" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="k5_di" bpmnElement="k5">
+        <di:waypoint x="880" y="299.0" />
+        <di:waypoint x="1200.0" y="299.0" />
+        <di:waypoint x="1200.0" y="229.0" />
+        <di:waypoint x="1520" y="229.0" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="k6_di" bpmnElement="k6">
+        <di:waypoint x="1440" y="229.0" />
+        <di:waypoint x="1520" y="229.0" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="k7_di" bpmnElement="k7">
+        <di:waypoint x="1720" y="229.0" />
+        <di:waypoint x="2080" y="230.0" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="km1_di" bpmnElement="km1">
+        <di:waypoint x="156" y="580.0" />
+        <di:waypoint x="960" y="582.0" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="km2_di" bpmnElement="km2">
+        <di:waypoint x="1240" y="582.0" />
+        <di:waypoint x="1800" y="580.0" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="s1_di" bpmnElement="s1">
+        <di:waypoint x="156" y="920.0" />
+        <di:waypoint x="680" y="919.0" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="s2_di" bpmnElement="s2">
+        <di:waypoint x="880" y="919.0" />
+        <di:waypoint x="1240" y="922.0" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="s3_di" bpmnElement="s3">
+        <di:waypoint x="1480" y="922.0" />
+        <di:waypoint x="1800" y="920.0" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="msg1_di" bpmnElement="msg1">
+        <di:waypoint x="780.0" y="211.0" />
+        <di:waypoint x="908" y="211.0" />
+        <di:waypoint x="908" y="430.0" />
+        <di:waypoint x="908" y="730.0" />
+        <di:waypoint x="780.0" y="730.0" />
+        <di:waypoint x="780.0" y="877.0" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="msg2_di" bpmnElement="msg2">
+        <di:waypoint x="1340.0" y="271.0" />
+        <di:waypoint x="1340.0" y="430.0" />
+        <di:waypoint x="1340.0" y="730.0" />
+        <di:waypoint x="1360.0" y="730.0" />
+        <di:waypoint x="1360.0" y="877.0" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

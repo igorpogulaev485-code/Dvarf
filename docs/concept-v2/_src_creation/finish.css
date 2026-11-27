@@ -1,0 +1,124 @@
+.sheet-bridge-bg {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.35;
+  padding: 20px 28px;
+}
+.sheet-bridge-bg__top {
+  font-weight: 800;
+  font-size: 18px;
+  margin-bottom: 16px;
+}
+.sheet-bridge-bg__grid {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  gap: 16px;
+  min-height: 60vh;
+}
+.sheet-bridge-bg__col,
+.sheet-bridge-bg__main {
+  border: 1px solid rgba(var(--accent-rgb, 78, 93, 52), 0.22);
+  border-radius: 16px;
+  background: var(--card, #fffdf8);
+  padding: 16px;
+  font-weight: 700;
+  color: var(--text-sub, #5c5c52);
+}
+html[data-theme="leaf-classic"] .sheet-bridge-bg__col,
+html[data-theme="leaf-classic"] .sheet-bridge-bg__main {
+  background: #161616;
+  color: #b8b4a8;
+}
+html[data-width="phone"] .sheet-bridge-bg__grid { grid-template-columns: 1fr; min-height: 40vh; }
+html[data-width="phone"] .sheet-bridge-bg__col { display: none; }
+
+.create-toast {
+  position: fixed;
+  z-index: 80;
+  left: 50%;
+  bottom: 88px;
+  transform: translateX(-50%);
+  max-width: min(420px, calc(100% - 24px));
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: var(--card, #2a2a28);
+  color: var(--text, #f3efe3);
+  border: 1px solid rgba(255,255,255,0.12);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.28);
+  font-size: 14px;
+  font-weight: 650;
+  line-height: 1.35;
+}
+html[data-theme="light-designer3"] .create-toast,
+html:not([data-theme="leaf-classic"]) .create-toast {
+  background: #2a2a28;
+  color: #f3efe3;
+}
+.create-toast[hidden] { display: none !important; }
+
+.create-pipeline__banner-error-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  align-items: center;
+}
+
+.app-dialog-overlay[data-dialog="character-ready"][data-open] {
+  background: #111;
+  z-index: 85;
+}
+html:not([data-theme="leaf-classic"]) .app-dialog-overlay[data-dialog="character-ready"][data-open] {
+  background: #ebe4d6;
+}
+.sheet-bridge-bg { opacity: 0.4; }
+.create-toast { z-index: 90; }
+.feat-skip { margin: 0 0 12px; }
+.feat-skip .btn { margin-top: 6px; }
+
+html[data-width="phone"] .create-toast {
+  top: auto;
+  bottom: 136px;
+  max-width: min(360px, calc(100% - 24px));
+}
+html[data-width="phone"] .chars-head .lobby-notice {
+  display: none;
+}
+html[data-width="phone"] .chars-head.has-notice .lobby-notice {
+  display: block;
+  grid-column: 1 / -1;
+  grid-row: 2;
+  margin: 8px 0 0;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: #2a2a28;
+  color: #f3efe3;
+  font-size: 14px;
+  font-weight: 650;
+  line-height: 1.35;
+}
+html[data-width="phone"] .chars-head.has-notice .t-sub { grid-row: 3; }
+html[data-width="phone"] .chars-head .lobby-notice[hidden] { display: none !important; }
+
+/* Canvas underlay from the UI kit (css/backgrounds.css): parchment / ink.
+   Surfaces that use background: var(--bg) would otherwise hide the pattern. */
+html[data-bg] .cabinet-shell,
+html[data-bg] .cabinet-main,
+html[data-bg] .chars-page,
+html[data-bg] .chars-main,
+html[data-bg] .lobby-main,
+html[data-bg] .create-panel,
+html[data-bg] .create-pipeline__header,
+html[data-bg] .create-pipeline__footer,
+html[data-bg] .tabbar,
+html[data-bg][data-theme="leaf-classic"][data-width="phone"] .create-pipeline__footer,
+html[data-bg][data-theme="leaf-classic"][data-width="phone"] .create-pipeline__header,
+html[data-bg][data-width="phone"] .create-pipeline__footer,
+html[data-bg][data-width="phone"] .create-pipeline__header {
+  background-color: var(--bg);
+  background-image: var(--bg-pattern);
+  background-repeat: repeat;
+  background-size: 256px 256px;
+  background-attachment: fixed;
+  background-position: 0 0;
+}
