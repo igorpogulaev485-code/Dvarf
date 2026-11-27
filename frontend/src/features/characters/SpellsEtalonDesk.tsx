@@ -406,6 +406,7 @@ export function SpellsEtalonDesk({
   const [breakOpen, setBreakOpen] = useState(false)
   const [prepareOpen, setPrepareOpen] = useState(false)
   const [settingsOpen, setSettingsOpen] = useState(false)
+  const [customOpen, setCustomOpen] = useState(false)
   const [focusOn, setFocusOn] = useState(true)
   const [pouchOn, setPouchOn] = useState(true)
   const detail = detailId ? SPELL_DETAILS[detailId] : null
@@ -822,11 +823,74 @@ export function SpellsEtalonDesk({
             ))}
           </ul>
           <div className="modal-actions">
-            <button type="button" className="btn" onClick={() => onGrimoireClose?.()}>
+            <button
+              type="button"
+              className="btn"
+              onClick={() => {
+                onGrimoireClose?.()
+                setCustomOpen(true)
+              }}
+            >
               Своё заклинание
             </button>
             <button type="button" className="btn primary" onClick={() => onGrimoireClose?.()}>
               Готово
+            </button>
+          </div>
+        </Dialog>
+      ) : null}
+      {customOpen ? (
+        <Dialog
+          open
+          title="Своё заклинание"
+          primaryLabel="Добавить в список"
+          onPrimary={() => setCustomOpen(false)}
+          secondaryLabel="Отмена"
+          onSecondary={() => {
+            setCustomOpen(false)
+            onGrimoireOpen?.()
+          }}
+          showActions={false}
+          showClose
+          onDismiss={() => setCustomOpen(false)}
+          className="desk-custom"
+        >
+          <p className="flags">
+            Хомбрю-заклинание только для этого листа. Появится в гримуаре и, если отметить, в сегодняшнем наборе.
+          </p>
+          <label>
+            Название
+            <input placeholder="Название" defaultValue="" />
+          </label>
+          <label>
+            Круг
+            <input type="number" min={0} max={9} defaultValue={1} />
+          </label>
+          <div className="chips">
+            <button type="button" className="chip">
+              Ритуал
+            </button>
+            <button type="button" className="chip">
+              Концентрация
+            </button>
+          </div>
+          <label>
+            Описание
+            <textarea rows={4} defaultValue="" />
+          </label>
+          <div className="modal-actions">
+            <button
+              type="button"
+              className="btn"
+              onClick={() => {
+                setCustomOpen(false)
+                onGrimoireOpen?.()
+              }}
+            >
+              Отмена
+            </button>
+            <button type="button" className="btn primary" onClick={() => setCustomOpen(false)}>
+              Добавить в список
             </button>
           </div>
         </Dialog>
