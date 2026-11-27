@@ -11,6 +11,7 @@ type NeedsSetupIndicatorProps = {
   iconOnly?: boolean
   /** Open the list as a bottom sheet (phone); desktop keeps the dropdown. */
   asSheet?: boolean
+  buttonClassName?: string
 }
 
 function groupLabel(item: NeedsSetupItem): string {
@@ -34,6 +35,7 @@ export function NeedsSetupIndicator({
   compact = false,
   iconOnly = false,
   asSheet = false,
+  buttonClassName,
 }: NeedsSetupIndicatorProps) {
   const [open, setOpen] = useState(false)
   const rootRef = useRef<HTMLDivElement | null>(null)
@@ -98,7 +100,7 @@ export function NeedsSetupIndicator({
     >
       <button
         type="button"
-        className="needs-setup__btn"
+        className={buttonClassName ? `needs-setup__btn ${buttonClassName}` : 'needs-setup__btn'}
         aria-expanded={open}
         aria-controls={asSheet ? undefined : listId}
         aria-haspopup={asSheet ? 'dialog' : 'listbox'}

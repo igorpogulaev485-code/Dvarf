@@ -278,6 +278,8 @@ type Props = {
    * `more` / `all` — full grouped Действие · Бонусное · Реакция.
    */
   mode?: 'all' | 'more' | 'everyTurn'
+  /** Desktop combat face uses the concept chip classes. */
+  etalon?: boolean
 }
 
 /**
@@ -356,6 +358,7 @@ export function TurnEconomyCombatActions({
   personalSpells = [],
   className = '',
   mode = 'all',
+  etalon = false,
 }: Props) {
   const turnEco = useTurnEconomy()
   if (!turnEco) return null
@@ -446,6 +449,7 @@ export function TurnEconomyCombatActions({
 
 
   const [openGroup, setOpenGroup] = useState<TurnActionGroupId | null>(null)
+  const [moreActionsOpen, setMoreActionsOpen] = useState(false)
 
   if (mode === 'everyTurn') {
     // CMB-02: everyTurn row removed — chips live inside groups.
@@ -460,8 +464,25 @@ export function TurnEconomyCombatActions({
     group === 'action' ? actionSpent : group === 'bonus' ? bonusSpent : reactionSpent
 
   const toggleGroup = (group: TurnActionGroupId) => {
+    setMoreActionsOpen(false)
     setOpenGroup((prev) => (prev === group ? null : group))
   }
+
+  const TABLE_OPTIONAL = new Set([
+    'disarm',
+    'mark',
+    'mark_opp',
+    'overrun',
+    'tumble',
+    'climb',
+    'identify_spell',
+    'falling',
+    'no_long_rest',
+    'injury',
+    'morale',
+    'hero',
+    'opportunity',
+  ])
 
   type Chip = {
     key: string
@@ -1092,7 +1113,7 @@ export function TurnEconomyCombatActions({
           onO09Stabilize()
         }}
       >
-        Стабилизировать
+        {etalon ? 'Стабилизация' : 'Стабилизировать'}
       </button>,
     )
   }
@@ -2177,14 +2198,53 @@ export function TurnEconomyCombatActions({
   const spentOf = (group: TurnActionGroupId) =>
     group === 'action' ? actionSpent : group === 'bonus' ? bonusSpent : reactionSpent
 
+  const etalonActionOrder = [
+    'attack_action',
+    'cast_spell_action',
+    'dash',
+    'disengage',
+    'dodge',
+    'help',
+    'grapple_shove',
+    'search',
+    'ready',
+    'stabilize',
+  ]
+  const renderEtalonActs = (labels: string[]) => (
+    <div className="play-desk-turn-actions__panel turn-actions__panel" role="group">
+      {labels.map((label) => (
+        <button key={label} type="button" className="btn turn-act">
+          {label}
+        </button>
+      ))}
+    </div>
+  )
   const renderGroupPanel = (group: TurnActionGroupId) => {
+    if (etalon && group === 'bonus') {
+      return renderEtalonActs(['Укрытие', 'Щит веры', 'Духовное оружие'])
+    }
+    if (etalon && group === 'reaction') {
+      return renderEtalonActs(['Атака по возможности'])
+    }
+    if (etalon && group === 'action') {
+      const nodes = etalonActionOrder
+        .map((key) => chips.find((chip) => chip.key === key)?.node)
+        .filter(Boolean)
+      return (
+        <div className="play-desk-turn-actions__panel turn-actions__panel" role="group">
+          {nodes}
+        </div>
+      )
+    }
     const personal = chips.filter(
-      (c) => c.groups.includes(group) && c.tier === 'personal',
+      (c) => c.groups.includes(group) && c.tier === 'personal' && !TABLE_OPTIONAL.has(c.key),
     )
     const common = chips.filter(
-      (c) => c.groups.includes(group) && c.tier === 'common',
+      (c) => c.groups.includes(group) && c.tier === 'common' && !TABLE_OPTIONAL.has(c.key),
     )
-    const more = chips.filter((c) => c.groups.includes(group) && c.tier === 'more')
+    const more = chips.filter(
+      (c) => c.groups.includes(group) && c.tier === 'more' && !TABLE_OPTIONAL.has(c.key),
+    )
     const info = chips.filter((c) => c.groups.includes(group) && c.tier === 'info')
     return (
       <div
@@ -2236,7 +2296,7 @@ export function TurnEconomyCombatActions({
 
   return (
     <div
-      className={`play-desk-turn-actions ${className}`.trim()}
+      className={`play-desk-turn-actions${etalon ? ' turn-actions' : ''} ${className}`.trim()}
       role="group"
       aria-label="Действия хода"
       data-onboarding="turn-actions"
@@ -2245,7 +2305,7 @@ export function TurnEconomyCombatActions({
         FIX-01: одна строка — группы Действие/Бонусное/Реакция + отметки
         Взаимодействие/Движение (раньше отдельный TurnEconomyChips).
       */}
-      <div className="play-desk-turn-actions__tabs" role="tablist" aria-label="Вид действия">
+      <div className={`play-desk-turn-actions__tabs${etalon ? ' turn-actions__tabs' : ''}`} role="tablist" aria-label="Вид действия">
         {groups.map((group) => {
           const spent = spentOf(group)
           const has = groupActionable(group)
@@ -2256,7 +2316,7 @@ export function TurnEconomyCombatActions({
               type="button"
               role="tab"
               aria-selected={open}
-              className={`sheet-chip play-desk-turn-actions__tab${
+              className={`sheet-chip play-desk-turn-actions__tab${etalon ? ' chip turn-tab' : ''}${
                 open ? ' is-open' : ''
               }${spent ? ' is-spent' : ''}`}
               /* Always clickable: empty catalog still opens for «Снять отметку» / empty hint. */
@@ -2268,10 +2328,7 @@ export function TurnEconomyCombatActions({
                     : `${TURN_GROUP_LABELS[group]}: ${TURN_GROUP_EMPTY_HINT[group]}`
               }
               onClick={() => toggleGroup(group)}
-            >
-              {spent ? <span className="sheet-chip__check" aria-hidden>✓</span> : null}
-              <span>{TURN_GROUP_LABELS[group]}</span>
-            </button>
+            >{spent ? <span className="sheet-chip__check" aria-hidden>✓</span> : null}{etalon ? TURN_GROUP_LABELS[group] : <span>{TURN_GROUP_LABELS[group]}</span>}</button>
           )
         })}
         {showMarks ? (
@@ -2363,7 +2420,33 @@ export function TurnEconomyCombatActions({
             ) : null}
           </>
         ) : null}
+        <button
+          type="button"
+          className={`sheet-chip play-desk-turn-actions__tab${etalon ? ' chip turn-more-btn' : ''}${moreActionsOpen ? ' is-open' : ''}`}
+          aria-expanded={moreActionsOpen}
+          title="Опциональные действия стола"
+          onClick={() => {
+            setOpenGroup(null)
+            setMoreActionsOpen((open) => !open)
+          }}
+        >{etalon ? 'Ещё действия хода' : <span>Ещё действия хода</span>}</button>
       </div>
+      {moreActionsOpen ? (
+        <div className={`play-desk-turn-actions__optional${etalon ? ' turn-more' : ''}`} role="group" aria-label="Опциональные действия стола">
+          <p className="play-desk-turn-actions__optional-label">Опциональные действия стола</p>
+          <div className="chip-row play-desk-turn-actions__chips">
+            {etalon
+              ? ['Атака по возможности', 'Контрзаклинание', 'Цель', 'Помощь', 'Подготовка'].map(
+                  (label) => (
+                    <button key={label} type="button" className="btn">
+                      {label}
+                    </button>
+                  ),
+                )
+              : chips.filter((c) => TABLE_OPTIONAL.has(c.key)).map((c) => c.node)}
+          </div>
+        </div>
+      ) : null}
       {openGroup ? (
         <div className="play-desk-turn-actions__panel-wrap">
           {spentOf(openGroup) ? (

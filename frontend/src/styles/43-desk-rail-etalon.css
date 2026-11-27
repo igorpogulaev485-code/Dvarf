@@ -1,0 +1,433 @@
+/*
+ * Рейка характеристик на ПК — из sheet-desktop.html.
+ * Только .desk-rail. Телефон и принятые сцены не затрагиваются.
+ */
+
+.app-shell--sheet .play-desk--wide .play-desk__left:has(.desk-rail) {
+  width: 340px;
+  min-width: 340px;
+  max-width: 340px;
+}
+
+.app-shell--sheet .play-desk--wide .desk-rail {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 340px;
+  height: 100%;
+  min-height: 0;
+  box-sizing: border-box;
+  font-family: "IBM Plex Sans", "Source Sans 3", system-ui, sans-serif;
+  color: rgba(45, 45, 42, 0.78);
+}
+
+.app-shell--sheet .play-desk--wide .desk-rail .rail-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  min-height: 24px;
+  padding: 2px 4px 0;
+}
+
+.app-shell--sheet .play-desk--wide .desk-rail .rail-toolbar__help {
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--accent);
+  font-size: 12px;
+  line-height: 1;
+  padding: 0;
+}
+
+.app-shell--sheet .play-desk--wide .desk-rail .rail-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.app-shell--sheet .play-desk--wide .desk-rail .abil {
+  flex: 0 0 auto;
+  background: var(--card);
+  border: 1px solid color-mix(in srgb, var(--line) 88%, var(--abil, var(--accent)));
+  border-left: 4px solid var(--abil, var(--accent));
+  border-radius: 12px;
+  overflow: hidden;
+  width: 338px;
+  box-sizing: border-box;
+}
+
+.app-shell--sheet .play-desk--wide .desk-rail .abil[data-abil='str'] { --abil: var(--abil-str); --abil-soft: var(--abil-str-soft); }
+.app-shell--sheet .play-desk--wide .desk-rail .abil[data-abil='dex'] { --abil: var(--abil-dex); --abil-soft: var(--abil-dex-soft); }
+.app-shell--sheet .play-desk--wide .desk-rail .abil[data-abil='con'] { --abil: var(--abil-con); --abil-soft: var(--abil-con-soft); }
+.app-shell--sheet .play-desk--wide .desk-rail .abil[data-abil='int'] { --abil: var(--abil-int); --abil-soft: var(--abil-int-soft); }
+.app-shell--sheet .play-desk--wide .desk-rail .abil[data-abil='wis'] { --abil: var(--abil-wis); --abil-soft: var(--abil-wis-soft); }
+.app-shell--sheet .play-desk--wide .desk-rail .abil[data-abil='cha'] { --abil: var(--abil-cha); --abil-soft: var(--abil-cha-soft); }
+
+.app-shell--sheet .play-desk--wide .desk-rail .abil__head {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas: "name" "meta";
+  row-gap: 6px;
+  align-items: center;
+  padding: 8px 28px 8px 10px;
+  background: color-mix(in srgb, var(--abil-soft) 72%, white);
+  min-width: 0;
+}
+
+.app-shell--sheet .play-desk--wide .desk-rail .abil__label {
+  grid-area: name;
+  display: flex;
+  align-items: baseline;
+  gap: 2px;
+  min-width: 0;
+}
+
+.app-shell--sheet .play-desk--wide .desk-rail .abil__name,
+.app-shell--sheet .play-desk--wide .desk-rail .abil__chev-btn,
+.app-shell--sheet .play-desk--wide .desk-rail .skill__name,
+.app-shell--sheet .play-desk--wide .desk-rail .abil-prof-pip {
+  border: 0;
+  background: none;
+  padding: 0;
+  min-height: 0;
+  box-shadow: none;
+}
+
+.app-shell--sheet .play-desk--wide .desk-rail .abil__name {
+  font-family: "Source Serif 4", Georgia, serif;
+  font-weight: 700;
+  font-size: 1.05rem;
+  line-height: 1.2;
+  letter-spacing: 0.01em;
+  padding: 1px 0;
+  text-align: left;
+  color: var(--abil);
+}
+
+.app-shell--sheet .play-desk--wide .desk-rail .abil__chev {
+  display: inline-grid;
+  place-items: center;
+  min-width: 1.15em;
+  margin-left: 2px;
+  font-family: "IBM Plex Sans", "Source Sans 3", system-ui, sans-serif;
+  font-size: 1.1rem;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--abil);
+}
+
+.app-shell--sheet .play-desk--wide .desk-rail .abil__chev::after { content: "▾"; color: var(--abil); font-weight: 700; }
+
+.app-shell--sheet .play-desk--wide .desk-rail .abil__meta {
+  grid-area: meta;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: nowrap;
+  gap: 8px;
+  min-width: 0;
+  margin: 0;
+}
+
+.app-shell--sheet .play-desk--wide .desk-rail .abil__score-wrap {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+  min-width: 0;
+}
+
+.app-shell--sheet .play-desk--wide .desk-rail .abil__score {
+  display: inline-block;
+  box-sizing: border-box;
+  width: 2.7rem;
+  min-width: 2.7rem;
+  max-width: 2.7rem;
+  height: 32px;
+  line-height: 30px;
+  text-align: center;
+  padding: 0 2px;
+  border-radius: 8px;
+  border: 1px solid color-mix(in srgb, var(--line) 80%, var(--abil));
+  background: #fff;
+  font-weight: 600;
+  font-size: 0.9rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--heading, #24241f);
+}
+
+.app-shell--sheet .play-desk--wide .desk-rail .abil__effective {
+  font-size: 0.72rem;
+  font-weight: 650;
+  line-height: 1;
+  letter-spacing: normal;
+  white-space: nowrap;
+  color: var(--abil);
+}
+
+/* U+2192 is wider in the product IBM Plex than in the etalon fallback.
+   Shrink only the arrow so the whole run stays 23.7px at letter-spacing normal. */
+.app-shell--sheet .play-desk--wide .desk-rail .abil__effective-arrow {
+  display: inline-block;
+  font-size: 0.445rem;
+  line-height: 1;
+  letter-spacing: normal;
+  width: 7.1px;
+  text-align: center;
+}
+
+.app-shell--sheet .play-desk--wide .desk-rail .abil__mod {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  height: 32px;
+  min-height: 32px;
+  margin: 0;
+  border: 1px solid var(--line);
+  background: #fff;
+  border-radius: 999px;
+  padding: 0 10px;
+  font-weight: 600;
+  font-size: 0.82rem;
+  line-height: 1;
+  white-space: nowrap;
+  color: #24241f;
+  box-shadow: none;
+}
+
+.app-shell--sheet .play-desk--wide .desk-rail .abil__mod.is-on {
+  color: var(--abil);
+  border-color: color-mix(in srgb, var(--abil) 28%, var(--line));
+  background: var(--abil-soft);
+}
+
+.app-shell--sheet .play-desk--wide .desk-rail .abil-mod__tag {
+  font-size: 0.72rem;
+  font-weight: 600;
+  margin: 0;
+  color: var(--muted, rgba(45, 45, 42, 0.58));
+}
+
+.app-shell--sheet .play-desk--wide .desk-rail .abil-prof-pip {
+  position: relative;
+  flex: 0 0 auto;
+  width: 44px;
+  height: 44px;
+  margin: -4px -8px -4px -6px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  display: inline-block;
+  appearance: none;
+}
+
+.app-shell--sheet .play-desk--wide .desk-rail .abil-prof-pip::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 18px;
+  height: 18px;
+  margin: -9px 0 0 -9px;
+  box-sizing: border-box;
+  border-radius: 999px;
+  border: 2px solid color-mix(in srgb, var(--abil) 45%, var(--line));
+  background: #fff;
+}
+
+.app-shell--sheet .play-desk--wide .desk-rail .abil-prof-pip.is-on {
+  background: transparent;
+  border-color: transparent;
+}
+
+.app-shell--sheet .play-desk--wide .desk-rail .abil-prof-pip.is-on::after {
+  background: #fff;
+  border-color: var(--abil);
+  box-shadow: inset 0 0 0 2px #fff;
+}
+
+.app-shell--sheet .play-desk--wide .desk-rail .abil-mod-pair {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.app-shell--sheet .play-desk--wide .desk-rail .skills {
+  display: grid;
+  gap: 4px;
+  padding: 5px 7px 7px;
+}
+
+.app-shell--sheet .play-desk--wide .desk-rail .skill {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 4px 8px;
+  width: 100%;
+  min-height: 36px;
+  box-sizing: border-box;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  padding: 2px 6px 2px 2px;
+  background: color-mix(in srgb, var(--desk-panel, #fbf7ec) 55%, #fff);
+  font-size: 0.8rem;
+  line-height: 1.45;
+  text-align: left;
+  color: #24241f;
+}
+
+.app-shell--sheet .play-desk--wide .desk-rail .skill.is-on {
+  background: var(--abil-soft);
+  border-color: color-mix(in srgb, var(--abil) 28%, var(--line));
+  color: var(--abil);
+  font-weight: 600;
+}
+
+.app-shell--sheet .play-desk--wide .desk-rail .skill__name {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+  text-align: left;
+  color: inherit;
+  font: inherit;
+  line-height: 1.45;
+}
+
+.app-shell--sheet .play-desk--wide .desk-rail .skill__roll {
+  min-width: 44px;
+  height: 32px;
+  padding: 0 8px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  font-weight: 700;
+  font-size: 0.86rem;
+  line-height: 1.45;
+  color: #24241f;
+  box-shadow: none;
+}
+
+.app-shell--sheet .play-desk--wide .desk-rail .skills:has(.abil-block__empty) {
+  box-sizing: border-box;
+  height: 29.4px;
+  min-height: 29.4px;
+  max-height: 29.4px;
+  padding-top: 5px;
+  padding-bottom: 7px;
+  overflow: hidden;
+}
+
+.app-shell--sheet .play-desk--wide .desk-rail .abil-block__empty {
+  margin: 0;
+  font-size: 12px;
+  line-height: 17.4px;
+  color: var(--text-sub, var(--muted));
+}
+
+.app-shell--sheet .play-desk--wide .desk-rail .rail-foot {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 0 0 auto;
+}
+
+.app-shell--sheet .play-desk--wide .desk-rail .rail-passives,
+.app-shell--sheet .play-desk--wide .desk-rail .ownership-summary {
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--card);
+  box-sizing: border-box;
+}
+
+.app-shell--sheet .play-desk--wide .desk-rail .rail-passives {
+  width: 340px;
+  height: 79px;
+  min-height: 79px;
+}
+
+.app-shell--sheet .play-desk--wide .desk-rail .rail-passives__label,
+.app-shell--sheet .play-desk--wide .desk-rail .ownership-summary__title {
+  font-size: 0.68rem;
+  font-weight: 650;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-sub, var(--muted));
+}
+
+.app-shell--sheet .play-desk--wide .desk-rail .passive-grid--desk {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.app-shell--sheet .play-desk--wide .desk-rail .passive-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 2px 5px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--card);
+  height: 41.2px;
+  min-height: 41.2px;
+  box-sizing: border-box;
+  box-shadow: none;
+}
+
+.app-shell--sheet .play-desk--wide .desk-rail .passive-card__label {
+  font-size: 9px;
+  font-weight: 400;
+  line-height: 1.15;
+  letter-spacing: normal;
+  color: var(--text-sub, var(--muted));
+  text-transform: none;
+}
+.app-shell--sheet .play-desk--wide .desk-rail .passive-card strong { font-size: 13px; font-weight: 650; }
+
+.app-shell--sheet .play-desk--wide .desk-rail .ownership-summary__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.app-shell--sheet .play-desk--wide .desk-rail .ownership-summary__open,
+.app-shell--sheet .play-desk--wide .desk-rail .ownership-summary__toggle {
+  border: 0;
+  background: none;
+  padding: 0;
+  min-height: 0;
+  box-shadow: none;
+}
+
+html[data-theme='leaf-classic'] .app-shell--sheet .play-desk--wide .desk-rail {
+  color: rgba(255, 255, 255, 0.78);
+}
+
+html[data-theme='leaf-classic'] .app-shell--sheet .play-desk--wide .desk-rail .abil,
+html[data-theme='leaf-classic'] .app-shell--sheet .play-desk--wide .desk-rail .rail-passives,
+html[data-theme='leaf-classic'] .app-shell--sheet .play-desk--wide .desk-rail .ownership-summary,
+html[data-theme='leaf-classic'] .app-shell--sheet .play-desk--wide .desk-rail .passive-card {
+  background: rgb(19, 19, 19);
+}
+
+html[data-theme='leaf-classic'] .app-shell--sheet .play-desk--wide .desk-rail .abil__score,
+html[data-theme='leaf-classic'] .app-shell--sheet .play-desk--wide .desk-rail .abil__mod,
+html[data-theme='leaf-classic'] .app-shell--sheet .play-desk--wide .desk-rail .skill__roll,
+html[data-theme='leaf-classic'] .app-shell--sheet .play-desk--wide .desk-rail .abil-prof-pip::after {
+  background: #1a1a1a;
+  color: #fff;
+}
+
+html[data-theme='leaf-classic'] .app-shell--sheet .play-desk--wide .desk-rail .abil-prof-pip.is-on::after {
+  background: var(--abil);
+  box-shadow: inset 0 0 0 2px #1a1a1a;
+}

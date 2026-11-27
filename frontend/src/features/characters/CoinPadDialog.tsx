@@ -20,6 +20,18 @@ type CoinPadDialogProps = {
 
 const KEYS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', 'C', '0', '⌫'] as const
 
+const ETALON_COINS: Array<{ key: CoinKey; name: string; full: string }> = [
+  { key: 'pp', name: 'ПМ', full: 'Платина' },
+  { key: 'gp', name: 'ЗМ', full: 'Золото' },
+  { key: 'ep', name: 'ЭМ', full: 'Электрум' },
+  { key: 'sp', name: 'СМ', full: 'Серебро' },
+  { key: 'cp', name: 'ММ', full: 'Медь' },
+]
+
+function deskWindows() {
+  return typeof document !== 'undefined' && document.documentElement.dataset.deskWindows === '1'
+}
+
 export function CoinPadDialog({
   open,
   coins,
@@ -31,6 +43,8 @@ export function CoinPadDialog({
   const [digits, setDigits] = useState('')
   const [resetOpen, setResetOpen] = useState(false)
   const [resetConfirmKey, setResetConfirmKey] = useState<CoinKey | null>(null)
+  const [walletReset, setWalletReset] = useState(false)
+  const etalon = deskWindows()
 
   useEffect(() => {
     if (!open) return
@@ -38,6 +52,7 @@ export function CoinPadDialog({
     setCoin('gp')
     setResetOpen(false)
     setResetConfirmKey(null)
+    setWalletReset(false)
     const releaseScroll = acquireBodyScrollLock()
     function onKeyDown(event: KeyboardEvent) {
       if (event.key === 'Escape') {
@@ -144,6 +159,88 @@ export function CoinPadDialog({
           </button>
         </div>
 
+        {etalon && walletReset ? (
+          <div className="confirm-box">
+            <p>Сбросить кошелёк до нуля по всем валютам?</p>
+            <div className="pad-row">
+              <button
+                type="button"
+                className="btn primary"
+                onClick={() => {
+                  onChange({ pp: 0, gp: 0, ep: 0, sp: 0, cp: 0 })
+                  onToast('Кошелёк сброшен')
+                  setWalletReset(false)
+                }}
+              >
+                Сбросить
+              </button>
+              <button type="button" className="btn" onClick={() => setWalletReset(false)}>
+                Отмена
+              </button>
+            </div>
+          </div>
+        ) : etalon ? (
+          <div className="coin-pad coin-pad--etalon">
+            <p className="pad-lead">
+              Итого <b className="num">{formatGpTotal(totalGp)} зм</b>. ПМ = 10 зм, ЭМ = ½ зм, СМ = ⅒ зм, ММ = ¹⁄₁₀₀ зм.
+            </p>
+            <div className="coin-pad__balances" role="group" aria-label="Монета">
+              {ETALON_COINS.map((row) => (
+                <button
+                  key={row.key}
+                  type="button"
+                  className={`sheet-chip${coin === row.key ? ' is-on' : ''}`}
+                  aria-pressed={coin === row.key}
+                  onClick={() => setCoin(row.key)}
+                >
+                  {row.name} <b className="num">{coins[row.key]}</b>
+                </button>
+              ))}
+            </div>
+            <div className="number-pad__display" aria-live="polite">
+              <span className="number-pad__display-value">{digits === '' ? '0' : String(delta)}</span>
+              <span className="number-pad__display-hint">
+                {delta > 0
+                  ? `${delta} ${ETALON_COINS.find((row) => row.key === coin)?.name ?? ''} · ${ETALON_COINS.find((row) => row.key === coin)?.full ?? ''} (${ETALON_COINS.find((row) => row.key === coin)?.name ?? ''}) · взять / отдать`
+                  : `${ETALON_COINS.find((row) => row.key === coin)?.full ?? ''} (${ETALON_COINS.find((row) => row.key === coin)?.name ?? ''}) · взять / отдать`}
+              </span>
+            </div>
+            {delta > 0 ? (
+              <p className="coin-pad__preview">
+                Взять → {coins[coin] + delta} {ETALON_COINS.find((row) => row.key === coin)?.name}
+                {coins[coin] > 0
+                  ? ` · Отдать → ${Math.max(0, coins[coin] - delta)} ${ETALON_COINS.find((row) => row.key === coin)?.name}`
+                  : ''}
+              </p>
+            ) : null}
+            <div className="number-pad__keys" role="group" aria-label="Цифровая клавиатура">
+              {KEYS.map((key) => (
+                <button
+                  key={key}
+                  type="button"
+                  className={`number-pad__key${key === 'C' || key === '⌫' ? ' number-pad__key--meta' : ''}`}
+                  onClick={() => press(key)}
+                >
+                  {key === '⌫' ? '←' : key}
+                </button>
+              ))}
+            </div>
+            <div className="numpad-actions numpad-actions--2">
+              <button type="button" className="btn is-danger" disabled={!canApply || coins[coin] <= 0} onClick={() => apply(-1)}>
+                Отдать
+              </button>
+              <button type="button" className="btn primary" disabled={!canApply} onClick={() => apply(1)}>
+                Взять
+              </button>
+            </div>
+            <div className="pad-row">
+              <button type="button" className="btn" onClick={() => setWalletReset(true)}>
+                Сбросить кошелёк
+              </button>
+            </div>
+          </div>
+        ) : null}
+        {etalon ? null : <>
         <div className="coin-pad__summary">
           <strong>Всего в золоте: {formatGpTotal(totalGp)}</strong>
           <div className="coin-pad__balances">
@@ -264,6 +361,7 @@ export function CoinPadDialog({
             Взять
           </Button>
         </div>
+        </>}
       </div>
     </div>,
     document.body,

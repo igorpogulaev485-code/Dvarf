@@ -186,7 +186,8 @@ export function readSheetUi(sheet: Record<string, unknown>): SheetUiState {
     ? collapsedRaw.filter((item): item is AbilityKey =>
         ABILITY_KEYS.includes(item as AbilityKey),
       )
-    : [...ABILITY_KEYS]
+    // Эталон листа: открыты Сила и Ловкость, остальные свёрнуты.
+    : ABILITY_KEYS.filter((key) => key !== 'str' && key !== 'dex')
   // Default ON so combat opens like the mockup (attacks + spells).
   const deskSplit = ui.desk_split === false ? false : true
   return {

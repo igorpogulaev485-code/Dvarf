@@ -15,6 +15,8 @@ import type { ActiveEffect } from '../shared/dnd/activeEffects'
 import type { ClassLevelEntry } from '../shared/dnd/classLevels'
 import { emptyTurnEconomy } from '../shared/dnd/turnEconomy'
 import { Text } from '../ui'
+import { AppShell } from '../features/shell/AppShell'
+import type { User } from '../shared/api/auth'
 
 type SeedId = 'cleric' | 'multi' | 'max'
 
@@ -440,7 +442,7 @@ export function UiKit03HeaderPreviewPage() {
       </>
     ) : null
 
-  return (
+  const sheet = (
     <main className="page page--app" data-uikit03-preview data-seed={seed.id}>
       <Text tone="muted">
         /dev/uikit03-header-preview?seed={seed.id} · UIKIT-03 скрины
@@ -604,5 +606,44 @@ export function UiKit03HeaderPreviewPage() {
         </div>
       </div>
     </main>
+  )
+
+  if (!isWide) return sheet
+
+  const previewUser: User = {
+    id: 'preview',
+    email: null,
+    login: null,
+    display_name: 'Игрок',
+    full_name: null,
+    phone: null,
+    avatar_url: null,
+    email_verified_at: null,
+    created_at: '2026-01-01T00:00:00Z',
+    updated_at: '2026-01-01T00:00:00Z',
+    providers: [],
+  }
+
+  return (
+    <AppShell
+      section="chars"
+      title="Лист"
+      hideTitles
+      chrome="sheet"
+      user={previewUser}
+      showDice={false}
+      leading={
+        <div className="sheet-shell-actions">
+          <button type="button" className="sheet-shell-actions__btn">
+            Классический лист 2014
+          </button>
+          <button type="button" className="sheet-shell-actions__btn">
+            В лобби
+          </button>
+        </div>
+      }
+    >
+      {sheet}
+    </AppShell>
   )
 }

@@ -30,6 +30,7 @@ import { AttacksSettingsDialog } from '../AttacksSettingsDialog'
 import { SpellsPanel } from '../SpellsPanel'
 import { SpellsSettingsDialog } from '../SpellsSettingsDialog'
 import { ClassFeaturesPanel } from '../ClassFeaturesPanel'
+import { FeaturesEtalonDesk } from '../FeaturesEtalonDesk'
 import { WeaponMasteryPanel } from '../WeaponMasteryPanel'
 import { WeaponMasteryAttackPanel } from '../WeaponMasteryAttackPanel'
 import { ClassOptions2024Panel } from '../ClassOptions2024Panel'
@@ -64,6 +65,21 @@ import {
 import { listActiveInfusionBindings } from '../../../shared/dnd/infusionsActive'
 import { spendSpellSlot } from '../../../shared/dnd/spells'
 import { PlayDeskSpellsCompact } from '../PlayDeskSpellsCompact'
+import { SpellsEtalonDesk, type SpellMagicVariant } from '../SpellsEtalonDesk'
+
+function spellMagicVariant(): SpellMagicVariant {
+  if (typeof window === 'undefined') return 'kaedrin'
+  const magic = new URLSearchParams(window.location.search).get('magic')
+  if (magic === 'multiclass' || magic === 'warlock' || magic === 'wizard') return magic
+  return 'kaedrin'
+}
+
+function spellMagicClass(): string {
+  const magic = spellMagicVariant()
+  if (magic === 'wizard') return ' is-wizard'
+  if (magic === 'multiclass' || magic === 'warlock') return ' is-multi'
+  return ''
+}
 import { equipInventoryItem, equippedArmorPieces } from '../inventory'
 import { withSpellFocusFlags } from '../spellFocus'
 import { markBladesingerMeleeFocusItems2024 } from '../../../shared/dnd/wizardBook2024Features'
@@ -156,6 +172,7 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
     vsUndeadOrFiend: false,
   })
   const [ritualBookOpen, setRitualBookOpen] = useState(false)
+  const [deskGrimoireOpen, setDeskGrimoireOpen] = useState(false)
   const [transferBusy, setTransferBusy] = useState(false)
   const [transferMode, setTransferMode] = useState<DeskTransferMode | null>(null)
   /** U09: deep-link from attack → inventory card. */
@@ -250,10 +267,11 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
   return (
     <>
       <div className="play-desk__scene-wrap">
-      <div className="play-desk__stage-panel" hidden={model.stageHidden('attacks')}>
+      <div className={`play-desk__stage-panel${model.isPlayDesk ? ' panel has-content desk-combat' : ''}`} data-panel={model.isPlayDesk ? 'attacks' : undefined} hidden={model.stageHidden('attacks')}>
       {model.showCompact('attacks') ? (
         <>
           <PlayDeskAttacksCompact
+            etalon={model.isPlayDesk}
             weapons={
               getActiveSelfForm(model.draft.companions)?.form?.form_source_ref?.startsWith(
                 'starry_form:archer',
@@ -1070,8 +1088,9 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
 
       </div>
 
-      <div className="play-desk__stage-panel" hidden={model.stageHidden('inventory')}>
+      <div className={`play-desk__stage-panel${model.isPlayDesk ? ' panel has-content desk-explore' : ''}`} data-panel={model.isPlayDesk ? 'inventory' : undefined} hidden={model.stageHidden('inventory')}>
       <InventoryPanel
+        etalon={model.isPlayDesk}
         edition={model.baseCharacter.rules_edition as RulesEdition}
         inventory={model.draft.inventory}
         strengthScore={model.effectiveAbilities?.str ?? model.draft.abilities.str}
@@ -1247,7 +1266,9 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
 
       </div>
 
-      <div className="play-desk__stage-panel" hidden={model.stageHidden('features')}>
+      <div className={`play-desk__stage-panel${model.isPlayDesk ? ' panel has-content desk-features' : ''}`} data-panel={model.isPlayDesk ? 'features' : undefined} hidden={model.stageHidden('features')}>
+      {model.isPlayDesk ? <FeaturesEtalonDesk /> : null}
+      <div hidden={model.isPlayDesk ? true : undefined}>
       {/* Features: ClassFeaturesPanel glance→expand — no compact/full flip. */}
       {/* ABL-01: Благочестие только при MOT в кампании или если у героя выбран бог. */}
       {Boolean(model.draft.piety.god) ||
@@ -1725,11 +1746,28 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
       />
 
       </div>
+      </div>
 
       <div
-        className={`play-desk__stage-panel${model.deskSplit && model.splitSecondary === 'spells' ? ' is-pinned' : ''}`}
+        className={`play-desk__stage-panel${model.deskSplit && model.splitSecondary === 'spells' ? ' is-pinned' : ''}${model.isPlayDesk ? ` panel has-content desk-spells${spellMagicClass()}` : ''}`}
+        data-panel={model.isPlayDesk ? 'spells' : undefined}
         hidden={model.stageHidden('spells')}
       >
+      {model.isPlayDesk ? (
+        <SpellsEtalonDesk
+          variant={spellMagicVariant()}
+          grimoireOpen={deskGrimoireOpen}
+          onGrimoireClose={() => setDeskGrimoireOpen(false)}
+          onGrimoireOpen={() => setDeskGrimoireOpen(true)}
+          onClearSplit={
+            model.deskSplit && model.splitSecondary === 'spells'
+              ? () => model.patchSheetUi({ deskSplit: false })
+              : undefined
+          }
+          onOpenSettings={() => model.setSpellsSettingsOpen(true)}
+        />
+      ) : null}
+      <div hidden={model.isPlayDesk ? true : undefined}>
       {model.showCompact('spells') ? (
         <>
           <PlayDeskSpellsCompact
@@ -1866,6 +1904,14 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
               }))
             }
             title={model.isPlayDesk ? 'Магия' : 'Книга заклинаний'}
+            onOpenDeskGrimoire={
+              model.isPlayDesk
+                ? () => {
+                    model.setSpellsSettingsOpen(false)
+                    setDeskGrimoireOpen(true)
+                  }
+                : undefined
+            }
             onChange={(spells) => model.applySpellsChange(spells)}
             onClose={() => {
               model.setSpellsSettingsOpen(false)
@@ -1991,10 +2037,12 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
       )}
 
       </div>
+      </div>
 
-      <div className="play-desk__stage-panel" hidden={model.stageHidden('companions')}>
+      <div className={`play-desk__stage-panel${model.isPlayDesk ? ' panel has-content desk-companions' : ''}`} data-panel={model.isPlayDesk ? 'companions' : undefined} hidden={model.stageHidden('companions')}>
       {/* Companions: CompanionsPanel glance→expand — no compact/full flip. */}
       <CompanionsPanel
+        etalon={model.isPlayDesk}
         rulesEdition={model.rulesEdition}
         companions={model.draft.companions}
         onChange={(companions) => model.setDraft((prev) => ({ ...prev, companions }))}
@@ -2217,9 +2265,10 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
 
       </div>
 
-      <div className="play-desk__stage-panel" hidden={model.stageHidden('texts')}>
+      <div className={`play-desk__stage-panel${model.isPlayDesk ? ' panel has-content desk-social' : ''}`} data-panel={model.isPlayDesk ? 'texts' : undefined} hidden={model.stageHidden('texts')}>
       {/* Social: TextBlocksPanel glance→expand — no compact/full flip. */}
       <TextBlocksPanel
+        etalon={model.isPlayDesk}
         blocks={model.draft.textBlocks}
         onChange={(textBlocks) => model.setDraft((prev) => ({ ...prev, textBlocks }))}
         resources={model.draft.play.resources}

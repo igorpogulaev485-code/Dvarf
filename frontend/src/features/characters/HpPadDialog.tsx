@@ -57,6 +57,11 @@ type HpPadDialogProps = {
   /** Real HP loss after temp soak; amount is total damage rolled. */
   onDamage: (amount: number, opts?: { critical?: boolean }) => void
   onSetTemp: (temp: number) => void
+  /** Desktop etalon: existing temp HP and a different number open the replace dialog. */
+  onAskTempReplace?: (input: {
+    current: number
+    incoming: number
+  }) => Promise<'keep' | 'replace'>
   onPlayChange: (play: PlayState) => void
   onCombatChange: (patch: { hpCurrent?: number | null }) => void
   onToast: (message: string) => void
@@ -123,6 +128,7 @@ export function HpPadDialog({
   onHeal,
   onDamage,
   onSetTemp,
+  onAskTempReplace,
   onPlayChange,
   onCombatChange,
   onToast,
@@ -478,21 +484,16 @@ export function HpPadDialog({
         <div className="number-pad__display">
           <span className="number-pad__display-value">{digits === '' ? '0' : String(delta)}</span>
           <span className="number-pad__display-hint">
-            {adjusted.note || 'введи число, затем действие'}
+            {adjusted.note ||
+              `${digits === '' ? '0' : String(delta)} — введи число, затем действие`}
           </span>
         </div>
 
-        {resistanceLabel || vulnerabilityLabel || immunityLabel ? (
-          <p className="hp-pad__hint hp-pad__defenses">
-            {resistanceLabel ? `Сопротивления: ${resistanceLabel}` : ''}
-            {vulnerabilityLabel
-              ? `${resistanceLabel ? ' · ' : ''}Уязвимости: ${vulnerabilityLabel}`
-              : ''}
-            {immunityLabel
-              ? `${resistanceLabel || vulnerabilityLabel ? ' · ' : ''}Иммунитеты: ${immunityLabel}`
-              : ''}
-          </p>
-        ) : null}
+        <p className="hp-pad__hint hp-pad__defenses">
+          {resistanceLabel ? `Сопротивления: ${resistanceLabel}` : 'Сопротивления: нет'}
+          {vulnerabilityLabel ? ` · Уязвимости: ${vulnerabilityLabel}` : ''}
+          {immunityLabel ? ` · Иммунитеты: ${immunityLabel}` : ''}
+        </p>
 
         <div className="hp-pad__types chip-row" role="group" aria-label="Тип урона">
           {DAMAGE_TYPES.map((type) => (
@@ -663,7 +664,7 @@ export function HpPadDialog({
               className={`number-pad__key${key === 'C' || key === '⌫' ? ' number-pad__key--meta' : ''}`}
               onClick={() => press(key)}
             >
-              {key}
+              {key === '⌫' ? '←' : key}
             </button>
           ))}
         </div>
@@ -674,9 +675,31 @@ export function HpPadDialog({
             variant="secondary"
             disabled={!canApply && delta !== 0}
             onClick={() => {
-              onSetTemp(Math.max(0, delta))
+              const incoming = Math.max(0, delta)
+              const desk =
+                typeof document !== 'undefined' &&
+                document.documentElement.dataset.deskWindows === '1'
+              if (
+                desk &&
+                onAskTempReplace &&
+                incoming > 0 &&
+                hpTemp > 0 &&
+                incoming !== hpTemp
+              ) {
+                void onAskTempReplace({ current: hpTemp, incoming }).then((choice) => {
+                  if (choice === 'replace') {
+                    onSetTemp(incoming)
+                    onToast(`Временные хиты заменены на ${incoming}`)
+                  } else {
+                    onToast(`Оставлены прежние временные хиты (${hpTemp})`)
+                  }
+                })
+                setDigits('')
+                return
+              }
+              onSetTemp(incoming)
               setDigits('')
-              onToast(delta > 0 ? `Временные хиты: ${delta}` : 'Временные хиты сброшены')
+              onToast(incoming > 0 ? `Временные хиты: ${incoming}` : 'Временные хиты сброшены')
             }}
           >
             Временные
@@ -737,7 +760,7 @@ export function HpPadDialog({
         <div className="hp-pad__settings">
           <div className="hp-pad__settings-head">
             <strong>Настройки хитов</strong>
-            <button type="button" className="linkish" onClick={onOpenMaxSettings}>
+            <button type="button" className="btn hp-pad__max" onClick={onOpenMaxSettings}>
               Максимум…
             </button>
           </div>
@@ -749,6 +772,9 @@ export function HpPadDialog({
               </span>
               {pools.map((pool) => (
                 <div key={pool.classEntryId} className="hp-pad__dice-row">
+                  <span className="hp-pad__dice-name">
+                    {pool.className} {pool.die} {pool.current}/{pool.max}
+                  </span>
                   <button
                     type="button"
                     className="hp-pad__dice-spend"
@@ -756,7 +782,10 @@ export function HpPadDialog({
                     title={`Потратить кость ${pool.className} (среднее + ТЕЛ)`}
                     onClick={() => spendPool(pool)}
                   >
-                    Кости хитов · {pool.className} {pool.die}: {pool.current} из {pool.max}
+                    <span className="hp-pad__dice-long">
+                      Кости хитов · {pool.className} {pool.die}: {pool.current} из {pool.max}
+                    </span>
+                    <span className="hp-pad__dice-short">Потратить кость</span>
                   </button>
                   <SlotPips
                     max={Math.max(1, pool.max)}

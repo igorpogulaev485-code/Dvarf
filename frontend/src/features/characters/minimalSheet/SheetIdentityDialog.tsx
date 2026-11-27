@@ -61,6 +61,7 @@ import { withSyncedHitDiceSummary } from '../play'
 import { unlockFeaturesForClasses } from '../../../shared/dnd/classFeatures'
 import { clearFeaturePicksForClass } from '../../../shared/dnd/featurePicks'
 import { IdentityDialog } from '../IdentityDialog'
+import { DeskIdentityEtalon } from '../DeskIdentityEtalon'
 import { appendXpHistory } from '../playDeskUi'
 import { abilityModifier, formatModifier } from '../sheetTypes'
 import { reconcileSubclassSpellcasting } from '../reconcileSpellcasting'
@@ -195,7 +196,11 @@ export function SheetIdentityDialog({ model }: { model: SheetModel }) {
           model.setBaseCharacter(updated)
           model.onSaved(updated)
         }}
+        hideAvatar={model.isPlayDesk}
+        showClose={model.isPlayDesk}
       >
+          {model.isPlayDesk ? <DeskIdentityEtalon model={model} /> : null}
+          {model.isPlayDesk ? null : <>
           <section className="identity-dialog__section">
             <p className="identity-dialog__section-label">Персонаж</p>
           <Field label="Имя" htmlFor="sheet-name">
@@ -874,6 +879,7 @@ export function SheetIdentityDialog({ model }: { model: SheetModel }) {
             </Field>
           </div>
           </section>
+          </>}
       </IdentityDialog>
     </>
   )

@@ -1,0 +1,628 @@
+/*
+ * Сцена «Бой» на ПК — классы и метрики панели атак из sheet-desktop.html.
+ * Только .desk-combat. Шапка и телефон не затрагиваются.
+ */
+
+/* The concept paints plaque labels from local Source Sans 3.
+   The web IBM Plex face is wider, so the damage button and the first line wrap. */
+@font-face {
+  font-family: "Desk Combat Ui";
+  src: local("Source Sans 3 Regular"), local("SourceSans3-Regular");
+  font-weight: 400;
+  unicode-range: U+0000-00FF, U+0400-045F, U+0490-0491, U+2116;
+}
+
+.app-shell--sheet .play-desk--wide .play-desk__stage-panel.desk-combat {
+  border: 1px solid var(--desk-line, var(--line));
+  border-radius: 12px;
+  background: var(--card);
+  width: 457.9px;
+  max-width: 457.9px;
+  padding: 8px 10px 64px;
+  box-sizing: border-box;
+  height: 370.734px !important;
+  min-height: 370.734px !important;
+  max-height: 370.734px !important;
+  overflow: auto;
+  overscroll-behavior: contain;
+  align-self: start;
+  font-family: "IBM Plex Sans", "Source Sans 3", system-ui, sans-serif;
+  font-synthesis: weight style small-caps;
+  text-rendering: auto;
+  -webkit-font-smoothing: auto;
+  color: var(--text-body);
+}
+
+html[data-theme='leaf-classic'] .app-shell--sheet .play-desk--wide .play-desk__stage-panel.desk-combat {
+  background-color: #131313;
+  --card: #131313;
+  --accent-soft: color-mix(in srgb, var(--accent) 22%, #131313);
+  height: 359.734px !important;
+  min-height: 359.734px !important;
+  max-height: 359.734px !important;
+}
+
+.app-shell--sheet .play-desk--wide .desk-combat .play-desk-compact {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.app-shell--sheet .play-desk--wide .desk-combat h2 {
+  width: 100%;
+  margin: 0 0 8px;
+  font-family: "Source Serif 4", "Source Serif Pro", Georgia, serif;
+  font-size: 1.05rem;
+  color: var(--heading);
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.app-shell--sheet .play-desk--wide .desk-combat h2 .links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.app-shell--sheet .play-desk--wide .desk-combat h2 .links button,
+.app-shell--sheet .play-desk--wide .desk-combat .ghost {
+  border: 0;
+  background: transparent;
+  color: var(--accent);
+  padding: 6px 8px;
+  border-radius: 8px;
+  font-weight: 500;
+  font-family: "IBM Plex Sans", "Source Sans 3", system-ui, sans-serif;
+  box-shadow: none;
+  min-height: 0;
+}
+
+.app-shell--sheet .play-desk--wide .desk-combat h2 .links button {
+  font-size: 0.75rem;
+}
+
+.app-shell--sheet .play-desk--wide .desk-combat h2 .links button {
+  line-height: 17.4px;
+}
+
+.app-shell--sheet .play-desk--wide .desk-combat .list,
+.app-shell--sheet .play-desk--wide .desk-combat .attack-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+}
+
+.app-shell--sheet .play-desk--wide .desk-combat .attack-list {
+  margin-top: 6px;
+}
+
+.app-shell--sheet .play-desk--wide .desk-combat .play-desk-turn-actions-wrap {
+  margin: 0;
+}
+
+.app-shell--sheet .play-desk--wide .desk-combat .play-desk-compact__attack-block {
+  display: contents;
+}
+
+.app-shell--sheet .play-desk--wide .desk-combat .plaque.is-attack {
+  position: relative;
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0 6px;
+  align-items: stretch;
+  border: 1px solid var(--desk-line, var(--line));
+  border-radius: 8px;
+  background: var(--card);
+  padding: 0 2px 0 0;
+  min-height: 0;
+  text-align: left;
+}
+
+.app-shell--sheet .play-desk--wide .desk-combat .plaque.is-attack > .plaque-main {
+  display: contents;
+}
+
+.app-shell--sheet .play-desk--wide .desk-combat .plaque.is-attack .plaque__body {
+  grid-column: 1;
+  grid-row: 1;
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 8px;
+  min-width: 0;
+  padding: 2px 4px;
+  flex: none;
+}
+
+.app-shell--sheet .play-desk--wide .desk-combat .plaque__name {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  font-family: "IBM Plex Sans", "Source Sans 3", system-ui, sans-serif;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 23.2px;
+  color: var(--heading);
+  margin: 0;
+  padding: 0;
+  text-align: left;
+  cursor: pointer;
+}
+
+.app-shell--sheet .play-desk--wide .desk-combat .plaque__meta {
+  flex: 0 1 auto;
+  margin: 0;
+  font-size: 0.72rem;
+  line-height: 16.7px;
+  color: rgb(45, 45, 42);
+}
+
+html[data-theme='leaf-classic'] .app-shell--sheet .play-desk--wide .desk-combat .plaque__meta {
+  color: rgba(255, 255, 255, 0.46);
+}
+
+.app-shell--sheet .play-desk--wide .desk-combat .plaque-tag {
+  display: inline-block;
+  margin-left: 6px;
+  height: 19.8px;
+  line-height: 15.8px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  border: 0;
+  background: rgb(231, 225, 212);
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: rgb(36, 36, 31);
+  vertical-align: middle;
+}
+
+html[data-theme='leaf-classic'] .app-shell--sheet .play-desk--wide .desk-combat .plaque-tag:not(.is-on) {
+  color: rgb(255, 255, 255);
+  background: rgb(42, 42, 42);
+}
+
+.app-shell--sheet .play-desk--wide .desk-combat .plaque-tag.is-on {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.app-shell--sheet .play-desk--wide .desk-combat .plaque.is-attack .weapon-tools {
+  display: contents;
+}
+
+.app-shell--sheet .play-desk--wide .desk-combat .plaque.is-attack .play-desk-compact__holds {
+  grid-column: 1;
+  grid-row: 2;
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 3px;
+  align-items: center;
+  justify-self: stretch;
+  justify-content: flex-start;
+  width: 100%;
+  height: 34px;
+  padding: 0 10px 6px;
+  box-sizing: border-box;
+  position: relative;
+  z-index: 1;
+}
+
+.app-shell--sheet .play-desk--wide .desk-combat .plaque.is-attack .ammo-row {
+  grid-column: 1;
+  grid-row: 3;
+  justify-self: stretch;
+  width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  padding: 0 10px 5.9px;
+  font-size: 0.72rem;
+  color: rgba(45, 45, 42, 0.58);
+  position: relative;
+  z-index: 1;
+}
+
+.app-shell--sheet .play-desk--wide .desk-combat .ammo-label {
+  font-weight: 600;
+}
+
+.app-shell--sheet .play-desk--wide .desk-combat .ammo-chip {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 2px 8px;
+  background: var(--card);
+  color: var(--heading);
+  font-weight: 400;
+  line-height: 1.2;
+  box-sizing: border-box;
+  min-height: 22.7px;
+}
+
+.app-shell--sheet .play-desk--wide .desk-combat .ammo-chip .play-desk-compact__ammo-bind {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-weight: 400;
+  line-height: inherit;
+  color: inherit;
+  min-width: 0;
+  min-height: 0;
+}
+
+.app-shell--sheet .play-desk--wide .desk-combat button.tool-ico {
+  width: 28px;
+  height: 28px;
+  min-width: 28px;
+  min-height: 28px;
+  padding: 0;
+  border-radius: 8px;
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, var(--line));
+  background: color-mix(in srgb, var(--accent-soft) 40%, var(--card));
+  color: var(--accent);
+  display: grid;
+  place-items: center;
+  box-shadow: none;
+  font-family: "IBM Plex Sans", "Source Sans 3", system-ui, sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 16px;
+}
+
+.app-shell--sheet .play-desk--wide .desk-combat button.tool-ico.is-on {
+  background: var(--accent);
+  color: var(--on-accent, #fff);
+  border-color: var(--accent);
+}
+
+.app-shell--sheet .play-desk--wide .desk-combat button.tool-ico svg {
+  width: 15px;
+  height: 15px;
+  display: block;
+}
+
+.app-shell--sheet .play-desk--wide .desk-combat .plaque.is-attack .plaque__actions {
+  grid-column: 2;
+  grid-row: 1 / span 3;
+  align-self: stretch;
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 0 10px 0 4px;
+  margin: 0;
+  margin-left: 0;
+}
+
+.app-shell--sheet .play-desk--wide .desk-combat .plaque__actions button,
+.app-shell--sheet .play-desk--wide .desk-combat .plaque__actions .play-desk-compact__mod--roll {
+  width: max-content;
+  max-width: none;
+  flex: 0 0 auto;
+  line-height: 1.2;
+  font-family: "IBM Plex Sans", "Source Sans 3", system-ui, sans-serif;
+  font-size: 0.84rem;
+  font-weight: 700;
+  border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--line));
+  background: color-mix(in srgb, var(--accent-soft) 55%, var(--mix-paper, #fff));
+  border-radius: 8px;
+  padding: 4px 8px;
+  min-height: 32px;
+  box-sizing: border-box;
+  font-size: 0.84rem;
+  font-weight: 700;
+  color: var(--accent);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  box-shadow: none;
+}
+
+.app-shell--sheet .play-desk--wide .desk-combat .plaque__actions button.primary {
+  background: var(--accent);
+  color: var(--on-accent, #fff);
+  border-color: var(--accent);
+}
+
+html[data-theme='leaf-classic'] .app-shell--sheet .play-desk--wide .desk-combat .plaque.is-attack .ammo-row {
+  color: rgba(255, 255, 255, 0.46);
+}
+
+.app-shell--sheet .play-desk--wide .desk-combat .plaque-art {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 75.6px;
+  left: auto;
+  width: 250.5px;
+  pointer-events: none;
+  z-index: 0;
+  -webkit-mask-image: linear-gradient(to right, transparent 0%, #000 16%, #000 70%, transparent 100%);
+  mask-image: linear-gradient(to right, transparent 0%, #000 16%, #000 70%, transparent 100%);
+  opacity: 0.28;
+}
+
+html[data-theme='leaf-classic'] .app-shell--sheet .play-desk--wide .desk-combat .plaque-art {
+  opacity: 0.34;
+}
+
+.app-shell--sheet .play-desk--wide .desk-combat .plaque-art svg,
+.app-shell--sheet .play-desk--wide .desk-combat .icon-ink {
+  width: 100%;
+  height: 100%;
+  display: block;
+  color: var(--accent);
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  padding: 4px 6px 4px 18px;
+  box-sizing: border-box;
+}
+
+.app-shell--sheet .play-desk--wide .desk-combat .play-desk-compact__row-icon,
+.app-shell--sheet .play-desk--wide .desk-combat .play-desk-compact__tool-more,
+.app-shell--sheet .play-desk--wide .desk-combat .play-desk-compact__end,
+.app-shell--sheet .play-desk--wide .desk-combat .play-desk-compact__ammo-spend {
+  display: none;
+}
+
+.app-shell--sheet .play-desk--wide .desk-combat .turn-actions {
+  display: block;
+  margin: 0 0 8px;
+}
+
+.app-shell--sheet .play-desk--wide .desk-combat .turn-actions__panel {
+  margin-top: 6px;
+  padding: 8px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--card) 90%, #fff);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.app-shell--sheet .play-desk--wide .desk-combat .turn-act {
+  border: 1px solid var(--line);
+  background: var(--card);
+  color: var(--text-sub);
+  border-radius: 10px;
+  padding: 7px 12px;
+  font-weight: 600;
+  font-size: 12.48px;
+  line-height: 18.096px;
+  box-sizing: border-box;
+  box-shadow: none;
+}
+
+.app-shell--sheet .play-desk--wide .desk-combat .turn-actions__panel .sheet-chip {
+  font-family: "IBM Plex Sans", "Source Sans 3", system-ui, sans-serif;
+  font-size: 12.48px;
+  font-weight: 600;
+  line-height: 18.096px;
+  padding: 7px 12px;
+  min-height: 0;
+  height: auto;
+  gap: 0;
+  box-sizing: border-box;
+  border-radius: 10px;
+}
+
+.app-shell--sheet .play-desk--wide .desk-combat .turn-more {
+  margin-top: 6px;
+  padding: 6px 8px 7.7px;
+  border: 1px dashed color-mix(in srgb, var(--accent) 35%, var(--line));
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--accent-soft) 45%, var(--card));
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: flex-start;
+}
+
+.app-shell--sheet .play-desk--wide .desk-combat .turn-more .play-desk-turn-actions__optional-label {
+  flex: 1 0 100%;
+  margin: 0 0 2px;
+  font-size: 0.68rem;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-sub);
+}
+
+.app-shell--sheet .play-desk--wide .desk-combat .turn-more .chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  width: 100%;
+  margin: 0;
+}
+
+.app-shell--sheet .play-desk--wide .desk-combat .turn-more .btn {
+  border: 1px solid var(--line);
+  background: var(--card);
+  color: var(--text-sub);
+  border-radius: 8px;
+  padding: 4px 8px;
+  font-weight: 600;
+  font-size: 0.72rem;
+  line-height: 1.45;
+  box-shadow: none;
+  width: max-content;
+}
+
+.app-shell--sheet .play-desk--wide .desk-combat .turn-actions__tabs,
+.app-shell--sheet .play-desk--wide .desk-combat .play-desk-turn-actions__tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+.app-shell--sheet .play-desk--wide .desk-combat .chip.turn-tab,
+.app-shell--sheet .play-desk--wide .desk-combat .chip.turn-more-btn {
+  font-family: "IBM Plex Sans", "Source Sans 3", system-ui, sans-serif;
+  font-size: 12.48px;
+  font-weight: 650;
+  line-height: 18.096px;
+  color: rgb(36, 36, 31);
+  min-width: 0;
+  width: max-content;
+  flex: 0 0 auto;
+  gap: 0;
+  box-sizing: border-box;
+  border: 1px solid var(--line);
+  background: color-mix(in srgb, var(--accent-soft) 55%, var(--mix-paper, #fff));
+  border-radius: 999px;
+  padding: 2px 10px;
+  min-height: 28px;
+  box-shadow: none;
+}
+
+.app-shell--sheet .play-desk--wide .desk-combat .chip.turn-tab span,
+.app-shell--sheet .play-desk--wide .desk-combat .chip.turn-more-btn span {
+  font: inherit;
+  padding: 0;
+  border: 0;
+  background: none;
+  min-height: 0;
+}
+
+.app-shell--sheet .play-desk--wide .desk-combat .chip.turn-more-btn {
+  margin-left: auto;
+}
+
+.app-shell--sheet .play-desk--wide .desk-combat .turn-tab.is-open {
+  background: var(--accent);
+  color: var(--on-accent, #fff);
+  border-color: var(--accent);
+}
+
+html[data-theme='leaf-classic'] .app-shell--sheet .play-desk--wide .desk-combat .chip.turn-tab:not(.is-open),
+html[data-theme='leaf-classic'] .app-shell--sheet .play-desk--wide .desk-combat .chip.turn-more-btn {
+  color: rgb(255, 255, 255);
+}
+
+html[data-theme='leaf-classic'] .app-shell--sheet .play-desk--wide .desk-combat .turn-tab.is-open {
+  color: rgb(10, 10, 10);
+}
+
+.app-shell--sheet .play-desk--wide .desk-combat .cons-block {
+  display: block;
+  gap: 0;
+  margin-top: 16px;
+  padding-top: 8px;
+  border-top: 1px solid var(--line);
+}
+
+.app-shell--sheet .play-desk--wide .desk-combat .cons-head {
+  line-height: 16.7px;
+}
+
+.app-shell--sheet .play-desk--wide .desk-combat .play-desk-compact__cons-add {
+  margin-top: 0;
+}
+
+.app-shell--sheet .play-desk--wide .desk-combat .cons-block .ghost {
+  font-size: 16px;
+  line-height: 23.2px;
+  padding: 6px 8px;
+}
+
+.app-shell--sheet .play-desk--wide .desk-combat .cons-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.app-shell--sheet .play-desk--wide .desk-combat .cons-head strong {
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.app-shell--sheet .play-desk--wide .desk-combat .cons-fav-count {
+  font-size: 0.72rem;
+  color: var(--muted);
+}
+
+.app-shell--sheet .play-desk--wide .desk-combat .cons-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto auto;
+  gap: 6px 8px;
+  align-items: center;
+  padding: 5px 8px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--card);
+  margin-bottom: 6px;
+  font-size: 12.8px;
+  line-height: 18.56px;
+}
+
+.app-shell--sheet .play-desk--wide .desk-combat .cons-row.is-fav {
+  border-color: color-mix(in srgb, var(--accent) 35%, var(--line));
+  background: color-mix(in srgb, var(--accent-soft) 45%, var(--card));
+}
+
+.app-shell--sheet .play-desk--wide .desk-combat .cons-tag {
+  font-size: 0.64rem;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.app-shell--sheet .play-desk--wide .desk-combat .cons-qty {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.app-shell--sheet .play-desk--wide .desk-combat .cons-star,
+.app-shell--sheet .play-desk--wide .desk-combat .cons-row .btn {
+  border: 1px solid var(--line);
+  background: var(--card);
+  color: var(--text-sub);
+  border-radius: 10px;
+  padding: 7px 12px;
+  font-size: 12.8px;
+  line-height: 18.56px;
+  font-weight: 600;
+  box-sizing: border-box;
+  min-height: 34.5px;
+  box-shadow: none;
+}
+
+.app-shell--sheet .play-desk--wide .desk-combat .cons-star {
+  border: 0;
+  background: none;
+  cursor: pointer;
+  font-size: 1rem;
+  color: var(--accent);
+  padding: 0;
+}
+
+.app-shell--sheet .play-desk--wide .desk-combat .play-desk-compact__cons-log {
+  display: none;
+}

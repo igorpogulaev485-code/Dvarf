@@ -9,6 +9,9 @@ type IdentityDialogProps = {
   character: CharacterDetail
   onAvatarChanged: (character: CharacterDetail) => void
   children: ReactNode
+  /** Desktop etalon body draws its own avatar row. */
+  hideAvatar?: boolean
+  showClose?: boolean
 }
 
 /** Avatar click / header identity → pad (ЕЩЁ scene removed). */
@@ -18,18 +21,24 @@ export function IdentityDialog({
   character,
   onAvatarChanged,
   children,
+  hideAvatar = false,
+  showClose = false,
 }: IdentityDialogProps) {
   return (
     <Dialog
       open={open}
       title="Основное"
       size="xl"
-      primaryLabel="Готово"
+      primaryLabel={hideAvatar ? 'Закрыть' : 'Готово'}
+      primaryVariant={hideAvatar ? 'secondary' : 'primary'}
       onPrimary={onClose}
-      secondaryLabel="Закрыть"
-      onSecondary={onClose}
+      secondaryLabel={hideAvatar ? undefined : 'Закрыть'}
+      onSecondary={hideAvatar ? undefined : onClose}
+      onDismiss={hideAvatar ? onClose : undefined}
+      showClose={showClose}
     >
       <div className="identity-dialog">
+        {hideAvatar ? null : (
         <section className="identity-dialog__avatar" aria-label="Аватар">
           <div className="identity-dialog__avatar-copy">
             <strong>Аватар</strong>
@@ -42,6 +51,7 @@ export function IdentityDialog({
             onChanged={onAvatarChanged}
           />
         </section>
+        )}
         <div className="identity-dialog__form">{children}</div>
       </div>
     </Dialog>

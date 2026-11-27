@@ -16,6 +16,39 @@ export function TempHpReplaceDialog({ request }: Props) {
   const { current, incoming } = request
   const larger = incoming > current ? 'replace' : incoming < current ? 'keep' : 'equal'
   const preferReplace = larger === 'replace'
+  if (typeof document !== 'undefined' && document.documentElement.dataset.deskWindows === '1') {
+    return (
+      <Dialog
+        open
+        title="Временные хиты"
+        primaryLabel="Закрыть"
+        onPrimary={() => request.resolve('keep')}
+        showActions={false}
+        showClose
+        onDismiss={() => request.resolve('keep')}
+        className="desk-temp-hp"
+      >
+        <div className="confirm-box">
+          <p>
+            У тебя уже есть <b>{current}</b> врем. хитов. Заменить на <b>{incoming}</b> или оставить{' '}
+            <b>{current}</b>?
+          </p>
+          <p className="pad-note">
+            По правилам D&D временные хиты не складываются — остаётся один пул.
+          </p>
+          <div className="pad-row">
+            <button type="button" className="btn primary" onClick={() => request.resolve('replace')}>
+              Заменить на {incoming}
+            </button>
+            <button type="button" className="btn" onClick={() => request.resolve('keep')}>
+              Оставить {current}
+            </button>
+          </div>
+        </div>
+      </Dialog>
+    )
+  }
+
   return (
     <Dialog
       open

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import type { ClassLevelEntry } from '../../shared/dnd/classLevels'
 import {
   exhaustionHpCurrentForEdition,
@@ -68,6 +68,8 @@ import {
 } from '../../shared/dnd/jumpDistance'
 import { formatModifier } from './sheetTypes'
 import type { NeedsSetupItem } from './needsSetup'
+import { NeedsSetupIndicator } from './NeedsSetupIndicator'
+import { DeskHeadEtalon } from './DeskHeadEtalon'
 
 type SpeedMode = {
   key: 'walk' | 'climb' | 'swim' | 'fly'
@@ -157,6 +159,11 @@ type PlayDeskHeaderProps = {
     flySpeed?: number | null
   }) => void
   onPlayChange: (play: PlayState) => void
+  /** Desktop: «Временные» with an existing pool asks keep or replace. */
+  onAskTempReplace?: (input: {
+    current: number
+    incoming: number
+  }) => Promise<'keep' | 'replace'>
   onCoinsChange: (coins: CoinPurse) => void
   onCombatChange: (patch: {
     hpCurrent?: number | null
@@ -193,6 +200,12 @@ type PlayDeskHeaderProps = {
   /** B20: pending setup items for the header indicator. */
   needsSetupItems?: NeedsSetupItem[]
   onNeedsSetupSelect?: (item: NeedsSetupItem) => void
+  /** Desktop face: concept DOM. Phone keeps the legacy header. */
+  etalon?: boolean
+  avatarUrl?: string | null
+  /** Left side of the effects row (empty text, chips, condition buttons). */
+  effectsMain?: ReactNode
+  onNextRound?: () => void
 }
 
 export function PlayDeskHeader({
@@ -264,6 +277,7 @@ export function PlayDeskHeader({
   onOpenSpeed,
   onAltSpeedChange,
   onPlayChange,
+  onAskTempReplace,
   onCoinsChange,
   onCombatChange,
   onToast,
@@ -271,8 +285,12 @@ export function PlayDeskHeader({
   coinPadOpen: coinPadOpenProp,
   onCoinPadOpenChange,
   showValueTips = false,
-  needsSetupItems: _needsSetupItems = [],
-  onNeedsSetupSelect: _onNeedsSetupSelect,
+  needsSetupItems = [],
+  onNeedsSetupSelect,
+  etalon = false,
+  avatarUrl = null,
+  effectsMain = null,
+  onNextRound,
 }: PlayDeskHeaderProps) {
   const turnEco = useTurnEconomy()
   const alignmentLabel = alignment.trim()
@@ -328,9 +346,9 @@ export function PlayDeskHeader({
       ? 'макс.'
       : xp.nextThreshold == null
         ? 'макс.'
-        : `${formatXp(xp.xp)} / ${formatXp(xp.nextThreshold)} XP · до ур. ${
+        : `${formatXp(xp.xp)} / ${formatXp(xp.nextThreshold)} XP · ещё ${formatXp(xp.remaining)} до ур. ${
             xp.level + 1
-          } — ${formatXp(xp.remaining)}`
+          }`
   const xpLabel = milestones
     ? `ур. ${level} · Вехи`
     : xp.nextThreshold == null
@@ -486,8 +504,78 @@ export function PlayDeskHeader({
     applyFace(check.die)
   }
 
+  const walletFace =
+    formatCoinBreakdown(coins) === 'пусто'
+      ? `${formatGpCompact(coinsToGp(coins))} зм`
+      : formatCoinBreakdown(coins)
+  const standSpeedLabel =
+    primarySpeed == null
+      ? 'Скор.'
+      : primarySpeed.key === 'walk'
+        ? 'Скор.'
+        : primarySpeed.label
+
   return (
-    <section className="play-desk-header" aria-label="Шапка стола">
+    <section
+      className={etalon ? 'desk-head__slot' : 'play-desk-header'}
+      style={etalon ? { display: 'contents' } : undefined}
+      aria-label="Шапка стола"
+    >
+      {etalon ? (
+        <DeskHeadEtalon
+          name={name}
+          avatarUrl={avatarUrl}
+          raceLabel={raceLabel}
+          alignmentLabel={alignmentLabel}
+          editionLabel={editionLabel}
+          classChips={classChips}
+          needsSetupItems={needsSetupItems}
+          onNeedsSetupSelect={onNeedsSetupSelect}
+          xpLabel={xpRemainLabel.replaceAll('\u00A0', '\u202F')}
+          xpRatio={xp.nextThreshold ? xp.xp / xp.nextThreshold : 1}
+          onOpenXp={() => setXpPadOpen(true)}
+          autoAc={autoAc}
+          acHint={acHint}
+          shieldInHand={shieldInHand}
+          shieldAvailable={shieldAvailable}
+          onOpenAc={onOpenAc}
+          onToggleShield={onToggleShield}
+          speedValue={primarySpeed ? primarySpeed.value : null}
+          speedLabel={standSpeedLabel}
+          speedTitle={speedTitle}
+          speedTags={secondarySpeeds}
+          onOpenSpeed={onOpenSpeed}
+          jumpLongFt={jumpLongFt}
+          jumpHighFt={jumpHighFt}
+          initiativeLabel={formatModifier(initiative)}
+          onOpenInitiative={onOpenInitiative}
+          onInitiativeRoll={onInitiativeRoll}
+          proficiencyLabel={formatModifier(proficiencyBonus)}
+          inspiration={inspiration}
+          onToggleInspiration={onToggleInspiration}
+          exhaustion={play.exhaustion}
+          onExhaustionChange={onExhaustionChange}
+          walletLabel={walletFace}
+          onOpenCoins={() => setCoinPadOpen(true)}
+          onOpenRest={onOpenRest}
+          hpLabel={`${shownHpCurrent ?? '—'} / ${shownHpMax ?? '—'}`}
+          hpTitle={
+            showDeath
+              ? 'Хиты ≤ 0 — спасброски от смерти рядом'
+              : `Хиты ${shownHpCurrent ?? '—'} из ${shownHpMax ?? '—'}. Нажми — панель`
+          }
+          onOpenHp={() => setHpPadOpen(true)}
+          onOpenIdentity={onOpenIdentity}
+          effectsMain={effectsMain}
+          onNextRound={onNextRound}
+          showDeath={showDeath}
+          deathSuccesses={play.deathSuccesses}
+          deathFails={play.deathFails}
+          onDeathChange={(patch) => onPlayChange({ ...play, ...patch })}
+          onDeathRoll={rollDeathSave}
+        />
+      ) : (
+      <>
       <div className="play-desk-header__who">
         {/* 1) Имя — одна строка; клик раскрывает, если не влезло */}
         <h1 className="play-desk-header__name-wrap">
@@ -518,6 +606,10 @@ export function PlayDeskHeader({
               }
               onClick={onOpenIdentity}
             >
+              <span>Основное</span>
+              <span className="play-desk-header__dot" aria-hidden>
+                ·
+              </span>
               <span>{raceLabel}</span>
               {alignmentLabel ? (
                 <>
@@ -527,6 +619,10 @@ export function PlayDeskHeader({
                   <span className="play-desk-header__alignment">{alignmentLabel}</span>
                 </>
               ) : null}
+              <span className="play-desk-header__dot" aria-hidden>
+                ·
+              </span>
+              <span>{editionLabel}</span>
             </button>
           ) : (
             <p className="play-desk-header__identity">
@@ -545,6 +641,9 @@ export function PlayDeskHeader({
                 level: classRows.find((row) => row.id === chip.id)?.level,
               }))}
             />
+          ) : null}
+          {onNeedsSetupSelect ? (
+            <NeedsSetupIndicator items={needsSetupItems} onSelect={onNeedsSetupSelect} />
           ) : null}
           <XpTrack
             level={level}
@@ -957,6 +1056,8 @@ export function PlayDeskHeader({
           </div>
         </div>
       </div>
+      </>
+      )}
 
       <HpPadDialog
         open={hpPadOpen}
@@ -973,6 +1074,7 @@ export function PlayDeskHeader({
         onHeal={applyHeal}
         onDamage={applyDamage}
         onSetTemp={(temp) => onPlayChange({ ...play, hpTemp: Math.max(0, temp) })}
+        onAskTempReplace={onAskTempReplace}
         onPlayChange={onPlayChange}
         onCombatChange={onCombatChange}
         onToast={onToast}
@@ -1123,6 +1225,10 @@ export function PlayDeskHeader({
         dwarvenToughness={dwarvenToughness}
         extraFlatBonuses={maxHpExtraBonuses}
         onClose={() => setMaxDialogOpen(false)}
+        onBackToPad={() => {
+          setMaxDialogOpen(false)
+          setHpPadOpen(true)
+        }}
         onApply={({ hpMax: nextMax, hpCurrent: nextCurrent }) => {
           onCombatChange({ hpMax: nextMax, hpCurrent: nextCurrent })
           setMaxDialogOpen(false)

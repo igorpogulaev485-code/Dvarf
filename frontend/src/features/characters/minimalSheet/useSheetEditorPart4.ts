@@ -338,6 +338,17 @@ export function useSheetEditorPart4(model: SheetModel) {
   } | null>(null)
   model.tempHpReplaceAsk = tempHpReplaceAsk
   model.setTempHpReplaceAsk = setTempHpReplaceAsk
+  useEffect(() => {
+    const raw = new URLSearchParams(window.location.search).get('tempreplace')
+    if (!raw) return
+    const [current, incoming] = raw.split(',').map((part) => Number(part))
+    if (!Number.isFinite(current) || !Number.isFinite(incoming)) return
+    setTempHpReplaceAsk({
+      current,
+      incoming,
+      resolve: () => setTempHpReplaceAsk(null),
+    })
+  }, [])
   model.askTempHpReplace = (input: { current: number; incoming: number }) =>
     new Promise<'keep' | 'replace'>((resolve) => {
       setTempHpReplaceAsk({

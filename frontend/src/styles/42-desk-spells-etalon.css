@@ -1,0 +1,482 @@
+/*
+ * Колонка «Заклинания» на ПК — из sheet-desktop.html.
+ * Только .desk-spells. Принятые сцены и телефон не затрагиваются.
+ */
+
+.app-shell--sheet .play-desk--wide .play-desk__stage-panel.desk-spells {
+  border: 1px solid var(--desk-line, var(--line));
+  border-radius: 12px;
+  background: var(--card);
+  padding: 8px 10px;
+  box-sizing: border-box;
+  width: 506.1px;
+  max-width: 506.1px;
+  height: 370.7px !important;
+  min-height: 370.7px !important;
+  max-height: 370.7px !important;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  align-self: start;
+  --granted-a: color-mix(in srgb, var(--accent-soft) 78%, white);
+  --granted-b: color-mix(in srgb, var(--accent-soft) 42%, white);
+  font-family: "IBM Plex Sans", "Source Sans 3", system-ui, sans-serif;
+  color: var(--text-body);
+}
+
+.app-shell--sheet .play-desk--wide .desk-spells > h2,
+.app-shell--sheet .play-desk--wide .desk-spells > .spell-cast-row,
+.app-shell--sheet .play-desk--wide .desk-spells > .spell-head-tools,
+.app-shell--sheet .play-desk--wide .desk-spells > .filters,
+.app-shell--sheet .play-desk--wide .desk-spells > input,
+.app-shell--sheet .play-desk--wide .desk-spells > .spell-collapse-row,
+.app-shell--sheet .play-desk--wide .desk-spells > .pact-row,
+.app-shell--sheet .play-desk--wide .desk-spells > label {
+  flex: 0 0 auto;
+}
+
+.app-shell--sheet .play-desk--wide .desk-spells h2 {
+  width: 100%;
+  margin: 0 0 8px;
+  font-family: "Source Serif 4", Georgia, serif;
+  font-size: 1.05rem;
+  font-weight: 700;
+  line-height: 29.4px;
+  color: var(--heading);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.app-shell--sheet .play-desk--wide .desk-spells h2 .links {
+  display: flex;
+  gap: 6px;
+}
+
+.app-shell--sheet .play-desk--wide .desk-spells .ghost {
+  border: 0;
+  background: transparent;
+  color: var(--accent);
+  padding: 6px 8px;
+  border-radius: 8px;
+  font-family: "IBM Plex Sans", "Source Sans 3", system-ui, sans-serif;
+  font-weight: 500;
+  font-size: 12px;
+  line-height: 17.4px;
+  min-height: 0;
+  box-shadow: none;
+}
+
+.app-shell--sheet .play-desk--wide .desk-spells .spell-cast-row {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  margin: 0 0 8px;
+  width: fit-content;
+  max-width: 100%;
+}
+
+.app-shell--sheet .play-desk--wide .desk-spells.is-multi .cast-chip {
+  width: 314.2px;
+}
+
+.app-shell--sheet .play-desk--wide .desk-spells.is-multi,
+html[data-theme='leaf-classic'] .app-shell--sheet .play-desk--wide .play-desk__stage-panel.desk-spells:not(.is-wizard) {
+  height: 359.7px !important;
+  min-height: 359.7px !important;
+  max-height: 359.7px !important;
+}
+
+.app-shell--sheet .play-desk--wide .desk-spells.is-wizard {
+  height: 419.7px !important;
+  min-height: 419.7px !important;
+  max-height: 419.7px !important;
+}
+
+.app-shell--sheet .play-desk--wide .desk-spells .cast-chip {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px 14px;
+  padding: 3px 8px;
+  border-radius: 8px;
+  border: 1px solid color-mix(in srgb, var(--abil, var(--abil-wis)) 45%, var(--line));
+  background: var(--abil-soft, var(--abil-wis-soft, var(--accent-soft)));
+  color: rgb(36, 36, 31);
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 600;
+  line-height: 1.25;
+  min-height: 0;
+  box-shadow: none;
+}
+
+.app-shell--sheet .play-desk--wide .desk-spells .cast-chip.is-wis { --abil: var(--abil-wis); --abil-soft: var(--abil-wis-soft); }
+.app-shell--sheet .play-desk--wide .desk-spells .cast-chip.is-int { --abil: var(--abil-int); --abil-soft: var(--abil-int-soft); }
+.app-shell--sheet .play-desk--wide .desk-spells .cast-chip.is-cha { --abil: var(--abil-cha); --abil-soft: var(--abil-cha-soft); }
+
+.app-shell--sheet .play-desk--wide .desk-spells .cast-chip__abil {
+  font-weight: 700;
+  color: var(--abil, var(--abil-wis));
+}
+
+.app-shell--sheet .play-desk--wide .desk-spells .cast-chip__quota {
+  font-weight: 600;
+  font-size: 0.72rem;
+  color: rgb(95, 88, 78);
+}
+
+.app-shell--sheet .play-desk--wide .desk-spells .spell-head-tools,
+.app-shell--sheet .play-desk--wide .desk-spells .filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  margin: 0 0 8px;
+}
+
+.app-shell--sheet .play-desk--wide .desk-spells .pact-row {
+  display: flex;
+  align-items: center;
+  margin: 0 0 8px;
+  font-size: 0.8rem;
+  color: var(--text-sub, var(--muted));
+}
+
+.app-shell--sheet .play-desk--wide .desk-spells .pact-row .slots {
+  display: inline-flex;
+  gap: 4px;
+  margin-left: 6px;
+}
+
+.app-shell--sheet .play-desk--wide .desk-spells .spell-collapse-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  margin: 6px 0 8px;
+}
+
+.app-shell--sheet .play-desk--wide .desk-spells .chip {
+  min-height: 28px;
+  height: 28px;
+  padding: 2px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: color-mix(in srgb, var(--accent-soft) 55%, #fff);
+  color: rgb(36, 36, 31);
+  font-size: 0.78rem;
+  font-weight: 650;
+  box-shadow: none;
+}
+
+.app-shell--sheet .play-desk--wide .desk-spells .spell-head-tools .chip {
+  background: rgb(78, 93, 52);
+  color: rgb(248, 255, 251);
+  border-color: rgb(78, 93, 52);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 17.4px;
+  font-synthesis: weight style small-caps;
+}
+
+.app-shell--sheet .play-desk--wide .desk-spells .spell-head-tools .chip-mark {
+  font-family: "Source Sans 3", sans-serif;
+}
+
+.app-shell--sheet .play-desk--wide .desk-spells .filters-sep {
+  width: 1px;
+  height: 16px;
+  margin: 0 2px;
+  background: var(--line);
+}
+
+.app-shell--sheet .play-desk--wide .desk-spells .spell-collapse-row .chip {
+  padding: 3px 9px;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 17.4px;
+  font-synthesis: weight style small-caps;
+}
+
+.app-shell--sheet .play-desk--wide .desk-spells .sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+}
+
+.app-shell--sheet .play-desk--wide .desk-spells input[type='search'] {
+  width: 100%;
+  box-sizing: border-box;
+  height: 33.2px !important;
+  margin: 0 0 4px;
+  padding: 4px 8px;
+  line-height: 23.2px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--card) 80%, var(--text) 4%);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.82rem;
+}
+
+.app-shell--sheet .play-desk--wide .desk-spells .list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+  margin: 0;
+  padding: 0 0 64px;
+}
+
+.app-shell--sheet .play-desk--wide .desk-spells .spell-circle {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+}
+
+.app-shell--sheet .play-desk--wide .desk-spells .spell-circle.is-empty {
+  display: none;
+}
+
+.app-shell--sheet .play-desk--wide .desk-spells .circle-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin: 8px 0 6px;
+}
+
+.app-shell--sheet .play-desk--wide .desk-spells .circle-toggle {
+  border: 0;
+  background: none;
+  color: rgb(36, 36, 31);
+  font-family: "Source Serif 4", Georgia, serif;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 23.2px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0;
+  min-height: 0;
+  box-shadow: none;
+}
+
+.app-shell--sheet .play-desk--wide .desk-spells .circle-toggle strong {
+  font-weight: 900;
+  font-size: 16px;
+}
+
+.app-shell--sheet .play-desk--wide .desk-spells .circle-count,
+.app-shell--sheet .play-desk--wide .desk-spells .slot-count {
+  font-weight: 600;
+  color: var(--muted);
+  font-size: 0.85em;
+}
+
+.app-shell--sheet .play-desk--wide .desk-spells .slots {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.app-shell--sheet .play-desk--wide .desk-spells .pip {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 1.5px solid var(--accent);
+  background: var(--accent);
+  padding: 0;
+  min-height: 0;
+}
+
+.app-shell--sheet .play-desk--wide .desk-spells .spell-circle.is-collapsed .plaque {
+  display: none;
+}
+
+.app-shell--sheet .play-desk--wide .desk-spells .plaque.is-spell {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--card);
+  min-height: 51.1px;
+  margin: 0;
+  overflow: hidden;
+}
+
+
+.app-shell--sheet .play-desk--wide .desk-spells .plaque.is-granted {
+  background: linear-gradient(105deg, var(--granted-a) 0%, var(--card) 48%, var(--granted-b) 100%);
+  border-color: color-mix(in srgb, var(--accent) 40%, var(--line));
+  box-shadow: inset 3px 0 0 var(--accent);
+}
+
+.app-shell--sheet .play-desk--wide .desk-spells .plaque-art {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 4.6rem;
+  width: 58%;
+  pointer-events: none;
+  z-index: 0;
+  -webkit-mask-image: linear-gradient(to right, transparent 0%, #000 16%, #000 70%, transparent 100%);
+  mask-image: linear-gradient(to right, transparent 0%, #000 16%, #000 70%, transparent 100%);
+  opacity: 0.28;
+}
+
+.app-shell--sheet .play-desk--wide .desk-spells .plaque-art .icon-ink,
+.app-shell--sheet .play-desk--wide .desk-spells .plaque-art .icon-ink * {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  color: var(--accent);
+}
+
+.app-shell--sheet .play-desk--wide .desk-spells .plaque__body,
+.app-shell--sheet .play-desk--wide .desk-spells .plaque__actions {
+  position: relative;
+  z-index: 1;
+}
+
+.app-shell--sheet .play-desk--wide .desk-spells .plaque__body {
+  padding: 6px 10px;
+  min-width: 0;
+}
+
+.app-shell--sheet .play-desk--wide .desk-spells .spell-top {
+  display: flex;
+  align-items: center;
+  gap: 4px 6px;
+  min-width: 0;
+}
+
+.app-shell--sheet .play-desk--wide .desk-spells .plaque__name {
+  border: 0;
+  background: none;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 23.2px;
+  color: rgb(36, 36, 31);
+  white-space: nowrap;
+  min-height: 0;
+  box-shadow: none;
+}
+
+.app-shell--sheet .play-desk--wide .desk-spells .spell-level {
+  color: rgb(95, 88, 78);
+  font-size: 0.72rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.app-shell--sheet .play-desk--wide .desk-spells .spell-dmg {
+  max-width: 8.5rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding: 1px 6px;
+  border-radius: 6px;
+  background: color-mix(in srgb, #e7e1d4 70%, #fff);
+  color: rgb(36, 36, 31);
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.app-shell--sheet .play-desk--wide .desk-spells .plaque__meta {
+  font-size: 9.92px;
+  line-height: 12.896px;
+  color: rgb(95, 88, 78);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.app-shell--sheet .play-desk--wide .desk-spells .plaque[hidden] {
+  display: none !important;
+}
+
+.app-shell--sheet .play-desk--wide .desk-spells .plaque__actions {
+  padding: 0 10px 0 4px;
+}
+
+.app-shell--sheet .play-desk--wide .desk-spells .spell-flag {
+  font-size: 9.92px;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.app-shell--sheet .play-desk--wide .desk-spells .plaque__actions button {
+  border: 1px solid var(--accent);
+  background: var(--accent);
+  color: var(--on-accent, #f8fffb);
+  border-radius: 8px;
+  padding: 4px 8px;
+  min-height: 32px;
+  font-size: 0.84rem;
+  font-weight: 700;
+  box-shadow: none;
+}
+
+html[data-theme='leaf-classic'] .app-shell--sheet .play-desk--wide .desk-spells .plaque__name,
+html[data-theme='leaf-classic'] .app-shell--sheet .play-desk--wide .desk-spells .circle-toggle,
+html[data-theme='leaf-classic'] .app-shell--sheet .play-desk--wide .desk-spells .cast-chip {
+  color: rgb(255, 255, 255);
+}
+
+html[data-theme='leaf-classic'] .app-shell--sheet .play-desk--wide .desk-spells .cast-chip.is-wis {
+  background: color(srgb 0.268863 0.283137 0.222745);
+}
+
+html[data-theme='leaf-classic'] .app-shell--sheet .play-desk--wide .desk-spells .chip {
+  background: color(srgb 0.158498 0.164667 0.138569);
+  color: rgb(255, 255, 255);
+}
+
+html[data-theme='leaf-classic'] .app-shell--sheet .play-desk--wide .desk-spells .spell-head-tools .chip {
+  background: rgb(196, 209, 154);
+  color: rgb(10, 10, 10);
+  border-color: rgb(196, 209, 154);
+}
+
+html[data-theme='leaf-classic'] .app-shell--sheet .play-desk--wide .desk-spells .spell-dmg {
+  background: color(srgb 0.137647 0.137647 0.137647);
+  color: rgb(255, 255, 255);
+}
+
+html[data-theme='leaf-classic'] .app-shell--sheet .play-desk--wide .desk-spells.panel {
+  background: rgb(19, 19, 19);
+  --granted-a: color-mix(in srgb, var(--accent) 28%, var(--card));
+  --granted-b: color-mix(in srgb, var(--accent) 12%, var(--card));
+}
+
+html[data-theme='leaf-classic'] .app-shell--sheet .play-desk--wide .desk-spells .plaque.is-spell:not(.is-granted) {
+  background: rgb(19, 19, 19);
+}
+
+html[data-theme='leaf-classic'] .app-shell--sheet .play-desk--wide .desk-spells .plaque-art {
+  opacity: 0.34;
+}
+
+html[data-theme='leaf-classic'] .app-shell--sheet .play-desk--wide .desk-spells .spell-level,
+html[data-theme='leaf-classic'] .app-shell--sheet .play-desk--wide .desk-spells .plaque__meta,
+html[data-theme='leaf-classic'] .app-shell--sheet .play-desk--wide .desk-spells .cast-chip__quota {
+  color: rgba(255, 255, 255, 0.56);
+}

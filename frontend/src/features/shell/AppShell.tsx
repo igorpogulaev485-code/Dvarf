@@ -29,13 +29,47 @@ type AppShellProps = {
   onAuthed?: (user: User) => void
   /** Hide the shell dice. Auth pages that are not the app shell should leave it on. */
   showDice?: boolean
+  /** Buttons left of the book and name. Lists leave this empty. */
+  leading?: ReactNode
+  /** Sheet page: the character name is the title, so the shell h1 stays off. */
+  hideTitles?: boolean
+  /** `sheet` marks the open character sheet. List screens stay `default`. */
+  chrome?: 'default' | 'sheet'
 }
 
 const NAV = [
-  { to: '/characters', section: 'chars' as const, label: 'Персонажи', icon: 'person' },
-  { to: '/lobbies', section: 'lobby' as const, label: 'Лобби', icon: 'people' },
-  { to: '/site', section: 'site' as const, label: 'Сайт КриD20', short: 'КриD20', icon: 'globe' },
+  { to: '/characters', section: 'chars' as const, label: 'Персонажи', short: 'Персонажи', icon: 'person' },
+  { to: '/lobbies', section: 'lobby' as const, label: 'Лобби', short: 'Лобби', icon: 'people' },
+  { to: '/site', section: 'site' as const, label: 'Сайт КриD20', short: 'Сайт', icon: 'globe' },
 ] as const
+
+function SheetNavIcon({ section }: { section: ShellSection }) {
+  if (section === 'chars') {
+    return (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+        <circle cx="8" cy="8" r="2.4" />
+        <circle cx="16" cy="8" r="2.4" />
+        <path d="M4.5 18c.6-2.4 2.4-3.6 4.8-3.6h.4c2.4 0 4.2 1.2 4.8 3.6" />
+        <path d="M12.8 14.6c.7-.4 1.6-.6 2.6-.6h.3c2.4 0 4.2 1.2 4.8 3.6" />
+      </svg>
+    )
+  }
+  if (section === 'lobby') {
+    return (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+        <path d="M5 19V9.5L12 5l7 4.5V19" />
+        <path d="M9 19v-6h6v6" />
+      </svg>
+    )
+  }
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <circle cx="12" cy="12" r="8" />
+      <path d="M4.5 12h15" />
+      <path d="M12 4.5c2.2 2.4 3.3 4.9 3.3 7.5S14.2 17.1 12 19.5C9.8 17.1 8.7 14.6 8.7 12S9.8 6.9 12 4.5Z" />
+    </svg>
+  )
+}
 
 function NavIcon({ name }: { name: 'person' | 'people' | 'globe' | 'user' }) {
   if (name === 'person') {
@@ -94,6 +128,9 @@ export function AppShell({
   nextPath = null,
   onAuthed,
   showDice = true,
+  leading = null,
+  hideTitles = false,
+  chrome = 'default',
 }: AppShellProps) {
   const location = useLocation()
   const [authMode, setAuthMode] = useState<ShellAuthMode | null>(initialAuth)
@@ -164,11 +201,20 @@ export function AppShell({
 
   return (
     <ShellAuthProvider value={{ openAuth }}>
-      <div className={`app-shell app-shell--${section}`}>
+      <div
+        className={`app-shell app-shell--${section}${chrome === 'sheet' ? ' app-shell--sheet' : ''}`}
+        data-sheet-open={chrome === 'sheet' ? '' : undefined}
+      >
         <aside className="sidebar app-shell__side">
-          <NavLink className="app-shell__brand" to="/site" aria-label="Сайт КриD20">
-            <Creed20Wordmark />
-          </NavLink>
+          {chrome === 'sheet' ? (
+            <NavLink className="app-shell__brand app-shell__brand--mark" to="/site" aria-label="Сайт КриD20">
+              К20
+            </NavLink>
+          ) : (
+            <NavLink className="app-shell__brand" to="/site" aria-label="Сайт КриD20">
+              <Creed20Wordmark />
+            </NavLink>
+          )}
           <nav className="app-shell__nav" aria-label="Разделы">
             {NAV.map((item) => (
               <NavLink
@@ -180,9 +226,10 @@ export function AppShell({
                 aria-current={section === item.section ? 'page' : undefined}
               >
                 <span className="app-shell__nav-ico">
-                  <NavIcon name={item.icon} />
+                  {chrome === 'sheet' ? <SheetNavIcon section={item.section} /> : <NavIcon name={item.icon} />}
                 </span>
-                <span>{item.label}</span>
+                <span className="app-shell__nav-full">{item.label}</span>
+                <span className="app-shell__nav-short">{item.short}</span>
               </NavLink>
             ))}
           </nav>
@@ -190,10 +237,13 @@ export function AppShell({
 
         <div className="app-shell__main">
           <header className="app-shell__head">
-            <div className="app-shell__titles">
-              <h1>{title}</h1>
-              {subtitle ? <p>{subtitle}</p> : null}
-            </div>
+            {leading ? <div className="app-shell__leading">{leading}</div> : null}
+            {hideTitles ? null : (
+              <div className="app-shell__titles">
+                <h1>{title}</h1>
+                {subtitle ? <p>{subtitle}</p> : null}
+              </div>
+            )}
             <div className="app-shell__tools">
               <button type="button" className="app-shell__book" aria-label="Справка" title="Справка" onClick={openHelp}>
                 <BookIcon />

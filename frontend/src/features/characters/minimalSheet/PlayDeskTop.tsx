@@ -1,11 +1,10 @@
 /** Шапка стола, полоска жизни на телефоне и док напарников. */
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import type { SheetModel } from './sheetModel'
 import { formatRaceMovementHint } from '../../../shared/dnd/raceGrants'
 import { syncAttacksHeldFromInventory } from '../AttacksPanel'
 import { canWearArmor, armorProficiencyHint } from '../equipmentProficiency'
 import { listShieldItems, toggleShieldInHand } from '../heldEquip'
-import { CharacterAvatarControl } from '../CharacterAvatarControl'
 import { PlayDeskHeader } from '../PlayDeskHeader'
 import { MobileVitalsBar } from '../MobileVitalsBar'
 import { formatSkillRoll } from '../deskRolls'
@@ -30,9 +29,11 @@ import {
 } from '../../../shared/dnd/o07Reactions'
 import { spellReadyToCast } from '../itemSpellCast'
 import {
+  formatEffectChipFace,
   listRollDieChips,
   mergeDeskRollMode,
   resolveAdvantageFromEffects,
+  tickAllEffectsOneRound,
 } from '../../../shared/dnd/activeEffects'
 import {
   alignmentNeedsClarification,
@@ -40,6 +41,7 @@ import {
 } from '../../../shared/dnd/alignments'
 import { usesHeroicInspiration } from '../../../shared/dnd/heroicInspiration'
 import { ActiveEffectsPanel } from '../ActiveEffectsPanel'
+import { Dialog } from '../../../ui'
 import { IconCompanions } from '../deskIcons'
 import {
   buildNeedsSetupItems,
@@ -96,6 +98,7 @@ function formatInitiativeToast(model: SheetModel): string {
 }
 
 export function PlayDeskTop({ model }: { model: SheetModel }) {
+  const [effectsOpen, setEffectsOpen] = useState(false)
   const alignmentLabel = alignmentSheetLabel(model.draft.identity)
   const wornArmorKind = equippedArmorPieces(model.draft.inventory.items).armor?.kind
   const damageProfile = sheetDamageProfile({
@@ -432,18 +435,10 @@ export function PlayDeskTop({ model }: { model: SheetModel }) {
         </div>
       ) : null}
       {model.isPlayDesk ? (
-        <div className="play-desk__top" data-onboarding="combat-header">
-          <CharacterAvatarControl
-            character={model.baseCharacter}
-            size="sm"
-            showActions={false}
-            onOpen={() => model.setIdentityOpen(true)}
-            onChanged={(updated) => {
-              model.setBaseCharacter(updated)
-              model.onSaved(updated)
-            }}
-          />
+        <section className="desk-head play-desk__top" data-onboarding="combat-header" aria-label="Шапка стола">
           <PlayDeskHeader
+            etalon
+            avatarUrl={model.baseCharacter.avatar_url}
             name={model.draft.name}
             raceName={model.draft.raceName}
             className={model.classSummary || model.primaryClass?.name || ''}
@@ -623,6 +618,11 @@ export function PlayDeskTop({ model }: { model: SheetModel }) {
               model.applyBardInitiativeInspiration()
             }}
             onPlayChange={(play) => model.setDraft((prev) => ({ ...prev, play }))}
+            onAskTempReplace={
+              typeof model.askTempHpReplace === 'function'
+                ? model.askTempHpReplace
+                : undefined
+            }
             onCoinsChange={(coins) =>
               model.setDraft((prev) => ({
                 ...prev,
@@ -717,35 +717,67 @@ export function PlayDeskTop({ model }: { model: SheetModel }) {
                 dc: Math.max(10, Math.floor(damageToHp / 2)),
               })
             }}
-          />
-          {(model.draft.play.effects ?? []).length > 0 ||
-          model.dockCompanions.length > 0 ? (
-            <div className="play-desk__top-extras">
-              <ActiveEffectsPanel
-                effects={model.draft.play.effects ?? []}
-                onChange={(effects) => model.applyEffectsChange?.(effects)}
-                onToast={model.onToast}
-                onHeroismTurnStart={() => model.applyHeroismTurnStart?.()}
-              />
-              {model.dockCompanions.length > 0 ? (
+            effectsMain={
+              <>
+                {(model.draft.play.effects ?? []).length === 0 ? (
+                  <span className="effects__empty">Нет активных эффектов</span>
+                ) : (
+                  <ActiveEffectsPanel
+                    hideRound
+                    effects={model.draft.play.effects ?? []}
+                    onChange={(effects) => model.applyEffectsChange?.(effects)}
+                    onToast={model.onToast}
+                    onHeroismTurnStart={() => model.applyHeroismTurnStart?.()}
+                  />
+                )}
                 <button
                   type="button"
-                  className="play-desk__dock-chip"
-                  aria-label={`Напарники ${model.dockCompanions.length}`}
-                  title={model.dockCompanions
-                    .map((row) => row.name || 'Без имени')
-                    .join(', ')}
-                  onClick={() => {
-                    model.setDeskMode('companions')
-                    model.setActivePanel('companions')
-                  }}
+                  className="chip cond"
+                  onClick={() => model.setHotConditionsOpen(true)}
                 >
-                  Напарники {model.dockCompanions.length}
+                  Состояния
                 </button>
-              ) : null}
-            </div>
-          ) : null}
-        </div>
+                <button
+                  type="button"
+                  className="chip cond"
+                  onClick={() => setEffectsOpen(true)}
+                >
+                  Эффекты
+                </button>
+              </>
+            }
+            onNextRound={() => {
+              const rows = model.draft.play.effects ?? []
+              const next = tickAllEffectsOneRound(rows)
+              model.applyEffectsChange?.(next)
+              model.onToast?.(
+                next.length < rows.length
+                  ? 'Раунд: часть эффектов истекла'
+                  : 'Раунд: таймеры эффектов −1',
+              )
+            }}
+          />
+          <Dialog
+            open={effectsOpen}
+            title="Активные эффекты"
+            primaryLabel="Готово"
+            onPrimary={() => setEffectsOpen(false)}
+            secondaryLabel="Закрыть"
+            onSecondary={() => setEffectsOpen(false)}
+          >
+            {(model.draft.play.effects ?? []).length === 0 ? (
+              <p className="sheet-effects-row__empty">
+                Сейчас нет активных эффектов. Они появятся после сотворения.
+              </p>
+            ) : (
+              <ul className="sheet-effects-dialog__list">
+                {(model.draft.play.effects ?? []).map((effect) => (
+                  <li key={effect.id}>{formatEffectChipFace(effect)}</li>
+                ))}
+              </ul>
+            )}
+          </Dialog>
+        </section>
       ) : (
         <div className="play-desk__mobile-chrome" data-onboarding="combat-header">
         <MobileVitalsBar
