@@ -1,4 +1,4 @@
-import { useId, useState } from 'react'
+import { useId, useState, type CSSProperties, type MouseEvent, type PointerEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import {
   deleteCharacter,
@@ -13,6 +13,11 @@ type CharacterCardProps = {
   character: CharacterSummary
   tags?: CharacterListTag[]
   onDeleted?: (id: string) => void
+  dragClassName?: string
+  dragStyle?: CSSProperties
+  onTilePointerDown?: (event: PointerEvent<HTMLElement>) => void
+  onTileClickCapture?: (event: MouseEvent<HTMLElement>) => void
+  tileSlot?: boolean
 }
 
 function hpParts(character: CharacterSummary): {
@@ -33,7 +38,27 @@ function hpParts(character: CharacterSummary): {
   return { label, ratio, low: ratio <= 0.25 }
 }
 
-export function CharacterCard({ character, tags = [], onDeleted }: CharacterCardProps) {
+function DragHandle() {
+  return (
+    <span className="character-card__drag" aria-hidden="true">
+      <svg viewBox="0 0 16 14" width="16" height="14" focusable="false">
+        <line x1="1" y1="2.5" x2="15" y2="2.5" />
+        <line x1="1" y1="6.7" x2="15" y2="6.7" />
+      </svg>
+    </span>
+  )
+}
+
+export function CharacterCard({
+  character,
+  tags = [],
+  onDeleted,
+  dragClassName = '',
+  dragStyle,
+  onTilePointerDown,
+  onTileClickCapture,
+  tileSlot = true,
+}: CharacterCardProps) {
   const navigate = useNavigate()
   const subtitleBits = [
     character.race_name,
@@ -69,13 +94,22 @@ export function CharacterCard({ character, tags = [], onDeleted }: CharacterCard
   }
 
   return (
-    <article className="character-card__wrap">
+    <article
+      className={`character-card__wrap${dragClassName}`}
+      style={dragStyle}
+      data-tile-id={character.id}
+      data-tile-slot={tileSlot ? '' : undefined}
+      onPointerDown={onTilePointerDown}
+      onClickCapture={onTileClickCapture}
+    >
       <div className="character-card">
+        {onTilePointerDown ? <DragHandle /> : null}
         <div className="character-card__menu">
           <Button
             type="button"
             variant="ghost"
             className="character-card__menu-btn"
+            data-tile-control=""
             aria-label="Действия с персонажем"
             aria-haspopup="dialog"
             aria-expanded={actionsOpen}
@@ -92,7 +126,7 @@ export function CharacterCard({ character, tags = [], onDeleted }: CharacterCard
 
         {/* One link for the whole card — avoids dual <a> hit-boxes overlapping
             neighbors on tight tablet grids (tap «Открыть» opened another char). */}
-        <Link className="character-card__hit" to={href}>
+        <Link className="character-card__hit" to={href} draggable={false}>
           <div className="character-card__main">
             <div className="character-card__avatar" aria-hidden="true">
               {character.avatar_url ? (

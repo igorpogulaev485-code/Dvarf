@@ -41,6 +41,7 @@ import {
 } from './strokeOfLuckJournal'
 import { ensureUnifiedJournal } from './unifiedJournal'
 import {
+  LOG_MAX,
   STANDARD_DICE,
   emptyPool,
   type AdvantageMode,
@@ -64,6 +65,8 @@ type Props = {
   /** Which journal tab is active. */
   journalTab?: 'mine' | 'table'
   onJournalTabChange?: (tab: 'mine' | 'table') => void
+  /** Shell lists: the result stays in this window and is not written anywhere. */
+  ephemeral?: boolean
 }
 
 function formatTime(at: number): string {
@@ -87,6 +90,7 @@ export function DiceRollerPanel({
   focusJournal = false,
   journalTab = 'mine',
   onJournalTabChange,
+  ephemeral = false,
 }: Props) {
   const [pool, setPool] = useState<DicePool>(emptyPool)
   const [formula, setFormula] = useState('')
@@ -94,6 +98,7 @@ export function DiceRollerPanel({
   const [advantage, setAdvantage] = useState<AdvantageMode>('none')
   const [onlyMe, setOnlyMe] = useState(() => readOnlyMePref(characterId))
   const [log, setLog] = useState<DiceLogEntry[]>(() => {
+    if (ephemeral) return []
     if (initialLog) {
       // Seed storage so Stroke of Luck / clear / bridge share the same journal.
       writeDiceLog(characterId, initialLog)
@@ -120,24 +125,29 @@ export function DiceRollerPanel({
   const journalRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
+    if (ephemeral) {
+      setLog([])
+      return
+    }
     setOnlyMe(readOnlyMePref(characterId))
     if (initialLog) {
       setExpandedIds(new Set(initialLog.slice(0, 3).map((e) => e.id)))
       return
     }
     setLog(ensureUnifiedJournal(characterId, sheetRollHistory))
-  }, [characterId, initialLog, sheetRollHistory])
+  }, [characterId, initialLog, sheetRollHistory, ephemeral])
 
   useEffect(() => {
     onLogChange?.(log)
   }, [log, onLogChange])
 
   useEffect(() => {
+    if (ephemeral) return
     return subscribeDiceLogChanged((id) => {
       if (id !== characterId) return
       setLog(readDiceLog(characterId))
     })
-  }, [characterId])
+  }, [characterId, ephemeral])
 
   useEffect(() => {
     setStrokeOfLuckReady(isStrokeOfLuckAvailable(characterId))
@@ -314,9 +324,36 @@ export function DiceRollerPanel({
     if (rolling) return
     const expression = (expr ?? (formula.trim() || formulaFromPool(pool))).trim()
     const adv = mode ?? advantage
+    setRollError(null)
+    if (ephemeral) {
+      const rolled = rollExpression(expression, adv)
+      if (!rolled.ok) return
+      const result = await recordDigitalRoll({
+        characterId,
+        ephemeral: true,
+        openSessionId: null,
+        onlyMe: true,
+        skipSession: true,
+        title: 'Свободный бросок',
+        expression: rolled.result.expression,
+        total: rolled.result.total,
+        dice: rolled.result.dice,
+        modifierTotal: rolled.result.modifierTotal,
+        advantageMode: rolled.result.advantageMode,
+        toastText: `${rolled.result.expression} = ${rolled.result.total}`,
+        category: 'roll',
+        source: 'panel',
+      })
+      if (!result.ok) {
+        setRollError(result.error)
+        return
+      }
+      setLog((prev) => [result.entry, ...prev].slice(0, LOG_MAX))
+      setExpandedIds(new Set([result.entry.id]))
+      return
+    }
     const post =
       Boolean(openSessionId?.trim()) && !onlyMe
-    setRollError(null)
     if (post) {
       setRolling(true)
       try {
@@ -369,6 +406,12 @@ export function DiceRollerPanel({
   function onClearLog() {
     if (!confirmClear) {
       setConfirmClear(true)
+      return
+    }
+    if (ephemeral) {
+      setLog([])
+      setExpandedIds(new Set())
+      setConfirmClear(false)
       return
     }
     clearDiceLog(characterId)

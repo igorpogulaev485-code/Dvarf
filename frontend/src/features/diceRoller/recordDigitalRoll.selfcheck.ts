@@ -57,6 +57,21 @@ async function main() {
   writeOnlyMePref(id, false)
   clearDiceLog(id)
 
+  const ghost = 'shell-self'
+  clearDiceLog(ghost)
+  const quiet = await recordDigitalRoll({
+    characterId: ghost,
+    openSessionId: 'session-should-not-post',
+    ephemeral: true,
+    title: 'Свободный бросок',
+    expression: '1d20',
+    total: 7,
+    dice: [{ sides: 20, value: 7, dropped: false }],
+    modifierTotal: 0,
+  })
+  assert(quiet.ok, 'ephemeral ok')
+  assert(readDiceLog(ghost).length === 0, 'list roll is not stored')
+
   console.log('recordDigitalRoll.selfcheck ok')
 }
 

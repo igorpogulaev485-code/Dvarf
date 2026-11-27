@@ -13,6 +13,8 @@ export type CharacterListPrefs = {
   tags: CharacterListTag[]
   /** characterId → tag ids */
   assignments: Record<string, string[]>
+  /** Manual tile order. Missing ids keep the API order after these. */
+  order: string[]
 }
 
 const STORAGE_KEY = 'dvarf.characterList.v1'
@@ -38,9 +40,7 @@ export const TAG_COLOR_OPTIONS = [
 ] as const
 
 function defaultCardSize(): CharacterCardSize {
-  if (typeof window !== 'undefined' && window.matchMedia('(max-width: 959px)').matches) {
-    return 'medium'
-  }
+  // Принятый вид списка — крупные плитки. Средний и компактный остаются в переключателе.
   return 'large'
 }
 
@@ -48,6 +48,7 @@ const DEFAULT_PREFS: CharacterListPrefs = {
   cardSize: 'large',
   tags: [],
   assignments: {},
+  order: [],
 }
 
 function isCardSize(value: unknown): value is CharacterCardSize {
@@ -69,7 +70,7 @@ export function loadCharacterListPrefs(): CharacterListPrefs {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
     if (!raw) {
-      return { ...DEFAULT_PREFS, cardSize: fallbackSize, tags: [], assignments: {} }
+      return { ...DEFAULT_PREFS, cardSize: fallbackSize, tags: [], assignments: {}, order: [] }
     }
     const parsed = JSON.parse(raw) as Partial<CharacterListPrefs>
     const tags = Array.isArray(parsed.tags)
@@ -82,14 +83,32 @@ export function loadCharacterListPrefs(): CharacterListPrefs {
         assignments[characterId] = tagIds.filter((id): id is string => typeof id === 'string')
       }
     }
+    const order = Array.isArray(parsed.order)
+      ? parsed.order.filter((id): id is string => typeof id === 'string' && id.trim().length > 0)
+      : []
     return {
       cardSize: isCardSize(parsed.cardSize) ? parsed.cardSize : fallbackSize,
       tags,
       assignments,
+      order,
     }
   } catch {
-    return { ...DEFAULT_PREFS, cardSize: fallbackSize, tags: [], assignments: {} }
+    return { ...DEFAULT_PREFS, cardSize: fallbackSize, tags: [], assignments: {}, order: [] }
   }
+}
+
+/** Known ids stay in the saved order. New ids follow in their incoming order. */
+export function applyCharacterOrder<T extends { id: string }>(items: T[], order: string[]): T[] {
+  if (!order.length) return items
+  const rank = new Map(order.map((id, index) => [id, index]))
+  return items
+    .map((item, index) => ({
+      item,
+      index,
+      rank: rank.has(item.id) ? (rank.get(item.id) as number) : order.length + index,
+    }))
+    .sort((a, b) => a.rank - b.rank || a.index - b.index)
+    .map((row) => row.item)
 }
 
 export function saveCharacterListPrefs(prefs: CharacterListPrefs): void {

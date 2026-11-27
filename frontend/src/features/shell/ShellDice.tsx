@@ -71,7 +71,7 @@ export function ShellDice({ open, onToggle, onClose }: ShellDiceProps) {
   const panel = (
     <div className="shell-dice-panel">
       <p className="shell-dice-hint">Бросок для себя — никуда не записывается</p>
-      <DiceRollerPanel characterId={SHELL_ROLL_KEY} />
+      <DiceRollerPanel characterId={SHELL_ROLL_KEY} ephemeral />
     </div>
   )
 

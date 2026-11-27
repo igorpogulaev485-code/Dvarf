@@ -21,7 +21,6 @@ import { readSurveyFlag, writeSurveyFlag } from '../features/cabinet/appearanceS
 import { AppShell } from '../features/shell/AppShell'
 import { GuestInvite } from '../features/shell/GuestInvite'
 import {
-  EDITION_HINT,
   HelpDrawer,
   WelcomeDialog,
   useOnboardingState,
@@ -68,6 +67,14 @@ export function CharactersPage() {
   const updatePrefs = useCallback((next: CharacterListPrefs) => {
     setPrefs(next)
     saveCharacterListPrefs(next)
+  }, [])
+
+  const reorderCharacters = useCallback((order: string[]) => {
+    setPrefs((prev) => {
+      const next = { ...prev, order }
+      saveCharacterListPrefs(next)
+      return next
+    })
   }, [])
 
   useEffect(() => {
@@ -185,8 +192,6 @@ export function CharactersPage() {
       }}
     >
       <section className="toolbar character-list-toolbar">
-        <CreateCharacterButton onCreate={handleCreate} />
-
         <div className="character-list-toolbar__sizes" role="group" aria-label="Размер карточек">
           {CARD_SIZE_OPTIONS.map((option) => (
             <button
@@ -253,18 +258,18 @@ export function CharactersPage() {
               <Button type="button" variant="secondary" onClick={() => setFilterTagIds([])}>
                 Сбросить фильтр тегов
               </Button>
-            ) : (
-              <Stack gap={8}>
-                <CreateCharacterButton onCreate={handleCreate} />
-                <p className="onboarding-edition-hint">{EDITION_HINT}</p>
-              </Stack>
-            )
+            ) : undefined
           }
+          onReorder={filterTagIds.length ? undefined : reorderCharacters}
           onDeleted={(id) => {
             setCharacters((prev) => prev.filter((item) => item.id !== id))
             const assignments = { ...prefs.assignments }
             delete assignments[id]
-            updatePrefs({ ...prefs, assignments })
+            updatePrefs({
+              ...prefs,
+              assignments,
+              order: (prefs.order ?? []).filter((item) => item !== id),
+            })
             setToast('Персонаж удалён')
           }}
         />
@@ -307,6 +312,7 @@ export function CharactersPage() {
         }}
       />
       <Toast message={toast} onClose={closeToast} />
+      <CreateCharacterButton fab onCreate={handleCreate} />
     </AppShell>
   )
 }
