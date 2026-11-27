@@ -1,0 +1,1863 @@
+{
+  "skills": [
+    [
+      "acrobatics",
+      "Акробатика"
+    ],
+    [
+      "animal_handling",
+      "Уход за животными"
+    ],
+    [
+      "arcana",
+      "Магия"
+    ],
+    [
+      "athletics",
+      "Атлетика"
+    ],
+    [
+      "deception",
+      "Обман"
+    ],
+    [
+      "history",
+      "История"
+    ],
+    [
+      "insight",
+      "Проницательность"
+    ],
+    [
+      "intimidation",
+      "Запугивание"
+    ],
+    [
+      "investigation",
+      "Анализ"
+    ],
+    [
+      "medicine",
+      "Медицина"
+    ],
+    [
+      "nature",
+      "Природа"
+    ],
+    [
+      "perception",
+      "Внимательность"
+    ],
+    [
+      "performance",
+      "Выступление"
+    ],
+    [
+      "persuasion",
+      "Убеждение"
+    ],
+    [
+      "religion",
+      "Религия"
+    ],
+    [
+      "sleight_of_hand",
+      "Ловкость рук"
+    ],
+    [
+      "stealth",
+      "Скрытность"
+    ],
+    [
+      "survival",
+      "Выживание"
+    ]
+  ],
+  "saves_ru": {
+    "str": "Сила",
+    "dex": "Ловкость",
+    "con": "Телосложение",
+    "int": "Интеллект",
+    "wis": "Мудрость",
+    "cha": "Харизма"
+  },
+  "armor_ru": {
+    "light": "лёгкие",
+    "medium": "средние",
+    "heavy": "тяжёлые",
+    "shields": "щиты"
+  },
+  "weapon_ru": {
+    "simple": "простое",
+    "martial": "воинское"
+  },
+  "weapons": {
+    "simple": [
+      "Ручной топор",
+      "Метательное копьё",
+      "Кинжал",
+      "Булава",
+      "Боевой посох",
+      "Дубинка",
+      "Дротик",
+      "Копьё",
+      "Лёгкий арбалет",
+      "Короткий лук",
+      "Лёгкий молот",
+      "Палица",
+      "Серп",
+      "Праща"
+    ],
+    "martial": [
+      "Секира",
+      "Боевой топор",
+      "Молот",
+      "Длинный меч",
+      "Короткий меч",
+      "Рапира",
+      "Ятаган",
+      "Боевой молот",
+      "Ручной арбалет",
+      "Длинный лук",
+      "Сверкающий Лунный Лук",
+      "Лук пожара",
+      "Лук мелодий",
+      "Звёздный арбалет",
+      "Секира кровавой ярости",
+      "Губительный цеп",
+      "Хватающий кнут",
+      "Клинок шута",
+      "Меч планов",
+      "Трезубец призыва прилива",
+      "Трезубец",
+      "Сеть",
+      "Алебарда",
+      "Глефа",
+      "Двуручный меч",
+      "Пика",
+      "Цеп",
+      "Моргенштерн",
+      "Кнут",
+      "Боевая кирка",
+      "Длинное копьё",
+      "Тяжёлый арбалет",
+      "Духовая трубка"
+    ],
+    "simple_melee": [
+      "Ручной топор",
+      "Метательное копьё",
+      "Кинжал",
+      "Булава",
+      "Боевой посох",
+      "Дубинка",
+      "Копьё",
+      "Лёгкий молот",
+      "Палица",
+      "Серп"
+    ],
+    "martial_melee": [
+      "Секира",
+      "Боевой топор",
+      "Молот",
+      "Длинный меч",
+      "Короткий меч",
+      "Рапира",
+      "Ятаган",
+      "Боевой молот",
+      "Секира кровавой ярости",
+      "Губительный цеп",
+      "Хватающий кнут",
+      "Клинок шута",
+      "Меч планов",
+      "Трезубец призыва прилива",
+      "Трезубец",
+      "Алебарда",
+      "Глефа",
+      "Двуручный меч",
+      "Пика",
+      "Цеп",
+      "Моргенштерн",
+      "Кнут",
+      "Боевая кирка",
+      "Длинное копьё"
+    ]
+  },
+  "artisan_tools": [
+    "Инструменты пивовара",
+    "Инструменты каллиграфа",
+    "Инструменты плотника",
+    "Инструменты картографа",
+    "Инструменты сапожника",
+    "Инструменты повара",
+    "Инструменты стеклодува",
+    "Инструменты ювелира",
+    "Инструменты кожевника",
+    "Инструменты каменщика",
+    "Инструменты художника",
+    "Инструменты гончара",
+    "Инструменты кузнеца",
+    "Инструменты жестянщика",
+    "Инструменты ткача",
+    "Инструменты резчика"
+  ],
+  "musical_instruments": [
+    "Волынка",
+    "Барабан",
+    "Цимбалы",
+    "Флейта",
+    "Лютня",
+    "Лира",
+    "Рожок",
+    "Свирель",
+    "Виола",
+    "Шалмей"
+  ],
+  "focus": {
+    "arcane": [
+      {
+        "id": "crystal",
+        "labelRu": "Кристалл"
+      },
+      {
+        "id": "orb",
+        "labelRu": "Сфера"
+      },
+      {
+        "id": "rod",
+        "labelRu": "Жезл"
+      },
+      {
+        "id": "staff",
+        "labelRu": "Посох"
+      },
+      {
+        "id": "wand",
+        "labelRu": "Волшебная палочка"
+      }
+    ],
+    "druidic": [
+      {
+        "id": "sprig_of_mistletoe",
+        "labelRu": "Веточка омелы"
+      },
+      {
+        "id": "totem",
+        "labelRu": "Тотем"
+      },
+      {
+        "id": "wooden_staff",
+        "labelRu": "Деревянный посох"
+      },
+      {
+        "id": "yew_wand",
+        "labelRu": "Тисовая палочка"
+      }
+    ],
+    "holy": [
+      {
+        "id": "amulet",
+        "labelRu": "Амулет"
+      },
+      {
+        "id": "emblem",
+        "labelRu": "Эмблема"
+      },
+      {
+        "id": "reliquary",
+        "labelRu": "Реликварий"
+      }
+    ]
+  },
+  "classes": [
+    {
+      "slug": "bard",
+      "name_ru": "Бард",
+      "name_en": "Bard",
+      "source": "PHB",
+      "hitDie": "d8",
+      "saves": [
+        "dex",
+        "cha"
+      ],
+      "armor": [
+        "light"
+      ],
+      "weapons": [
+        "simple"
+      ],
+      "weaponExtras": [
+        "Ручной арбалет",
+        "Длинный меч",
+        "Рапира",
+        "Короткий меч"
+      ],
+      "skillChoices": {
+        "count": 3,
+        "from": "any"
+      },
+      "toolsFixed": [],
+      "toolChoices": {
+        "count": 3,
+        "from": [
+          "Волынка",
+          "Барабан",
+          "Цимбалы",
+          "Флейта",
+          "Лютня",
+          "Лира",
+          "Рожок",
+          "Свирель",
+          "Виола",
+          "Шалмей"
+        ]
+      },
+      "lines": [
+        {
+          "id": "weapon",
+          "labelRu": "Оружие",
+          "options": [
+            {
+              "id": "rapier",
+              "labelRu": "Рапира",
+              "summary": "Рапира"
+            },
+            {
+              "id": "longsword",
+              "labelRu": "Длинный меч",
+              "summary": "Длинный меч"
+            },
+            {
+              "id": "any_simple",
+              "labelRu": "Любое простое оружие",
+              "pickWeapon": "simple"
+            }
+          ]
+        },
+        {
+          "id": "pack",
+          "labelRu": "Набор",
+          "options": [
+            {
+              "id": "diplomat",
+              "labelRu": "Набор дипломата",
+              "summary": "Набор дипломата"
+            },
+            {
+              "id": "entertainer",
+              "labelRu": "Набор артиста",
+              "summary": "Набор артиста"
+            }
+          ]
+        },
+        {
+          "id": "instrument",
+          "labelRu": "Музыкальный инструмент",
+          "options": [
+            {
+              "id": "lute",
+              "labelRu": "Лютня",
+              "summary": "Лютня"
+            },
+            {
+              "id": "any_instrument",
+              "labelRu": "Любой другой инструмент",
+              "pickFrom": [
+                "Волынка",
+                "Барабан",
+                "Цимбалы",
+                "Флейта",
+                "Лютня",
+                "Лира",
+                "Рожок",
+                "Свирель",
+                "Виола",
+                "Шалмей"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "fixed",
+          "labelRu": "Доспех и кинжал",
+          "options": [
+            {
+              "id": "leather_dagger",
+              "labelRu": "Кожаный доспех и кинжал",
+              "summary": "Кожаный доспех, Кинжал"
+            }
+          ]
+        }
+      ],
+      "gold": [
+        {
+          "id": "gold",
+          "labelRu": "Золото",
+          "summary": "5к4×10 зм (на старте: 125 зм)",
+          "coinsGp": 125
+        }
+      ],
+      "features1": [
+        {
+          "id": "bardic_inspiration",
+          "name_ru": "Бардовское вдохновение",
+          "summary_ru": "Бонусным действием дай союзнику кость вдохновения (число = мод. Хар., мин. 1). Кость: к6 (1), к8 (5), к10 (10), к12 (15). До 5 ур. сброс на прод. отдыхе; с Источник магии — и на коротком."
+        },
+        {
+          "id": "spellcasting_bard",
+          "name_ru": "Использование заклинаний",
+          "summary_ru": "Полный кастер. Харизма — базовая. Известные заклинания (не подготовка)."
+        }
+      ]
+    },
+    {
+      "slug": "barbarian",
+      "name_ru": "Варвар",
+      "name_en": "Barbarian",
+      "source": "PHB",
+      "hitDie": "d12",
+      "saves": [
+        "str",
+        "con"
+      ],
+      "armor": [
+        "light",
+        "medium",
+        "shields"
+      ],
+      "weapons": [
+        "simple",
+        "martial"
+      ],
+      "weaponExtras": [],
+      "skillChoices": {
+        "count": 2,
+        "from": [
+          "animal_handling",
+          "athletics",
+          "intimidation",
+          "nature",
+          "perception",
+          "survival"
+        ]
+      },
+      "toolsFixed": [],
+      "toolChoices": null,
+      "lines": [
+        {
+          "id": "primary",
+          "labelRu": "Основное оружие",
+          "options": [
+            {
+              "id": "greataxe",
+              "labelRu": "Секира",
+              "summary": "Секира"
+            },
+            {
+              "id": "any_martial_melee",
+              "labelRu": "Любое воинское оружие ближнего боя",
+              "pickWeapon": "martial_melee"
+            }
+          ]
+        },
+        {
+          "id": "secondary",
+          "labelRu": "Дополнительное оружие",
+          "options": [
+            {
+              "id": "handaxes",
+              "labelRu": "Два ручных топора",
+              "summary": "Ручной топор ×2"
+            },
+            {
+              "id": "any_simple",
+              "labelRu": "Любое простое оружие",
+              "pickWeapon": "simple"
+            }
+          ]
+        },
+        {
+          "id": "fixed",
+          "labelRu": "Набор и метательные копья",
+          "options": [
+            {
+              "id": "pack_javelins",
+              "labelRu": "Набор исследователя и 4 метательных копья",
+              "summary": "Набор исследователя, Метательное копьё ×4"
+            }
+          ]
+        }
+      ],
+      "gold": [
+        {
+          "id": "gold",
+          "labelRu": "Золото",
+          "summary": "2к4×10 зм вместо снаряжения (на старте: 50 зм)",
+          "coinsGp": 50
+        }
+      ],
+      "features1": [
+        {
+          "id": "rage",
+          "name_ru": "Ярость",
+          "summary_ru": "Бонусным действием, если не в тяжёлом доспехе: на 1 минуту — преимущество на проверки и спасброски Силы; бонус урона к рукопашным атакам Силой оружием (см. шкалу); сопротивление дробящему, колющему и рубящему. Нельзя накладывать или концентрироваться на заклинаниях. Ярость кончается раньше, если вы без сознания, сами прекращаете (бонусным действием) или не атаковали враждебное существо и не получили урон с прошлого своего хода. Использования восстанавливаются после продолжительного отдыха."
+        },
+        {
+          "id": "unarmored_defense_barb",
+          "name_ru": "Защита без доспехов",
+          "summary_ru": "Без доспеха КД = 10 + Ловк. + Телосложение (щит можно)."
+        }
+      ]
+    },
+    {
+      "slug": "fighter",
+      "name_ru": "Воин",
+      "name_en": "Fighter",
+      "source": "PHB",
+      "hitDie": "d10",
+      "saves": [
+        "str",
+        "con"
+      ],
+      "armor": [
+        "light",
+        "medium",
+        "heavy",
+        "shields"
+      ],
+      "weapons": [
+        "simple",
+        "martial"
+      ],
+      "weaponExtras": [],
+      "skillChoices": {
+        "count": 2,
+        "from": [
+          "acrobatics",
+          "animal_handling",
+          "athletics",
+          "history",
+          "insight",
+          "intimidation",
+          "perception",
+          "survival"
+        ]
+      },
+      "toolsFixed": [],
+      "toolChoices": null,
+      "lines": [
+        {
+          "id": "armor",
+          "labelRu": "Доспех",
+          "options": [
+            {
+              "id": "chain",
+              "labelRu": "Кольчуга",
+              "summary": "Кольчуга"
+            },
+            {
+              "id": "leather_bow",
+              "labelRu": "Кожаный доспех, длинный лук и 20 стрел",
+              "summary": "Кожаный доспех, Длинный лук, Стрелы ×20"
+            }
+          ]
+        },
+        {
+          "id": "weapons",
+          "labelRu": "Оружие ближнего боя",
+          "options": [
+            {
+              "id": "martial_shield",
+              "labelRu": "Воинское оружие и щит",
+              "pickWeapon": "martial",
+              "summary": "Щит"
+            },
+            {
+              "id": "two_martial",
+              "labelRu": "Два воинских оружия",
+              "pickWeapon": "martial",
+              "pickWeaponCount": 2
+            }
+          ]
+        },
+        {
+          "id": "ranged",
+          "labelRu": "Дальний бой / топоры",
+          "options": [
+            {
+              "id": "crossbow",
+              "labelRu": "Лёгкий арбалет и 20 болтов",
+              "summary": "Лёгкий арбалет, Болты арбалета ×20"
+            },
+            {
+              "id": "handaxes",
+              "labelRu": "Два ручных топора",
+              "summary": "Ручной топор ×2"
+            }
+          ]
+        },
+        {
+          "id": "pack",
+          "labelRu": "Набор",
+          "options": [
+            {
+              "id": "dungeoneer",
+              "labelRu": "Набор исследователя подземелий",
+              "summary": "Набор исследователя подземелий"
+            },
+            {
+              "id": "explorer",
+              "labelRu": "Набор исследователя",
+              "summary": "Набор исследователя"
+            }
+          ]
+        }
+      ],
+      "gold": [
+        {
+          "id": "gold",
+          "labelRu": "Золото",
+          "summary": "5к4×10 зм (на старте: 125 зм)",
+          "coinsGp": 125
+        }
+      ],
+      "features1": [
+        {
+          "id": "fighting_style",
+          "name_ru": "Боевой стиль",
+          "summary_ru": "Выбери боевой стиль (см. список PHB)."
+        },
+        {
+          "id": "second_wind",
+          "name_ru": "Второе дыхание",
+          "summary_ru": "Бонусным действием: хиты = 1к10 + уровень воина. 1× / короткий или продолжительный отдых."
+        }
+      ]
+    },
+    {
+      "slug": "wizard",
+      "name_ru": "Волшебник",
+      "name_en": "Wizard",
+      "source": "PHB",
+      "hitDie": "d6",
+      "saves": [
+        "int",
+        "wis"
+      ],
+      "armor": [],
+      "weapons": [
+        "simple"
+      ],
+      "weaponExtras": [],
+      "skillChoices": {
+        "count": 2,
+        "from": [
+          "arcana",
+          "history",
+          "insight",
+          "investigation",
+          "medicine",
+          "religion"
+        ]
+      },
+      "toolsFixed": [],
+      "toolChoices": null,
+      "lines": [
+        {
+          "id": "weapon",
+          "labelRu": "Оружие",
+          "options": [
+            {
+              "id": "quarterstaff",
+              "labelRu": "Боевой посох",
+              "summary": "Боевой посох"
+            },
+            {
+              "id": "dagger",
+              "labelRu": "Кинжал",
+              "summary": "Кинжал"
+            }
+          ]
+        },
+        {
+          "id": "focus",
+          "labelRu": "Фокус компонентов",
+          "options": [
+            {
+              "id": "pouch",
+              "labelRu": "Сумка с компонентами",
+              "summary": "Сумка с компонентами"
+            },
+            {
+              "id": "arcane",
+              "labelRu": "Магический фокус",
+              "summary": "Магический фокус"
+            }
+          ]
+        },
+        {
+          "id": "pack",
+          "labelRu": "Набор",
+          "options": [
+            {
+              "id": "scholar",
+              "labelRu": "Набор учёного",
+              "summary": "Набор учёного"
+            },
+            {
+              "id": "explorer",
+              "labelRu": "Набор исследователя",
+              "summary": "Набор исследователя"
+            }
+          ]
+        },
+        {
+          "id": "fixed",
+          "labelRu": "Книга заклинаний",
+          "options": [
+            {
+              "id": "spellbook",
+              "labelRu": "Книга заклинаний",
+              "summary": "Книга заклинаний"
+            }
+          ]
+        }
+      ],
+      "gold": [
+        {
+          "id": "gold",
+          "labelRu": "Золото",
+          "summary": "4к4×10 зм (на старте: 100 зм)",
+          "coinsGp": 100
+        }
+      ],
+      "features1": [
+        {
+          "id": "arcane_recovery",
+          "name_ru": "Магическое восстановление",
+          "summary_ru": "Раз / день после короткого отдыха восстанови ячейки суммарного уровня ≤ ½ ур. волшебника (окр. вверх), без 6+. Сброс на прод. отдыхе."
+        },
+        {
+          "id": "spellcasting_wizard",
+          "name_ru": "Использование заклинаний",
+          "summary_ru": "Полный кастер. Интеллект — базовая. Книга заклинаний; подготовка = Инт + ур. волшебника."
+        }
+      ]
+    },
+    {
+      "slug": "druid",
+      "name_ru": "Друид",
+      "name_en": "Druid",
+      "source": "PHB",
+      "hitDie": "d8",
+      "saves": [
+        "int",
+        "wis"
+      ],
+      "armor": [
+        "light",
+        "medium",
+        "shields"
+      ],
+      "weapons": [],
+      "weaponExtras": [
+        "Дубинка",
+        "Кинжал",
+        "Дротик",
+        "Метательное копьё",
+        "Булава",
+        "Боевой посох",
+        "Ятаган",
+        "Серп",
+        "Праща",
+        "Копьё"
+      ],
+      "skillChoices": {
+        "count": 2,
+        "from": [
+          "arcana",
+          "animal_handling",
+          "insight",
+          "medicine",
+          "nature",
+          "perception",
+          "religion",
+          "survival"
+        ]
+      },
+      "toolsFixed": [
+        "Набор травника"
+      ],
+      "toolChoices": null,
+      "lines": [
+        {
+          "id": "shield_or_weapon",
+          "labelRu": "Щит или оружие",
+          "options": [
+            {
+              "id": "wooden_shield",
+              "labelRu": "Деревянный щит",
+              "summary": "Щит"
+            },
+            {
+              "id": "any_simple",
+              "labelRu": "Любое простое оружие",
+              "pickWeapon": "simple"
+            }
+          ]
+        },
+        {
+          "id": "melee",
+          "labelRu": "Оружие ближнего боя",
+          "options": [
+            {
+              "id": "scimitar",
+              "labelRu": "Ятаган",
+              "summary": "Ятаган"
+            },
+            {
+              "id": "any_simple_melee",
+              "labelRu": "Любое простое оружие ближнего боя",
+              "pickWeapon": "simple_melee"
+            }
+          ]
+        },
+        {
+          "id": "fixed",
+          "labelRu": "Доспех, набор и фокус",
+          "options": [
+            {
+              "id": "leather_pack_focus",
+              "labelRu": "Кожаный доспех, набор исследователя и фокус друида",
+              "summary": "Кожаный доспех, Набор исследователя, Фокус друида"
+            }
+          ]
+        }
+      ],
+      "gold": [
+        {
+          "id": "gold",
+          "labelRu": "Золото",
+          "summary": "2к4×10 зм (на старте: 50 зм)",
+          "coinsGp": 50
+        }
+      ],
+      "features1": [
+        {
+          "id": "druidic",
+          "name_ru": "Друидический язык",
+          "summary_ru": "Тайный язык друидов; оставляешь скрытые знаки."
+        },
+        {
+          "id": "spellcasting_druid",
+          "name_ru": "Использование заклинаний",
+          "summary_ru": "Полный кастер. Мудрость — базовая. Подготовка = Мудр. + ур. друида (мин. 1). Ритуалы."
+        }
+      ]
+    },
+    {
+      "slug": "cleric",
+      "name_ru": "Жрец",
+      "name_en": "Cleric",
+      "source": "PHB",
+      "hitDie": "d8",
+      "saves": [
+        "wis",
+        "cha"
+      ],
+      "armor": [
+        "light",
+        "medium",
+        "shields"
+      ],
+      "weapons": [
+        "simple"
+      ],
+      "weaponExtras": [],
+      "skillChoices": {
+        "count": 2,
+        "from": [
+          "history",
+          "insight",
+          "medicine",
+          "persuasion",
+          "religion"
+        ]
+      },
+      "toolsFixed": [],
+      "toolChoices": null,
+      "lines": [
+        {
+          "id": "weapon",
+          "labelRu": "Оружие ближнего боя",
+          "options": [
+            {
+              "id": "mace",
+              "labelRu": "Булава",
+              "summary": "Булава"
+            },
+            {
+              "id": "warhammer",
+              "labelRu": "Боевой молот",
+              "noteRu": "если владеете (раса / домен)",
+              "summary": "Боевой молот"
+            }
+          ]
+        },
+        {
+          "id": "armor",
+          "labelRu": "Доспех",
+          "options": [
+            {
+              "id": "scale",
+              "labelRu": "Чешуйчатый доспех",
+              "summary": "Чешуйчатый доспех"
+            },
+            {
+              "id": "leather",
+              "labelRu": "Кожаный доспех",
+              "summary": "Кожаный доспех"
+            },
+            {
+              "id": "chain",
+              "labelRu": "Кольчуга",
+              "noteRu": "надеть можно только с владением тяжёлыми (домен Бури…)",
+              "summary": "Кольчуга"
+            }
+          ]
+        },
+        {
+          "id": "ranged",
+          "labelRu": "Дальний бой / простое оружие",
+          "options": [
+            {
+              "id": "crossbow",
+              "labelRu": "Лёгкий арбалет и 20 болтов",
+              "summary": "Лёгкий арбалет, Болты арбалета ×20"
+            },
+            {
+              "id": "any_simple",
+              "labelRu": "Любое простое оружие",
+              "pickWeapon": "simple"
+            }
+          ]
+        },
+        {
+          "id": "pack",
+          "labelRu": "Набор",
+          "options": [
+            {
+              "id": "priest",
+              "labelRu": "Набор священника",
+              "summary": "Набор жреца"
+            },
+            {
+              "id": "explorer",
+              "labelRu": "Набор путешественника",
+              "summary": "Набор исследователя"
+            }
+          ]
+        },
+        {
+          "id": "fixed",
+          "labelRu": "Щит и священный символ",
+          "options": [
+            {
+              "id": "shield_symbol",
+              "labelRu": "Щит и священный символ",
+              "summary": "Щит, Священный символ"
+            }
+          ]
+        }
+      ],
+      "gold": [
+        {
+          "id": "gold",
+          "labelRu": "Золото",
+          "summary": "5к4×10 зм (на старте: 125 зм)",
+          "coinsGp": 125
+        }
+      ],
+      "features1": [
+        {
+          "id": "divine_domain",
+          "name_ru": "Божественный домен",
+          "summary_ru": "Выбери домен. Заклинания домена всегда подготовлены (см. грант архетипа)."
+        },
+        {
+          "id": "spellcasting_cleric",
+          "name_ru": "Использование заклинаний",
+          "summary_ru": "Полный кастер. Мудрость — базовая характеристика. Подготовка = Мудр. + ур. жреца."
+        }
+      ]
+    },
+    {
+      "slug": "artificer",
+      "name_ru": "Изобретатель",
+      "name_en": "Artificer",
+      "source": "TCE",
+      "hitDie": "d8",
+      "saves": [
+        "con",
+        "int"
+      ],
+      "armor": [
+        "light",
+        "medium",
+        "shields"
+      ],
+      "weapons": [
+        "simple"
+      ],
+      "weaponExtras": [],
+      "skillChoices": {
+        "count": 2,
+        "from": [
+          "arcana",
+          "history",
+          "investigation",
+          "medicine",
+          "nature",
+          "perception",
+          "sleight_of_hand"
+        ]
+      },
+      "toolsFixed": [
+        "Воровские инструменты",
+        "Инструменты ремонтника"
+      ],
+      "toolChoices": {
+        "count": 1,
+        "from": [
+          "Инструменты пивовара",
+          "Инструменты каллиграфа",
+          "Инструменты плотника",
+          "Инструменты картографа",
+          "Инструменты сапожника",
+          "Инструменты повара",
+          "Инструменты стеклодува",
+          "Инструменты ювелира",
+          "Инструменты кожевника",
+          "Инструменты каменщика",
+          "Инструменты художника",
+          "Инструменты гончара",
+          "Инструменты кузнеца",
+          "Инструменты жестянщика",
+          "Инструменты ткача",
+          "Инструменты резчика"
+        ]
+      },
+      "lines": [
+        {
+          "id": "weapons",
+          "labelRu": "Два простых оружия",
+          "options": [
+            {
+              "id": "two_simple",
+              "labelRu": "Выбрать два простых оружия",
+              "pickWeapon": "simple",
+              "pickWeaponCount": 2
+            }
+          ]
+        },
+        {
+          "id": "crossbow",
+          "labelRu": "Арбалет",
+          "options": [
+            {
+              "id": "light_crossbow",
+              "labelRu": "Лёгкий арбалет и 20 болтов",
+              "summary": "Лёгкий арбалет, Болты арбалета ×20"
+            }
+          ]
+        },
+        {
+          "id": "armor",
+          "labelRu": "Доспех",
+          "options": [
+            {
+              "id": "studded",
+              "labelRu": "Клёпаный кожаный доспех",
+              "summary": "Клёпаный кожаный доспех"
+            },
+            {
+              "id": "scale",
+              "labelRu": "Чешуйчатый доспех",
+              "summary": "Чешуйчатый доспех"
+            }
+          ]
+        },
+        {
+          "id": "fixed",
+          "labelRu": "Инструменты и набор",
+          "options": [
+            {
+              "id": "tools_pack",
+              "labelRu": "Воровские инструменты и набор исследователя",
+              "summary": "Воровские инструменты, Набор исследователя"
+            }
+          ]
+        }
+      ],
+      "gold": [
+        {
+          "id": "gold",
+          "labelRu": "Золото",
+          "summary": "5к4×10 зм (на старте: 125 зм)",
+          "coinsGp": 125
+        }
+      ],
+      "features1": [
+        {
+          "id": "magical_tinkering",
+          "name_ru": "Магическое мастерство",
+          "summary_ru": "Действием на Tiny немагический объект: свет / сообщение / запах / звук. Число объектов = мод. Инт (мин. 1)."
+        },
+        {
+          "id": "spellcasting_artificer",
+          "name_ru": "Использование заклинаний",
+          "summary_ru": "полукастер с 1 ур. Интеллект — базовая. Подготовка = Инт + ½ ур. изобретателя. Фокус — инструменты изобретателя."
+        }
+      ]
+    },
+    {
+      "slug": "warlock",
+      "name_ru": "Колдун",
+      "name_en": "Warlock",
+      "source": "PHB",
+      "hitDie": "d8",
+      "saves": [
+        "wis",
+        "cha"
+      ],
+      "armor": [
+        "light"
+      ],
+      "weapons": [
+        "simple"
+      ],
+      "weaponExtras": [],
+      "skillChoices": {
+        "count": 2,
+        "from": [
+          "arcana",
+          "deception",
+          "history",
+          "intimidation",
+          "investigation",
+          "nature",
+          "religion"
+        ]
+      },
+      "toolsFixed": [],
+      "toolChoices": null,
+      "lines": [
+        {
+          "id": "weapon",
+          "labelRu": "Оружие",
+          "options": [
+            {
+              "id": "crossbow",
+              "labelRu": "Лёгкий арбалет и 20 болтов",
+              "summary": "Лёгкий арбалет, Болты арбалета ×20"
+            },
+            {
+              "id": "any_simple",
+              "labelRu": "Любое простое оружие",
+              "pickWeapon": "simple"
+            }
+          ]
+        },
+        {
+          "id": "focus",
+          "labelRu": "Фокус компонентов",
+          "options": [
+            {
+              "id": "pouch",
+              "labelRu": "Сумка с компонентами",
+              "summary": "Сумка с компонентами"
+            },
+            {
+              "id": "arcane",
+              "labelRu": "Магический фокус",
+              "summary": "Магический фокус"
+            }
+          ]
+        },
+        {
+          "id": "pack",
+          "labelRu": "Набор",
+          "options": [
+            {
+              "id": "scholar",
+              "labelRu": "Набор учёного",
+              "summary": "Набор учёного"
+            },
+            {
+              "id": "dungeoneer",
+              "labelRu": "Набор исследователя подземелий",
+              "summary": "Набор исследователя подземелий"
+            }
+          ]
+        },
+        {
+          "id": "simple2",
+          "labelRu": "Простое оружие (второе)",
+          "options": [
+            {
+              "id": "any_simple",
+              "labelRu": "Любое простое оружие",
+              "pickWeapon": "simple"
+            }
+          ]
+        },
+        {
+          "id": "fixed",
+          "labelRu": "Доспех и кинжалы",
+          "options": [
+            {
+              "id": "leather_daggers",
+              "labelRu": "Кожаный доспех и два кинжала",
+              "summary": "Кожаный доспех, Кинжал ×2"
+            }
+          ]
+        }
+      ],
+      "gold": [
+        {
+          "id": "gold",
+          "labelRu": "Золото",
+          "summary": "4к4×10 зм (на старте: 100 зм)",
+          "coinsGp": 100
+        }
+      ],
+      "features1": [
+        {
+          "id": "otherworldly_patron",
+          "name_ru": "Иной покровитель",
+          "summary_ru": "Выбери покровителя (Архифея, Исчадие, Старший …)."
+        },
+        {
+          "id": "pact_magic",
+          "name_ru": "Магия договора",
+          "summary_ru": "Ячейки договора по таблице колдуна; сброс на коротком или продолжительном отдыхе. Харизма — базовая. Известные заклинания."
+        }
+      ]
+    },
+    {
+      "slug": "monk",
+      "name_ru": "Монах",
+      "name_en": "Monk",
+      "source": "PHB",
+      "hitDie": "d8",
+      "saves": [
+        "str",
+        "dex"
+      ],
+      "armor": [],
+      "weapons": [
+        "simple"
+      ],
+      "weaponExtras": [
+        "Короткий меч"
+      ],
+      "skillChoices": {
+        "count": 2,
+        "from": [
+          "acrobatics",
+          "athletics",
+          "history",
+          "insight",
+          "religion",
+          "stealth"
+        ]
+      },
+      "toolsFixed": [],
+      "toolChoices": {
+        "count": 1,
+        "from": [
+          "Инструменты пивовара",
+          "Инструменты каллиграфа",
+          "Инструменты плотника",
+          "Инструменты картографа",
+          "Инструменты сапожника",
+          "Инструменты повара",
+          "Инструменты стеклодува",
+          "Инструменты ювелира",
+          "Инструменты кожевника",
+          "Инструменты каменщика",
+          "Инструменты художника",
+          "Инструменты гончара",
+          "Инструменты кузнеца",
+          "Инструменты жестянщика",
+          "Инструменты ткача",
+          "Инструменты резчика",
+          "Волынка",
+          "Барабан",
+          "Цимбалы",
+          "Флейта",
+          "Лютня",
+          "Лира",
+          "Рожок",
+          "Свирель",
+          "Виола",
+          "Шалмей"
+        ]
+      },
+      "lines": [
+        {
+          "id": "weapon",
+          "labelRu": "Оружие",
+          "options": [
+            {
+              "id": "shortsword",
+              "labelRu": "Короткий меч",
+              "summary": "Короткий меч"
+            },
+            {
+              "id": "any_simple",
+              "labelRu": "Любое простое оружие",
+              "pickWeapon": "simple"
+            }
+          ]
+        },
+        {
+          "id": "pack",
+          "labelRu": "Набор",
+          "options": [
+            {
+              "id": "dungeoneer",
+              "labelRu": "Набор исследователя подземелий",
+              "summary": "Набор исследователя подземелий"
+            },
+            {
+              "id": "explorer",
+              "labelRu": "Набор исследователя",
+              "summary": "Набор исследователя"
+            }
+          ]
+        },
+        {
+          "id": "fixed",
+          "labelRu": "Дротики",
+          "options": [
+            {
+              "id": "darts",
+              "labelRu": "10 дротиков",
+              "summary": "Дротик ×10"
+            }
+          ]
+        }
+      ],
+      "gold": [
+        {
+          "id": "gold",
+          "labelRu": "Золото",
+          "summary": "5к4 зм (на старте: 12 зм)",
+          "coinsGp": 12
+        }
+      ],
+      "features1": [
+        {
+          "id": "martial_arts",
+          "name_ru": "Боевые искусства",
+          "summary_ru": "Ловкость вместо Силы для безоружных/monk weapon; кость боевых искусств вместо обычного урона; бонусная безоружная после атаки."
+        },
+        {
+          "id": "unarmored_defense_monk",
+          "name_ru": "Защита без доспехов",
+          "summary_ru": "Без доспеха и щита КД = 10 + Ловк. + Мудрость."
+        }
+      ]
+    },
+    {
+      "slug": "paladin",
+      "name_ru": "Паладин",
+      "name_en": "Paladin",
+      "source": "PHB",
+      "hitDie": "d10",
+      "saves": [
+        "wis",
+        "cha"
+      ],
+      "armor": [
+        "light",
+        "medium",
+        "heavy",
+        "shields"
+      ],
+      "weapons": [
+        "simple",
+        "martial"
+      ],
+      "weaponExtras": [],
+      "skillChoices": {
+        "count": 2,
+        "from": [
+          "athletics",
+          "insight",
+          "intimidation",
+          "medicine",
+          "persuasion",
+          "religion"
+        ]
+      },
+      "toolsFixed": [],
+      "toolChoices": null,
+      "lines": [
+        {
+          "id": "weapons",
+          "labelRu": "Оружие",
+          "options": [
+            {
+              "id": "martial_shield",
+              "labelRu": "Воинское оружие и щит",
+              "pickWeapon": "martial",
+              "summary": "Щит"
+            },
+            {
+              "id": "two_martial",
+              "labelRu": "Два воинских оружия",
+              "pickWeapon": "martial",
+              "pickWeaponCount": 2
+            }
+          ]
+        },
+        {
+          "id": "thrown",
+          "labelRu": "Метательное / простое оружие",
+          "options": [
+            {
+              "id": "javelins",
+              "labelRu": "5 метательных копий",
+              "summary": "Метательное копьё ×5"
+            },
+            {
+              "id": "any_simple_melee",
+              "labelRu": "Любое простое оружие ближнего боя",
+              "pickWeapon": "simple_melee"
+            }
+          ]
+        },
+        {
+          "id": "pack",
+          "labelRu": "Набор",
+          "options": [
+            {
+              "id": "priest",
+              "labelRu": "Набор священника",
+              "summary": "Набор жреца"
+            },
+            {
+              "id": "explorer",
+              "labelRu": "Набор исследователя",
+              "summary": "Набор исследователя"
+            }
+          ]
+        },
+        {
+          "id": "fixed",
+          "labelRu": "Кольчуга и священный символ",
+          "options": [
+            {
+              "id": "chain_symbol",
+              "labelRu": "Кольчуга и священный символ",
+              "summary": "Кольчуга, Священный символ"
+            }
+          ]
+        }
+      ],
+      "gold": [
+        {
+          "id": "gold",
+          "labelRu": "Золото",
+          "summary": "5к4×10 зм (на старте: 125 зм)",
+          "coinsGp": 125
+        }
+      ],
+      "features1": [
+        {
+          "id": "divine_sense",
+          "name_ru": "Божественное чувство",
+          "summary_ru": "Действием: знать местоположение небожителей/фиендов/нежити в 60 фт. и освящённые/осквернённые места. Число использований = 1 + модификатор Харизмы / прод. отдых."
+        },
+        {
+          "id": "lay_on_hands",
+          "name_ru": "Возложение рук",
+          "summary_ru": "Пул хитов = 5 × ур. паладина. Действием касанием лечить хиты или потратить 5 хитов пула, чтобы снять одну болезнь или яд. Сброс на продолжительном отдыхе. Кружки — точная трата."
+        }
+      ]
+    },
+    {
+      "slug": "rogue",
+      "name_ru": "Плут",
+      "name_en": "Rogue",
+      "source": "PHB",
+      "hitDie": "d8",
+      "saves": [
+        "dex",
+        "int"
+      ],
+      "armor": [
+        "light"
+      ],
+      "weapons": [
+        "simple"
+      ],
+      "weaponExtras": [
+        "Ручной арбалет",
+        "Длинный меч",
+        "Рапира",
+        "Короткий меч"
+      ],
+      "skillChoices": {
+        "count": 4,
+        "from": [
+          "acrobatics",
+          "athletics",
+          "deception",
+          "insight",
+          "intimidation",
+          "investigation",
+          "perception",
+          "performance",
+          "persuasion",
+          "sleight_of_hand",
+          "stealth"
+        ]
+      },
+      "toolsFixed": [
+        "Воровские инструменты"
+      ],
+      "toolChoices": null,
+      "lines": [
+        {
+          "id": "primary",
+          "labelRu": "Основное оружие",
+          "options": [
+            {
+              "id": "rapier",
+              "labelRu": "Рапира",
+              "summary": "Рапира"
+            },
+            {
+              "id": "shortsword",
+              "labelRu": "Короткий меч",
+              "summary": "Короткий меч"
+            }
+          ]
+        },
+        {
+          "id": "secondary",
+          "labelRu": "Дальний бой / второй меч",
+          "options": [
+            {
+              "id": "shortbow",
+              "labelRu": "Короткий лук и 20 стрел",
+              "summary": "Короткий лук, Стрелы ×20"
+            },
+            {
+              "id": "shortsword",
+              "labelRu": "Короткий меч",
+              "summary": "Короткий меч"
+            }
+          ]
+        },
+        {
+          "id": "pack",
+          "labelRu": "Набор",
+          "options": [
+            {
+              "id": "burglar",
+              "labelRu": "Набор взломщика",
+              "summary": "Набор взломщика"
+            },
+            {
+              "id": "dungeoneer",
+              "labelRu": "Набор исследователя подземелий",
+              "summary": "Набор исследователя подземелий"
+            },
+            {
+              "id": "explorer",
+              "labelRu": "Набор исследователя",
+              "summary": "Набор исследователя"
+            }
+          ]
+        },
+        {
+          "id": "fixed",
+          "labelRu": "Доспех, кинжалы и инструменты",
+          "options": [
+            {
+              "id": "leather_daggers_tools",
+              "labelRu": "Кожаный доспех, 2 кинжала и воровские инструменты",
+              "summary": "Кожаный доспех, Кинжал ×2, Воровские инструменты"
+            }
+          ]
+        }
+      ],
+      "gold": [
+        {
+          "id": "gold",
+          "labelRu": "Золото",
+          "summary": "4к4×10 зм (на старте: 100 зм)",
+          "coinsGp": 100
+        }
+      ],
+      "features1": [
+        {
+          "id": "expertise_1",
+          "name_ru": "Компетентность",
+          "summary_ru": "Выбери 2 владения навыками/воровскими инструментами — удвой бонус мастерства."
+        },
+        {
+          "id": "sneak_attack",
+          "name_ru": "Скрытая атака",
+          "summary_ru": "Раз в ход доп. урон атакой с преимуществом или если союзник в 5 фт. от цели (без помехи)."
+        },
+        {
+          "id": "thieves_cant",
+          "name_ru": "Воровской жаргон",
+          "summary_ru": "Тайный язык и знаки. Дополнительно выучи один язык."
+        }
+      ]
+    },
+    {
+      "slug": "ranger",
+      "name_ru": "Следопыт",
+      "name_en": "Ranger",
+      "source": "PHB",
+      "hitDie": "d10",
+      "saves": [
+        "str",
+        "dex"
+      ],
+      "armor": [
+        "light",
+        "medium",
+        "shields"
+      ],
+      "weapons": [
+        "simple",
+        "martial"
+      ],
+      "weaponExtras": [],
+      "skillChoices": {
+        "count": 3,
+        "from": [
+          "animal_handling",
+          "athletics",
+          "insight",
+          "investigation",
+          "nature",
+          "perception",
+          "stealth",
+          "survival"
+        ]
+      },
+      "toolsFixed": [],
+      "toolChoices": null,
+      "lines": [
+        {
+          "id": "armor",
+          "labelRu": "Доспех",
+          "options": [
+            {
+              "id": "scale",
+              "labelRu": "Чешуйчатый доспех",
+              "summary": "Чешуйчатый доспех"
+            },
+            {
+              "id": "leather",
+              "labelRu": "Кожаный доспех",
+              "summary": "Кожаный доспех"
+            }
+          ]
+        },
+        {
+          "id": "weapons",
+          "labelRu": "Оружие ближнего боя",
+          "options": [
+            {
+              "id": "shortswords",
+              "labelRu": "Два коротких меча",
+              "summary": "Короткий меч ×2"
+            },
+            {
+              "id": "two_simple_melee",
+              "labelRu": "Два простых оружия ближнего боя",
+              "pickWeapon": "simple_melee",
+              "pickWeaponCount": 2
+            }
+          ]
+        },
+        {
+          "id": "pack",
+          "labelRu": "Набор",
+          "options": [
+            {
+              "id": "dungeoneer",
+              "labelRu": "Набор исследователя подземелий",
+              "summary": "Набор исследователя подземелий"
+            },
+            {
+              "id": "explorer",
+              "labelRu": "Набор исследователя",
+              "summary": "Набор исследователя"
+            }
+          ]
+        },
+        {
+          "id": "fixed",
+          "labelRu": "Длинный лук",
+          "options": [
+            {
+              "id": "longbow",
+              "labelRu": "Длинный лук и 20 стрел",
+              "summary": "Длинный лук, Стрелы ×20"
+            }
+          ]
+        }
+      ],
+      "gold": [
+        {
+          "id": "gold",
+          "labelRu": "Золото",
+          "summary": "5к4×10 зм (на старте: 125 зм)",
+          "coinsGp": 125
+        }
+      ],
+      "features1": [
+        {
+          "id": "favored_enemy",
+          "name_ru": "Избранный враг",
+          "summary_ru": "Выбери тип существ (или две расы гуманоидов). Преимущество на проверки Мудрости (Выживание) для выслеживания и на Интеллект для знаний о них. Язык врага — по возможности. Доп. враги на 6 и 14 ур."
+        },
+        {
+          "id": "natural_explorer",
+          "name_ru": "Исследователь природы",
+          "summary_ru": "Выбери избранную местность. Преимущества передвижения, выслеживания, фуражирования; труднопроходимая местность не замедляет при путешествии; нельзя заблудиться (кроме магии). Доп. местности на 6 и 10 ур."
+        },
+        {
+          "id": "deft_explorer",
+          "name_ru": "Ловкий исследователь",
+          "summary_ru": "TCE (опционально): альтернатива «Исследователь природы». Проницательный (компетентность + язык), Странник (скорость +5 / лазание+плавание на 6), Неутомимый (вр. хиты БМ×, сброс истощения на 10)."
+        },
+        {
+          "id": "favored_foe",
+          "name_ru": "Избранный противник",
+          "summary_ru": "TCE (опционально): альтернатива «Избранный враг». Пометь цель при попадании (конц. без слота, БМ раз / долгий) — +1к4 (+1к6 / +1к8) урона раз в ход."
+        }
+      ]
+    },
+    {
+      "slug": "sorcerer",
+      "name_ru": "Чародей",
+      "name_en": "Sorcerer",
+      "source": "PHB",
+      "hitDie": "d6",
+      "saves": [
+        "con",
+        "cha"
+      ],
+      "armor": [],
+      "weapons": [
+        "simple"
+      ],
+      "weaponExtras": [],
+      "skillChoices": {
+        "count": 2,
+        "from": [
+          "arcana",
+          "deception",
+          "insight",
+          "intimidation",
+          "persuasion",
+          "religion"
+        ]
+      },
+      "toolsFixed": [],
+      "toolChoices": null,
+      "lines": [
+        {
+          "id": "weapon",
+          "labelRu": "Оружие",
+          "options": [
+            {
+              "id": "crossbow",
+              "labelRu": "Лёгкий арбалет и 20 болтов",
+              "summary": "Лёгкий арбалет, Болты арбалета ×20"
+            },
+            {
+              "id": "any_simple",
+              "labelRu": "Любое простое оружие",
+              "pickWeapon": "simple"
+            }
+          ]
+        },
+        {
+          "id": "focus",
+          "labelRu": "Фокус компонентов",
+          "options": [
+            {
+              "id": "pouch",
+              "labelRu": "Сумка с компонентами",
+              "summary": "Сумка с компонентами"
+            },
+            {
+              "id": "arcane",
+              "labelRu": "Магический фокус",
+              "summary": "Магический фокус"
+            }
+          ]
+        },
+        {
+          "id": "pack",
+          "labelRu": "Набор",
+          "options": [
+            {
+              "id": "dungeoneer",
+              "labelRu": "Набор исследователя подземелий",
+              "summary": "Набор исследователя подземелий"
+            },
+            {
+              "id": "explorer",
+              "labelRu": "Набор исследователя",
+              "summary": "Набор исследователя"
+            }
+          ]
+        },
+        {
+          "id": "fixed",
+          "labelRu": "Кинжалы",
+          "options": [
+            {
+              "id": "daggers",
+              "labelRu": "Два кинжала",
+              "summary": "Кинжал ×2"
+            }
+          ]
+        }
+      ],
+      "gold": [
+        {
+          "id": "gold",
+          "labelRu": "Золото",
+          "summary": "3к4×10 зм (на старте: 75 зм)",
+          "coinsGp": 75
+        }
+      ],
+      "features1": [
+        {
+          "id": "sorcerous_origin",
+          "name_ru": "Происхождение чародея",
+          "summary_ru": "Выбери происхождение (Драконья кровь, Дикая магия, …)."
+        },
+        {
+          "id": "spellcasting_sorcerer",
+          "name_ru": "Использование заклинаний",
+          "summary_ru": "Полный кастер. Харизма — базовая. Известные заклинания (не подготовка)."
+        }
+      ]
+    }
+  ]
+}

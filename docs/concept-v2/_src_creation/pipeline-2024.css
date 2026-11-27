@@ -1,0 +1,69 @@
+/* 2024 create — additive. 2014 screens stay untouched unless data-rules=2024. */
+html:not([data-rules="2024"]) [data-edition-diff-reopen] {
+  display: none !important;
+}
+html[data-rules="2024"] .create-pipeline__topbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px 14px;
+}
+html[data-rules="2024"] .create-pipeline__topbar [data-edition-diff-reopen] {
+  margin-left: auto;
+}
+html[data-rules="2024"] .create-pipeline__subtitle[hidden] {
+  display: none !important;
+}
+.edition-2024-diff__list {
+  margin: 0;
+  padding: 0 0 0 1.15em;
+  display: grid;
+  gap: 10px;
+}
+.edition-2024-diff__list li { padding-left: 2px; }
+.edition-2024-diff__list strong { display: block; margin-bottom: 2px; }
+
+/* 2024-only: fit background pack on the 1440 frame without touching 2014 spacing. */
+html[data-rules="2024"] .bg-setup {
+  gap: 8px;
+}
+html[data-rules="2024"] .bg-setup .t-muted {
+  margin: 0;
+}
+
+/* 2024-only: keep «Правила 2024 года» on one line in the join dialog. */
+html[data-rules="2024"] [data-dialog="join-lobby"] .app-dialog {
+  width: min(560px, calc(100vw - 48px));
+}
+html[data-rules="2024"] [data-dialog="join-lobby"] .app-dialog__top h2 {
+  white-space: nowrap;
+}
+
+/* Phone 2024: «← К списку» + «Отличия 2024» on row 1, kicker on row 2 — like 2014 stacking. */
+html[data-rules="2024"][data-width="phone"] .create-pipeline__topbar {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 2px 8px;
+}
+html[data-rules="2024"][data-width="phone"] .create-pipeline__topbar .back-link { grid-column: 1; grid-row: 1; justify-self: start; width: auto; text-align: left; }
+html[data-rules="2024"][data-width="phone"] .create-pipeline__topbar [data-create-kicker] { grid-column: 1 / -1; grid-row: 2; }
+html[data-rules="2024"][data-width="phone"] .create-pipeline__topbar [data-edition-diff-reopen] {
+  grid-column: 2;
+  grid-row: 1;
+  margin-left: 0;
+  min-height: 32px;
+  padding: 0 10px;
+  font-size: 13px;
+}
+html[data-rules="2024"][data-width="phone"] .bg-setup > p.t-muted:first-of-type {
+  display: none;
+}
+
+/* Desktop-only nowrap for the long join title; on phone keep «2024 года» together via nbsp. */
+html[data-rules="2024"][data-width="phone"] [data-dialog="join-lobby"] .app-dialog {
+  width: min(560px, calc(100vw - 32px));
+}
+html[data-rules="2024"][data-width="phone"] [data-dialog="join-lobby"] .app-dialog__top h2 {
+  white-space: normal;
+}

@@ -1,7 +1,8 @@
 import { Suspense, type ReactNode } from 'react'
 import { BrowserRouter, Navigate, Route, Routes, useSearchParams } from 'react-router-dom'
-import { AuthDebugPage } from './pages/AuthDebugPage'
 import { CharactersPage } from './pages/CharactersPage'
+import { ShellAuthPage } from './pages/ShellAuthPage'
+import { SiteSoonPage } from './pages/SiteSoonPage'
 import { ConsumablesTapGuardPreviewPage } from './pages/ConsumablesTapGuardPreviewPage'
 import { DiceRollerPreviewPage } from './pages/DiceRollerPreviewPage'
 import { RaceRollBonusesPreviewPage } from './pages/RaceRollBonusesPreviewPage'
@@ -50,16 +51,17 @@ import { AccountAppearanceSync } from './shared/theme/AccountAppearanceSync'
 import { SessionTableSkeleton } from './features/lobby/SessionTableSkeleton'
 
 function HomeRedirect() {
-  return <Navigate to={getAccessToken() ? '/characters' : '/login'} replace />
+  return <Navigate to={getAccessToken() ? '/characters' : '/site'} replace />
 }
 
 function LoginRoute() {
   const [params] = useSearchParams()
   const next = safeNextPath(params.get('next'))
-  if (getAccessToken()) {
+  const oauthReturn = params.get('access_token') || params.get('oauth_error') || params.get('oauth')
+  if (getAccessToken() && !oauthReturn) {
     return <Navigate to={next ?? '/characters'} replace />
   }
-  return <AuthDebugPage nextPath={next} />
+  return <ShellAuthPage nextPath={next} />
 }
 
 function LazyPage({
@@ -182,14 +184,7 @@ export default function App() {
             </LazyPage>
           }
         />
-        <Route
-          path="/characters"
-          element={
-            <RequireAuth>
-              <CharactersPage />
-            </RequireAuth>
-          }
-        />
+        <Route path="/characters" element={<CharactersPage />} />
         <Route
           path="/characters/create"
           element={
@@ -232,9 +227,9 @@ export default function App() {
         <Route
           path="/lobbies"
           element={
-            <AuthLazy>
+            <LazyPage>
               <LazyLobbiesPage />
-            </AuthLazy>
+            </LazyPage>
           }
         />
         <Route
@@ -263,12 +258,13 @@ export default function App() {
             </RequireAuth>
           }
         />
+        <Route path="/site" element={<SiteSoonPage />} />
         <Route
           path="/cabinet"
           element={
-            <AuthLazy>
+            <LazyPage>
               <LazyCabinetPage />
-            </AuthLazy>
+            </LazyPage>
           }
         />
         <Route

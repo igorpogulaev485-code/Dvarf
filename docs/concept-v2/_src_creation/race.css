@@ -1,0 +1,161 @@
+/* Step 3: 2014 race — on-page setup, chips not full-width */
+
+.create-pipeline__card-meta {
+  color: var(--text-sub, #5c5c52);
+  font-size: 0.8rem;
+  font-weight: 600;
+  line-height: 1.35;
+}
+html[data-theme="leaf-classic"] .create-pipeline__card-meta { color: rgba(243, 239, 227, 0.7); }
+.create-pipeline__card.is-selected {
+  border-color: var(--accent, #4e5d34);
+  box-shadow: inset 0 0 0 1px var(--accent, #4e5d34);
+  background: rgba(var(--accent-rgb, 78, 93, 52), 0.1);
+}
+html[data-theme="leaf-classic"] .create-pipeline__card.is-selected { background: rgba(var(--accent-rgb, 78, 93, 52), 0.22); }
+
+.create-pipeline__source-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.create-pipeline__source-row .seg {
+  appearance: none;
+  -webkit-appearance: none;
+  width: auto;
+  cursor: pointer;
+  min-height: 32px;
+  height: 32px;
+  padding: 0 10px;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+}
+
+.race-setup { display: grid; gap: 12px; }
+.race-setup__head { display: grid; gap: 2px; }
+.race-setup__head h2 { margin: 0; }
+.race-setup__en {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-sub, #5c5c52);
+}
+html[data-theme="leaf-classic"] .race-setup__en { color: rgba(243, 239, 227, 0.75); }
+.race-setup__source {
+  margin: 0;
+  font-size: 0.8rem;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  color: var(--text-sub, #5c5c52);
+}
+.race-back {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  margin: 0 0 4px;
+  color: var(--accent, #4e5d34);
+  font: 650 14px var(--font-ui), "IBM Plex Sans", sans-serif;
+  cursor: pointer;
+  width: auto;
+  justify-self: start;
+  text-align: left;
+}
+html[data-width="desktop"] .race-back { display: none; }
+
+.race-setup__section { display: grid; gap: 6px; }
+.race-setup__section > h3,
+.race-setup .field-label {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--text-body, #24241f);
+}
+html[data-theme="leaf-classic"] .race-setup__section > h3,
+html[data-theme="leaf-classic"] .race-setup .field-label { color: #f3efe3; }
+
+.race-chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+.race-chip-row .seg,
+.race-chip-row .btn {
+  appearance: none;
+  -webkit-appearance: none;
+  width: auto;
+  cursor: pointer;
+  max-width: 100%;
+}
+.race-ident__name {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+.race-ident__name .field {
+  appearance: none;
+  -webkit-appearance: none;
+  flex: 1 1 12rem;
+  min-width: 0;
+  width: auto;
+  box-sizing: border-box;
+  min-height: 40px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(var(--accent-rgb, 78, 93, 52), 0.28);
+  background: var(--card, #fffdf8);
+  color: var(--text-body, #24241f);
+  font: 500 16px var(--font-ui), "IBM Plex Sans", sans-serif;
+}
+html[data-theme="leaf-classic"] .race-ident__name .field { background: #1a1a1a; color: #f3efe3; }
+.race-ident__name .btn { flex: 0 0 auto; width: auto; }
+
+.race-facts {
+  margin: 0;
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 4px 14px;
+  font-size: 13.5px;
+  line-height: 1.4;
+}
+.race-facts dt {
+  margin: 0;
+  font-weight: 650;
+  color: var(--text-sub, #5c5c52);
+}
+.race-facts dd { margin: 0; }
+html[data-theme="leaf-classic"] .race-facts dt { color: rgba(243, 239, 227, 0.7); }
+
+.race-setup__traits,
+.race-setup__note,
+.race-setup__block {
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.45;
+  font-weight: 500;
+  white-space: pre-wrap;
+}
+.race-setup__note,
+.race-setup__block { color: var(--text-sub, #5c5c52); }
+html[data-theme="leaf-classic"] .race-setup__note,
+html[data-theme="leaf-classic"] .race-setup__block { color: rgba(243, 239, 227, 0.75); }
+.race-setup__block { font-weight: 650; }
+
+.race-setup__mode-text {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--text-sub, #5c5c52);
+}
+
+.create-pipeline__footer .btn:disabled,
+.create-pipeline__detail .btn:disabled,
+.race-ident__name .btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  filter: none;
+  box-shadow: none;
+}

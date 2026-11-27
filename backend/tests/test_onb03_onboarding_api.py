@@ -156,3 +156,42 @@ def test_update_me_theme_untouched_when_only_onboarding():
     )
     assert user.theme_id == "cha"
     assert user.ability_colors == "theme"
+
+
+def test_update_me_kit_surface_background_and_font():
+    user = _user()
+    db = MagicMock()
+    svc = AuthService(db)
+    svc.users = MagicMock()
+    svc.users.get_by_id.return_value = user
+
+    svc.update_me(
+        user.id,
+        UserUpdateRequest(
+            surface="leaf-classic",
+            bg_light="azure",
+            bg_dark="oak",
+            font_pair="tabular",
+            theme_id="cha",
+            ability_colors="theme",
+        ),
+    )
+    assert user.surface == "leaf-classic"
+    assert user.bg_light == "azure"
+    assert user.bg_dark == "oak"
+    assert user.font_pair == "tabular"
+    assert user.theme_id == "cha"
+    out = serialize_user(user)
+    assert out.surface == "leaf-classic"
+    assert out.bg_dark == "oak"
+    assert out.font_pair == "tabular"
+    assert out.theme_id == "cha"
+
+
+def test_serialize_kit_defaults_when_fields_missing():
+    out = serialize_user(_user())
+    assert out.surface == "light-designer3"
+    assert out.bg_light == "parchment"
+    assert out.bg_dark == "ink"
+    assert out.font_pair == "antiqua"
+    assert out.theme_id == "wis"

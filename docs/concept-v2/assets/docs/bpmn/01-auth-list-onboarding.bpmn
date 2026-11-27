@@ -1,0 +1,450 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_auth" name="1. Регистрация / вход → список персонажей → онбординг" targetNamespace="https://creed20.tech/bpmn" exporter="КриD20 BPMN maps" exporterVersion="1.0">
+  <bpmn:collaboration id="Collab_auth">
+    <bpmn:participant id="Pool_Player" name="Игрок" processRef="Proc_Player" />
+    <bpmn:participant id="Pool_Master" name="Мастер" processRef="Proc_Master" />
+    <bpmn:participant id="Pool_System" name="Система / бэкенд" processRef="Proc_System" />
+    <bpmn:messageFlow id="msg_reg" name="регистрация" sourceRef="p_reg" targetRef="s_reg" />
+    <bpmn:messageFlow id="msg_ver" name="код из письма" sourceRef="p_mail" targetRef="s_ver" />
+    <bpmn:messageFlow id="msg_login" name="логин / OAuth" sourceRef="p_login" targetRef="s_login" />
+    <bpmn:messageFlow id="msg_fg" name="сброс пароля" sourceRef="p_forgot" targetRef="s_reset" />
+    <bpmn:messageFlow id="msg_list" name="список" sourceRef="p_list" targetRef="s_chars" />
+  </bpmn:collaboration>
+  <bpmn:process id="Proc_Player" name="Игрок" isExecutable="false">
+    <bpmn:laneSet id="LaneSet_Proc_Player">
+      <bpmn:lane id="Lane_P_auth" name="Вход и аккаунт">
+        <bpmn:flowNodeRef>p_start</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>p_has</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>p_reg</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>p_mail</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>p_login</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>p_forgot</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>p_list</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="Lane_P_list" name="Список и онбординг">
+        <bpmn:flowNodeRef>p_welcome</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>p_empty</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>p_empty_ui</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>p_cards</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>p_help</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>p_end</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="p_start" name="Открыть /login">
+      <bpmn:outgoing>a1</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:exclusiveGateway id="p_has" name="Есть аккаунт?" gatewayDirection="Unspecified">
+      <bpmn:incoming>a1</bpmn:incoming>
+      <bpmn:outgoing>a2</bpmn:outgoing>
+      <bpmn:outgoing>a5</bpmn:outgoing>
+      <bpmn:outgoing>a7</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:userTask id="p_reg" name="Регистрация: почта, пароль ≥ 8, имя">
+      <bpmn:incoming>a2</bpmn:incoming>
+      <bpmn:outgoing>a3</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="p_mail" name="Подтвердить почту
+(/verify-email, /confirm-email)">
+      <bpmn:incoming>a3</bpmn:incoming>
+      <bpmn:outgoing>a4</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="p_login" name="Войти: почта + пароль
+или OAuth Яндекс / VK ID">
+      <bpmn:incoming>a4</bpmn:incoming>
+      <bpmn:incoming>a5</bpmn:incoming>
+      <bpmn:incoming>a8</bpmn:incoming>
+      <bpmn:outgoing>a6</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="p_forgot" name="Забыли пароль
+(/reset-password)">
+      <bpmn:incoming>a7</bpmn:incoming>
+      <bpmn:outgoing>a8</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="p_list" name="Список /characters">
+      <bpmn:incoming>a6</bpmn:incoming>
+      <bpmn:outgoing>a9</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="p_welcome" name="«Добро пожаловать»:
+впервые в D&amp;D / тут впервые / пропустить">
+      <bpmn:incoming>a9</bpmn:incoming>
+      <bpmn:outgoing>a10</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="p_empty" name="Есть персонажи?" gatewayDirection="Unspecified">
+      <bpmn:incoming>a10</bpmn:incoming>
+      <bpmn:outgoing>a11</bpmn:outgoing>
+      <bpmn:outgoing>a12</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:userTask id="p_empty_ui" name="Пустой список: «Создать»,
+подсказка редакции, «Как это работает»">
+      <bpmn:incoming>a11</bpmn:incoming>
+      <bpmn:outgoing>a13</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="p_cards" name="Карточки персонажей
+(черновик, лист, классика, удалить)">
+      <bpmn:incoming>a12</bpmn:incoming>
+      <bpmn:outgoing>a14</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:userTask id="p_help" name="Справка «Как это работает»
+(HelpDrawer)">
+      <bpmn:incoming>a13</bpmn:incoming>
+      <bpmn:incoming>a14</bpmn:incoming>
+      <bpmn:outgoing>a15</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:endEvent id="p_end" name="К созданию / листу / лобби">
+      <bpmn:incoming>a15</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:textAnnotation id="n_onb"><bpmn:text>WelcomeDialog на /characters создание не запускает. Сегмент тура сохраняется в onboarding-хранилище. Гостю кнопки создания нет.</bpmn:text></bpmn:textAnnotation>
+    <bpmn:association id="n_onb_assoc" sourceRef="n_onb" targetRef="p_welcome" associationDirection="None" />
+    <bpmn:sequenceFlow id="a1" name="" sourceRef="p_start" targetRef="p_has" />
+    <bpmn:sequenceFlow id="a2" name="нет" sourceRef="p_has" targetRef="p_reg" />
+    <bpmn:sequenceFlow id="a3" name="" sourceRef="p_reg" targetRef="p_mail" />
+    <bpmn:sequenceFlow id="a4" name="" sourceRef="p_mail" targetRef="p_login" />
+    <bpmn:sequenceFlow id="a5" name="да" sourceRef="p_has" targetRef="p_login" />
+    <bpmn:sequenceFlow id="a6" name="" sourceRef="p_login" targetRef="p_list" />
+    <bpmn:sequenceFlow id="a7" name="забыл пароль" sourceRef="p_has" targetRef="p_forgot" />
+    <bpmn:sequenceFlow id="a8" name="" sourceRef="p_forgot" targetRef="p_login" />
+    <bpmn:sequenceFlow id="a9" name="" sourceRef="p_list" targetRef="p_welcome" />
+    <bpmn:sequenceFlow id="a10" name="" sourceRef="p_welcome" targetRef="p_empty" />
+    <bpmn:sequenceFlow id="a11" name="нет" sourceRef="p_empty" targetRef="p_empty_ui" />
+    <bpmn:sequenceFlow id="a12" name="да" sourceRef="p_empty" targetRef="p_cards" />
+    <bpmn:sequenceFlow id="a13" name="" sourceRef="p_empty_ui" targetRef="p_help" />
+    <bpmn:sequenceFlow id="a14" name="" sourceRef="p_cards" targetRef="p_help" />
+    <bpmn:sequenceFlow id="a15" name="" sourceRef="p_help" targetRef="p_end" />
+  </bpmn:process>
+  <bpmn:process id="Proc_Master" name="Мастер" isExecutable="false">
+    <bpmn:laneSet id="LaneSet_Proc_Master">
+      <bpmn:lane id="Lane_Master" name="Мастер">
+        <bpmn:flowNodeRef>m_start</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>m_list</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>m_end</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="m_start" name="Тот же вход">
+      <bpmn:outgoing>am1</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:userTask id="m_list" name="Мастер пользуется тем же списком
+и кабинетом; лобби — отдельно">
+      <bpmn:incoming>am1</bpmn:incoming>
+      <bpmn:outgoing>am2</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:endEvent id="m_end" name="К лобби">
+      <bpmn:incoming>am2</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="am1" name="" sourceRef="m_start" targetRef="m_list" />
+    <bpmn:sequenceFlow id="am2" name="" sourceRef="m_list" targetRef="m_end" />
+  </bpmn:process>
+  <bpmn:process id="Proc_System" name="Система / бэкенд" isExecutable="false">
+    <bpmn:laneSet id="LaneSet_Proc_System">
+      <bpmn:lane id="Lane_System" name="Система / бэкенд">
+        <bpmn:flowNodeRef>s_start</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>s_reg</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>s_ver</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>s_login</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>s_reset</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>s_me</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>s_chars</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>s_end</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+    <bpmn:startEvent id="s_start" name="Запрос">
+      <bpmn:outgoing>s1</bpmn:outgoing>
+      <bpmn:outgoing>s5</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:serviceTask id="s_reg" name="POST /auth/register">
+      <bpmn:incoming>s1</bpmn:incoming>
+      <bpmn:outgoing>s2</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="s_ver" name="POST /auth/verify-email
+и /resend-verification">
+      <bpmn:incoming>s2</bpmn:incoming>
+      <bpmn:outgoing>s3</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="s_login" name="POST /auth/login
+GET /auth/oauth/{provider}/…">
+      <bpmn:incoming>s3</bpmn:incoming>
+      <bpmn:incoming>s6</bpmn:incoming>
+      <bpmn:outgoing>s4</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="s_reset" name="POST /auth/forgot-password
+POST /auth/reset-password">
+      <bpmn:incoming>s5</bpmn:incoming>
+      <bpmn:outgoing>s6</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="s_me" name="GET /auth/me, refresh, logout,
+сессии устройства">
+      <bpmn:incoming>s4</bpmn:incoming>
+      <bpmn:outgoing>s7</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="s_chars" name="GET /characters">
+      <bpmn:incoming>s7</bpmn:incoming>
+      <bpmn:outgoing>s8</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:endEvent id="s_end" name="Сессия выдана">
+      <bpmn:incoming>s8</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="s1" name="" sourceRef="s_start" targetRef="s_reg" />
+    <bpmn:sequenceFlow id="s2" name="" sourceRef="s_reg" targetRef="s_ver" />
+    <bpmn:sequenceFlow id="s3" name="" sourceRef="s_ver" targetRef="s_login" />
+    <bpmn:sequenceFlow id="s4" name="" sourceRef="s_login" targetRef="s_me" />
+    <bpmn:sequenceFlow id="s5" name="" sourceRef="s_start" targetRef="s_reset" />
+    <bpmn:sequenceFlow id="s6" name="" sourceRef="s_reset" targetRef="s_login" />
+    <bpmn:sequenceFlow id="s7" name="" sourceRef="s_me" targetRef="s_chars" />
+    <bpmn:sequenceFlow id="s8" name="" sourceRef="s_chars" targetRef="s_end" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="Diagram_auth">
+    <bpmndi:BPMNPlane id="Plane_auth" bpmnElement="Collab_auth">
+      <bpmndi:BPMNShape id="Pool_Player_di" bpmnElement="Pool_Player" isHorizontal="true">
+        <dc:Bounds x="40" y="70" width="3120" height="360" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_P_auth_di" bpmnElement="Lane_P_auth" isHorizontal="true">
+        <dc:Bounds x="70" y="70" width="3090" height="190" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_P_list_di" bpmnElement="Lane_P_list" isHorizontal="true">
+        <dc:Bounds x="70" y="260" width="3090" height="170" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Pool_Master_di" bpmnElement="Pool_Master" isHorizontal="true">
+        <dc:Bounds x="40" y="520" width="3120" height="160" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_Master_di" bpmnElement="Lane_Master" isHorizontal="true">
+        <dc:Bounds x="70" y="520" width="3090" height="160" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Pool_System_di" bpmnElement="Pool_System" isHorizontal="true">
+        <dc:Bounds x="40" y="770" width="3120" height="340" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_System_di" bpmnElement="Lane_System" isHorizontal="true">
+        <dc:Bounds x="70" y="770" width="3090" height="340" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="p_start_di" bpmnElement="p_start">
+        <dc:Bounds x="120" y="147.0" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="p_has_di" bpmnElement="p_has" isMarkerVisible="true">
+        <dc:Bounds x="452" y="140.0" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="p_reg_di" bpmnElement="p_reg">
+        <dc:Bounds x="624" y="72.0" width="200" height="84" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="p_mail_di" bpmnElement="p_mail">
+        <dc:Bounds x="876" y="72.0" width="200" height="84" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="p_login_di" bpmnElement="p_login">
+        <dc:Bounds x="1128" y="122.0" width="200" height="84" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="p_forgot_di" bpmnElement="p_forgot">
+        <dc:Bounds x="876" y="192.0" width="200" height="84" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="p_list_di" bpmnElement="p_list">
+        <dc:Bounds x="1380" y="122.0" width="200" height="84" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="p_welcome_di" bpmnElement="p_welcome">
+        <dc:Bounds x="1380" y="302.0" width="200" height="84" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="p_empty_di" bpmnElement="p_empty" isMarkerVisible="true">
+        <dc:Bounds x="1712" y="320.0" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="p_empty_ui_di" bpmnElement="p_empty_ui">
+        <dc:Bounds x="1884" y="302.0" width="200" height="84" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="p_cards_di" bpmnElement="p_cards">
+        <dc:Bounds x="2136" y="302.0" width="200" height="84" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="p_help_di" bpmnElement="p_help">
+        <dc:Bounds x="2388" y="302.0" width="200" height="84" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="p_end_di" bpmnElement="p_end">
+        <dc:Bounds x="2640" y="327.0" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="m_start_di" bpmnElement="m_start">
+        <dc:Bounds x="120" y="582.0" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="m_list_di" bpmnElement="m_list">
+        <dc:Bounds x="1380" y="557.0" width="260" height="86" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="m_end_di" bpmnElement="m_end">
+        <dc:Bounds x="2136" y="582.0" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="s_start_di" bpmnElement="s_start">
+        <dc:Bounds x="120" y="922.0" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="s_reg_di" bpmnElement="s_reg">
+        <dc:Bounds x="624" y="837.0" width="200" height="84" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="s_ver_di" bpmnElement="s_ver">
+        <dc:Bounds x="876" y="837.0" width="200" height="84" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="s_login_di" bpmnElement="s_login">
+        <dc:Bounds x="1128" y="897.0" width="200" height="84" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="s_reset_di" bpmnElement="s_reset">
+        <dc:Bounds x="876" y="967.0" width="200" height="84" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="s_me_di" bpmnElement="s_me">
+        <dc:Bounds x="1380" y="897.0" width="200" height="84" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="s_chars_di" bpmnElement="s_chars">
+        <dc:Bounds x="1632" y="897.0" width="200" height="84" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="s_end_di" bpmnElement="s_end">
+        <dc:Bounds x="2136" y="922.0" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="n_onb_di" bpmnElement="n_onb">
+        <dc:Bounds x="1622" y="78" width="320" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="n_onb_assoc_di" bpmnElement="n_onb_assoc">
+        <di:waypoint x="1942" y="113.0" />
+        <di:waypoint x="1380" y="344.0" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="a1_di" bpmnElement="a1">
+        <di:waypoint x="156" y="165.0" />
+        <di:waypoint x="452" y="165.0" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="a2_di" bpmnElement="a2">
+        <di:waypoint x="502" y="165.0" />
+        <di:waypoint x="563.0" y="165.0" />
+        <di:waypoint x="563.0" y="114.0" />
+        <di:waypoint x="624" y="114.0" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="a3_di" bpmnElement="a3">
+        <di:waypoint x="824" y="114.0" />
+        <di:waypoint x="876" y="114.0" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="a4_di" bpmnElement="a4">
+        <di:waypoint x="1076" y="114.0" />
+        <di:waypoint x="1102.0" y="114.0" />
+        <di:waypoint x="1102.0" y="164.0" />
+        <di:waypoint x="1128" y="164.0" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="a5_di" bpmnElement="a5">
+        <di:waypoint x="502" y="165.0" />
+        <di:waypoint x="1128" y="164.0" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="a6_di" bpmnElement="a6">
+        <di:waypoint x="1328" y="164.0" />
+        <di:waypoint x="1380" y="164.0" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="a7_di" bpmnElement="a7">
+        <di:waypoint x="502" y="165.0" />
+        <di:waypoint x="689.0" y="165.0" />
+        <di:waypoint x="689.0" y="234.0" />
+        <di:waypoint x="876" y="234.0" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="a8_di" bpmnElement="a8">
+        <di:waypoint x="1076" y="234.0" />
+        <di:waypoint x="1102.0" y="234.0" />
+        <di:waypoint x="1102.0" y="164.0" />
+        <di:waypoint x="1128" y="164.0" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="a9_di" bpmnElement="a9">
+        <di:waypoint x="1480.0" y="206.0" />
+        <di:waypoint x="1480.0" y="302.0" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="a10_di" bpmnElement="a10">
+        <di:waypoint x="1580" y="344.0" />
+        <di:waypoint x="1712" y="345.0" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="a11_di" bpmnElement="a11">
+        <di:waypoint x="1762" y="345.0" />
+        <di:waypoint x="1884" y="344.0" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="a12_di" bpmnElement="a12">
+        <di:waypoint x="1762" y="345.0" />
+        <di:waypoint x="2136" y="344.0" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="a13_di" bpmnElement="a13">
+        <di:waypoint x="2084" y="344.0" />
+        <di:waypoint x="2388" y="344.0" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="a14_di" bpmnElement="a14">
+        <di:waypoint x="2336" y="344.0" />
+        <di:waypoint x="2388" y="344.0" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="a15_di" bpmnElement="a15">
+        <di:waypoint x="2588" y="344.0" />
+        <di:waypoint x="2640" y="345.0" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="am1_di" bpmnElement="am1">
+        <di:waypoint x="156" y="600.0" />
+        <di:waypoint x="1380" y="600.0" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="am2_di" bpmnElement="am2">
+        <di:waypoint x="1640" y="600.0" />
+        <di:waypoint x="2136" y="600.0" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="s1_di" bpmnElement="s1">
+        <di:waypoint x="156" y="940.0" />
+        <di:waypoint x="390.0" y="940.0" />
+        <di:waypoint x="390.0" y="879.0" />
+        <di:waypoint x="624" y="879.0" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="s2_di" bpmnElement="s2">
+        <di:waypoint x="824" y="879.0" />
+        <di:waypoint x="876" y="879.0" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="s3_di" bpmnElement="s3">
+        <di:waypoint x="1076" y="879.0" />
+        <di:waypoint x="1102.0" y="879.0" />
+        <di:waypoint x="1102.0" y="939.0" />
+        <di:waypoint x="1128" y="939.0" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="s4_di" bpmnElement="s4">
+        <di:waypoint x="1328" y="939.0" />
+        <di:waypoint x="1380" y="939.0" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="s5_di" bpmnElement="s5">
+        <di:waypoint x="156" y="940.0" />
+        <di:waypoint x="516.0" y="940.0" />
+        <di:waypoint x="516.0" y="1009.0" />
+        <di:waypoint x="876" y="1009.0" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="s6_di" bpmnElement="s6">
+        <di:waypoint x="1076" y="1009.0" />
+        <di:waypoint x="1102.0" y="1009.0" />
+        <di:waypoint x="1102.0" y="939.0" />
+        <di:waypoint x="1128" y="939.0" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="s7_di" bpmnElement="s7">
+        <di:waypoint x="1580" y="939.0" />
+        <di:waypoint x="1632" y="939.0" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="s8_di" bpmnElement="s8">
+        <di:waypoint x="1832" y="939.0" />
+        <di:waypoint x="2136" y="940.0" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="msg_reg_di" bpmnElement="msg_reg">
+        <di:waypoint x="724.0" y="156.0" />
+        <di:waypoint x="724.0" y="475.0" />
+        <di:waypoint x="724.0" y="725.0" />
+        <di:waypoint x="724.0" y="837.0" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="msg_ver_di" bpmnElement="msg_ver">
+        <di:waypoint x="976.0" y="156.0" />
+        <di:waypoint x="1104" y="156.0" />
+        <di:waypoint x="1104" y="475.0" />
+        <di:waypoint x="1104" y="725.0" />
+        <di:waypoint x="976.0" y="725.0" />
+        <di:waypoint x="976.0" y="837.0" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="msg_login_di" bpmnElement="msg_login">
+        <di:waypoint x="1228.0" y="206.0" />
+        <di:waypoint x="1228.0" y="475.0" />
+        <di:waypoint x="1228.0" y="725.0" />
+        <di:waypoint x="1228.0" y="897.0" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="msg_fg_di" bpmnElement="msg_fg">
+        <di:waypoint x="976.0" y="276.0" />
+        <di:waypoint x="976.0" y="475.0" />
+        <di:waypoint x="1104" y="475.0" />
+        <di:waypoint x="1104" y="725.0" />
+        <di:waypoint x="976.0" y="725.0" />
+        <di:waypoint x="976.0" y="967.0" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="msg_list_di" bpmnElement="msg_list">
+        <di:waypoint x="1480.0" y="206.0" />
+        <di:waypoint x="1352" y="206.0" />
+        <di:waypoint x="1352" y="475.0" />
+        <di:waypoint x="1352" y="725.0" />
+        <di:waypoint x="1732.0" y="725.0" />
+        <di:waypoint x="1732.0" y="897.0" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

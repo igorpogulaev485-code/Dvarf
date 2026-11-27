@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+  <title>Сланец — слои сланца и трещины</title>
+  <rect width="256" height="256" fill="#14171c"/>
+  <g fill="none" stroke="#c5cdd8" stroke-width="1.15" stroke-opacity="0.18"
+     stroke-linecap="round" stroke-linejoin="round">
+<path d="M0 8 Q40 11, 90 7 T180 9 T256 8"/>
+<path d="M0 32 Q40 30, 90 31 T180 33 T256 32"/>
+<path d="M0 58 Q40 61, 90 57 T180 59 T256 58"/>
+<path d="M0 84 Q40 82, 90 83 T180 85 T256 84"/>
+<path d="M0 110 Q40 113, 90 109 T180 111 T256 110"/>
+<path d="M0 138 Q40 136, 90 137 T180 139 T256 138"/>
+<path d="M0 166 Q40 169, 90 165 T180 167 T256 166"/>
+<path d="M0 194 Q40 192, 90 193 T180 195 T256 194"/>
+<path d="M0 222 Q40 225, 90 221 T180 223 T256 222"/>
+<path d="M0 248 Q40 246, 90 247 T180 249 T256 248"/>
+<path d="M70 8 L78 84 L66 166 L80 248"/>
+<path d="M190 32 L182 110 L198 194"/>
+<path d="M30 138 L40 222"/>
+  </g>
+</svg>

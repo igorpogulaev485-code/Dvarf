@@ -1,0 +1,56 @@
+      <div class="create-panel" data-panel="create" hidden>
+        <div class="create-pipeline__topbar">
+          <button class="back-link" type="button" data-create-back-list>← К списку</button>
+          <span class="t-muted" data-create-kicker>Создание · Правила 2014 года</span>
+          <p class="onboarding-edition-hint">Редакция фиксируется при создании.</p>
+        </div>
+        <ul class="campaign-rules-summary" data-start-rules hidden>
+          <li>Стартовый уровень: 3</li>
+          <li>Характеристики: покупка очков</li>
+          <li>Книги: Книга игрока</li>
+          <li>Стартовый набор: снаряжение класса</li>
+        </ul>
+        <p class="create-pipeline__banner-error" data-create-error hidden>Черновик не найден</p>
+        <div class="create-pipeline" data-create-shell>
+          <header class="create-pipeline__header create-pipeline__steprrail">
+            <div class="create-pipeline__steprrail-intro">
+              <h1 class="create-pipeline__title">Создание персонажа</h1>
+              <p class="create-pipeline__subtitle">Раса → черта* → предыстория → класс → характеристики → прокачка</p>
+              <div class="onboarding-step-hint" role="note" data-step-hint>
+                <p><strong>Что это.</strong> <span data-hint-what></span></p>
+                <p class="t-muted"><strong>Зачем.</strong> <span data-hint-why></span></p>
+              </div>
+            </div>
+            <div class="create-pipeline__progress">
+              <div class="create-pipeline__progress-meta" aria-live="polite">
+                <span data-progress-label>Шаг 1 из 5</span>
+                <span data-progress-pct>20%</span>
+              </div>
+              <div class="create-pipeline__progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="20" aria-label="Прогресс создания персонажа">
+                <div class="create-pipeline__progress-fill" data-progress-fill style="width:20%"></div>
+              </div>
+            </div>
+            <div class="create-pipeline__steps-wrap">
+              <div class="create-pipeline__steps-fade create-pipeline__steps-fade--left" data-steps-fade-left hidden></div>
+              <button type="button" class="create-pipeline__steps-arrow create-pipeline__steps-arrow--left" data-steps-arrow-left hidden aria-label="Прокрутить шаги влево">‹</button>
+              <div class="create-pipeline__steps-fade create-pipeline__steps-fade--right" data-steps-fade hidden></div>
+              <button type="button" class="create-pipeline__steps-arrow create-pipeline__steps-arrow--right" data-steps-arrow hidden aria-label="Прокрутить шаги вправо">›</button>
+              <nav class="create-pipeline__steps" data-create-steps aria-label="Шаги создания"></nav>
+            </div>
+          </header>
+          <div class="create-pipeline__body">
+            <aside class="create-pipeline__cards" data-create-cards></aside>
+            <section class="create-pipeline__detail" data-create-detail></section>
+          </div>
+          <footer class="create-pipeline__footer">
+            <div class="create-pipeline__footer-left">
+              <button class="btn tags-ghost" type="button" data-create-back>← Назад</button>
+            </div>
+            <p class="create-pipeline__footer-progress" data-footer-progress>Шаг 1 из 5</p>
+            <div class="create-pipeline__footer-mid">
+              <button class="btn" type="button" data-create-summary>Сводка</button>
+            </div>
+            <div class="create-pipeline__footer-right" data-create-footer-right></div>
+          </footer>
+        </div>
+      </div>

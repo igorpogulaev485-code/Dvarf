@@ -1,0 +1,4036 @@
+(function () {
+  var root = document.documentElement;
+  var PAGES = [
+    { id: "p1", label: "1-я" },
+    { id: "persona", label: "Личность" },
+    { id: "spells", label: "Заклинания" },
+    { id: "cards", label: "Карточки" },
+    { id: "companions", label: "Напарники" },
+    { id: "notes", label: "Заметки" },
+    { id: "features", label: "Умения" },
+  ];
+  var PRESETS = {
+    table: ["p1", "spells", "cards", "companions"],
+    full: ["p1", "persona", "spells", "cards", "companions", "notes"],
+    form: ["p1", "persona", "spells"],
+  };
+  var CHARS = {
+    "2014": {
+      name: "Даррак Железный Кулак",
+      player: "Алексей Морозов",
+      edition: "2014",
+      caster: true,
+      casterClass: "Жрец",
+      spellAbi: "Мудрость",
+      spellDc: "13",
+      spellAtk: "+5",
+      spellMod: "+2",
+      portrait: "png/classic/portraits/darrak.png",
+      symbol: "png/classic/portraits/symbol-temple.png"
+    },
+    "2024": {
+      name: "Элара Ветрорез",
+      player: "Ника Орлова",
+      edition: "2024",
+      caster: false,
+      portrait: "png/classic/portraits/elara.png",
+      align: "Законно-нейтральный",
+      languages: "Эльфийский, общий.",
+      equipment: "Кольчуга, длинный меч, кинжал и набор путешественника, а также значок заставы.",
+      coins: { cp: "8", sp: "15", ep: "0", gp: "25", pp: "0" },
+      attunement: [{ name: "" }, { name: "" }, { name: "" }],
+      goals: "Найти следы наставника и удержать северную тропу.",
+      allies: "Следопыты опушки и воины заставы «Северный\u00a0клин» отвечают на сигналы и делятся тропами, принимая её как свою.",
+      spellMod: ""
+    },
+    wizard: {
+      name: "Миррен Чернильный",
+      player: "Кира Волкова",
+      edition: "2014",
+      isWizard: true,
+      caster: true,
+      casterClass: "Волшебник",
+      spellAbi: "Интеллект",
+      spellDc: "15",
+      spellAtk: "+7",
+      spellMod: "+3",
+      portrait: "png/classic/portraits/mirren.png",
+      look: "Человек сорока лет, короткие тёмные волосы с проседью у висков, чернильные пятна на пальцах, внимательный взгляд.",
+      vitals: { sex: "Мужской", age: "41", height: "178 см", weight: "74 кг", eyes: "Серо-зелёные", skin: "Смуглая", hair: "Тёмные, проседь" },
+      traits: "Сначала записываю, потом говорю. Лишних слов на странице не оставляю.",
+      ideals: "Знание стоит того, чтобы за него платить временем, но не чужой кровью.",
+      bonds: "Моя книга заклинаний — память наставника. Потерять её значит потерять его голос.",
+      flaws: "Если загадка не решена, я не уйду, даже когда отряду уже пора.",
+      allies: "Цех переписчиков старого порта и несколько бывших однокашников по башне. К ним можно обратиться за редким свитком.",
+      extraFeatures: "Каллиграфия и быстрый конспект: за час могу снять аккуратную копию страницы. Знание башни: ориентируюсь в библиотечных шифрах и пометках наставников.",
+      story: "Ученик школы воплощения. Девять лет вёл книгу, оставленную наставником, и вышел в дорогу, чтобы проверить формулы на живом ветре, а не только на полях манускрипта. Ищет следы наставника в приграничных архивах.",
+      treasure: "Книга заклинаний в сафьяне, латунный зажим для пера, пузырёк чернил с искрой меди.",
+      align: "Законно-добрый",
+      languages: "Общий, эльфийский, дварфский.",
+      equipment: "Книга заклинаний, кинжал, набор учёного, компоненты, пузырёк чернил.",
+      goals: "Проверить формулы на живом ветре, а не только на полях манускрипта, и найти следы наставника в приграничных архивах.",
+      coins: { cp: "4", sp: "11", ep: "0", gp: "18", pp: "0" },
+      spells: {
+        slots: [4, 3, 3, 3, 1, 0, 0, 0, 0],
+        spent: [2, 1, 0, 0, 0, 0, 0, 0, 0],
+        lists: [
+          [
+            { name: "Огненный снаряд" },
+            { name: "Волшебная рука" },
+            { name: "Послание" },
+            { name: "Пляшущие огоньки", conc: true },
+            { name: "Фокусы" }
+          ],
+          [
+            { name: "Щит", prep: true, book: true },
+            { name: "Волшебная стрела", prep: true, book: true },
+            { name: "Жгучие руки", prep: true, book: true },
+            { name: "Доспех мага", prep: true, book: true },
+            { name: "Обнаружение магии", bookOnly: true, ritual: true, conc: true, book: true },
+            { name: "Опознание", bookOnly: true, ritual: true, book: true },
+            { name: "Понять языки", bookOnly: true, ritual: true, book: true },
+            { name: "Падение пёрышком", bookOnly: true, ritual: true, book: true },
+            { name: "Сигнал тревоги", bookOnly: true, ritual: true, book: true },
+            { name: "Найти фамильяра", bookOnly: true, ritual: true, book: true },
+            { name: "Усыпление", book: true, bookOnly: true },
+            { name: "Маскировка", book: true, bookOnly: true },
+            { name: "Огненная стрела", book: true, bookOnly: true },
+            { name: "Прыжок", book: true, bookOnly: true },
+            { name: "Невидимое письмо", bookOnly: true, ritual: true, book: true },
+            { name: "Цветной шарик", book: true, bookOnly: true },
+            { name: "Длинный прыжок", book: true, bookOnly: true },
+            { name: "Ложная жизнь", book: true, bookOnly: true },
+            { name: "Жуткий смех", book: true, conc: true, bookOnly: true }
+          ],
+          [
+            { name: "Туманный шаг", prep: true, book: true },
+            { name: "Зеркальные образы", prep: true, book: true },
+            { name: "Паутина", prep: true, conc: true, book: true },
+            { name: "Незримый слуга", bookOnly: true, ritual: true, book: true },
+            { name: "Левитация", book: true, conc: true, bookOnly: true },
+            { name: "Видеть невидимое", book: true, bookOnly: true },
+            { name: "Тьма", book: true, conc: true, bookOnly: true },
+            { name: "Порыв ветра", book: true, conc: true, bookOnly: true },
+            { name: "Облако кинжалов", book: true, conc: true, bookOnly: true },
+            { name: "Увеличение", book: true, conc: true, bookOnly: true },
+            { name: "Порча", book: true, conc: true, bookOnly: true },
+            { name: "Магический замок", bookOnly: true, ritual: true, book: true },
+            { name: "Тёмное зрение", book: true, bookOnly: true }
+          ],
+          [
+            { name: "Огненный шар", prep: true, book: true },
+            { name: "Контрзаклинание", prep: true, book: true },
+            { name: "Полёт", prep: true, conc: true, book: true },
+            { name: "Рассеивание магии", book: true, bookOnly: true },
+            { name: "Молния", book: true, bookOnly: true },
+            { name: "Защита от энергии", book: true, conc: true, bookOnly: true },
+            { name: "Крошечный слуга", bookOnly: true, ritual: true, book: true }
+          ],
+          [
+            { name: "Стена огня", prep: true, conc: true, book: true },
+            { name: "Огненный щит", prep: true, book: true },
+            { name: "Измерение двери", prep: true, book: true },
+            { name: "Каменная кожа", book: true, conc: true, bookOnly: true },
+            { name: "Высшая невидимость", book: true, conc: true, bookOnly: true }
+          ],
+          [
+            { name: "Конус холода", prep: true, book: true },
+            { name: "Телекинез", book: true, conc: true, bookOnly: true },
+            { name: "Стена силы", book: true, conc: true, bookOnly: true }
+          ],
+          [], [], [], []
+        ]
+      },
+      companions: [
+        { name: "Сажа", tag: "Фамильяр · призываемое существо (найти фамильяра)", str: "2", dex: "14", con: "8", int: "2", wis: "12", cha: "6", ac: "12", hp: "1 / 1", speed: "10, летая 50", senses: "Восприятие +3. Пассивное восприятие 13.", acts: "Клюв. +4 к попаданию, досягаемость 5 футов, 1 колющий. Фамильяр не атакует сам по себе: Миррен видит его глазами и может через него передавать касательные заклинания.", feats: "Острое зрение: преимущество на проверки Мудрости (Восприятие), основанные на зрении. При опускании хитов до 0 фамильяр исчезает и может быть призван вновь. Спасбросков от смерти нет.", notes: "Облик ворона. Сидит на спинке стула, пока хозяин пишет.", death: false }
+      ],
+      notes: [
+        { title: "Архив порта", body: "В цехе переписчиков видели почерк наставника на полях карты старой башни. Ключ, кажется, в третьей главе его книги — формула «медной искры»." },
+        { title: "Формулы", body: "Не смешивать конус холода и стену огня в одном коридоре: прошлый раз оплавило переплёт. Для скульптора заклинаний оставить «окно» в два фута у правой стены." },
+        { title: "Снаряжение в дороге", body: "Чернила на исходе. Купить медь и смолу в порту. Фамильяра не отпускать в ливень — теряет ориентир над крышами." }
+      ],
+      spellCards: [
+        { name: "Огненный снаряд", tag: "Заговор · воплощение", time: "Действие", range: "120 футов", comp: "В, С", dur: "Мгновенно", text: "Вы бросаете сгусток огня. При попадании цель получает 1к10 урона огнём. Снаряд светится и поджигает горючее." },
+        { name: "Волшебная рука", tag: "Заговор · сотворение", time: "Действие", range: "30 футов", comp: "В, С", dur: "1 минута", text: "Появляется призрачная рука. Ею можно манипулировать предметами, открывать двери, переносить до 10 фунтов." },
+        { name: "Послание", tag: "Заговор · преобразование", time: "Действие", range: "120 футов", comp: "В, С, М", dur: "1 раунд", text: "Вы шепчете сообщение, которое слышит только выбранное существо, и можете получить короткий ответ." },
+        { name: "Пляшущие огоньки", tag: "Заговор · воплощение", time: "Действие", range: "120 футов", comp: "В, С, М", dur: "Концентрация, до 1 мин.", conc: true, text: "До четырёх огоньков освещают 10 футов. Можно перемещать их на 60 футов действием." },
+        { name: "Фокусы", tag: "Заговор · преобразование", time: "Действие", range: "10 футов", comp: "В, С", dur: "До 1 часа", text: "Небольшой магический трюк: искра, запах, метка, мелочь. Не наносит урона и не даёт ценности." },
+        { name: "Щит", tag: "1 круг · ограждение", time: "Реакция", range: "На себя", comp: "В, С", dur: "1 раунд", text: "Когда вас атакуют или в вас летит волшебная стрела, вы получаете +5 к КД до начала своего следующего хода, в том числе против вызвавшей реакции атаки." },
+        { name: "Волшебная стрела", tag: "1 круг · воплощение", time: "Действие", range: "120 футов", comp: "В, С", dur: "Мгновенно", text: "Три дротика силового поля. Каждый автоматически попадает и наносит 1к4+1 урона силовым полем. Можно разделить цели." },
+        { name: "Жгучие руки", tag: "1 круг · воплощение", time: "Действие", range: "От себя (конус 15 фт.)", comp: "В, С", dur: "Мгновенно", text: "Конус огня: существа проходят спасбросок Ловкости, при провале 3к6 урона огнём, при успехе — половину." },
+        { name: "Доспех мага", tag: "1 круг · ограждение", time: "Действие", range: "Касание", comp: "В, С, М", dur: "8 часов", text: "Пока цель без доспеха, её КД становится 13 + модификатор Ловкости." },
+        { name: "Туманный шаг", tag: "2 круг · сотворение", time: "Бонусное действие", range: "На себя", comp: "В", dur: "Мгновенно", text: "Вы телепортируетесь в свободное пространство в пределах 30 футов, которое видите." },
+        { name: "Зеркальные образы", tag: "2 круг · иллюзия", time: "Действие", range: "На себя", comp: "В, С", dur: "1 минута", text: "Три дубликата. Атака по вам может попасть в образ. Образы исчезают от попаданий." },
+        { name: "Паутина", tag: "2 круг · сотворение", time: "Действие", range: "60 футов", comp: "В, С, М", dur: "Концентрация, до 1 часа", conc: true, text: "Куб паутины 20 футов: труднопроходимая местность, спасбросок Ловкости или состояние «опутан»." },
+        { name: "Огненный шар", tag: "3 круг · воплощение", time: "Действие", range: "150 футов", comp: "В, С, М", dur: "Мгновенно", text: "Точка, которую вы видите, вспыхивает сферой пламени радиусом 20 футов. Все существа в сфере проходят спасбросок Ловкости. При провале получают 8к6 урона огнём, при успехе — половину. Огонь огибает углы и поджигает горючие предметы, которые никто не несёт и не надевает. Скульптор заклинаний позволяет выбрать существ, автоматически прошедших спасбросок и не получивших урон." },
+        { name: "Контрзаклинание", tag: "3 круг · ограждение", time: "Реакция", range: "60 футов", comp: "С", dur: "Мгновенно", text: "Вы прерываете сотворение заклинания 3 круга или ниже. Для более высокого круга нужна проверка базовой характеристики Сл 10 + круг." },
+        { name: "Полёт", tag: "3 круг · преобразование", time: "Действие", range: "Касание", comp: "В, С, М", dur: "Концентрация, до 10 мин.", conc: true, text: "Согласное существо получает скорость полёта 60 футов. Когда заклинание оканчивается в воздухе, цель падает." },
+        { name: "Стена огня", tag: "4 круг · воплощение", time: "Действие", range: "120 футов", comp: "В, С, М", dur: "Концентрация, до 1 мин.", conc: true, text: "Вы поднимаете стену огня на твёрдой поверхности. Стена может быть до 60 футов в длину, 20 в высоту и 1 в толщину — или кольцом диаметром до 20 футов той же высоты. Одна сторона стены (на ваш выбор) наносит 5к8 урона огнём существу, которое заканчивает ход в пределах 10 футов от неё или впервые за ход входит в эту зону; спасбросок Ловкости уменьшает урон вдвое. Проход сквозь стену тоже требует этого спасброска. Непрозрачный огонь закрывает обзор. Горючие предметы, которые никто не несёт, загораются. Если вы создаёте стену на пространстве существ, каждое из них сразу проходит тот же спасбросок, как при входе в стену. Скульптор заклинаний позволяет оставить «окно» для своих: выбранные существа автоматически преуспевают и не получают урон от этой стены, пока заклинание действует." },
+        { name: "Огненный щит", tag: "4 круг · воплощение", time: "Действие", range: "На себя", comp: "В, С, М", dur: "10 минут", text: "Тёплый или холодный щит: сопротивление огню или холоду, и 2к8 урона противоположного типа атакующему в ближнем бою." },
+        { name: "Измерение двери", tag: "4 круг · сотворение", time: "Действие", range: "500 футов", comp: "В", dur: "Мгновенно", text: "Вы телепортируетесь в пространство в пределах дистанции, которое видите или которое описываете точно, либо переносите туда согласное существо." },
+        { name: "Конус холода", tag: "5 круг · воплощение", time: "Действие", range: "От себя (конус 60 фт.)", comp: "В, С, М", dur: "Мгновенно", text: "Конус стужи. Существа проходят спасбросок Телосложения: 8к8 урона холодом при провале, половина при успехе. Убитое существо становится ледяной статуей, пока не оттает." }
+      ],
+      features: [
+        { name: "Использование заклинаний", src: "волшебник", text: "Интеллект — базовая характеристика. Сл 15, бонус атаки +7. Полные тексты — на карточках. Ячейки и список — на листе заклинаний." },
+        { name: "Книга заклинаний", src: "волшебник", text: "Вы ведёте книгу. Подготовленные отмечены кружком; прочие, что есть в книге, помечены «Кн». Переписывание новой формулы требует времени и золота, как в правилах класса." },
+        { name: "Ритуальное колдовство", src: "волшебник", text: "Вы можете сотворить заклинание волшебника с меткой «Р» как ритуал, если оно есть в вашей книге, даже если сегодня оно не подготовлено." },
+        { name: "Магическое восстановление", src: "волшебник", text: "Раз в день за короткий отдых вы восстанавливаете ячейки, сумма кругов которых не больше половины уровня волшебника (округляя вверх). Ни одна ячейка не может быть 6 круга или выше." },
+        { name: "Скульптор заклинаний", src: "школа воплощения", text: "Когда вы сотворяете заклинание воплощения, затрагивающее других, можете выбрать существ числом до 1 + круг заклинания. Они автоматически преуспевают в спасброске и не получают урон, если при успехе урон был бы половинным." },
+        { name: "Заговорный удар", src: "школа воплощения", text: "Существо, преуспевшее в спасброске против вашего заговора, всё равно получает половину урона, но не дополнительные эффекты." },
+        { name: "Исследователь", src: "мудрец", text: "Если вы не знаете, где найти сведения, вы обычно знаете, кто и где может помочь — библиотека, коллегия, мудрец." },
+        { name: "Умения учёного", src: "мудрец", text: "Вы можете рассчитывать на кров и помощь у тех, кто разделяет вашу область знания." },
+        { name: "Владение языками и навыками", src: "человек, мудрец", text: "Общий и ещё два языка. Навыки: Магия, История. Инструменты переписчика." },
+        { name: "Боевой заклинатель", src: "черта", text: "Преимущество на спасброски Телосложения для удержания концентрации. Можно творить в рукопашной. Реакцией сотворить заклинание вместо атаки по возможности, если цель выходит из досягаемости." },
+        { name: "Стойкий (Телосложение)", src: "черта", text: "Телосложение увеличивается на 1. Владение спасбросками Телосложения." },
+        { name: "Тайный конспект", src: "личное", text: "На форзаце книги вы держите краткие формулы частоты и ветра. Перед сложным воплощением тратите минуту на пометку, чтобы не спутать скульптора заклинаний с обычным шаром." },
+        { name: "Знакомый архив", src: "личное", text: "В цехе переписчиков порта вас впускают в закрытый зал, если есть рекомендация наставника. Там нельзя выносить книги, но можно снимать копии за плату." },
+        { name: "Чернильная искра", src: "личный предмет", text: "Пузырёк чернил с искрой меди: его хватает, чтобы в дороге переписать формулы двух кругов." },
+        { name: "Память наставника", src: "предыстория", text: "На полях книги сохранился почерк наставника. Когда сомневаетесь в формуле 3 круга или ниже, сверяетесь с его пометкой и вспоминаете, чего не хватает в описании." }
+      ]
+    }
+  };
+
+  var state = {
+    edition: "2014",
+    layout: "2014",
+    preset: "full",
+    pages: PRESETS.full.slice(),
+    portrait: true,
+    pencil: false,
+    extra: 0,
+    color: "color",
+    font: "serif",
+    script: false,
+    leading: "normal",
+    align: "left",
+    pt: 11,
+    blank: false,
+    compSet: "default",
+    sheetOpen: false,
+    viewPage: "p1",
+    previewFit: "width",
+    demo: "default",
+  };
+
+  function setTheme(theme) {
+    var dark = theme === "dark" || theme === "leaf-classic";
+    root.setAttribute("data-theme", dark ? "leaf-classic" : "light-designer3");
+    root.setAttribute("data-bg", dark ? "ink" : "parchment");
+    var link = document.querySelector("link[data-theme-sheet]");
+    if (link) link.setAttribute("href", dark ? "css/designer.css" : "css/light-designer3.css");
+    document.querySelectorAll("[data-set-theme]").forEach(function (b) {
+      b.classList.toggle("is-on", b.getAttribute("data-set-theme") === (dark ? "dark" : "light"));
+    });
+  }
+  function setWidth(width) {
+    var phone = width === "phone" || width === "390";
+    root.setAttribute("data-width", phone ? "phone" : "desktop");
+    document.querySelectorAll("[data-set-width]").forEach(function (b) {
+      b.classList.toggle("is-on", b.getAttribute("data-set-width") === (phone ? "phone" : "desktop"));
+    });
+    if (!phone) state.sheetOpen = false;
+    sync();
+  }
+
+  function safeFilePart(text) {
+    var s = String(text || "").replace(/[\\/:*?"<>|]/g, "—").replace(/\s+/g, " ").trim();
+    return s || "персонаж";
+  }
+  function filename() {
+    if (state.blank) return "КриD20 — пустой бланк " + state.layout + ".pdf";
+    var name = safeFilePart((char() && char().name) || (CHARS[state.edition] && CHARS[state.edition].name) || "");
+    return "КриD20 — " + name + " — классический " + state.layout + ".pdf";
+  }
+
+  function matchPreset() {
+    var key;
+    for (key in PRESETS) {
+      if (samePages(presetPages(key), state.pages)) return key;
+    }
+    return "custom";
+  }
+  function samePages(a, b) {
+    if (a.length !== b.length) return false;
+    return a.every(function (id) { return b.indexOf(id) >= 0; });
+  }
+  function hasPage(id) { return state.pages.indexOf(id) >= 0; }
+  function isCaster() { return !!(char() && char().caster); }
+  function presetPages(key) {
+    var pages = (PRESETS[key] || PRESETS.full).slice();
+    if (!isCaster()) pages = pages.filter(function (id) { return id !== "spells"; });
+    if (isLayout24() && key === "full" && pages.indexOf("features") < 0) {
+      var at = pages.indexOf("persona");
+      pages.splice(at < 0 ? 1 : at + 1, 0, "features");
+    }
+    return pages;
+  }
+
+  function paperHtml() {
+    var pages = physicalPages();
+    var cur = pages.filter(function (p) { return p.id === state.viewPage; })[0];
+    if (!cur) cur = pages[0];
+    return cur ? cur.html : html14();
+  }
+
+  function char() {
+    if (state.demo === "wizard" && CHARS.wizard) return CHARS.wizard;
+    return CHARS[state.edition];
+  }
+  function v(text) {
+    return state.blank ? "" : text;
+  }
+
+  function ink(text, extra) {
+    return '<span class="classic-ink' + (extra ? " " + extra : "") + '">' + text + "</span>";
+  }
+  function tLabel(text) {
+    return '<span class="t-label">' + text + "</span>";
+  }
+  function tCenter(text, extra) {
+    return '<span class="t-center' + (extra ? " " + extra : "") + '" data-center-text>' + text + "</span>";
+  }
+  function tOval(mod) {
+    return (
+      '<span class="t-oval" data-center data-measure="mod">' +
+      tCenter(v(mod), "t-num classic-ink classic-ink--keep") +
+      "</span>"
+    );
+  }
+  function tScore(score) {
+    return (
+      '<span class="t-score" data-center data-measure="score">' +
+      tCenter(v(score), "t-num classic-ink classic-ink--keep") +
+      "</span>"
+    );
+  }
+  function tField(label, value, extraClass, valueExtra) {
+    return (
+      '<div class="t-field' + (extraClass ? " " + extraClass : "") + '" data-measure="field">' +
+      '<span class="t-field__value classic-ink' + (valueExtra ? " " + valueExtra : "") + '" data-fit data-fit-min="' + (valueExtra && valueExtra.indexOf("classic-ink--name") >= 0 ? "10" : "7") + '">' + value + "</span>" +
+      '<span class="t-label t-field__label">' + label + "</span></div>"
+    );
+  }
+  function tPlaque(label, value, extraClass) {
+    var textCls = /[A-Za-zА-Яа-яЁё]/.test(value || "") ? " t-plaque--text" : "";
+    return (
+      '<div class="t-plaque' + (extraClass ? " " + extraClass : "") + textCls + '" data-measure="plaque">' +
+      '<div class="t-plaque__value" data-center>' +
+      tCenter(v(value), "t-num classic-ink classic-ink--keep") +
+      "</div>" + tLabel(label) + "</div>"
+    );
+  }
+  function tSkill(prof, bonus, name) {
+    return (
+      '<div class="t-skill' + ((!state.blank && prof) ? " is-prof" : "") + '">' +
+      '<span class="t-skill__mark" aria-hidden="true"></span>' +
+      '<span class="t-skill__bonus t-num classic-ink classic-ink--keep">' + v(bonus) + "</span>" +
+      '<span class="t-skill__name classic-ink" data-fit data-fit-min="7">' + name + "</span></div>"
+    );
+  }
+  function tTable(caption, headers, rows, emptyRows) {
+    var head = headers.map(function (h) { return "<th>" + h + "</th>"; }).join("");
+    var body = "";
+    if (!state.blank) {
+      body = rows.map(function (r) {
+        return "<tr>" + r.map(function (c, i) {
+          var keep = i > 0 ? " classic-ink--keep" : "";
+          var wrap = (i === 0 && String(c || "").length > 14) ? " is-wrap" : "";
+          return '<td class="classic-ink' + keep + wrap + '" data-fit data-fit-min="7">' + v(c) + "</td>";
+        }).join("") + "</tr>";
+      }).join("");
+    }
+    var empty = "";
+    var n = emptyRows || 0;
+    if (state.blank) n = Math.max(n, (rows && rows.length) || 0, 4);
+    var i;
+    for (i = 0; i < n; i += 1) {
+      empty += "<tr>" + headers.map(function () { return "<td></td>"; }).join("") + "</tr>";
+    }
+    return (
+      '<div class="t-table-wrap">' +
+      '<table class="t-table"><thead><tr>' + head + "</tr></thead><tbody>" + body + empty + "</tbody></table>" +
+      tLabel(caption) + "</div>"
+    );
+  }
+  function tBlock(label, text, extraClass) {
+    return (
+      '<div class="t-block' + (extraClass ? " " + extraClass : "") + '">' +
+      ink(v(text), "") + '<div class="t-ruled-space" aria-hidden="true"></div>' + tLabel(label) + "</div>"
+    );
+  }
+  function tProfBlock(title, sections, extraClass) {
+    var body = (sections || []).map(function (s) {
+      return (
+        '<div class="t-prof__sec">' +
+        '<div class="t-prof__sub">' + s.label + "</div>" +
+        '<div class="t-prof__text classic-ink">' + v(s.text) + "</div>" +
+        "</div>"
+      );
+    }).join("");
+    return (
+      '<div class="t-block t-prof' + (extraClass ? " " + extraClass : "") + '">' +
+      body + '<div class="t-ruled-space" aria-hidden="true"></div>' + tLabel(title) + "</div>"
+    );
+  }
+  function tSpellList(title, spells) {
+    var rows = (spells || []).map(function (s) {
+      var name = typeof s === "string" ? s : s.name;
+      var on = !state.blank && (typeof s === "string" || s.prep !== false);
+      return (
+        '<div class="s-spell-row">' +
+        '<span class="s-spell-row__pip' + (on ? " is-on" : "") + '" aria-hidden="true"></span>' +
+        '<span class="s-spell-row__name classic-ink">' + v(name) + "</span>" +
+        "</div>"
+      );
+    }).join("");
+    return (
+      '<div class="t-block s-spell-list t-block--grow">' +
+      '<div class="s-spell-rows">' + rows + '<div class="s-spell-fill" aria-hidden="true"></div></div>' +
+      tLabel(title) + "</div>"
+    );
+  }
+  function logo(mark) {
+    return (
+      '<div class="s-logo" data-measure="logo">' +
+      ["К", "р", "и", "D", "2", "0"].map(function (ch) {
+        return (
+          '<span class="s-logo__glyph" data-center data-measure="logo-letter">' +
+          tCenter(ch) + "</span>"
+        );
+      }).join("") +
+      '<span class="s-logo__mark" data-center data-measure="logo-mark">' +
+      tCenter(mark) + "</span></div>"
+    );
+  }
+  function sheetHead(title) {
+    return (
+      '<div class="s-sheet-head"><span class="s-sheet-head__title">' + title + "</span>" +
+      ink(v(char().name), "classic-ink--name") + "</div>"
+    );
+  }
+
+
+  function tCheck(on, label) {
+    var mark = (!state.blank && on) ? " is-on" : "";
+    return (
+      '<span class="t-check' + mark + '">' +
+      '<span class="t-check__box" aria-hidden="true"></span>' +
+      (label ? '<span class="t-check__label">' + label + "</span>" : "") +
+      "</span>"
+    );
+  }
+  function tPips(n, filled) {
+    var i, html = '<span class="t-death__pips">';
+    var on = state.blank ? 0 : (filled || 0);
+    for (i = 0; i < n; i += 1) {
+      html += '<span class="t-pip' + (i < on ? " is-on" : "") + '"></span>';
+    }
+    return html + "</span>";
+  }
+  function tDeath(ok, fail, extraClass) {
+    return (
+      '<div class="t-death' + (extraClass ? " " + extraClass : "") + '">' +
+        '<div class="t-death__row">' + tPips(3, ok) + '<span class="t-death__lab">Усп.</span></div>' +
+        '<div class="t-death__row">' + tPips(3, fail) + '<span class="t-death__lab">Пров.</span></div>' +
+        tLabel("Спасброски от смерти") +
+      "</div>"
+    );
+  }
+  function tInsp(on, label, rule) {
+    return (
+      '<div class="t-insp">' +
+        tCheck(on, "") +
+        tLabel(label) +
+        (rule ? '<div class="t-insp__rule">' + rule + "</div>" : "") +
+      "</div>"
+    );
+  }
+  function tHpTrio(cur, temp, max) {
+    function cell(val, lab) {
+      return (
+        '<div class="t-hp__cell">' +
+        '<div class="t-plaque__value" data-center>' + tCenter(v(val), "t-num classic-ink classic-ink--keep") + "</div>" +
+        tLabel(lab) + "</div>"
+      );
+    }
+    return '<div class="t-hp">' + cell(cur, "Текущие хиты") + cell(max, "Максимум хитов") + cell(temp, "Временные хиты") + "</div>";
+  }
+  function tHitDice(a, b, die, mode) {
+    var labA = mode === "2024" ? "Потр." : "Осталось";
+    var labB = "Всего";
+    function item(val, lab) {
+      return (
+        '<div class="t-hd__item">' +
+        '<div class="t-plaque__value" data-center>' + tCenter(v(val), "t-num classic-ink classic-ink--keep") + "</div>" +
+        '<span class="t-hd__sub">' + lab + "</span></div>"
+      );
+    }
+    return (
+      '<div class="t-hd">' +
+        '<div class="t-hd__vals">' +
+          item(a, labA) + item(b, labB) +
+          '<div class="t-hd__item t-hd__die"><div class="t-plaque__value" data-center>' +
+          tCenter(v(die), "t-num classic-ink classic-ink--keep") + "</div>" +
+          '<span class="t-hd__sub">Кость</span></div>' +
+        "</div>" + tLabel("Кости хитов") +
+      "</div>"
+    );
+  }
+  function tCoins(mm, sm, em, zm, pm) {
+    function cell(val, lab) {
+      return (
+        '<div class="t-coins__cell">' +
+        '<div class="t-plaque__value" data-center>' + tCenter(v(val), "t-num classic-ink classic-ink--keep") + "</div>" +
+        '<span class="t-coin-lab">' + lab + "</span></div>"
+      );
+    }
+    return (
+      '<div class="t-coins" data-num-group="coins">' +
+        cell(mm, "ММ") + cell(sm, "СМ") + cell(em, "ЭМ") + cell(zm, "ЗМ") + cell(pm, "ПМ") +
+      "</div>"
+    );
+  }
+  function tFeatList(items) {
+    var html = '<div class="t-feat-list">';
+    if (state.blank) return html + "</div>";
+    (items || []).forEach(function (it) {
+      html += (
+        '<div class="t-feat">' +
+        '<div class="t-feat__head">' +
+        '<span class="t-feat__name classic-ink" data-fit data-fit-min="7">' + v(it.name) + "</span>" +
+        (it.src ? '<span class="t-feat__src">' + it.src + "</span>" : "") +
+        "</div>" +
+        (it.text ? '<div class="t-feat__text classic-ink">' + v(it.text) + "</div>" : "") +
+        "</div>"
+      );
+    });
+    return html + "</div>";
+  }
+  function tFeatBlock(label, items, extra) {
+    return (
+      '<div class="t-block t-block--feats' + (extra ? " " + extra : "") + '">' +
+      tFeatList(items) + '<div class="t-ruled-space" aria-hidden="true"></div>' + tLabel(label) + "</div>"
+    );
+  }
+  function tTrain(items) {
+    var html = '<div class="t-train"><div class="t-train__row">';
+    (items || []).forEach(function (it) {
+      html += tCheck(it.on, it.label);
+    });
+    return html + "</div>" + tLabel("Тренировки с доспехами") + "</div>";
+  }
+  function tPb(val) {
+    return (
+      '<div class="t-pb">' + tLabel("Бонус владения") +
+      '<div class="t-plaque__value" data-center>' + tCenter(v(val), "t-num classic-ink classic-ink--keep") + "</div></div>"
+    );
+  }
+  function tEquip(label, text, coins) {
+    return (
+      '<div class="t-block t-equip' + (state.blank ? " is-ruled" : "") + '">' +
+      ink(v(text), "") +
+      (state.blank ? '<div class="t-ruled-space" aria-hidden="true"></div>' : "") +
+      coins +
+      tLabel(label) +
+      "</div>"
+    );
+  }
+  function tSplitPlaque(label, parts, extraClass) {
+    var cells = parts.map(function (p) {
+      return (
+        '<div class="t-split__item">' +
+        '<div class="t-plaque__value" data-center>' + tCenter(v(p.val), "t-num classic-ink classic-ink--keep") + "</div>" +
+        '<span class="t-split__sub">' + p.lab + "</span></div>"
+      );
+    }).join("");
+    return (
+      '<div class="t-plaque t-plaque--split' + (extraClass ? " " + extraClass : "") + '" data-measure="plaque">' +
+      '<div class="t-split">' + cells + "</div>" + tLabel(label) + "</div>"
+    );
+  }
+
+  function html14() {
+    var name = v(char().name);
+    var features = [
+      { name: "Тёмное зрение", src: "дварф", text: "60 футов в темноте." },
+      { name: "Устойчивость дварфов", src: "дварф", text: "Преимущество против яда, сопротивление урону ядом." },
+      { name: "Боевая тренировка", src: "горный дварф", text: "Боевой топор и молоты; лёгкие и средние доспехи." },
+      { name: "Воинское звание", src: "солдат", text: "Вас узнают как солдата." },
+      { name: "Использование заклинаний", src: "жрец", text: "Мудрость. Полные тексты — на карточках." },
+      { name: "Домен бури", src: "жрец", text: "Гнев бури: реакция, 2к8 грома или электричества." },
+      { name: "Божественный канал", src: "жрец", text: "1/отдых: обращение нежити; разрушительный гнев." }
+    ];
+    return (
+      '<div class="s14">' +
+        '<div class="s14-head">' +
+          logo("5E · 2014") +
+          '<div class="s14-id">' +
+            tField("Имя персонажа", name, "t-field--name", "classic-ink--name") +
+            tField("Класс и уровень", v("Жрец 3")) +
+            tField("Предыстория", v("Солдат")) +
+            tField("Раса", v("Дварф (горный)")) +
+            tField("Мировоззрение", v("Законно-добрый")) +
+            tField("Опыт", v("900")) +
+            tField("Имя игрока", v(char().player)) +
+          "</div>" +
+        "</div>" +
+        '<div class="s14-body">' +
+          '<div class="s14-left">' +
+          '<div class="s14-abils">' +
+            abil14("Сила", "16", "+3", [
+              tSkill(false, "+3", "Спасбросок"), tSkill(true, "+5", "Атлетика")
+            ]) +
+            abil14("Интеллект", "8", "−1", [
+              tSkill(false, "−1", "Спасбросок"), tSkill(false, "−1", "Магия"),
+              tSkill(false, "−1", "История"), tSkill(false, "−1", "Расследование"),
+              tSkill(false, "−1", "Природа"), tSkill(false, "−1", "Религия")
+            ]) +
+            abil14("Ловкость", "10", "+0", [
+              tSkill(false, "+0", "Спасбросок"), tSkill(false, "+0", "Акробатика"),
+              tSkill(false, "+0", "Ловкость рук"), tSkill(false, "+0", "Скрытность")
+            ]) +
+            abil14("Мудрость", "16", "+3", [
+              tSkill(true, "+5", "Спасбросок"), tSkill(false, "+3", "Уход за животными"),
+              tSkill(true, "+5", "Проницательность"), tSkill(true, "+5", "Медицина"),
+              tSkill(false, "+3", "Восприятие"), tSkill(false, "+3", "Выживание")
+            ]) +
+            abil14("Телосложение", "16", "+3", [
+              tSkill(false, "+3", "Спасбросок")
+            ]) +
+            abil14("Харизма", "12", "+1", [
+              tSkill(true, "+3", "Спасбросок"), tSkill(false, "+1", "Обман"),
+              tSkill(true, "+3", "Запугивание"), tSkill(false, "+1", "Выступление"),
+              tSkill(false, "+1", "Убеждение")
+            ]) +
+          "</div>" +
+          tProfBlock("Прочие владения и языки", [
+            { label: "Языки", text: "Дварфский, общий." },
+            { label: "Доспехи", text: "Лёгкие, средние, щиты." },
+            { label: "Оружие", text: "Простое; боевой топор, боевой молот, лёгкий и метательный молоты." }
+          ], "t-block--grow is-ruled") +
+          "</div>" +
+          '<div class="s14-right">' +
+            '<div class="t-plaques">' +
+              tPlaque("Класс<br>доспеха", "17") +
+              tPlaque("Инициатива", "+0") +
+              tPlaque("Скорость", "25") +
+              tPlaque("Бонус<br>владения", "+2") +
+            "</div>" +
+            '<div class="s14-passive-row">' +
+              tPlaque("Пассивная мудрость<br>(восприятие)", "13") +
+              tInsp(true, "Вдохновение") +
+            "</div>" +
+            tHpTrio("13", "0", "27") +
+            '<div class="t-combat-row">' +
+              tHitDice("2", "3", "к8", "2014") +
+              tDeath(0, 0) +
+            "</div>" +
+            tTable("Атаки и заклинания", ["Название", "Бонус", "Урон / вид"], [
+              ["Боевой молот", "+5", "1к8+3 дробящий"],
+              ["Арбалет лёгкий", "+2", "1к8 колющий"],
+            ], 1) +
+            tFeatBlock("Умения и особенности", features, "t-block--grow is-ruled") +
+            tEquip("Снаряжение", "Чешуйчатый доспех, щит, боевой молот, лёгкий арбалет, набор священника, святой символ.", tCoins("12", "8", "0", "35", "0")) +
+          "</div>" +
+        "</div>" +
+      "</div>"
+    );
+  }
+  function abil14(name, score, mod, skills) {
+    if (state.blank) { skills = blankSkillsFor(name); score = ""; mod = ""; }
+    return (
+      '<div class="t-abil t-abil--stack">' +
+        '<div class="t-abil__stack" data-axis="' + name + '">' +
+          tLabel(name) +
+          '<div class="t-abil__nums">' + tScore(score) + tOval(mod) + "</div>" +
+        "</div>" +
+        '<div class="t-abil__skills">' + (skills || []).join("") + "</div>" +
+      "</div>"
+    );
+  }
+
+  function html24() {
+    var name = v(char().name);
+    var features = [
+      { name: "Второе дыхание", src: "воин", text: "Бонусное действие: 1к10 + уровень хитов. 1/короткий отдых." },
+      { name: "Всплеск действий", src: "воин", text: "Дополнительное действие в ход. 1/короткий отдых." },
+      { name: "Боевой стиль: оборона", src: "воин", text: "+1 к КД в доспехе." },
+      { name: "Дополнительная атака", src: "воин", text: "Две атаки при действии Атака." },
+      { name: "Мастер боевых искусств", src: "воин", text: "4к8 превосходства. Манёвры: выпад, контратака, отступление. Сл 13." }
+    ];
+    var species = [
+      { name: "Тёмное зрение", src: "эльф", text: "60 футов в темноте." },
+      { name: "Наследие фей", src: "эльф", text: "Преимущество против очарования; магический сон на вас не действует." },
+      { name: "Транс", src: "эльф", text: "4 часа транса вместо 8 часов сна." }
+    ];
+    var feats = [
+      { name: "Свирепый атакующий", src: "черта", text: "Раз в ход, попав оружием, можете перебросить кости урона и взять новый результат." }
+    ];
+    return (
+      '<div class="s24">' +
+        '<div class="s24-top">' +
+          '<div class="s24-id">' +
+            tField("Имя персонажа", name, "t-field--name", "classic-ink--name") +
+            '<div class="s24-id-grid" data-field-row>' +
+              tField("Предыстория", v("Солдат")) +
+              tField("Класс", v("Воин 5")) +
+              tField("Вид", v("Эльф")) +
+              tField("Подкласс", v("Мастер боевых искусств")) +
+            "</div>" +
+          "</div>" +
+          '<div class="s24-vitals">' +
+            '<div class="s24-lvxp">' +
+              tPlaque("Уровень", "5") +
+              tPlaque("Опыт", "6500") +
+            "</div>" +
+            tPlaque("КД", "18", "s24-ac") +
+            tSplitPlaque("Хиты", [
+              { val: "44", lab: "Тек." },
+              { val: "0", lab: "Врем." },
+              { val: "48", lab: "Макс." }
+            ]) +
+            tHitDice("0", "5", "к10", "2024") +
+            tDeath(0, 0, "s24-death") +
+          "</div>" +
+        "</div>" +
+        '<div class="s24-brand">КРИD20 · 5E · 2024</div>' +
+        '<div class="s24-origin classic-ink" data-fit data-fit-min="7">' + v("Черта происхождения: Свирепый атакующий · УСИ: СИЛ +2, ТЕЛ +1") + "</div>" +
+        '<div class="s24-cols">' +
+          '<div class="s24-left">' +
+          tPb("+3") +
+          '<div class="s24-abils">' +
+            abil24("Сила", "16", "+3", [
+              tSkill(true, "+3", "Спасбросок"), tSkill(true, "+6", "Атлетика")
+            ]) +
+            abil24("Интеллект", "10", "+0", [
+              tSkill(false, "+0", "Спасбросок"), tSkill(false, "+0", "Магия"),
+              tSkill(false, "+0", "История"), tSkill(false, "+0", "Расследование"),
+              tSkill(false, "+0", "Природа"), tSkill(false, "+0", "Религия")
+            ]) +
+            abil24("Ловкость", "14", "+2", [
+              tSkill(false, "+2", "Спасбросок"), tSkill(false, "+2", "Акробатика"),
+              tSkill(false, "+2", "Ловкость рук"), tSkill(false, "+2", "Скрытность")
+            ]) +
+            abil24("Мудрость", "12", "+1", [
+              tSkill(false, "+1", "Спасбросок"), tSkill(false, "+1", "Уход за животными"),
+              tSkill(false, "+1", "Проницательность"), tSkill(false, "+1", "Медицина"),
+              tSkill(true, "+3", "Восприятие"), tSkill(false, "+1", "Выживание")
+            ]) +
+            abil24("Телосложение", "14", "+2", [
+              tSkill(true, "+2", "Спасбросок")
+            ]) +
+            abil24("Харизма", "8", "−1", [
+              tSkill(false, "−1", "Спасбросок"), tSkill(false, "−1", "Обман"),
+              tSkill(false, "−1", "Запугивание"), tSkill(false, "−1", "Выступление"),
+              tSkill(false, "−1", "Убеждение")
+            ]) +
+          "</div>" +
+          tTrain([
+            { on: true, label: "Лёгкие" },
+            { on: true, label: "Средние" },
+            { on: true, label: "Тяжёлые" },
+            { on: true, label: "Щиты" }
+          ]) +
+          tProfBlock("Владение оружием, инструментами и языки", [
+            { label: "Оружие", text: "Простое, воинское." },
+            { label: "Доспехи", text: "Лёгкие, средние, тяжёлые, щиты." },
+            { label: "Инструменты", text: "Игровой набор, сухопутный транспорт." },
+            { label: "Языки", text: "Эльфийский, общий." }
+          ], "t-block--grow is-ruled") +
+          tInsp(true, "Героическое вдохновение", "Переброс любого кубика. Максимум 1.") +
+          '<div class="t-exhaust">' + tLabel("Истощение") + tPips(6, 0) + "</div>" +
+          "</div>" +
+          '<div class="s24-right">' +
+            '<div class="t-plaques">' +
+              tPlaque("Инициатива", "+2") +
+              tPlaque("Скорость", "30") +
+              tPlaque("П. восприятие", "13") +
+              tPlaque("Размер", "Средний") +
+            "</div>" +
+            '<div class="t-cond-line"><span class="t-cond-line__rule"></span>' + tLabel("Состояния") + "</div>" +
+            tTable("Оружие и боевые заговоры", ["Название", "Бонус / Сл", "Урон / вид", "Заметки"], [
+              ["Длинный меч", "+6", "1к8+3 рубящий", "Ослабление"],
+              ["Кинжал", "+5", "1к4+2 колющий", "Засечка"],
+            ], 1) +
+            tFeatBlock("Умения и способности", features, "t-block--grow is-ruled") +
+            '<div class="s24-mini">' +
+              tFeatBlock("Видовые умения", species) +
+              tFeatBlock("Черты", feats) +
+            "</div>" +
+            tEquip("Снаряжение", "Кольчуга, длинный меч, кинжал, набор путешественника, значок заставы.", tCoins("8", "15", "0", "25", "0")) +
+          "</div>" +
+        "</div>" +
+      "</div>"
+    );
+  }
+  function blankSkillsFor(abilName) {
+    var map = {
+      "Сила": ["Спасбросок", "Атлетика"],
+      "Ловкость": ["Спасбросок", "Акробатика", "Ловкость рук", "Скрытность"],
+      "Телосложение": ["Спасбросок"],
+      "Интеллект": ["Спасбросок", "Магия", "История", "Расследование", "Природа", "Религия"],
+      "Мудрость": ["Спасбросок", "Уход за животными", "Проницательность", "Медицина", "Восприятие", "Выживание"],
+      "Харизма": ["Спасбросок", "Обман", "Запугивание", "Выступление", "Убеждение"]
+    };
+    return (map[abilName] || ["Спасбросок"]).map(function (n) { return tSkill(false, "", n); });
+  }
+  function abil24(name, score, mod, skills) {
+    if (state.blank) { skills = blankSkillsFor(name); score = ""; mod = ""; }
+    return (
+      '<div class="t-abil t-abil--row">' +
+        tLabel(name) +
+        '<div class="t-abil__nums">' + tOval(mod) + tScore(score) + "</div>" +
+        '<div class="t-abil__skills">' + (skills || []).join("") + "</div>" +
+      "</div>"
+    );
+  }
+
+  function sheetFoot(title, n, m) {
+    return (
+      '<div class="s-sheet-foot">' +
+        "<span>" + title + "</span>" +
+        '<span class="s-sheet-foot__name classic-ink classic-ink--name">' + v(char().name) + "</span>" +
+        "<span>стр. " + n + " из " + m + "</span>" +
+      "</div>"
+    );
+  }
+  function isWizard() {
+    return !!(char() && char().isWizard);
+  }
+  function abilMod(score) {
+    if (score === "" || score == null || state.blank) return "";
+    var m = Math.floor((Number(score) - 10) / 2);
+    return (m >= 0 ? "+" : "") + m;
+  }
+  function actionKind(time) {
+    var t = (time || "").toLowerCase();
+    if (t.indexOf("реакц") >= 0) return "Реакция";
+    if (t.indexOf("бонус") >= 0) return "Бонусное";
+    if (t.indexOf("действие") >= 0) return "Действие";
+    return "";
+  }
+
+  function demoChar() {
+    return char() || {};
+  }
+
+  function htmlPersona() {
+    var c = demoChar();
+    var d14 = state.edition !== "2024";
+    var showPortrait = !!(state.portrait && hasPage("persona") && !state.blank);
+    var src = c.portrait || "";
+    var face;
+    if (showPortrait && src) {
+      face = '<div class="s-portrait__face" style="background-image:url(\'' + src + "')\"></div>";
+    } else {
+      face = '<div class="s-portrait__face is-empty"></div>';
+    }
+    var portrait = (state.portrait && hasPage("persona"))
+      ? '<div class="s-portrait">' + face + tLabel("Портрет") + "</div>"
+      : "";
+    var look = c.look || (d14
+      ? "Дварф среднего роста, окладистая борода, шрам над бровью."
+      : "Высокая эльфийка, коротко стриженные тёмные волосы, зелёные глаза, лёгкая походка.");
+    var story = c.story || (d14
+      ? "Служил в клановом ополчении, затем принял обет в храме предков. Ищет реликвию рода, унесённую в последний набег. Цель похода — вернуть реликвию клана и защитить товарищей у старых шахт."
+      : "Разведчица пограничной заставы. Держит слово, данное отряду, и ищет следы пропавшего наставника.");
+    var allies = c.allies || (d14
+      ? "Храм предков принимает его как своего. Сержант роты «Железный клин» всё ещё отвечает на письма."
+      : "Застава «Северный клин» и следопыты опушки.");
+    var traits = c.traits || (d14
+      ? "Я всегда вежлив, даже с врагом. Слово, данное у алтаря предков, для меня закон."
+      : "Сначала дело, потом слова. Если отряд ждёт, я не трачу время на похвальбу.");
+    var ideals = c.ideals || (d14
+      ? "Долг. Я делаю то, что должен, даже если цена высока."
+      : "Долг перед отрядом выше собственной славы.");
+    var bonds = c.bonds || (d14
+      ? "Мой отряд — моя семья. Храм предков я не брошу."
+      : "Наставник пропал в походе — я его найду, чего бы это ни стоило.");
+    var flaws = c.flaws || (d14
+      ? "Я никогда не отступлю в бою, даже когда отступление спасло бы товарищей."
+      : "Не умею вовремя остановиться, если задет гонор.");
+    var extra = c.extraFeatures || (d14
+      ? "Ремесло каменщика: знаю слабые места в каменной кладке и надежно заделываю трещины. Знание храма: ориентируюсь в обрядах предков и могу получить кров и совет у жрецов своего культа."
+      : "Следопытская память: узнаю тропы, по которым уже ходила, даже спустя годы.");
+    var treasure = c.treasure || (d14
+      ? "Печать капитана, серебряный медальон матери. В кисете — три старых клановых монеты без хождения."
+      : "Брошь заставы, резной эльфийский гребень.");
+    var symbol = (!state.blank && c.symbol)
+      ? '<div class="s-p2-symbol" style="background-image:url(\'' + c.symbol + "')\"></div>"
+      : '<div class="s-p2-symbol is-empty"></div>';
+    var vit = c.vitals || (d14
+      ? { sex: "Мужской", age: "58", height: "137 см", weight: "80 кг", eyes: "Карие", skin: "Смуглая", hair: "Чёрные, проседь" }
+      : { sex: "Женский", age: "140", height: "175 см", weight: "62 кг", eyes: "Зелёные", skin: "Светлая", hair: "Тёмные" });
+    var cls = "s-page2" + (state.portrait && hasPage("persona") ? "" : " is-noportrait");
+    var alliesBlock =
+      '<div class="t-block s-p2-allies is-ruled">' +
+        '<div class="s-p2-allies__row">' +
+          symbol +
+          '<div class="classic-ink">' + v(allies) + "</div>" +
+        "</div>" +
+        '<div class="t-ruled-space" aria-hidden="true"></div>' +
+        tLabel("Союзники и организации") +
+      "</div>";
+    return (
+      '<div class="' + cls + '">' +
+        portrait +
+        tBlock("Черты характера", traits, "s-p2-traits is-ruled") +
+        '<div class="s-p2-vitals" data-field-row>' +
+          tField("Пол", v(vit.sex)) +
+          tField("Возраст", v(vit.age)) +
+          tField("Рост", v(vit.height)) +
+          tField("Вес", v(vit.weight)) +
+          tField("Глаза", v(vit.eyes)) +
+          tField("Кожа", v(vit.skin)) +
+          tField("Волосы", v(vit.hair)) +
+        "</div>" +
+        tBlock("Внешность", look, "s-p2-look is-ruled") +
+        tBlock("Идеалы", ideals, "s-p2-ideals is-ruled") +
+        tBlock("Привязанности", bonds, "s-p2-bonds is-ruled") +
+        tBlock("Слабости", flaws, "s-p2-flaws is-ruled") +
+        alliesBlock +
+        tBlock("Дополнительные умения", extra, "s-p2-extra is-ruled") +
+        tBlock("Предыстория персонажа", story, "s-p2-story is-ruled") +
+        tBlock("Сокровища", treasure, "s-p2-treasure is-ruled") +
+      "</div>"
+    );
+  }
+
+  function emptySpellData() {
+    return { slots: [0,0,0,0,0,0,0,0,0], spent: [0,0,0,0,0,0,0,0,0], lists: [[],[],[],[],[],[],[],[],[],[]] };
+  }
+  function spellLists() {
+    if (state.blank || !isCaster()) return emptySpellData();
+    return (char() && char().spells) || defaultClericSpells();
+  }
+  function defaultClericSpells() {
+    return {
+      slots: [4, 2, 0, 0, 0, 0, 0, 0, 0],
+      spent: [1, 0, 0, 0, 0, 0, 0, 0, 0],
+      lists: [
+        [
+          { name: "Священное пламя" },
+          { name: "Указание", conc: true },
+          { name: "Сопротивление", conc: true }
+        ],
+        [
+          { name: "Лечение ран", prep: true },
+          { name: "Щит веры", prep: true, conc: true },
+          { name: "Волны грома", prep: true, domain: true },
+          { name: "Благословение", prep: true, conc: true },
+          { name: "Обнаружение магии", prep: true, conc: true, ritual: true },
+          { name: "Туманное облако", prep: true, domain: true, conc: true }
+        ],
+        [
+          { name: "Духовное оружие", prep: true },
+          { name: "Осколок грома", prep: true, domain: true },
+          { name: "Порыв ветра", prep: true, domain: true, conc: true }
+        ],
+        [], [], [], [], [], [], []
+      ]
+    };
+  }
+  function maxSlotLevelOf(data) {
+    var slots = data.slots || [];
+    var max = 0, i;
+    for (i = 0; i < slots.length; i += 1) if (Number(slots[i]) > 0) max = i + 1;
+    return max;
+  }
+  function spellRowCap(level, maxSlot) {
+    if (state.blank) {
+      if (level === 0) return 8;
+      if (level <= 3) return 12;
+      if (level <= 5) return 8;
+      if (level <= 7) return 8;
+      return 6;
+    }
+    var pencil = state.pencil;
+    if (level === 0) return 8;
+    if (level <= maxSlot) return level <= 3 ? 13 : (level <= 5 ? 9 : 7);
+    if (level === maxSlot + 1) return pencil ? 5 : 4;
+    if (level === maxSlot + 2) return pencil ? 4 : 3;
+    return pencil ? 3 : 2;
+  }
+  function tSpellRow(sp, cantrip) {
+    var name = sp && sp.name ? sp.name : "";
+    var blank = !name || state.blank;
+    var pip = "";
+    if (!cantrip) {
+      var on = !blank && sp.prep !== false && !sp.bookOnly;
+      if (sp && sp.bookOnly) on = false;
+      if (sp && sp.domain) on = !blank;
+      pip = '<span class="s-spell-row__pip' + (on ? " is-on" : "") + '" aria-hidden="true"></span>';
+    }
+    var marks = "";
+    if (!blank) {
+      if (sp.conc) marks += '<span class="s-spell-mark">К</span>';
+      if (sp.ritual) marks += '<span class="s-spell-mark">Р</span>';
+      if (sp.domain) marks += '<span class="s-spell-mark is-dom">Д</span>';
+      if (isLayout24() && sheetHasMaterial(sp)) marks += '<span class="s-spell-mark is-mat">М</span>';
+      if (isWizard() && (sp.book || sp.bookOnly || sp.ritual)) marks += '<span class="s-spell-mark">Кн</span>';
+    }
+    return (
+      '<div class="s-spell-row">' +
+        pip +
+        '<span class="s-spell-row__name classic-ink">' + v(name) + "</span>" +
+        '<span class="s-spell-row__marks">' + marks + "</span>" +
+      "</div>"
+    );
+  }
+  function tSlotPips(total, spent) {
+    if (!total) return "";
+    var n = Number(total) || 0;
+    var s = state.blank ? 0 : (Number(spent) || 0);
+    var i, html = '<span class="s-slot-pips">';
+    for (i = 0; i < n; i += 1) {
+      html += '<span class="s-slot-pip' + (i < s ? " is-on" : "") + '"></span>';
+    }
+    return html + "</span>";
+  }
+  function tSpellBlock(level, spells, cap, maxSlot, slots, spent, opts) {
+    opts = opts || {};
+    var cantrip = level === 0;
+    var title = cantrip ? "Заговоры" : (level + " круг");
+    if (opts.cont) title += " · продолжение";
+    var compact = !cantrip && (opts.cont || (level > maxSlot && !state.blank));
+    var rows = "";
+    var i;
+    var list = spells || [];
+    var shown = list.slice(0, cap);
+    for (i = 0; i < cap; i += 1) {
+      rows += tSpellRow(shown[i] || {}, cantrip);
+    }
+    var headSlots = "";
+    if (!cantrip && !opts.noSlots) {
+      var tot = (slots && slots[level - 1]) || 0;
+      var use = (spent && spent[level - 1]) || 0;
+      var totText = Number(tot) ? String(tot) : "";
+      headSlots =
+        '<div class="s-spell-block__slots">' +
+          '<span class="s-spell-block__total">' +
+            '<span class="s-spell-block__lab">Всего</span>' +
+            (totText ? '<span class="t-num classic-ink classic-ink--keep">' + v(totText) + "</span>" : '<span class="s-spell-block__blank"></span>') +
+          "</span>" +
+          tSlotPips(tot, use) +
+        "</div>";
+    }
+    var avail = !cantrip && level > 0 && level <= maxSlot && !opts.cont;
+    if (cantrip) avail = true;
+    return (
+      '<div class="s-spell-block' + (cantrip ? " is-cantrip" : "") + (compact ? " is-compact" : "") + (opts.cont ? " is-cont" : "") + '"' +
+        ' data-level="' + level + '"' +
+        ' data-available="' + (avail ? "1" : "0") + '"' +
+        (opts.cont ? ' data-cont="' + level + '"' : "") + ">" +
+        '<div class="s-spell-block__head">' +
+          '<span class="s-spell-block__lv">' + title + "</span>" +
+          headSlots +
+        "</div>" +
+        '<div class="s-spell-rows">' + rows + '<div class="s-spell-fill" aria-hidden="true"></div></div>' +
+      "</div>"
+    );
+  }
+  function tightSpellCap(level, n, maxSlot) {
+    n = n || 0;
+    if (state.blank) return spellRowCap(level, 9);
+    if (level === 0) return n ? Math.max(n, Math.min(n + 1, 6)) : 6;
+    if (level <= maxSlot) return n; /* no spare blanks; layout fills later */
+    return 2;
+  }
+  function htmlSpellsBoard(data, firstOnly) {
+    var maxSlot = maxSlotLevelOf(data);
+    if (state.blank) maxSlot = 9;
+    var lists = data.lists || [];
+    var slots = data.slots || [];
+    var spent = data.spent || [];
+    function block(level, opts) {
+      var all = lists[level] || [];
+      var cap = tightSpellCap(level, all.length, maxSlot);
+      if (opts && opts.cont) cap = all.length;
+      return tSpellBlock(level, all, cap, maxSlot, slots, spent, opts);
+    }
+    /* All of a circle stays in its home column first; overflow is moved after layout. */
+    var col1 = block(0) + block(1) + block(2);
+    var col2 = block(3) + block(4) + block(5);
+    var col3 = block(6) + block(7) + block(8) + block(9);
+    var board =
+      '<div class="s-spell-board">' +
+        '<div class="s-spell-col">' + col1 + "</div>" +
+        '<div class="s-spell-col">' + col2 + "</div>" +
+        '<div class="s-spell-col">' + col3 + "</div>" +
+      "</div>";
+    var top;
+    if (isLayout24()) {
+      top =
+        '<div class="s-spells-top s-spells-top--24">' +
+          tField("Заклинательная характеристика", v((char() && char().spellAbi) || "")) +
+          tPlaque("Модификатор", (char() && char().spellMod) || "") +
+          tPlaque("Сл", (char() && char().spellDc) || "") +
+          tPlaque("Бонус атаки", (char() && char().spellAtk) || "") +
+        "</div>";
+    } else {
+      top =
+        '<div class="s-spells-top">' +
+          tField("Класс заклинателя", v((char() && char().casterClass) || (state.edition !== "2024" ? "Жрец" : ""))) +
+          tField("Базовая характеристика", v((char() && char().spellAbi) || (state.edition !== "2024" ? "Мудрость" : ""))) +
+          tPlaque("Сл спасброска", (char() && char().spellDc) || (state.edition !== "2024" ? "13" : "")) +
+          tPlaque("Бонус атаки", (char() && char().spellAtk) || (state.edition !== "2024" ? "+5" : "")) +
+        "</div>";
+    }
+    var html = '<div class="s-spells">' + sheetHead("Заклинания") + top + board + "</div>";
+    return { html: html, overflow: [] };
+  }
+  function htmlSpellsCont(chunks, part) {
+    var cols = [[], [], []];
+    chunks.forEach(function (ch, i) {
+      var cap = Math.max(ch.spells.length + 1, 4);
+      cols[i % 3].push(tSpellBlock(ch.level, ch.spells, cap, 9, [], []));
+    });
+    var board =
+      '<div class="s-spell-board">' +
+        cols.map(function (col) {
+          return '<div class="s-spell-col">' + (col.join("") || "") + "</div>";
+        }).join("") +
+      "</div>";
+    return (
+      '<div class="s-spells s-spell-cont">' +
+        sheetHead("Заклинания · продолжение") +
+        board +
+      "</div>"
+    );
+  }
+  function htmlSpells() {
+    return htmlSpellsBoard(spellLists()).html;
+  }
+
+  function metaCell(k, val) {
+    return (
+      "<div><span class=\"t-scard__k\">" + k + "</span>" +
+      '<span class="classic-ink">' + v(val) + "</span></div>"
+    );
+  }
+  function tSpellCard(card) {
+    if (card && card._html) return card._html;
+    var act = actionKind(card.time);
+    var part = card.part ? '<span class="t-scard__part">' + card.part + "</span>" : "";
+    var uses = "";
+    if (card.uses) {
+      var i, pips = '<span class="s-slot-pips">';
+      for (i = 0; i < card.uses; i += 1) pips += '<span class="s-slot-pip"></span>';
+      pips += "</span>";
+      uses =
+        '<div class="t-scard__uses">' +
+          pips +
+          '<span class="t-scard__uses-lab">' + (card.rest || "заряд") + "</span>" +
+          part +
+        "</div>";
+      part = "";
+    }
+    var marks = "";
+    if (card.conc) marks += '<span class="s-spell-mark">К</span>';
+    if (card.ritual) marks += '<span class="s-spell-mark">Р</span>';
+    if (card.domain) marks += '<span class="s-spell-mark is-dom">Д</span>';
+    var blank = !!(card && card.blank) || (!card.name && !card.text);
+    var mastery = "";
+    if (isLayout24() && card && card.mastery) {
+      mastery = '<div class="t-scard__mastery">Мастерство: ' + card.mastery + "</div>";
+    }
+    return (
+      '<div class="t-scard' + (blank ? " is-blank" : "") + '">' +
+        '<div class="t-scard__topline">' +
+          '<div class="t-scard__name classic-ink classic-ink--keep">' + v(card.name) + part + "</div>" +
+          '<div class="t-scard__acts">' +
+            (act ? '<span class="t-scard__act">' + act + "</span>" : "") +
+            marks +
+          "</div>" +
+        "</div>" +
+        '<div class="t-scard__tag">' + v(card.tag) + "</div>" +
+        mastery +
+        '<div class="t-scard__meta">' +
+          metaCell("Время", card.time) +
+          metaCell("Дистанция", card.range) +
+          metaCell("Компоненты", card.comp) +
+          metaCell("Длительность", card.dur) +
+        "</div>" +
+        '<div class="t-scard__body classic-ink">' + v(card.text) + "</div>" +
+        uses +
+      "</div>"
+    );
+  }
+  function splitCard(card, part, text) {
+    var copy = {};
+    var k;
+    for (k in card) if (Object.prototype.hasOwnProperty.call(card, k)) copy[k] = card[k];
+    copy.text = text;
+    copy.part = part;
+    copy.uses = part.indexOf("2/") === 0 ? card.uses : 0;
+    return copy;
+  }
+  function maybeSplitCards(cards) {
+    var out = [];
+    cards.forEach(function (c) {
+      var text = c.text || "";
+      if (text.length < 520) {
+        out.push(c);
+        return;
+      }
+      var mid = Math.floor(text.length / 2);
+      var cut = text.lastIndexOf(". ", mid);
+      if (cut < 80) cut = text.indexOf(". ", mid);
+      if (cut < 80) {
+        out.push(c);
+        return;
+      }
+      out.push(splitCard(c, "1/2", text.slice(0, cut + 1)));
+      out.push(splitCard(c, "2/2", text.slice(cut + 2)));
+    });
+    return out;
+  }
+  function blankSpellCard() {
+    return { name: "", tag: "", time: "", range: "", comp: "", dur: "", text: "", blank: true };
+  }
+  function packCardPages(cards) {
+    var items = maybeSplitCards(cards);
+    var per = 9;
+    var pages = [];
+    var i, group;
+    if (!items.length) items = [];
+    for (i = 0; i < items.length || (i === 0 && !items.length); i += per) {
+      group = items.slice(i, i + per);
+      while (group.length < per) group.push(blankSpellCard());
+      pages.push(group);
+      if (!items.length) break;
+    }
+    return pages;
+  }
+  function cardGridHtml(cards) {
+    return (
+      '<div class="s-card-grid">' +
+        cards.map(function (c) { return tSpellCard(c); }).join("") +
+      "</div>"
+    );
+  }
+  function demoSpellCards() {
+    if (char() && char().spellCards) return char().spellCards;
+    return [
+      { name: "Священное пламя", tag: "Заговор · воплощение", time: "Действие", range: "60 футов", comp: "В, С", dur: "Мгновенно", text: "Существо, которое вы видите, проходит спасбросок Ловкости. При провале получает 1к8 урона излучением." },
+      { name: "Указание", tag: "Заговор · прорицание", time: "Действие", range: "Касание", comp: "В, С", dur: "Концентрация, до 1 мин.", conc: true, text: "Согласное существо получает к20 и добавляет 1к4 к одной проверке характеристики, атаке или спасброску." },
+      { name: "Сопротивление", tag: "Заговор · ограждение", time: "Действие", range: "Касание", comp: "В, С, М", dur: "Концентрация, до 1 мин.", conc: true, text: "Согласное существо получает 1к4, который может добавить к одному спасброску до окончания заклинания." },
+      { name: "Лечение ран", tag: "1 круг · воплощение", time: "Действие", range: "Касание", comp: "В, С", dur: "Мгновенно", text: "Существо восстанавливает хиты, равные 1к8 + ваш модификатор базовой характеристики." },
+      { name: "Щит веры", tag: "1 круг · ограждение", time: "Бонусное действие", range: "30 футов", comp: "В, С, М", dur: "Концентрация, до 10 мин.", conc: true, text: "Существо, которое вы видите, получает +2 к КД, пока действует заклинание." },
+      { name: "Волны грома", tag: "1 круг · воплощение · домен", time: "Действие", range: "От себя (куб 15 фт.)", comp: "В, С", dur: "Мгновенно", domain: true, text: "Существа в кубе проходят спасбросок Телосложения. При провале — 2к8 урона звуком и отталкивание на 10 футов." },
+      { name: "Благословение", tag: "1 круг · очарование", time: "Действие", range: "30 футов", comp: "В, С, М", dur: "Концентрация, до 1 мин.", conc: true, text: "До трёх существ получают 1к4 к броску атаки или спасброску." },
+      { name: "Обнаружение магии", tag: "1 круг · прорицание", time: "Действие", range: "На себя", comp: "В, С", dur: "Концентрация, до 10 мин.", conc: true, ritual: true, text: "Вы чувствуете магию в пределах 30 футов. Ритуал. Можно сотворить как ритуал, не тратя ячейку." },
+      { name: "Туманное облако", tag: "1 круг · воплощение · домен", time: "Действие", range: "120 футов", comp: "В, С", dur: "Концентрация, до 1 часа", conc: true, domain: true, text: "Сфера тумана радиусом 20 футов закрывает обзор: в ней сильно заслонённая местность." },
+      { name: "Духовное оружие", tag: "2 круг · воплощение", time: "Бонусное действие", range: "60 футов", comp: "В, С", dur: "1 минута", text: "Призрачное оружие появляется в точке. Бонусным действием вы атакуете им: урон силовым полем 1к8 + модификатор базовой характеристики." },
+      { name: "Осколок грома", tag: "2 круг · воплощение · домен", time: "Действие", range: "60 футов", comp: "В, С, М", dur: "Мгновенно", domain: true, text: "Существа в сфере радиусом 10 футов проходят спасбросок Телосложения. При провале получают 3к8 урона звуком, при успехе — половину." },
+      { name: "Порыв ветра", tag: "2 круг · воплощение · домен", time: "Действие", range: "От себя (линия 60 фт.)", comp: "В, С, М", dur: "Концентрация, до 1 мин.", conc: true, domain: true, text: "Линия ветра шириной 10 футов: существа проходят спасбросок Силы или отталкиваются, а полёт против ветра затруднён." },
+      { name: "Божественный канал", tag: "Умение класса · жрец", time: "Действие", range: "По умению", comp: "—", dur: "Мгновенно", uses: 1, rest: "кор. отдых", text: "Обращение нежити: нежить в пределах 30 футов проходит спасбросок Мудрости или бежит. Разрушительный гнев: вместо обычного урона грома или электричества вы даёте максимальный урон." }
+    ];
+  }
+  function demoFeatureCards() {
+    if (char() && char().featureCards) return char().featureCards;
+    return [
+      { name: "Длинный меч", tag: "Оружие · воинское рукопашное", time: "Действие «Атака»", range: "Досягаемость", comp: "—", dur: "Атака", mastery: "Ослабляющее", text: "Урон 1к8+3 рубящий (универсальное 1к10). Свойство мастерства «Ослабляющее»: попав и нанеся урон, вы даёте цели помеху к её следующему броску атаки." },
+      { name: "Кинжал", tag: "Оружие · простое рукопашное", time: "Действие «Атака»", range: "Досягаемость, 20/60", comp: "—", dur: "Атака", mastery: "Быстрое", text: "Урон 1к4+2 колющий. Лёгкое, фехтовальное, метательное. Свойство мастерства «Быстрое»: если этой атакой вы попали лёгким оружием, можете сразу атаковать ещё раз другим лёгким оружием." },
+      { name: "Второе дыхание", tag: "Умение класса · воин", time: "Бонусное действие", range: "На себя", comp: "—", dur: "Мгновенно", uses: 3, rest: "1 за кор., все за долг.", text: "Вы восстанавливаете хиты, равные 1к10 + ваш уровень воина. На 5 уровне у вас 3 использования: одно восстанавливается после короткого отдыха, все — после долгого." },
+      { name: "Всплеск действий", tag: "Умение класса · воин", time: "В ваш ход", range: "На себя", comp: "—", dur: "1 ход", uses: 1, rest: "кор. / долг. отдых", text: "В ваш ход вы можете совершить одно дополнительное действие, за исключением действия «Магия». Снова доступно после короткого или долгого отдыха." },
+      { name: "Тактическое мышление", tag: "Умение класса · воин", time: "При провале проверки", range: "На себя", comp: "1 использование Второго дыхания", dur: "Проверка", text: "Когда вы проваливаете проверку характеристики, можете потратить одно использование Второго дыхания: вместо хитов бросаете 1к10 и добавляете результат к проверке. Если проверка всё равно провалена, использование не тратится." },
+      { name: "Тактическое смещение", tag: "Умение класса · воин", time: "Бонусное действие", range: "На себя", comp: "Второе дыхание", dur: "Перемещение", text: "Каждый раз, когда бонусным действием вы используете Второе дыхание, можете переместиться вплоть до половины вашей скорости, не вызывая провоцированных атак." },
+      { name: "Боевой стиль: оборона", tag: "Черта · боевой стиль", time: "Постоянно", range: "На себя", comp: "—", dur: "Пока в доспехе", text: "Пока вы носите лёгкий, средний или тяжёлый доспех, получаете +1 к КД." },
+      { name: "Дополнительная атака", tag: "Умение класса · воин", time: "Действие «Атака»", range: "—", comp: "—", dur: "Ход", text: "Когда вы совершаете действие Атака в свой ход, можете атаковать дважды вместо одного раза." },
+      { name: "Кость превосходства", tag: "Подкласс · мастер боя", time: "Особое", range: "—", comp: "Кость превосходства", dur: "—", uses: 4, rest: "кор. / долг. отдых", text: "Боевое превосходство: 4 кости превосходства к8. Сл приёма равна 8 + бонус владения + Сила или Ловкость (на ваш выбор); сейчас 13 (Ловкость). Кости восстанавливаются после короткого или долгого отдыха. С каждой атакой — только один приём." },
+      { name: "Атака с выпадом", tag: "Приём · мастер боя", time: "Бонусное действие", range: "На себя", comp: "1 кость превосходства", dur: "Ход", text: "Бонусным действием вы тратите одну Кость превосходства и совершаете действие Рывок. В этот ход можете добавить Кость превосходства к урону рукопашной атаки действия Атака, если непосредственно перед попаданием перемещались по прямой не менее 5 футов." },
+      { name: "Ответный удар", tag: "Приём · мастер боя", time: "Реакция", range: "Досягаемость", comp: "1 кость превосходства", dur: "Мгновенно", text: "Когда существо промахивается по вам рукопашной атакой, вы Реакцией тратите одну Кость превосходства и совершаете по нему рукопашную атаку оружием или безоружным ударом. При попадании добавьте Кость превосходства к урону." },
+      { name: "Активное уклонение", tag: "Приём · мастер боя", time: "Бонусное действие", range: "На себя", comp: "1 кость превосходства", dur: "До своего следующего хода", text: "Бонусным действием вы тратите одну Кость превосходства и совершаете действие Отход. Бросьте эту кость: до начала вашего следующего хода получаете бонус к КД, равный результату броска." },
+      { name: "Свирепый атакующий", tag: "Черта происхождения", time: "1/ход при попадании", range: "—", comp: "—", dur: "Мгновенно", text: "Раз в ход, попав оружием, можете перебросить кости урона и взять новый результат." }
+    ];
+  }
+  function htmlCards() {
+    var d14 = state.edition !== "2024";
+    var title = d14 ? "Карточки заклинаний" : "Карточки умений";
+    var cards = state.blank ? [] : (d14 ? demoSpellCards() : demoFeatureCards());
+    var page = packCardPages(cards)[0] || [];
+    return '<div class="s-cards">' + sheetHead(title) + cardGridHtml(page) + "</div>";
+  }
+
+  function tCompAbils(s) {
+    var keys = [
+      ["СИЛ", s.str], ["ЛОВ", s.dex], ["ТЕЛ", s.con],
+      ["ИНТ", s.int], ["МДР", s.wis], ["ХАР", s.cha]
+    ];
+    return (
+      '<div class="t-comp__abils">' +
+      keys.map(function (k) {
+        var mod = abilMod(k[1]);
+        return (
+          '<div class="t-comp__abil' + (k[1] === "" ? " is-blank" : "") + '">' +
+          '<div data-center>' + tCenter(v(k[1]), "t-num classic-ink classic-ink--keep") + "</div>" +
+          (mod ? '<div class="t-comp__mod classic-ink classic-ink--keep">' + v(mod) + "</div>" : (k[1] === "" ? '<div class="t-comp__mod t-comp__mod--blank"></div>' : "")) +
+          '<span class="t-comp__abil-lab">' + k[0] + "</span></div>"
+        );
+      }).join("") +
+      "</div>"
+    );
+  }
+  function parseCompHp(hp) {
+    if (hp && typeof hp === "object") return { cur: hp.cur || hp.max || "", max: hp.max || hp.cur || "" };
+    var s = String(hp == null ? "" : hp).trim();
+    var m = s.match(/^(\d+)\s*\/\s*(\d+)$/);
+    if (m) return { cur: m[1], max: m[2] };
+    return { cur: s, max: s };
+  }
+  function tCompHp(hp) {
+    var p = parseCompHp(hp);
+    return tSplitPlaque("Хиты", [{ val: p.cur, lab: "Тек." }, { val: p.max, lab: "Макс." }]);
+  }
+  function tCompSection(lab, text, minLines) {
+    var body;
+    if (text == null || text === "") {
+      var n = minLines || 1;
+      var i;
+      body = "";
+      for (i = 0; i < n; i += 1) body += '<div class="t-comp-line"></div>';
+    } else {
+      body = '<div class="t-comp__text classic-ink">' + v(text) + "</div>";
+    }
+    return '<div class="t-comp__sec"><div class="t-comp__sec-lab">' + lab + "</div>" + body + "</div>";
+  }
+  function tCompanion(c) {
+    var empty = !c || !c.name;
+    var html = '<div class="t-card t-comp' + (empty ? " is-empty is-ruled" : "") + '">';
+    if (empty) {
+      html += (
+        '<div class="t-comp-line t-comp-line--name"></div>' + tLabel("Имя") +
+        '<div class="t-comp__meta">' +
+          tPlaque("КД", "") + tCompHp("") + tPlaque("Скорость", "") +
+        "</div>" +
+        tCompAbils({ str: "", dex: "", con: "", int: "", wis: "", cha: "" }) +
+        tCompSection("Чувства", "", 1) +
+        tCompSection("Атаки и действия", "", 2) +
+        tCompSection("Особенности", "", 1) +
+        tCompSection("Заметки", "", 2) +
+        '<div class="t-comp__fill" aria-hidden="true"></div>' +
+        tDeath(0, 0) +
+      "</div>"
+      );
+      return html;
+    }
+    html += (
+      '<div class="t-card__title classic-ink classic-ink--keep">' + v(c.name) + "</div>" +
+      '<div class="t-scard__tag">' + v(c.tag || "") + "</div>" +
+      '<div class="t-comp__meta">' +
+        tPlaque("КД", c.ac) +
+        tCompHp(c.hp) +
+        tPlaque("Скорость", c.speed) +
+      "</div>" +
+      tCompAbils(c) +
+      tCompSection("Чувства", c.senses, 1) +
+      tCompSection("Атаки и действия", c.acts, 2) +
+      (c.feats ? tCompSection("Особенности", c.feats, 1) : "") +
+      tCompSection("Заметки", c.notes, 1) +
+      '<div class="t-comp__fill" aria-hidden="true"></div>'
+    );
+    if (c.death) html += tDeath(c.deathOk || 0, c.deathFail || 0);
+    html += "</div>";
+    return html;
+  }
+  function companions2024() {
+    return [
+      { name: "Сержант Мира", tag: "Солдат заставы · живой НПС мастера", str: "14", dex: "12", con: "14", int: "10", wis: "11", cha: "12", ac: "16", hp: "18 / 22", speed: "30", senses: "Пассивное восприятие 10.", acts: "Длинный меч. +4 к попаданию, 1к8+2 рубящий. Лёгкий арбалет. +3 к попаданию, 1к8+1 колющий, 80/320 футов.", feats: "Парирование (реакция): когда по вам попала бы рукопашная атака, вы получаете +2 к КД против этой атаки, если видите атакующего и держите рукопашное оружие.", notes: "Держит караул у северных ворот до смены.", death: true },
+      { name: "Ручной ястреб", tag: "Питомец · приручённый", str: "5", dex: "16", con: "8", int: "2", wis: "14", cha: "6", ac: "13", hp: "1 / 1", speed: "10, летая 60", senses: "Восприятие +6. Пассивное восприятие 16.", acts: "Когти. +5 к попаданию, досягаемость 5 футов, 1 рубящий.", notes: "Вернулся без донесения — проверить северную тропу.", death: true }
+    ];
+  }
+  function companions2014() {
+    return [
+      { name: "Верный мастиф", tag: "Зверь · приручённый", str: "13", dex: "14", con: "12", int: "3", wis: "12", cha: "7", ac: "12", hp: "5 / 5", speed: "40", senses: "Восприятие +3. Пассивное восприятие 13.", acts: "Укус. +3 к попаданию, досягаемость 5 футов, 4 (1к6+1) колющий. Если цель — существо, она должна преуспеть в спасброске Силы Сл 11, иначе будет сбита с ног.", feats: "Острый слух и обоняние: преимущество на проверки Мудрости (Восприятие), основанные на слухе или обонянии.", notes: "Беспокоен у восточной дороги.", death: true },
+      { name: "Брат Тарек", tag: "Послушник · живой НПС мастера", str: "10", dex: "10", con: "10", int: "10", wis: "14", cha: "11", ac: "10", hp: "9 / 9", speed: "30", senses: "Медицина +4, Религия +2. Пассивное восприятие 12.", acts: "Дубина. +2 к попаданию, 1к4 дробящий. Использование заклинаний (жрец, Мудрость, Сл 12, +4). Заговоры: свет, священное пламя, чудотворство. 1 круг (3 ячейки): благословение, лечение ран, убежище.", notes: "Остаётся у ворот храма до рассвета.", death: true }
+    ];
+  }
+  function ridingHorse2024() {
+    return { name: "Ездовая лошадь", tag: "Скакун · живое существо", str: "16", dex: "13", con: "12", int: "2", wis: "11", cha: "7", ac: "11", hp: "13 / 13", speed: "60", senses: "Пассивное восприятие 10.", acts: "Копыта. +5 к попаданию, досягаемость 5 футов, 7 (1к8+3) дробящий.", notes: "Стоит у стойла заставы, осёдлана к рассвету.", death: true };
+  }
+  function ridingHorse2014() {
+    return { name: "Ездовая лошадь", tag: "Скакун · живое существо", str: "16", dex: "10", con: "12", int: "2", wis: "11", cha: "7", ac: "10", hp: "13 / 13", speed: "60", senses: "Пассивное восприятие 10.", acts: "Копыта. +5 к попаданию, досягаемость 5 футов, 7 (2к4+4) дробящий.", notes: "Привязана у восточных ворот храма.", death: true };
+  }
+  function extraGuard2024() {
+    return { name: "Стражник Ярл", tag: "Страж заставы · живой НПС мастера", str: "13", dex: "12", con: "12", int: "10", wis: "11", cha: "10", ac: "16", hp: "11 / 11", speed: "30", senses: "Восприятие +2. Пассивное восприятие 12.", acts: "Копьё. +3 к попаданию, досягаемость 5 футов или 20/60 футов, 4 (1к6+1) колющий.", notes: "Сменяет сержанта у северных ворот.", death: true };
+  }
+  function extraGuard2014() {
+    return { name: "Стражник Ярл", tag: "Страж храма · живой НПС мастера", str: "13", dex: "12", con: "12", int: "10", wis: "11", cha: "10", ac: "16", hp: "11 / 11", speed: "30", senses: "Восприятие +2. Пассивное восприятие 12.", acts: "Копьё. +3 к попаданию, досягаемость 5 футов или 20/60 футов, 4 (1к6+1) колющий, или 5 (1к8+1), если держит двумя руками для рукопашной атаки.", notes: "Стоит у восточной дороги вместе с мастифом.", death: true };
+  }
+  function demoCompanions() {
+    var mode = state.compSet || "default";
+    if (mode === "zero") return [];
+    var base;
+    if (char() && char().companions && mode === "default") return char().companions;
+    if (char() && char().companions && mode !== "default") base = char().companions.slice();
+    else base = (state.edition === "2024" ? companions2024() : companions2014());
+    if (mode === "one") return base.slice(0, 1);
+    if (mode === "many") {
+      var extra = state.edition === "2024"
+        ? [ridingHorse2024(), extraGuard2024()]
+        : [ridingHorse2014(), extraGuard2014()];
+      return base.concat(extra);
+    }
+    return base;
+  }
+  function packCompanionPages(list) {
+    var rows = (list || []).slice();
+    if (state.pencil) {
+      if (!rows.length) rows = [null, null];
+      else if (rows.length % 2 === 1) rows.push(null);
+      else rows.push(null, null);
+    }
+    if (!rows.length) return [];
+    var pages = [];
+    var i;
+    for (i = 0; i < rows.length; i += 2) pages.push(rows.slice(i, i + 2));
+    return pages;
+  }
+  function htmlCompanions() {
+    var list = state.blank ? [] : demoCompanions();
+    var page = packCompanionPages(list)[0] || [];
+    var cls = "s-comp-grid" + (page.length === 1 ? " is-single" : "");
+    var html = '<div class="s-companions">' + sheetHead("Напарники") + '<div class="' + cls + '">';
+    page.forEach(function (c) { html += tCompanion(c); });
+    html += "</div></div>";
+    return html;
+  }
+  function demoNotes() {
+    if (char() && char().notes) return char().notes;
+    if (state.edition === "2024") {
+      return [
+        { title: "Караул", body: "Караул на заставе «Северный клин». Следопыты видели дым за опушкой. Ястреб вернулся без донесения — проверить северную тропу на рассвете." },
+        { title: "Наставник", body: "Наставник всё ещё не дал вестей. Спросить у следопытов, не видели ли его плащ у старой переправы." }
+      ];
+    }
+    return [
+      { title: "Лагерь", body: "Ночлег в придорожной таверне. Хозяин предупредил о разведчиках у старых шахт. Мастиф беспокоен у восточной дороги." },
+      { title: "Храм", body: "Брат Тарек остаётся у ворот храма до рассвета. Передать ему печать, если рота снимет лагерь раньше срока." },
+      { title: "Добыча и долги", body: "Нужно вернуть печать капитана, прежде чем рота снимет лагерь. В кисете три клановых монеты — не тратить, это память рода." }
+    ];
+  }
+  function noteBlockHtml(n) {
+    n = n || {};
+    return (
+      '<div class="s-note-block">' +
+        (n.title ? '<div class="s-note-block__title">' + n.title + "</div>" : "") +
+        '<div class="classic-ink">' + v(n.body || "") + "</div>" +
+      "</div>"
+    );
+  }
+  function htmlNotesPage(notes, title) {
+    var body = (notes || []).map(noteBlockHtml).join("");
+    return (
+      '<div class="s-notes">' +
+        sheetHead(title || "Заметки") +
+        '<div class="s-notes-flow">' + body + '<div class="s-notes-fill" aria-hidden="true"></div></div>' +
+      "</div>"
+    );
+  }
+  function packNotesContent(notes) {
+    var list = (notes || []).slice();
+    if (!list.length) return [[]];
+    var paper = document.querySelector("[data-paper]");
+    if (!paper || paper.clientWidth < 20) return [list];
+    var probe = document.createElement("div");
+    probe.setAttribute("data-notes-probe", "1");
+    probe.style.cssText = "position:absolute;inset:0;visibility:hidden;pointer-events:none;z-index:-1;";
+    probe.innerHTML = htmlNotesPage(list, "Заметки") + sheetFoot("Заметки", 1, 1);
+    paper.appendChild(probe);
+    var flow = probe.querySelector(".s-notes-flow");
+    var kids = Array.prototype.filter.call(flow.children, function (el) {
+      return !el.classList.contains("s-notes-fill");
+    });
+    var scale = cumulativeScale(flow);
+    var cs = getComputedStyle(flow);
+    var fr = flow.getBoundingClientRect();
+    var padT = (parseFloat(cs.paddingTop) || 0) * scale;
+    var padB = (parseFloat(cs.paddingBottom) || 0) * scale;
+    var borderT = (parseFloat(cs.borderTopWidth) || 0) * scale;
+    var borderB = (parseFloat(cs.borderBottomWidth) || 0) * scale;
+    var gap = (parseFloat(cs.rowGap || cs.gap) || 0) * scale;
+    var available = fr.height - padT - padB - borderT - borderB;
+    var heights = Array.prototype.map.call(kids, function (el) {
+      return el.getBoundingClientRect().height;
+    });
+    paper.removeChild(probe);
+    var pages = [];
+    var cur = [];
+    var used = 0;
+    var i;
+    for (i = 0; i < list.length; i += 1) {
+      var h = heights[i] || 0;
+      var need = h + (cur.length ? gap : 0);
+      if (cur.length && used + need > available) {
+        pages.push(cur);
+        cur = [list[i]];
+        used = h;
+      } else {
+        cur.push(list[i]);
+        used += need;
+      }
+    }
+    if (cur.length) pages.push(cur);
+    if (!pages.length) pages = [[]];
+    packNotesContent._lastLeftoverMm = pages.length ? ((available - used) / scale) * 25.4 / 96 : 999;
+    return pages;
+  }
+  function packNotesPages(notes) {
+    var pages = packNotesContent(notes);
+    var leftover = packNotesContent._lastLeftoverMm;
+    if (leftover == null) leftover = 999;
+    var extra = Number(state.extra) || 0;
+    var n;
+    for (n = 0; n < extra; n += 1) pages.push([]);
+    if (state.pencil) {
+      var last = pages[pages.length - 1] || [];
+      var lastHasText = last.some(function (x) { return x && (x.title || x.body); });
+      if (lastHasText && leftover <= 35) pages.push([]);
+    }
+    if (!pages.length) pages = [[]];
+    return pages;
+  }
+  function htmlNotes() {
+    return htmlNotesPage(state.blank ? [] : demoNotes(), "Заметки");
+  }
+  function htmlFeaturePage(items, title) {
+    var body = (items || []).map(function (f) {
+      return (
+        '<div class="s-feat-item">' +
+          '<div class="s-feat-item__name classic-ink classic-ink--keep">' + v(f.name) +
+            (f.src ? '<span class="s-feat-item__src">' + v(f.src) + "</span>" : "") +
+          "</div>" +
+          '<div class="s-feat-item__text classic-ink">' + v(f.text) + "</div>" +
+        "</div>"
+      );
+    }).join("");
+    return (
+      '<div class="s-feats-page">' +
+        sheetHead(title) +
+        '<div class="s-feat-flow">' + body + '<div class="s-feat-fill" aria-hidden="true"></div></div>' +
+      "</div>"
+    );
+  }
+
+  function isLayout24() { return state.layout === "2024"; }
+  function isDefaultElaraP1() {
+    if (state.blank) return true;
+    var c = char();
+    return !c || (c.name === "Элара Ветрорез" && !c.isWizard);
+  }
+  function isDefaultDarrakP1() {
+    if (state.blank) return true;
+    var c = char();
+    return !c || (c.name === "Даррак Железный Кулак" && !c.isWizard);
+  }
+  function p1Html() {
+    if (isLayout24()) return isDefaultElaraP1() ? html24() : html24FromChar(char());
+    return isDefaultDarrakP1() ? html14() : html14FromChar(char());
+  }
+  function sheetHasMaterial(sp) {
+    if (!sp || !sp.name) return false;
+    if (sp.mat === true) return true;
+    if (sp.mat === false) return false;
+    if (sp.comp && /М/.test(sp.comp)) return true;
+    var names = {
+      "Сопротивление": 1, "Щит веры": 1, "Благословение": 1, "Осколок грома": 1,
+      "Порыв ветра": 1, "Опознание": 1, "Найти фамильяра": 1, "Сигнал тревоги": 1,
+      "Невидимое письмо": 1, "Цветной шарик": 1, "Длинный прыжок": 1, "Ложная жизнь": 1,
+      "Жуткий смех": 1, "Магический замок": 1, "Магический круг": 1,
+      "Зеркальные образы": 1, "Паутина": 1, "Незримый слуга": 1, "Левитация": 1,
+      "Тёмное зрение": 1, "Увеличение": 1, "Порча": 1, "Облако кинжалов": 1,
+      "Магический замок": 1, "Огненный шар": 1, "Контрзаклинание": 1,
+      "Крошечный слуга": 1, "Молния": 1, "Защита от энергии": 1,
+      "Рассеивание магии": 1, "Стена огня": 1, "Каменная кожа": 1,
+      "Высшая невидимость": 1, "Конус холода": 1, "Стена силы": 1,
+      "Огненный щит": 1, "Измерение двери": 1
+    };
+    return !!names[sp.name];
+  }
+  function htmlPersona24() {
+    var c = demoChar();
+    var showPortrait = !!(state.portrait && hasPage("persona") && !state.blank);
+    var src = c.portrait || "";
+    var face;
+    if (showPortrait && src) {
+      face = '<div class="s-portrait__face" style="background-image:url(\'' + src + "')\"></div>";
+    } else {
+      face = '<div class="s-portrait__face is-empty"></div>';
+    }
+    var portrait = (state.portrait && hasPage("persona"))
+      ? '<div class="s-portrait s24-p2-portrait">' + face + tLabel("Портрет") + "</div>"
+      : "";
+    var look = c.look || (state.edition !== "2024"
+      ? "Дварф среднего роста, окладистая борода, шрам над бровью."
+      : "Высокая эльфийка, коротко стриженные тёмные волосы, зелёные глаза, лёгкая походка.");
+    var story = c.story || (state.edition !== "2024"
+      ? "Служил в клановом ополчении, затем принял обет в храме предков. Ищет реликвию рода, унесённую в последний набег. Цель похода — вернуть реликвию клана и защитить товарищей у старых шахт."
+      : "Разведчица пограничной заставы. Держит слово, данное отряду, и ищет следы пропавшего наставника.");
+    var allies = c.allies || (state.edition !== "2024"
+      ? "Храм предков принимает его как своего. Сержант роты «Железный клин» всё ещё отвечает на письма."
+      : "Следопыты опушки и воины заставы «Северный\u00a0клин» отвечают на сигналы и делятся тропами, принимая её как свою.");
+    var d14 = state.edition !== "2024";
+    var traits = c.traits || (d14
+      ? "Я всегда вежлив, даже с врагом. Слово, данное у алтаря предков, для меня закон."
+      : "Сначала дело, потом слова. Если отряд ждёт, я не трачу время на похвальбу.");
+    var ideals = c.ideals || (d14
+      ? "Долг. Я делаю то, что должен, даже если цена высока."
+      : "Долг перед отрядом выше собственной славы.");
+    var bonds = c.bonds || (d14
+      ? "Мой отряд — моя семья. Храм предков я не брошу."
+      : "Наставник пропал в походе — я его найду, чего бы это ни стоило.");
+    var flaws = c.flaws || (d14
+      ? "Я никогда не отступлю в бою, даже когда отступление спасло бы товарищей."
+      : "Не умею вовремя остановиться, если задет гонор.");
+    var personality = c.personality || "";
+    if (!personality) {
+      var bits = [];
+      if (traits) bits.push(traits);
+      if (ideals) bits.push("Идеал. " + ideals);
+      if (bonds) bits.push("Привязанность. " + bonds);
+      if (flaws) bits.push("Слабость. " + flaws);
+      personality = bits.join(" ");
+    }
+    var extra = c.extraFeatures || (state.edition !== "2024"
+      ? "Ремесло каменщика: знаю слабые места в каменной кладке и надежно заделываю трещины. Знание храма: ориентируюсь в обрядах предков и могу получить кров и совет у жрецов своего культа."
+      : "Следопытская память: узнаю тропы, по которым уже ходила, даже спустя годы.");
+    var treasure = c.treasure || (state.edition !== "2024"
+      ? "Печать капитана, серебряный медальон матери. В кисете — три старых клановых монеты без хождения."
+      : "Брошь заставы, резной эльфийский гребень.");
+    var symbol = (!state.blank && c.symbol)
+      ? '<div class="s-p2-symbol" style="background-image:url(\'' + c.symbol + "')\"></div>"
+      : "";
+    var vit = c.vitals || (state.edition !== "2024"
+      ? { sex: "Мужской", age: "58", height: "137 см", weight: "80 кг", eyes: "Карие", skin: "Смуглая", hair: "Чёрные, проседь" }
+      : { sex: "Женский", age: "140", height: "175 см", weight: "62 кг", eyes: "Зелёные", skin: "Светлая", hair: "Тёмные" });
+    var align = c.align || (state.edition !== "2024" ? "Законно-добрый" : "Законно-нейтральный");
+    var langs = c.languages || (state.edition !== "2024" ? "Дварфский, общий." : "Эльфийский, общий.");
+    var equip = c.equipment || (state.edition !== "2024"
+      ? "Чешуйчатый доспех, щит, боевой молот, лёгкий арбалет, набор священника, святой символ."
+      : "Кольчуга, длинный меч, кинжал и набор путешественника, а также значок заставы.");
+    var coins = c.coins || (state.edition !== "2024"
+      ? { cp: "12", sp: "8", ep: "0", gp: "35", pp: "0" }
+      : { cp: "8", sp: "15", ep: "0", gp: "25", pp: "0" });
+    var attune = c.attunement || [{ name: "" }, { name: "" }, { name: "" }];
+    while (attune.length < 3) attune.push({ name: "" });
+    var goals = c.goals || (state.edition !== "2024"
+      ? "Вернуть реликвию клана и удержать старые шахты."
+      : "Найти следы наставника и удержать северную тропу.");
+    var cls = "s24-p2" + (state.portrait && hasPage("persona") ? "" : " is-noportrait");
+    var alliesCls = "t-block s24-p2-allies is-ruled" + (symbol ? " has-symbol" : " is-nosymbol");
+    function tPersub(label, text, extra) {
+      return (
+        '<div class="s24-persub' + (extra ? " " + extra : "") + '">' +
+          '<div class="classic-ink">' + v(text || "") + "</div>" +
+          tLabel(label) +
+        "</div>"
+      );
+    }
+    var personaHtml =
+      '<div class="t-block s24-p2-persona is-ruled">' +
+        '<div class="s24-persub-grid">' +
+          tPersub("Мировоззрение", align, "s24-persub-align") +
+          tPersub("Черты характера", traits, "s24-persub-traits") +
+          tPersub("Идеал", ideals, "s24-persub-ideal") +
+          tPersub("Привязанность", bonds, "s24-persub-bond") +
+          tPersub("Слабость", flaws, "s24-persub-flaw") +
+          tPersub("Предыстория", story, "s24-persub-story") +
+        "</div>" +
+      "</div>";
+    var attuneHtml = attune.slice(0, 3).map(function (it) {
+      var on = !state.blank && it && it.on;
+      return (
+        '<div class="s24-attune">' +
+          '<span class="s-slot-pip' + (on ? " is-on" : "") + '" aria-hidden="true"></span>' +
+          '<span class="s24-attune__name classic-ink">' + v((it && it.name) || "") + "</span>" +
+        "</div>"
+      );
+    }).join("");
+    return (
+      '<div class="' + cls + '" lang="ru">' +
+        portrait +
+        tBlock("Внешность", look, "s24-p2-look is-ruled") +
+        '<div class="s-p2-vitals s24-p2-vitals" data-field-row>' +
+          tField("Пол", v(vit.sex)) +
+          tField("Возраст", v(vit.age)) +
+          tField("Рост", v(vit.height)) +
+          tField("Вес", v(vit.weight)) +
+          tField("Глаза", v(vit.eyes)) +
+          tField("Кожа", v(vit.skin)) +
+          tField("Волосы", v(vit.hair)) +
+        "</div>" +
+        personaHtml +
+        tBlock("Языки", langs, "s24-p2-langs is-ruled") +
+        '<div class="' + alliesCls + '">' +
+          '<div class="s-p2-allies__row">' +
+            symbol +
+            '<div class="classic-ink">' + v(allies) + "</div>" +
+          "</div>" +
+          '<div class="t-ruled-space" aria-hidden="true"></div>' +
+          tLabel("Союзники и организации") +
+        "</div>" +
+        tBlock("Цели и задачи", goals + (extra ? " " + extra : ""), "s24-p2-goals is-ruled") +
+        tBlock("Снаряжение", equip, "s24-p2-equip is-ruled") +
+        '<div class="t-block s24-p2-magic is-ruled">' +
+          '<div class="s24-attune-list">' + attuneHtml + "</div>" +
+          tLabel("Магические предметы · настройка") +
+        "</div>" +
+        '<div class="t-block s24-p2-coins is-ruled">' +
+          tCoins(coins.cp, coins.sp, coins.ep, coins.gp, coins.pp) +
+          tLabel("Деньги") +
+        "</div>" +
+        tBlock("Сокровища", treasure, "s24-p2-treasure is-ruled") +
+      "</div>"
+    );
+  }
+  function featureGroups24() {
+    var c = char() || {};
+    if (c.featureGroups) return c.featureGroups;
+    if (c.name === "Элара Ветрорез") {
+      return [
+        { title: "Классовые умения", items: [
+          { name: "Оружейное мастерство", src: "воин", text: "Вы можете использовать свойства мастерства четырёх видов простого или воинского оружия на ваш выбор (таблица воина, 5 уровень). Сейчас выбраны длинный меч (Ослабляющее) и кинжал (Быстрое); ещё два вида можно выбрать. После долгого отдыха можно заменить один выбранный вид." },
+          { name: "Второе дыхание", src: "воин", text: "Бонусным действием вы восстанавливаете хиты, равные 1к10 + ваш уровень воина. На 5 уровне у вас 3 использования: одно восстанавливается после короткого отдыха, все — после долгого." },
+          { name: "Всплеск действий", src: "воин", text: "В ваш ход вы можете совершить одно дополнительное действие, за исключением действия «Магия». Снова доступно после короткого или долгого отдыха." },
+          { name: "Тактическое мышление", src: "воин", text: "Когда вы проваливаете проверку характеристики, можете потратить одно использование Второго дыхания: вместо хитов бросаете 1к10 и добавляете результат к проверке. Если проверка всё равно провалена, использование не тратится." },
+          { name: "Тактическое смещение", src: "воин", text: "Каждый раз, когда бонусным действием вы используете Второе дыхание, можете переместиться вплоть до половины вашей скорости, не вызывая провоцированных атак." },
+          { name: "Дополнительная атака", src: "воин", text: "Когда вы совершаете действие Атака в свой ход, можете атаковать дважды вместо одного раза." },
+          { name: "Боевое превосходство", src: "мастер боя", text: "4 кости превосходства к8. Сл приёма равна 8 + бонус владения + Сила или Ловкость (на ваш выбор); сейчас 13 (Ловкость). Кости возвращаются после короткого или долгого отдыха. Приёмы: атака с выпадом, ответный удар, активное уклонение. С каждой атакой — только один приём." }
+        ]},
+        { title: "Видовые умения", items: [
+          { name: "Тёмное зрение", src: "эльф", text: "Тёмное зрение дальностью 60 футов." },
+          { name: "Эльфийский род", src: "высокий эльф", text: "Заговор «Фокусы»; после долгого отдыха его можно заменить на другой заговор волшебника. С 3 уровня всегда подготовлено «Обнаружение магии», с 5 — «Туманный шаг»: каждое можно сотворить один раз без ячейки (снова после долгого отдыха) или за ячейку. Заклинательная характеристика — Интеллект, Мудрость или Харизма (выбор при выборе рода)." },
+          { name: "Наследие фей", src: "эльф", text: "Вы совершаете с преимуществом спасброски на избежание или окончание состояния «очарованный»." },
+          { name: "Обострённые чувства", src: "эльф", text: "Вы владеете одним навыком: Восприятие, Выживание или Проницательность. Сейчас выбран Восприятие." },
+          { name: "Транс", src: "эльф", text: "Вам не нужно спать, и вас невозможно усыпить магически. Долгий отдых можно завершить за 4 часа медитации, подобной трансу, оставаясь в сознании." }
+        ]},
+        { title: "Черты", items: [
+          { name: "Свирепый атакующий", src: "происхождение", text: "Раз в ход, попав оружием, можете перебросить кости урона и взять новый результат." },
+          { name: "Оборона", src: "боевой стиль", text: "Пока вы носите лёгкий, средний или тяжёлый доспех, получаете +1 к КД." }
+        ]}
+      ];
+    }
+    if (c.isWizard) {
+      var classItems = [];
+      var speciesItems = [];
+      var featItems = [];
+      (c.features || []).forEach(function (f) {
+        var src = (f.src || "").toLowerCase();
+        if (/человек|вид|эльф|дварф/.test(src)) speciesItems.push(f);
+        else if (/черта|происх|предыстория|личное|предмет/.test(src)) featItems.push(f);
+        else classItems.push(f);
+      });
+      var groups = [];
+      if (classItems.length) groups.push({ title: "Классовые умения", items: classItems });
+      if (speciesItems.length) groups.push({ title: "Видовые умения", items: speciesItems });
+      if (featItems.length) groups.push({ title: "Черты", items: featItems });
+      return groups;
+    }
+    /* 2014 character on 2024 form: do not drop traits — they live on личности; features stay readable. */
+    var items = (c.features || []).slice();
+    if (!items.length) {
+      items = [
+        { name: "Тёмное зрение", src: "дварф", text: "60 футов в темноте." },
+        { name: "Устойчивость дварфов", src: "дварф", text: "Преимущество против яда, сопротивление урону ядом." },
+        { name: "Боевая тренировка", src: "горный дварф", text: "Боевой топор и молоты; лёгкие и средние доспехи." },
+        { name: "Воинское звание", src: "солдат", text: "Вас узнают как солдата." },
+        { name: "Использование заклинаний", src: "жрец", text: "Мудрость." },
+        { name: "Домен бури", src: "жрец", text: "Гнев бури: реакция, 2к8 грома или электричества." },
+        { name: "Божественный канал", src: "жрец", text: "1/отдых: обращение нежити; разрушительный гнев." }
+      ];
+    }
+    var species = [];
+    var rest = [];
+    items.forEach(function (f) {
+      var src = (f.src || "").toLowerCase();
+      if (/дварф|эльф|человек|вид/.test(src)) species.push(f);
+      else rest.push(f);
+    });
+    var g = [];
+    if (rest.length) g.push({ title: "Классовые умения", items: rest });
+    if (species.length) g.push({ title: "Видовые умения", items: species });
+    return g;
+  }
+  function featNodeHtml(node) {
+    if (node.type === "h") return '<div class="s24-feat-h">' + node.title + "</div>";
+    var f = node.item || {};
+    var ftext = String(f.text || "")
+      .replace(/ Полные тексты — на карточках\./g, "")
+      .replace(/ Ячейки и список — на листе заклинаний\./g, "")
+      .trim();
+    return (
+      '<div class="s-feat-item">' +
+        '<div class="s-feat-item__name classic-ink classic-ink--keep">' + v(f.name) +
+          (f.src ? '<span class="s-feat-item__src">' + v(f.src) + "</span>" : "") +
+        "</div>" +
+        '<div class="s-feat-item__text classic-ink">' + v(ftext) + "</div>" +
+      "</div>"
+    );
+  }
+  function featureStream24() {
+    var nodes = [];
+    (featureGroups24() || []).forEach(function (g) {
+      var items = g.items || [];
+      if (!items.length) return;
+      nodes.push({ type: "h", title: g.title });
+      items.forEach(function (it) { nodes.push({ type: "f", item: it }); });
+    });
+    return nodes;
+  }
+  function packFeatNodes(nodes) {
+    if (!nodes.length) return [[]];
+    var paper = document.querySelector("[data-paper]");
+    if (!paper || paper.clientWidth < 20) return [nodes];
+    var probe = document.createElement("div");
+    probe.setAttribute("data-feat-probe", "1");
+    probe.style.cssText = "position:absolute;inset:0;visibility:hidden;pointer-events:none;z-index:-1;";
+    probe.innerHTML = '<div class="s-feats-page">' + sheetHead("Умения и черты") +
+      '<div class="s-feat-flow">' + nodes.map(featNodeHtml).join("") +
+      '<div class="s-feat-fill s24-feat-fill" aria-hidden="true"></div></div></div>' +
+      sheetFoot("Умения и черты", 1, 1);
+    paper.appendChild(probe);
+    var flow = probe.querySelector(".s-feat-flow");
+    var fill = probe.querySelector(".s-feat-fill");
+    var kids = Array.prototype.filter.call(flow.children, function (el) {
+      return !el.classList.contains("s-feat-fill");
+    });
+    var scale = cumulativeScale(flow);
+    var cs = getComputedStyle(flow);
+    var fr = flow.getBoundingClientRect();
+    var padT = (parseFloat(cs.paddingTop) || 0) * scale;
+    var padB = (parseFloat(cs.paddingBottom) || 0) * scale;
+    var borderT = (parseFloat(cs.borderTopWidth) || 0) * scale;
+    var borderB = (parseFloat(cs.borderBottomWidth) || 0) * scale;
+    var gap = (parseFloat(cs.rowGap || cs.gap) || 0) * scale;
+    var available = fr.height - padT - padB - borderT - borderB;
+    var heights = Array.prototype.map.call(kids, function (el) {
+      var r = el.getBoundingClientRect();
+      var mt = (parseFloat(getComputedStyle(el).marginTop) || 0) * scale;
+      var mb = (parseFloat(getComputedStyle(el).marginBottom) || 0) * scale;
+      return r.height + mt + mb;
+    });
+    paper.removeChild(probe);
+    var pages = [[]];
+    var used = 0;
+    var i, h, cur;
+    for (i = 0; i < nodes.length; i += 1) {
+      h = heights[i] || 0;
+      cur = pages[pages.length - 1];
+      var need = h + (cur.length ? gap : 0);
+      if (cur.length && used + need > available + 0.5) {
+        if (cur[cur.length - 1].type === "h") {
+          pages.push([cur.pop(), nodes[i]]);
+        } else {
+          pages.push([nodes[i]]);
+        }
+        used = 0;
+        pages[pages.length - 1].forEach(function (n, idx) {
+          var ni = nodes.indexOf(n);
+          used += (heights[ni] || 0) + (idx ? gap : 0);
+        });
+      } else {
+        cur.push(nodes[i]);
+        used += need;
+      }
+    }
+    if (!pages[0].length) pages = [nodes];
+    return pages;
+  }
+  function packFeatList14(items) {
+    if (!items || !items.length) return [[]];
+    var paper = document.querySelector("[data-paper]");
+    if (!paper || paper.clientWidth < 20) return [items];
+    var probe = document.createElement("div");
+    probe.setAttribute("data-feat-probe", "1");
+    probe.style.cssText = "position:absolute;inset:0;visibility:hidden;pointer-events:none;z-index:-1;";
+    probe.innerHTML = htmlFeaturePage(items, "Умения и особенности") + sheetFoot("Умения и особенности", 1, 1);
+    paper.appendChild(probe);
+    var flow = probe.querySelector(".s-feat-flow");
+    var kids = Array.prototype.filter.call(flow.children, function (el) {
+      return !el.classList.contains("s-feat-fill");
+    });
+    var scale = cumulativeScale(flow);
+    var cs = getComputedStyle(flow);
+    var fr = flow.getBoundingClientRect();
+    var padT = (parseFloat(cs.paddingTop) || 0) * scale;
+    var padB = (parseFloat(cs.paddingBottom) || 0) * scale;
+    var borderT = (parseFloat(cs.borderTopWidth) || 0) * scale;
+    var borderB = (parseFloat(cs.borderBottomWidth) || 0) * scale;
+    var gap = (parseFloat(cs.rowGap || cs.gap) || 0) * scale;
+    var available = fr.height - padT - padB - borderT - borderB;
+    var heights = Array.prototype.map.call(kids, function (el) {
+      var r = el.getBoundingClientRect();
+      var mt = (parseFloat(getComputedStyle(el).marginTop) || 0) * scale;
+      var mb = (parseFloat(getComputedStyle(el).marginBottom) || 0) * scale;
+      return r.height + mt + mb;
+    });
+    paper.removeChild(probe);
+    var pages = [[]];
+    var used = 0;
+    var i, h, cur, need;
+    for (i = 0; i < items.length; i += 1) {
+      h = heights[i] || 0;
+      cur = pages[pages.length - 1];
+      need = h + (cur.length ? gap : 0);
+      if (cur.length && used + need > available + 0.5) {
+        pages.push([items[i]]);
+        used = h;
+      } else {
+        cur.push(items[i]);
+        used += need;
+      }
+    }
+    if (!pages[0].length) pages = [items];
+    return pages;
+  }
+  function htmlFeaturePages24() {
+    if (state.blank) {
+      return [{
+        id: "features",
+        title: "Умения и черты",
+        html: '<div class="s-feats-page">' + sheetHead("Умения и черты") +
+          '<div class="s-feat-flow"><div class="s-feat-fill s24-feat-fill" aria-hidden="true"></div></div></div>'
+      }];
+    }
+    var packed = packFeatNodes(featureStream24());
+    if (!packed.length) packed = [[]];
+    return packed.map(function (list, idx) {
+      var body = list.map(featNodeHtml).join("");
+      var title = idx === 0 ? "Умения и черты" : "Умения и черты · продолжение";
+      var html = '<div class="s-feats-page">' + sheetHead(title) +
+        '<div class="s-feat-flow">' + body + '<div class="s-feat-fill s24-feat-fill" aria-hidden="true"></div></div></div>';
+      return { id: idx === 0 ? "features" : ("features-" + (idx + 1)), title: title, html: html };
+    });
+  }
+  function html24FromChar(c) {
+    c = c || {};
+    var s = c.sheet24;
+    if (!s) {
+      if (c.isWizard) s = withMirrenAbils(buildMirrenSheet24());
+      else s = withDarrak24Abils(buildDarrakSheet24());
+    } else if (!s.abilsHtml) {
+      s = c.isWizard ? withMirrenAbils(s) : withDarrak24Abils(s);
+    }
+    var name = v(c.name);
+    var features = s.features || [];
+    var species = s.species || [];
+    var feats = s.feats || [];
+    var origin = s.origin || "";
+    return (
+      '<div class="s24">' +
+        '<div class="s24-top">' +
+          '<div class="s24-id">' +
+            tField("Имя персонажа", name, "t-field--name", "classic-ink--name") +
+            '<div class="s24-id-grid" data-field-row>' +
+              tField("Предыстория", v(s.background || "")) +
+              tField("Класс", v(s.className || "")) +
+              tField("Вид", v(s.speciesName || "")) +
+              tField("Подкласс", v(s.subclass || "")) +
+            "</div>" +
+          "</div>" +
+          '<div class="s24-vitals">' +
+            '<div class="s24-lvxp">' +
+              tPlaque("Уровень", s.level || "") +
+              tPlaque("Опыт", s.xp || "") +
+            "</div>" +
+            tPlaque("КД", s.ac || "", "s24-ac") +
+            tSplitPlaque("Хиты", [
+              { val: s.hpCur || "", lab: "Тек." },
+              { val: s.hpTemp || "0", lab: "Врем." },
+              { val: s.hpMax || "", lab: "Макс." }
+            ]) +
+            tHitDice(s.hdSpent || "0", s.hdMax || "", s.hdType || "к6", "2024") +
+            tDeath(0, 0, "s24-death") +
+          "</div>" +
+        "</div>" +
+        '<div class="s24-brand">КРИD20 · 5E · 2024</div>' +
+        '<div class="s24-origin classic-ink" data-fit data-fit-min="7">' + v(origin) + "</div>" +
+        '<div class="s24-cols">' +
+          '<div class="s24-left">' +
+          tPb(s.pb || "") +
+          '<div class="s24-abils">' + (s.abilsHtml || "") + "</div>" +
+          tTrain(s.armorTrain || []) +
+          tProfBlock("Владение оружием, инструментами и языки", s.profs || [], "t-block--grow is-ruled") +
+          tInsp(!!s.insp, "Героическое вдохновение", "Переброс любого кубика. Максимум 1.") +
+          '<div class="t-exhaust">' + tLabel("Истощение") + tPips(6, 0) + "</div>" +
+          "</div>" +
+          '<div class="s24-right">' +
+            '<div class="t-plaques">' +
+              tPlaque("Инициатива", s.init || "") +
+              tPlaque("Скорость", s.speed || "") +
+              tPlaque("П. восприятие", s.passive || "") +
+              tPlaque("Размер", s.size || "Средний") +
+            "</div>" +
+            '<div class="t-cond-line"><span class="t-cond-line__rule"></span>' + tLabel("Состояния") + "</div>" +
+            tTable("Оружие и боевые заговоры", ["Название", "Бонус / Сл", "Урон / вид", "Заметки"], s.weapons || [], 1) +
+            tFeatBlock("Умения и способности", features, "t-block--grow is-ruled") +
+            '<div class="s24-mini">' +
+              tFeatBlock("Видовые умения", species) +
+              tFeatBlock("Черты", feats) +
+            "</div>" +
+            tEquip("Снаряжение", s.equipment || "", tCoins(s.cp || "0", s.sp || "0", s.ep || "0", s.gp || "0", s.pp || "0")) +
+          "</div>" +
+        "</div>" +
+      "</div>"
+    );
+  }
+  function html14FromChar(c) {
+    c = c || {};
+    var s = c.sheet14;
+    if (!s) {
+      s = c.isWizard ? withMirren14Abils(buildMirrenSheet14()) : withElara14Abils(buildElaraSheet14());
+    } else if (!s.abilsHtml) {
+      s = c.isWizard ? withMirren14Abils(s) : withElara14Abils(s);
+    }
+    var name = v(c.name);
+    return (
+      '<div class="s14">' +
+        '<div class="s14-head">' +
+          logo("5E · 2014") +
+          '<div class="s14-id">' +
+            tField("Имя персонажа", name, "t-field--name", "classic-ink--name") +
+            tField("Класс и уровень", v(s.className || "")) +
+            tField("Предыстория", v(s.background || "")) +
+            tField("Раса", v(s.race || "")) +
+            tField("Мировоззрение", v(s.align || "")) +
+            tField("Опыт", v(s.xp || "")) +
+            tField("Имя игрока", v(c.player || "")) +
+          "</div>" +
+        "</div>" +
+        '<div class="s14-body">' +
+          '<div class="s14-left">' +
+          '<div class="s14-abils">' + (s.abilsHtml || "") + "</div>" +
+          tProfBlock("Прочие владения и языки", s.profs || [], "t-block--grow is-ruled") +
+          "</div>" +
+          '<div class="s14-right">' +
+            '<div class="t-plaques">' +
+              tPlaque("Класс<br>доспеха", s.ac || "") +
+              tPlaque("Инициатива", s.init || "") +
+              tPlaque("Скорость", s.speed || "") +
+              tPlaque("Бонус<br>владения", s.pb || "") +
+            "</div>" +
+            '<div class="s14-passive-row">' +
+              tPlaque("Пассивная мудрость<br>(восприятие)", s.passive || "") +
+              tInsp(!!s.insp, "Вдохновение") +
+            "</div>" +
+            tHpTrio(s.hpCur || "", s.hpTemp || "0", s.hpMax || "") +
+            '<div class="t-combat-row">' +
+              tHitDice(s.hdSpent || "0", s.hdMax || "", s.hdType || "к8", "2014") +
+              tDeath(0, 0) +
+            "</div>" +
+            tTable("Атаки и заклинания", ["Название", "Бонус", "Урон / вид"], s.weapons || [], 1) +
+            tFeatBlock("Умения и особенности", s.features || [], "t-block--grow is-ruled") +
+            tEquip("Снаряжение", s.equipment || "", tCoins(s.cp || "0", s.sp || "0", s.ep || "0", s.gp || "0", s.pp || "0")) +
+          "</div>" +
+        "</div>" +
+      "</div>"
+    );
+  }
+  function buildMirrenSheet24() {
+    return {
+      background: "Мудрец",
+      className: "Волшебник 9",
+      speciesName: "Человек",
+      subclass: "Школа воплощения",
+      level: "9",
+      xp: "48000",
+      ac: "12",
+      hpCur: "38",
+      hpTemp: "0",
+      hpMax: "47",
+      hdSpent: "2",
+      hdMax: "9",
+      hdType: "к6",
+      pb: "+4",
+      init: "+2",
+      speed: "30",
+      passive: "12",
+      size: "Средний",
+      insp: true,
+      origin: "Черта происхождения: Память наставника · УСИ: ИНТ +2, ЛОВ +1",
+      armorTrain: [
+        { on: false, label: "Лёгкие" },
+        { on: false, label: "Средние" },
+        { on: false, label: "Тяжёлые" },
+        { on: false, label: "Щиты" }
+      ],
+      profs: [
+        { label: "Оружие", text: "Простое." },
+        { label: "Доспехи", text: "—" },
+        { label: "Инструменты", text: "Инструменты каллиграфа." },
+        { label: "Языки", text: "Общий, эльфийский, дварфский." }
+      ],
+      weapons: [
+        ["Кинжал", "+6", "1к4+2 колющий", ""],
+        ["Огненный снаряд", "+7", "1к10 огонь", "Заговор"]
+      ],
+      features: [
+        { name: "Использование заклинаний", src: "волшебник", text: "Интеллект. Книга заклинаний." },
+        { name: "Магическое восстановление", src: "волшебник", text: "После короткого отдыха вы восстанавливаете ячейки, сумма кругов которых не больше половины уровня (округление вверх); ни одна не выше 6 круга." },
+        { name: "Школа воплощения", src: "волшебник", text: "Скульптор заклинаний: при воплощении оставляете существ в области без урона." }
+      ],
+      species: [
+        { name: "Находчивость", src: "человек", text: "Владение одним навыком на ваш выбор; привычка к живой работе пером." }
+      ],
+      feats: [
+        { name: "Память наставника", src: "происхождение", text: "На полях книги — почерк наставника. В сомнении сверяетесь с пометкой." }
+      ],
+      equipment: "Книга заклинаний, кинжал, набор учёного, компоненты, пузырёк чернил.",
+      cp: "4", sp: "11", ep: "0", gp: "18", pp: "0",
+      abilsHtml: ""
+    };
+  }
+  function buildDarrakSheet24() {
+    return {
+      background: "Солдат",
+      className: "Жрец 3",
+      speciesName: "Дварф (горный)",
+      subclass: "Домен бури",
+      level: "3",
+      xp: "900",
+      ac: "17",
+      hpCur: "13",
+      hpTemp: "0",
+      hpMax: "27",
+      hdSpent: "2",
+      hdMax: "3",
+      hdType: "к8",
+      pb: "+2",
+      init: "+0",
+      speed: "25",
+      passive: "13",
+      size: "Средний",
+      insp: true,
+      origin: "Воинское звание. УСИ: МДР +2, СИЛ +1",
+      armorTrain: [
+        { on: true, label: "Лёгкие" },
+        { on: true, label: "Средние" },
+        { on: false, label: "Тяжёлые" },
+        { on: true, label: "Щиты" }
+      ],
+      profs: [
+        { label: "Оружие", text: "Простое; боевой топор, боевой молот, лёгкий и метательный молоты." },
+        { label: "Доспехи", text: "Лёгкие, средние, щиты." },
+        { label: "Инструменты", text: "Игровой набор, сухопутный транспорт." },
+        { label: "Языки", text: "Дварфский, общий." }
+      ],
+      weapons: [
+        ["Боевой молот", "+5", "1к8+3 дробящий", ""],
+        ["Арбалет лёгкий", "+2", "1к8 колющий", ""]
+      ],
+      features: [
+        { name: "Использование заклинаний", src: "жрец", text: "Мудрость." },
+        { name: "Домен бури", src: "жрец", text: "Гнев бури: реакция, 2к8 грома или электричества." },
+        { name: "Божественный канал", src: "жрец", text: "1/отдых: обращение нежити; разрушительный гнев." }
+      ],
+      species: [
+        { name: "Тёмное зрение", src: "дварф", text: "60 футов в темноте." },
+        { name: "Устойчивость дварфов", src: "дварф", text: "Преимущество против яда, сопротивление урону ядом." }
+      ],
+      feats: [
+        { name: "Воинское звание", src: "солдат", text: "Вас узнают как солдата." }
+      ],
+      equipment: "Чешуйчатый доспех, щит, боевой молот, лёгкий арбалет, набор священника, святой символ.",
+      cp: "12", sp: "8", ep: "0", gp: "35", pp: "0",
+      abilsHtml: ""
+    };
+  }
+  function buildElaraSheet14() {
+    return {
+      className: "Воин 5",
+      background: "Солдат",
+      race: "Эльф",
+      align: "Законно-нейтральный",
+      xp: "6500",
+      ac: "18",
+      init: "+2",
+      speed: "30",
+      pb: "+3",
+      passive: "13",
+      hpCur: "44",
+      hpTemp: "0",
+      hpMax: "48",
+      hdSpent: "0",
+      hdMax: "5",
+      hdType: "к10",
+      insp: true,
+      weapons: [
+        ["Длинный меч", "+6", "1к8+3 рубящий"],
+        ["Кинжал", "+5", "1к4+2 колющий"]
+      ],
+      features: [
+        { name: "Тёмное зрение", src: "эльф", text: "60 футов в темноте." },
+        { name: "Наследие фей", src: "эльф", text: "Преимущество на спасброски от «очарованный»." },
+        { name: "Второе дыхание", src: "воин", text: "1к10 + уровень хитов. 3 исп.: 1 за короткий отдых, все за долгий." },
+        { name: "Тактическое мышление", src: "воин", text: "Провал проверки: 1к10 за использование Второго дыхания." },
+        { name: "Тактическое смещение", src: "воин", text: "С Вторым дыханием — до половины скорости без провоцированных атак." },
+        { name: "Дополнительная атака", src: "воин", text: "Две атаки при действии Атака." },
+        { name: "Свирепый атакующий", src: "черта", text: "Раз в ход переброс костей урона оружия." }
+      ],
+      profs: [
+        { label: "Языки", text: "Эльфийский, общий." },
+        { label: "Доспехи", text: "Лёгкие, средние, тяжёлые, щиты." },
+        { label: "Оружие", text: "Простое, воинское." }
+      ],
+      equipment: "Кольчуга, длинный меч, кинжал и набор путешественника, а также значок заставы.",
+      cp: "8", sp: "15", ep: "0", gp: "25", pp: "0",
+      abilsHtml: ""
+    };
+  }
+  function fillSheetAbils() {
+    /* Deferred to first use so abil24/abil14 exist. Called from html*FromChar after those fns are defined — they already are, since we inject after html24. */
+  }
+  function buildMirrenSheet14() {
+    var s24 = buildMirrenSheet24();
+    return {
+      background: s24.background,
+      className: s24.className,
+      race: s24.speciesName,
+      align: "Законно-добрый",
+      xp: s24.xp,
+      ac: s24.ac,
+      init: s24.init,
+      speed: s24.speed,
+      pb: s24.pb,
+      passive: s24.passive,
+      insp: s24.insp,
+      hpCur: s24.hpCur,
+      hpTemp: s24.hpTemp,
+      hpMax: s24.hpMax,
+      hdSpent: s24.hdSpent,
+      hdMax: s24.hdMax,
+      hdType: s24.hdType,
+      weapons: s24.weapons,
+      features: (s24.features || []).concat(s24.species || [], s24.feats || []),
+      profs: s24.profs,
+      equipment: s24.equipment,
+      cp: s24.cp, sp: s24.sp, ep: s24.ep, gp: s24.gp, pp: s24.pp
+    };
+  }
+  function withMirren14Abils(s) {
+    s.abilsHtml =
+      abil14("Сила", "8", "−1", [tSkill(false, "−1", "Спасбросок"), tSkill(false, "−1", "Атлетика")]) +
+      abil14("Интеллект", "16", "+3", [
+        tSkill(true, "+7", "Спасбросок"), tSkill(true, "+7", "Магия"),
+        tSkill(true, "+7", "История"), tSkill(false, "+3", "Расследование"),
+        tSkill(false, "+3", "Природа"), tSkill(false, "+3", "Религия")
+      ]) +
+      abil14("Ловкость", "14", "+2", [
+        tSkill(false, "+2", "Спасбросок"), tSkill(false, "+2", "Акробатика"),
+        tSkill(false, "+2", "Ловкость рук"), tSkill(false, "+2", "Скрытность")
+      ]) +
+      abil14("Мудрость", "10", "+0", [
+        tSkill(false, "+0", "Спасбросок"), tSkill(false, "+0", "Уход за животными"),
+        tSkill(true, "+4", "Проницательность"), tSkill(false, "+0", "Медицина"),
+        tSkill(false, "+0", "Восприятие"), tSkill(false, "+0", "Выживание")
+      ]) +
+      abil14("Телосложение", "14", "+2", [tSkill(false, "+2", "Спасбросок")]) +
+      abil14("Харизма", "10", "+0", [
+        tSkill(false, "+0", "Спасбросок"), tSkill(false, "+0", "Обман"),
+        tSkill(false, "+0", "Запугивание"), tSkill(false, "+0", "Выступление"),
+        tSkill(false, "+0", "Убеждение")
+      ]);
+    return s;
+  }
+  function withMirrenAbils(s) {
+    s.abilsHtml =
+      abil24("Сила", "8", "−1", [tSkill(false, "−1", "Спасбросок"), tSkill(false, "−1", "Атлетика")]) +
+      abil24("Интеллект", "16", "+3", [
+        tSkill(true, "+7", "Спасбросок"), tSkill(true, "+7", "Магия"),
+        tSkill(true, "+7", "История"), tSkill(false, "+3", "Расследование"),
+        tSkill(false, "+3", "Природа"), tSkill(false, "+3", "Религия")
+      ]) +
+      abil24("Ловкость", "14", "+2", [
+        tSkill(false, "+2", "Спасбросок"), tSkill(false, "+2", "Акробатика"),
+        tSkill(false, "+2", "Ловкость рук"), tSkill(false, "+2", "Скрытность")
+      ]) +
+      abil24("Мудрость", "10", "+0", [
+        tSkill(false, "+0", "Спасбросок"), tSkill(false, "+0", "Уход за животными"),
+        tSkill(true, "+4", "Проницательность"), tSkill(false, "+0", "Медицина"),
+        tSkill(false, "+0", "Восприятие"), tSkill(false, "+0", "Выживание")
+      ]) +
+      abil24("Телосложение", "14", "+2", [tSkill(false, "+2", "Спасбросок")]) +
+      abil24("Харизма", "10", "+0", [
+        tSkill(false, "+0", "Спасбросок"), tSkill(false, "+0", "Обман"),
+        tSkill(false, "+0", "Запугивание"), tSkill(false, "+0", "Выступление"),
+        tSkill(false, "+0", "Убеждение")
+      ]);
+    return s;
+  }
+  function withDarrak24Abils(s) {
+    s.abilsHtml =
+      abil24("Сила", "16", "+3", [tSkill(false, "+3", "Спасбросок"), tSkill(true, "+5", "Атлетика")]) +
+      abil24("Интеллект", "8", "−1", [
+        tSkill(false, "−1", "Спасбросок"), tSkill(false, "−1", "Магия"),
+        tSkill(false, "−1", "История"), tSkill(false, "−1", "Расследование"),
+        tSkill(false, "−1", "Природа"), tSkill(false, "−1", "Религия")
+      ]) +
+      abil24("Ловкость", "10", "+0", [
+        tSkill(false, "+0", "Спасбросок"), tSkill(false, "+0", "Акробатика"),
+        tSkill(false, "+0", "Ловкость рук"), tSkill(false, "+0", "Скрытность")
+      ]) +
+      abil24("Мудрость", "16", "+3", [
+        tSkill(true, "+5", "Спасбросок"), tSkill(false, "+3", "Уход за животными"),
+        tSkill(true, "+5", "Проницательность"), tSkill(true, "+5", "Медицина"),
+        tSkill(false, "+3", "Восприятие"), tSkill(false, "+3", "Выживание")
+      ]) +
+      abil24("Телосложение", "16", "+3", [tSkill(false, "+3", "Спасбросок")]) +
+      abil24("Харизма", "12", "+1", [
+        tSkill(true, "+3", "Спасбросок"), tSkill(false, "+1", "Обман"),
+        tSkill(true, "+3", "Запугивание"), tSkill(false, "+1", "Выступление"),
+        tSkill(false, "+1", "Убеждение")
+      ]);
+    return s;
+  }
+  function withElara14Abils(s) {
+    s.abilsHtml =
+      abil14("Сила", "16", "+3", [tSkill(true, "+3", "Спасбросок"), tSkill(true, "+6", "Атлетика")]) +
+      abil14("Интеллект", "10", "+0", [
+        tSkill(false, "+0", "Спасбросок"), tSkill(false, "+0", "Магия"),
+        tSkill(false, "+0", "История"), tSkill(false, "+0", "Расследование"),
+        tSkill(false, "+0", "Природа"), tSkill(false, "+0", "Религия")
+      ]) +
+      abil14("Ловкость", "14", "+2", [
+        tSkill(false, "+2", "Спасбросок"), tSkill(false, "+2", "Акробатика"),
+        tSkill(false, "+2", "Ловкость рук"), tSkill(false, "+2", "Скрытность")
+      ]) +
+      abil14("Мудрость", "12", "+1", [
+        tSkill(false, "+1", "Спасбросок"), tSkill(false, "+1", "Уход за животными"),
+        tSkill(false, "+1", "Проницательность"), tSkill(false, "+1", "Медицина"),
+        tSkill(true, "+4", "Восприятие"), tSkill(false, "+1", "Выживание")
+      ]) +
+      abil14("Телосложение", "14", "+2", [tSkill(true, "+2", "Спасбросок")]) +
+      abil14("Харизма", "8", "−1", [
+        tSkill(false, "−1", "Спасбросок"), tSkill(false, "−1", "Обман"),
+        tSkill(false, "−1", "Запугивание"), tSkill(false, "−1", "Выступление"),
+        tSkill(false, "−1", "Убеждение")
+      ]);
+    return s;
+  }
+
+  function physicalPages() {
+    var out = [];
+    var pages = state.pages.slice();
+    if (isLayout24() && pages.indexOf("features") < 0 && (pages.indexOf("notes") >= 0 || state.blank)) {
+      var atFeat = pages.indexOf("persona");
+      if (atFeat < 0) atFeat = pages.indexOf("p1");
+      pages.splice(atFeat < 0 ? 1 : atFeat + 1, 0, "features");
+    }
+    if (!state.blank && state.demo === "wizard" && isWizard() && !isLayout24()) {
+      /* Страница 1 нужна и на форме 2014: html14FromChar(Миррен), html14() не трогаем. */
+      if (pages.indexOf("p1") < 0) pages.unshift("p1");
+      if (pages.indexOf("features") < 0) pages.splice(Math.max(0, pages.indexOf("persona") + 1), 0, "features");
+    }
+    function push(id, section, title, html) {
+      out.push({ id: id, section: section, title: title, html: html });
+    }
+    pages.forEach(function (id) {
+      if (id === "p1") {
+        push("p1", "p1", "1-я", p1Html());
+      } else if (id === "persona") {
+        push("persona", "persona", "Личность", isLayout24() ? htmlPersona24() : htmlPersona());
+      } else if (id === "spells") {
+        var pack = htmlSpellsBoard(spellLists());
+        push("spells", "spells", "Заклинания", pack.html);
+        if (pack.overflow && pack.overflow.length) {
+          push("spells-2", "spells", "Заклинания · продолжение", htmlSpellsCont(pack.overflow));
+        }
+      } else if (id === "cards") {
+        var useSpellCards = isCaster();
+        var title0 = useSpellCards ? "Карточки заклинаний" : "Карточки умений";
+        var cards = state.blank ? [] : (useSpellCards ? demoSpellCards() : demoFeatureCards());
+        var packed = packCardPages(cards);
+        packed.forEach(function (group, idx) {
+          var title = idx === 0 ? title0 : (title0 + " · продолжение");
+          var pid = idx === 0 ? "cards" : ("cards-" + (idx + 1));
+          push(pid, "cards", title, '<div class="s-cards">' + sheetHead(title) + cardGridHtml(group) + "</div>");
+        });
+      } else if (id === "companions") {
+        var list = state.blank ? [] : demoCompanions();
+        var cpages = packCompanionPages(list);
+        if (!cpages.length) return;
+        cpages.forEach(function (group, idx) {
+          var title = idx === 0 ? "Напарники" : "Напарники · продолжение";
+          var pid = idx === 0 ? "companions" : ("companions-" + (idx + 1));
+          var cls = "s-comp-grid" + (group.length === 1 ? " is-single" : "");
+          var html = '<div class="s-companions">' + sheetHead(title) + '<div class="' + cls + '">';
+          group.forEach(function (c) { html += tCompanion(c); });
+          html += "</div></div>";
+          push(pid, "companions", title, html);
+        });
+      } else if (id === "notes") {
+        var notes = state.blank ? [] : demoNotes();
+        var npages = packNotesPages(notes);
+        npages.forEach(function (group, idx) {
+          var title = idx === 0 ? "Заметки" : "Заметки · продолжение";
+          var pid = idx === 0 ? "notes" : ("notes-" + (idx + 1));
+          push(pid, "notes", title, htmlNotesPage(group, title));
+        });
+      } else if (id === "features") {
+        if (isLayout24()) {
+          htmlFeaturePages24().forEach(function (fp) {
+            push(fp.id, "features", fp.title, fp.html);
+          });
+        } else {
+          var feats = (char() && char().features) || [];
+          if (!feats.length && char() && char().name === "Элара Ветрорез" && typeof buildElaraSheet14 === "function") {
+            feats = (buildElaraSheet14().features || []).slice();
+          }
+          var packed14 = packFeatList14(feats);
+          packed14.forEach(function (group, idx) {
+            var title = idx === 0 ? "Умения и особенности" : "Умения и особенности · продолжение";
+            var pid = idx === 0 ? "features" : ("features-" + (idx + 1));
+            push(pid, "features", title, htmlFeaturePage(group, title));
+          });
+        }
+      }
+    });
+    var total = out.length || 1;
+    out.forEach(function (p, idx) {
+      p.index = idx + 1;
+      p.of = total;
+      if (p.section !== "p1") p.html += sheetFoot(p.title, p.index, p.of);
+    });
+    return out;
+  }
+
+  function tCard(title, body) {
+    return (
+      '<div class="t-card">' +
+      '<div class="t-card__title classic-ink classic-ink--keep">' + v(title) + "</div>" +
+      '<div class="t-card__body classic-ink">' + v(body) + "</div></div>"
+    );
+  }
+
+  function cumulativeScale(el) {
+    var s = 1;
+    var n = el;
+    while (n && n !== document.documentElement) {
+      var tr = window.getComputedStyle(n).transform;
+      if (tr && tr !== "none") {
+        try {
+          var m = new DOMMatrixReadOnly(tr);
+          s *= Math.hypot(m.a, m.b);
+        } catch (err) {}
+      }
+      n = n.parentElement;
+    }
+    return s || 1;
+  }
+  function opticalCenter(paper) {
+    paper = paper || document.querySelector("[data-paper]");
+    if (!paper) return;
+    paper.querySelectorAll("[data-center]").forEach(function (frame) {
+      var text = frame.querySelector("[data-center-text]");
+      if (!text) return;
+      text.style.transform = "none";
+      var range = document.createRange();
+      range.selectNodeContents(text);
+      var tr = range.getBoundingClientRect();
+      var fr = frame.getBoundingClientRect();
+      if (!fr.width || !fr.height || (!tr.width && !tr.height)) return;
+      var scale = cumulativeScale(frame);
+      var dx = ((fr.left + fr.width / 2) - (tr.left + tr.width / 2)) / scale;
+      var dy = ((fr.top + fr.height / 2) - (tr.top + tr.height / 2)) / scale;
+      if (Math.abs(dx) < 0.02 && Math.abs(dy) < 0.02) return;
+      text.style.transform = "translate(" + dx.toFixed(3) + "px, " + dy.toFixed(3) + "px)";
+    });
+  }
+  function typographyExtrasAllowed() {
+    /* At the accepted 11 pt default, do not mutate typography on frozen
+       Darrak / Elara / 2024 frames. Extras still run for other sizes, and
+       at 11 pt only for Mirren on form 2014 (those frames are being re-frozen). */
+    if (state.pt !== 11) return true;
+    return !!(state.demo === "wizard" && !isLayout24());
+  }
+  function fitLimit(el) {
+    var w = el.clientWidth;
+    var box = el.closest(".t-plaque__value, td, .t-field__value");
+    if (box && box.clientWidth && (w < 1 || el.scrollWidth > box.clientWidth + 0.5 || box.clientWidth + 0.5 < w)) {
+      return box.clientWidth;
+    }
+    return w;
+  }
+  function fitOneLine(el, minPt) {
+    el.classList.remove("is-wrap");
+    el.style.fontSize = "";
+    el.style.removeProperty("font-size");
+    el.style.letterSpacing = "";
+    el.style.removeProperty("letter-spacing");
+    el.style.whiteSpace = "nowrap";
+    var maxPx = parseFloat(window.getComputedStyle(el).fontSize);
+    var minPx = (minPt || 7) * 96 / 72;
+    var limit = typographyExtrasAllowed() ? fitLimit(el) : el.clientWidth;
+    if (!limit) return true;
+    if (el.scrollWidth <= limit + 0.5) return true;
+    var lo = minPx, hi = maxPx, best = minPx, i, mid;
+    for (i = 0; i < 14; i += 1) {
+      mid = (lo + hi) / 2;
+      el.style.setProperty("font-size", mid + "px");
+      if (el.scrollWidth <= limit + 0.5) { best = mid; lo = mid; }
+      else hi = mid;
+    }
+    el.style.setProperty("font-size", best + "px");
+    if (el.scrollWidth <= limit + 0.5) return true;
+    /* Tiny leftover in a plaque / number cell: tighten tracking rather than wrap a label. */
+    if (typographyExtrasAllowed() && (el.closest(".t-plaque") || el.classList.contains("t-num") || el.classList.contains("t-center"))) {
+      var track, tw = el.scrollWidth - limit;
+      if (tw > 0 && tw < limit * 0.2) {
+        track = Math.max(-0.06, -tw / Math.max(el.textContent.length, 1) / (maxPx || 12));
+        el.style.setProperty("letter-spacing", track.toFixed(4) + "em");
+        if (el.scrollWidth <= limit + 0.5) return true;
+        el.style.letterSpacing = "";
+      }
+    }
+    var noWrap = el.classList.contains("t-skill__name") || el.closest(".t-skill") || el.classList.contains("t-feat__name") || el.closest(".t-plaque");
+    if (noWrap) return false;
+    el.style.whiteSpace = "normal";
+    el.classList.add("is-wrap");
+    return false;
+  }
+  function textOfEl(el) {
+    return (el.textContent || "").replace(/\s+/g, " ").trim();
+  }
+  function ragLineBuckets(el) {
+    var walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, null);
+    var buckets = [];
+    var node, i, j, r, rec, b, str;
+    while ((node = walker.nextNode())) {
+      str = node.nodeValue || "";
+      for (i = 0; i < str.length; i += 1) {
+        r = document.createRange();
+        r.setStart(node, i);
+        r.setEnd(node, i + 1);
+        rec = r.getBoundingClientRect();
+        if (rec.width < 0.15 && rec.height < 0.15) continue;
+        b = null;
+        for (j = 0; j < buckets.length; j += 1) {
+          if (Math.abs(buckets[j].top - rec.top) < 2) { b = buckets[j]; break; }
+        }
+        if (!b) { b = { top: rec.top, right: rec.right, left: rec.left, text: "" }; buckets.push(b); }
+        b.text += str.charAt(i);
+        if (rec.right > b.right) b.right = rec.right;
+        if (rec.left < b.left) b.left = rec.left;
+      }
+    }
+    buckets.sort(function (x, y) { return x.top - y.top; });
+    return buckets;
+  }
+  function isRaggedLine(t, leftover, colW, mm) {
+    var words = String(t || "").replace(/\s+/g, " ").trim().split(" ").filter(Boolean);
+    return (words.length === 1 && leftover > 10 * mm) ||
+      (words.length === 2 && leftover > Math.max(16 * mm, colW * 0.55));
+  }
+  function shyPositions(word) {
+    var vowels = "аеёиоуыэюяАЕЁИОУЫЭЮЯaeiouyAEIOUY";
+    var out = [];
+    var i, ch;
+    var clean = String(word || "");
+    var core = clean.replace(/[^A-Za-zА-Яа-яЁё]+$/g, "");
+    var tail = clean.slice(core.length);
+    for (i = 2; i <= core.length - 2; i += 1) {
+      ch = core.charAt(i - 1);
+      if (vowels.indexOf(ch) >= 0) out.push({ at: i, core: core, tail: tail });
+    }
+    return out;
+  }
+  function replaceNodeText(el, from, to) {
+    var walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, null);
+    var n;
+    while ((n = walker.nextNode())) {
+      if (n.nodeValue && n.nodeValue.indexOf(from) >= 0) {
+        n.nodeValue = n.nodeValue.replace(from, to);
+        return true;
+      }
+    }
+    return false;
+  }
+  function measureString(el, str) {
+    var span = document.createElement("span");
+    var cs = getComputedStyle(el);
+    span.style.cssText = "position:absolute;left:-9999px;top:0;visibility:hidden;white-space:nowrap;font:" + cs.font + ";letter-spacing:" + cs.letterSpacing + ";";
+    span.textContent = str;
+    document.body.appendChild(span);
+    var w = span.getBoundingClientRect().width;
+    document.body.removeChild(span);
+    return w;
+  }
+  function balanceRags(paper) {
+    paper = paper || document.querySelector("[data-paper]");
+    if (!paper) return;
+    var scale = cumulativeScale(paper) || 1;
+    var mm = 96 / 25.4 * scale;
+    var inkSel = [
+      ".t-block .classic-ink",
+      ".s24-persub .classic-ink",
+      ".s-p2-allies__row > .classic-ink",
+      ".s-feat-item__text",
+      ".t-scard__body",
+      ".s-note-block .classic-ink",
+      ".t-comp__senses",
+      ".t-comp__acts",
+      ".t-comp__feats",
+      ".t-comp__notes",
+      ".t-feat__text"
+    ].join(",");
+    Array.prototype.forEach.call(paper.querySelectorAll(inkSel), function (el) {
+      if (!textOfEl(el)) return;
+      if (el.closest(".s-sheet-head, .s-sheet-foot, .s-logo")) return;
+      var walker0 = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, null);
+      var n0;
+      while ((n0 = walker0.nextNode())) {
+        if (n0.nodeValue && n0.nodeValue.indexOf("\u00AD") >= 0) {
+          n0.nodeValue = n0.nodeValue.replace(/\u00AD/g, "");
+        }
+      }
+      var guard = 0;
+      while (guard < 8) {
+        guard += 1;
+        var box = el.getBoundingClientRect();
+        var colW = (box.right - box.left) / scale;
+        var lines = ragLineBuckets(el);
+        if (lines.length < 2) return;
+        var idx, leftover, t, words, prev, next, glue, pos, i, chosen, trial, avail, ok, word;
+        ok = true;
+        for (idx = 0; idx < lines.length - 1; idx += 1) {
+          t = String(lines[idx].text || "").replace(/\s+/g, " ").trim();
+          if (!t) continue;
+          leftover = (box.right - lines[idx].right) / scale;
+          if (!isRaggedLine(t, leftover, colW, mm)) continue;
+          ok = false;
+          words = t.split(" ").filter(Boolean);
+          avail = box.right - lines[idx].left;
+          prev = idx > 0 ? String(lines[idx - 1].text || "").replace(/\s+/g, " ").trim().split(" ").filter(Boolean) : [];
+          next = String(lines[idx + 1].text || "").replace(/\s+/g, " ").trim().split(" ").filter(Boolean);
+          if (prev.length) {
+            glue = prev[prev.length - 1] + "\u00A0" + words.join(" ");
+            trial = glue.replace(/\u00A0/g, " ");
+            if (measureString(el, trial) <= (box.right - (idx > 0 ? lines[idx].left : box.left)) + 0.5) {
+              if (replaceNodeText(el, prev[prev.length - 1] + " " + words.join(" "), glue)) break;
+            }
+          }
+          if (next.length) {
+            glue = words.join(" ") + "\u00A0" + next[0].replace(/\u00AD/g, "");
+            trial = glue.replace(/\u00A0/g, " ");
+            if (measureString(el, trial) <= avail + 0.5) {
+              if (replaceNodeText(el, words.join(" ") + " " + next[0], glue) ||
+                  replaceNodeText(el, words.join(" ") + " " + next[0].replace(/\u00AD/g, ""), glue)) break;
+            }
+          }
+          if (next.length && next[0].replace(/\u00AD/g, "").length >= 6) {
+            word = next[0].replace(/\u00AD/g, "");
+            pos = shyPositions(word);
+            chosen = null;
+            for (i = 0; i < pos.length; i += 1) {
+              trial = t + " " + pos[i].core.slice(0, pos[i].at) + "-";
+              if (measureString(el, trial) <= avail + 0.5) chosen = pos[i];
+            }
+            if (chosen) {
+              var hyphenated = chosen.core.slice(0, chosen.at) + "\u00AD" + chosen.core.slice(chosen.at) + chosen.tail;
+              if (replaceNodeText(el, word, hyphenated) || replaceNodeText(el, next[0], hyphenated)) break;
+            }
+          }
+          return;
+        }
+        if (ok) return;
+      }
+    });
+  }
+  function fitType(paper) {
+    paper = paper || document.querySelector("[data-paper]");
+    if (!paper) return;
+    paper.querySelectorAll(".t-field__value").forEach(function (f) { f.style.minHeight = ""; });
+    paper.querySelectorAll(".t-plaque__value [data-center-text], [data-fit]").forEach(function (el) {
+      if (el.closest(".s-p2-vitals")) {
+        el.style.fontSize = "";
+        el.style.whiteSpace = "normal";
+        el.classList.add("is-wrap");
+        return;
+      }
+      var min = parseFloat(el.getAttribute("data-fit-min"));
+      if (!Number.isFinite(min)) min = 7;
+      fitOneLine(el, min);
+    });
+    paper.querySelectorAll("[data-field-row]").forEach(function (row) {
+      var fields = [].slice.call(row.querySelectorAll(".t-field__value"));
+      var groups = {};
+      fields.forEach(function (f) {
+        var y = Math.round(f.getBoundingClientRect().top / 2) * 2;
+        (groups[y] = groups[y] || []).push(f);
+      });
+      Object.keys(groups).forEach(function (y) {
+        var set = groups[y];
+        var h = 0;
+        set.forEach(function (f) { h = Math.max(h, f.offsetHeight); });
+        set.forEach(function (f) { f.style.minHeight = h + "px"; });
+      });
+    });
+    if (typographyExtrasAllowed()) {
+      balanceRags(paper);
+      fitBlocksToFrame(paper);
+    }
+  }
+  function rectsOverlap(a, b) {
+    var x = Math.max(a.left, b.left), y = Math.max(a.top, b.top);
+    var r = Math.min(a.right, b.right), bot = Math.min(a.bottom, b.bottom);
+    return (r - x) > 0.25 && (bot - y) > 0.25;
+  }
+  function textClientRects(el) {
+    var out = [];
+    var walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, null);
+    var n, r, boxes, i;
+    while ((n = walker.nextNode())) {
+      if (!String(n.nodeValue || "").trim()) continue;
+      r = document.createRange();
+      r.selectNodeContents(n);
+      boxes = r.getClientRects();
+      for (i = 0; i < boxes.length; i += 1) out.push(boxes[i]);
+    }
+    return out;
+  }
+  function fitBlocksToFrame(paper) {
+    var blocks = paper.querySelectorAll(".t-block, .t-equip");
+    Array.prototype.forEach.call(blocks, function (block) {
+      var lab = block.querySelector(":scope > .t-label, :scope > .t-block__label");
+      if (!lab) lab = block.querySelector(".t-label");
+      var targets = block.querySelectorAll(".t-feat__text, .t-feat__name, .t-feat__src, .classic-ink, .t-coin-lab");
+      if (!targets.length) return;
+      function colliding() {
+        var pe, cs, r, gap, i, j, k, el, rr, labRects;
+        cs = getComputedStyle(block);
+        r = block.getBoundingClientRect();
+        pe = {
+          left: r.left + (parseFloat(cs.borderLeftWidth) || 0),
+          right: r.right - (parseFloat(cs.borderRightWidth) || 0),
+          top: r.top + (parseFloat(cs.borderTopWidth) || 0),
+          bottom: r.bottom - (parseFloat(cs.borderBottomWidth) || 0)
+        };
+        labRects = lab ? textClientRects(lab) : [];
+        for (i = 0; i < targets.length; i += 1) {
+          el = targets[i];
+          if (lab && (el === lab || lab.contains(el) || el.contains(lab))) continue;
+          rr = textClientRects(el);
+          for (j = 0; j < rr.length; j += 1) {
+            for (k = 0; k < labRects.length; k += 1) {
+              if (rectsOverlap(rr[j], labRects[k])) return true;
+            }
+            gap = pe.bottom - rr[j].bottom;
+            if (gap < 1) return true;
+          }
+        }
+        return false;
+      }
+      var step = 0, i, el, px;
+      while (step < 18 && colliding()) {
+        step += 1;
+        for (i = 0; i < targets.length; i += 1) {
+          el = targets[i];
+          if (lab && (el === lab || lab.contains(el) || el.contains(lab))) continue;
+          px = parseFloat(getComputedStyle(el).fontSize) || 0;
+          if (px <= 7 * 96 / 72 + 0.05) continue;
+          el.style.setProperty("font-size", Math.max(7 * 96 / 72, px * 0.94) + "px");
+        }
+      }
+    });
+  }
+
+  function spellRowPx(paper) {
+    var r = paper.querySelector(".s-spell-row");
+    return r ? r.getBoundingClientRect().height : 0;
+  }
+  function appendEmptySpellRow(block) {
+    var cantrip = block.classList.contains("is-cantrip");
+    var rows = block.querySelector(".s-spell-rows");
+    if (!rows) return;
+    var fill = rows.querySelector(".s-spell-fill");
+    var wrap = document.createElement("div");
+    wrap.innerHTML = tSpellRow({}, cantrip);
+    var row = wrap.firstChild;
+    if (!row) return;
+    if (fill) rows.insertBefore(row, fill);
+    else rows.appendChild(row);
+  }
+  function peelLastNamedSpellRow(block) {
+    var rows = [].slice.call(block.querySelectorAll(":scope > .s-spell-rows > .s-spell-row"));
+    var i, row, name;
+    for (i = rows.length - 1; i >= 0; i -= 1) {
+      name = rows[i].querySelector(".s-spell-row__name");
+      if (name && String(name.textContent || "").trim()) {
+        row = rows[i];
+        row.parentNode.removeChild(row);
+        return row;
+      }
+    }
+    return null;
+  }
+  function ensureSpellCont(nextCol, level) {
+    var found = nextCol.querySelector('.s-spell-block[data-cont="' + level + '"]');
+    if (found) return found;
+    var html = tSpellBlock(Number(level), [], 0, 9, [], [], { cont: true, noSlots: true });
+    var wrap = document.createElement("div");
+    wrap.innerHTML = html;
+    var block = wrap.firstChild;
+    nextCol.insertBefore(block, nextCol.firstChild);
+    return block;
+  }
+  function layoutSpellPage(paper) {
+    paper = paper || document.querySelector("[data-paper]");
+    if (!paper) return;
+    var board = paper.querySelector(".s-spell-board");
+    if (!board) return;
+    var cols = [].slice.call(board.querySelectorAll(":scope > .s-spell-col"));
+    if (!cols.length) return;
+    var rowH = spellRowPx(paper);
+    if (rowH < 8) return;
+    function colContentOverflow(col) {
+      var gap = parseFloat(getComputedStyle(col).rowGap || getComputedStyle(col).gap) || 0;
+      var total = 0;
+      var blocks = [].slice.call(col.querySelectorAll(":scope > .s-spell-block"));
+      blocks.forEach(function (b, i) {
+        var cs = getComputedStyle(b);
+        var pad = (parseFloat(cs.paddingTop) || 0) + (parseFloat(cs.paddingBottom) || 0) +
+          (parseFloat(cs.borderTopWidth) || 0) + (parseFloat(cs.borderBottomWidth) || 0);
+        var head = b.querySelector(".s-spell-block__head");
+        var rows = b.querySelectorAll(".s-spell-row");
+        total += pad + (head ? head.getBoundingClientRect().height : 0) + rows.length * rowH;
+        if (i) total += gap;
+      });
+      return total - col.clientHeight;
+    }
+    var c, guard, best, bestN, row, dest, destRows, fill, level, first;
+    for (c = 0; c < cols.length - 1; c += 1) {
+      guard = 0;
+      while (colContentOverflow(cols[c]) > 2 && guard < 48) {
+        guard += 1;
+        best = null;
+        bestN = 0;
+        [].slice.call(cols[c].querySelectorAll(":scope > .s-spell-block")).forEach(function (b) {
+          if (b.getAttribute("data-cont")) return;
+          var n = 0;
+          b.querySelectorAll(".s-spell-row__name").forEach(function (el) {
+            if (String(el.textContent || "").trim()) n += 1;
+          });
+          if (n > bestN) { best = b; bestN = n; }
+        });
+        if (!best || bestN < 2) break;
+        row = peelLastNamedSpellRow(best);
+        if (!row) break;
+        level = best.getAttribute("data-level") || "1";
+        dest = ensureSpellCont(cols[c + 1], level);
+        destRows = dest.querySelector(".s-spell-rows");
+        if (!destRows) break;
+        fill = destRows.querySelector(".s-spell-fill");
+        first = destRows.querySelector(".s-spell-row");
+        destRows.insertBefore(row, first || fill || null);
+      }
+    }
+    function absorb(list) {
+      var changed = true;
+      var steps = 0;
+      var fillEl, h;
+      while (changed && steps < 80) {
+        changed = false;
+        steps += 1;
+        list.forEach(function (block) {
+          fillEl = block.querySelector(".s-spell-fill");
+          if (!fillEl) return;
+          h = fillEl.getBoundingClientRect().height;
+          var need = state.blank ? (rowH + 1) : (rowH - 0.75);
+          if (h >= need) {
+            appendEmptySpellRow(block);
+            changed = true;
+          }
+        });
+      }
+    }
+    var available = [];
+    var others = [];
+    paper.querySelectorAll(".s-spell-block").forEach(function (b) {
+      if (b.getAttribute("data-available") === "1") available.push(b);
+      else others.push(b);
+    });
+    absorb(available);
+    absorb(others);
+    function peelLastEmpty(block) {
+      var rows = [].slice.call(block.querySelectorAll(":scope > .s-spell-rows > .s-spell-row"));
+      if (!rows.length) return false;
+      var last = rows[rows.length - 1];
+      var name = last.querySelector(".s-spell-row__name");
+      if (name && String(name.textContent || "").trim()) return false;
+      last.parentNode.removeChild(last);
+      return true;
+    }
+    var trimGuard = 0;
+    cols.forEach(function (col) {
+      while (colContentOverflow(col) > 0.5 && trimGuard < 48) {
+        trimGuard += 1;
+        var blocks = [].slice.call(col.querySelectorAll(":scope > .s-spell-block")).reverse();
+        var peeled = false;
+        var bi;
+        for (bi = 0; bi < blocks.length; bi += 1) {
+          if (peelLastEmpty(blocks[bi])) { peeled = true; break; }
+        }
+        if (!peeled) break;
+      }
+    });
+    if (state.blank) {
+      paper.querySelectorAll(".s-spell-block").forEach(function (block) {
+        var rows = [].slice.call(block.querySelectorAll(":scope > .s-spell-rows > .s-spell-row"));
+        if (!rows.length) return;
+        var last = rows[rows.length - 1];
+        var name = last.querySelector(".s-spell-row__name");
+        if (name && String(name.textContent || "").trim()) return;
+        var cs = getComputedStyle(block);
+        var limit = block.getBoundingClientRect().bottom
+          - (parseFloat(cs.paddingBottom) || 0)
+          - (parseFloat(cs.borderBottomWidth) || 0);
+        if (last.getBoundingClientRect().bottom > limit - rowH + 2) {
+          last.parentNode.removeChild(last);
+        }
+      });
+    }
+  }
+
+  function renderPaper() {
+    var paper = document.querySelector("[data-paper]");
+    if (!paper) return;
+    var plist = physicalPages();
+    var ids = plist.map(function (p) { return p.id; });
+    if (ids.indexOf(state.viewPage) < 0) state.viewPage = (plist[0] && plist[0].id) || "p1";
+    paper.innerHTML = paperHtml();
+    paper.style.setProperty("--classic-block-pt", state.pt + "pt");
+    requestAnimationFrame(function () {
+      layoutSpellPage();
+      fitType();
+      opticalCenter();
+    });
+  }
+
+  function renderThumbs() {
+    var box = document.querySelector("[data-thumbs]");
+    if (!box) return;
+    box.innerHTML = physicalPages().map(function (p) {
+      var on = p.id === state.viewPage ? " is-on" : "";
+      var label = p.title.replace(" · продолжение", " · 2").replace(" · доп. страница", " · 2");
+      if (p.title.indexOf("Карточки") === 0 && p.id.indexOf("-") >= 0) {
+        label = "Карточки · " + p.id.split("-")[1];
+      }
+      return (
+        '<button class="classic-thumb' + on + '" type="button" data-thumb="' + p.id + '">' +
+        '<span class="classic-thumb__page"></span>' + label +
+        "</button>"
+      );
+    }).join("");
+  }
+
+  function press(sel, on) {
+    document.querySelectorAll(sel).forEach(function (el) {
+      var is = typeof on === "function" ? on(el) : on;
+      el.classList.toggle("is-on", !!is);
+      if (el.hasAttribute("aria-pressed")) el.setAttribute("aria-pressed", is ? "true" : "false");
+    });
+  }
+
+  function sync() {
+    root.setAttribute("data-classic-color", state.color);
+    root.setAttribute("data-classic-font", state.font);
+    root.setAttribute("data-classic-name-script", state.script ? "1" : "0");
+    root.setAttribute("data-classic-leading", state.leading);
+    root.setAttribute("data-classic-align", state.align);
+    root.setAttribute("data-classic-pencil", state.pencil ? "1" : "0");
+    var personaOn = hasPage("persona");
+    var notesOn = hasPage("notes");
+    var portraitOn = !!(state.portrait && personaOn);
+    root.setAttribute("data-classic-portrait", portraitOn ? "1" : "0");
+    root.setAttribute("data-classic-blank", state.blank ? "1" : "0");
+    root.setAttribute("data-classic-layout", state.layout);
+    root.setAttribute("data-classic-sheet", state.sheetOpen ? "open" : "closed");
+    root.setAttribute("data-classic-fit", state.previewFit);
+    root.style.setProperty("--classic-block-pt", state.pt + "pt");
+
+    var name = state.blank ? "Пустой бланк" : char().name;
+    document.querySelectorAll("[data-char-name]").forEach(function (el) { el.textContent = name; });
+    document.querySelectorAll("[data-filename]").forEach(function (el) { el.textContent = filename(); });
+    document.querySelectorAll("[data-extra-value]").forEach(function (el) { el.textContent = String(state.extra); });
+    document.querySelectorAll("[data-pt-value]").forEach(function (el) { el.textContent = String(state.pt); });
+
+    press("[data-layout]", function (el) { return el.getAttribute("data-layout") === state.layout; });
+    state.preset = matchPreset();
+    press("[data-preset]", function (el) { return !state.blank && el.getAttribute("data-preset") === state.preset; });
+    press("[data-page]", function (el) { return hasPage(el.getAttribute("data-page")); });
+    press("[data-portrait]", portraitOn);
+    press("[data-pencil]", state.pencil);
+    press("[data-color]", function (el) { return el.getAttribute("data-color") === state.color; });
+    press("[data-font]", function (el) { return el.getAttribute("data-font") === state.font; });
+    press("[data-script]", state.script);
+    press("[data-leading]", function (el) { return el.getAttribute("data-leading") === state.leading; });
+    press("[data-align]", function (el) { return el.getAttribute("data-align") === state.align; });
+    press("[data-fit]", function (el) { return el.getAttribute("data-fit") === state.previewFit; });
+    press("[data-open-sheet]", state.sheetOpen);
+
+    document.querySelectorAll("[data-portrait]").forEach(function (el) {
+      el.disabled = !personaOn;
+      el.setAttribute("aria-disabled", personaOn ? "false" : "true");
+    });
+    document.querySelectorAll("[data-portrait-hint]").forEach(function (el) {
+      el.hidden = personaOn;
+    });
+    document.querySelectorAll("[data-extra]").forEach(function (el) {
+      el.disabled = !notesOn;
+    });
+    document.querySelectorAll("[data-extra-hint]").forEach(function (el) {
+      el.hidden = notesOn;
+    });
+    document.querySelectorAll("[data-extra-wrap]").forEach(function (el) {
+      el.classList.toggle("is-disabled", !notesOn);
+    });
+
+    document.querySelectorAll("[data-blank-link]").forEach(function (el) {
+      if (state.blank) {
+        el.textContent = "К листу персонажа";
+        el.setAttribute("href", "#sheet");
+      } else {
+        el.textContent = "Пустой бланк";
+        el.setAttribute("href", "#blank");
+      }
+    });
+
+    renderPaper();
+    renderThumbs();
+    scheduleScale();
+  }
+
+  function updatePaperScale() {
+    var stage = document.querySelector(".classic-preview__stage");
+    var frame = document.querySelector(".classic-paper-frame");
+    if (!stage || !frame) return;
+    if (root.getAttribute("data-lock-scale") === "1") return;
+    var phone = root.getAttribute("data-width") === "phone";
+    var pageW = 210 * 96 / 25.4;
+    var pageH = 297 * 96 / 25.4;
+    var availW = Math.max(80, stage.clientWidth - 8);
+    var availH = Math.max(80, stage.clientHeight - 8);
+    var scale;
+    if (phone || state.previewFit === "width") {
+      scale = availW / pageW;
+    } else {
+      scale = Math.min(availW / pageW, availH / pageH);
+    }
+    scale = Math.max(0.35, Math.min(scale, 2.2));
+    frame.style.setProperty("--paper-scale", String(+scale.toFixed(4)));
+  }
+  function scheduleScale() {
+    updatePaperScale();
+    requestAnimationFrame(function () {
+      updatePaperScale();
+      fitType();
+      opticalCenter();
+    });
+  }
+
+  function setLayout(layout, fromUser) {
+    state.layout = layout === "2024" ? "2024" : "2014";
+    if (!fromUser) return;
+    /* Remembered choice — do not rewrite character edition. */
+  }
+
+  function blankPages() {
+    var pages = ["p1", "persona", "spells", "companions", "notes"];
+    if (isLayout24()) {
+      var at = pages.indexOf("persona");
+      pages.splice(at < 0 ? 1 : at + 1, 0, "features");
+    }
+    return pages;
+  }
+  function applyView(name) {
+    var phone = name === "phone-open" || name === "phone-open-end" || name === "phone-closed";
+    if (phone) setWidth("phone");
+    var map = {
+      "2014-full": { edition: "2014", layout: "2014", preset: "full", color: "color", font: "serif", script: false, leading: "normal", align: "left", pt: 11, pencil: false, extra: 0, portrait: true, blank: false, sheetOpen: false, viewPage: "p1" },
+      "2014-table": { edition: "2014", layout: "2014", preset: "table", color: "color", font: "serif", script: false, leading: "normal", align: "left", pt: 11, pencil: false, extra: 0, portrait: true, blank: false, sheetOpen: false, viewPage: "p1" },
+      "2014-form": { edition: "2014", layout: "2014", preset: "form", color: "color", font: "serif", script: false, leading: "normal", align: "left", pt: 11, pencil: false, extra: 0, portrait: true, blank: false, sheetOpen: false, viewPage: "p1" },
+      "2014-bw": { edition: "2014", layout: "2014", preset: "full", color: "bw", font: "serif", script: false, leading: "normal", align: "left", pt: 11, pencil: false, extra: 0, portrait: true, blank: false, sheetOpen: false, viewPage: "p1" },
+      "2014-script": { edition: "2014", layout: "2014", preset: "full", color: "color", font: "serif", script: true, leading: "normal", align: "left", pt: 11, pencil: false, extra: 0, portrait: true, blank: false, sheetOpen: false, viewPage: "p1" },
+      "2024-full": { edition: "2024", layout: "2024", preset: "full", color: "color", font: "serif", script: false, leading: "normal", align: "left", pt: 11, pencil: false, extra: 0, portrait: true, blank: false, sheetOpen: false, viewPage: "p1" },
+      "blank": { edition: "2014", layout: "2014", preset: "full", color: "color", font: "serif", script: false, leading: "normal", align: "left", pt: 11, pencil: true, extra: 0, portrait: false, blank: true, sheetOpen: false, viewPage: "p1" },
+      "phone-closed": { edition: "2014", layout: "2014", preset: "full", color: "color", font: "serif", script: false, leading: "normal", align: "left", pt: 11, pencil: false, extra: 0, portrait: true, blank: false, sheetOpen: false, viewPage: "p1" },
+      "phone-open": { edition: "2014", layout: "2014", preset: "full", color: "color", font: "serif", script: false, leading: "normal", align: "left", pt: 11, pencil: false, extra: 0, portrait: true, blank: false, sheetOpen: true, viewPage: "p1" },
+      "phone-open-end": { edition: "2014", layout: "2014", preset: "full", color: "color", font: "serif", script: false, leading: "normal", align: "left", pt: 11, pencil: false, extra: 0, portrait: true, blank: false, sheetOpen: true, viewPage: "p1" },
+    };
+    var next = map[name] || map["2014-full"];
+    state.edition = next.edition;
+    state.layout = next.layout;
+    state.pages = presetPages(next.preset);
+    state.preset = next.preset;
+    state.color = next.color;
+    state.font = next.font;
+    state.script = next.script;
+    state.leading = next.leading;
+    state.align = next.align;
+    state.pt = next.pt;
+    state.pencil = next.pencil;
+    state.extra = next.extra;
+    state.portrait = next.portrait;
+    state.blank = next.blank;
+    state.sheetOpen = next.sheetOpen;
+    state.viewPage = next.viewPage;
+    if (state.blank) {
+      state.demo = "default";
+      state.pages = blankPages();
+      state.preset = "full";
+      state.pencil = true;
+      state.portrait = false;
+    }
+    if (next.previewFit) state.previewFit = next.previewFit;
+    root.setAttribute("data-view", name);
+    document.querySelectorAll("[data-set-view]").forEach(function (b) {
+      b.classList.toggle("is-on", b.getAttribute("data-set-view") === name);
+    });
+    sync();
+  }
+
+  document.addEventListener("click", function (ev) {
+    var t = ev.target.closest("[data-set-theme],[data-set-width],[data-set-view],[data-layout],[data-preset],[data-page],[data-portrait],[data-pencil],[data-color],[data-font],[data-script],[data-leading],[data-align],[data-pt],[data-extra],[data-reset],[data-blank],[data-blank-link],[data-fit],[data-open-sheet],[data-close-sheet],[data-thumb],[data-download],[data-print]");
+    if (!t) return;
+    if (t.hasAttribute("data-set-theme")) { setTheme(t.getAttribute("data-set-theme")); return; }
+    if (t.hasAttribute("data-set-width")) { setWidth(t.getAttribute("data-set-width")); return; }
+    if (t.hasAttribute("data-set-view")) { applyView(t.getAttribute("data-set-view")); return; }
+    if (t.hasAttribute("data-layout")) {
+      setLayout(t.getAttribute("data-layout"), true);
+      if (state.blank) {
+        state.pages = blankPages();
+        state.pencil = true;
+        state.portrait = false;
+        if (!hasPage(state.viewPage)) state.viewPage = "p1";
+      }
+      else if (state.edition !== state.layout) {
+        /* remembered explicit choice — edition stays, layout changes */
+      }
+      sync();
+      return;
+    }
+    if (t.hasAttribute("data-preset")) {
+      var preset = t.getAttribute("data-preset");
+      if (PRESETS[preset]) {
+        state.pages = presetPages(preset);
+        state.preset = preset;
+        if (!hasPage(state.viewPage)) state.viewPage = state.pages[0];
+        state.blank = false;
+        sync();
+      }
+      return;
+    }
+    if (t.hasAttribute("data-page")) {
+      var id = t.getAttribute("data-page");
+      if (hasPage(id)) {
+        if (state.pages.length > 1) state.pages = state.pages.filter(function (p) { return p !== id; });
+      } else {
+        state.pages = state.pages.concat([id]);
+        state.pages.sort(function (a, b) {
+          return PAGES.findIndex(function (p) { return p.id === a; }) - PAGES.findIndex(function (p) { return p.id === b; });
+        });
+      }
+      state.preset = matchPreset();
+      sync();
+      return;
+    }
+    if (t.hasAttribute("data-portrait")) {
+      if (!hasPage("persona") || t.disabled) return;
+      state.portrait = !state.portrait;
+      sync();
+      return;
+    }
+    if (t.hasAttribute("data-pencil")) { state.pencil = !state.pencil; sync(); return; }
+    if (t.hasAttribute("data-color")) { state.color = t.getAttribute("data-color"); sync(); return; }
+    if (t.hasAttribute("data-font")) { state.font = t.getAttribute("data-font"); sync(); return; }
+    if (t.hasAttribute("data-script")) { state.script = !state.script; sync(); return; }
+    if (t.hasAttribute("data-leading")) { state.leading = t.getAttribute("data-leading"); sync(); return; }
+    if (t.hasAttribute("data-align")) { state.align = t.getAttribute("data-align"); sync(); return; }
+    if (t.hasAttribute("data-pt")) {
+      state.pt = Math.max(7, Math.min(14, state.pt + Number(t.getAttribute("data-pt"))));
+      sync();
+      return;
+    }
+    if (t.hasAttribute("data-extra")) {
+      if (!hasPage("notes") || t.disabled) return;
+      state.extra = Math.max(0, Math.min(12, state.extra + Number(t.getAttribute("data-extra"))));
+      sync();
+      return;
+    }
+    if (t.hasAttribute("data-reset")) {
+      state.font = "serif";
+      state.script = false;
+      state.leading = "normal";
+      state.align = "left";
+      state.pt = 11;
+      sync();
+      return;
+    }
+    if (t.hasAttribute("data-blank") || t.hasAttribute("data-blank-link")) {
+      ev.preventDefault();
+      if (state.blank) {
+        state.blank = false;
+        state.pencil = false;
+        state.pages = presetPages("full");
+        state.preset = "full";
+        state.portrait = true;
+        state.viewPage = "p1";
+        sync();
+      } else {
+        applyView("blank");
+      }
+      return;
+    }
+    if (t.hasAttribute("data-fit")) {
+      state.previewFit = t.getAttribute("data-fit") === "page" ? "page" : "width";
+      sync();
+      return;
+    }
+    if (t.hasAttribute("data-open-sheet")) { state.sheetOpen = !state.sheetOpen; sync(); return; }
+    if (t.hasAttribute("data-close-sheet")) { state.sheetOpen = false; sync(); return; }
+    if (t.hasAttribute("data-thumb")) { state.viewPage = t.getAttribute("data-thumb"); sync(); return; }
+    if (t.hasAttribute("data-download")) { downloadPdf(); return; }
+    if (t.hasAttribute("data-print")) { printSheet(); return; }
+  });
+
+  var q = new URLSearchParams(location.search);
+  if (q.get("shot") === "1") root.setAttribute("data-shot", "1");
+  setTheme(q.get("theme") || "light");
+  setWidth(q.get("width") || "desktop");
+  var hash = (location.hash || "").replace(/^#/, "");
+  var wantBlank = q.get("blank") === "1" || q.get("view") === "blank" || hash === "blank";
+  if (wantBlank) {
+    applyView("blank");
+    if (q.get("layout") === "2024" || q.get("layout") === "2014") {
+      setLayout(q.get("layout"), true);
+      state.pages = blankPages();
+      state.viewPage = "p1";
+      sync();
+    }
+  } else {
+    applyView(q.get("view") || "2014-full");
+  }
+
+  window.addEventListener("hashchange", function () {
+    var h = (location.hash || "").replace(/^#/, "");
+    if (h === "blank" && !state.blank) applyView("blank");
+    if (h === "sheet" && state.blank) {
+      state.blank = false;
+      state.pencil = false;
+      state.pages = presetPages("full");
+      state.preset = "full";
+      state.portrait = true;
+      state.viewPage = "p1";
+      sync();
+    }
+  });
+
+  window.addEventListener("resize", scheduleScale);
+  window.addEventListener("beforeprint", function () {
+    var stackPapers = document.querySelectorAll("[data-print-paper]");
+    if (stackPapers.length) {
+      stackPapers.forEach(preparePaper);
+    } else {
+      layoutSpellPage();
+      fitType();
+      opticalCenter();
+    }
+  });
+  window.addEventListener("afterprint", function () {
+    if (!pdfBusy) clearPrintStack();
+    layoutSpellPage();
+    fitType();
+    opticalCenter();
+  });
+
+  function auditSheet() {
+    var paper = document.querySelector("[data-paper]") || document.querySelector(".classic-paper");
+    var empty = { a: [], b: [], c: [], d: [], center: [] };
+    if (!paper) return { ok: false, error: "no paper", issues: empty, counts: {} };
+    var scale = cumulativeScale(paper) || 1;
+    function cssPx(n) { return n / scale; }
+    function textOf(el) {
+      return (el.textContent || "").replace(/\s+/g, " ").trim();
+    }
+    function rangeRects(el) {
+      var out = [];
+      var walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, null);
+      var n, r, boxes, bi;
+      while ((n = walker.nextNode())) {
+        if (!String(n.nodeValue || "").trim()) continue;
+        r = document.createRange();
+        r.selectNodeContents(n);
+        boxes = r.getClientRects();
+        for (bi = 0; bi < boxes.length; bi += 1) out.push(boxes[bi]);
+      }
+      var er = el.getBoundingClientRect();
+      var clipped = [];
+      var i, b, x, y, r, bot, w, h;
+      for (i = 0; i < out.length; i += 1) {
+        b = out[i];
+        x = Math.max(b.left, er.left - 0.35);
+        y = Math.max(b.top, er.top - 0.35);
+        r = Math.min(b.right, er.right + 0.35);
+        bot = Math.min(b.bottom, er.bottom + 0.35);
+        w = r - x;
+        h = bot - y;
+        if (w > 0.2 && h > 0.2) clipped.push({ left: x, right: r, top: y, bottom: bot, width: w, height: h });
+      }
+      return clipped;
+    }
+    function inLogo(el) {
+      return !!(el.closest && el.closest(".s-logo, .s24-brand, .s-sheet-head, .s-sheet-foot"));
+    }
+    function areaIntersect(a, b) {
+      var w = Math.min(a.right, b.right) - Math.max(a.left, b.left);
+      var h = Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top);
+      if (w <= 0 || h <= 0) return 0;
+      return cssPx(w) * cssPx(h);
+    }
+    var textSel = [
+      ".t-label", ".t-coin-lab", ".t-death__lab", ".t-hd__sub", ".t-scard__k",
+      ".t-scard__tag", ".t-comp__abil-lab", ".t-center", ".classic-ink",
+      ".s-spell-slots__lv", ".s-spell-block__lv", ".s-spell-mark", ".t-scard__act", ".t-insp__rule", ".t-skill__name", ".t-feat__name",
+      ".s-feat-item__name", ".s-feat-item__text", ".s-feat-item__src", ".s-note-block__title", ".t-comp__sec-lab", ".t-comp__senses", ".t-comp__feats", ".t-comp__notes", ".t-comp__mod",
+      ".t-feat__text", ".t-feat__src", ".s-sheet-head__title", ".s24-origin",
+      ".t-scard__name", ".t-scard__body", ".t-comp__acts", ".t-card__title",
+      ".t-card__body", ".s-logo__mark", ".s-logo__sub", ".s24-brand"
+    ].join(",");
+    var all = Array.from(paper.querySelectorAll(textSel)).filter(function (el) {
+      return !!textOf(el) && !inLogo(el);
+    });
+    var leaves = all.filter(function (el) {
+      return !el.querySelector(textSel);
+    });
+    var a = [];
+    var i, j, ra, rb, k, m, area, maxA;
+    for (i = 0; i < leaves.length; i += 1) {
+      ra = rangeRects(leaves[i]);
+      for (j = i + 1; j < leaves.length; j += 1) {
+        if (leaves[i].contains(leaves[j]) || leaves[j].contains(leaves[i])) continue;
+        rb = rangeRects(leaves[j]);
+        maxA = 0;
+        for (k = 0; k < ra.length; k += 1) {
+          for (m = 0; m < rb.length; m += 1) {
+            area = areaIntersect(ra[k], rb[m]);
+            if (area > maxA) maxA = area;
+          }
+        }
+        if (maxA > 0.25) {
+          a.push({
+            t1: textOf(leaves[i]).slice(0, 40),
+            t2: textOf(leaves[j]).slice(0, 40),
+            area: +maxA.toFixed(2),
+            c1: leaves[i].className.toString(),
+            c2: leaves[j].className.toString()
+          });
+        }
+      }
+    }
+    var boxSel = [
+      ".t-plaque__value", ".t-coins__cell", ".t-hp__cell", ".t-field__value",
+      ".t-split__cell", ".t-hd__item", ".t-abil__score", ".t-abil__mod",
+      ".t-skill__bonus", ".s-spell-slots__val", ".t-comp__abil",
+      ".t-plaque", ".t-field", ".t-block", ".t-hd", ".t-death", ".t-insp",
+      ".t-abil", ".t-scard", ".t-card", ".t-skill", ".t-train", ".s-notes-flow",
+      ".t-equip", ".t-pb", "[data-center]"
+    ].join(",");
+    var pageRoot = paper.querySelector(".s14, .s24, .s24-p2, .s-page2, .s-spells, .s-cards, .s-companions, .s-notes, .s-feats-page");
+    var cs = pageRoot ? getComputedStyle(pageRoot) : null;
+    var pr = paper.getBoundingClientRect();
+    var content = pageRoot ? pageRoot.getBoundingClientRect() : pr;
+    var padL = cs ? parseFloat(cs.paddingLeft) || 0 : 0;
+    var padR = cs ? parseFloat(cs.paddingRight) || 0 : 0;
+    var padT = cs ? parseFloat(cs.paddingTop) || 0 : 0;
+    var padB = cs ? parseFloat(cs.paddingBottom) || 0 : 0;
+    var inner = {
+      left: content.left + padL * scale,
+      right: content.right - padR * scale,
+      top: content.top + padT * scale,
+      bottom: content.bottom - padB * scale
+    };
+    var b = [];
+    leaves.forEach(function (el) {
+      if (inLogo(el)) return;
+      var box = el.closest(boxSel) || el;
+      var br = box.getBoundingClientRect();
+      var rects = rangeRects(el);
+      var overflow = 0;
+      var side = "";
+      rects.forEach(function (r) {
+        var dxL = cssPx(br.left - r.left);
+        var dxR = cssPx(r.right - br.right);
+        var dyT = cssPx(br.top - r.top);
+        var dyB = cssPx(r.bottom - br.bottom);
+        if (dxL > overflow) { overflow = dxL; side = "left-box"; }
+        if (dxR > overflow) { overflow = dxR; side = "right-box"; }
+        if (dyT > overflow) { overflow = dyT; side = "top-box"; }
+        if (dyB > overflow) { overflow = dyB; side = "bottom-box"; }
+        var pL = cssPx(inner.left - r.left);
+        var pR = cssPx(r.right - inner.right);
+        var pT = cssPx(inner.top - r.top);
+        var pB = cssPx(r.bottom - inner.bottom);
+        if (pL > overflow) { overflow = pL; side = "left-page"; }
+        if (pR > overflow) { overflow = pR; side = "right-page"; }
+        if (pT > overflow) { overflow = pT; side = "top-page"; }
+        if (pB > overflow) { overflow = pB; side = "bottom-page"; }
+      });
+      var sw = 0;
+      if (box.scrollWidth && box.clientWidth && box.scrollWidth > box.clientWidth + 1) {
+        var sOverflow = cssPx((box.scrollWidth - box.clientWidth) * scale);
+        if (sOverflow > overflow) { overflow = sOverflow; side = "scrollWidth"; }
+        sw = box.scrollWidth - box.clientWidth;
+      }
+      var hidden = false;
+      var node = box;
+      while (node && node !== paper) {
+        var ov = getComputedStyle(node).overflow + getComputedStyle(node).overflowX + getComputedStyle(node).overflowY;
+        if (ov.indexOf("hidden") >= 0 || ov.indexOf("clip") >= 0 || ov.indexOf("auto") >= 0 || ov.indexOf("scroll") >= 0) {
+          hidden = true;
+          break;
+        }
+        node = node.parentElement;
+      }
+      var pageHit = side.indexOf("page") >= 0 || side === "scrollWidth";
+      var keep = pageHit ? overflow > 1.25 : (hidden && overflow > 1.25);
+      if (keep) {
+        b.push({
+          t: textOf(el).slice(0, 48),
+          overflow: +overflow.toFixed(2),
+          side: side,
+          scroll: sw,
+          hidden: hidden,
+          cls: (el.className || "").toString()
+        });
+      }
+    });
+    var c = [];
+    function bottomsOf(sels) {
+      return sels.map(function (sel) {
+        var el = paper.querySelector(sel);
+        if (!el) return null;
+        return { sel: sel, bottom: el.getBoundingClientRect().bottom };
+      }).filter(Boolean);
+    }
+    var groups = [
+      bottomsOf([".s14-left", ".s14-right"]),
+      bottomsOf([".s24-left", ".s24-right"]),
+      bottomsOf([".s-card-grid"]),
+      bottomsOf([".s-notes-flow"]),
+      bottomsOf([".s-comp-grid"]),
+      bottomsOf([".s-p2-ideals", ".s-p2-bonds", ".s-p2-flaws"]),
+      bottomsOf([".s24-p2-allies", ".s24-p2-goals", ".s24-p2-equip"]),
+      bottomsOf([".s24-p2-magic", ".s24-p2-coins"]),
+      bottomsOf([".s24-p2-treasure"]),
+      bottomsOf([".s-p2-allies", ".s-p2-extra"]),
+      bottomsOf([".s-p2-story", ".s-p2-treasure"]),
+      bottomsOf([".s-spell-col"]),
+      bottomsOf([".s-feat-flow"])
+    ];
+    groups.forEach(function (g) {
+      if (!g.length) return;
+      if (g[0].sel === ".s-spell-col") {
+        g = Array.from(paper.querySelectorAll(".s-spell-col")).map(function (el, idx) {
+          var blocks = el.querySelectorAll(":scope > .s-spell-block");
+          var last = blocks.length ? blocks[blocks.length - 1] : el;
+          return { sel: ".s-spell-col:" + idx, bottom: last.getBoundingClientRect().bottom };
+        });
+      }
+      var maxB = Math.max.apply(null, g.map(function (x) { return x.bottom; }));
+      var minB = Math.min.apply(null, g.map(function (x) { return x.bottom; }));
+      var spread = cssPx(maxB - minB);
+      var gap = cssPx(inner.bottom - maxB);
+      var selsJoin = g.map(function (x) { return x.sel; }).join(" ");
+      var fillToMargin = !/s-p2-ideals|s-p2-bonds|s-p2-flaws|s-p2-allies|s-p2-extra|s24-p2-allies|s24-p2-goals|s24-p2-equip|s24-p2-magic|s24-p2-coins/.test(selsJoin);
+      if (spread > 1.01 || (fillToMargin && Math.abs(gap) > 1.01)) {
+        c.push({
+          cols: g.map(function (x) { return x.sel; }),
+          spread: +spread.toFixed(2),
+          gapToMargin: +gap.toFixed(2)
+        });
+      }
+    });
+    var d = [];
+    var numNodes = Array.from(paper.querySelectorAll(".t-num, [data-center] .t-center, .t-plaque__value .t-center, .t-comp__abil .t-center, .s-spell-slots__val .t-center")).filter(function (el) {
+      return /[0-9]/.test(textOf(el)) && !inLogo(el);
+    });
+    numNodes.forEach(function (el) {
+      var widget = el.closest(".t-plaque, .t-coins__cell, .t-hp__cell, .t-hd__item, .t-split__item, .t-field, .t-abil, .t-skill, .t-comp__abil, .s-spell-slots__cell, .s-spell-block__total, .s-spell-block__slots, .t-pb, .t-death, .t-insp, .t-hd");
+      if (!widget) widget = el.parentElement;
+      var lab = widget && widget.querySelector(".t-label, .t-coin-lab, .t-hd__sub, .t-death__lab, .t-comp__abil-lab, .s-spell-slots__lv, .s-spell-block__lab, .t-skill__name, .t-abil__name, .t-split__sub");
+      if ((!lab || !textOf(lab)) && widget && widget.parentElement) {
+        lab = widget.parentElement.querySelector(".t-label, .t-coin-lab, .t-hd__sub, .t-split__sub");
+      }
+      if (!lab || !textOf(lab)) {
+        d.push({
+          t: textOf(el),
+          cls: (el.className || "").toString(),
+          parent: widget ? (widget.className || "").toString().slice(0, 60) : "none"
+        });
+      }
+    });
+    function contentBox(el) {
+      var r = el.getBoundingClientRect();
+      var cs = getComputedStyle(el);
+      return {
+        left: r.left + ((parseFloat(cs.borderLeftWidth) || 0) + (parseFloat(cs.paddingLeft) || 0)) * scale,
+        right: r.right - ((parseFloat(cs.borderRightWidth) || 0) + (parseFloat(cs.paddingRight) || 0)) * scale,
+        top: r.top + ((parseFloat(cs.borderTopWidth) || 0) + (parseFloat(cs.paddingTop) || 0)) * scale,
+        bottom: r.bottom - ((parseFloat(cs.borderBottomWidth) || 0) + (parseFloat(cs.paddingBottom) || 0)) * scale
+      };
+    }
+    function rawRects(el) {
+      var out = [];
+      var walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, null);
+      var n, r, boxes, bi, cb, x, y, right, bot, w, h;
+      cb = contentBox(el);
+      while ((n = walker.nextNode())) {
+        if (!String(n.nodeValue || "").trim()) continue;
+        r = document.createRange();
+        r.selectNodeContents(n);
+        boxes = r.getClientRects();
+        for (bi = 0; bi < boxes.length; bi += 1) {
+          x = Math.max(boxes[bi].left, cb.left);
+          y = Math.max(boxes[bi].top, cb.top);
+          right = Math.min(boxes[bi].right, cb.right);
+          bot = Math.min(boxes[bi].bottom, cb.bottom);
+          w = right - x;
+          h = bot - y;
+          if (w > 0.2 && h > 0.2) out.push({ left: x, right: right, top: y, bottom: bot, width: w, height: h });
+        }
+      }
+      return out;
+    }
+    function paddingEdge(el) {
+      var r = el.getBoundingClientRect();
+      var cs = getComputedStyle(el);
+      return {
+        left: r.left + (parseFloat(cs.borderLeftWidth) || 0) * scale,
+        right: r.right - (parseFloat(cs.borderRightWidth) || 0) * scale,
+        top: r.top + (parseFloat(cs.borderTopWidth) || 0) * scale,
+        bottom: r.bottom - (parseFloat(cs.borderBottomWidth) || 0) * scale
+      };
+    }
+    function hasAnyBorder(el) {
+      var cs = getComputedStyle(el);
+      return ["Top", "Right", "Bottom", "Left"].some(function (side) {
+        return (parseFloat(cs["border" + side + "Width"]) || 0) > 0.2;
+      });
+    }
+    function clipToOverflow(rect, el) {
+      var node = el;
+      var x1 = rect.left, y1 = rect.top, x2 = rect.right, y2 = rect.bottom;
+      while (node && node !== paper) {
+        var cs = getComputedStyle(node);
+        var ov = cs.overflow + cs.overflowX + cs.overflowY;
+        if (ov.indexOf("hidden") >= 0 || ov.indexOf("clip") >= 0) {
+          var pe = paddingEdge(node);
+          x1 = Math.max(x1, pe.left);
+          y1 = Math.max(y1, pe.top);
+          x2 = Math.min(x2, pe.right);
+          y2 = Math.min(y2, pe.bottom);
+        }
+        node = node.parentElement;
+      }
+      if (x2 - x1 < 0.2 || y2 - y1 < 0.2) return null;
+      return { left: x1, right: x2, top: y1, bottom: y2 };
+    }
+    var e = [];
+    leaves.forEach(function (el) {
+      if (inLogo(el)) return;
+      var rects = rawRects(el);
+      var frames = [];
+      var node = el;
+      while (node && node !== paper) {
+        if (node.nodeType === 1 && hasAnyBorder(node) && !node.classList.contains("t-field__value")) {
+          frames.push(node);
+        }
+        node = node.parentElement;
+      }
+      rects.forEach(function (raw) {
+        var r = { left: raw.left, right: raw.right, top: raw.top, bottom: raw.bottom };
+        frames.forEach(function (fr) {
+          var pe = paddingEdge(fr);
+          var cs = getComputedStyle(fr);
+          var gaps = [];
+          if ((parseFloat(cs.borderLeftWidth) || 0) > 0.2) gaps.push(r.left - pe.left);
+          if ((parseFloat(cs.borderRightWidth) || 0) > 0.2) gaps.push(pe.right - r.right);
+          if ((parseFloat(cs.borderTopWidth) || 0) > 0.2) gaps.push(r.top - pe.top);
+          if ((parseFloat(cs.borderBottomWidth) || 0) > 0.2) gaps.push(pe.bottom - r.bottom);
+          if (!gaps.length) return;
+          var gap = Math.min.apply(null, gaps);
+          var gCss = cssPx(gap);
+          if (gCss < 1 - 0.02) {
+            e.push({
+              t: textOf(el).slice(0, 48),
+              gap: +gCss.toFixed(2),
+              frame: (fr.className || fr.tagName || "").toString().slice(0, 50),
+              cls: (el.className || "").toString()
+            });
+          }
+        });
+      });
+    });
+    function labelLastBottom(lab) {
+      var rs = rawRects(lab);
+      if (!rs.length) return null;
+      return Math.max.apply(null, rs.map(function (r) { return r.bottom; }));
+    }
+    function checkBaseline(labs, rowName) {
+      var vals = labs.map(function (lab) {
+        return { t: textOf(lab).slice(0, 40), bottom: labelLastBottom(lab) };
+      }).filter(function (x) { return x.bottom != null; });
+      if (vals.length < 2) return;
+      var maxB = Math.max.apply(null, vals.map(function (x) { return x.bottom; }));
+      var minB = Math.min.apply(null, vals.map(function (x) { return x.bottom; }));
+      var spread = cssPx(maxB - minB);
+      if (spread > 0.5) {
+        f.push({
+          row: rowName,
+          spread: +spread.toFixed(2),
+          labels: vals.map(function (x) { return x.t; })
+        });
+      }
+    }
+    var f = [];
+    paper.querySelectorAll(".t-plaques").forEach(function (row, idx) {
+      checkBaseline(Array.from(row.querySelectorAll(":scope > .t-plaque > .t-label")), "t-plaques:" + idx);
+    });
+    var pass = paper.querySelector(".s14-passive-row");
+    if (pass) {
+      checkBaseline(Array.from(pass.querySelectorAll(":scope > .t-plaque > .t-label, :scope > .t-insp > .t-label")), "s14-passive-row");
+    }
+    paper.querySelectorAll(".t-hp").forEach(function (row, idx) {
+      checkBaseline(Array.from(row.querySelectorAll(".t-hp__cell > .t-label, .t-hp__cell .t-label")), "t-hp:" + idx);
+    });
+    paper.querySelectorAll(".t-combat-row").forEach(function (row, idx) {
+      checkBaseline(Array.from(row.querySelectorAll(":scope > .t-hd > .t-label, :scope > .t-death > .t-label")), "t-combat-row:" + idx);
+    });
+    var vit = paper.querySelector(".s24-vitals");
+    if (vit) {
+      var labs = [];
+      var stack = vit.querySelectorAll(".s24-lvxp > .t-plaque");
+      if (stack.length) {
+        var lastLab = stack[stack.length - 1].querySelector(":scope > .t-label");
+        if (lastLab) labs.push(lastLab);
+      }
+      Array.prototype.forEach.call(vit.querySelectorAll(":scope > .t-plaque > .t-label, :scope > .t-hd > .t-label, :scope > .t-death > .t-label"), function (lab) { labs.push(lab); });
+      checkBaseline(labs, "s24-vitals");
+    }
+    paper.querySelectorAll(".s-spells-top").forEach(function (row, idx) {
+      checkBaseline(Array.from(row.querySelectorAll(":scope > .t-plaque > .t-label")), "s-spells-top:" + idx);
+    });
+    paper.querySelectorAll(".t-coins").forEach(function (row, idx) {
+      checkBaseline(Array.from(row.querySelectorAll(".t-coin-lab")), "t-coins:" + idx);
+    });
+    paper.querySelectorAll(".t-comp__meta").forEach(function (row, idx) {
+      checkBaseline(Array.from(row.querySelectorAll(":scope > .t-plaque > .t-label")), "t-comp__meta:" + idx);
+    });
+    var gLines = [];
+    var spellBlocks = paper.querySelectorAll(".s-spell-block");
+    if (spellBlocks.length) {
+      var rowSample = paper.querySelector(".s-spell-row");
+      var rowStep = rowSample ? cssPx(rowSample.getBoundingClientRect().height) : 21;
+      spellBlocks.forEach(function (block) {
+        var csb = getComputedStyle(block);
+        var br = block.getBoundingClientRect();
+        var padB = (parseFloat(csb.paddingBottom) || 0) * scale;
+        var borderB = (parseFloat(csb.borderBottomWidth) || 0) * scale;
+        var contentBottom = br.bottom - padB - borderB;
+        var list = block.querySelectorAll(".s-spell-row");
+        var lastRow = list.length ? list[list.length - 1] : null;
+        var lastLine = lastRow ? lastRow.getBoundingClientRect().bottom : br.top;
+        var fillEl = block.querySelector(".s-spell-fill");
+        if (fillEl) {
+          var fr = fillEl.getBoundingClientRect();
+          var fillShort = cssPx(contentBottom - fr.bottom);
+          if (fillShort > 1.01) {
+            gLines.push({
+              t: ((block.querySelector(".s-spell-block__lv") || {}).textContent || "").trim(),
+              gap: +fillShort.toFixed(2),
+              why: "fill-short-of-frame",
+              rowStep: +rowStep.toFixed(2)
+            });
+          }
+        }
+        var gapLine = cssPx(contentBottom - lastLine);
+        if (gapLine > rowStep + 1.01) {
+          gLines.push({
+            t: ((block.querySelector(".s-spell-block__lv") || {}).textContent || "").trim(),
+            gap: +gapLine.toFixed(2),
+            why: "line-to-frame",
+            rowStep: +rowStep.toFixed(2)
+          });
+        }
+      });
+    }
+    var h = [];
+    function lineBuckets(el) {
+      var walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, null);
+      var buckets = [];
+      var node, i, j, r, rec, b, str;
+      while ((node = walker.nextNode())) {
+        str = node.nodeValue || "";
+        for (i = 0; i < str.length; i += 1) {
+          r = document.createRange();
+          r.setStart(node, i);
+          r.setEnd(node, i + 1);
+          rec = r.getBoundingClientRect();
+          if (rec.width < 0.15 && rec.height < 0.15) continue;
+          b = null;
+          for (j = 0; j < buckets.length; j += 1) {
+            if (Math.abs(blocksTop(buckets[j], rec)) < 2) { b = buckets[j]; break; }
+          }
+          if (!b) { b = { top: rec.top, right: rec.right, text: "" }; buckets.push(b); }
+          b.text += str.charAt(i);
+          if (rec.right > b.right) b.right = rec.right;
+        }
+      }
+      buckets.sort(function (x, y) { return x.top - y.top; });
+      return buckets;
+    }
+    function blocksTop(bucket, rec) { return bucket.top - rec.top; }
+    var inkSel = [
+      ".t-block .classic-ink",
+      ".s24-persub .classic-ink",
+      ".s-p2-allies__row > .classic-ink",
+      ".s-feat-item__text",
+      ".t-scard__body",
+      ".s-note-block .classic-ink",
+      ".t-comp__senses",
+      ".t-comp__acts",
+      ".t-comp__feats",
+      ".t-comp__notes"
+    ].join(",");
+    Array.prototype.forEach.call(paper.querySelectorAll(inkSel), function (el) {
+      if (!textOf(el)) return;
+      if (el.closest(".s-sheet-head, .s-sheet-foot, .s-logo")) return;
+      var lines = lineBuckets(el);
+      if (lines.length < 2) return;
+      var box = contentBox(el);
+      var mm = 96 / 25.4 * (scale || 1);
+      var i, words, leftover, t;
+      for (i = 0; i < lines.length - 1; i += 1) {
+        t = String(lines[i].text || "").replace(/\s+/g, " ").trim();
+        if (!t) continue;
+        words = t.split(" ").filter(Boolean);
+        leftover = cssPx(box.right - lines[i].right);
+        var colW = cssPx(box.right - box.left);
+        var ragged = (words.length === 1 && leftover > 10 * mm) ||
+          (words.length === 2 && leftover > Math.max(16 * mm, colW * 0.55));
+        if (ragged) {
+          h.push({
+            t: t.slice(0, 48),
+            words: words.length,
+            leftover: +leftover.toFixed(2),
+            cls: (el.className || "").toString().slice(0, 60)
+          });
+        }
+      }
+    });
+    var iCont = [];
+    var plist = physicalPages();
+    var curPage = plist.filter(function (p) { return p.id === state.viewPage; })[0] ||
+      plist.filter(function (p) { return p.index === (state.viewIndex || 0); })[0];
+    if (!curPage && plist.length) {
+      curPage = plist.filter(function (p) {
+        return p.section && document.querySelector("[data-paper] .s-feats-page, [data-paper] .s-cards, [data-paper] .s-companions, [data-paper] .s-spells, [data-paper] .s-notes");
+      })[0];
+    }
+    if (!curPage) {
+      curPage = plist.filter(function (p) { return p.id === state.viewPage; })[0];
+    }
+    if (curPage) {
+      var laterCont = plist.some(function (p) {
+        return p.section === curPage.section && p.index > curPage.index && /продолжение/.test(p.title || "");
+      });
+      if (laterCont) {
+        var flowEl = paper.querySelector(".s-feat-flow, .s-notes-flow, .s-comp-grid, .s-spell-cols, .s-cards-grid, .s-cards");
+        var lastEl = null;
+        if (paper.querySelector(".s-feat-flow")) {
+          var featKids = paper.querySelectorAll(".s-feat-flow > .s-feat-item, .s-feat-flow > .s24-feat-h");
+          lastEl = featKids.length ? featKids[featKids.length - 1] : null;
+          flowEl = paper.querySelector(".s-feat-flow");
+        } else if (paper.querySelector(".s-cards .t-scard, .s-cards .t-card")) {
+          var cards = paper.querySelectorAll(".s-cards .t-scard, .s-cards .t-card");
+          lastEl = cards.length ? cards[cards.length - 1] : null;
+          flowEl = paper.querySelector(".s-cards");
+        } else if (paper.querySelector(".s-comp-grid")) {
+          var comps = paper.querySelectorAll(".s-comp-grid .t-comp");
+          lastEl = comps.length ? comps[comps.length - 1] : null;
+          flowEl = paper.querySelector(".s-comp-grid");
+        }
+        if (flowEl && lastEl) {
+          var fcs = getComputedStyle(flowEl);
+          var frect = flowEl.getBoundingClientRect();
+          var fpadB = (parseFloat(fcs.paddingBottom) || 0) * scale;
+          var fborderB = (parseFloat(fcs.borderBottomWidth) || 0) * scale;
+          var flowBottom = frect.bottom - fpadB - fborderB;
+          var leftover = cssPx(flowBottom - lastEl.getBoundingClientRect().bottom);
+          var mm = 96 / 25.4;
+          /* Continuation is only legal if this page is filled to the bottom margin
+             (leftover smaller than a short following block, allowing the 10mm rule lines). */
+          if (leftover > 35 * mm) {
+            iCont.push({
+              t: curPage.title || curPage.id,
+              leftover: +leftover.toFixed(2),
+              why: "continuation-but-page-not-full"
+            });
+          }
+        }
+      }
+    }
+    var issues = { a: a, b: b, c: c, d: d, e: e, f: f, g: gLines, h: h, i: iCont, center: [] };
+
+    var counts = {
+      a: a.length, b: b.length, c: c.length, d: d.length, e: e.length, f: f.length, g: gLines.length, h: h.length, i: iCont.length,
+      total: a.length + b.length + c.length + d.length + e.length + f.length + gLines.length + h.length + iCont.length
+    };
+    return { ok: counts.total === 0, issues: issues, counts: counts, leaves: leaves.length, nums: numNodes.length };
+  }
+
+
+  function waitPaperAssets(root) {
+    var urls = {};
+    (root || document).querySelectorAll(".s-portrait__face, .s-p2-symbol, img").forEach(function (el) {
+      var src = el.getAttribute("src");
+      if (src) urls[src] = true;
+      var bg = getComputedStyle(el).backgroundImage;
+      var m = bg && bg.match(/url\(["']?([^"')]+)["']?\)/);
+      if (m) urls[m[1]] = true;
+    });
+    var list = Object.keys(urls);
+    if (!list.length) return Promise.resolve();
+    return Promise.all(list.map(function (u) {
+      return new Promise(function (res) {
+        var im = new Image();
+        im.onload = im.onerror = function () { res(); };
+        im.src = u;
+      });
+    }));
+  }
+  function preparePaper(paper) {
+    if (!paper) return;
+    paper.style.setProperty("--classic-block-pt", state.pt + "pt");
+    layoutSpellPage(paper);
+    fitType(paper);
+    opticalCenter(paper);
+  }
+  function printStackEl() {
+    var stack = document.querySelector("[data-print-stack]");
+    if (stack) return stack;
+    stack = document.createElement("div");
+    stack.className = "classic-print-stack";
+    stack.setAttribute("data-print-stack", "1");
+    stack.setAttribute("aria-hidden", "true");
+    document.body.appendChild(stack);
+    return stack;
+  }
+  function buildPrintStack() {
+    var stack = printStackEl();
+    var pages = physicalPages();
+    var html = pages.map(function (p) {
+      return '<div class="classic-print-page" data-print-page="' + p.id + '">' +
+        '<article class="classic-paper" data-print-paper>' + p.html + "</article></div>";
+    }).join("");
+    stack.innerHTML = html;
+    return document.fonts.ready.then(function () { return waitPaperAssets(stack); }).then(function () {
+      return new Promise(function (r) { requestAnimationFrame(function () { requestAnimationFrame(r); }); });
+    }).then(function () {
+      stack.querySelectorAll("[data-print-paper]").forEach(preparePaper);
+      return new Promise(function (r) { requestAnimationFrame(function () { requestAnimationFrame(r); }); });
+    }).then(function () {
+      stack.querySelectorAll("[data-print-paper]").forEach(preparePaper);
+      return pages;
+    });
+  }
+  function clearPrintStack() {
+    var stack = document.querySelector("[data-print-stack]");
+    if (stack) stack.innerHTML = "";
+  }
+  function pdfRequest() {
+    return {
+      blank: !!state.blank,
+      layout: state.layout,
+      edition: state.edition,
+      demo: state.demo || "default",
+      preset: state.preset,
+      pages: (state.pages || []).slice(),
+      color: state.color,
+      font: state.font,
+      script: !!state.script,
+      pencil: !!state.pencil,
+      leading: state.leading,
+      align: state.align,
+      pt: state.pt,
+      extra: state.extra,
+      portrait: !!state.portrait,
+      compSet: state.compSet || "default",
+      filename: filename()
+    };
+  }
+  function applyPdfState(req) {
+    req = req || {};
+    if (req.blank) {
+      applyView("blank");
+      if (req.layout === "2014" || req.layout === "2024") {
+        state.layout = req.layout;
+        if (req.edition) state.edition = req.edition;
+        state.pages = blankPages();
+      }
+    } else {
+      state.blank = false;
+      if (req.demo) setDemo(req.demo);
+      if (req.edition) state.edition = req.edition;
+      if (req.layout === "2014" || req.layout === "2024") state.layout = req.layout;
+      if (req.preset) {
+        state.preset = req.preset;
+        state.pages = presetPages(req.preset);
+      }
+      if (req.pages && req.pages.length) state.pages = req.pages.slice();
+    }
+    if (req.color) state.color = req.color;
+    if (req.font) state.font = req.font;
+    if (req.script != null) state.script = !!req.script;
+    if (req.pencil != null) state.pencil = !!req.pencil;
+    if (req.leading) state.leading = req.leading;
+    if (req.align) state.align = req.align;
+    if (typeof req.pt === "number") state.pt = req.pt;
+    if (typeof req.extra === "number") state.extra = req.extra;
+    if (typeof req.portrait === "boolean") state.portrait = req.portrait;
+    if (req.compSet) state.compSet = req.compSet;
+    sync();
+  }
+  function savePdfBlob(data, name) {
+    var blob = data instanceof Blob ? data : new Blob([data], { type: "application/pdf" });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement("a");
+    a.href = url;
+    a.download = name || filename();
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(function () { URL.revokeObjectURL(url); }, 4000);
+  }
+  function b64ToBytes(b64) {
+    var bin = atob(b64);
+    var out = new Uint8Array(bin.length);
+    var i;
+    for (i = 0; i < bin.length; i += 1) out[i] = bin.charCodeAt(i);
+    return out;
+  }
+  var pdfBusy = false;
+  function setPdfBusy(on) {
+    pdfBusy = !!on;
+    document.querySelectorAll("[data-download]").forEach(function (b) {
+      b.disabled = !!on;
+      b.setAttribute("aria-busy", on ? "true" : "false");
+      if (!b.getAttribute("data-label")) b.setAttribute("data-label", b.textContent);
+      b.textContent = on ? "Готовлю PDF…" : (b.getAttribute("data-label") || "Скачать PDF");
+    });
+    document.querySelectorAll("[data-pdf-status]").forEach(function (el) {
+      if (!on) el.hidden = true;
+    });
+  }
+  function showPdfStatus(text) {
+    document.querySelectorAll("[data-pdf-status]").forEach(function (el) {
+      el.hidden = !text;
+      el.textContent = text || "";
+    });
+  }
+  function downloadPdf() {
+    if (pdfBusy) return Promise.resolve();
+    setPdfBusy(true);
+    showPdfStatus("");
+    var req = pdfRequest();
+    var job;
+    if (typeof window.__classicPdfDownload === "function") {
+      job = Promise.resolve(window.__classicPdfDownload(req)).then(function (res) {
+        if (!res) throw new Error("empty");
+        if (typeof res === "string") return b64ToBytes(res);
+        return res;
+      });
+    } else {
+      var url;
+      try { url = new URL("/__classic_pdf", location.href); }
+      catch (e1) { url = null; }
+      if (!url || url.protocol === "file:") url = new URL("http://127.0.0.1:8765/__classic_pdf");
+      job = fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(req)
+      }).then(function (res) {
+        if (!res.ok) throw new Error("status " + res.status);
+        return res.arrayBuffer();
+      });
+    }
+    return job.then(function (buf) {
+      savePdfBlob(buf, req.filename);
+      setPdfBusy(false);
+    }).catch(function () {
+      setPdfBusy(false);
+      showPdfStatus("Не удалось скачать PDF. Попробуйте ещё раз или нажмите «Печать».");
+    });
+  }
+  function printSheet() {
+    return buildPrintStack().then(function () {
+      var done = function () {
+        window.removeEventListener("afterprint", done);
+        clearPrintStack();
+      };
+      window.addEventListener("afterprint", done);
+      window.print();
+    });
+  }
+
+  function setDemo(key) {
+    state.demo = key === "wizard" ? "wizard" : "default";
+    if (state.demo === "wizard") {
+      state.edition = "2014";
+      state.preset = "full";
+      state.portrait = true;
+      state.blank = false;
+      state.pencil = false;
+      state.extra = 1;
+      if (isLayout24()) {
+        state.pages = ["p1", "persona", "features", "spells", "cards", "companions", "notes"];
+      } else {
+        state.layout = "2014";
+        state.pages = ["p1", "persona", "features", "spells", "cards", "companions", "notes"];
+        if (!state.viewPage) state.viewPage = "p1";
+      }
+    } else {
+      state.extra = 0;
+      state.pages = presetPages(state.preset || "full");
+      if (!state.pages.filter(function (id) { return id === state.viewPage; }).length &&
+          !String(state.viewPage || "").match(/-/)) {
+        state.viewPage = state.pages[0] || "p1";
+      }
+    }
+    sync();
+  }
+  window.ClassicStep1 = {
+    setTheme: setTheme,
+    setWidth: setWidth,
+    applyView: applyView,
+    setDemo: setDemo,
+    sync: sync,
+    updatePaperScale: updatePaperScale,
+    opticalCenter: opticalCenter,
+    fitType: fitType,
+    layoutSpellPage: layoutSpellPage,
+    auditSheet: auditSheet,
+    physicalPages: physicalPages,
+    setCompSet: function (mode) { state.compSet = mode || "default"; },
+    blankPages: blankPages,
+    filename: filename,
+    pdfRequest: pdfRequest,
+    applyPdfState: applyPdfState,
+    buildPrintStack: buildPrintStack,
+    clearPrintStack: clearPrintStack,
+    downloadPdf: downloadPdf,
+    printSheet: printSheet,
+    state: state,
+  };
+})();

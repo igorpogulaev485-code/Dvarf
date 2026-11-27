@@ -1,0 +1,150 @@
+/* §25 Шрифтовые пары (концепт). Все настройки оформления — в аккаунте. */
+html[data-font="antiqua"] {
+  --font-display: "Source Serif 4", Georgia, "Times New Roman", serif;
+  --font-ui: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --font-num: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --font-display-weight: 700;
+}
+html[data-font="grotesque"] {
+  --font-display: "Source Sans 3", "IBM Plex Sans", "Segoe UI", sans-serif;
+  --font-ui: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --font-num: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --font-display-weight: 700;
+}
+html[data-font="ustav"] {
+  --font-display: "Yeseva One", "Source Serif 4", Georgia, serif;
+  --font-ui: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --font-num: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --font-display-weight: 400; /* у Yeseva One одно начертание, без искусственного жирного */
+}
+html[data-font="scribe"] {
+  --font-display: "Literata", "Source Serif 4", Georgia, serif;
+  --font-ui: "Literata", "IBM Plex Sans", Georgia, serif;
+  --font-num: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --font-display-weight: 700;
+}
+html[data-font="script"] {
+  --font-display: "Caveat", "Segoe Script", cursive;
+  --font-ui: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --font-num: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --font-display-weight: 600;
+}
+html[data-font="tabular"] {
+  --font-display: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --font-ui: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --font-num: "IBM Plex Mono", "IBM Plex Sans", ui-monospace, monospace;
+  --font-display-weight: 650;
+}
+
+html[data-font] { font-variant-numeric: lining-nums; }
+html[data-font] .t-num,
+html[data-font] .hp-row .t-num,
+html[data-font] .abil-score,
+html[data-font] .sheet-mod,
+html[data-font] .sheet-skill b,
+html[data-font] .sheet-attack td:not(:first-child),
+html[data-font] .font-sample__nums {
+  font-family: var(--font-num, var(--font-ui));
+  font-variant-numeric: tabular-nums lining-nums;
+  font-feature-settings: "tnum" 1, "lnum" 1;
+}
+
+html[data-font="ustav"] .brand,
+html[data-font="ustav"] .t-heading,
+html[data-font="ustav"] .char-card__name,
+html[data-font="ustav"] .account-card__title,
+html[data-font="ustav"] h1, html[data-font="ustav"] h2, html[data-font="ustav"] h3 {
+  font-weight: 400;
+  font-synthesis: none;
+  letter-spacing: 0;
+}
+html[data-font="script"] .brand,
+html[data-font="script"] .t-heading,
+html[data-font="script"] .char-card__name,
+html[data-font="script"] .account-card__title,
+html[data-font="script"] h1, html[data-font="script"] h2, html[data-font="script"] h3 {
+  font-weight: 600;
+  letter-spacing: 0;
+  line-height: 1.15;
+}
+html[data-font="script"] .char-card__name { font-size: 20px; }
+html[data-font="scribe"] body,
+html[data-font="scribe"] .t-body { font-family: var(--font-ui); }
+/* подписи 11–12 px и кнопки в «Писчей» остаются гротеском, чтобы мелкий текст не садился */
+html[data-font="scribe"] .t-label,
+html[data-font="scribe"] .btn,
+html[data-font="scribe"] .nav-item,
+html[data-font="scribe"] .tab,
+html[data-font="scribe"] .account-hint,
+html[data-font="scribe"] .character-list-tag,
+html[data-font="scribe"] .field,
+html[data-font="scribe"] .field-label {
+  font-family: var(--font-num);
+}
+
+/* ЛК: рабочие карточки шрифта */
+html[data-v2] .account-appear-block[data-area="font"] { }
+html[data-v2] .account-font-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+html[data-v2] .account-font-card {
+  appearance: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 8px 6px 8px;
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--accent, #4e5d34) 28%, transparent);
+  background: color-mix(in srgb, var(--bg, #f7f2e4) 50%, var(--card, #fffdf8));
+  min-width: 0;
+  text-align: center;
+  cursor: pointer;
+  color: inherit;
+  font: inherit;
+}
+html[data-v2] .account-font-card.is-selected {
+  border-color: var(--accent, #4e5d34);
+  box-shadow: inset 0 0 0 1px var(--accent, #4e5d34);
+  background: color-mix(in srgb, var(--accent, #4e5d34) 10%, var(--card, #fffdf8));
+}
+html[data-theme="leaf-classic"][data-v2] .account-font-card {
+  background: color-mix(in srgb, #0A0A0A 50%, #131313);
+  border-color: color-mix(in srgb, var(--accent, #c4d19a) 28%, #333);
+}
+html[data-theme="leaf-classic"][data-v2] .account-font-card.is-selected {
+  background: color-mix(in srgb, var(--accent, #c4d19a) 14%, #131313);
+}
+html[data-v2] .account-font-card__aa {
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--heading, #24241f);
+}
+html[data-font="ustav"] .account-font-card[data-set-font="ustav"] .account-font-card__aa,
+html[data-v2] .account-font-card[data-set-font="ustav"] .account-font-card__aa { font-weight: 400; }
+html[data-v2] .account-font-card[data-set-font="script"] .account-font-card__aa { font-weight: 600; }
+html[data-theme="leaf-classic"][data-v2] .account-font-card__aa { color: #f3efe3; }
+html[data-v2] .account-font-card__name {
+  font-size: 11px;
+  font-weight: 700;
+  font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
+  color: var(--text-sub, #5c5c52);
+}
+html[data-v2] .account-font-card__pair {
+  font-size: 9.5px;
+  font-weight: 500;
+  line-height: 1.25;
+  font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
+  color: var(--text-sub, #5c5c52);
+  max-width: 100%;
+}
+html[data-theme="leaf-classic"][data-v2] .account-font-card__name,
+html[data-theme="leaf-classic"][data-v2] .account-font-card__pair {
+  color: color-mix(in srgb, #f3efe3 78%, #131313);
+}
+html[data-v2][data-width="phone"] .account-font-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}

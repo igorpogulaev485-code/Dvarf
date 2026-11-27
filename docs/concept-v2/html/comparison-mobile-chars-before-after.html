@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <title>Сравнение · «Мои персонажи» до и после нижней панели</title>
+  <link rel="stylesheet" href="../fonts/fonts.css" />
+  <style>
+    * { box-sizing: border-box; }
+    html, body { margin: 0; background: #1c1c18; color: #f3efe3; font-family: "IBM Plex Sans", "Segoe UI", sans-serif; }
+    .page { width: 1280px; padding: 28px 36px 32px; }
+    h1 { margin: 0 0 6px; font-family: "Source Serif 4", Georgia, serif; font-size: 28px; font-weight: 700; letter-spacing: -0.02em; }
+    .lead { margin: 0 0 20px; font-size: 15px; font-weight: 500; color: rgba(243,239,227,0.78); max-width: 1040px; line-height: 1.45; }
+    .cols { display: grid; grid-template-columns: 390px 390px; gap: 100px; justify-content: center; align-items: start; }
+    .col h2 { margin: 0 0 12px; font-size: 13px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(243,239,227,0.7); }
+    .phone { position: relative; width: 390px; background: #111; border-radius: 8px; box-shadow: 0 12px 40px rgba(0,0,0,0.45); overflow: hidden; }
+    .phone img { display: block; width: 390px; height: auto; }
+    .hl {
+      position: absolute;
+      border: 2.5px solid #e8b04a;
+      border-radius: 12px;
+      box-shadow: 0 0 0 2px rgba(28,28,24,0.35);
+      pointer-events: none;
+    }
+    .num {
+      position: absolute;
+      z-index: 4;
+      width: 22px; height: 22px;
+      display: grid; place-items: center;
+      border-radius: 50%;
+      background: #e8b04a; color: #1c1c18;
+      font-size: 13px; font-weight: 700;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.4);
+      pointer-events: none;
+    }
+    .callout {
+      position: absolute;
+      z-index: 5;
+      width: 300px;
+      background: #e8b04a; color: #1c1c18;
+      font-size: 12.5px; font-weight: 700; line-height: 1.35;
+      padding: 8px 10px 8px 12px;
+      border-radius: 10px;
+      box-shadow: 0 3px 12px rgba(0,0,0,0.35);
+      pointer-events: none;
+    }
+    .callout b { display: inline-block; width: 18px; height: 18px; margin-right: 6px; border-radius: 50%; background: #1c1c18; color: #e8b04a; text-align: center; line-height: 18px; font-size: 11px; vertical-align: -1px; }
+    svg.arrows { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible; }
+    .legend {
+      margin: 22px auto 0;
+      max-width: 860px;
+      display: grid;
+      gap: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      color: rgba(243,239,227,0.86);
+      line-height: 1.4;
+    }
+    .legend span { display: inline-grid; place-items: center; width: 20px; height: 20px; margin-right: 8px; border-radius: 50%; background: #e8b04a; color: #1c1c18; font-size: 12px; font-weight: 700; vertical-align: -3px; }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <h1>Что переезжает в нижнюю панель</h1>
+    <p class="lead">Слева — текущая страница «Мои персонажи» (скрин Игоря). Справа — новый светлый макет L3. Переключатель «Персонажи / Лобби» и строка «M. m.krosh00 …» сверху больше не стоят: они переехали в нижнюю панель. Заголовок, список, кнопки создания и справки, размеры, теги, карточка Вирры и подвал остаются.</p>
+    <div class="cols">
+      <div class="col">
+        <h2>Сейчас</h2>
+        <div class="phone" id="before">
+          <img src="../ref/igor-chars-current-crop.png" alt="Текущая страница Мои персонажи" />
+          <div class="hl" id="hl1"></div>
+          <div class="hl" id="hl2"></div>
+          <div class="num" id="n1">1</div>
+          <div class="num" id="n2">2</div>
+          <div class="callout" id="c1"><b>1</b> «Персонажи / Лобби» переезжает вниз, в нижнюю панель</div>
+          <div class="callout" id="c2"><b>2</b> «M. m.krosh00 …» (личный кабинет) тоже переезжает вниз</div>
+          <svg class="arrows" id="arrowsL"></svg>
+        </div>
+      </div>
+      <div class="col">
+        <h2>Новый макет · светлая L3</h2>
+        <div class="phone" id="after">
+          <img src="../png/mobile-chars-nav-light-390.png" alt="Новый макет с нижней панелью" />
+          <div class="callout" id="c1b"><b>1</b> Персонажи и Лобби — пункты нижней панели</div>
+          <div class="callout" id="c2b"><b>2</b> Кабинет с буквой «M.» — в панели справа от кубика</div>
+          <div class="num" id="n1b">1</div>
+          <div class="num" id="n2b">2</div>
+          <svg class="arrows" id="arrowsR"></svg>
+        </div>
+      </div>
+    </div>
+    <div class="legend">
+      <div><span>1</span>Переключатель «Персонажи / Лобби» уходит сверху и становится двумя кнопками нижней панели.</div>
+      <div><span>2</span>Строка «M. m.krosh00 …» (вход в личный кабинет) уходит сверху; в панели — кружок «M.» с подписью «Кабинет».</div>
+    </div>
+  </div>
+  <script>
+    const sx = 390 / 441;
+    function box(el, x, y, w, h) {
+      el.style.left = x + 'px'; el.style.top = y + 'px';
+      el.style.width = w + 'px'; el.style.height = h + 'px';
+    }
+    function xy(el, x, y) { el.style.left = x + 'px'; el.style.top = y + 'px'; }
+    function line(svg, x1, y1, x2, y2) {
+      const p = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      const midY = (y1 + y2) / 2;
+      p.setAttribute('d', `M${x1} ${y1} C${x1} ${midY}, ${x2} ${midY}, ${x2} ${y2}`);
+      p.setAttribute('fill', 'none');
+      p.setAttribute('stroke', '#e8b04a');
+      p.setAttribute('stroke-width', '2.4');
+      p.setAttribute('stroke-linecap', 'round');
+      svg.appendChild(p);
+      const a = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+      a.setAttribute('points', `${x2-5},${y2-8} ${x2+5},${y2-8} ${x2},${y2}`);
+      a.setAttribute('fill', '#e8b04a');
+      svg.appendChild(a);
+    }
+    const img = document.querySelector('#before img');
+    function place() {
+      // coords in cropped image (original minus 20px top), then scale to 390
+      // toggle 28,75 – 214,108
+      const t = { x: 22*sx, y: 72*sx, w: 200*sx, h: 44*sx };
+      // user row 12,108 – 428,168
+      const u = { x: 10*sx, y: 106*sx, w: 420*sx, h: 64*sx };
+      box(hl1, t.x, t.y, t.w, t.h);
+      box(hl2, u.x, u.y, u.w, u.h);
+      xy(n1, t.x + t.w - 10, t.y - 12);
+      xy(n2, u.x + 8, u.y + u.h - 14);
+      // callouts in the empty field under the card, above the footer — no long arrows across the card
+      const c1 = document.getElementById('c1');
+      const c2 = document.getElementById('c2');
+      c1.style.left = '36px'; c1.style.top = '400px';
+      c2.style.left = '36px'; c2.style.top = '470px';
+      document.getElementById('arrowsL').innerHTML = '';
+
+      // after: callouts in empty field above footer, arrows down to tabs
+      const c1b = document.getElementById('c1b');
+      const c2b = document.getElementById('c2b');
+      c1b.style.left = '16px'; c1b.style.top = '470px';
+      c2b.style.left = '16px'; c2b.style.top = '545px';
+      xy(n1b, 20, 748);
+      xy(n2b, 250, 748);
+      const svgR = document.getElementById('arrowsR');
+      svgR.innerHTML = '';
+      function downSide(x1, y1, x2, y2, sideX) {
+        const p = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        p.setAttribute('d', `M${x1} ${y1} L${sideX} ${y1} L${sideX} ${y2} L${x2} ${y2}`);
+        p.setAttribute('fill', 'none'); p.setAttribute('stroke', '#e8b04a');
+        p.setAttribute('stroke-width', '2.4'); p.setAttribute('stroke-linecap', 'round'); p.setAttribute('stroke-linejoin', 'round');
+        svgR.appendChild(p);
+        const a = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+        const dir = x2 > sideX ? 1 : -1;
+        a.setAttribute('points', `${x2},${y2} ${x2-8*dir},${y2-5} ${x2-8*dir},${y2+5}`);
+        a.setAttribute('fill', '#e8b04a');
+        svgR.appendChild(a);
+      }
+      // along the edges so the footer text stays clear
+      downSide(16, 470+44, 48, 760, 14);
+      downSide(316, 545+44, 273, 760, 376);
+    }
+    if (img.complete) place(); else img.addEventListener('load', place);
+  </script>
+</body>
+</html>

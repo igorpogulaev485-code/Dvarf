@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <title>BPMN render</title>
+  <link rel="stylesheet" href="/node_modules/bpmn-js/dist/assets/diagram-js.css" />
+  <link rel="stylesheet" href="/node_modules/bpmn-js/dist/assets/bpmn-js.css" />
+  <link rel="stylesheet" href="/node_modules/bpmn-js/dist/assets/bpmn-font/css/bpmn-embedded.css" />
+  <style>
+    html, body { margin: 0; padding: 0; background: #f7f4ec; overflow: hidden; }
+    #canvas { width: 100vw; height: 100vh; background: #f7f4ec; }
+    /* slightly larger labels for readability */
+    .djs-direct-editing-parent,
+    .djs-label,
+    text { font-family: "Noto Sans", "DejaVu Sans", "Liberation Sans", sans-serif !important; }
+  </style>
+</head>
+<body>
+  <div id="canvas"></div>
+  <script src="/node_modules/bpmn-js/dist/bpmn-navigated-viewer.production.min.js"></script>
+  <script>
+    const viewer = new BpmnJS({ container: '#canvas' });
+    window.renderBpmn = async function (xml) {
+      await viewer.importXML(xml);
+      const canvas = viewer.get('canvas');
+      canvas.zoom('fit-viewport', 'auto');
+      const vb = canvas.viewbox();
+      const inner = vb.inner;
+      const pad = 28;
+      return {
+        width: Math.ceil(inner.width + pad * 2),
+        height: Math.ceil(inner.height + pad * 2),
+        x: inner.x - pad,
+        y: inner.y - pad,
+      };
+    };
+    window.fit = function (x, y, width, height) {
+      viewer.get('canvas').viewbox({ x, y, width, height });
+    };
+    window.exportSvg = async function () {
+      const { svg } = await viewer.saveSVG();
+      return svg;
+    };
+  </script>
+</body>
+</html>

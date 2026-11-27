@@ -1,0 +1,1248 @@
+[
+  {
+    "id": "back",
+    "name": "Персонажи (левое меню)",
+    "does": "Возврат к «Мои персонажи». В концепте функция переехала из «← К списку» в шапке в пункт «Персонажи» свёрнутого левого меню (у «К списку» был дубль).",
+    "code": "CharacterDetailPage.tsx (Link to=/characters)",
+    "group": "Оболочка"
+  },
+  {
+    "id": "help",
+    "name": "Справка",
+    "does": "Иконка-книга справа в верхней строке, рядом с аватаркой (как в лобби и списке персонажей). Открывает справку листа; в ней же «Показать подсказки снова».",
+    "code": "CharacterDetailPage.tsx; HelpDrawer",
+    "group": "Оболочка"
+  },
+  {
+    "id": "classic",
+    "name": "Классический лист 2014",
+    "does": "Отдельная кнопка в верхней строке листа: печатный/классический бланк 2014. Подпись дословно из прода.",
+    "code": "CharacterDetailPage.tsx → /characters/:id/classic",
+    "group": "Оболочка"
+  },
+  {
+    "id": "lobby",
+    "name": "В лобби",
+    "does": "Отдельная кнопка «В лобби» в верхней строке. Диалог входа в лобби по коду. Подпись дословно из прода.",
+    "code": "CharacterDetailPage.tsx (lobbyOpen)",
+    "group": "Оболочка"
+  },
+  {
+    "id": "state-loading",
+    "name": "Состояние: загрузка",
+    "does": "Текст «Открываем лист...»",
+    "code": "CharacterDetailPage.tsx loading",
+    "group": "Состояния"
+  },
+  {
+    "id": "state-error",
+    "name": "Состояние: ошибка",
+    "does": "Показ текста ошибки загрузки",
+    "code": "CharacterDetailPage.tsx error",
+    "group": "Состояния"
+  },
+  {
+    "id": "state-remote",
+    "name": "Баннер: сохранён в другой вкладке",
+    "does": "Позже / Обновить (vN, refreshing «Обновляем…»)",
+    "code": "CharacterDetailPage.tsx remoteNotice",
+    "group": "Состояния"
+  },
+  {
+    "id": "lobby-join",
+    "name": "Диалог «В лобби»",
+    "does": "Код приглашения, вход; конфликт «персонаж в другом лобби»; acknowledge_start_mismatch",
+    "code": "CharacterDetailPage.tsx",
+    "group": "Окна"
+  },
+  {
+    "id": "onb-ready",
+    "name": "Диалог «Персонаж готов»",
+    "does": "Мост сразу после создания персонажа (CharacterReadyDialog): «Сразу к листу» или «Как читать лист (2 мин)». В постоянной шапке кнопки нет — диалог только в этом переходе, как в проде. В макете открывается из витрины форм.",
+    "code": "CharacterReadyDialog.tsx",
+    "group": "Онбординг"
+  },
+  {
+    "id": "onb-welcome",
+    "name": "Приветствие / тур листа",
+    "does": "WelcomeDialog / SheetTour. «Показать подсказки снова» — кнопка в справке (HelpDrawer.restartTips в проде), не отдельный пункт шапки.",
+    "code": "WelcomeDialog, SheetTour, onboarding",
+    "group": "Онбординг"
+  },
+  {
+    "id": "onb-tips",
+    "name": "Подсказки новичка «?»",
+    "does": "showValueTips рядом с КД, хитами, БМ",
+    "code": "PlayDeskHeader.tsx showValueTips",
+    "group": "Онбординг"
+  },
+  {
+    "id": "identity",
+    "name": "Блок «Основное» (имя, аватар)",
+    "does": "Открывает диалог идентичности: имя, раса, мировоззрение, предыстория, классы",
+    "code": "PlayDeskHeader.tsx onOpenIdentity; SheetIdentityDialog.tsx; IdentityDialog.tsx",
+    "group": "Шапка"
+  },
+  {
+    "id": "edition-badge",
+    "name": "Бейдж редакции 2014/2024",
+    "does": "Показ rules_edition в шапке и в подвале «Редакция · vN»",
+    "code": "PlayDeskHeader.tsx rulesEdition; PlayDeskLayout.tsx",
+    "group": "Шапка"
+  },
+  {
+    "id": "class-chip",
+    "name": "Чип класса и уровня",
+    "does": "Чип «Класс N · архетип» (у жреца: «Жрец 5 · Жизнь»). Клик — настройка класса / повышение. При мультиклассе в ряду остаются первые чипы, что влезают в отведённое место; остальные — чип «+N». Демо: ?multiclass=3.",
+    "code": "PlayDeskHeader.tsx classChips",
+    "group": "Шапка"
+  },
+  {
+    "id": "class-more",
+    "name": "Чип «+N» мультикласса",
+    "does": "Показывает число классов, которые не влезли в отведённое место шапки. Клик открывает небольшую форму со всеми классами: класс, подкласс, уровень. Эталон ClassChipRow (принят 14.11.2026). Демо: ?multiclass=3&classform=open.",
+    "code": "ClassChip.tsx ClassChipRow; PlayDeskHeader.tsx classChips",
+    "group": "Шапка"
+  },
+  {
+    "id": "needs-setup",
+    "name": "«Нужно настроить»",
+    "does": "Чип B20 «Нужно настроить: N». Открывает список незакрытых шагов создания или повышения уровня; выбор пункта ведёт в мастер. Подсказка как в проде: «Что ещё нужно настроить на листе».",
+    "code": "NeedsSetupIndicator.tsx; needsSetup.ts; PlayDeskTop.tsx handleNeedsSetupSelect",
+    "group": "Шапка"
+  },
+  {
+    "id": "xp-bar",
+    "name": "Полоса опыта / вехи",
+    "does": "Открывает панель XP. Подпись считает остаток до порога следующего уровня: «6 500 / 14 000 XP · ещё 7 500 до ур. 6». На максимальном уровне — без остатка («… XP · макс.»).",
+    "code": "PlayDeskHeader.tsx xpPadOpen, xpHistory, progressionMode",
+    "group": "Шапка"
+  },
+  {
+    "id": "level-up",
+    "name": "Повышение уровня",
+    "does": "Диалог LevelUp",
+    "code": "LevelUpDialog.tsx",
+    "group": "Окна"
+  },
+  {
+    "id": "ac",
+    "name": "Класс доспеха",
+    "does": "Плашка с иконкой щита и числом (без подписи «КД» на лице). Открывает разборку. Title: «Класс доспеха».",
+    "code": "PlayDeskHeader.tsx onOpenAc; AcBreakdownDialog.tsx",
+    "group": "Шапка"
+  },
+  {
+    "id": "shield",
+    "name": "Щит в руке",
+    "does": "Кнопка-чип «Щит» на плашке КД: взять/убрать щит (КД ± бонус). Подсказки прода: «Щит в руке — нажми, чтобы убрать…» / «Взять щит в руку…».",
+    "code": "PlayDeskHeader.tsx",
+    "group": "Шапка"
+  },
+  {
+    "id": "speed",
+    "name": "Скорость",
+    "does": "Плашка «Скор.»: иконка сапога и скорость ходьбы. Если есть другие режимы — в той же плашке справа столбик мелких чипов «лаз. N / плав. N / полёт N» (не отдельная плашка). В макете состояние через ?speeds=alt. Клик открывает список скоростей.",
+    "code": "SpeedBreakdownDialog.tsx; SpeedModesMenuBody.tsx",
+    "group": "Шапка"
+  },
+  {
+    "id": "jump",
+    "name": "Прыжок",
+    "does": "Подсказка «Прыжок: в длину N фт, в высоту N фт»",
+    "code": "PlayDeskHeader.tsx",
+    "group": "Шапка"
+  },
+  {
+    "id": "initiative",
+    "name": "Инициатива (значение)",
+    "does": "Разборка инициативы и бонусы",
+    "code": "InitiativeBreakdownDialog.tsx",
+    "group": "Шапка"
+  },
+  {
+    "id": "init-roll",
+    "name": "Бросок инициативы",
+    "does": "Бросок из листа, source:'sheet'",
+    "code": "PlayDeskHeader.tsx onInitiativeRoll; sheetActions4.ts",
+    "group": "Броски"
+  },
+  {
+    "id": "pb",
+    "name": "Бонус мастерства",
+    "does": "Подсказка «Бонус мастерства (от уровня)»",
+    "code": "PlayDeskHeader.tsx",
+    "group": "Шапка"
+  },
+  {
+    "id": "inspiration",
+    "name": "Вдохновение",
+    "does": "Чип с иконкой искры: «Вдохн.» и ○/●. Подсказка: «Вдохновение — нажми, чтобы переключить».",
+    "code": "PlayDeskHeader.tsx onToggleInspiration",
+    "group": "Шапка"
+  },
+  {
+    "id": "exhaustion",
+    "name": "Истощение",
+    "does": "Чип с иконкой ступеней: «Истощ.» и уровень 0–6. Подсказка прода: «Истощение — нажми, чтобы изменить уровень (0–6)».",
+    "code": "PlayDeskHeader.tsx exhaustionStage",
+    "group": "Шапка"
+  },
+  {
+    "id": "coins",
+    "name": "Кошелёк",
+    "does": "Пилюля с иконкой монеты и «N зм». Открывает кошелёк.",
+    "code": "CoinPadDialog.tsx",
+    "group": "Шапка"
+  },
+  {
+    "id": "rest",
+    "name": "Отдых",
+    "does": "Пилюля с иконкой отдыха и подписью «Отдых». Короткий / длинный отдых.",
+    "code": "RestDialog.tsx",
+    "group": "Шапка"
+  },
+  {
+    "id": "hp",
+    "name": "Хиты",
+    "does": "Плашка хитов «N / макс» и подпись «хиты». Если есть временные: «хиты · врем. +N» (как в проде). В макете состояние через ?hp=temp.",
+    "code": "HpPadDialog.tsx",
+    "group": "Шапка"
+  },
+  {
+    "id": "temp-hp",
+    "name": "Временные хиты",
+    "does": "Замена временных хитов, если уже есть",
+    "code": "TempHpReplaceDialog.tsx",
+    "group": "Окна"
+  },
+  {
+    "id": "max-hp",
+    "name": "Макс. хиты по уровням",
+    "does": "Разбор max HP (в т.ч. стойкость дварфа)",
+    "code": "MaxHpByLevelsDialog.tsx",
+    "group": "Окна"
+  },
+  {
+    "id": "conditions",
+    "name": "Состояния",
+    "does": "Горячий список состояний",
+    "code": "HotConditionsDialog.tsx",
+    "group": "Шапка"
+  },
+  {
+    "id": "effects",
+    "name": "Активные эффекты",
+    "does": "Полоса эффектов / пусто «Нет активных эффектов»",
+    "code": "ActiveEffectsPanel.tsx",
+    "group": "Шапка"
+  },
+  {
+    "id": "next-round",
+    "name": "Следующий раунд",
+    "does": "Кнопка в шапке справа от состояний/эффектов: сброс трекера действий раунда.",
+    "code": "PlayDeskHeader.tsx / PlayDeskTop.tsx",
+    "group": "Шапка"
+  },
+  {
+    "id": "abil-rail",
+    "name": "Колонка характеристик",
+    "does": "Шесть плашек, сворачивание навыков, порядок сохраняется в UI",
+    "code": "AbilitySkillsColumn.tsx; 21-ability-rail.css",
+    "group": "Характеристики"
+  },
+  {
+    "id": "abil-click",
+    "name": "Клик по плашке",
+    "does": "Свернуть/развернуть навыки этой характеристики",
+    "code": "AbilitySkillsColumn.tsx (§14 гибрид)",
+    "group": "Характеристики"
+  },
+  {
+    "id": "abil-drag",
+    "name": "Перенос плашки",
+    "does": "Гибрид: за любую область после сдвига >5px; ручка из двух полосок на hover",
+    "code": "AbilitySkillsColumn.tsx; sheet UI order",
+    "group": "Характеристики"
+  },
+  {
+    "id": "abil-score",
+    "name": "Число характеристики",
+    "does": "Открывает разборку (баз, раса, предметы, бафы)",
+    "code": "AbilityBreakdownDialog.tsx",
+    "group": "Характеристики"
+  },
+  {
+    "id": "abil-check",
+    "name": "Бросок проверки характеристики",
+    "does": "source:'sheet'",
+    "code": "sheetActions4.ts; deskRolls.ts",
+    "group": "Броски"
+  },
+  {
+    "id": "abil-save",
+    "name": "Спасбросок (Пр)",
+    "does": "Бросок спаса характеристики. Рядом кружок владения (см. abil-save-prof).",
+    "code": "AbilitySkillsColumn.tsx",
+    "group": "Характеристики"
+  },
+  {
+    "id": "abil-save-prof",
+    "name": "Кружок владения спасброском",
+    "does": "Индикатор владения слева от кнопки спаса. Клик включает или снимает владение (как в проде).",
+    "code": "AbilitySkillsColumn.tsx abil-prof-pip",
+    "group": "Характеристики"
+  },
+  {
+    "id": "skill-expertise",
+    "name": "Компетентность навыка",
+    "does": "Двойное владение. В списке под характеристикой — двойной кружок и метка ◆, ряд сплошной заливкой. В ряду навыков сцены — более насыщенный чип и ◆. Демо: ?expertise=on (Скрытность +7).",
+    "code": "AbilitySkillsColumn.tsx; PlayDeskSkillStrip.tsx",
+    "group": "Характеристики"
+  },
+  {
+    "id": "skill-row",
+    "name": "Строка навыка",
+    "does": "Бросок навыка; владение / компетенция",
+    "code": "PlayDeskSkillStrip.tsx; AbilitySkillsColumn.tsx",
+    "group": "Характеристики"
+  },
+  {
+    "id": "abil-collapse-all",
+    "name": "Свернуть все",
+    "does": "«Свернуть все» — сворачивает характеристики, а также атаки и круги заклинаний (как «свернутый список» в проде). Рядом отдельные «Развернуть все» и «?». Демо: ?collapsed=1.",
+    "code": "AbilitySkillsColumn.tsx",
+    "group": "Характеристики"
+  },
+  {
+    "id": "abil-expand-all",
+    "name": "Развернуть все",
+    "does": "«Развернуть все» — раскрывает характеристики, атаки и круги заклинаний. В проде обе кнопки видны сразу, рядом «?».",
+    "code": "AbilitySkillsColumn.tsx; PlayDeskSpellsCompact.tsx",
+    "group": "Характеристики"
+  },
+  {
+    "id": "abil-gear-buffs",
+    "name": "«С учётом предметов и бафов»",
+    "does": "Не отдельная кнопка панели: в проде это подсказка на эффективном значении характеристики («→ N»), если оно отличается от базового из‑за предметов и бафов. В макете показано на Силе: 16 → 18.",
+    "code": "AbilitySkillsColumn.tsx",
+    "group": "Характеристики"
+  },
+  {
+    "id": "abil-colors",
+    "name": "Цвета характеристик / моноакцент",
+    "does": "Режим unique (медь…слива) или theme (один акцент)",
+    "code": "§13; account appearance data-abil",
+    "group": "Характеристики"
+  },
+  {
+    "id": "scene-combat",
+    "name": "Сцена «Бой»",
+    "does": "По умолчанию панель атак; split пинит магию рядом, если есть источники",
+    "code": "playDeskUi.ts combat; PlayDeskScenes.tsx; PlayDeskAttacksCompact.tsx",
+    "group": "Сцены"
+  },
+  {
+    "id": "scene-explore",
+    "name": "Сцена «Исследование»",
+    "does": "Снаряжение на всю ширину; магия по кнопке",
+    "code": "playDeskUi.ts explore; PlayDeskExploreCompact.tsx",
+    "group": "Сцены"
+  },
+  {
+    "id": "scene-social",
+    "name": "Сцена «Общение»",
+    "does": "Тексты и заметки на всю ширину; магия по кнопке",
+    "code": "playDeskUi.ts social; PlayDeskSocialCompact.tsx",
+    "group": "Сцены"
+  },
+  {
+    "id": "scene-companions",
+    "name": "Сцена «Напарники»",
+    "does": "Панель напарников",
+    "code": "playDeskUi.ts companions; PlayDeskCompanionsCompact.tsx",
+    "group": "Сцены"
+  },
+  {
+    "id": "scene-features",
+    "name": "Сцена «Способности»",
+    "does": "Классовые/расовые умения и ресурсы",
+    "code": "playDeskUi.ts features; PlayDeskFeaturesCompact.tsx",
+    "group": "Сцены"
+  },
+  {
+    "id": "scene-hint",
+    "name": "Подсказка сцены (MODE_HINT)",
+    "does": "Подпись в правой колонке, над атаками и заклинаниями. На сцене боя — дословно из прода: «Справа — заклинания · слева — выбранная панель».",
+    "code": "playDeskUi.ts MODE_HINT; scene intros",
+    "group": "Сцены"
+  },
+  {
+    "id": "split-magic",
+    "name": "Показать / скрыть магию",
+    "does": "Кнопка «магия» справа от чипов хода: показать/скрыть колонку заклинаний (в бою split по умолчанию, в исследовании и общении — по кнопке). Подпись дословно «магия».",
+    "code": "playDeskUi.ts deskSplit; PlayDeskSpellsCompact.tsx",
+    "group": "Сцены"
+  },
+  {
+    "id": "bottom-nav",
+    "name": "Нижняя навигация сцен",
+    "does": "Короткие подписи при ширине <960: Бой / Исслед. / Общение / Напарн. / Способн.",
+    "code": "BottomSceneNav.tsx",
+    "group": "Сцены"
+  },
+  {
+    "id": "actions-panel",
+    "name": "Панель действий хода",
+    "does": "В блоке атак вкладки «Действие / Бонусное / Реакция» (как в проде). Клик открывает панель вариантов. «Новый ход» снимает отметки. Чип «действ.» у вкладок сцен убран — он дублировал эту панель. Демо: ?actions=open.",
+    "code": "TurnEconomyCombatActions.tsx; PlayDeskAttacksCompact.tsx",
+    "group": "Бой"
+  },
+  {
+    "id": "roll-mode",
+    "name": "Режим броска норм / преим. / помеха",
+    "does": "Тройник: выбран ровно один режим (норм, преим., помеха). Подписи дословно из прода.",
+    "code": "PlayDeskLayout.tsx deskRollMode",
+    "group": "Бой"
+  },
+  {
+    "id": "new-turn",
+    "name": "Новый ход",
+    "does": "Сбрасывает отметки хода (действие; в проде также бонусное и реакция). Подпись дословно «Новый ход».",
+    "code": "SceneTurnControls.tsx beginMyTurn",
+    "group": "Бой"
+  },
+  {
+    "id": "dice-table",
+    "name": "кубики (на столе)",
+    "does": "Чекбокс «кубики»: включить или выключить кубики на столе (Попал/Промах или своё число).",
+    "code": "SceneTurnControls.tsx diceOnTable",
+    "group": "Бой"
+  },
+  {
+    "id": "hotbar",
+    "name": "HOT-панель (ресурсы и состояния)",
+    "does": "HOT-панель в правой колонке (над атаками и заклинаниями, не над характеристиками): ресурсы класса кружками (у жреца — Божественный канал, Пополнение жизней) и предмет. Состояния в шапке, не в этом ряду. В проде также избранные расходники — см. перечень потерь.",
+    "code": "PlayDeskHotBar.tsx",
+    "group": "Бой"
+  },
+  {
+    "id": "scene-skills",
+    "name": "Навыки сцены",
+    "does": "Ряд навыков сцены сразу под HOT-панелью в правой колонке; набор меняется вместе со сценой.",
+    "code": "PlayDeskHotBar.tsx; PlayDeskLayout.tsx",
+    "group": "Сцены"
+  },
+  {
+    "id": "attack-card",
+    "name": "Плашка оружия / атаки",
+    "does": "Карточка атаки: бонус, урон, свойства; контур типа оружия + слот арта",
+    "code": "PlayDeskAttacksCompact.tsx; AttacksPanel.tsx",
+    "group": "Атаки"
+  },
+  {
+    "id": "attack-roll",
+    "name": "Бросок атаки из плашки",
+    "does": "source:'sheet'; окно броска v2",
+    "code": "sheetActions4.ts; postSheetRollToSession.ts",
+    "group": "Броски"
+  },
+  {
+    "id": "weapon-mods",
+    "name": "Модификаторы атаки и урона",
+    "does": "Иконка у оружия: ручные бонусы. Рядом: взять/убрать из рук, предмет в инвентаре. Меню «⋯» убрано — те же действия уже есть отдельными кнопками. Режим оружия (activation) — отдельная кнопка-иконка только у такого оружия. У лука и арбалета — «боеприпас».",
+    "code": "PlayDeskAttacksCompact.tsx weapon-tools",
+    "group": "Бой"
+  },
+  {
+    "id": "damage-roll",
+    "name": "Бросок урона",
+    "does": "source:'sheet'",
+    "code": "sheetActions4.ts",
+    "group": "Броски"
+  },
+  {
+    "id": "weapon-breakdown",
+    "name": "Разборка атаки оружием",
+    "does": "Формула бонуса атаки и урона",
+    "code": "WeaponAttackBreakdownDialog.tsx",
+    "group": "Окна"
+  },
+  {
+    "id": "attack-bonus",
+    "name": "Разборка бонуса атаки",
+    "does": "Общие бонусы атаки",
+    "code": "AttackBonusBreakdownDialog.tsx",
+    "group": "Окна"
+  },
+  {
+    "id": "attacks-settings",
+    "name": "Настройки атак",
+    "does": "Список атак, ручные правки",
+    "code": "AttacksSettingsDialog.tsx",
+    "group": "Окна"
+  },
+  {
+    "id": "grapple",
+    "name": "Захват / толкание",
+    "does": "Диалог захвата и толчка. В проде открывается из панели действий хода: «Захват / Толчок», не из шапки атак и не из аккордеона «Правила стола».",
+    "code": "GrappleShoveDialog.tsx",
+    "group": "Окна"
+  },
+  {
+    "id": "attacks-empty",
+    "name": "Пустые атаки",
+    "does": "Пустое состояние панели атак + действие добавить",
+    "code": "PlayDeskAttacksCompact.tsx",
+    "group": "Состояния"
+  },
+  {
+    "id": "spell-card",
+    "name": "Плашка заклинания",
+    "does": "Плашка заклинания: имя, уровень, чип урона/эффекта, источник, флаги «конц.» / «ритуал»; снизу компактная строка «время · дистанция · атака/спас · компоненты · школа» как compact-ряд прода.",
+    "code": "PlayDeskSpellsCompact.tsx; 18-spell-compact-cards.css",
+    "group": "Заклинания"
+  },
+  {
+    "id": "spell-granted",
+    "name": "Всегда подготовленное (грант)",
+    "does": "Класс is-granted: диагональный градиент акцента; вне лимита подготовки",
+    "code": "isGrantedSpellHighlight(); spellSourceBadge(); CSS .is-granted",
+    "group": "Заклинания"
+  },
+  {
+    "id": "spell-item",
+    "name": "Заклинание от предмета / артефакта",
+    "does": "id gear-spell: / item_cast, бейдж «Предмет», заряды, градиент гранта, tooltip источника",
+    "code": "spells.ts spellSourceBadge kind feature; itemSpellCast",
+    "group": "Заклинания"
+  },
+  {
+    "id": "spell-feature",
+    "name": "Заклинание от способности",
+    "does": "id feature-spell:, бейдж «Умение», tooltip «Всегда подготовлено · Умение»",
+    "code": "spells.ts; alwaysPreparedSpellEnrichment.ts",
+    "group": "Заклинания"
+  },
+  {
+    "id": "spell-source-tip",
+    "name": "Tooltip источника",
+    "does": "Тексты: «Всегда подготовлено · {Раса|Черта|Архетип|Умение|Предмет|грант} — вне лимита…»; список расы/черты — «готовь как классовое»; хомбрю — «только на этом листе»",
+    "code": "spells.ts spellSourceBadge().title",
+    "group": "Подсказки"
+  },
+  {
+    "id": "spell-detail",
+    "name": "Описание заклинания",
+    "does": "SpellDetailDialog (по имени / двойному клику)",
+    "code": "SpellDetailDialog.tsx",
+    "group": "Окна"
+  },
+  {
+    "id": "cast-spell",
+    "name": "Сотворить заклинание",
+    "does": "Ячейка / без ячейки / от предмета; концентрация",
+    "code": "CastSpellDialog.tsx",
+    "group": "Окна"
+  },
+  {
+    "id": "spell-cast-break",
+    "name": "Разборка сл. спас. и атаки",
+    "does": "Профили источников магии. На столе — столбик компактных строк: класс · характеристика (цвет плашки) · Сл · бонус атаки, справа квота этого заклинателя (подг. N/M · всегда K; у известных — изв. N/M; у волшебника — подг. N/M, в книге B). Демо: ?casters=4.",
+    "code": "SpellCastBreakdownDialog.tsx",
+    "group": "Окна"
+  },
+  {
+    "id": "prepare",
+    "name": "Подготовить заклинания",
+    "does": "Сегодняшний набор, книга, гранты с градиентом prepare-row.is-granted",
+    "code": "PrepareSpellsDialog.tsx; 14-create-pipeline.css",
+    "group": "Окна"
+  },
+  {
+    "id": "spellbook",
+    "name": "Книга заклинаний",
+    "does": "Управление книгой волшебника / ритуалы",
+    "code": "SpellbookManageDialog.tsx; RitualBookCopyDialog.tsx",
+    "group": "Окна"
+  },
+  {
+    "id": "grimoire",
+    "name": "Гримуар / физическая книга",
+    "does": "Книга в инвентаре, знаток школы, перо писца",
+    "code": "GrimoireDialog.tsx",
+    "group": "Окна"
+  },
+  {
+    "id": "spells-settings",
+    "name": "Магия",
+    "does": "Кнопка «Магия» в шапке колонки заклинаний (на столе так, не «Настройки»). В окне — подготовка, книга, гримуар. Сл. спас. и атака — строка «Жрец · МУД · Сл 14 · +6».",
+    "code": "SpellsSettingsDialog.tsx",
+    "group": "Окна"
+  },
+  {
+    "id": "custom-spell",
+    "name": "Своё заклинание",
+    "does": "Хомбрю на этом листе",
+    "code": "CustomSpellDialog.tsx; SpellFormDialog.tsx",
+    "group": "Окна"
+  },
+  {
+    "id": "spell-filters",
+    "name": "Фильтр и поиск заклинаний",
+    "does": "Чипы фильтра + поле «Поиск заклинания»",
+    "code": "PlayDeskSpellsCompact.tsx",
+    "group": "Заклинания"
+  },
+  {
+    "id": "slots",
+    "name": "Ячейки (pips)",
+    "does": "Ячейки круга — в заголовке этого круга («Ячейки N/M» и кружки). Клик по кружку тратит/возвращает ячейку. «Ячейки договора нет», если договора нет.",
+    "code": "PlayDeskSpellsCompact.tsx",
+    "group": "Заклинания"
+  },
+  {
+    "id": "spells-collapse-all",
+    "name": "Свернуть все (круги заклинаний)",
+    "does": "Сворачивает все круги в колонке заклинаний. Рядом «Развернуть все» и «Сбросить порядок (А–Я)».",
+    "code": "PlayDeskSpellsCompact.tsx collapseAll",
+    "group": "Заклинания"
+  },
+  {
+    "id": "spells-expand-all",
+    "name": "Развернуть все (круги заклинаний)",
+    "does": "Раскрывает все круги заклинаний.",
+    "code": "PlayDeskSpellsCompact.tsx expandAll",
+    "group": "Заклинания"
+  },
+  {
+    "id": "concentration",
+    "name": "Концентрация",
+    "does": "Флаг «конц.» / «держит конц.»; активное подсвечивается",
+    "code": "PlayDeskSpellsCompact.tsx is-conc-active",
+    "group": "Заклинания"
+  },
+  {
+    "id": "ritual-book",
+    "name": "Ритуал из книги (не подготовлено)",
+    "does": "Строка is-ritual-unprepared, подпись «Не подготовлено · ритуал из книги»",
+    "code": "PlayDeskSpellsCompact.tsx isRitualFromBook",
+    "group": "Заклинания"
+  },
+  {
+    "id": "book-lost",
+    "name": "Книга утеряна",
+    "does": "Подготовка и ритуалы из книги закрыты; ссылка в настройки",
+    "code": "PlayDeskSpellsCompact.tsx play-desk-compact__book-lost",
+    "group": "Состояния"
+  },
+  {
+    "id": "spells-empty",
+    "name": "Пустые заклинания",
+    "does": "Пустой блок + ссылка подготовить",
+    "code": "PlayDeskSpellsCompact.tsx",
+    "group": "Состояния"
+  },
+  {
+    "id": "spell-art-svg",
+    "name": "Контур школы магии",
+    "does": "8 школ, свои SVG в стиле подложек, справа с затуханием",
+    "code": "макет v2 (сейчас в продукте контуров нет)",
+    "group": "Заклинания"
+  },
+  {
+    "id": "spell-art-slot",
+    "name": "Слот под арт дизайнера",
+    "does": "Вариант-заглушка с растровым плейсхолдером (не чужой арт)",
+    "code": "макет v2",
+    "group": "Заклинания"
+  },
+  {
+    "id": "inventory",
+    "name": "Снаряжение",
+    "does": "Список предметов, экипировка, вес",
+    "code": "InventoryPanel.tsx; PlayDeskExploreCompact.tsx",
+    "group": "Снаряжение"
+  },
+  {
+    "id": "gear-picker",
+    "name": "Справочник снаряжения",
+    "does": "Добавить предмет из каталога",
+    "code": "GearPickerDialog.tsx",
+    "group": "Окна"
+  },
+  {
+    "id": "attunement",
+    "name": "Настроенные предметы",
+    "does": "Слоты настройки",
+    "code": "AttunementDialog.tsx",
+    "group": "Окна"
+  },
+  {
+    "id": "transfer",
+    "name": "Передать",
+    "does": "Передача предмета",
+    "code": "TransferDialog.tsx",
+    "group": "Окна"
+  },
+  {
+    "id": "scroll-bind",
+    "name": "Привязать свиток",
+    "does": "Какое заклинание на свитке",
+    "code": "SpellScrollBindDialog.tsx",
+    "group": "Окна"
+  },
+  {
+    "id": "infusions",
+    "name": "Активные инфузии",
+    "does": "Изобретатель: инфузии",
+    "code": "InfusionsActiveDialog.tsx",
+    "group": "Окна"
+  },
+  {
+    "id": "inventory-empty",
+    "name": "Пустое снаряжение",
+    "does": "Пустое состояние + добавить",
+    "code": "PlayDeskExploreCompact.tsx",
+    "group": "Состояния"
+  },
+  {
+    "id": "texts",
+    "name": "Тексты и заметки",
+    "does": "Личность, идеалы, узы, изъяны, заметки",
+    "code": "PlayDeskSocialCompact.tsx панель texts",
+    "group": "Общение"
+  },
+  {
+    "id": "companion-card",
+    "name": "Карточка напарника",
+    "does": "Хиты, атаки, переход в сцену",
+    "code": "PlayDeskCompanionsCompact.tsx; CompanionsPanel.tsx",
+    "group": "Напарники"
+  },
+  {
+    "id": "companion-pick",
+    "name": "Выбор существа-напарника",
+    "does": "Справочник существ",
+    "code": "CompanionCreaturePickDialog.tsx",
+    "group": "Окна"
+  },
+  {
+    "id": "familiar-pick",
+    "name": "Выбор фамильяра",
+    "does": "Список фамильяров",
+    "code": "FamiliarPickDialog.tsx",
+    "group": "Окна"
+  },
+  {
+    "id": "ally-ability",
+    "name": "Способность союзника",
+    "does": "UseAllyAbilityDialog",
+    "code": "UseAllyAbilityDialog.tsx",
+    "group": "Окна"
+  },
+  {
+    "id": "wild-shape",
+    "name": "Дикий облик",
+    "does": "Друид: формы",
+    "code": "WildShapeDialog.tsx",
+    "group": "Окна"
+  },
+  {
+    "id": "companions-empty",
+    "name": "Пустые напарники",
+    "does": "Пустое состояние + добавить",
+    "code": "PlayDeskCompanionsCompact.tsx",
+    "group": "Состояния"
+  },
+  {
+    "id": "features-list",
+    "name": "Список способностей",
+    "does": "Класс, раса, черты, предыстория",
+    "code": "PlayDeskFeaturesCompact.tsx; ClassFeaturesPanel.tsx",
+    "group": "Способности"
+  },
+  {
+    "id": "feature-form",
+    "name": "Форма умения",
+    "does": "Самоописание / использование",
+    "code": "FeatureSelfFormDialog.tsx",
+    "group": "Окна"
+  },
+  {
+    "id": "res-channel",
+    "name": "Божественный канал",
+    "does": "Трата канала",
+    "code": "ChannelDivinitySpendDialog.tsx",
+    "group": "Окна"
+  },
+  {
+    "id": "res-hands",
+    "name": "Наложение рук",
+    "does": "Трата пула",
+    "code": "LayOnHandsSpendDialog.tsx",
+    "group": "Окна"
+  },
+  {
+    "id": "res-ki",
+    "name": "Ци",
+    "does": "Трата ци",
+    "code": "KiSpendDialog.tsx",
+    "group": "Окна"
+  },
+  {
+    "id": "res-sorcery",
+    "name": "Единицы чародейства",
+    "does": "Трата / превращение ячеек",
+    "code": "SorceryPointsSpendDialog.tsx",
+    "group": "Окна"
+  },
+  {
+    "id": "res-bardic",
+    "name": "Вдохновение барда",
+    "does": "Трата кости",
+    "code": "BardicInspirationSpendDialog.tsx",
+    "group": "Окна"
+  },
+  {
+    "id": "res-superiority",
+    "name": "Кости превосходства",
+    "does": "Трата",
+    "code": "SuperiorityDiceSpendDialog.tsx",
+    "group": "Окна"
+  },
+  {
+    "id": "res-psionic",
+    "name": "Псионические кости",
+    "does": "Трата",
+    "code": "PsionicDiceSpendDialog.tsx",
+    "group": "Окна"
+  },
+  {
+    "id": "res-trinkets",
+    "name": "Безделушки душ",
+    "does": "Трата",
+    "code": "SoulTrinketsSpendDialog.tsx",
+    "group": "Окна"
+  },
+  {
+    "id": "res-arcanum",
+    "name": "Арканум колдуна",
+    "does": "Трата",
+    "code": "WarlockArcanumSpendDialog.tsx",
+    "group": "Окна"
+  },
+  {
+    "id": "res-arcane",
+    "name": "Магическое восстановление",
+    "does": "Трата",
+    "code": "ArcaneRecoverySpendDialog.tsx",
+    "group": "Окна"
+  },
+  {
+    "id": "invocations",
+    "name": "Мистические воззвания",
+    "does": "Список воззваний колдуна",
+    "code": "WarlockInvocationsDialog.tsx",
+    "group": "Окна"
+  },
+  {
+    "id": "ranger-favored",
+    "name": "Избранное следопыта",
+    "does": "Виды / земли",
+    "code": "RangerFavoredDeskDialog.tsx",
+    "group": "Окна"
+  },
+  {
+    "id": "wizard-feature",
+    "name": "Умение волшебника",
+    "does": "Знаток школы и др.",
+    "code": "WizardFeatureUseDialog.tsx",
+    "group": "Окна"
+  },
+  {
+    "id": "features-empty",
+    "name": "Пустые способности",
+    "does": "Пустое состояние",
+    "code": "PlayDeskFeaturesCompact.tsx",
+    "group": "Состояния"
+  },
+  {
+    "id": "race-setup",
+    "name": "Настройка расы",
+    "does": "Раса / хомбрю-раса / черта расы",
+    "code": "RaceSetupDialog.tsx",
+    "group": "Окна"
+  },
+  {
+    "id": "class-setup",
+    "name": "Настройка класса",
+    "does": "Класс / хомбрю-класс",
+    "code": "ClassSetupDialog.tsx",
+    "group": "Окна"
+  },
+  {
+    "id": "subclass-setup",
+    "name": "Настройка архетипа",
+    "does": "Выбор подкласса",
+    "code": "SubclassSetupDialog.tsx",
+    "group": "Окна"
+  },
+  {
+    "id": "subclass-change",
+    "name": "Сменить архетип?",
+    "does": "Подтверждение смены",
+    "code": "SubclassChangeConfirmDialog.tsx",
+    "group": "Окна"
+  },
+  {
+    "id": "bg-setup",
+    "name": "Настройка предыстории",
+    "does": "Предыстория / хомбрю",
+    "code": "BackgroundSetupDialog.tsx",
+    "group": "Окна"
+  },
+  {
+    "id": "feat-setup",
+    "name": "Настройка черты",
+    "does": "Черта",
+    "code": "FeatSetupDialog.tsx",
+    "group": "Окна"
+  },
+  {
+    "id": "asi",
+    "name": "Увеличение характеристик (ASI)",
+    "does": "ASI / черта на уровне",
+    "code": "ClassAsiDialog.tsx",
+    "group": "Окна"
+  },
+  {
+    "id": "guided",
+    "name": "Пошаговый мастер",
+    "does": "GuidedWizard",
+    "code": "GuidedWizardDialog.tsx",
+    "group": "Окна"
+  },
+  {
+    "id": "tags",
+    "name": "Теги персонажа",
+    "does": "Теги листа / списка",
+    "code": "CharacterTagsDialog.tsx",
+    "group": "Окна"
+  },
+  {
+    "id": "telekinetic",
+    "name": "Толчок (Телекинез)",
+    "does": "Диалог толчка",
+    "code": "TelekineticShoveDialog.tsx",
+    "group": "Окна"
+  },
+  {
+    "id": "enter-number",
+    "name": "Ввести своё число",
+    "does": "Ручной ввод",
+    "code": "EnterOwnNumberDialog.tsx",
+    "group": "Окна"
+  },
+  {
+    "id": "consumable-pad",
+    "name": "Расходник: трата",
+    "does": "Панель траты расходника",
+    "code": "ConsumableSpendPadDialog.tsx",
+    "group": "Окна"
+  },
+  {
+    "id": "carry-2024",
+    "name": "Поле carry (бланк 2024)",
+    "does": "Заметка для бланка 2024; вес инвентаря считается отдельно на столе",
+    "code": "SheetIdentityDialog.tsx hint",
+    "group": "2014/2024"
+  },
+  {
+    "id": "dice-fab",
+    "name": "Кнопка d20 (ПК справа внизу)",
+    "does": "Открывает окно броска v2; на листе доступна всегда вошедшему",
+    "code": "DiceRollerHost.tsx; §22",
+    "group": "Броски"
+  },
+  {
+    "id": "dice-window",
+    "name": "Окно броска v2",
+    "does": "Окно броска v2 и история. Журнал бросков открывается кнопкой кубика (FAB), чип «броски N» у вкладок сцен убран.",
+    "code": "DiceRollerHost; концепт §22",
+    "group": "Броски"
+  },
+  {
+    "id": "dice-sheet-source",
+    "name": "Бросок из листа source:'sheet'",
+    "does": "Атака, урон, проверка, спас, инициатива, заклинание — попадают в журнал и (если в лобби) в сессию",
+    "code": "sheetActions4.ts; deskRolls.ts; postSheetRollToSession.ts",
+    "group": "Броски"
+  },
+  {
+    "id": "journal",
+    "name": "Журнал бросков стола",
+    "does": "ui.roll_history на листе; одноразово сливается в журнал кубика",
+    "code": "playDeskUi.ts rollHistory; DiceRollerHost.tsx «Sheet history for one-time journal merge»",
+    "group": "Броски"
+  },
+  {
+    "id": "dice-on-table",
+    "name": "Настройка «Кубики на столе»",
+    "does": "Личное предпочтение T-01, diceOnTablePref",
+    "code": "playDeskUi.ts diceOnTablePref",
+    "group": "Броски"
+  },
+  {
+    "id": "xp-history",
+    "name": "История опыта",
+    "does": "ui.xp_history на листе",
+    "code": "playDeskUi.ts xpHistory; PlayDeskHeader.tsx",
+    "group": "Шапка"
+  },
+  {
+    "id": "diff-2014",
+    "name": "Отличия 2014 на листе",
+    "does": "Подписи «раса/подраса», классический бланк «Классический лист 2014», создание 2024 в продукте скрыто (FIX-hide2024)",
+    "code": "rules_edition; CharacterDetailPage classic link; P24-01",
+    "group": "2014/2024"
+  },
+  {
+    "id": "diff-2024",
+    "name": "Отличия 2024 на листе",
+    "does": "Поле carry в «Основном»; справочники/формулы берут edition; создание 2024 пока закрыто для всех (без allowlist). Живых веток UI «вид вместо расы» / мастерств оружия на столе в origin/main мало — формулы завязаны на rulesEdition",
+    "code": "SheetIdentityDialog.tsx; SheetDialogsResources/Rolls/Setup; spellReadyToCast(..., edition)",
+    "group": "2014/2024"
+  },
+  {
+    "id": "disarm",
+    "name": "Обезоруживание",
+    "does": "Диалог O-03: обезоруживание",
+    "code": "O03MasterRulesDialogs.tsx DisarmDialog",
+    "group": "Окна"
+  },
+  {
+    "id": "mark",
+    "name": "Метка",
+    "does": "Диалог O-03: метка",
+    "code": "O03MasterRulesDialogs.tsx MarkDialog",
+    "group": "Окна"
+  },
+  {
+    "id": "overrun",
+    "name": "Пробегание",
+    "does": "Диалог O-03: пробегание через пространство врага",
+    "code": "O03MasterRulesDialogs.tsx OverrunTumbleDialog",
+    "group": "Окна"
+  },
+  {
+    "id": "tumble",
+    "name": "Кувырок",
+    "does": "Диалог O-03: кувырок",
+    "code": "O03MasterRulesDialogs.tsx OverrunTumbleDialog",
+    "group": "Окна"
+  },
+  {
+    "id": "climb-bigger",
+    "name": "Взбирание на большее существо",
+    "does": "Диалог O-03",
+    "code": "O03MasterRulesDialogs.tsx ClimbBiggerDialog",
+    "group": "Окна"
+  },
+  {
+    "id": "identify-spell",
+    "name": "Распознать заклинание",
+    "does": "Диалог O-03, реакция",
+    "code": "O03MasterRulesDialogs.tsx IdentifySpellDialog",
+    "group": "Окна"
+  },
+  {
+    "id": "falling",
+    "name": "Падение",
+    "does": "Диалог O-03: урон от падения",
+    "code": "O03MasterRulesDialogs.tsx FallingDialog",
+    "group": "Окна"
+  },
+  {
+    "id": "no-long-rest",
+    "name": "Сутки без длинного отдыха",
+    "does": "Диалог O-03",
+    "code": "O03MasterRulesDialogs.tsx NoLongRestDialog",
+    "group": "Окна"
+  },
+  {
+    "id": "cleave",
+    "name": "Разрубание",
+    "does": "Диалог O-04",
+    "code": "O04MasterRulesDialogs.tsx CleaveDialog",
+    "group": "Окна"
+  },
+  {
+    "id": "massive-damage",
+    "name": "Массивный урон",
+    "does": "Диалог O-04",
+    "code": "O04MasterRulesDialogs.tsx MassiveDamageDialog",
+    "group": "Окна"
+  },
+  {
+    "id": "lingering",
+    "name": "Незаживающие раны",
+    "does": "Диалог O-04",
+    "code": "O04MasterRulesDialogs.tsx LingeringInjuryDialog",
+    "group": "Окна"
+  },
+  {
+    "id": "morale",
+    "name": "Проверка морали",
+    "does": "Диалог O-04",
+    "code": "O04MasterRulesDialogs.tsx MoraleCheckDialog",
+    "group": "Окна"
+  },
+  {
+    "id": "hero-point",
+    "name": "Очки героя",
+    "does": "Диалог O-04",
+    "code": "O04MasterRulesDialogs.tsx HeroPointSpendDialog",
+    "group": "Окна"
+  },
+  {
+    "id": "prof-die",
+    "name": "Кость мастерства",
+    "does": "Диалог O-04",
+    "code": "O04MasterRulesDialogs.tsx ProficiencyDieDialog",
+    "group": "Окна"
+  },
+  {
+    "id": "opportunity-attack",
+    "name": "Атака по возможности",
+    "does": "Диалог реакции O-07",
+    "code": "O07ReactionDialogs.tsx OpportunityAttackDialog",
+    "group": "Окна"
+  },
+  {
+    "id": "counterspell",
+    "name": "Контрзаклинание",
+    "does": "Диалог реакции O-07",
+    "code": "O07ReactionDialogs.tsx CounterspellDialog",
+    "group": "Окна"
+  },
+  {
+    "id": "named-target",
+    "name": "Цель (NamedTarget)",
+    "does": "Диалог указания цели реакции/действия",
+    "code": "O07ReactionDialogs.tsx NamedTargetDialog",
+    "group": "Окна"
+  },
+  {
+    "id": "help-action",
+    "name": "Помощь",
+    "does": "Диалог действия «Помощь» (O-08)",
+    "code": "O08ActionDialogs.tsx HelpActionDialog",
+    "group": "Окна"
+  },
+  {
+    "id": "ready-action",
+    "name": "Подготовка",
+    "does": "Диалог действия «Подготовка» (O-08)",
+    "code": "O08ActionDialogs.tsx ReadyActionDialog",
+    "group": "Окна"
+  },
+  {
+    "id": "number-pad",
+    "name": "Ввести своё число (панель)",
+    "does": "NumberPadDialog, в т.ч. при «Кубики на столе»",
+    "code": "frontend/src/ui/NumberPadDialog.tsx; PlayDeskHeader.tsx",
+    "group": "Окна"
+  },
+  {
+    "id": "homebrew-class",
+    "name": "Хомбрю-класс",
+    "does": "Диалог своего класса",
+    "code": "ClassSetupDialog.tsx HomebrewClassDialog",
+    "group": "Окна"
+  },
+  {
+    "id": "homebrew-race",
+    "name": "Хомбрю-раса",
+    "does": "Диалог своей расы",
+    "code": "RaceSetupDialog.tsx HomebrewRaceDialog",
+    "group": "Окна"
+  },
+  {
+    "id": "homebrew-bg",
+    "name": "Хомбрю-предыстория",
+    "does": "Диалог своей предыстории",
+    "code": "BackgroundSetupDialog.tsx HomebrewBackgroundDialog",
+    "group": "Окна"
+  },
+  {
+    "id": "avatar",
+    "name": "Сменить аватарку персонажа",
+    "does": "Выбор/удаление аватарки",
+    "code": "CharacterAvatarControl.tsx",
+    "group": "Шапка"
+  },
+  {
+    "id": "ownership",
+    "name": "Владения и чувства",
+    "does": "Сводка владений, клик открывает редактор",
+    "code": "OwnershipSummary.tsx",
+    "group": "Шапка"
+  },
+  {
+    "id": "scroll-gate",
+    "name": "Свиток заклинания",
+    "does": "Шлюз каста со свитка, «Понятно»",
+    "code": "ScrollCastGate.tsx",
+    "group": "Окна"
+  },
+  {
+    "id": "scroll-gate-fail",
+    "name": "Свиток не прочесть",
+    "does": "Свиток нельзя прочесть этим классом",
+    "code": "ScrollCastGate.tsx",
+    "group": "Окна"
+  },
+  {
+    "id": "scroll-gate-check",
+    "name": "Проверка свитка",
+    "does": "Проверка, чтобы прочесть чужой свиток",
+    "code": "ScrollCastGate.tsx",
+    "group": "Окна"
+  },
+  {
+    "id": "spell-form",
+    "name": "Форма заклинания",
+    "does": "Редактирование своего заклинания",
+    "code": "SpellFormDialog.tsx",
+    "group": "Окна"
+  },
+  {
+    "id": "passives",
+    "name": "Пассивы",
+    "does": "Пассивные Внимательность, Анализ, Проницательность и ТЗ в ряду под характеристиками",
+    "code": "useSheetEditorPart5.tsx / DarkvisionSense.tsx",
+    "group": "Стол"
+  },
+  {
+    "id": "darkvision-sense",
+    "name": "Тёмное зрение",
+    "does": "Плашка «ТЗ N фт», меню «База, фт»",
+    "code": "DarkvisionSense.tsx",
+    "group": "Стол"
+  },
+  {
+    "id": "later-checklist",
+    "name": "Можно позже",
+    "does": "Свёрнутый чеклист из семи отложенных пунктов онбординга",
+    "code": "OnboardingChecklist.tsx",
+    "group": "Стол"
+  },
+  {
+    "id": "demo-casters",
+    "name": "Демо заклинателей",
+    "does": "Переключатель 1/2/4 заклинателей в полоске «Макет листа ПК»",
+    "code": "sheet-desktop.html",
+    "group": "Демо"
+  }
+]

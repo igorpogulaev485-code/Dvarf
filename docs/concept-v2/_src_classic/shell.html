@@ -1,0 +1,157 @@
+  <div class="concept-bar" data-demo-bar>
+    <strong>Классический лист · шаг 7 · PDF и телефон</strong>
+    <button class="edition-btn is-on" type="button" data-set-theme="light">Свет</button>
+    <button class="edition-btn" type="button" data-set-theme="dark">Тьма</button>
+    <button class="edition-btn is-on" type="button" data-set-width="desktop">Десктоп</button>
+    <button class="edition-btn" type="button" data-set-width="phone">390</button>
+    <div class="concept-bar__views">
+      <button class="view-btn" type="button" data-set-view="2014-full">2014 · полный</button>
+      <button class="view-btn" type="button" data-set-view="2014-table">2014 · для стола</button>
+      <button class="view-btn" type="button" data-set-view="2014-form">2014 · только лист</button>
+      <button class="view-btn" type="button" data-set-view="2014-bw">2014 · ЧБ</button>
+      <button class="view-btn" type="button" data-set-view="2014-script">2014 · рукописное имя</button>
+      <button class="view-btn" type="button" data-set-view="2024-full">2024 · полный</button>
+      <button class="view-btn" type="button" data-set-view="blank">Пустой бланк</button>
+      <button class="view-btn" type="button" data-set-view="phone-closed">Телефон · свёрнут</button>
+      <button class="view-btn" type="button" data-set-view="phone-open">Телефон · настройки</button>
+      <button class="view-btn" type="button" data-set-view="phone-open-end">Телефон · шторка до конца</button>
+    </div>
+  </div>
+
+  <div class="classic-page">
+    <header class="classic-identity">
+      <a class="classic-back" href="#sheet" data-back>← К основному листу</a>
+      <div class="classic-identity__who">
+        <p class="classic-identity__name" data-char-name>Даррак Железный Кулак</p>
+        <p class="classic-identity__note">Только для печати — правки делайте в <a href="#sheet" data-back>основном листе</a></p>
+      </div>
+      <div class="classic-phone-tools">
+        <button class="btn" type="button" data-download>Скачать PDF</button>
+        <button class="btn-ghost btn" type="button" data-print>Печать</button>
+        <button class="seg" type="button" data-open-sheet aria-pressed="false">Настройки</button>
+      </div>
+    </header>
+
+    <div class="classic-stage">
+      <aside class="classic-panel" data-panel aria-label="Настройки печати">
+        <div class="classic-panel__close">
+          <button class="seg is-on" type="button" data-close-sheet>Готово</button>
+        </div>
+
+        <div class="classic-panel__scroll">
+        <div class="classic-panel__group">
+          <p class="classic-panel__label">Макет</p>
+          <div class="classic-seg-row" role="radiogroup" aria-label="Макет классического листа">
+            <button class="seg is-on" type="button" data-layout="2014" aria-pressed="true">2014</button>
+            <button class="seg" type="button" data-layout="2024" aria-pressed="false">2024</button>
+          </div>
+        </div>
+
+        <div class="classic-panel__group">
+          <p class="classic-panel__label">Комплект</p>
+          <div class="classic-seg-row" role="radiogroup" aria-label="Комплект страниц">
+            <button class="seg" type="button" data-preset="table" aria-pressed="false">Для стола</button>
+            <button class="seg is-on" type="button" data-preset="full" aria-pressed="true">Полный комплект</button>
+            <button class="seg" type="button" data-preset="form" aria-pressed="false">Только лист</button>
+          </div>
+        </div>
+
+        <div class="classic-panel__group">
+          <p class="classic-panel__label">Страницы</p>
+          <div class="classic-seg-row" role="group" aria-label="Страницы для печати">
+            <button class="seg is-on" type="button" data-page="p1" aria-pressed="true">1-я страница</button>
+            <button class="seg is-on" type="button" data-page="persona" aria-pressed="true">Личность</button>
+            <button class="seg is-on" type="button" data-page="spells" aria-pressed="true">Заклинания</button>
+            <button class="seg is-on" type="button" data-page="cards" aria-pressed="true">Карточки</button>
+            <button class="seg is-on" type="button" data-page="companions" aria-pressed="true">Напарники</button>
+            <button class="seg is-on" type="button" data-page="notes" aria-pressed="true">Заметки</button>
+          </div>
+          <div class="classic-dependent">
+            <button class="seg is-on" type="button" data-portrait aria-pressed="true">Печатать портрет</button>
+            <p class="classic-hint" data-portrait-hint hidden>Портрет печатается на странице «Личность».</p>
+          </div>
+        </div>
+
+        <div class="classic-panel__group">
+          <p class="classic-panel__label">Оформление</p>
+          <div class="classic-seg-row">
+            <button class="seg" type="button" data-pencil aria-pressed="false">Линии под карандаш</button>
+          </div>
+          <div class="classic-dependent" data-extra-wrap>
+            <div class="classic-seg-row">
+              <span class="classic-hint">Доп. страницы заметок</span>
+              <div class="classic-stepper" role="group" aria-label="Доп. страницы заметок">
+                <button class="seg" type="button" data-extra="-1" aria-label="Меньше страниц">−</button>
+                <span class="classic-stepper__value" data-extra-value>0</span>
+                <button class="seg" type="button" data-extra="1" aria-label="Больше страниц">+</button>
+              </div>
+            </div>
+            <p class="classic-hint" data-extra-hint hidden>Дополнительные страницы идут к разделу «Заметки».</p>
+          </div>
+          <div class="classic-seg-row" role="radiogroup" aria-label="Цвет печати">
+            <button class="seg" type="button" data-color="bw" aria-pressed="false">Чёрно-белая</button>
+            <button class="seg is-on" type="button" data-color="color" aria-pressed="true">Цвет</button>
+          </div>
+        </div>
+
+        <div class="classic-panel__group">
+          <p class="classic-panel__label">Текст</p>
+          <div class="classic-seg-row" role="radiogroup" aria-label="Гарнитура">
+            <button class="seg is-on" type="button" data-font="serif" aria-pressed="true">Source Serif 4</button>
+            <button class="seg" type="button" data-font="sans" aria-pressed="false">IBM Plex Sans</button>
+          </div>
+          <div class="classic-seg-row">
+            <button class="seg" type="button" data-script aria-pressed="false">Имя рукописным</button>
+          </div>
+          <div class="classic-seg-row" role="radiogroup" aria-label="Межстрочный интервал">
+            <button class="seg" type="button" data-leading="tight" aria-pressed="false">Плотно</button>
+            <button class="seg is-on" type="button" data-leading="normal" aria-pressed="true">Обычно</button>
+            <button class="seg" type="button" data-leading="loose" aria-pressed="false">Свободно</button>
+          </div>
+          <div class="classic-seg-row" role="radiogroup" aria-label="Выравнивание">
+            <button class="seg is-on" type="button" data-align="left" aria-pressed="true">Слева</button>
+            <button class="seg" type="button" data-align="justify" aria-pressed="false">По ширине</button>
+          </div>
+          <div class="classic-seg-row">
+            <span class="classic-hint">Размер в блоке</span>
+            <div class="classic-stepper" role="group" aria-label="Размер шрифта блока">
+              <button class="seg" type="button" data-pt="-1" aria-label="Мельче">−</button>
+              <span class="classic-stepper__value" data-pt-value>11</span>
+              <span class="classic-stepper__unit">pt</span>
+              <button class="seg" type="button" data-pt="1" aria-label="Крупнее">+</button>
+            </div>
+          </div>
+          <div class="classic-seg-row">
+            <button class="seg" type="button" data-reset>Сбросить настройки текста</button>
+          </div>
+          <p class="classic-hint">Гарнитура действует на вписанные значения; подписи бланка не меняются.</p>
+        </div>
+        </div>
+
+        <div class="classic-panel__actions">
+          <p class="classic-file" data-filename>КриD20 — Даррак Железный Кулак — классический 2014.pdf</p>
+          <p class="classic-pdf-status" data-pdf-status hidden></p>
+          <div class="classic-panel__btns">
+            <button class="btn" type="button" data-download>Скачать PDF</button>
+            <button class="btn-ghost btn" type="button" data-print>Печать</button>
+          </div>
+          <a class="classic-blank-link" href="#blank" data-blank-link>Пустой бланк</a>
+        </div>
+      </aside>
+
+      <section class="classic-preview" aria-label="Предпросмотр листа">
+        <div class="classic-preview__toolbar">
+          <div class="classic-seg-row" role="radiogroup" aria-label="Масштаб предпросмотра">
+            <button class="seg is-on" type="button" data-fit="width" aria-pressed="true">По ширине</button>
+            <button class="seg" type="button" data-fit="page" aria-pressed="false">Страница целиком</button>
+          </div>
+        </div>
+        <div class="classic-preview__stage">
+          <div class="classic-paper-frame">
+            <article class="classic-paper" data-paper aria-label="Предпросмотр бланка"></article>
+          </div>
+        </div>
+        <div class="classic-thumbs" data-thumbs></div>
+      </section>
+    </div>
+  </div>

@@ -8,6 +8,10 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 ThemeId = Literal["str", "dex", "con", "int", "wis", "cha"]
 AbilityColorsMode = Literal["identity", "theme"]
+SurfaceId = Literal["light-designer3", "leaf-classic"]
+BackgroundLightId = Literal["parchment", "ivory", "linen", "stone", "moss", "azure"]
+BackgroundDarkId = Literal["ink", "graphite", "night", "oak", "tar", "slate"]
+FontPairId = Literal["antiqua", "grotesque", "ustav", "scribe", "script", "tabular"]
 OnboardingSegment = Literal["dnd_new", "product_new", "skip"]
 
 
@@ -64,6 +68,10 @@ class UserResponse(BaseModel):
     avatar_url: str | None = None
     theme_id: ThemeId = "wis"
     ability_colors: AbilityColorsMode = "identity"
+    surface: SurfaceId = "light-designer3"
+    bg_light: BackgroundLightId = "parchment"
+    bg_dark: BackgroundDarkId = "ink"
+    font_pair: FontPairId = "antiqua"
     onboarding: OnboardingStatePayload | None = None
     email_verified_at: datetime | None = None
     created_at: datetime
@@ -79,6 +87,10 @@ class UserUpdateRequest(BaseModel):
     phone: str | None = Field(default=None, max_length=32)
     theme_id: ThemeId | None = None
     ability_colors: AbilityColorsMode | None = None
+    surface: SurfaceId | None = None
+    bg_light: BackgroundLightId | None = None
+    bg_dark: BackgroundDarkId | None = None
+    font_pair: FontPairId | None = None
     onboarding: OnboardingStatePayload | None = None
 
     @field_validator("display_name", "full_name", mode="before")

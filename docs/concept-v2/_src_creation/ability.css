@@ -1,0 +1,172 @@
+/* Step 7 — abilities */
+
+.abil-setup { display: grid; gap: 8px; }
+.abil-setup__head h2 { margin: 0; }
+.abil-setup .abil-intro { margin: 0; }
+.abil-setup .abil-hint { margin: 0; }
+
+.abil-summary h2 {
+  margin: 0 0 10px;
+  font-size: 16px;
+}
+.abil-sum-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+.abil-sum-list li {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 14px;
+  line-height: 1.35;
+}
+.abil-sum__name { font-weight: 650; }
+.abil-sum__val { font-variant-numeric: tabular-nums; }
+.abil-mod { font-weight: 650; color: var(--text-sub, #5c5c52); }
+html[data-theme="leaf-classic"] .abil-mod { color: #b8b4a8; }
+
+.abil-toolbar {
+  display: grid;
+  gap: 6px;
+  position: sticky;
+  top: -14px;
+  z-index: 3;
+  margin: 0 -14px;
+  padding: 8px 14px 6px;
+  background: var(--card, #fffdf8);
+}
+html[data-theme="leaf-classic"] .abil-toolbar { background: #161616; }
+
+.abil-methods {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: stretch;
+}
+.abil-method {
+  appearance: none;
+  -webkit-appearance: none;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  width: auto;
+  max-width: 100%;
+  margin: 0;
+  padding: 6px 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(var(--accent-rgb, 78, 93, 52), 0.28);
+  background: var(--card, #fffdf8);
+  color: var(--text-body, #24241f);
+  font: 500 14px var(--font-ui), "IBM Plex Sans", sans-serif;
+  text-align: left;
+  cursor: pointer;
+}
+html[data-theme="leaf-classic"] .abil-method {
+  background: #1a1a1a;
+  color: #f3efe3;
+  border-color: rgba(243, 239, 227, 0.16);
+}
+.abil-method.is-on {
+  border-color: var(--accent, #4e5d34);
+  background: color-mix(in srgb, var(--accent, #4e5d34) 14%, var(--card, #fffdf8));
+}
+html[data-theme="leaf-classic"] .abil-method.is-on {
+  background: color-mix(in srgb, var(--accent, #8ea36a) 22%, #1a1a1a);
+  border-color: var(--accent, #8ea36a);
+}
+.abil-method__title { font-weight: 700; font-size: 14px; line-height: 1.2; }
+.abil-method__sub { font-size: 12px; line-height: 1.3; color: var(--text-sub, #5c5c52); }
+html[data-theme="leaf-classic"] .abil-method__sub { color: #b8b4a8; }
+
+.abil-actions { margin-top: 2px; }
+
+.abil-grid { display: grid; }
+.abil-row {
+  display: grid;
+  grid-template-columns: 8.2rem minmax(0, 1fr) auto auto;
+  gap: 6px 10px;
+  align-items: center;
+  padding: 5px 0;
+  border-top: 1px solid rgba(var(--accent-rgb, 78, 93, 52), 0.14);
+}
+.abil-row__name { font-weight: 700; font-size: 14px; }
+.abil-row__controls { min-width: 0; }
+.abil-bonus,
+.abil-total {
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.abil-bonus { color: var(--text-sub, #5c5c52); }
+html[data-theme="leaf-classic"] .abil-bonus { color: #b8b4a8; }
+.abil-total { font-weight: 700; }
+
+.abil-array { flex-wrap: wrap; }
+
+.abil-stepper {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.abil-stepper__val {
+  min-width: 1.6rem;
+  text-align: center;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.abil-roll {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.abil-roll__dice {
+  font-variant-numeric: tabular-nums;
+  font-size: 13px;
+  color: var(--text-sub, #5c5c52);
+}
+html[data-theme="leaf-classic"] .abil-roll__dice { color: #b8b4a8; }
+.abil-roll__total { font-weight: 700; font-variant-numeric: tabular-nums; min-width: 1.4rem; }
+
+html[data-width="phone"] .abil-row {
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 4px 8px;
+  padding: 4px 0;
+}
+html[data-width="phone"] .abil-row__name { grid-column: 1; grid-row: 1; font-size: 13px; }
+html[data-width="phone"] .abil-bonus { grid-column: 2; grid-row: 1; }
+html[data-width="phone"] .abil-total { grid-column: 3; grid-row: 1; }
+html[data-width="phone"] .abil-row__controls {
+  grid-column: 1 / -1;
+  grid-row: 2;
+}
+
+.abil-array .seg {
+  min-height: 32px;
+  padding: 4px 8px;
+  font-size: 13px;
+}
+.abil-array .seg.is-blocked,
+.abil-array .seg:disabled {
+  opacity: 0.42;
+  cursor: default;
+}
+.abil-stepper .seg {
+  min-height: 32px;
+  padding: 4px 8px;
+}
+
+html[data-width="phone"] .abil-array .seg,
+html[data-width="phone"] .abil-stepper .seg {
+  min-height: 36px;
+  min-width: 36px;
+}
+
+html[data-width="phone"] .abil-setup__head,
+html[data-width="phone"] .abil-intro { display: none; }

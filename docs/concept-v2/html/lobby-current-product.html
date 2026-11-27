@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="light-designer3">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Сейчас · Лобби (продукт)</title>
+  <link rel="stylesheet" href="../fonts/fonts.css" />
+  <link rel="stylesheet" href="../css/light-designer3.css" />
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg, #f7f2e4); color: var(--text-body, #24241f); }
+    .concept-bar { height: 32px; display: flex; align-items: center; justify-content: space-between; padding: 0 16px; background: #161614; color: #f3efe3; font-size: 12px; font-weight: 600; }
+    .concept-bar span { font-weight: 500; opacity: 0.75; }
+    .page { max-width: 1120px; margin: 0 auto; padding: 28px 32px 24px; min-height: calc(100vh - 32px); display: flex; flex-direction: column; }
+    .head { display: grid; grid-template-columns: 1fr auto; gap: 8px 24px; align-items: start; }
+    h1 { margin: 0; font-family: var(--font-display, "Source Serif 4", Georgia, serif); font-size: 32px; color: var(--accent); font-weight: 700; }
+    .sub { margin: 6px 0 0; font-size: 14px; font-weight: 500; color: var(--text-sub, #5c5c52); max-width: 40rem; }
+    .head-actions { display: flex; gap: 8px; }
+    .seg-row { display: flex; gap: 6px; margin: 16px 0 18px; }
+    .seg { display: inline-flex; align-items: center; height: 32px; padding: 0 12px; border-radius: 999px; border: 1px solid rgba(var(--accent-rgb), 0.22); background: #fff; font-size: 13px; font-weight: 600; color: var(--text-body); }
+    .seg.is-on { background: var(--accent); color: #fffdf8; border-color: var(--accent); }
+    .toolbar { display: flex; align-items: center; gap: 14px; margin-bottom: 14px; }
+    .hint { margin: 0; font-size: 14px; color: var(--text-sub, #5c5c52); }
+    .panel { background: var(--card, #fffdf8); border: 1px solid rgba(var(--accent-rgb), 0.14); border-radius: 16px; padding: 16px 18px; margin-bottom: 12px; }
+    .panel.is-live { border-color: color-mix(in srgb, var(--accent) 45%, rgba(78,93,52,0.18)); box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 18%, transparent); }
+    .row { display: flex; justify-content: space-between; gap: 16px; align-items: center; }
+    .row h2 { margin: 0 0 4px; font-family: var(--font-display, "Source Serif 4", Georgia, serif); font-size: 22px; font-weight: 700; color: var(--accent); }
+    .meta { margin: 0; font-size: 14px; color: var(--text-sub, #5c5c52); }
+    .live { display: inline-block; margin-top: 8px; padding: 2px 8px; border-radius: 8px; border: 1px solid color-mix(in srgb, var(--accent) 40%, #ccc); color: var(--accent); font-size: 13px; font-weight: 600; }
+    .actions { display: flex; gap: 8px; flex-shrink: 0; }
+    .panel h3 { margin: 0 0 8px; font-family: var(--font-display, "Source Serif 4", Georgia, serif); font-size: 20px; color: var(--accent); }
+    .join-cta { display: flex; justify-content: flex-end; }
+    .legal { margin-top: auto; padding-top: 24px; font-size: 13px; color: var(--text-sub, #5c5c52); width: fit-content; }
+    .legal b { color: var(--accent); font-weight: 600; }
+  </style>
+</head>
+<body>
+  <div class="concept-bar"><strong>Сейчас · Лобби (продукт)</strong><span>Воссоздано по коду LobbiesPage, без правок продукта</span></div>
+  <div class="page">
+    <header class="head">
+      <div>
+        <h1>Лобби</h1>
+        <p class="sub">Место игры: код и QR для игроков, внутри — сеттинг и сессии</p>
+      </div>
+      <div class="head-actions">
+        <span class="btn">Личный кабинет</span>
+        <span class="btn">Сайт КриD20</span>
+      </div>
+    </header>
+    <div class="seg-row">
+      <span class="seg">Персонажи</span>
+      <span class="seg is-on">Лобби</span>
+    </div>
+    <div class="toolbar">
+      <span class="btn" style="background:var(--accent);color:#fffdf8;border-color:var(--accent);font-weight:600;padding:10px 16px;text-transform:none;">Создать</span>
+      <p class="hint">Свои столы и живые игры — ниже. Новое лобби — кнопка «Создать».</p>
+    </div>
+    <section class="panel is-live">
+      <div class="row">
+        <div>
+          <h2>Миллениум</h2>
+          <p class="meta">Участник · персонажей: 4</p>
+          <span class="live">Идёт игра</span>
+        </div>
+        <div class="actions">
+          <span class="btn">За стол</span>
+          <span class="btn">Открыть</span>
+        </div>
+      </div>
+    </section>
+    <section class="panel is-live">
+      <div class="row">
+        <div>
+          <h2>Эхо рассвета</h2>
+          <p class="meta">Вы мастер · персонажей: 1 · код CJSZMR</p>
+          <span class="live">Идёт игра</span>
+        </div>
+        <div class="actions">
+          <span class="btn">За стол</span>
+          <span class="btn">Открыть</span>
+        </div>
+      </div>
+    </section>
+    <section class="panel">
+      <h3>Войти по коду</h3>
+      <p class="meta">Есть код от мастера? Введите его на странице входа или впишите в карточку персонажа.</p>
+      <div class="join-cta" style="margin-top:12px;"><span class="btn" style="background:transparent;border:none;color:var(--text-body);font-weight:700;">Ввести код</span></div>
+    </section>
+    <p class="legal">Правовая информация · <b>info@creed20.tech</b></p>
+  </div>
+</body>
+</html>

@@ -5,6 +5,9 @@ import {
   clearCachedAppearance,
   normalizeAppearance,
   type AbilityColorsMode,
+  type BackgroundId,
+  type FontPairId,
+  type SurfaceId,
   type ThemeId,
 } from '../theme/accountAppearance'
 
@@ -19,6 +22,10 @@ export type User = {
   /** Required on /auth/me — preflight guards schema; optional only if API regressed. */
   theme_id?: ThemeId
   ability_colors?: AbilityColorsMode
+  surface?: SurfaceId
+  bg_light?: BackgroundId
+  bg_dark?: BackgroundId
+  font_pair?: FontPairId
   /** ONB-03 — durable tip progress; null/omit = never synced on server. */
   onboarding?: OnboardingServerPayload | null
   email_verified_at: string | null
@@ -35,6 +42,10 @@ export type UserUpdatePayload = {
   phone?: string | null
   theme_id?: ThemeId
   ability_colors?: AbilityColorsMode
+  surface?: SurfaceId
+  bg_light?: BackgroundId
+  bg_dark?: BackgroundId
+  font_pair?: FontPairId
   onboarding?: OnboardingServerPayload | null
 }
 

@@ -1,0 +1,81 @@
+
+/* Hybrid drag: 2-line hint, visible only on hover / armed / dragging */
+html[data-drag-variant="hybrid"] .abil-head { padding-right: 40px; }
+
+html[data-theme="light-designer3"] { --handle-icon: rgba(45, 45, 42, 0.62); }
+html[data-theme="leaf-classic"] { --handle-icon: rgba(255, 255, 255, 0.38); }
+
+.drag-handle {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  z-index: 2;
+  width: 32px;
+  height: 32px;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--handle-icon);
+  cursor: grab;
+  appearance: none;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 150ms ease;
+}
+.drag-handle-icon {
+  display: block;
+  width: 16px;
+  height: 14px;
+  overflow: visible;
+  pointer-events: none;
+}
+.drag-line {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+}
+@media (hover: hover) and (pointer: fine) {
+  .abil:hover .drag-handle { opacity: 1; }
+}
+.abil.is-armed .drag-handle,
+.abil.is-dragging .drag-handle,
+.abil.is-demo-hover .drag-handle,
+.abil.is-demo-hold .drag-handle {
+  opacity: 1;
+}
+.abil.is-armed,
+.abil.is-demo-hold {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+  transition: transform 150ms ease, box-shadow 150ms ease;
+}
+html[data-theme="leaf-classic"] .abil.is-armed,
+html[data-theme="leaf-classic"] .abil.is-demo-hold {
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45);
+}
+@media (max-width: 640px) {
+  .abil-head { padding-right: 52px; }
+  .drag-handle { width: 44px; height: 44px; top: 0; right: 0; }
+}
+
+.demo-cursor, .demo-touch {
+  position: absolute;
+  z-index: 30;
+  pointer-events: none;
+}
+.demo-cursor { width: 22px; height: 22px; filter: drop-shadow(0 1px 1px rgba(0,0,0,0.45)); }
+.demo-touch {
+  width: 44px; height: 44px; margin: -22px 0 0 -22px;
+  border-radius: 50%;
+  background: rgba(78, 93, 52, 0.22);
+  border: 2px solid rgba(78, 93, 52, 0.55);
+}
+html[data-theme="leaf-classic"] .demo-touch {
+  background: rgba(196, 209, 154, 0.22);
+  border-color: rgba(196, 209, 154, 0.6);
+}

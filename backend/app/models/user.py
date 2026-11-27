@@ -42,6 +42,15 @@ class User(Base):
         nullable=False,
         default="identity",
     )
+    # Kit L3/I2. surface is the light/dark pair; theme_id stays the six accents.
+    surface: Mapped[str] = mapped_column(
+        String(32),
+        nullable=False,
+        default="light-designer3",
+    )
+    bg_light: Mapped[str] = mapped_column(String(16), nullable=False, default="parchment")
+    bg_dark: Mapped[str] = mapped_column(String(16), nullable=False, default="ink")
+    font_pair: Mapped[str] = mapped_column(String(16), nullable=False, default="antiqua")
     # ONB-03 — durable tip progress (welcome/segment/tours); NULL = never synced.
     onboarding: Mapped[dict[str, Any] | None] = mapped_column(
         JSONB,

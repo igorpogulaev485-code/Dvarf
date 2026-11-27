@@ -1,0 +1,199 @@
+/* Drag affordances for concept frames A / B / C. Theme tokens come from the page CSS. */
+
+.abil-head {
+  position: relative;
+}
+
+html[data-drag-variant="a"] .abil-head,
+html[data-drag-variant="c"] .abil-head {
+  padding-right: 40px;
+}
+
+.drag-handle {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  z-index: 2;
+  width: 32px;
+  height: 32px;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-label);
+  cursor: grab;
+  appearance: none;
+  -webkit-appearance: none;
+  font: inherit;
+  line-height: 0;
+  touch-action: none;
+}
+.drag-handle:hover,
+.drag-handle:focus-visible {
+  background: rgba(var(--accent-rgb), 0.14);
+  color: var(--accent);
+  outline: none;
+}
+.drag-handle:active { cursor: grabbing; }
+.drag-handle-dots {
+  display: grid;
+  grid-template-columns: 3px 3px;
+  grid-template-rows: 3px 3px 3px;
+  gap: 2.5px 3px;
+  width: 9.5px;
+  height: 14px;
+  pointer-events: none;
+}
+.drag-handle-dots i {
+  display: block;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+html[data-drag-variant="b"] .drag-handle { display: none; }
+
+html[data-drag-variant="b"] .abil,
+html[data-drag-variant="c"] .abil {
+  cursor: grab;
+}
+html[data-drag-variant="b"] .mod,
+html[data-drag-variant="c"] .mod,
+html[data-drag-variant="b"] .skill,
+html[data-drag-variant="c"] .skill,
+html[data-drag-variant="b"] .abil-skills,
+html[data-drag-variant="c"] .abil-skills {
+  cursor: pointer;
+}
+
+.abil-list {
+  position: relative;
+}
+.abil-list.is-reordering .abil:not(.is-dragging) {
+  transition: transform 180ms ease;
+}
+
+.abil-placeholder {
+  box-sizing: border-box;
+  border-radius: 14px;
+  border: 1.5px dashed var(--placeholder-stroke, rgba(78, 93, 52, 0.55));
+  background: var(--placeholder-fill, #f3f1e6);
+  pointer-events: none;
+}
+
+html[data-theme="light-designer3"] {
+  --placeholder-fill: #eef0e4;
+  --placeholder-stroke: #6a734c;
+  --drag-shadow: 0 14px 32px rgba(36, 36, 31, 0.20), 0 4px 10px rgba(36, 36, 31, 0.12);
+}
+html[data-theme="leaf-classic"] {
+  --placeholder-fill: #1c1d18;
+  --placeholder-stroke: #9aa57a;
+  --drag-shadow: 0 16px 36px rgba(0, 0, 0, 0.62), 0 0 22px rgba(196, 209, 154, 0.10);
+}
+
+.abil.is-dragging {
+  z-index: 8;
+  overflow: visible;
+  opacity: 1;
+  cursor: grabbing;
+  box-shadow: var(--drag-shadow);
+  transform: rotate(2deg);
+  will-change: transform, left, top;
+}
+
+/* Static demo: list keeps space with placeholder; card is positioned by a small script. */
+.sheet-page, .card.desk, .desk-body, .abil-list {
+  overflow: visible;
+}
+
+@media (max-width: 640px) {
+  html[data-drag-variant="a"] .abil-head,
+  html[data-drag-variant="c"] .abil-head {
+    padding-right: 52px;
+  }
+  .drag-handle {
+    width: 44px;
+    height: 44px;
+    top: 0;
+    right: 0;
+  }
+}
+
+/* Proto chrome */
+.proto-help {
+  max-width: 720px;
+  margin: 16px auto 0;
+  padding: 0 16px 24px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-body);
+}
+.proto-help h2 {
+  margin: 0 0 8px;
+  font-family: var(--font-display);
+  font-size: 18px;
+  color: var(--heading);
+}
+.proto-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin: 0 0 12px;
+}
+.proto-toolbar button {
+  font-family: var(--font-ui), system-ui, sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(var(--accent-rgb), 0.4);
+  background: rgba(var(--accent-rgb), 0.12);
+  color: var(--heading);
+  cursor: pointer;
+}
+.proto-toolbar button.is-on {
+  background: rgba(var(--accent-rgb), 0.28);
+  border-color: var(--accent);
+}
+.proto-sheet {
+  max-width: 420px;
+  margin: 0 auto;
+  padding: 16px 16px 40px;
+}
+
+/* Three-line drag handle (chosen after variant A) */
+.drag-handle-icon {
+  display: block;
+  width: 16px;
+  height: 14px;
+  overflow: visible;
+  pointer-events: none;
+}
+.drag-line {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.drag-handle:hover,
+.drag-handle:focus-visible {
+  color: var(--accent);
+  background: rgba(var(--accent-rgb), 0.14);
+  outline: none;
+}
+.drag-handle:active,
+.abil.is-dragging .drag-handle {
+  cursor: grabbing;
+  color: var(--accent);
+}
+.abil.is-dragging .drag-line-tilt {
+  transform-box: fill-box;
+  transform-origin: center;
+}

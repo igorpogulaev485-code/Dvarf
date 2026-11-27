@@ -372,6 +372,13 @@ body:has(.ui-dialog-backdrop) .ui-toast {
   gap: 16px;
 }
 
+/* Grid items default to min-width: auto, so the cabinet panels stayed 423px
+   and the third column was clipped at 390 and 360. */
+.cabinet-layout > .ui-panel {
+  min-width: 0;
+  max-width: 100%;
+}
+
 @media (min-width: 960px) {
   .cabinet-layout {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -524,6 +531,144 @@ body:has(.ui-dialog-backdrop) .ui-toast {
 
 .cabinet-appearance__preview-row .ui-button {
   pointer-events: none;
+}
+
+.cabinet-bg-grid,
+.cabinet-font-grid,
+.cabinet-theme-grid {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.cabinet-bg-grid,
+.cabinet-font-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(108px, 1fr));
+  gap: 8px;
+}
+
+.cabinet-bg-tile,
+.cabinet-font-card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  padding: 6px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--card);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.cabinet-bg-tile.is-selected,
+.cabinet-font-card.is-selected {
+  border-color: var(--accent);
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
+
+.cabinet-bg-tile:focus-visible,
+.cabinet-font-card:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.cabinet-bg-tile:disabled,
+.cabinet-font-card:disabled {
+  opacity: 0.7;
+  cursor: wait;
+}
+
+.cabinet-bg-tile__preview {
+  display: block;
+  height: 64px;
+  border-radius: 8px;
+  background-color: var(--bg, #f7f2e4);
+  background-repeat: repeat;
+  background-size: 128px 128px;
+  background-position: 30% 20%;
+}
+
+.cabinet-bg-tile__preview[data-bg-id='parchment'] {
+  background-color: #f7f2e4;
+  background-image: url('../../../docs/concept-v2/svg/bg-light-parchment.svg');
+}
+.cabinet-bg-tile__preview[data-bg-id='ivory'] {
+  background-color: #fbf6ee;
+  background-image: url('../../../docs/concept-v2/svg/bg-light-ivory.svg');
+}
+.cabinet-bg-tile__preview[data-bg-id='linen'] {
+  background-color: #f0e6d0;
+  background-image: url('../../../docs/concept-v2/svg/bg-light-linen.svg');
+}
+.cabinet-bg-tile__preview[data-bg-id='stone'] {
+  background-color: #e6e3dc;
+  background-image: url('../../../docs/concept-v2/svg/bg-light-stone.svg');
+}
+.cabinet-bg-tile__preview[data-bg-id='moss'] {
+  background-color: #e6ecda;
+  background-image: url('../../../docs/concept-v2/svg/bg-light-moss.svg');
+}
+.cabinet-bg-tile__preview[data-bg-id='azure'] {
+  background-color: #e4eef6;
+  background-image: url('../../../docs/concept-v2/svg/bg-light-azure.svg');
+}
+.cabinet-bg-tile__preview[data-bg-id='ink'] {
+  background-color: #0a0a0a;
+  background-image: url('../../../docs/concept-v2/svg/bg-dark-ink.svg');
+}
+.cabinet-bg-tile__preview[data-bg-id='graphite'] {
+  background-color: #161618;
+  background-image: url('../../../docs/concept-v2/svg/bg-dark-graphite.svg');
+}
+.cabinet-bg-tile__preview[data-bg-id='night'] {
+  background-color: #0d1119;
+  background-image: url('../../../docs/concept-v2/svg/bg-dark-night.svg');
+}
+.cabinet-bg-tile__preview[data-bg-id='oak'] {
+  background-color: #17130f;
+  background-image: url('../../../docs/concept-v2/svg/bg-dark-oak.svg');
+}
+.cabinet-bg-tile__preview[data-bg-id='tar'] {
+  background-color: #110e0c;
+  background-image: url('../../../docs/concept-v2/svg/bg-dark-tar.svg');
+}
+.cabinet-bg-tile__preview[data-bg-id='slate'] {
+  background-color: #14171c;
+  background-image: url('../../../docs/concept-v2/svg/bg-dark-slate.svg');
+}
+
+.cabinet-bg-tile__name,
+.cabinet-font-card__name {
+  font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.cabinet-font-card {
+  align-items: center;
+  text-align: center;
+  padding: 8px 6px;
+}
+
+.cabinet-font-card__aa {
+  font-size: 1.6rem;
+  line-height: 1.1;
+  color: var(--heading, var(--ink));
+}
+
+.cabinet-font-card__nums {
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+html[data-theme='leaf-classic'] .cabinet-ability-preview__chip {
+  background: var(--abil-soft);
 }
 
 .ui-password-input {

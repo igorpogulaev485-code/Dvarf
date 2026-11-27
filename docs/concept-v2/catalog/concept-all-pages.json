@@ -1,0 +1,1539 @@
+{
+  "defaultId": "sheet",
+  "templates": [
+    "proto-nav"
+  ],
+  "page_count": 145,
+  "pages": [
+    {
+      "id": "sheet",
+      "title": "Лист персонажа ПК",
+      "group": "approved",
+      "subgroup": "Основные",
+      "frame": "desktop",
+      "themeSwitch": "sheet"
+    },
+    {
+      "id": "onboarding",
+      "title": "Опрос оформления",
+      "group": "approved",
+      "subgroup": "Основные",
+      "frame": "desktop",
+      "themeSwitch": null
+    },
+    {
+      "id": "account-v2",
+      "title": "Кабинет / аккаунт v2",
+      "group": "approved",
+      "subgroup": "Основные",
+      "frame": "desktop",
+      "themeSwitch": null,
+      "themes": [
+        "light",
+        "dark"
+      ]
+    },
+    {
+      "id": "lobby-v2",
+      "title": "Лобби v2",
+      "group": "approved",
+      "subgroup": "Основные",
+      "frame": "desktop",
+      "themeSwitch": null,
+      "themes": [
+        "light",
+        "dark"
+      ]
+    },
+    {
+      "id": "site-soon",
+      "title": "Сайт скоро",
+      "group": "approved",
+      "subgroup": "Основные",
+      "frame": "desktop",
+      "themeSwitch": null,
+      "themes": [
+        "light",
+        "dark"
+      ]
+    },
+    {
+      "id": "chars-v2-medium",
+      "title": "Персонажи v2 · средний размер",
+      "group": "approved",
+      "subgroup": "Персонажи v2",
+      "frame": "desktop",
+      "themeSwitch": null
+    },
+    {
+      "id": "chars-v2-compact",
+      "title": "Персонажи v2 · компактный размер",
+      "group": "approved",
+      "subgroup": "Персонажи v2",
+      "frame": "desktop",
+      "themeSwitch": null
+    },
+    {
+      "id": "chars-v2-large",
+      "title": "Персонажи v2 · крупный размер",
+      "group": "approved",
+      "subgroup": "Персонажи v2",
+      "frame": "desktop",
+      "themeSwitch": null,
+      "themes": [
+        "light",
+        "dark"
+      ]
+    },
+    {
+      "id": "chars-v2-tags-panel",
+      "title": "Персонажи v2 · панель тегов",
+      "group": "approved",
+      "subgroup": "Персонажи v2",
+      "frame": "desktop",
+      "themeSwitch": null
+    },
+    {
+      "id": "chars-v2-tags-filter",
+      "title": "Персонажи v2 · фильтр тегов",
+      "group": "approved",
+      "subgroup": "Персонажи v2",
+      "frame": "desktop",
+      "themeSwitch": null
+    },
+    {
+      "id": "chars-v2-tags-assign",
+      "title": "Персонажи v2 · назначение тегов",
+      "group": "approved",
+      "subgroup": "Персонажи v2",
+      "frame": "desktop",
+      "themeSwitch": null
+    },
+    {
+      "id": "flow-auth",
+      "title": "Схема процесса авторизации",
+      "group": "approved",
+      "subgroup": "Авторизация",
+      "frame": "desktop",
+      "themeSwitch": null
+    },
+    {
+      "id": "auth-guest-chars",
+      "title": "Гость · персонажи",
+      "group": "approved",
+      "subgroup": "Авторизация",
+      "frame": "desktop",
+      "themeSwitch": "proto",
+      "template": "proto-nav",
+      "init": {
+        "auth": "guest",
+        "pageId": "chars",
+        "open": "",
+        "width": "desktop",
+        "hideAuthDemo": true
+      }
+    },
+    {
+      "id": "auth-guest-lobby",
+      "title": "Гость · лобби",
+      "group": "approved",
+      "subgroup": "Авторизация",
+      "frame": "desktop",
+      "themeSwitch": "proto",
+      "template": "proto-nav",
+      "init": {
+        "auth": "guest",
+        "pageId": "lobby",
+        "open": "",
+        "width": "desktop",
+        "hideAuthDemo": true
+      }
+    },
+    {
+      "id": "auth-guest-site",
+      "title": "Гость · сайт",
+      "group": "approved",
+      "subgroup": "Авторизация",
+      "frame": "desktop",
+      "themeSwitch": "proto",
+      "template": "proto-nav",
+      "init": {
+        "auth": "guest",
+        "pageId": "site",
+        "open": "",
+        "width": "desktop",
+        "hideAuthDemo": true
+      }
+    },
+    {
+      "id": "auth-login",
+      "title": "Вход",
+      "group": "approved",
+      "subgroup": "Авторизация",
+      "frame": "desktop",
+      "themeSwitch": "proto",
+      "template": "proto-nav",
+      "init": {
+        "auth": "guest",
+        "pageId": "chars",
+        "open": "login",
+        "width": "desktop",
+        "hideAuthDemo": true
+      }
+    },
+    {
+      "id": "auth-register",
+      "title": "Регистрация",
+      "group": "approved",
+      "subgroup": "Авторизация",
+      "frame": "desktop",
+      "themeSwitch": "proto",
+      "template": "proto-nav",
+      "init": {
+        "auth": "guest",
+        "pageId": "chars",
+        "open": "register",
+        "width": "desktop",
+        "hideAuthDemo": true,
+        "prefill": {
+          "auth-reg-name": "Игорь",
+          "auth-reg-email": "user@example.com"
+        }
+      }
+    },
+    {
+      "id": "auth-login-error",
+      "title": "Ошибка входа",
+      "group": "approved",
+      "subgroup": "Авторизация",
+      "frame": "desktop",
+      "themeSwitch": "proto",
+      "template": "proto-nav",
+      "init": {
+        "auth": "guest",
+        "pageId": "chars",
+        "open": "login-error",
+        "width": "desktop",
+        "hideAuthDemo": true,
+        "prefill": {
+          "auth-login-email": "user@example.com",
+          "auth-login-password": "wrong"
+        }
+      }
+    },
+    {
+      "id": "auth-register-sent",
+      "title": "Письмо подтверждения",
+      "group": "approved",
+      "subgroup": "Авторизация",
+      "frame": "desktop",
+      "themeSwitch": "proto",
+      "template": "proto-nav",
+      "init": {
+        "auth": "guest",
+        "pageId": "chars",
+        "open": "register-sent",
+        "width": "desktop",
+        "hideAuthDemo": true
+      }
+    },
+    {
+      "id": "auth-forgot",
+      "title": "Забыли пароль",
+      "group": "approved",
+      "subgroup": "Авторизация",
+      "frame": "desktop",
+      "themeSwitch": "proto",
+      "template": "proto-nav",
+      "init": {
+        "auth": "guest",
+        "pageId": "chars",
+        "open": "forgot",
+        "width": "desktop",
+        "hideAuthDemo": true,
+        "prefill": {
+          "auth-forgot-email": "user@example.com"
+        }
+      }
+    },
+    {
+      "id": "auth-forgot-sent",
+      "title": "Письмо для смены пароля",
+      "group": "approved",
+      "subgroup": "Авторизация",
+      "frame": "desktop",
+      "themeSwitch": "proto",
+      "template": "proto-nav",
+      "init": {
+        "auth": "guest",
+        "pageId": "chars",
+        "open": "forgot-sent",
+        "width": "desktop",
+        "hideAuthDemo": true
+      }
+    },
+    {
+      "id": "auth-reset-new",
+      "title": "Новый пароль",
+      "group": "approved",
+      "subgroup": "Авторизация",
+      "frame": "desktop",
+      "themeSwitch": "proto",
+      "template": "proto-nav",
+      "init": {
+        "auth": "guest",
+        "pageId": "chars",
+        "open": "reset-new",
+        "width": "desktop",
+        "hideAuthDemo": true
+      }
+    },
+    {
+      "id": "auth-reset-done",
+      "title": "Пароль обновлён",
+      "group": "approved",
+      "subgroup": "Авторизация",
+      "frame": "desktop",
+      "themeSwitch": "proto",
+      "template": "proto-nav",
+      "init": {
+        "auth": "guest",
+        "pageId": "chars",
+        "open": "reset-done",
+        "width": "desktop",
+        "hideAuthDemo": true
+      }
+    },
+    {
+      "id": "auth-oauth-loading",
+      "title": "OAuth · загрузка",
+      "group": "approved",
+      "subgroup": "Авторизация",
+      "frame": "desktop",
+      "themeSwitch": "proto",
+      "template": "proto-nav",
+      "init": {
+        "auth": "guest",
+        "pageId": "chars",
+        "open": "oauth-loading",
+        "width": "desktop",
+        "hideAuthDemo": true,
+        "oauthText": "Переходим к Яндекс ID…"
+      }
+    },
+    {
+      "id": "auth-oauth-error",
+      "title": "OAuth · ошибка",
+      "group": "approved",
+      "subgroup": "Авторизация",
+      "frame": "desktop",
+      "themeSwitch": "proto",
+      "template": "proto-nav",
+      "init": {
+        "auth": "guest",
+        "pageId": "chars",
+        "open": "oauth-error",
+        "width": "desktop",
+        "hideAuthDemo": true
+      }
+    },
+    {
+      "id": "auth-guest-chars-mobile",
+      "title": "Гость · персонажи (телефон)",
+      "group": "approved",
+      "subgroup": "Авторизация",
+      "frame": "mobile",
+      "themeSwitch": "proto",
+      "template": "proto-nav",
+      "init": {
+        "auth": "guest",
+        "pageId": "chars",
+        "open": "",
+        "width": "phone",
+        "hideAuthDemo": true
+      }
+    },
+    {
+      "id": "auth-guest-lobby-mobile",
+      "title": "Гость · лобби (телефон)",
+      "group": "approved",
+      "subgroup": "Авторизация",
+      "frame": "mobile",
+      "themeSwitch": "proto",
+      "template": "proto-nav",
+      "init": {
+        "auth": "guest",
+        "pageId": "lobby",
+        "open": "",
+        "width": "phone",
+        "hideAuthDemo": true
+      }
+    },
+    {
+      "id": "auth-guest-site-mobile",
+      "title": "Гость · сайт (телефон)",
+      "group": "approved",
+      "subgroup": "Авторизация",
+      "frame": "mobile",
+      "themeSwitch": "proto",
+      "template": "proto-nav",
+      "init": {
+        "auth": "guest",
+        "pageId": "site",
+        "open": "",
+        "width": "phone",
+        "hideAuthDemo": true
+      }
+    },
+    {
+      "id": "auth-login-mobile",
+      "title": "Вход (телефон)",
+      "group": "approved",
+      "subgroup": "Авторизация",
+      "frame": "mobile",
+      "themeSwitch": "proto",
+      "template": "proto-nav",
+      "init": {
+        "auth": "guest",
+        "pageId": "chars",
+        "open": "login",
+        "width": "phone",
+        "hideAuthDemo": true
+      }
+    },
+    {
+      "id": "auth-register-mobile",
+      "title": "Регистрация (телефон)",
+      "group": "approved",
+      "subgroup": "Авторизация",
+      "frame": "mobile",
+      "themeSwitch": "proto",
+      "template": "proto-nav",
+      "init": {
+        "auth": "guest",
+        "pageId": "chars",
+        "open": "register",
+        "width": "phone",
+        "hideAuthDemo": true,
+        "prefill": {
+          "auth-reg-name": "Игорь",
+          "auth-reg-email": "user@example.com"
+        }
+      }
+    },
+    {
+      "id": "auth-register-sent-mobile",
+      "title": "Письмо подтверждения (телефон)",
+      "group": "approved",
+      "subgroup": "Авторизация",
+      "frame": "mobile",
+      "themeSwitch": "proto",
+      "template": "proto-nav",
+      "init": {
+        "auth": "guest",
+        "pageId": "chars",
+        "open": "register-sent",
+        "width": "phone",
+        "hideAuthDemo": true
+      }
+    },
+    {
+      "id": "auth-forgot-mobile",
+      "title": "Забыли пароль (телефон)",
+      "group": "approved",
+      "subgroup": "Авторизация",
+      "frame": "mobile",
+      "themeSwitch": "proto",
+      "template": "proto-nav",
+      "init": {
+        "auth": "guest",
+        "pageId": "chars",
+        "open": "forgot",
+        "width": "phone",
+        "hideAuthDemo": true,
+        "prefill": {
+          "auth-forgot-email": "user@example.com"
+        }
+      }
+    },
+    {
+      "id": "auth-login-from-lobby-mobile",
+      "title": "Вход из лобби (телефон)",
+      "group": "approved",
+      "subgroup": "Авторизация",
+      "frame": "mobile",
+      "themeSwitch": "proto",
+      "template": "proto-nav",
+      "init": {
+        "auth": "guest",
+        "pageId": "lobby",
+        "open": "login",
+        "width": "phone",
+        "hideAuthDemo": true
+      }
+    },
+    {
+      "id": "mobile-nav-proto",
+      "title": "Мобильная навигация (прототип)",
+      "group": "approved",
+      "subgroup": "Мобильные",
+      "frame": "desktop",
+      "themeSwitch": null,
+      "template": "proto-nav"
+    },
+    {
+      "id": "mobile-chars-nav",
+      "title": "Мобильная навигация персонажей",
+      "group": "approved",
+      "subgroup": "Мобильные",
+      "frame": "mobile",
+      "themeSwitch": null,
+      "themes": [
+        "light",
+        "dark"
+      ]
+    },
+    {
+      "id": "mobile-account-v2",
+      "title": "Мобильный кабинет v2",
+      "group": "approved",
+      "subgroup": "Мобильные",
+      "frame": "mobile",
+      "themeSwitch": null,
+      "themes": [
+        "light",
+        "dark"
+      ]
+    },
+    {
+      "id": "mobile-chars-v2",
+      "title": "Мобильные персонажи v2",
+      "group": "approved",
+      "subgroup": "Мобильные",
+      "frame": "mobile",
+      "themeSwitch": null
+    },
+    {
+      "id": "mobile-lobby-v2",
+      "title": "Мобильное лобби v2",
+      "group": "approved",
+      "subgroup": "Мобильные",
+      "frame": "mobile",
+      "themeSwitch": null,
+      "themes": [
+        "light",
+        "dark"
+      ]
+    },
+    {
+      "id": "mobile-lobby-v2-compact",
+      "title": "Мобильное лобби v2 · компакт",
+      "group": "approved",
+      "subgroup": "Мобильные",
+      "frame": "mobile",
+      "themeSwitch": null
+    },
+    {
+      "id": "mobile-site-soon",
+      "title": "Мобильный «сайт скоро»",
+      "group": "approved",
+      "subgroup": "Мобильные",
+      "frame": "mobile",
+      "themeSwitch": null,
+      "themes": [
+        "light",
+        "dark"
+      ]
+    },
+    {
+      "id": "mobile-chars-fab",
+      "title": "Мобильные персонажи · кнопка +",
+      "group": "approved",
+      "subgroup": "Мобильные",
+      "frame": "mobile",
+      "themeSwitch": null,
+      "themes": [
+        "light",
+        "dark"
+      ]
+    },
+    {
+      "id": "help-desk",
+      "title": "Справка на списке персонажей",
+      "group": "approved",
+      "subgroup": "Справка, кубик и «+»",
+      "frame": "desktop",
+      "themeSwitch": "proto",
+      "template": "proto-nav",
+      "init": {
+        "auth": "user",
+        "pageId": "chars",
+        "open": "",
+        "width": "desktop",
+        "hideAuthDemo": true,
+        "helpOpen": true
+      }
+    },
+    {
+      "id": "help-mobile",
+      "title": "Справка (телефон)",
+      "group": "approved",
+      "subgroup": "Справка, кубик и «+»",
+      "frame": "mobile",
+      "themeSwitch": "proto",
+      "template": "proto-nav",
+      "init": {
+        "auth": "user",
+        "pageId": "chars",
+        "open": "",
+        "width": "phone",
+        "hideAuthDemo": true,
+        "helpOpen": true
+      }
+    },
+    {
+      "id": "dice-empty",
+      "title": "Кубик · пустое окно",
+      "group": "approved",
+      "subgroup": "Справка, кубик и «+»",
+      "frame": "desktop",
+      "themeSwitch": "proto",
+      "template": "proto-nav",
+      "init": {
+        "auth": "user",
+        "pageId": "chars",
+        "open": "",
+        "width": "desktop",
+        "hideAuthDemo": true,
+        "diceState": "empty"
+      }
+    },
+    {
+      "id": "dice-set",
+      "title": "Кубик · набор 2к6+3",
+      "group": "approved",
+      "subgroup": "Справка, кубик и «+»",
+      "frame": "desktop",
+      "themeSwitch": "proto",
+      "template": "proto-nav",
+      "init": {
+        "auth": "user",
+        "pageId": "chars",
+        "open": "",
+        "width": "desktop",
+        "hideAuthDemo": true,
+        "diceState": "set"
+      }
+    },
+    {
+      "id": "dice-result",
+      "title": "Кубик · результат",
+      "group": "approved",
+      "subgroup": "Справка, кубик и «+»",
+      "frame": "desktop",
+      "themeSwitch": "proto",
+      "template": "proto-nav",
+      "init": {
+        "auth": "user",
+        "pageId": "chars",
+        "open": "",
+        "width": "desktop",
+        "hideAuthDemo": true,
+        "diceState": "result"
+      }
+    },
+    {
+      "id": "dice-mobile",
+      "title": "Кубик (телефон)",
+      "group": "approved",
+      "subgroup": "Справка, кубик и «+»",
+      "frame": "mobile",
+      "themeSwitch": "proto",
+      "template": "proto-nav",
+      "init": {
+        "auth": "user",
+        "pageId": "chars",
+        "open": "",
+        "width": "phone",
+        "hideAuthDemo": true,
+        "diceState": "result"
+      }
+    },
+    {
+      "id": "fork-char-now",
+      "title": "Создать персонажа · 2024 скрыта",
+      "group": "approved",
+      "subgroup": "Справка, кубик и «+»",
+      "frame": "desktop",
+      "themeSwitch": "proto",
+      "template": "proto-nav",
+      "init": {
+        "auth": "user",
+        "pageId": "chars",
+        "open": "",
+        "width": "desktop",
+        "hideAuthDemo": true,
+        "edition2024": "hidden",
+        "createFork": "char"
+      }
+    },
+    {
+      "id": "fork-char-open",
+      "title": "Создать персонажа · 2024 открыта",
+      "group": "approved",
+      "subgroup": "Справка, кубик и «+»",
+      "frame": "desktop",
+      "themeSwitch": "proto",
+      "template": "proto-nav",
+      "init": {
+        "auth": "user",
+        "pageId": "chars",
+        "open": "",
+        "width": "desktop",
+        "hideAuthDemo": true,
+        "edition2024": "open",
+        "createFork": "char"
+      }
+    },
+    {
+      "id": "fork-lobby-open",
+      "title": "Создать лобби · 2024 открыта",
+      "group": "approved",
+      "subgroup": "Справка, кубик и «+»",
+      "frame": "desktop",
+      "themeSwitch": "proto",
+      "template": "proto-nav",
+      "init": {
+        "auth": "user",
+        "pageId": "lobby",
+        "open": "",
+        "width": "desktop",
+        "hideAuthDemo": true,
+        "edition2024": "open",
+        "createFork": "lobby"
+      }
+    },
+    {
+      "id": "fork-char-open-mobile",
+      "title": "Создать персонажа · 2024 открыта (телефон)",
+      "group": "approved",
+      "subgroup": "Справка, кубик и «+»",
+      "frame": "mobile",
+      "themeSwitch": "proto",
+      "template": "proto-nav",
+      "init": {
+        "auth": "user",
+        "pageId": "chars",
+        "open": "",
+        "width": "phone",
+        "hideAuthDemo": true,
+        "edition2024": "open",
+        "createFork": "char"
+      }
+    },
+    {
+      "id": "drag-hybrid",
+      "title": "Перетаскивание: гибрид (утверждено)",
+      "group": "approved",
+      "subgroup": "Перетаскивание",
+      "frame": "desktop",
+      "themeSwitch": null
+    },
+    {
+      "id": "drag-lines",
+      "title": "Перетаскивание: две полоски (утверждено)",
+      "group": "approved",
+      "subgroup": "Перетаскивание",
+      "frame": "desktop",
+      "themeSwitch": null
+    },
+    {
+      "id": "icons-approved",
+      "title": "Витрина утверждённых иконок",
+      "group": "approved",
+      "subgroup": "Оформление",
+      "frame": "desktop",
+      "themeSwitch": null,
+      "themes": [
+        "light",
+        "dark"
+      ]
+    },
+    {
+      "id": "backgrounds",
+      "title": "Подложки (утверждены, §24)",
+      "group": "approved",
+      "subgroup": "Оформление",
+      "frame": "desktop",
+      "themeSwitch": null
+    },
+    {
+      "id": "fonts-board",
+      "title": "Шрифты: витрина пар (утверждены, §25)",
+      "group": "approved",
+      "subgroup": "Оформление",
+      "frame": "desktop",
+      "themeSwitch": null
+    },
+    {
+      "id": "fonts-sheet",
+      "title": "Шрифты на листе",
+      "group": "approved",
+      "subgroup": "Оформление",
+      "frame": "desktop",
+      "themeSwitch": null
+    },
+    {
+      "id": "cmp-main",
+      "title": "Сравнение тем: общий ряд",
+      "group": "variants",
+      "subgroup": "Сравнения",
+      "frame": "desktop",
+      "themeSwitch": null
+    },
+    {
+      "id": "cmp-six",
+      "title": "Сравнение шести тёмных тем",
+      "group": "variants",
+      "subgroup": "Сравнения",
+      "frame": "desktop",
+      "themeSwitch": null
+    },
+    {
+      "id": "cmp-seven",
+      "title": "Сравнение семи тёмных тем",
+      "group": "variants",
+      "subgroup": "Сравнения",
+      "frame": "desktop",
+      "themeSwitch": null
+    },
+    {
+      "id": "cmp-ghi",
+      "title": "Сравнение G / H / I",
+      "group": "variants",
+      "subgroup": "Сравнения",
+      "frame": "desktop",
+      "themeSwitch": null
+    },
+    {
+      "id": "cmp-gold-designer",
+      "title": "Сравнение золота и спеки дизайнера",
+      "group": "variants",
+      "subgroup": "Сравнения",
+      "frame": "desktop",
+      "themeSwitch": null
+    },
+    {
+      "id": "cmp-i-i2",
+      "title": "Сравнение I и I2",
+      "group": "variants",
+      "subgroup": "Сравнения",
+      "frame": "desktop",
+      "themeSwitch": null
+    },
+    {
+      "id": "cmp-light-now-designer",
+      "title": "Светлая сейчас и светлая по правилам дизайнера",
+      "group": "variants",
+      "subgroup": "Сравнения",
+      "frame": "desktop",
+      "themeSwitch": null
+    },
+    {
+      "id": "cmp-light-dark-i2",
+      "title": "Светлая L и тёмная I2",
+      "group": "variants",
+      "subgroup": "Сравнения",
+      "frame": "desktop",
+      "themeSwitch": null
+    },
+    {
+      "id": "cmp-l-l2",
+      "title": "Сравнение L и L2",
+      "group": "variants",
+      "subgroup": "Сравнения",
+      "frame": "desktop",
+      "themeSwitch": null
+    },
+    {
+      "id": "cmp-l3-i2",
+      "title": "Сравнение L3 и I2",
+      "group": "variants",
+      "subgroup": "Сравнения",
+      "frame": "desktop",
+      "themeSwitch": null
+    },
+    {
+      "id": "cmp-statcolors",
+      "title": "Цвета характеристик: L3 и I2",
+      "group": "variants",
+      "subgroup": "Сравнения",
+      "frame": "desktop",
+      "themeSwitch": null
+    },
+    {
+      "id": "cmp-account",
+      "title": "Кабинет: было / стало",
+      "group": "variants",
+      "subgroup": "Сравнения",
+      "frame": "desktop",
+      "themeSwitch": null
+    },
+    {
+      "id": "cmp-lobby",
+      "title": "Лобби: было / стало",
+      "group": "variants",
+      "subgroup": "Сравнения",
+      "frame": "desktop",
+      "themeSwitch": null
+    },
+    {
+      "id": "cmp-mobile-chars",
+      "title": "Мобильные персонажи: было / стало",
+      "group": "variants",
+      "subgroup": "Сравнения",
+      "frame": "desktop",
+      "themeSwitch": null
+    },
+    {
+      "id": "cmp-drag-ab",
+      "title": "Перетаскивание: сравнение A и B",
+      "group": "variants",
+      "subgroup": "Сравнения",
+      "frame": "desktop",
+      "themeSwitch": null
+    },
+    {
+      "id": "cmp-handle",
+      "title": "Ручка перетаскивания: наклон и прямые",
+      "group": "variants",
+      "subgroup": "Сравнения",
+      "frame": "desktop",
+      "themeSwitch": null
+    },
+    {
+      "id": "prod-account",
+      "title": "Кабинет как в продукте сейчас",
+      "group": "variants",
+      "subgroup": "Как сейчас в продукте",
+      "frame": "desktop",
+      "themeSwitch": null
+    },
+    {
+      "id": "prod-lobby",
+      "title": "Лобби как в продукте сейчас",
+      "group": "variants",
+      "subgroup": "Как сейчас в продукте",
+      "frame": "desktop",
+      "themeSwitch": null
+    },
+    {
+      "id": "prod-help",
+      "title": "Справка как в продукте сейчас",
+      "group": "variants",
+      "subgroup": "Как сейчас в продукте",
+      "frame": "desktop",
+      "themeSwitch": null
+    },
+    {
+      "id": "light-sheet",
+      "title": "Светлая (как было) · лист",
+      "group": "variants",
+      "subgroup": "Ранняя светлая и L / L2",
+      "frame": "desktop",
+      "themeSwitch": null
+    },
+    {
+      "id": "light-cabinet",
+      "title": "Светлая (как было) · кабинет",
+      "group": "variants",
+      "subgroup": "Ранняя светлая и L / L2",
+      "frame": "desktop",
+      "themeSwitch": null
+    },
+    {
+      "id": "light-dialog",
+      "title": "Светлая (как было) · диалог",
+      "group": "variants",
+      "subgroup": "Ранняя светлая и L / L2",
+      "frame": "desktop",
+      "themeSwitch": null
+    },
+    {
+      "id": "l-sheet",
+      "title": "L · светлая по правилам дизайнера · лист",
+      "group": "variants",
+      "subgroup": "Ранняя светлая и L / L2",
+      "frame": "desktop",
+      "themeSwitch": null
+    },
+    {
+      "id": "l-sheet-stat",
+      "title": "L · лист, цвета характеристик",
+      "group": "variants",
+      "subgroup": "Ранняя светлая и L / L2",
+      "frame": "desktop",
+      "themeSwitch": null
+    },
+    {
+      "id": "l-cabinet",
+      "title": "L · кабинет",
+      "group": "variants",
+      "subgroup": "Ранняя светлая и L / L2",
+      "frame": "desktop",
+      "themeSwitch": null
+    },
+    {
+      "id": "l-dialog",
+      "title": "L · диалог",
+      "group": "variants",
+      "subgroup": "Ранняя светлая и L / L2",
+      "frame": "desktop",
+      "themeSwitch": null
+    },
+    {
+      "id": "l2-sheet",
+      "title": "L2 · светлая контрастнее · лист",
+      "group": "variants",
+      "subgroup": "Ранняя светлая и L / L2",
+      "frame": "desktop",
+      "themeSwitch": null
+    },
+    {
+      "id": "l2-cabinet",
+      "title": "L2 · кабинет",
+      "group": "variants",
+      "subgroup": "Ранняя светлая и L / L2",
+      "frame": "desktop",
+      "themeSwitch": null
+    },
+    {
+      "id": "l2-dialog",
+      "title": "L2 · диалог",
+      "group": "variants",
+      "subgroup": "Ранняя светлая и L / L2",
+      "frame": "desktop",
+      "themeSwitch": null
+    },
+    {
+      "id": "parchment-sheet",
+      "title": "A · Пергамент ночью · лист",
+      "group": "variants",
+      "subgroup": "Тёмные темы A–G",
+      "frame": "desktop",
+      "themeSwitch": null
+    },
+    {
+      "id": "parchment-cabinet",
+      "title": "A · Пергамент ночью · кабинет",
+      "group": "variants",
+      "subgroup": "Тёмные темы A–G",
+      "frame": "desktop",
+      "themeSwitch": null
+    },
+    {
+      "id": "parchment-dialog",
+      "title": "A · Пергамент ночью · диалог",
+      "group": "variants",
+      "subgroup": "Тёмные темы A–G",
+      "frame": "desktop",
+      "themeSwitch": null
+    },
+    {
+      "id": "dungeon-sheet",
+      "title": "B · Подземелье · лист",
+      "group": "variants",
+      "subgroup": "Тёмные темы A–G",
+      "frame": "desktop",
+      "themeSwitch": null
+    },
+    {
+      "id": "dungeon-cabinet",
+      "title": "B · Подземелье · кабинет",
+      "group": "variants",
+      "subgroup": "Тёмные темы A–G",
+      "frame": "desktop",
+      "themeSwitch": null
+    },
+    {
+      "id": "dungeon-dialog",
+      "title": "B · Подземелье · диалог",
+      "group": "variants",
+      "subgroup": "Тёмные темы A–G",
+      "frame": "desktop",
+      "themeSwitch": null
+    },
+    {
+      "id": "graphite-sheet",
+      "title": "C · Нейтральный графит · лист",
+      "group": "variants",
+      "subgroup": "Тёмные темы A–G",
+      "frame": "desktop",
+      "themeSwitch": null
+    },
+    {
+      "id": "graphite-cabinet",
+      "title": "C · Нейтральный графит · кабинет",
+      "group": "variants",
+      "subgroup": "Тёмные темы A–G",
+      "frame": "desktop",
+      "themeSwitch": null
+    },
+    {
+      "id": "graphite-dialog",
+      "title": "C · Нейтральный графит · диалог",
+      "group": "variants",
+      "subgroup": "Тёмные темы A–G",
+      "frame": "desktop",
+      "themeSwitch": null
+    },
+    {
+      "id": "tavern-sheet",
+      "title": "D · Таверна при свечах · лист",
+      "group": "variants",
+      "subgroup": "Тёмные темы A–G",
+      "frame": "desktop",
+      "themeSwitch": null
+    },
+    {
+      "id": "tavern-cabinet",
+      "title": "D · Таверна при свечах · кабинет",
+      "group": "variants",
+      "subgroup": "Тёмные темы A–G",
+      "frame": "desktop",
+      "themeSwitch": null
+    },
+    {
+      "id": "tavern-dialog",
+      "title": "D · Таверна при свечах · диалог",
+      "group": "variants",
+      "subgroup": "Тёмные темы A–G",
+      "frame": "desktop",
+      "themeSwitch": null
+    },
+    {
+      "id": "forest-sheet",
+      "title": "E · Лесная ночь · лист",
+      "group": "variants",
+      "subgroup": "Тёмные темы A–G",
+      "frame": "desktop",
+      "themeSwitch": null
+    },
+    {
+      "id": "forest-cabinet",
+      "title": "E · Лесная ночь · кабинет",
+      "group": "variants",
+      "subgroup": "Тёмные темы A–G",
+      "frame": "desktop",
+      "themeSwitch": null
+    },
+    {
+      "id": "forest-dialog",
+      "title": "E · Лесная ночь · диалог",
+      "group": "variants",
+      "subgroup": "Тёмные темы A–G",
+      "frame": "desktop",
+      "themeSwitch": null
+    },
+    {
+      "id": "grimoire-sheet",
+      "title": "F · Гримуар / чернила · лист",
+      "group": "variants",
+      "subgroup": "Тёмные темы A–G",
+      "frame": "desktop",
+      "themeSwitch": null
+    },
+    {
+      "id": "grimoire-cabinet",
+      "title": "F · Гримуар / чернила · кабинет",
+      "group": "variants",
+      "subgroup": "Тёмные темы A–G",
+      "frame": "desktop",
+      "themeSwitch": null
+    },
+    {
+      "id": "grimoire-dialog",
+      "title": "F · Гримуар / чернила · диалог",
+      "group": "variants",
+      "subgroup": "Тёмные темы A–G",
+      "frame": "desktop",
+      "themeSwitch": null
+    },
+    {
+      "id": "gold-sheet",
+      "title": "G · Золото на чёрном · лист",
+      "group": "variants",
+      "subgroup": "Тёмные темы A–G",
+      "frame": "desktop",
+      "themeSwitch": null
+    },
+    {
+      "id": "gold-cabinet",
+      "title": "G · Золото на чёрном · кабинет",
+      "group": "variants",
+      "subgroup": "Тёмные темы A–G",
+      "frame": "desktop",
+      "themeSwitch": null
+    },
+    {
+      "id": "gold-dialog",
+      "title": "G · Золото на чёрном · диалог",
+      "group": "variants",
+      "subgroup": "Тёмные темы A–G",
+      "frame": "desktop",
+      "themeSwitch": null
+    },
+    {
+      "id": "gold-stat",
+      "title": "G · Золото на чёрном · цвета характеристик",
+      "group": "variants",
+      "subgroup": "Тёмные темы A–G",
+      "frame": "desktop",
+      "themeSwitch": null
+    },
+    {
+      "id": "designer-sheet",
+      "title": "H · спека дизайнера · лист",
+      "group": "variants",
+      "subgroup": "Темы дизайнера H, I, I2 и листы L3",
+      "frame": "desktop",
+      "themeSwitch": null
+    },
+    {
+      "id": "designer-sheet-readable",
+      "title": "H · лист, читаемые прозрачности",
+      "group": "variants",
+      "subgroup": "Темы дизайнера H, I, I2 и листы L3",
+      "frame": "desktop",
+      "themeSwitch": null
+    },
+    {
+      "id": "designer-sheet-stat",
+      "title": "H · лист, цвета характеристик",
+      "group": "variants",
+      "subgroup": "Темы дизайнера H, I, I2 и листы L3",
+      "frame": "desktop",
+      "themeSwitch": null
+    },
+    {
+      "id": "designer-cabinet",
+      "title": "H · кабинет",
+      "group": "variants",
+      "subgroup": "Темы дизайнера H, I, I2 и листы L3",
+      "frame": "desktop",
+      "themeSwitch": null
+    },
+    {
+      "id": "designer-dialog",
+      "title": "H · диалог",
+      "group": "variants",
+      "subgroup": "Темы дизайнера H, I, I2 и листы L3",
+      "frame": "desktop",
+      "themeSwitch": null
+    },
+    {
+      "id": "i-sheet",
+      "title": "I · дизайнер + Листва · лист",
+      "group": "variants",
+      "subgroup": "Темы дизайнера H, I, I2 и листы L3",
+      "frame": "desktop",
+      "themeSwitch": null
+    },
+    {
+      "id": "i-sheet-stat",
+      "title": "I · лист, цвета характеристик",
+      "group": "variants",
+      "subgroup": "Темы дизайнера H, I, I2 и листы L3",
+      "frame": "desktop",
+      "themeSwitch": null
+    },
+    {
+      "id": "i-cabinet",
+      "title": "I · кабинет",
+      "group": "variants",
+      "subgroup": "Темы дизайнера H, I, I2 и листы L3",
+      "frame": "desktop",
+      "themeSwitch": null
+    },
+    {
+      "id": "i-dialog",
+      "title": "I · диалог",
+      "group": "variants",
+      "subgroup": "Темы дизайнера H, I, I2 и листы L3",
+      "frame": "desktop",
+      "themeSwitch": null
+    },
+    {
+      "id": "i2-sheet",
+      "title": "I2 · исторический лист",
+      "group": "variants",
+      "subgroup": "Темы дизайнера H, I, I2 и листы L3",
+      "frame": "desktop",
+      "themeSwitch": null
+    },
+    {
+      "id": "i2-sheet-stat",
+      "title": "I2 · исторический лист, цвета характеристик",
+      "group": "variants",
+      "subgroup": "Темы дизайнера H, I, I2 и листы L3",
+      "frame": "desktop",
+      "themeSwitch": null
+    },
+    {
+      "id": "i2-cabinet",
+      "title": "I2 · исторический кабинет",
+      "group": "variants",
+      "subgroup": "Темы дизайнера H, I, I2 и листы L3",
+      "frame": "desktop",
+      "themeSwitch": null
+    },
+    {
+      "id": "i2-dialog",
+      "title": "I2 · исторический диалог",
+      "group": "variants",
+      "subgroup": "Темы дизайнера H, I, I2 и листы L3",
+      "frame": "desktop",
+      "themeSwitch": null
+    },
+    {
+      "id": "l3-sheet",
+      "title": "L3 · исторический лист",
+      "group": "variants",
+      "subgroup": "Темы дизайнера H, I, I2 и листы L3",
+      "frame": "desktop",
+      "themeSwitch": null
+    },
+    {
+      "id": "l3-sheet-stat",
+      "title": "L3 · исторический лист, цвета характеристик",
+      "group": "variants",
+      "subgroup": "Темы дизайнера H, I, I2 и листы L3",
+      "frame": "desktop",
+      "themeSwitch": null
+    },
+    {
+      "id": "l3-cabinet",
+      "title": "L3 · исторический кабинет",
+      "group": "variants",
+      "subgroup": "Темы дизайнера H, I, I2 и листы L3",
+      "frame": "desktop",
+      "themeSwitch": null
+    },
+    {
+      "id": "l3-dialog",
+      "title": "L3 · исторический диалог",
+      "group": "variants",
+      "subgroup": "Темы дизайнера H, I, I2 и листы L3",
+      "frame": "desktop",
+      "themeSwitch": null
+    },
+    {
+      "id": "drag-proto-early",
+      "title": "Перетаскивание: ранний прототип",
+      "group": "variants",
+      "subgroup": "Перетаскивание: варианты и состояния",
+      "frame": "desktop",
+      "themeSwitch": null
+    },
+    {
+      "id": "drag-A",
+      "title": "Перетаскивание A",
+      "group": "variants",
+      "subgroup": "Перетаскивание: варианты и состояния",
+      "frame": "desktop",
+      "themeSwitch": null,
+      "themes": [
+        "light",
+        "dark"
+      ]
+    },
+    {
+      "id": "drag-B",
+      "title": "Перетаскивание B · в процессе",
+      "group": "variants",
+      "subgroup": "Перетаскивание: варианты и состояния",
+      "frame": "desktop",
+      "themeSwitch": null,
+      "themes": [
+        "light",
+        "dark"
+      ]
+    },
+    {
+      "id": "drag-C",
+      "title": "Перетаскивание C · в процессе",
+      "group": "variants",
+      "subgroup": "Перетаскивание: варианты и состояния",
+      "frame": "desktop",
+      "themeSwitch": null,
+      "themes": [
+        "light",
+        "dark"
+      ]
+    },
+    {
+      "id": "drag-hybrid-hover",
+      "title": "Гибрид · наведение",
+      "group": "variants",
+      "subgroup": "Перетаскивание: варианты и состояния",
+      "frame": "desktop",
+      "themeSwitch": null,
+      "themes": [
+        "light",
+        "dark"
+      ]
+    },
+    {
+      "id": "drag-hybrid-hold",
+      "title": "Гибрид · удержание",
+      "group": "variants",
+      "subgroup": "Перетаскивание: варианты и состояния",
+      "frame": "desktop",
+      "themeSwitch": null,
+      "themes": [
+        "light",
+        "dark"
+      ]
+    },
+    {
+      "id": "drag-hybrid-dragging",
+      "title": "Гибрид · перетаскивание",
+      "group": "variants",
+      "subgroup": "Перетаскивание: варианты и состояния",
+      "frame": "desktop",
+      "themeSwitch": null,
+      "themes": [
+        "light",
+        "dark"
+      ]
+    },
+    {
+      "id": "drag-hybrid-zoom",
+      "title": "Гибрид · увеличение иконки",
+      "group": "variants",
+      "subgroup": "Перетаскивание: варианты и состояния",
+      "frame": "desktop",
+      "themeSwitch": null
+    },
+    {
+      "id": "drag-lines-rest",
+      "title": "Две полоски · покой",
+      "group": "variants",
+      "subgroup": "Перетаскивание: варианты и состояния",
+      "frame": "desktop",
+      "themeSwitch": null,
+      "themes": [
+        "light",
+        "dark"
+      ]
+    },
+    {
+      "id": "drag-lines-dragging",
+      "title": "Две полоски · перетаскивание",
+      "group": "variants",
+      "subgroup": "Перетаскивание: варианты и состояния",
+      "frame": "desktop",
+      "themeSwitch": null,
+      "themes": [
+        "light",
+        "dark"
+      ]
+    },
+    {
+      "id": "drag-lines-straight",
+      "title": "Две полоски · прямые",
+      "group": "variants",
+      "subgroup": "Перетаскивание: варианты и состояния",
+      "frame": "desktop",
+      "themeSwitch": null,
+      "themes": [
+        "light",
+        "dark"
+      ]
+    },
+    {
+      "id": "drag-lines-zoom",
+      "title": "Две полоски · увеличение иконки",
+      "group": "variants",
+      "subgroup": "Перетаскивание: варианты и состояния",
+      "frame": "desktop",
+      "themeSwitch": null
+    },
+    {
+      "id": "chars-tiles",
+      "title": "Плитки персонажей (ранние)",
+      "group": "variants",
+      "subgroup": "Плитки персонажей (ранние)",
+      "frame": "desktop",
+      "themeSwitch": null,
+      "themes": [
+        "light",
+        "dark"
+      ]
+    },
+    {
+      "id": "chars-tiles-hover",
+      "title": "Плитки персонажей · наведение",
+      "group": "variants",
+      "subgroup": "Плитки персонажей (ранние)",
+      "frame": "desktop",
+      "themeSwitch": null
+    },
+    {
+      "id": "chars-tiles-dragging",
+      "title": "Плитки персонажей · перетаскивание",
+      "group": "variants",
+      "subgroup": "Плитки персонажей (ранние)",
+      "frame": "desktop",
+      "themeSwitch": null,
+      "themes": [
+        "light",
+        "dark"
+      ]
+    },
+    {
+      "id": "mobile-chars-tiles-dragging",
+      "title": "Мобильные плитки · перетаскивание",
+      "group": "variants",
+      "subgroup": "Плитки персонажей (ранние)",
+      "frame": "mobile",
+      "themeSwitch": null
+    },
+    {
+      "id": "bow-variants",
+      "title": "Лук: варианты контура",
+      "group": "variants",
+      "subgroup": "Оружие и иконки",
+      "frame": "desktop",
+      "themeSwitch": null
+    },
+    {
+      "id": "lobby-v2-compact",
+      "title": "Лобби v2 · компактный размер",
+      "group": "variants",
+      "subgroup": "Лобби v2: размеры",
+      "frame": "desktop",
+      "themeSwitch": null
+    },
+    {
+      "id": "lobby-v2-medium",
+      "title": "Лобби v2 · средний размер",
+      "group": "variants",
+      "subgroup": "Лобби v2: размеры",
+      "frame": "desktop",
+      "themeSwitch": null
+    },
+    {
+      "id": "lobby-v2-large",
+      "title": "Лобби v2 · крупный размер",
+      "group": "variants",
+      "subgroup": "Лобби v2: размеры",
+      "frame": "desktop",
+      "themeSwitch": null,
+      "themes": [
+        "light",
+        "dark"
+      ]
+    }
+  ]
+}

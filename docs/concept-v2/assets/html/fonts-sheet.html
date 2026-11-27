@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="light-designer3" data-font="antiqua">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Фрагмент листа · шрифт</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&family=Literata:opsz,wght@7..72,400;7..72,600;7..72,700&family=Source+Sans+3:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=Yeseva+One&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../css/fonts-pairs.css" />
+  <style>
+    :root {
+      --bg: #f7f2e4; --card: #fffdf8; --heading: #24241f; --text-body: #24241f;
+      --text-sub: #5c5c52; --accent: #4e5d34; --accent-rgb: 78,93,52;
+      --font-display: "Source Serif 4", Georgia, serif;
+      --font-ui: "IBM Plex Sans", "Segoe UI", sans-serif;
+      --font-num: "IBM Plex Sans", "Segoe UI", sans-serif;
+      --font-display-weight: 700;
+    }
+    html[data-theme="leaf-classic"] {
+      --bg: #0A0A0A; --card: #131313; --heading: #f3efe3; --text-body: #f3efe3;
+      --text-sub: rgba(243,239,227,0.78); --accent: #c4d19a; --accent-rgb: 196,209,154;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; background: var(--bg); color: var(--text-body); font-family: var(--font-ui); }
+    .page { width: 1100px; padding: 28px 32px 32px; }
+    .kicker { margin: 0 0 10px; font-size: 12px; font-weight: 700; color: var(--accent); }
+    .sheet {
+      background: var(--card);
+      border: 1px solid rgba(var(--accent-rgb), 0.22);
+      border-radius: 18px;
+      padding: 22px 24px 20px;
+    }
+    .who { display: flex; align-items: center; gap: 14px; margin-bottom: 18px; }
+    .avatar {
+      width: 56px; height: 56px; aspect-ratio: 1/1; flex-shrink: 0; box-sizing: border-box;
+      border-radius: 50%; display: grid; place-items: center;
+      border: 2px solid var(--accent); color: var(--accent);
+      font-family: var(--font-display); font-weight: var(--font-display-weight, 700); font-size: 24px;
+    }
+    html[data-font="ustav"] .avatar { font-weight: 400; font-synthesis: none; }
+    .who h1 { margin: 0; font-family: var(--font-display); font-weight: var(--font-display-weight, 700); font-size: 28px; color: var(--heading); letter-spacing: -0.02em; }
+    html[data-font="ustav"] .who h1 { font-weight: 400; font-synthesis: none; }
+    html[data-font="script"] .who h1 { font-weight: 600; }
+    .who p { margin: 2px 0 0; font-size: 14px; font-weight: 500; color: var(--text-sub); }
+    .cols { display: grid; grid-template-columns: 1.1fr 1.05fr 1.25fr; gap: 20px; }
+    .cols > section { min-width: 0; }
+    h2 { margin: 0 0 8px; font-family: var(--font-display); font-weight: var(--font-display-weight, 700); font-size: 18px; color: var(--heading); }
+    html[data-font="ustav"] h2 { font-weight: 400; font-synthesis: none; }
+    html[data-font="script"] h2 { font-weight: 600; }
+    .abils { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .abil {
+      border: 1px solid rgba(var(--accent-rgb), 0.22);
+      border-radius: 12px; padding: 8px 6px 7px; text-align: center;
+      background: color-mix(in srgb, var(--accent) 7%, var(--card));
+    }
+    .abil .name { font-size: 10px; font-weight: 700; letter-spacing: 0.04em; color: var(--accent); font-family: var(--font-num); }
+    .abil .score {
+      font-family: var(--font-num); font-size: 22px; font-weight: 650; line-height: 1.1;
+      font-variant-numeric: tabular-nums lining-nums; font-feature-settings: "tnum" 1, "lnum" 1;
+    }
+    .abil .mod {
+      font-family: var(--font-num); font-size: 13px; font-weight: 600; color: var(--text-sub);
+      font-variant-numeric: tabular-nums lining-nums; font-feature-settings: "tnum" 1, "lnum" 1;
+    }
+    .skills { display: grid; gap: 4px; }
+    .skill {
+      display: grid; grid-template-columns: 14px minmax(0, 1fr) 2.4em; gap: 8px; align-items: center;
+      font-size: 12px; font-weight: 500;
+    }
+    .skill span:nth-child(2) { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .skill b { text-align: right; }
+    .skill .pip {
+      width: 10px; height: 10px; aspect-ratio: 1/1; flex-shrink: 0; box-sizing: border-box;
+      border-radius: 50%; border: 1.5px solid var(--accent);
+    }
+    .skill.is-on .pip { background: var(--accent); }
+    .skill b {
+      font-family: var(--font-num); font-weight: 650; font-size: 12px;
+      font-variant-numeric: tabular-nums lining-nums; font-feature-settings: "tnum" 1, "lnum" 1;
+    }
+    table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    th { text-align: left; font-size: 10px; font-weight: 700; letter-spacing: 0.04em; color: var(--accent); padding: 0 6px 6px 0; font-family: var(--font-num); }
+    td { padding: 5px 6px 5px 0; border-top: 1px solid rgba(var(--accent-rgb), 0.14); vertical-align: baseline; }
+    td:first-child { font-weight: 600; }
+    td:not(:first-child) {
+      font-family: var(--font-num);
+      font-variant-numeric: tabular-nums lining-nums; font-feature-settings: "tnum" 1, "lnum" 1;
+      font-weight: 550;
+    }
+    .note { margin: 14px 0 0; font-size: 11px; line-height: 1.4; color: var(--text-sub); font-weight: 500; }
+    @media (max-width: 500px) {
+      .page { width: 390px; padding: 12px 12px 16px; }
+      .sheet { padding: 16px 14px 14px; border-radius: 16px; }
+      .who { gap: 10px; margin-bottom: 12px; }
+      .who h1 { font-size: 22px; }
+      .cols { grid-template-columns: 1fr; gap: 14px; }
+      .avatar { width: 48px; height: 48px; font-size: 20px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <p class="kicker" data-kicker>Фрагмент листа · Антиква</p>
+    <div class="sheet">
+      <div class="who">
+        <div class="avatar">Д</div>
+        <div>
+          <h1>Даррак Железный Кулак</h1>
+          <p>Дварф (горный) · законопослушный добрый · Жрец 3 · 2014</p>
+        </div>
+      </div>
+      <div class="cols">
+        <section>
+          <h2>Характеристики</h2>
+          <div class="abils">
+            <div class="abil"><div class="name">СИЛ</div><div class="score">16</div><div class="mod">+3</div></div>
+            <div class="abil"><div class="name">ЛОВ</div><div class="score">12</div><div class="mod">+1</div></div>
+            <div class="abil"><div class="name">ТЕЛ</div><div class="score">15</div><div class="mod">+2</div></div>
+            <div class="abil"><div class="name">ИНТ</div><div class="score">8</div><div class="mod">−1</div></div>
+            <div class="abil"><div class="name">МДР</div><div class="score">14</div><div class="mod">+2</div></div>
+            <div class="abil"><div class="name">ХАР</div><div class="score">10</div><div class="mod">+0</div></div>
+          </div>
+        </section>
+        <section>
+          <h2>Навыки</h2>
+          <div class="skills">
+            <div class="skill is-on"><span class="pip"></span><span>Атлетика</span><b>+5</b></div>
+            <div class="skill"><span class="pip"></span><span>Акробатика</span><b>+1</b></div>
+            <div class="skill is-on"><span class="pip"></span><span>Медицина</span><b>+4</b></div>
+            <div class="skill is-on"><span class="pip"></span><span>Проницательность</span><b>+4</b></div>
+            <div class="skill"><span class="pip"></span><span>Скрытность</span><b>+1</b></div>
+            <div class="skill"><span class="pip"></span><span>Убеждение</span><b>+0</b></div>
+            <div class="skill is-on"><span class="pip"></span><span>Религия</span><b>+1</b></div>
+          </div>
+        </section>
+        <section>
+          <h2>Атаки</h2>
+          <table>
+            <thead><tr><th>Оружие</th><th>Бонус</th><th>Урон</th></tr></thead>
+            <tbody>
+              <tr><td>Боевой молот</td><td>+5</td><td>1к8+3 руб.</td></tr>
+              <tr><td>Лёгкий арбалет</td><td>+3</td><td>1к8+1 кол.</td></tr>
+              <tr><td>Священное пламя</td><td>сп. Лов 13</td><td>1к8 луч.</td></tr>
+            </tbody>
+          </table>
+          <p class="note">Мелкая подпись 11 px: хиты 27/27, кость хитов 3к8, скорость 7,5 м, пассивная внимательность 12.</p>
+        </section>
+      </div>
+    </div>
+  </div>
+  <script>
+    const NAMES = {antiqua:"Антиква", grotesque:"Гротеск", ustav:"Устав", scribe:"Писчая", script:"Рукописная", tabular:"Табличная"};
+    window.setSheetFont = function (id) {
+      document.documentElement.setAttribute("data-font", id);
+      const k = document.querySelector("[data-kicker]");
+      if (k) k.textContent = "Фрагмент листа · " + (NAMES[id] || id);
+    };
+  </script>
+</body>
+</html>

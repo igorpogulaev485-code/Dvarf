@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="light-designer3" data-bg="parchment" data-font="antiqua" data-accent="leaf" data-abil="unique" data-width="desktop" data-view="offer">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Опрос оформления · концепт</title>
+  <link rel="stylesheet" href="fonts/fonts.css" />
+  <link rel="stylesheet" href="css/fonts-pairs.css" />
+  <link rel="stylesheet" href="css/backgrounds.css" />
+  <style>
+    :root {
+      --font-display: "Source Serif 4", Georgia, "Times New Roman", serif;
+      --font-ui: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+      --font-num: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+      --font-display-weight: 700;
+      --radius-card: 18px;
+      --radius-item: 12px;
+    }
+    html[data-theme="light-designer3"] {
+      --bg: #f7f2e4; --card: #fffdf8; --heading: #24241f; --ink: #2d2d2a;
+      --accent: #5a6b3d; --accent-rgb: 90, 107, 61; --accent-soft: #e5ecd4;
+      --accent-light: #6b7a48; --accent-dark: #3d4a28; --on-accent: #f8fffb;
+      --text-sub: rgba(45,45,42,0.92); --text-body: rgba(45,45,42,0.78);
+      --text-label: rgba(45,45,42,0.62); --menu-text: #2d2d2a;
+      --line: #e0d8c7; --shadow: rgba(40,36,28,0.18); --backdrop: rgba(28,25,23,0.46);
+      --tabbar-bg: #fffdf8; --wash: 45, 45, 42;
+      --abil-str: #9a4a32; --abil-str-soft: #f3e0d6;
+      --abil-dex: #3d6b5a; --abil-dex-soft: #dcece4;
+      --abil-con: #8a6a2f; --abil-con-soft: #f1e6c8;
+      --abil-int: #3f5f8a; --abil-int-soft: #dde6f2;
+      --abil-wis: #5a6b3d; --abil-wis-soft: #e5ecd4;
+      --abil-cha: #7a4a6e; --abil-cha-soft: #efe0ea;
+    }
+    html[data-theme="leaf-classic"] {
+      --bg: #0A0A0A; --card: #131313; --heading: #ffffff; --ink: #f3ebe0;
+      --accent: #c4d19a; --accent-rgb: 196, 209, 154; --accent-soft: #2f3424;
+      --accent-light: #e0edb6; --accent-dark: #8fa36a; --on-accent: #141510;
+      --text-sub: rgba(255,255,255,0.8); --text-body: rgba(255,255,255,0.66);
+      --text-label: rgba(255,255,255,0.5); --menu-text: #E0E0E0;
+      --line: #2a2a28; --shadow: rgba(0,0,0,0.55); --backdrop: rgba(0,0,0,0.62);
+      --tabbar-bg: #0D0D0D; --wash: 255, 255, 255;
+      --abil-str: #e0a08a; --abil-str-soft: #3a2720;
+      --abil-dex: #86c4b0; --abil-dex-soft: #1e2e28;
+      --abil-con: #d4b36a; --abil-con-soft: #332a16;
+      --abil-int: #9ab0d4; --abil-int-soft: #1e2838;
+      --abil-wis: #c4d19a; --abil-wis-soft: #2f3424;
+      --abil-cha: #c9a0be; --abil-cha-soft: #32242e;
+    }
+    html[data-theme="light-designer3"][data-accent="copper"] { --accent:#9a4a32; --accent-rgb:154,74,50; --accent-soft:#f3e0d6; --accent-light:#b86a52; --accent-dark:#7a3a28; --on-accent:#f8fffb; }
+    html[data-theme="light-designer3"][data-accent="pine"]    { --accent:#3d6b5a; --accent-rgb:61,107,90; --accent-soft:#dcece4; --accent-light:#5a8a76; --accent-dark:#2c5244; --on-accent:#f8fffb; }
+    html[data-theme="light-designer3"][data-accent="ochre"]   { --accent:#8a6a2f; --accent-rgb:138,106,47; --accent-soft:#f1e6c8; --accent-light:#a8864a; --accent-dark:#6a501f; --on-accent:#f8fffb; }
+    html[data-theme="light-designer3"][data-accent="indigo"]  { --accent:#3f5f8a; --accent-rgb:63,95,138; --accent-soft:#dde6f2; --accent-light:#5a7aa6; --accent-dark:#2e4768; --on-accent:#f8fffb; }
+    html[data-theme="light-designer3"][data-accent="leaf"]    { --accent:#5a6b3d; --accent-rgb:90,107,61; --accent-soft:#e5ecd4; --accent-light:#6b7a48; --accent-dark:#3d4a28; --on-accent:#f8fffb; }
+    html[data-theme="light-designer3"][data-accent="plum"]    { --accent:#7a4a6e; --accent-rgb:122,74,110; --accent-soft:#efe0ea; --accent-light:#98648c; --accent-dark:#5c3754; --on-accent:#f8fffb; }
+    html[data-theme="leaf-classic"][data-accent="copper"] { --accent:#e8b6a8; --accent-rgb:232,182,168; --accent-soft:#3a2720; --accent-light:#f0c4b8; --accent-dark:#d9a090; --on-accent:#141510; }
+    html[data-theme="leaf-classic"][data-accent="pine"]    { --accent:#9ecbb6; --accent-rgb:158,203,182; --accent-soft:#1e2e28; --accent-light:#b3d8c6; --accent-dark:#8fbfa8; --on-accent:#141510; }
+    html[data-theme="leaf-classic"][data-accent="ochre"]   { --accent:#e0cc8a; --accent-rgb:224,204,138; --accent-soft:#332a16; --accent-light:#e8d5a0; --accent-dark:#d4c08a; --on-accent:#141510; }
+    html[data-theme="leaf-classic"][data-accent="indigo"]  { --accent:#adc2e0; --accent-rgb:173,194,224; --accent-soft:#1e2838; --accent-light:#b8c8e4; --accent-dark:#9db4d4; --on-accent:#141510; }
+    html[data-theme="leaf-classic"][data-accent="leaf"]    { --accent:#c4d19a; --accent-rgb:196,209,154; --accent-soft:#2f3424; --accent-light:#e0edb6; --accent-dark:#8fa36a; --on-accent:#141510; }
+    html[data-theme="leaf-classic"][data-accent="plum"]    { --accent:#e0b8d4; --accent-rgb:224,184,212; --accent-soft:#32242e; --accent-light:#e8c4dc; --accent-dark:#d4a8c8; --on-accent:#141510; }
+    html[data-abil="theme"] {
+      --abil-str: var(--accent); --abil-str-soft: var(--accent-soft);
+      --abil-dex: var(--accent); --abil-dex-soft: var(--accent-soft);
+      --abil-con: var(--accent); --abil-con-soft: var(--accent-soft);
+      --abil-int: var(--accent); --abil-int-soft: var(--accent-soft);
+      --abil-wis: var(--accent); --abil-wis-soft: var(--accent-soft);
+      --abil-cha: var(--accent); --abil-cha-soft: var(--accent-soft);
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; min-height: 100%; background: var(--bg); color: var(--text-body); font-family: var(--font-ui); -webkit-font-smoothing: antialiased; }
+    button, input { font: inherit; color: inherit; }
+    button { cursor: pointer; }
+    h1, h2, h3, .brand, .t-heading, .char-name, .preview-name { font-family: var(--font-display); font-weight: var(--font-display-weight); color: var(--heading); }
+    html[data-shot] .concept-bar { display: none !important; }
+    html[data-shot] .cabinet-shell { min-height: 100vh; }
+    .concept-bar { position: sticky; top: 0; z-index: 80; display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 32px; padding: 6px 16px; background: #000; color: rgba(255,255,255,0.7); font-size: 11px; font-weight: 600; flex-wrap: wrap; }
+    .concept-bar strong { color: #fff; }
+    .concept-bar a, .concept-bar button { font: inherit; color: #fff; background: transparent; border: 1px solid rgba(255,255,255,0.28); border-radius: 8px; padding: 4px 8px; text-decoration: none; }
+    .concept-bar button.is-on { background: rgba(255,255,255,0.18); }
+    .cabinet-shell { display: grid; grid-template-columns: 244px minmax(0,1fr); min-height: calc(100vh - 32px); }
+    .sidebar { padding: 24px 16px 20px; border-right: 1px solid color-mix(in srgb, var(--accent) 14%, var(--line)); }
+    .brand { margin: 0 0 22px; font-size: 22px; color: var(--accent); letter-spacing: -0.02em; }
+    .nav-item { display: flex; align-items: center; gap: 10px; width: 100%; padding: 10px 12px; margin: 0 0 4px; border: 0; border-radius: 12px; background: transparent; color: var(--menu-text); font-weight: 600; font-size: 14px; text-align: left; text-decoration: none; }
+    .nav-item.is-on { background: var(--accent-soft); color: var(--accent); }
+    .nav-item svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; flex: 0 0 auto; }
+    .main { padding: 28px 32px 40px; min-width: 0; }
+    .chars-head h1 { margin: 0; font-size: 28px; letter-spacing: -0.02em; }
+    .chars-head p { margin: 6px 0 0; font-size: 14px; color: var(--text-sub); font-weight: 500; }
+    .empty { margin-top: 48px; max-width: 420px; }
+    .empty h2 { margin: 0 0 8px; font-size: 22px; }
+    .empty p { margin: 0 0 16px; font-size: 14px; line-height: 1.5; }
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 10px 16px; border-radius: var(--radius-item); border: 1px solid color-mix(in srgb, var(--accent) 40%, var(--line)); background: var(--accent-soft); color: var(--accent); font-weight: 600; font-size: 14px; text-decoration: none; }
+    .btn--primary { background: var(--accent); color: var(--on-accent); border-color: transparent; }
+    .btn--ghost { background: transparent; color: var(--text-sub); border-color: var(--line); }
+    .btn:disabled { opacity: 0.45; cursor: default; }
+    .btn:focus-visible, .choice:focus-visible, .mini-tile:focus-visible, .nav-item:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+    /* Offer dialog */
+    .offer-backdrop { position: fixed; inset: 0; z-index: 60; display: none; align-items: center; justify-content: center; padding: 20px; background: var(--backdrop); }
+    html[data-view="offer"] .offer-backdrop { display: flex; }
+    .offer { width: min(480px, 100%); background: var(--card); color: var(--text-body); border: 1px solid color-mix(in srgb, var(--accent) 18%, var(--line)); border-radius: 20px; box-shadow: 0 24px 60px var(--shadow); padding: 28px 28px 22px; }
+    .offer h2 { margin: 0 0 10px; font-size: 24px; letter-spacing: -0.03em; }
+    .offer .lead { margin: 0 0 14px; font-size: 15px; line-height: 1.5; color: var(--text-sub); }
+    .offer .hint { margin: 0 0 20px; font-size: 13px; line-height: 1.45; color: var(--text-label); }
+    .offer .hint b { color: var(--heading); font-weight: 650; }
+    .offer-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+    .offer-actions .btn { flex: 1 1 160px; }
+
+    /* Survey */
+    .survey-wrap { display: none; }
+    html[data-view="survey"] .survey-wrap, html[data-view="final"] .survey-wrap { display: block; }
+    html[data-view="survey"] .chars-home, html[data-view="final"] .chars-home { display: none; }
+    .survey-layout { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 24px; align-items: start; }
+    .survey-card { background: var(--card); border: 1px solid color-mix(in srgb, var(--accent) 16%, var(--line)); border-radius: var(--radius-card); padding: 22px 22px 18px; box-shadow: 0 8px 28px rgba(0,0,0,0.04); }
+    .progress { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 8px; }
+    .progress-label { font-size: 12px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--text-label); }
+    .progress-track { flex: 1; height: 4px; border-radius: 99px; background: color-mix(in srgb, var(--accent) 16%, var(--line)); overflow: hidden; }
+    .progress-fill { display: block; height: 100%; width: 0; background: var(--accent); border-radius: inherit; transition: width .2s ease; }
+    .q-title { margin: 12px 0 6px; font-size: 22px; letter-spacing: -0.03em; line-height: 1.25; }
+    .q-lead { margin: 0 0 16px; font-size: 14px; line-height: 1.45; color: var(--text-sub); }
+    .choices { display: grid; gap: 8px; }
+    .choice { display: grid; grid-template-columns: auto minmax(0,1fr); gap: 10px 12px; align-items: center; width: 100%; text-align: left; padding: 10px 12px; min-height: 52px; border-radius: 14px; border: 1px solid var(--line); background: color-mix(in srgb, var(--card) 88%, var(--bg)); color: var(--ink); }
+    .choice:hover { border-color: color-mix(in srgb, var(--accent) 45%, var(--line)); }
+    .choice.is-on { border-color: var(--accent); background: var(--accent-soft); box-shadow: 0 0 0 1px var(--accent); }
+    .choice.is-skip { opacity: 0.9; }
+    .choice-mark { width: 22px; height: 22px; border-radius: 50%; border: 1.5px solid color-mix(in srgb, var(--accent) 45%, var(--line)); display: grid; place-items: center; flex: 0 0 auto; }
+    .choice.is-on .choice-mark { border-color: var(--accent); background: var(--accent); }
+    .choice-mark i { width: 8px; height: 8px; border-radius: 50%; background: var(--on-accent); display: none; }
+    .choice.is-on .choice-mark i { display: block; }
+    .choice-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+    .choice-text b { font-size: 14.5px; font-weight: 650; color: var(--heading); }
+    .choice-text span { font-size: 12.5px; color: var(--text-label); line-height: 1.35; }
+    .choice-swatch, .choice-font, .choice-bg { grid-column: 1; grid-row: 1; align-self: center; margin-left: 0; width: 22px; height: 22px; }
+    .choice[data-has-meta] { grid-template-columns: auto auto minmax(0,1fr); }
+    .choice[data-has-meta] .choice-mark { grid-column: 1; }
+    .choice[data-has-meta] .choice-meta { grid-column: 2; }
+    .choice[data-has-meta] .choice-text { grid-column: 3; }
+    .choice-meta { width: 32px; height: 32px; border-radius: 8px; border: 1px solid color-mix(in srgb, var(--ink) 22%, var(--line)); background: var(--swatch, var(--card)); box-shadow: inset 0 0 0 1px rgba(255,255,255,0.12); }
+    .choice-meta[data-kind="font"] { display: grid; place-items: center; background: var(--card); font-family: var(--sample, var(--font-display)); font-size: 15px; font-weight: 700; color: var(--heading); }
+    .choice-meta[data-kind="bg"] { background-color: var(--swatch); background-image: var(--pat); background-size: 64px 64px; background-repeat: repeat; }
+    .survey-nav { display: flex; gap: 8px; margin-top: 16px; flex-wrap: wrap; }
+    .survey-nav .btn { flex: 0 0 auto; }
+    .survey-nav .btn--next { margin-left: auto; }
+
+    /* Final */
+    .final-block { display: none; }
+    html[data-view="final"] .q-block { display: none; }
+    html[data-view="final"] .final-block { display: block; }
+    html[data-view="final"] .progress { display: none; }
+    .summary { display: grid; gap: 14px; }
+    .sum-row { display: grid; gap: 8px; }
+    .sum-row h3 { margin: 0; font-size: 12px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--text-label); font-family: var(--font-ui); }
+    .seg { display: flex; flex-wrap: wrap; gap: 6px; }
+    .chip { appearance: none; border: 1px solid var(--line); background: var(--card); color: var(--heading); border-radius: 10px; min-height: 36px; padding: 6px 10px; font-size: 13px; font-weight: 600; }
+    .chip.is-on, .mini-tile.is-on { border-color: var(--accent); background: var(--accent-soft); color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+    [data-bg-tiles] { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; width: 100%; }
+    html[data-width="phone"] [data-bg-tiles] { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .mini-tile { appearance: none; display: flex; flex-direction: column; align-items: stretch; gap: 4px; width: 100%; min-width: 0; margin: 0; padding: 6px; box-sizing: border-box; border: 1px solid var(--line); border-radius: 10px; background: var(--card); color: var(--heading); font-size: 11px; font-weight: 650; text-align: center; cursor: pointer; }
+    .mini-tile i { display: block; width: 100%; height: 40px; flex: 0 0 40px; border-radius: 6px; background-color: var(--swatch); background-image: var(--pat); background-size: 64px 64px; background-repeat: repeat; border: 1px solid color-mix(in srgb, var(--ink) 8%, transparent); box-sizing: border-box; }
+    .mini-tile span { display: block; min-height: 2.4em; line-height: 1.2; white-space: normal; overflow: visible; overflow-wrap: break-word; text-align: center; }
+    .font-chip { font-family: var(--sample, var(--font-display)); }
+    .accent-chip { display: inline-flex; align-items: center; gap: 6px; }
+    .accent-chip em { width: 12px; height: 12px; border-radius: 50%; background: var(--swatch); display: inline-block; }
+
+    /* Live preview */
+    .preview-col { position: sticky; top: 48px; }
+    .preview-shell { background-color: var(--bg); background-repeat: repeat; background-size: 256px 256px; border: 1px solid color-mix(in srgb, var(--accent) 16%, var(--line)); border-radius: var(--radius-card); padding: 14px; box-shadow: 0 8px 28px rgba(0,0,0,0.05); }
+    html[data-bg="parchment"] .preview-shell { background-image: url("svg/bg-light-parchment.svg"); }
+    html[data-bg="ivory"] .preview-shell { background-image: url("svg/bg-light-ivory.svg"); }
+    html[data-bg="linen"] .preview-shell { background-image: url("svg/bg-light-linen.svg"); }
+    html[data-bg="stone"] .preview-shell { background-image: url("svg/bg-light-stone.svg"); }
+    html[data-bg="moss"] .preview-shell { background-image: url("svg/bg-light-moss.svg"); }
+    html[data-bg="azure"] .preview-shell { background-image: url("svg/bg-light-azure.svg"); }
+    html[data-bg="ink"] .preview-shell { background-image: url("svg/bg-dark-ink.svg"); }
+    html[data-bg="graphite"] .preview-shell { background-image: url("svg/bg-dark-graphite.svg"); }
+    html[data-bg="night"] .preview-shell { background-image: url("svg/bg-dark-night.svg"); }
+    html[data-bg="oak"] .preview-shell { background-image: url("svg/bg-dark-oak.svg"); }
+    html[data-bg="tar"] .preview-shell { background-image: url("svg/bg-dark-tar.svg"); }
+    html[data-bg="slate"] .preview-shell { background-image: url("svg/bg-dark-slate.svg"); }
+    .preview-kicker { margin: 0 0 10px; font-size: 11px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; color: var(--text-label); }
+    .mini-sheet { background: var(--card); border: 1px solid color-mix(in srgb, var(--accent) 14%, var(--line)); border-radius: 14px; padding: 12px; }
+    .preview-head { display: grid; grid-template-columns: 44px minmax(0,1fr); gap: 10px; align-items: center; margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px solid var(--line); }
+    .avatar { width: 44px; height: 44px; border-radius: 14px; display: grid; place-items: center; background: linear-gradient(160deg, color-mix(in srgb, var(--accent) 55%, var(--card)), color-mix(in srgb, var(--accent) 25%, var(--card))); color: var(--on-accent); font-family: var(--font-display); font-weight: 700; font-size: 18px; }
+    .preview-name { margin: 0; font-size: 18px; color: var(--accent); line-height: 1.15; }
+    .preview-meta { margin: 2px 0 0; font-size: 12px; color: var(--text-label); }
+    .abil-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+    .abil { display: grid; grid-template-columns: 1fr auto; gap: 2px 8px; align-items: center; padding: 6px 8px 6px 10px; border-radius: 10px; background: color-mix(in srgb, var(--abil-soft) 72%, var(--card)); border: 1px solid color-mix(in srgb, var(--abil) 28%, var(--line)); box-shadow: inset 4px 0 0 var(--abil); min-height: 44px; }
+    .abil-name { font-size: 10px; font-weight: 650; letter-spacing: 0.04em; text-transform: uppercase; color: var(--abil); }
+    .abil-score { font-family: var(--font-num); font-variant-numeric: tabular-nums lining-nums; font-weight: 700; font-size: 18px; color: var(--heading); line-height: 1; }
+    .abil-mod { font-family: var(--font-num); font-variant-numeric: tabular-nums lining-nums; font-weight: 700; font-size: 13px; color: var(--abil); }
+    .preview-actions { display: flex; gap: 6px; margin-top: 10px; }
+    .preview-actions .btn { min-height: 32px; padding: 6px 10px; font-size: 12px; }
+    .preview-sample { margin: 8px 0 0; font-size: 12.5px; line-height: 1.4; color: var(--text-body); }
+
+    .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(12px); background: var(--heading); color: var(--card); padding: 10px 14px; border-radius: 12px; font-size: 13px; font-weight: 600; opacity: 0; pointer-events: none; transition: .2s ease; z-index: 70; }
+    .toast.is-on { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    html[data-width="phone"] .cabinet-shell, @media (max-width: 720px) {
+    }
+    html[data-width="phone"] .cabinet-shell { grid-template-columns: 1fr; }
+    html[data-width="phone"] .sidebar { display: none; }
+    html[data-width="phone"] .main { padding: 16px 14px 28px; }
+    html[data-width="phone"] .survey-layout { grid-template-columns: 1fr; }
+    html[data-width="phone"] .preview-col { position: static; order: -1; }
+    html[data-width="phone"] .preview-shell { padding: 8px; }
+    html[data-width="phone"] .preview-kicker { display: none; }
+    html[data-width="phone"] .preview-head { margin-bottom: 8px; padding-bottom: 8px; }
+    html[data-width="phone"] .avatar { width: 36px; height: 36px; border-radius: 11px; font-size: 16px; }
+    html[data-width="phone"] .preview-head { grid-template-columns: 36px minmax(0,1fr); }
+    html[data-width="phone"] .preview-name { font-size: 16px; }
+    html[data-width="phone"] .abil { min-height: 40px; padding: 4px 6px 4px 8px; }
+    html[data-width="phone"] .abil-score { font-size: 16px; }
+    html[data-width="phone"] .abil-grid { grid-template-columns: repeat(3, 1fr); }
+    html[data-width="phone"] .preview-sample { display: none; }
+    html[data-width="phone"] .offer { padding: 22px 18px 18px; }
+    html[data-width="phone"] .q-title { font-size: 20px; }
+    html[data-width="phone"] .survey-card { padding: 16px 14px 14px; }
+    html[data-width="phone"] .choice { min-height: 48px; padding: 8px 10px; }
+    html[data-width="phone"] .survey-nav { position: sticky; bottom: 0; z-index: 2; padding: 8px 0 0; background: var(--card); box-shadow: 0 -8px 16px color-mix(in srgb, var(--card) 80%, transparent); }
+    html[data-width="phone"][data-view="final"] .survey-nav { position: static; box-shadow: none; margin-top: 8px; }
+  </style>
+</head>
+<body>
+  <div class="concept-bar">
+    <span><strong>Концепт</strong> · опрос оформления: после регистрации и один раз уже зарегистрированным · репозиторий не трогаем</span>
+    <span>
+      <button type="button" data-bar-view="offer">Всплывашка</button>
+      <button type="button" data-bar-view="survey">Опрос</button>
+      <button type="button" data-bar-view="final">Итог</button>
+      <button type="button" data-bar-theme="light-designer3">Светлая</button>
+      <button type="button" data-bar-theme="leaf-classic">Тёмная</button>
+      <a href="html/desktop-account-v2-light.html">Кабинет</a>
+    </span>
+  </div>
+
+  <div class="cabinet-shell">
+    <aside class="sidebar">
+      <p class="brand">КриD20</p>
+      <a class="nav-item is-on" href="#" aria-current="page">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="2.4"/><circle cx="15.5" cy="8.5" r="2"/><path d="M5.5 18c.6-2.4 2.3-3.6 4.5-3.6S14 15.6 14.6 18"/><path d="M14.2 15c.8-.6 1.8-1 3-1 1.8 0 3.2.8 3.8 2.6"/></svg>
+        Персонажи
+      </a>
+      <a class="nav-item" href="html/desktop-lobby-v2-light.html">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19V7.5L12 4l8 3.5V19"/><path d="M8 19v-6h8v6"/><path d="M4 19h16"/></svg>
+        Лобби
+      </a>
+      <a class="nav-item" href="html/desktop-account-v2-light.html" data-cabinet-link>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="9" r="3"/><path d="M6 19c.8-3 3-4.5 6-4.5s5.2 1.5 6 4.5"/></svg>
+        Кабинет
+      </a>
+    </aside>
+
+    <main class="main">
+      <section class="chars-home">
+        <header class="chars-head">
+          <h1 class="t-heading">Мои персонажи</h1>
+          <p>Герои в облаке — с любого устройства.</p>
+        </header>
+        <div class="empty">
+          <h2>Пока нет персонажей</h2>
+          <p>Список — твои герои в облаке. Создай первого: раса → черта* → предыстория → класс → характеристики → прокачка, потом откроем лист.</p>
+          <button class="btn btn--primary" type="button" data-create>Создать персонажа</button>
+        </div>
+      </section>
+
+      <section class="survey-wrap" aria-live="polite">
+        <div class="survey-layout">
+          <div class="survey-card">
+            <div class="progress">
+              <span class="progress-label" data-progress-label>Вопрос 1 из 5</span>
+              <span class="progress-track"><i class="progress-fill" data-progress-fill></i></span>
+            </div>
+            <div class="q-block">
+              <h2 class="q-title" data-q-title></h2>
+              <p class="q-lead" data-q-lead></p>
+              <div class="choices" data-choices role="radiogroup"></div>
+              <div class="survey-nav">
+                <button class="btn btn--ghost" type="button" data-back>Назад</button>
+                <button class="btn btn--ghost" type="button" data-skip>Пропустить</button>
+                <button class="btn btn--primary btn--next" type="button" data-next>Дальше</button>
+              </div>
+            </div>
+            <div class="final-block">
+              <h2 class="q-title">Твоё оформление</h2>
+              <p class="q-lead">Так будет выглядеть твой стол. Любой пункт можно поменять руками — или пройти вопросы заново.</p>
+              <div class="summary">
+                <div class="sum-row">
+                  <h3>Тема</h3>
+                  <div class="seg" role="radiogroup" aria-label="Тема">
+                    <button type="button" class="chip" data-set="theme" data-val="light-designer3">Светлая</button>
+                    <button type="button" class="chip" data-set="theme" data-val="leaf-classic">Тёмная</button>
+                  </div>
+                </div>
+                <div class="sum-row">
+                  <h3>Подложка</h3>
+                  <div class="seg" data-bg-tiles role="radiogroup" aria-label="Подложка"></div>
+                </div>
+                <div class="sum-row">
+                  <h3>Акцент</h3>
+                  <div class="seg" role="radiogroup" aria-label="Акцент">
+                    <button type="button" class="chip accent-chip" data-set="accent" data-val="copper" style="--swatch:#9a4a32"><em></em>Медь</button>
+                    <button type="button" class="chip accent-chip" data-set="accent" data-val="pine" style="--swatch:#3d6b5a"><em></em>Хвоя</button>
+                    <button type="button" class="chip accent-chip" data-set="accent" data-val="ochre" style="--swatch:#8a6a2f"><em></em>Охра</button>
+                    <button type="button" class="chip accent-chip" data-set="accent" data-val="indigo" style="--swatch:#3f5f8a"><em></em>Чернила</button>
+                    <button type="button" class="chip accent-chip" data-set="accent" data-val="leaf" style="--swatch:#5a6b3d"><em></em>Листва</button>
+                    <button type="button" class="chip accent-chip" data-set="accent" data-val="plum" style="--swatch:#7a4a6e"><em></em>Слива</button>
+                  </div>
+                </div>
+                <div class="sum-row">
+                  <h3>Шрифт</h3>
+                  <div class="seg" role="radiogroup" aria-label="Шрифт">
+                    <button type="button" class="chip font-chip" data-set="font" data-val="antiqua" style="--sample:'Source Serif 4',Georgia,serif">Антиква</button>
+                    <button type="button" class="chip font-chip" data-set="font" data-val="grotesque" style="--sample:'Source Sans 3','IBM Plex Sans',sans-serif">Гротеск</button>
+                    <button type="button" class="chip font-chip" data-set="font" data-val="ustav" style="--sample:'Yeseva One',serif">Устав</button>
+                    <button type="button" class="chip font-chip" data-set="font" data-val="scribe" style="--sample:Literata,Georgia,serif">Писчая</button>
+                    <button type="button" class="chip font-chip" data-set="font" data-val="script" style="--sample:Caveat,cursive">Рукописная</button>
+                    <button type="button" class="chip font-chip" data-set="font" data-val="tabular" style="--sample:'IBM Plex Sans',sans-serif">Табличная</button>
+                  </div>
+                </div>
+                <div class="sum-row">
+                  <h3>Цвета характеристик</h3>
+                  <div class="seg" role="radiogroup" aria-label="Цвета характеристик">
+                    <button type="button" class="chip" data-set="abil" data-val="unique">Уникальные</button>
+                    <button type="button" class="chip" data-set="abil" data-val="theme">Цвет темы</button>
+                  </div>
+                </div>
+              </div>
+              <div class="survey-nav">
+                <button class="btn btn--ghost" type="button" data-restart>Пройти заново</button>
+                <button class="btn btn--primary btn--next" type="button" data-save>Сохранить</button>
+              </div>
+            </div>
+          </div>
+
+          <aside class="preview-col">
+            <div class="preview-shell">
+              <p class="preview-kicker">Живое превью</p>
+              <div class="mini-sheet">
+                <div class="preview-head">
+                  <div class="avatar" aria-hidden="true">Э</div>
+                  <div>
+                    <p class="preview-name">Элара Ветролист</p>
+                    <p class="preview-meta">Друид 5 · полуэльф · 27 хитов</p>
+                  </div>
+                </div>
+                <div class="abil-grid">
+                  <div class="abil" style="--abil:var(--abil-str);--abil-soft:var(--abil-str-soft)"><span class="abil-name">Сил</span><span class="abil-score">10</span><span class="abil-mod">+0</span></div>
+                  <div class="abil" style="--abil:var(--abil-dex);--abil-soft:var(--abil-dex-soft)"><span class="abil-name">Лов</span><span class="abil-score">14</span><span class="abil-mod">+2</span></div>
+                  <div class="abil" style="--abil:var(--abil-con);--abil-soft:var(--abil-con-soft)"><span class="abil-name">Тел</span><span class="abil-score">13</span><span class="abil-mod">+1</span></div>
+                  <div class="abil" style="--abil:var(--abil-int);--abil-soft:var(--abil-int-soft)"><span class="abil-name">Инт</span><span class="abil-score">12</span><span class="abil-mod">+1</span></div>
+                  <div class="abil" style="--abil:var(--abil-wis);--abil-soft:var(--abil-wis-soft)"><span class="abil-name">Мдр</span><span class="abil-score">16</span><span class="abil-mod">+3</span></div>
+                  <div class="abil" style="--abil:var(--abil-cha);--abil-soft:var(--abil-cha-soft)"><span class="abil-name">Хар</span><span class="abil-score">8</span><span class="abil-mod">−1</span></div>
+                </div>
+                <div class="preview-actions">
+                  <button class="btn btn--primary" type="button" tabindex="-1">Бросок</button>
+                  <button class="btn" type="button" tabindex="-1">Каст</button>
+                </div>
+                <p class="preview-sample">В кроне ещё светло, а на листе уже ложатся цифры следующего хода.</p>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div class="offer-backdrop" data-offer role="presentation">
+    <div class="offer" role="dialog" aria-modal="true" aria-labelledby="offer-title">
+      <h2 id="offer-title">Подберём оформление стола?</h2>
+      <p class="lead">Несколько коротких вопросов — и оболочка станет ближе к твоему столу: свет, бумага, пигмент и характер букв. Если не сейчас, опрос всегда можно пройти позже.</p>
+      <p class="hint">Потом он живёт в <b>Кабинете → Оформление → «Пройти опрос заново»</b>. Там же каждый пункт правится руками.</p>
+      <div class="offer-actions">
+        <button class="btn btn--primary" type="button" data-offer-now>Настроить сейчас</button>
+        <button class="btn btn--ghost" type="button" data-offer-later>Потом</button>
+      </div>
+    </div>
+  </div>
+  <div class="toast" data-toast role="status"></div>
+
+<script>
+(function () {
+  var STORAGE = "dark-theme-concept:appearance";
+  var ONBOARD = "dark-theme-concept:appearance-onboarding";
+  var DEFAULTS = { theme: "light-designer3", bgLight: "parchment", bgDark: "ink", accent: "leaf", font: "antiqua", abil: "unique" };
+  var THEME_LABEL = { "light-designer3": "Светлая", "leaf-classic": "Тёмная" };
+  var BG = {
+    parchment: { name: "Пергамент", theme: "light", color: "#f7f2e4", pat: "url('svg/bg-light-parchment.svg')" },
+    ivory:     { name: "Слоновая кость", theme: "light", color: "#fbf6ee", pat: "url('svg/bg-light-ivory.svg')" },
+    linen:     { name: "Лён", theme: "light", color: "#f0e6d0", pat: "url('svg/bg-light-linen.svg')" },
+    stone:     { name: "Камень", theme: "light", color: "#e6e3dc", pat: "url('svg/bg-light-stone.svg')" },
+    moss:      { name: "Мох", theme: "light", color: "#e6ecda", pat: "url('svg/bg-light-moss.svg')" },
+    azure:     { name: "Лазурь", theme: "light", color: "#e4eef6", pat: "url('svg/bg-light-azure.svg')" },
+    ink:       { name: "Чернила", theme: "dark", color: "#0A0A0A", pat: "url('svg/bg-dark-ink.svg')" },
+    graphite:  { name: "Графит", theme: "dark", color: "#161618", pat: "url('svg/bg-dark-graphite.svg')" },
+    night:     { name: "Ночь", theme: "dark", color: "#0d1119", pat: "url('svg/bg-dark-night.svg')" },
+    oak:       { name: "Дуб", theme: "dark", color: "#17130f", pat: "url('svg/bg-dark-oak.svg')" },
+    tar:       { name: "Смола", theme: "dark", color: "#110e0c", pat: "url('svg/bg-dark-tar.svg')" },
+    slate:     { name: "Сланец", theme: "dark", color: "#14171c", pat: "url('svg/bg-dark-slate.svg')" }
+  };
+  var WORLD = {
+    chronicle: { light: "parchment", dark: "ink" },
+    travel:    { light: "ivory", dark: "night" },
+    home:      { light: "linen", dark: "oak" },
+    dungeon:   { light: "stone", dark: "slate" },
+    wild:      { light: "moss", dark: "tar" }
+  };
+  var ACCENT_NAME = { copper: "Медь", pine: "Хвоя", ochre: "Охра", indigo: "Чернила", leaf: "Листва", plum: "Слива" };
+  var FONT_NAME = { antiqua: "Антиква", grotesque: "Гротеск", ustav: "Устав", scribe: "Писчая", script: "Рукописная", tabular: "Табличная" };
+  var ABIL_NAME = { unique: "Уникальные", theme: "Цвет темы" };
+
+  var STEPS = [
+    {
+      id: "when",
+      title: "Когда обычно садишься за стол?",
+      lead: "Свет вокруг меняет, как читается лист.",
+      options: [
+        { id: "day", title: "Днём, при свете окна", hint: "Светлая тема — бумага на столе.", map: { theme: "light-designer3" } },
+        { id: "night", title: "Вечером, при лампе или ночью", hint: "Тёмная тема — меньше бликов.", map: { theme: "leaf-classic" } },
+        { id: "skip", title: "Не важно", hint: "Оставим светлую, как в летописи по умолчанию.", map: { theme: "light-designer3" }, skip: true }
+      ]
+    },
+    {
+      id: "world",
+      title: "Какой мир тебе ближе?",
+      lead: "Подложка — это бумага стола. Карточки и поля остаются сплошными.",
+      options: [
+        { id: "chronicle", title: "Летопись", hint: "Перья, свитки, чернильница.", meta: "bg", map: { world: "chronicle" } },
+        { id: "travel", title: "Странствия", hint: "Карты, роза ветров, звёзды.", meta: "bg", map: { world: "travel" } },
+        { id: "home", title: "Дом и дерево", hint: "Лён, тепло, дубовый стол.", meta: "bg", map: { world: "home" } },
+        { id: "dungeon", title: "Подземелье", hint: "Камень, руны, сланец.", meta: "bg", map: { world: "dungeon" } },
+        { id: "wild", title: "Чаща", hint: "Мох, смола, лесная тишина.", meta: "bg", map: { world: "wild" } },
+        { id: "skip", title: "Не важно", hint: "Пергамент в светлой теме, Чернила в тёмной.", map: { world: "chronicle" }, skip: true }
+      ]
+    },
+    {
+      id: "pigment",
+      title: "Каким пигментом писать заголовки и кнопки?",
+      lead: "Этим цветом будут гореть ссылки, кнопки и имя на листе.",
+      options: [
+        { id: "copper", title: "Медь", hint: "Тёплый металл заката.", meta: "swatch", swatch: "#9a4a32", map: { accent: "copper" } },
+        { id: "pine", title: "Хвоя", hint: "Тень ели после дождя.", meta: "swatch", swatch: "#3d6b5a", map: { accent: "pine" } },
+        { id: "ochre", title: "Охра", hint: "Сухая земля и золото монет.", meta: "swatch", swatch: "#8a6a2f", map: { accent: "ochre" } },
+        { id: "indigo", title: "Чернильная синь", hint: "Ночное озеро, не путать с подложкой «Чернила».", meta: "swatch", swatch: "#3f5f8a", map: { accent: "indigo" } },
+        { id: "leaf", title: "Листва", hint: "Лето в кроне — цвет темы по умолчанию.", meta: "swatch", swatch: "#5a6b3d", map: { accent: "leaf" } },
+        { id: "plum", title: "Слива", hint: "Вино и сумерки.", meta: "swatch", swatch: "#7a4a6e", map: { accent: "plum" } },
+        { id: "skip", title: "Не важно", hint: "Оставим Листву.", map: { accent: "leaf" }, skip: true }
+      ]
+    },
+    {
+      id: "voice",
+      title: "Как должна звучать строка на листе?",
+      lead: "Заголовки могут быть характерными; цифры, меню и мелкий текст всегда остаются читаемыми.",
+      options: [
+        { id: "antiqua", title: "Как в печатной книге", hint: "Спокойная антиква — дефолт.", meta: "font", sample: '"Source Serif 4", Georgia, serif', map: { font: "antiqua" } },
+        { id: "grotesque", title: "Ясно и просто, без засечек", hint: "Гротеск — ближе к обычному сайту.", meta: "font", sample: '"Source Sans 3", "IBM Plex Sans", sans-serif', map: { font: "grotesque" } },
+        { id: "ustav", title: "Как старый славянский устав", hint: "Только заголовки и имена.", meta: "font", sample: '"Yeseva One", serif', map: { font: "ustav" } },
+        { id: "scribe", title: "Как наборная книга заклинаний", hint: "Писчая — книжная антиква.", meta: "font", sample: "Literata, Georgia, serif", map: { font: "scribe" } },
+        { id: "script", title: "Как живая подпись на полях", hint: "Рукописная — для заголовков.", meta: "font", sample: "Caveat, cursive", map: { font: "script" } },
+        { id: "tabular", title: "Как графы таблицы, цифры в ряд", hint: "Табличная — числа моноширинные.", meta: "font", sample: '"IBM Plex Sans", sans-serif', map: { font: "tabular" } },
+        { id: "skip", title: "Не важно", hint: "Оставим Антиква.", map: { font: "antiqua" }, skip: true }
+      ]
+    },
+    {
+      id: "abils",
+      title: "Как раскрасить шесть характеристик?",
+      lead: "Плашки СИЛ…ХАР можно оставить каждая своим цветом или собрать в цвет темы.",
+      options: [
+        { id: "unique", title: "Каждая своим цветом", hint: "Так их сразу отличаешь. Так в продукте по умолчанию.", map: { abil: "unique" } },
+        { id: "theme", title: "Все цветом темы", hint: "Спокойнее, если пёстрое режет глаз.", map: { abil: "theme" } },
+        { id: "skip", title: "Не важно", hint: "Оставим уникальные цвета.", map: { abil: "unique" }, skip: true }
+      ]
+    }
+  ];
+
+  var state = {
+    view: "offer",
+    step: 0,
+    answers: {},
+    theme: DEFAULTS.theme,
+    bgLight: DEFAULTS.bgLight,
+    bgDark: DEFAULTS.bgDark,
+    accent: DEFAULTS.accent,
+    font: DEFAULTS.font,
+    abil: DEFAULTS.abil,
+    fromCabinet: false
+  };
+
+  function currentBg() { return state.theme === "leaf-classic" ? state.bgDark : state.bgLight; }
+  function applyWorld(id) {
+    var pair = WORLD[id] || WORLD.chronicle;
+    state.bgLight = pair.light;
+    state.bgDark = pair.dark;
+  }
+  function applyMap(map) {
+    if (!map) return;
+    if (map.theme) state.theme = map.theme;
+    if (map.world) applyWorld(map.world);
+    if (map.accent) state.accent = map.accent;
+    if (map.font) state.font = map.font;
+    if (map.abil) state.abil = map.abil;
+  }
+  function resolvedFromAnswers() {
+    state.theme = DEFAULTS.theme;
+    state.bgLight = DEFAULTS.bgLight;
+    state.bgDark = DEFAULTS.bgDark;
+    state.accent = DEFAULTS.accent;
+    state.font = DEFAULTS.font;
+    state.abil = DEFAULTS.abil;
+    STEPS.forEach(function (step) {
+      var ans = state.answers[step.id];
+      if (!ans) return;
+      var opt = step.options.find(function (o) { return o.id === ans; });
+      if (opt) applyMap(opt.map);
+    });
+  }
+  function applyDom() {
+    var html = document.documentElement;
+    html.setAttribute("data-theme", state.theme);
+    html.setAttribute("data-bg", currentBg());
+    html.setAttribute("data-font", state.font);
+    html.setAttribute("data-accent", state.accent);
+    html.setAttribute("data-abil", state.abil);
+    html.setAttribute("data-view", state.view);
+    document.querySelectorAll("[data-bar-theme]").forEach(function (b) {
+      b.classList.toggle("is-on", b.getAttribute("data-bar-theme") === state.theme);
+    });
+    document.querySelectorAll("[data-bar-view]").forEach(function (b) {
+      b.classList.toggle("is-on", b.getAttribute("data-bar-view") === state.view);
+    });
+    var cab = document.querySelector("[data-cabinet-link]");
+    if (cab) cab.setAttribute("href", state.theme === "leaf-classic" ? "html/desktop-account-v2-dark.html" : "html/desktop-account-v2-light.html");
+  }
+  function toast(msg) {
+    var el = document.querySelector("[data-toast]");
+    el.textContent = msg;
+    el.classList.add("is-on");
+    clearTimeout(toast._t);
+    toast._t = setTimeout(function () { el.classList.remove("is-on"); }, 2400);
+  }
+  function worldMetaFor(opt) {
+    if (opt.id === "skip") return null;
+    var pair = WORLD[opt.id];
+    if (!pair) return null;
+    var id = state.theme === "leaf-classic" ? pair.dark : pair.light;
+    return BG[id];
+  }
+  function renderChoices() {
+    var step = STEPS[state.step];
+    var box = document.querySelector("[data-choices]");
+    box.innerHTML = "";
+    box.setAttribute("aria-label", step.title);
+    var selected = state.answers[step.id];
+    step.options.forEach(function (opt) {
+      var btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "choice" + (opt.skip ? " is-skip" : "") + (selected === opt.id ? " is-on" : "");
+      btn.setAttribute("role", "radio");
+      btn.setAttribute("aria-checked", selected === opt.id ? "true" : "false");
+      btn.setAttribute("data-opt", opt.id);
+      var metaHtml = "";
+      if (opt.meta === "swatch") {
+        btn.setAttribute("data-has-meta", "1");
+        metaHtml = '<span class="choice-meta" style="--swatch:' + opt.swatch + '"></span>';
+      } else if (opt.meta === "font") {
+        btn.setAttribute("data-has-meta", "1");
+        metaHtml = '<span class="choice-meta" data-kind="font" style="--sample:' + opt.sample.replace(/"/g, "&quot;") + '">Аа</span>';
+      } else if (opt.meta === "bg") {
+        var bg = worldMetaFor(opt);
+        if (bg) {
+          btn.setAttribute("data-has-meta", "1");
+          metaHtml = '<span class="choice-meta" data-kind="bg" style="--swatch:' + bg.color + ";--pat:" + bg.pat + '"></span>';
+        }
+      }
+      btn.innerHTML = '<span class="choice-mark" aria-hidden="true"><i></i></span>' + metaHtml +
+        '<span class="choice-text"><b>' + opt.title + "</b><span>" + opt.hint + "</span></span>";
+      btn.addEventListener("click", function () { choose(opt.id); });
+      box.appendChild(btn);
+    });
+  }
+  function renderBgTiles() {
+    var box = document.querySelector("[data-bg-tiles]");
+    box.innerHTML = "";
+    var family = state.theme === "leaf-classic" ? "dark" : "light";
+    Object.keys(BG).forEach(function (id) {
+      var bg = BG[id];
+      if (bg.theme !== family) return;
+      var btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "mini-tile" + (currentBg() === id ? " is-on" : "");
+      btn.setAttribute("data-set", "bg");
+      btn.setAttribute("data-val", id);
+      btn.style.setProperty("--swatch", bg.color);
+      btn.style.setProperty("--pat", bg.pat);
+      btn.innerHTML = "<i></i><span>" + bg.name + "</span>";
+      box.appendChild(btn);
+    });
+  }
+  function renderFinalChips() {
+    document.querySelectorAll("[data-set]").forEach(function (b) {
+      var set = b.getAttribute("data-set");
+      var val = b.getAttribute("data-val");
+      var on = (set === "theme" && val === state.theme) ||
+        (set === "bg" && val === currentBg()) ||
+        (set === "accent" && val === state.accent) ||
+        (set === "font" && val === state.font) ||
+        (set === "abil" && val === state.abil);
+      b.classList.toggle("is-on", on);
+      if (b.getAttribute("role") === "radio" || b.classList.contains("chip") || b.classList.contains("mini-tile")) {
+        b.setAttribute("aria-checked", on ? "true" : "false");
+      }
+    });
+  }
+  function renderSurvey() {
+    var total = STEPS.length;
+    var onFinal = state.view === "final";
+    document.querySelector("[data-progress-label]").textContent = onFinal ? "Итог" : ("Вопрос " + (state.step + 1) + " из " + total);
+    document.querySelector("[data-progress-fill]").style.width = ((onFinal ? total : state.step) / total * 100) + "%";
+    if (!onFinal) {
+      var step = STEPS[state.step];
+      document.querySelector("[data-q-title]").textContent = step.title;
+      document.querySelector("[data-q-lead]").textContent = step.lead;
+      renderChoices();
+      document.querySelector("[data-back]").disabled = state.step === 0;
+      document.querySelector("[data-next]").textContent = state.step === total - 1 ? "К итогу" : "Дальше";
+    } else {
+      renderBgTiles();
+      renderFinalChips();
+    }
+    applyDom();
+  }
+  function choose(optId) {
+    var step = STEPS[state.step];
+    state.answers[step.id] = optId;
+    resolvedFromAnswers();
+    renderSurvey();
+  }
+  function next(asSkip) {
+    var step = STEPS[state.step];
+    if (asSkip || !state.answers[step.id]) {
+      var skip = step.options.find(function (o) { return o.skip; }) || step.options[0];
+      state.answers[step.id] = skip.id;
+      resolvedFromAnswers();
+    }
+    if (state.step >= STEPS.length - 1) {
+      openFinal();
+      return;
+    }
+    state.step += 1;
+    renderSurvey();
+  }
+  function back() {
+    if (state.view === "final") {
+      state.view = "survey";
+      state.step = STEPS.length - 1;
+      renderSurvey();
+      return;
+    }
+    if (state.step === 0) return;
+    state.step -= 1;
+    renderSurvey();
+  }
+  function openOffer() {
+    state.view = "offer";
+    applyDom();
+  }
+  function openSurvey(opts) {
+    opts = opts || {};
+    if (opts.reset) {
+      state.answers = {};
+      state.theme = DEFAULTS.theme;
+      state.bgLight = DEFAULTS.bgLight;
+      state.bgDark = DEFAULTS.bgDark;
+      state.accent = DEFAULTS.accent;
+      state.font = DEFAULTS.font;
+      state.abil = DEFAULTS.abil;
+    }
+    state.view = "survey";
+    state.step = 0;
+    renderSurvey();
+  }
+  function openFinal() {
+    resolvedFromAnswers();
+    state.view = "final";
+    renderSurvey();
+  }
+  function defer() {
+    try { localStorage.setItem(ONBOARD, "deferred"); } catch (e) {}
+    state.view = "home";
+    applyDom();
+    toast("Опрос можно пройти в Кабинете → Оформление");
+  }
+  function save() {
+    var payload = {
+      theme: state.theme,
+      bgLight: state.bgLight,
+      bgDark: state.bgDark,
+      accent: state.accent,
+      font: state.font,
+      abil: state.abil
+    };
+    try {
+      localStorage.setItem(STORAGE, JSON.stringify(payload));
+      localStorage.setItem(ONBOARD, "done");
+    } catch (e) {}
+    state.view = "home";
+    applyDom();
+    toast("Оформление сохранено в аккаунте и сразу на всех устройствах");
+  }
+  function setManual(kind, val) {
+    if (kind === "theme") state.theme = val;
+    if (kind === "bg") {
+      if (state.theme === "leaf-classic") state.bgDark = val; else state.bgLight = val;
+    }
+    if (kind === "accent") state.accent = val;
+    if (kind === "font") state.font = val;
+    if (kind === "abil") state.abil = val;
+    renderSurvey();
+  }
+  function syncWidth() {
+    var phone = window.innerWidth <= 720;
+    document.documentElement.setAttribute("data-width", phone ? "phone" : "desktop");
+  }
+
+  document.querySelector("[data-offer-now]").addEventListener("click", function () { openSurvey({ reset: true }); });
+  document.querySelector("[data-offer-later]").addEventListener("click", defer);
+  document.querySelector("[data-offer]").addEventListener("click", function (e) {
+    if (e.target === e.currentTarget) defer();
+  });
+  document.querySelector("[data-back]").addEventListener("click", back);
+  document.querySelector("[data-skip]").addEventListener("click", function () { next(true); });
+  document.querySelector("[data-next]").addEventListener("click", function () { next(false); });
+  document.querySelector("[data-restart]").addEventListener("click", function () { openSurvey({ reset: true }); });
+  document.querySelector("[data-save]").addEventListener("click", save);
+  document.querySelector("[data-create]").addEventListener("click", function () { toast("В концепте создание персонажа не открываем"); });
+  document.querySelector("[data-bg-tiles]").addEventListener("click", function (e) {
+    var btn = e.target.closest("[data-set]");
+    if (!btn) return;
+    setManual(btn.getAttribute("data-set"), btn.getAttribute("data-val"));
+  });
+  document.querySelectorAll(".final-block [data-set]").forEach(function (btn) {
+    btn.addEventListener("click", function () { setManual(btn.getAttribute("data-set"), btn.getAttribute("data-val")); });
+  });
+  document.querySelectorAll("[data-bar-view]").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      var v = btn.getAttribute("data-bar-view");
+      if (v === "offer") openOffer();
+      else if (v === "survey") openSurvey({ reset: false });
+      else openFinal();
+    });
+  });
+  document.querySelectorAll("[data-bar-theme]").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      state.theme = btn.getAttribute("data-bar-theme");
+      if (state.view === "survey" || state.view === "final") renderSurvey();
+      else applyDom();
+    });
+  });
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape" && state.view === "offer") defer();
+  });
+  window.addEventListener("resize", syncWidth);
+
+  window.OnboardAppear = {
+    openOffer: openOffer,
+    openSurvey: openSurvey,
+    openFinal: openFinal,
+    choose: choose,
+    next: next,
+    back: back,
+    save: save,
+    defer: defer,
+    setManual: setManual,
+    goStep: function (n) { state.view = "survey"; state.step = n; renderSurvey(); },
+    setTheme: function (t) { state.theme = t; if (state.view === "survey" || state.view === "final") renderSurvey(); else applyDom(); },
+    getState: function () { return JSON.parse(JSON.stringify(state)); },
+    applyAnswers: function (answers) { state.answers = answers || {}; resolvedFromAnswers(); renderSurvey(); }
+  };
+
+  syncWidth();
+  var params = new URLSearchParams(location.search);
+  state.fromCabinet = params.get("from") === "cabinet";
+  var start = params.get("view") || (state.fromCabinet ? "survey" : "offer");
+  if (params.get("theme") === "dark") state.theme = "leaf-classic";
+  if (start === "survey") openSurvey({ reset: true });
+  else if (start === "final") { openSurvey({ reset: true }); openFinal(); }
+  else if (start === "home") { state.view = "home"; applyDom(); }
+  else openOffer();
+})();
+</script>
+</body>
+</html>

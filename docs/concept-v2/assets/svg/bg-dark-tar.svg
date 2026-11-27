@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+  <title>Смола — капли и потёки смолы</title>
+  <rect width="256" height="256" fill="#110e0c"/>
+  <g fill="none" stroke="#e0c8a0" stroke-width="1.15" stroke-opacity="0.18"
+     stroke-linecap="round" stroke-linejoin="round">
+
+      <path d="M-10 20 C40 30, 80 10, 130 28 C180 46, 220 20, 266 36"/>
+      <path d="M-10 90 C50 80, 90 110, 150 96 C200 84, 230 120, 266 110"/>
+      <path d="M-10 170 C40 190, 100 160, 160 184 C210 204, 240 170, 266 186"/>
+      <path d="M-10 230 C60 220, 110 244, 200 228 C230 222, 250 240, 266 236"/>
+    
+<g transform="translate(50.0 50.0)"><g transform="rotate(0) scale(1.1)">
+      <path d="M0 -10 C3 -4, 6 4, 0 12 C-6 4,-3 -4,0 -10z"/>
+      <path d="M-10 -16 C-6 -16, -2 -14, 0 -10"/>
+    </g></g>
+<g transform="translate(-206.0 -206.0)"><g transform="rotate(0) scale(1.1)">
+      <path d="M0 -10 C3 -4, 6 4, 0 12 C-6 4,-3 -4,0 -10z"/>
+      <path d="M-10 -16 C-6 -16, -2 -14, 0 -10"/>
+    </g></g>
+<g transform="translate(-206.0 50.0)"><g transform="rotate(0) scale(1.1)">
+      <path d="M0 -10 C3 -4, 6 4, 0 12 C-6 4,-3 -4,0 -10z"/>
+      <path d="M-10 -16 C-6 -16, -2 -14, 0 -10"/>
+    </g></g>
+<g transform="translate(-206.0 306.0)"><g transform="rotate(0) scale(1.1)">
+      <path d="M0 -10 C3 -4, 6 4, 0 12 C-6 4,-3 -4,0 -10z"/>
+      <path d="M-10 -16 C-6 -16, -2 -14, 0 -10"/>
+    </g></g>
+<g transform="translate(50.0 -206.0)"><g transform="rotate(0) scale(1.1)">
+      <path d="M0 -10 C3 -4, 6 4, 0 12 C-6 4,-3 -4,0 -10z"/>
+      <path d="M-10 -16 C-6 -16, -2 -14, 0 -10"/>
+    </g></g>
+<g transform="translate(50.0 306.0)"><g transform="rotate(0) scale(1.1)">
+      <path d="M0 -10 C3 -4, 6 4, 0 12 C-6 4,-3 -4,0 -10z"/>
+      <path d="M-10 -16 C-6 -16, -2 -14, 0 -10"/>
+    </g></g>
+<g transform="translate(306.0 -206.0)"><g transform="rotate(0) scale(1.1)">
+      <path d="M0 -10 C3 -4, 6 4, 0 12 C-6 4,-3 -4,0 -10z"/>
+      <path d="M-10 -16 C-6 -16, -2 -14, 0 -10"/>
+    </g></g>
+<g transform="translate(306.0 50.0)"><g transform="rotate(0) scale(1.1)">
+      <path d="M0 -10 C3 -4, 6 4, 0 12 C-6 4,-3 -4,0 -10z"/>
+      <path d="M-10 -16 C-6 -16, -2 -14, 0 -10"/>
+    </g></g>
+<g transform="translate(306.0 306.0)"><g transform="rotate(0) scale(1.1)">
+      <path d="M0 -10 C3 -4, 6 4, 0 12 C-6 4,-3 -4,0 -10z"/>
+      <path d="M-10 -16 C-6 -16, -2 -14, 0 -10"/>
+    </g></g>
+<g transform="translate(140.0 80.0)"><g transform="rotate(8) scale(0.9)">
+      <path d="M0 -10 C3 -4, 6 4, 0 12 C-6 4,-3 -4,0 -10z"/>
+      <path d="M-10 -16 C-6 -16, -2 -14, 0 -10"/>
+    </g></g>
+<g transform="translate(210.0 40.0)"><g transform="rotate(-6) scale(1.2)">
+      <path d="M0 -10 C3 -4, 6 4, 0 12 C-6 4,-3 -4,0 -10z"/>
+      <path d="M-10 -16 C-6 -16, -2 -14, 0 -10"/>
+    </g></g>
+<g transform="translate(-46.0 -216.0)"><g transform="rotate(-6) scale(1.2)">
+      <path d="M0 -10 C3 -4, 6 4, 0 12 C-6 4,-3 -4,0 -10z"/>
+      <path d="M-10 -16 C-6 -16, -2 -14, 0 -10"/>
+    </g></g>
+<g transform="translate(-46.0 40.0)"><g transform="rotate(-6) scale(1.2)">
+      <path d="M0 -10 C3 -4, 6 4, 0 12 C-6 4,-3 -4,0 -10z"/>
+      <path d="M-10 -16 C-6 -16, -2 -14, 0 -10"/>
+    </g></g>
+<g transform="translate(-46.0 296.0)"><g transform="rotate(-6) scale(1.2)">
+      <path d="M0 -10 C3 -4, 6 4, 0 12 C-6 4,-3 -4,0 -10z"/>
+      <path d="M-10 -16 C-6 -16, -2 -14, 0 -10"/>
+    </g></g>
+<g transform="translate(210.0 -216.0)"><g transform="rotate(-6) scale(1.2)">
+      <path d="M0 -10 C3 -4, 6 4, 0 12 C-6 4,-3 -4,0 -10z"/>
+      <path d="M-10 -16 C-6 -16, -2 -14, 0 -10"/>
+    </g></g>
+<g transform="translate(210.0 296.0)"><g transform="rotate(-6) scale(1.2)">
+      <path d="M0 -10 C3 -4, 6 4, 0 12 C-6 4,-3 -4,0 -10z"/>
+      <path d="M-10 -16 C-6 -16, -2 -14, 0 -10"/>
+    </g></g>
+<g transform="translate(466.0 -216.0)"><g transform="rotate(-6) scale(1.2)">
+      <path d="M0 -10 C3 -4, 6 4, 0 12 C-6 4,-3 -4,0 -10z"/>
+      <path d="M-10 -16 C-6 -16, -2 -14, 0 -10"/>
+    </g></g>
+<g transform="translate(466.0 40.0)"><g transform="rotate(-6) scale(1.2)">
+      <path d="M0 -10 C3 -4, 6 4, 0 12 C-6 4,-3 -4,0 -10z"/>
+      <path d="M-10 -16 C-6 -16, -2 -14, 0 -10"/>
+    </g></g>
+<g transform="translate(466.0 296.0)"><g transform="rotate(-6) scale(1.2)">
+      <path d="M0 -10 C3 -4, 6 4, 0 12 C-6 4,-3 -4,0 -10z"/>
+      <path d="M-10 -16 C-6 -16, -2 -14, 0 -10"/>
+    </g></g>
+<g transform="translate(80.0 160.0)"><g transform="rotate(4) scale(0.8)">
+      <path d="M0 -10 C3 -4, 6 4, 0 12 C-6 4,-3 -4,0 -10z"/>
+      <path d="M-10 -16 C-6 -16, -2 -14, 0 -10"/>
+    </g></g>
+<g transform="translate(190.0 180.0)"><g transform="rotate(-10) scale(1.0)">
+      <path d="M0 -10 C3 -4, 6 4, 0 12 C-6 4,-3 -4,0 -10z"/>
+      <path d="M-10 -16 C-6 -16, -2 -14, 0 -10"/>
+    </g></g>
+<g transform="translate(-66.0 180.0)"><g transform="rotate(-10) scale(1.0)">
+      <path d="M0 -10 C3 -4, 6 4, 0 12 C-6 4,-3 -4,0 -10z"/>
+      <path d="M-10 -16 C-6 -16, -2 -14, 0 -10"/>
+    </g></g>
+<g transform="translate(446.0 180.0)"><g transform="rotate(-10) scale(1.0)">
+      <path d="M0 -10 C3 -4, 6 4, 0 12 C-6 4,-3 -4,0 -10z"/>
+      <path d="M-10 -16 C-6 -16, -2 -14, 0 -10"/>
+    </g></g>
+<g transform="translate(30.0 220.0)"><g transform="rotate(12) scale(0.7)">
+      <path d="M0 -10 C3 -4, 6 4, 0 12 C-6 4,-3 -4,0 -10z"/>
+      <path d="M-10 -16 C-6 -16, -2 -14, 0 -10"/>
+    </g></g>
+<g transform="translate(-226.0 -36.0)"><g transform="rotate(12) scale(0.7)">
+      <path d="M0 -10 C3 -4, 6 4, 0 12 C-6 4,-3 -4,0 -10z"/>
+      <path d="M-10 -16 C-6 -16, -2 -14, 0 -10"/>
+    </g></g>
+<g transform="translate(-226.0 220.0)"><g transform="rotate(12) scale(0.7)">
+      <path d="M0 -10 C3 -4, 6 4, 0 12 C-6 4,-3 -4,0 -10z"/>
+      <path d="M-10 -16 C-6 -16, -2 -14, 0 -10"/>
+    </g></g>
+<g transform="translate(-226.0 476.0)"><g transform="rotate(12) scale(0.7)">
+      <path d="M0 -10 C3 -4, 6 4, 0 12 C-6 4,-3 -4,0 -10z"/>
+      <path d="M-10 -16 C-6 -16, -2 -14, 0 -10"/>
+    </g></g>
+<g transform="translate(30.0 -36.0)"><g transform="rotate(12) scale(0.7)">
+      <path d="M0 -10 C3 -4, 6 4, 0 12 C-6 4,-3 -4,0 -10z"/>
+      <path d="M-10 -16 C-6 -16, -2 -14, 0 -10"/>
+    </g></g>
+<g transform="translate(30.0 476.0)"><g transform="rotate(12) scale(0.7)">
+      <path d="M0 -10 C3 -4, 6 4, 0 12 C-6 4,-3 -4,0 -10z"/>
+      <path d="M-10 -16 C-6 -16, -2 -14, 0 -10"/>
+    </g></g>
+<g transform="translate(286.0 -36.0)"><g transform="rotate(12) scale(0.7)">
+      <path d="M0 -10 C3 -4, 6 4, 0 12 C-6 4,-3 -4,0 -10z"/>
+      <path d="M-10 -16 C-6 -16, -2 -14, 0 -10"/>
+    </g></g>
+<g transform="translate(286.0 220.0)"><g transform="rotate(12) scale(0.7)">
+      <path d="M0 -10 C3 -4, 6 4, 0 12 C-6 4,-3 -4,0 -10z"/>
+      <path d="M-10 -16 C-6 -16, -2 -14, 0 -10"/>
+    </g></g>
+<g transform="translate(286.0 476.0)"><g transform="rotate(12) scale(0.7)">
+      <path d="M0 -10 C3 -4, 6 4, 0 12 C-6 4,-3 -4,0 -10z"/>
+      <path d="M-10 -16 C-6 -16, -2 -14, 0 -10"/>
+    </g></g>
+  </g>
+</svg>
