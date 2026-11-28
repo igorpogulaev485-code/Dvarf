@@ -7,10 +7,17 @@ import { join } from 'path'
 import { createAttunementSlot } from './attunement.ts'
 import {
   aggregateGearEffects,
+  gearProficiencySourceForAttack,
   mergeGearWeaponProficiency,
   scopedWeaponDamageBonus,
+  scopedWeaponDamageHint,
 } from './gearEffects.ts'
 import { isWeaponProficient } from './equipmentProficiency.ts'
+import {
+  buildAttackBonusParts,
+  formatAttackBaseHint,
+  sumAttackBonusParts,
+} from './attackBonusBreakdown.ts'
 import { isAutoCombatConsumable } from './combatConsumables.ts'
 import { createInventoryItem, equipInventoryItem } from './inventory.ts'
 import { ammoKindOfStack } from '../../shared/dnd/o09DeathInspirationAmmo.ts'
@@ -51,17 +58,53 @@ const gear = aggregateGearEffects({ items, attunements })
 
 assert(gear.weaponProficiencies.includes('Длинный лук'), 'longbow prof')
 assert(gear.weaponProficiencies.includes('Короткий лук'), 'shortbow prof')
+assert(
+  gear.weaponProficiencyGrants.some(
+    (row) => row.weapon === 'Длинный лук' && /наручи/i.test(row.itemName),
+  ),
+  'grant names item',
+)
 assert(gear.scopedWeaponDamage.length === 1, 'one scoped row')
 assert(gear.scopedWeaponDamage[0]!.value === 2, '+2 scoped')
 
-const weapons = mergeGearWeaponProficiency(
-  { simple: true, martial: false, extras: [] },
-  gear.weaponProficiencies,
-)
+const sheetWeapons = { simple: true, martial: false, extras: [] as string[] }
+const weapons = mergeGearWeaponProficiency(sheetWeapons, gear.weaponProficiencies)
 assert(
   isWeaponProficient({ name: 'Длинный лук', weapons }),
   'proficient with longbow',
 )
+assert(
+  !isWeaponProficient({ name: 'Длинный лук', weapons: sheetWeapons }),
+  'rogue sheet alone lacks longbow',
+)
+assert(
+  gearProficiencySourceForAttack({
+    name: 'Длинный лук',
+    sheetWeapons,
+    grants: gear.weaponProficiencyGrants,
+  }) === bracers.name,
+  'source is bracers',
+)
+assert(
+  scopedWeaponDamageHint(gear.scopedWeaponDamage, { name: 'Длинный лук' }).includes(
+    '+2',
+  ),
+  'damage hint +2',
+)
+{
+  const parts = buildAttackBonusParts({
+    abilityKey: 'dex',
+    abilityMod: 5,
+    proficient: true,
+    proficiencyBonus: 4,
+    proficiencySource: bracers.name,
+  })
+  assert(sumAttackBonusParts(parts) === 9, 'hit stays +9 not +11')
+  assert(
+    formatAttackBaseHint(parts).includes('от Наручи'),
+    `hint shows source got ${formatAttackBaseHint(parts)}`,
+  )
+}
 assert(
   isWeaponProficient({
     name: 'Лук драконьих крыльев',

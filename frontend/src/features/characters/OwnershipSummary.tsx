@@ -16,6 +16,8 @@ import {
 type OwnershipSummaryProps = {
   armor: ArmorProficiency
   weapons: WeaponProficiency
+  /** Active gear grants (Bracers of Archery → long/short bow) — display only. */
+  gearWeapons?: string[]
   tools: string[]
   languages: string[]
   onOpen: () => void
@@ -152,14 +154,29 @@ function ChipRow({
 export function OwnershipSummary({
   armor,
   weapons,
+  gearWeapons = [],
   tools,
   languages,
   onOpen,
 }: OwnershipSummaryProps) {
   const armorChips = ARMOR_PROF_OPTIONS.filter((o) => armor[o.key]).map((o) => o.label)
-  const weaponChips = [
+  const sheetWeaponChips = [
     ...WEAPON_PROF_OPTIONS.filter((o) => weapons[o.key]).map((o) => o.label),
     ...(weapons.extras ?? []).map((name) => name.trim()).filter(Boolean),
+  ]
+  const seenWeapons = new Set(sheetWeaponChips.map((name) => name.trim().toLowerCase()))
+  const gearWeaponChips = gearWeapons
+    .map((name) => name.trim())
+    .filter(Boolean)
+    .filter((name) => {
+      const key = name.toLowerCase()
+      if (seenWeapons.has(key)) return false
+      seenWeapons.add(key)
+      return true
+    })
+  const weaponChips = [
+    ...sheetWeaponChips,
+    ...gearWeaponChips.map((name) => `${name} · предмет`),
   ]
   const rows = [
     { id: 'armor', label: 'Доспехи', chips: armorChips },

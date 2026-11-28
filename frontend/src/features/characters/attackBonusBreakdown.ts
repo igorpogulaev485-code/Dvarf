@@ -13,6 +13,11 @@ export type AttackBonusBreakdownInput = {
   abilityMod: number
   proficient: boolean
   proficiencyBonus: number
+  /**
+   * When proficiency comes from gear (Bracers of Archery), pass the item name
+   * so the breakdown shows «Владение · от Наручи стрельбы» instead of bare БМ.
+   */
+  proficiencySource?: string | null
   /** Magic weapon / gear attack bonus when held and requirements met. */
   magicBonus?: number
   /** Fighting style (e.g. Archery +2). */
@@ -23,10 +28,28 @@ export type AttackBonusBreakdownInput = {
   effectBonus?: number
 }
 
+/** Short «ЛОВ+Владение(от Наручи…)» line under the attack base. */
+export function formatAttackBaseHint(parts: AttackBonusPart[]): string {
+  return parts
+    .filter((part) => part.value !== 0)
+    .map((part) => {
+      if (part.id === 'prof' && part.hint && part.hint !== 'БМ') {
+        return `${part.label} (${part.hint})`
+      }
+      return part.label
+    })
+    .join('+')
+}
+
 /** Build BM + ability + magic + other parts; zero-value optional parts omitted. */
 export function buildAttackBonusParts(
   input: AttackBonusBreakdownInput,
 ): AttackBonusPart[] {
+  const profHint = !input.proficient
+    ? 'нет владения'
+    : input.proficiencySource?.trim()
+      ? `от ${input.proficiencySource.trim()}`
+      : 'БМ'
   const parts: AttackBonusPart[] = [
     {
       id: 'ability',
@@ -38,7 +61,7 @@ export function buildAttackBonusParts(
       id: 'prof',
       label: 'Владение',
       value: input.proficient ? input.proficiencyBonus : 0,
-      hint: input.proficient ? 'БМ' : 'нет владения',
+      hint: profHint,
     },
   ]
 

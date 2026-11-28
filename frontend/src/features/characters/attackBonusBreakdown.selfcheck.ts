@@ -4,6 +4,7 @@
  */
 import {
   buildAttackBonusParts,
+  formatAttackBaseHint,
   sumAttackBonusParts,
 } from './attackBonusBreakdown.ts'
 
@@ -66,6 +67,24 @@ function assert(cond: unknown, msg: string): asserts cond {
   assert(sumAttackBonusParts(parts) === 2, 'no proficiency')
   const prof = parts.find((p) => p.id === 'prof')
   assert(prof?.value === 0 && prof.hint === 'нет владения', 'prof hint')
+}
+
+{
+  // Bracers of Archery: proficiency from gear — still DEX+PB only (no +2 attack).
+  const parts = buildAttackBonusParts({
+    abilityKey: 'dex',
+    abilityMod: 5,
+    proficient: true,
+    proficiencyBonus: 4,
+    proficiencySource: 'Наручи стрельбы',
+  })
+  assert(sumAttackBonusParts(parts) === 9, 'bracers hit +9')
+  const prof = parts.find((p) => p.id === 'prof')
+  assert(prof?.hint === 'от Наручи стрельбы', 'prof source hint')
+  assert(
+    formatAttackBaseHint(parts) === 'ЛОВ+Владение (от Наручи стрельбы)',
+    `base hint ${formatAttackBaseHint(parts)}`,
+  )
 }
 
 console.log('U09 attackBonusBreakdown: ok')

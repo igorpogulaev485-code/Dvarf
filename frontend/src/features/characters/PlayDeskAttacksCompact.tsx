@@ -284,16 +284,22 @@ import {
 import { intentionalActivateProps } from '../../ui'
 import { attackSuppressedByEmptyStack } from './attacksInventorySync'
 import {
+  ABILITY_LABELS,
   abilityModifier,
   formatModifier,
   type AbilityKey,
 } from './sheetTypes'
 import { artifactAttackDamage, artifactRequirementMet, type WeaponAttack } from './AttacksPanel'
 import { isWeaponProficient } from './equipmentProficiency'
-import { scopedWeaponDamageBonus } from './gearEffects'
+import {
+  gearProficiencySourceForAttack,
+  scopedWeaponDamageBonus,
+  scopedWeaponDamageHint,
+} from './gearEffects'
 import type { WeaponProficiency } from './identity'
 import {
   buildAttackBonusParts,
+  formatAttackBaseHint,
 } from './attackBonusBreakdown'
 import { WeaponAttackBreakdownDialog } from './WeaponAttackBreakdownDialog'
 import {
@@ -328,8 +334,12 @@ type PlayDeskAttacksCompactProps = {
   characterLevel?: number
   abilities: Record<AbilityKey, number>
   proficiencyBonus: number
-  /** Sheet weapon training — recompute PB live (magic +1 names / base_weapon_slug). */
+  /** Sheet+gear weapon training — recompute PB live (magic +1 names / base_weapon_slug). */
   weaponProficiency?: WeaponProficiency
+  /** Identity-only training (without gear) — for «владение от предмета» hints. */
+  sheetWeaponProficiency?: WeaponProficiency
+  /** Gear proficiency grants with item names (Bracers of Archery). */
+  gearWeaponProficiencyGrants?: Array<{ weapon: string; itemName: string }>
   gearBonusesByItem?: Record<string, { attackBonus: number; damageBonus: number }>
   /** Bracers of Archery etc.: +N damage only for matching long/short bows. */
   scopedWeaponDamage?: Array<{ value: number; weapons: string[]; itemName: string }>
@@ -537,6 +547,8 @@ export function PlayDeskAttacksCompact({
   abilities,
   proficiencyBonus,
   weaponProficiency = { simple: false, martial: false, extras: [] },
+  sheetWeaponProficiency,
+  gearWeaponProficiencyGrants = [],
   gearBonusesByItem = {},
   scopedWeaponDamage = [],
   effectWeaponBonus = { attack: 0, damage: 0 },
@@ -873,6 +885,7 @@ export function PlayDeskAttacksCompact({
     attackBaseHint: string
     baseDamageBonus: number
     damageDieLabel: string
+    damageBaseHint: string
     inventoryItemId?: string | null
   } | null>(null)
   const [pendingAttack, setPendingAttack] = useState<{
@@ -2983,6 +2996,17 @@ export function PlayDeskAttacksCompact({
                 sourceKind: attack.source_kind,
                 attackId: attack.id,
               })
+            const proficiencySource =
+              unarmed || !proficient || !sheetWeaponProficiency
+                ? null
+                : gearProficiencySourceForAttack({
+                    name: attack.name,
+                    baseWeaponSlug: weaponItemForProf?.base_weapon_slug,
+                    sheetWeapons: sheetWeaponProficiency,
+                    grants: gearWeaponProficiencyGrants,
+                    sourceKind: attack.source_kind,
+                    attackId: attack.id,
+                  })
             const magicAtk = gear?.attackBonus ?? 0
             const effectAtk = flatFxAttack + fxAttackFlat
             const attackParts = buildAttackBonusParts({
@@ -2990,6 +3014,7 @@ export function PlayDeskAttacksCompact({
               abilityMod: mod,
               proficient,
               proficiencyBonus,
+              proficiencySource,
               magicBonus: magicAtk,
               styleBonus: styleAtk,
               infusionBonus: infusionAtk,
@@ -3033,10 +3058,8 @@ export function PlayDeskAttacksCompact({
               effectAtk
             const attackBonus =
               baseAttackBeforeManual + manualHit + powerMods.attackDelta
-            const attackBaseHint = attackParts
-              .filter((part) => part.value !== 0)
-              .map((part) => part.label)
-              .join('+')
+            const attackBaseHint =
+              formatAttackBaseHint(attackParts) || 'хар-ка+БМ'
             const profDiceOn = Boolean(masterRules.dmg_proficiency_dice) && proficient
             const abilityDmgMod =
               twfBonusArmed && meleeAttack && !unarmed
@@ -3058,13 +3081,17 @@ export function PlayDeskAttacksCompact({
               strengthBased: attackAbility === 'str',
               alreadyUsedThisTurn: frenzyUsedThisTurn,
             })
+            const scopedDmgInput = {
+              name: attack.name,
+              baseWeaponSlug: weaponItemForProf?.base_weapon_slug,
+              catalogSlug: weaponItemForProf?.catalog_slug,
+            }
             const bracerDmg = unarmed
               ? 0
-              : scopedWeaponDamageBonus(scopedWeaponDamage, {
-                  name: attack.name,
-                  baseWeaponSlug: weaponItemForProf?.base_weapon_slug,
-                  catalogSlug: weaponItemForProf?.catalog_slug,
-                })
+              : scopedWeaponDamageBonus(scopedWeaponDamage, scopedDmgInput)
+            const scopedDmgHint = unarmed
+              ? ''
+              : scopedWeaponDamageHint(scopedWeaponDamage, scopedDmgInput)
             const baseDamageBonusBeforeManual =
               abilityDmgMod +
               (gear?.damageBonus ?? 0) +
@@ -3080,16 +3107,21 @@ export function PlayDeskAttacksCompact({
             const dmg =
               baseDamage +
               (dmgBonus ? `${dmgBonus >= 0 ? '+' : ''}${dmgBonus}` : '')
+            const damageBaseHintParts = [
+              `${ABILITY_LABELS[attackAbility]} ${formatModifier(abilityDmgMod)}`,
+              scopedDmgHint,
+            ].filter(Boolean)
             const openWeaponMods = () => {
               setAttackBreakdown({
                 attackId: attack.id,
                 name: attack.name,
                 baseAttack: baseAttackBeforeManual,
-                attackBaseHint: attackBaseHint || 'хар-ка+БМ',
+                attackBaseHint,
                 baseDamageBonus: baseDamageBonusBeforeManual,
                 damageDieLabel: face.damageType
                   ? `${baseDamage} ${face.damageType}`
                   : baseDamage,
+                damageBaseHint: damageBaseHintParts.join(' · '),
                 inventoryItemId: attack.inventory_item_id,
               })
             }
@@ -5315,6 +5347,7 @@ export function PlayDeskAttacksCompact({
       attackBaseHint={attackBreakdown?.attackBaseHint ?? ''}
       baseDamageBonus={attackBreakdown?.baseDamageBonus ?? 0}
       damageDieLabel={attackBreakdown?.damageDieLabel ?? ''}
+      damageBaseHint={attackBreakdown?.damageBaseHint ?? ''}
       formulaVars={formulaVars}
       modifiers={modifiers}
       onModifiersChange={(next) => onModifiersChange?.(next)}
