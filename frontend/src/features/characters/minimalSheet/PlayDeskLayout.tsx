@@ -59,6 +59,7 @@ export function PlayDeskLayout({ model }: { model: SheetModel }) {
             <OwnershipSummary
               armor={model.draft.identity.armor}
               weapons={model.draft.identity.weapons}
+              gearWeapons={model.gearEffects.weaponProficiencies}
               tools={model.draft.identity.tools}
               languages={model.draft.identity.languages}
               onOpen={() => model.setOwnershipOpen(true)}
@@ -780,6 +781,7 @@ export function PlayDeskLayout({ model }: { model: SheetModel }) {
             <OwnershipSummary
               armor={model.draft.identity.armor}
               weapons={model.draft.identity.weapons}
+              gearWeapons={model.gearEffects.weaponProficiencies}
               tools={model.draft.identity.tools}
               languages={model.draft.identity.languages}
               onOpen={() => model.setOwnershipOpen(true)}

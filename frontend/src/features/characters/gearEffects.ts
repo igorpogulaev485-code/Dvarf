@@ -30,7 +30,7 @@ import type { ResourceReset } from '../../shared/dnd/rest'
 import { depleteHintFromCode } from './gearCharges'
 import type { WeaponProficiency } from './identity'
 import { resolveWeaponExtraName } from './weaponProficiencyExtras'
-import { stripMagicBonusSuffix } from './equipmentProficiency'
+import { isWeaponProficient, stripMagicBonusSuffix } from './equipmentProficiency'
 
 export type ActiveGearEffect = {
   effect: GearEffect
@@ -121,9 +121,11 @@ export type AggregatedGearEffects = {
   toolProficiencies: string[]
   /** Named weapon extras from gear (Bracers of Archery → long/short bow). */
   weaponProficiencies: string[]
+  /** Same grants with item names — for ownership / attack breakdown UX. */
+  weaponProficiencyGrants: Array<{ weapon: string; itemName: string }>
   /**
    * Damage bonuses that apply only to matching weapons (not the item that
-   * grants them). Bracers of Archery: +2 to longbow/shortbow attacks.
+   * grants them). Bracers of Archery: +2 to longbow/shortbow damage (not attack).
    */
   scopedWeaponDamage: Array<{
     value: number
@@ -233,6 +235,7 @@ export function emptyAggregatedGearEffects(): AggregatedGearEffects {
     conditionImmunities: [],
     toolProficiencies: [],
     weaponProficiencies: [],
+    weaponProficiencyGrants: [],
     scopedWeaponDamage: [],
     grantSpells: [],
     notes: [],
@@ -361,6 +364,25 @@ export function scopedWeaponDamageBonus(
   return total
 }
 
+/** Human-readable scoped damage lines, e.g. «Наручи стрельбы +2». */
+export function scopedWeaponDamageHint(
+  scoped: AggregatedGearEffects['scopedWeaponDamage'],
+  input: {
+    name: string
+    baseWeaponSlug?: string | null
+    catalogSlug?: string | null
+  },
+): string {
+  const bits: string[] = []
+  for (const row of scoped) {
+    if (!weaponMatchesScopeTokens(input, row.weapons)) continue
+    if (!row.value) continue
+    const sign = row.value >= 0 ? '+' : ''
+    bits.push(`${row.itemName} ${sign}${row.value}`)
+  }
+  return bits.join(' · ')
+}
+
 /** Merge sheet weapon training with named extras from active gear. */
 export function mergeGearWeaponProficiency(
   base: WeaponProficiency,
@@ -378,6 +400,38 @@ export function mergeGearWeaponProficiency(
     extras.push(name)
   }
   return { ...base, extras }
+}
+
+/**
+ * When sheet training alone is not enough, return the gear item that unlocks
+ * proficiency for this attack (Bracers of Archery → longbow).
+ */
+export function gearProficiencySourceForAttack(input: {
+  name: string
+  baseWeaponSlug?: string | null
+  sheetWeapons: WeaponProficiency
+  grants: AggregatedGearEffects['weaponProficiencyGrants']
+  sourceKind?: string | null
+  attackId?: string | null
+}): string | null {
+  if (!input.grants.length) return null
+  const probe = {
+    name: input.name,
+    baseWeaponSlug: input.baseWeaponSlug,
+    sourceKind: input.sourceKind,
+    attackId: input.attackId,
+  }
+  if (isWeaponProficient({ ...probe, weapons: input.sheetWeapons })) return null
+  const merged = mergeGearWeaponProficiency(
+    input.sheetWeapons,
+    input.grants.map((row) => row.weapon),
+  )
+  if (!isWeaponProficient({ ...probe, weapons: merged })) return null
+  for (const grant of input.grants) {
+    const withOne = mergeGearWeaponProficiency(input.sheetWeapons, [grant.weapon])
+    if (isWeaponProficient({ ...probe, weapons: withOne })) return grant.itemName
+  }
+  return input.grants[0]?.itemName ?? null
 }
 
 function asReset(value: unknown): ResourceReset | null {
@@ -618,6 +672,7 @@ export function aggregateGearEffects(input: {
 
       if (type === 'weapon_proficiency') {
         const weapons = readWeaponTokenList((effect as { weapons?: unknown }).weapons)
+        const itemName = item.name || 'предмет'
         for (const token of weapons) {
           const label = resolveWeaponExtraName(token) ?? token.trim()
           if (!label) continue
@@ -629,7 +684,8 @@ export function aggregateGearEffects(input: {
             continue
           }
           out.weaponProficiencies.push(label)
-          out.notes.push(`${item.name || 'предмет'}: владение ${label}`)
+          out.weaponProficiencyGrants.push({ weapon: label, itemName })
+          out.notes.push(`${itemName}: владение ${label}`)
         }
         continue
       }

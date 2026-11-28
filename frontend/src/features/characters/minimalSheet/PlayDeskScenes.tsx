@@ -343,6 +343,8 @@ export function PlayDeskScenes({ model }: { model: SheetModel }) {
             abilities={model.effectiveAbilities}
             proficiencyBonus={model.proficiencyBonus}
             weaponProficiency={weaponProficiencyWithGear}
+            sheetWeaponProficiency={model.draft.identity.weapons}
+            gearWeaponProficiencyGrants={model.gearEffects.weaponProficiencyGrants}
             gearBonusesByItem={model.gearEffects.byItem}
             scopedWeaponDamage={model.gearEffects.scopedWeaponDamage}
             effectWeaponBonus={weaponBonusesFromActiveEffects(model.draft.play.effects)}

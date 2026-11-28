@@ -68,8 +68,11 @@ assert.match(checklist, /if \(items\.length === 0\) return null/)
 
 // Ownership summary under passives
 assert.match(layout, /OwnershipSummary/)
+assert.match(layout, /gearWeapons=\{model\.gearEffects\.weaponProficiencies\}/)
 assert.match(ownership, /Доспехи/)
 assert.match(ownership, /Оружие/)
+assert.match(ownership, /gearWeapons/)
+assert.match(ownership, /предмет/)
 assert.match(ownership, /Инструменты/)
 assert.match(ownership, /Языки/)
 assert.match(ownership, /\+\$\{overflow\.length\}/)

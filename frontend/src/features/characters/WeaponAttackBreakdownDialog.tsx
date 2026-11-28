@@ -31,6 +31,8 @@ type WeaponAttackBreakdownDialogProps = {
   baseDamageBonus: number
   /** Damage die + type for the summary, e.g. «1к8 дробящий». */
   damageDieLabel: string
+  /** Optional «ЛОВ · Наручи стрельбы +2» under damage base. */
+  damageBaseHint?: string
   formulaVars: FormulaVars
   modifiers: BonusLine[]
   onModifiersChange: (next: BonusLine[]) => void
@@ -57,6 +59,7 @@ export function WeaponAttackBreakdownDialog({
   attackBaseHint,
   baseDamageBonus,
   damageDieLabel,
+  damageBaseHint = '',
   formulaVars,
   modifiers,
   onModifiersChange,
@@ -242,6 +245,7 @@ export function WeaponAttackBreakdownDialog({
             {baseDamageBonus
               ? ` · мод. ${formatModifier(baseDamageBonus)}`
               : ''}
+            {damageBaseHint ? ` · ${damageBaseHint}` : ''}
             {dmgHint ? ` · ${dmgHint}` : ''}
           </div>
           {renderRows(dmgLines, dmgTarget)}
